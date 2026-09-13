@@ -23,6 +23,7 @@ material-bruto/
 *.wav
 
 node_modules/
+.next/
 .DS_Store
 Thumbs.db
 
