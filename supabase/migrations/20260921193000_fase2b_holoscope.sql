@@ -83,6 +83,43 @@ create trigger holoscope_applications_tocar_updated_at
   before update on public.holoscope_applications
   for each row execute function public.tocar_updated_at();
 
+-- Protecao de imutabilidade: somente interpretacao pode ser alterada.
+-- Campos historicos/calculados sao congelados apos INSERT.
+create or replace function public.proteger_snapshot_holoscope()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if new.nutritionist_id       is distinct from old.nutritionist_id
+  or new.patient_id            is distinct from old.patient_id
+  or new.quando                is distinct from old.quando
+  or new.versao_estrutura      is distinct from old.versao_estrutura
+  or new.versao_bancos         is distinct from old.versao_bancos
+  or new.indice                is distinct from old.indice
+  or new.indice_maximo         is distinct from old.indice_maximo
+  or new.avaliavel             is distinct from old.avaliavel
+  or new.nota_media            is distinct from old.nota_media
+  or new.triada                is distinct from old.triada
+  or new.triada_com_dado       is distinct from old.triada_com_dado
+  or new.cobertura             is distinct from old.cobertura
+  or new.combinacoes           is distinct from old.combinacoes
+  or new.aprofundamentos       is distinct from old.aprofundamentos
+  then
+    raise exception 'campos historicos do snapshot HOLOSCOPE sao imutaveis; '
+      'somente interpretacao_texto, interpretacao_em e interpretacao_versao '
+      'podem ser alterados';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists holoscope_applications_proteger_snapshot
+  on public.holoscope_applications;
+create trigger holoscope_applications_proteger_snapshot
+  before update on public.holoscope_applications
+  for each row execute function public.proteger_snapshot_holoscope();
+
 alter table public.holoscope_applications enable row level security;
 
 create policy holoscope_applications_select_proprios
@@ -121,6 +158,14 @@ create policy holoscope_applications_delete_proprios
 --
 -- Filha de holoscope_applications com ON DELETE CASCADE:
 -- apagar a aplicacao apaga suas respostas.
+--
+-- Imutabilidade: answers sao dados historicos. Depois de inseridas, nao
+-- devem ser alteradas nem apagadas diretamente. Apenas SELECT e INSERT
+-- possuem policy RLS. A exclusao acontece somente via CASCADE ao apagar
+-- a aplicacao pai.
+--
+-- Semantica: ausencia de linha para um marcador = marcador nao respondido
+-- naquela aplicacao. O motor so conta marcadores presentes no calculo.
 
 create table public.holoscope_answers (
   id                uuid primary key default gen_random_uuid(),
@@ -158,28 +203,8 @@ create policy holoscope_answers_insert_proprios
       and a.nutritionist_id = (select auth.uid())
   ));
 
-create policy holoscope_answers_update_proprios
-  on public.holoscope_answers for update
-  to authenticated
-  using (exists (
-    select 1 from public.holoscope_applications a
-    where a.id = holoscope_answers.application_id
-      and a.nutritionist_id = (select auth.uid())
-  ))
-  with check (exists (
-    select 1 from public.holoscope_applications a
-    where a.id = holoscope_answers.application_id
-      and a.nutritionist_id = (select auth.uid())
-  ));
-
-create policy holoscope_answers_delete_proprios
-  on public.holoscope_answers for delete
-  to authenticated
-  using (exists (
-    select 1 from public.holoscope_applications a
-    where a.id = holoscope_answers.application_id
-      and a.nutritionist_id = (select auth.uid())
-  ));
+-- Sem policy de UPDATE: respostas brutas sao imutaveis apos INSERT.
+-- Sem policy de DELETE: exclusao somente via CASCADE da aplicacao pai.
 
 
 -- ============================================================================
@@ -197,6 +222,11 @@ create policy holoscope_answers_delete_proprios
 -- nome preserva o rotulo do banco no momento da aplicacao (snapshot).
 --
 -- Filha de holoscope_applications com ON DELETE CASCADE.
+--
+-- Imutabilidade: scores sao dados historicos. Depois de inseridos, nao
+-- devem ser alterados nem apagados diretamente. Apenas SELECT e INSERT
+-- possuem policy RLS. A exclusao acontece somente via CASCADE ao apagar
+-- a aplicacao pai.
 
 create table public.holoscope_system_scores (
   id                uuid primary key default gen_random_uuid(),
@@ -234,7 +264,10 @@ create table public.holoscope_system_scores (
     check (respondidos >= 0),
 
   constraint holoscope_system_scores_total_marcadores_valido
-    check (total_marcadores > 0)
+    check (total_marcadores > 0),
+
+  constraint holoscope_system_scores_respondidos_coerente
+    check (respondidos <= total_marcadores)
 );
 
 alter table public.holoscope_system_scores enable row level security;
@@ -257,25 +290,19 @@ create policy holoscope_system_scores_insert_proprios
       and a.nutritionist_id = (select auth.uid())
   ));
 
-create policy holoscope_system_scores_update_proprios
-  on public.holoscope_system_scores for update
-  to authenticated
-  using (exists (
-    select 1 from public.holoscope_applications a
-    where a.id = holoscope_system_scores.application_id
-      and a.nutritionist_id = (select auth.uid())
-  ))
-  with check (exists (
-    select 1 from public.holoscope_applications a
-    where a.id = holoscope_system_scores.application_id
-      and a.nutritionist_id = (select auth.uid())
-  ));
+-- Sem policy de UPDATE: scores sao imutaveis apos INSERT.
+-- Sem policy de DELETE: exclusao somente via CASCADE da aplicacao pai.
 
-create policy holoscope_system_scores_delete_proprios
-  on public.holoscope_system_scores for delete
-  to authenticated
-  using (exists (
-    select 1 from public.holoscope_applications a
-    where a.id = holoscope_system_scores.application_id
-      and a.nutritionist_id = (select auth.uid())
-  ));
+
+-- ============================================================================
+-- NOTA: TRANSACAO ATOMICA FUTURA
+-- ============================================================================
+--
+-- Uma aplicacao HOLOSCOPE concluida precisara ser salva de forma atomica:
+--   INSERT holoscope_applications  (1 linha)
+--   INSERT holoscope_answers       (ate 84 linhas)
+--   INSERT holoscope_system_scores (5 linhas)
+--
+-- Isso sera implementado no frontend (ou via RPC/Edge Function) numa fase
+-- futura. Esta migration cria apenas o schema — nao cria funcoes RPC nem
+-- altera o frontend.
