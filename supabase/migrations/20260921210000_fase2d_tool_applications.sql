@@ -69,11 +69,14 @@ alter table public.consultations
 --   - concluida_em (set quando status vira concluida)
 --   - atualizada_em (set em cada gravar())
 --
--- Campos que NAO devem mudar silenciosamente apos criacao:
+-- Campos protegidos por trigger (imutaveis apos criacao):
 --   - nutritionist_id, patient_id, ferramenta_id, versao_ferramenta
---   Nao implementado trigger para isso: o fluxo real nao tenta alterar
---   esses campos, e a FK composta ja protege ownership. Se surgir
---   necessidade, adicionar trigger similar ao proteger_snapshot_holoscope.
+--   - origem_legada, iniciada_em, consultation_id
+--   Auditoria de aplicacoes.js confirmou: NENHUM destes campos e
+--   alterado apos a criacao. gravar() so atualiza campos passados em
+--   `campos`, e nenhum caller (salvarRespostas, concluir, revisar)
+--   passa estes campos. O trigger proteger_identidade_aplicacao()
+--   rejeita qualquer tentativa de alteracao no banco.
 --
 -- Timestamps duplos por intencao:
 --   - iniciada_em / concluida_em / atualizada_em: timestamps de FLUXO,
@@ -150,6 +153,56 @@ create trigger tool_applications_tocar_updated_at
   before update on public.tool_applications
   for each row execute function public.tocar_updated_at();
 
+
+-- ============================================================================
+-- 3. PROTEGER IDENTIDADE DA APLICACAO
+-- ============================================================================
+--
+-- Auditoria de aplicacoes.js confirmou que os 7 campos abaixo sao
+-- definidos exclusivamente na criacao (novaAplicacao, migrar,
+-- migrarTabelaLegada) e NUNCA aparecem em gravar() ou qualquer caller
+-- (salvarRespostas, concluir, revisar):
+--
+--   nutritionist_id   — default auth.uid(), nunca escrito pelo app
+--   patient_id        — set em novaAplicacao/migrar, nunca atualizado
+--   ferramenta_id     — set em novaAplicacao/migrar, nunca atualizado
+--   versao_ferramenta — set em novaAplicacao/migrar, nunca atualizado
+--   origem_legada     — set somente em migrarTabelaLegada, nunca atualizado
+--   iniciada_em       — set em novaAplicacao/migrar, nunca atualizado
+--   consultation_id   — set em novaAplicacao (consultaDeHoje) e migrar
+--                        (null), nunca atualizado; formulario.js le o
+--                        campo (linha 233) mas nunca o escreve
+--
+-- A funcao NAO e SECURITY DEFINER — roda com os privilegios do caller.
+
+create or replace function public.proteger_identidade_aplicacao()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if new.nutritionist_id    is distinct from old.nutritionist_id
+  or new.patient_id         is distinct from old.patient_id
+  or new.ferramenta_id      is distinct from old.ferramenta_id
+  or new.versao_ferramenta  is distinct from old.versao_ferramenta
+  or new.origem_legada      is distinct from old.origem_legada
+  or new.iniciada_em        is distinct from old.iniciada_em
+  or new.consultation_id    is distinct from old.consultation_id
+  then
+    raise exception 'campos de identidade da aplicacao sao imutaveis; '
+      'somente status, respostas, resultado, leitura, prioridade, '
+      'proximo_passo, concluida_em e atualizada_em podem ser alterados';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists tool_applications_proteger_identidade
+  on public.tool_applications;
+create trigger tool_applications_proteger_identidade
+  before update on public.tool_applications
+  for each row execute function public.proteger_identidade_aplicacao();
+
 alter table public.tool_applications enable row level security;
 
 create policy tool_applications_select_proprios
@@ -180,14 +233,19 @@ create policy tool_applications_delete_proprios
 --
 -- Tres origens de dados legados:
 --
--- 1. holohacking.ferramentas (localStorage)
---    Formato: { paciente: { ferramenta: { campo: valor } } }
+-- 1. Chave localStorage "holohacking.ferramentas"
+--    Definida em aplicacoes.js como CAIXA_ANTIGA (linha 47).
+--    Registrada em armazenamento.js como CAIXAS_LEGADAS_CONSUMIDAS.
+--    Tambem limpa em perfil.js no "apagar tudo" (linha 933).
+--    Formato: { pacienteId: { ferramentaId: { campo: valor } } }
 --    Sem data. Cada entrada vira uma aplicacao concluida com:
---      coletado_em = data da migracao
+--      iniciada_em = data da migracao (a data real nao existe)
 --      leitura = 'Aplicacao anterior ao historico: a data original nao
 --                 foi guardada.'
 --      versao_ferramenta = "0"
---    Ja implementado em aplicacoes.js migrar().
+--      consulta_id = null
+--    Ao terminar, a chave e removida do localStorage.
+--    Ja implementado em aplicacoes.js migrar() (linhas 233-275).
 --
 -- 2. Tabela legada oq3
 --    Cada linha TEM created_at (data real). Vira aplicacao concluida
