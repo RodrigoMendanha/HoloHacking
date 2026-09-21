@@ -40,26 +40,6 @@ create trigger profiles_tocar_updated_at
   before update on public.profiles
   for each row execute function public.tocar_updated_at();
 
--- Atualizar lidar_novo_usuario para preencher updated_at no bootstrap.
-create or replace function public.lidar_novo_usuario()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
-begin
-  insert into public.profiles (id, nome, updated_at)
-  values (new.id, coalesce(new.raw_user_meta_data ->> 'nome', new.email), now())
-  on conflict (id) do nothing;
-  return new;
-end;
-$$;
-
--- Manter os revokes da Fase 1 — a funcao foi recriada, os grants resetam.
-revoke execute on function public.lidar_novo_usuario() from public;
-revoke execute on function public.lidar_novo_usuario() from anon;
-revoke execute on function public.lidar_novo_usuario() from authenticated;
-
 
 -- ============================================================================
 -- 2. PATIENTS — unique composta para FK de tabelas filhas
@@ -76,7 +56,8 @@ alter table public.patients
 
 create table public.consultations (
   id               uuid primary key default gen_random_uuid(),
-  nutritionist_id  uuid not null default (select auth.uid()),
+  nutritionist_id  uuid not null default auth.uid()
+                     references auth.users(id),
   patient_id       uuid not null,
   data             date not null,
   hora             time not null,
@@ -147,7 +128,7 @@ create policy consultations_delete_proprios
 
 create table public.schedule_blocks (
   id               uuid primary key default gen_random_uuid(),
-  nutritionist_id  uuid not null default (select auth.uid())
+  nutritionist_id  uuid not null default auth.uid()
                      references auth.users(id),
   data             date not null,
   inicio           time,
