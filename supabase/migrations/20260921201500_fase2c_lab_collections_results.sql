@@ -28,29 +28,43 @@
 -- 1. LAB_COLLECTIONS — cada coleta de exames
 -- ============================================================================
 --
--- Uma coleta agrupa um conjunto de resultados laboratoriais de um paciente
--- em uma data especifica. Cada nova coleta cria uma nova linha — nunca
--- sobrescreve coleta anterior.
+-- Uma coleta agrupa um conjunto de resultados laboratoriais de um paciente.
+-- Cada nova coleta cria uma nova linha — nunca sobrescreve coleta anterior.
+--
+-- coletado_em e nullable: coletas normais informam a data clinica;
+-- importacoes do localStorage nao possuem data real e usam
+-- data_coleta_desconhecida = true com coletado_em = null.
+-- CHECK lab_collections_data_coerente garante coerencia entre ambos.
+-- created_at registra quando o registro entrou no sistema, NUNCA a data
+-- clinica.
 --
 -- Isso corrige a lacuna atual do localStorage (holohacking.exames) que
 -- guarda somente o ultimo valor por exame/paciente, sem data de coleta
 -- e sem historico.
 
 create table public.lab_collections (
-  id               uuid primary key default gen_random_uuid(),
-  nutritionist_id  uuid not null default auth.uid()
-                     references auth.users(id),
-  patient_id       uuid not null,
-  coletado_em      date not null,
-  laboratorio      text,
-  observacao        text,
-  created_at       timestamptz not null default now(),
-  updated_at       timestamptz not null default now(),
+  id                        uuid primary key default gen_random_uuid(),
+  nutritionist_id           uuid not null default auth.uid()
+                              references auth.users(id),
+  patient_id                uuid not null,
+  coletado_em               date,
+  data_coleta_desconhecida  boolean not null default false,
+  laboratorio               text,
+  observacao                text,
+  created_at                timestamptz not null default now(),
+  updated_at                timestamptz not null default now(),
 
   constraint lab_collections_patient_nutritionist_fk
     foreign key (patient_id, nutritionist_id)
     references public.patients (id, nutritionist_id)
-    on delete restrict
+    on delete restrict,
+
+  constraint lab_collections_data_coerente
+    check (
+      (data_coleta_desconhecida = true  and coletado_em is null)
+      or
+      (data_coleta_desconhecida = false and coletado_em is not null)
+    )
 );
 
 create index lab_collections_nutritionist_id_idx
@@ -97,12 +111,13 @@ create policy lab_collections_delete_proprios
 -- reagente/nao-reagente). Nao existem faixas por sexo, idade ou gestacao.
 -- Todos possuem ideal_min e ideal_max preenchidos.
 --
--- Snapshot da faixa: ideal_min_no_momento e ideal_max_no_momento preservam
--- a referencia vigente quando o resultado foi lancado. Se exames.csv mudar
--- no futuro, resultados antigos nao sao afetados.
---
--- nome_exame_no_momento e sistema_no_momento tambem sao snapshot: protegem
--- contra renomeacao ou reclassificacao futura de exames no CSV.
+-- Snapshot completo: 5 campos _no_momento preservam o estado do exame
+-- no momento do lancamento. Se exames.csv mudar no futuro, resultados
+-- antigos nao sao afetados:
+--   - ideal_min_no_momento, ideal_max_no_momento (faixa de referencia)
+--   - nome_exame_no_momento (protege contra renomeacao)
+--   - sistema_no_momento (protege contra reclassificacao)
+--   - unidade_no_momento (protege contra mudanca de unidade)
 --
 -- Filha de lab_collections com ON DELETE CASCADE.
 --
@@ -121,7 +136,7 @@ create table public.lab_results (
                             on delete cascade,
   exame_id                text not null,
   valor                   numeric not null,
-  unidade                 text not null,
+  unidade_no_momento      text not null,
   ideal_min_no_momento    numeric not null,
   ideal_max_no_momento    numeric not null,
   nome_exame_no_momento   text not null,
@@ -198,11 +213,15 @@ create policy lab_results_delete_proprios
 --
 -- Estrategia futura possivel:
 --   1. Ler todos os valores do localStorage no momento da migracao.
---   2. Criar uma lab_collection com coletado_em = data da migracao
---      (a data real e desconhecida — documentar como "importado").
+--   2. Criar uma lab_collection com:
+--        coletado_em = null
+--        data_coleta_desconhecida = true
+--        observacao = 'Importado do armazenamento local — data real
+--                      de coleta desconhecida'
 --   3. Inserir cada valor como lab_result com snapshot da faixa vigente.
---   4. Nao inventar datas historicas.
---   5. Avisar o usuario que resultados importados nao possuem data real.
+--   4. NAO usar data da migracao em coletado_em.
+--   5. NAO inventar datas historicas.
+--   6. Avisar o usuario que resultados importados nao possuem data real.
 --
 -- Nao migrar dados nesta rodada.
 -- Nao alterar frontend.
