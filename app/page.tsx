@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Script from 'next/script';
+import { createClient } from '@/lib/supabase-browser';
+import { useRouter } from 'next/navigation';
+import type { User } from '@supabase/supabase-js';
 
 /* ---------- types matching HOLOSCOPE browser API ---------- */
 
@@ -114,6 +117,23 @@ export default function Home() {
   const [respostas, setRespostas] = useState<Record<string, number>>({});
   const [secaoIdx, setSecaoIdx] = useState(0);
   const [pontuacao, setPontuacao] = useState<Pontuacao | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const router = useRouter();
+  const supabase = createClient();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_ev, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    setUser(null);
+    router.refresh();
+  }
 
   function onHoloscope() {
     setReady(true);
@@ -182,6 +202,34 @@ export default function Home() {
         strategy="afterInteractive"
         onLoad={onHoloscope}
       />
+
+      {/* navbar */}
+      {view !== 'loading' && (
+        <nav style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
+          padding: '10px 24px', background: 'rgba(10,14,23,0.85)', backdropFilter: 'blur(12px)',
+          borderBottom: '1px solid var(--border)',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        }}>
+          <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: 3, color: 'var(--accent-light)', cursor: 'pointer' }} onClick={voltarInicio}>
+            HOLOSCOPE
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            {user ? (
+              <>
+                <span style={{ fontSize: 12, color: 'var(--text-dim)' }}>{user.email}</span>
+                <button onClick={handleLogout} style={{ fontSize: 12, color: 'var(--accent-light)', background: 'none', border: '1px solid var(--border)', padding: '5px 12px', borderRadius: 6 }}>
+                  Sair
+                </button>
+              </>
+            ) : (
+              <button onClick={() => router.push('/login')} style={{ fontSize: 12, color: 'var(--accent-light)', background: 'none', border: '1px solid var(--border)', padding: '5px 12px', borderRadius: 6 }}>
+                Entrar
+              </button>
+            )}
+          </div>
+        </nav>
+      )}
 
       {view === 'loading' && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
