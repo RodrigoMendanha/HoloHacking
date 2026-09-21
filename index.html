@@ -213,6 +213,13 @@
           <em id="sr-papel">Nutricionista</em>
         </span>
       </button>
+      <!-- So aparece com sessao Supabase ativa — login.js decide isso via
+           HoloAuth.aoMudarEstado, o mesmo estado que libera o app. Chama
+           HoloAuth.sair() direto: nenhuma segunda implementacao de signOut. -->
+      <button type="button" class="sr-sair" id="sr-sair" title="Sair da conta" hidden>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+        <span>Sair da conta</span>
+      </button>
       <div class="sr-progresso" id="sr-progresso">
         <span class="sr-rotulo">Perfil</span>
         <span class="sr-trilho"><i id="sr-barra" style="width:0%"></i></span>

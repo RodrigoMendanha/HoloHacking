@@ -19,13 +19,15 @@
  *      paciente cadastrado pela conta A — testado contra o Postgres real via
  *      RLS, nao simulado.
  *
- *   D  REFRESH COM SESSAO (bug de reidratacao corrigido nesta rodada):
- *      login, cadastra paciente, da refresh na pagina, confere que o
- *      paciente, o botao "Sair da conta" e a sessao continuam ali. Cobre os
- *      Cenarios A e B do relato original.
+ *   D  REFRESH COM SESSAO (bug de reidratacao): login, cadastra paciente, da
+ *      refresh na pagina, confere que o paciente, o botao "Sair da conta" da
+ *      aba Conta E o botao "Sair da conta" da SIDEBAR continuam ali. Cobre
+ *      os Cenarios A e B do relato original.
  *
- *   E  LOGOUT + REFRESH: signOut() real bloqueia o app, e o refresh depois
- *      dele continua bloqueado. Cenario C do relato.
+ *   E  LOGOUT + REFRESH: clica no botao "Sair da conta" da sidebar (o
+ *      caminho real, nao HoloAuth.sair() direto) — signOut() real bloqueia
+ *      o app, o proprio botao some, e o refresh depois continua bloqueado.
+ *      Cenario C do relato.
  *
  * B, C, D e E ficam PULADOS, com aviso explicito, se as variaveis de
  * ambiente nao existirem — nunca fingem ter passado. Ver testes/
@@ -70,8 +72,12 @@ console.log('\n  A — SEM SESSAO: CADASTRO CONTINUA 100% LOCAL\n');
   await p.click('#saida-dev'); // bypass local — nao cria sessao nenhuma
   await new Promise(r => setTimeout(r, 200));
 
-  const antesSemSessao = await p.evaluate(() => !!(window.HoloAuth && window.HoloAuth.sessaoAtiva()));
-  ok(!antesSemSessao, 'sem login real, HoloAuth.sessaoAtiva() e false');
+  const antesSemSessao = await p.evaluate(() => ({
+    sessaoAtiva: !!(window.HoloAuth && window.HoloAuth.sessaoAtiva()),
+    sidebarSairEscondido: document.getElementById('sr-sair').hidden,
+  }));
+  ok(!antesSemSessao.sessaoAtiva, 'sem login real, HoloAuth.sessaoAtiva() e false');
+  ok(antesSemSessao.sidebarSairEscondido, 'e o "Sair da conta" da sidebar nao aparece (nem com o atalho de dev)');
 
   const nome = 'Paciente Local Fase1 ' + Date.now();
   const pid = await cadastrar(p, nome);
@@ -211,12 +217,16 @@ if (!EMAIL_A || !SENHA_A) {
     document.getElementById('login-senha').value = senha;
     document.getElementById('form-login').requestSubmit();
     await new Promise(r => setTimeout(r, 1500));
-    return document.getElementById('app').getAttribute('aria-hidden') !== 'true';
+    return {
+      liberado: document.getElementById('app').getAttribute('aria-hidden') !== 'true',
+      sidebarSairVisivel: !document.getElementById('sr-sair').hidden,
+    };
   }, EMAIL_A, SENHA_A);
-  ok(entrou, 'login com HOLO_TESTE_EMAIL entra de verdade');
+  ok(entrou.liberado, 'login com HOLO_TESTE_EMAIL entra de verdade');
+  ok(entrou.sidebarSairVisivel, 'e o "Sair da conta" da sidebar aparece logo apos o login');
 
   let pidRefresh = null;
-  if (entrou) {
+  if (entrou.liberado) {
     const nome = 'Paciente Refresh Fase1.1 ' + Date.now();
     pidRefresh = await cadastrar(p, nome);
     ok(!!pidRefresh, 'cadastro antes do refresh ganhou um id: ' + pidRefresh);
@@ -236,11 +246,13 @@ if (!EMAIL_A || !SENHA_A) {
         sessaoAtiva: !!(window.HoloAuth && window.HoloAuth.sessaoAtiva()),
         appLiberado: document.getElementById('app').getAttribute('aria-hidden') !== 'true',
         pacienteNaLista: document.body.textContent.includes(nomeEsperado),
+        sidebarSairVisivel: !document.getElementById('sr-sair').hidden,
       };
     }, nome);
     ok(depois.sessaoAtiva, 'apos refresh, a sessao continua ativa: HoloAuth.sessaoAtiva() = true');
     ok(depois.appLiberado, 'e o app continua liberado (nao caiu de volta pro login)');
     ok(depois.pacienteNaLista, 'e o paciente cadastrado antes do refresh continua visivel na lista');
+    ok(depois.sidebarSairVisivel, 'e o "Sair da conta" da sidebar continua visivel apos o refresh');
 
     const conta = await p.evaluate(async () => {
       document.querySelector('.nav-item[data-secao="perfil"]').click();
@@ -277,15 +289,22 @@ if (!EMAIL_A || !SENHA_A) {
     await new Promise(r => setTimeout(r, 1500));
   }, EMAIL_A, SENHA_A);
 
+  const antesDoClique = await p.evaluate(() => !document.getElementById('sr-sair').hidden);
+  ok(antesDoClique, 'o botao "Sair da conta" da sidebar esta visivel antes do clique');
+
+  // clica no botao de verdade — nao chama HoloAuth.sair() direto — para
+  // testar o caminho real que a pessoa usa.
   const saiu = await p.evaluate(async () => {
-    await window.HoloAuth.sair();
+    document.getElementById('sr-sair').click();
     await new Promise(r => setTimeout(r, 500));
     return {
       loginAberto: !document.getElementById('tela-login').hidden,
       appBloqueado: document.getElementById('app').getAttribute('aria-hidden') === 'true',
+      sidebarSairSumiu: document.getElementById('sr-sair').hidden,
     };
   });
-  ok(saiu.loginAberto && saiu.appBloqueado, 'signOut() real bloqueia o app de volta para o login');
+  ok(saiu.loginAberto && saiu.appBloqueado, 'clicar "Sair da conta" na sidebar bloqueia o app de volta para o login');
+  ok(saiu.sidebarSairSumiu, 'e o proprio botao some assim que a sessao encerra');
 
   await p.reload({ waitUntil: 'networkidle2' });
   await new Promise(r => setTimeout(r, 800));
@@ -293,9 +312,11 @@ if (!EMAIL_A || !SENHA_A) {
     loginAberto: !document.getElementById('tela-login').hidden,
     appBloqueado: document.getElementById('app').getAttribute('aria-hidden') === 'true',
     sessaoAtiva: !!(window.HoloAuth && window.HoloAuth.sessaoAtiva()),
+    sidebarSairEscondido: document.getElementById('sr-sair').hidden,
   }));
   ok(depoisDoRefresh.loginAberto && depoisDoRefresh.appBloqueado && !depoisDoRefresh.sessaoAtiva,
      'refresh depois do logout continua bloqueado, sem sessão');
+  ok(depoisDoRefresh.sidebarSairEscondido, 'e o "Sair da conta" da sidebar continua escondido');
   ok(ruim.length === 0, 'sem erro de JS' + (ruim.length ? ': ' + ruim[0] : ''));
   await contexto.close();
 }

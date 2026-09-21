@@ -306,6 +306,23 @@
     });
   }
 
+  /* ---------- "Sair da conta" no rodape da sidebar ----------------------
+     O rodape (Profissional/Nutricionista) e desenhado por perfil.js, mas
+     este botao especifico e so de autenticacao — mora aqui, do lado do
+     resto do estado de auth, e reage a aoMudarEstado como tudo mais.
+     Chama HoloAuth.sair() direto: e a mesma funcao que a aba Conta usa,
+     nenhuma segunda implementacao. */
+  function ligarSaidaSidebar() {
+    var botao = document.getElementById("sr-sair");
+    if (!botao) return;
+    botao.addEventListener("click", function () { window.HoloAuth.sair(); });
+    if (window.HoloAuth && window.HoloAuth.aoMudarEstado) {
+      window.HoloAuth.aoMudarEstado(function (estado) {
+        botao.hidden = estado !== "autenticado";
+      });
+    }
+  }
+
   function iniciar() {
     camada = document.getElementById("tela-login");
     if (!camada) return;
@@ -343,6 +360,7 @@
     document.getElementById("app").setAttribute("aria-hidden", "true");
 
     ligarOuvinteDeSessao();
+    ligarSaidaSidebar();
     verificarSessaoInicial();
   }
 

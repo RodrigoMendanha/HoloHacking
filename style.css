@@ -2811,6 +2811,17 @@ body.escuro .btn-tema .icone-lua{display:none}
 }
 .sr-quem em{font-style:normal;font-size:.72rem;font-weight:300;color:rgba(244,239,227,.5)}
 
+.sr-sair{
+  display:flex;align-items:center;gap:7px;width:100%;
+  background:none;border:none;cursor:pointer;text-align:left;
+  padding:0 12px 10px;font-family:inherit;
+  font-size:.72rem;font-weight:300;
+  color:rgba(244,239,227,.45);transition:color .15s;
+}
+.sr-sair:hover,.sr-sair:focus-visible{color:var(--dourado-claro)}
+.sr-sair svg{flex-shrink:0}
+.sr-sair[hidden]{display:none}
+
 .sr-progresso{display:flex;align-items:center;gap:9px;padding:0 12px 12px}
 .sr-rotulo{font-size:.68rem;font-weight:300;color:rgba(244,239,227,.45)}
 .sr-trilho{
