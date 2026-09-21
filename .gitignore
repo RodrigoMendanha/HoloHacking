@@ -1,55 +1,27 @@
-# ---------------------------------------------------------------------------
-# Casos clinicos reais = dado pessoal sensivel (LGPD art. 5 II e art. 11).
-# Nunca versionar. Uma vez commitado, fica na historia do repositorio para sempre,
-# mesmo que o arquivo seja apagado depois.
-# Os casos ficticios de teste (exemplo-*) sao a unica excecao.
-# ---------------------------------------------------------------------------
-Holos AI/motor/casos/*
-!Holos AI/motor/casos/exemplo-*.json
-
-# Material bruto do metodo (livro, aulas, apostilas) vive no Drive, nao aqui.
-# As transcricoes processadas entram depois, em pasta propria e por decisao explicita.
-material-bruto/
-**/material/
-*.pdf
-*.docx
-*.doc
-*.pptx
-*.xlsx
-*.mp4
-*.mov
-*.mp3
-*.m4a
-*.wav
-
 node_modules/
 .DS_Store
 Thumbs.db
 
-# Indice derivado e material bruto do metodo — reconstruiveis, nao versionar
-Holos AI/motor/corpus/indice.json
-Holos AI/motor/corpus/fontes/*
-!Holos AI/motor/corpus/fontes/README.md
-
-# Cache do Python (o extrator roda uma vez, o .pyc nao interessa a ninguem)
-__pycache__/
-*.pyc
-
-# Artefato gerado por "npm run bancos". Sai dos CSV, nao se versiona.
-Holos AI/motor/build/
-
 # ---------------------------------------------------------------------------
-# Este repositorio e PUBLICO. O que esta abaixo e trabalho interno — plano de
-# execucao, pedidos de revisao ao Rodrigo, roteiro e producao do video.
-# Continua em disco e no repositorio holos; so nao e publicado aqui.
+# Casos clinicos reais = dado pessoal sensivel (LGPD art. 5 II e art. 11).
+# Nunca versionar: uma vez commitado, fica na historia para sempre.
+# Os casos ficticios (exemplo-*) sao a unica excecao.
 # ---------------------------------------------------------------------------
-PLANO.md
-PLANO-SEMANA.md
-PARA-O-RODRIGO-REVISAR.md
-AS-87-PERGUNTAS.md
-ROTEIRO-VIDEO-COMERCIAL.md
-Holos AI/MENSAGEM-RODRIGO.md
-Holos AI/PARA-O-RODRIGO.md
-locucao/
-holohacking-storyboard.png
-holohacking-demo-capa.png
+motor/casos/*
+!motor/casos/exemplo-*.json
+
+# O corpus e material do metodo, com direito autoral. Fica fora.
+motor/corpus/fontes/*
+!motor/corpus/fontes/README.md
+motor/corpus/indice.json
+
+# Gerados
+motor/build/
+motor/node_modules/
+
+# Trabalho interno (plano, revisao do Rodrigo, roteiro e locucao do video).
+# Fica no repositorio holos, nao neste, que e publico.
+docs/
+
+# Capturas de tela dos testes: geradas a cada rodada, nao sao fonte.
+/*.png

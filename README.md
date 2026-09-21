@@ -1,103 +1,98 @@
-# Holos Company
+# HoloHacking
 
-**Promessa:** transformar informações fragmentadas em uma visão clínica mais clara, organizada e
-aplicável.
+**A plataforma clínica da Nutrição Holística** — o sistema que a nutricionista abre
+todo dia. Método de Rodrigo Mendanha, livro publicado em 2025 (ISBN 978-65-987413-0-3).
 
-Método: **Nutrição Holística**, de **Rodrigo Mendanha** — livro publicado em 2025,
-ISBN 978-65-987413-0-3. O movimento se chama Renascentismo Nutricional.
+O app é HTML, CSS e JavaScript puro. **Não tem build**: abrir o `index.html` por um
+servidor já é o produto rodando.
 
-🔱 **[O que está dentro do quê](https://claude.ai/code/artifact/4ff7b29a-b2bf-4003-bbfc-fd930dfd58fc)** — o mapa de arquitetura. Resolve a confusão de nomes.
+## Rodar na sua máquina
 
----
-
-## A arquitetura
-
-Um método, duas telas, três etapas.
-
-```
-Nutrição Holística ─ o método. O livro. Não é software.
-  │
-  ├─ HoloHacking ─ a plataforma clínica (o que a nutricionista compra)
-  │     ├─ Holoscan ──► Holoscope ──► Holos AI
-  │     │   lê dados      mapeia        apoia
-  │     └─ 30 ferramentas clínicas em Corpo, Mente e Espírito
-  │
-  └─ App de Nutrição Holística ─ o app do PACIENTE
-        jornada diária, práticas, hábitos, conteúdo
+```bash
+npm run servir     # sobe em http://localhost:5500
 ```
 
-**Nome oficial:** **HoloHacking** (sem "s") — *a plataforma clínica da Nutrição
-Holística*. Decidido em 27/08/2026.
+O modo demonstração — um caso fictício completo, de ponta a ponta — abre com
+`?demo=1` na URL. Fora dele, nada da demo carrega.
 
-**A regra que decide qualquer dúvida futura:** o que se vende é o HoloHacking, com o
-app do paciente do outro lado da mesma assinatura. Holoscan, Holoscope e Holos AI
-são partes dele — podem ganhar destaque comercial, mas não são softwares separados.
+## O que tem dentro
 
-### As três etapas
-
-| Etapa | Nas palavras do Rodrigo | Estado |
-| --- | --- | --- |
-| **Holoscan** | "Leitura e organização de dados, sinais, exames e padrões" | ❌ não existe — exame laboratorial não entra em lugar nenhum |
-| **Holoscope** | "Mapeamento integral do paciente" | ✅ [motor construído](./Holos%20AI/motor/), determinístico e auditável |
-| **Holos AI** | "Apoio ao raciocínio, planejamento, comunicação e acompanhamento" | ✅ construído, nunca rodou (falta credencial da API) |
-
-### As subferramentas são entrada ou saída, não ferramentas
-
-| Nome comercial | O que é | Onde está |
-| --- | --- | --- |
-| BioRoot™ | **entrada** — bloco físico | `bancos/sintomas.csv` |
-| NeuroScan™ | **entrada** — bloco emocional | `bancos/emocoes.csv` |
-| SoulIndex™ | **entrada** — bloco espiritual | `bancos/espiritual.csv` |
-| Triada HOLOS® | **saída** — gráfico calculado | `src/motor.ts` |
-| Mapa de Frequências™ | **saída** — gráfico calculado | `src/motor.ts` |
-
----
-
-## Onde está cada coisa
-
-| Pasta | O que guarda |
+| Parte | O que faz |
 | --- | --- |
-| [Holos AI/motor/](./Holos%20AI/motor/) | **O código.** Motor de pontuação, corpus do livro, agentes, 38 testes |
-| [Holos AI/](./Holos%20AI/) | Documentos para o Rodrigo e o material original |
-| [Holoscope/](./Holoscope/) | Material original do HOLOSCOPE (11/08) |
-| [Holohacking/](./Holohacking/) | Material original — 1 parágrafo |
-| [Agentes de IA Holos/](./Agentes%20de%20IA%20Holos/) | Material original — 1 lista |
-| [Holoscan/](./Holoscan/) | Sem material próprio; o papel dele está definido no item acima |
+| **Questionário** | 84 perguntas que geram o mapa do paciente |
+| **HOLOSCOPE** | Os 5 sistemas, o Índice HOLOS e a Tríada, calculados pelo motor |
+| **Leituras combinadas** | O cruzamento entre sistemas que aponta a ferramenta a aplicar |
+| **30 ferramentas** | Corpo, Mente e Espírito — 27 no catálogo, 3 com tela própria |
+| **Holoscan** | Exames laboratoriais: 24 marcadores, com upload do PDF ou da foto do laudo |
+| **Ficha e evolução** | O paciente inteiro numa tela, e a comparação em 4, 8 e 12 semanas |
+| **Relatório** | Dois registros, um para a nutricionista e um para o paciente |
 
----
+## O que o HOLOSCOPE é — e o que ele não é
 
-## As três dúvidas de 11/08 — respondidas em 27/08
+Os cinco sistemas não são doenças: são **agrupamentos de sinais que o paciente
+relata e que costumam andar juntos**, cada um com o padrão emocional e o
+impacto espiritual que o método associa a ele. A nota de 0 a 10 é a soma
+ponderada e auditável do que a própria pessoa marcou — dá para apontar a linha
+e dizer de onde veio o número. É um instrumento de **triagem e priorização**:
+ele responde "por onde eu começo com esta paciente?".
 
-Ficaram abertas por três meses. O material do Rodrigo já continha a resposta das
-três, num bloco que tinha se perdido no meio do resto ("sugestão de diferenciação
-conceitual").
+Ele não mede nada. Não é exame, não é diagnóstico médico e não substitui
+avaliação clínica — e a tela diz isso, no mapa e no registro que vai para o
+paciente. Diagnóstico **nutricional** é atribuição da nutricionista;
+diagnóstico de **doença** é ato médico, e a fronteira entre os dois é a
+decisão D5 de 27/08: a palavra do produto é *avaliação integral*.
 
-**1. Holoscope e Holos AI descreviam o mesmo motor.** Resolvido: não descrevem.
-O Holoscope **mapeia** (e o cálculo é dele); o Holos AI **apoia** — escreve o
-relatório, responde dúvida do método, acompanha em 4/8/12 semanas.
+Por isso os cinco cards descrevem o **sinal relatado**, nunca a causa:
+"sono depois de comer, fome que volta rápido" e não "resistência à insulina".
+Onze perguntas de autorrelato não sustentam uma afirmação etiológica.
+[testes/testar-fronteira.mjs](./testes/testar-fronteira.mjs) trava isso — é o
+tipo de coisa que volta por edição de texto, não por bug.
 
-**2. O Holoscan tinha sumido.** Resolvido, e ao contrário do que parecia: ele não
-é nome sobrando, é **buraco real**. O material lista "exames laboratoriais" como
-a primeira coisa que o paciente preenche, e não existe nada hoje que receba exame.
+## O motor
 
-**3. O papel do Holos AI mudou entre um material e outro.** Continua sendo a única
-contradição de verdade: um bloco diz "apoio", outro diz que ele "classifica nos 5
-sistemas e gera a pontuação".
+Vive em [motor/](./motor/), em TypeScript, e é **determinístico**: mesma resposta,
+mesmo número, sempre. O cálculo não usa IA nenhuma — é o que sustenta a
+credibilidade clínica do produto.
 
-> **Vale ficar com "apoio", por motivo técnico.** A pontuação precisa ser
-> determinística — mesma resposta, mesmo número, sempre. Chamar isso de "AI" faz
-> supor que é generativo, e no dia em que uma nutricionista aplicar duas vezes no
-> mesmo paciente e vir 62 e depois 71, o produto perde a credibilidade clínica que
-> ele vende. É como já está construído: o cálculo não usa IA nenhuma.
+```bash
+cd motor
+node src/cli.ts validar      # confere os bancos e avisa o que falta revisar
+node --test src/testes.ts    # 38 testes
+npm run bundle               # regera o holoscope.js que o app carrega
+```
 
----
+As ferramentas clínicas e os marcadores são **dado, não código**: estão em
+`motor/bancos/*.csv` e em `ferramentas.js`. Criar uma ferramenta nova é acrescentar
+um objeto — não se toca em HTML nem em JS.
 
-## O gargalo real
+## Testes
 
-Não é mais o corpus — o livro está indexado, 258 trechos, e a IA responde citando
-capítulo e página. O gargalo agora é o que **só o Rodrigo** pode dar:
+```bash
+npm install     # puppeteer-core
+npm run teste   # 12 suítes de interface
+```
 
-- **as 15 leituras combinadas** (existem 5) — é o que separa o HOLOSCOPE de um formulário;
-- **os chacras**, sem os quais o Mapa de Frequências não existe (o livro não menciona chacra em nenhuma das 145 páginas);
-- **o peso de cada sistema** no Índice HOLOS — hoje é 20% para cada, escolha de programador;
-- **a revisão dos 87 marcadores** já rascunhados, marcando aceito / corrijo / fora / falta.
+## Onde os dados ficam
+
+**No navegador, e só nele.** [dados.js](./dados.js) é a camada de persistência:
+implementa as três chamadas que o app usa e guarda no `localStorage`; os PDFs e
+fotos de laudo vão para o IndexedDB, em [arquivo-store.js](./arquivo-store.js).
+
+O app não fala com servidor nenhum — abre e funciona sem rede. Até 13/09 ele
+abria um cliente Supabase real, com a chave escrita no `app.js` que é servido
+aberto: não dava para trabalhar offline e cada rodada de teste cadastrava
+paciente num banco de verdade. As linhas que já estão naquele projeto continuam
+lá; nada foi apagado.
+
+Trocar por um banco de verdade é trocar **uma linha** — a que define `sb` no
+app.js — e implementar as mesmas três chamadas. `DadosLocais.exportar()` devolve
+tudo num objeto, que é por onde a migração vai passar.
+
+## O que falta para atender paciente de verdade
+
+1. **A revisão clínica dos marcadores** pelo Rodrigo — ver
+   `docs/REVISAO-CLINICA.md` (interno, fora deste repo). O validador recusa
+   qualquer linha que não esteja marcada como confirmada, e avisa quais faltam.
+2. **Login da nutricionista**, cada conta enxergando só os seus pacientes.
+3. **Banco de verdade, com LGPD** — hoje trocar de máquina perde tudo, e um
+   `localStorage` limpo apaga a clínica inteira.

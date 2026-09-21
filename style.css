@@ -1,0 +1,3515 @@
+
+:root{
+  --verde-noite:#06231a;
+  --verde-escuro:#0b3325;
+  --verde-medio:#14503b;
+  --verde-suave:#2c6a51;
+  --dourado:#c9a35a;
+  --dourado-claro:#e2c98a;
+  --dourado-suave:rgba(201,163,90,.25);
+  --creme:#f4efe3;
+  --creme-claro:#faf7ee;
+  --tinta:#1d3a2e;
+  --tinta-suave:#4f6a5d;
+  --linha:rgba(201,163,90,.35);
+  --sombra:0 18px 50px rgba(6,35,26,.18);
+  --raio:18px;
+  --fonte-display:"Cormorant Garamond",Georgia,serif;
+  --fonte-corpo:"Jost","Segoe UI",sans-serif;
+  --sup-fundo:#f4efe3;
+  --sup-card:#faf7ee;
+  --titulo:#0b3325;
+  --texto:#1d3a2e;
+  --texto-suave:#4f6a5d;
+  --realce:#14503b;
+  --borda-suave:rgba(29,58,46,.1);
+  --topo-fundo:rgba(250,247,238,.7);
+  --input-fundo:#fff;
+  --input-borda:rgba(29,58,46,.18);
+  --citacao-clara-fundo:rgba(20,80,59,.06);
+  --halo:rgba(201,163,90,.1);
+  --movimento-sobe:#1f6b47;
+  --movimento-desce:#a8442c;
+  /* O dourado da marca mede 2,21:1 contra o creme — abaixo dos 3:1 que uma
+     barra precisa para ser vista. Um passo mais escuro, mesma familia. */
+  --dash-barra:#a87f31;
+  --dash-trilho:rgba(29,58,46,.09);
+}
+body.escuro{
+  --sup-fundo:#07211a;
+  --sup-card:#0c3225;
+  --titulo:#e2c98a;
+  --texto:#ede8da;
+  --texto-suave:rgba(237,232,218,.62);
+  --realce:#c9a35a;
+  --borda-suave:rgba(201,163,90,.16);
+  --topo-fundo:rgba(7,33,26,.75);
+  --input-fundo:rgba(244,239,227,.05);
+  --input-borda:rgba(201,163,90,.3);
+  --citacao-clara-fundo:rgba(201,163,90,.08);
+  --halo:rgba(201,163,90,.05);
+  --movimento-sobe:#8fc9a5;
+  --movimento-desce:#e6a08a;
+  /* no escuro o dourado da marca ja passa com folga */
+  --dash-barra:#c9a35a;
+  --dash-trilho:rgba(201,163,90,.14);
+  --sombra:0 18px 50px rgba(0,0,0,.4);
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--fonte-corpo);
+  background:var(--verde-noite);
+  color:var(--texto);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;cursor:pointer}
+input,textarea,select{font-family:inherit}
+:focus-visible{outline:2px solid var(--dourado);outline-offset:3px;border-radius:4px}
+
+.eyebrow{
+  font-size:.68rem;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--dourado);font-weight:500;
+}
+.serif{font-family:var(--fonte-display)}
+.hidden{display:none!important}
+
+/* ============================================================
+   APP SHELL
+============================================================ */
+#app{display:flex;min-height:100vh}
+
+.sidebar{
+  width:264px;flex-shrink:0;
+  background:
+    radial-gradient(ellipse 120% 40% at 50% -5%, rgba(201,163,90,.12), transparent 60%),
+    linear-gradient(180deg,var(--verde-escuro),var(--verde-noite) 70%);
+  border-right:1px solid rgba(201,163,90,.18);
+  display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;
+  padding:28px 18px 22px;
+  overflow-y:auto;
+}
+.sidebar-marca{
+  /* empilhado e centrado: o simbolo precisa de ~56px para as escamas da pinha
+     aparecerem, e nessa altura ele nao cabe mais ao lado do nome. */
+  display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;
+  padding:4px 8px 24px;margin-bottom:18px;
+  border-bottom:1px solid rgba(201,163,90,.18);
+}
+.sidebar-marca svg{flex-shrink:0}
+.sidebar-marca .nome{
+  font-family:var(--fonte-display);font-weight:600;
+  color:var(--creme);font-size:1.02rem;line-height:1.15;letter-spacing:.03em;
+}
+.marca-hero{
+  display:block;color:var(--dourado);margin-bottom:22px;
+  opacity:.92;
+}
+.sidebar-marca .nome em{
+  display:block;font-family:var(--fonte-corpo);font-style:normal;
+  /* o descritor cresceu de "Plataforma clinica" para "Plataforma clinica da
+     Nutricao Holistica": com .3em de espacamento ele estourava a sidebar.
+     Menos espacamento, duas linhas, e a leitura continua limpa. */
+  font-size:.55rem;letter-spacing:.14em;text-transform:uppercase;
+  line-height:1.6;max-width:17ch;margin-inline:auto;
+  color:var(--dourado);margin-top:5px;font-weight:500;
+}
+/* O rotulo de cada grupo da navegacao. O segundo grupo ganha respiro em cima:
+   e o espaco que faz "Atendimento" e "Recursos" lerem como duas coisas. */
+.nav-titulo{
+  font-size:.6rem;letter-spacing:.28em;text-transform:uppercase;
+  color:rgba(226,201,138,.55);padding:0 12px;margin:6px 0 10px;font-weight:500;
+}
+.nav-grupo + .nav-titulo{
+  margin-top:22px;padding-top:16px;
+  border-top:1px solid rgba(201,163,90,.16);
+}
+.nav-item{
+  display:flex;align-items:center;gap:12px;width:100%;
+  background:none;border:none;border-radius:12px;
+  padding:12px 12px;margin-bottom:4px;
+  color:rgba(244,239,227,.72);font-size:.88rem;font-weight:400;
+  letter-spacing:.04em;text-align:left;
+  transition:background .2s,color .2s;
+  position:relative;
+}
+.nav-item svg{flex-shrink:0;opacity:.85}
+.nav-item:hover{background:rgba(201,163,90,.1);color:var(--creme)}
+.nav-item.ativo{
+  background:linear-gradient(90deg,rgba(201,163,90,.2),rgba(201,163,90,.06));
+  color:var(--dourado-claro);
+}
+.nav-item.ativo::before{
+  content:"";position:absolute;left:0;top:20%;bottom:20%;width:3px;
+  background:var(--dourado);border-radius:3px;
+}
+.nav-tag{
+  margin-left:auto;font-size:.55rem;letter-spacing:.14em;
+  color:var(--dourado);border:1px solid rgba(201,163,90,.4);
+  border-radius:999px;padding:2px 8px;font-weight:500;
+}
+.sidebar-rodape{
+  margin-top:auto;padding:16px 12px 0;
+  border-top:1px solid rgba(201,163,90,.14);
+  font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;
+  color:rgba(244,239,227,.35);line-height:1.9;font-weight:300;
+}
+.sidebar-rodape strong{color:rgba(226,201,138,.7);font-weight:500}
+
+.principal{
+  flex:1;min-width:0;
+  background:
+    radial-gradient(ellipse 60% 30% at 85% -5%, var(--halo), transparent 60%),
+    var(--sup-fundo);
+  transition:background .3s;
+}
+.topo{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:20px 40px;border-bottom:1px solid var(--borda-suave);
+  background:var(--topo-fundo);backdrop-filter:blur(8px);
+  position:sticky;top:0;z-index:20;
+}
+.topo .caminho{font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--texto-suave);font-weight:500}
+.topo .caminho b{color:var(--realce)}
+.chip-usuario{
+  display:flex;align-items:center;gap:10px;
+  font-size:.78rem;color:var(--texto);letter-spacing:.03em;
+}
+.chip-usuario .avatar{
+  width:34px;height:34px;border-radius:50%;
+  background:linear-gradient(135deg,var(--verde-medio),var(--verde-escuro));
+  color:var(--dourado-claro);display:flex;align-items:center;justify-content:center;
+  font-family:var(--fonte-display);font-weight:600;font-size:.95rem;
+  border:1px solid var(--dourado-suave);
+}
+.conteudo{padding:44px 40px 80px;max-width:1080px;margin:0 auto}
+
+.secao{display:none;animation:aparecer .45s ease both}
+.secao.ativa{display:block}
+@keyframes aparecer{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+.secao-cabeca{margin-bottom:34px;max-width:720px}
+.secao-cabeca h2{
+  font-family:var(--fonte-display);font-weight:600;
+  color:var(--titulo);font-size:clamp(1.9rem,4vw,2.6rem);
+  line-height:1.12;margin:10px 0 14px;
+}
+.secao-cabeca h2 em{font-style:italic;color:var(--dourado);font-weight:500}
+.secao-cabeca p{color:var(--texto-suave);font-weight:300;font-size:1rem;line-height:1.7}
+
+/* ---------- pacientes ---------- */
+/* O cabecalho leva o contador e o botao principal para o mesmo bloco do
+   titulo — antes os dois so apareciam la embaixo, junto da busca. */
+.pac-cabeca{
+  max-width:none;
+  display:flex;align-items:flex-end;justify-content:space-between;
+  gap:16px 28px;flex-wrap:wrap;
+}
+.pac-cabeca-texto{max-width:42rem}
+.pac-cabeca-acoes{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+
+.acoes-topo{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px}
+.lista-pacientes{display:flex;flex-direction:column;gap:10px}
+.card-paciente{
+  display:grid;grid-template-columns:auto auto 1fr auto auto;
+  align-items:center;gap:14px;text-align:left;
+  background:var(--sup-card);
+  border:1px solid var(--borda-suave);
+  border-left:3px solid var(--dourado-suave);
+  border-radius:14px;padding:16px 20px;cursor:pointer;
+  transition:border-color .18s, background .18s;
+  position:relative;
+}
+/* Linha larga nao levanta: subir 3px uma faixa de ponta a ponta da tela
+   sacode a lista inteira. A borda esquerda acende, e isso basta. */
+.card-paciente:hover{border-color:var(--dourado-suave);border-left-color:var(--dourado)}
+.card-paciente.ativo{border-color:var(--dourado);box-shadow:0 0 0 2px rgba(201,163,90,.28)}
+.pac-avatar{
+  width:42px;height:42px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--verde-medio),var(--verde-escuro));
+  color:var(--dourado-claro);display:flex;align-items:center;justify-content:center;
+  font-family:var(--fonte-display);font-weight:600;font-size:1.15rem;
+  border:1px solid var(--dourado-suave);
+}
+.pac-info h4{
+  font-family:var(--fonte-display);font-weight:600;
+  color:var(--titulo);font-size:1.12rem;line-height:1.2;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+/* Os selos OQ3/PQQ/HOLO e o X de excluir sairam do cartao: o selo dizia que
+   a ferramenta tinha sido aplicada, e o botao de proximo passo diz mais — diz
+   o que falta. Excluir foi para o menu, onde um clique torto nao alcanca. */
+.lista-vazia{
+  grid-column:1/-1;text-align:center;padding:52px 24px;
+  border:1px dashed var(--input-borda);border-radius:16px;color:var(--texto-suave);
+}
+.lista-vazia strong{
+  display:block;font-family:var(--fonte-display);font-size:1.35rem;
+  color:var(--titulo);font-weight:600;margin-bottom:8px;
+}
+.lista-vazia span{font-size:.86rem;font-weight:300;display:block}
+.lista-vazia .btn-verde{margin-top:20px}
+
+.barra-paciente{
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  background:var(--sup-card);
+  border:1px solid rgba(201,163,90,.4);
+  border-radius:14px;padding:14px 18px;margin-bottom:24px;
+}
+.barra-paciente .rotulo{
+  font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--texto-suave);font-weight:600;
+}
+.barra-paciente select{
+  flex:1;min-width:200px;padding:10px 14px;
+  background:var(--input-fundo);border:1px solid var(--input-borda);
+  border-radius:10px;color:var(--texto);font-size:.88rem;font-weight:400;
+  font-family:inherit;cursor:pointer;
+}
+.barra-paciente select:focus{border-color:var(--dourado);outline:none}
+.barra-paciente .aviso{font-size:.76rem;color:var(--texto-suave);font-weight:300}
+
+.ficha{
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,163,90,.14), transparent 60%),
+    linear-gradient(170deg,var(--verde-escuro),var(--verde-noite));
+  border:1px solid var(--linha);border-radius:var(--raio);
+  padding:34px 32px;color:var(--creme);box-shadow:var(--sombra);margin-bottom:24px;
+}
+.ficha-topo{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-bottom:22px}
+.ficha-topo .pac-avatar{width:56px;height:56px;font-size:1.5rem}
+.ficha-topo h3{
+  font-family:var(--fonte-display);font-weight:600;
+  color:var(--dourado-claro);font-size:1.7rem;line-height:1.15;
+}
+.ficha-topo .meta{font-size:.78rem;color:rgba(244,239,227,.6);font-weight:300;margin-top:4px}
+.ficha-grade{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.ficha-bloco{
+  border:1px solid rgba(201,163,90,.28);border-radius:12px;
+  padding:16px 18px;background:rgba(244,239,227,.04);
+}
+.ficha-bloco h6{
+  font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--dourado);font-weight:600;margin-bottom:8px;
+}
+.ficha-bloco p{font-size:.82rem;color:rgba(244,239,227,.78);font-weight:300;line-height:1.6;white-space:pre-wrap}
+.ficha-bloco p.vazio{color:rgba(244,239,227,.35);font-style:italic}
+.ficha-acoes{display:flex;gap:12px;margin-top:22px;flex-wrap:wrap}
+
+/* ---------- busca de ferramentas ---------- */
+.barra-busca{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  margin-bottom:18px;
+}
+.campo-busca{
+  position:relative;flex:1;min-width:240px;
+}
+.campo-busca svg{
+  position:absolute;left:16px;top:50%;transform:translateY(-50%);
+  color:var(--texto-suave);pointer-events:none;
+}
+.campo-busca input{
+  width:100%;padding:13px 42px 13px 44px;
+  background:var(--input-fundo);
+  border:1px solid var(--input-borda);
+  border-radius:999px;color:var(--texto);
+  font-size:.88rem;font-weight:300;letter-spacing:.02em;
+  transition:border-color .2s, box-shadow .2s;
+}
+.campo-busca input::placeholder{color:var(--texto-suave);opacity:.7}
+.campo-busca input:focus{
+  border-color:var(--dourado);box-shadow:0 0 0 3px rgba(201,163,90,.15);outline:none;
+}
+.btn-limpar-busca{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  width:24px;height:24px;border-radius:50%;border:none;
+  background:none;color:var(--texto-suave);
+  display:none;align-items:center;justify-content:center;
+  transition:color .2s;
+}
+.btn-limpar-busca:hover{color:var(--realce)}
+.campo-busca.com-texto .btn-limpar-busca{display:flex}
+.contador-busca{
+  font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--texto-suave);font-weight:500;white-space:nowrap;
+}
+.contador-busca b{color:var(--realce);font-weight:600}
+.sem-resultado{
+  display:none;grid-column:1/-1;
+  text-align:center;padding:42px 24px;
+  border:1px dashed var(--input-borda);border-radius:14px;
+  color:var(--texto-suave);
+}
+.sem-resultado strong{
+  display:block;font-family:var(--fonte-display);
+  font-size:1.2rem;color:var(--titulo);font-weight:600;margin-bottom:6px;
+}
+.sem-resultado span{font-size:.84rem;font-weight:300}
+.galeria-ferramentas.vazia .sem-resultado{display:block}
+.card-ferr.oculto{display:none}
+mark{background:rgba(201,163,90,.32);color:inherit;border-radius:3px;padding:0 2px}
+
+/* ---------- galeria de ferramentas ---------- */
+.galeria-ferramentas{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.card-ferr{
+  display:flex;gap:16px;align-items:flex-start;text-align:left;
+  background:var(--sup-card);
+  border:1px solid rgba(201,163,90,.35);
+  border-left:3px solid var(--dourado);
+  border-radius:14px;padding:20px 20px 18px;
+  box-shadow:0 4px 14px rgba(6,35,26,.05);
+  transition:transform .22s, box-shadow .22s, border-color .22s;
+}
+.card-ferr:not(.bloqueada){cursor:pointer}
+.card-ferr:not(.bloqueada):hover{
+  transform:translateY(-3px);border-color:var(--dourado);
+  box-shadow:var(--sombra);
+}
+.ferr-num{
+  font-family:var(--fonte-display);font-weight:600;font-size:1.05rem;
+  color:var(--dourado);flex-shrink:0;width:36px;height:36px;
+  border:1px solid var(--dourado);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+}
+.ferr-info{flex:1;min-width:0}
+.ferr-info h4{
+  font-family:var(--fonte-display);font-weight:600;
+  color:var(--titulo);font-size:1.15rem;line-height:1.2;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.ferr-info p{font-size:.78rem;color:var(--texto-suave);font-weight:300;line-height:1.55;margin-top:5px}
+.ferr-status{
+  font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;
+  border-radius:999px;padding:3px 10px;font-weight:600;white-space:nowrap;
+}
+.ferr-status.disponivel{color:var(--dourado);border:1px solid var(--dourado);background:rgba(201,163,90,.1)}
+.ferr-status.breve{color:var(--texto-suave);border:1px solid var(--input-borda)}
+.card-ferr.bloqueada{opacity:.55}
+.vista-ferramenta{animation:aparecer .4s ease both}
+.btn-voltar{
+  display:inline-flex;align-items:center;gap:10px;
+  background:none;border:1px solid var(--input-borda);border-radius:999px;
+  padding:9px 20px;margin-bottom:26px;
+  color:var(--texto-suave);font-size:.7rem;
+  letter-spacing:.2em;text-transform:uppercase;font-weight:500;
+  transition:border-color .2s,color .2s;
+}
+.btn-voltar:hover{border-color:var(--dourado);color:var(--realce)}
+
+/* ---------- painel escuro ---------- */
+.painel-escuro{
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 0%, rgba(201,163,90,.14), transparent 60%),
+    linear-gradient(165deg,var(--verde-escuro),var(--verde-noite));
+  border:1px solid var(--linha);
+  border-radius:var(--raio);
+  padding:42px 40px;color:var(--creme);
+  box-shadow:var(--sombra);
+}
+.painel-escuro h3{
+  font-family:var(--fonte-display);font-weight:600;
+  color:var(--dourado-claro);font-size:1.7rem;margin:8px 0 12px;line-height:1.2;
+}
+.painel-escuro p{color:rgba(244,239,227,.78);font-weight:300;line-height:1.75;font-size:.95rem}
+
+/* ---------- cards de pilares (dashboard) ---------- */
+.grade-pilares{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:24px}
+.card-pilar{
+  background:var(--sup-card);
+  border:1px solid rgba(201,163,90,.4);
+  border-radius:var(--raio);
+  padding:30px 26px;text-align:left;
+  display:flex;flex-direction:column;gap:14px;
+  transition:transform .25s, box-shadow .25s, border-color .25s;
+  box-shadow:0 6px 20px rgba(6,35,26,.06);
+  cursor:pointer;border-left:3px solid var(--dourado);
+}
+.card-pilar:hover{transform:translateY(-4px);box-shadow:var(--sombra);border-color:var(--dourado)}
+.card-pilar .icone{
+  width:48px;height:48px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, var(--verde-suave), var(--verde-escuro));
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--dourado-suave);
+}
+.card-pilar h4{
+  font-family:var(--fonte-display);font-weight:600;
+  color:var(--titulo);font-size:1.4rem;
+}
+.card-pilar .ferramenta{
+  font-size:.62rem;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--dourado);font-weight:600;
+}
+.card-pilar p{font-size:.85rem;color:var(--texto-suave);font-weight:300;line-height:1.65;flex:1}
+.card-pilar .abrir{
+  font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--realce);font-weight:500;
+  display:flex;align-items:center;gap:8px;
+}
+.card-pilar:hover .abrir{color:var(--dourado)}
+
+/* ---------- passos ---------- */
+.passos{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:30px;border-top:1px solid rgba(201,163,90,.25)}
+.passo{padding:24px 22px 6px;border-left:1px solid rgba(201,163,90,.2)}
+.passo:first-child{border-left:none;padding-left:0}
+.passo .num{
+  font-family:var(--fonte-display);font-size:2rem;font-weight:500;
+  color:var(--dourado);line-height:1;
+}
+.passo h5{
+  font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--creme);margin:10px 0 8px;font-weight:500;
+}
+.passo p{font-size:.82rem}
+
+/* ---------- citacao ---------- */
+.citacao{
+  margin:34px 0 0;padding:26px 30px;
+  border-left:3px solid var(--dourado);
+  background:rgba(201,163,90,.07);border-radius:0 14px 14px 0;
+}
+.citacao p{
+  font-family:var(--fonte-display);font-style:italic;
+  font-size:1.15rem;line-height:1.55;color:var(--creme);
+}
+.citacao.clara{background:var(--citacao-clara-fundo)}
+.citacao.clara p{color:var(--titulo)}
+
+/* ---------- colunas OQ3 ---------- */
+.grade-oq3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:28px}
+.coluna-oq{
+  border:1px solid var(--linha);border-radius:16px;
+  padding:26px 22px;text-align:center;
+  background:rgba(244,239,227,.04);
+  display:flex;flex-direction:column;gap:10px;
+}
+.coluna-oq .sigla{
+  font-family:var(--fonte-display);font-size:1.9rem;font-weight:600;
+  color:var(--dourado-claro);letter-spacing:.06em;
+}
+.coluna-oq .rotulo{font-size:.66rem;letter-spacing:.24em;text-transform:uppercase;color:var(--creme);font-weight:500}
+.coluna-oq .pergunta{font-size:.84rem;color:rgba(244,239,227,.75);font-weight:300;line-height:1.55}
+.coluna-oq .pergunta b{color:var(--dourado);font-weight:500}
+.coluna-oq ul{
+  list-style:none;text-align:left;margin-top:6px;
+  font-size:.8rem;color:rgba(244,239,227,.7);font-weight:300;line-height:2;
+}
+.coluna-oq ul li::before{content:"\2022";color:var(--dourado);margin-right:9px}
+.coluna-oq .conecta{
+  margin-top:auto;padding-top:14px;border-top:1px solid rgba(201,163,90,.2);
+  font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--dourado);font-weight:600;
+}
+
+/* ---------- escada PQQ ---------- */
+.escada-pqq{margin-top:28px;display:flex;flex-direction:column;gap:12px}
+.degrau{
+  display:flex;gap:18px;align-items:flex-start;
+  background:var(--sup-card);
+  border:1px solid rgba(201,163,90,.4);
+  border-radius:14px;padding:18px 22px;
+  box-shadow:0 4px 14px rgba(6,35,26,.05);
+}
+.degrau .num{
+  font-family:var(--fonte-display);font-weight:600;font-size:1.4rem;
+  color:var(--dourado);flex-shrink:0;width:40px;height:40px;
+  border:1px solid var(--dourado);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+}
+.degrau h5{
+  font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--realce);font-weight:600;margin-bottom:3px;
+}
+.degrau .q{font-family:var(--fonte-display);font-size:1.15rem;color:var(--titulo);font-weight:600;line-height:1.3}
+.degrau p{font-size:.8rem;color:var(--texto-suave);font-weight:300;margin-top:4px}
+
+.revela{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.revela span{
+  font-size:.72rem;letter-spacing:.08em;color:var(--titulo);
+  border:1px solid rgba(201,163,90,.5);border-radius:999px;
+  padding:7px 16px;background:rgba(201,163,90,.08);font-weight:400;
+}
+
+/* ---------- formularios ---------- */
+.form-ferramenta{
+  margin-top:40px;background:var(--sup-card);
+  border:1px solid rgba(201,163,90,.45);
+  border-radius:var(--raio);padding:36px 34px;
+  box-shadow:var(--sombra);
+}
+.form-ferramenta .form-titulo{
+  display:flex;align-items:baseline;justify-content:space-between;
+  gap:14px;flex-wrap:wrap;margin-bottom:6px;
+}
+.form-ferramenta h3{
+  font-family:var(--fonte-display);font-weight:600;
+  color:var(--titulo);font-size:1.6rem;
+}
+.form-ferramenta .form-sub{font-size:.85rem;color:var(--texto-suave);font-weight:300;margin-bottom:26px;line-height:1.6}
+.grupo{margin-bottom:20px}
+.grupo>label{
+  display:block;font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--realce);font-weight:600;margin-bottom:6px;
+}
+.grupo .dica{font-size:.76rem;color:var(--texto-suave);font-weight:300;margin-bottom:8px}
+.grupo input,.grupo textarea{
+  width:100%;padding:12px 15px;
+  background:var(--input-fundo);border:1px solid var(--input-borda);
+  border-radius:10px;font-size:.9rem;color:var(--texto);
+  font-weight:300;line-height:1.6;
+  transition:border-color .2s, box-shadow .2s;
+}
+.grupo textarea{min-height:92px;resize:vertical}
+.grupo input::placeholder,.grupo textarea::placeholder{color:var(--texto-suave);opacity:.65}
+.grupo input:focus,.grupo textarea:focus{
+  border-color:var(--dourado);box-shadow:0 0 0 3px rgba(201,163,90,.15);outline:none;
+}
+.linha-dupla{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.acoes-form{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:8px}
+/* Acao primaria da plataforma — um estilo so, para nao ter "Novo paciente"
+   parecendo um botao diferente de "Nova consulta"/"Iniciar HOLOSCOPE"
+   dependendo da tela. inline-flex+gap nao muda nada nos botoes so-texto
+   (ja eram a maioria) e deixa os com icone (ex.: #btn-abrir-novo) alinhados. */
+.btn-verde{
+  display:inline-flex;align-items:center;gap:9px;
+  padding:13px 30px;border:none;border-radius:10px;
+  background:linear-gradient(135deg,var(--verde-medio),var(--verde-escuro));
+  color:var(--dourado-claro);font-weight:500;font-size:.74rem;
+  letter-spacing:.22em;text-transform:uppercase;
+  transition:transform .2s, filter .2s;
+}
+.btn-verde:hover{transform:translateY(-2px);filter:brightness(1.12)}
+.btn-fantasma{
+  padding:12px 24px;border:1px solid var(--input-borda);border-radius:10px;
+  background:none;color:var(--texto-suave);font-size:.72rem;
+  letter-spacing:.18em;text-transform:uppercase;font-weight:500;
+  transition:border-color .2s,color .2s;
+}
+.btn-fantasma:hover{border-color:var(--dourado);color:var(--verde-medio)}
+
+/* ---------- mapa do proposito ---------- */
+.mapa{
+  margin-top:34px;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,163,90,.15), transparent 60%),
+    linear-gradient(170deg,var(--verde-escuro),var(--verde-noite));
+  border:1px solid var(--linha);border-radius:var(--raio);
+  padding:40px 38px;color:var(--creme);box-shadow:var(--sombra);
+}
+.mapa-cabeca{text-align:center;margin-bottom:30px}
+.mapa-cabeca h3{
+  font-family:var(--fonte-display);font-weight:600;
+  font-size:1.9rem;color:var(--dourado-claro);margin-top:8px;
+}
+.mapa-paciente{
+  font-family:var(--fonte-display);font-style:italic;
+  font-size:1.1rem;color:rgba(244,239,227,.85);margin-top:6px;
+}
+.mapa-grade{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px}
+.mapa-bloco{
+  border:1px solid rgba(201,163,90,.28);border-radius:14px;
+  padding:20px;background:rgba(244,239,227,.04);
+}
+.mapa-bloco h6{
+  font-size:.62rem;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--dourado);font-weight:600;margin-bottom:10px;
+}
+.mapa-bloco p{font-size:.85rem;color:rgba(244,239,227,.8);font-weight:300;line-height:1.65;white-space:pre-wrap}
+.mapa-bloco p.vazio{color:rgba(244,239,227,.38);font-style:italic}
+.mapa-proposito{
+  border:1px solid var(--dourado);border-radius:14px;
+  padding:26px;text-align:center;
+  background:rgba(201,163,90,.08);
+}
+.mapa-proposito h6{
+  font-size:.64rem;letter-spacing:.26em;text-transform:uppercase;
+  color:var(--dourado);font-weight:600;margin-bottom:12px;
+}
+.mapa-proposito p{
+  font-family:var(--fonte-display);font-style:italic;
+  font-size:1.35rem;line-height:1.5;color:var(--creme);white-space:pre-wrap;
+}
+.mapa-proposito p.vazio{color:rgba(244,239,227,.38);font-size:1rem;font-family:var(--fonte-corpo)}
+.mapa-acoes{display:flex;gap:14px;justify-content:center;margin-top:26px;flex-wrap:wrap}
+.btn-borda-ouro{
+  padding:12px 26px;border:1px solid var(--dourado);border-radius:10px;
+  background:none;color:var(--dourado-claro);font-size:.72rem;
+  letter-spacing:.2em;text-transform:uppercase;font-weight:500;
+  transition:background .2s;
+}
+.btn-borda-ouro:hover{background:rgba(201,163,90,.15)}
+.btn-dourado{
+  width:100%;margin-top:10px;
+  padding:15px 20px;border:none;border-radius:10px;
+  background:linear-gradient(135deg,#d8b979,var(--dourado) 55%,#a9853f);
+  color:#241b08;font-weight:600;font-size:.78rem;
+  letter-spacing:.22em;text-transform:uppercase;
+  box-shadow:0 10px 30px rgba(201,163,90,.28);
+  transition:transform .2s, box-shadow .2s, filter .2s;
+}
+.btn-dourado:hover{transform:translateY(-2px);filter:brightness(1.05);box-shadow:0 14px 36px rgba(201,163,90,.38)}
+
+/* ---------- HOLOSCOPE ---------- */
+.holo-sistemas{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin:28px 0}
+.holo-card{
+  border:1px solid rgba(201,163,90,.28);border-radius:14px;
+  padding:22px 18px;background:rgba(244,239,227,.04);
+  text-align:center;display:flex;flex-direction:column;gap:10px;
+}
+.holo-card h5{
+  font-family:var(--fonte-display);font-weight:600;font-size:1rem;
+  color:var(--dourado-claro);line-height:1.2;
+}
+.holo-card .holo-desc{font-size:.72rem;color:rgba(244,239,227,.65);font-weight:300;line-height:1.5}
+.holo-card .holo-pattern{display:flex;flex-direction:column;gap:4px;margin-top:auto}
+.holo-card .holo-emocional{
+  font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--dourado);font-weight:500;
+}
+.holo-card .holo-espiritual{
+  font-size:.56rem;color:rgba(244,239,227,.45);font-weight:300;font-style:italic;
+}
+.holo-range-wrap{margin-top:10px}
+.holo-range-wrap label{
+  font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--dourado);font-weight:600;
+}
+input[type="range"]{
+  -webkit-appearance:none;appearance:none;
+  width:100%;height:6px;border-radius:3px;
+  background:rgba(201,163,90,.2);outline:none;margin:8px 0 4px;cursor:pointer;
+}
+input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:20px;height:20px;border-radius:50%;
+  background:var(--dourado);cursor:pointer;
+  border:2px solid var(--verde-escuro);
+  box-shadow:0 2px 8px rgba(201,163,90,.4);
+}
+input[type="range"]::-moz-range-thumb{
+  width:20px;height:20px;border-radius:50%;
+  background:var(--dourado);cursor:pointer;
+  border:2px solid var(--verde-escuro);
+}
+.holo-valor{
+  font-family:var(--fonte-display);font-size:1.5rem;font-weight:600;
+  color:var(--dourado-claro);
+}
+
+.holo-resultado{
+  display:grid;grid-template-columns:1fr 1fr;gap:28px;
+  margin:28px 0;align-items:center;
+}
+.holo-radar-box{
+  display:flex;justify-content:center;align-items:center;
+}
+.holo-radar-box svg{max-width:100%;height:auto}
+.holo-score-box{
+  text-align:center;padding:30px;
+  border:1px solid var(--dourado);border-radius:var(--raio);
+  background:rgba(201,163,90,.08);
+}
+.holo-score-numero{
+  font-family:var(--fonte-display);font-size:5rem;font-weight:700;
+  color:var(--dourado-claro);line-height:1;
+}
+.holo-score-label{
+  font-size:.72rem;letter-spacing:.24em;text-transform:uppercase;
+  color:rgba(244,239,227,.6);font-weight:300;margin-top:6px;display:block;
+}
+.holo-score-interpretacao{
+  margin-top:16px;font-size:.88rem;color:rgba(244,239,227,.8);
+  font-weight:300;line-height:1.6;font-style:italic;
+  font-family:var(--fonte-display);
+}
+
+/* Revisao clinica do HOLOSCOPE: o Indice deixou de ser o elemento hero da
+   tela (era 5rem, dourado, primeiro bloco) e virou informacao secundaria —
+   mesma caixa, escala reduzida, sem competir com o Mapa de Prioridades. */
+.holo-score-box.holo-secundario{
+  max-width:26rem;margin:0 auto;padding:18px 24px;
+}
+.holo-score-box.holo-secundario .holo-score-numero{font-size:2rem;font-weight:600}
+.holo-score-box.holo-secundario .holo-score-label{margin-top:2px}
+.holo-score-box.holo-secundario .holo-score-interpretacao{margin-top:10px;font-size:.82rem}
+
+/* Aviso neutro dentro do painel escuro do HOLOSCOPE — mesmo padrao visual de
+   .holo-fronteira (a unica outra frase solta que ja vive direto no fundo
+   escuro do painel, sem caixa de cartao por baixo). */
+.holo-nota-neutra{
+  font-size:.8rem;font-weight:300;line-height:1.6;color:var(--texto-suave);
+  border-left:2px solid rgba(201,163,90,.4);padding-left:14px;margin:14px 0 22px;max-width:74ch;
+}
+
+/* Sinais dominantes por sistema — reaproveita a mesma caixa clara de
+   .holo-territorios (ver abaixo, selector compartilhado) para poder usar
+   var(--texto)/var(--texto-suave) com contraste garantido nos dois temas. */
+.holo-dominante-sistema{margin-bottom:16px}
+.holo-dominante-sistema:last-child{margin-bottom:0}
+.holo-dominante-sistema h5{
+  font-family:var(--fonte-display);font-size:.9rem;font-weight:600;
+  color:var(--texto);margin:0 0 8px;
+}
+.holo-dominante-lista{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.holo-dominante-lista li{
+  font-size:.78rem;font-weight:300;color:var(--texto-suave);
+  border:1px solid var(--borda-suave);border-radius:20px;padding:5px 13px;
+}
+
+.holo-subtools{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:28px}
+.holo-subtool{
+  border:1px solid rgba(201,163,90,.3);border-radius:12px;
+  padding:18px 14px;text-align:center;background:rgba(244,239,227,.04);
+  transition:border-color .2s,transform .2s;
+}
+.holo-subtool:hover{border-color:var(--dourado);transform:translateY(-2px)}
+.holo-subtool h6{
+  font-family:var(--fonte-display);font-weight:600;font-size:.92rem;
+  color:var(--dourado-claro);margin-bottom:6px;
+}
+.holo-subtool p{font-size:.68rem;color:rgba(244,239,227,.6);font-weight:300;line-height:1.5}
+
+/* ---------- botao de tema ---------- */
+.btn-tema{
+  width:38px;height:38px;border-radius:50%;
+  border:1px solid rgba(201,163,90,.45);
+  background:none;color:var(--realce);
+  display:flex;align-items:center;justify-content:center;
+  transition:background .2s,color .2s,transform .2s;
+}
+.btn-tema:hover{background:rgba(201,163,90,.14);color:var(--dourado);transform:rotate(15deg)}
+.btn-tema .icone-sol{display:none}
+body.escuro .btn-tema .icone-sol{display:block}
+body.escuro .btn-tema .icone-lua{display:none}
+
+/* ---------- toast ---------- */
+#toast{
+  position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--verde-escuro);color:var(--dourado-claro);
+  border:1px solid var(--dourado);border-radius:999px;
+  padding:12px 28px;font-size:.78rem;letter-spacing:.12em;
+  opacity:0;pointer-events:none;transition:opacity .35s, transform .35s;
+  z-index:200;box-shadow:var(--sombra);
+}
+#toast.visivel{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ---------- responsivo ---------- */
+@media (max-width:960px){
+  .grade-pilares,.grade-oq3,.mapa-grade,.passos,.galeria-ferramentas,.lista-pacientes,.ficha-grade{grid-template-columns:1fr}
+  .holo-sistemas{grid-template-columns:1fr 1fr}
+  .holo-subtools{grid-template-columns:1fr 1fr}
+  .holo-resultado{grid-template-columns:1fr}
+  .passo{border-left:none;border-top:1px solid rgba(201,163,90,.2);padding:20px 0 4px}
+  .passo:first-child{border-top:none}
+  .linha-dupla{grid-template-columns:1fr}
+  .conteudo{padding:32px 20px 70px}
+  .topo{padding:16px 20px}
+  #app{flex-direction:column}
+  .sidebar{
+    width:100%;height:auto;position:static;
+    flex-direction:column;padding:20px 16px 14px;
+  }
+  .sidebar nav{display:flex;flex-direction:column;gap:12px}
+  .nav-grupo{display:flex;flex-wrap:wrap;gap:6px}
+  .nav-grupo ~ .nav-grupo{
+    padding-top:12px;border-top:1px solid rgba(201,163,90,.3);
+  }
+  .nav-item{width:auto;padding:9px 14px;margin:0;font-size:.8rem}
+  .nav-item.ativo::before{display:none}
+  .nav-titulo,.sidebar-rodape,.nav-tag{display:none}
+  .sidebar-marca{padding-bottom:14px;margin-bottom:12px}
+  .painel-escuro,.form-ferramenta,.mapa{padding:28px 22px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
+
+.form-paciente{color:var(--dourado);font-weight:500}
+.form-sem-paciente{
+  border-left:2px solid var(--dourado);padding-left:14px;
+  color:var(--texto-suave);
+}
+
+/* ---------- ferramentas geradas pelo catalogo ---------- */
+/* Reusam .grupo, .dica, .acoes-form e .btn-verde do formulario do OQ3.
+   O que vem abaixo e so o que aquele formulario ainda nao tinha:
+   escala de 0 a 3, regua de nota, escolha unica e o selo de preenchida. */
+
+.campos{display:flex;flex-direction:column;gap:22px;margin-bottom:26px}
+.aviso-salvo{font-size:.78rem;color:var(--dourado);font-weight:500;letter-spacing:.04em}
+
+/* a regua herdaria o padding e a borda de .grupo input; nao pode */
+.grupo input[type="range"]{
+  padding:0;border:none;background:rgba(201,163,90,.22);
+  height:6px;border-radius:3px;
+}
+.grupo-nota{display:flex;align-items:center;gap:16px}
+.grupo-nota output{
+  min-width:2.4ch;text-align:center;
+  font-family:var(--fonte-display);font-size:1.15rem;font-weight:600;
+  color:var(--dourado);font-variant-numeric:tabular-nums;
+}
+
+.grupo-escala{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.btn-escala{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  padding:11px 6px;border-radius:10px;
+  border:1px solid var(--input-borda);background:var(--input-fundo);
+  color:var(--texto-suave);font-size:.63rem;font-weight:400;
+  letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
+  transition:border-color .18s,color .18s,background .18s;
+}
+.btn-escala b{
+  font-family:var(--fonte-display);font-size:1.05rem;font-weight:600;
+  color:var(--texto);line-height:1;
+}
+.btn-escala:hover{border-color:var(--dourado-suave)}
+.btn-escala.marcado{
+  border-color:var(--dourado);background:rgba(201,163,90,.13);color:var(--dourado);
+}
+.btn-escala.marcado b{color:var(--dourado)}
+
+.grupo-opcoes{display:flex;flex-wrap:wrap;gap:8px}
+.btn-opcao{
+  padding:10px 20px;border-radius:999px;
+  border:1px solid var(--input-borda);background:var(--input-fundo);
+  color:var(--texto-suave);font-size:.8rem;font-weight:300;cursor:pointer;
+  transition:border-color .18s,color .18s,background .18s;
+}
+.btn-opcao:hover{border-color:var(--dourado-suave)}
+.btn-opcao.marcado{
+  border-color:var(--dourado);background:rgba(201,163,90,.13);color:var(--dourado);
+}
+
+.ferr-status.preenchida{
+  color:var(--verde-medio,#3f7d5e);
+  border:1px solid currentColor;background:rgba(63,125,94,.12);
+}
+
+@media (max-width:640px){
+  .grupo-escala{grid-template-columns:repeat(2,1fr)}
+}
+
+
+.regua-pontas{
+  display:block;font-style:normal;font-size:.5rem;letter-spacing:.14em;
+  text-transform:none;color:var(--texto-suave);opacity:.75;margin-top:3px;
+}
+
+/* ---------- HOLOSCOPE: leitura do terreno ---------- */
+/* O numero sozinho nao e o produto. Isto mostra o padrao emocional, o impacto
+   espiritual dos sistemas mais baixos e por onde a conduta comeca. */
+
+.holo-leitura{margin-top:32px}
+.holo-leitura:empty{display:none}
+.leitura-titulo{
+  font-size:.62rem;letter-spacing:.3em;text-transform:uppercase;
+  color:var(--dourado);font-weight:600;margin:0 0 16px;
+}
+.leitura-sistemas{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:30px;
+}
+.leitura-sistema{
+  border:1px solid rgba(201,163,90,.22);border-radius:var(--raio,12px);
+  padding:20px 22px;background:rgba(201,163,90,.05);
+}
+.leitura-cabeca{
+  display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  margin-bottom:14px;padding-bottom:12px;
+  border-bottom:1px solid rgba(201,163,90,.16);
+}
+.leitura-cabeca b{
+  font-family:var(--fonte-display);font-size:1.02rem;font-weight:400;
+  color:var(--titulo);line-height:1.25;
+}
+.leitura-nota{
+  font-family:var(--fonte-display);font-size:1.5rem;color:var(--dourado);
+  font-variant-numeric:tabular-nums;flex-shrink:0;
+}
+.leitura-sistema p{
+  font-size:.86rem;font-weight:300;line-height:1.5;
+  color:var(--texto-suave);margin:0 0 8px;
+}
+.leitura-sistema p:last-child{margin-bottom:0}
+.leitura-sistema em{
+  display:block;font-style:normal;font-size:.56rem;letter-spacing:.24em;
+  text-transform:uppercase;color:var(--dourado);margin-bottom:3px;
+}
+.leitura-combinadas{display:flex;flex-direction:column;gap:10px;margin-bottom:30px}
+.leitura-combinada{
+  border:1px solid var(--dourado);border-radius:var(--raio,12px);
+  padding:18px 22px;background:rgba(201,163,90,.08);
+}
+.leitura-combinada b{
+  display:block;font-family:var(--fonte-display);font-size:1.22rem;font-weight:400;
+  color:var(--titulo);line-height:1.35;margin-bottom:6px;
+}
+.leitura-combinada span{
+  font-size:.7rem;letter-spacing:.06em;color:var(--texto-suave);opacity:.8;
+  font-variant-numeric:tabular-nums;
+}
+
+.leitura-eixos{display:flex;flex-direction:column;gap:10px}
+.leitura-eixo{
+  display:flex;gap:18px;align-items:baseline;
+  padding:14px 20px;border-radius:10px;
+  border:1px solid rgba(201,163,90,.16);
+}
+.leitura-eixo b{
+  font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--realce);font-weight:600;width:19ch;flex-shrink:0;
+}
+.leitura-eixo span{font-size:.86rem;font-weight:300;color:var(--texto-suave);line-height:1.5}
+
+@media (max-width:820px){
+  .leitura-sistemas{grid-template-columns:1fr}
+  .leitura-eixo{flex-direction:column;gap:6px}
+  .leitura-eixo b{width:auto}
+}
+
+
+/* ---------- do mapa para a conduta ---------- */
+.leitura-conduta{display:flex;flex-direction:column;gap:10px}
+.conduta-item{
+  display:grid;grid-template-columns:11ch 1fr auto;
+  column-gap:20px;row-gap:3px;align-items:baseline;text-align:left;
+  width:100%;padding:16px 22px;cursor:pointer;
+  border:1px solid rgba(201,163,90,.24);border-radius:var(--raio,12px);
+  background:rgba(201,163,90,.04);font-family:inherit;
+  transition:border-color .18s,background .18s,transform .18s;
+}
+.conduta-item:hover{
+  border-color:var(--dourado);background:rgba(201,163,90,.1);transform:translateX(3px);
+}
+.conduta-modulo{
+  grid-row:1 / span 2;align-self:center;
+  font-size:.56rem;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--dourado);font-weight:600;
+}
+.conduta-item b{
+  font-family:var(--fonte-display);font-size:1.05rem;font-weight:400;
+  color:var(--titulo);line-height:1.3;
+}
+.conduta-porque{
+  grid-column:2;font-size:.82rem;font-weight:300;
+  color:var(--texto-suave);line-height:1.45;
+}
+.conduta-abrir{
+  grid-row:1 / span 2;align-self:center;
+  font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--dourado);white-space:nowrap;
+}
+
+@media (max-width:700px){
+  .conduta-item{grid-template-columns:1fr;row-gap:6px}
+  .conduta-modulo,.conduta-abrir{grid-row:auto}
+}
+
+/* ---------- EVOLUCAO: duas aplicacoes lado a lado ---------- */
+
+.holo-evolucao{margin-top:32px}
+.evo-corpo{
+  display:flex;align-items:center;gap:40px;flex-wrap:wrap;
+  border:1px solid rgba(201,163,90,.22);border-radius:var(--raio,12px);
+  padding:26px 30px;background:rgba(201,163,90,.05);
+}
+.evo-radar{flex-shrink:0;overflow:visible}
+.evo-eixo{
+  fill:var(--dourado);font-family:var(--fonte-corpo);font-size:8.5px;
+  font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+}
+.evo-numeros{flex:1;min-width:290px}
+
+.evo-indice{display:flex;align-items:flex-end;gap:18px;margin-bottom:10px}
+.evo-um{display:flex;flex-direction:column}
+.evo-um i{
+  font-style:normal;font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--texto-suave);margin-bottom:4px;
+}
+.evo-um b{
+  font-family:var(--fonte-display);font-size:2rem;font-weight:400;
+  color:var(--texto-suave);line-height:1;font-variant-numeric:tabular-nums;
+}
+.evo-um.agora b{font-size:2.9rem;font-weight:600;color:var(--dourado)}
+.evo-seta{font-size:1.3rem;color:rgba(201,163,90,.4);padding-bottom:4px}
+.evo-ganho{
+  font-family:var(--fonte-display);font-size:1.15rem;font-weight:600;
+  padding-bottom:6px;font-variant-numeric:tabular-nums;
+}
+.evo-ganho.sobe{color:var(--movimento-sobe)}
+.evo-ganho.desce{color:var(--movimento-desce)}
+
+.evo-frase{
+  font-size:.95rem;font-weight:300;line-height:1.55;
+  color:var(--texto-suave);margin:0 0 18px;
+}
+.evo-frase b{color:var(--dourado);font-weight:600}
+
+.evo-linhas{display:flex;flex-direction:column}
+.evo-linha{
+  display:grid;grid-template-columns:1fr 4ch 4ch 5ch;gap:12px;align-items:baseline;
+  padding:8px 0;border-bottom:1px solid rgba(201,163,90,.08);
+}
+.evo-linha:last-child{border-bottom:none}
+.evo-nome{font-size:.86rem;font-weight:300;color:var(--texto)}
+.evo-de,.evo-para{
+  text-align:right;font-variant-numeric:tabular-nums;font-size:.84rem;
+  color:var(--texto-suave);
+}
+.evo-para{color:var(--titulo);font-weight:500}
+.evo-delta{
+  text-align:right;font-variant-numeric:tabular-nums;font-size:.84rem;font-weight:600;
+}
+.evo-delta.sobe{color:#7fb896}
+.evo-delta.desce{color:#c98a7a}
+.evo-delta.igual{color:var(--texto-suave);opacity:.6}
+
+.evo-nota{
+  font-size:.76rem;font-weight:300;color:var(--texto-suave);
+  margin:12px 0 0;opacity:.85;
+}
+
+@media (max-width:760px){
+  .evo-corpo{gap:24px;justify-content:center}
+  .evo-numeros{min-width:0}
+}
+
+/* ---------- Triada HOLOS ---------- */
+.holo-triada{margin-top:32px}
+.triada-corpo{
+  display:flex;align-items:center;gap:38px;flex-wrap:wrap;
+  border:1px solid rgba(201,163,90,.2);border-radius:var(--raio,12px);
+  padding:26px 30px;background:rgba(201,163,90,.04);
+}
+.triada-grafico{flex-shrink:0}
+.triada-eixos{flex:1;min-width:250px}
+.triada-eixo{
+  display:grid;grid-template-columns:3.4ch 1fr;grid-template-rows:auto auto;
+  column-gap:16px;align-items:baseline;
+  padding:12px 0;border-bottom:1px solid rgba(201,163,90,.1);
+}
+.triada-eixo:last-of-type{border-bottom:none}
+.triada-nota{
+  grid-row:1 / span 2;align-self:center;
+  font-family:var(--fonte-display);font-size:1.7rem;color:var(--dourado);
+  font-variant-numeric:tabular-nums;line-height:1;
+}
+.triada-eixo b{
+  font-family:var(--fonte-display);font-size:1.05rem;font-weight:400;color:var(--titulo);
+}
+.triada-sub{font-size:.78rem;font-weight:300;color:var(--texto-suave)}
+.triada-eixo.menor .triada-nota{color:var(--realce)}
+.triada-eixo.menor b::after{
+  content:"mais baixa";
+  margin-left:10px;font-family:var(--fonte-corpo);font-size:.52rem;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--dourado);
+  border:1px solid rgba(201,163,90,.4);border-radius:999px;padding:3px 8px;
+  vertical-align:middle;
+}
+.triada-leitura{
+  margin:16px 0 0;font-size:.88rem;font-weight:300;line-height:1.55;
+  color:var(--texto-suave);
+}
+.triada-leitura b{color:var(--dourado);font-weight:500}
+
+@media (max-width:720px){
+  .triada-corpo{gap:22px;justify-content:center}
+}
+
+/* ---------- HOLOSCOPE: questionario das 87 perguntas ---------- */
+
+.holo-modos{
+  display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:26px;
+}
+.holo-modos span{font-size:.85rem;font-weight:300;color:var(--texto-suave)}
+
+#holoscope-questionario{margin-bottom:34px}
+
+.q-topo{
+  position:sticky;top:0;z-index:40;
+  background:var(--sup-fundo);
+  padding:16px 0 14px;margin-bottom:8px;
+  border-bottom:1px solid var(--linha,rgba(201,163,90,.18));
+}
+.q-progresso{height:3px;background:rgba(201,163,90,.16);border-radius:2px;margin-bottom:12px}
+.q-progresso i{
+  display:block;height:100%;background:var(--dourado);border-radius:2px;
+  transition:width .2s;
+}
+.q-linha{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.q-conta{font-size:.8rem;font-weight:300;color:var(--texto-suave)}
+.q-conta b{color:var(--dourado);font-weight:600;font-variant-numeric:tabular-nums}
+.q-acoes{display:flex;gap:10px;align-items:center}
+
+.q-bloco{margin-bottom:34px}
+.q-bloco-cabeca{
+  display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+  padding:14px 0 12px;margin-bottom:6px;
+  border-bottom:1px solid rgba(201,163,90,.16);
+}
+.q-bloco-cabeca b{
+  font-family:var(--fonte-display);font-size:1.2rem;font-weight:500;color:var(--dourado);
+}
+.q-bloco-cabeca span{flex:1;font-size:.84rem;font-weight:300;color:var(--texto-suave)}
+.q-bloco-cabeca em{
+  font-style:normal;font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--texto-suave);opacity:.75;
+}
+
+.q-item{
+  display:flex;align-items:center;gap:24px;flex-wrap:wrap;
+  padding:14px 0;border-bottom:1px solid rgba(201,163,90,.07);
+}
+.q-item:last-child{border-bottom:none}
+.q-pergunta{
+  flex:1;min-width:260px;margin:0;
+  font-size:.95rem;font-weight:300;line-height:1.5;color:var(--texto);
+}
+.q-botoes{display:grid;grid-template-columns:repeat(4,minmax(76px,1fr));gap:7px}
+.q-btn{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:9px 6px;border-radius:9px;cursor:pointer;
+  border:1px solid var(--input-borda);background:var(--input-fundo);
+  color:var(--texto-suave);font-size:.56rem;letter-spacing:.08em;
+  text-transform:uppercase;font-weight:400;
+  transition:border-color .15s,background .15s,color .15s;
+}
+.q-btn b{font-family:var(--fonte-display);font-size:.95rem;color:var(--texto);line-height:1}
+.q-btn:hover{border-color:var(--dourado-suave)}
+.q-btn.marcado{border-color:var(--dourado);background:rgba(201,163,90,.14);color:var(--dourado)}
+.q-btn.marcado b{color:var(--dourado)}
+
+.q-erro{
+  border-left:2px solid var(--dourado);padding:12px 0 12px 14px;
+  font-size:.88rem;font-weight:300;color:var(--texto-suave);
+}
+/* ressalva no topo do questionario: carregando, ou sem paciente escolhido */
+.q-aviso{
+  border-left:2px solid var(--dourado-suave);padding:12px 0 12px 14px;
+  margin:0 0 18px;font-size:.84rem;font-weight:300;color:var(--texto-suave);
+}
+
+/* a regua deixa de ser entrada quando o mapa veio do questionario */
+.holo-card.calculado .holo-range-wrap{opacity:.55}
+.holo-card.calculado input[type="range"]{cursor:default}
+.holo-origem{
+  font-size:.74rem;font-weight:300;color:var(--texto-suave);
+  margin:0 0 10px;line-height:1.5;
+}
+.holo-origem b{color:var(--dourado);font-weight:600}
+.holo-origem:empty{display:none}
+/* questionario pela metade nao pode passar por mapa pronto */
+.holo-origem .holo-parcial{color:#b4553c}
+.holo-origem .holo-sem-dado{display:block;margin-top:4px;opacity:.85}
+/* sistema sem nenhuma resposta: a regua nao esta em zero, ela esta em branco */
+.holo-card.sem-dado{opacity:.5}
+.holo-card.sem-dado .holo-valor{color:var(--texto-suave)}
+.btn-relink{
+  border:none;background:none;padding:0;cursor:pointer;
+  color:var(--dourado);font-size:.74rem;font-weight:400;
+  text-decoration:underline;text-underline-offset:2px;font-family:inherit;
+}
+
+@media (max-width:760px){
+  .q-item{gap:12px}
+  .q-botoes{grid-template-columns:repeat(4,1fr);width:100%}
+}
+
+/* a ficha passou a abrigar exames, documentos e relatorio */
+.ficha-arquivos{margin:30px 0 26px;padding-top:26px;border-top:1px solid rgba(201,163,90,.16)}
+.ficha-arquivos-titulo{
+  font-size:.62rem;letter-spacing:.3em;text-transform:uppercase;
+  color:var(--dourado);font-weight:600;margin:0 0 18px;
+}
+
+/* ---------- ARQUIVOS: exames, documentos e relatorio ---------- */
+
+/* Cinco abas (a da ficha) nao cabem em 420px lado a lado. Em vez de
+   empurrar a pagina inteira para o lado (scroll horizontal ruim, o app
+   inteiro fica mais largo que a tela), a faixa das abas rola sozinha —
+   so ela, sem levar o resto da tela junto. */
+.abas{
+  display:flex;gap:6px;margin-bottom:26px;border-bottom:1px solid var(--linha,rgba(201,163,90,.18));
+  overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+}
+.abas::-webkit-scrollbar{display:none}
+.aba{
+  flex-shrink:0;
+  padding:12px 22px;border:none;background:none;cursor:pointer;
+  font-family:inherit;font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--texto-suave);font-weight:500;border-bottom:2px solid transparent;
+  margin-bottom:-1px;transition:color .18s,border-color .18s;
+}
+.aba:hover{color:var(--dourado)}
+.aba.ativa{color:var(--dourado);border-bottom-color:var(--dourado)}
+
+.arq-intro{font-size:.92rem;font-weight:300;line-height:1.6;color:var(--texto-suave);margin:0 0 24px;max-width:70ch}
+.arq-cartao{
+  border:1px solid var(--borda-suave);border-radius:14px;
+  padding:24px 26px;margin-bottom:20px;background:var(--sup-card);
+}
+.arq-cartao:last-child{margin-bottom:0}
+.arq-titulo{
+  font-family:var(--fonte-display);font-size:1.15rem;font-weight:500;
+  color:var(--titulo);margin:0 0 4px;
+}
+.arq-sub{
+  font-size:.84rem;font-weight:300;line-height:1.6;
+  color:var(--texto-suave);margin:0 0 20px;max-width:64ch;
+}
+.arq-sub b{color:var(--dourado);font-weight:500}
+
+/* Os exames guardados, como atalho para abrir enquanto se digita. */
+.ex-atalhos{
+  display:flex;flex-wrap:wrap;align-items:center;gap:10px;
+  padding:12px 14px;margin-bottom:20px;border-radius:10px;background:var(--halo);
+}
+.ex-atalhos-rot{
+  font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--texto-suave);
+}
+.ex-atalho{
+  border:1px solid var(--dourado-suave);background:none;cursor:pointer;
+  border-radius:999px;padding:5px 13px;font-family:inherit;
+  font-size:.76rem;color:var(--realce);
+  max-width:22rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.ex-atalho:hover{background:var(--halo);border-color:var(--dourado)}
+.arq-intro b{color:var(--dourado);font-weight:500}
+.arq-nota{
+  font-size:.8rem;font-weight:300;line-height:1.6;color:var(--texto-suave);
+  border-left:2px solid rgba(201,163,90,.4);padding-left:14px;margin:26px 0 0;max-width:74ch;
+}
+.arq-nota b{color:var(--dourado);font-weight:500}
+.arq-vazio{font-size:.92rem;font-weight:300;color:var(--texto-suave);padding:34px 0;text-align:center}
+
+/* exames */
+.ex-acoes{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+.ex-conta{font-size:.78rem;color:var(--texto-suave);font-weight:300}
+.ex-bloco{margin-bottom:26px}
+.ex-bloco:last-of-type{margin-bottom:0}
+/* O título do sistema precisa de ar em cima: sem isso ele encostava no texto
+   do bloco anterior e os dois pareciam a mesma coisa. */
+.ex-bloco h4{
+  font-size:.62rem;letter-spacing:.28em;text-transform:uppercase;color:var(--dourado);
+  font-weight:600;margin:28px 0 10px;padding-bottom:9px;
+  border-bottom:1px solid rgba(201,163,90,.16);
+}
+.ex-bloco:first-of-type h4{margin-top:0}
+.ex-nome{min-width:0;overflow-wrap:anywhere}
+.ex-linha input{width:100%}
+.ex-linha{
+  display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) 7rem 5.5rem;
+  gap:14px;align-items:center;
+  padding:9px 0;border-bottom:1px solid rgba(201,163,90,.06);
+}
+.ex-linha:last-child{border-bottom:none}
+.ex-nome{font-size:.92rem;font-weight:300;color:var(--texto)}
+.ex-faixa{font-size:.74rem;color:var(--texto-suave);opacity:.8;font-variant-numeric:tabular-nums}
+.ex-linha input{
+  padding:8px 12px;border-radius:8px;text-align:right;
+  border:1px solid var(--input-borda);background:var(--input-fundo);
+  color:var(--texto);font-size:.9rem;font-variant-numeric:tabular-nums;
+}
+.ex-linha input:focus{border-color:var(--dourado);outline:none}
+.ex-linha.alterado input{border-color:var(--dourado);background:rgba(201,163,90,.09)}
+.ex-situacao{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600}
+.ex-situacao.ok{color:var(--texto-suave);opacity:.6}
+.ex-situacao.fora{color:var(--dourado)}
+
+/* confronto entre o relato e o laboratorio */
+.conf-lista{display:flex;flex-direction:column;gap:10px;margin-bottom:8px}
+.conf-item{
+  display:grid;grid-template-columns:9ch 1fr 7ch;gap:14px;align-items:baseline;
+  padding:14px 20px;border-radius:var(--raio,12px);
+  border:1px solid rgba(201,163,90,.2);
+}
+/* Revisao clinica do HOLOSCOPE (Holoscan): os nomes de classe passaram a
+   ser os tres estados do Holoscan (convergente/divergente/dados_insuficientes)
+   em vez de confirma/diverge do motor — so a apresentacao, o motor continua
+   devolvendo confirma/diverge/sem_exame como sempre. */
+.conf-item.divergente{border-color:var(--dourado);background:rgba(201,163,90,.09)}
+.conf-item.dados_insuficientes{opacity:.62;border-style:dashed}
+.conf-selo{
+  font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;font-weight:600;
+  color:var(--texto-suave);
+}
+.conf-item.divergente .conf-selo{color:var(--dourado)}
+.conf-item b{font-family:var(--fonte-display);font-size:1rem;font-weight:400;color:var(--titulo)}
+.conf-nota{text-align:right;font-size:.78rem;color:var(--texto-suave);font-variant-numeric:tabular-nums}
+.conf-leitura{grid-column:2 / -1;font-size:.84rem;font-weight:300;line-height:1.5;color:var(--texto-suave)}
+
+/* ---------- documentos: receber arquivo ---------- */
+
+.doc-solta{
+  position:relative;display:flex;align-items:center;justify-content:center;
+  min-height:130px;margin-bottom:16px;cursor:pointer;text-align:center;
+  border:1px dashed rgba(201,163,90,.4);border-radius:var(--raio,12px);
+  background:rgba(201,163,90,.03);
+  transition:border-color .18s,background .18s;
+}
+.doc-solta:hover,.doc-solta.sobre{border-color:var(--dourado);background:rgba(201,163,90,.09)}
+.doc-solta input[type="file"]{
+  position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;
+}
+.doc-solta-texto{pointer-events:none}
+.doc-solta-texto b{
+  display:block;font-family:var(--fonte-display);font-size:1.1rem;
+  font-weight:400;color:var(--titulo);margin-bottom:5px;
+}
+.doc-solta-texto span{font-size:.82rem;font-weight:300;color:var(--texto-suave)}
+
+.doc-meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+#doc-lista:not(:empty){margin-top:4px}
+.doc-meta input,.doc-meta select{
+  padding:11px 14px;border-radius:9px;font-size:.88rem;font-family:inherit;
+  border:1px solid var(--input-borda);background:var(--input-fundo);color:var(--texto);
+}
+.doc-meta #doc-nome{flex:1;min-width:220px}
+
+.doc-ok{
+  font-size:.84rem;color:var(--dourado);font-weight:500;
+  padding:10px 0;margin:0 0 8px;
+}
+.doc-lista-itens{display:flex;flex-direction:column;gap:8px}
+.doc-item{
+  display:grid;grid-template-columns:15ch 1fr 8ch 11ch 6ch 3ch;
+  gap:12px;align-items:baseline;
+  padding:13px 18px;border-radius:10px;border:1px solid rgba(201,163,90,.16);
+}
+.doc-item b{font-size:.94rem;font-weight:400;color:var(--texto);word-break:break-word}
+.doc-tam{
+  font-size:.76rem;color:var(--texto-suave);text-align:right;
+  font-variant-numeric:tabular-nums;
+}
+.doc-item .doc-tipo{
+  font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--texto-suave);font-weight:500;
+}
+.doc-item .doc-data{
+  font-size:.78rem;color:var(--texto-suave);font-variant-numeric:tabular-nums;
+}
+.doc-abrir{
+  border:1px solid var(--dourado-suave);background:none;border-radius:999px;
+  padding:5px 12px;cursor:pointer;font-family:inherit;
+  font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--realce);
+  transition:background .18s;
+}
+.doc-abrir:hover{background:rgba(201,163,90,.14)}
+
+@media (max-width:820px){
+  .doc-item{grid-template-columns:1fr auto;row-gap:4px}
+  .doc-item b{grid-column:1 / -1}
+  .arq-cartao{padding:20px 18px}
+  /* Duas linhas: o nome do exame em cima, e embaixo a faixa ideal, o campo e
+     a situação. As três colunas de baixo sao estreitas de proposito — o que
+     tem que caber inteiro é o nome. */
+  .ex-linha{grid-template-columns:minmax(0,1fr) 5.5rem 4.5rem;gap:10px;row-gap:4px}
+  .ex-nome{grid-column:1/-1}
+  .ex-faixa{font-size:.7rem;line-height:1.35}
+  .ex-situacao{font-size:.6rem;letter-spacing:.06em}
+  .ex-atalho{max-width:100%}
+  /* O confronto empilha: selo e nota na mesma linha, leitura embaixo. Em três
+     colunas a leitura ficava com sete caracteres de largura. */
+  .conf-item{grid-template-columns:auto 1fr;gap:8px 12px;padding:14px 16px}
+  .conf-item b{grid-column:1/-1}
+  .conf-nota{text-align:left}
+  .conf-leitura{grid-column:1/-1}
+}
+@media (max-width:480px){
+  .arq-cartao{padding:18px 14px}
+  .ex-linha{grid-template-columns:minmax(0,1fr) 5rem 4rem;gap:8px}
+}
+
+/* relatorio */
+.rel-acoes{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+.rel-registro{display:flex;gap:6px;border:1px solid var(--input-borda);border-radius:999px;padding:4px}
+.rel-btn{
+  padding:8px 18px;border:none;border-radius:999px;background:none;cursor:pointer;
+  font-family:inherit;font-size:.72rem;letter-spacing:.1em;color:var(--texto-suave);
+}
+.rel-btn.ativo{background:rgba(201,163,90,.16);color:var(--dourado);font-weight:600}
+.relatorio{
+  border:1px solid rgba(201,163,90,.2);border-radius:var(--raio,12px);
+  padding:38px 42px;background:var(--sup-card);
+}
+.rel-topo{border-bottom:1px solid rgba(201,163,90,.2);padding-bottom:20px;margin-bottom:26px}
+.rel-marca{font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;color:var(--dourado);font-weight:600}
+.rel-topo h3{font-family:var(--fonte-display);font-size:1.9rem;font-weight:400;color:var(--titulo);margin:10px 0 8px}
+.rel-meta{font-size:.84rem;color:var(--texto-suave);font-weight:300;margin:0}
+.rel-meta b{color:var(--dourado);font-weight:600}
+.rel-bloco{margin-bottom:28px}
+.rel-bloco h4{
+  font-size:.6rem;letter-spacing:.28em;text-transform:uppercase;color:var(--dourado);
+  font-weight:600;margin:0 0 12px;
+}
+.rel-triada{font-size:1rem;font-weight:300;color:var(--texto);margin:0}
+.rel-triada b{font-family:var(--fonte-display);font-size:1.2rem;color:var(--dourado)}
+.rel-combinada{
+  font-family:var(--fonte-display);font-size:1.35rem;font-weight:300;line-height:1.4;
+  color:var(--titulo);margin:0 0 8px;
+}
+.rel-sistema{padding:14px 0;border-bottom:1px solid rgba(201,163,90,.08)}
+.rel-sistema:last-child{border-bottom:none}
+.rel-sistema-topo{display:flex;align-items:baseline;gap:14px;margin-bottom:7px}
+.rel-sistema-topo b{font-family:var(--fonte-display);font-size:1.05rem;font-weight:400;color:var(--titulo);flex:1}
+.rel-nota{font-family:var(--fonte-display);font-size:1.3rem;color:var(--dourado);font-variant-numeric:tabular-nums}
+.rel-faixa{font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--texto-suave)}
+.rel-sistema p{font-size:.9rem;font-weight:300;line-height:1.6;color:var(--texto-suave);margin:0 0 6px}
+.rel-passos em{color:var(--dourado);font-style:normal;font-weight:500}
+
+/* Revisao clinica do HOLOSCOPE: o relatorio passou a separar tres partes —
+   HOLOSCOPE (automatico), HOLOSCAN (automatico) e Interpretacao profissional
+   — cada uma com etiqueta visivel, para nunca misturar texto automatico com
+   o que a nutricionista escreveu sem dizer qual e qual (teste J). */
+.rel-parte{margin-top:34px;padding-top:22px;border-top:2px solid rgba(201,163,90,.25)}
+.rel-parte:first-of-type{margin-top:0}
+.rel-parte > h3{
+  font-family:var(--fonte-display);font-size:1.1rem;font-weight:600;
+  color:var(--titulo);margin:0 0 18px;
+}
+.rel-parte[data-origem="profissional"]{border-top-color:var(--dourado)}
+.rel-parte[data-origem="profissional"] > h3::after{
+  content:"escrito pela nutricionista";
+  display:inline-block;margin-left:10px;font-size:.6rem;font-weight:500;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--dourado);
+  vertical-align:middle;
+}
+.rel-prioridade{font-size:.88rem;font-weight:300;color:var(--texto-suave);margin:0 0 6px}
+.rel-prioridade b{color:var(--texto);font-weight:500}
+.rel-indice p{font-size:1.1rem;color:var(--texto);margin:0 0 6px}
+.rel-indice b{font-family:var(--fonte-display);color:var(--dourado);font-size:1.4rem}
+.rel-vazio{font-size:.9rem;font-weight:300;font-style:italic;color:var(--texto-suave)}
+
+/* Fluxo clinico do metodo — referencia visual, nao wizard. Aparece em mais
+   de uma tela (H3.4); nenhuma etapa bloqueia a seguinte. */
+.fluxo-clinico{
+  font-size:.7rem;font-weight:400;letter-spacing:.03em;color:var(--texto-suave);
+  margin:6px 0 14px;
+}
+.fluxo-clinico b{color:var(--dourado);font-weight:700}
+.rel-interpretacao-campo{
+  width:100%;min-height:120px;resize:vertical;
+  font-size:.92rem;line-height:1.6;padding:12px 14px;font-weight:300;
+  border:1px solid var(--input-borda);border-radius:10px;
+  background:var(--input-fundo);color:var(--texto);
+}
+.rel-interpretacao-aviso{font-size:.8rem;color:var(--texto-suave);margin-left:10px}
+.rel-rodape{
+  border-top:1px solid rgba(201,163,90,.2);padding-top:18px;margin-top:8px;
+  font-size:.76rem;font-weight:300;line-height:1.6;color:var(--texto-suave);
+}
+
+@media (max-width:820px){
+  .ex-linha{grid-template-columns:1fr 9ch 7ch}
+  .conf-item,.doc-item{grid-template-columns:1fr}
+  .relatorio{padding:26px 22px}
+}
+
+/* ---------- FICHA DO PACIENTE: o resumo ---------- */
+
+.ficha-resumo{margin-bottom:28px}
+.ficha-resumo:empty{display:none}
+.fic-rot{
+  display:block;font-size:.56rem;letter-spacing:.26em;text-transform:uppercase;
+  color:var(--dourado);font-weight:600;margin-bottom:8px;
+}
+
+/* alertas: o que ela precisa ver antes de tudo */
+.fic-alertas{display:flex;flex-direction:column;gap:8px;margin-bottom:22px}
+.fic-alerta{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:14px 20px;border-radius:var(--raio,12px);
+  border:1px solid rgba(201,163,90,.3);background:rgba(201,163,90,.07);
+}
+.fic-alerta span{font-size:.9rem;font-weight:300;line-height:1.5;color:var(--texto)}
+.fic-alerta.abrir{border-color:var(--dourado);background:rgba(201,163,90,.12)}
+.fic-ir{
+  flex-shrink:0;padding:8px 18px;border-radius:999px;cursor:pointer;
+  border:1px solid var(--dourado);background:none;color:var(--dourado);
+  font-family:inherit;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;
+  transition:background .18s;
+}
+.fic-ir:hover{background:rgba(201,163,90,.16)}
+
+/* o mapa em resumo */
+.fic-mapa{
+  display:flex;align-items:center;gap:38px;flex-wrap:wrap;
+  padding:22px 26px;margin-bottom:14px;
+  border:1px solid rgba(201,163,90,.2);border-radius:var(--raio,12px);
+  background:rgba(201,163,90,.04);
+}
+.fic-indice{display:flex;flex-direction:column}
+.fic-indice b{
+  font-family:var(--fonte-display);font-size:2.6rem;font-weight:600;
+  color:var(--dourado);line-height:1;font-variant-numeric:tabular-nums;
+}
+.fic-de{font-size:.68rem;color:var(--texto-suave);margin-top:4px}
+.fic-quando{font-size:.68rem;color:var(--texto-suave);opacity:.75;margin-top:2px}
+.fic-triada{display:flex;gap:22px}
+.fic-triada span{display:flex;flex-direction:column;font-family:var(--fonte-display);
+  font-size:1.3rem;color:var(--titulo);font-variant-numeric:tabular-nums}
+.fic-triada i{
+  font-style:normal;font-family:var(--fonte-corpo);font-size:.54rem;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--texto-suave);margin-bottom:3px;
+}
+.fic-piores{display:flex;flex-direction:column;gap:4px}
+.fic-sis{font-size:.84rem;font-weight:300;color:var(--texto-suave)}
+.fic-sis b{color:var(--dourado);font-weight:600;font-variant-numeric:tabular-nums}
+.fic-combinada{
+  font-family:var(--fonte-display);font-size:1.15rem;font-weight:300;
+  color:var(--titulo);margin:0 0 20px;padding-left:16px;
+  border-left:2px solid var(--dourado);line-height:1.45;
+}
+
+/* o que ja foi feito */
+.fic-linhas{display:flex;flex-direction:column;margin-bottom:18px}
+.fic-linha{
+  display:grid;grid-template-columns:1fr auto 7ch;gap:16px;align-items:baseline;
+  padding:12px 4px;border-bottom:1px solid rgba(201,163,90,.09);
+}
+.fic-linha:last-child{border-bottom:none}
+.fic-nome{font-size:.9rem;font-weight:300;color:var(--texto)}
+.fic-valor{font-size:.84rem;color:var(--texto-suave);text-align:right}
+.fic-linha.feito .fic-valor{color:var(--dourado)}
+.fic-ir-min{
+  border:none;background:none;padding:0;cursor:pointer;text-align:right;
+  color:var(--dourado);font-family:inherit;font-size:.66rem;
+  letter-spacing:.14em;text-transform:uppercase;opacity:.7;
+}
+.fic-ir-min:hover{opacity:1;text-decoration:underline}
+
+/* as ferramentas ja aplicadas */
+.fic-ferramentas{margin-bottom:8px}
+.fic-chip{
+  display:inline-block;margin:0 7px 7px 0;padding:7px 15px;
+  border:1px solid rgba(201,163,90,.28);border-radius:999px;cursor:pointer;
+  background:none;color:var(--texto-suave);font-family:inherit;font-size:.78rem;
+  font-weight:300;transition:border-color .18s,color .18s;
+}
+.fic-chip:hover{border-color:var(--dourado);color:var(--dourado)}
+
+/* ---------- aba Consultas ---------- */
+.fic-consultas-topo{display:flex;justify-content:flex-end;margin-bottom:20px}
+/* A continuidade clinica, discreta — o bloco cheio (Jornada clinica) ja
+   fica visivel acima das abas; aqui e so um lembrete de uma linha. */
+.fic-continuidade{
+  display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+  margin-top:6px;padding-top:18px;border-top:1px solid var(--borda-suave);
+}
+.fic-continuidade .fic-rot{margin-right:2px}
+.fic-continuidade-seta{color:var(--texto-suave);opacity:.6;font-size:.8rem}
+
+/* ---------- aba HOLOSCOPE ---------- */
+/* Os cinco sistemas da ultima aplicacao, fora do .fic-mapa original (que e
+   flex-row para indice+triade+piores lado a lado) — aqui e so a lista,
+   mas com a mesma caixa sutil, senao fica sem moldura, solta na tela. */
+.fic-piores-caixa{
+  padding:16px 20px;margin-top:2px;
+  border:1px solid rgba(201,163,90,.2);border-radius:var(--raio,12px);
+  background:rgba(201,163,90,.04);
+}
+
+@media (max-width:760px){
+  .fic-mapa{gap:20px}
+  .fic-alerta{flex-direction:column;align-items:flex-start;gap:10px}
+  .fic-linha{grid-template-columns:1fr auto}
+  .fic-ir-min{grid-column:2}
+}
+
+/* =========================================================================
+   DASHBOARD — o trabalho de hoje
+   ========================================================================= */
+
+.dash-cabeca{margin-bottom:30px}
+.dash-cabeca p{margin-top:10px}
+
+/* ---------- acoes rapidas ---------- */
+.dash-numeros.dash-resumo{margin-bottom:18px}
+.dash-acoes-rapidas{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:34px}
+
+.dash-bloco{margin-bottom:34px}
+/* Etapa 2: proximos atendimentos, pacientes recentes e jornada clinica sao
+   compactos por natureza — cabem tres num espaco que antes levava um bloco
+   so, entao a margem entre eles encolhe. */
+.dash-bloco.dash-bloco-compacto{margin-bottom:22px}
+.dash-titulo{
+  font-family:var(--fonte-display);font-size:1.32rem;font-weight:500;
+  color:var(--titulo);margin:0 0 4px;display:flex;align-items:baseline;gap:10px;
+}
+.dash-titulo em{
+  font-style:normal;font-family:var(--fonte-corpo);font-size:.72rem;font-weight:500;
+  color:var(--dourado);border:1px solid var(--dourado-suave);border-radius:999px;
+  padding:2px 9px;line-height:1.4;
+}
+.dash-sub{font-size:.85rem;font-weight:300;color:var(--texto-suave);margin:0 0 16px;max-width:46rem}
+.dash-vazio{
+  font-size:.9rem;font-weight:300;color:var(--texto-suave);
+  border-left:2px solid var(--borda-suave);padding:10px 0 10px 14px;margin:12px 0 0;
+}
+
+/* ---------- quem precisa de atencao ---------- */
+.dash-pendentes{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:2px}
+.dash-pendente{
+  display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;
+  background:var(--sup-card);border:1px solid var(--borda-suave);
+  border-left:2px solid var(--dourado-suave);border-radius:10px;
+  padding:14px 18px;
+}
+.dash-pendente.abrir{border-left-color:var(--dourado)}
+.dash-quem{display:flex;flex-direction:column;gap:2px;min-width:0}
+.dash-quem b{font-weight:500;color:var(--texto);font-size:.98rem}
+.dash-porque{font-size:.8rem;font-weight:300;color:var(--texto-suave);line-height:1.45}
+.dash-ir{
+  border:1px solid var(--borda-suave);background:none;cursor:pointer;
+  color:var(--dourado);font-family:inherit;font-size:.78rem;font-weight:400;
+  padding:7px 14px;white-space:nowrap;transition:border-color .15s,background .15s;
+}
+.dash-ir:hover{border-color:var(--dourado);background:var(--halo)}
+.dash-ir:focus-visible{outline:2px solid var(--dourado);outline-offset:2px}
+
+/* ---------- os numeros ---------- */
+.dash-numeros{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:2px;margin-bottom:34px;
+}
+.dash-tile{
+  background:var(--sup-card);border:1px solid var(--borda-suave);
+  padding:18px 20px;display:flex;flex-direction:column;gap:4px;
+}
+.dash-tile b{
+  font-family:var(--fonte-display);font-size:2.1rem;font-weight:500;line-height:1;
+  color:var(--titulo);font-variant-numeric:lining-nums tabular-nums;
+}
+.dash-tile span{font-size:.76rem;font-weight:300;color:var(--texto-suave);line-height:1.4}
+
+/* ---------- o terreno da carteira ----------
+   Uma serie so: barra unica, rotulo direto em cada linha, sem legenda. */
+.dash-terreno{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.dash-barra{
+  display:grid;grid-template-columns:minmax(9rem,14rem) 1fr 2.2rem;
+  align-items:center;gap:14px;padding:9px 0;
+}
+.dash-barra-nome{font-size:.85rem;font-weight:300;color:var(--texto)}
+.dash-barra-trilho{
+  height:8px;background:var(--dash-trilho);border-radius:0 4px 4px 0;
+  display:block;min-width:0;
+}
+.dash-barra-trilho i{
+  display:block;height:100%;background:var(--dash-barra);
+  border-radius:0 4px 4px 0;
+}
+.dash-barra-n{
+  font-size:.9rem;font-weight:500;color:var(--texto);text-align:right;
+  font-variant-numeric:tabular-nums;
+}
+
+/* ---------- jornada clinica ----------
+   HOLOSCOPE -> HOLOSCAN -> Documentos: o mesmo cartao de linha que "Precisa
+   de voce" usa (dash-quem/dash-ir), so sem avatar e com uma seta entre eles. */
+.dash-jornada{display:flex;flex-direction:column;gap:2px;margin-top:14px}
+.dash-jornada-passo{
+  display:grid;grid-template-columns:1fr auto;align-items:center;gap:14px;
+  background:var(--sup-card);border:1px solid var(--borda-suave);
+  border-left:2px solid var(--dourado-suave);border-radius:10px;padding:14px 18px;
+}
+.dash-jornada-seta{
+  text-align:center;color:var(--dourado-suave);font-size:.85rem;line-height:1;
+}
+
+@media (max-width:640px){
+  .dash-pendente{grid-template-columns:auto 1fr;row-gap:12px}
+  .dash-ir{grid-column:2;justify-self:start}
+  .dash-barra{grid-template-columns:1fr 2.2rem;row-gap:6px}
+  .dash-barra-nome{grid-column:1/-1}
+  .dash-jornada-passo{grid-template-columns:1fr;row-gap:12px}
+  .dash-jornada-passo .dash-ir{justify-self:start}
+}
+
+/* =========================================================================
+   MÓDULO CORPO — cabeçalho, grupos, listas, síntese e histórico
+
+   O formulário deixou de ser uma pilha de campos: tem cabeçalho com objetivo,
+   seções com título, listas de itens repetíveis, e uma síntese embaixo. Cada
+   parte precisa de moldura própria, senão tudo lê como a mesma coisa.
+   ========================================================================= */
+
+/* ---------- cabeçalho da ferramenta ---------- */
+.ferr-meta{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px}
+.ferr-papel{
+  font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600;
+  color:var(--realce);border:1px solid var(--dourado-suave);
+  border-radius:999px;padding:3px 11px;
+}
+.ferr-meta-item{font-size:.76rem;font-weight:300;color:var(--texto-suave)}
+.ferr-meta-item.estado-concluida{color:var(--movimento-sobe)}
+.ferr-meta-item.estado-revisada{color:var(--realce);font-weight:500}
+
+.ferr-porque{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr));
+  gap:10px 26px;padding:16px 18px;margin-bottom:24px;
+  border-left:2px solid var(--dourado-suave);background:var(--halo);
+  border-radius:0 10px 10px 0;
+}
+.ferr-porque p{margin:0;font-size:.86rem;font-weight:300;line-height:1.55;color:var(--texto)}
+.ferr-porque em{
+  display:block;font-style:normal;margin-bottom:3px;
+  font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--texto-suave);
+}
+
+/* ---------- grupos e listas ---------- */
+.ferr-grupo,.ferr-lista,.ferr-leitura,.ferr-historico{margin-bottom:28px}
+.ferr-grupo-titulo{
+  display:flex;align-items:baseline;gap:10px;
+  font-family:var(--fonte-display);font-size:1.1rem;font-weight:500;
+  color:var(--titulo);margin:0 0 14px;padding-bottom:9px;
+  border-bottom:1px solid var(--borda-suave);
+}
+.ferr-conta{
+  font-family:var(--fonte-corpo);font-size:.7rem;font-weight:500;color:var(--dourado);
+  border:1px solid var(--dourado-suave);border-radius:999px;padding:2px 9px;
+}
+
+.ferr-itens{display:flex;flex-direction:column;gap:14px;margin-bottom:14px}
+.ferr-item{
+  border:1px solid var(--borda-suave);border-radius:12px;padding:16px 18px;
+  border-left:2px solid var(--dourado-suave);
+}
+.ferr-item-topo{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;
+}
+.ferr-item-topo b{
+  font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--texto-suave);font-weight:600;
+}
+.ferr-item-tirar{
+  border:none;background:none;cursor:pointer;font-size:1.1rem;line-height:1;
+  color:var(--texto-suave);padding:2px 8px;border-radius:6px;
+}
+.ferr-item-tirar:hover{color:var(--movimento-desce);background:rgba(180,85,60,.08)}
+/* Dentro de um item os campos ficam lado a lado: são muitos e curtos. */
+.ferr-item .campos{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr));
+  gap:14px 20px;
+}
+.ferr-item .campos .tipo-textarea{grid-column:1/-1}
+
+/* ---------- a régua que não nasce respondida ---------- */
+.grupo-nota{display:flex;align-items:center;gap:12px}
+.grupo-nota output{
+  min-width:2.2rem;text-align:center;font-variant-numeric:tabular-nums;
+  font-family:var(--fonte-display);font-size:1.15rem;font-weight:500;color:var(--titulo);
+}
+.grupo-nota[data-respondido="0"] output{color:var(--texto-suave);font-weight:300}
+.nota-limpar{
+  border:none;background:none;cursor:pointer;font-family:inherit;
+  font-size:.68rem;color:var(--texto-suave);text-decoration:underline;
+  text-underline-offset:3px;padding:4px;
+}
+.nota-limpar:hover{color:var(--movimento-desce)}
+
+/* ---------- a síntese ---------- */
+.ferr-sintese:not(:empty){margin:28px 0}
+.res-caixa{
+  border:1px solid var(--dourado-suave);border-radius:14px;
+  padding:22px 24px;background:var(--halo);
+}
+.res-titulo{
+  display:flex;align-items:baseline;flex-wrap:wrap;gap:10px;
+  font-family:var(--fonte-display);font-size:1.15rem;font-weight:500;
+  color:var(--titulo);margin:0 0 16px;
+}
+/* O que ainda não passou pelo autor do método aparece marcado, como as
+   definições dos sistemas. */
+.res-rascunho{
+  font-family:var(--fonte-corpo);font-style:normal;
+  font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--texto-suave);border:1px solid var(--borda-suave);
+  border-radius:999px;padding:2px 9px;
+}
+.res-sub,.res-nota{
+  font-size:.8rem;font-weight:300;line-height:1.6;color:var(--texto-suave);
+  margin:14px 0 0;max-width:52rem;
+}
+.res-vazio{font-size:.86rem;font-weight:300;color:var(--texto-suave);margin:0}
+
+.res-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,7.5rem),1fr));gap:2px;margin-bottom:18px}
+.res-tile{
+  display:flex;flex-direction:column;gap:3px;padding:12px 14px;
+  background:var(--sup-card);border:1px solid var(--borda-suave);
+}
+.res-tile b{
+  font-family:var(--fonte-display);font-size:1.5rem;font-weight:500;
+  color:var(--titulo);line-height:1;font-variant-numeric:tabular-nums;
+}
+.res-tile span{font-size:.72rem;font-weight:300;color:var(--texto-suave);line-height:1.35}
+
+.res-frases{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.res-frases li{
+  font-size:.86rem;font-weight:300;line-height:1.55;color:var(--texto);
+  padding-left:14px;border-left:2px solid var(--dourado-suave);
+}
+
+.res-barras{display:flex;flex-direction:column;gap:2px;margin-bottom:4px}
+.res-barra{
+  display:grid;grid-template-columns:minmax(0,1fr) 7rem 2.4rem auto;
+  align-items:center;gap:12px;padding:7px 0;
+  border-bottom:1px solid var(--borda-suave);
+}
+.res-barra:last-child{border-bottom:none}
+.res-barra-nome{font-size:.85rem;font-weight:300;color:var(--texto)}
+.res-barra-trilho{height:5px;border-radius:999px;overflow:hidden;background:var(--dash-trilho,rgba(29,58,46,.1))}
+.res-barra-trilho i{display:block;height:100%;background:var(--dash-barra,var(--verde-medio))}
+.res-barra-n{
+  font-family:var(--fonte-display);font-size:1rem;font-weight:500;
+  color:var(--titulo);text-align:right;font-variant-numeric:tabular-nums;
+}
+.res-barra-extra{font-size:.7rem;font-weight:300;color:var(--texto-suave)}
+
+.res-chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 0}
+.res-chip{
+  font-size:.76rem;font-weight:300;color:var(--texto-suave);
+  border:1px solid var(--borda-suave);border-radius:999px;padding:4px 12px;
+}
+.res-chip b{color:var(--texto);font-weight:500;font-variant-numeric:tabular-nums}
+
+.res-destaque{
+  font-size:.88rem;font-weight:300;line-height:1.55;color:var(--texto);
+  margin:16px 0 0;padding:12px 16px;border-radius:10px;background:var(--sup-card);
+  border-left:2px solid var(--dourado);
+}
+.res-destaque em{
+  display:block;font-style:normal;margin-bottom:4px;
+  font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--texto-suave);
+}
+.res-destaque.alerta{border-left-color:var(--movimento-desce)}
+.res-duas{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:12px}
+
+.res-tabela{width:100%;border-collapse:collapse;margin-top:14px;font-size:.84rem}
+.res-tabela th{
+  text-align:left;font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--texto-suave);font-weight:600;padding:0 10px 8px 0;
+  border-bottom:1px solid var(--borda-suave);
+}
+.res-tabela td{
+  padding:9px 10px 9px 0;border-bottom:1px solid var(--borda-suave);
+  color:var(--texto);font-weight:300;font-variant-numeric:tabular-nums;
+}
+.res-tabela tr:last-child td{border-bottom:none}
+
+/* Os indicadores do sono e os três fundamentos: leituras separadas, lado a
+   lado, cada uma com o seu nível. Juntá-las num número só esconderia qual
+   está pedindo atenção. */
+.res-indicadores{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,11rem),1fr));gap:12px}
+.res-indicador{
+  display:flex;flex-direction:column;gap:5px;padding:14px 16px;
+  background:var(--sup-card);border:1px solid var(--borda-suave);
+  border-radius:10px;border-top:2px solid var(--borda-suave);
+}
+.res-indicador b{font-size:.92rem;font-weight:500;color:var(--texto)}
+.res-indicador.adequado{border-top-color:var(--movimento-sobe)}
+.res-indicador.atencao{border-top-color:var(--dourado)}
+.res-indicador.prioridade{border-top-color:var(--movimento-desce)}
+.res-nivel{
+  font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600;
+  color:var(--texto-suave);
+}
+.res-indicador.adequado .res-nivel{color:var(--movimento-sobe)}
+.res-indicador.atencao .res-nivel{color:var(--realce)}
+.res-indicador.prioridade .res-nivel{color:var(--movimento-desce)}
+.res-medida{font-size:.82rem;color:var(--texto);font-variant-numeric:tabular-nums}
+.res-explica{font-size:.72rem;font-weight:300;line-height:1.45;color:var(--texto-suave)}
+
+/* o estado do Momentum */
+.res-estado{
+  display:flex;flex-direction:column;gap:4px;padding:18px 20px;margin-bottom:18px;
+  background:var(--sup-card);border:1px solid var(--borda-suave);
+  border-radius:12px;border-left:3px solid var(--dourado);
+}
+.res-estado-rot{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--texto-suave)}
+.res-estado b{font-family:var(--fonte-display);font-size:1.5rem;font-weight:600;color:var(--titulo)}
+.res-estado span:not(.res-estado-rot):not(.res-estado-media){font-size:.88rem;font-weight:300;color:var(--texto)}
+.res-estado-media{font-size:.74rem;font-weight:300;color:var(--texto-suave);margin-top:4px}
+.res-estado.estado-preservar{border-left-color:var(--movimento-desce)}
+.res-estado.estado-reorganizar{border-left-color:var(--dourado)}
+.res-estado.estado-construir,.res-estado.estado-expandir{border-left-color:var(--movimento-sobe)}
+
+/* Enquanto ninguem confirmou o estado, a caixa e visivelmente uma lacuna —
+   nao um estado neutro. Verde discreto aqui leria como "esta tudo bem". */
+/* Eixo da Triade sem nenhuma resposta: nao e nota baixa nem alta, e ausencia.
+   Fica visivelmente apagado, com traco no lugar do numero. */
+.triada-eixo.sem-dado{opacity:.5}
+.triada-eixo.sem-dado .triada-nota{color:var(--texto-suave);font-style:italic}
+.triada-leitura.sem-dado{color:var(--texto-suave);font-size:.76rem;font-style:italic}
+
+.res-estado.aguardando{border-left-color:var(--borda-suave);border-left-style:dashed}
+.res-estado.aguardando b{color:var(--texto-suave);font-style:italic}
+
+/* Um momento sem registro na Energia Vital continua na linha, vazio. Some-lo
+   era o que fazia dois horarios distantes parecerem vizinhos. */
+.res-barra.vazia .res-barra-nome,.res-barra.vazia .res-barra-n{color:var(--texto-suave)}
+.res-barra.vazia .res-barra-trilho{
+  background:transparent;border-top:1px dashed var(--borda-suave);height:0;
+}
+
+/* Indicador sem resposta: presente e declarado, em vez de omitido. */
+.res-indicador.sem-dado{opacity:.6}
+.res-indicador.sem-dado .res-medida{font-style:italic;color:var(--texto-suave)}
+
+/* A nota que explica por que o sistema NAO classificou. Ela precisa ser lida,
+   entao nao e a mesma nota discreta do resto. */
+.res-sem-criterio{
+  margin-top:14px;padding:10px 14px;
+  border-left:2px solid var(--dourado-suave);
+  background:var(--sup-card);border-radius:0 8px 8px 0;
+}
+
+/* ---------- a matriz impacto x viabilidade (§12.6) ---------- */
+.res-matriz{max-width:340px;margin:6px 0 4px}
+.res-matriz svg{width:100%;height:auto;display:block;overflow:visible}
+.mx-grade{stroke:var(--borda-suave);stroke-width:1;stroke-dasharray:2 4}
+.mx-eixo{stroke:var(--borda-suave);stroke-width:1}
+.mx-tick{font-size:9px;fill:var(--texto-suave);font-variant-numeric:tabular-nums}
+.mx-eixo-rot{font-size:9px;fill:var(--texto-suave);letter-spacing:.08em;text-transform:uppercase}
+.mx-ponto circle{
+  fill:var(--verde-medio);fill-opacity:.55;
+  stroke:var(--sup-card);stroke-width:2;
+}
+.mx-ponto:hover circle{fill-opacity:.9}
+
+/* O aviso de que a conduta sugerida ainda nao passou pelo metodo. Discreto,
+   mas nao escondido: ele muda como a lista abaixo deve ser lida. */
+.leitura-aviso{
+  font-size:.78rem;font-weight:300;line-height:1.5;color:var(--texto-suave);
+  margin:-6px 0 12px;padding-left:10px;
+  border-left:2px solid var(--dourado-suave);
+}
+
+/* ---------- leitura profissional e histórico ---------- */
+.ferr-leitura{
+  border:1px solid var(--borda-suave);border-radius:14px;padding:22px 24px;
+}
+.ferr-historico-lista{display:flex;flex-direction:column;gap:2px}
+.ferr-hist-item{
+  display:grid;grid-template-columns:7rem auto 1fr;align-items:baseline;gap:14px;
+  width:100%;text-align:left;cursor:pointer;font-family:inherit;
+  background:var(--sup-card);border:1px solid var(--borda-suave);
+  padding:12px 16px;transition:border-color .15s;
+}
+.ferr-hist-item:hover{border-color:var(--dourado-suave)}
+.ferr-hist-item b{font-size:.88rem;font-weight:500;color:var(--texto);font-variant-numeric:tabular-nums}
+.ferr-hist-estado{
+  font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--texto-suave);
+}
+.ferr-hist-leitura{
+  font-size:.8rem;font-weight:300;color:var(--texto-suave);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+
+/* ---------- o selo do card, com os estados novos ---------- */
+.ferr-status.rascunho{color:var(--dourado);border-color:var(--dourado-suave)}
+.ferr-status.revisada{
+  color:var(--movimento-sobe);border-color:transparent;background:var(--halo);
+}
+.ferr-status.reaplicar{color:var(--movimento-desce);border-color:var(--movimento-desce)}
+
+@media (max-width:700px){
+  .ferr-item .campos{grid-template-columns:1fr}
+  .res-barra{grid-template-columns:minmax(0,1fr) 2.4rem;row-gap:4px}
+  .res-barra-trilho{grid-column:1/-1;order:3}
+  .res-barra-extra{display:none}
+  .ferr-hist-item{grid-template-columns:1fr auto;row-gap:4px}
+  .ferr-hist-leitura{grid-column:1/-1;white-space:normal}
+  .res-tabela{font-size:.78rem}
+}
+
+/* =========================================================================
+   A FICHA DO PACIENTE
+
+   Cabeçalho, faixa de situação e abas. A faixa existe porque as quatro
+   perguntas que se faz antes de atender — quando foi a última, quando é a
+   próxima, o que está aberto, o que já foi entregue — tinham resposta em
+   quatro lugares diferentes do app.
+   ========================================================================= */
+
+.fic-topo{
+  display:flex;flex-wrap:wrap;align-items:center;gap:18px;
+  padding-bottom:20px;border-bottom:1px solid var(--borda-suave);
+}
+.fic-topo .pac-avatar{width:54px;height:54px;font-size:1.4rem}
+.fic-quem{flex:1 1 16rem;display:flex;flex-direction:column;gap:5px;min-width:0}
+.fic-nome-linha{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+.fic-nome-linha h3{
+  font-family:var(--fonte-display);font-size:1.7rem;font-weight:600;
+  color:var(--titulo);margin:0;line-height:1.1;
+}
+.fic-contato{display:flex;flex-wrap:wrap;align-items:center;gap:4px;font-size:.86rem}
+.fic-contato a{color:var(--texto-suave);text-decoration:none;font-weight:300}
+.fic-contato a:hover{color:var(--realce);text-decoration:underline;text-underline-offset:3px}
+.fic-cadastro{color:var(--texto-suave);font-weight:300}
+.fic-ponto{color:var(--texto-suave);opacity:.5;padding:0 6px}
+.fic-sem{font-size:.84rem;font-weight:300;color:var(--texto-suave);font-style:italic}
+.fic-acoes-topo{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+
+.fic-sobre{
+  display:flex;flex-wrap:wrap;align-items:center;gap:10px;
+  padding:14px 0;font-size:.86rem;font-weight:300;color:var(--texto);
+}
+.fic-sobre-rot{
+  font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--texto-suave);font-weight:500;
+}
+.fic-detalhes{
+  border:none;background:none;cursor:pointer;font-family:inherit;
+  font-size:.8rem;color:var(--realce);text-decoration:underline;
+  text-underline-offset:3px;padding:4px;margin-left:auto;
+}
+.fic-detalhe-corpo{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));
+  gap:12px 24px;padding:16px 18px;margin-bottom:8px;
+  border:1px solid var(--borda-suave);border-radius:12px;background:var(--halo);
+}
+.fic-det{display:flex;flex-direction:column;gap:2px;min-width:0}
+.fic-det span{font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--texto-suave)}
+.fic-det b{font-size:.88rem;font-weight:400;color:var(--texto);word-break:break-word}
+
+/* ---------- a faixa de situação ---------- */
+.fic-faixa{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 26px}
+.fic-pilula{
+  display:flex;flex-direction:column;gap:3px;cursor:pointer;text-align:left;
+  border:1px solid var(--borda-suave);border-radius:11px;
+  background:var(--sup-card);padding:10px 16px;font-family:inherit;
+  transition:border-color .15s,background .15s;
+}
+.fic-pilula:hover{border-color:var(--dourado-suave);background:var(--halo)}
+.fic-pilula-rot{
+  font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--texto-suave);
+}
+.fic-pilula b{font-size:.88rem;font-weight:500;color:var(--texto)}
+/* Vazio não é erro — é só uma coisa que ainda não aconteceu. Recua. */
+.fic-pilula.vazia b{font-weight:300;color:var(--texto-suave)}
+.fic-pilula.alerta{border-left:2px solid var(--movimento-desce)}
+.fic-pilula.alerta b{color:var(--movimento-desce)}
+
+/* ---------- os cinco sistemas, na visão clínica ---------- */
+.fic-sistemas,.fic-leituras{margin-top:26px}
+.fic-barra{
+  display:grid;grid-template-columns:1fr 8rem 2.6rem 6rem;
+  align-items:center;gap:14px;padding:9px 0;
+  border-bottom:1px solid var(--borda-suave);
+}
+.fic-barra:last-child{border-bottom:none}
+.fic-barra-nome{font-size:.88rem;font-weight:300;color:var(--texto)}
+.fic-barra-trilho{
+  height:5px;border-radius:999px;overflow:hidden;background:var(--dash-trilho,rgba(29,58,46,.1));
+}
+.fic-barra-trilho i{display:block;height:100%;background:var(--dash-barra,var(--verde-medio))}
+.fic-barra-n{
+  font-family:var(--fonte-display);font-size:1.05rem;font-weight:500;
+  color:var(--titulo);text-align:right;font-variant-numeric:tabular-nums;
+}
+.fic-barra-faixa{
+  font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--texto-suave);
+}
+.fic-barra.sem-dado{opacity:.5}
+
+/* ---------- a linha do tempo ---------- */
+.fic-tempo{position:relative;margin-top:8px}
+.fic-tempo-mes{
+  font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--texto-suave);margin:22px 0 10px;
+}
+.fic-tempo-mes:first-child{margin-top:0}
+.fic-evento{
+  display:flex;align-items:flex-start;gap:14px;width:100%;
+  border:none;background:none;cursor:pointer;text-align:left;font-family:inherit;
+  padding:10px 12px;border-radius:10px;transition:background .15s;
+}
+.fic-evento:hover{background:var(--halo)}
+/* A marca é a régua: um ponto por evento, ligados pela linha vertical. */
+.fic-evento-marca{
+  position:relative;width:11px;height:11px;flex-shrink:0;margin-top:5px;
+  border-radius:50%;border:2px solid var(--verde-medio);background:var(--sup-fundo);
+}
+.fic-evento-marca::before{
+  content:"";position:absolute;left:50%;top:13px;
+  width:1px;height:34px;background:var(--borda-suave);transform:translateX(-50%);
+}
+.fic-evento:last-child .fic-evento-marca::before{display:none}
+.fic-evento.consulta .fic-evento-marca{border-color:var(--dourado)}
+.fic-evento.documento .fic-evento-marca{border-color:var(--texto-suave)}
+/* O que ainda não aconteceu não é registro: é promessa. Fica oco. */
+.fic-evento.futuro .fic-evento-marca{background:transparent;border-style:dashed}
+.fic-evento-corpo{display:flex;flex-direction:column;gap:3px;min-width:0}
+.fic-evento-topo{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.fic-evento-topo b{font-size:.94rem;font-weight:500;color:var(--texto)}
+.fic-selo{
+  font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;
+  border:1px solid var(--borda-suave);border-radius:999px;
+  padding:2px 9px;color:var(--texto-suave);
+}
+.fic-evento-quando{font-size:.78rem;font-weight:300;color:var(--texto-suave);line-height:1.5}
+
+/* ---------- os formulários ---------- */
+.fic-forms{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+.fic-form,.fic-forms-rodape{
+  border:1px solid var(--borda-suave);border-radius:12px;padding:18px 20px;
+  border-left:2px solid var(--borda-suave);
+}
+.fic-form.comecado{border-left-color:var(--dourado-suave)}
+.fic-form.pronto{border-left-color:var(--movimento-sobe)}
+.fic-forms-rodape{margin-top:22px;border-left-color:var(--borda-suave)}
+.fic-form-topo{
+  display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:16px;
+}
+.fic-form-quem{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 20rem}
+.fic-form-quem b{font-size:1rem;font-weight:500;color:var(--texto)}
+.fic-form-quem span{font-size:.82rem;font-weight:300;color:var(--texto-suave);line-height:1.55}
+.fic-form-estado{
+  font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--texto-suave);white-space:nowrap;
+}
+.fic-form.pronto .fic-form-estado{color:var(--movimento-sobe)}
+.fic-form-extra{
+  font-size:.84rem;font-weight:300;line-height:1.6;color:var(--texto);
+  margin:14px 0 0;padding-top:12px;border-top:1px solid var(--borda-suave);
+}
+.fic-form-acoes{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:16px}
+
+/* ---------- a janela de respostas ---------- */
+.fic-janela{
+  position:fixed;inset:0;z-index:200;
+  display:flex;align-items:center;justify-content:center;padding:24px;
+  background:rgba(6,35,26,.62);
+}
+.fic-janela-caixa{
+  display:flex;flex-direction:column;width:min(56rem,100%);max-height:min(86vh,900px);
+  background:var(--sup-fundo);border:1px solid var(--borda-suave);
+  border-radius:16px;box-shadow:var(--sombra);overflow:hidden;
+}
+.fic-janela-topo{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:18px;
+  padding:22px 26px;border-bottom:1px solid var(--borda-suave);
+}
+.fic-janela-topo h3{
+  font-family:var(--fonte-display);font-size:1.25rem;font-weight:500;
+  color:var(--titulo);margin:0 0 4px;
+}
+.fic-janela-topo p{font-size:.8rem;font-weight:300;color:var(--texto-suave);margin:0;max-width:44rem}
+.fic-janela-fechar{
+  border:none;background:none;cursor:pointer;flex-shrink:0;
+  font-size:1.5rem;line-height:1;color:var(--texto-suave);padding:2px 8px;border-radius:8px;
+}
+.fic-janela-fechar:hover{color:var(--texto);background:var(--halo)}
+.fic-janela-corpo{padding:22px 26px 26px;overflow-y:auto}
+.fic-janela-acoes{display:flex;justify-content:flex-end;margin-top:22px}
+
+.fic-res{
+  border:1px solid var(--dourado-suave);border-radius:12px;
+  padding:18px 20px;margin-bottom:24px;background:var(--halo);
+}
+.fic-res-topo{display:flex;align-items:baseline;gap:12px;margin-bottom:14px}
+.fic-res-topo b{font-family:var(--fonte-display);font-size:1.5rem;font-weight:600;color:var(--titulo)}
+.fic-res-topo span{font-size:.78rem;font-weight:300;color:var(--texto-suave)}
+.fic-res-grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,9rem),1fr));gap:10px}
+.fic-res-sis{display:flex;flex-direction:column;gap:2px}
+.fic-res-sis span{font-size:.7rem;font-weight:300;color:var(--texto-suave);line-height:1.35}
+.fic-res-sis b{font-family:var(--fonte-display);font-size:1.15rem;font-weight:500;color:var(--texto)}
+
+.fic-bloco-titulo{
+  display:flex;align-items:baseline;gap:10px;
+  font-family:var(--fonte-display);font-size:1.1rem;font-weight:500;
+  color:var(--titulo);margin:26px 0 10px;
+}
+.fic-bloco-titulo:first-child{margin-top:0}
+.fic-bloco-titulo span{
+  font-family:var(--fonte-corpo);font-size:.7rem;font-weight:500;
+  color:var(--dourado);border:1px solid var(--dourado-suave);
+  border-radius:999px;padding:2px 9px;
+}
+.fic-respostas{display:flex;flex-direction:column}
+.fic-resposta{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:20px;
+  padding:11px 0;border-bottom:1px solid var(--borda-suave);
+}
+.fic-resposta:last-child{border-bottom:none}
+.fic-pergunta{font-size:.88rem;font-weight:300;line-height:1.55;color:var(--texto);min-width:0}
+.fic-pergunta i{
+  display:block;margin-top:4px;font-style:normal;
+  font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:var(--dourado);
+}
+.fic-valor-resposta{
+  display:flex;align-items:baseline;gap:8px;flex-shrink:0;
+  font-variant-numeric:tabular-nums;
+}
+.fic-valor-resposta b{
+  font-family:var(--fonte-display);font-size:1.2rem;font-weight:600;color:var(--titulo);
+}
+.fic-valor-resposta span{font-size:.74rem;font-weight:300;color:var(--texto-suave)}
+
+@media (max-width:700px){
+  .fic-acoes-topo{width:100%}
+  .fic-acoes-topo .btn-verde{flex:1}
+  .fic-detalhes{margin-left:0}
+  .fic-faixa{display:grid;grid-template-columns:1fr 1fr}
+  .fic-barra{grid-template-columns:1fr 3rem;row-gap:4px}
+  .fic-barra-trilho{grid-column:1/-1;order:3}
+  .fic-barra-faixa{display:none}
+  .fic-janela{padding:0}
+  .fic-janela-caixa{max-height:100vh;border-radius:0;width:100%}
+  .fic-janela-topo,.fic-janela-corpo{padding-left:18px;padding-right:18px}
+  .fic-resposta{flex-direction:column;gap:6px}
+}
+
+/* =========================================================================
+   AGENDA — o calendário
+
+   Três camadas com pesos visuais diferentes, de propósito: a consulta é um
+   bloco cheio (alguém marcou), o bloqueio é listrado (tempo negado, não
+   compromisso) e a sugestão é tracejada (cálculo, ninguém marcou nada). Se as
+   três parecessem iguais, a tela diria que há consulta onde não há.
+   ========================================================================= */
+
+.cal-cabeca{
+  display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;
+  gap:20px;margin-bottom:22px;
+}
+.cal-acoes{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.cal-acoes .perf-botao{display:inline-flex;align-items:center;gap:8px}
+
+/* ---------- navegar pelo tempo ---------- */
+.cal-barra{
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;
+  gap:16px;margin-bottom:16px;
+}
+.cal-andar{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.cal-seta{
+  width:32px;height:32px;flex-shrink:0;border-radius:9px;cursor:pointer;
+  border:1px solid var(--borda-suave);background:none;
+  font-size:1.2rem;line-height:1;color:var(--texto);
+  transition:border-color .15s,background .15s;
+}
+.cal-seta:hover{border-color:var(--dourado);background:var(--halo)}
+.cal-rotulo{
+  font-family:var(--fonte-display);font-size:1.22rem;font-weight:500;
+  color:var(--titulo);min-width:11rem;text-align:center;
+}
+.cal-hoje{padding:7px 14px;font-size:.8rem}
+.cal-andar input[type="date"]{
+  font-family:inherit;font-size:.82rem;color:var(--texto);
+  background:var(--input-fundo);border:1px solid var(--input-borda);
+  border-radius:9px;padding:7px 11px;
+}
+.cal-vistas{display:flex;gap:2px;border:1px solid var(--borda-suave);border-radius:999px;padding:3px}
+.cal-vista{
+  border:none;background:none;cursor:pointer;border-radius:999px;
+  padding:7px 17px;font-family:inherit;font-size:.82rem;color:var(--texto-suave);
+  transition:background .15s,color .15s;
+}
+.cal-vista:hover{color:var(--texto)}
+.cal-vista.ativa{background:var(--verde-escuro);color:var(--creme)}
+
+/* ---------- as camadas ---------- */
+.cal-chips{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:18px}
+.cal-chip{
+  display:inline-flex;align-items:center;gap:8px;
+  border:1px solid var(--borda-suave);background:none;border-radius:999px;
+  padding:6px 14px;cursor:pointer;font-family:inherit;
+  font-size:.8rem;color:var(--texto-suave);transition:border-color .15s,color .15s;
+}
+.cal-chip:hover{border-color:var(--dourado-suave);color:var(--texto)}
+.cal-chip.ativo{color:var(--texto)}
+.cal-chip-marca{
+  width:11px;height:11px;flex-shrink:0;border-radius:3px;
+  border:1px solid var(--texto-suave);
+}
+.cal-chip.consultas.ativo .cal-chip-marca{background:var(--verde-medio);border-color:var(--verde-medio)}
+.cal-chip.bloqueios.ativo .cal-chip-marca{
+  background:repeating-linear-gradient(45deg,var(--texto-suave) 0 2px,transparent 2px 4px);
+  border-color:var(--texto-suave);
+}
+.cal-chip.sugestoes.ativo .cal-chip-marca{border:1px dashed var(--dourado);background:var(--halo)}
+.cal-chips-nota{
+  font-size:.74rem;font-weight:300;color:var(--texto-suave);
+  flex:1 1 18rem;line-height:1.5;
+}
+
+/* ---------- a grade de horas ---------- */
+.cal-grade{
+  border:1px solid var(--borda-suave);border-radius:14px;
+  background:var(--sup-card);overflow:hidden;
+}
+.cal-grade-cabeca{display:flex;border-bottom:1px solid var(--borda-suave)}
+.cal-canto{width:56px;flex-shrink:0;border-right:1px solid var(--borda-suave)}
+.cal-cabeca-dias{flex:1;display:grid;grid-auto-flow:column;grid-auto-columns:1fr}
+.cal-cabeca-dia{
+  display:flex;flex-direction:column;align-items:center;gap:1px;
+  padding:11px 4px;border-left:1px solid var(--borda-suave);
+}
+.cal-cabeca-dia:first-child{border-left:none}
+.cal-cabeca-dia span{font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--texto-suave)}
+.cal-cabeca-dia b{
+  font-family:var(--fonte-display);font-size:1.15rem;font-weight:500;color:var(--texto);
+}
+.cal-cabeca-dia.hoje b{
+  color:var(--creme);background:var(--verde-medio);
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:.95rem;
+}
+
+.cal-grade-corpo{display:flex;max-height:min(62vh,620px);overflow-y:auto}
+.cal-horas{
+  width:56px;flex-shrink:0;border-right:1px solid var(--borda-suave);
+  display:flex;flex-direction:column;
+}
+/* O rótulo fica na LINHA da hora, e a linha tem altura de uma hora: por isso
+   ele sobe metade do próprio corpo, para encostar no traço e não flutuar. */
+.cal-hora{
+  height:var(--alt-hora);flex-shrink:0;
+  font-size:.68rem;color:var(--texto-suave);text-align:right;
+  padding-right:9px;transform:translateY(-.55em);
+  font-variant-numeric:tabular-nums;
+}
+.cal-colunas{flex:1;display:grid;grid-auto-flow:column;grid-auto-columns:1fr}
+.cal-coluna{
+  position:relative;border-left:1px solid var(--borda-suave);cursor:pointer;
+  background:repeating-linear-gradient(
+    to bottom,
+    var(--borda-suave) 0 1px,
+    transparent 1px var(--alt-hora)
+  );
+}
+.cal-coluna:first-child{border-left:none}
+.cal-coluna.hoje{background-color:var(--halo)}
+
+.cal-evento{
+  position:absolute;left:3px;right:3px;z-index:2;
+  display:flex;flex-direction:column;gap:1px;overflow:hidden;
+  border-radius:7px;padding:5px 9px;cursor:pointer;text-align:left;
+  font-family:inherit;border:1px solid transparent;
+}
+.cal-evento b{
+  font-size:.8rem;font-weight:500;line-height:1.25;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.cal-evento span{
+  font-size:.7rem;font-weight:300;opacity:.8;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.cal-evento.consulta{
+  background:var(--verde-medio);color:var(--creme);
+  border-left:3px solid var(--dourado);
+}
+.cal-evento.consulta:hover{filter:brightness(1.12)}
+/* Listrado: tempo negado tem outra natureza que compromisso assumido. */
+.cal-evento.bloqueio{
+  color:var(--texto-suave);border:1px solid var(--borda-suave);
+  background:repeating-linear-gradient(45deg,
+    var(--halo) 0 6px, transparent 6px 12px);
+}
+.cal-evento.bloqueio b{color:var(--texto);font-weight:400}
+
+/* A faixa do que não tem hora: bloqueio de dia inteiro e retorno sugerido.
+   Fica entre o cabeçalho dos dias e as horas, e não rola junto com elas —
+   pendurada na grade, ela sumia assim que a tela rolava para as 8h. */
+.cal-faixa{display:flex;border-bottom:1px solid var(--borda-suave);min-height:34px}
+.cal-faixa-rotulo{
+  width:56px;flex-shrink:0;border-right:1px solid var(--borda-suave);
+  display:flex;align-items:center;justify-content:flex-end;
+  padding-right:9px;font-size:.62rem;color:var(--texto-suave);
+}
+.cal-faixa-dias{flex:1;display:grid;grid-auto-flow:column;grid-auto-columns:1fr}
+.cal-faixa-dia{
+  display:flex;flex-direction:column;gap:3px;justify-content:center;
+  padding:5px 4px;border-left:1px solid var(--borda-suave);cursor:pointer;
+}
+.cal-faixa-dia:first-child{border-left:none}
+.cal-faixa-item{
+  display:block;width:100%;text-align:left;cursor:pointer;font-family:inherit;
+  border-radius:6px;padding:3px 8px;font-size:.7rem;line-height:1.35;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:1px solid transparent;
+}
+.cal-faixa-item.bloqueio{
+  color:var(--texto);border-color:var(--borda-suave);
+  background:repeating-linear-gradient(45deg,var(--halo) 0 6px,transparent 6px 12px);
+}
+.cal-faixa-item.sugestao{
+  border:1px dashed var(--dourado);color:var(--realce);background:none;font-weight:500;
+}
+.cal-faixa-item.sugestao:hover{background:var(--halo)}
+
+/* ---------- o mês ---------- */
+.cal-mes{border:1px solid var(--borda-suave);border-radius:14px;background:var(--sup-card);overflow:hidden}
+.cal-mes-cabeca{
+  display:grid;grid-template-columns:repeat(7,1fr);
+  border-bottom:1px solid var(--borda-suave);
+}
+.cal-mes-cabeca span{
+  padding:10px 6px;text-align:center;
+  font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--texto-suave);
+}
+.cal-mes-corpo{display:grid;grid-template-columns:repeat(7,1fr)}
+.cal-celula{
+  min-height:104px;display:flex;flex-direction:column;gap:3px;
+  padding:8px 7px;cursor:pointer;
+  border-left:1px solid var(--borda-suave);border-top:1px solid var(--borda-suave);
+}
+.cal-celula:nth-child(7n+1){border-left:none}
+.cal-celula:nth-child(-n+7){border-top:none}
+.cal-celula.fora{opacity:.42}
+.cal-celula.hoje{background:var(--halo)}
+.cal-numero{
+  font-size:.78rem;font-weight:500;color:var(--texto-suave);
+  font-variant-numeric:tabular-nums;margin-bottom:2px;
+}
+.cal-celula.hoje .cal-numero{color:var(--realce)}
+.cal-pilula{
+  display:block;width:100%;text-align:left;cursor:pointer;
+  border:none;border-radius:5px;padding:3px 7px;font-family:inherit;
+  font-size:.7rem;line-height:1.35;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.cal-pilula.consulta{background:var(--verde-medio);color:var(--creme)}
+.cal-pilula.bloqueio{
+  color:var(--texto-suave);
+  background:repeating-linear-gradient(45deg,var(--halo) 0 5px,transparent 5px 10px);
+  border:1px solid var(--borda-suave);
+}
+.cal-pilula.sugestao{border:1px dashed var(--dourado);color:var(--realce);background:none}
+.cal-mais{font-size:.68rem;color:var(--texto-suave);padding-left:7px}
+
+/* ---------- o vazio ---------- */
+.cal-vazio{
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  border:1px solid var(--borda-suave);border-radius:14px;
+  background:var(--sup-card);padding:64px 24px;text-align:center;
+}
+.cal-vazio-ico{
+  width:52px;height:52px;border-radius:50%;margin-bottom:6px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--halo);color:var(--texto-suave);
+}
+.cal-vazio b{font-family:var(--fonte-display);font-size:1.25rem;font-weight:500;color:var(--titulo)}
+.cal-vazio p{font-size:.88rem;font-weight:300;color:var(--texto-suave);margin:0 0 12px}
+
+/* ---------- o formulário ---------- */
+.cal-form{
+  border:1px solid var(--dourado-suave);border-radius:14px;
+  background:var(--sup-card);padding:24px 26px;margin-bottom:18px;
+}
+.cal-form-topo{
+  display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:18px;
+}
+.cal-form-topo h3{
+  font-family:var(--fonte-display);font-size:1.2rem;font-weight:500;color:var(--titulo);margin:0;
+}
+.cal-form-acoes{
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:14px;
+  margin-top:18px;padding-top:18px;border-top:1px solid var(--borda-suave);
+}
+.cal-dia-todo{
+  display:inline-flex;align-items:center;gap:9px;margin-bottom:16px;
+  font-size:.85rem;color:var(--texto);cursor:pointer;
+}
+.cal-dia-todo input{width:16px;height:16px;accent-color:var(--verde-medio);cursor:pointer}
+
+@media (max-width:900px){
+  /* Sete colunas de hora não cabem num telefone. A semana vira o dia, e quem
+     quer a semana inteira usa o Mês, que é uma grade e não um relógio. */
+  .cal-grade.semana .cal-colunas,.cal-grade.semana .cal-cabeca-dias{
+    grid-auto-columns:minmax(7.5rem,1fr);
+  }
+  .cal-grade-corpo,.cal-grade-cabeca{overflow-x:auto}
+  .cal-celula{min-height:82px}
+  .cal-pilula{font-size:.64rem}
+}
+@media (max-width:640px){
+  .cal-rotulo{min-width:auto;flex:1 1 100%;text-align:left;order:-1}
+  .cal-barra,.cal-cabeca{gap:12px}
+  .cal-acoes{width:100%}
+  .cal-acoes .btn-verde{flex:1}
+  .cal-vistas{width:100%;justify-content:space-between}
+  .cal-vista{flex:1;padding:7px 6px}
+  .cal-celula{min-height:64px;padding:5px 4px}
+  .cal-celula .cal-pilula{padding:2px 4px}
+}
+
+/* =========================================================================
+   PERFIL / CONFIGURACOES
+
+   Formulario longo, dividido em cartoes. Cada campo tem um rotulo acima e,
+   quando ele sai impresso em algum lugar, uma linha abaixo dizendo onde —
+   porque "Registro profissional" so vira urgente quando a pessoa entende que
+   aquilo aparece no rodape da receita.
+   ========================================================================= */
+
+.abas-perfil{margin-bottom:26px}
+
+.perf-cartao{
+  background:var(--sup-card);border:1px solid var(--borda-suave);
+  border-radius:16px;padding:26px 28px;margin-bottom:18px;
+}
+.perf-titulo{
+  display:flex;align-items:center;gap:10px;
+  font-family:var(--fonte-display);font-size:1.3rem;font-weight:500;
+  color:var(--titulo);margin:0 0 4px;
+}
+.perf-sub{font-size:.86rem;font-weight:300;color:var(--texto-suave);margin:0 0 22px;max-width:48rem}
+.perf-ico{display:inline-flex;color:var(--dourado)}
+
+/* A grade termina com o texto de ajuda de um campo colado no rotulo do campo
+   seguinte, que fica fora dela. O respiro e da grade, nao do campo. */
+.perf-grade{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr));
+  gap:16px 22px;margin-bottom:20px;
+}
+.perf-campo{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
+.perf-grade .perf-campo{margin-bottom:0}
+.perf-campo label{
+  display:flex;align-items:center;gap:7px;
+  font-size:.78rem;font-weight:500;color:var(--texto);
+}
+.perf-campo input,.perf-campo select{
+  font-family:inherit;font-size:.9rem;color:var(--texto);
+  background:var(--input-fundo);border:1px solid var(--input-borda);
+  border-radius:10px;padding:11px 14px;width:100%;
+}
+.perf-campo input:focus,.perf-campo select:focus{
+  outline:none;border-color:var(--dourado);
+}
+.perf-ajuda{
+  font-size:.76rem;font-weight:300;line-height:1.55;
+  color:var(--texto-suave);margin:0;max-width:44rem;
+}
+
+.perf-acoes{
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;
+  gap:14px;margin-top:24px;padding-top:20px;border-top:1px solid var(--borda-suave);
+}
+.perf-aviso{font-size:.82rem;color:var(--texto-suave);margin:0;flex:1 1 14rem}
+.perf-aviso.ruim{color:var(--movimento-desce)}
+.perf-nota{
+  font-size:.78rem;font-weight:300;line-height:1.6;color:var(--texto-suave);
+  margin:18px 0 0;padding:14px 16px;border-radius:10px;background:var(--halo);
+}
+.perf-nota b{color:var(--texto);font-weight:500}
+.perf-onde{font-size:.9rem;font-weight:300;line-height:1.6;color:var(--texto);margin:0 0 20px;max-width:46rem}
+.perf-onde b{color:var(--titulo);font-weight:500}
+
+/* ---------- botoes ---------- */
+.perf-botao{
+  border:1px solid var(--dourado-suave);background:none;cursor:pointer;
+  border-radius:9px;padding:9px 16px;font-family:inherit;
+  font-size:.82rem;color:var(--realce);transition:background .15s,border-color .15s;
+}
+.perf-botao:hover{background:var(--halo);border-color:var(--dourado)}
+.perf-tirar{
+  border:none;background:none;cursor:pointer;font-family:inherit;
+  font-size:.76rem;color:var(--texto-suave);text-decoration:underline;
+  text-underline-offset:3px;padding:6px;
+}
+.perf-tirar:hover{color:var(--movimento-desce)}
+.perf-tirar.forte{
+  border:1px solid var(--movimento-desce);border-radius:9px;
+  padding:9px 16px;font-size:.82rem;color:var(--movimento-desce);text-decoration:none;
+}
+.perf-tirar.forte:hover{background:rgba(180,85,60,.08)}
+.perf-foto-acoes{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.perf-ajuda + .perf-foto-acoes{margin-top:18px}
+
+/* ---------- a completude ---------- */
+.perf-completo{
+  background:var(--sup-card);border:1px solid var(--borda-suave);
+  border-radius:16px;padding:24px 28px;margin-bottom:24px;
+}
+.perf-completo-topo{
+  display:flex;align-items:baseline;gap:12px;margin-bottom:16px;
+}
+.perf-completo-topo b{
+  font-family:var(--fonte-display);font-size:1.2rem;font-weight:500;color:var(--titulo);
+}
+.perf-completo-topo span{font-size:.78rem;color:var(--texto-suave);font-variant-numeric:tabular-nums}
+.perf-lista{
+  list-style:none;margin:0;padding:0;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr));gap:9px 20px;
+}
+.perf-lista li{
+  display:flex;align-items:center;gap:10px;
+  font-size:.85rem;font-weight:300;color:var(--texto);
+}
+/* Riscado + apagado: o item feito sai do caminho sem sumir, e o que sobra em
+   pe na lista e exatamente o que ainda falta. */
+.perf-lista li.feito{color:var(--texto-suave);text-decoration:line-through}
+.perf-marca{
+  width:17px;height:17px;flex-shrink:0;border-radius:50%;
+  border:1px solid var(--input-borda);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.62rem;line-height:1;
+}
+.perf-lista li.feito .perf-marca{
+  background:var(--movimento-sobe);border-color:var(--movimento-sobe);color:var(--sup-card);
+}
+.perf-lista li.feito .perf-marca::after{content:"✓"}
+.perf-porque{
+  font-size:.8rem;font-weight:300;line-height:1.6;color:var(--texto-suave);
+  margin:18px 0 0;padding-top:16px;border-top:1px solid var(--borda-suave);max-width:46rem;
+}
+
+/* ---------- foto, logo, assinatura ---------- */
+.perf-foto{display:flex;flex-wrap:wrap;align-items:center;gap:20px}
+.perf-foto-alvo,.perf-logo-alvo{
+  width:72px;height:72px;flex-shrink:0;border-radius:50%;overflow:hidden;
+  background:linear-gradient(135deg,var(--verde-medio),var(--verde-escuro));
+  color:var(--dourado-claro);display:flex;align-items:center;justify-content:center;
+  font-family:var(--fonte-display);font-weight:600;font-size:1.7rem;
+  border:1px solid var(--dourado-suave);
+}
+.perf-logo-alvo{
+  border-radius:12px;background:var(--halo);color:var(--texto-suave);
+  font-family:var(--fonte-corpo);font-size:.68rem;font-weight:300;text-align:center;
+}
+.perf-foto-alvo img,.perf-logo-alvo img{width:100%;height:100%;object-fit:cover}
+.perf-logo-alvo img{object-fit:contain;padding:6px}
+
+.perf-imagem{
+  border:1px solid var(--borda-suave);border-radius:12px;
+  padding:18px 20px;margin-bottom:14px;
+}
+.perf-imagem-topo{margin-bottom:14px}
+.perf-imagem-topo b{font-size:.92rem;font-weight:500;color:var(--texto)}
+.perf-imagem-corpo{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}
+.perf-imagem-alvo{
+  width:150px;height:76px;flex-shrink:0;border-radius:10px;
+  border:1px dashed var(--input-borda);background:var(--halo);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.72rem;font-weight:300;color:var(--texto-suave);overflow:hidden;
+}
+.perf-imagem-alvo img{max-width:100%;max-height:100%;object-fit:contain}
+.perf-imagem-lado{flex:1 1 18rem;display:flex;flex-direction:column;gap:12px}
+.perf-imagem-lado p{
+  font-size:.8rem;font-weight:300;line-height:1.6;color:var(--texto-suave);margin:0;
+}
+
+/* a prancheta de desenhar a assinatura */
+.perf-prancheta{margin-top:18px;display:flex;flex-direction:column;gap:14px}
+.perf-prancheta canvas{
+  width:100%;max-width:100%;height:auto;aspect-ratio:720/220;
+  background:#fff;border:1px solid var(--input-borda);border-radius:10px;
+  touch-action:none;cursor:crosshair;
+}
+
+/* ---------- as cores e a previa ---------- */
+.perf-cor{display:flex;align-items:center;gap:10px}
+.perf-cor input[type="color"]{
+  width:46px;height:44px;flex-shrink:0;padding:3px;cursor:pointer;
+  border:1px solid var(--input-borda);border-radius:10px;background:var(--input-fundo);
+}
+.perf-cor input[type="text"]{font-variant-numeric:tabular-nums;text-transform:uppercase}
+
+.perf-previa{
+  border:1px solid var(--borda-suave);border-radius:12px;
+  padding:20px 22px;background:var(--sup-fundo);
+}
+.perf-previa-topo{
+  display:flex;align-items:center;justify-content:space-between;gap:20px;
+  padding-bottom:16px;border-bottom:2px solid var(--p);margin-bottom:16px;
+}
+.perf-previa-logo{
+  width:110px;height:56px;border-radius:8px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--halo);font-size:.68rem;font-weight:300;color:var(--texto-suave);
+}
+.perf-previa-logo img{max-width:100%;max-height:100%;object-fit:contain}
+.perf-previa-quem{display:flex;flex-direction:column;gap:3px;text-align:right}
+.perf-previa-quem b{font-size:.94rem;font-weight:500;color:var(--texto)}
+.perf-previa-quem i{font-style:normal;font-size:.76rem;font-weight:300;color:var(--texto-suave)}
+.perf-previa-linha{
+  font-size:.84rem;font-weight:300;color:var(--texto);
+  margin:0 0 8px;padding-left:12px;border-left:3px solid var(--p);
+}
+.perf-previa-linha.secundaria{border-left-color:var(--s);margin-bottom:0}
+
+/* ---------- modulos e aparencia ---------- */
+.perf-modulo{
+  border:1px solid var(--borda-suave);border-radius:12px;
+  padding:18px 20px;margin-bottom:12px;
+}
+.perf-modulo-topo{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+.perf-modulo-quem{display:flex;flex-direction:column;gap:3px;min-width:0}
+.perf-modulo-quem b{font-size:.98rem;font-weight:500;color:var(--texto)}
+.perf-modulo-quem span{font-size:.8rem;font-weight:300;color:var(--texto-suave)}
+.perf-modulo p{
+  font-size:.82rem;font-weight:300;line-height:1.6;
+  color:var(--texto-suave);margin:12px 0 0;max-width:46rem;
+}
+.perf-modulo-estado{font-size:.76rem;color:var(--texto-suave)}
+
+.perf-chave{
+  flex-shrink:0;width:46px;height:26px;border-radius:999px;cursor:pointer;
+  border:1px solid var(--input-borda);background:var(--input-fundo);
+  padding:2px;transition:background .18s,border-color .18s;
+}
+.perf-chave i{
+  display:block;width:20px;height:20px;border-radius:50%;
+  background:var(--texto-suave);transition:transform .18s,background .18s;
+}
+.perf-chave.ligada{background:var(--verde-medio);border-color:var(--verde-medio)}
+.perf-chave.ligada i{transform:translateX(20px);background:var(--creme-claro)}
+.perf-chave:focus-visible{outline:2px solid var(--dourado);outline-offset:2px}
+
+.perf-temas{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,11rem),1fr));gap:14px}
+.perf-tema{
+  display:flex;flex-direction:column;gap:12px;cursor:pointer;
+  border:1px solid var(--borda-suave);border-radius:12px;padding:14px;
+  background:none;font-family:inherit;transition:border-color .15s;
+}
+.perf-tema b{font-size:.85rem;font-weight:400;color:var(--texto)}
+.perf-tema.ativo{border-color:var(--dourado);box-shadow:0 0 0 1px var(--dourado-suave)}
+.perf-tema:hover{border-color:var(--dourado-suave)}
+/* A amostra mostra o tema, nao o tema atual do app: por isso as cores sao
+   literais aqui, e nao tokens — senao as tres ficariam iguais. */
+.perf-tema-amostra{
+  display:flex;flex-direction:column;gap:5px;justify-content:center;
+  height:56px;border-radius:8px;padding:12px;border:1px solid var(--borda-suave);
+}
+.perf-tema-amostra i{display:block;height:5px;border-radius:3px}
+.perf-tema-amostra.claro{background:#f4efe3}
+.perf-tema-amostra.claro i{background:#0b3325}
+.perf-tema-amostra.claro i:nth-child(2){background:#4f6a5d;width:70%}
+.perf-tema-amostra.claro i:nth-child(3){background:#c9a35a;width:45%}
+.perf-tema-amostra.escuro{background:#07211a}
+.perf-tema-amostra.escuro i{background:#e2c98a}
+.perf-tema-amostra.escuro i:nth-child(2){background:rgba(237,232,218,.6);width:70%}
+.perf-tema-amostra.escuro i:nth-child(3){background:#c9a35a;width:45%}
+.perf-tema-amostra.sistema{background:linear-gradient(100deg,#f4efe3 50%,#07211a 50%)}
+.perf-tema-amostra.sistema i{background:#0b3325}
+.perf-tema-amostra.sistema i:nth-child(2){background:#8aa79a;width:70%}
+.perf-tema-amostra.sistema i:nth-child(3){background:#c9a35a;width:45%}
+
+/* ---------- o rodape da sidebar ---------- */
+.sr-cartao{
+  display:flex;align-items:center;gap:11px;width:100%;
+  background:none;border:none;cursor:pointer;padding:10px 12px;
+  border-radius:12px;text-align:left;font-family:inherit;
+  transition:background .15s;
+}
+.sr-cartao:hover{background:rgba(201,163,90,.08)}
+.sr-cartao:focus-visible{outline:2px solid var(--dourado);outline-offset:-2px}
+.sr-avatar{
+  width:32px;height:32px;flex-shrink:0;border-radius:50%;overflow:hidden;
+  background:rgba(201,163,90,.16);color:var(--dourado-claro);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--fonte-display);font-weight:600;font-size:.9rem;
+  border:1px solid rgba(201,163,90,.3);
+}
+.sr-avatar img{width:100%;height:100%;object-fit:cover}
+.sr-quem{display:flex;flex-direction:column;gap:1px;min-width:0}
+.sr-quem b{
+  font-size:.84rem;font-weight:500;color:var(--creme);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.sr-quem em{font-style:normal;font-size:.72rem;font-weight:300;color:rgba(244,239,227,.5)}
+
+.sr-sair{
+  display:flex;align-items:center;gap:7px;width:100%;
+  background:none;border:none;cursor:pointer;text-align:left;
+  padding:0 12px 10px;font-family:inherit;
+  font-size:.72rem;font-weight:300;
+  color:rgba(244,239,227,.45);transition:color .15s;
+}
+.sr-sair:hover,.sr-sair:focus-visible{color:var(--dourado-claro)}
+.sr-sair svg{flex-shrink:0}
+.sr-sair[hidden]{display:none}
+
+.sr-progresso{display:flex;align-items:center;gap:9px;padding:0 12px 12px}
+.sr-rotulo{font-size:.68rem;font-weight:300;color:rgba(244,239,227,.45)}
+.sr-trilho{
+  flex:1;height:4px;border-radius:999px;overflow:hidden;
+  background:rgba(201,163,90,.14);
+}
+.sr-trilho i{display:block;height:100%;background:var(--dourado);transition:width .3s}
+.sr-progresso b{
+  font-size:.68rem;font-weight:500;color:rgba(226,201,138,.75);
+  font-variant-numeric:tabular-nums;
+}
+.sr-metodo{
+  padding-top:14px;border-top:1px solid rgba(201,163,90,.14);
+  font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;
+  color:rgba(244,239,227,.35);line-height:1.9;font-weight:300;
+}
+.sr-metodo strong{color:rgba(226,201,138,.7);font-weight:500}
+
+/* ---------- o emissor no relatorio ---------- */
+.rel-emissor{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.rel-logo{
+  max-width:120px;max-height:52px;display:flex;align-items:center;
+}
+.rel-logo img{max-width:120px;max-height:52px;object-fit:contain}
+.rel-quem{display:flex;flex-direction:column;gap:2px}
+.rel-quem b{
+  font-family:var(--fonte-display);font-size:1.05rem;font-weight:600;color:var(--titulo);
+}
+.rel-quem i{font-style:normal;font-size:.78rem;font-weight:300;color:var(--texto-suave)}
+.rel-assinaturas{display:flex;align-items:flex-end;gap:30px;margin-bottom:10px}
+.rel-imagem{max-width:170px;max-height:76px;display:flex}
+.rel-imagem img{max-width:170px;max-height:76px;object-fit:contain}
+.rel-emitiu{font-weight:500;color:var(--texto);margin:0 0 2px}
+.rel-contato{margin:0 0 10px}
+/* A cor escolhida em Marca pinta o filete do cabecalho do documento. */
+.relatorio[style*="--rel-p"] .rel-topo{border-bottom-color:var(--rel-p)}
+
+@media print{
+  .rel-quem b,.rel-emitiu{color:#111}
+  .rel-imagem img,.rel-logo img{filter:none}
+}
+
+@media (max-width:640px){
+  .perf-cartao,.perf-completo{padding:20px 18px}
+  .perf-acoes{justify-content:stretch}
+  .perf-acoes .btn-verde{width:100%}
+  .perf-previa-topo{flex-direction:column;align-items:flex-start;gap:14px}
+  .perf-previa-quem{text-align:left}
+}
+
+/* =========================================================================
+   A LISTA DE PACIENTES
+
+   O cartao virou uma linha de trabalho: marcar, ler a situacao, falar com a
+   pessoa, e agir. Sao quatro colunas fixas (marca, avatar, conteudo, acoes) e
+   uma faixa de dados que quebra sozinha — porque telefone e e-mail tem
+   comprimentos que ninguem controla.
+   ========================================================================= */
+
+.abas-pacientes{margin-bottom:24px}
+.aba-tag{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:19px;height:19px;padding:0 5px;margin-left:7px;
+  border-radius:999px;background:var(--dourado);color:var(--verde-noite);
+  font-size:.66rem;font-weight:600;line-height:1;font-variant-numeric:tabular-nums;
+}
+
+.pac-ordem{
+  font-family:inherit;font-size:.85rem;color:var(--texto);
+  background:var(--input-fundo);border:1px solid var(--input-borda);
+  border-radius:999px;padding:10px 16px;flex-shrink:0;
+}
+
+/* ---------- os filtros ---------- */
+.pac-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.pac-chip{
+  display:inline-flex;align-items:center;gap:7px;
+  border:1px solid var(--borda-suave);background:none;border-radius:999px;
+  padding:7px 14px;cursor:pointer;font-family:inherit;
+  font-size:.82rem;font-weight:400;color:var(--texto-suave);
+  transition:border-color .15s,background .15s,color .15s;
+}
+.pac-chip:hover{border-color:var(--dourado-suave);color:var(--texto)}
+.pac-chip.ativo{
+  background:var(--verde-escuro);border-color:var(--verde-escuro);color:var(--creme);
+}
+.pac-chip:focus-visible{outline:2px solid var(--dourado);outline-offset:2px}
+.pac-chip-n{
+  font-size:.72rem;font-weight:500;color:var(--texto-suave);
+  font-variant-numeric:tabular-nums;
+}
+.pac-chip.ativo .pac-chip-n{color:var(--dourado-claro)}
+
+/* ---------- selecao ---------- */
+.pac-selecao{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-bottom:14px}
+.pac-sel-todos{
+  display:inline-flex;align-items:center;gap:9px;
+  border:1px solid var(--borda-suave);background:none;border-radius:10px;
+  padding:9px 15px;cursor:pointer;font-family:inherit;
+  font-size:.84rem;color:var(--texto-suave);transition:border-color .15s,color .15s;
+}
+.pac-sel-todos:hover,.pac-sel-todos.ativo{border-color:var(--dourado);color:var(--dourado)}
+.pac-sel-acoes{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.pac-sel-conta{
+  font-size:.8rem;font-weight:500;color:var(--dourado);
+  font-variant-numeric:tabular-nums;
+}
+.pac-sel-btn{
+  border:1px solid var(--borda-suave);background:none;border-radius:999px;
+  padding:7px 14px;cursor:pointer;font-family:inherit;
+  font-size:.78rem;color:var(--texto);transition:border-color .15s,background .15s;
+}
+.pac-sel-btn:hover{border-color:var(--dourado);background:var(--halo)}
+.pac-sel-btn.perigo{color:var(--movimento-desce)}
+.pac-sel-btn.perigo:hover{border-color:var(--movimento-desce)}
+
+/* ---------- o cartao ---------- */
+.card-paciente.marcado{border-color:var(--dourado-suave);background:var(--halo)}
+/* Inativo nao e erro: e uma pessoa que nao esta em acompanhamento agora.
+   Recua, nao alarma. */
+.card-paciente.inativo .pac-avatar,
+.card-paciente.inativo .pac-meta{opacity:.55}
+
+.pac-check{display:flex;align-items:center;cursor:pointer;padding:2px}
+.pac-check input{width:16px;height:16px;accent-color:var(--verde-medio);cursor:pointer}
+
+.pac-info{display:flex;flex-direction:column;gap:7px;min-width:0}
+.pac-nome{display:flex;align-items:center;flex-wrap:wrap;gap:9px}
+.pac-nome h4{margin:0}
+.pac-sexo{font-size:.92rem;color:var(--texto-suave);line-height:1}
+.pac-status{
+  font-size:.64rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;
+  border-radius:999px;padding:3px 10px;
+  border:1px solid var(--borda-suave);color:var(--texto-suave);
+}
+.pac-status.ativo{
+  color:var(--movimento-sobe);border-color:transparent;
+  background:var(--halo);
+}
+
+.pac-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px}
+.pac-dado{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:.78rem;font-weight:300;color:var(--texto-suave);
+  min-width:0;word-break:break-word;
+}
+.pac-dado svg{flex-shrink:0;opacity:.7}
+.pac-dado.atraso{color:var(--movimento-desce)}
+.pac-dado.atraso svg{opacity:1}
+a.pac-link{text-decoration:none}
+a.pac-link:hover{color:var(--dourado);text-decoration:underline;text-underline-offset:3px}
+
+.pac-abrir{
+  border:none;background:none;cursor:pointer;
+  font-size:1.05rem;line-height:1;color:var(--texto-suave);
+  padding:8px 10px;border-radius:8px;transition:color .15s,background .15s;
+}
+.pac-abrir:hover{color:var(--dourado);background:var(--halo)}
+
+/* ---------- o proximo passo, e o menu com o resto ---------- */
+.pac-acao{position:relative;display:flex;align-items:stretch;width:15.5rem}
+.pac-acao-principal{
+  flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  border:1px solid var(--dourado-suave);background:none;cursor:pointer;
+  border-radius:9px 0 0 9px;padding:9px 15px;white-space:nowrap;
+  font-family:inherit;font-size:.82rem;font-weight:400;color:var(--realce);
+  transition:background .15s,border-color .15s;
+}
+.pac-acao-mais{
+  border:1px solid var(--dourado-suave);border-left:none;background:none;cursor:pointer;
+  border-radius:0 9px 9px 0;padding:9px 11px;
+  font-size:.7rem;line-height:1;color:var(--realce);
+  transition:background .15s;
+}
+.pac-acao-principal:hover,.pac-acao-mais:hover{background:var(--halo)}
+.pac-acao-principal:focus-visible,.pac-acao-mais:focus-visible,
+.pac-abrir:focus-visible{outline:2px solid var(--dourado);outline-offset:2px}
+/* Na Revisao o cartao tem tres pecas, nao cinco — e o botao anda sozinho,
+   entao volta a ter os quatro cantos. */
+.card-revisao{grid-template-columns:auto 1fr auto}
+.card-revisao .pac-acao-principal{border-radius:9px;flex:0 0 auto;padding:10px 18px}
+
+.pac-menu{
+  position:absolute;top:calc(100% + 6px);right:0;z-index:30;
+  display:flex;flex-direction:column;min-width:15rem;padding:6px;
+  background:var(--sup-card);border:1px solid var(--borda-suave);
+  border-radius:12px;box-shadow:var(--sombra);
+}
+.pac-menu-item{
+  text-align:left;border:none;background:none;cursor:pointer;
+  padding:9px 12px;border-radius:8px;font-family:inherit;
+  font-size:.85rem;font-weight:300;color:var(--texto);white-space:nowrap;
+}
+.pac-menu-item:hover{background:var(--halo);color:var(--dourado)}
+.pac-menu-item.perigo{color:var(--movimento-desce)}
+.pac-menu-item.perigo:hover{background:var(--halo);color:var(--movimento-desce)}
+.pac-menu-risco{height:1px;background:var(--borda-suave);margin:5px 8px}
+
+@media (max-width:900px){
+  /* No estreito o cartao vira duas faixas: quem e a pessoa em cima, o que
+     fazer com ela embaixo. Empilhar os botoes um a um deixaria a lista
+     quatro vezes mais alta do que o numero de pacientes. */
+  .card-paciente{grid-template-columns:auto auto 1fr auto;row-gap:14px}
+  /* No estreito o nome e os dados empilham e a linha fica alta. Centralizado,
+     a caixa e o avatar iam parar no meio do bloco, longe do nome a que
+     pertencem — entao aqui tudo se alinha pelo topo. */
+  .card-paciente{align-items:start}
+  .pac-check,.pac-abrir{margin-top:11px}
+  .pac-acao{grid-column:1/-1;justify-self:start;width:100%;max-width:20rem}
+  .pac-menu{left:0;right:auto}
+}
+@media (max-width:560px){
+  .pac-ordem{width:100%}
+  .pac-meta{flex-direction:column;align-items:flex-start;gap:5px}
+}
+
+/* =========================================================================
+   ATENDIMENTO — consultas, agenda e documentos
+
+   As tres reaproveitam o vocabulario do dashboard (dash-bloco, dash-titulo,
+   dash-tile, dash-ir, pac-avatar): sao a mesma familia de tela — listas de
+   pessoas com um motivo ao lado — e inventar um segundo visual para elas so
+   faria a plataforma parecer tres produtos.
+   ========================================================================= */
+
+/* ---------- consultas ---------- */
+.con-lista{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:2px}
+.con-linha{
+  display:grid;grid-template-columns:7.5ch auto 1fr auto auto auto;
+  align-items:center;gap:14px;
+  background:var(--sup-card);border:1px solid var(--borda-suave);
+  padding:13px 18px;
+}
+.con-dia{
+  font-size:.78rem;font-weight:400;color:var(--texto-suave);
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.con-quem{display:flex;flex-direction:column;gap:2px;min-width:0}
+.con-quem b{font-weight:500;color:var(--texto);font-size:.98rem}
+.con-detalhe{font-size:.8rem;font-weight:300;color:var(--texto-suave);line-height:1.45}
+.con-indice{
+  display:flex;flex-direction:column;align-items:center;line-height:1;
+  font-family:var(--fonte-display);font-size:1.5rem;font-weight:500;
+  color:var(--titulo);font-variant-numeric:tabular-nums;
+}
+.con-indice i{
+  font-style:normal;font-family:var(--fonte-corpo);
+  font-size:.6rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--texto-suave);margin-top:5px;
+}
+/* Verde e terracota sao as cores que o resto do app ja usa para equilibrio e
+   para alerta; aqui elas dizem a mesma coisa, so que sobre o movimento. */
+.con-var{
+  font-size:.76rem;font-weight:500;white-space:nowrap;
+  border:1px solid var(--borda-suave);border-radius:999px;padding:3px 10px;
+  font-variant-numeric:tabular-nums;
+}
+.con-var.subiu{color:var(--movimento-sobe)}
+.con-var.desceu{color:var(--movimento-desce)}
+.con-var.igual{color:var(--texto-suave)}
+
+/* ---------- agenda ---------- */
+.age-lista{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:2px}
+.age-linha{
+  display:grid;grid-template-columns:10ch auto 1fr auto auto;
+  align-items:center;gap:14px;
+  background:var(--sup-card);border:1px solid var(--borda-suave);
+  border-left:2px solid var(--dourado-suave);padding:13px 18px;
+}
+.age-linha.vencida{border-left-color:#b4553c}
+.age-linha.semana{border-left-color:var(--dourado)}
+.age-dia{
+  display:flex;flex-direction:column;gap:3px;
+  font-size:.88rem;font-weight:400;color:var(--texto);
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.age-prazo{font-size:.72rem;font-weight:400;color:var(--texto-suave)}
+.age-prazo.vencida{color:#b4553c}
+.age-quem{display:flex;flex-direction:column;gap:2px;min-width:0}
+.age-quem b{font-weight:500;color:var(--texto);font-size:.98rem}
+.age-origem,.age-nota{font-size:.8rem;font-weight:300;color:var(--texto-suave);line-height:1.45}
+.age-marcar{display:flex;align-items:center;gap:8px}
+/* O rotulo existe para o leitor de tela; na tela o campo de data ja se explica
+   sozinho e um "Retorno" repetido em toda linha viraria ruido. */
+.age-rotulo{
+  position:absolute;width:1px;height:1px;overflow:hidden;
+  clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;
+}
+.age-marcar input[type="date"]{
+  font-family:inherit;font-size:.82rem;color:var(--texto);
+  background:var(--input-fundo);border:1px solid var(--input-borda);
+  border-radius:8px;padding:6px 10px;
+}
+.age-limpar{
+  border:none;background:none;cursor:pointer;font-family:inherit;
+  font-size:.7rem;color:var(--texto-suave);text-decoration:underline;
+  text-underline-offset:3px;padding:4px;
+}
+.age-limpar:hover{color:#b4553c}
+
+/* ---------- documentos ---------- */
+.doc-filtros{margin-bottom:22px}
+.doc-filtros select{
+  font-family:inherit;font-size:.85rem;color:var(--texto);
+  background:var(--input-fundo);border:1px solid var(--input-borda);
+  border-radius:999px;padding:9px 16px;
+}
+.doc-todos{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.doc-todos-item{
+  display:grid;grid-template-columns:14ch 1fr 11ch 8ch auto auto;
+  gap:14px;align-items:center;
+  background:var(--sup-card);border:1px solid var(--borda-suave);
+  padding:12px 18px;
+}
+.doc-todos-nome{display:flex;flex-direction:column;gap:2px;min-width:0}
+.doc-todos-nome b{font-size:.94rem;font-weight:400;color:var(--texto);word-break:break-word}
+.doc-todos-dono{font-size:.78rem;font-weight:300;color:var(--texto-suave)}
+.doc-todos-item .doc-data{font-size:.78rem;color:var(--texto-suave);font-variant-numeric:tabular-nums}
+.doc-tirar{
+  border:none;background:none;cursor:pointer;font-size:1.1rem;line-height:1;
+  color:var(--texto-suave);padding:4px 8px;border-radius:6px;
+}
+.doc-tirar:hover{color:#b4553c;background:rgba(180,85,60,.08)}
+
+@media (max-width:820px){
+  .con-linha{grid-template-columns:auto 1fr auto;row-gap:10px}
+  .con-dia{grid-column:1/-1}
+  .con-indice{grid-column:3;grid-row:1}
+  .con-var,.con-linha .dash-ir{grid-column:2/-1;justify-self:start}
+  .age-linha{grid-template-columns:auto 1fr;row-gap:10px}
+  .age-dia{grid-column:1/-1;flex-direction:row;align-items:baseline;gap:8px}
+  .age-marcar,.age-linha .dash-ir{grid-column:1/-1;justify-self:start}
+  .doc-todos-item{grid-template-columns:1fr auto;row-gap:6px}
+  .doc-todos-nome{grid-column:1/-1}
+}
+
+/* a definicao do sistema, dentro da leitura do terreno */
+.leitura-definicao{
+  font-size:.86rem;font-weight:300;line-height:1.55;color:var(--texto);
+  margin:10px 0 14px;padding-bottom:12px;border-bottom:1px solid var(--borda-suave);
+}
+.leitura-definicao i{
+  display:block;margin-top:6px;font-style:normal;
+  font-size:.68rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--dourado);
+}
+
+/* =========================================================================
+   HIPOTESE, ENCAMINHAMENTO E APROFUNDAMENTO
+   ========================================================================= */
+
+.leitura-titulo.alerta{color:#b4553c}
+.leitura-nota{
+  font-size:.8rem;font-weight:300;color:var(--texto-suave);
+  margin:-6px 0 14px;max-width:44rem;
+}
+
+/* o que sai do escopo vem antes de tudo, e parece diferente de leitura */
+.leitura-encaminhar{display:flex;flex-direction:column;gap:2px;margin-bottom:26px}
+.leitura-encaminhar .leitura-item{
+  background:var(--sup-card);border:1px solid var(--borda-suave);
+  border-left:2px solid #b4553c;padding:14px 18px;
+  display:flex;flex-direction:column;gap:4px;
+}
+.leitura-encaminhar b{font-weight:500;color:var(--texto);font-size:.96rem}
+.leitura-encaminhar em{font-style:normal;font-size:.84rem;color:var(--texto-suave)}
+.leitura-encaminhar span{font-size:.7rem;color:var(--texto-suave);opacity:.75}
+
+/* a hipotese diz o que conferir antes de virar conclusao */
+.leitura-investigar{
+  display:block;font-style:normal;font-size:.82rem;font-weight:300;
+  color:var(--texto-suave);margin-top:4px;
+}
+
+/* a pergunta que vem depois */
+.leitura-aprofundar{
+  list-style:none;margin:0 0 26px;padding:0;
+  display:flex;flex-direction:column;gap:2px;counter-reset:apro;
+}
+.leitura-aprofundar li{
+  background:var(--sup-card);border:1px solid var(--borda-suave);
+  padding:13px 18px;display:flex;flex-direction:column;gap:3px;
+}
+.apro-de{
+  font-size:.68rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--dourado);
+}
+.leitura-aprofundar b{font-weight:400;color:var(--texto);font-size:.96rem;line-height:1.5}
+
+/* a mesma fronteira, no documento que vai embora com o paciente */
+.rel-fronteira{
+  font-size:.76rem;font-weight:300;line-height:1.55;color:var(--texto-suave);
+  margin:10px 0 0;padding-top:10px;border-top:1px solid var(--borda-suave);
+  max-width:44rem;
+}
+
+/* a fronteira do HOLOSCOPE: o que ele e, e o que ele nao e */
+.holo-fronteira{
+  border-left:2px solid var(--dourado-suave);
+  padding:12px 0 12px 16px;margin:26px 0 0;
+  font-size:.82rem;font-weight:300;line-height:1.6;color:var(--texto-suave);
+  max-width:52rem;
+}
+.holo-fronteira b{color:var(--texto);font-weight:500}
+
+/* =========================================================================
+   TERRITORIOS DO OLHAR — cobertura, nao mais uma nota
+   ========================================================================= */
+
+.holo-territorios, .holo-caixa-mapa{
+  border:1px solid var(--borda-suave);background:var(--sup-card);
+  padding:24px 26px;margin-top:22px;
+}
+.terr-cabeca p{font-size:.8rem;font-weight:300;color:var(--texto-suave);margin:6px 0 18px;max-width:44rem}
+/* .prio-* (Mapa de Prioridades, #holo-prioridades) reaproveita exatamente o
+   mesmo desenho de linha do .terr-* (Territorios), com nome de classe
+   proprio — as duas listas convivem na mesma tela e nao podem responder a
+   uma consulta so por .terr-linha (testar-raciocinio.mjs conta uma, nao a
+   soma das duas). */
+.terr-lista, .prio-lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.terr-linha, .prio-linha{
+  display:grid;grid-template-columns:1fr auto 3rem;align-items:baseline;gap:14px;
+  padding:10px 0;border-bottom:1px solid var(--borda-suave);
+}
+.terr-linha:last-child, .prio-linha:last-child{border-bottom:none}
+.terr-nome, .prio-nome{display:flex;flex-direction:column;gap:1px;font-size:.9rem;color:var(--texto)}
+.terr-nome i, .prio-nome i{font-style:normal;font-size:.74rem;font-weight:300;color:var(--texto-suave)}
+.terr-conta, .prio-conta{font-size:.78rem;font-weight:300;color:var(--texto-suave);white-space:nowrap}
+.terr-nota, .prio-nota{
+  font-size:.9rem;font-weight:500;color:var(--texto);text-align:right;
+  font-variant-numeric:lining-nums tabular-nums;
+}
+.terr-linha.sem-dado, .prio-linha.sem-dado{opacity:.62}
+.terr-linha.sem-dado .terr-conta, .prio-linha.sem-dado .prio-conta{color:#b4553c;opacity:1}
+.terr-buraco{
+  font-size:.84rem;font-weight:300;color:var(--texto-suave);
+  margin:18px 0 0;padding-top:14px;border-top:1px solid var(--borda-suave);
+}
+.terr-buraco b{color:var(--texto);font-weight:500}
+.terr-buraco.ok{color:var(--texto-suave)}
+
+@media (max-width:640px){
+  .terr-linha, .prio-linha{grid-template-columns:1fr 3rem}
+  .terr-conta, .prio-conta{grid-column:1/-1;margin-top:2px}
+}
+
+/* =========================================================================
+   MAPA DE FREQUENCIAS — uma serie so, barra unica, rotulo em cada linha
+   ========================================================================= */
+
+.holo-frequencias{
+  border:1px solid var(--borda-suave);background:var(--sup-card);
+  padding:24px 26px;margin-top:22px;
+}
+.freq-cabeca p{
+  font-size:.8rem;font-weight:300;color:var(--texto-suave);margin:6px 0 18px;
+}
+.freq-lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.freq-linha{
+  display:grid;grid-template-columns:minmax(9rem,15rem) 1fr 2.6rem;
+  align-items:center;gap:14px;padding:8px 0;
+}
+.freq-nome{display:flex;flex-direction:column;gap:1px;font-size:.88rem;color:var(--texto)}
+.freq-nome i{font-style:normal;font-size:.74rem;font-weight:300;color:var(--texto-suave)}
+.freq-trilho{height:8px;background:var(--dash-trilho);border-radius:0 4px 4px 0;display:block;min-width:0}
+.freq-trilho b{display:block;height:100%;background:var(--dash-barra);border-radius:0 4px 4px 0}
+.freq-linha.travado .freq-nome{color:var(--dourado);font-weight:500}
+.freq-nota{
+  font-size:.92rem;font-weight:500;color:var(--texto);text-align:right;
+  font-variant-numeric:lining-nums tabular-nums;
+}
+.freq-leitura{
+  font-size:.85rem;font-weight:300;color:var(--texto-suave);
+  margin:18px 0 0;padding-top:14px;border-top:1px solid var(--borda-suave);
+}
+.freq-leitura b{color:var(--dourado);font-weight:500}
+
+/* a subferramenta que ainda nao entrega diz isso, em vez de prometer */
+.holo-subtool.em-construcao{opacity:.62}
+.selo-construcao{
+  font-family:var(--fonte-corpo);font-size:.6rem;font-weight:500;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--texto-suave);
+  border:1px solid var(--borda-suave);border-radius:999px;padding:2px 8px;
+  margin-left:8px;white-space:nowrap;vertical-align:middle;
+}
+
+@media (max-width:640px){
+  .freq-linha{grid-template-columns:1fr 2.6rem;row-gap:6px}
+  .freq-nome{grid-column:1/-1}
+}
+
+@media print{
+  /* imprimindo, so o relatorio interessa */
+  .abas,.rel-acoes,.secao-cabeca,.aba-painel.hidden{display:none!important}
+  .relatorio{border:none;padding:0;background:#fff;color:#111}
+  .relatorio .rel-topo h3,.relatorio b{color:#111}
+  /* No modo escuro (padrao quando o sistema pede prefers-color-scheme:dark
+     — o caso mais comum), --texto-suave e as outras variaveis viram tons
+     claros pensados para o fundo verde-noite. Sem isto, o papel imprime
+     com texto cinza-claro quase invisivel sobre o branco. */
+  body.escuro{
+    --titulo:#0b3325;--texto:#1d3a2e;--texto-suave:#4f6a5d;
+    --realce:#14503b;--borda-suave:rgba(29,58,46,.1);--dourado-suave:rgba(201,163,90,.35);
+  }
+  .sidebar,.topo,.form-ferramenta,.acoes-form,.mapa-acoes,#toast,.btn-tema,.barra-busca,.barra-paciente,.acoes-topo,.ficha-acoes{display:none!important}
+  /* Etapa 6: cabecalho da ficha, faixa e Jornada clinica nao existiam quando
+     esta regra foi escrita — sao chrome da ficha, nao conteudo do relatorio,
+     e imprimiam junto (avatar, botoes de acao, pilulas da faixa). */
+  .btn-voltar,.fic-topo,.fic-sobre,.fic-detalhe-corpo,.fic-faixa,.fic-jornada-bloco{display:none!important}
+  body,.principal{background:#fff}
+  .mapa{box-shadow:none}
+}
+
+/* ===========================================================================
+   TELA DE ENTRADA (login.js)
+
+   Sem cor, fonte, raio ou sombra proprios: tudo sai das variaveis que o resto
+   do app ja usa, para que a entrada pareca a mesma casa. O fundo e o
+   --verde-noite da marca nos dois temas — e a soleira, nao uma tela interna —
+   enquanto o cartao segue --sup-card e acompanha claro/escuro.
+   =========================================================================== */
+
+body.login-aberto{overflow:hidden}
+
+body.login-aberto #app,
+#app[aria-hidden="true"]{display:none!important}
+
+.tela-login{
+  position:fixed;inset:0;z-index:2000;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px max(16px,env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left));
+  overflow-y:auto;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 0%, rgba(201,163,90,.16), transparent 62%),
+    radial-gradient(ellipse 60% 50% at 50% 100%, rgba(20,80,59,.5), transparent 60%),
+    var(--verde-noite);
+}
+.tela-login[hidden]{display:none}
+
+.login-cartao{
+  width:100%;max-width:430px;
+  background:var(--sup-card);
+  border:1px solid var(--linha);
+  border-radius:var(--raio);
+  box-shadow:var(--sombra);
+  padding:40px 38px 30px;
+  /* margin:auto com align-items:center resolve o caso do cartao mais alto que
+     a viewport: sem isto o topo era cortado e ficava inalcancavel. */
+  margin:auto;
+}
+
+.login-marca{text-align:center;margin-bottom:30px}
+.login-marca svg{color:var(--dourado)}
+.login-marca h1{
+  font-family:var(--fonte-display);font-size:1.85rem;font-weight:600;
+  color:var(--titulo);line-height:1.1;margin-top:8px;
+}
+.login-marca p{
+  font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--texto-suave);font-weight:400;margin-top:7px;
+}
+
+.login-titulo{
+  font-family:var(--fonte-display);font-size:1.3rem;font-weight:500;
+  color:var(--texto);text-align:center;margin-bottom:26px;
+}
+
+.login-grupo{margin-bottom:18px}
+.login-grupo label{
+  display:block;font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--realce);font-weight:600;margin-bottom:6px;
+}
+.login-grupo input[type="email"],
+.login-grupo input[type="password"],
+.login-grupo input[type="text"]{
+  width:100%;padding:12px 15px;
+  background:var(--input-fundo);border:1px solid var(--input-borda);
+  border-radius:10px;font-size:.9rem;color:var(--texto);
+  font-weight:300;line-height:1.6;
+  transition:border-color .2s, box-shadow .2s;
+}
+.login-grupo input:focus{
+  border-color:var(--dourado);box-shadow:0 0 0 3px rgba(201,163,90,.15);outline:none;
+}
+.login-grupo input[aria-invalid="true"]{border-color:var(--movimento-desce)}
+
+/* O campo reserva a largura do botao no proprio padding. Sem isto o olho
+   cobria o fim do texto e a senha "sumia" embaixo do icone. */
+.login-senha-caixa{position:relative}
+.login-senha-caixa input{padding-right:50px!important}
+.login-olho{
+  position:absolute;top:50%;right:6px;transform:translateY(-50%);
+  width:38px;height:38px;display:flex;align-items:center;justify-content:center;
+  background:none;border:none;border-radius:8px;
+  color:var(--texto-suave);transition:color .18s,background .18s;
+}
+.login-olho:hover{color:var(--dourado)}
+.login-olho .olho-ocultar{display:none}
+.login-olho.revelada .olho-ver{display:none}
+.login-olho.revelada .olho-ocultar{display:block}
+.login-olho.revelada{color:var(--dourado)}
+
+.login-erro{
+  font-size:.76rem;color:var(--movimento-desce);font-weight:400;margin-top:6px;
+}
+.login-erro[hidden]{display:none}
+
+.login-linha{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:14px;flex-wrap:wrap;margin:20px 0 22px;
+}
+.login-manter{
+  display:flex;align-items:center;gap:8px;cursor:pointer;
+  font-size:.8rem;color:var(--texto-suave);font-weight:300;
+}
+.login-manter input{
+  width:16px;height:16px;accent-color:var(--verde-medio);cursor:pointer;flex:none;
+}
+.login-link{
+  font-size:.8rem;color:var(--realce);font-weight:400;
+  text-decoration:none;border-bottom:1px solid transparent;transition:border-color .18s;
+}
+.login-link:hover{border-bottom-color:var(--dourado)}
+
+.login-botao{
+  width:100%;padding:14px 30px;border:none;border-radius:10px;
+  background:linear-gradient(135deg,var(--verde-medio),var(--verde-escuro));
+  color:var(--dourado-claro);font-weight:500;font-size:.74rem;
+  letter-spacing:.22em;text-transform:uppercase;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  transition:transform .2s, filter .2s, opacity .2s;
+}
+.login-botao:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.12)}
+.login-botao:disabled{opacity:.72;cursor:progress;transform:none}
+
+.login-girador{
+  width:15px;height:15px;flex:none;display:none;
+  border:2px solid rgba(226,201,138,.3);border-top-color:var(--dourado-claro);
+  border-radius:50%;animation:login-girar .7s linear infinite;
+}
+.tela-login.enviando .login-girador{display:block}
+@keyframes login-girar{to{transform:rotate(360deg)}}
+
+.login-mensagem{
+  margin-top:16px;padding:11px 14px;border-radius:10px;
+  font-size:.82rem;font-weight:300;line-height:1.55;text-align:center;
+}
+.login-mensagem[hidden]{display:none}
+.login-mensagem.aviso{
+  background:rgba(201,163,90,.1);border:1px solid var(--linha);color:var(--texto);
+}
+.login-mensagem.ok{
+  background:rgba(31,107,71,.12);border:1px solid rgba(31,107,71,.3);color:var(--texto);
+}
+
+.login-rodape{
+  margin-top:24px;text-align:center;
+  font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--texto-suave);font-weight:400;
+}
+
+/* A saida de desenvolvimento fica visivelmente separada do formulario: ela
+   nao e parte do login, e o contrario dele. */
+.login-dev{
+  margin-top:22px;padding-top:18px;border-top:1px dashed var(--borda-suave);
+  text-align:center;
+}
+.login-dev p{
+  font-size:.74rem;color:var(--texto-suave);font-weight:300;margin-bottom:9px;
+}
+.login-dev-botao{
+  background:none;border:1px solid var(--borda-suave);border-radius:999px;
+  padding:8px 16px;font-size:.68rem;color:var(--texto-suave);font-weight:400;
+  line-height:1.4;transition:border-color .18s,color .18s;
+}
+.login-dev-botao:hover{border-color:var(--dourado);color:var(--realce)}
+
+@media (max-width:480px){
+  .tela-login{padding:16px max(14px,env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left))}
+  .login-cartao{max-width:none;padding:30px 22px 24px;border-radius:14px}
+  .login-marca h1{font-size:1.6rem}
+  .login-titulo{font-size:1.15rem;margin-bottom:22px}
+  /* Empilhar evita que "Esqueci minha senha" e a caixa se apertem a ponto de
+     o alvo de toque ficar menor do que um dedo. */
+  .login-linha{flex-direction:column;align-items:flex-start;gap:12px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .login-girador{animation:none}
+  .login-botao:hover:not(:disabled){transform:none}
+}
