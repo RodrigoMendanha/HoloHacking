@@ -71,12 +71,18 @@ alter table public.consultations
 --
 -- Campos protegidos por trigger (imutaveis apos criacao):
 --   - nutritionist_id, patient_id, ferramenta_id, versao_ferramenta
---   - origem_legada, iniciada_em, consultation_id
+--   - origem_legada, iniciada_em, created_at
 --   Auditoria de aplicacoes.js confirmou: NENHUM destes campos e
 --   alterado apos a criacao. gravar() so atualiza campos passados em
 --   `campos`, e nenhum caller (salvarRespostas, concluir, revisar)
 --   passa estes campos. O trigger proteger_identidade_aplicacao()
 --   rejeita qualquer tentativa de alteracao no banco.
+--
+-- consultation_id NAO e protegido pelo trigger: a FK composta usa
+-- ON DELETE SET NULL (consultation_id), que executa UPDATE na tabela
+-- filha e dispara triggers. Proteger consultation_id impediria o
+-- PostgreSQL de anular o campo quando a consultation e deletada.
+-- A integridade e garantida pela FK composta.
 --
 -- Timestamps duplos por intencao:
 --   - iniciada_em / concluida_em / atualizada_em: timestamps de FLUXO,
@@ -169,9 +175,11 @@ create trigger tool_applications_tocar_updated_at
 --   versao_ferramenta — set em novaAplicacao/migrar, nunca atualizado
 --   origem_legada     — set somente em migrarTabelaLegada, nunca atualizado
 --   iniciada_em       — set em novaAplicacao/migrar, nunca atualizado
---   consultation_id   — set em novaAplicacao (consultaDeHoje) e migrar
---                        (null), nunca atualizado; formulario.js le o
---                        campo (linha 233) mas nunca o escreve
+--   created_at        — default now(), nunca escrito pelo app
+--
+-- consultation_id NAO entra: a FK usa ON DELETE SET NULL (consultation_id),
+-- que executa UPDATE interno e dispara triggers. Protege-lo bloquearia
+-- o CASCADE do PostgreSQL.
 --
 -- A funcao NAO e SECURITY DEFINER — roda com os privilegios do caller.
 
@@ -187,11 +195,12 @@ begin
   or new.versao_ferramenta  is distinct from old.versao_ferramenta
   or new.origem_legada      is distinct from old.origem_legada
   or new.iniciada_em        is distinct from old.iniciada_em
-  or new.consultation_id    is distinct from old.consultation_id
+  or new.created_at         is distinct from old.created_at
   then
     raise exception 'campos de identidade da aplicacao sao imutaveis; '
-      'somente status, respostas, resultado, leitura, prioridade, '
-      'proximo_passo, concluida_em e atualizada_em podem ser alterados';
+      'somente status, consultation_id, respostas, resultado, leitura, '
+      'prioridade, proximo_passo, concluida_em e atualizada_em podem '
+      'ser alterados';
   end if;
   return new;
 end;
