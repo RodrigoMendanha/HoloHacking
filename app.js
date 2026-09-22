@@ -306,6 +306,8 @@
     // sem isto, o que foi respondido antes da lista chegar fica gravado
     // debaixo de uma chave e procurado debaixo de outra.
     avisarTrocaDePaciente();
+
+    sincronizarHistoricoHoloscope(pacientes);
   }
 
   /* O cadastro antigo tinha um campo "Contato" que aceitava as duas coisas.
@@ -2090,6 +2092,108 @@
   /* Guarda o HISTORICO, nao a ultima. Sobrescrever apagava a aplicacao
      anterior — e sem duas nao ha o que comparar, que e a promessa de rastrear
      evolucao em 4, 8 e 12 semanas. */
+  async function sincronizarHistoricoHoloscope(pacientes) {
+    if (!window.supabaseClient || !window.HoloAuth || !window.HoloAuth.sessaoAtiva()) return;
+    if (!pacientes || !pacientes.length) return;
+
+    try {
+      const { data: apps, error: appErr } = await window.supabaseClient
+        .from("holoscope_applications")
+        .select("id, patient_id, quando, versao_estrutura, versao_bancos, indice, indice_maximo, avaliavel, nota_media, triada, triada_com_dado, cobertura, combinacoes, aprofundamentos, interpretacao_texto, interpretacao_em, interpretacao_versao, created_at")
+        .order("quando", { ascending: true });
+
+      if (appErr || !apps || !apps.length) return;
+
+      const { data: allScores, error: scErr } = await window.supabaseClient
+        .from("holoscope_system_scores")
+        .select("application_id, sistema, nome, nota, carga, faixa, obtido, maximo, respondidos, total_marcadores, avaliavel");
+
+      if (scErr) return;
+
+      var scoresByApp = {};
+      (allScores || []).forEach(function(s) {
+        if (!scoresByApp[s.application_id]) scoresByApp[s.application_id] = [];
+        scoresByApp[s.application_id].push(s);
+      });
+
+      var tudo = lerHistorico();
+      var mudou = false;
+
+      apps.forEach(function(app) {
+        var pid = app.patient_id;
+        if (!tudo[pid]) tudo[pid] = [];
+
+        var jaExiste = tudo[pid].some(function(e) {
+          return e.quando === app.quando && e._supa_id === app.id;
+        });
+        if (jaExiste) return;
+
+        var mesmoDia = tudo[pid].findIndex(function(e) {
+          return e.quando === app.quando;
+        });
+
+        var sist = scoresByApp[app.id] || [];
+        var pontuacao = {
+          quando: app.quando,
+          versao_estrutura: app.versao_estrutura,
+          versao_bancos: app.versao_bancos,
+          indice: app.indice,
+          indice_maximo: app.indice_maximo,
+          avaliavel: app.avaliavel,
+          nota_media: app.nota_media,
+          triada: app.triada,
+          triada_com_dado: app.triada_com_dado,
+          cobertura: app.cobertura,
+          combinacoes: app.combinacoes || [],
+          aprofundamentos: app.aprofundamentos || [],
+          sistemas: sist.map(function(s) {
+            return {
+              sistema: s.sistema,
+              nome: s.nome,
+              nota: s.nota,
+              carga: s.carga,
+              faixa: s.faixa,
+              obtido: s.obtido,
+              maximo: s.maximo,
+              respondidos: s.respondidos,
+              total_marcadores: s.total_marcadores,
+              avaliavel: s.avaliavel
+            };
+          }),
+          _supa_id: app.id
+        };
+
+        if (app.interpretacao_texto) {
+          pontuacao.interpretacao = {
+            texto: app.interpretacao_texto,
+            quando_escrita: app.interpretacao_em || app.quando,
+            versao: app.interpretacao_versao || 1
+          };
+        }
+
+        if (mesmoDia >= 0) {
+          if (tudo[pid][mesmoDia].interpretacao && !pontuacao.interpretacao) {
+            pontuacao.interpretacao = tudo[pid][mesmoDia].interpretacao;
+          }
+          tudo[pid][mesmoDia] = pontuacao;
+        } else {
+          tudo[pid].push(pontuacao);
+        }
+        mudou = true;
+      });
+
+      if (mudou) {
+        Object.keys(tudo).forEach(function(pid) {
+          tudo[pid].sort(function(a, b) { return (a.quando || "").localeCompare(b.quando || ""); });
+        });
+        localStorage.setItem("holohacking.pontuacao", JSON.stringify(tudo));
+        carregarHoloscope();
+      }
+    } catch (e) {
+      console.error("sincronizarHistoricoHoloscope:", e);
+    }
+  }
+
   function lerHistorico(){
     let tudo;
     try { tudo = JSON.parse(localStorage.getItem("holohacking.pontuacao")) || {}; }
@@ -2156,6 +2260,21 @@
     alvo.interpretacao = { texto: String(texto || ""), quando_escrita: hojeISO(), versao: 1 };
     localStorage.setItem("holohacking.pontuacao", JSON.stringify(tudo));
     if (window.Concorrencia) window.Concorrencia.avancarRevisao("pontuacao");
+
+    if (alvo._supa_id && window.supabaseClient
+        && window.HoloAuth && window.HoloAuth.sessaoAtiva()) {
+      window.supabaseClient.from("holoscope_applications")
+        .update({
+          interpretacao_texto: String(texto || ""),
+          interpretacao_em: new Date().toISOString(),
+          interpretacao_versao: 1
+        })
+        .eq("id", alvo._supa_id)
+        .then(function(res) {
+          if (res.error) console.error("interpretacao supa:", res.error);
+        });
+    }
+
     return true;
   };
 
@@ -2516,16 +2635,6 @@
     const p = pacienteAtivo();
     if(!p){ toast("Selecione um paciente para salvar o HOLOSCOPE."); return; }
 
-    /* Duas coisas que estavam erradas aqui, e as duas apareciam juntas:
-
-       1. o total era "soma das reguas x 2", escrito a mao. Com as notas
-          6,7 / 6,7 / 0,8 / 6,7 / 0,7 a tela mostrava Indice 43 e o toast
-          dizia "Score: 46" — porque a regua arredonda antes de somar. Duas
-          contas para o mesmo numero sempre terminam assim. O motor expoe
-          indiceDeNotas() justamente para nao existir uma segunda.
-
-       2. o que ia para a ficha eram as reguas arredondadas, entao reabrir
-          um mapa salvo devolvia 7 onde o motor tinha calculado 6,7. */
     const scores = pontuacaoNaTela
       ? ORDEM_MOTOR.map(id => {
           const s = pontuacaoNaTela.sistemas.find(x => x.sistema === id);
@@ -2534,6 +2643,104 @@
       : sistemas.map(s => parseInt($("#holo-" + s).value) || 0);
 
     const total = pontuacaoNaTela ? pontuacaoNaTela.indice : indiceDoMotor(scores);
+
+    const temSupa = window.supabaseClient
+      && window.HoloAuth && window.HoloAuth.sessaoAtiva();
+
+    if (temSupa && pontuacaoNaTela) {
+      const r = pontuacaoNaTela;
+      const hoje = hojeISO();
+
+      var respostasRaw = [];
+      try {
+        var qDados = JSON.parse(localStorage.getItem("holohacking.questionario")) || {};
+        var qPac = qDados[p.id] || {};
+        respostasRaw = Object.keys(qPac).map(function(mid) {
+          return { marcador_id: mid, valor: qPac[mid] };
+        });
+      } catch(e) { /* sem respostas brutas, segue com array vazio */ }
+
+      var notasSoma = 0, notasN = 0;
+      r.sistemas.forEach(function(s) {
+        if (s.avaliavel) { notasSoma += s.nota; notasN++; }
+      });
+      var notaMedia = notasN > 0 ? notasSoma / notasN : 0;
+
+      var interp = window.interpretacaoDe ? window.interpretacaoDe(hoje, p.id) : null;
+
+      var payload = {
+        application: {
+          patient_id: p.id,
+          quando: hoje,
+          versao_estrutura: r.versao_estrutura || 2,
+          versao_bancos: r.versao_bancos || null,
+          indice: r.indice,
+          indice_maximo: r.indice_maximo || 100,
+          avaliavel: r.avaliavel,
+          nota_media: typeof r.nota_media === "number" ? r.nota_media : notaMedia,
+          triada: r.triada || {},
+          triada_com_dado: r.triada_com_dado || {},
+          cobertura: r.cobertura || {},
+          combinacoes: (r.combinacoes || []).map(function(c) {
+            return { id: c.id, leitura: c.leitura, tipo: c.tipo,
+                     investigar: c.investigar, prioridade: c.prioridade };
+          }),
+          aprofundamentos: r.aprofundamentos || [],
+          interpretacao_texto: interp ? interp.texto : null,
+          interpretacao_em: interp ? interp.quando_escrita : null,
+          interpretacao_versao: interp ? interp.versao : null
+        },
+        answers: respostasRaw,
+        scores: r.sistemas.map(function(s) {
+          return {
+            sistema: s.sistema,
+            nome: s.nome,
+            nota: s.nota,
+            carga: s.carga,
+            faixa: s.faixa,
+            obtido: s.obtido,
+            maximo: s.maximo,
+            respondidos: s.respondidos,
+            total_marcadores: s.total_marcadores,
+            avaliavel: s.avaliavel
+          };
+        })
+      };
+
+      const { data: appId, error: rpcErr } =
+        await window.supabaseClient.rpc("salvar_holoscope_completo", { payload: payload });
+
+      if (rpcErr) {
+        console.error("RPC holoscope:", rpcErr);
+        toast("Erro ao salvar HOLOSCOPE no servidor.");
+        return;
+      }
+
+      p.holoscope = {
+        id: appId,
+        paciente_id: p.id,
+        sistema_fungico: scores[0],
+        sistema_acido_inflamatorio: scores[1],
+        sistema_metabolico: scores[2],
+        sistema_detox_linfatico: scores[3],
+        sistema_mental_emocional: scores[4],
+        score_holos: total
+      };
+
+      try {
+        var hist = lerHistorico();
+        var entradas = hist[p.id] || [];
+        var ult = entradas[entradas.length - 1];
+        if (ult && ult.quando === hoje) {
+          ult._supa_id = appId;
+          localStorage.setItem("holohacking.pontuacao", JSON.stringify(hist));
+        }
+      } catch(e) { /* nao critico */ }
+
+      renderPacientes();
+      toast("HOLOSCOPE salvo na ficha de " + p.nome.split(" ")[0] + ". Score: " + total);
+      return;
+    }
 
     const dados = {
       paciente_id: p.id,
