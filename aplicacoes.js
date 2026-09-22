@@ -63,7 +63,7 @@
     catch (e) { return SEM_PACIENTE; }
   }
 
-  function banco() { return window.DadosLocais || null; }
+  function banco() { return window.DadosRouter || window.DadosLocais || null; }
 
   function carregar() {
     var b = banco();
