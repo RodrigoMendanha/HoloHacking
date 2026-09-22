@@ -405,12 +405,179 @@
     return (bytes / 1048576).toFixed(1) + " MB";
   }
 
+  /* ---------- camada Supabase (Storage + documents table) -----------------
+     Quando ativa, salvar/listar/pegar/remover passam pelo Supabase em
+     paralelo ao IndexedDB local. O IndexedDB continua como cache rapido;
+     o Supabase e o armazenamento duravel que sobrevive a troca de maquina.
+     O upload vai para o bucket 'patient-documents', e os metadados para
+     a tabela 'documents'. */
+
+  function temSupa() {
+    return window.supabaseClient && window.HoloAuth && window.HoloAuth.sessaoAtiva();
+  }
+
+  function uidAtual() {
+    var u = window.HoloAuth && window.HoloAuth.usuarioAtual();
+    return u ? u.id : null;
+  }
+
+  function supaStoragePath(uid, paciente, nomeArquivo) {
+    var seguro = String(nomeArquivo).replace(/[^a-zA-Z0-9._-]/g, "_");
+    return uid + "/" + paciente + "/" + Date.now() + "_" + seguro;
+  }
+
+  function salvarSupa(paciente, arquivo, meta) {
+    if (!temSupa()) return Promise.resolve(null);
+    var uid = uidAtual();
+    if (!uid) return Promise.resolve(null);
+
+    var caminho = supaStoragePath(uid, paciente, arquivo.name);
+    return window.supabaseClient.storage
+      .from("patient-documents")
+      .upload(caminho, arquivo, { contentType: arquivo.type || "application/octet-stream" })
+      .then(function (upRes) {
+        if (upRes.error) { console.error("storage upload:", upRes.error); return null; }
+        return window.supabaseClient.from("documents").insert({
+          patient_id: paciente,
+          nome: meta.nome || arquivo.name,
+          tipo: meta.tipo || "Outro",
+          data_documento: meta.data || null,
+          mime_type: arquivo.type || "application/octet-stream",
+          tamanho_bytes: arquivo.size,
+          storage_path: caminho
+        }).select().single().then(function (docRes) {
+          if (docRes.error) console.error("documents insert:", docRes.error);
+          return docRes.data || null;
+        });
+      })
+      .catch(function (e) { console.error("salvarSupa:", e); return null; });
+  }
+
+  function listarSupa(paciente) {
+    if (!temSupa()) return Promise.resolve(null);
+    return window.supabaseClient.from("documents")
+      .select("id, nome, tipo, data_documento, mime_type, tamanho_bytes, storage_path")
+      .eq("patient_id", paciente)
+      .order("created_at", { ascending: false })
+      .then(function (r) {
+        if (r.error) { console.error("documents select:", r.error); return null; }
+        return (r.data || []).map(function (d) {
+          return {
+            id: "supa:" + d.id,
+            nome: d.nome,
+            tipo: d.tipo,
+            data: d.data_documento || "",
+            mime: d.mime_type,
+            tamanho: d.tamanho_bytes,
+            _supa_id: d.id,
+            _storage_path: d.storage_path
+          };
+        });
+      })
+      .catch(function (e) { console.error("listarSupa:", e); return null; });
+  }
+
+  function pegarSupa(supaId, storagePath) {
+    if (!temSupa() || !storagePath) return Promise.resolve(undefined);
+    return window.supabaseClient.storage
+      .from("patient-documents")
+      .download(storagePath)
+      .then(function (r) {
+        if (r.error) { console.error("storage download:", r.error); return undefined; }
+        return { arquivo: r.data };
+      })
+      .catch(function (e) { console.error("pegarSupa:", e); return undefined; });
+  }
+
+  function removerSupa(supaId) {
+    if (!temSupa() || !supaId) return Promise.resolve();
+    return window.supabaseClient.from("documents")
+      .select("storage_path")
+      .eq("id", supaId)
+      .single()
+      .then(function (r) {
+        if (r.error || !r.data) return;
+        var caminho = r.data.storage_path;
+        return window.supabaseClient.from("documents")
+          .delete().eq("id", supaId)
+          .then(function () {
+            return window.supabaseClient.storage
+              .from("patient-documents")
+              .remove([caminho]);
+          });
+      })
+      .catch(function (e) { console.error("removerSupa:", e); });
+  }
+
+  /* ---------- API publica com roteamento --------------------------------- */
+
+  function salvarHibrido(paciente, arquivo, meta) {
+    var impedido = barrado();
+    if (impedido) return Promise.reject(impedido);
+
+    var promLocal = salvar(paciente, arquivo, meta);
+    salvarSupa(paciente, arquivo, meta);
+    return promLocal;
+  }
+
+  function listarHibrido(paciente) {
+    if (!temSupa()) return listar(paciente);
+    return Promise.all([listar(paciente), listarSupa(paciente)])
+      .then(function (par) {
+        var local = par[0] || [];
+        var supa = par[1];
+        if (!supa) return local;
+        var idsSupa = {};
+        supa.forEach(function (d) { idsSupa[d.nome + "|" + d.tamanho] = true; });
+        var extras = local.filter(function (d) {
+          return !idsSupa[d.nome + "|" + d.tamanho];
+        });
+        return supa.concat(extras);
+      });
+  }
+
+  function pegarHibrido(id) {
+    if (typeof id === "string" && id.indexOf("supa:") === 0) {
+      var supaId = id.slice(5);
+      return window.supabaseClient.from("documents")
+        .select("storage_path, nome, tipo, data_documento, mime_type, tamanho_bytes")
+        .eq("id", supaId)
+        .single()
+        .then(function (r) {
+          if (r.error || !r.data) return undefined;
+          return pegarSupa(supaId, r.data.storage_path).then(function (blob) {
+            if (!blob) return undefined;
+            return {
+              id: id,
+              nome: r.data.nome,
+              tipo: r.data.tipo,
+              data: r.data.data_documento || "",
+              mime: r.data.mime_type,
+              tamanho: r.data.tamanho_bytes,
+              arquivo: blob.arquivo
+            };
+          });
+        });
+    }
+    return pegar(id);
+  }
+
+  function removerHibrido(id) {
+    if (typeof id === "string" && id.indexOf("supa:") === 0) {
+      var supaId = id.slice(5);
+      return removerSupa(supaId);
+    }
+    var impedido = barrado();
+    if (impedido) return Promise.reject(impedido);
+    return remover(id);
+  }
+
   window.ArquivoStore = {
-    salvar: salvar,
-    remover: remover,
+    salvar: salvarHibrido,
+    remover: removerHibrido,
 
     /* tolerantes — para a tela */
-    listar: listar,
+    listar: listarHibrido,
     listarTudo: listarTudo,
 
     /* estritas — para backup, diagnostico e restauracao */
@@ -420,7 +587,7 @@
     listarTudoEstrito: listarTudoEstrito,
     pegarEstrito: pegarEstrito,
 
-    pegar: pegar,
+    pegar: pegarHibrido,
     espaco: espaco,
     tamanhoLegivel: tamanhoLegivel,
 
