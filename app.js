@@ -272,6 +272,8 @@
      CARREGAR OS DADOS  (de onde, ver dados.js)
   ============================================================ */
   async function carregarTudo(){
+    if (window.migrarParaSupabase) await window.migrarParaSupabase();
+
     const [resPac, resOq3, resPqq, resHolo] = await Promise.all([
       sb.from("pacientes").select("*").order("created_at", { ascending: false }),
       sb.from("oq3").select("*").order("created_at", { ascending: false }),
