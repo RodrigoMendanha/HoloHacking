@@ -26,7 +26,7 @@
 
    TABELAS QUE CONTINUAM EM DADOSLOCAIS
      holoscope  — estrutura Supabase diferente (snapshot). Etapa 5.
-     perfil     — id e campos diferentes. Etapa 9.
+     perfil     — integrado diretamente em perfil.js (profiles + professional_assets).
      oq3, pqq   — legado, sera migrado para tool_applications. Etapa 10.
    =========================================================================== */
 

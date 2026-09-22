@@ -36,6 +36,7 @@
   var perfil = null;
   var aba = "perfil";
   var urls = {};                 // id do arquivo -> objectURL ja criado
+  var supaAssets = {};           // "supa:uuid" -> storage_path (para download)
   var desenhando = false;        // a assinatura desenhada a mao esta aberta?
 
   var PADRAO = {
@@ -115,20 +116,95 @@
     return window.DadosLocais || null;
   }
 
+  function temSupa() {
+    return window.supabaseClient && window.HoloAuth && window.HoloAuth.sessaoAtiva();
+  }
+
+  function uidAtual() {
+    var u = window.HoloAuth && window.HoloAuth.usuarioAtual();
+    return u ? u.id : null;
+  }
+
+  var TIPO_CAMPO = { foto: "foto_id", logo: "logo_id",
+                     assinatura: "assinatura_id", carimbo: "carimbo_id" };
+  var CAMPO_TIPO = {};
+  for (var _t in TIPO_CAMPO) { CAMPO_TIPO[TIPO_CAMPO[_t]] = _t; }
+
+  var CAMPOS_SUPA = ["nome", "profissao", "registro", "especialidade", "cidade",
+                     "instagram", "telefone", "fuso", "cor_primaria", "cor_secundaria",
+                     "modulos"];
+
+  function localParaSupa(p) {
+    var out = {};
+    CAMPOS_SUPA.forEach(function (c) { if (p[c] !== undefined) out[c] = p[c]; });
+    if (p.email !== undefined) out.email_contato = p.email;
+    return out;
+  }
+
   function carregar() {
+    if (temSupa()) return carregarSupa();
     var b = banco();
     if (!b) { perfil = Object.assign({}, PADRAO); return Promise.resolve(perfil); }
     return Promise.resolve(b.from("perfil").select("*")).then(function (r) {
       var linha = (r.data || [])[0] || null;
       perfil = Object.assign({}, PADRAO, linha || {});
-      // modulos pode vir de um export antigo sem o campo
       perfil.modulos = Object.assign({}, PADRAO.modulos, perfil.modulos || {});
       perfil.id = LINHA;
       return perfil;
     });
   }
 
+  function carregarSupa() {
+    var uid = uidAtual();
+    return Promise.all([
+      window.supabaseClient.from("profiles").select("*").eq("id", uid),
+      window.supabaseClient.from("professional_assets")
+        .select("id, tipo, storage_path")
+    ]).then(function (res) {
+      var row = ((res[0].data || [])[0]) || null;
+      var assets = res[1].data || [];
+
+      perfil = Object.assign({}, PADRAO);
+      if (row) {
+        CAMPOS_SUPA.forEach(function (c) {
+          if (row[c] !== undefined && row[c] !== null) perfil[c] = row[c];
+        });
+        if (row.email_contato) perfil.email = row.email_contato;
+      }
+      perfil.modulos = Object.assign({}, PADRAO.modulos, perfil.modulos || {});
+      perfil.id = LINHA;
+
+      supaAssets = {};
+      assets.forEach(function (a) {
+        var campo = TIPO_CAMPO[a.tipo];
+        if (campo) {
+          var sid = "supa:" + a.id;
+          perfil[campo] = sid;
+          supaAssets[sid] = a.storage_path;
+        }
+      });
+
+      gravarLocal();
+      return perfil;
+    });
+  }
+
+  function gravarLocal() {
+    var b = banco();
+    if (!b) return;
+    var copia = Object.assign({}, perfil);
+    delete copia.created_at;
+    delete copia.updated_at;
+    Promise.resolve(b.from("perfil").select("*")).then(function (r) {
+      var existe = (r.data || []).length > 0;
+      return existe
+        ? b.from("perfil").update(copia).eq("id", LINHA)
+        : b.from("perfil").insert(copia).select().single();
+    }).catch(function () {});
+  }
+
   function gravar() {
+    if (temSupa()) return gravarSupa();
     var b = banco();
     if (!b) return Promise.resolve({ error: null });
     var copia = Object.assign({}, perfil);
@@ -139,6 +215,18 @@
         ? b.from("perfil").update(copia).eq("id", LINHA)
         : b.from("perfil").insert(copia).select().single();
     });
+  }
+
+  function gravarSupa() {
+    var dados = localParaSupa(perfil);
+    return window.supabaseClient
+      .from("profiles")
+      .update(dados)
+      .eq("id", uidAtual())
+      .then(function (r) {
+        gravarLocal();
+        return r;
+      });
   }
 
   function salvar(mensagem) {
@@ -170,6 +258,21 @@
   function urlDe(id) {
     if (!id) return Promise.resolve("");
     if (urls[id]) return Promise.resolve(urls[id]);
+
+    if (id.indexOf("supa:") === 0 && temSupa()) {
+      var path = supaAssets[id];
+      if (!path) return Promise.resolve("");
+      return window.supabaseClient.storage
+        .from("professional-assets")
+        .download(path)
+        .then(function (r) {
+          if (r.error || !r.data) return "";
+          urls[id] = URL.createObjectURL(r.data);
+          return urls[id];
+        })
+        .catch(function () { return ""; });
+    }
+
     if (!window.ArquivoStore) return Promise.resolve("");
     return window.ArquivoStore.pegar(id).then(function (r) {
       if (!r || !r.arquivo) return "";
@@ -181,6 +284,7 @@
   /** Troca a imagem de um campo, apagando a anterior: guardar as duas encheria
       o navegador de logos velhos que ninguem mais vai ver. */
   function guardarImagem(campo, arquivo, tipo) {
+    if (temSupa()) return guardarImagemSupa(campo, arquivo, tipo);
     if (!window.ArquivoStore) return Promise.resolve(false);
     var antiga = perfil[campo];
     return window.ArquivoStore.salvar(DONO, arquivo, {
@@ -197,11 +301,80 @@
       .catch(function (e) { aviso(e.message || "Não foi possível guardar a imagem.", true); return false; });
   }
 
+  function guardarImagemSupa(campo, arquivo, tipo) {
+    var uid = uidAtual();
+    var tipoSupa = CAMPO_TIPO[campo];
+    if (!tipoSupa || !uid) return Promise.resolve(false);
+
+    var ext = (arquivo.name || "img.png").split(".").pop();
+    var path = uid + "/" + tipoSupa + "/" + Date.now() + "." + ext;
+    var antiga = perfil[campo];
+    var antigaPath = antiga ? supaAssets[antiga] : null;
+
+    var limparAntiga = (antigaPath)
+      ? window.supabaseClient.storage
+          .from("professional-assets").remove([antigaPath]).catch(function () {})
+      : Promise.resolve();
+
+    return limparAntiga.then(function () {
+      return window.supabaseClient.storage
+        .from("professional-assets")
+        .upload(path, arquivo, { contentType: arquivo.type });
+    }).then(function (r) {
+      if (r.error) throw r.error;
+      return window.supabaseClient
+        .from("professional_assets")
+        .upsert({
+          nutritionist_id: uid, tipo: tipoSupa,
+          nome: arquivo.name || tipoSupa + ".png",
+          mime_type: arquivo.type || "image/png",
+          tamanho_bytes: arquivo.size, storage_path: path
+        }, { onConflict: "nutritionist_id,tipo" })
+        .select("id").single();
+    }).then(function (r) {
+      if (r.error) throw r.error;
+      if (antiga && urls[antiga]) { URL.revokeObjectURL(urls[antiga]); delete urls[antiga]; }
+      if (antiga) delete supaAssets[antiga];
+
+      var novoId = "supa:" + r.data.id;
+      perfil[campo] = novoId;
+      supaAssets[novoId] = path;
+
+      if (antiga && antiga.indexOf("supa:") !== 0 && window.ArquivoStore) {
+        window.ArquivoStore.remover(antiga).catch(function () {});
+      }
+      return salvar(tipo + " atualizado.");
+    }).then(function () { desenhar(); return true; })
+    .catch(function (e) {
+      aviso(e.message || "Não foi possível guardar a imagem.", true);
+      return false;
+    });
+  }
+
   function tirarImagem(campo) {
     var id = perfil[campo];
     if (!id) return;
     perfil[campo] = "";
     if (urls[id]) { URL.revokeObjectURL(urls[id]); delete urls[id]; }
+
+    if (id.indexOf("supa:") === 0 && temSupa()) {
+      var realId = id.slice(5);
+      var path = supaAssets[id];
+      delete supaAssets[id];
+      window.supabaseClient.from("professional_assets")
+        .delete().eq("id", realId)
+        .then(function () {
+          if (path) {
+            return window.supabaseClient.storage
+              .from("professional-assets").remove([path]);
+          }
+        })
+        .catch(function () {})
+        .then(function () { return salvar("Imagem removida."); })
+        .then(desenhar);
+      return;
+    }
+
     (window.ArquivoStore ? window.ArquivoStore.remover(id) : Promise.resolve())
       .catch(function () {})
       .then(function () { return salvar("Imagem removida."); })
