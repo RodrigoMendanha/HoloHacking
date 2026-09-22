@@ -308,6 +308,7 @@
     avisarTrocaDePaciente();
 
     sincronizarHistoricoHoloscope(pacientes);
+    if (window.sincronizarExames) window.sincronizarExames(pacientes);
   }
 
   /* O cadastro antigo tinha um campo "Contato" que aceitava as duas coisas.

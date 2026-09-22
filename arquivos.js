@@ -375,7 +375,61 @@
     return v;
   }
 
-  function conferir() {
+  function temSupa() {
+    return window.supabaseClient && window.HoloAuth && window.HoloAuth.sessaoAtiva();
+  }
+
+  function salvarColetaSupa(valores) {
+    if (!temSupa()) return;
+    var g = motor();
+    if (!g || !g.listaDeExames) return;
+    var pid = paciente();
+    if (!pid || pid === SEM_PACIENTE) return;
+
+    var chaves = Object.keys(valores);
+    if (chaves.length === 0) return;
+
+    var lista = g.listaDeExames();
+    var porId = {};
+    lista.forEach(function (e) { porId[e.id] = e; });
+
+    var results = [];
+    chaves.forEach(function (eid) {
+      var e = porId[eid];
+      if (!e) return;
+      var partes = e.faixa.split(" a ");
+      results.push({
+        exame_id: eid,
+        valor: valores[eid],
+        unidade_no_momento: e.unidade,
+        ideal_min_no_momento: Number(partes[0]),
+        ideal_max_no_momento: Number(partes[1]),
+        nome_exame_no_momento: e.exame,
+        sistema_no_momento: e.sistema
+      });
+    });
+
+    var payload = {
+      collection: {
+        patient_id: pid,
+        coletado_em: null,
+        data_coleta_desconhecida: false
+      },
+      results: results
+    };
+
+    var hoje = new Date();
+    payload.collection.coletado_em = hoje.getFullYear() + "-" +
+      String(hoje.getMonth() + 1).padStart(2, "0") + "-" +
+      String(hoje.getDate()).padStart(2, "0");
+
+    window.supabaseClient.rpc("salvar_coleta_exames", { payload: payload })
+      .then(function (res) {
+        if (res.error) console.error("salvarColetaSupa:", res.error);
+      });
+  }
+
+  function conferir(salvarNoSupa) {
     var g = motor();
     if (!g) return;
     var valores = colherExames();
@@ -413,7 +467,71 @@
     // isso, editar um exame aqui na aba Documentos deixava aquele bloco
     // parado na leitura de antes ate o proximo "Salvar HOLOSCOPE".
     if (window.desenharHoloscan) window.desenharHoloscan("holo-holoscan");
+
+    if (salvarNoSupa) salvarColetaSupa(valores);
   }
+
+  window.sincronizarExames = function (pacientes) {
+    if (!temSupa()) return Promise.resolve();
+    if (!pacientes || !pacientes.length) return Promise.resolve();
+
+    var ids = pacientes.map(function (p) { return p.id; });
+
+    return window.supabaseClient
+      .from("lab_collections")
+      .select("id, patient_id, coletado_em")
+      .in("patient_id", ids)
+      .order("coletado_em", { ascending: false })
+      .then(function (colRes) {
+        if (colRes.error || !colRes.data || !colRes.data.length) return;
+
+        var maisRecente = {};
+        colRes.data.forEach(function (c) {
+          if (!maisRecente[c.patient_id]) maisRecente[c.patient_id] = c;
+        });
+
+        var colIds = Object.keys(maisRecente).map(function (pid) {
+          return maisRecente[pid].id;
+        });
+
+        return window.supabaseClient
+          .from("lab_results")
+          .select("collection_id, exame_id, valor")
+          .in("collection_id", colIds)
+          .then(function (resRes) {
+            if (resRes.error || !resRes.data) return;
+
+            var porCollection = {};
+            resRes.data.forEach(function (r) {
+              if (!porCollection[r.collection_id]) porCollection[r.collection_id] = {};
+              porCollection[r.collection_id][r.exame_id] = r.valor;
+            });
+
+            var tudo;
+            try { tudo = JSON.parse(localStorage.getItem(CHAVE_EX)) || {}; }
+            catch (e) { tudo = {}; }
+
+            var mudou = false;
+            Object.keys(maisRecente).forEach(function (pid) {
+              var col = maisRecente[pid];
+              var vals = porCollection[col.id] || {};
+              var localVals = tudo[pid] || {};
+
+              if (Object.keys(localVals).length === 0 && Object.keys(vals).length > 0) {
+                tudo[pid] = vals;
+                mudou = true;
+              }
+            });
+
+            if (mudou) {
+              localStorage.setItem(CHAVE_EX, JSON.stringify(tudo));
+            }
+          });
+      })
+      .catch(function (e) {
+        console.error("sincronizarExames:", e);
+      });
+  };
 
   function desenharConfronto(r, quantos) {
     var alvo = document.getElementById("ex-confronto");
@@ -472,7 +590,7 @@
     painel.addEventListener("click", function (ev) {
       var a = ev.target.closest("[data-acao]");
       if (a) {
-        if (a.dataset.acao === "conferir") conferir();
+        if (a.dataset.acao === "conferir") conferir(true);
         if (a.dataset.acao === "limpar-ex") { gravar(CHAVE_EX, {}); desenharExames(); }
         // O botao do topo e o do estado vazio so abrem o MESMO seletor de
         // arquivo que a zona de arrastar ja usa — nao e um fluxo novo.
