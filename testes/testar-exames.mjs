@@ -1,9 +1,9 @@
 /** A regra que governa tudo: exame confronta, nunca pontua. */
 import puppeteer from 'puppeteer-core';
-const nav = await puppeteer.launch({ executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe', headless:'new' });
+const nav = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', headless:'new', args:['--no-sandbox'] });
 const p = await nav.newPage();
 await p.setContent('<!doctype html><meta charset="utf-8">');
-await p.addScriptTag({ url:'http://127.0.0.1:5500/holoscope.js' });
+await p.addScriptTag({ url:'http://127.0.0.1:5500/holoscan.js' });
 let falhou = false;
 const ok = (c,t) => {
   if (!c) falhou = true;
@@ -11,7 +11,7 @@ const ok = (c,t) => {
 };
 
 const r = await p.evaluate(() => {
-  const g = window.HOLOSCOPE;
+  const g = window.HOLOSCAN;
   const lista = g.listaDeExames();
 
   // paciente que se queixa do metabolico E tem exame alterado -> confirma
@@ -52,8 +52,8 @@ console.log('  leitura do exame alto:', r.leituraAlto);
 // A REGRA: o Indice nao pode mudar por causa de exame
 const indice = await p.evaluate(() => {
   const n = { fungico:7, acido_inflamatorio:7, metabolico:1, detox_linfatico:7, mental_emocional_espiritual:2 };
-  return { antes: HOLOSCOPE.indiceDeNotas(n),
-           depois: (HOLOSCOPE.lerExames({'EXA-005':115,'EXA-007':3.4}, n), HOLOSCOPE.indiceDeNotas(n)) };
+  return { antes: HOLOSCAN.indiceDeNotas(n),
+           depois: (HOLOSCAN.lerExames({'EXA-005':115,'EXA-007':3.4}, n), HOLOSCAN.indiceDeNotas(n)) };
 });
 ok(indice.antes === indice.depois, 'o Indice nao muda com exame: ' + indice.antes + ' -> ' + indice.depois);
 await nav.close();

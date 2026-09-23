@@ -24,8 +24,8 @@ import { congelarRelogio } from './relogio-fixo.mjs';
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1500, height: 1300 });
 /* A flakiness historica daqui: "Marina, aplicacao ha 26 dias" espera que o
@@ -79,8 +79,8 @@ const ids = await p.evaluate(async (respostas) => {
 
   // Marina: aplicação há 26 dias — o retorno de 4 semanas cai daqui a 2
   const marina = await novo('Marina Alves');
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
-  window.aplicarPontuacao(HOLOSCOPE.calcular(respostas));
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
+  window.aplicarPontuacao(HOLOSCAN.calcular(respostas));
   datar(marina, 0, dias(-26));
 
   const carla = await novo('Carla Souza');

@@ -1,8 +1,8 @@
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));
-const nav = await puppeteer.launch({ executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless:'new', args:['--hide-scrollbars'] });
+const nav = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless:'new', args:['--no-sandbox','--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({width:1500,height:1300});
 const ruim=[]; p.on('pageerror',e=>ruim.push(e.message));
@@ -15,7 +15,7 @@ const ok = (c,t) => {
   console.log((c?'  ok    ':'  FALHA ')+t);
 };
 
-/* Revisao clinica do HOLOSCOPE (decisao 3): "Por onde começar" passou a ler
+/* Revisao clinica do HOLOSCAN (decisao 3): "Por onde começar" passou a ler
    regrasApresentaveis() (so status=confirmado), nao regrasAtivas() (que so
    excluia nao_validado e deixava passar REC-001..015, status=legado).
    Motivo duplo: nenhuma dessas 15 regras foi validada pelo metodo, E os
@@ -25,7 +25,7 @@ const ok = (c,t) => {
    ativa reabrindo o que foi fechado de proposito. Hoje, com 0 REC
    confirmada, a lista fica vazia e a tela diz isso em voz alta. */
 const r = await p.evaluate((respostas) => {
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
   document.getElementById('btn-abrir-questionario').click();
   const m = {}; respostas.forEach(x => m[x.marcador_id] = x.intensidade);
   document.querySelectorAll('.q-item').forEach(i => {
@@ -42,7 +42,7 @@ const r = await p.evaluate((respostas) => {
     apresentaveis: window.CorpoBancos.regrasApresentaveis().length,
     validadas: (window.CorpoBancos.RECOMENDACOES || [])
       .filter(r => window.CorpoBancos.validada(r)).length,
-    maisBaixo: [...HOLOSCOPE.calcular(respostas).sistemas]
+    maisBaixo: [...HOLOSCAN.calcular(respostas).sistemas]
       .sort((a, b) => a.nota - b.nota)[0].nome,
   };
 }, caso.respostas);

@@ -280,7 +280,7 @@
       entrar: function () {
         mostrarPainel(false);
         try { localStorage.removeItem("holohacking.questionario"); } catch (e) {}
-        irSecao("holoscope");
+        irSecao("holoscan");
         window.scrollTo(0, 0);
         var b = document.getElementById("btn-abrir-questionario");
         if (b) b.click();
@@ -314,11 +314,11 @@
     { dur: 13, legenda: "5 sistemas · Índice HOLOS",
       entrar: function () {
         mostrarPainel(false);
-        irSecao("holoscope");
+        irSecao("holoscan");
         window.scrollTo(0, 0);
-        var sel = document.getElementById("sel-holoscope");
+        var sel = document.getElementById("sel-holoscan");
         if (sel) sel.innerHTML = "<option>Marina Alves</option>";
-        var av = document.querySelector("#secao-holoscope .aviso");
+        var av = document.querySelector("#secao-holoscan .aviso");
         if (av) av.textContent = "Primeira aplicação";
         prepararPrimeira();
       },
@@ -399,7 +399,7 @@
       entrar: function () {
         mostrarPainel(false);
         prepararEvolucao();
-        irSecao("holoscope");
+        irSecao("holoscan");
         window.scrollTo(0, 0);
       },
       quadro: function (p) {
@@ -462,7 +462,7 @@
   // uma cena. Assim DEMO.irPara(120) desenha certo mesmo sem ter passado pelas
   // cenas anteriores — o que importa para conferir um trecho isolado.
   (function esperarMotor(tentativas) {
-    if (window.HOLOSCOPE && window.aplicarPontuacao && window.CasoMarina) {
+    if (window.HOLOSCAN && window.aplicarPontuacao && window.CasoMarina) {
       prepararPrimeira(); return;
     }
     if ((tentativas || 0) > 40) return;

@@ -1,6 +1,6 @@
 /**
  * HOLOSCAN — a camada de confronto relato x laboratorio, revisao clinica do
- * HOLOSCOPE.
+ * HOLOSCAN.
  *
  * O que este teste trava (itens B a G do mandato da revisao):
  *
@@ -22,8 +22,8 @@ import { readFileSync } from 'node:fs';
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1500, height: 1400 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -42,7 +42,7 @@ await p.evaluate(async () => {
 });
 
 await p.evaluate(async (respostas) => {
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
   document.getElementById('btn-abrir-questionario').click();
   const m = {}; respostas.forEach(x => m[x.marcador_id] = x.intensidade);
   document.querySelectorAll('.q-item').forEach(i => {
@@ -51,7 +51,7 @@ await p.evaluate(async (respostas) => {
   });
   document.querySelector('[data-acao="calcular"]').click();
   await new Promise(r => setTimeout(r, 400));
-  document.getElementById('btn-salvar-holoscope').click();
+  document.getElementById('btn-salvar-holoscan').click();
   await new Promise(r => setTimeout(r, 400));
 }, caso.respostas);
 
@@ -60,7 +60,7 @@ console.log('\n  E — SEM NENHUM EXAME, DADOS INSUFICIENTES\n');
 /* ==================================================================== */
 
 const semExame = await p.evaluate(() => {
-  const caixa = document.getElementById('holo-holoscan');
+  const caixa = document.getElementById('holo-confronto');
   return {
     texto: caixa ? caixa.innerText.replace(/\s+/g, ' ') : '',
     selos: [...(caixa ? caixa.querySelectorAll('.conf-selo') : [])].map(e => e.textContent),
@@ -122,7 +122,7 @@ console.log('\n  F — DIVERGÊNCIA NÃO CORRIGE A NOTA EXIBIDA\n');
 /* ==================================================================== */
 
 const divergencia = await p.evaluate(() => {
-  const caixa = document.getElementById('holo-holoscan');
+  const caixa = document.getElementById('holo-confronto');
   const bloco = [...caixa.querySelectorAll('.holo-dominante-sistema')]
     .find(b => /Detox/.test(b.querySelector('h5').textContent));
   return {
@@ -156,7 +156,7 @@ const superficies = await p.evaluate(() => {
   const rel = document.getElementById('relatorio');
   const tooltips = [...document.querySelectorAll('#ex-corpo .ex-linha[title]')].map(l => l.title);
   return {
-    holoscan: document.getElementById('holo-holoscan')?.innerText || '',
+    holoscan: document.getElementById('holo-confronto')?.innerText || '',
     exConfronto: document.getElementById('ex-confronto')?.innerText || '',
     relatorio: rel ? rel.innerText : '',
     tooltips,
@@ -168,7 +168,7 @@ const varrer = (nome, texto) => {
   ok(achados.length === 0,
      nome + ' livre de frases banidas' + (achados.length ? ': ' + achados.map(r => r.source).join(', ') : ''));
 };
-varrer('#holo-holoscan', superficies.holoscan);
+varrer('#holo-confronto', superficies.holoscan);
 varrer('#ex-confronto', superficies.exConfronto);
 varrer('relatório (seção B)', superficies.relatorio);
 varrer('tooltips de exame', superficies.tooltips.join(' | '));

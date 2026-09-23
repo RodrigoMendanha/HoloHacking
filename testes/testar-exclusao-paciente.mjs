@@ -27,8 +27,8 @@
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 
 const abrirAba = async () => {
   const pg = await nav.newPage();
@@ -87,7 +87,7 @@ const semear = () => p.evaluate(async (PONT) => {
     { id: 'c-alvo', paciente_id: 'pac-ALVO' },
     { id: 'c-viz', paciente_id: 'pac-VIZINHO' }
   ]);
-  g(P + 'holoscope', [
+  g(P + 'holoscan', [
     { id: 'h-alvo', paciente_id: 'pac-ALVO', score_holos: 43 },
     { id: 'h-viz', paciente_id: 'pac-VIZINHO', score_holos: 77 }
   ]);
@@ -131,7 +131,7 @@ const semear = () => p.evaluate(async (PONT) => {
     { nome: 'Sem dono', tipo: 'Outro', data: '2026-02-04' });
   return true;
 }, { a: PONTUACAO(40),
-     // interpretacao (revisao clinica do HOLOSCOPE): campo opcional dentro
+     // interpretacao (revisao clinica do HOLOSCAN): campo opcional dentro
      // do proprio snapshot — some junto com o resto de pac-ALVO, sem
      // precisar de tratamento especial na exclusao (nao ha entrada nova no
      // manifesto para ela).
@@ -165,7 +165,7 @@ const olhar = () => p.evaluate(async () => {
     pacientes: (ler(P + 'pacientes') || []).map(x => x.id).sort(),
     aplicacoes: (ler(P + 'aplicacoes') || []).map(x => x.id).sort(),
     consultas: (ler(P + 'consultas') || []).map(x => x.id).sort(),
-    holoscope: (ler(P + 'holoscope') || []).map(x => x.id).sort(),
+    holoscan: (ler(P + 'holoscan') || []).map(x => x.id).sort(),
     oq3: (ler(P + 'oq3') || []).map(x => x.id).sort(),
     pqq: (ler(P + 'pqq') || []).map(x => x.id).sort(),
     bloqueios: (ler(P + 'bloqueios') || []).map(x => x.id).sort(),
@@ -195,7 +195,7 @@ const destinos = await p.evaluate(() => {
     exportaveis: A.exportaveis().length
   };
 });
-const ESPERADOS = ['aplicacoes', 'arquivos', 'consultas', 'exames', 'holoscope',
+const ESPERADOS = ['aplicacoes', 'arquivos', 'consultas', 'exames', 'holoscan',
                    'oq3', 'pontuacao', 'pqq', 'questionario'];
 ok(destinos.daExclusao.join(',') === ESPERADOS.join(','),
    'os 9 destinos filhos vem do manifesto, nao de lista escrita a mao: ' +
@@ -224,7 +224,7 @@ ok(mesmoDado(antesPlano, depoisPlano),
 ok(plano.existe === true && plano.pode === true && plano.nome === 'Alvo ✨',
    'e o plano encontra o paciente: "' + plano.nome + '"');
 ok(plano.destinos.aplicacoes === 2 && plano.destinos.consultas === 1 &&
-   plano.destinos.holoscope === 1 && plano.destinos.oq3 === 1 &&
+   plano.destinos.holoscan === 1 && plano.destinos.oq3 === 1 &&
    plano.destinos.pqq === 1 && plano.destinos.questionario === 1 &&
    plano.destinos.pontuacao === 1 && plano.destinos.exames === 1 &&
    plano.destinos.arquivos === 2,
@@ -329,7 +329,7 @@ ok(depois.pacientes.join(',') === 'pac-VIZINHO',
 ok(depois.aplicacoes.join(',') === 'ap-sem,ap-viz',
    'G — aplicacoes do alvo removidas: sobraram ' + depois.aplicacoes.join(', '));
 ok(depois.consultas.join(',') === 'c-viz', 'H — consultas removidas');
-ok(depois.holoscope.join(',') === 'h-viz', 'I — holoscope removido');
+ok(depois.holoscan.join(',') === 'h-viz', 'I — holoscan removido');
 ok(depois.oq3.join(',') === 'o-viz', 'J — oq3 removido');
 ok(depois.pqq.length === 0, 'K — pqq removido');
 ok(depois.questionario.join(',') === '_sem_paciente,pac-VIZINHO',
@@ -345,7 +345,7 @@ ok(depois.docs.indexOf('pac-VIZINHO:Laudo V') >= 0 &&
    depois.aplicacoes.indexOf('ap-viz') >= 0 &&
    depois.questionario.indexOf('pac-VIZINHO') >= 0 &&
    depois.exames.indexOf('pac-VIZINHO') >= 0,
-   'P — o VIZINHO esta inteiro: cadastro, aplicacao, consulta, holoscope, ' +
+   'P — o VIZINHO esta inteiro: cadastro, aplicacao, consulta, holoscan, ' +
    'oq3, questionario, pontuacao, exames e documento');
 const vizinhoIgual = await p.evaluate(() => {
   const q = JSON.parse(localStorage.getItem('holohacking.questionario'));

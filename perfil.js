@@ -784,7 +784,7 @@
 
     var linhas = [
       { n: r.pacientes || 0, r: (r.pacientes === 1 ? "paciente" : "pacientes") },
-      { n: r.holoscope || 0, r: "mapas guardados" },
+      { n: r.holoscan || 0, r: "mapas guardados" },
       { n: (r.oq3 || 0) + (r.pqq || 0), r: "formulários" },
       { n: "—", r: "arquivos", id: "conta-arquivos" }
     ];

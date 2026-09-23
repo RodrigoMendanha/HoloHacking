@@ -20,8 +20,8 @@
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1400, height: 1200 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -87,7 +87,7 @@ const PONTUACAO = (quando, indice) => ({
   combinacoes: [], cobertura: { respondidos: 84, total: 84, percentual: 100 }
 });
 
-const TABELAS = ['pacientes', 'oq3', 'pqq', 'holoscope', 'perfil',
+const TABELAS = ['pacientes', 'oq3', 'pqq', 'holoscan', 'perfil',
                  'consultas', 'bloqueios', 'aplicacoes'];
 const CAIXAS = ['holohacking.questionario', 'holohacking.pontuacao',
                 'holohacking.exames', 'holohacking.aparencia'];
@@ -139,7 +139,7 @@ const UNIVERSO_A = {
     pacientes: [{ id: 'pac-A', created_at: '2026-01-02T10:00:00.000Z', nome: 'Ana Fonte' }],
     oq3:       [{ id: 'oq3-A', created_at: '2026-01-03T10:00:00.000Z', paciente_id: 'pac-A', quer: 'dormir melhor' }],
     pqq:       [{ id: 'pqq-A', created_at: '2026-01-03T10:00:00.000Z', paciente_id: 'pac-A', verdadeiro: 'estar presente' }],
-    holoscope: [{ id: 'hol-A', created_at: '2026-01-04T10:00:00.000Z', paciente_id: 'pac-A', score_holos: 43 }],
+    holoscan: [{ id: 'hol-A', created_at: '2026-01-04T10:00:00.000Z', paciente_id: 'pac-A', score_holos: 43 }],
     perfil:    [{ id: 'unico', created_at: '2026-01-01T10:00:00.000Z', nome: 'Nutricionista' }],
     consultas: [{ id: 'con-A', created_at: '2026-01-05T10:00:00.000Z', paciente_id: 'pac-A', data: '2026-02-01' }],
     bloqueios: [{ id: 'blo-1', created_at: '2026-01-05T10:00:00.000Z', data: '2026-02-02' }],
@@ -225,7 +225,7 @@ const PACOTE_B = {
   tabelas: {
     pacientes: [{ id: 'pac-B', created_at: '2026-02-01T10:00:00.000Z', nome: 'Bruno Outro' }],
     oq3: [], pqq: [],
-    holoscope: [{ id: 'hol-B', created_at: '2026-02-02T10:00:00.000Z', paciente_id: 'pac-B', score_holos: 71 }],
+    holoscan: [{ id: 'hol-B', created_at: '2026-02-02T10:00:00.000Z', paciente_id: 'pac-B', score_holos: 71 }],
     perfil: [{ id: 'unico', created_at: '2026-02-01T10:00:00.000Z', nome: 'Outra Nutricionista' }],
     consultas: [], bloqueios: [],
     aplicacoes: [{ id: 'apl-B', paciente_id: 'pac-B', ferramenta_id: 'legado',
@@ -241,7 +241,7 @@ const depoisDoImport = await p.evaluate(async (pacote) => {
   return {
     pacientes: ler('pacientes').map(x => x.id),
     aplicacoes: ler('aplicacoes').map(x => x.paciente_id),
-    holoscope: ler('holoscope').map(x => x.paciente_id),
+    holoscan: ler('holoscan').map(x => x.paciente_id),
     questionario: Object.keys(caixa('holohacking.questionario')),
     pontuacao: Object.keys(caixa('holohacking.pontuacao')),
     exames: Object.keys(caixa('holohacking.exames')),
@@ -252,8 +252,8 @@ const depoisDoImport = await p.evaluate(async (pacote) => {
 ok(depoisDoImport.pacientes.join(',') === 'pac-B',
    'as tabelas passam a refletir B: pacientes = ' + depoisDoImport.pacientes.join(','));
 ok(depoisDoImport.aplicacoes.join(',') === 'pac-B' &&
-   depoisDoImport.holoscope.join(',') === 'pac-B',
-   'aplicações e holoscope idem — as linhas de A foram substituídas');
+   depoisDoImport.holoscan.join(',') === 'pac-B',
+   'aplicações e holoscan idem — as linhas de A foram substituídas');
 
 ok(depoisDoImport.questionario.join(',') === 'pac-A',
    'ESTADO HÍBRIDO: o questionário de A continua fisicamente armazenado, ' +
@@ -283,7 +283,7 @@ const colisao = await p.evaluate(async () => {
     versao: 1, quando: '2026-03-01T10:00:00.000Z',
     tabelas: {
       pacientes: [{ id: 'pac-A', created_at: '2026-02-01T10:00:00.000Z', nome: 'Outra Pessoa' }],
-      oq3: [], pqq: [], holoscope: [], perfil: [], consultas: [], bloqueios: [],
+      oq3: [], pqq: [], holoscan: [], perfil: [], consultas: [], bloqueios: [],
       aplicacoes: []
     }
   };
@@ -359,7 +359,7 @@ const depoisDeRemover = await p.evaluate(async () => {
     pacientes: ler('pacientes').map(x => x.id),
     aplicacoes: ler('aplicacoes').filter(x => x.paciente_id === 'pac-A').length,
     consultas: ler('consultas').filter(x => x.paciente_id === 'pac-A').length,
-    holoscope: ler('holoscope').filter(x => x.paciente_id === 'pac-A').length,
+    holoscan: ler('holoscan').filter(x => x.paciente_id === 'pac-A').length,
     oq3: ler('oq3').filter(x => x.paciente_id === 'pac-A').length,
     pqq: ler('pqq').filter(x => x.paciente_id === 'pac-A').length,
     questionario: !!caixa('holohacking.questionario')['pac-A'],
@@ -393,7 +393,7 @@ ok(depoisDeRemover.pacientes.indexOf('pac-A') === -1,
 const DESTINOS = [
   ['aplicações',   depoisDeRemover.aplicacoes === 0],
   ['consultas',    depoisDeRemover.consultas === 0],
-  ['holoscope',    depoisDeRemover.holoscope === 0],
+  ['holoscan',    depoisDeRemover.holoscan === 0],
   ['oq3 legado',   depoisDeRemover.oq3 === 0],
   ['pqq legado',   depoisDeRemover.pqq === 0],
   ['questionário', depoisDeRemover.questionario === false],

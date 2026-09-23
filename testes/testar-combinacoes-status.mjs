@@ -8,7 +8,7 @@
  *   1. o motor continua retornando as 16 combinações (dado preservado);
  *   2. o banco (combinacoes.csv) continua com as 16 linhas;
  *   3. NENHUMA combinação é renderizada em nenhum dos três consumidores
- *      (tela do HOLOSCOPE, Visão clínica da ficha, relatório impresso) —
+ *      (tela do HOLOSCAN, Visão clínica da ficha, relatório impresso) —
  *      nem mesmo a CMB-001, mesmo quando sua condição é satisfeita;
  *   4. o histórico antigo (snapshot salvo antes de existir qualquer noção
  *      de status) continua legível e não é alterado no disco.
@@ -19,8 +19,8 @@ import { readFileSync } from 'node:fs';
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1500, height: 1300 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -35,15 +35,15 @@ console.log('\n  1/2 — O DADO CONTINUA INTEIRO (motor e banco)\n');
 /* ==================================================================== */
 
 const dado = await p.evaluate((respostas) => {
-  const r = window.HOLOSCOPE.calcular(respostas);
+  const r = window.HOLOSCAN.calcular(respostas);
   return {
-    noBanco: window.HOLOSCOPE.resumo().combinacoes,
+    noBanco: window.HOLOSCAN.resumo().combinacoes,
     disparadas: r.combinacoes.length,
     temCMB001: r.combinacoes.some(c => c.id === 'CMB-001'),
   };
 }, caso.respostas);
 ok(dado.noBanco === 16, 'o banco (combinacoes.csv) continua com as 16 linhas: ' + dado.noBanco);
-ok(dado.disparadas > 0, 'HOLOSCOPE.calcular() continua disparando combinações para o caso de exemplo: ' + dado.disparadas);
+ok(dado.disparadas > 0, 'HOLOSCAN.calcular() continua disparando combinações para o caso de exemplo: ' + dado.disparadas);
 ok(dado.temCMB001, 'incluindo a CMB-001, que dispara no caso de exemplo');
 
 /* ==================================================================== */
@@ -59,7 +59,7 @@ await p.evaluate(async () => {
 });
 
 const naTela = await p.evaluate(async (respostas) => {
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
   document.getElementById('btn-abrir-questionario').click();
   const m = {}; respostas.forEach(x => m[x.marcador_id] = x.intensidade);
   document.querySelectorAll('.q-item').forEach(i => {
@@ -68,7 +68,7 @@ const naTela = await p.evaluate(async (respostas) => {
   });
   document.querySelector('[data-acao="calcular"]').click();
   await new Promise(r => setTimeout(r, 400));
-  document.getElementById('btn-salvar-holoscope').click();
+  document.getElementById('btn-salvar-holoscan').click();
   await new Promise(r => setTimeout(r, 400));
   return {
     holoLeitura: [...document.querySelectorAll('#holo-leitura .leitura-combinada, #holo-leitura .leitura-item')].length,

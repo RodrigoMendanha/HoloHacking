@@ -24,8 +24,8 @@
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1400, height: 1200 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -54,7 +54,7 @@ await p.evaluate(async () => {
   ]);
   g(P + 'consultas', [{ id: 'c-1', paciente_id: 'pac-A' }]);
   g(P + 'bloqueios', [{ id: 'b-1', titulo: 'almoço' }]);
-  g(P + 'holoscope', [{ id: 'h-1', paciente_id: 'pac-A', score_holos: 43 }]);
+  g(P + 'holoscan', [{ id: 'h-1', paciente_id: 'pac-A', score_holos: 43 }]);
   g(P + 'oq3', [{ id: 'o-1', paciente_id: 'pac-A' }]);
   g(P + 'pqq', [{ id: 'q-1', paciente_id: 'pac-A' }]);
   g(P + 'perfil', [{ id: 'pf-1', nome: 'Nutricionista' }]);

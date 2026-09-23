@@ -1,5 +1,5 @@
 /**
- * A FRONTEIRA: o HOLOSCOPE e avaliacao nutricional, nao diagnostico medico.
+ * A FRONTEIRA: o HOLOSCAN e avaliacao nutricional, nao diagnostico medico.
  *
  * O motor nunca afirmou doenca — a conta e a soma auditavel do que o paciente
  * relatou. Quem afirmava era a TELA: os cinco cards traziam "Candida, fungos,
@@ -18,8 +18,8 @@ import { readFileSync } from 'node:fs';
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1500, height: 1200 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -34,7 +34,7 @@ const ok = (c, t) => {
 
 // --- a fronteira esta na tela do mapa, com e sem mapa ---------------------
 const semMapa = await p.evaluate(() => {
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
   const f = document.querySelector('.holo-fronteira');
   return f ? f.textContent.replace(/\s+/g, ' ').trim() : null;
 });
@@ -69,7 +69,7 @@ ok(cards.some(c => /Mental-Emocional-Espiritual/.test(c.nome)),
 
 // --- a secao nao promete acuracia diagnostica ----------------------------
 const promessa = await p.evaluate(() =>
-  document.querySelector('#secao-holoscope .secao-cabeca p')?.textContent || '');
+  document.querySelector('#secao-holoscan .secao-cabeca p')?.textContent || '');
 ok(!/levaria meses|revela, em minutos/i.test(promessa),
    'a seção não promete o que nenhum gabarito sustenta');
 console.log('          "' + promessa.slice(0, 100) + '..."');
@@ -100,8 +100,8 @@ const rel = await p.evaluate(async (respostas) => {
   document.getElementById('np-nome').value = 'Marina Alves';
   document.getElementById('btn-salvar-paciente').click();
   await new Promise(r => setTimeout(r, 350));
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
-  window.aplicarPontuacao(HOLOSCOPE.calcular(respostas));
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
+  window.aplicarPontuacao(HOLOSCAN.calcular(respostas));
   await new Promise(r => setTimeout(r, 250));
   document.querySelector('.nav-item[data-secao="pacientes"]').click();
   document.querySelector('.card-paciente').click();

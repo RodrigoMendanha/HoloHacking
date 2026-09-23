@@ -107,7 +107,7 @@ export function avaliarExames(
 /**
  * O que o questionario disse contra o que o sangue diz, sistema a sistema.
  *
- * `notas` sao as do HOLOSCOPE (0 a 10, 10 = muito bom). `limiteBaixo` e a
+ * `notas` sao as do HOLOSCAN (0 a 10, 10 = muito bom). `limiteBaixo` e a
  * fronteira do que se considera comprometido — vem de regras.csv, nao daqui.
  */
 export function confrontar(

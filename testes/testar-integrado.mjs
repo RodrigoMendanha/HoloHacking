@@ -1,6 +1,6 @@
 import puppeteer from 'puppeteer-core';
-const nav = await puppeteer.launch({ executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless:'new', args:['--hide-scrollbars'] });
+const nav = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless:'new', args:['--no-sandbox','--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({width:1500,height:1200});
 const ruim=[]; p.on('pageerror',e=>ruim.push(e.message));
@@ -16,13 +16,13 @@ const ok = (c,t) => {
   console.log((c?'  ok    ':'  FALHA ')+t);
 };
 
-ok(await p.evaluate(()=>!!window.HOLOSCOPE), 'motor carregado dentro do app');
-ok(await p.evaluate(()=>HOLOSCOPE.resumo().marcadores)===84, '84 marcadores disponiveis');
+ok(await p.evaluate(()=>!!window.HOLOSCAN), 'motor carregado dentro do app');
+ok(await p.evaluate(()=>HOLOSCAN.resumo().marcadores)===84, '84 marcadores disponiveis');
 
 /** Pontua os 5 sistemas pela interface e le o que a tela mostra. */
 async function pontuar(v){
   await p.evaluate((vals)=>{
-    document.querySelector('.nav-item[data-secao="holoscope"]').click();
+    document.querySelector('.nav-item[data-secao="holoscan"]').click();
     ['fungico','inflamatorio','metabolico','detox','mental'].forEach((s,i)=>{
       const el=document.getElementById('holo-'+s);
       el.value=vals[i]; el.dispatchEvent(new Event('input',{bubbles:true}));
@@ -35,7 +35,7 @@ async function pontuar(v){
   }));
 }
 
-/* Revisao clinica do HOLOSCOPE (decisao 1): nenhuma CMB aparece na
+/* Revisao clinica do HOLOSCAN (decisao 1): nenhuma CMB aparece na
    interface clinica nesta rodada — nem a CMB-001, mesmo quando a condicao
    dela e satisfeita aqui (metabolico<=3 E mental_emocional_espiritual<=3).
    O motor continua disparando por baixo (ver testar-motor.mjs); a tela e
@@ -49,7 +49,7 @@ const b = await pontuar([9,9,9,9,9]);
 ok(b.combinadas.length===0, 'terreno equilibrado nao dispara combinacao');
 ok(b.indice==='90', 'indice do saudavel = ' + b.indice);
 
-const el = await p.$('#secao-holoscope');
+const el = await p.$('#secao-holoscan');
 await el.screenshot({path:'integrado.png'});
 await nav.close();
 console.log(ruim.length?'\n  ERRO: '+ruim[0]:'\n  sem erro de JS');

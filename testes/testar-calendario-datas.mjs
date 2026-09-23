@@ -36,8 +36,8 @@ let falhou = false;
 const conferir = (c, t) => { if (!c) falhou = true; ok(c, t); };
 
 const browser = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 
 async function conferirData(rotulo, isoHoje) {
   const contexto = await browser.createBrowserContext();
@@ -50,7 +50,7 @@ async function conferirData(rotulo, isoHoje) {
 
   const r = await p.evaluate(async (respostas) => {
     // um paciente, aplicacao ha exatos 26 dias — mesma receita do teste
-    // principal (HOLOSCOPE.calcular de verdade, nao um objeto de mentira),
+    // principal (HOLOSCAN.calcular de verdade, nao um objeto de mentira),
     // so que agora com o relogio fixo em vez do real.
     document.querySelector('.nav-item[data-secao="pacientes"]').click();
     document.getElementById('btn-abrir-novo').click();
@@ -59,8 +59,8 @@ async function conferirData(rotulo, isoHoje) {
     await new Promise(x => setTimeout(x, 300));
     const pid = window.pacienteAtivoId();
 
-    document.querySelector('.nav-item[data-secao="holoscope"]').click();
-    window.aplicarPontuacao(HOLOSCOPE.calcular(respostas));
+    document.querySelector('.nav-item[data-secao="holoscan"]').click();
+    window.aplicarPontuacao(HOLOSCAN.calcular(respostas));
     const dias = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
     const h = JSON.parse(localStorage.getItem('holohacking.pontuacao'));
     h[pid][0].quando = dias(-26);

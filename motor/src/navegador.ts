@@ -10,9 +10,9 @@
  *
  * A normalizacao e o calculo sao os mesmos nos dois. Nenhuma regra vive aqui.
  *
- * Gera holoscope.js com:
- *   npx esbuild src/navegador.ts --bundle --format=iife --global-name=HOLOSCOPE \
- *     --loader:.json=json --minify --outfile=../../../holos-app/holoscope.js
+ * Gera holoscan.js com:
+ *   npx esbuild src/navegador.ts --bundle --format=iife --global-name=HOLOSCAN \
+ *     --loader:.json=json --minify --outfile=../../../holos-app/holoscan.js
  */
 
 import brutos from '../build/bancos.json';
@@ -63,7 +63,7 @@ export function eixos(sistema?: string) {
 
 /**
  * Combinacoes disparadas a partir das cinco notas, sem precisar do
- * questionario. E o que permite a tela do HOLOSCOPE — onde a nutricionista
+ * questionario. E o que permite a tela do HOLOSCAN — onde a nutricionista
  * ainda pontua a mao — usar as leituras do banco em vez de texto no codigo.
  * As condicoes vem de combinacoes.csv e sao avaliadas contra as notas.
  */

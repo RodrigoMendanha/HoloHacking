@@ -31,7 +31,7 @@ export interface Ferramenta {
 export const listar_sistemas: Ferramenta = {
   name: 'listar_sistemas',
   description:
-    'Lista os 5 sistemas do HOLOSCOPE com nome, padrao emocional e impacto espiritual. ' +
+    'Lista os 5 sistemas do HOLOSCAN com nome, padrao emocional e impacto espiritual. ' +
     'Use antes de falar sobre qualquer sistema, para usar o nome exato do metodo.',
   input_schema: { type: 'object', properties: {} },
 };
@@ -56,12 +56,12 @@ export const consultar_sistema: Ferramenta = {
 
 export const montar_questionario: Ferramenta = {
   name: 'montar_questionario',
-  description: 'Devolve as perguntas do HOLOSCOPE na ordem de aplicacao.',
+  description: 'Devolve as perguntas do HOLOSCAN na ordem de aplicacao.',
   input_schema: { type: 'object', properties: {} },
 };
 
-export const pontuar_holoscope: Ferramenta = {
-  name: 'pontuar_holoscope',
+export const pontuar_holoscan: Ferramenta = {
+  name: 'pontuar_holoscan',
   description:
     'Calcula o Indice HOLOS e a carga dos 5 sistemas a partir das respostas. ' +
     'O calculo e deterministico e feito em codigo — voce NUNCA deve estimar, ' +
@@ -161,7 +161,7 @@ export const FERRAMENTAS_SUPORTE_CLINICO: Ferramenta[] = [
   consultar_sistema,
   buscar_metodo,
   montar_questionario,
-  pontuar_holoscope,
+  pontuar_holoscan,
   explicar_pontuacao,
   mensagens_do_sistema,
   verificar_escopo,
@@ -206,7 +206,7 @@ export function executarFerramenta(
     case 'montar_questionario':
       return montarQuestionario(bancos);
 
-    case 'pontuar_holoscope':
+    case 'pontuar_holoscan':
       return pontuar(bancos, entrada.respostas as Resposta[]);
 
     case 'explicar_pontuacao': {

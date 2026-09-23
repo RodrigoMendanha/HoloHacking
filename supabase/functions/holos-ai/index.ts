@@ -296,7 +296,7 @@ async function montarContextoPaciente(
       .maybeSingle(),
 
     supabase
-      .from("holoscope_applications")
+      .from("holoscan_applications")
       .select(
         "id, quando, indice, indice_maximo, avaliavel, nota_media, triada, cobertura, combinacoes, aprofundamentos, interpretacao_texto",
       )
@@ -306,7 +306,7 @@ async function montarContextoPaciente(
       .limit(3),
 
     supabase
-      .from("holoscope_system_scores")
+      .from("holoscan_system_scores")
       .select("application_id, sistema, nome, nota, carga, faixa, respondidos, total_marcadores, avaliavel")
       .eq("application_id", patientId) // will be filtered below
       .limit(100),
@@ -347,7 +347,7 @@ async function montarContextoPaciente(
   if (applications.length > 0) {
     const appIds = applications.map((a: { id: string }) => a.id);
     const { data: scoreData } = await supabase
-      .from("holoscope_system_scores")
+      .from("holoscan_system_scores")
       .select("application_id, sistema, nome, nota, carga, faixa, respondidos, total_marcadores, avaliavel")
       .in("application_id", appIds);
     if (scoreData) {

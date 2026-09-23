@@ -2,7 +2,7 @@
    QUESTIONARIO DO HOLOSCAN — as 84 perguntas
    ===========================================================================
 
-   As perguntas NAO estao escritas aqui. Vem de HOLOSCOPE.questionario(), que
+   As perguntas NAO estao escritas aqui. Vem de HOLOSCAN.questionario(), que
    as le do banco de marcadores. Quando o Rodrigo corrigir uma pergunta no CSV,
    ela muda na tela sem ninguem tocar em codigo.
 
@@ -31,7 +31,7 @@
    voltar depois nao perde nada — 15 minutos de consulta nao podem ir embora
    por um clique errado.
 
-   Ao calcular, quem pontua e o motor: HOLOSCOPE.calcular() devolve indice,
+   Ao calcular, quem pontua e o motor: HOLOSCAN.calcular() devolve indice,
    notas, Triada e combinacoes. Esta tela nao decide nada.
    =========================================================================== */
 
@@ -60,7 +60,7 @@
   var ligado = false;        // o ouvinte de clique e um so, para sempre
 
   function motorPronto() {
-    return !!(window.HOLOSCOPE && window.HOLOSCOPE.questionario);
+    return !!(window.HOLOSCAN && window.HOLOSCAN.questionario);
   }
 
   /* ---------- de quem sao estas respostas -------------------------------- */
@@ -142,14 +142,14 @@
   function desenhar() {
     if (!motorPronto()) {
       caixa.innerHTML = '<p class="q-erro">O motor não carregou. ' +
-        "Sem ele não há perguntas — confira se holoscope.js está sendo servido.</p>";
+        "Sem ele não há perguntas — confira se holoscan.js está sendo servido.</p>";
       return;
     }
     if (!pacientesProntos()) {
       caixa.innerHTML = '<p class="q-aviso">Carregando o paciente…</p>';
       return;
     }
-    if (!perguntas) perguntas = window.HOLOSCOPE.questionario();
+    if (!perguntas) perguntas = window.HOLOSCAN.questionario();
 
     var dadas = respostasValidas();
     var html = "";
@@ -260,7 +260,7 @@
 
     var r;
     try {
-      r = window.HOLOSCOPE.calcular(respostas, contexto);
+      r = window.HOLOSCAN.calcular(respostas, contexto);
     } catch (e) {
       mostrarAviso("O motor recusou as respostas: " + e.message);
       return;
@@ -272,7 +272,7 @@
     }
     // aplicarPontuacao desenha o mapa e fecha o questionario
     window.aplicarPontuacao(r);
-    var radar = document.querySelector("#secao-holoscope #radar-svg");
+    var radar = document.querySelector("#secao-holoscan #radar-svg");
     if (radar) radar.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
@@ -284,20 +284,20 @@
   /* ---------- abrir e fechar --------------------------------------------- */
 
   function aberto() {
-    var tela = document.getElementById("holoscope-questionario");
+    var tela = document.getElementById("holoscan-questionario");
     return tela && !tela.classList.contains("hidden");
   }
 
   function abrir() {
-    document.getElementById("holoscope-manual").classList.add("hidden");
-    document.getElementById("holoscope-questionario").classList.remove("hidden");
+    document.getElementById("holoscan-manual").classList.add("hidden");
+    document.getElementById("holoscan-questionario").classList.remove("hidden");
     desenhar();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function fechar() {
-    document.getElementById("holoscope-questionario").classList.add("hidden");
-    document.getElementById("holoscope-manual").classList.remove("hidden");
+    document.getElementById("holoscan-questionario").classList.add("hidden");
+    document.getElementById("holoscan-manual").classList.remove("hidden");
   }
 
   /* O botao anunciava "87 perguntas" escrito na mao no HTML, e continuou
@@ -305,7 +305,7 @@
      motor. */
   function rotularBotao(botao) {
     if (!botao || !motorPronto()) return;
-    if (!perguntas) perguntas = window.HOLOSCOPE.questionario();
+    if (!perguntas) perguntas = window.HOLOSCAN.questionario();
     botao.innerHTML = "Aplicar question\u00e1rio &mdash; " + perguntas.length + " perguntas";
   }
 

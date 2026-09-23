@@ -38,7 +38,7 @@
     mental_emocional_espiritual: "Sistema Mental–Emocional–Espiritual"
   };
 
-  function motor() { return window.HOLOSCOPE || null; }
+  function motor() { return window.HOLOSCAN || null; }
   function paciente() {
     try { return (window.pacienteAtivoId && window.pacienteAtivoId()) || SEM_PACIENTE; }
     catch (e) { return SEM_PACIENTE; }
@@ -120,16 +120,16 @@
     texto: function (c) { return HOLOSCAN_TEXTO[holoscanEstado(c)]; }
   };
 
-  /* Leitura do Holoscan na sua propria secao (#secao-holoscan), logo abaixo
-     do HOLOSCAN no menu — saiu de dentro de #secao-holoscope, onde era o
+  /* Leitura do Holoscan na sua propria secao (#secao-confronto), logo abaixo
+     do HOLOSCAN no menu — saiu de dentro de #secao-holoscan, onde era o
      item 8 e sugeria que o mapa se corrigia com exame.
      O lancamento dos valores continua na aba Documentos da ficha (nao move
      #ex-corpo nem os listeners de ligarPainel()) — este bloco e so leitura,
      por sistema: exames disponiveis, valor lancado, unidade, faixa cadastrada,
      estado do exame e o resultado do confronto (Holoscan). Chamado por
-     irPara("holoscan") e por desenharPontuacao(), ambos em app.js. */
+     irPara("confronto") e por desenharPontuacao(), ambos em app.js. */
   window.desenharHoloscan = function (alvoId) {
-    var alvo = document.getElementById(alvoId || "holo-holoscan");
+    var alvo = document.getElementById(alvoId || "holo-confronto");
     if (!alvo) return;
     var g = motor();
     if (!g || !g.listaDeExames) { alvo.innerHTML = ""; return; }
@@ -146,7 +146,7 @@
     lista.forEach(function (e) { (porSistema[e.sistema] = porSistema[e.sistema] || []).push(e); });
 
     /* Sem cabeca propria: quando este bloco era o item 8 do HOLOSCAN ele
-       precisava se apresentar no meio da pagina. Agora #secao-holoscan ja
+       precisava se apresentar no meio da pagina. Agora #secao-confronto ja
        tem titulo e subtitulo, e repetir "o que os exames acrescentam" duas
        vezes na mesma tela so empurrava o conteudo para baixo. O aviso de
        onde se lancam os valores foi para o cabecalho da secao. */
@@ -185,7 +185,7 @@
      Resumo compacto do mesmo confronto que window.desenharHoloscan() e
      #ex-confronto ja calculam — nao reimplementa nada, so mostra menos:
      a contagem por estado e a leitura por sistema, sem a grade de exame a
-     exame que a secao HOLOSCAN completa (#secao-holoscan) ja tem.
+     exame que a secao HOLOSCAN completa (#secao-confronto) ja tem.
 
      HISTORICO DE COLETAS: holohacking.exames guarda so {examId: valor},
      sem data nenhuma — nao ha "coleta" persistida, so o ultimo valor
@@ -194,7 +194,7 @@
      testes/testar-ficha-holoscan.mjs, onde isso fica registrado. Historico
      de coletas por data e trabalho para quando o Supabase entrar. */
   function desenharHoloscanAba() {
-    var alvo = document.getElementById("aba-holoscan");
+    var alvo = document.getElementById("aba-confronto");
     if (!alvo) return;
     var g = motor();
     if (!g || !g.listaDeExames || !window.Holoscan) { alvo.innerHTML = ""; return; }
@@ -289,7 +289,7 @@
   function ligarHoloscanAba() {
     if (holoscanAbaLigada) return;
     holoscanAbaLigada = true;
-    var alvo = document.getElementById("aba-holoscan");
+    var alvo = document.getElementById("aba-confronto");
     if (!alvo) return;
     alvo.addEventListener("click", function (ev) {
       var ir = ev.target.closest("[data-ir]");
@@ -463,10 +463,10 @@
     });
 
     desenharConfronto(r, n);
-    // #holo-holoscan (agora em #secao-holoscan) le os MESMOS exames — sem
+    // #holo-confronto (em #secao-confronto) le os MESMOS exames — sem
     // isso, editar um exame aqui na aba Documentos deixava aquele bloco
     // parado na leitura de antes ate o proximo "Salvar HOLOSCAN".
-    if (window.desenharHoloscan) window.desenharHoloscan("holo-holoscan");
+    if (window.desenharHoloscan) window.desenharHoloscan("holo-confronto");
 
     if (salvarNoSupa) salvarColetaSupa(valores);
   }
@@ -1078,7 +1078,7 @@
     });
     // "exames" virou parte de "documentos"; quem ainda pedir aquilo cai aqui
     if (nome === "exames") nome = "documentos";
-    ["visao", "consultas", "holoscope", "holoscan", "linha", "formularios", "documentos", "relatorio"]
+    ["visao", "consultas", "holoscan", "confronto", "linha", "formularios", "documentos", "relatorio"]
       .forEach(function (n) {
         var painel = document.getElementById("aba-" + n);
         if (painel) painel.classList.toggle("hidden", n !== nome);
@@ -1088,7 +1088,7 @@
     });
     if (nome === "documentos") desenharDocumentos();
     if (nome === "relatorio") desenharRelatorio();
-    if (nome === "holoscan") desenharHoloscanAba();
+    if (nome === "confronto") desenharHoloscanAba();
     // as tres novas sao da ficha; ela desenha quando a aba abre
     if (window.desenharAbaDaFicha) window.desenharAbaDaFicha(nome);
   }

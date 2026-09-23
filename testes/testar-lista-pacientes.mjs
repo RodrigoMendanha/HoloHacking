@@ -10,7 +10,7 @@
  *
  *   busca      nome, e-mail E telefone (antes era so nome e queixa)
  *   filtros    as contagens batem com a situacao real de cada pessoa
- *   silencio   "ha 3 meses" sai do ultimo HOLOSCOPE; sem nenhum, do cadastro
+ *   silencio   "ha 3 meses" sai do ultimo HOLOSCAN; sem nenhum, do cadastro
  *   status     ativo/inativo e decisao de quem atende, e sobrevive a recarga
  *   lote       marcar varios de uma vez faz a mesma coisa que um a um
  *   Revisao    quem respondeu alguma coisa e ainda nao virou mapa
@@ -26,8 +26,8 @@ import { readFileSync } from 'node:fs';
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1500, height: 1300 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -47,7 +47,7 @@ const vazia = await p.evaluate(() => {
     titulo: v?.querySelector('strong')?.textContent,
     texto: v?.querySelector('span')?.textContent,
     // Rodada de consistencia: o CTA duplicado (cabecalho + dentro do card
-    // vazio) foi para so um — o mesmo padrao que Consultas/HOLOSCOPE/
+    // vazio) foi para so um — o mesmo padrao que Consultas/HOLOSCAN/
     // HOLOSCAN na ficha ja usavam.
     semBotaoDuplicado: !v?.querySelector('button'),
     total: document.getElementById('pac-total-cabeca').textContent.trim(),
@@ -87,7 +87,7 @@ const ids = await p.evaluate(async (respostas) => {
     await new Promise(x => setTimeout(x, 300));
     return window.pacienteAtivoId();
   };
-  const sentido = {}; HOLOSCOPE.questionario().forEach(q => sentido[q.id] = q.sentido);
+  const sentido = {}; HOLOSCAN.questionario().forEach(q => sentido[q.id] = q.sentido);
   const variar = n => respostas.map(x => ({ marcador_id: x.marcador_id,
     intensidade: sentido[x.marcador_id] === 'invertido'
       ? Math.min(3, Math.max(0, x.intensidade + n))
@@ -109,8 +109,8 @@ const ids = await p.evaluate(async (respostas) => {
 
   // atendida ha 96 dias: passou dos 90
   const ana = await novo('Ana Paula Azevedo', '+55 11 99999-1234', 'ana.azevedo@email.com', 'F');
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
-  window.aplicarPontuacao(HOLOSCOPE.calcular(respostas));
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
+  window.aplicarPontuacao(HOLOSCAN.calcular(respostas));
   datar(ana, 0, dias(-96));
   recuar(ana, -190);
 
@@ -121,15 +121,15 @@ const ids = await p.evaluate(async (respostas) => {
   // respondeu metade do questionario e nao gerou mapa: e a aba Revisao
   const caio = await novo('Caio Werneck', '+55 31 97777-0000', 'caio.w@email.com', 'M');
   recuar(caio, -160);
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
   document.getElementById('btn-abrir-questionario').click();
   [...document.querySelectorAll('.q-item')].slice(0, 22)
     .forEach(i => i.querySelectorAll('.q-btn')[2].click());
 
   // atendida ha 6 dias e cadastrada ha 20: e a unica "nova"
   const helena = await novo('Helena Rocha', '+55 47 96666-1111', 'helena.rocha@email.com', 'F');
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
-  window.aplicarPontuacao(HOLOSCOPE.calcular(variar(2)));
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
+  window.aplicarPontuacao(HOLOSCAN.calcular(variar(2)));
   datar(helena, 0, dias(-6));
   recuar(helena, -20);
 

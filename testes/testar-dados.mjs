@@ -16,8 +16,8 @@
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1400, height: 1000 });
 let falhou = false;
@@ -70,7 +70,7 @@ ok(criado.tabelas.pacientes === 1, 'uma linha na tabela: ' + JSON.stringify(cria
 
 // --- responder tres perguntas ---------------------------------------------
 await p.evaluate(() => {
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
   document.getElementById('btn-abrir-questionario').click();
   [...document.querySelectorAll('.q-item')].slice(0, 3).forEach(i => i.querySelectorAll('.q-btn')[2].click());
 });
@@ -81,7 +81,7 @@ await p.waitForFunction(() => window.pacientesCarregados && window.pacientesCarr
 const depois = await p.evaluate(() => {
   document.querySelector('.nav-item[data-secao="pacientes"]').click();
   const nome = document.querySelector('.card-paciente h4')?.textContent;
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
   document.getElementById('btn-abrir-questionario').click();
   return { nome, marcados: document.querySelectorAll('.q-btn.marcado').length };
 });

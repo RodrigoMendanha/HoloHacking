@@ -9,7 +9,7 @@
  *                entregue — tinham resposta em quatro lugares diferentes.
  *   LINHA        o app guardava os pedaços com data (aplicação, consulta,
  *                documento) e nunca os tinha posto na mesma régua.
- *   FORMULÁRIOS  no método o HOLOSCOPE É um formulário; os quatro do método
+ *   FORMULÁRIOS  no método o HOLOSCAN É um formulário; os quatro do método
  *                estavam espalhados por três seções do menu.
  *   RESPOSTAS    o app calculava a nota e guardava as 84 respostas numa caixa
  *                que nenhuma tela abria. Depois de aplicar, ninguém conseguia
@@ -24,8 +24,8 @@ import { readFileSync } from 'node:fs';
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1500, height: 1400 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -71,11 +71,11 @@ await p.evaluate(async (respostas) => {
     localStorage.setItem('holohacking.pontuacao', JSON.stringify(h));
   };
 
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
-  window.aplicarPontuacao(HOLOSCOPE.calcular(respostas));
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
+  window.aplicarPontuacao(HOLOSCAN.calcular(respostas));
   datar(0, dias(-92));
-  const s = {}; HOLOSCOPE.questionario().forEach(x => s[x.id] = x.sentido);
-  window.aplicarPontuacao(HOLOSCOPE.calcular(respostas.map(x => ({
+  const s = {}; HOLOSCAN.questionario().forEach(x => s[x.id] = x.sentido);
+  window.aplicarPontuacao(HOLOSCAN.calcular(respostas.map(x => ({
     marcador_id: x.marcador_id,
     intensidade: s[x.marcador_id] === 'invertido'
       ? Math.min(3, x.intensidade + 2) : Math.max(0, x.intensidade - 2) }))));
@@ -271,7 +271,7 @@ conferir(forms.cartoes[0].temVer, 'só quem tem resposta oferece "Ver respostas"
 conferir(!forms.cartoes[2].temVer || /não aplicado/.test(forms.cartoes[2].txt),
   'quem não foi respondido não finge que foi');
 conferir(/Índice 88/.test(forms.cartoes[0].txt),
-  'o cartão do HOLOSCOPE diz qual mapa saiu dele');
+  'o cartão do HOLOSCAN diz qual mapa saiu dele');
 conferir(/1 de 30 aplicadas/.test(forms.ferramentas),
   'e as ferramentas ficam à parte — são conduta, não formulário: ' +
   forms.ferramentas.slice(0, 60));

@@ -61,8 +61,8 @@ async function cadastrar(p, nome) {
 }
 
 const browser = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 
 /* ==================================================================== */
 console.log('\n  A — SEM SESSAO: CADASTRO CONTINUA 100% LOCAL\n');

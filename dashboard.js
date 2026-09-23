@@ -75,7 +75,7 @@
       '<div class="dash-acoes-rapidas">' +
         '<button type="button" class="perf-botao" data-destino="novo">Novo paciente</button>' +
         '<button type="button" class="perf-botao" data-destino="nova-consulta">Nova consulta</button>' +
-        '<button type="button" class="perf-botao" data-destino="holoscope">Abrir HOLOSCAN</button>' +
+        '<button type="button" class="perf-botao" data-destino="holoscan">Abrir HOLOSCAN</button>' +
         '<button type="button" class="perf-botao" data-destino="documentos">Registrar exames</button>' +
       "</div>";
   }
@@ -144,8 +144,8 @@
      chama HOLOSCAN de diagnostico nem diz que o Confronto muda nota. */
   function blocoJornadaClinica() {
     var etapas = [
-      { nome: "HOLOSCAN", texto: "Mapear prioridades de investigação.", destino: "holoscope" },
-      { nome: "Confronto Clínico", texto: "Confrontar o mapa com exames.", destino: "holoscan" },
+      { nome: "HOLOSCAN", texto: "Mapear prioridades de investigação.", destino: "holoscan" },
+      { nome: "Confronto Clínico", texto: "Confrontar o mapa com exames.", destino: "confronto" },
       { nome: "Documentos", texto: "Consolidar registros e materiais da jornada.", destino: "documentos" }
     ];
 

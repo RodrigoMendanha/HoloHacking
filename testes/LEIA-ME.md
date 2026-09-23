@@ -21,7 +21,7 @@ Depois:
     node testes/testar-troca-paciente.mjs  a tela nao mistura dois pacientes
     node testes/testar-dados.mjs         o app inteiro funciona sem rede
     node testes/testar-motor.mjs         o motor numa pagina em branco
-    node testes/testar-integrado.mjs     o motor dentro da tela do HOLOSCOPE
+    node testes/testar-integrado.mjs     o motor dentro da tela do HOLOSCAN
     node testes/testar-questionario.mjs  as 84 perguntas ate o mapa
     node testes/testar-cruzamento.mjs    exame e ferramenta chegam ao motor
     node testes/testar-triada.mjs        a Triada aparece e some na hora certa

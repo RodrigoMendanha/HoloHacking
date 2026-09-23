@@ -9,8 +9,8 @@ import { readFileSync } from 'node:fs';
 
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1500, height: 1200 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -38,8 +38,8 @@ const base = await p.evaluate(() => {
   };
 });
 ok(base.visivel, 'a secao Arquivos abre');
-ok(base.abas.join(',') === 'Visão geral,Consultas,HOLOSCAN,Confronto,Linha do tempo,Formulários,Documentos,Relatório',
-   'as oito abas: ' + base.abas.join(' · '));
+ok(base.abas.join(',') === 'Visão geral,Consultas,HOLOSCAN,Confronto,Linha do tempo,Formulários,Documentos,Relatório,HOLOS AI',
+   'as nove abas: ' + base.abas.join(' · '));
 /* Exames e documentos eram duas abas, e a separacao estava errada: os valores
    saem do PDF. Agora e um lugar so, em dois passos. */
 ok(base.cartoes.join(' / ') === 'O que o paciente trouxe / Os valores do exame',
@@ -64,7 +64,7 @@ ok(/question[aá]rio/i.test(semMapa.aviso), 'pede o questionario antes de confro
 
 // --- aplica o questionario e volta ----------------------------------------
 await p.evaluate((respostas) => {
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
   document.getElementById('btn-abrir-questionario').click();
   const m = {}; respostas.forEach(x => m[x.marcador_id] = x.intensidade);
   document.querySelectorAll('.q-item').forEach(i => {
@@ -91,7 +91,7 @@ const conf = await p.evaluate(() => {
     leitura: i.querySelector('.conf-leitura').textContent.trim().slice(0, 60),
   }));
 });
-/* Revisao clinica do HOLOSCOPE (Holoscan): os nomes de classe/estado viraram
+/* Revisao clinica do HOLOSCAN (Holoscan): os nomes de classe/estado viraram
    convergente/divergente/dados_insuficientes (window.Holoscan em
    arquivos.js) em vez de confirma/diverge — so a apresentacao, o motor
    continua devolvendo confirma/diverge/sem_exame como sempre (ver
@@ -124,7 +124,7 @@ const rel = await p.evaluate(() => {
   const r = document.getElementById('relatorio');
   return {
     existe: !!r,
-    // Revisao clinica do HOLOSCOPE: o Indice saiu do cabecalho (.rel-meta) e
+    // Revisao clinica do HOLOSCAN: o Indice saiu do cabecalho (.rel-meta) e
     // foi para o fim da secao A, como informacao secundaria (.rel-indice).
     indice: r?.querySelector('.rel-indice b')?.textContent,
     sistemas: r?.querySelectorAll('.rel-sistema').length,
@@ -140,17 +140,17 @@ ok(rel.existe, 'o relatorio e montado');
 ok(rel.indice === '43', 'indice no relatorio: ' + rel.indice);
 ok(rel.sistemas === 5, rel.sistemas + ' sistemas, do pior para o melhor');
 const maisBaixo = await p.evaluate((respostas) =>
-  [...HOLOSCOPE.calcular(respostas).sistemas].sort((a, b) => a.nota - b.nota)[0].nome,
+  [...HOLOSCAN.calcular(respostas).sistemas].sort((a, b) => a.nota - b.nota)[0].nome,
   caso.respostas);
 ok(rel.primeiro === maisBaixo, 'comeca pelo mais baixo: ' + rel.primeiro);
 ok(rel.temTriada && rel.temHoloscan, 'traz Triada e Holoscan');
-/* Revisao clinica do HOLOSCOPE (decisao 1): nenhuma CMB aparece no
+/* Revisao clinica do HOLOSCAN (decisao 1): nenhuma CMB aparece no
    relatorio nesta rodada, nem a CMB-001. */
 ok(!rel.combinada, 'nao traz leitura combinada: ' + rel.combinada);
 ok(rel.partes.join(',') === 'automatico,automatico,automatico,automatico,profissional',
    'relatorio separa A/B/C/D automatico de E profissional: ' + rel.partes.join(','));
 
-/* Revisao clinica do HOLOSCOPE (decisao 2): o paragrafo de "Os cinco
+/* Revisao clinica do HOLOSCAN (decisao 2): o paragrafo de "Os cinco
    sistemas" que antes vinha de mensagens.csv (status=rascunho, e por isso
    diferia por registro) foi substituido pela mesma linha neutra fixa nos
    dois registros — o dado objetivo (nota/faixa/cobertura) nao muda por

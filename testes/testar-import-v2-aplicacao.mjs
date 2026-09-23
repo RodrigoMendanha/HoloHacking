@@ -26,8 +26,8 @@
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1200, height: 900 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -71,7 +71,7 @@ const semearA = () => p.evaluate(async (PONT) => {
   const P = 'holohacking.dados.';
   g(P + 'pacientes', [{ id: 'pac-ANTIGO', nome: 'Antiga Ana 🙂', created_at: '2026-01-01T10:00:00.000Z' }]);
   g(P + 'aplicacoes', [{ id: 'ap-velha', paciente_id: 'pac-ANTIGO', ferramenta_id: 'oq3' }]);
-  ['consultas', 'bloqueios', 'holoscope', 'oq3', 'pqq', 'perfil'].forEach(t => g(P + t, []));
+  ['consultas', 'bloqueios', 'holoscan', 'oq3', 'pqq', 'perfil'].forEach(t => g(P + t, []));
   g('holohacking.questionario', { 'pac-ANTIGO': { m1: 1 } });
   g('holohacking.pontuacao', { 'pac-ANTIGO': [PONT.a] });
   g('holohacking.exames', { 'pac-ANTIGO': { ferritina: 11 } });
@@ -110,7 +110,7 @@ const pacoteB = await p.evaluate(async (PONT) => {
   ]);
   g(P + 'consultas', [{ id: 'c-nova', paciente_id: 'pac-NOVO' }]);
   g(P + 'bloqueios', [{ id: 'b-novo', titulo: 'almoço' }]);
-  g(P + 'holoscope', [{ id: 'h-novo', paciente_id: 'pac-NOVO', score_holos: 77 }]);
+  g(P + 'holoscan', [{ id: 'h-novo', paciente_id: 'pac-NOVO', score_holos: 77 }]);
   /* tabelas legadas COM conteudo: precisam poder ser reavaliadas no destino */
   g(P + 'oq3', [{ id: 'o-legado', paciente_id: 'pac-NOVO', quer: 'de um oq3 legado',
                   created_at: '2026-05-01T10:00:00.000Z' }]);

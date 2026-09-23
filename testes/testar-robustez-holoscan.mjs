@@ -1,5 +1,5 @@
 /**
- * ROBUSTEZ E AUDITABILIDADE DO HOLOSCOPE.
+ * ROBUSTEZ E AUDITABILIDADE DO HOLOSCAN.
  *
  * Este teste NÃO valida método: trava o COMPORTAMENTO ATUAL naquilo que a
  * auditoria transversal apontou como decidido em silêncio pelo código. Nada
@@ -25,8 +25,8 @@ import { readFileSync } from 'node:fs';
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1500, height: 1400 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -37,13 +37,13 @@ const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  F
 
 /* Respostas por prefixo de marcador, para ligar e desligar sistemas inteiros. */
 const respostasDe = (prefixos, valor) => p.evaluate((x) => {
-  return window.HOLOSCOPE.questionario()
+  return window.HOLOSCAN.questionario()
     .filter(q => x.prefixos.some(pre => q.id.startsWith(pre)))
     .map(q => ({ marcador_id: q.id, intensidade: x.valor }));
 }, { prefixos, valor });
 
 const pontuar = (respostas) => p.evaluate((r) => {
-  const x = window.HOLOSCOPE.calcular(r);
+  const x = window.HOLOSCAN.calcular(r);
   return {
     indice: x.indice, avaliavel: x.avaliavel, nota_media: x.nota_media,
     sistemas: x.sistemas.map(s => ({ id: s.sistema, nota: s.nota,
@@ -66,7 +66,7 @@ console.log('\n  1. ÍNDICE HOLOS — RENORMALIZAÇÃO DE PESOS\n');
    carga máxima, não a mínima. Responder "0" em tudo dá Índice 93, não 100 —
    e os 7 pontos que faltam são exatamente os 9 marcadores invertidos. */
 const cargaZero = await p.evaluate(() =>
-  window.HOLOSCOPE.questionario().map(q => ({
+  window.HOLOSCAN.questionario().map(q => ({
     marcador_id: q.id, intensidade: q.sentido === 'invertido' ? 3 : 0
   })));
 const todos = cargaZero;
@@ -91,11 +91,11 @@ ok(q4.sistemas.every(s => s.avaliavel),
 /* --- para isolar sistemas, responder por marcador escolhido --------------- */
 const porSistema = await p.evaluate(() => {
   /* O motor não expõe o sistema de cada pergunta no questionário; a lista de
-     sistemas vem de HOLOSCOPE.sistemas(). Usa-se a auditoria de uma pontuação
+     sistemas vem de HOLOSCAN.sistemas(). Usa-se a auditoria de uma pontuação
      completa para descobrir a que sistema cada marcador pertence. */
-  const todasR = window.HOLOSCOPE.questionario()
+  const todasR = window.HOLOSCAN.questionario()
     .map(q => ({ marcador_id: q.id, intensidade: 3 }));
-  const r = window.HOLOSCOPE.calcular(todasR);
+  const r = window.HOLOSCAN.calcular(todasR);
   const mapa = {};
   r.sistemas.forEach(s => { mapa[s.sistema] = []; });
   r.auditoria.forEach(a => {
@@ -182,8 +182,8 @@ const naTela = await p.evaluate(async (respostas) => {
   document.getElementById('np-nome').value = 'Marina Alves';
   document.getElementById('btn-salvar-paciente').click();
   await new Promise(r => setTimeout(r, 420));
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
-  window.aplicarPontuacao(window.HOLOSCOPE.calcular(respostas));
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
+  window.aplicarPontuacao(window.HOLOSCAN.calcular(respostas));
   await new Promise(r => setTimeout(r, 420));
   const eixos = [...document.querySelectorAll('.triada-eixo')].map(e => ({
     nome: e.querySelector('b').textContent,
@@ -226,11 +226,11 @@ ok(/Eixo sem resposta não recebe nota/.test(naTela.texto),
 
 /* --- parcialmente respondido ---------------------------------------------- */
 const parcial = await p.evaluate(async () => {
-  const qs = window.HOLOSCOPE.questionario();
+  const qs = window.HOLOSCAN.questionario();
   const alguns = qs.filter(q => q.id.startsWith('SNT')).slice(0, 5)
     .concat(qs.filter(q => q.id.startsWith('EMO')).slice(0, 2))
     .map(q => ({ marcador_id: q.id, intensidade: 2 }));
-  const r = window.HOLOSCOPE.calcular(alguns);
+  const r = window.HOLOSCAN.calcular(alguns);
   window.aplicarPontuacao(r);
   await new Promise(x => setTimeout(x, 420));
   return {
@@ -249,7 +249,7 @@ ok(parcial.eixos.filter(e => e.nota === '—').length === 1,
 
 /* --- as três com dado: nada mudou ----------------------------------------- */
 const completo = await p.evaluate(async (respostas) => {
-  window.aplicarPontuacao(window.HOLOSCOPE.calcular(respostas));
+  window.aplicarPontuacao(window.HOLOSCAN.calcular(respostas));
   await new Promise(r => setTimeout(r, 420));
   const caixa = document.getElementById('holo-triada');
   return {
@@ -272,7 +272,7 @@ console.log('\n  3 e 4. EMPATES — MESMO COMPORTAMENTO, AGORA COM RASTRO\n');
    já usa no teste "carga maxima em todos os marcadores = nota zero". Com ela
    os cinco sistemas caem a 0 e empatam. */
 const cargaMaxima = await p.evaluate(() =>
-  window.HOLOSCOPE.questionario().map(q => ({
+  window.HOLOSCAN.questionario().map(q => ({
     marcador_id: q.id, intensidade: q.sentido === 'invertido' ? 0 : 3
   })));
 
@@ -280,12 +280,12 @@ const cargaMaxima = await p.evaluate(() =>
    seja o peso de cada linha. Os cinco caem na mesma nota 3.3 — empate perfeito
    e não-zero, que é o que a tela precisa para desenhar a leitura. */
 const cargaUniforme = await p.evaluate(() =>
-  window.HOLOSCOPE.questionario().map(q => ({
+  window.HOLOSCAN.questionario().map(q => ({
     marcador_id: q.id, intensidade: q.sentido === 'invertido' ? 1 : 2
   })));
 
 const comEmpate = await p.evaluate(async (r0) => {
-  const r = window.HOLOSCOPE.calcular(r0);
+  const r = window.HOLOSCAN.calcular(r0);
   window.aplicarPontuacao(r);
   await new Promise(x => setTimeout(x, 450));
   const a = window.auditoriaDaConduta();
@@ -348,7 +348,7 @@ ok(comEmpate.escolhidas.length === comEmpate.itens.length,
 
 /* --- determinismo: o mesmo empate resolve igual duas vezes ---------------- */
 const denovo = await p.evaluate(async (r0) => {
-  const r = window.HOLOSCOPE.calcular(r0);
+  const r = window.HOLOSCAN.calcular(r0);
   window.aplicarPontuacao(r);
   await new Promise(x => setTimeout(x, 450));
   return {
@@ -372,10 +372,10 @@ console.log('\n  10. ZERO REAL NÃO É AUSÊNCIA (bug de lerTerreno)\n');
 
 /* --- A. zero respostas: nada é desenhado ------------------------------- */
 const semNada = await p.evaluate(async () => {
-  window.aplicarPontuacao(window.HOLOSCOPE.calcular([]));
+  window.aplicarPontuacao(window.HOLOSCAN.calcular([]));
   await new Promise(x => setTimeout(x, 450));
   const caixa = document.getElementById('holo-leitura');
-  const r = window.HOLOSCOPE.calcular([]);
+  const r = window.HOLOSCAN.calcular([]);
   return {
     vazia: !caixa || caixa.innerHTML.trim() === '',
     avaliavel: r.avaliavel,
@@ -392,7 +392,7 @@ ok(semNada.indice === 0,
 
 /* --- B. cinco sistemas em 0 de verdade: o mapa É calculado -------------- */
 const zeroReal = await p.evaluate(async (r0) => {
-  const r = window.HOLOSCOPE.calcular(r0);
+  const r = window.HOLOSCAN.calcular(r0);
   window.aplicarPontuacao(r);
   await new Promise(x => setTimeout(x, 500));
   const caixa = document.getElementById('holo-leitura');
@@ -437,17 +437,17 @@ ok(zeroReal.indice === 0,
 /* Nenhuma combinação nova por causa da correção: a lista é a mesma que o
    motor devolve, e o motor não foi tocado. */
 const combDoMotor = await p.evaluate((r0) =>
-  window.HOLOSCOPE.calcular(r0).combinacoes.map(c => c.id), cargaMaxima);
+  window.HOLOSCAN.calcular(r0).combinacoes.map(c => c.id), cargaMaxima);
 ok(zeroReal.combinacoes.join(',') === combDoMotor.join(','),
    'e as combinações são exatamente as do motor, sem acréscimo: ' +
    zeroReal.combinacoes.length + ' disparadas');
 
 /* --- C. parcialmente respondido: comportamento inalterado --------------- */
 const parcialLeitura = await p.evaluate(async () => {
-  const qs = window.HOLOSCOPE.questionario();
+  const qs = window.HOLOSCAN.questionario();
   const poucas = qs.filter(q => q.id.startsWith('SNT')).slice(0, 6)
     .map(q => ({ marcador_id: q.id, intensidade: q.sentido === 'invertido' ? 0 : 3 }));
-  const r = window.HOLOSCOPE.calcular(poucas);
+  const r = window.HOLOSCAN.calcular(poucas);
   window.aplicarPontuacao(r);
   await new Promise(x => setTimeout(x, 500));
   const caixa = document.getElementById('holo-leitura');
@@ -469,7 +469,7 @@ ok(parcialLeitura.naoAvaliaveis.every(id =>
 
 /* --- pontuando à mão: o ramo sem Pontuação NÃO mudou ------------------- */
 const aMao = await p.evaluate(async () => {
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
   const btn = document.querySelector('[data-acao="pontuar-mao"]') ||
               document.getElementById('btn-pontuar-mao');
   if (btn) btn.click();
@@ -495,7 +495,7 @@ ok(sel.maximo === 4,
 ok(sel.provenance === 'decisao_implementacao' && sel.status === 'rascunho',
    'com procedência e status inalterados');
 
-/* Revisao clinica do HOLOSCOPE: "Por onde comecar" passou a ler
+/* Revisao clinica do HOLOSCAN: "Por onde comecar" passou a ler
    regrasApresentaveis() (so status=confirmado), nao regrasAtivas() (que so
    excluia nao_validado e deixava passar legado). Hoje nenhuma REC e
    confirmado, entao o maximo real da conduta e 0 — as cotas (2+1, teto 4)
@@ -541,8 +541,8 @@ console.log('\n  6. MARCADORES COM DUPLA ASSOCIAÇÃO\n');
 /* ==================================================================== */
 
 const dup = await p.evaluate(() => {
-  const qs = window.HOLOSCOPE.questionario();
-  const r = window.HOLOSCOPE.calcular([
+  const qs = window.HOLOSCAN.questionario();
+  const r = window.HOLOSCAN.calcular([
     { marcador_id: 'SNT-101', intensidade: 3 },
     { marcador_id: 'SNT-501', intensidade: 3 }
   ]);
@@ -576,7 +576,7 @@ const vocab = await p.evaluate(() => {
   /* CMB-006 lê marcador.SNT-502/506/304; para SNT-101 não há combinação, mas
      o valor entra no vocabulário. Prova-se pela carga, que é a mesma nos dois
      — o que muda entre as linhas é o PESO, e o peso não entra em marcador.*  */
-  const r = window.HOLOSCOPE.calcular([{ marcador_id: 'SNT-101', intensidade: 3 }]);
+  const r = window.HOLOSCAN.calcular([{ marcador_id: 'SNT-101', intensidade: 3 }]);
   return { combinacoes: r.combinacoes.map(c => c.id) };
 });
 ok(Array.isArray(vocab.combinacoes),
@@ -592,7 +592,7 @@ console.log('\n  7 e 8. CMB-004 E CMB-007\n');
 /* ==================================================================== */
 
 const cmb = await p.evaluate((r0) => {
-  const r = window.HOLOSCOPE.calcular(r0);
+  const r = window.HOLOSCAN.calcular(r0);
   return {
     disparadas: r.combinacoes.map(c => ({ id: c.id, tipo: c.tipo,
       prioridade: c.prioridade, leitura: c.leitura })),
@@ -616,7 +616,7 @@ ok(/Comida ocupando o lugar do que falta de sentido/.test(c007.leitura),
 
 /* CMB-007 NÃO pode disparar quando o eixo espiritual não tem dado */
 const semEspirito = await p.evaluate(() => {
-  const B = window.HOLOSCOPE;
+  const B = window.HOLOSCAN;
   const so = B.questionario()
     .filter(q => q.id.startsWith('EMO'))
     .map(q => ({ marcador_id: q.id, intensidade: 3 }));
@@ -639,13 +639,13 @@ console.log('\n  9. CANAL ferramenta.*\n');
 const canal = await p.evaluate(async () => {
   const B = window.CorpoBancos;
   /* Nenhuma combinação usa ferramenta.* — prova-se pelas condições do banco. */
-  const r = window.HOLOSCOPE.calcular(
-    window.HOLOSCOPE.questionario().map(q => ({ marcador_id: q.id, intensidade: 3 })));
+  const r = window.HOLOSCAN.calcular(
+    window.HOLOSCAN.questionario().map(q => ({ marcador_id: q.id, intensidade: 3 })));
   const semFerramentas = { indice: r.indice, combinacoes: r.combinacoes.map(c => c.id) };
 
   /* Agora com valores de ferramenta no contexto. */
-  const comFerramentas = window.HOLOSCOPE.calcular(
-    window.HOLOSCOPE.questionario().map(q => ({ marcador_id: q.id, intensidade: 3 })),
+  const comFerramentas = window.HOLOSCAN.calcular(
+    window.HOLOSCAN.questionario().map(q => ({ marcador_id: q.id, intensidade: 3 })),
     { ferramentas: { roda_vida: { saude: 2, proposito: 1 },
                      autocompaixao: { nota: 3 },
                      alinhamento: { corpo: 4, mente: 5, espirito: 2 } } });
@@ -675,7 +675,7 @@ console.log('\n  11. INVENTÁRIO DE TEXTOS ATIVOS\n');
 /* ==================================================================== */
 
 const inventario = await p.evaluate(() => {
-  const S = window.HOLOSCOPE.sistemas();
+  const S = window.HOLOSCAN.sistemas();
   const B = window.CorpoBancos;
   return {
     sistemas: S.length,

@@ -2,7 +2,7 @@
    ARMAZENAMENTO — o mapa do que este app guarda, e onde.
 
    Este arquivo e PURAMENTE TECNICO. Ele nao sabe o que e um sistema, um
-   marcador, um score, uma ferramenta ou o HOLOSCOPE. Nao le o DOM, nao sabe
+   marcador, um score, uma ferramenta ou o HOLOSCAN. Nao le o DOM, nao sabe
    qual paciente esta aberto na tela, e nao decide nada de clinica. Ele sabe
    uma coisa so: QUAIS CAIXAS EXISTEM, que forma cada uma tem, e que operacoes
    estruturais fazem sentido em cada forma.
@@ -135,7 +135,7 @@
       hoje: { exportado: true, excluido: false }
     },
     {
-      id: "holoscope", backend: BACKEND.TABELA, chave: PREFIXO_TABELA + "holoscope",
+      id: "holoscan", backend: BACKEND.TABELA, chave: PREFIXO_TABELA + "holoscan",
       ordemFachada: 3,
       forma: FORMA.LISTA, categoria: CATEGORIA.SNAPSHOT,
       escopo: ESCOPO.CAMPO, pacienteScoped: true, campoPaciente: "paciente_id",
@@ -809,6 +809,19 @@
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
     return { bytes: texto.length, nome: a.download };
   }
+
+  /* ---------- migracao de chave localStorage holoscope → holoscan -------- */
+
+  (function migrarChaveHoloscan() {
+    var antiga = PREFIXO_TABELA + "holoscope";
+    var nova   = PREFIXO_TABELA + "holoscan";
+    try {
+      if (localStorage.getItem(nova) === null) {
+        var dados = localStorage.getItem(antiga);
+        if (dados !== null) localStorage.setItem(nova, dados);
+      }
+    } catch (_) { /* storage indisponivel — nada a fazer */ }
+  })();
 
   /* ---------- a interface publica --------------------------------------- */
 

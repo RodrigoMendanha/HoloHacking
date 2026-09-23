@@ -1,7 +1,7 @@
 /**
  * A aba Relatório, dentro da ficha do paciente.
  *
- * Relatório ja era o mais completo dos consumidores: HOLOSCOPE (A) e
+ * Relatório ja era o mais completo dos consumidores: HOLOSCAN (A) e
  * HOLOSCAN (B) ja existiam, ja sem leitura causal legada (window.Holoscan.
  * texto(), nunca c.leitura) e ja com a Interpretação profissional separada
  * por data-origem="profissional". Esta etapa preenche o que faltava do
@@ -13,9 +13,9 @@
  *
  * O que este teste cobra:
  *
- *   VAZIO        sem HOLOSCOPE, o titulo/texto pedidos — nao o paragrafo
+ *   VAZIO        sem HOLOSCAN, o titulo/texto pedidos — nao o paragrafo
  *                solto de antes.
- *   HOLOSCOPE    data da aplicação, índice, os cinco sistemas.
+ *   HOLOSCAN    data da aplicação, índice, os cinco sistemas.
  *   HOLOSCAN     estados fixos, nenhuma leitura causal do motor escapando.
  *   CONSULTAS    a nova seção C, com e sem dado.
  *   DOCUMENTOS   a nova seção D (assíncrona — ArquivoStore), com e sem dado.
@@ -32,8 +32,8 @@ import { readFileSync } from 'node:fs';
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1500, height: 1300 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -82,13 +82,13 @@ const vazio = await p.evaluate(() => {
 conferir(vazio.titulo === 'Relatório ainda sem dados suficientes', 'título do estado vazio: ' + vazio.titulo);
 conferir(vazio.texto === 'Conclua etapas da jornada clínica para gerar uma consolidação mais completa.',
   'texto do estado vazio: ' + vazio.texto);
-conferir(!vazio.temRelatorio, 'sem HOLOSCOPE, o relatório não é montado artificialmente');
+conferir(!vazio.temRelatorio, 'sem HOLOSCAN, o relatório não é montado artificialmente');
 
-/* ------------------------------------------ HOLOSCOPE, consulta, doc ----- */
+/* ------------------------------------------ HOLOSCAN, consulta, doc ----- */
 
 await p.evaluate(async (respostas) => {
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
-  window.aplicarPontuacao(HOLOSCOPE.calcular(respostas));
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
+  window.aplicarPontuacao(HOLOSCAN.calcular(respostas));
   const id = window.pacienteAtivoId();
   localStorage.setItem('holohacking.exames', JSON.stringify({ [id]: { 'EXA-005': 115, 'EXA-015': 78 } }));
 

@@ -20,14 +20,14 @@ O modo demonstração — um caso fictício completo, de ponta a ponta — abre 
 | Parte | O que faz |
 | --- | --- |
 | **Questionário** | 84 perguntas que geram o mapa do paciente |
-| **HOLOSCOPE** | Os 5 sistemas, o Índice HOLOS e a Tríada, calculados pelo motor |
+| **HOLOSCAN** | Os 5 sistemas, o Índice HOLOS e a Tríada, calculados pelo motor |
 | **Leituras combinadas** | O cruzamento entre sistemas que aponta a ferramenta a aplicar |
 | **30 ferramentas** | Corpo, Mente e Espírito — 27 no catálogo, 3 com tela própria |
 | **Holoscan** | Exames laboratoriais: 24 marcadores, com upload do PDF ou da foto do laudo |
 | **Ficha e evolução** | O paciente inteiro numa tela, e a comparação em 4, 8 e 12 semanas |
 | **Relatório** | Dois registros, um para a nutricionista e um para o paciente |
 
-## O que o HOLOSCOPE é — e o que ele não é
+## O que o HOLOSCAN é — e o que ele não é
 
 Os cinco sistemas não são doenças: são **agrupamentos de sinais que o paciente
 relata e que costumam andar juntos**, cada um com o padrão emocional e o
@@ -58,7 +58,7 @@ credibilidade clínica do produto.
 cd motor
 node src/cli.ts validar      # confere os bancos e avisa o que falta revisar
 node --test src/testes.ts    # 38 testes
-npm run bundle               # regera o holoscope.js que o app carrega
+npm run bundle               # regera o holoscan.js que o app carrega
 ```
 
 As ferramentas clínicas e os marcadores são **dado, não código**: estão em

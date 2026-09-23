@@ -131,7 +131,7 @@
     var abertas = alertas(d).length;
 
     var itens = [
-      { rot: "Última aplicação", valor: ultima, vazio: "nenhuma", acao: "holoscope" },
+      { rot: "Última aplicação", valor: ultima, vazio: "nenhuma", acao: "holoscan" },
       { rot: "Próxima consulta", valor: proxTexto, vazio: "não agendada", acao: "agenda" },
       { rot: "Em aberto",
         valor: abertas === 0 ? "tudo em dia" : abertas + (abertas === 1 ? " pendência" : " pendências"),
@@ -173,7 +173,7 @@
       (d.exames > 0
         ? '<p class="dash-sub">' + d.exames +
           (d.exames === 1 ? " valor registrado." : " valores registrados.") + "</p>" +
-          '<button type="button" class="dash-ir" data-ir="holoscan">Ver HOLOSCAN ' +
+          '<button type="button" class="dash-ir" data-ir="confronto">Ver HOLOSCAN ' +
           '<span aria-hidden="true">&rarr;</span></button>'
         : '<p class="dash-vazio">Nenhum exame registrado.</p>' +
           '<button type="button" class="dash-ir" data-ir="aba:documentos">Registrar exames ' +
@@ -320,9 +320,9 @@
   function blocoContinuidade() {
     return '<div class="fic-continuidade">' +
       '<span class="fic-rot">Depois da consulta</span>' +
-      '<button type="button" class="fic-chip" data-ir="holoscope">HOLOSCAN</button>' +
+      '<button type="button" class="fic-chip" data-ir="holoscan">HOLOSCAN</button>' +
       '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span>' +
-      '<button type="button" class="fic-chip" data-ir="holoscan">Confronto Clínico</button>' +
+      '<button type="button" class="fic-chip" data-ir="confronto">Confronto Clínico</button>' +
       '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span>' +
       '<button type="button" class="fic-chip" data-ir="aba:documentos">Documentos</button>' +
     "</div>";
@@ -402,11 +402,11 @@
   function blocoContinuidadeHoloscan() {
     return '<div class="fic-continuidade">' +
       '<span class="fic-rot">Depois do mapa</span>' +
-      '<button type="button" class="fic-chip" data-ir="holoscan">Confrontar no Confronto Clínico</button>' +
+      '<button type="button" class="fic-chip" data-ir="confronto">Confrontar no Confronto Clínico</button>' +
     "</div>";
   }
 
-  function linhaHoloscope(p, destaque, acaoExtra) {
+  function linhaHoloscan(p, destaque, acaoExtra) {
     return '<li class="dash-pendente' + (destaque ? " abrir" : "") + '">' +
       '<span class="pac-avatar">' + escapar((p.quando || "").slice(8, 10) || "?") + "</span>" +
       '<span class="dash-quem"><b>' + escapar(dataBR(p.quando)) + "</b>" +
@@ -414,20 +414,20 @@
           (acaoExtra ? " &middot; " + escapar(acaoExtra) : "") + "</span></span>" +
       (destaque
         // so a ultima tem detalhe guardado (respostas) para reabrir de verdade
-        ? '<button type="button" class="dash-ir" data-ver="holoscope">Abrir resultado ' +
+        ? '<button type="button" class="dash-ir" data-ver="holoscan">Abrir resultado ' +
           '<span aria-hidden="true">&rarr;</span></button>'
-        : '<button type="button" class="dash-ir" data-ir="holoscope">Ver HOLOSCAN ' +
+        : '<button type="button" class="dash-ir" data-ir="holoscan">Ver HOLOSCAN ' +
           '<span aria-hidden="true">&rarr;</span></button>') +
     "</li>";
   }
 
   function desenharHolo() {
-    var alvo = document.getElementById("aba-holoscope");
+    var alvo = document.getElementById("aba-holoscan");
     if (!alvo) return;
     var d = reunir(); // d.pontuacao = mais recente; d.historico = tudo, do mais antigo ao mais novo
 
     var topo = '<div class="fic-consultas-topo">' +
-      '<button type="button" class="btn-verde" data-ir="holoscope">' +
+      '<button type="button" class="btn-verde" data-ir="holoscan">' +
         (d.pontuacao ? "Nova aplicação" : "Iniciar HOLOSCAN") +
       "</button></div>";
 
@@ -443,7 +443,7 @@
     var html = topo;
 
     if (d.pontuacao) {
-      // "de preenchimento" e o mesmo estado que o cartao HOLOSCOPE da aba
+      // "de preenchimento" e o mesmo estado que o cartao HOLOSCAN da aba
       // Formularios ja mostra (d.respondidas/d.totalPerguntas) — nao recalcula.
       var estado = d.respondidas === 0 ? "não iniciado"
         : d.respondidas + " de " + d.totalPerguntas + " respondidas";
@@ -452,7 +452,7 @@
       }).join("");
       html += '<div class="dash-bloco dash-bloco-compacto">' +
         '<h3 class="dash-titulo">Última aplicação</h3>' +
-        '<ul class="dash-pendentes">' + linhaHoloscope(d.pontuacao, true, estado) + "</ul>" +
+        '<ul class="dash-pendentes">' + linhaHoloscan(d.pontuacao, true, estado) + "</ul>" +
         '<div class="fic-piores-caixa"><div class="fic-piores">' + sistemas + "</div></div>" +
       "</div>";
     }
@@ -464,7 +464,7 @@
       (anteriores.length === 0
         ? '<p class="dash-vazio">Nenhuma aplicação anterior.</p>'
         : '<ul class="dash-pendentes">' + anteriores.map(function (p) {
-            return linhaHoloscope(p, false, null);
+            return linhaHoloscan(p, false, null);
           }).join("") + "</ul>") +
     "</div>";
 
@@ -590,8 +590,8 @@
 
   function perguntasDoMotor() {
     try {
-      return (window.HOLOSCOPE && window.HOLOSCOPE.questionario)
-        ? window.HOLOSCOPE.questionario() : [];
+      return (window.HOLOSCAN && window.HOLOSCAN.questionario)
+        ? window.HOLOSCAN.questionario() : [];
     } catch (e) { return []; }
   }
 
@@ -618,7 +618,7 @@
 
     var fichas = [
       {
-        id: "holoscope",
+        id: "holoscan",
         nome: "HOLOSCAN &mdash; questionário integral",
         sub: "84 perguntas em três blocos: raízes físicas, padrões emocionais e " +
              "Terreno Espiritual. É dele que sai o Índice e os cinco sistemas.",
@@ -632,7 +632,7 @@
             " &middot; Índice " + escapar(d.pontuacao.indice)
           : (d.respondidas > 0 ? "Respondido e ainda sem mapa gerado." : ""),
         ver: d.respondidas > 0 ? "questionario" : null,
-        abrir: "holoscope"
+        abrir: "holoscan"
       },
       {
         id: "oq3", nome: "OQ³ &mdash; O Que Quer, Precisa, Consegue",
@@ -810,7 +810,7 @@
       html = '<div class="dash-vazio">Nenhuma resposta guardada para esta pessoa.</div>';
     } else {
       html += '<div class="fic-janela-acoes">' +
-        '<button type="button" class="perf-botao" data-ir="holoscope">' +
+        '<button type="button" class="perf-botao" data-ir="holoscan">' +
         "Abrir o questionário para corrigir</button></div>";
     }
 
@@ -870,7 +870,7 @@
   var DESENHOS = {
     visao: desenharVisao,
     consultas: desenharConsultas,
-    holoscope: desenharHolo,
+    holoscan: desenharHolo,
     linha: desenharLinha,
     formularios: desenharFormularios
   };

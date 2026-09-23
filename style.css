@@ -1125,7 +1125,7 @@ body.escuro .btn-tema .icone-lua{display:none}
 }
 .holo-modos span{font-size:.85rem;font-weight:300;color:var(--texto-suave)}
 
-#holoscope-questionario{margin-bottom:34px}
+#holoscan-questionario{margin-bottom:34px}
 
 .q-topo{
   position:sticky;top:0;z-index:40;

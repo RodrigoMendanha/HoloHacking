@@ -42,7 +42,7 @@
 
    Por que aqui e não em motor/bancos/: o motor calcula o Índice, e nada deste
    arquivo entra nessa conta. Pôr aqui mantém a fronteira que o método pede —
-   ferramenta do Corpo não altera a pontuação do HOLOSCOPE.
+   ferramenta do Corpo não altera a pontuação do HOLOSCAN.
    =========================================================================== */
 
 (function () {
@@ -282,10 +282,10 @@
 
      O esquema é o do §18 — `source` é a ORIGEM FUNCIONAL do gatilho (de onde
      vem o dado que dispara a regra) e `provenance` é DE ONDE A REGRA VEIO.
-     São coisas diferentes: uma regra pode disparar pelo HOLOSCOPE (source)
+     São coisas diferentes: uma regra pode disparar pelo HOLOSCAN (source)
      e ter sido inventada pela implementação (provenance).
 
-       source:     holoscope | oq3 | momentum | ferramenta | decisao_profissional
+       source:     holoscan | oq3 | momentum | ferramenta | decisao_profissional
        condition:  { tipo: "sistema", sistema: "<id>" }
                    { tipo: "momentum", estado: "<id>" }
 
@@ -299,19 +299,19 @@
      não as executa. */
   var RECOMENDACOES = [
     // ---- Fúngico
-    { id: "REC-001", version: 1, source: "holoscope",
+    { id: "REC-001", version: 1, source: "holoscan",
       condition: { tipo: "sistema", sistema: "fungico" },
       recommended_tool_id: "gatilhos_respostas",
       rationale: "compulsão por doce responde a gatilho, não a força de vontade",
       priority: 1, provenance: "projeto_legado", fonte: PROVENIENCIA.projeto_legado,
       status: STATUS.legado },
-    { id: "REC-002", version: 1, source: "holoscope",
+    { id: "REC-002", version: 1, source: "holoscan",
       condition: { tipo: "sistema", sistema: "fungico" },
       recommended_tool_id: "diario_corporal",
       rationale: "separar fome do corpo de vontade da cabeça",
       priority: 2, provenance: "projeto_legado", fonte: PROVENIENCIA.projeto_legado,
       status: STATUS.legado },
-    { id: "REC-003", version: 1, source: "holoscope",
+    { id: "REC-003", version: 1, source: "holoscan",
       condition: { tipo: "sistema", sistema: "fungico" },
       recommended_tool_id: "mapa_rotina",
       rationale: "onde do dia a compulsão aparece",
@@ -319,19 +319,19 @@
       status: STATUS.legado },
 
     // ---- Ácido-Inflamatório
-    { id: "REC-004", version: 1, source: "holoscope",
+    { id: "REC-004", version: 1, source: "holoscan",
       condition: { tipo: "sistema", sistema: "acido_inflamatorio" },
       recommended_tool_id: "reenquadramento",
       rationale: "a reatividade começa num pensamento",
       priority: 1, provenance: "projeto_legado", fonte: PROVENIENCIA.projeto_legado,
       status: STATUS.legado },
-    { id: "REC-005", version: 1, source: "holoscope",
+    { id: "REC-005", version: 1, source: "holoscan",
       condition: { tipo: "sistema", sistema: "acido_inflamatorio" },
       recommended_tool_id: "ritmo_sono",
       rationale: "sono ruim mantém o corpo em alerta",
       priority: 2, provenance: "projeto_legado", fonte: PROVENIENCIA.projeto_legado,
       status: STATUS.legado },
-    { id: "REC-006", version: 1, source: "holoscope",
+    { id: "REC-006", version: 1, source: "holoscan",
       condition: { tipo: "sistema", sistema: "acido_inflamatorio" },
       recommended_tool_id: "autocompaixao",
       rationale: "irritação consigo alimenta a de fora",
@@ -339,19 +339,19 @@
       status: STATUS.legado },
 
     // ---- Metabólico
-    { id: "REC-007", version: 1, source: "holoscope",
+    { id: "REC-007", version: 1, source: "holoscan",
       condition: { tipo: "sistema", sistema: "metabolico" },
       recommended_tool_id: "pqq",
       rationale: "o vazio pede propósito, não dieta",
       priority: 1, provenance: "projeto_legado", fonte: PROVENIENCIA.projeto_legado,
       status: STATUS.legado },
-    { id: "REC-008", version: 1, source: "holoscope",
+    { id: "REC-008", version: 1, source: "holoscan",
       condition: { tipo: "sistema", sistema: "metabolico" },
       recommended_tool_id: "circulo_sentido",
       rationale: "o que ainda dá sentido",
       priority: 2, provenance: "projeto_legado", fonte: PROVENIENCIA.projeto_legado,
       status: STATUS.legado },
-    { id: "REC-009", version: 1, source: "holoscope",
+    { id: "REC-009", version: 1, source: "holoscan",
       condition: { tipo: "sistema", sistema: "metabolico" },
       recommended_tool_id: "ancoras_motivacao",
       rationale: "o que sustenta quando a vontade cai",
@@ -359,19 +359,19 @@
       status: STATUS.legado },
 
     // ---- Detox + Linfático
-    { id: "REC-010", version: 1, source: "holoscope",
+    { id: "REC-010", version: 1, source: "holoscan",
       condition: { tipo: "sistema", sistema: "detox_linfatico" },
       recommended_tool_id: "historia_alimentar",
       rationale: "mágoa antiga tem data de início",
       priority: 1, provenance: "projeto_legado", fonte: PROVENIENCIA.projeto_legado,
       status: STATUS.legado },
-    { id: "REC-011", version: 1, source: "holoscope",
+    { id: "REC-011", version: 1, source: "holoscan",
       condition: { tipo: "sistema", sistema: "detox_linfatico" },
       recommended_tool_id: "diario_emocoes",
       rationale: "o que é engolido junto com a comida",
       priority: 2, provenance: "projeto_legado", fonte: PROVENIENCIA.projeto_legado,
       status: STATUS.legado },
-    { id: "REC-012", version: 1, source: "holoscope",
+    { id: "REC-012", version: 1, source: "holoscan",
       condition: { tipo: "sistema", sistema: "detox_linfatico" },
       recommended_tool_id: "conexao_pertencimento",
       rationale: "quem sustenta e quem drena",
@@ -379,19 +379,19 @@
       status: STATUS.legado },
 
     // ---- Mental-Emocional-Espiritual
-    { id: "REC-013", version: 1, source: "holoscope",
+    { id: "REC-013", version: 1, source: "holoscan",
       condition: { tipo: "sistema", sistema: "mental_emocional_espiritual" },
       recommended_tool_id: "autocompaixao",
       rationale: "como ela fala consigo é o terreno",
       priority: 1, provenance: "projeto_legado", fonte: PROVENIENCIA.projeto_legado,
       status: STATUS.legado },
-    { id: "REC-014", version: 1, source: "holoscope",
+    { id: "REC-014", version: 1, source: "holoscan",
       condition: { tipo: "sistema", sistema: "mental_emocional_espiritual" },
       recommended_tool_id: "roda_vida",
       rationale: "qual área está puxando as outras",
       priority: 2, provenance: "projeto_legado", fonte: PROVENIENCIA.projeto_legado,
       status: STATUS.legado },
-    { id: "REC-015", version: 1, source: "holoscope",
+    { id: "REC-015", version: 1, source: "holoscan",
       condition: { tipo: "sistema", sistema: "mental_emocional_espiritual" },
       recommended_tool_id: "praticas_contemplativas",
       rationale: "religar antes de mudar",

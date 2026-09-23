@@ -10,7 +10,7 @@
  *   SEM CÁLCULO    nenhuma delas produz síntese, nota, classificação ou
  *                  recomendação — `resultado` é null em todas;
  *   MAPA           é tela derivada de OQ³ + PQQ: não persiste, não cria
- *                  aplicação própria, não toca HOLOSCOPE nem conduta, e o card
+ *                  aplicação própria, não toca HOLOSCAN nem conduta, e o card
  *                  da ficha diz a verdade sobre o estado real;
  *   LEGADO FORA    os textos de "impacto espiritual" continuam nos bancos e
  *                  saíram da leitura clínica ativa;
@@ -23,8 +23,8 @@ import { readFileSync } from 'node:fs';
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1500, height: 1400 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -383,7 +383,7 @@ const semPersistencia = await p.evaluate(async () => {
     aplicacoesMapa: (t.aplicacoes || []).filter(a => a.ferramenta_id === 'mapa').length,
     tabelaMapa: t.mapa === undefined,
     proposito: document.getElementById('mapa-proposito').textContent,
-    holoscope: (t.holoscope || []).length,
+    holoscan: (t.holoscan || []).length,
     pontuacao: localStorage.getItem('holohacking.pontuacao')
   };
 });
@@ -392,9 +392,9 @@ ok(semPersistencia.aplicacoesMapa === 0,
 ok(semPersistencia.tabelaMapa, 'e não existe tabela própria dele');
 ok(/Voltar a confiar no meu corpo/.test(semPersistencia.proposito),
    'atualizar o mapa redesenha a partir das aplicações, sem guardar nada');
-ok(semPersistencia.holoscope === 0 &&
+ok(semPersistencia.holoscan === 0 &&
    (semPersistencia.pontuacao === null || semPersistencia.pontuacao === '{}'),
-   'e o Mapa não cria nem altera mapa do HOLOSCOPE');
+   'e o Mapa não cria nem altera mapa do HOLOSCAN');
 
 /* --- troca de paciente no Mapa ----------------------------------------- */
 await novaPaciente('Outra Paciente');
@@ -415,7 +415,7 @@ const TEXTOS_LEGADOS = [
 ];
 
 const leitura = await p.evaluate(async (respostas) => {
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
   document.getElementById('btn-abrir-questionario').click();
   await new Promise(r => setTimeout(r, 400));
   const m = {}; respostas.forEach(x => m[x.marcador_id] = x.intensidade);
@@ -433,7 +433,7 @@ const leitura = await p.evaluate(async (respostas) => {
     triadaTxt: triada ? triada.innerText.replace(/\s+/g, ' ') : '',
     triadaVisivel: triada ? !triada.classList.contains('hidden') : false,
     /* o dado continua chegando à camada de apresentação, só não é exibido */
-    noBanco: (window.HOLOSCOPE.sistemas() || [])
+    noBanco: (window.HOLOSCAN.sistemas() || [])
       .filter(s => s.impacto_espiritual).length
   };
 }, caso.respostas);
@@ -465,7 +465,7 @@ ok(!/conduta/i.test(leitura.triadaTxt),
 
 /* --- a fórmula não mudou ------------------------------------------------ */
 const formula = await p.evaluate((respostas) => {
-  const r = window.HOLOSCOPE.calcular(respostas);
+  const r = window.HOLOSCAN.calcular(respostas);
   return { triada: r.triada, indice: r.indice };
 }, caso.respostas);
 ok(formula.triada && typeof formula.triada.espiritual === 'number',

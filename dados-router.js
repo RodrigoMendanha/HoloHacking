@@ -25,7 +25,7 @@
      aplicacoes → tool_applications   (paciente_id→patient_id, consulta_id→consultation_id)
 
    TABELAS QUE CONTINUAM EM DADOSLOCAIS
-     holoscope  — estrutura Supabase diferente (snapshot). Etapa 5.
+     holoscan  — estrutura Supabase diferente (snapshot). Etapa 5.
      perfil     — integrado diretamente em perfil.js (profiles + professional_assets).
      oq3, pqq   — legado, sera migrado para tool_applications. Etapa 10.
    =========================================================================== */
@@ -40,7 +40,7 @@
   var TIPO_PARA_SUPA = {
     "Primeira consulta": "primeira_consulta",
     "Retorno": "retorno",
-    "Reavaliação HOLOSCAN": "reavaliacao_holoscope",
+    "Reavaliação HOLOSCAN": "reavaliacao_holoscan",
     "Online": "online"
   };
   var TIPO_PARA_FRONT = {};

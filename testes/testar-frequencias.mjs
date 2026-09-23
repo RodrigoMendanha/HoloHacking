@@ -17,8 +17,8 @@ import { readFileSync } from 'node:fs';
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1500, height: 1200 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -33,8 +33,8 @@ const ok = (c, t) => {
 
 // --- o mapa, das respostas do caso de exemplo ----------------------------
 const real = await p.evaluate((respostas) => {
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
-  const r = HOLOSCOPE.calcular(respostas);
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
+  const r = HOLOSCAN.calcular(respostas);
   window.aplicarPontuacao(r);
   const caixa = document.getElementById('holo-frequencias');
   const card = [...document.querySelectorAll('.holo-subtool')]
@@ -61,7 +61,7 @@ ok(real.selo === 'em revisão', 'o card avisa que está parado: "' + real.selo +
 // Alimenta a MESMA funcao com um mapa montado a mao, para conferir a
 // geometria: a barra mede a nota, e o rodape aponta o mais travado.
 const amanha = await p.evaluate((respostas) => {
-  const r = HOLOSCOPE.calcular(respostas);
+  const r = HOLOSCAN.calcular(respostas);
   r.frequencias = [
     { chacra: 'plexo solar', nota: 1.4, leitura: 'poder pessoal contido', ordem: 3, respondidos: 4 },
     { chacra: 'cardíaco',    nota: 5.0, leitura: 'afeto e perdão',        ordem: 4, respondidos: 3 },

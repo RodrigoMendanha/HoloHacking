@@ -1,8 +1,8 @@
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url),'utf8'));
-const nav = await puppeteer.launch({ executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless:'new', args:['--hide-scrollbars'] });
+const nav = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless:'new', args:['--no-sandbox','--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({width:1500,height:1300});
 const ruim=[]; p.on('pageerror',e=>ruim.push(e.message));
@@ -20,7 +20,7 @@ const ok = (c,t) => {
 };
 
 const antes = await p.evaluate(() => {
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
   return document.getElementById('holo-triada').classList.contains('hidden');
 });
 ok(antes, 'sem questionario, a Triada nao aparece');

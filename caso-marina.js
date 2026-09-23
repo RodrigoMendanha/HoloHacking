@@ -57,8 +57,8 @@
   }
 
   function respostas(perfil) {
-    if (!window.HOLOSCOPE) return [];
-    return window.HOLOSCOPE.questionario().map(function (q) {
+    if (!window.HOLOSCAN) return [];
+    return window.HOLOSCAN.questionario().map(function (q) {
       return { marcador_id: q.id, intensidade: variar(perfil[q.origem], q.id) };
     });
   }
@@ -134,7 +134,7 @@
 
   /** Monta o caso inteiro. Devolve as duas Pontuacoes, na ordem. */
   function montar(comEvolucao) {
-    if (!window.HOLOSCOPE) return null;
+    if (!window.HOLOSCAN) return null;
 
     window.pacienteAtivoId = function () { return PACIENTE; };
     window.pacienteAtivoNome = function () { return "Marina Alves"; };
@@ -146,10 +146,10 @@
     guardar("holohacking.ferramentas", FERRAMENTAS);
 
     // as duas aplicacoes, calculadas pelo motor
-    var p1 = window.HOLOSCOPE.calcular(respostas(PRIMEIRA));
+    var p1 = window.HOLOSCAN.calcular(respostas(PRIMEIRA));
     var lista = [Object.assign({}, p1, { quando: doze(12) })];
     if (comEvolucao) {
-      var p2 = window.HOLOSCOPE.calcular(respostas(SEGUNDA));
+      var p2 = window.HOLOSCAN.calcular(respostas(SEGUNDA));
       lista.push(Object.assign({}, p2, { quando: doze(0) }));
     }
     guardar("holohacking.pontuacao", lista);

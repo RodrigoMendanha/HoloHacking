@@ -25,8 +25,8 @@
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1400, height: 1100 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -55,7 +55,7 @@ async function semear() {
     g(P + 'aplicacoes', [{ id: 'ap-1', paciente_id: 'pac-B', ferramenta_id: 'oq3',
                            status: 'concluida', respostas: { a: UNICODE, b: null, c: 0 } }]);
     g(P + 'perfil', [{ id: 'eu', nome: 'Nutri ' + UNICODE, registro: 'CRN-99999' }]);
-    g(P + 'holoscope', [{ id: 'h-1', paciente_id: 'pac-A', score_holos: 43 }]);
+    g(P + 'holoscan', [{ id: 'h-1', paciente_id: 'pac-A', score_holos: 43 }]);
     g(P + 'oq3', []); g(P + 'pqq', []); g(P + 'bloqueios', []);
 
     /* As QUATRO que o V1 nunca levou. */
@@ -206,7 +206,7 @@ ok(!!exportado.documentos.find(a => a.mime === 'application/pdf'),
 console.log('\n  F/G — O QUE JA VINHA CONTINUA; APARENCIA CONTINUA FORA\n');
 /* ==================================================================== */
 
-['pacientes', 'consultas', 'aplicacoes', 'perfil', 'holoscope', 'oq3', 'pqq', 'bloqueios']
+['pacientes', 'consultas', 'aplicacoes', 'perfil', 'holoscan', 'oq3', 'pqq', 'bloqueios']
   .forEach(t => ok(Object.prototype.hasOwnProperty.call(d, t), 'F — ' + t + ' continua no backup'));
 ok(!Object.prototype.hasOwnProperty.call(d, 'aparencia'),
    'G — aparencia NAO entra: e preferencia deste navegador, nao prontuario');
@@ -361,7 +361,7 @@ const v1 = await p.evaluate(async () => {
   /* Um V1 de verdade: versao 1 + tabelas, sem discriminador. */
   const pacoteV1 = { versao: 1, quando: '2026-01-01T00:00:00.000Z', tabelas: {
     pacientes: [{ id: 'v1-p1', nome: 'Paciente do V1', created_at: '2025-06-01T10:00:00.000Z' }],
-    consultas: [], aplicacoes: [], bloqueios: [], holoscope: [], oq3: [], pqq: [],
+    consultas: [], aplicacoes: [], bloqueios: [], holoscan: [], oq3: [], pqq: [],
     perfil: [{ id: 'eu', nome: 'Nutri V1' }]
   } };
   /* O texto do confirm fica numa variavel GLOBAL de proposito: quando a

@@ -2,7 +2,7 @@
    CONCORRENCIA — duas abas do mesmo app, e o dado no meio.
 
    Este arquivo e puramente tecnico: nao sabe o que e um sistema, um marcador,
-   um paciente ou o HOLOSCOPE. Sabe que existem varios contextos escrevendo no
+   um paciente ou o HOLOSCAN. Sabe que existem varios contextos escrevendo no
    mesmo disco e que um nao pode apagar o trabalho do outro sem ninguem notar.
 
    ---------------------------------------------------------------------------

@@ -12,8 +12,8 @@ import { readFileSync } from 'node:fs';
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1500, height: 1300 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -50,29 +50,29 @@ await p.evaluate(async (respostas) => {
     await new Promise(x => setTimeout(x, 300));
     return window.pacienteAtivoId();
   };
-  const sentido = {}; HOLOSCOPE.questionario().forEach(q => sentido[q.id] = q.sentido);
+  const sentido = {}; HOLOSCAN.questionario().forEach(q => sentido[q.id] = q.sentido);
   const variar = n => respostas.map(x => ({ marcador_id: x.marcador_id,
     intensidade: sentido[x.marcador_id] === 'invertido'
       ? Math.min(3, Math.max(0, x.intensidade + n))
       : Math.max(0, Math.min(3, x.intensidade - n)) }));
 
   await novo('Marina Alves');                       // mapa hoje, sem conduta
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
-  window.aplicarPontuacao(HOLOSCOPE.calcular(respostas));
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
+  window.aplicarPontuacao(HOLOSCAN.calcular(respostas));
 
   const cid = await novo('Carla Souza');             // mapa antigo
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
-  window.aplicarPontuacao(HOLOSCOPE.calcular(variar(1)));
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
+  window.aplicarPontuacao(HOLOSCAN.calcular(variar(1)));
   const h = JSON.parse(localStorage.getItem('holohacking.pontuacao'));
   h[cid][0].quando = '2026-07-01';
   localStorage.setItem('holohacking.pontuacao', JSON.stringify(h));
 
   await novo('Beatriz Lima');
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
-  window.aplicarPontuacao(HOLOSCOPE.calcular(variar(2)));
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
+  window.aplicarPontuacao(HOLOSCAN.calcular(variar(2)));
 
   await novo('Helena Rocha');                        // questionario parado
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
   document.getElementById('btn-abrir-questionario').click();
   [...document.querySelectorAll('.q-item')].slice(0, 12).forEach(i => i.querySelectorAll('.q-btn')[2].click());
 
@@ -124,7 +124,7 @@ const ida = await p.evaluate(async () => {
   return { nome, ativo: window.pacienteAtivoNome(), secao: document.querySelector('.secao.ativa')?.id };
 });
 ok(ida.ativo === ida.nome, 'clicar na linha troca o paciente ativo: ' + ida.ativo);
-ok(ida.secao === 'secao-holoscope', 'e leva para a tela certa: ' + ida.secao);
+ok(ida.secao === 'secao-holoscan', 'e leva para a tela certa: ' + ida.secao);
 
 // --- a ficha tem que contar a mesma historia ------------------------------
 const mesma = await p.evaluate(() => {

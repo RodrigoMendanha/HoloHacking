@@ -45,9 +45,9 @@
       revisao nao pode contar — senao aparece "86 de 84". */
   function perguntasDeHoje() {
     try {
-      if (window.HOLOSCOPE && window.HOLOSCOPE.questionario) {
+      if (window.HOLOSCAN && window.HOLOSCAN.questionario) {
         var mapa = {};
-        window.HOLOSCOPE.questionario().forEach(function (q) { mapa[q.id] = true; });
+        window.HOLOSCAN.questionario().forEach(function (q) { mapa[q.id] = true; });
         return mapa;
       }
     } catch (e) { /* sem motor, conta tudo */ }
@@ -56,8 +56,8 @@
 
   function totalDePerguntas() {
     try {
-      if (window.HOLOSCOPE && window.HOLOSCOPE.questionario) {
-        return window.HOLOSCOPE.questionario().length;
+      if (window.HOLOSCAN && window.HOLOSCAN.questionario) {
+        return window.HOLOSCAN.questionario().length;
       }
     } catch (e) { /* idem */ }
     return 84;
@@ -103,13 +103,13 @@
     if (!d.pontuacao && d.respondidas === 0) {
       saida.push({ peso: 3, grau: "abrir", curto: "sem HOLOSCAN",
                    texto: "Sem HOLOSCAN aplicado.",
-                   acao: "holoscope", botao: "Aplicar agora" });
+                   acao: "holoscan", botao: "Aplicar agora" });
     } else if (!d.pontuacao && d.respondidas > 0) {
       saida.push({ peso: 1, grau: "aviso",
                    curto: "questionário parado em " + d.respondidas + " de " + d.totalPerguntas,
                    texto: "Questionário parado em " + d.respondidas + " de " +
                           d.totalPerguntas + " — o mapa não foi gerado.",
-                   acao: "holoscope", botao: "Continuar" });
+                   acao: "holoscan", botao: "Continuar" });
     }
 
     // o achado que ninguem via: mapeado e nunca conduzido
@@ -117,7 +117,7 @@
       saida.push({ peso: 1, grau: "aviso", curto: "mapa sem conduta",
                    texto: "O mapa foi feito e nenhuma ferramenta foi aplicada. " +
                           "Sem conduta, a avaliação não vira jornada.",
-                   acao: "holoscope", botao: "Ver por onde começar" });
+                   acao: "holoscan", botao: "Ver por onde começar" });
     }
 
     if (d.pontuacao && d.pontuacao.quando) {
@@ -127,17 +127,17 @@
                      curto: "reavaliação vencida há " + (dias - DIAS_REAVALIACAO) + " dias",
                      texto: "Última aplicação há " + dias + " dias. " +
                             "A reavaliação de 4 semanas venceu.",
-                     acao: "holoscope", botao: "Reaplicar" });
+                     acao: "holoscan", botao: "Reaplicar" });
       }
     }
 
     // exame alterado onde ele nao se queixa
-    if (d.exames > 0 && d.pontuacao && window.HOLOSCOPE && window.HOLOSCOPE.lerExames) {
+    if (d.exames > 0 && d.pontuacao && window.HOLOSCAN && window.HOLOSCAN.lerExames) {
       var notas = {};
       d.pontuacao.sistemas.forEach(function (s) { notas[s.sistema] = s.nota; });
       try {
-        var r = window.HOLOSCOPE.lerExames(d.valoresExames, notas);
-        // Revisao clinica do HOLOSCOPE (Holoscan): "nao batem" sugeria que um
+        var r = window.HOLOSCAN.lerExames(d.valoresExames, notas);
+        // Revisao clinica do HOLOSCAN (Holoscan): "nao batem" sugeria que um
         // dos dois lados esta errado. Divergencia e convite a aprofundar, nao
         // veredito. window.Holoscan (arquivos.js) e quem decide o estado —
         // se ainda nao carregou, nao alertamos nada (fail-safe, nao inventa).

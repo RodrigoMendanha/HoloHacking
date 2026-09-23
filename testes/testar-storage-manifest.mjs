@@ -17,8 +17,8 @@
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1400, height: 1200 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -61,7 +61,7 @@ const m = await p.evaluate(() => {
 });
 
 /* A — as 13 conhecidas, nem mais nem menos */
-const ESPERADAS = ['pacientes', 'aplicacoes', 'consultas', 'bloqueios', 'holoscope',
+const ESPERADAS = ['pacientes', 'aplicacoes', 'consultas', 'bloqueios', 'holoscan',
                    'oq3', 'pqq', 'perfil', 'questionario', 'pontuacao', 'exames',
                    'aparencia', 'arquivos'];
 ok(m.existe, 'window.Armazenamento existe');
@@ -160,7 +160,7 @@ ok(m.aparencia.excluirComPaciente === false && m.aparencia.limparTudo === true,
 ok(m.aparencia.derivavel === true && m.aparencia.categoria === 'configuracao',
    'e esta classificada como configuracao regeneravel');
 
-const CLINICAS = ['pacientes', 'aplicacoes', 'consultas', 'holoscope', 'oq3', 'pqq',
+const CLINICAS = ['pacientes', 'aplicacoes', 'consultas', 'holoscan', 'oq3', 'pqq',
                   'questionario', 'pontuacao', 'exames', 'arquivos'];
 ok(m.sensiveis.length === CLINICAS.length &&
    CLINICAS.every(id => m.sensiveis.indexOf(id) >= 0),
@@ -175,15 +175,15 @@ const naoDerivaveis = await p.evaluate(() => {
   const A = window.Armazenamento;
   return {
     pontuacao: A.porId('pontuacao').derivavel,
-    holoscope: A.porId('holoscope').categoria,
+    holoscan: A.porId('holoscan').categoria,
     questionario: A.porId('questionario').derivavel
   };
 });
 ok(naoDerivaveis.pontuacao === false,
    'pontuacao NAO e derivavel: o questionario guarda um estado so, esta caixa ' +
    'guarda a serie — perdida, a comparacao 4/8/12 semanas vai junto');
-ok(naoDerivaveis.holoscope === 'snapshot' && naoDerivaveis.questionario === false,
-   'holoscope e snapshot e tambem se trata como fonte; questionario e fonte');
+ok(naoDerivaveis.holoscan === 'snapshot' && naoDerivaveis.questionario === false,
+   'holoscan e snapshot e tambem se trata como fonte; questionario e fonte');
 
 /* ==================================================================== */
 console.log('');
@@ -197,7 +197,7 @@ ok(m.porPaciente.length === 9,
    'armazenamentos ligados a paciente: ' + m.porPaciente.length +
    ' (pacientes e a raiz, nao filho; bloqueios, perfil e aparencia sao globais)');
 
-const A_CAMPO = ['aplicacoes', 'consultas', 'holoscope', 'oq3', 'pqq'];
+const A_CAMPO = ['aplicacoes', 'consultas', 'holoscan', 'oq3', 'pqq'];
 const B_CHAVE = ['questionario', 'pontuacao', 'exames'];
 ok(A_CAMPO.every(id => porEscopo('campo_paciente_id').indexOf(id) >= 0) &&
    porEscopo('campo_paciente_id').length === 5,
@@ -286,11 +286,11 @@ ok(ordem.manifesto < ordem.dados,
    na Fase 1 do Supabase (CDN do supabase-js + supabase-client.js +
    dados-router.js, as tres antes de dados.js/app.js consumirem `sb`), e
    na Etapa 10 (migracao-supa.js, o migrador localStorage→Supabase). */
-ok(ordem.total === 33,
-   'o index tem 33 tags de script: 22 de antes do P0 + concorrencia.js + ' +
+ok(ordem.total === 34,
+   'o index tem 34 tags de script: 22 de antes do P0 + concorrencia.js + ' +
    'armazenamento.js + validar-backup.js + restaurar-backup.js + ' +
    'importar-v1.js + excluir-paciente.js + login.js + CDN supabase-js + ' +
-   'supabase-client.js + dados-router.js + migracao-supa.js — ' + ordem.total);
+   'supabase-client.js + dados-router.js + migracao-supa.js + holos-ai.js — ' + ordem.total);
 /* A tela de entrada e a ultima a carregar: nada do app depende dela, e ela
    nao depende de nada do app. Se um dia depender, esta linha cai junto. */
 ok(ordem.login === ordem.total - 1,
@@ -338,7 +338,7 @@ const semear = () => p.evaluate(async () => {
     { id: 'ap-5', paciente_id: '_sem_paciente', ferramenta_id: 'oq3' }
   ]);
   guardar(P + 'consultas', [{ id: 'c-1', paciente_id: 'pac-A' }]);
-  guardar(P + 'holoscope', [{ id: 'h-1', paciente_id: 'pac-A' }]);
+  guardar(P + 'holoscan', [{ id: 'h-1', paciente_id: 'pac-A' }]);
   guardar(P + 'oq3', [{ id: 'o-1', paciente_id: 'pac-A' }]);
   guardar(P + 'pqq', [{ id: 'q-1', paciente_id: 'pac-A' }]);
   guardar(P + 'bloqueios', [{ id: 'b-1', titulo: 'almoco' }]);
@@ -535,7 +535,7 @@ const noveDestinos = await p.evaluate(() => {
 ok(noveDestinos.length === 9,
    'o manifesto declara os 9 destinos que uma exclusao precisa alcancar alem ' +
    'do cadastro: ' + noveDestinos.join(', '));
-ok(noveDestinos.every(id => ['aplicacoes', 'consultas', 'holoscope', 'oq3', 'pqq',
+ok(noveDestinos.every(id => ['aplicacoes', 'consultas', 'holoscan', 'oq3', 'pqq',
                              'questionario', 'pontuacao', 'exames', 'arquivos']
                              .indexOf(id) >= 0),
    'e sao exatamente os 9 que o teste de persistencia mostrou ficando orfaos hoje');

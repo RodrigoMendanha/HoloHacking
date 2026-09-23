@@ -2,8 +2,8 @@
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));
-const nav = await puppeteer.launch({ executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless:'new', args:['--hide-scrollbars'] });
+const nav = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless:'new', args:['--no-sandbox','--hide-scrollbars'] });
 const p = await nav.newPage(); await p.setViewport({width:1400,height:1200});
 const ruim=[]; p.on('pageerror',e=>ruim.push(e.message));
 await p.goto('http://127.0.0.1:5500/',{waitUntil:'networkidle2'});
@@ -18,8 +18,8 @@ const ok = (c,t) => {
 // primeira aplicacao
 const uma = await p.evaluate((r) => {
   localStorage.removeItem('holohacking.pontuacao');
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
-  window.aplicarPontuacao(HOLOSCOPE.calcular(r));
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
+  window.aplicarPontuacao(HOLOSCAN.calcular(r));
   return { escondida: document.getElementById('holo-evolucao').classList.contains('hidden'),
            indice: document.getElementById('holo-score-total').textContent };
 }, caso.respostas);
@@ -36,14 +36,14 @@ const duas = await p.evaluate((r) => {
   // respostas melhores: duas casas na direcao de MENOS carga. Nos marcadores
   // invertidos essa direcao e para cima, nao para baixo.
   const sentido = {};
-  HOLOSCOPE.questionario().forEach(q => { sentido[q.id] = q.sentido; });
+  HOLOSCAN.questionario().forEach(q => { sentido[q.id] = q.sentido; });
   const melhor = r.map(x => ({
     marcador_id: x.marcador_id,
     intensidade: sentido[x.marcador_id] === 'invertido'
       ? Math.min(3, x.intensidade + 2)
       : Math.max(0, x.intensidade - 2),
   }));
-  window.aplicarPontuacao(HOLOSCOPE.calcular(melhor));
+  window.aplicarPontuacao(HOLOSCAN.calcular(melhor));
   const e = document.getElementById('holo-evolucao');
   return {
     visivel: !e.classList.contains('hidden'),
@@ -67,7 +67,7 @@ console.log('    ' + duas.linhas.slice(0,3).join('\n    '));
 
 // reaplicar no mesmo dia nao cria uma terceira
 const mesmo = await p.evaluate((r) => {
-  window.aplicarPontuacao(HOLOSCOPE.calcular(r));
+  window.aplicarPontuacao(HOLOSCAN.calcular(r));
   const pid = window.pacienteAtivoId() || '_sem_paciente';
   return JSON.parse(localStorage.getItem('holohacking.pontuacao'))[pid].length;
 }, caso.respostas);

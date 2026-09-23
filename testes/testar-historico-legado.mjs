@@ -1,5 +1,5 @@
 /**
- * HISTÓRICO ANTIGO — a revisão clínica do HOLOSCOPE acrescentou campos
+ * HISTÓRICO ANTIGO — a revisão clínica do HOLOSCAN acrescentou campos
  * opcionais ao snapshot de Pontuação (interpretacao, versao_estrutura) e
  * mudou como a tela lê `combinacoes`. Nenhum snapshot já salvo antes desta
  * rodada tem esses campos, e este teste trava que isso não quebra nada:
@@ -14,8 +14,8 @@
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1500, height: 1300 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -152,8 +152,8 @@ const semCobertura = await p.evaluate(async () => {
   if (window.Concorrencia) window.Concorrencia.avancarRevisao('pontuacao');
   const antesDoDisco = localStorage.getItem('holohacking.pontuacao');
 
-  /* A tela do HOLOSCOPE — onde o acesso inseguro vivia. */
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
+  /* A tela do HOLOSCAN — onde o acesso inseguro vivia. */
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
   await new Promise(r => setTimeout(r, 200));
   window.desenharPontuacao
     ? window.desenharPontuacao(antigo)
@@ -185,7 +185,7 @@ const semCobertura = await p.evaluate(async () => {
 });
 
 ok(semCobertura.score === '55',
-   'snapshot SEM cobertura abre o HOLOSCOPE e mostra o Índice: ' + semCobertura.score);
+   'snapshot SEM cobertura abre o HOLOSCAN e mostra o Índice: ' + semCobertura.score);
 ok(semCobertura.triadaDesenhada,
    'e a Tríada continua sendo desenhada — a função não morre antes de chegar nela');
 ok(/não registrou a cobertura/i.test(semCobertura.textoOrigem),

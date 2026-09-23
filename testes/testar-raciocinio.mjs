@@ -1,7 +1,7 @@
 /**
  * Os passos 4 e 5 do metodo: APROFUNDAR e FORMULAR HIPOTESES.
  *
- * "O HOLOSCOPE nao e uma lista de perguntas." O app era 84 perguntas, uma nota
+ * "O HOLOSCAN nao e uma lista de perguntas." O app era 84 perguntas, uma nota
  * e uma ferramenta — pulava direto do mapa para a conduta. Faltavam a pergunta
  * que vem depois da resposta alta, e a distincao entre hipotese e achado.
  *
@@ -17,8 +17,8 @@ import { readFileSync } from 'node:fs';
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1500, height: 1200 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -33,8 +33,8 @@ const ok = (c, t) => {
 
 // --- o aprofundamento, a partir do caso de exemplo ----------------------
 const hoje = await p.evaluate((respostas) => {
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
-  const r = HOLOSCOPE.calcular(respostas);
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
+  const r = HOLOSCAN.calcular(respostas);
   window.aplicarPontuacao(r);
   return {
     doMotor: r.aprofundamentos.length,
@@ -47,7 +47,7 @@ const hoje = await p.evaluate((respostas) => {
 ok(hoje.doMotor > 0 && hoje.naTela === hoje.doMotor,
    hoje.doMotor + ' perguntas de aprofundamento abertas pelas respostas altas');
 console.log('          primeira: ' + hoje.primeira);
-/* Revisao clinica do HOLOSCOPE (decisao 1): nenhuma CMB aparece na
+/* Revisao clinica do HOLOSCAN (decisao 1): nenhuma CMB aparece na
    interface clinica nesta rodada — nem "Hipótese a investigar" nem "Fora do
    escopo da nutrição" — mesmo quando o caso de exemplo dispara encaminhamento
    e hipotese no motor. cmbParaExibir() (app.js) sempre devolve lista vazia;
@@ -62,7 +62,7 @@ ok(!hoje.titulos.includes('Hipótese a investigar') &&
 
 // --- amanha: com aprofundamento e encaminhamento -------------------------
 const amanha = await p.evaluate((respostas) => {
-  const r = HOLOSCOPE.calcular(respostas);
+  const r = HOLOSCAN.calcular(respostas);
   r.aprofundamentos = [
     { marcador_id: 'SNT-501', rotulo: 'sono não reparador', origem: 'sintoma',
       resposta: 3, pergunta: 'O que normalmente acontece nos dias em que você dorme pior?' },
@@ -98,7 +98,7 @@ amanha.perguntas.forEach(q => console.log('          ' + q.de + ' → ' + q.perg
 ok(/dorme pior/.test(amanha.perguntas[0].pergunta),
    'a que pesou mais vem primeiro');
 
-/* Revisao clinica do HOLOSCOPE (decisao 1): mesmo com CMB-001 (status
+/* Revisao clinica do HOLOSCAN (decisao 1): mesmo com CMB-001 (status
    implicito confirmado neste objeto forjado) e um encaminhamento manufaturado
    os dois — de proposito, para prova de fogo do H4 (item H): nenhuma CMB
    pode aparecer como conclusao automatica, nem a "confirmada". */
@@ -113,7 +113,7 @@ ok(!amanha.ordemTitulos.some(t => /Fora do escopo|Hipótese/.test(t)),
 
 // --- territorios do olhar: cobertura, nao mais uma nota ------------------
 const terr = await p.evaluate((respostas) => {
-  const r = HOLOSCOPE.calcular(respostas);
+  const r = HOLOSCAN.calcular(respostas);
   const antes = {
     doMotor: r.territorios.length,
     escondido: document.getElementById('holo-territorios').classList.contains('hidden'),

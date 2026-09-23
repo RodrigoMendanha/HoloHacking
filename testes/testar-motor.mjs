@@ -8,17 +8,17 @@ import { readFileSync } from 'node:fs';
 
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: 'new' });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', headless: 'new', args: ['--no-sandbox'] });
 const p = await nav.newPage();
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
 
 // pagina em branco de verdade: so o pacote do motor
 await p.setContent('<!doctype html><meta charset="utf-8"><title>motor</title>');
-await p.addScriptTag({ url: 'http://127.0.0.1:5500/holoscope.js' });
+await p.addScriptTag({ url: 'http://127.0.0.1:5500/holoscan.js' });
 
 const r = await p.evaluate((respostas) => {
-  const g = window.HOLOSCOPE;
-  if (!g) return { erro: 'HOLOSCOPE nao existe' };
+  const g = window.HOLOSCAN;
+  if (!g) return { erro: 'HOLOSCAN nao existe' };
   const pt = g.calcular(respostas);
   return {
     resumo: g.resumo(),

@@ -31,8 +31,8 @@ mkdirSync('amostras', { recursive: true });
 writeFileSync('amostras/exame-doc.pdf', '%PDF-1.4\n1 0 obj<</Type/Catalog>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n');
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1500, height: 1300 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -93,7 +93,7 @@ conferir(!vazio.tabelaVazia, 'não é mais um parágrafo solto — é o mesmo co
 
 /* ------------------------- o CTA do topo aciona o input já existente ----- */
 /* Rodada de consistencia: o card vazio nao repete mais o botao do topo —
-   um so CTA, como Consultas/HOLOSCOPE/HOLOSCAN ja faziam. */
+   um so CTA, como Consultas/HOLOSCAN/HOLOSCAN ja faziam. */
 
 const semBotaoDuplicado = await p.evaluate(() => !document.querySelector('#doc-lista .lista-vazia button'));
 conferir(semBotaoDuplicado, 'sem CTA duplicado dentro do card vazio — o botão do topo já é o convite');

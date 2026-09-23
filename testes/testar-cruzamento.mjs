@@ -20,8 +20,8 @@ import { readFileSync } from 'node:fs';
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1500, height: 1200 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -36,8 +36,8 @@ const ok = (c, t) => {
 
 // --- a gramatica esta viva no pacote do navegador ------------------------
 const gramatica = await p.evaluate((respostas) => {
-  const semContexto = HOLOSCOPE.calcular(respostas);
-  const comContexto = HOLOSCOPE.calcular(respostas, {
+  const semContexto = HOLOSCAN.calcular(respostas);
+  const comContexto = HOLOSCAN.calcular(respostas, {
     exames: { 'EXA-005': 115 },
     ferramentas: { energia_vital: { ao_acordar: 2 } },
   });
@@ -55,11 +55,11 @@ ok(gramatica.indiceIgual && gramatica.notasIguais,
 
 // --- os eixos terapeuticos vieram do banco, nao do codigo ---------------
 const eixos = await p.evaluate(async () => {
-  const todos = HOLOSCOPE.eixos();
+  const todos = HOLOSCAN.eixos();
   return {
     total: todos.length,
     nomes: [...new Set(todos.map(e => e.eixo))].sort(),
-    doMental: HOLOSCOPE.eixos('mental_emocional_espiritual').map(e => e.eixo),
+    doMental: HOLOSCAN.eixos('mental_emocional_espiritual').map(e => e.eixo),
   };
 });
 ok(eixos.total > 0, eixos.total + ' eixos terapêuticos vindos de eixos.csv');

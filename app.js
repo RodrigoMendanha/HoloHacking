@@ -129,7 +129,7 @@
   const nomesSecao = {
     dashboard:"Dashboard", pacientes:"Pacientes", consultas:"Consultas",
     agenda:"Agenda", documentos:"Documentos",
-    holoscope:"HOLOSCAN", holoscan:"Confronto Clínico",
+    holoscan:"HOLOSCAN", confronto:"Confronto Clínico",
     corpo:"Módulo Corpo", mente:"Módulo Mente",
     espirito:"Módulo Espírito", perfil:"Perfil"
   };
@@ -156,10 +156,10 @@
          os exames sao lancados na ficha, noutra tela. Sem redesenhar ao abrir,
          lancar um exame e vir para ca mostrava o confronto de antes — e um
          confronto desatualizado e pior do que confronto nenhum. */
-      holoscan: () => { if(window.desenharHoloscan) window.desenharHoloscan("holo-holoscan"); },
+      confronto: () => { if(window.desenharHoloscan) window.desenharHoloscan("holo-confronto"); },
       /* Pacientes entrou aqui depois das outras, e era a que mais precisava:
          o cartao agora mostra "Último contato" e o proximo passo. Aplicar um
-         HOLOSCOPE e voltar para a lista deixava o cartao dizendo "Sem consulta
+         HOLOSCAN e voltar para a lista deixava o cartao dizendo "Sem consulta
          ainda" sobre alguem que tinha acabado de ser atendida. */
       pacientes: renderPacientes,
       perfil: window.redesenharPerfil
@@ -278,7 +278,7 @@
       sb.from("pacientes").select("*").order("created_at", { ascending: false }),
       sb.from("oq3").select("*").order("created_at", { ascending: false }),
       sb.from("pqq").select("*").order("created_at", { ascending: false }),
-      sb.from("holoscope").select("*").order("created_at", { ascending: false })
+      sb.from("holoscan").select("*").order("created_at", { ascending: false })
     ]);
     // Mesmo dando errado a carga terminou: quem espera por ela nao pode
     // ficar preso em "carregando" para sempre.
@@ -295,21 +295,21 @@
       normalizarContato(p);
       p.oq3 = oq3Map[p.id] || vazioOQ3();
       p.pqq = pqqMap[p.id] || vazioPQQ();
-      p.holoscope = holoMap[p.id] || vazioHolo();
+      p.holoscan = holoMap[p.id] || vazioHolo();
     });
     estado.pacientes = pacientes;
     if(pacientes.length > 0 && !estado.ativo) estado.ativo = pacientes[0].id;
     renderPacientes();
     atualizarSeletores();
     carregarFormularios();
-    carregarHoloscope();
+    carregarHoloscan();
     // Ate esta linha nao se sabia de quem era a tela. As ferramentas que
     // guardam por paciente precisam ser avisadas de que agora se sabe —
     // sem isto, o que foi respondido antes da lista chegar fica gravado
     // debaixo de uma chave e procurado debaixo de outra.
     avisarTrocaDePaciente();
 
-    sincronizarHistoricoHoloscope(pacientes);
+    sincronizarHistoricoHoloscan(pacientes);
     if (window.sincronizarExames) window.sincronizarExames(pacientes);
   }
 
@@ -346,7 +346,7 @@
     estado.ativo = id || null;
     atualizarSeletores();
     carregarFormularios();
-    carregarHoloscope();
+    carregarHoloscan();
     renderizarMapa();
     // as 30 ferramentas guardam por paciente; formulario.js precisa saber
     avisarTrocaDePaciente();
@@ -511,7 +511,7 @@
 
   function menuDoPaciente(p, s){
     const itens = [
-      { acao:"holoscope",    texto: s.dados.pontuacao ? "Reaplicar HOLOSCAN" : "Aplicar HOLOSCAN" },
+      { acao:"holoscan",    texto: s.dados.pontuacao ? "Reaplicar HOLOSCAN" : "Aplicar HOLOSCAN" },
       { acao:"questionario", texto:"Abrir questionário" },
       { acao:"corpo",        texto:"Aplicar OQ³" },
       { acao:"mente",        texto:"Aplicar PQQ" },
@@ -619,7 +619,7 @@
     if(semCarteira){
       // O CTA fica so no cabecalho (#btn-abrir-novo, sempre visivel): duas
       // vezes o mesmo botao na tela — cabecalho e dentro do card vazio —
-      // era a unica tela assim; as outras (Consultas, HOLOSCOPE, HOLOSCAN)
+      // era a unica tela assim; as outras (Consultas, HOLOSCAN, HOLOSCAN)
       // ja usavam so um.
       lista.innerHTML = '<div class="lista-vazia"><strong>Nenhum paciente cadastrado ainda</strong>'
         + "<span>Cadastre o primeiro paciente para iniciar a jornada clínica.</span>"
@@ -675,7 +675,7 @@
           + '<span class="pac-info"><span class="pac-nome"><h4>' + escapar(p.nome) + "</h4></span>"
           + '<span class="pac-meta"><span class="pac-dado">' + escapar(feito.join(" · "))
           + "</span></span></span>"
-          + '<button type="button" class="pac-acao-principal" data-passo="holoscope" '
+          + '<button type="button" class="pac-acao-principal" data-passo="holoscan" '
           + 'data-id="' + p.id + '">Gerar HOLOSCAN</button>'
           + "</div>";
       }).join("") + "</div>";
@@ -759,7 +759,7 @@
 
      Um lugar so decide para onde cada destino leva, porque o mesmo destino
      chega por tres caminhos: o botao principal do cartao, o menu de tres
-     pontos e o dashboard. Se cada um resolvesse por conta, "holoscope"
+     pontos e o dashboard. Se cada um resolvesse por conta, "holoscan"
      abriria coisas diferentes dependendo de onde foi clicado. */
   function levarPara(destino, id){
     if(id) definirAtivo(id);
@@ -774,7 +774,7 @@
     }
 
     if(destino === "questionario"){
-      irPara("holoscope");
+      irPara("holoscan");
       const b = document.getElementById("btn-abrir-questionario");
       if(b) b.click();
       return;
@@ -999,7 +999,7 @@
     normalizarContato(data);
     data.oq3 = vazioOQ3();
     data.pqq = vazioPQQ();
-    data.holoscope = vazioHolo();
+    data.holoscan = vazioHolo();
     estado.pacientes.unshift(data);
     camposNovo.forEach(s => $(s).value = "");
     $("#painel-novo").classList.add("hidden");
@@ -1413,7 +1413,7 @@
   $("#btn-imprimir").addEventListener("click", () => window.print());
 
   /* ============================================================
-     HOLOSCOPE: RADAR CHART
+     HOLOSCAN: RADAR CHART
   ============================================================ */
   const radarSVG = $("#radar-svg");
   const CX = 150, CY = 150, R_MAX = 120;
@@ -1489,7 +1489,7 @@
     // frase clinica propria, incluindo "Estado cronico de ameaca" repetida da
     // CMB-001) nao tem fonte, nao tem status, nao estao em nenhum CSV — eram
     // regra clinica escrita direto no JS. Removidas nesta rodada (revisao
-    // clinica do HOLOSCOPE): o Indice fica com uma frase fixa, a mesma para
+    // clinica do HOLOSCAN): o Indice fica com uma frase fixa, a mesma para
     // qualquer valor, dizendo o que ele E, nao o que ele "significa".
     const msg = semMapa
       ? "Aplique o questionário ou pontue os cinco sistemas à mão para gerar a leitura."
@@ -1588,7 +1588,7 @@
   /* ------------------------------------------------------------------------
      LEITURA DO TERRENO
 
-     O material promete que o HOLOSCOPE nao devolve so sintoma fisico, mas o
+     O material promete que o HOLOSCAN nao devolve so sintoma fisico, mas o
      padrao emocional e o impacto espiritual de cada sistema — e uma direcao
      terapeutica. A tela mostrava so o numero. Isto preenche o resto.
 
@@ -1620,9 +1620,9 @@
     const saida = {};
     let doMotor = [], todosEixos = [];
     try {
-      if(window.HOLOSCOPE){
-        doMotor = window.HOLOSCOPE.sistemas ? window.HOLOSCOPE.sistemas() : [];
-        todosEixos = window.HOLOSCOPE.eixos ? window.HOLOSCOPE.eixos() : [];
+      if(window.HOLOSCAN){
+        doMotor = window.HOLOSCAN.sistemas ? window.HOLOSCAN.sistemas() : [];
+        todosEixos = window.HOLOSCAN.eixos ? window.HOLOSCAN.eixos() : [];
       }
     } catch(e){ console.error("motor:", e); }
 
@@ -1650,8 +1650,8 @@
   }
 
   function indiceDoMotor(scores){
-    if(window.HOLOSCOPE && window.HOLOSCOPE.indiceDeNotas){
-      try { return window.HOLOSCOPE.indiceDeNotas(notasParaMotor(scores)); }
+    if(window.HOLOSCAN && window.HOLOSCAN.indiceDeNotas){
+      try { return window.HOLOSCAN.indiceDeNotas(notasParaMotor(scores)); }
       catch(e){ console.error("motor:", e); }
     }
     // sem o motor carregado, a conta antiga; vale para os pesos de hoje
@@ -1659,9 +1659,9 @@
   }
 
   function combinacoesDoMotor(scores){
-    if(!window.HOLOSCOPE || !window.HOLOSCOPE.combinacoesDeNotas) return [];
+    if(!window.HOLOSCAN || !window.HOLOSCAN.combinacoesDeNotas) return [];
     try {
-      return window.HOLOSCOPE.combinacoesDeNotas(notasParaMotor(scores));
+      return window.HOLOSCAN.combinacoesDeNotas(notasParaMotor(scores));
     } catch(e){
       console.error("motor:", e);
       return [];
@@ -1754,7 +1754,7 @@
      com fonte e status em cada uma, como manda a Especificação Mestre §18 e a
      regra do projeto de não escrever método em JavaScript. */
   function regrasDeRecomendacao(){
-    /* Revisao clinica do HOLOSCOPE (rodada de reorganizacao): "Por onde
+    /* Revisao clinica do HOLOSCAN (rodada de reorganizacao): "Por onde
        comecar" passou a usar regrasApresentaveis(), nao regrasAtivas().
        regrasAtivas() so tira o rascunho_nao_validado e deixava passar as
        REC-001..015 legado — que, alem de nao validadas pelo metodo, apontam
@@ -1874,14 +1874,14 @@
     return conduta.every(c => b.validada(porId.get(c.regra)));
   }
 
-  /* Revisao clinica do HOLOSCOPE: as 16 regras de combinacao (CMB-001..016)
+  /* Revisao clinica do HOLOSCAN: as 16 regras de combinacao (CMB-001..016)
      ficam fora da interface clinica e do relatorio nesta rodada inteira —
      inclusive a CMB-001, que tem status=confirmado no banco mas cujo texto
      ("Paciente vivendo em estado cronico de ameaca") ainda nao passou por
      revisao de tom/redacao com o Rodrigo. status no banco != homologacao
      clinica. PENDENTE RODRIGO: revisar tom da CMB-001 e decidir criterio de
      reexibicao regra a regra (nao construir toggle nem allow-list agora).
-     O motor continua retornando as 16 (HOLOSCOPE.calcular(), CLI, testes) e
+     O motor continua retornando as 16 (HOLOSCAN.calcular(), CLI, testes) e
      combinacoes.csv continua com as 16 linhas — so a tela nunca mais le
      esta lista. */
   function cmbParaExibir(){
@@ -1972,7 +1972,7 @@
 
        Duas coisas mudaram de nome e de peso aqui, e as duas sao do metodo:
 
-       1. "Leitura combinada" virou HIPOTESE. O metodo e explicito: o HOLOSCOPE
+       1. "Leitura combinada" virou HIPOTESE. O metodo e explicito: o HOLOSCAN
           nao interpreta sintoma como diagnostico definitivo. O que o
           cruzamento devolve e algo a investigar, e a tela passa a dizer o que
           conferir antes de concluir.
@@ -2010,7 +2010,7 @@
     }
 
     /* APROFUNDAR — o passo 4 do metodo.
-       "O HOLOSCOPE nao e uma lista de perguntas": o que separa formulario de
+       "O HOLOSCAN nao e uma lista de perguntas": o que separa formulario de
        anamnese e a pergunta que vem DEPOIS da resposta alta. O motor devolve
        as que foram ganhas; se nenhum marcador tem a coluna preenchida, isto
        simplesmente nao aparece. */
@@ -2052,7 +2052,7 @@
       }
       html += "</div>";
     } else {
-      /* Revisao clinica do HOLOSCOPE: regrasApresentaveis() so deixa passar
+      /* Revisao clinica do HOLOSCAN: regrasApresentaveis() so deixa passar
          regra com status=confirmado (hoje, nenhuma), entao "Por onde
          comecar" fica sem itens. Sem esta linha a secao simplesmente
          sumiria, sem dizer por que — e a nutricionista precisa saber que a
@@ -2076,7 +2076,7 @@
   /* ------------------------------------------------------------------------
      A PONTE ENTRE O MOTOR E A TELA
 
-     Recebe a Pontuacao inteira que HOLOSCOPE.calcular() devolveu e desenha.
+     Recebe a Pontuacao inteira que HOLOSCAN.calcular() devolveu e desenha.
      Nada aqui recalcula nada: as notas, o indice, as combinacoes e a Triada
      ja vem prontos. Se esta funcao fizer conta, a conta existe em dois
      lugares e vai divergir — foi o que aconteceu com a escala invertida.
@@ -2095,20 +2095,20 @@
   /* Guarda o HISTORICO, nao a ultima. Sobrescrever apagava a aplicacao
      anterior — e sem duas nao ha o que comparar, que e a promessa de rastrear
      evolucao em 4, 8 e 12 semanas. */
-  async function sincronizarHistoricoHoloscope(pacientes) {
+  async function sincronizarHistoricoHoloscan(pacientes) {
     if (!window.supabaseClient || !window.HoloAuth || !window.HoloAuth.sessaoAtiva()) return;
     if (!pacientes || !pacientes.length) return;
 
     try {
       const { data: apps, error: appErr } = await window.supabaseClient
-        .from("holoscope_applications")
+        .from("holoscan_applications")
         .select("id, patient_id, quando, versao_estrutura, versao_bancos, indice, indice_maximo, avaliavel, nota_media, triada, triada_com_dado, cobertura, combinacoes, aprofundamentos, interpretacao_texto, interpretacao_em, interpretacao_versao, created_at")
         .order("quando", { ascending: true });
 
       if (appErr || !apps || !apps.length) return;
 
       const { data: allScores, error: scErr } = await window.supabaseClient
-        .from("holoscope_system_scores")
+        .from("holoscan_system_scores")
         .select("application_id, sistema, nome, nota, carga, faixa, obtido, maximo, respondidos, total_marcadores, avaliavel");
 
       if (scErr) return;
@@ -2190,10 +2190,10 @@
           tudo[pid].sort(function(a, b) { return (a.quando || "").localeCompare(b.quando || ""); });
         });
         localStorage.setItem("holohacking.pontuacao", JSON.stringify(tudo));
-        carregarHoloscope();
+        carregarHoloscan();
       }
     } catch (e) {
-      console.error("sincronizarHistoricoHoloscope:", e);
+      console.error("sincronizarHistoricoHoloscan:", e);
     }
   }
 
@@ -2213,7 +2213,7 @@
     const tudo = lerHistorico();
     const hoje = hojeISO();
     // versao_estrutura marca snapshots desta rodada (revisao clinica do
-    // HOLOSCOPE) sem tocar nos antigos — nada le esse campo ainda, existe
+    // HOLOSCAN) sem tocar nos antigos — nada le esse campo ainda, existe
     // so para uma migracao futura saber distinguir os dois formatos.
     const nova = Object.assign({}, r, { quando: hoje, versao_estrutura: 2 });
     if(!tudo[id]) tudo[id] = [];
@@ -2221,7 +2221,7 @@
     const mesmoDia = tudo[id].findIndex(x => x.quando === hoje);
     if(mesmoDia >= 0){
       // Interpretacao profissional e escrita por fora, num campo separado
-      // do resultado calculado. Reaplicar o HOLOSCOPE no mesmo dia
+      // do resultado calculado. Reaplicar o HOLOSCAN no mesmo dia
       // sobrescrevia a entrada inteira (Object.assign de cima) e apagava
       // essa interpretacao sem ninguem pedir. Ela sobrevive a troca.
       if(nova.interpretacao === undefined && tudo[id][mesmoDia].interpretacao !== undefined){
@@ -2266,7 +2266,7 @@
 
     if (alvo._supa_id && window.supabaseClient
         && window.HoloAuth && window.HoloAuth.sessaoAtiva()) {
-      window.supabaseClient.from("holoscope_applications")
+      window.supabaseClient.from("holoscan_applications")
         .update({
           interpretacao_texto: String(texto || ""),
           interpretacao_em: new Date().toISOString(),
@@ -2306,7 +2306,7 @@
   };
 
   window.desenharPontuacao = function(r, restaurando){
-    pontuacaoNaTela = r;        // e daqui que "Salvar HOLOSCOPE" tira os decimais
+    pontuacaoNaTela = r;        // e daqui que "Salvar HOLOSCAN" tira os decimais
     // as notas na ordem que a tela usa
     const porSistema = {};
     r.sistemas.forEach(s => { porSistema[s.sistema] = s.nota; });
@@ -2334,7 +2334,7 @@
     desenharTriada(r.triada, r.triada_com_dado);
     desenharFrequencias(r.frequencias);
     desenharTerritorios(r.territorios);
-    if(window.desenharHoloscan) window.desenharHoloscan("holo-holoscan");
+    if(window.desenharHoloscan) window.desenharHoloscan("holo-confronto");
     if(window.redesenharEvolucao) window.redesenharEvolucao();
 
     $("#holo-score-total").textContent = r.indice;
@@ -2389,8 +2389,8 @@
     // Restaurando o mapa de outro paciente, nao — quem estava no meio do
     // questionario continua nele, agora com as perguntas do novo paciente.
     if(restaurando) return;
-    const q = document.getElementById("holoscope-questionario");
-    const m = document.getElementById("holoscope-manual");
+    const q = document.getElementById("holoscan-questionario");
+    const m = document.getElementById("holoscan-manual");
     if(q && m){ q.classList.add("hidden"); m.classList.remove("hidden"); }
   };
 
@@ -2428,7 +2428,7 @@
 
      Ausencia tambem NAO virou zero: nao ha nota nenhuma atribuida. */
   /* ------------------------------------------------------------------------
-     MAPA DE PRIORIDADES e SINAIS DOMINANTES — revisao clinica do HOLOSCOPE
+     MAPA DE PRIORIDADES e SINAIS DOMINANTES — revisao clinica do HOLOSCAN
 
      Duas telas novas, dado nenhum novo: "prioridades" e so os cinco sistemas
      reordenados do mais carregado para o mais leve (a mesma ordem que
@@ -2568,17 +2568,17 @@
     caixa.classList.remove("hidden");
   }
 
-  /* Este paciente ja tem um HOLOSCOPE gravado?
+  /* Este paciente ja tem um HOLOSCAN gravado?
      A ficha vazia vem de vazioHolo(), que nao tem id; a linha que veio do
      banco tem. E o que separa "nota zero" de "mapa nenhum". */
   function temMapaSalvo(){
     const p = pacienteAtivo();
-    return !!(p && p.holoscope && p.holoscope.id);
+    return !!(p && p.holoscan && p.holoscan.id);
   }
 
-  function carregarHoloscope(){
+  function carregarHoloscan(){
     const p = pacienteAtivo();
-    const h = p ? p.holoscope : vazioHolo();
+    const h = p ? p.holoscan : vazioHolo();
     pontuacaoNaTela = null;                 // trocou de paciente, trocou o mapa
 
     /* Tudo o que a tela mostrava pertencia ao paciente anterior. A Triada e a
@@ -2597,10 +2597,10 @@
     /* O mapa que este paciente realmente tem.
 
        Havia dois lugares guardando a mesma coisa: o historico de pontuacao,
-       gravado sozinho quando o questionario e aplicado, e a linha `holoscope`,
-       gravada so quando alguem aperta "Salvar HOLOSCOPE". Esta tela lia a
+       gravado sozinho quando o questionario e aplicado, e a linha `holoscan`,
+       gravada so quando alguem aperta "Salvar HOLOSCAN". Esta tela lia a
        segunda e a ficha lia a primeira — entao aplicar o questionario, trocar
-       de paciente e voltar deixava a ficha dizendo "Indice 43" e o HOLOSCOPE
+       de paciente e voltar deixava a ficha dizendo "Indice 43" e o HOLOSCAN
        dizendo que nao havia mapa. O historico e mais rico (tem os decimais, a
        Triada e as combinacoes), entao e ele que manda. */
     const ultima = p && window.ultimaPontuacao ? window.ultimaPontuacao(p.id) : null;
@@ -2634,7 +2634,7 @@
     });
   });
 
-  $("#btn-salvar-holoscope").addEventListener("click", async () => {
+  $("#btn-salvar-holoscan").addEventListener("click", async () => {
     const p = pacienteAtivo();
     if(!p){ toast("Selecione um paciente para salvar o HOLOSCAN."); return; }
 
@@ -2711,15 +2711,15 @@
       };
 
       const { data: appId, error: rpcErr } =
-        await window.supabaseClient.rpc("salvar_holoscope_completo", { payload: payload });
+        await window.supabaseClient.rpc("salvar_holoscan_completo", { payload: payload });
 
       if (rpcErr) {
-        console.error("RPC holoscope:", rpcErr);
+        console.error("RPC holoscan:", rpcErr);
         toast("Erro ao salvar HOLOSCAN no servidor.");
         return;
       }
 
-      p.holoscope = {
+      p.holoscan = {
         id: appId,
         paciente_id: p.id,
         sistema_fungico: scores[0],
@@ -2755,15 +2755,15 @@
       score_holos: total
     };
 
-    const { data, error } = await sb.from("holoscope").insert(dados).select().single();
+    const { data, error } = await sb.from("holoscan").insert(dados).select().single();
     if(error){ toast("Erro ao salvar HOLOSCAN."); return; }
 
-    p.holoscope = data;
+    p.holoscan = data;
     renderPacientes();
     toast("HOLOSCAN salvo na ficha de " + p.nome.split(" ")[0] + ". Score: " + total);
   });
 
-  $("#btn-limpar-holoscope").addEventListener("click", () => {
+  $("#btn-limpar-holoscan").addEventListener("click", () => {
     sistemas.forEach(s => {
       $("#holo-" + s).value = 0;
       $("#val-" + s).textContent = "0";

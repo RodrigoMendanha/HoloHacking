@@ -13,8 +13,8 @@ import { readFileSync } from 'node:fs';
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1500, height: 1100 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -48,8 +48,8 @@ const r = await p.evaluate(async (respostas) => {
   });
 
   await novo('Marina Alves');
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
-  window.aplicarPontuacao(HOLOSCOPE.calcular(respostas));
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
+  window.aplicarPontuacao(HOLOSCAN.calcular(respostas));
   await new Promise(x => setTimeout(x, 300));
   const marina = tela();
 
@@ -58,7 +58,7 @@ const r = await p.evaluate(async (respostas) => {
   sel.value = [...sel.options].find(o => /Carla/.test(o.text)).value;
   sel.dispatchEvent(new Event('change', { bubbles: true }));
   await new Promise(x => setTimeout(x, 400));
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
   const carla = tela();
 
   // e voltar para a Marina tem que trazer o mapa dela de volta

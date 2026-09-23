@@ -24,8 +24,8 @@
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1400, height: 1400 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -309,17 +309,17 @@ const comVerdadeiro = await p.evaluate(async () => {
 ok(/Estar presente para os meus filhos/.test(comVerdadeiro.texto) && !comVerdadeiro.vazio,
    'e quando "O verdadeiro" está preenchido, é ele que aparece');
 
-/* ---- o PQQ não altera o HOLOSCOPE ------------------------------------- */
+/* ---- o PQQ não altera o HOLOSCAN ------------------------------------- */
 
 const holo = await p.evaluate(() => {
   const t = window.DadosLocais.exportar().tabelas;
   return {
-    mapas: (t.holoscope || []).length,
+    mapas: (t.holoscan || []).length,
     pontuacao: localStorage.getItem('holohacking.pontuacao')
   };
 });
 ok(holo.mapas === 0 && (holo.pontuacao === null || holo.pontuacao === '{}'),
-   'depois de quatro aplicações de PQQ, nenhum mapa do HOLOSCOPE foi criado ' +
+   'depois de quatro aplicações de PQQ, nenhum mapa do HOLOSCAN foi criado ' +
    'nem alterado: o PQQ não toca a pontuação');
 
 /* ==================================================================== */

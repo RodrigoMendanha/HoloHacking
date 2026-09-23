@@ -2,8 +2,8 @@
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));
-const nav = await puppeteer.launch({ executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless:'new', args:['--hide-scrollbars'] });
+const nav = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless:'new', args:['--no-sandbox','--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({width:1400,height:1100});
 const ruim=[]; p.on('pageerror',e=>ruim.push(e.message));
@@ -56,7 +56,7 @@ ok(cru.indice === null, 'sem mapa, nao inventa indice');
 
 // --- aplica o questionario --------------------------------------------------
 await p.evaluate((r) => {
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
   document.getElementById('btn-abrir-questionario').click();
   const m={}; r.forEach(x=>m[x.marcador_id]=x.intensidade);
   document.querySelectorAll('.q-item').forEach(i=>{
@@ -67,7 +67,7 @@ await p.evaluate((r) => {
 const mapeado = await verFicha();
 ok(mapeado.indice === '43', 'a ficha mostra o Indice: ' + mapeado.indice);
 ok(mapeado.triada.length === 3, 'mostra a Triada: ' + mapeado.triada.join(' '));
-/* Revisao clinica do HOLOSCOPE (decisao 1): nenhuma CMB aparece na
+/* Revisao clinica do HOLOSCAN (decisao 1): nenhuma CMB aparece na
    interface clinica nesta rodada, nem a CMB-001 — ver app.js,
    cmbParaExibir(). */
 ok(mapeado.combinada === undefined, 'nao mostra leitura combinada: ' + mapeado.combinada);
@@ -104,7 +104,7 @@ await p.evaluate(async () => {
   l.querySelector('input').dispatchEvent(new Event('input',{bubbles:true}));
 });
 const comExame = await verFicha();
-/* Revisao clinica do HOLOSCOPE (Holoscan): "nao batem" sugeria que um dos
+/* Revisao clinica do HOLOSCAN (Holoscan): "nao batem" sugeria que um dos
    dois lados esta errado. panorama.js passou a falar em divergencia — um
    convite a aprofundar, nao veredito. */
 ok(comExame.alertas.some(a=>/divergem/i.test(a)),

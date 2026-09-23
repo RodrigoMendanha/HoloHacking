@@ -56,7 +56,7 @@
      nao acontece: a tag vem antes desta no index.html. Serve ao teste que
      roda dados.js isolado e a nao transformar uma ordem de <script> errada
      num app que nao abre. */
-  var TABELAS_LITERAIS = ["pacientes", "oq3", "pqq", "holoscope", "perfil",
+  var TABELAS_LITERAIS = ["pacientes", "oq3", "pqq", "holoscan", "perfil",
                           "consultas", "bloqueios", "aplicacoes"];
 
   var TABELAS = (window.Armazenamento && window.Armazenamento.tabelasDaFachada)

@@ -44,7 +44,7 @@ export interface Sistema {
 }
 
 /**
- * Um eixo terapeutico de um sistema — a ENTREGA do HOLOSCOPE.
+ * Um eixo terapeutico de um sistema — a ENTREGA do HOLOSCAN.
  *
  * Os tres eixos do material (Neuroregulacao, Reprogramacao Metabolica,
  * Inteligencia Espiritual) estavam escritos dentro do app.js, como leitura de
@@ -115,7 +115,7 @@ export interface Marcador {
   /**
    * A pergunta que vem DEPOIS, quando a resposta veio alta.
    *
-   * "O HOLOSCOPE nao e uma lista de perguntas": o metodo encadeia — "como tem
+   * "O HOLOSCAN nao e uma lista de perguntas": o metodo encadeia — "como tem
    * sido seu sono?" e, se veio mal, "o que acontece nos dias em que voce dorme
    * pior?" e entao "o que muda no seu comportamento alimentar nesses dias?".
    * Sem isto as 84 sao planas: cada uma pergunta e passa adiante.
@@ -149,7 +149,7 @@ export interface Chacra {
  *   leitura      uma HIPOTESE a investigar — nunca um achado fechado
  *   encaminhar   isto aqui sai do escopo da nutricao e pede outro profissional
  *
- * A distincao e do metodo: "o Holoscope nao deve interpretar sintomas como
+ * A distincao e do metodo: "o Holoscan nao deve interpretar sintomas como
  * diagnostico definitivo" e "deve dizer quando sugerir encaminhamento".
  */
 export type TipoCombinacao = 'leitura' | 'encaminhar';

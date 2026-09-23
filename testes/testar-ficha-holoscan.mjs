@@ -1,7 +1,7 @@
 /**
  * A aba HOLOSCAN, dentro da ficha do paciente.
  *
- * HOLOSCAN e confronto laboratorial, nunca correcao do HOLOSCOPE — os tres
+ * HOLOSCAN e confronto laboratorial, nunca correcao do HOLOSCAN — os tres
  * estados (Convergente/Divergente/Dados insuficientes) e os textos fixos
  * ja vem de window.Holoscan (arquivos.js), que ja evita a `leitura` causal
  * do motor por design (window.Holoscan.texto, nunca c.leitura). Esta aba
@@ -15,7 +15,7 @@
  * O que este teste cobra:
  *
  *   VAZIO        sem exame nenhum, o convite certo.
- *   SEM MAPA     exame lancado sem HOLOSCOPE aplicado — nao bloqueia, so avisa.
+ *   SEM MAPA     exame lancado sem HOLOSCAN aplicado — nao bloqueia, so avisa.
  *   COM MAPA     ultima coleta com contagem e "confrontado com o mapa de...".
  *   ESTADOS      Convergente, Divergente e Dados insuficientes aparecem, com
  *                o texto FIXO do Holoscan — nunca a leitura causal do motor.
@@ -30,8 +30,8 @@ import { readFileSync } from 'node:fs';
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1500, height: 1300 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -67,16 +67,16 @@ const pid = await p.evaluate(async () => {
 /* -------------------------------------------------------- sem exame ------ */
 
 await abrirFichaDe(pid);
-await aba('holoscan');
+await aba('confronto');
 
 const vazio = await p.evaluate(() => {
-  const v = document.querySelector('#aba-holoscan .lista-vazia');
+  const v = document.querySelector('#aba-confronto .lista-vazia');
   return {
     titulo: v?.querySelector('strong')?.textContent,
     texto: v?.querySelector('span')?.textContent,
-    botao: document.querySelector('#aba-holoscan .fic-consultas-topo button')?.textContent,
-    avisoSemMapa: document.querySelector('#aba-holoscan .dash-vazio')?.textContent || '',
-    temUltima: !!document.querySelector('#aba-holoscan .dash-titulo'),
+    botao: document.querySelector('#aba-confronto .fic-consultas-topo button')?.textContent,
+    avisoSemMapa: document.querySelector('#aba-confronto .dash-vazio')?.textContent || '',
+    temUltima: !!document.querySelector('#aba-confronto .dash-titulo'),
   };
 });
 conferir(vazio.titulo === 'Nenhum exame registrado', 'título do estado vazio: ' + vazio.titulo);
@@ -84,11 +84,11 @@ conferir(vazio.texto === 'Registre exames para confrontar os dados laboratoriais
   'texto do estado vazio: ' + vazio.texto);
 conferir(vazio.botao === 'Registrar exames', 'o CTA é "Registrar exames": ' + vazio.botao);
 conferir(/existir um mapa/.test(vazio.avisoSemMapa),
-  'sem HOLOSCOPE, avisa que o confronto depende do mapa — sem bloquear o registro: ' + vazio.avisoSemMapa);
+  'sem HOLOSCAN, avisa que o confronto depende do mapa — sem bloquear o registro: ' + vazio.avisoSemMapa);
 conferir(!vazio.temUltima, 'sem exame, nenhum bloco "Última coleta" aparece');
 
 const registrar = await p.evaluate(async () => {
-  document.querySelector('#aba-holoscan [data-ir="aba:documentos"]').click();
+  document.querySelector('#aba-confronto [data-ir="aba:documentos"]').click();
   await new Promise(r => setTimeout(r, 250));
   return {
     abaAtiva: document.querySelector('[data-aba="documentos"]').classList.contains('ativa'),
@@ -98,7 +98,7 @@ const registrar = await p.evaluate(async () => {
 conferir(registrar.abaAtiva && registrar.fichaVisivel,
   '"Registrar exames" abre a aba Documentos desta mesma ficha, sem zerar a tela');
 
-/* -------------------------------------- exames sem HOLOSCOPE (ainda) ----- */
+/* -------------------------------------- exames sem HOLOSCAN (ainda) ----- */
 
 await p.evaluate((id) => {
   localStorage.setItem('holohacking.exames', JSON.stringify({ [id]: { 'EXA-005': 115 } }));
@@ -106,26 +106,26 @@ await p.evaluate((id) => {
 await p.reload({ waitUntil: 'networkidle2' });
 await p.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados());
 await abrirFichaDe(pid);
-await aba('holoscan');
+await aba('confronto');
 
 const semMapa = await p.evaluate(() => {
-  const blocos = [...document.querySelectorAll('#aba-holoscan .dash-bloco-compacto')];
+  const blocos = [...document.querySelectorAll('#aba-confronto .dash-bloco-compacto')];
   const ultima = blocos.find(b => b.querySelector('.dash-titulo').textContent === 'Última coleta');
   return {
     resumo: ultima.querySelector('.dash-sub').textContent,
-    dadosInsuf: [...document.querySelectorAll('#aba-holoscan .conf-item')]
+    dadosInsuf: [...document.querySelectorAll('#aba-confronto .conf-item')]
       .every(i => i.classList.contains('dados_insuficientes')),
   };
 });
 conferir(/1 exame registrado/.test(semMapa.resumo) && !/confrontado com o mapa/.test(semMapa.resumo),
-  'exame sem HOLOSCOPE: conta o exame, sem inventar confronto com mapa: ' + semMapa.resumo);
+  'exame sem HOLOSCAN: conta o exame, sem inventar confronto com mapa: ' + semMapa.resumo);
 conferir(semMapa.dadosInsuf, 'e todos os cinco sistemas ficam "dados insuficientes" sem mapa');
 
-/* ---------------------------------------------- HOLOSCOPE + exames ------- */
+/* ---------------------------------------------- HOLOSCAN + exames ------- */
 
 await p.evaluate(async (respostas) => {
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
-  window.aplicarPontuacao(HOLOSCOPE.calcular(respostas));
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
+  window.aplicarPontuacao(HOLOSCAN.calcular(respostas));
   const id = window.pacienteAtivoId();
   localStorage.setItem('holohacking.exames', JSON.stringify({
     [id]: { 'EXA-005': 115, 'EXA-015': 78 } // metabolico converge, detox diverge — mesma receita de testar-arquivos.mjs
@@ -135,13 +135,13 @@ await p.evaluate(async (respostas) => {
 await p.reload({ waitUntil: 'networkidle2' });
 await p.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados());
 await abrirFichaDe(pid);
-await aba('holoscan');
+await aba('confronto');
 
 const cheio = await p.evaluate(() => {
-  const blocos = [...document.querySelectorAll('#aba-holoscan .dash-bloco-compacto')];
+  const blocos = [...document.querySelectorAll('#aba-confronto .dash-bloco-compacto')];
   const de = titulo => blocos.find(b => b.querySelector('.dash-titulo').textContent === titulo);
   const ultima = de('Última coleta');
-  const itens = [...document.querySelectorAll('#aba-holoscan .conf-item')].map(i => ({
+  const itens = [...document.querySelectorAll('#aba-confronto .conf-item')].map(i => ({
     sistema: i.querySelector('b').textContent,
     estado: i.querySelector('.conf-selo').textContent,
     leitura: i.querySelector('.conf-leitura').textContent.trim(),
@@ -152,12 +152,12 @@ const cheio = await p.evaluate(() => {
     contagem: [...ultima.querySelectorAll('.fic-sis')].map(s => s.textContent.trim()),
     itens,
     historico: de('Histórico de coletas').querySelector('.dash-vazio').textContent,
-    continuidade: [...document.querySelectorAll('#aba-holoscan .fic-continuidade .fic-rot')].map(s => s.textContent),
+    continuidade: [...document.querySelectorAll('#aba-confronto .fic-continuidade .fic-rot')].map(s => s.textContent),
   };
 });
 
 conferir(/2 exames registrados/.test(cheio.resumo) && /confrontado com o mapa de/.test(cheio.resumo),
-  'com HOLOSCOPE, a última coleta mostra a contagem e o mapa confrontado: ' + cheio.resumo);
+  'com HOLOSCAN, a última coleta mostra a contagem e o mapa confrontado: ' + cheio.resumo);
 conferir(cheio.contagem.some(c => /Convergentes\s*1/.test(c.replace(/\s+/g, ' '))),
   'conta convergentes: ' + cheio.contagem.join(' · '));
 conferir(cheio.contagem.some(c => /Divergentes\s*1/.test(c.replace(/\s+/g, ' '))),
@@ -191,7 +191,7 @@ conferir(cheio.continuidade.join(' · ').includes('HOLOSCAN') && cheio.continuid
 /* ---------------------------------------- "Ver HOLOSCAN completo" nao zera */
 
 const verHoloscan = await p.evaluate(async () => {
-  document.querySelector('#aba-holoscan [data-ir="holoscan"]').click();
+  document.querySelector('#aba-confronto [data-ir="holoscan"]').click();
   await new Promise(r => setTimeout(r, 300));
   return {
     secaoAtiva: document.querySelector('.secao.ativa')?.id,

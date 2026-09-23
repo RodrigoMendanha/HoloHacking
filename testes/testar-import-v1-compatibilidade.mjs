@@ -28,8 +28,8 @@
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1200, height: 900 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -77,7 +77,7 @@ const semearX = () => p.evaluate(async (PONT) => {
   ]);
   g(P + 'consultas', [{ id: 'c-X', paciente_id: 'pac-X1' }]);
   g(P + 'bloqueios', [{ id: 'b-X', titulo: 'almoço' }]);
-  g(P + 'holoscope', [{ id: 'h-X', paciente_id: 'pac-X1', score_holos: 55 }]);
+  g(P + 'holoscan', [{ id: 'h-X', paciente_id: 'pac-X1', score_holos: 55 }]);
   g(P + 'oq3', [{ id: 'o-legado', paciente_id: 'pac-X1', quer: 'de um oq3 legado',
                   created_at: '2026-05-01T10:00:00.000Z' }]);
   g(P + 'pqq', []);
@@ -388,7 +388,7 @@ await p.evaluate(async () => {
   const g = (k, v) => localStorage.setItem(k, JSON.stringify(v));
   const P = 'holohacking.dados.';
   g(P + 'pacientes', [{ id: 'pac-OUTRO', nome: 'Completamente outro' }]);
-  ['aplicacoes', 'consultas', 'bloqueios', 'holoscope', 'oq3', 'pqq', 'perfil']
+  ['aplicacoes', 'consultas', 'bloqueios', 'holoscan', 'oq3', 'pqq', 'perfil']
     .forEach(t => g(P + t, []));
   g('holohacking.questionario', { 'pac-OUTRO': { m1: 1 } });
   g('holohacking.exames', { 'pac-OUTRO': { ferritina: 1 } });

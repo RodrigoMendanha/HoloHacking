@@ -23,8 +23,8 @@
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 
 const abrirAba = async () => {
   const pg = await nav.newPage();
@@ -212,7 +212,7 @@ const pacote = await A.evaluate(async () => {
   const g = (k, v) => localStorage.setItem(k, JSON.stringify(v));
   const P = 'holohacking.dados.';
   g(P + 'pacientes', [{ id: 'pac-PACOTE', nome: 'Do pacote' }]);
-  ['aplicacoes', 'consultas', 'bloqueios', 'holoscope', 'oq3', 'pqq', 'perfil']
+  ['aplicacoes', 'consultas', 'bloqueios', 'holoscan', 'oq3', 'pqq', 'perfil']
     .forEach(t => g(P + t, []));
   g('holohacking.questionario', {});
   g('holohacking.pontuacao', {});

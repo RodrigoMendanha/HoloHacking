@@ -1,9 +1,9 @@
 /**
- * A aba HOLOSCOPE, dentro da ficha do paciente.
+ * A aba HOLOSCAN, dentro da ficha do paciente.
  *
- * HOLOSCOPE e mapa de investigacao e prioridade, nao diagnostico — nada
+ * HOLOSCAN e mapa de investigacao e prioridade, nao diagnostico — nada
  * aqui recalcula indice, sistema ou Triade: so le d.pontuacao/d.historico,
- * que Panorama.doPaciente() ja monta do que o motor e a tela do HOLOSCOPE
+ * que Panorama.doPaciente() ja monta do que o motor e a tela do HOLOSCAN
  * ja gravaram.
  *
  * O que este teste cobra:
@@ -14,10 +14,10 @@
  *               Formularios ja mostra, nao um recalculo novo).
  *   HISTORICO   em ordem decrescente, sem a ultima repetida.
  *   ABRIR       "Abrir resultado" da ultima reusa a mesma janela de
- *               respostas que a aba Formularios ja usa (data-ver="holoscope").
+ *               respostas que a aba Formularios ja usa (data-ver="holoscan").
  *   NAVEGACAO   os atalhos levam para a secao certa, sem zerar a tela, e o
  *               paciente certo continua selecionado ao chegar la (o mesmo
- *               #sel-holoscope que toda a tela HOLOSCOPE ja usa).
+ *               #sel-holoscan que toda a tela HOLOSCAN ja usa).
  */
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
@@ -25,8 +25,8 @@ import { readFileSync } from 'node:fs';
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1500, height: 1300 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -67,19 +67,19 @@ const ids = await p.evaluate(async () => {
   return { primeira, marina };
 });
 
-/* ---------------------------------------------------- sem HOLOSCOPE ------ */
+/* ---------------------------------------------------- sem HOLOSCAN ------ */
 
 await abrirFichaDe(ids.marina);
-await aba('holoscope');
+await aba('holoscan');
 
 const vazio = await p.evaluate(() => {
-  const v = document.querySelector('#aba-holoscope .lista-vazia');
+  const v = document.querySelector('#aba-holoscan .lista-vazia');
   return {
     titulo: v?.querySelector('strong')?.textContent,
     texto: v?.querySelector('span')?.textContent,
-    botao: document.querySelector('#aba-holoscope .fic-consultas-topo button')?.textContent,
-    temUltima: !!document.querySelector('#aba-holoscope .dash-titulo'),
-    continuidade: document.querySelector('#aba-holoscope .fic-chip')?.textContent,
+    botao: document.querySelector('#aba-holoscan .fic-consultas-topo button')?.textContent,
+    temUltima: !!document.querySelector('#aba-holoscan .dash-titulo'),
+    continuidade: document.querySelector('#aba-holoscan .fic-chip')?.textContent,
   };
 });
 conferir(vazio.titulo === 'Nenhuma aplicação HOLOSCAN', 'título do estado vazio: ' + vazio.titulo);
@@ -90,15 +90,15 @@ conferir(!vazio.temUltima, 'sem aplicação, nenhum bloco "Última aplicação" 
 conferir(/Confronto Clínico/.test(vazio.continuidade), 'a continuidade com o Confronto Clínico aparece mesmo vazio: ' + vazio.continuidade);
 
 const foiPara = await p.evaluate(async () => {
-  document.querySelector('#aba-holoscope [data-ir="holoscope"]').click();
+  document.querySelector('#aba-holoscan [data-ir="holoscan"]').click();
   await new Promise(r => setTimeout(r, 300));
   return {
     secaoAtiva: document.querySelector('.secao.ativa')?.id,
     algumaAtiva: document.querySelectorAll('.secao.ativa').length,
-    paciente: document.getElementById('sel-holoscope')?.selectedOptions[0]?.textContent,
+    paciente: document.getElementById('sel-holoscan')?.selectedOptions[0]?.textContent,
   };
 });
-conferir(foiPara.secaoAtiva === 'secao-holoscope' && foiPara.algumaAtiva === 1,
+conferir(foiPara.secaoAtiva === 'secao-holoscan' && foiPara.algumaAtiva === 1,
   '"Iniciar HOLOSCAN" leva para a seção certa, sem zerar a tela: ' + foiPara.secaoAtiva);
 conferir(foiPara.paciente === 'Marina Alves',
   'e a pessoa certa já está selecionada lá, não a primeira da lista: ' + foiPara.paciente);
@@ -107,9 +107,9 @@ conferir(foiPara.paciente === 'Marina Alves',
 
 await p.evaluate(async (respostas) => {
   // Marina ja e a paciente ativa (a ficha dela acabou de estar aberta).
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
 
-  const sentido = {}; HOLOSCOPE.questionario().forEach(q => sentido[q.id] = q.sentido);
+  const sentido = {}; HOLOSCAN.questionario().forEach(q => sentido[q.id] = q.sentido);
   const variar = n => respostas.map(x => ({ marcador_id: x.marcador_id,
     intensidade: sentido[x.marcador_id] === 'invertido'
       ? Math.min(3, Math.max(0, x.intensidade + n))
@@ -124,11 +124,11 @@ await p.evaluate(async (respostas) => {
     localStorage.setItem('holohacking.pontuacao', JSON.stringify(h));
   };
 
-  window.aplicarPontuacao(HOLOSCOPE.calcular(variar(2)));   // mais antiga
+  window.aplicarPontuacao(HOLOSCAN.calcular(variar(2)));   // mais antiga
   datar(0, '2026-06-01');
-  window.aplicarPontuacao(HOLOSCOPE.calcular(variar(1)));   // do meio
+  window.aplicarPontuacao(HOLOSCAN.calcular(variar(1)));   // do meio
   datar(1, '2026-08-01');
-  window.aplicarPontuacao(HOLOSCOPE.calcular(respostas));    // mais recente
+  window.aplicarPontuacao(HOLOSCAN.calcular(respostas));    // mais recente
   datar(2, '2026-09-10');
 
   // O "estado de preenchimento" (d.respondidas/d.totalPerguntas) vem das
@@ -142,10 +142,10 @@ await p.evaluate(async (respostas) => {
 await p.reload({ waitUntil: 'networkidle2' });
 await p.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados());
 await abrirFichaDe(ids.marina);
-await aba('holoscope');
+await aba('holoscan');
 
 const cheio = await p.evaluate(() => {
-  const blocos = [...document.querySelectorAll('#aba-holoscope .dash-bloco-compacto')];
+  const blocos = [...document.querySelectorAll('#aba-holoscan .dash-bloco-compacto')];
   const de = titulo => blocos.find(b => b.querySelector('.dash-titulo').textContent === titulo);
   const ler = li => ({
     quando: li.querySelector('.dash-quem b').textContent,
@@ -155,7 +155,7 @@ const cheio = await p.evaluate(() => {
   const ultimaBloco = de('Última aplicação');
   const historicoBloco = de('Histórico de aplicações');
   return {
-    botaoTopo: document.querySelector('#aba-holoscope .fic-consultas-topo button')?.textContent,
+    botaoTopo: document.querySelector('#aba-holoscan .fic-consultas-topo button')?.textContent,
     ultima: ler(ultimaBloco.querySelector('.dash-pendente')),
     ultimaDestacada: !!ultimaBloco.querySelector('.dash-pendente.abrir'),
     sistemas: [...ultimaBloco.querySelectorAll('.fic-sis')].length,
@@ -181,7 +181,7 @@ conferir(cheio.historico.every(h => h.botao === 'Ver HOLOSCAN'),
 /* ------------------------------------------- "Abrir resultado" funciona -- */
 
 const janela = await p.evaluate(async () => {
-  document.querySelector('#aba-holoscope .dash-pendente.abrir [data-ver]').click();
+  document.querySelector('#aba-holoscan .dash-pendente.abrir [data-ver]').click();
   await new Promise(r => setTimeout(r, 300));
   const j = document.getElementById('fic-janela');
   return { aberta: !j.classList.contains('hidden'), titulo: document.getElementById('fic-janela-titulo').textContent };
@@ -190,10 +190,10 @@ conferir(janela.aberta && /Marina Alves/.test(janela.titulo),
   '"Abrir resultado" abre a mesma janela de respostas da aba Formulários');
 await p.evaluate(() => document.getElementById('fic-janela-fechar').click());
 
-/* -------------------------------------------- "Ver HOLOSCOPE" nao zera -- */
+/* -------------------------------------------- "Ver HOLOSCAN" nao zera -- */
 
 const verHolo = await p.evaluate(async () => {
-  const blocos = [...document.querySelectorAll('#aba-holoscope .dash-bloco-compacto')];
+  const blocos = [...document.querySelectorAll('#aba-holoscan .dash-bloco-compacto')];
   const historico = blocos.find(b => b.querySelector('.dash-titulo').textContent === 'Histórico de aplicações');
   historico.querySelector('.dash-ir').click();
   await new Promise(r => setTimeout(r, 300));
@@ -202,16 +202,16 @@ const verHolo = await p.evaluate(async () => {
     algumaAtiva: document.querySelectorAll('.secao.ativa').length,
   };
 });
-conferir(verHolo.secaoAtiva === 'secao-holoscope' && verHolo.algumaAtiva === 1,
-  '"Ver HOLOSCOPE" do histórico leva para a seção, sem zerar a tela: ' + verHolo.secaoAtiva);
+conferir(verHolo.secaoAtiva === 'secao-holoscan' && verHolo.algumaAtiva === 1,
+  '"Ver HOLOSCAN" do histórico leva para a seção, sem zerar a tela: ' + verHolo.secaoAtiva);
 
 /* ------------------------------------------------- as duas nao se misturam */
 
 await abrirFichaDe(ids.primeira);
-await aba('holoscope');
+await aba('holoscan');
 const outraPessoa = await p.evaluate(() => ({
-  vazio: !!document.querySelector('#aba-holoscope .lista-vazia'),
-  ultima: !!document.querySelector('#aba-holoscope .dash-titulo'),
+  vazio: !!document.querySelector('#aba-holoscan .lista-vazia'),
+  ultima: !!document.querySelector('#aba-holoscan .dash-titulo'),
 }));
 conferir(outraPessoa.vazio && !outraPessoa.ultima,
   'a ficha de quem nunca aplicou continua vazia — as duas não se misturam');

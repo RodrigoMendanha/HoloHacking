@@ -26,8 +26,8 @@
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1400, height: 1200 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -72,7 +72,7 @@ const semeado = await p.evaluate(async (UNICODE) => {
   ]);
   g(P + 'consultas', [{ id: 'c-1', paciente_id: 'pac-A', quando: '2026-02-01T14:00:00.000Z' }]);
   g(P + 'bloqueios', [{ id: 'b-1', titulo: 'almoço' }]);
-  g(P + 'holoscope', [{ id: 'h-1', paciente_id: 'pac-A', score_holos: 43, sistemas: [] }]);
+  g(P + 'holoscan', [{ id: 'h-1', paciente_id: 'pac-A', score_holos: 43, sistemas: [] }]);
   g(P + 'oq3', [{ id: 'o-1', paciente_id: 'pac-A', quer: 'legado' }]);
   g(P + 'pqq', [{ id: 'q-1', paciente_id: 'pac-A', objetivo: 'legado' }]);
   g(P + 'perfil', [{ id: 'pf-1', nome: 'Nutricionista', crn: 'CRN-0000' }]);
@@ -85,7 +85,7 @@ const semeado = await p.evaluate(async (UNICODE) => {
     '_sem_paciente': { m1: 3 }
   });
   g('holohacking.pontuacao', {
-    /* interpretacao (revisao clinica do HOLOSCOPE, campo opcional dentro do
+    /* interpretacao (revisao clinica do HOLOSCAN, campo opcional dentro do
        proprio snapshot — sem entrada nova no manifesto) precisa viajar no
        V2 igual a qualquer outro campo do box `pontuacao`, ja que o box
        inteiro e exportar:true. */
@@ -203,7 +203,7 @@ const dados = await p.evaluate(async () => {
   const pacote = await window.Armazenamento.gerarBackupV2();
   const d = pacote.conteudo.dados;
   return {
-    tabelas: ['pacientes', 'aplicacoes', 'consultas', 'bloqueios', 'holoscope',
+    tabelas: ['pacientes', 'aplicacoes', 'consultas', 'bloqueios', 'holoscan',
               'oq3', 'pqq', 'perfil'].map(t => ({ t, n: (d[t] || []).length })),
     /* tudo o que veio do disco, para comparar byte a byte */
     doDisco: {
@@ -247,7 +247,7 @@ ok(dados.doPacote.pontuacao === dados.doDisco.pontuacao,
    'I — a serie de pontuacoes idem');
 ok(dados.serieA.length === 2 && dados.serieA[0].indice === 43 && dados.serieA[1].indice === 61,
    'e a ORDEM do array foi preservada — nela a ordem e o dado: 43 -> 61');
-/* L (revisao clinica do HOLOSCOPE): a interpretacao profissional e um campo
+/* L (revisao clinica do HOLOSCAN): a interpretacao profissional e um campo
    opcional dentro do MESMO snapshot de pontuacao — nenhuma entrada nova no
    manifesto, entao ela so viaja no V2 se o box inteiro continuar
    exportar:true (ja provado acima) e o campo nao for perdido no caminho. */
@@ -448,7 +448,7 @@ ok(hash.hashInvertido !== hash.sha1,
 /* Q — contagens */
 const cont = v2.integridade.contagens;
 ok(cont.pacientes === 2 && cont.aplicacoes === 2 && cont.consultas === 1 &&
-   cont.holoscope === 1 && cont.perfil === 1 && cont.bloqueios === 1,
+   cont.holoscan === 1 && cont.perfil === 1 && cont.bloqueios === 1,
    'Q — contagens das listas conferem: ' +
    'pacientes=' + cont.pacientes + ' aplicacoes=' + cont.aplicacoes);
 ok(cont.questionario === 4 && cont.exames === 2 && cont.pontuacao === 2,

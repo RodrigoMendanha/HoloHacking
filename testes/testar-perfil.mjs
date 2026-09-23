@@ -21,8 +21,8 @@ import { readFileSync } from 'node:fs';
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1500, height: 1300 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -134,8 +134,8 @@ const noPapel = await p.evaluate(async (respostas) => {
   document.getElementById('np-nome').value = 'Marina Alves';
   document.getElementById('btn-salvar-paciente').click();
   await new Promise(r => setTimeout(r, 300));
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
-  window.aplicarPontuacao(HOLOSCOPE.calcular(respostas));
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
+  window.aplicarPontuacao(HOLOSCAN.calcular(respostas));
 
   document.querySelector('.nav-item[data-secao="pacientes"]').click();
   document.querySelector('.card-paciente').click();
@@ -265,7 +265,7 @@ const conta = await p.evaluate(async () => {
 /* A lista cresce quando o app cresce; o que importa é que nada fique para
    trás. Levar os pacientes sem o perfil deixaria os relatórios sem rodapé do
    outro lado, e sem a agenda a semana chegaria vazia. */
-conferir(['pacientes', 'perfil', 'consultas', 'bloqueios', 'holoscope', 'oq3', 'pqq']
+conferir(['pacientes', 'perfil', 'consultas', 'bloqueios', 'holoscan', 'oq3', 'pqq']
     .every(t => conta.tabelas.indexOf(t) >= 0),
   'o exportar leva tudo, o perfil e a agenda inclusive: ' + conta.tabelas);
 conferir(conta.perfilNoPacote === 1 && conta.nomeNoPacote === 'Ana Paula Ferreira',

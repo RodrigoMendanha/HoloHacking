@@ -5,12 +5,12 @@
    Na primeira vez que o usuário entra com Supabase, os dados vivem em
    localStorage. Esta rotina empurra tudo para o banco, SEM apagar o local.
    Ordem importa: pacientes primeiro (FK de tudo), depois consultas,
-   bloqueios, holoscope e exames. OQ3/PQQ viram tool_applications via
+   bloqueios, holoscan e exames. OQ3/PQQ viram tool_applications via
    aplicacoes.js, que já roda sozinho.
 
    Idempotência:
      - patients/consultations/schedule_blocks: upsert com ignoreDuplicates
-     - holoscope: confere existência por (patient_id, quando) antes de inserir
+     - holoscan: confere existência por (patient_id, quando) antes de inserir
      - exames: RPC faz upsert por (nutritionist_id, patient_id, data_coleta_desconhecida)
      - marca localStorage impede reexecução desnecessária
 
@@ -33,7 +33,7 @@
   var TIPO_SLUG = {
     "Primeira consulta": "primeira_consulta",
     "Retorno": "retorno",
-    "Reavaliação HOLOSCOPE": "reavaliacao_holoscope",
+    "Reavaliação HOLOSCAN": "reavaliacao_holoscan",
     "Online": "online"
   };
 
@@ -146,15 +146,15 @@
       });
   }
 
-  /* ---- holoscope -------------------------------------------------------- */
+  /* ---- holoscan -------------------------------------------------------- */
 
-  function migrarHoloscope() {
+  function migrarHoloscan() {
     var tudo;
     try { tudo = JSON.parse(localStorage.getItem("holohacking.pontuacao")) || {}; }
     catch (e) { return Promise.resolve(0); }
 
     return window.supabaseClient
-      .from("holoscope_applications")
+      .from("holoscan_applications")
       .select("patient_id, quando")
       .then(function (existRes) {
         var existentes = {};
@@ -234,10 +234,10 @@
         pendentes.forEach(function (p) {
           chain = chain.then(function () {
             return window.supabaseClient
-              .rpc("salvar_holoscope_completo", { payload: p.payload })
+              .rpc("salvar_holoscan_completo", { payload: p.payload })
               .then(function (r) {
                 if (r.error) {
-                  log("holoscope " + p.pid + "/" + p.quando + ": " + r.error.message);
+                  log("holoscan " + p.pid + "/" + p.quando + ": " + r.error.message);
                   return;
                 }
                 try {
@@ -250,7 +250,7 @@
                 } catch (e) { /* nao critico */ }
                 migrados++;
               })
-              .catch(function (e) { log("holoscope: " + (e && e.message || e)); });
+              .catch(function (e) { log("holoscan: " + (e && e.message || e)); });
           });
         });
 
@@ -265,7 +265,7 @@
     try { tudo = JSON.parse(localStorage.getItem("holohacking.exames")) || {}; }
     catch (e) { return Promise.resolve(0); }
 
-    var g = window.HOLOSCOPE || null;
+    var g = window.HOLOSCAN || null;
     if (!g || !g.listaDeExames) return Promise.resolve(0);
 
     var lista = g.listaDeExames();
@@ -343,8 +343,8 @@
     return migrarPacientes()
       .then(function (n) { if (n) log(n + " pacientes"); return migrarConsultas(); })
       .then(function (n) { if (n) log(n + " consultas"); return migrarBloqueios(); })
-      .then(function (n) { if (n) log(n + " bloqueios"); return migrarHoloscope(); })
-      .then(function (n) { if (n) log(n + " holoscope(s)"); return migrarExames(); })
+      .then(function (n) { if (n) log(n + " bloqueios"); return migrarHoloscan(); })
+      .then(function (n) { if (n) log(n + " holoscan(s)"); return migrarExames(); })
       .then(function (n) {
         if (n) log(n + " coleta(s) de exame");
         try { localStorage.setItem(MARCA, new Date().toISOString()); } catch (e) { /* idem */ }

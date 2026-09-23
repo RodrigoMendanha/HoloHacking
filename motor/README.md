@@ -1,6 +1,6 @@
 # Motor HOLOS
 
-O núcleo do HOLOSCOPE: pontuação determinística (L1) e a estrutura dos agentes (L2/L3).
+O núcleo do HOLOSCAN: pontuação determinística (L1) e a estrutura dos agentes (L2/L3).
 
 O nucleo (pontuacao, bancos, escopo) roda sem instalar nada: Node 24 executa
 TypeScript direto. Os agentes L2 e L3 usam o SDK da Anthropic, entao para eles:
@@ -44,7 +44,7 @@ as linhas de exemplo forem substituídas pelo material real.
 ser mostrado a paciente.**
 
 A única linha confirmada é a `CMB-001` — "estado crônico de ameaça" — porque ela
-vem literalmente do material do HOLOSCOPE (bloco 1).
+vem literalmente do material do HOLOSCAN (bloco 1).
 
 ---
 
@@ -108,7 +108,7 @@ As condições de `combinacoes.csv` são escritas em **nota**, que é a língua 
 
 ### Os nove passos, e onde o app está
 
-O método descreve o HOLOSCOPE como uma sequência, não como um formulário:
+O método descreve o HOLOSCAN como uma sequência, não como um formulário:
 *escutar → mapear → identificar padrões → **aprofundar** → **formular
 hipóteses** → investigar → priorizar → intervir → acompanhar.* O app pulava do
 mapa direto para a conduta. Os dois passos do meio entraram em 13/09:
@@ -291,7 +291,7 @@ Ciência do Nutrir* (as duas são PDF de imagem e precisariam de OCR), e os
 
 ### O livro não fala dos 5 sistemas
 
-Zero ocorrências de "Fúngico", "Ácido-Inflamatório", "HOLOSCOPE" e "Índice HOLOS"
+Zero ocorrências de "Fúngico", "Ácido-Inflamatório", "HOLOSCAN" e "Índice HOLOS"
 nas 145 páginas. Isso não é defeito do corpus — é um fato sobre o material:
 
 - **o livro** traz a filosofia e o método — Tríade do Ser, ciclo PSAM, os 5 A's,
@@ -340,7 +340,7 @@ Todo trecho carrega arquivo, título da fonte, caminho das seções e linha de
 início. A citação que o agente repete tem essa cara:
 
 ```
-HOLOSCOPE — material original · Bloco 2 > Estrutura técnica · linha 115
+HOLOSCAN — material original · Bloco 2 > Estrutura técnica · linha 115
 ```
 
 ### Como entra um material novo

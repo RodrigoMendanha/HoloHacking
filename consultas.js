@@ -144,7 +144,7 @@
         "A primeira consulta aparece aqui assim que você aplicar o HOLOSCAN em alguém.</p>" +
         '<div class="dash-primeiro">' +
           "<p>O mapa é o que transforma a conversa em registro.</p>" +
-          '<button type="button" class="btn-verde" data-secao-destino="holoscope">' +
+          '<button type="button" class="btn-verde" data-secao-destino="holoscan">' +
           "Aplicar o HOLOSCAN</button>" +
         "</div>";
       ligar();

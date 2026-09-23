@@ -30,8 +30,8 @@
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1366, height: 900 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -312,24 +312,24 @@ const app = await p.evaluate(async () => {
   await new Promise(r => setTimeout(r, 200));
   const secoes = [...document.querySelectorAll('.secao')].map(s => s.id);
   const navs = [...document.querySelectorAll('.nav-item')].map(b => b.dataset.secao);
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
-  const holoscope = document.getElementById('secao-holoscope').classList.contains('ativa');
   document.querySelector('.nav-item[data-secao="holoscan"]').click();
   const holoscan = document.getElementById('secao-holoscan').classList.contains('ativa');
+  document.querySelector('.nav-item[data-secao="confronto"]').click();
+  const confronto = document.getElementById('secao-confronto').classList.contains('ativa');
   return {
     telaFechada: document.getElementById('tela-login').hidden,
     appLiberado: !document.getElementById('app').getAttribute('aria-hidden'),
-    secoes, navs, holoscope, holoscan,
+    secoes, navs, holoscan, confronto,
     // a camada de entrada nao pode ter virado uma secao do app
     loginNaoEhSecao: !secoes.includes('tela-login') && !navs.includes('login'),
   };
 });
 /* Lista nominal, nao contagem: um numero certo com a secao errada passaria. */
-const SECOES = ['secao-dashboard', 'secao-holoscope', 'secao-holoscan', 'secao-pacientes',
+const SECOES = ['secao-dashboard', 'secao-holoscan', 'secao-confronto', 'secao-pacientes',
                 'secao-consultas', 'secao-agenda', 'secao-documentos', 'secao-perfil',
                 'secao-corpo', 'secao-mente', 'secao-espirito'];
 const MENU = ['dashboard', 'pacientes', 'consultas', 'agenda', 'documentos',
-              'holoscope', 'holoscan', 'corpo', 'mente', 'espirito', 'perfil'];
+              'holoscan', 'confronto', 'corpo', 'mente', 'espirito', 'perfil'];
 const faltando = SECOES.filter(s => !app.secoes.includes(s));
 const sobrando = app.secoes.filter(s => !SECOES.includes(s));
 
@@ -340,7 +340,7 @@ ok(faltando.length === 0 && sobrando.length === 0,
    (sobrando.length ? ' | apareceu: ' + sobrando.join(', ') : ''));
 ok(JSON.stringify(app.navs) === JSON.stringify(MENU),
    'o menu continua com os mesmos ' + MENU.length + ' itens, na mesma ordem: ' + app.navs.join(', '));
-ok(app.holoscope && app.holoscan, 'HOLOSCOPE e HOLOSCAN continuam abrindo pelo menu');
+ok(app.holoscan && app.confronto, 'HOLOSCAN e Confronto Clínico continuam abrindo pelo menu');
 ok(app.loginNaoEhSecao, 'a tela de entrada nao virou secao nem item de menu');
 
 await nav.close();
@@ -354,9 +354,9 @@ console.log('\n  O — O ATALHO DE DESENVOLVIMENTO SO EXISTE EM LOCALHOST\n');
 // mock de string, o proprio navegador resolve assim. E o teste mais real
 // que da para fazer sem ter feito o deploy ainda.
 const navProd = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
   headless: 'new',
-  args: ['--hide-scrollbars', '--host-resolver-rules=MAP holohacking.com.br 127.0.0.1']
+  args: ['--no-sandbox', '--hide-scrollbars', '--host-resolver-rules=MAP holohacking.com.br 127.0.0.1']
 });
 const pProd = await navProd.newPage();
 const ruimProd = []; pProd.on('pageerror', e => ruimProd.push(e.message));

@@ -160,7 +160,7 @@ test('sistema sem nenhuma resposta fica fora do Indice e das combinacoes', () =>
 /* ---------------------------------------------------------------------------
    Aprofundar — o passo que separa formulario de anamnese
 
-   "O HOLOSCOPE nao e uma lista de perguntas." O que faltava era a pergunta
+   "O HOLOSCAN nao e uma lista de perguntas." O que faltava era a pergunta
    que vem DEPOIS da resposta alta. O texto de cada uma e conteudo do metodo e
    ainda nao existe; o mecanismo se prova aqui, num banco de mentira.
 --------------------------------------------------------------------------- */
@@ -676,8 +676,8 @@ test('a busca cita fonte, secao e linha', soComCorpus, () => {
 
 /**
  * O corpus e so o livro (decisao de 27/08). E o livro NAO fala dos 5 sistemas
- * do HOLOSCOPE: zero ocorrencias de "Fungico", "Acido-Inflamatorio",
- * "HOLOSCOPE" e "Indice HOLOS" nas 145 paginas.
+ * do HOLOSCAN: zero ocorrencias de "Fungico", "Acido-Inflamatorio",
+ * "HOLOSCAN" e "Indice HOLOS" nas 145 paginas.
  *
  * Isso nao e defeito do corpus, e um fato sobre o material: o livro traz a
  * filosofia (Triade do Ser, PSAM, holismo) e os 5 sistemas sao construcao
@@ -693,7 +693,7 @@ test('o livro nao fala dos 5 sistemas - quem responde sao os bancos', () => {
   assert.ok(indice, 'indice precisa existir');
 
   const mencionam = indice.trechos.filter((t) =>
-    /f[uú]ngico|[aá]cido-inflamat[oó]rio|holoscope|[ií]ndice holos/i.test(t.texto)
+    /f[uú]ngico|[aá]cido-inflamat[oó]rio|holoscan|[ií]ndice holos/i.test(t.texto)
   );
   assert.deepEqual(
     mencionam.map((t) => t.id),

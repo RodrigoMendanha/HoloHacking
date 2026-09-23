@@ -3,7 +3,7 @@
  *
  * O que elas prometem, e o que este teste cobra:
  *
- *   Consultas   cada aplicacao do HOLOSCOPE vira uma linha, da mais recente
+ *   Consultas   cada aplicacao do HOLOSCAN vira uma linha, da mais recente
  *               para tras, e a variacao do Indice so existe da 2a em diante.
  *   Agenda      a data derivada e ultima aplicacao + 28 dias; a data marcada
  *               por uma pessoa manda sobre ela; quem nunca teve mapa fica em
@@ -20,8 +20,8 @@ import { readFileSync } from 'node:fs';
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars'] });
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1500, height: 1300 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
@@ -42,8 +42,8 @@ const existem = await p.evaluate(() => {
     agenda: ir('agenda'),
     documentos: ir('documentos'),
     caminho: document.getElementById('caminho-atual').textContent,
-    // o HOLOSCOPE mudou de grupo: e ferramenta, nao atendimento
-    grupoHolo: document.querySelector('.nav-item[data-secao="holoscope"]')
+    // o HOLOSCAN mudou de grupo: e ferramenta, nao atendimento
+    grupoHolo: document.querySelector('.nav-item[data-secao="holoscan"]')
                  .closest('.nav-grupo')
                  .getAttribute('aria-labelledby'),
     grupoConsultas: document.querySelector('.nav-item[data-secao="consultas"]')
@@ -56,7 +56,7 @@ conferir(existem.consultas && existem.agenda && existem.documentos,
 conferir(existem.caminho === 'Documentos',
   'o caminho no topo acompanha: ' + existem.caminho);
 conferir(existem.grupoHolo === 'nav-grupo-recursos',
-  'HOLOSCOPE esta em Recursos');
+  'HOLOSCAN esta em Recursos');
 conferir(existem.grupoConsultas === 'nav-grupo-atendimento',
   'Consultas esta em Atendimento');
 
@@ -87,7 +87,7 @@ const ids = await p.evaluate(async (respostas) => {
     await new Promise(x => setTimeout(x, 300));
     return window.pacienteAtivoId();
   };
-  const sentido = {}; HOLOSCOPE.questionario().forEach(q => sentido[q.id] = q.sentido);
+  const sentido = {}; HOLOSCAN.questionario().forEach(q => sentido[q.id] = q.sentido);
   const variar = n => respostas.map(x => ({ marcador_id: x.marcador_id,
     intensidade: sentido[x.marcador_id] === 'invertido'
       ? Math.min(3, Math.max(0, x.intensidade + n))
@@ -108,16 +108,16 @@ const ids = await p.evaluate(async (respostas) => {
 
   // Marina: duas aplicacoes, a segunda melhor — ha evolucao para mostrar
   const marina = await novo('Marina Alves');
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
-  window.aplicarPontuacao(HOLOSCOPE.calcular(respostas));
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
+  window.aplicarPontuacao(HOLOSCAN.calcular(respostas));
   datar(marina, 0, dias(-40));
-  window.aplicarPontuacao(HOLOSCOPE.calcular(variar(2)));
+  window.aplicarPontuacao(HOLOSCAN.calcular(variar(2)));
   datar(marina, 1, dias(-20));       // +28 = daqui a 8 dias -> "mais adiante"
 
   // Carla: uma aplicacao velha — a reavaliacao dela ja venceu
   const carla = await novo('Carla Souza');
-  document.querySelector('.nav-item[data-secao="holoscope"]').click();
-  window.aplicarPontuacao(HOLOSCOPE.calcular(variar(1)));
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
+  window.aplicarPontuacao(HOLOSCAN.calcular(variar(1)));
   datar(carla, 0, dias(-60));        // +28 = 32 dias atras  -> vencida
 
   // Sofia: cadastrada e nada feito — nao tem data nenhuma

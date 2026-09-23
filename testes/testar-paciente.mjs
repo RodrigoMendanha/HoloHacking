@@ -8,8 +8,8 @@
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({
-  executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless: 'new', args: ['--hide-scrollbars']
+  executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless: 'new', args: ['--no-sandbox', '--hide-scrollbars']
 });
 const p = await nav.newPage();
 await p.setViewport({ width: 1500, height: 950 });
@@ -18,8 +18,8 @@ const ruim = []; p.on('pageerror', e => ruim.push(e.message));
 // dois pacientes de mentira, injetados antes do app subir
 await p.evaluateOnNewDocument(() => {
   window.__PACIENTES = [
-    { id: 'p-marina', nome: 'Marina Alves', oq3: {}, pqq: {}, holoscope: {} },
-    { id: 'p-carla', nome: 'Carla Ribeiro', oq3: {}, pqq: {}, holoscope: {} }
+    { id: 'p-marina', nome: 'Marina Alves', oq3: {}, pqq: {}, holoscan: {} },
+    { id: 'p-carla', nome: 'Carla Ribeiro', oq3: {}, pqq: {}, holoscan: {} }
   ];
 });
 await p.goto('http://127.0.0.1:5500/', { waitUntil: 'networkidle2' });

@@ -7,8 +7,8 @@ writeFileSync('amostras/exame.pdf', '%PDF-1.4\n1 0 obj<</Type/Catalog>>endobj\nt
 writeFileSync('amostras/laudo.png', Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==','base64'));
 
-const nav = await puppeteer.launch({ executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  headless:'new', args:['--hide-scrollbars'] });
+const nav = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  headless:'new', args:['--no-sandbox','--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({width:1400,height:1000});
 const ruim=[]; p.on('pageerror',e=>ruim.push(e.message));
