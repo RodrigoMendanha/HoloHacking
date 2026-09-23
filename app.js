@@ -129,7 +129,7 @@
   const nomesSecao = {
     dashboard:"Dashboard", pacientes:"Pacientes", consultas:"Consultas",
     agenda:"Agenda", documentos:"Documentos",
-    holoscope:"HOLOSCOPE", holoscan:"HOLOSCAN",
+    holoscope:"HOLOSCAN", holoscan:"Confronto Clínico",
     corpo:"Módulo Corpo", mente:"Módulo Mente",
     espirito:"Módulo Espírito", perfil:"Perfil"
   };
@@ -511,7 +511,7 @@
 
   function menuDoPaciente(p, s){
     const itens = [
-      { acao:"holoscope",    texto: s.dados.pontuacao ? "Reaplicar HOLOSCOPE" : "Aplicar HOLOSCOPE" },
+      { acao:"holoscope",    texto: s.dados.pontuacao ? "Reaplicar HOLOSCAN" : "Aplicar HOLOSCAN" },
       { acao:"questionario", texto:"Abrir questionário" },
       { acao:"corpo",        texto:"Aplicar OQ³" },
       { acao:"mente",        texto:"Aplicar PQQ" },
@@ -653,7 +653,7 @@
     if(!esperando.length){
       alvo.innerHTML = '<div class="lista-vazia"><strong>Nada esperando por você</strong>'
         + "<span>Quando alguém tiver questionário, exame ou ferramenta preenchidos "
-        + "sem o HOLOSCOPE aplicado, aparece aqui.</span></div>";
+        + "sem o HOLOSCAN aplicado, aparece aqui.</span></div>";
       return;
     }
 
@@ -676,7 +676,7 @@
           + '<span class="pac-meta"><span class="pac-dado">' + escapar(feito.join(" · "))
           + "</span></span></span>"
           + '<button type="button" class="pac-acao-principal" data-passo="holoscope" '
-          + 'data-id="' + p.id + '">Gerar HOLOSCOPE</button>'
+          + 'data-id="' + p.id + '">Gerar HOLOSCAN</button>'
           + "</div>";
       }).join("") + "</div>";
   }
@@ -2636,7 +2636,7 @@
 
   $("#btn-salvar-holoscope").addEventListener("click", async () => {
     const p = pacienteAtivo();
-    if(!p){ toast("Selecione um paciente para salvar o HOLOSCOPE."); return; }
+    if(!p){ toast("Selecione um paciente para salvar o HOLOSCAN."); return; }
 
     const scores = pontuacaoNaTela
       ? ORDEM_MOTOR.map(id => {
@@ -2715,7 +2715,7 @@
 
       if (rpcErr) {
         console.error("RPC holoscope:", rpcErr);
-        toast("Erro ao salvar HOLOSCOPE no servidor.");
+        toast("Erro ao salvar HOLOSCAN no servidor.");
         return;
       }
 
@@ -2741,7 +2741,7 @@
       } catch(e) { /* nao critico */ }
 
       renderPacientes();
-      toast("HOLOSCOPE salvo na ficha de " + p.nome.split(" ")[0] + ". Score: " + total);
+      toast("HOLOSCAN salvo na ficha de " + p.nome.split(" ")[0] + ". Score: " + total);
       return;
     }
 
@@ -2756,11 +2756,11 @@
     };
 
     const { data, error } = await sb.from("holoscope").insert(dados).select().single();
-    if(error){ toast("Erro ao salvar HOLOSCOPE."); return; }
+    if(error){ toast("Erro ao salvar HOLOSCAN."); return; }
 
     p.holoscope = data;
     renderPacientes();
-    toast("HOLOSCOPE salvo na ficha de " + p.nome.split(" ")[0] + ". Score: " + total);
+    toast("HOLOSCAN salvo na ficha de " + p.nome.split(" ")[0] + ". Score: " + total);
   });
 
   $("#btn-limpar-holoscope").addEventListener("click", () => {
@@ -2769,7 +2769,7 @@
       $("#val-" + s).textContent = "0";
     });
     updateRadar([0,0,0,0,0]);
-    toast("HOLOSCOPE limpo.");
+    toast("HOLOSCAN limpo.");
   });
 
   /* ---------- inicializacao ---------- */

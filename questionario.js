@@ -1,5 +1,5 @@
 /* ===========================================================================
-   QUESTIONARIO DO HOLOSCOPE — as 84 perguntas
+   QUESTIONARIO DO HOLOSCAN — as 84 perguntas
    ===========================================================================
 
    As perguntas NAO estao escritas aqui. Vem de HOLOSCOPE.questionario(), que

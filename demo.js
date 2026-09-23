@@ -111,7 +111,7 @@
   /**
    * Rolagem continua. Antes ela ia de ZERO ate o alvo, entao toda cena nova
    * pulava de volta ao topo da pagina e descia de novo — parecia outro take.
-   * Agora parte de onde a pagina esta e segue para o alvo: a tela do HOLOSCOPE
+   * Agora parte de onde a pagina esta e segue para o alvo: a tela do HOLOSCAN
    * vira uma descida so, do radar ate a conduta.
    */
   /**

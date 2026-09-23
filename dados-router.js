@@ -40,7 +40,7 @@
   var TIPO_PARA_SUPA = {
     "Primeira consulta": "primeira_consulta",
     "Retorno": "retorno",
-    "Reavaliação HOLOSCOPE": "reavaliacao_holoscope",
+    "Reavaliação HOLOSCAN": "reavaliacao_holoscope",
     "Online": "online"
   };
   var TIPO_PARA_FRONT = {};

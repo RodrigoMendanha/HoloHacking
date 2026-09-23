@@ -121,7 +121,7 @@
   };
 
   /* Leitura do Holoscan na sua propria secao (#secao-holoscan), logo abaixo
-     do HOLOSCOPE no menu — saiu de dentro de #secao-holoscope, onde era o
+     do HOLOSCAN no menu — saiu de dentro de #secao-holoscope, onde era o
      item 8 e sugeria que o mapa se corrigia com exame.
      O lancamento dos valores continua na aba Documentos da ficha (nao move
      #ex-corpo nem os listeners de ligarPainel()) — este bloco e so leitura,
@@ -145,7 +145,7 @@
     var porSistema = {};
     lista.forEach(function (e) { (porSistema[e.sistema] = porSistema[e.sistema] || []).push(e); });
 
-    /* Sem cabeca propria: quando este bloco era o item 8 do HOLOSCOPE ele
+    /* Sem cabeca propria: quando este bloco era o item 8 do HOLOSCAN ele
        precisava se apresentar no meio da pagina. Agora #secao-holoscan ja
        tem titulo e subtitulo, e repetir "o que os exames acrescentam" duas
        vezes na mesma tela so empurrava o conteudo para baixo. O aviso de
@@ -208,18 +208,18 @@
       '<button type="button" class="btn-verde" data-ir="aba:documentos">Registrar exames</button>' +
     "</div>";
 
-    // Secao 3: nao bloqueia o registro sem HOLOSCOPE, so avisa que o
+    // Secao 3: nao bloqueia o registro sem HOLOSCAN, so avisa que o
     // confronto depende de um mapa disponivel — a mesma frase que
     // #ex-confronto ja usa quando nao ha mapa (desenharConfronto()).
     var avisoSemMapa = !temMapa
-      ? '<p class="dash-vazio">Sem HOLOSCOPE aplicado, o confronto ainda não tem com o que comparar — ' +
+      ? '<p class="dash-vazio">Sem HOLOSCAN aplicado, o confronto ainda não tem com o que comparar — ' +
         "toda dimensão aparece como dados insuficientes até existir um mapa.</p>"
       : "";
 
     if (quantidade === 0) {
       alvo.innerHTML = topo +
         '<div class="lista-vazia"><strong>Nenhum exame registrado</strong>' +
-        "<span>Registre exames para confrontar os dados laboratoriais com o mapa do HOLOSCOPE.</span></div>" +
+        "<span>Registre exames para confrontar os dados laboratoriais com o mapa do HOLOSCAN.</span></div>" +
         avisoSemMapa;
       ligarHoloscanAba();
       return;
@@ -277,8 +277,8 @@
 
     // Secao 7: a relacao entre as duas camadas, sem linguagem de correcao.
     html += '<div class="fic-continuidade">' +
-      '<span class="fic-rot">HOLOSCOPE &rarr; mapa de investigação</span>' +
-      '<span class="fic-rot">HOLOSCAN &rarr; confronto com exames</span>' +
+      '<span class="fic-rot">HOLOSCAN &rarr; mapa de investigação</span>' +
+      '<span class="fic-rot">Confronto Clínico &rarr; confronto com exames</span>' +
     "</div>";
 
     alvo.innerHTML = html;
@@ -452,7 +452,7 @@
       s.textContent = a.situacao === "baixo" ? "abaixo" : "acima";
       s.className = "ex-situacao fora";
       l.classList.add("alterado");
-      // Revisao clinica do HOLOSCOPE: o tooltip deixou de mostrar o texto
+      // Revisao clinica do HOLOSCAN: o tooltip deixou de mostrar o texto
       // cru de exames.csv (leitura_baixo/leitura_alto) — frases como
       // "Resistência à insulina instalada" ou "Sobrecarga hepática" vazando
       // direto no DOM. O CSV continua intacto para revisao futura; a tela
@@ -465,7 +465,7 @@
     desenharConfronto(r, n);
     // #holo-holoscan (agora em #secao-holoscan) le os MESMOS exames — sem
     // isso, editar um exame aqui na aba Documentos deixava aquele bloco
-    // parado na leitura de antes ate o proximo "Salvar HOLOSCOPE".
+    // parado na leitura de antes ate o proximo "Salvar HOLOSCAN".
     if (window.desenharHoloscan) window.desenharHoloscan("holo-holoscan");
 
     if (salvarNoSupa) salvarColetaSupa(valores);
@@ -537,18 +537,18 @@
     var alvo = document.getElementById("ex-confronto");
     if (!alvo) return;
 
-    // Revisao clinica do HOLOSCOPE (Holoscan): nao esconde mais o bloco so
+    // Revisao clinica do HOLOSCAN (Confronto Clínico): nao esconde mais o bloco so
     // porque nenhum exame foi lancado ainda — sem exame e DADOS
     // INSUFICIENTES, um estado que a tela precisa mostrar, nao omitir.
 
     var temMapa = Object.keys(notasDoPaciente()).length > 0;
     if (!temMapa) {
-      alvo.innerHTML = '<p class="arq-nota">Aplique o questionário do HOLOSCOPE ' +
+      alvo.innerHTML = '<p class="arq-nota">Aplique o questionário do HOLOSCAN ' +
         'para este paciente e o exame passa a ser confrontado com o mapa.</p>';
       return;
     }
 
-    // Revisao clinica do HOLOSCOPE (Holoscan): os tres estados aparecem
+    // Revisao clinica do HOLOSCAN (Confronto Clínico): os tres estados aparecem
     // sempre, incluindo DADOS INSUFICIENTES — antes a linha simplesmente
     // sumia quando nao havia exame do sistema, e a ausencia de dado nao
     // pode virar ausencia de linha na tela. O texto e sempre o do Holoscan,
@@ -661,7 +661,7 @@
 
       '<section class="arq-cartao">' +
         '<h4 class="arq-titulo">Os valores do exame</h4>' +
-        '<p class="fluxo-clinico">História &rarr; HOLOSCOPE &rarr; <b>Holoscan</b> &rarr; Aprofundamento &rarr; Interpretação &rarr; Conduta &rarr; Evolução</p>' +
+        '<p class="fluxo-clinico">História &rarr; HOLOSCAN &rarr; <b>Confronto Clínico</b> &rarr; Aprofundamento &rarr; Interpretação &rarr; Conduta &rarr; Evolução</p>' +
         '<p class="arq-sub">Opcional. Na primeira consulta o paciente costuma não ter ' +
         "exame nenhum, e o mapa não depende disto. O exame <b>não altera o Índice</b> " +
         "&mdash; ele confronta o que o paciente relatou com o que o sangue mostra.</p>" +
@@ -670,7 +670,7 @@
       "</section>" +
 
       '<div class="fic-continuidade">' +
-        '<span class="fic-rot">Consulta &rarr; HOLOSCOPE &rarr; HOLOSCAN &rarr; Documentos</span>' +
+        '<span class="fic-rot">Consulta &rarr; HOLOSCAN &rarr; Confronto Clínico &rarr; Documentos</span>' +
       "</div>";
 
     ligarDocumentos();
@@ -710,7 +710,7 @@
         // Rodada de consistencia: o CTA do topo (.fic-consultas-topo) ja
         // cobre o "Adicionar documento" — um segundo botao igual dentro do
         // card vazio so duplicava (era a unica aba assim; Consultas/
-        // HOLOSCOPE/HOLOSCAN ja usavam um so).
+        // HOLOSCAN/Confronto ja usavam um so).
         alvo.innerHTML = '<div class="lista-vazia"><strong>Nenhum documento adicionado</strong>' +
           "<span>Adicione arquivos e materiais relacionados à jornada deste paciente.</span></div>";
         desenharAtalhosDeExame(itens);
@@ -860,12 +860,12 @@
       "</header>";
 
     /* ====================================================================
-       A. HOLOSCOPE — autorrelato, prioridades, sistemas, triade, cobertura.
+       A. HOLOSCAN — autorrelato, prioridades, sistemas, triade, cobertura.
        O Indice entra no FIM desta secao, como informacao secundaria — nao
        no cabecalho — e as CMB/textos interpretativos nao confirmados nao
-       aparecem (ver decisoes 1 e 2 da revisao clinica do HOLOSCOPE). */
+       aparecem (ver decisoes 1 e 2 da revisao clinica do HOLOSCAN). */
     html += '<section class="rel-parte" data-origem="automatico">' +
-      "<h3>A. HOLOSCOPE — o que o paciente relatou</h3>" +
+      "<h3>A. HOLOSCAN — o que o paciente relatou</h3>" +
       // Secao 3 da Etapa 6: a data da APLICACAO, nao a de hoje (.rel-meta do
       // cabecalho ja mostra quando o relatorio foi gerado — sao datas
       // diferentes, e a antiga faltava aqui).
@@ -907,7 +907,7 @@
         "Espiritual <b>" + p.triada.espiritual.toFixed(1) + "</b></p></div>";
     }
 
-    // Revisao clinica do HOLOSCOPE: nenhuma CMB aparece no relatorio nesta
+    // Revisao clinica do HOLOSCAN: nenhuma CMB aparece no relatorio nesta
     // rodada (ver app.js, cmbParaExibir()) — inclusive a CMB-001, e nos dois
     // registros ("nutricionista" e "paciente"). Bloco so nasce se houver algo.
     var combinacoesParaExibir = window.cmbParaExibir ? window.cmbParaExibir(p.combinacoes) : [];
@@ -919,7 +919,7 @@
       html += "</div>";
     }
 
-    // Revisao clinica do HOLOSCOPE (decisao 2): o paragrafo interpretativo de
+    // Revisao clinica do HOLOSCAN (decisao 2): o paragrafo interpretativo de
     // mensagens.csv (status=rascunho nas 30 linhas) sai da saida clinica; a
     // secao "Os cinco sistemas" continua, so com dado objetivo/calculado.
     html += '<div class="rel-bloco"><h4>Os cinco sistemas</h4>';
@@ -948,7 +948,7 @@
     var ex = ler(CHAVE_EX);
     var rExames = g.lerExames(ex, notasDoPaciente());
     html += '<section class="rel-parte" data-origem="automatico">' +
-      "<h3>B. HOLOSCAN — o que os exames acrescentam</h3><div class=\"rel-bloco\">";
+      "<h3>B. Confronto Clínico — o que os exames acrescentam</h3><div class=\"rel-bloco\">";
     rExames.confronto.forEach(function (c) {
       html += "<p><b>" + NOME_SISTEMA[c.sistema] + "</b> — " +
         escapar(window.Holoscan.rotulo(c)) + ". " + escapar(window.Holoscan.texto(c)) + "</p>";
@@ -1108,7 +1108,7 @@
         if (aviso) {
           aviso.textContent = salvou
             ? "Salvo."
-            : "Aplique o HOLOSCOPE hoje antes de registrar a interpretação.";
+            : "Aplique o HOLOSCAN hoje antes de registrar a interpretação.";
         }
         return;
       }

@@ -10,7 +10,7 @@
    Agora o historico e guardado, e isto o le. Nao calcula nada: as duas
    Pontuacoes ja vieram prontas do motor. Aqui so se faz a subtracao.
 
-   Aparece na tela do HOLOSCOPE quando houver mais de uma aplicacao. Com uma
+   Aparece na tela do HOLOSCAN quando houver mais de uma aplicacao. Com uma
    so, nao aparece — comparar um ponto consigo mesmo nao diz nada.
    =========================================================================== */
 

@@ -61,7 +61,7 @@
   var MODULOS = [
     { id: "consultas", nome: "Consultas",
       resumo: "O histórico de atendimentos da carteira inteira",
-      texto: "Cada aplicação do HOLOSCOPE vira uma linha, em ordem de tempo. " +
+      texto: "Cada aplicação do HOLOSCAN vira uma linha, em ordem de tempo. " +
              "Se você só olha paciente por paciente, pela ficha, pode deixar desativado." },
     { id: "agenda", nome: "Agenda",
       resumo: "Quem precisa voltar, e quando",
@@ -801,7 +801,7 @@
       "seus pacientes não estão expostos em lugar nenhum, e ninguém faz cópia deles " +
       "por você. Limpar os dados do navegador apaga tudo. <b>Exporte de vez em quando.</b></p>" +
       '<p class="perf-ajuda">O backup completo leva <b>tudo</b>: cadastro, mapas ' +
-      "HOLOSCOPE, respostas do questionário, valores de exame, consultas, ferramentas " +
+      "HOLOSCAN, respostas do questionário, valores de exame, consultas, ferramentas " +
       "aplicadas, seu perfil — e os arquivos (laudos, fotos, sua assinatura). Fica de " +
       "fora só a aparência clara/escura, que é preferência deste navegador.</p>" +
       '<div class="perf-foto-acoes">' +
@@ -903,7 +903,7 @@
   /* Os quatro grupos que um V1 nunca carregou, em portugues de gente. */
   var NOME_CAIXA = {
     questionario: "as respostas do questionário",
-    pontuacao: "o histórico de mapas HOLOSCOPE",
+    pontuacao: "o histórico de mapas HOLOSCAN",
     exames: "os valores de exame",
     arquivos: "os arquivos (laudos, fotos, assinatura)"
   };

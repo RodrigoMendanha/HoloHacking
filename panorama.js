@@ -101,8 +101,8 @@
     var saida = [];
 
     if (!d.pontuacao && d.respondidas === 0) {
-      saida.push({ peso: 3, grau: "abrir", curto: "sem HOLOSCOPE",
-                   texto: "Sem HOLOSCOPE aplicado.",
+      saida.push({ peso: 3, grau: "abrir", curto: "sem HOLOSCAN",
+                   texto: "Sem HOLOSCAN aplicado.",
                    acao: "holoscope", botao: "Aplicar agora" });
     } else if (!d.pontuacao && d.respondidas > 0) {
       saida.push({ peso: 1, grau: "aviso",
@@ -303,7 +303,7 @@
 
   /* ---------- as consultas: o que ja aconteceu ---------------------------
 
-     Cada aplicacao do HOLOSCOPE e um atendimento, e o app ja guardava todas,
+     Cada aplicacao do HOLOSCAN e um atendimento, e o app ja guardava todas,
      por paciente, para poder comparar 4, 8 e 12 semanas. O que faltava era
      poder olhar isso de FORA do paciente: o que foi atendido, em ordem de
      tempo, na carteira inteira.

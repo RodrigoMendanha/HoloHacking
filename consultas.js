@@ -2,7 +2,7 @@
    CONSULTAS — o que ja aconteceu, em ordem de tempo
    ===========================================================================
 
-   O app guardava cada aplicacao do HOLOSCOPE dentro do paciente. Isso responde
+   O app guardava cada aplicacao do HOLOSCAN dentro do paciente. Isso responde
    "como a Marina evoluiu", e responde bem. Mas nao responde "o que eu atendi
    este mes" — e essa e a pergunta de quem precisa saber se a semana rendeu,
    quem sumiu, e ha quanto tempo nao aparece ninguem.
@@ -134,18 +134,18 @@
       '<div class="secao-cabeca">' +
         '<span class="eyebrow">Atendimento &mdash; histórico</span>' +
         "<h2>Suas <em>consultas</em></h2>" +
-        "<p>Cada aplicação do HOLOSCOPE® é um atendimento registrado. " +
+        "<p>Cada aplicação do HOLOSCAN é um atendimento registrado. " +
         "Esta é a linha do tempo da sua carteira inteira, da mais recente para a mais antiga.</p>" +
       "</div>";
 
     if (lista.length === 0) {
       alvo.innerHTML = cabeca +
         '<p class="dash-vazio">Nenhum atendimento registrado ainda. ' +
-        "A primeira consulta aparece aqui assim que você aplicar o HOLOSCOPE® em alguém.</p>" +
+        "A primeira consulta aparece aqui assim que você aplicar o HOLOSCAN em alguém.</p>" +
         '<div class="dash-primeiro">' +
           "<p>O mapa é o que transforma a conversa em registro.</p>" +
           '<button type="button" class="btn-verde" data-secao-destino="holoscope">' +
-          "Aplicar o HOLOSCOPE®</button>" +
+          "Aplicar o HOLOSCAN</button>" +
         "</div>";
       ligar();
       return;

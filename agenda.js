@@ -41,7 +41,7 @@
   var HORA_FIM = 21;
   var ALTURA_HORA = 52;          // px por hora, igual em Dia e Semana
 
-  var TIPOS = ["Primeira consulta", "Retorno", "Reavaliação HOLOSCOPE", "Online"];
+  var TIPOS = ["Primeira consulta", "Retorno", "Reavaliação HOLOSCAN", "Online"];
   var DURACOES = [30, 45, 60, 90];
 
   var DIAS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
@@ -605,7 +605,7 @@
     editando = { tipo: "consulta", dado: {
       paciente_id: pid || (pacientes[0] ? pacientes[0].id : ""),
       data: dia || iso(foco), hora: hora || "09:00",
-      duracao: 60, tipo: pid ? "Reavaliação HOLOSCOPE" : "Retorno", nota: ""
+      duracao: 60, tipo: pid ? "Reavaliação HOLOSCAN" : "Retorno", nota: ""
     } };
     desenhar();
   }

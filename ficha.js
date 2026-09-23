@@ -16,7 +16,7 @@
      LINHA DO TEMPO o que aconteceu com esta pessoa, em ordem
      FORMULÁRIOS    o que foi respondido — e o que dá para reler
 
-   Sobre Formulários: no método, o HOLOSCOPE É um formulário — 84 perguntas
+   Sobre Formulários: no método, o HOLOSCAN É um formulário — 84 perguntas
    respondidas numa escala de 0 a 3. O OQ³, o PQQ e o Mapa do Propósito também
    são. O que faltava era poder RELER o que a pessoa respondeu: o app calculava
    a nota e jogava as respostas numa caixa que nenhuma tela abria. A janela de
@@ -243,7 +243,7 @@
     }
 
     if (!d.pontuacao) {
-      html += '<div class="dash-vazio">Sem HOLOSCOPE aplicado. O mapa é o que ' +
+      html += '<div class="dash-vazio">Sem HOLOSCAN aplicado. O mapa é o que ' +
         "transforma o que ela conta em leitura — e é dele que sai tudo o que " +
         "aparece nesta aba.</div>";
       html += blocoDocumentosPlaceholder() + blocoExames(d);
@@ -287,7 +287,7 @@
             '<span class="fic-barra-faixa">' + escapar(s.faixa || "") + "</span></div>";
         }).join("") + "</div>";
 
-    // Revisao clinica do HOLOSCOPE: nenhuma CMB aparece na interface clinica
+    // Revisao clinica do HOLOSCAN: nenhuma CMB aparece na interface clinica
     // nesta rodada (ver app.js, cmbParaExibir()) — inclusive a CMB-001.
     var combinacoesParaExibir = window.cmbParaExibir ? window.cmbParaExibir(p.combinacoes) : [];
     if (combinacoesParaExibir.length > 0) {
@@ -320,9 +320,9 @@
   function blocoContinuidade() {
     return '<div class="fic-continuidade">' +
       '<span class="fic-rot">Depois da consulta</span>' +
-      '<button type="button" class="fic-chip" data-ir="holoscope">HOLOSCOPE</button>' +
+      '<button type="button" class="fic-chip" data-ir="holoscope">HOLOSCAN</button>' +
       '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span>' +
-      '<button type="button" class="fic-chip" data-ir="holoscan">HOLOSCAN</button>' +
+      '<button type="button" class="fic-chip" data-ir="holoscan">Confronto Clínico</button>' +
       '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span>' +
       '<button type="button" class="fic-chip" data-ir="aba:documentos">Documentos</button>' +
     "</div>";
@@ -392,17 +392,17 @@
     ligar(alvo);
   }
 
-  /* ==================================================== ABA: HOLOSCOPE === */
+  /* ==================================================== ABA: HOLOSCAN ==== */
 
-  /* HOLOSCOPE e mapa de investigacao e prioridade, nao diagnostico — o
+  /* HOLOSCAN e mapa de investigacao e prioridade, nao diagnostico — o
      mesmo texto que ja existe no rodape da aba Visao Geral (holo-fronteira,
      index.html). Nada aqui calcula, reordena sistema ou toca na Triade:
      so le d.pontuacao/d.historico, que Panorama.doPaciente() ja monta a
-     partir do que o motor e a tela do HOLOSCOPE ja gravaram. */
+     partir do que o motor e a tela do HOLOSCAN ja gravaram. */
   function blocoContinuidadeHoloscan() {
     return '<div class="fic-continuidade">' +
       '<span class="fic-rot">Depois do mapa</span>' +
-      '<button type="button" class="fic-chip" data-ir="holoscan">Confrontar no HOLOSCAN</button>' +
+      '<button type="button" class="fic-chip" data-ir="holoscan">Confrontar no Confronto Clínico</button>' +
     "</div>";
   }
 
@@ -416,7 +416,7 @@
         // so a ultima tem detalhe guardado (respostas) para reabrir de verdade
         ? '<button type="button" class="dash-ir" data-ver="holoscope">Abrir resultado ' +
           '<span aria-hidden="true">&rarr;</span></button>'
-        : '<button type="button" class="dash-ir" data-ir="holoscope">Ver HOLOSCOPE ' +
+        : '<button type="button" class="dash-ir" data-ir="holoscope">Ver HOLOSCAN ' +
           '<span aria-hidden="true">&rarr;</span></button>') +
     "</li>";
   }
@@ -428,12 +428,12 @@
 
     var topo = '<div class="fic-consultas-topo">' +
       '<button type="button" class="btn-verde" data-ir="holoscope">' +
-        (d.pontuacao ? "Nova aplicação" : "Iniciar HOLOSCOPE") +
+        (d.pontuacao ? "Nova aplicação" : "Iniciar HOLOSCAN") +
       "</button></div>";
 
     if (!d.historico.length) {
       alvo.innerHTML = topo +
-        '<div class="lista-vazia"><strong>Nenhuma aplicação HOLOSCOPE</strong>' +
+        '<div class="lista-vazia"><strong>Nenhuma aplicação HOLOSCAN</strong>' +
         "<span>Faça a primeira aplicação para mapear prioridades de investigação.</span></div>" +
         blocoContinuidadeHoloscan();
       ligar(alvo);
@@ -491,8 +491,8 @@
 
     (d.historico || []).forEach(function (p, i) {
       eventos.push({
-        quando: p.quando, tipo: "mapa", selo: "HOLOSCOPE",
-        titulo: (i + 1) + "ª aplicação do HOLOSCOPE",
+        quando: p.quando, tipo: "mapa", selo: "HOLOSCAN",
+        titulo: (i + 1) + "ª aplicação do HOLOSCAN",
         detalhe: "Índice " + p.indice + " de " + p.indice_maximo,
         acao: "aba:visao"
       });
@@ -619,7 +619,7 @@
     var fichas = [
       {
         id: "holoscope",
-        nome: "HOLOSCOPE&reg; &mdash; questionário integral",
+        nome: "HOLOSCAN &mdash; questionário integral",
         sub: "84 perguntas em três blocos: raízes físicas, padrões emocionais e " +
              "Terreno Espiritual. É dele que sai o Índice e os cinco sistemas.",
         estado: d.respondidas === 0
@@ -699,7 +699,7 @@
       })()
     ];
 
-    var html = '<p class="dash-sub">No método, o HOLOSCOPE é um formulário: 84 ' +
+    var html = '<p class="dash-sub">No método, o HOLOSCAN é um formulário: 84 ' +
       "respostas numa escala de 0 a 3. Aqui estão os quatro do método e o que " +
       "já foi respondido em cada um.</p>";
 
@@ -755,7 +755,7 @@
     });
 
     document.getElementById("fic-janela-titulo").innerHTML =
-      "HOLOSCOPE&reg; &mdash; respostas de " + escapar(p ? p.nome : "paciente");
+      "HOLOSCAN &mdash; respostas de " + escapar(p ? p.nome : "paciente");
     document.getElementById("fic-janela-sub").textContent =
       respondidas.length + " de " + perguntas.length + " perguntas respondidas. " +
       "O número ao lado de cada uma é o que ela vale na escala, de 0 a 3.";

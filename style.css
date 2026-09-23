@@ -569,7 +569,7 @@ mark{background:rgba(201,163,90,.32);color:inherit;border-radius:3px;padding:0 2
 .linha-dupla{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .acoes-form{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:8px}
 /* Acao primaria da plataforma — um estilo so, para nao ter "Novo paciente"
-   parecendo um botao diferente de "Nova consulta"/"Iniciar HOLOSCOPE"
+   parecendo um botao diferente de "Nova consulta"/"Iniciar HOLOSCAN"
    dependendo da tela. inline-flex+gap nao muda nada nos botoes so-texto
    (ja eram a maioria) e deixa os com icone (ex.: #btn-abrir-novo) alinhados. */
 .btn-verde{
@@ -651,7 +651,7 @@ mark{background:rgba(201,163,90,.32);color:inherit;border-radius:3px;padding:0 2
 }
 .btn-dourado:hover{transform:translateY(-2px);filter:brightness(1.05);box-shadow:0 14px 36px rgba(201,163,90,.38)}
 
-/* ---------- HOLOSCOPE ---------- */
+/* ---------- HOLOSCAN ---------- */
 .holo-sistemas{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin:28px 0}
 .holo-card{
   border:1px solid rgba(201,163,90,.28);border-radius:14px;
@@ -724,7 +724,7 @@ input[type="range"]::-moz-range-thumb{
   font-family:var(--fonte-display);
 }
 
-/* Revisao clinica do HOLOSCOPE: o Indice deixou de ser o elemento hero da
+/* Revisao clinica do HOLOSCAN: o Indice deixou de ser o elemento hero da
    tela (era 5rem, dourado, primeiro bloco) e virou informacao secundaria —
    mesma caixa, escala reduzida, sem competir com o Mapa de Prioridades. */
 .holo-score-box.holo-secundario{
@@ -734,7 +734,7 @@ input[type="range"]::-moz-range-thumb{
 .holo-score-box.holo-secundario .holo-score-label{margin-top:2px}
 .holo-score-box.holo-secundario .holo-score-interpretacao{margin-top:10px;font-size:.82rem}
 
-/* Aviso neutro dentro do painel escuro do HOLOSCOPE — mesmo padrao visual de
+/* Aviso neutro dentro do painel escuro do HOLOSCAN — mesmo padrao visual de
    .holo-fronteira (a unica outra frase solta que ja vive direto no fundo
    escuro do painel, sem caixa de cartao por baixo). */
 .holo-nota-neutra{
@@ -898,7 +898,7 @@ body.escuro .btn-tema .icone-lua{display:none}
   text-transform:none;color:var(--texto-suave);opacity:.75;margin-top:3px;
 }
 
-/* ---------- HOLOSCOPE: leitura do terreno ---------- */
+/* ---------- HOLOSCAN: leitura do terreno ---------- */
 /* O numero sozinho nao e o produto. Isto mostra o padrao emocional, o impacto
    espiritual dos sistemas mais baixos e por onde a conduta comeca. */
 
@@ -1118,7 +1118,7 @@ body.escuro .btn-tema .icone-lua{display:none}
   .triada-corpo{gap:22px;justify-content:center}
 }
 
-/* ---------- HOLOSCOPE: questionario das 87 perguntas ---------- */
+/* ---------- HOLOSCAN: questionario das 84 perguntas ---------- */
 
 .holo-modos{
   display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:26px;
@@ -1325,7 +1325,7 @@ body.escuro .btn-tema .icone-lua{display:none}
   padding:14px 20px;border-radius:var(--raio,12px);
   border:1px solid rgba(201,163,90,.2);
 }
-/* Revisao clinica do HOLOSCOPE (Holoscan): os nomes de classe passaram a
+/* Revisao clinica do HOLOSCAN (Confronto Clinico): os nomes de classe passaram a
    ser os tres estados do Holoscan (convergente/divergente/dados_insuficientes)
    em vez de confirma/diverge do motor — so a apresentacao, o motor continua
    devolvendo confirma/diverge/sem_exame como sempre. */
@@ -1459,8 +1459,8 @@ body.escuro .btn-tema .icone-lua{display:none}
 .rel-sistema p{font-size:.9rem;font-weight:300;line-height:1.6;color:var(--texto-suave);margin:0 0 6px}
 .rel-passos em{color:var(--dourado);font-style:normal;font-weight:500}
 
-/* Revisao clinica do HOLOSCOPE: o relatorio passou a separar tres partes —
-   HOLOSCOPE (automatico), HOLOSCAN (automatico) e Interpretacao profissional
+/* Revisao clinica do HOLOSCAN: o relatorio passou a separar tres partes —
+   HOLOSCAN (automatico), Confronto Clinico (automatico) e Interpretacao profissional
    — cada uma com etiqueta visivel, para nunca misturar texto automatico com
    o que a nutricionista escreveu sem dizer qual e qual (teste J). */
 .rel-parte{margin-top:34px;padding-top:22px;border-top:2px solid rgba(201,163,90,.25)}
@@ -1601,7 +1601,7 @@ body.escuro .btn-tema .icone-lua{display:none}
 .fic-continuidade .fic-rot{margin-right:2px}
 .fic-continuidade-seta{color:var(--texto-suave);opacity:.6;font-size:.8rem}
 
-/* ---------- aba HOLOSCOPE ---------- */
+/* ---------- aba HOLOSCAN ---------- */
 /* Os cinco sistemas da ultima aplicacao, fora do .fic-mapa original (que e
    flex-row para indice+triade+piores lado a lado) — aqui e so a lista,
    mas com a mesma caixa sutil, senao fica sem moldura, solta na tela. */
@@ -1706,7 +1706,7 @@ body.escuro .btn-tema .icone-lua{display:none}
 }
 
 /* ---------- jornada clinica ----------
-   HOLOSCOPE -> HOLOSCAN -> Documentos: o mesmo cartao de linha que "Precisa
+   HOLOSCAN -> Confronto Clinico -> Documentos: o mesmo cartao de linha que "Precisa
    de voce" usa (dash-quem/dash-ir), so sem avatar e com uma seta entre eles. */
 .dash-jornada{display:flex;flex-direction:column;gap:2px;margin-top:14px}
 .dash-jornada-passo{
@@ -3218,7 +3218,7 @@ a.pac-link:hover{color:var(--dourado);text-decoration:underline;text-underline-o
   max-width:44rem;
 }
 
-/* a fronteira do HOLOSCOPE: o que ele e, e o que ele nao e */
+/* a fronteira do HOLOSCAN: o que ele e, e o que ele nao e */
 .holo-fronteira{
   border-left:2px solid var(--dourado-suave);
   padding:12px 0 12px 16px;margin:26px 0 0;

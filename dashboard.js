@@ -75,7 +75,7 @@
       '<div class="dash-acoes-rapidas">' +
         '<button type="button" class="perf-botao" data-destino="novo">Novo paciente</button>' +
         '<button type="button" class="perf-botao" data-destino="nova-consulta">Nova consulta</button>' +
-        '<button type="button" class="perf-botao" data-destino="holoscope">Abrir HOLOSCOPE</button>' +
+        '<button type="button" class="perf-botao" data-destino="holoscope">Abrir HOLOSCAN</button>' +
         '<button type="button" class="perf-botao" data-destino="documentos">Registrar exames</button>' +
       "</div>";
   }
@@ -139,13 +139,13 @@
       '<h3 class="dash-titulo">Pacientes recentes</h3>' + corpo + "</div>";
   }
 
-  /* HOLOSCOPE mapeia, HOLOSCAN confronta sem corrigir, Documentos consolida —
+  /* HOLOSCAN mapeia, Confronto Clínico confronta sem corrigir, Documentos consolida —
      so o encadeamento visual do metodo que ja existe. Nenhum texto aqui
-     chama HOLOSCOPE de diagnostico nem diz que o HOLOSCAN muda nota. */
+     chama HOLOSCAN de diagnostico nem diz que o Confronto muda nota. */
   function blocoJornadaClinica() {
     var etapas = [
-      { nome: "HOLOSCOPE", texto: "Mapear prioridades de investigação.", destino: "holoscope" },
-      { nome: "HOLOSCAN", texto: "Confrontar o mapa com exames.", destino: "holoscan" },
+      { nome: "HOLOSCAN", texto: "Mapear prioridades de investigação.", destino: "holoscope" },
+      { nome: "Confronto Clínico", texto: "Confrontar o mapa com exames.", destino: "holoscan" },
       { nome: "Documentos", texto: "Consolidar registros e materiais da jornada.", destino: "documentos" }
     ];
 
@@ -203,7 +203,7 @@
 
     var tiles = [
       { n: c.total, r: c.total === 1 ? "paciente" : "pacientes" },
-      { n: c.comMapa, r: c.comMapa === 1 ? "com HOLOSCOPE" : "com HOLOSCOPE" },
+      { n: c.comMapa, r: c.comMapa === 1 ? "com HOLOSCAN" : "com HOLOSCAN" },
       { n: vencidas, r: vencidas === 1 ? "reavaliação vencida" : "reavaliações vencidas" },
       { n: c.indiceMedio === null ? "—" : c.indiceMedio, r: "Índice HOLOS médio" }
     ];

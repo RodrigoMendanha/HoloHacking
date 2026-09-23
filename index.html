@@ -170,14 +170,14 @@
       <div class="nav-grupo" role="group" aria-labelledby="nav-grupo-recursos">
         <button class="nav-item" data-secao="holoscope">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5"/><circle cx="12" cy="12" r="3"/></svg>
-          HOLOSCOPE<span style="font-size:.5em;vertical-align:super;margin-left:1px">&#174;</span>
+          HOLOSCAN
         </button>
-        <!-- HOLOSCAN vem logo abaixo do HOLOSCOPE de proposito: e a etapa
-             seguinte do fluxo clinico (Historia > HOLOSCOPE > Holoscan), e
-             uma camada separada — le o mapa e os exames, nunca os altera. -->
+        <!-- Confronto Clinico vem logo abaixo do HOLOSCAN de proposito: e a
+             camada laboratorial do mesmo sistema — le o mapa e os exames,
+             nunca os altera. -->
         <button class="nav-item" data-secao="holoscan">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M3 12h18"/></svg>
-          HOLOSCAN <span class="nav-tag">Exames</span>
+          Confronto Clínico <span class="nav-tag">Exames</span>
         </button>
         <button class="nav-item" data-secao="corpo">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5.5" r="2.6"/><path d="M12 8.5v6M12 14.5l-3.5 5M12 14.5l3.5 5M7 10.5h10"/></svg>
@@ -302,9 +302,9 @@
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e2c98a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5"/><circle cx="12" cy="12" r="3"/></svg>
             </span>
             <span class="ferramenta">Scanner integral</span>
-            <h4>HOLOSCOPE</h4>
-            <p>O mapa invisível da saúde humana. Avaliação dos 5 sistemas centrais: fúngico, inflamatório, metabólico, detox e mental-emocional-espiritual.</p>
-            <span class="abrir">Abrir HOLOSCOPE <span aria-hidden="true">&rarr;</span></span>
+            <h4>HOLOSCAN</h4>
+            <p>Sistema de Mapeamento Integral. Avaliação dos 5 sistemas centrais: fúngico, inflamatório, metabólico, detox e mental-emocional-espiritual.</p>
+            <span class="abrir">Abrir HOLOSCAN <span aria-hidden="true">&rarr;</span></span>
           </button>
 
           <button class="card-pilar" data-ir="corpo">
@@ -329,21 +329,21 @@
         </div>
       </section>
 
-      <!-- ============ HOLOSCOPE ============ -->
+      <!-- ============ HOLOSCAN ============ -->
       <section class="secao" id="secao-holoscope">
         <div class="secao-cabeca">
-          <span class="eyebrow">HOLOSCOPE&reg; &mdash; Scanner Integral</span>
+          <span class="eyebrow">HOLOSCAN &mdash; Sistema de Mapeamento Integral</span>
           <h2>O mapa <em>invisível</em> da saúde humana</h2>
-          <p>O HOLOSCOPE organiza, numa leitura só, o que o paciente relata sobre corpo, emoção e propósito — e mostra por onde a conduta começa: quais sistemas pesam mais, o que aparece junto e qual ferramenta responde a isso.</p>
+          <p>O HOLOSCAN reúne, numa leitura só, o que o paciente relata sobre corpo, emoção e propósito — e mostra por onde a conduta começa: quais sistemas pesam mais, o que aparece junto e qual ferramenta responde a isso.</p>
           <!-- Fluxo clinico do metodo, so como referencia visual — nao e um
                wizard, nenhuma etapa bloqueia a seguinte. -->
-          <p class="fluxo-clinico">História &rarr; <b>HOLOSCOPE</b> &rarr; Holoscan &rarr; Aprofundamento &rarr; Interpretação &rarr; Conduta &rarr; Evolução</p>
+          <p class="fluxo-clinico">História &rarr; <b>HOLOSCAN</b> &rarr; Confronto Clínico &rarr; Aprofundamento &rarr; Interpretação &rarr; Conduta &rarr; Evolução</p>
         </div>
 
         <div class="barra-paciente">
           <span class="rotulo">Paciente</span>
           <select class="seletor-paciente" id="sel-holoscope" aria-label="Selecionar paciente"></select>
-          <span class="aviso">Selecione um paciente para aplicar o HOLOSCOPE.</span>
+          <span class="aviso">Selecione um paciente para aplicar o HOLOSCAN.</span>
         </div>
 
         <!-- Dois caminhos: responder o questionario, ou pontuar os cinco
@@ -365,7 +365,7 @@
           <div class="painel-escuro">
 
           <!-- ===== 1. MAPA DE PRIORIDADES =====
-               Revisao clinica do HOLOSCOPE: a tela deixou de dar protagonismo
+               Revisao clinica do HOLOSCAN: a tela deixou de dar protagonismo
                ao Indice (bloco 6, la embaixo, rebaixado) e passa a abrir pelo
                que orienta a investigacao — o radar e a ordem dos sistemas. -->
           <span class="eyebrow">1 &middot; Mapa de Prioridades</span>
@@ -479,7 +479,7 @@
           <div class="holo-territorios hidden" id="holo-territorios"></div>
 
           <!-- ===== 6. ÍNDICE HOLOS — informação secundária =====
-               Revisao clinica do HOLOSCOPE: era o elemento hero da tela
+               Revisao clinica do HOLOSCAN: era o elemento hero da tela
                (5rem, dourado, primeiro bloco). Continua existindo — so
                deixou de ser o que a tela promove primeiro. -->
           <span class="eyebrow">6 &middot; Índice HOLOS (informação secundária)</span>
@@ -497,7 +497,7 @@
 
           <!-- O HOLOSCAN era o item 8 daqui. Saiu para a secao propria
                (#secao-holoscan, logo abaixo no menu): ele nao e uma parte do
-               HOLOSCOPE, e a etapa seguinte — le este mapa e os exames e
+               HOLOSCAN, e a etapa seguinte — le este mapa e os exames e
                confronta os dois, sem mexer em nota, indice, triade ou
                respostas. Manter dentro sugeria que o mapa se corrigia com
                exame, e ele nao se corrige. -->
@@ -506,7 +506,7 @@
                onde a nutricionista abre o mapa junto com a paciente nao dizia
                nada. Fica fixa: aparece com mapa e sem mapa. -->
           <p class="holo-fronteira">
-            O HOLOSCOPE é uma <b>avaliação nutricional integral</b> construída a partir
+            O HOLOSCAN é uma <b>avaliação nutricional integral</b> construída a partir
             do que o paciente relata. Não é exame, não é diagnóstico médico e não
             substitui avaliação clínica.
           </p>
@@ -535,7 +535,7 @@
           </div>
 
           <div class="acoes-form" style="margin-top:28px;justify-content:center">
-            <button type="button" id="btn-salvar-holoscope" class="btn-verde">Salvar HOLOSCOPE</button>
+            <button type="button" id="btn-salvar-holoscope" class="btn-verde">Salvar HOLOSCAN</button>
             <button type="button" class="btn-fantasma" id="btn-limpar-holoscope">Limpar</button>
           </div>
         </div>
@@ -548,26 +548,26 @@
       </section>
 
       <!-- ============ HOLOSCAN ============
-           Saiu de dentro do HOLOSCOPE (era o item 8 de la) para ficar no
+           Saiu de dentro do HOLOSCAN (era o item 8 de la) para ficar no
            nivel que lhe cabe: a etapa seguinte do fluxo, nao um pedaco do
            mapa. Le os exames lancados na aba Documentos da ficha e confronta
-           com as notas do HOLOSCOPE, sistema a sistema. NUNCA escreve: nao
+           com as notas do HOLOSCAN, sistema a sistema. NUNCA escreve: nao
            altera nota, Indice, Triade nem resposta nenhuma.
            O lancamento dos valores continua so na ficha — aqui e leitura.
            Desenhado por desenharHoloscan() (arquivos.js), chamado tanto por
            irPara("holoscan") quanto por desenharPontuacao() em app.js. -->
       <section class="secao" id="secao-holoscan">
         <div class="secao-cabeca">
-          <span class="eyebrow">HOLOSCAN &mdash; Relato e Laboratório</span>
+          <span class="eyebrow">HOLOSCAN &mdash; Confronto Clínico</span>
           <h2>O que os exames <em>acrescentam</em> ao mapa</h2>
-          <p>O HOLOSCAN confronta, sistema a sistema, o que o paciente relata no HOLOSCOPE com o que os exames mostram. Ele não corrige o mapa nem o exame: mostra onde os dois caminham juntos, onde divergem — e onde ainda não há dado para comparar.</p>
-          <p class="fluxo-clinico">História &rarr; HOLOSCOPE &rarr; <b>Holoscan</b> &rarr; Aprofundamento &rarr; Interpretação &rarr; Conduta &rarr; Evolução</p>
+          <p>O Confronto Clínico compara, sistema a sistema, o que o paciente relata no HOLOSCAN com o que os exames mostram. Ele não corrige o mapa nem o exame: mostra onde os dois caminham juntos, onde divergem — e onde ainda não há dado para comparar.</p>
+          <p class="fluxo-clinico">História &rarr; HOLOSCAN &rarr; <b>Confronto Clínico</b> &rarr; Aprofundamento &rarr; Interpretação &rarr; Conduta &rarr; Evolução</p>
         </div>
 
         <div class="barra-paciente">
           <span class="rotulo">Paciente</span>
           <select class="seletor-paciente" id="sel-holoscan" aria-label="Selecionar paciente"></select>
-          <span class="aviso">O confronto usa o HOLOSCOPE já aplicado a este paciente.</span>
+          <span class="aviso">O confronto usa o HOLOSCAN já aplicado a este paciente.</span>
         </div>
 
         <div class="painel-escuro">
@@ -580,9 +580,9 @@
           <div class="holo-caixa-mapa" id="holo-holoscan"></div>
 
           <p class="holo-fronteira">
-            O HOLOSCAN organiza informações laboratoriais para apoiar a
+            O Confronto Clínico organiza informações laboratoriais para apoiar a
             <b>interpretação profissional</b>. Não realiza diagnóstico, não altera o
-            HOLOSCOPE e não substitui avaliação médica.
+            HOLOSCAN e não substitui avaliação médica.
           </p>
         </div>
       </section>
@@ -719,7 +719,7 @@
                 <button type="button" class="perf-botao" data-atalho="agenda">Nova consulta</button>
                 <button type="button" class="perf-botao" data-ir="aba:documentos">Registrar exames</button>
                 <button type="button" class="perf-botao" data-ir="aba:documentos">Novo documento</button>
-                <button type="button" class="btn-verde" data-atalho="holoscope">Aplicar HOLOSCOPE</button>
+                <button type="button" class="btn-verde" data-atalho="holoscope">Aplicar HOLOSCAN</button>
               </div>
             </header>
 
@@ -755,13 +755,13 @@
                 </div>
                 <div class="dash-jornada-seta" aria-hidden="true">&darr;</div>
                 <div class="dash-jornada-passo">
-                  <span class="dash-quem"><b>HOLOSCOPE</b>
+                  <span class="dash-quem"><b>HOLOSCAN</b>
                     <span class="dash-porque">Mapear prioridades de investigação.</span></span>
                   <button type="button" class="dash-ir" data-atalho="holoscope">Abrir <span aria-hidden="true">&rarr;</span></button>
                 </div>
                 <div class="dash-jornada-seta" aria-hidden="true">&darr;</div>
                 <div class="dash-jornada-passo">
-                  <span class="dash-quem"><b>HOLOSCAN</b>
+                  <span class="dash-quem"><b>Confronto Clínico</b>
                     <span class="dash-porque">Confrontar o mapa com exames.</span></span>
                   <button type="button" class="dash-ir" data-atalho="holoscan">Abrir <span aria-hidden="true">&rarr;</span></button>
                 </div>
@@ -778,8 +778,8 @@
               <div class="abas" role="tablist">
                 <button class="aba ativa" data-aba="visao" role="tab">Visão geral</button>
                 <button class="aba" data-aba="consultas" role="tab">Consultas</button>
-                <button class="aba" data-aba="holoscope" role="tab">HOLOSCOPE</button>
-                <button class="aba" data-aba="holoscan" role="tab">HOLOSCAN</button>
+                <button class="aba" data-aba="holoscope" role="tab">HOLOSCAN</button>
+                <button class="aba" data-aba="holoscan" role="tab">Confronto</button>
                 <button class="aba" data-aba="linha" role="tab">Linha do tempo</button>
                 <button class="aba" data-aba="formularios" role="tab">Formulários</button>
                 <button class="aba" data-aba="documentos" role="tab">Documentos</button>
@@ -819,7 +819,7 @@
       <!-- ============ CONSULTAS ============ -->
       <section class="secao" id="secao-consultas">
         <!-- Desenhada por consultas.js a partir de Panorama.consultas():
-             cada aplicacao do HOLOSCOPE e um atendimento registrado, da mais
+             cada aplicacao do HOLOSCAN e um atendimento registrado, da mais
              recente para a mais antiga, na carteira inteira. -->
         <div id="consultas-corpo"></div>
       </section>
