@@ -144,7 +144,7 @@ conferir(/1 documento registrado/.test(consultasEDocs.docsTexto) && /Hemograma\.
 
 const holoscanSecao = await p.evaluate(() => {
   const r = document.getElementById('relatorio');
-  const b = [...r.querySelectorAll('.rel-parte')].find(s => /HOLOSCAN/.test(s.querySelector('h3').textContent));
+  const b = [...r.querySelectorAll('.rel-parte')].find(s => /Confronto Clínico/.test(s.querySelector('h3').textContent));
   return [...b.querySelectorAll('p')].map(x => x.textContent.trim());
 });
 const TEXTOS_FIXOS = [

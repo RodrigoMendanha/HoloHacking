@@ -89,7 +89,7 @@ await p.evaluate(async (respostas) => {
 
   await window.DadosLocais.from('consultas').insert({
     paciente_id: pid, data: dias(6), hora: '10:00', duracao: 60,
-    tipo: 'Reavaliação HOLOSCOPE', nota: 'levar o exame novo' });
+    tipo: 'Reavaliação HOLOSCAN', nota: 'levar o exame novo' });
 
   const png = () => {
     const c = document.createElement('canvas'); c.width = 80; c.height = 40;
@@ -127,7 +127,7 @@ conferir(/Cadastrado em \d\d\/\d\d\/\d{4}/.test(topo.contato),
 conferir(/42 anos/.test(topo.sobre) && /Feminino/.test(topo.sobre),
   'e a linha "sobre" resume quem é: ' + topo.sobre);
 conferir(topo.detalhesFechados, 'os detalhes do cadastro começam fechados');
-conferir(topo.acoes.join(',') === 'Nova consulta,Registrar exames,Novo documento,Aplicar HOLOSCOPE',
+conferir(topo.acoes.join(',') === 'Nova consulta,Registrar exames,Novo documento,Aplicar HOLOSCAN',
   'as ações ficam no topo, não no fim da página: ' + topo.acoes.join(' · '));
 
 // "Registrar exames" e "Novo documento" iam para "aba:documentos" — o clique
@@ -152,7 +152,7 @@ const jornada = await p.evaluate(() => ({
   passos: [...document.querySelectorAll('.fic-jornada .dash-jornada-passo b')]
     .map(b => b.textContent),
 }));
-conferir(jornada.passos.join(',') === 'Paciente,Consulta,HOLOSCOPE,HOLOSCAN,Documentos',
+conferir(jornada.passos.join(',') === 'Paciente,Consulta,HOLOSCAN,Confronto Clínico,Documentos',
   'a jornada clínica mostra o encadeamento: ' + jornada.passos.join(' · '));
 
 const detalhes = await p.evaluate(async () => {
@@ -224,7 +224,7 @@ conferir(linha.eventos.length === 5,
 conferir(/Consulta marcada/.test(linha.eventos[0].txt) && /futuro/.test(linha.eventos[0].cls),
   'o que ainda vai acontecer vem primeiro e se marca como futuro: ' +
   linha.eventos[0].txt.slice(0, 40));
-conferir(linha.eventos.some(e => /2ª aplicação do HOLOSCOPE/.test(e.txt) && /Índice 88/.test(e.txt)),
+conferir(linha.eventos.some(e => /2ª aplicação do HOLOSCAN/.test(e.txt) && /Índice 88/.test(e.txt)),
   'a aplicação do mapa traz o Índice daquele dia');
 conferir(linha.eventos.some(e => /Hemograma/.test(e.txt) && /documento/.test(e.cls)),
   'o documento entra na mesma régua');
@@ -263,8 +263,8 @@ const forms = await p.evaluate(() => ({
 
 conferir(forms.cartoes.length === 4,
   'os quatro formulários do método num lugar só: ' + forms.cartoes.length);
-conferir(/HOLOSCOPE/.test(forms.cartoes[0].txt) && /84 de 84 respondidas/.test(forms.cartoes[0].txt),
-  'o HOLOSCOPE é tratado como formulário, que é o que ele é: ' +
+conferir(/HOLOSCAN/.test(forms.cartoes[0].txt) && /84 de 84 respondidas/.test(forms.cartoes[0].txt),
+  'o HOLOSCAN é tratado como formulário, que é o que ele é: ' +
   forms.cartoes[0].txt.slice(0, 70));
 conferir(/pronto/.test(forms.cartoes[0].cls), 'e o completo se marca como pronto');
 conferir(forms.cartoes[0].temVer, 'só quem tem resposta oferece "Ver respostas"');

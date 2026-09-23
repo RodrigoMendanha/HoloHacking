@@ -182,7 +182,7 @@ const virou = await p.evaluate(async () => {
 conferir(virou.form.paciente === 'Marina Alves' && virou.form.data === ids.daquiA2,
   'clicar na sugestão abre a consulta já com a pessoa e o dia: ' +
   virou.form.paciente + ' / ' + virou.form.data);
-conferir(virou.form.tipo === 'Reavaliação HOLOSCOPE',
+conferir(virou.form.tipo === 'Reavaliação HOLOSCAN',
   'e com o tipo que faz sentido para um retorno de 4 semanas: ' + virou.form.tipo);
 conferir(virou.sugestoes === 0,
   'depois de marcada, a sugestão some — ela pedia o que já foi feito');

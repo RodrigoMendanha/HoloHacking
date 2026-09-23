@@ -75,7 +75,7 @@ conferir(vazio.titulo === 'Nenhuma consulta registrada', 'título do estado vazi
 conferir(vazio.texto === 'Registre uma consulta para iniciar o acompanhamento deste paciente.',
   'texto do estado vazio: ' + vazio.texto);
 conferir(!vazio.temProxima, 'sem consulta, nenhum bloco "Próxima consulta" aparece');
-conferir(vazio.continuidade.join(',') === 'HOLOSCOPE,HOLOSCAN,Documentos',
+conferir(vazio.continuidade.join(',') === 'HOLOSCAN,Confronto Clínico,Documentos',
   'a continuidade clínica discreta aparece mesmo vazio: ' + vazio.continuidade.join(' · '));
 
 /* -------------------------------- "Nova consulta" pre-seleciona a pessoa - */
@@ -99,7 +99,7 @@ await p.evaluate(async (id) => {
   // futura: vira "proxima". duas passadas: viram "anteriores", decrescente.
   await window.DadosLocais.from('consultas').insert({
     paciente_id: id, data: dias(6), hora: '10:00', duracao: 60,
-    tipo: 'Reavaliação HOLOSCOPE', nota: 'levar o exame novo' });
+    tipo: 'Reavaliação HOLOSCAN', nota: 'levar o exame novo' });
   await window.DadosLocais.from('consultas').insert({
     paciente_id: id, data: dias(-40), hora: '09:00', duracao: 60,
     tipo: 'Retorno', nota: '' });
@@ -136,7 +136,7 @@ const cheio = await p.evaluate(() => {
 
 conferir(!!cheio.proxima, 'a consulta futura aparece em destaque');
 conferir(/às 10:00/.test(cheio.proxima.quando), 'com data e horário: ' + cheio.proxima.quando);
-conferir(/Reavaliação HOLOSCOPE/.test(cheio.proxima.porque) && /levar o exame novo/.test(cheio.proxima.porque),
+conferir(/Reavaliação HOLOSCAN/.test(cheio.proxima.porque) && /levar o exame novo/.test(cheio.proxima.porque),
   'tipo e observação, sem inventar campo: ' + cheio.proxima.porque);
 conferir(cheio.proximaDestacada, 'e a linha vem com destaque visual');
 conferir(cheio.anteriores.length === 2, 'as duas consultas passadas viram "anteriores": ' + cheio.anteriores.length);

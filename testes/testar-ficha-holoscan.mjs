@@ -80,7 +80,7 @@ const vazio = await p.evaluate(() => {
   };
 });
 conferir(vazio.titulo === 'Nenhum exame registrado', 'título do estado vazio: ' + vazio.titulo);
-conferir(vazio.texto === 'Registre exames para confrontar os dados laboratoriais com o mapa do HOLOSCOPE.',
+conferir(vazio.texto === 'Registre exames para confrontar os dados laboratoriais com o mapa do HOLOSCAN.',
   'texto do estado vazio: ' + vazio.texto);
 conferir(vazio.botao === 'Registrar exames', 'o CTA é "Registrar exames": ' + vazio.botao);
 conferir(/existir um mapa/.test(vazio.avisoSemMapa),
@@ -185,8 +185,8 @@ conferir(cheio.itens.every(i => TEXTOS_FIXOS.includes(i.leitura)),
 conferir(/não há coleta por data persistida/.test(cheio.historico),
   'sem coleta datada, a tela diz isso em vez de inventar histórico: ' + cheio.historico);
 
-conferir(cheio.continuidade.join(' · ').includes('HOLOSCOPE') && cheio.continuidade.join(' · ').includes('HOLOSCAN'),
-  'a relação HOLOSCOPE → mapa / HOLOSCAN → confronto aparece: ' + cheio.continuidade.join(' · '));
+conferir(cheio.continuidade.join(' · ').includes('HOLOSCAN') && cheio.continuidade.join(' · ').includes('Confronto Clínico'),
+  'a relação HOLOSCAN → mapa / Confronto Clínico → confronto aparece: ' + cheio.continuidade.join(' · '));
 
 /* ---------------------------------------- "Ver HOLOSCAN completo" nao zera */
 

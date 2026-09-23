@@ -82,12 +82,12 @@ const vazio = await p.evaluate(() => {
     continuidade: document.querySelector('#aba-holoscope .fic-chip')?.textContent,
   };
 });
-conferir(vazio.titulo === 'Nenhuma aplicação HOLOSCOPE', 'título do estado vazio: ' + vazio.titulo);
+conferir(vazio.titulo === 'Nenhuma aplicação HOLOSCAN', 'título do estado vazio: ' + vazio.titulo);
 conferir(vazio.texto === 'Faça a primeira aplicação para mapear prioridades de investigação.',
   'texto do estado vazio: ' + vazio.texto);
-conferir(vazio.botao === 'Iniciar HOLOSCOPE', 'o CTA é "Iniciar HOLOSCOPE": ' + vazio.botao);
+conferir(vazio.botao === 'Iniciar HOLOSCAN', 'o CTA é "Iniciar HOLOSCAN": ' + vazio.botao);
 conferir(!vazio.temUltima, 'sem aplicação, nenhum bloco "Última aplicação" aparece');
-conferir(/HOLOSCAN/.test(vazio.continuidade), 'a continuidade com o HOLOSCAN aparece mesmo vazio: ' + vazio.continuidade);
+conferir(/Confronto Clínico/.test(vazio.continuidade), 'a continuidade com o Confronto Clínico aparece mesmo vazio: ' + vazio.continuidade);
 
 const foiPara = await p.evaluate(async () => {
   document.querySelector('#aba-holoscope [data-ir="holoscope"]').click();
@@ -99,7 +99,7 @@ const foiPara = await p.evaluate(async () => {
   };
 });
 conferir(foiPara.secaoAtiva === 'secao-holoscope' && foiPara.algumaAtiva === 1,
-  '"Iniciar HOLOSCOPE" leva para a seção certa, sem zerar a tela: ' + foiPara.secaoAtiva);
+  '"Iniciar HOLOSCAN" leva para a seção certa, sem zerar a tela: ' + foiPara.secaoAtiva);
 conferir(foiPara.paciente === 'Marina Alves',
   'e a pessoa certa já está selecionada lá, não a primeira da lista: ' + foiPara.paciente);
 
@@ -175,7 +175,7 @@ conferir(cheio.sistemas === 5, 'os cinco sistemas aparecem resumidos: ' + cheio.
 conferir(cheio.historico.length === 2, 'as duas anteriores viram "histórico", sem repetir a última: ' + cheio.historico.length);
 conferir(/01\/08\/2026/.test(cheio.historico[0].quando) && /01\/06\/2026/.test(cheio.historico[1].quando),
   'ordem decrescente: ' + cheio.historico.map(h => h.quando).join(' · '));
-conferir(cheio.historico.every(h => h.botao === 'Ver HOLOSCOPE'),
+conferir(cheio.historico.every(h => h.botao === 'Ver HOLOSCAN'),
   'histórico usa a ação genérica, não finge abrir aquele registro específico');
 
 /* ------------------------------------------- "Abrir resultado" funciona -- */

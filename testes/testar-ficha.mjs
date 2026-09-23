@@ -51,7 +51,7 @@ async function verFicha(){
 
 // --- paciente cru: nada aplicado -------------------------------------------
 const cru = await verFicha();
-ok(cru.alertas.some(a=>/Sem HOLOSCOPE/i.test(a)), 'acusa que nao ha HOLOSCOPE: ' + cru.alertas[0]);
+ok(cru.alertas.some(a=>/Sem HOLOSCAN/i.test(a)), 'acusa que nao ha HOLOSCAN: ' + cru.alertas[0]);
 ok(cru.indice === null, 'sem mapa, nao inventa indice');
 
 // --- aplica o questionario --------------------------------------------------

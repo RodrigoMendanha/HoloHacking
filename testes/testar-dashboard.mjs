@@ -37,7 +37,7 @@ ok(/nenhum paciente cadastrado/i.test(vazio.texto), 'sem paciente, convida a cad
 ok(/nenhuma consulta agendada/i.test(vazio.texto), 'sem consulta marcada, estado vazio elegante');
 ok(vazio.metodo, 'e o método continua à vista — ali ele serve');
 ok(vazio.pendentes === 0, 'nenhuma pendência inventada do nada');
-ok(vazio.jornada === 3, 'a jornada clínica (HOLOSCOPE → HOLOSCAN → Documentos) sempre aparece');
+ok(vazio.jornada === 3, 'a jornada clínica (HOLOSCAN → Confronto Clínico → Documentos) sempre aparece');
 
 // --- uma carteira de verdade ---------------------------------------------
 await p.evaluate(async (respostas) => {
@@ -112,7 +112,7 @@ const sofia = cheio.pendentes.find(x => /Sofia/.test(x.nome));
 ok(sofia.botao === 'Aplicar agora', 'quem não tem mapa é chamada para aplicar');
 
 ok(cheio.tiles.join(' | ').includes('5 pacientes'), 'tiles: ' + cheio.tiles.join(' · '));
-ok(cheio.tiles.some(t => /3 com HOLOSCOPE/.test(t)), 'conta quem tem mapa');
+ok(cheio.tiles.some(t => /3 com HOLOSCAN/.test(t)), 'conta quem tem mapa');
 ok(cheio.barras.length > 0, 'o terreno da carteira: ' + cheio.barras.join(' · '));
 
 // --- o botao leva mesmo ao paciente certo --------------------------------

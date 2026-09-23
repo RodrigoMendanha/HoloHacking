@@ -276,7 +276,7 @@ conferir(/22 de 84 respostas/.test(revisao.oque),
   'e diz o que já existe: ' + revisao.oque);
 conferir(revisao.tag === '1' && revisao.tagVisivel, 'a aba marca quantos são');
 conferir(revisao.listaEscondida, 'e a lista sai da frente');
-conferir(/Gerar HOLOSCOPE/.test(revisao.botao), 'o botão é o passo que falta');
+conferir(/Gerar HOLOSCAN/.test(revisao.botao), 'o botão é o passo que falta');
 
 /* ------------------------------------------------- status e lote --------- */
 
