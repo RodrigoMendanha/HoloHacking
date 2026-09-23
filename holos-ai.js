@@ -73,10 +73,11 @@
 
   // --- Atalhos de prompt ---
   var ATALHOS = [
-    { rotulo: "Resumir caso", prompt: "Resuma o caso clínico deste paciente com base nos dados disponíveis: queixa, HOLOSCAN mais recente, exames e ferramentas aplicadas." },
-    { rotulo: "Analisar HOLOSCAN", prompt: "Analise o resultado do HOLOSCAN mais recente deste paciente. Quais sistemas estão mais sobrecarregados? O que a Tríade indica? Que investigações você sugere?" },
-    { rotulo: "Sugerir próximos passos", prompt: "Com base no estado atual do paciente (mapa, exames, ferramentas já aplicadas), quais seriam os próximos passos clínicos mais indicados dentro do método HoloHacking?" },
-    { rotulo: "Correlacionar exames", prompt: "Analise os exames laboratoriais deste paciente em relação ao mapa HOLOSCAN. Há convergências ou divergências entre o relato e os exames? O que merece atenção?" },
+    { rotulo: "Resumir o caso", prompt: "Resuma o caso clínico deste paciente com base nos dados disponíveis: queixa, Mapa HOLOS mais recente, exames e ferramentas aplicadas." },
+    { rotulo: "Analisar HOLOSCAN", prompt: "Analise o resultado do HOLOSCAN mais recente deste paciente. Quais sistemas estão mais sobrecarregados no Mapa HOLOS? O que a Tríade indica? Que hipóteses de investigação você levanta?" },
+    { rotulo: "Comparar evolução", prompt: "Compare as aplicações do HOLOSCAN disponíveis ao longo do tempo. O que melhorou? O que piorou? Quais sistemas mudaram de faixa? A Tríade evoluiu?" },
+    { rotulo: "Analisar exames", prompt: "Analise os exames laboratoriais deste paciente em relação ao Mapa HOLOS (Camada Laboratorial). Há convergências ou divergências entre o relato e os exames? O que merece investigação?" },
+    { rotulo: "Preparar retorno", prompt: "Com base no estado atual do paciente (Mapa HOLOS, exames, ferramentas já aplicadas, consultas), prepare um resumo para a próxima consulta: pontos a revisar, prioridades possíveis com base nos dados disponíveis e perguntas a fazer ao paciente." },
   ];
 
   // --- Desenhar a aba ---
