@@ -129,7 +129,7 @@
   const nomesSecao = {
     dashboard:"Dashboard", pacientes:"Pacientes", consultas:"Consultas",
     agenda:"Agenda", documentos:"Documentos",
-    holoscan:"HOLOSCAN", confronto:"Confronto Clínico",
+    holoscan:"HOLOSCAN", confronto:"Leitura Integrada",
     corpo:"Módulo Corpo", mente:"Módulo Mente",
     espirito:"Módulo Espírito", perfil:"Perfil"
   };

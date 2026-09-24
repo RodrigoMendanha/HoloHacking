@@ -37,7 +37,7 @@ ok(/nenhum paciente cadastrado/i.test(vazio.texto), 'sem paciente, convida a cad
 ok(/nenhuma consulta agendada/i.test(vazio.texto), 'sem consulta marcada, estado vazio elegante');
 ok(vazio.metodo, 'e o método continua à vista — ali ele serve');
 ok(vazio.pendentes === 0, 'nenhuma pendência inventada do nada');
-ok(vazio.jornada === 3, 'a jornada clínica (HOLOSCAN → Confronto Clínico → Documentos) sempre aparece');
+ok(vazio.jornada === 3, 'a jornada clínica (HOLOSCAN → Leitura Integrada → Documentos) sempre aparece');
 
 // --- uma carteira de verdade ---------------------------------------------
 await p.evaluate(async (respostas) => {

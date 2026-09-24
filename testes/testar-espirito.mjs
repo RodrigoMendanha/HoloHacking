@@ -276,9 +276,9 @@ const verCard = () => p.evaluate(async () => {
   await new Promise(r => setTimeout(r, 350));
   document.querySelector('.card-paciente').click();
   await new Promise(r => setTimeout(r, 450));
-  document.querySelector('[data-aba="formularios"]').click();
+  document.querySelector('[data-aba="ferramentas"]').click();
   await new Promise(r => setTimeout(r, 400));
-  const cartoes = [...document.querySelectorAll('#aba-formularios .fic-form')];
+  const cartoes = [...document.querySelectorAll('#aba-ferramentas .fic-form')];
   const mapa = cartoes.find(c => /Mapa do Propósito/.test(c.textContent));
   if (!mapa) return { achou: false, estado: '', extra: '', classes: '', quantos: cartoes.length };
   return {

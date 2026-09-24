@@ -94,7 +94,7 @@
     CONVERGENTE: "Existe convergência entre o relato do paciente e os dados laboratoriais nesta dimensão.",
     CONVERGENTE_SEM_ALTERACAO: "Relato e dados laboratoriais disponíveis estão convergentes nesta dimensão.",
     DIVERGENTE: "O relato e os dados laboratoriais não estão caminhando na mesma direção neste momento.",
-    DADOS_INSUFICIENTES: "Ainda não há dados laboratoriais suficientes para realizar o confronto desta dimensão."
+    DADOS_INSUFICIENTES: "Ainda não há dados laboratoriais suficientes para realizar a leitura integrada desta dimensão."
   };
   var HOLOSCAN_ROTULO = {
     CONVERGENTE: "Convergente",
@@ -173,7 +173,7 @@
       html += "</ul><p class=\"terr-conta\">" + escapar(window.Holoscan.texto(c)) + "</p></div>";
     });
 
-    html += '<p class="arq-nota holo-fronteira">O Holoscan organiza informações laboratoriais ' +
+    html += '<p class="arq-nota holo-fronteira">A Leitura Integrada organiza informações laboratoriais ' +
       "para apoiar a interpretação profissional. Não realiza diagnóstico.</p>";
 
     alvo.innerHTML = html;
@@ -193,8 +193,10 @@
      real para mostrar aqui; ver o aviso fixo no bloco correspondente e
      testes/testar-ficha-holoscan.mjs, onde isso fica registrado. Historico
      de coletas por data e trabalho para quando o Supabase entrar. */
+  window.desenharHoloscanLaboratorial = desenharHoloscanAba;
+
   function desenharHoloscanAba() {
-    var alvo = document.getElementById("aba-confronto");
+    var alvo = document.getElementById("aba-holoscan-laboratorial") || document.getElementById("aba-confronto");
     if (!alvo) return;
     var g = motor();
     if (!g || !g.listaDeExames || !window.Holoscan) { alvo.innerHTML = ""; return; }
@@ -249,7 +251,7 @@
         '<span class="fic-sis">Divergentes <b>' + contagem.Divergente + "</b></span>" +
         '<span class="fic-sis">Dados insuficientes <b>' + contagem["Dados insuficientes"] + "</b></span>" +
       "</div></div>" +
-      '<button type="button" class="fic-ir-min" data-ir="holoscan">Ver HOLOSCAN completo</button>' +
+      '<button type="button" class="fic-ir-min" data-ir="confronto">Ver Leitura Integrada completa</button>' +
     "</div>";
 
     // Secao 5: nome + estado, com o mesmo .conf-item que #ex-confronto ja
@@ -278,7 +280,7 @@
     // Secao 7: a relacao entre as duas camadas, sem linguagem de correcao.
     html += '<div class="fic-continuidade">' +
       '<span class="fic-rot">HOLOSCAN &rarr; mapa de investigação</span>' +
-      '<span class="fic-rot">Confronto Clínico &rarr; confronto com exames</span>' +
+      '<span class="fic-rot">Leitura Integrada &rarr; integração com exames</span>' +
     "</div>";
 
     alvo.innerHTML = html;
@@ -289,7 +291,7 @@
   function ligarHoloscanAba() {
     if (holoscanAbaLigada) return;
     holoscanAbaLigada = true;
-    var alvo = document.getElementById("aba-confronto");
+    var alvo = document.getElementById("aba-holoscan-laboratorial") || document.getElementById("aba-holoscan");
     if (!alvo) return;
     alvo.addEventListener("click", function (ev) {
       var ir = ev.target.closest("[data-ir]");
@@ -553,7 +555,7 @@
     // sumia quando nao havia exame do sistema, e a ausencia de dado nao
     // pode virar ausencia de linha na tela. O texto e sempre o do Holoscan,
     // nunca a `leitura` que o motor gera internamente (ver window.Holoscan).
-    var html = '<h4 class="leitura-titulo">Relato e laboratório (Holoscan)</h4>' +
+    var html = '<h4 class="leitura-titulo">Relato e laboratório (Leitura Integrada)</h4>' +
                '<div class="conf-lista">';
     r.confronto.forEach(function (c) {
       var estado = window.Holoscan.estado(c);
@@ -569,7 +571,7 @@
       html += '<p class="arq-nota conf-alerta">' + divergem +
         ' dimensão(ões) com divergência — aprofundar na consulta.</p>';
     }
-    html += '<p class="arq-nota holo-fronteira">O Holoscan organiza informações ' +
+    html += '<p class="arq-nota holo-fronteira">A Leitura Integrada organiza informações ' +
       'laboratoriais para apoiar a interpretação profissional. Não realiza diagnóstico.</p>';
     alvo.innerHTML = html;
   }
@@ -661,7 +663,7 @@
 
       '<section class="arq-cartao">' +
         '<h4 class="arq-titulo">Os valores do exame</h4>' +
-        '<p class="fluxo-clinico">História &rarr; HOLOSCAN &rarr; <b>Confronto Clínico</b> &rarr; Aprofundamento &rarr; Interpretação &rarr; Conduta &rarr; Evolução</p>' +
+        '<p class="fluxo-clinico">História &rarr; HOLOSCAN &rarr; <b>Leitura Integrada</b> &rarr; Aprofundamento &rarr; Interpretação &rarr; Conduta &rarr; Evolução</p>' +
         '<p class="arq-sub">Opcional. Na primeira consulta o paciente costuma não ter ' +
         "exame nenhum, e o mapa não depende disto. O exame <b>não altera o Índice</b> " +
         "&mdash; ele confronta o que o paciente relatou com o que o sangue mostra.</p>" +
@@ -670,7 +672,7 @@
       "</section>" +
 
       '<div class="fic-continuidade">' +
-        '<span class="fic-rot">Consulta &rarr; HOLOSCAN &rarr; Confronto Clínico &rarr; Documentos</span>' +
+        '<span class="fic-rot">Consulta &rarr; HOLOSCAN &rarr; Leitura Integrada &rarr; Documentos</span>' +
       "</div>";
 
     ligarDocumentos();
@@ -948,12 +950,12 @@
     var ex = ler(CHAVE_EX);
     var rExames = g.lerExames(ex, notasDoPaciente());
     html += '<section class="rel-parte" data-origem="automatico">' +
-      "<h3>B. Confronto Clínico — o que os exames acrescentam</h3><div class=\"rel-bloco\">";
+      "<h3>B. Leitura Integrada — o que os exames acrescentam</h3><div class=\"rel-bloco\">";
     rExames.confronto.forEach(function (c) {
       html += "<p><b>" + NOME_SISTEMA[c.sistema] + "</b> — " +
         escapar(window.Holoscan.rotulo(c)) + ". " + escapar(window.Holoscan.texto(c)) + "</p>";
     });
-    html += '<p class="rel-fronteira">O Holoscan organiza informações laboratoriais para ' +
+    html += '<p class="rel-fronteira">A Leitura Integrada organiza informações laboratoriais para ' +
       "apoiar a interpretação profissional. Não realiza diagnóstico.</p></div></section>";
 
     /* ====================================================================
@@ -1076,9 +1078,12 @@
     document.querySelectorAll("#ficha-arquivos .aba").forEach(function (b) {
       b.classList.toggle("ativa", b.dataset.aba === nome);
     });
-    // "exames" virou parte de "documentos"; quem ainda pedir aquilo cai aqui
+    // compatibilidade: nomes antigos redirecionam para os novos
     if (nome === "exames") nome = "documentos";
-    ["visao", "consultas", "holoscan", "confronto", "linha", "formularios", "documentos", "relatorio"]
+    if (nome === "formularios") nome = "ferramentas";
+    if (nome === "confronto") nome = "holoscan";
+    if (nome === "linha") nome = "visao";
+    ["visao", "consultas", "holoscan", "ferramentas", "documentos", "relatorio", "holos-ai"]
       .forEach(function (n) {
         var painel = document.getElementById("aba-" + n);
         if (painel) painel.classList.toggle("hidden", n !== nome);
@@ -1088,8 +1093,6 @@
     });
     if (nome === "documentos") desenharDocumentos();
     if (nome === "relatorio") desenharRelatorio();
-    if (nome === "confronto") desenharHoloscanAba();
-    // as tres novas sao da ficha; ela desenha quando a aba abre
     if (window.desenharAbaDaFicha) window.desenharAbaDaFicha(nome);
   }
 

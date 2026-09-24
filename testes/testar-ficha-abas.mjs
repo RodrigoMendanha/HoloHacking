@@ -152,7 +152,7 @@ const jornada = await p.evaluate(() => ({
   passos: [...document.querySelectorAll('.fic-jornada .dash-jornada-passo b')]
     .map(b => b.textContent),
 }));
-conferir(jornada.passos.join(',') === 'Paciente,Consulta,HOLOSCAN,Confronto Clínico,Documentos',
+conferir(jornada.passos.join(',') === 'Paciente,Consulta,HOLOSCAN,Leitura Integrada,Documentos',
   'a jornada clínica mostra o encadeamento: ' + jornada.passos.join(' · '));
 
 const detalhes = await p.evaluate(async () => {
@@ -209,14 +209,14 @@ conferir(visaoResumo.docItens.includes('Hemograma completo'),
 
 /* --------------------------------------------------- a linha do tempo ---- */
 
-await aba('linha');
+await aba('visao');
 const linha = await p.evaluate(() => ({
-  eventos: [...document.querySelectorAll('#aba-linha .fic-evento')].map(e => ({
+  eventos: [...document.querySelectorAll('#fic-visao-timeline .fic-evento')].map(e => ({
     txt: e.innerText.replace(/\n/g, ' | '),
     cls: e.className,
   })),
-  meses: [...document.querySelectorAll('#aba-linha .fic-tempo-mes')].map(e => e.textContent),
-  nota: document.querySelector('#aba-linha .dash-sub')?.textContent || '',
+  meses: [...document.querySelectorAll('#fic-visao-timeline .fic-tempo-mes')].map(e => e.textContent),
+  nota: document.querySelector('#fic-visao-timeline .dash-sub')?.textContent || '',
 }));
 
 conferir(linha.eventos.length === 5,
@@ -250,14 +250,14 @@ conferir(daFerramenta && daFerramenta.txt.indexOf(hojeLocal) >= 0,
 
 /* ----------------------------------------------------- os formulários ---- */
 
-await aba('formularios');
+await aba('ferramentas');
 const forms = await p.evaluate(() => ({
-  cartoes: [...document.querySelectorAll('#aba-formularios .fic-form')].map(e => ({
+  cartoes: [...document.querySelectorAll('#aba-ferramentas .fic-form')].map(e => ({
     txt: e.textContent.replace(/\s+/g, ' ').trim(),
     cls: e.className,
     temVer: !!e.querySelector('[data-ver]'),
   })),
-  ferramentas: document.querySelector('#aba-formularios .fic-forms-rodape')
+  ferramentas: document.querySelector('#aba-ferramentas .fic-forms-rodape')
     .textContent.replace(/\s+/g, ' ').trim(),
 }));
 
@@ -279,7 +279,7 @@ conferir(/1 de 30 aplicadas/.test(forms.ferramentas),
 /* ------------------------------------------------ a janela de respostas -- */
 
 const janela = await p.evaluate(async () => {
-  document.querySelector('#aba-formularios [data-ver]').click();
+  document.querySelector('#aba-ferramentas [data-ver]').click();
   await new Promise(r => setTimeout(r, 350));
   const j = document.getElementById('fic-janela');
   return {

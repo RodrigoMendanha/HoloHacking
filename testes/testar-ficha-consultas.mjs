@@ -75,7 +75,7 @@ conferir(vazio.titulo === 'Nenhuma consulta registrada', 'título do estado vazi
 conferir(vazio.texto === 'Registre uma consulta para iniciar o acompanhamento deste paciente.',
   'texto do estado vazio: ' + vazio.texto);
 conferir(!vazio.temProxima, 'sem consulta, nenhum bloco "Próxima consulta" aparece');
-conferir(vazio.continuidade.join(',') === 'HOLOSCAN,Confronto Clínico,Documentos',
+conferir(vazio.continuidade.join(',') === 'HOLOSCAN,Leitura Integrada,Documentos',
   'a continuidade clínica discreta aparece mesmo vazio: ' + vazio.continuidade.join(' · '));
 
 /* -------------------------------- "Nova consulta" pre-seleciona a pessoa - */

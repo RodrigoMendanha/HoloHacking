@@ -87,7 +87,7 @@ conferir(vazio.texto === 'Faça a primeira aplicação para mapear prioridades d
   'texto do estado vazio: ' + vazio.texto);
 conferir(vazio.botao === 'Iniciar HOLOSCAN', 'o CTA é "Iniciar HOLOSCAN": ' + vazio.botao);
 conferir(!vazio.temUltima, 'sem aplicação, nenhum bloco "Última aplicação" aparece');
-conferir(/Confronto Clínico/.test(vazio.continuidade), 'a continuidade com o Confronto Clínico aparece mesmo vazio: ' + vazio.continuidade);
+conferir(/Leitura Integrada/.test(vazio.continuidade), 'a continuidade com a Leitura Integrada aparece mesmo vazio: ' + vazio.continuidade);
 
 const foiPara = await p.evaluate(async () => {
   document.querySelector('#aba-holoscan [data-ir="holoscan"]').click();

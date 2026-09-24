@@ -144,18 +144,18 @@ conferir(/1 documento registrado/.test(consultasEDocs.docsTexto) && /Hemograma\.
 
 const holoscanSecao = await p.evaluate(() => {
   const r = document.getElementById('relatorio');
-  const b = [...r.querySelectorAll('.rel-parte')].find(s => /Confronto Clínico/.test(s.querySelector('h3').textContent));
+  const b = [...r.querySelectorAll('.rel-parte')].find(s => /Leitura Integrada/.test(s.querySelector('h3').textContent));
   return [...b.querySelectorAll('p')].map(x => x.textContent.trim());
 });
 const TEXTOS_FIXOS = [
   'Existe convergência entre o relato do paciente e os dados laboratoriais nesta dimensão.',
   'Relato e dados laboratoriais disponíveis estão convergentes nesta dimensão.',
   'O relato e os dados laboratoriais não estão caminhando na mesma direção neste momento.',
-  'Ainda não há dados laboratoriais suficientes para realizar o confronto desta dimensão.',
+  'Ainda não há dados laboratoriais suficientes para realizar a leitura integrada desta dimensão.',
 ];
 conferir(holoscanSecao.length >= 5, 'a seção B (HOLOSCAN) tem uma linha por sistema: ' + holoscanSecao.length);
 conferir(
-  holoscanSecao.filter(t => !/^O Holoscan organiza/.test(t))
+  holoscanSecao.filter(t => !/^A Leitura Integrada organiza/.test(t))
     .every(t => TEXTOS_FIXOS.some(fixo => t.indexOf(fixo) >= 0)),
   'nenhuma leitura causal do motor escapou — só os quatro textos fixos do Holoscan');
 

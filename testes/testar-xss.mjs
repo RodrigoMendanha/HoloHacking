@@ -217,9 +217,9 @@ const ficha = await p.evaluate(async (PAYLOAD_NO_NAVEGADOR) => {
   await new Promise(r => setTimeout(r, 350));
   document.querySelector('.card-paciente').click();
   await new Promise(r => setTimeout(r, 450));
-  document.querySelector('[data-aba="formularios"]').click();
+  document.querySelector('[data-aba="ferramentas"]').click();
   await new Promise(r => setTimeout(r, 400));
-  const painel = document.getElementById('aba-formularios');
+  const painel = document.getElementById('aba-ferramentas');
   const extras = [...painel.querySelectorAll('.fic-form-extra')];
   /* O card monta `extra` a partir do registro do paciente em memória —
      hidratado da tabela legada ou derivado das aplicações. É de lá que o

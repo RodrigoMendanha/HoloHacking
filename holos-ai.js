@@ -258,11 +258,38 @@
       "---\n";
   }
 
+  function dadosLeituraIntegrada() {
+    var pid = pacienteId();
+    if (!pid) return "";
+    var g = window.HOLOSCAN || null;
+    if (!g || !g.lerExames) return "";
+    var exames;
+    try { exames = JSON.parse(localStorage.getItem("holohacking.exames")) || {}; }
+    catch (e) { return ""; }
+    var d = exames[pid];
+    if (!d || typeof d !== "object" || !Object.keys(d).length) return "";
+    var pont = window.ultimaPontuacao ? window.ultimaPontuacao(pid) : null;
+    var notas = {};
+    if (pont && pont.sistemas) pont.sistemas.forEach(function (s) { notas[s.sistema] = s.nota; });
+    var r;
+    try { r = g.lerExames(d, notas); } catch (e) { return ""; }
+    if (!r.confronto || !r.confronto.length) return "";
+    var NOME = window.Panorama && window.Panorama.NOME_SISTEMA ? window.Panorama.NOME_SISTEMA : {};
+    var t = "";
+    r.confronto.forEach(function (c) {
+      var estado = window.Holoscan ? window.Holoscan.rotulo(c) : c.concordancia;
+      var nome = NOME[c.sistema] || c.sistema;
+      t += "- " + nome + ": " + estado + "\n";
+    });
+    return t;
+  }
+
   function gerarCompleto() {
     var t = cabecalhoContexto("Caso completo");
     t += secaoSe("Paciente", dadosPaciente());
     t += secaoSe("HOLOSCAN — Mapa HOLOS atual", dadosHoloscan());
-    t += secaoSe("Exames laboratoriais", dadosExames());
+    t += secaoSe("Camada Laboratorial", dadosExames());
+    t += secaoSe("Leitura Integrada", dadosLeituraIntegrada());
     t += secaoSe("Consultas recentes", dadosConsultas());
     t += secaoSe("Ferramentas (OQ3, PQQ e outras)", dadosFerramentas());
     var evo = dadosEvolucao();

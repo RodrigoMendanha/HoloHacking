@@ -173,7 +173,7 @@
       (d.exames > 0
         ? '<p class="dash-sub">' + d.exames +
           (d.exames === 1 ? " valor registrado." : " valores registrados.") + "</p>" +
-          '<button type="button" class="dash-ir" data-ir="confronto">Ver HOLOSCAN ' +
+          '<button type="button" class="dash-ir" data-ir="confronto">Ver Leitura Integrada ' +
           '<span aria-hidden="true">&rarr;</span></button>'
         : '<p class="dash-vazio">Nenhum exame registrado.</p>' +
           '<button type="button" class="dash-ir" data-ir="aba:documentos">Registrar exames ' +
@@ -247,9 +247,13 @@
         "transforma o que ela conta em leitura — e é dele que sai tudo o que " +
         "aparece nesta aba.</div>";
       html += blocoDocumentosPlaceholder() + blocoExames(d);
+      html += '<div class="dash-bloco dash-bloco-compacto" id="fic-visao-timeline-bloco">' +
+        '<h3 class="dash-titulo">Linha do tempo</h3>' +
+        '<div id="fic-visao-timeline"></div></div>';
       alvo.innerHTML = html;
       ligar(alvo);
       preencherDocumentosRecentes(pid);
+      desenharLinha();
       return;
     }
 
@@ -307,9 +311,14 @@
 
     html += blocoDocumentosPlaceholder() + blocoExames(d);
 
+    html += '<div class="dash-bloco dash-bloco-compacto" id="fic-visao-timeline-bloco">' +
+      '<h3 class="dash-titulo">Linha do tempo</h3>' +
+      '<div id="fic-visao-timeline"></div></div>';
+
     alvo.innerHTML = html;
     ligar(alvo);
     preencherDocumentosRecentes(pid);
+    desenharLinha();
   }
 
   /* ==================================================== ABA: CONSULTAS === */
@@ -322,7 +331,7 @@
       '<span class="fic-rot">Depois da consulta</span>' +
       '<button type="button" class="fic-chip" data-ir="holoscan">HOLOSCAN</button>' +
       '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span>' +
-      '<button type="button" class="fic-chip" data-ir="confronto">Confronto Clínico</button>' +
+      '<button type="button" class="fic-chip" data-ir="confronto">Leitura Integrada</button>' +
       '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span>' +
       '<button type="button" class="fic-chip" data-ir="aba:documentos">Documentos</button>' +
     "</div>";
@@ -402,7 +411,7 @@
   function blocoContinuidadeHoloscan() {
     return '<div class="fic-continuidade">' +
       '<span class="fic-rot">Depois do mapa</span>' +
-      '<button type="button" class="fic-chip" data-ir="confronto">Confrontar no Confronto Clínico</button>' +
+      '<button type="button" class="fic-chip" data-ir="confronto">Ver Leitura Integrada</button>' +
     "</div>";
   }
 
@@ -435,7 +444,9 @@
       alvo.innerHTML = topo +
         '<div class="lista-vazia"><strong>Nenhuma aplicação HOLOSCAN</strong>' +
         "<span>Faça a primeira aplicação para mapear prioridades de investigação.</span></div>" +
+        '<div id="aba-holoscan-laboratorial"></div>' +
         blocoContinuidadeHoloscan();
+      if (window.desenharHoloscanLaboratorial) window.desenharHoloscanLaboratorial();
       ligar(alvo);
       return;
     }
@@ -468,9 +479,12 @@
           }).join("") + "</ul>") +
     "</div>";
 
+    html += '<div id="aba-holoscan-laboratorial"></div>';
+
     html += blocoContinuidadeHoloscan();
 
     alvo.innerHTML = html;
+    if (window.desenharHoloscanLaboratorial) window.desenharHoloscanLaboratorial();
     ligar(alvo);
   }
 
@@ -483,7 +497,7 @@
      Ferramenta preenchida NÃO entra: ela não guarda data. Botá-la aqui com a
      data de hoje seria inventar quando aconteceu. */
   function desenharLinha() {
-    var alvo = document.getElementById("aba-linha");
+    var alvo = document.getElementById("fic-visao-timeline") || document.getElementById("aba-linha");
     if (!alvo) return;
     var pid = paciente();
     var d = reunir();
@@ -611,7 +625,7 @@
      O valor persistido não muda — nada é removido da resposta. Só a SAÍDA é
      escapada, que é o mesmo que o histórico do OQ³/PQQ em app.js faz. */
   function desenharFormularios() {
-    var alvo = document.getElementById("aba-formularios");
+    var alvo = document.getElementById("aba-ferramentas") || document.getElementById("aba-formularios");
     if (!alvo) return;
     var d = reunir();
     var p = pacienteObj() || {};
@@ -871,6 +885,7 @@
     visao: desenharVisao,
     consultas: desenharConsultas,
     holoscan: desenharHolo,
+    ferramentas: desenharFormularios,
     linha: desenharLinha,
     formularios: desenharFormularios
   };

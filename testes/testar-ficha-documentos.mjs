@@ -149,7 +149,7 @@ conferir(/3 documentos$/.test(tres.total), 'o contador soma os três: ' + tres.t
 // sem data (vai por ultimo).
 conferir(/Laudo do endocrinologista/.test(tres.nomes[0]) && tres.nomes[1] === 'Consentimento antigo',
   'ordem decrescente por data, herdada do ArquivoStore: ' + tres.nomes.join(' · '));
-conferir(/Consulta.*HOLOSCAN.*Confronto Clínico.*Documentos/.test(tres.continuidade),
+conferir(/Consulta.*HOLOSCAN.*Leitura Integrada.*Documentos/.test(tres.continuidade),
   'a linha de continuidade da jornada aparece: ' + tres.continuidade);
 
 const overflowDesktop = await p.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 2);

@@ -29,9 +29,9 @@ async function verFicha(){
       .map(e => e.textContent.replace(/\s+/g, ' ').trim());
 
     // os formularios ficam na aba deles; abrir, ler, e voltar para a visao
-    document.querySelector('[data-aba="formularios"]').click();
+    document.querySelector('[data-aba="ferramentas"]').click();
     await new Promise(x => setTimeout(x, 250));
-    const f = document.getElementById('aba-formularios');
+    const f = document.getElementById('aba-ferramentas');
     const formularios = [...f.querySelectorAll('.fic-form-topo')]
       .map(e => e.textContent.replace(/\s+/g, ' ').trim());
     const chips = [...f.querySelectorAll('.fic-chip')].map(e => e.textContent);

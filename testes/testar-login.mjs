@@ -340,7 +340,7 @@ ok(faltando.length === 0 && sobrando.length === 0,
    (sobrando.length ? ' | apareceu: ' + sobrando.join(', ') : ''));
 ok(JSON.stringify(app.navs) === JSON.stringify(MENU),
    'o menu continua com os mesmos ' + MENU.length + ' itens, na mesma ordem: ' + app.navs.join(', '));
-ok(app.holoscan && app.confronto, 'HOLOSCAN e Confronto Clínico continuam abrindo pelo menu');
+ok(app.holoscan && app.confronto, 'HOLOSCAN e Leitura Integrada continuam abrindo pelo menu');
 ok(app.loginNaoEhSecao, 'a tela de entrada nao virou secao nem item de menu');
 
 await nav.close();

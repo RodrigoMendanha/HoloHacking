@@ -139,13 +139,13 @@
       '<h3 class="dash-titulo">Pacientes recentes</h3>' + corpo + "</div>";
   }
 
-  /* HOLOSCAN mapeia, Confronto Clínico confronta sem corrigir, Documentos consolida —
+  /* HOLOSCAN mapeia, Leitura Integrada integra sem corrigir, Documentos consolida —
      so o encadeamento visual do metodo que ja existe. Nenhum texto aqui
-     chama HOLOSCAN de diagnostico nem diz que o Confronto muda nota. */
+     chama HOLOSCAN de diagnostico nem diz que a Leitura muda nota. */
   function blocoJornadaClinica() {
     var etapas = [
       { nome: "HOLOSCAN", texto: "Mapear prioridades de investigação.", destino: "holoscan" },
-      { nome: "Confronto Clínico", texto: "Confrontar o mapa com exames.", destino: "confronto" },
+      { nome: "Leitura Integrada", texto: "Integrar o mapa com exames.", destino: "confronto" },
       { nome: "Documentos", texto: "Consolidar registros e materiais da jornada.", destino: "documentos" }
     ];
 

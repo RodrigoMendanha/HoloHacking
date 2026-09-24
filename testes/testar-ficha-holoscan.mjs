@@ -67,16 +67,16 @@ const pid = await p.evaluate(async () => {
 /* -------------------------------------------------------- sem exame ------ */
 
 await abrirFichaDe(pid);
-await aba('confronto');
+await aba('holoscan');
 
 const vazio = await p.evaluate(() => {
-  const v = document.querySelector('#aba-confronto .lista-vazia');
+  const v = document.querySelector('#aba-holoscan-laboratorial .lista-vazia');
   return {
     titulo: v?.querySelector('strong')?.textContent,
     texto: v?.querySelector('span')?.textContent,
-    botao: document.querySelector('#aba-confronto .fic-consultas-topo button')?.textContent,
-    avisoSemMapa: document.querySelector('#aba-confronto .dash-vazio')?.textContent || '',
-    temUltima: !!document.querySelector('#aba-confronto .dash-titulo'),
+    botao: document.querySelector('#aba-holoscan-laboratorial .fic-consultas-topo button')?.textContent,
+    avisoSemMapa: document.querySelector('#aba-holoscan-laboratorial .dash-vazio')?.textContent || '',
+    temUltima: !!document.querySelector('#aba-holoscan-laboratorial .dash-titulo'),
   };
 });
 conferir(vazio.titulo === 'Nenhum exame registrado', 'título do estado vazio: ' + vazio.titulo);
@@ -88,7 +88,7 @@ conferir(/existir um mapa/.test(vazio.avisoSemMapa),
 conferir(!vazio.temUltima, 'sem exame, nenhum bloco "Última coleta" aparece');
 
 const registrar = await p.evaluate(async () => {
-  document.querySelector('#aba-confronto [data-ir="aba:documentos"]').click();
+  document.querySelector('#aba-holoscan-laboratorial [data-ir="aba:documentos"]').click();
   await new Promise(r => setTimeout(r, 250));
   return {
     abaAtiva: document.querySelector('[data-aba="documentos"]').classList.contains('ativa'),
@@ -106,14 +106,14 @@ await p.evaluate((id) => {
 await p.reload({ waitUntil: 'networkidle2' });
 await p.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados());
 await abrirFichaDe(pid);
-await aba('confronto');
+await aba('holoscan');
 
 const semMapa = await p.evaluate(() => {
-  const blocos = [...document.querySelectorAll('#aba-confronto .dash-bloco-compacto')];
+  const blocos = [...document.querySelectorAll('#aba-holoscan-laboratorial .dash-bloco-compacto')];
   const ultima = blocos.find(b => b.querySelector('.dash-titulo').textContent === 'Última coleta');
   return {
     resumo: ultima.querySelector('.dash-sub').textContent,
-    dadosInsuf: [...document.querySelectorAll('#aba-confronto .conf-item')]
+    dadosInsuf: [...document.querySelectorAll('#aba-holoscan-laboratorial .conf-item')]
       .every(i => i.classList.contains('dados_insuficientes')),
   };
 });
@@ -135,13 +135,13 @@ await p.evaluate(async (respostas) => {
 await p.reload({ waitUntil: 'networkidle2' });
 await p.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados());
 await abrirFichaDe(pid);
-await aba('confronto');
+await aba('holoscan');
 
 const cheio = await p.evaluate(() => {
-  const blocos = [...document.querySelectorAll('#aba-confronto .dash-bloco-compacto')];
+  const blocos = [...document.querySelectorAll('#aba-holoscan-laboratorial .dash-bloco-compacto')];
   const de = titulo => blocos.find(b => b.querySelector('.dash-titulo').textContent === titulo);
   const ultima = de('Última coleta');
-  const itens = [...document.querySelectorAll('#aba-confronto .conf-item')].map(i => ({
+  const itens = [...document.querySelectorAll('#aba-holoscan-laboratorial .conf-item')].map(i => ({
     sistema: i.querySelector('b').textContent,
     estado: i.querySelector('.conf-selo').textContent,
     leitura: i.querySelector('.conf-leitura').textContent.trim(),
@@ -152,7 +152,7 @@ const cheio = await p.evaluate(() => {
     contagem: [...ultima.querySelectorAll('.fic-sis')].map(s => s.textContent.trim()),
     itens,
     historico: de('Histórico de coletas').querySelector('.dash-vazio').textContent,
-    continuidade: [...document.querySelectorAll('#aba-confronto .fic-continuidade .fic-rot')].map(s => s.textContent),
+    continuidade: [...document.querySelectorAll('#aba-holoscan-laboratorial .fic-continuidade .fic-rot')].map(s => s.textContent),
   };
 });
 
@@ -176,7 +176,7 @@ const TEXTOS_FIXOS = [
   'Existe convergência entre o relato do paciente e os dados laboratoriais nesta dimensão.',
   'Relato e dados laboratoriais disponíveis estão convergentes nesta dimensão.',
   'O relato e os dados laboratoriais não estão caminhando na mesma direção neste momento.',
-  'Ainda não há dados laboratoriais suficientes para realizar o confronto desta dimensão.',
+  'Ainda não há dados laboratoriais suficientes para realizar a leitura integrada desta dimensão.',
 ];
 conferir(cheio.itens.every(i => TEXTOS_FIXOS.includes(i.leitura)),
   'todo texto é um dos quatro fixos do Holoscan — nenhuma leitura causal do motor escapou: ' +
@@ -185,24 +185,24 @@ conferir(cheio.itens.every(i => TEXTOS_FIXOS.includes(i.leitura)),
 conferir(/não há coleta por data persistida/.test(cheio.historico),
   'sem coleta datada, a tela diz isso em vez de inventar histórico: ' + cheio.historico);
 
-conferir(cheio.continuidade.join(' · ').includes('HOLOSCAN') && cheio.continuidade.join(' · ').includes('Confronto Clínico'),
-  'a relação HOLOSCAN → mapa / Confronto Clínico → confronto aparece: ' + cheio.continuidade.join(' · '));
+conferir(cheio.continuidade.join(' · ').includes('HOLOSCAN') && cheio.continuidade.join(' · ').includes('Leitura Integrada'),
+  'a relação HOLOSCAN → mapa / Leitura Integrada → integração com exames aparece: ' + cheio.continuidade.join(' · '));
 
-/* ---------------------------------------- "Ver HOLOSCAN completo" nao zera */
+/* --------------------------------- "Ver Leitura Integrada completa" nao zera */
 
-const verHoloscan = await p.evaluate(async () => {
-  document.querySelector('#aba-confronto [data-ir="holoscan"]').click();
+const verLeitura = await p.evaluate(async () => {
+  document.querySelector('#aba-holoscan-laboratorial [data-ir="confronto"]').click();
   await new Promise(r => setTimeout(r, 300));
   return {
     secaoAtiva: document.querySelector('.secao.ativa')?.id,
     algumaAtiva: document.querySelectorAll('.secao.ativa').length,
-    paciente: document.getElementById('sel-holoscan')?.selectedOptions[0]?.textContent,
+    paciente: document.getElementById('sel-confronto')?.selectedOptions[0]?.textContent,
   };
 });
-conferir(verHoloscan.secaoAtiva === 'secao-holoscan' && verHoloscan.algumaAtiva === 1,
-  '"Ver HOLOSCAN completo" leva para a seção, sem zerar a tela: ' + verHoloscan.secaoAtiva);
-conferir(verHoloscan.paciente === 'Marina Alves',
-  'e chega lá com a pessoa certa selecionada: ' + verHoloscan.paciente);
+conferir(verLeitura.secaoAtiva === 'secao-confronto' && verLeitura.algumaAtiva === 1,
+  '"Ver Leitura Integrada completa" leva para a seção, sem zerar a tela: ' + verLeitura.secaoAtiva);
+conferir(verLeitura.paciente === 'Marina Alves',
+  'e chega lá com a pessoa certa selecionada: ' + verLeitura.paciente);
 
 /* --------------------------------------------------------------- fim ----- */
 console.log('');

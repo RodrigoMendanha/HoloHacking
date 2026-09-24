@@ -172,12 +172,12 @@
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5"/><circle cx="12" cy="12" r="3"/></svg>
           HOLOSCAN
         </button>
-        <!-- Confronto Clinico vem logo abaixo do HOLOSCAN de proposito: e a
+        <!-- Leitura Integrada vem logo abaixo do HOLOSCAN de proposito: e a
              camada laboratorial do mesmo sistema — le o mapa e os exames,
              nunca os altera. -->
         <button class="nav-item" data-secao="confronto">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M3 12h18"/></svg>
-          Confronto Clínico <span class="nav-tag">Exames</span>
+          Leitura Integrada <span class="nav-tag">Exames</span>
         </button>
         <button class="nav-item" data-secao="corpo">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5.5" r="2.6"/><path d="M12 8.5v6M12 14.5l-3.5 5M12 14.5l3.5 5M7 10.5h10"/></svg>
@@ -337,7 +337,7 @@
           <p>O HOLOSCAN reúne, numa leitura só, o que o paciente relata sobre corpo, emoção e propósito — e mostra por onde a conduta começa: quais sistemas pesam mais, o que aparece junto e qual ferramenta responde a isso.</p>
           <!-- Fluxo clinico do metodo, so como referencia visual — nao e um
                wizard, nenhuma etapa bloqueia a seguinte. -->
-          <p class="fluxo-clinico">História &rarr; <b>HOLOSCAN</b> &rarr; Confronto Clínico &rarr; Aprofundamento &rarr; Interpretação &rarr; Conduta &rarr; Evolução</p>
+          <p class="fluxo-clinico">História &rarr; <b>HOLOSCAN</b> &rarr; Leitura Integrada &rarr; Aprofundamento &rarr; Interpretação &rarr; Conduta &rarr; Evolução</p>
         </div>
 
         <div class="barra-paciente">
@@ -558,29 +558,26 @@
            irPara("confronto") quanto por desenharPontuacao() em app.js. -->
       <section class="secao" id="secao-confronto">
         <div class="secao-cabeca">
-          <span class="eyebrow">HOLOSCAN &mdash; Confronto Clínico</span>
+          <span class="eyebrow">HOLOSCAN &mdash; Leitura Integrada</span>
           <h2>O que os exames <em>acrescentam</em> ao mapa</h2>
-          <p>O Confronto Clínico compara, sistema a sistema, o que o paciente relata no HOLOSCAN com o que os exames mostram. Ele não corrige o mapa nem o exame: mostra onde os dois caminham juntos, onde divergem — e onde ainda não há dado para comparar.</p>
-          <p class="fluxo-clinico">História &rarr; HOLOSCAN &rarr; <b>Confronto Clínico</b> &rarr; Aprofundamento &rarr; Interpretação &rarr; Conduta &rarr; Evolução</p>
+          <p>A Leitura Integrada compara, sistema a sistema, o que o paciente relata no HOLOSCAN com o que os exames mostram. Ela não corrige o mapa nem o exame: mostra onde os dois caminham juntos, onde divergem — e onde ainda não há dado para comparar.</p>
+          <p class="fluxo-clinico">História &rarr; HOLOSCAN &rarr; <b>Leitura Integrada</b> &rarr; Aprofundamento &rarr; Interpretação &rarr; Conduta &rarr; Evolução</p>
         </div>
 
         <div class="barra-paciente">
           <span class="rotulo">Paciente</span>
           <select class="seletor-paciente" id="sel-confronto" aria-label="Selecionar paciente"></select>
-          <span class="aviso">O confronto usa o HOLOSCAN já aplicado a este paciente.</span>
+          <span class="aviso">A leitura usa o HOLOSCAN já aplicado a este paciente.</span>
         </div>
 
         <div class="painel-escuro">
-          <!-- Esta linha vinha de dentro de desenharHoloscan(). Fica aqui
-               porque e verdade da tela inteira, nao de um bloco dela: aqui
-               nao se lanca exame nenhum. -->
           <p class="arq-nota">O lançamento e a edição dos valores ficam na aba
             <b>Documentos</b>, na ficha do paciente. Esta tela apenas lê.</p>
 
           <div class="holo-caixa-mapa" id="holo-confronto"></div>
 
           <p class="holo-fronteira">
-            O Confronto Clínico organiza informações laboratoriais para apoiar a
+            A Leitura Integrada organiza informações laboratoriais para apoiar a
             <b>interpretação profissional</b>. Não realiza diagnóstico, não altera o
             HOLOSCAN e não substitui avaliação médica.
           </p>
@@ -761,8 +758,8 @@
                 </div>
                 <div class="dash-jornada-seta" aria-hidden="true">&darr;</div>
                 <div class="dash-jornada-passo">
-                  <span class="dash-quem"><b>Confronto Clínico</b>
-                    <span class="dash-porque">Confrontar o mapa com exames.</span></span>
+                  <span class="dash-quem"><b>Leitura Integrada</b>
+                    <span class="dash-porque">Integrar o mapa com exames.</span></span>
                   <button type="button" class="dash-ir" data-atalho="confronto">Abrir <span aria-hidden="true">&rarr;</span></button>
                 </div>
                 <div class="dash-jornada-seta" aria-hidden="true">&darr;</div>
@@ -779,9 +776,7 @@
                 <button class="aba ativa" data-aba="visao" role="tab">Visão geral</button>
                 <button class="aba" data-aba="consultas" role="tab">Consultas</button>
                 <button class="aba" data-aba="holoscan" role="tab">HOLOSCAN</button>
-                <button class="aba" data-aba="confronto" role="tab">Confronto</button>
-                <button class="aba" data-aba="linha" role="tab">Linha do tempo</button>
-                <button class="aba" data-aba="formularios" role="tab">Formulários</button>
+                <button class="aba" data-aba="ferramentas" role="tab">Ferramentas</button>
                 <button class="aba" data-aba="documentos" role="tab">Documentos</button>
                 <button class="aba" data-aba="relatorio" role="tab">Relatório</button>
                 <button class="aba" data-aba="holos-ai" role="tab">HOLOS AI</button>
@@ -790,9 +785,7 @@
               <div class="aba-painel" id="aba-visao"></div>
               <div class="aba-painel hidden" id="aba-consultas"></div>
               <div class="aba-painel hidden" id="aba-holoscan"></div>
-              <div class="aba-painel hidden" id="aba-confronto"></div>
-              <div class="aba-painel hidden" id="aba-linha"></div>
-              <div class="aba-painel hidden" id="aba-formularios"></div>
+              <div class="aba-painel hidden" id="aba-ferramentas"></div>
               <div class="aba-painel hidden" id="aba-documentos"></div>
               <div class="aba-painel hidden" id="aba-relatorio"></div>
               <div class="aba-painel hidden" id="aba-holos-ai"></div>
