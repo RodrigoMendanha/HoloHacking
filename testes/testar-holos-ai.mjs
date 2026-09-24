@@ -1,26 +1,29 @@
 /**
- * HOLOS AI — testes do frontend integrado à ficha do paciente.
+ * HOLOS AI — testes do hub de inteligencia profissional na ficha.
  *
  * O que este teste cobra:
  *
- *   ABA         a aba "HOLOS AI" existe e abre.
- *   VAZIO       sem autenticação e sem paciente, mostra mensagens corretas.
- *   ESTRUTURA   com paciente, a interface do chat aparece: sidebar, input,
- *               botao de enviar, atalhos de prompt.
- *   SEGURANCA   a chave da IA nao aparece em nenhum lugar do frontend.
- *   ISOLAMENTO  trocar de paciente reseta a thread ativa.
- *
- * NAO testa a Edge Function nem a API do Gemini (isso e teste de integracao
- * que roda contra o backend real).
+ *   ABA            a aba "HOLOS AI" existe e abre.
+ *   VAZIO          sem autenticação/paciente, mostra mensagens corretas.
+ *   HUB            com paciente, a interface do hub aparece: botoes de agente,
+ *                  atalhos de contexto, area de saida, copiar.
+ *   CONTEXTO       gerar contexto do paciente produz texto estruturado.
+ *   ISOLAMENTO     contexto so contem dados do paciente ativo.
+ *   SEGURANCA      nenhuma chave de API no frontend.
+ *   EDGE FUNCTION  nenhuma chamada a Edge Function ao abrir a aba.
+ *   URLS           botoes de ChatGPT/Gemini usam URLs configuradas.
  */
 import puppeteer from 'puppeteer-core';
+import { readFileSync } from 'node:fs';
 
+const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));
 const nav = await puppeteer.launch({
   executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
   headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const p = await nav.newPage();
 await p.setViewport({ width: 1500, height: 1300 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
+const chamadas = []; p.on('request', r => { if (/functions\/v1\/holos-ai/i.test(r.url())) chamadas.push(r.url()); });
 await p.goto('http://127.0.0.1:5500/', { waitUntil: 'networkidle2' });
 await p.addStyleTag({ content: '*{transition:none!important;animation:none!important}' });
 await p.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados());
@@ -50,73 +53,167 @@ await aba('holos-ai');
 const semPaciente = await p.evaluate(() => {
   const alvo = document.getElementById('aba-holos-ai');
   const texto = alvo?.innerText?.replace(/\s+/g, ' ').trim();
-  return { texto, temChat: !!alvo?.querySelector('.ai-container') };
+  return { texto, temHub: !!alvo?.querySelector('.ai-hub') };
 });
 
-// Sem autenticação, a mensagem deve pedir login OU pedir selecionar paciente
 conferir(
   /autenticação|Selecione um paciente/i.test(semPaciente.texto),
   'sem paciente/auth, mostra mensagem adequada: ' + semPaciente.texto?.slice(0, 60)
 );
-conferir(!semPaciente.temChat, 'sem paciente, não mostra o chat');
+conferir(!semPaciente.temHub, 'sem paciente, não mostra o hub');
 
 /* ------------------------------------------------- com paciente --------- */
 
-await p.evaluate(async () => {
-  document.querySelector('.nav-item[data-secao="pacientes"]').click();
-  const v = document.getElementById('voltar-lista'); if (v) v.click();
-  document.getElementById('btn-abrir-novo').click();
-  document.getElementById('np-nome').value = 'Marina Alves';
-  document.getElementById('btn-salvar-paciente').click();
-  await new Promise(x => setTimeout(x, 300));
-});
+// Aplicar o HOLOSCAN para ter dados de contexto
+await p.evaluate((respostas) => {
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
+  document.getElementById('btn-abrir-questionario').click();
+  const m = {}; respostas.forEach(x => m[x.marcador_id] = x.intensidade);
+  document.querySelectorAll('.q-item').forEach(i => {
+    const v = m[i.dataset.marcador];
+    if (v !== undefined) i.querySelectorAll('.q-btn')[v].click();
+  });
+  document.querySelector('[data-acao="calcular"]').click();
+}, caso.respostas);
 
-// Abrir ficha e ir para a aba HOLOS AI
 await p.evaluate(async () => {
   document.querySelector('.nav-item[data-secao="pacientes"]').click();
-  const fichas = document.querySelectorAll('[data-ficha]');
-  if (fichas.length) fichas[fichas.length - 1].click();
-  await new Promise(r => setTimeout(r, 300));
+  document.getElementById('vista-lista-pacientes').classList.add('hidden');
+  document.getElementById('vista-ficha').classList.remove('hidden');
+  await new Promise(r => setTimeout(r, 200));
 });
 await aba('holos-ai');
 
-const comPaciente = await p.evaluate(() => {
+const hub = await p.evaluate(() => {
   const alvo = document.getElementById('aba-holos-ai');
   return {
-    temContainer: !!alvo?.querySelector('.ai-container'),
-    temSidebar: !!alvo?.querySelector('.ai-sidebar'),
+    temHub: !!alvo?.querySelector('.ai-hub'),
+    temIntro: !!alvo?.querySelector('.ai-hub-intro'),
+    temTitulo: alvo?.querySelector('.ai-hub-titulo')?.textContent?.trim(),
+    temDescricao: !!alvo?.querySelector('.ai-hub-descricao'),
+    temBtnChatgpt: !!alvo?.querySelector('#ai-btn-chatgpt'),
+    temBtnGemini: !!alvo?.querySelector('#ai-btn-gemini'),
+    atalhos: alvo?.querySelectorAll('.ai-atalho-ctx').length || 0,
+    rotulosAtalhos: [...(alvo?.querySelectorAll('.ai-atalho-ctx') || [])].map(b => b.textContent.trim()),
+    temPrivacidade: /permanecem neste navegador|não é enviada/i.test(alvo?.innerText || ''),
+    temSaida: !!alvo?.querySelector('.ai-hub-saida'),
+    saidaVisivel: !alvo?.querySelector('.ai-hub-saida')?.classList.contains('hidden'),
+    temEdgeFunction: /functions\/v1|EDGE_FUNCTION/i.test(alvo?.innerHTML || ''),
+    temChat: !!alvo?.querySelector('.ai-container'),
     temInput: !!alvo?.querySelector('.ai-input'),
-    temBotao: !!alvo?.querySelector('.ai-enviar'),
-    temAtalhos: alvo?.querySelectorAll('.ai-atalho').length || 0,
-    temBoasVindas: !!alvo?.querySelector('.ai-boas-vindas'),
-    textoBotao: alvo?.querySelector('.ai-enviar')?.textContent?.trim(),
-    placeholderInput: alvo?.querySelector('.ai-input')?.placeholder,
-    temNovaConversa: !!alvo?.querySelector('#ai-nova-conversa'),
+    temFormChat: !!alvo?.querySelector('.ai-form'),
   };
 });
 
-// Se não autenticado, pode não mostrar o chat (mostra msg de auth)
-// Vamos verificar o que apareceu
-if (comPaciente.temContainer) {
-  conferir(comPaciente.temContainer, 'com paciente, o container do chat aparece');
-  conferir(comPaciente.temSidebar, 'sidebar de threads presente');
-  conferir(comPaciente.temInput, 'campo de texto presente');
-  conferir(comPaciente.temBotao, 'botão enviar presente');
-  conferir(comPaciente.textoBotao === 'Enviar', 'botão diz "Enviar": ' + comPaciente.textoBotao);
-  conferir(comPaciente.temAtalhos >= 3, comPaciente.temAtalhos + ' atalhos de prompt');
-  conferir(comPaciente.temBoasVindas, 'mensagem de boas-vindas do HOLOS AI');
-  conferir(comPaciente.temNovaConversa, 'botão "Nova conversa" presente');
-  conferir(/HOLOS AI|paciente/i.test(comPaciente.placeholderInput),
-    'placeholder do input menciona o contexto: ' + comPaciente.placeholderInput);
+if (hub.temHub) {
+  conferir(hub.temHub, 'com paciente, o hub HOLOS AI aparece');
+  conferir(hub.temTitulo === 'HOLOS AI', 'titulo: ' + hub.temTitulo);
+  conferir(hub.temDescricao, 'descricao presente');
+  conferir(hub.temBtnChatgpt, 'botao ChatGPT presente');
+  conferir(hub.temBtnGemini, 'botao Gemini presente');
+  conferir(hub.atalhos === 4, hub.atalhos + ' atalhos de contexto');
+  conferir(hub.rotulosAtalhos.includes('Caso completo'), 'atalho "Caso completo"');
+  conferir(hub.rotulosAtalhos.includes('HOLOSCAN'), 'atalho "HOLOSCAN"');
+  conferir(hub.rotulosAtalhos.includes('Exames'), 'atalho "Exames"');
+  conferir(hub.rotulosAtalhos.includes('Evolução / retorno'), 'atalho "Evolução / retorno"');
+  conferir(hub.temPrivacidade, 'aviso de privacidade visivel');
+  conferir(!hub.saidaVisivel, 'area de saida começa oculta');
+  conferir(!hub.temChat, 'nao tem mais o chat interno');
+  conferir(!hub.temInput, 'nao tem mais o campo de texto do chat');
+  conferir(!hub.temFormChat, 'nao tem mais o formulario de chat');
+  conferir(!hub.temEdgeFunction, 'nenhuma referencia a Edge Function no HTML');
 } else {
-  // Sem auth, é esperado não ter chat
   const textoSemAuth = await p.evaluate(() =>
     document.getElementById('aba-holos-ai')?.innerText?.replace(/\s+/g, ' ').trim());
   conferir(/autenticação|login/i.test(textoSemAuth),
     'sem autenticação, pede login (esperado neste ambiente de teste): ' + textoSemAuth?.slice(0, 60));
 }
 
-/* ------------------------------------------- segurança: sem chave no DOM -- */
+/* ------------------------------------------ gerar contexto -------------- */
+
+if (hub.temHub) {
+  // Clicar no atalho "Caso completo"
+  await p.evaluate(async () => {
+    document.querySelector('.ai-atalho-ctx[data-ctx="completo"]').click();
+    await new Promise(r => setTimeout(r, 200));
+  });
+
+  const contexto = await p.evaluate(() => {
+    const saida = document.getElementById('ai-hub-saida');
+    const texto = document.getElementById('ai-hub-texto');
+    const tipo = document.getElementById('ai-hub-tipo');
+    return {
+      saidaVisivel: saida && !saida.classList.contains('hidden'),
+      texto: texto?.textContent || '',
+      tipo: tipo?.textContent?.trim() || '',
+      ativoClass: !!document.querySelector('.ai-atalho-ctx.ativo'),
+    };
+  });
+
+  conferir(contexto.saidaVisivel, 'area de saida aparece apos gerar contexto');
+  conferir(contexto.tipo === 'Caso completo', 'tipo exibido: ' + contexto.tipo);
+  conferir(contexto.ativoClass, 'atalho clicado fica com classe .ativo');
+  conferir(/Contexto HOLOS AI/i.test(contexto.texto), 'cabecalho do contexto presente');
+  conferir(/Paciente/i.test(contexto.texto), 'secao Paciente no contexto');
+  conferir(/HOLOSCAN/i.test(contexto.texto), 'secao HOLOSCAN no contexto');
+  conferir(/Sistemas/i.test(contexto.texto), 'lista de sistemas no contexto');
+  conferir(/Tríada|Triada/i.test(contexto.texto), 'triada no contexto');
+
+  // Verificar que o contexto nao contem dados de outro paciente
+  conferir(!/outro_paciente_id|_sem_paciente/i.test(contexto.texto),
+    'nenhuma informação de outro paciente no contexto');
+
+  // Testar atalho HOLOSCAN
+  await p.evaluate(async () => {
+    document.querySelector('.ai-atalho-ctx[data-ctx="holoscan"]').click();
+    await new Promise(r => setTimeout(r, 100));
+  });
+  const ctxHoloscan = await p.evaluate(() => ({
+    tipo: document.getElementById('ai-hub-tipo')?.textContent?.trim(),
+    texto: document.getElementById('ai-hub-texto')?.textContent || '',
+  }));
+  conferir(ctxHoloscan.tipo === 'HOLOSCAN', 'trocar atalho atualiza tipo: ' + ctxHoloscan.tipo);
+  conferir(/HOLOSCAN/i.test(ctxHoloscan.texto), 'contexto HOLOSCAN gerado');
+
+  // Testar botao copiar (verifica que existe e pode ser clicado sem erro)
+  const temCopiar = await p.evaluate(() => !!document.getElementById('ai-hub-copiar'));
+  conferir(temCopiar, 'botao Copiar contexto presente');
+}
+
+/* ---------------------------------------- Edge Function nunca chamada --- */
+
+conferir(chamadas.length === 0,
+  'nenhuma chamada a Edge Function holos-ai ao abrir a aba: ' + chamadas.length + ' chamadas');
+
+/* ------------------------------------------ URLs configuráveis --------- */
+
+if (hub.temHub) {
+  // Configurar URLs via API
+  await p.evaluate(() => {
+    window.HolosAI.configurarUrls({
+      chatgpt: 'https://chat.openai.com/g/holos-ai-test',
+      gemini: 'https://gemini.google.com/holos-ai-test'
+    });
+  });
+  const urls = await p.evaluate(() => {
+    const c = document.getElementById('ai-btn-chatgpt');
+    const g = document.getElementById('ai-btn-gemini');
+    return {
+      chatgpt: c?.href || '',
+      gemini: g?.href || '',
+      chatgptIndisponivel: c?.classList.contains('ai-btn-indisponivel'),
+      geminiIndisponivel: g?.classList.contains('ai-btn-indisponivel'),
+      apiUrls: window.HolosAI.urls(),
+    };
+  });
+  conferir(/holos-ai-test/.test(urls.chatgpt), 'URL ChatGPT configurada: ' + urls.chatgpt);
+  conferir(/holos-ai-test/.test(urls.gemini), 'URL Gemini configurada: ' + urls.gemini);
+  conferir(!urls.chatgptIndisponivel, 'ChatGPT nao esta mais indisponivel apos configurar');
+  conferir(!urls.geminiIndisponivel, 'Gemini nao esta mais indisponivel apos configurar');
+  conferir(urls.apiUrls.chatgpt && urls.apiUrls.gemini, 'HolosAI.urls() retorna os dois');
+}
+
+/* ------------------------------------------- segurança: sem chave no DOM */
 
 const seguranca = await p.evaluate(() => {
   const html = document.documentElement.outerHTML;
@@ -128,30 +225,20 @@ const seguranca = await p.evaluate(() => {
 conferir(!seguranca.temGeminiKey, 'GEMINI_API_KEY não aparece no HTML');
 conferir(!seguranca.temServiceRole, 'service_role key não aparece no HTML');
 
-// Verificar que o JS também não contém a chave
 const jsSeguro = await p.evaluate(async () => {
   const resp = await fetch('/holos-ai.js');
   const texto = await resp.text();
   return {
     temGeminiKey: /GEMINI_API_KEY|AIzaSy/i.test(texto),
     temServiceRole: /service_role/i.test(texto),
+    temEdgeFunction: /functions\/v1\/holos-ai/i.test(texto),
   };
 });
 conferir(!jsSeguro.temGeminiKey, 'holos-ai.js não contém referência a chave Gemini');
 conferir(!jsSeguro.temServiceRole, 'holos-ai.js não contém service_role');
+conferir(!jsSeguro.temEdgeFunction, 'holos-ai.js não chama Edge Function');
 
-/* ------------------------------------------- aviso de IA sempre visível -- */
-
-if (comPaciente.temContainer) {
-  const aviso = await p.evaluate(() => {
-    const el = document.querySelector('.ai-aviso');
-    return el?.textContent?.replace(/\s+/g, ' ').trim();
-  });
-  conferir(/não diagnostica|não prescreve|não substitui/i.test(aviso),
-    'aviso de limitação da IA visível: ' + (aviso || '(não encontrado)')?.slice(0, 80));
-}
-
-/* --------------------------------------------------------------- fim ----- */
+/* --------------------------------------------------------------- fim --- */
 console.log('');
 ok(ruim.length === 0, ruim.length ? 'ERRO DE JS: ' + ruim[0] : 'sem erro de JS');
 if (ruim.length) falhou = true;
