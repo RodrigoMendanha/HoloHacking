@@ -152,8 +152,8 @@ const jornada = await p.evaluate(() => ({
   passos: [...document.querySelectorAll('.fic-jornada .dash-jornada-passo b')]
     .map(b => b.textContent),
 }));
-conferir(jornada.passos.join(',') === 'Paciente,Consulta,HOLOSCAN,Leitura Integrada,Documentos',
-  'a jornada clínica mostra o encadeamento: ' + jornada.passos.join(' · '));
+conferir(jornada.passos.join(',') === 'HOLOSCAN,Leitura Integrada,Ferramentas,Evolução',
+  'a jornada clínica mostra os 4 movimentos: ' + jornada.passos.join(' · '));
 
 const detalhes = await p.evaluate(async () => {
   document.getElementById('ficha-ver-detalhes').click();

@@ -6,6 +6,8 @@
   --verde-suave:#2c6a51;
   --dourado:#c9a35a;
   --dourado-claro:#e2c98a;
+  --dourado-escuro:#8a6f32;
+  --dourado-bg:rgba(201,163,90,.12);
   --dourado-suave:rgba(201,163,90,.25);
   --creme:#f4efe3;
   --creme-claro:#faf7ee;
@@ -68,6 +70,7 @@ body{
 button{font-family:inherit;cursor:pointer}
 input,textarea,select{font-family:inherit}
 :focus-visible{outline:2px solid var(--dourado);outline-offset:3px;border-radius:4px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
 .eyebrow{
   font-size:.68rem;letter-spacing:.28em;text-transform:uppercase;
@@ -1540,6 +1543,10 @@ body.escuro .btn-tema .icone-lua{display:none}
   border:1px solid rgba(201,163,90,.2);border-radius:var(--raio,12px);
   background:rgba(201,163,90,.04);
 }
+.fic-rot-mapa{
+  width:100%;font-size:.7rem;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;margin-bottom:-18px;
+}
 .fic-indice{display:flex;flex-direction:column}
 .fic-indice b{
   font-family:var(--fonte-display);font-size:2.6rem;font-weight:600;
@@ -1591,7 +1598,8 @@ body.escuro .btn-tema .icone-lua{display:none}
 .fic-chip:hover{border-color:var(--dourado);color:var(--dourado)}
 
 /* ---------- aba Consultas ---------- */
-.fic-consultas-topo{display:flex;justify-content:flex-end;margin-bottom:20px}
+.fic-consultas-topo{display:flex;align-items:center;justify-content:flex-end;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+.fic-topo-nota{font-size:.72rem;color:var(--texto-suave);max-width:36ch}
 /* A continuidade clinica, discreta — o bloco cheio (Jornada clinica) ja
    fica visivel acima das abas; aqui e so um lembrete de uma linha. */
 .fic-continuidade{
@@ -1706,13 +1714,19 @@ body.escuro .btn-tema .icone-lua{display:none}
 }
 
 /* ---------- jornada clinica ----------
-   HOLOSCAN -> Confronto Clinico -> Documentos: o mesmo cartao de linha que "Precisa
-   de voce" usa (dash-quem/dash-ir), so sem avatar e com uma seta entre eles. */
+   MAPEAR -> CONFRONTAR -> INTEGRAR -> ACOMPANHAR: os quatro movimentos.
+   O mesmo cartao de linha que "Precisa de voce" usa (dash-quem/dash-ir),
+   so sem avatar e com uma seta entre eles. */
 .dash-jornada{display:flex;flex-direction:column;gap:2px;margin-top:14px}
 .dash-jornada-passo{
-  display:grid;grid-template-columns:1fr auto;align-items:center;gap:14px;
+  display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;
   background:var(--sup-card);border:1px solid var(--borda-suave);
   border-left:2px solid var(--dourado-suave);border-radius:10px;padding:14px 18px;
+}
+.dash-mov{
+  font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--dourado-escuro);background:var(--dourado-bg);
+  padding:3px 8px;border-radius:4px;white-space:nowrap;
 }
 .dash-jornada-seta{
   text-align:center;color:var(--dourado-suave);font-size:.85rem;line-height:1;
@@ -1723,8 +1737,9 @@ body.escuro .btn-tema .icone-lua{display:none}
   .dash-ir{grid-column:2;justify-self:start}
   .dash-barra{grid-template-columns:1fr 2.2rem;row-gap:6px}
   .dash-barra-nome{grid-column:1/-1}
-  .dash-jornada-passo{grid-template-columns:1fr;row-gap:12px}
-  .dash-jornada-passo .dash-ir{justify-self:start}
+  .dash-jornada-passo{grid-template-columns:auto 1fr;row-gap:12px}
+  .dash-jornada-passo .dash-ir{grid-column:1/-1;justify-self:start}
+  .dash-mov{font-size:.6rem;padding:2px 6px}
 }
 
 /* =========================================================================
@@ -2091,6 +2106,15 @@ body.escuro .btn-tema .icone-lua{display:none}
 .fic-pilula.vazia b{font-weight:300;color:var(--texto-suave)}
 .fic-pilula.alerta{border-left:2px solid var(--movimento-desce)}
 .fic-pilula.alerta b{color:var(--movimento-desce)}
+
+/* ---------- desde a ultima consulta ---------- */
+.fic-retorno{margin-top:18px}
+.fic-retorno-lista{list-style:none;padding:0;margin:8px 0 0}
+.fic-retorno-lista li{
+  font-size:.84rem;padding:5px 0;color:var(--texto);
+  border-bottom:1px solid var(--borda-suave);
+}
+.fic-retorno-lista li:last-child{border-bottom:none}
 
 /* ---------- os cinco sistemas, na visão clínica ---------- */
 .fic-sistemas,.fic-leituras{margin-top:26px}

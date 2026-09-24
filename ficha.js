@@ -258,7 +258,8 @@
     }
 
     var p = d.pontuacao;
-    html += '<div class="fic-mapa"><div class="fic-indice">' +
+    html += '<div class="fic-mapa"><span class="fic-rot fic-rot-mapa">Mapa HOLOS</span>' +
+      '<div class="fic-indice">' +
       '<span class="fic-rot">Índice HOLOS</span>' +
       "<b>" + p.indice + '</b><span class="fic-de">de ' + p.indice_maximo + "</span>" +
       (p.quando ? '<span class="fic-quando">' + escapar(dataBR(p.quando)) + "</span>" : "") +
@@ -309,6 +310,8 @@
         "<p class=\"fic-combinada\">" + escapar(interpretacao.texto).replace(/\n/g, "<br>") + "</p></div>";
     }
 
+    html += blocoRetorno(d, pid);
+
     html += blocoDocumentosPlaceholder() + blocoExames(d);
 
     html += '<div class="dash-bloco dash-bloco-compacto" id="fic-visao-timeline-bloco">' +
@@ -319,6 +322,35 @@
     ligar(alvo);
     preencherDocumentosRecentes(pid);
     desenharLinha();
+  }
+
+  function blocoRetorno(d, pid) {
+    var todas = window.Agenda && window.Agenda.todas ? window.Agenda.todas(pid) : [];
+    var hj = new Date().toISOString().slice(0, 10);
+    var passadas = todas.filter(function (c) { return c.data < hj; });
+    if (passadas.length === 0) return "";
+    var ultima = passadas[0]; // todas() já vem decrescente
+    var desde = ultima.data;
+
+    var itens = [];
+
+    var apps = d.historico.filter(function (h) { return h.quando >= desde; });
+    if (apps.length > 0)
+      itens.push(apps.length + (apps.length === 1 ? " aplicação HOLOSCAN" : " aplicações HOLOSCAN"));
+
+    var ferr = (d.ferramentas || []).filter(function (f) { return f.quando >= desde; });
+    if (ferr.length > 0)
+      itens.push(ferr.length + (ferr.length === 1 ? " ferramenta aplicada" : " ferramentas aplicadas"));
+
+    if (itens.length === 0) return "";
+
+    return '<div class="dash-bloco dash-bloco-compacto fic-retorno">' +
+      '<h3 class="dash-titulo">Desde a última consulta</h3>' +
+      '<p class="dash-sub">Última consulta em ' + escapar(dataBR(desde)) +
+        " (" + escapar(ultima.tipo || "Consulta") + ")</p>" +
+      '<ul class="fic-retorno-lista">' + itens.map(function (t) {
+        return "<li>" + escapar(t) + "</li>";
+      }).join("") + "</ul></div>";
   }
 
   /* ==================================================== ABA: CONSULTAS === */
@@ -437,8 +469,10 @@
 
     var topo = '<div class="fic-consultas-topo">' +
       '<button type="button" class="btn-verde" data-ir="holoscan">' +
-        (d.pontuacao ? "Nova aplicação" : "Iniciar HOLOSCAN") +
-      "</button></div>";
+        (d.pontuacao ? "Reaplicação integral" : "Iniciar HOLOSCAN") +
+      "</button>" +
+      (d.pontuacao ? '<span class="fic-topo-nota">Cada reaplicação refaz todas as 84 perguntas para gerar um novo Mapa HOLOS comparável.</span>' : "") +
+      "</div>";
 
     if (!d.historico.length) {
       alvo.innerHTML = topo +
@@ -454,15 +488,13 @@
     var html = topo;
 
     if (d.pontuacao) {
-      // "de preenchimento" e o mesmo estado que o cartao HOLOSCAN da aba
-      // Formularios ja mostra (d.respondidas/d.totalPerguntas) — nao recalcula.
       var estado = d.respondidas === 0 ? "não iniciado"
         : d.respondidas + " de " + d.totalPerguntas + " respondidas";
       var sistemas = d.pontuacao.sistemas.map(function (s) {
         return '<span class="fic-sis">' + escapar(s.nome) + " <b>" + s.nota.toFixed(1) + "</b></span>";
       }).join("");
       html += '<div class="dash-bloco dash-bloco-compacto">' +
-        '<h3 class="dash-titulo">Última aplicação</h3>' +
+        '<h3 class="dash-titulo">Mapa HOLOS — última aplicação</h3>' +
         '<ul class="dash-pendentes">' + linhaHoloscan(d.pontuacao, true, estado) + "</ul>" +
         '<div class="fic-piores-caixa"><div class="fic-piores">' + sistemas + "</div></div>" +
       "</div>";
@@ -830,13 +862,19 @@
 
     document.getElementById("fic-janela-corpo").innerHTML = html;
     var janela = document.getElementById("fic-janela");
+    janela._gatilho = document.activeElement;
+    janela.setAttribute("role", "dialog");
+    janela.setAttribute("aria-modal", "true");
     janela.classList.remove("hidden");
     document.getElementById("fic-janela-fechar").focus();
   }
 
   function fecharJanela() {
     var j = document.getElementById("fic-janela");
-    if (j) j.classList.add("hidden");
+    if (!j) return;
+    var gatilho = j._gatilho;
+    j.classList.add("hidden");
+    if (gatilho && gatilho.focus) gatilho.focus();
   }
 
   /* ---------- ligar --------------------------------------------------------- */

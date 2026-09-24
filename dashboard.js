@@ -139,19 +139,21 @@
       '<h3 class="dash-titulo">Pacientes recentes</h3>' + corpo + "</div>";
   }
 
-  /* HOLOSCAN mapeia, Leitura Integrada integra sem corrigir, Documentos consolida —
-     so o encadeamento visual do metodo que ja existe. Nenhum texto aqui
-     chama HOLOSCAN de diagnostico nem diz que a Leitura muda nota. */
+  /* Os quatro movimentos da jornada HOLOSCAN: MAPEAR, CONFRONTAR, INTEGRAR,
+     ACOMPANHAR. Nenhum texto aqui chama HOLOSCAN de diagnostico nem diz que
+     a Leitura muda nota. */
   function blocoJornadaClinica() {
     var etapas = [
-      { nome: "HOLOSCAN", texto: "Mapear prioridades de investigação.", destino: "holoscan" },
-      { nome: "Leitura Integrada", texto: "Integrar o mapa com exames.", destino: "confronto" },
-      { nome: "Documentos", texto: "Consolidar registros e materiais da jornada.", destino: "documentos" }
+      { mov: "MAPEAR",      nome: "HOLOSCAN",          texto: "Mapear prioridades de investigação.",                destino: "holoscan" },
+      { mov: "CONFRONTAR",  nome: "Leitura Integrada", texto: "Confrontar o mapa com dados laboratoriais.",         destino: "confronto" },
+      { mov: "INTEGRAR",    nome: "Ferramentas",       texto: "Integrar ferramentas e condutas ao caso.",           destino: "corpo" },
+      { mov: "ACOMPANHAR",  nome: "Evolução",          texto: "Acompanhar mudanças entre aplicações.",              destino: "pacientes" }
     ];
 
     var passos = etapas.map(function (e, i) {
       var seta = i > 0 ? '<div class="dash-jornada-seta" aria-hidden="true">&darr;</div>' : "";
       return seta + '<div class="dash-jornada-passo">' +
+        '<span class="dash-mov">' + escapar(e.mov) + "</span>" +
         '<span class="dash-quem"><b>' + escapar(e.nome) + "</b>" +
           '<span class="dash-porque">' + escapar(e.texto) + "</span></span>" +
         '<button type="button" class="dash-ir" data-destino="' + e.destino + '">Abrir <span aria-hidden="true">&rarr;</span></button>' +

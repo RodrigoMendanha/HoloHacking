@@ -903,7 +903,7 @@
     }
 
     if (p.triada) {
-      html += '<div class="rel-bloco"><h4>Triada</h4><p class="rel-triada">' +
+      html += '<div class="rel-bloco"><h4>Tríada</h4><p class="rel-triada">' +
         "Físico <b>" + p.triada.fisico.toFixed(1) + "</b> &middot; " +
         "Mental <b>" + p.triada.mental.toFixed(1) + "</b> &middot; " +
         "Espiritual <b>" + p.triada.espiritual.toFixed(1) + "</b></p></div>";
@@ -1075,22 +1075,21 @@
   /* ================================================================= abas */
 
   function trocarAba(nome) {
-    document.querySelectorAll("#ficha-arquivos .aba").forEach(function (b) {
-      b.classList.toggle("ativa", b.dataset.aba === nome);
-    });
     // compatibilidade: nomes antigos redirecionam para os novos
     if (nome === "exames") nome = "documentos";
     if (nome === "formularios") nome = "ferramentas";
     if (nome === "confronto") nome = "holoscan";
     if (nome === "linha") nome = "visao";
+    document.querySelectorAll("#ficha-arquivos .aba").forEach(function (b) {
+      var ativa = b.dataset.aba === nome;
+      b.classList.toggle("ativa", ativa);
+      b.setAttribute("aria-selected", ativa ? "true" : "false");
+    });
     ["visao", "consultas", "holoscan", "ferramentas", "documentos", "relatorio", "holos-ai"]
       .forEach(function (n) {
         var painel = document.getElementById("aba-" + n);
         if (painel) painel.classList.toggle("hidden", n !== nome);
       });
-    document.querySelectorAll("#ficha-arquivos .aba").forEach(function (b) {
-      b.classList.toggle("ativa", b.dataset.aba === nome);
-    });
     if (nome === "documentos") desenharDocumentos();
     if (nome === "relatorio") desenharRelatorio();
     if (window.desenharAbaDaFicha) window.desenharAbaDaFicha(nome);

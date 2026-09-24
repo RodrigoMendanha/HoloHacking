@@ -152,7 +152,7 @@ const cheio = await p.evaluate(() => {
     porque: li.querySelector('.dash-porque').textContent,
     botao: li.querySelector('.dash-ir').textContent.replace(/\s*→\s*$/, '').trim(),
   });
-  const ultimaBloco = de('Última aplicação');
+  const ultimaBloco = de('Mapa HOLOS — última aplicação');
   const historicoBloco = de('Histórico de aplicações');
   return {
     botaoTopo: document.querySelector('#aba-holoscan .fic-consultas-topo button')?.textContent,
@@ -163,8 +163,8 @@ const cheio = await p.evaluate(() => {
   };
 });
 
-conferir(cheio.botaoTopo === 'Nova aplicação',
-  'com histórico, o botão do topo vira "Nova aplicação": ' + cheio.botaoTopo);
+conferir(cheio.botaoTopo === 'Reaplicação integral',
+  'com histórico, o botão do topo vira "Reaplicação integral": ' + cheio.botaoTopo);
 conferir(/10\/09\/2026/.test(cheio.ultima.quando), 'a mais recente é a "última aplicação": ' + cheio.ultima.quando);
 conferir(/Índice \d+ de \d+/.test(cheio.ultima.porque), 'com o índice: ' + cheio.ultima.porque);
 conferir(/respondidas/.test(cheio.ultima.porque), 'e o estado de preenchimento, sem recalcular: ' + cheio.ultima.porque);
