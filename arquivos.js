@@ -1080,10 +1080,11 @@
     if (nome === "formularios") nome = "ferramentas";
     if (nome === "confronto") nome = "holoscan";
     if (nome === "linha") nome = "visao";
-    document.querySelectorAll("#ficha-arquivos .aba").forEach(function (b) {
+    document.querySelectorAll("#ficha-arquivos .aba[data-aba]").forEach(function (b) {
       var ativa = b.dataset.aba === nome;
       b.classList.toggle("ativa", ativa);
       b.setAttribute("aria-selected", ativa ? "true" : "false");
+      b.setAttribute("tabindex", ativa ? "0" : "-1");
     });
     ["visao", "consultas", "holoscan", "ferramentas", "documentos", "relatorio", "holos-ai"]
       .forEach(function (n) {
@@ -1124,8 +1125,26 @@
   document.addEventListener("DOMContentLoaded", function () {
     var secao = document.getElementById("ficha-arquivos");
     if (!secao) return;
-    secao.querySelectorAll(".aba").forEach(function (b) {
+    var abas = [].slice.call(secao.querySelectorAll(".aba[data-aba]"));
+    abas.forEach(function (b, i) {
       b.addEventListener("click", function () { trocarAba(b.dataset.aba); });
+      b.setAttribute("tabindex", i === 0 ? "0" : "-1");
+    });
+    var tablist = secao.querySelector('[role="tablist"]');
+    if (tablist) tablist.addEventListener("keydown", function (ev) {
+      var cur = abas.indexOf(document.activeElement);
+      if (cur < 0) return;
+      var prox = -1;
+      if (ev.key === "ArrowRight" || ev.key === "ArrowDown") prox = (cur + 1) % abas.length;
+      else if (ev.key === "ArrowLeft" || ev.key === "ArrowUp") prox = (cur - 1 + abas.length) % abas.length;
+      else if (ev.key === "Home") prox = 0;
+      else if (ev.key === "End") prox = abas.length - 1;
+      if (prox < 0) return;
+      ev.preventDefault();
+      abas[cur].setAttribute("tabindex", "-1");
+      abas[prox].setAttribute("tabindex", "0");
+      abas[prox].focus();
+      trocarAba(abas[prox].dataset.aba);
     });
     atualizarAviso();
     ligarRelatorio();

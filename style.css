@@ -2277,6 +2277,10 @@ body.escuro .btn-tema .icone-lua{display:none}
   .fic-acoes-topo .btn-verde{flex:1}
   .fic-detalhes{margin-left:0}
   .fic-faixa{display:grid;grid-template-columns:1fr 1fr}
+  .fic-mapa{gap:20px;padding:16px 18px}
+  .fic-indice b{font-size:2rem}
+  .fic-consultas-topo{flex-direction:column;align-items:stretch}
+  .fic-topo-nota{max-width:none}
   .fic-barra{grid-template-columns:1fr 3rem;row-gap:4px}
   .fic-barra-trilho{grid-column:1/-1;order:3}
   .fic-barra-faixa{display:none}

@@ -57,20 +57,36 @@
      "proximos atendimentos". Pacientes/pendencias ja tem numero real logo
      abaixo, em blocoNumeros/blocoPendencias; duplicar aqui so com dado de
      verdade e trabalho da mesma etapa. */
-  function blocoCabecalho(ativo) {
+  function blocoCabecalho(ativo, c, agenda) {
+    var nPac = c ? c.total : 0;
+    var nPend = c ? c.pendentes.length : 0;
+
+    var consultasHoje = 0;
+    var proxLabel = "&mdash;";
+    if (agenda && agenda.linhas) {
+      var hj = new Date().toISOString().slice(0, 10);
+      consultasHoje = agenda.linhas.filter(function (l) {
+        return l.marcada === hj;
+      }).length;
+      var proximas = agenda.linhas.filter(function (l) {
+        return l.marcada && l.faltam !== null && l.faltam >= 0;
+      });
+      if (proximas.length > 0) {
+        proxLabel = escapar(dataBR(proximas[0].marcada));
+      }
+    }
+
     return '<div class="secao-cabeca dash-cabeca">' +
         '<span class="eyebrow">Plataforma clínica</span>' +
         "<h2>Bom dia, <em>Nutricionista</em></h2>" +
-        // Rodada de consistencia: Pacientes e a ficha ja tinham titulo +
-        // subtitulo curto; o Dashboard so tinha o titulo.
         "<p>Resumo do seu dia e acesso rápido às ferramentas.</p>" +
         (ativo ? '<p>Paciente aberta: <b>' + escapar(ativo) + "</b>.</p>" : "") +
       "</div>" +
       '<div class="dash-numeros dash-resumo">' +
-        '<div class="dash-tile"><b>0</b><span>Pacientes ativos</span></div>' +
-        '<div class="dash-tile"><b>0</b><span>Consultas hoje</span></div>' +
-        '<div class="dash-tile"><b>&mdash;</b><span>Próxima consulta</span></div>' +
-        '<div class="dash-tile"><b>0</b><span>Avaliações pendentes</span></div>' +
+        '<div class="dash-tile"><b>' + nPac + '</b><span>Pacientes ativos</span></div>' +
+        '<div class="dash-tile"><b>' + consultasHoje + '</b><span>Consultas hoje</span></div>' +
+        '<div class="dash-tile"><b>' + proxLabel + '</b><span>Próxima consulta</span></div>' +
+        '<div class="dash-tile"><b>' + nPend + '</b><span>Avaliações pendentes</span></div>' +
       "</div>" +
       '<div class="dash-acoes-rapidas">' +
         '<button type="button" class="perf-botao" data-destino="novo">Novo paciente</button>' +
@@ -272,13 +288,12 @@
     // "Proximos atendimentos" e "Pacientes recentes" ja tem seu proprio
     // estado vazio, entao nao precisam do convite grande que existia aqui.
     var operacional =
-      blocoCabecalho(c.total === 0 ? null : (window.pacienteAtivoNome ? window.pacienteAtivoNome() : null)) +
+      blocoCabecalho(c.total === 0 ? null : (window.pacienteAtivoNome ? window.pacienteAtivoNome() : null), c, agenda) +
       blocoProximosAtendimentos(agenda) +
       blocoPacientesRecentes() +
       blocoJornadaClinica();
 
     if (c.total === 0) {
-      // Primeira visita: o metodo e a resposta certa, e continua a vista.
       if (metodo) metodo.classList.remove("hidden");
       alvo.innerHTML = operacional;
       ligar();
