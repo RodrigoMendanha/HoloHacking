@@ -1192,13 +1192,19 @@
       }
 
       if (ev.target.closest("#btn-salvar-perfil")) {
+        var btnPerfil = ev.target.closest("#btn-salvar-perfil");
+        if (window.travarBotao && !window.travarBotao(btnPerfil, "Salvando…")) return;
         lerFormulario();
-        salvar("Perfil salvo.").then(function () { desenharCompletude(); painelMarca(); });
+        salvar("Perfil salvo.").then(function () { desenharCompletude(); painelMarca(); })
+          .finally(function () { if (window.destravarBotao) window.destravarBotao(btnPerfil); });
         aviso("");
         return;
       }
       if (ev.target.closest("#btn-salvar-marca")) {
-        salvar("Marca salva.");
+        var btnMarca = ev.target.closest("#btn-salvar-marca");
+        if (window.travarBotao && !window.travarBotao(btnMarca, "Salvando…")) return;
+        salvar("Marca salva.")
+          .finally(function () { if (window.destravarBotao) window.destravarBotao(btnMarca); });
         return;
       }
       if (ev.target.closest("#btn-desenhar")) {

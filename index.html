@@ -631,14 +631,14 @@
 
           <div class="form-ferramenta painel-novo hidden" id="painel-novo">
             <div class="form-titulo">
-              <h3>Cadastrar paciente</h3>
+              <h3 id="titulo-form-paciente">Cadastrar paciente</h3>
               <span class="eyebrow">Dados básicos</span>
             </div>
-            <p class="form-sub">So o nome e obrigatório. O restante pode ser completado depois.</p>
+            <p class="form-sub">Só o nome é obrigatório. O restante pode ser completado depois.</p>
             <div class="linha-dupla">
               <div class="grupo">
-                <label for="np-nome">Nome</label>
-                <input id="np-nome" type="text" placeholder="Nome completo">
+                <label for="np-nome">Nome <span class="obrigatorio" aria-hidden="true">*</span></label>
+                <input id="np-nome" type="text" placeholder="Nome completo" required aria-required="true">
               </div>
               <div class="grupo">
                 <label for="np-nascimento">Data de nascimento</label>
@@ -665,7 +665,7 @@
                 </select>
               </div>
               <div class="grupo">
-                <label for="np-inicio">Inicio do acompanhamento</label>
+                <label for="np-inicio">Início do acompanhamento</label>
                 <input id="np-inicio" type="date">
               </div>
             </div>
@@ -713,6 +713,10 @@
                 <div class="fic-contato" id="ficha-contato"></div>
               </div>
               <div class="fic-acoes-topo">
+                <button type="button" class="perf-botao btn-editar-pac" id="btn-editar-paciente" aria-label="Editar cadastro">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                  Editar
+                </button>
                 <button type="button" class="perf-botao" data-atalho="agenda">Nova consulta</button>
                 <button type="button" class="perf-botao" data-ir="aba:documentos">Registrar exames</button>
                 <button type="button" class="perf-botao" data-ir="aba:documentos">Novo documento</button>

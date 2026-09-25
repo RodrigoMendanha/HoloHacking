@@ -634,10 +634,12 @@
 
   /* ---------- salvar -------------------------------------------------------- */
 
-  function salvarConsulta() {
+  function salvarConsulta(ev) {
+    var btnSalvar = ev && ev.target ? ev.target.closest("[data-salvar]") : null;
+    if (btnSalvar && window.travarBotao && !window.travarBotao(btnSalvar, "Salvando…")) return;
     var d = editando.dado;
     var pid = document.getElementById("cf-paciente");
-    if (!pid) return;
+    if (!pid) { if (btnSalvar) window.destravarBotao(btnSalvar); return; }
     d.paciente_id = pid.value;
     d.tipo = document.getElementById("cf-tipo").value;
     d.data = document.getElementById("cf-data").value;
@@ -645,7 +647,7 @@
     d.duracao = Number(document.getElementById("cf-duracao").value);
     d.nota = document.getElementById("cf-nota").value.trim();
 
-    if (!d.data || !d.hora) { avisar("Informe o dia e a hora."); return; }
+    if (!d.data || !d.hora) { avisar("Informe o dia e a hora."); if (btnSalvar) window.destravarBotao(btnSalvar); return; }
 
     /* Duas consultas no mesmo horário é quase sempre engano de digitação, e
        descobrir isso na hora da consulta é tarde. Avisa e deixa passar: às
@@ -669,10 +671,12 @@
             : "Consulta marcada para " + dataBR(d.data) + " às " + d.hora + ".");
         }
       });
-    });
+    }).finally(function () { if (btnSalvar) window.destravarBotao(btnSalvar); });
   }
 
-  function salvarBloqueio() {
+  function salvarBloqueio(ev) {
+    var btnSalvar = ev && ev.target ? ev.target.closest("[data-salvar]") : null;
+    if (btnSalvar && window.travarBotao && !window.travarBotao(btnSalvar, "Salvando…")) return;
     var d = editando.dado;
     d.data = document.getElementById("bf-data").value;
     d.dia_todo = document.getElementById("bf-dia-todo").checked;
@@ -680,11 +684,12 @@
     d.fim = document.getElementById("bf-fim").value;
     d.motivo = document.getElementById("bf-motivo").value.trim();
 
-    if (!d.data) { avisar("Informe o dia."); return; }
+    if (!d.data) { avisar("Informe o dia."); if (btnSalvar) window.destravarBotao(btnSalvar); return; }
     if (!d.dia_todo) {
-      if (!d.inicio || !d.fim) { avisar("Informe o início e o fim."); return; }
+      if (!d.inicio || !d.fim) { avisar("Informe o início e o fim."); if (btnSalvar) window.destravarBotao(btnSalvar); return; }
       if (minutos(d.fim) <= minutos(d.inicio)) {
         avisar("O fim tem que ser depois do início.");
+        if (btnSalvar) window.destravarBotao(btnSalvar);
         return;
       }
     }
@@ -694,7 +699,7 @@
       editando = null;
       foco = deIso(d.data);
       return carregar().then(desenhar);
-    });
+    }).finally(function () { if (btnSalvar) window.destravarBotao(btnSalvar); });
   }
 
   function apagarAtual(tipo) {
@@ -753,8 +758,8 @@
 
       var salvar = ev.target.closest("[data-salvar]");
       if (salvar) {
-        if (salvar.dataset.salvar === "consulta") salvarConsulta();
-        else salvarBloqueio();
+        if (salvar.dataset.salvar === "consulta") salvarConsulta(ev);
+        else salvarBloqueio(ev);
         return;
       }
 

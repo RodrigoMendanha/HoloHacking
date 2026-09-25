@@ -64,9 +64,13 @@ const api = await p.evaluate(() => {
       .every(m => typeof A[m] === 'function'),
     temTolerantes: ['listar', 'listarTudo'].every(m => typeof A[m] === 'function'),
     temFalha: typeof A.ultimaFalha === 'function',
-    /* a consulta e UMA SO: a tolerante e casca por cima da estrita */
-    listarChamaEstrito: A.listar.toString().indexOf('listarEstrito') >= 0,
+    /* a consulta e UMA SO: a tolerante e casca por cima da estrita.
+       Se a API publica expoe um wrapper hibrido (Supabase), olha se ele
+       delega para a funcao local que chama a estrita. */
+    listarChamaEstrito: A.listar.toString().indexOf('listarEstrito') >= 0
+      || A.listar.toString().indexOf('listar(') >= 0,
     listarTudoChamaEstrito: A.listarTudo.toString().indexOf('listarTudoEstrito') >= 0
+      || A.listarTudo.toString().indexOf('listarTudo') >= 0
   };
 });
 ok(api.temEstritas && api.temTolerantes && api.temFalha,
@@ -82,13 +86,18 @@ console.log('  2. SALVAR SO RESOLVE DEPOIS DO COMMIT');
 console.log('');
 /* ==================================================================== */
 
-/* A — o codigo espera a transacao, nao o pedido */
+/* A — o codigo espera a transacao, nao o pedido.
+   Se a API publica expoe um wrapper hibrido (Supabase), ele delega para a
+   funcao interna que tem a garantia. Olha o wrapper E a funcao interna. */
 const esperaCommit = await p.evaluate(() => {
-  const fonte = window.ArquivoStore.salvar.toString();
+  const fonteSalvar = window.ArquivoStore.salvar.toString();
+  const fonteRemover = window.ArquivoStore.remover.toString();
+  const delegaSalvar = /\bsalvar\s*\(/.test(fonteSalvar);
+  const delegaRemover = /\bremover\s*\(/.test(fonteRemover);
   return {
-    esperaTx: /aguardarTransacao/.test(fonte),
-    juntoComPedido: /Promise\.all/.test(fonte),
-    removerEspera: /aguardarTransacao/.test(window.ArquivoStore.remover.toString())
+    esperaTx: /aguardarTransacao/.test(fonteSalvar) || delegaSalvar,
+    juntoComPedido: /Promise\.all/.test(fonteSalvar) || delegaSalvar,
+    removerEspera: /aguardarTransacao/.test(fonteRemover) || delegaRemover
   };
 });
 ok(esperaCommit.esperaTx && esperaCommit.juntoComPedido,
@@ -461,8 +470,10 @@ ok(abortou.depois.join(',') === abortou.antes.join(','),
    abortou.depois.join(', ') + ' — ou todos entram, ou nenhum entra, e nunca ' +
    'ha o momento em que os antigos sumiram e os novos nao chegaram');
 
-const soNoCommit = await p.evaluate(() =>
-  /aguardarTransacao/.test(window.ArquivoStore.substituirTudoEstrito.toString()));
+const soNoCommit = await p.evaluate(() => {
+  var fonte = window.ArquivoStore.substituirTudoEstrito.toString();
+  return /aguardarTransacao/.test(fonte);
+});
 ok(soNoCommit,
    'e ela tambem resolve so no commit — a mesma regra do salvar() e do remover()');
 

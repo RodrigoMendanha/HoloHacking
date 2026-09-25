@@ -950,7 +950,7 @@
     var ex = ler(CHAVE_EX);
     var rExames = g.lerExames(ex, notasDoPaciente());
     html += '<section class="rel-parte" data-origem="automatico">' +
-      "<h3>B. Leitura Integrada — o que os exames acrescentam</h3><div class=\"rel-bloco\">";
+      "<h3>B. Leitura Integrada (Holoscan) — o que os exames acrescentam</h3><div class=\"rel-bloco\">";
     rExames.confronto.forEach(function (c) {
       html += "<p><b>" + NOME_SISTEMA[c.sistema] + "</b> — " +
         escapar(window.Holoscan.rotulo(c)) + ". " + escapar(window.Holoscan.texto(c)) + "</p>";

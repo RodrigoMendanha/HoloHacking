@@ -536,10 +536,16 @@
     };
 
     alvo.querySelector('[data-acao="concluir"]').addEventListener("click", function () {
-      guardar(true);
+      var btn = this;
+      if (window.travarBotao && !window.travarBotao(btn, "Salvando…")) return;
+      Promise.resolve(guardar(true)).finally(function () { if (window.destravarBotao) window.destravarBotao(btn); });
     });
     var botaoRascunho = alvo.querySelector('[data-acao="rascunho"]');
-    if (botaoRascunho) botaoRascunho.addEventListener("click", function () { guardar(false); });
+    if (botaoRascunho) botaoRascunho.addEventListener("click", function () {
+      var btn = this;
+      if (window.travarBotao && !window.travarBotao(btn, "Salvando…")) return;
+      Promise.resolve(guardar(false)).finally(function () { if (window.destravarBotao) window.destravarBotao(btn); });
+    });
 
     var botaoNova = alvo.querySelector('[data-acao="nova"]');
     if (botaoNova) {

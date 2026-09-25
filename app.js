@@ -79,6 +79,20 @@
      sempre truthy, e chamar ele estoura. Por isso o nome aqui e outro. */
   window.avisar = toast;
 
+  function travarBotao(btn, texto){
+    if(btn.disabled) return false;
+    btn.disabled = true;
+    btn.dataset.textoAntes = btn.textContent;
+    btn.textContent = texto || "Salvando…";
+    return true;
+  }
+  function destravarBotao(btn){
+    btn.disabled = false;
+    btn.textContent = btn.dataset.textoAntes || btn.textContent;
+  }
+  window.travarBotao = travarBotao;
+  window.destravarBotao = destravarBotao;
+
   /* ---------- aparencia ----------
 
      Era um interruptor que seguia o sistema em toda carga: escolher o claro,
@@ -975,37 +989,101 @@
   }));
 
   const camposNovo = ["#np-nome","#np-nascimento","#np-telefone","#np-email","#np-sexo","#np-inicio","#np-queixa"];
-  $("#btn-abrir-novo").addEventListener("click", () => { $("#painel-novo").classList.remove("hidden"); $("#np-nome").focus(); });
-  $("#btn-cancelar-paciente").addEventListener("click", () => { camposNovo.forEach(s => $(s).value = ""); $("#painel-novo").classList.add("hidden"); });
+  $("#btn-abrir-novo").addEventListener("click", () => {
+    editandoPacienteId = null;
+    $("#titulo-form-paciente").textContent = "Cadastrar paciente";
+    $("#btn-salvar-paciente").textContent = "Salvar paciente";
+    camposNovo.forEach(s => $(s).value = "");
+    $("#painel-novo").classList.remove("hidden");
+    $("#np-nome").focus();
+  });
+  $("#btn-cancelar-paciente").addEventListener("click", () => fecharFormularioPaciente());
 
-  $("#btn-salvar-paciente").addEventListener("click", async () => {
-    const nome = $("#np-nome").value.trim();
-    if(!nome){ toast("Informe o nome do paciente."); $("#np-nome").focus(); return; }
+  let editandoPacienteId = null;
 
-    const { data, error } = await sb.from("pacientes").insert({
-      nome,
+  function dadosDoFormulario(){
+    return {
+      nome: $("#np-nome").value.trim(),
       nascimento: $("#np-nascimento").value || null,
       telefone: $("#np-telefone").value.trim() || null,
       email: $("#np-email").value.trim() || null,
       sexo: $("#np-sexo").value || null,
       inicio: $("#np-inicio").value || null,
-      queixa: $("#np-queixa").value.trim() || null,
-      // nasce ativo; deixar de ser e uma decisao de quem atende, nao do silencio
-      status: "ativo"
-    }).select().single();
+      queixa: $("#np-queixa").value.trim() || null
+    };
+  }
 
-    if(error){ toast("Erro ao salvar: " + error.message); return; }
+  function preencherFormulario(p){
+    $("#np-nome").value = p.nome || "";
+    $("#np-nascimento").value = p.nascimento || "";
+    $("#np-telefone").value = p.telefone || "";
+    $("#np-email").value = p.email || "";
+    $("#np-sexo").value = p.sexo || "";
+    $("#np-inicio").value = p.inicio || "";
+    $("#np-queixa").value = p.queixa || "";
+  }
 
-    normalizarContato(data);
-    data.oq3 = vazioOQ3();
-    data.pqq = vazioPQQ();
-    data.holoscan = vazioHolo();
-    estado.pacientes.unshift(data);
+  $("#btn-editar-paciente").addEventListener("click", () => {
+    const p = pacienteAtivo();
+    if(!p) return;
+    editandoPacienteId = p.id;
+    preencherFormulario(p);
+    $("#titulo-form-paciente").textContent = "Editar paciente";
+    $("#btn-salvar-paciente").textContent = "Salvar alterações";
+    $("#painel-novo").classList.remove("hidden");
+    $("#np-nome").focus();
+    window.scrollTo({ top: $("#painel-novo").offsetTop - 80, behavior: "smooth" });
+  });
+
+  function fecharFormularioPaciente(){
     camposNovo.forEach(s => $(s).value = "");
+    editandoPacienteId = null;
     $("#painel-novo").classList.add("hidden");
-    definirAtivo(data.id);
-    renderPacientes();
-    toast(nome.split(" ")[0] + " foi cadastrada.");
+    $("#titulo-form-paciente").textContent = "Cadastrar paciente";
+    $("#btn-salvar-paciente").textContent = "Salvar paciente";
+  }
+
+  $("#btn-salvar-paciente").addEventListener("click", async () => {
+    const campos = dadosDoFormulario();
+    if(!campos.nome){ toast("Informe o nome do paciente."); $("#np-nome").focus(); return; }
+
+    const btn = $("#btn-salvar-paciente");
+    btn.disabled = true;
+    btn.dataset.textoOriginal = btn.textContent;
+    btn.textContent = "Salvando…";
+
+    try {
+      if(editandoPacienteId){
+        const { data, error } = await sb.from("pacientes").update(campos)
+          .eq("id", editandoPacienteId).select().single();
+        if(error){ toast("Não foi possível salvar. Tente novamente."); return; }
+        const idx = estado.pacientes.findIndex(x => x.id === editandoPacienteId);
+        if(idx >= 0) Object.assign(estado.pacientes[idx], data);
+        normalizarContato(estado.pacientes[idx] || data);
+        fecharFormularioPaciente();
+        abrirFicha(editandoPacienteId);
+        renderPacientes();
+        toast(campos.nome.split(" ")[0] + " atualizado com sucesso.");
+      } else {
+        const { data, error } = await sb.from("pacientes").insert(
+          Object.assign({}, campos, { status: "ativo" })
+        ).select().single();
+        if(error){ toast("Não foi possível cadastrar. Tente novamente."); return; }
+        normalizarContato(data);
+        data.oq3 = vazioOQ3();
+        data.pqq = vazioPQQ();
+        data.holoscan = vazioHolo();
+        estado.pacientes.unshift(data);
+        fecharFormularioPaciente();
+        definirAtivo(data.id);
+        renderPacientes();
+        abrirFicha(data.id);
+        toast(campos.nome.split(" ")[0] + " cadastrado com sucesso.");
+      }
+    } finally {
+      btn.disabled = false;
+      btn.textContent = btn.dataset.textoOriginal || "Salvar paciente";
+    }
   });
 
   /* ============================================================
@@ -1163,7 +1241,10 @@
     desenharHistoricoOQ3();
   }
 
-  $("#btn-salvar-oq3").addEventListener("click", async () => {
+  $("#btn-salvar-oq3").addEventListener("click", async function () {
+    const btn = this;
+    if(!travarBotao(btn, "Salvando…")) return;
+    try {
     const p = pacienteAtivo();
     if(!p){ toast("Selecione um paciente para salvar o OQ3."); return; }
     if(!window.Aplicacoes){ toast("Erro ao salvar OQ3."); return; }
@@ -1177,11 +1258,15 @@
     notaDeQuandoOQ3();
     desenharHistoricoOQ3();
     toast("OQ3 salvo na ficha de " + p.nome.split(" ")[0] + ".");
+    } finally { destravarBotao(btn); }
   });
 
   /* Comecar outra aplicacao e um gesto explicito — e o que garante que a
      anterior continue inteira, com a data dela. */
-  $("#btn-nova-oq3").addEventListener("click", async () => {
+  $("#btn-nova-oq3").addEventListener("click", async function () {
+    const btn = this;
+    if(!travarBotao(btn, "Criando…")) return;
+    try {
     const p = pacienteAtivo();
     if(!p){ toast("Selecione um paciente primeiro."); return; }
     if(!window.Aplicacoes) return;
@@ -1190,6 +1275,7 @@
     notaDeQuandoOQ3();
     desenharHistoricoOQ3();
     toast("Nova aplicação do OQ3. A anterior continua no histórico.");
+    } finally { destravarBotao(btn); }
   });
 
   /* ============================================================
@@ -1341,7 +1427,10 @@
     desenharHistoricoPQQ();
   }
 
-  $("#btn-salvar-pqq").addEventListener("click", async () => {
+  $("#btn-salvar-pqq").addEventListener("click", async function () {
+    const btn = this;
+    if(!travarBotao(btn, "Salvando…")) return;
+    try {
     const p = pacienteAtivo();
     if(!p){ toast("Selecione um paciente para salvar o PQQ."); return; }
     if(!window.Aplicacoes){ toast("Erro ao salvar PQQ."); return; }
@@ -1355,9 +1444,13 @@
     notaDeQuandoPQQ();
     desenharHistoricoPQQ();
     toast("PQQ salvo na ficha de " + p.nome.split(" ")[0] + ".");
+    } finally { destravarBotao(btn); }
   });
 
-  $("#btn-nova-pqq").addEventListener("click", async () => {
+  $("#btn-nova-pqq").addEventListener("click", async function () {
+    const btn = this;
+    if(!travarBotao(btn, "Criando…")) return;
+    try {
     const p = pacienteAtivo();
     if(!p){ toast("Selecione um paciente primeiro."); return; }
     if(!window.Aplicacoes) return;
@@ -1366,6 +1459,7 @@
     notaDeQuandoPQQ();
     desenharHistoricoPQQ();
     toast("Nova aplicação do PQQ. A anterior continua no histórico.");
+    } finally { destravarBotao(btn); }
   });
 
   /* ---------- limpar ---------- */
@@ -2634,7 +2728,10 @@
     });
   });
 
-  $("#btn-salvar-holoscan").addEventListener("click", async () => {
+  $("#btn-salvar-holoscan").addEventListener("click", async function () {
+    const btn = this;
+    if(!travarBotao(btn, "Salvando…")) return;
+    try {
     const p = pacienteAtivo();
     if(!p){ toast("Selecione um paciente para salvar o HOLOSCAN."); return; }
 
@@ -2761,6 +2858,7 @@
     p.holoscan = data;
     renderPacientes();
     toast("HOLOSCAN salvo na ficha de " + p.nome.split(" ")[0] + ". Score: " + total);
+    } finally { destravarBotao(btn); }
   });
 
   $("#btn-limpar-holoscan").addEventListener("click", () => {

@@ -127,7 +127,7 @@ conferir(/Cadastrado em \d\d\/\d\d\/\d{4}/.test(topo.contato),
 conferir(/42 anos/.test(topo.sobre) && /Feminino/.test(topo.sobre),
   'e a linha "sobre" resume quem é: ' + topo.sobre);
 conferir(topo.detalhesFechados, 'os detalhes do cadastro começam fechados');
-conferir(topo.acoes.join(',') === 'Nova consulta,Registrar exames,Novo documento,Aplicar HOLOSCAN',
+conferir(topo.acoes.join(',') === 'Editar,Nova consulta,Registrar exames,Novo documento,Aplicar HOLOSCAN',
   'as ações ficam no topo, não no fim da página: ' + topo.acoes.join(' · '));
 
 // "Registrar exames" e "Novo documento" iam para "aba:documentos" — o clique

@@ -584,6 +584,8 @@ mark{background:rgba(201,163,90,.32);color:inherit;border-radius:3px;padding:0 2
   transition:transform .2s, filter .2s;
 }
 .btn-verde:hover{transform:translateY(-2px);filter:brightness(1.12)}
+.btn-verde:disabled,.btn-fantasma:disabled{opacity:.5;pointer-events:none;transform:none;filter:none}
+.obrigatorio{color:var(--dourado);font-weight:600}
 .btn-fantasma{
   padding:12px 24px;border:1px solid var(--input-borda);border-radius:10px;
   background:none;color:var(--texto-suave);font-size:.72rem;
@@ -1160,6 +1162,7 @@ body.escuro .btn-tema .icone-lua{display:none}
   font-style:normal;font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;
   color:var(--texto-suave);opacity:.75;
 }
+.q-bloco-completo{color:var(--dourado);opacity:1}
 
 .q-item{
   display:flex;align-items:center;gap:24px;flex-wrap:wrap;
@@ -3475,7 +3478,7 @@ body.login-aberto #app,
 .login-link:hover{border-bottom-color:var(--dourado)}
 
 .login-botao{
-  width:100%;padding:14px 30px;border:none;border-radius:10px;
+  width:100%;padding:14px 30px;min-height:44px;border:none;border-radius:10px;
   background:linear-gradient(135deg,var(--verde-medio),var(--verde-escuro));
   color:var(--dourado-claro);font-weight:500;font-size:.74rem;
   letter-spacing:.22em;text-transform:uppercase;

@@ -171,9 +171,14 @@
     for (var b = 0; b < BLOCOS.length; b++) {
       var bloco = BLOCOS[b];
       var doBloco = perguntas.filter(function (p) { return p.origem === bloco.origem; });
-      html += '<div class="q-bloco"><div class="q-bloco-cabeca">' +
+      var respondidas = 0;
+      for (var r = 0; r < doBloco.length; r++) {
+        if (dadas[doBloco[r].id] !== undefined) respondidas++;
+      }
+      html += '<div class="q-bloco" data-bloco="' + bloco.origem + '"><div class="q-bloco-cabeca">' +
         "<b>" + bloco.sigla + "</b><span>" + bloco.titulo + " &middot; " + bloco.sub + "</span>" +
-        '<em>' + doBloco.length + " perguntas</em></div>";
+        '<em class="q-bloco-conta" data-bloco-conta="' + bloco.origem + '">' +
+        respondidas + " de " + doBloco.length + "</em></div>";
 
       for (var i = 0; i < doBloco.length; i++) {
         var q = doBloco[i];
@@ -200,7 +205,8 @@
 
   function atualizarProgresso() {
     if (!perguntas) return;
-    var n = Object.keys(respostasValidas()).length;
+    var dadas = respostasValidas();
+    var n = Object.keys(dadas).length;
     var pc = Math.round(n / perguntas.length * 100);
     var barra = caixa.querySelector(".q-progresso i");
     if (barra) barra.style.width = pc + "%";
@@ -208,6 +214,20 @@
     if (conta) {
       conta.innerHTML = "<b>" + n + "</b> de " + perguntas.length + " respondidas" +
         (n === perguntas.length ? " &middot; completo" : "");
+    }
+    for (var b = 0; b < BLOCOS.length; b++) {
+      var bloco = BLOCOS[b];
+      var doBloco = perguntas.filter(function (p) { return p.origem === bloco.origem; });
+      var resp = 0;
+      for (var i = 0; i < doBloco.length; i++) {
+        if (dadas[doBloco[i].id] !== undefined) resp++;
+      }
+      var el = caixa.querySelector('[data-bloco-conta="' + bloco.origem + '"]');
+      if (el) {
+        el.textContent = resp + " de " + doBloco.length;
+        if (resp === doBloco.length) el.classList.add("q-bloco-completo");
+        else el.classList.remove("q-bloco-completo");
+      }
     }
   }
 
@@ -230,8 +250,11 @@
       var acao = ev.target.closest("[data-acao]");
       if (!acao) return;
       if (acao.dataset.acao === "limpar") {
-        limpar();
-        desenhar();
+        var total = Object.keys(respostasValidas()).length;
+        if (total === 0 || confirm("Limpar todas as " + total + " respostas deste paciente?")) {
+          limpar();
+          desenhar();
+        }
       } else if (acao.dataset.acao === "calcular") {
         calcular();
       }
@@ -248,6 +271,11 @@
     if (respostas.length === 0) {
       mostrarAviso("Responda ao menos uma pergunta para gerar o mapa.");
       return;
+    }
+    if (perguntas && respostas.length < perguntas.length) {
+      var faltam = perguntas.length - respostas.length;
+      if (!confirm("Faltam " + faltam + " de " + perguntas.length +
+          " perguntas. Gerar o mapa mesmo assim?")) return;
     }
 
     /* O que o paciente tem alem do questionario: exames lancados e o que as
