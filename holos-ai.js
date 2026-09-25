@@ -408,6 +408,8 @@
     if (chatgpt) {
       if (HOLOS_AI_URLS.chatgpt) {
         chatgpt.href = HOLOS_AI_URLS.chatgpt;
+        chatgpt.classList.remove("ai-btn-indisponivel");
+        chatgpt.removeAttribute("title");
       } else {
         chatgpt.removeAttribute("href");
         chatgpt.classList.add("ai-btn-indisponivel");
@@ -417,6 +419,8 @@
     if (gemini) {
       if (HOLOS_AI_URLS.gemini) {
         gemini.href = HOLOS_AI_URLS.gemini;
+        gemini.classList.remove("ai-btn-indisponivel");
+        gemini.removeAttribute("title");
       } else {
         gemini.removeAttribute("href");
         gemini.classList.add("ai-btn-indisponivel");
