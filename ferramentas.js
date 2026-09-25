@@ -18,6 +18,14 @@
    elas ja tem tela propria, escrita a mao, e continuam como estao.
    =========================================================================== */
 
+/* IDs das ferramentas habilitadas para nova aplicacao na versao atual.
+   Ancoras (oq3, pqq) tem tela propria; mapa e derivado do PQQ.
+   Ferramentas do catalogo fora desta lista continuam legiveis no historico
+   mas nao podem originar nova aplicacao. */
+window.FERRAMENTAS_ATIVAS = [
+  "linha_momentum", "mapa_crencas", "roda_vida", "carta_futuro"
+];
+
 window.CATALOGO_FERRAMENTAS = [
 
   /* ------------------------------- CORPO --------------------------------

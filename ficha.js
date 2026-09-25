@@ -765,16 +765,24 @@
         "</div></div>";
     }).join("") + "</div>";
 
+    var ativas = (window.FERRAMENTAS_ATIVAS || []).concat(["oq3", "pqq", "mapa"]);
+    var aplicadasAtivas = d.ferramentas.filter(function (id) {
+      return ativas.indexOf(id) >= 0;
+    });
+
     html += '<div class="fic-forms-rodape">' +
       '<div class="fic-form-topo"><span class="fic-form-quem">' +
-        "<b>Ferramentas do método</b><span>As 30 ferramentas de Corpo, Mente e " +
+        "<b>Ferramentas do método</b><span>Ferramentas ativas de Corpo, Mente e " +
         "Espírito. Não são formulário do paciente: são conduta.</span></span>" +
         '<span class="fic-form-estado">' +
-          (d.ferramentas.length === 0 ? "nenhuma aplicada"
-            : d.ferramentas.length + " de 30 aplicadas") + "</span></div>" +
+          (aplicadasAtivas.length === 0 ? "nenhuma aplicada"
+            : aplicadasAtivas.length + " de " + ativas.length + " aplicadas") + "</span></div>" +
       (d.ferramentas.length > 0
         ? '<div class="fic-ferramentas">' + d.ferramentas.map(function (id) {
-            return '<button type="button" class="fic-chip" data-ferr="' + escapar(id) + '">' +
+            var legada = ativas.indexOf(id) < 0;
+            return '<button type="button" class="fic-chip' +
+              (legada ? " fic-chip-legado" : "") + '"' +
+              (legada ? "" : ' data-ferr="' + escapar(id) + '"') + ">" +
               escapar(nomeFerramenta(id)) + "</button>";
           }).join("") + "</div>"
         : "") +

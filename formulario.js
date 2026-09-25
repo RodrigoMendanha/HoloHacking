@@ -629,6 +629,9 @@
   /* Abre uma ferramenta de qualquer lugar do app — é o que permite o mapa
      mandar direto para a conduta, sem a pessoa procurar na galeria. */
   window.abrirFerramentaPorId = function (id) {
+    var ativas = (window.FERRAMENTAS_ATIVAS || []).concat(["oq3", "pqq", "mapa"]);
+    if (ativas.indexOf(id) < 0) return false;
+
     var f = catalogo(id);
     var card = document.querySelector('[data-ferramenta="' + id + '"]');
     if (f && card) {
@@ -637,7 +640,6 @@
       card.click();
       return true;
     }
-    // as tres ancoras (OQ3, PQQ, Mapa do Proposito) tem tela propria
     var ancora = document.querySelector('[data-vista="vista-' + id + '"]');
     if (ancora) { ancora.click(); return true; }
     return false;

@@ -1602,6 +1602,7 @@ body.escuro .btn-tema .icone-lua{display:none}
   font-weight:300;transition:border-color .18s,color .18s;
 }
 .fic-chip:hover{border-color:var(--dourado);color:var(--dourado)}
+.fic-chip-legado{opacity:.45;cursor:default;pointer-events:none}
 
 /* ---------- aba Consultas ---------- */
 .fic-consultas-topo{display:flex;align-items:center;justify-content:flex-end;gap:14px;margin-bottom:20px;flex-wrap:wrap}
