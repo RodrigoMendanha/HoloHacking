@@ -639,7 +639,7 @@
       "você lê o que ele diz e lança aqui embaixo. " +
       "<b>O arquivo fica guardado neste navegador</b> e não vai para lugar nenhum.</p>" +
 
-      '<section class="arq-cartao">' +
+      '<section class="arq-cartao" aria-label="Documentos do paciente">' +
         '<h4 class="arq-titulo">O que o paciente trouxe</h4>' +
         '<p class="arq-sub">PDF do exame, foto do laudo, receita de outro ' +
         "profissional, termo de consentimento.</p>" +
@@ -661,7 +661,7 @@
         '<p class="arq-nota" id="doc-espaco"></p>' +
       "</section>" +
 
-      '<section class="arq-cartao">' +
+      '<section class="arq-cartao" aria-label="Valores de exames">' +
         '<h4 class="arq-titulo">Os valores do exame</h4>' +
         '<p class="fluxo-clinico">História &rarr; HOLOSCAN &rarr; <b>Leitura Integrada</b> &rarr; Aprofundamento &rarr; Interpretação &rarr; Conduta &rarr; Evolução</p>' +
         '<p class="arq-sub">Opcional. Na primeira consulta o paciente costuma não ter ' +
@@ -830,15 +830,18 @@
 
     var html =
       '<div class="rel-acoes">' +
-      '<div class="rel-registro">' +
+      '<div class="rel-registro" role="group" aria-label="Registro">' +
       '<button type="button" class="rel-btn' + (registroAtual === "nutri" ? " ativo" : "") +
-        '" data-registro="nutri">Para a nutricionista</button>' +
+        '" data-registro="nutri" aria-pressed="' + (registroAtual === "nutri") + '">' +
+        'Para a nutricionista</button>' +
       '<button type="button" class="rel-btn' + (registroAtual === "paciente" ? " ativo" : "") +
-        '" data-registro="paciente">Para o paciente</button>' +
+        '" data-registro="paciente" aria-pressed="' + (registroAtual === "paciente") + '">' +
+        'Para o paciente</button>' +
       "</div>" +
-      '<button type="button" class="btn-verde" data-acao="imprimir">Imprimir ou salvar em PDF</button>' +
+      '<button type="button" class="btn-verde" data-acao="imprimir">' +
+        '<span aria-hidden="true">&#128438; </span>Imprimir ou salvar em PDF</button>' +
       "</div>" +
-      '<article class="relatorio" id="relatorio"' +
+      '<article class="relatorio" id="relatorio" aria-label="Relatório do paciente"' +
         (eu.cor_primaria ? ' style="--rel-p:' + escapar(eu.cor_primaria) +
           ";--rel-s:" + escapar(eu.cor_secundaria) + '"' : "") + ">" +
       '<header class="rel-topo">' +
@@ -1089,7 +1092,12 @@
     ["visao", "consultas", "holoscan", "ferramentas", "documentos", "relatorio", "holos-ai"]
       .forEach(function (n) {
         var painel = document.getElementById("aba-" + n);
-        if (painel) painel.classList.toggle("hidden", n !== nome);
+        if (painel) {
+          var visivel = n === nome;
+          painel.classList.toggle("hidden", !visivel);
+          painel.setAttribute("role", "tabpanel");
+          painel.setAttribute("aria-hidden", visivel ? "false" : "true");
+        }
       });
     if (nome === "documentos") desenharDocumentos();
     if (nome === "relatorio") desenharRelatorio();

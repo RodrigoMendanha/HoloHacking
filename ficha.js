@@ -142,11 +142,14 @@
         acao: "aba:documentos" }
     ];
 
+    alvo.setAttribute("role", "group");
+    alvo.setAttribute("aria-label", "Resumo do paciente");
     alvo.innerHTML = itens.map(function (i) {
       return '<button type="button" class="fic-pilula' +
         (i.valor ? "" : " vazia") + (i.alerta ? " alerta" : "") + '"' +
         (i.id ? ' id="' + i.id + '"' : "") +
-        ' data-ir="' + i.acao + '">' +
+        ' data-ir="' + i.acao + '"' +
+        ' aria-label="' + escapar(i.rot) + ': ' + escapar(i.valor || i.vazio) + '">' +
         '<span class="fic-pilula-rot">' + i.rot + "</span>" +
         '<b>' + (i.valor || i.vazio) + "</b></button>";
     }).join("");
@@ -229,10 +232,10 @@
     var pid = paciente();
     var html = "";
 
-    // --- alertas primeiro: e o que ela precisa ver ---
     var av = alertas(d);
     if (av.length > 0) {
-      html += '<div class="fic-alertas">';
+      html += '<div class="fic-alertas" role="alert" aria-label="' +
+        av.length + (av.length === 1 ? ' pendência' : ' pendências') + '">';
       av.forEach(function (a) {
         html += '<div class="fic-alerta ' + a.grau + '">' +
           "<span>" + escapar(a.texto) + "</span>" +
@@ -873,6 +876,7 @@
     janela._gatilho = document.activeElement;
     janela.setAttribute("role", "dialog");
     janela.setAttribute("aria-modal", "true");
+    janela.setAttribute("aria-labelledby", "fic-janela-titulo");
     janela.classList.remove("hidden");
     document.getElementById("fic-janela-fechar").focus();
   }

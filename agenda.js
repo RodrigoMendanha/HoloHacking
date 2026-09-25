@@ -458,6 +458,30 @@
       '<div class="cal-mes-corpo">' + celulas + "</div></div>";
   }
 
+  /* ---------- hoje no topo (semana/mes) ----------------------------------- */
+
+  function resumoHoje() {
+    if (vista === "dia") return "";
+    var hj = iso(hoje());
+    var cs = consultasDe(hj);
+    var bs = bloqueiosDe(hj).filter(function (b) { return !b.dia_todo; });
+    if (cs.length === 0 && bs.length === 0) return "";
+
+    var itens = cs.map(function (c) {
+      return '<span class="cal-hoje-item consulta">' +
+        '<b>' + escapar(c.hora) + '</b> ' + escapar(nomeDe(c.paciente_id)) +
+        ' <i>' + escapar(c.tipo || "") + '</i></span>';
+    });
+
+    return '<div class="cal-hoje-resumo">' +
+      '<span class="cal-hoje-titulo">' +
+        ico('<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>', 14) +
+        ' Hoje &mdash; ' + cs.length + (cs.length === 1 ? ' consulta' : ' consultas') +
+      '</span>' +
+      '<div class="cal-hoje-lista">' + itens.join("") + '</div>' +
+      '</div>';
+  }
+
   /* ---------- o vazio ------------------------------------------------------ */
 
   function vazio() {
@@ -574,7 +598,7 @@
     else if (vazioNoPeriodo(dias)) corpo = vazio();
     else corpo = grade(dias);
 
-    alvo.innerHTML = cabecalho() + navegacao() + chips() + formulario() + corpo;
+    alvo.innerHTML = cabecalho() + navegacao() + chips() + resumoHoje() + formulario() + corpo;
 
     marcarNoMenu();
     ligar();

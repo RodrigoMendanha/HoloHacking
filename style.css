@@ -3724,3 +3724,196 @@ body.login-aberto #app,
   .dash-passo-info b{font-size:.82rem}
   .busca-global{max-width:100%}
 }
+
+/* ===========================================================
+   LOTE 03 — polimento do produto
+=========================================================== */
+
+/* ---------- Upload feedback (image loading) -------------- */
+.perf-img-carregando{opacity:.5;filter:blur(1px);transition:opacity .3s}
+
+/* ---------- Agenda: hoje destaque ----------------------- */
+.cal-cabeca-dia.hoje b{color:var(--dourado)}
+.cal-coluna.hoje{background:var(--halo)}
+.cal-celula.hoje{background:var(--halo)}
+.cal-celula.hoje .cal-numero{color:var(--dourado);font-weight:700}
+
+/* ---------- HOLOS AI hub polimento ---------------------- */
+.ai-hub{max-width:640px}
+.ai-hub-intro{text-align:center;margin-bottom:28px}
+.ai-hub-icone{font-size:2rem;color:var(--dourado);margin-bottom:8px}
+.ai-hub-titulo{font-family:var(--fonte-display);font-size:1.6rem;color:var(--titulo);margin:0 0 6px}
+.ai-hub-descricao{font-size:.88rem;font-weight:300;color:var(--texto-suave);margin:0}
+.ai-hub-agentes{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:28px}
+.ai-hub-btn{
+  flex:1 1 200px;display:flex;align-items:center;gap:10px;
+  padding:14px 18px;border-radius:12px;text-decoration:none;
+  font-size:.88rem;font-weight:500;transition:background .15s,border-color .15s;
+  border:1px solid var(--borda-suave);color:var(--texto);
+}
+.ai-hub-btn:hover{background:var(--halo);border-color:var(--dourado)}
+.ai-btn-icone{font-size:1.2rem;color:var(--dourado)}
+.ai-btn-indisponivel{opacity:.45;cursor:not-allowed}
+.ai-hub-contexto{margin-bottom:24px}
+.ai-hub-contexto h4{font-size:.9rem;font-weight:600;color:var(--titulo);margin:0 0 6px}
+.ai-hub-instrucao{font-size:.82rem;font-weight:300;color:var(--texto-suave);margin:0 0 14px}
+.ai-hub-atalhos{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.ai-atalho-ctx{
+  padding:8px 14px;border-radius:8px;font-size:.82rem;
+  border:1px solid var(--borda-suave);background:none;color:var(--texto);
+  cursor:pointer;transition:background .15s,border-color .15s;
+}
+.ai-atalho-ctx:hover{background:var(--halo);border-color:var(--dourado)}
+.ai-atalho-ctx.ativo{background:var(--dourado-bg);border-color:var(--dourado);color:var(--realce);font-weight:500}
+.ai-hub-saida{margin-top:14px}
+.ai-hub-acoes{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.ai-hub-tipo{font-size:.78rem;font-weight:500;color:var(--dourado)}
+.ai-hub-copiar{font-size:.8rem;padding:8px 14px}
+.ai-hub-texto{
+  background:var(--input-fundo);border:1px solid var(--borda-suave);
+  border-radius:10px;padding:16px;font-size:.82rem;line-height:1.6;
+  color:var(--texto);white-space:pre-wrap;word-break:break-word;
+  max-height:320px;overflow-y:auto;font-family:var(--fonte-corpo);
+}
+.ai-hub-privacidade{
+  font-size:.74rem;font-weight:300;line-height:1.55;color:var(--texto-suave);
+  padding:12px 14px;border-radius:8px;background:var(--halo);margin:0;
+}
+
+/* ---------- Agenda: hoje resumo ------------------------ */
+.cal-hoje-resumo{
+  background:var(--dourado-bg);border:1px solid var(--dourado-suave);
+  border-radius:12px;padding:14px 18px;margin-bottom:14px;
+}
+.cal-hoje-titulo{
+  display:flex;align-items:center;gap:6px;
+  font-size:.82rem;font-weight:600;color:var(--dourado-escuro);margin-bottom:8px;
+}
+body.escuro .cal-hoje-titulo{color:var(--dourado)}
+.cal-hoje-lista{display:flex;flex-wrap:wrap;gap:8px}
+.cal-hoje-item{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:.8rem;color:var(--texto);
+  padding:5px 10px;border-radius:6px;background:var(--sup-card);
+  border:1px solid var(--borda-suave);
+}
+.cal-hoje-item b{font-weight:600;color:var(--realce)}
+.cal-hoje-item i{font-style:normal;font-size:.74rem;color:var(--texto-suave)}
+
+/* ---------- Ficha: retorno block ----------------------- */
+.fic-retorno{border-left:3px solid var(--dourado)}
+.fic-retorno-lista{list-style:none;padding:0;margin:8px 0 0}
+.fic-retorno-lista li{font-size:.86rem;font-weight:300;color:var(--texto);padding:3px 0}
+.fic-retorno-lista li::before{content:"· ";color:var(--dourado)}
+
+/* ---------- Ficha: continuidade chips ------------------ */
+.fic-continuidade{
+  display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+  padding:14px 0;margin-top:16px;border-top:1px solid var(--borda-suave);
+  font-size:.78rem;color:var(--texto-suave);
+}
+.fic-continuidade .fic-rot{font-weight:500;margin-right:4px}
+.fic-continuidade-seta{color:var(--dourado);font-size:.7rem}
+.fic-chip{
+  padding:6px 12px;border-radius:6px;font-size:.78rem;
+  border:1px solid var(--borda-suave);background:none;color:var(--realce);
+  cursor:pointer;font-family:inherit;
+}
+.fic-chip:hover{background:var(--halo);border-color:var(--dourado)}
+.fic-chip-legado{opacity:.5;cursor:default}
+
+/* ---------- Ficha: header polish ----------------------- */
+.fic-pilula{transition:background .15s,border-color .15s,box-shadow .15s}
+.fic-pilula:focus-visible{outline:2px solid var(--dourado);outline-offset:2px}
+.fic-alertas{animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ---------- Report: polished print --------------------- */
+.relatorio{page-break-inside:auto}
+.rel-parte{page-break-inside:avoid;margin-bottom:20px}
+.rel-parte h3{page-break-after:avoid}
+.rel-rodape{page-break-before:avoid}
+.rel-topo{margin-bottom:24px;border-bottom:2px solid var(--dourado-suave);padding-bottom:16px}
+.rel-emissor{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.rel-logo img{max-height:48px;width:auto;border-radius:6px}
+.rel-quem b{display:block;font-size:1.1rem;color:var(--titulo)}
+.rel-quem i{font-style:normal;font-size:.82rem;color:var(--texto-suave)}
+.rel-assinaturas{display:flex;gap:24px;justify-content:center;margin:16px 0 8px}
+.rel-imagem img{max-height:64px;width:auto}
+.rel-emitiu{font-weight:600;text-align:center;margin:4px 0 0}
+.rel-contato{font-size:.82rem;text-align:center;color:var(--texto-suave);margin:2px 0 12px}
+.rel-acoes{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.rel-registro{display:flex;gap:6px}
+.rel-btn{
+  padding:8px 16px;font-size:.82rem;border-radius:8px;
+  border:1px solid var(--borda-suave);background:none;
+  color:var(--texto);cursor:pointer;font-family:inherit;
+  transition:background .15s,border-color .15s;
+}
+.rel-btn:hover{background:var(--halo)}
+.rel-btn.ativo{background:var(--dourado-bg);border-color:var(--dourado);color:var(--realce);font-weight:600}
+.rel-interpretacao-campo{
+  width:100%;min-height:120px;border:1px solid var(--borda-suave);
+  border-radius:8px;padding:12px;font-family:inherit;font-size:.86rem;
+  background:var(--input-fundo);color:var(--texto);resize:vertical;
+}
+.rel-interpretacao-campo:focus{border-color:var(--dourado);outline:none}
+.rel-interpretacao-aviso{font-size:.78rem;color:var(--dourado-escuro)}
+
+/* ---------- Responsive refinements at spec breakpoints - */
+@media(max-width:375px){
+  .perf-cartao{padding:18px 16px}
+  .perf-titulo{font-size:1.1rem}
+  .perf-grade{grid-template-columns:1fr}
+  .cal-barra{flex-direction:column;align-items:stretch}
+  .cal-andar{justify-content:center}
+  .cal-vistas{justify-content:center}
+  .ai-hub-agentes{flex-direction:column}
+  .rel-acoes{flex-direction:column;gap:10px}
+  .rel-registro{width:100%}
+  .rel-btn{flex:1}
+}
+@media(min-width:768px) and (max-width:1365px){
+  .perf-grade{grid-template-columns:repeat(2,1fr)}
+}
+@media(min-width:1366px){
+  .perf-grade{grid-template-columns:repeat(2,1fr)}
+  .main-content{max-width:1200px}
+}
+@media(min-width:1920px){
+  .main-content{max-width:1400px;margin:0 auto}
+}
+
+/* ---------- Accessibility: focus-visible --------------- */
+.btn-verde:focus-visible,
+.btn-fantasma:focus-visible,
+.perf-botao:focus-visible,
+.fic-ir:focus-visible,
+.fic-ir-min:focus-visible,
+.fic-chip:focus-visible,
+.dash-ir:focus-visible,
+.ai-atalho-ctx:focus-visible,
+.ai-hub-btn:focus-visible,
+.ai-hub-copiar:focus-visible,
+.rel-btn:focus-visible,
+.doc-abrir:focus-visible,
+.doc-tirar:focus-visible,
+.nav-item:focus-visible,
+.aba:focus-visible{
+  outline:2px solid var(--dourado);outline-offset:2px;
+}
+.fic-evento:focus-visible{outline:2px solid var(--dourado);outline-offset:1px;border-radius:8px}
+:focus:not(:focus-visible){outline:none}
+
+/* ---------- Skip to content link ----------------------- */
+.skip-link{
+  position:absolute;left:-9999px;top:0;z-index:999;
+  padding:8px 16px;background:var(--dourado);color:#fff;
+  font-size:.86rem;border-radius:0 0 8px 0;text-decoration:none;
+}
+.skip-link:focus{left:0}
+
+/* ---------- Reduced motion ----------------------------- */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}
+}

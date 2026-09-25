@@ -498,22 +498,26 @@
         "</div>" +
       "</div>");
 
-    var pessoais =
+    var profissionais = cartao("Dados profissionais",
+      "O que identifica você nos documentos que imprime.",
       '<div class="perf-grade">' +
         campo({ id: "nome", rotulo: "Nome completo", dica: "Como você assina", auto: "name" }) +
-        campo({ id: "email", rotulo: "E-mail", tipo: "email", dica: "seu@email.com", auto: "email" }) +
         campo({ id: "profissao", rotulo: "Profissão", dica: "Nutricionista" }) +
         campo({ id: "registro", rotulo: "Registro profissional", dica: "Ex: CRN-3 12345",
                 ajuda: "Sai impresso no rodapé dos relatórios, embaixo da sua assinatura. " +
                        "Sem ele o documento não identifica quem o emitiu." }) +
         campo({ id: "especialidade", rotulo: "Especialidade/Atuação", dica: "Nutrição Holística" }) +
+      "</div>");
+
+    var contato = cartao("Contato e localização",
+      "Aparece no rodapé dos documentos gerados para os pacientes.",
+      '<div class="perf-grade">' +
+        campo({ id: "email", rotulo: "E-mail", tipo: "email", dica: "seu@email.com", auto: "email" }) +
+        campo({ id: "telefone", rotulo: "Telefone / WhatsApp", tipo: "tel",
+                dica: "(11) 99999-9999", auto: "tel" }) +
         campo({ id: "cidade", rotulo: "Cidade/UF", dica: "Ex: Goiânia/GO ou Atendimento online" }) +
+        campo({ id: "instagram", rotulo: "Instagram", dica: "@seu_perfil" }) +
       "</div>" +
-      campo({ id: "instagram", rotulo: "Instagram", dica: "@seu_perfil", largo: true,
-              ajuda: "Aparece no rodapé dos materiais que você imprime para os pacientes." }) +
-      campo({ id: "telefone", rotulo: "Telefone / WhatsApp", tipo: "tel",
-              dica: "(11) 99999-9999", largo: true, auto: "tel",
-              ajuda: "Aparece no rodapé dos documentos gerados." }) +
       '<div class="perf-campo largo">' +
         '<label for="pf-fuso">Fuso horário</label>' +
         '<select id="pf-fuso">' + FUSOS.map(function (f) {
@@ -522,14 +526,13 @@
         }).join("") + "</select>" +
         '<p class="perf-ajuda">Usado para as datas de aplicação e para o cálculo do ' +
         "retorno de 4 semanas na Agenda.</p>" +
-      "</div>" +
+      "</div>");
+
+    alvo.innerHTML = foto + profissionais + contato +
       '<div class="perf-acoes">' +
         '<p class="perf-aviso" id="perfil-aviso"></p>' +
         '<button type="button" class="btn-verde" id="btn-salvar-perfil">Salvar alterações</button>' +
       "</div>";
-
-    alvo.innerHTML = foto +
-      cartao("Informações Pessoais", "Dados básicos do seu perfil profissional.", pessoais);
 
     urlDe(perfil.foto_id).then(function (u) {
       var el = document.getElementById("perf-foto-alvo");
@@ -1261,6 +1264,8 @@
   function pedirArquivo(campo) {
     var tipos = { foto_id: "Foto", logo_id: "Logo",
                   assinatura_id: "Assinatura", carimbo_id: "Carimbo" };
+    var alvos = { foto_id: "perf-foto-alvo", logo_id: "perf-logo-alvo",
+                  assinatura_id: "perf-assinatura-alvo", carimbo_id: "perf-carimbo-alvo" };
     var entrada = document.createElement("input");
     entrada.type = "file";
     entrada.accept = "image/png,image/jpeg,image/webp,image/svg+xml";
@@ -1270,6 +1275,12 @@
       if (arq.size > 4 * 1024 * 1024) {
         aviso("Imagem muito grande (máximo 4 MB).", true);
         return;
+      }
+      var elAlvo = document.getElementById(alvos[campo]);
+      if (elAlvo) {
+        var previa = URL.createObjectURL(arq);
+        elAlvo.innerHTML = '<img src="' + previa + '" alt="" class="perf-img-carregando">';
+        elAlvo.classList.add("com-foto");
       }
       guardarImagem(campo, arq, tipos[campo] || "Imagem");
     });

@@ -345,23 +345,28 @@
       return;
     }
 
+    var p = pacienteAtivo();
+    var nomeP = p ? p.nome : "paciente";
+
     var html =
       '<div class="ai-hub">' +
         '<div class="ai-hub-intro">' +
-          '<div class="ai-hub-icone">&#9670;</div>' +
+          '<div class="ai-hub-icone" aria-hidden="true">&#9670;</div>' +
           '<h3 class="ai-hub-titulo">HOLOS AI</h3>' +
           '<p class="ai-hub-descricao">Inteligência profissional para apoio à leitura ' +
-            'e ao raciocínio sobre o caso.</p>' +
+            'e ao raciocínio sobre o caso de ' + escapar(nomeP) + '.</p>' +
         '</div>' +
 
-        '<div class="ai-hub-agentes">' +
+        '<div class="ai-hub-agentes" role="group" aria-label="Agentes externos">' +
           '<a class="ai-hub-btn ai-btn-chatgpt" id="ai-btn-chatgpt" ' +
-            'href="#" target="_blank" rel="noopener noreferrer">' +
-            '<span class="ai-btn-icone">&#9671;</span>' +
+            'href="#" target="_blank" rel="noopener noreferrer" ' +
+            'aria-label="Abrir HOLOS AI no ChatGPT">' +
+            '<span class="ai-btn-icone" aria-hidden="true">&#9671;</span>' +
             'Abrir HOLOS AI no ChatGPT</a>' +
           '<a class="ai-hub-btn ai-btn-gemini" id="ai-btn-gemini" ' +
-            'href="#" target="_blank" rel="noopener noreferrer">' +
-            '<span class="ai-btn-icone">&#9670;</span>' +
+            'href="#" target="_blank" rel="noopener noreferrer" ' +
+            'aria-label="Abrir HOLOS AI no Gemini">' +
+            '<span class="ai-btn-icone" aria-hidden="true">&#9670;</span>' +
             'Abrir HOLOS AI no Gemini</a>' +
         '</div>' +
 
@@ -369,19 +374,21 @@
           '<h4>Contexto para HOLOS AI</h4>' +
           '<p class="ai-hub-instrucao">Gere um resumo estruturado do paciente atual. ' +
             'Copie o texto e cole no agente externo.</p>' +
-          '<div class="ai-hub-atalhos" id="ai-hub-atalhos">' +
+          '<div class="ai-hub-atalhos" id="ai-hub-atalhos" role="group" ' +
+            'aria-label="Tipo de contexto">' +
             ATALHOS_CONTEXTO.map(function (a) {
               return '<button type="button" class="ai-atalho-ctx" data-ctx="' +
-                a.id + '">' + escapar(a.rotulo) + '</button>';
+                a.id + '" aria-pressed="false">' + escapar(a.rotulo) + '</button>';
             }).join("") +
           '</div>' +
-          '<div class="ai-hub-saida hidden" id="ai-hub-saida">' +
+          '<div class="ai-hub-saida hidden" id="ai-hub-saida" ' +
+            'aria-live="polite">' +
             '<div class="ai-hub-acoes">' +
               '<span class="ai-hub-tipo" id="ai-hub-tipo"></span>' +
               '<button type="button" class="btn-verde ai-hub-copiar" id="ai-hub-copiar">' +
                 'Copiar contexto</button>' +
             '</div>' +
-            '<pre class="ai-hub-texto" id="ai-hub-texto"></pre>' +
+            '<pre class="ai-hub-texto" id="ai-hub-texto" tabindex="0"></pre>' +
           '</div>' +
         '</div>' +
 
@@ -433,9 +440,10 @@
       if (saida) saida.classList.remove("hidden");
       if (area) area.textContent = texto;
       if (tipoEl) tipoEl.textContent = def.rotulo;
-      // marca ativo
       atalhos.querySelectorAll(".ai-atalho-ctx").forEach(function (b) {
-        b.classList.toggle("ativo", b.dataset.ctx === tipo);
+        var ativo = b.dataset.ctx === tipo;
+        b.classList.toggle("ativo", ativo);
+        b.setAttribute("aria-pressed", ativo ? "true" : "false");
       });
     });
 
