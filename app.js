@@ -290,6 +290,51 @@
     irPara(destino);
   }));
 
+  /* ---------- busca rapida global ---------------------------------------- */
+  const buscaInput = $("#busca-global-input");
+  const buscaRes = $("#busca-global-resultados");
+  if(buscaInput && buscaRes){
+    function semAcentoG(t){ return t.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase(); }
+    function atualizarBuscaGlobal(){
+      const termo = semAcentoG(buscaInput.value.trim());
+      if(!termo){ buscaRes.classList.remove("aberta"); buscaRes.innerHTML=""; return; }
+      const todos = (window.pacientesTodos && window.pacientesTodos()) || [];
+      const filtrados = todos.filter(p => semAcentoG(p.nome||"").includes(termo)).slice(0,6);
+      if(filtrados.length===0){
+        buscaRes.innerHTML='<div class="busca-global-vazio">Nenhum paciente encontrado.</div>';
+      } else {
+        buscaRes.innerHTML = filtrados.map(p =>
+          '<div class="busca-global-item" role="option" data-id="'+escapar(p.id)+'">' +
+          '<span class="pac-avatar">'+(p.nome||"?").trim().charAt(0).toUpperCase()+'</span>' +
+          '<span>'+escapar(p.nome)+'</span></div>'
+        ).join("");
+      }
+      buscaRes.classList.add("aberta");
+    }
+    buscaInput.addEventListener("input", atualizarBuscaGlobal);
+    buscaInput.addEventListener("focus", () => { if(buscaInput.value.trim()) atualizarBuscaGlobal(); });
+    buscaRes.addEventListener("click", ev => {
+      const item = ev.target.closest(".busca-global-item");
+      if(!item) return;
+      buscaInput.value = "";
+      buscaRes.classList.remove("aberta");
+      buscaRes.innerHTML = "";
+      const pid = item.dataset.id;
+      if(pid && window.abrirFichaDe){ irPara("pacientes"); window.abrirFichaDe(pid); }
+    });
+    document.addEventListener("click", ev => {
+      if(!ev.target.closest("#busca-global")) buscaRes.classList.remove("aberta");
+    });
+    buscaInput.addEventListener("keydown", ev => {
+      if(ev.key==="Escape"){ buscaInput.value=""; buscaRes.classList.remove("aberta"); }
+      if(ev.key==="Enter"){
+        ev.preventDefault();
+        const primeiro = buscaRes.querySelector(".busca-global-item");
+        if(primeiro) primeiro.click();
+      }
+    });
+  }
+
   /* ============================================================
      CARREGAR OS DADOS  (de onde, ver dados.js)
   ============================================================ */

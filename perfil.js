@@ -384,6 +384,7 @@
   /* ---------- a completude ------------------------------------------------ */
 
   function completude() {
+    if (!perfil) return { itens: [], feitos: 0, total: CHECKLIST.length, pct: 0 };
     var feitos = CHECKLIST.filter(function (i) { return !!perfil[i.campo]; });
     return {
       itens: CHECKLIST.map(function (i) {
@@ -1285,6 +1286,11 @@
     modulo: function (id) {
       return !perfil || perfil.modulos[id] !== false;
     }
+  };
+
+  window.Perfil = {
+    atual: function () { return Object.assign({}, PADRAO, perfil || {}); },
+    completude: completude
   };
 
   document.addEventListener("DOMContentLoaded", function () {
