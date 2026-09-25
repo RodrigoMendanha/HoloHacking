@@ -79,6 +79,14 @@
      sempre truthy, e chamar ele estoura. Por isso o nome aqui e outro. */
   window.avisar = toast;
 
+  function anunciar(msg){
+    var el = document.getElementById("anuncio-dinamico");
+    if(!el) return;
+    el.textContent = "";
+    setTimeout(function(){ el.textContent = msg; }, 60);
+  }
+  window.anunciar = anunciar;
+
   function travarBotao(btn, texto){
     if(btn.disabled) return false;
     btn.disabled = true;
@@ -1046,11 +1054,12 @@
   $("#btn-salvar-paciente").addEventListener("click", async () => {
     const campos = dadosDoFormulario();
     if(!campos.nome){ toast("Informe o nome do paciente."); $("#np-nome").focus(); return; }
+    if(campos.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(campos.email)){
+      toast("E-mail inválido. Verifique e tente novamente."); $("#np-email").focus(); return;
+    }
 
     const btn = $("#btn-salvar-paciente");
-    btn.disabled = true;
-    btn.dataset.textoOriginal = btn.textContent;
-    btn.textContent = "Salvando…";
+    if(!travarBotao(btn, "Salvando…")) return;
 
     try {
       if(editandoPacienteId){
@@ -1081,8 +1090,7 @@
         toast(campos.nome.split(" ")[0] + " cadastrado com sucesso.");
       }
     } finally {
-      btn.disabled = false;
-      btn.textContent = btn.dataset.textoOriginal || "Salvar paciente";
+      destravarBotao(btn);
     }
   });
 

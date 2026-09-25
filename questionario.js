@@ -188,9 +188,10 @@
           '<p class="q-pergunta">' + escapar(q.pergunta) + "</p>" +
           '<div class="q-botoes">';
         for (var k = 0; k < 4; k++) {
+          var sel = String(v) === String(k);
           html += '<button type="button" class="q-btn' +
-            (String(v) === String(k) ? " marcado" : "") +
-            '" data-valor="' + k + '"><b>' + k + "</b>" + escala[k] + "</button>";
+            (sel ? " marcado" : "") +
+            '" data-valor="' + k + '" aria-pressed="' + sel + '"><b>' + k + "</b>" + escala[k] + "</button>";
         }
         html += "</div></div>";
       }
@@ -241,8 +242,12 @@
       var b = ev.target.closest(".q-btn");
       if (b) {
         var item = b.closest(".q-item");
-        item.querySelectorAll(".q-btn").forEach(function (x) { x.classList.remove("marcado"); });
+        item.querySelectorAll(".q-btn").forEach(function (x) {
+          x.classList.remove("marcado");
+          x.setAttribute("aria-pressed", "false");
+        });
         b.classList.add("marcado");
+        b.setAttribute("aria-pressed", "true");
         gravar(item.dataset.marcador, Number(b.dataset.valor));
         atualizarProgresso();
         return;

@@ -134,6 +134,8 @@
 ============================================================ -->
 <div id="app">
 
+  <a href="#conteudo-principal" class="sr-only" id="pular-conteudo">Pular para o conteúdo</a>
+
   <!-- ---------- SIDEBAR ---------- -->
   <aside class="sidebar">
     <div class="sidebar-marca">
@@ -246,7 +248,9 @@
       </div>
     </header>
 
-    <div class="conteudo">
+    <div class="conteudo" id="conteudo-principal">
+
+      <div id="anuncio-dinamico" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
       <!-- ============ DASHBOARD ============ -->
       <section class="secao ativa" id="secao-dashboard">
@@ -393,7 +397,7 @@
                 <span class="holo-espiritual">Perda de vitalidade</span>
               </div>
               <div class="holo-range-wrap">
-                <label>Score <i class="regua-pontas">0 ruim &middot; 10 bom</i></label>
+                <label for="holo-fungico">Score <i class="regua-pontas">0 ruim &middot; 10 bom</i></label>
                 <input type="range" min="0" max="10" value="0" id="holo-fungico">
                 <span class="holo-valor" id="val-fungico">0</span>
               </div>
@@ -406,7 +410,7 @@
                 <span class="holo-espiritual">Bloqueio no plexo solar</span>
               </div>
               <div class="holo-range-wrap">
-                <label>Score <i class="regua-pontas">0 ruim &middot; 10 bom</i></label>
+                <label for="holo-inflamatorio">Score <i class="regua-pontas">0 ruim &middot; 10 bom</i></label>
                 <input type="range" min="0" max="10" value="0" id="holo-inflamatorio">
                 <span class="holo-valor" id="val-inflamatorio">0</span>
               </div>
@@ -419,7 +423,7 @@
                 <span class="holo-espiritual">Dessintonização do corpo</span>
               </div>
               <div class="holo-range-wrap">
-                <label>Score <i class="regua-pontas">0 ruim &middot; 10 bom</i></label>
+                <label for="holo-metabolico">Score <i class="regua-pontas">0 ruim &middot; 10 bom</i></label>
                 <input type="range" min="0" max="10" value="0" id="holo-metabolico">
                 <span class="holo-valor" id="val-metabolico">0</span>
               </div>
@@ -432,7 +436,7 @@
                 <span class="holo-espiritual">Bloqueio do fluxo</span>
               </div>
               <div class="holo-range-wrap">
-                <label>Score <i class="regua-pontas">0 ruim &middot; 10 bom</i></label>
+                <label for="holo-detox">Score <i class="regua-pontas">0 ruim &middot; 10 bom</i></label>
                 <input type="range" min="0" max="10" value="0" id="holo-detox">
                 <span class="holo-valor" id="val-detox">0</span>
               </div>
@@ -445,7 +449,7 @@
                 <span class="holo-espiritual">Queda de frequência</span>
               </div>
               <div class="holo-range-wrap">
-                <label>Score <i class="regua-pontas">0 ruim &middot; 10 bom</i></label>
+                <label for="holo-mental">Score <i class="regua-pontas">0 ruim &middot; 10 bom</i></label>
                 <input type="range" min="0" max="10" value="0" id="holo-mental">
                 <span class="holo-valor" id="val-mental">0</span>
               </div>
@@ -776,22 +780,22 @@
 
             <div class="ficha-arquivos" id="ficha-arquivos">
               <div class="abas" role="tablist">
-                <button class="aba ativa" data-aba="visao" role="tab">Visão geral</button>
-                <button class="aba" data-aba="consultas" role="tab">Consultas</button>
-                <button class="aba" data-aba="holoscan" role="tab">HOLOSCAN</button>
-                <button class="aba" data-aba="ferramentas" role="tab">Ferramentas</button>
-                <button class="aba" data-aba="documentos" role="tab">Documentos</button>
-                <button class="aba" data-aba="relatorio" role="tab">Relatório</button>
-                <button class="aba" data-aba="holos-ai" role="tab">HOLOS AI</button>
+                <button class="aba ativa" data-aba="visao" role="tab" id="tab-visao" aria-controls="aba-visao" aria-selected="true">Visão geral</button>
+                <button class="aba" data-aba="consultas" role="tab" id="tab-consultas" aria-controls="aba-consultas" aria-selected="false">Consultas</button>
+                <button class="aba" data-aba="holoscan" role="tab" id="tab-holoscan" aria-controls="aba-holoscan" aria-selected="false">HOLOSCAN</button>
+                <button class="aba" data-aba="ferramentas" role="tab" id="tab-ferramentas" aria-controls="aba-ferramentas" aria-selected="false">Ferramentas</button>
+                <button class="aba" data-aba="documentos" role="tab" id="tab-documentos" aria-controls="aba-documentos" aria-selected="false">Documentos</button>
+                <button class="aba" data-aba="relatorio" role="tab" id="tab-relatorio" aria-controls="aba-relatorio" aria-selected="false">Relatório</button>
+                <button class="aba" data-aba="holos-ai" role="tab" id="tab-holos-ai" aria-controls="aba-holos-ai" aria-selected="false">HOLOS AI</button>
               </div>
 
-              <div class="aba-painel" id="aba-visao" role="tabpanel"></div>
-              <div class="aba-painel hidden" id="aba-consultas" role="tabpanel"></div>
-              <div class="aba-painel hidden" id="aba-holoscan" role="tabpanel"></div>
-              <div class="aba-painel hidden" id="aba-ferramentas" role="tabpanel"></div>
-              <div class="aba-painel hidden" id="aba-documentos" role="tabpanel"></div>
-              <div class="aba-painel hidden" id="aba-relatorio" role="tabpanel"></div>
-              <div class="aba-painel hidden" id="aba-holos-ai" role="tabpanel"></div>
+              <div class="aba-painel" id="aba-visao" role="tabpanel" aria-labelledby="tab-visao"></div>
+              <div class="aba-painel hidden" id="aba-consultas" role="tabpanel" aria-labelledby="tab-consultas"></div>
+              <div class="aba-painel hidden" id="aba-holoscan" role="tabpanel" aria-labelledby="tab-holoscan"></div>
+              <div class="aba-painel hidden" id="aba-ferramentas" role="tabpanel" aria-labelledby="tab-ferramentas"></div>
+              <div class="aba-painel hidden" id="aba-documentos" role="tabpanel" aria-labelledby="tab-documentos"></div>
+              <div class="aba-painel hidden" id="aba-relatorio" role="tabpanel" aria-labelledby="tab-relatorio"></div>
+              <div class="aba-painel hidden" id="aba-holos-ai" role="tabpanel" aria-labelledby="tab-holos-ai"></div>
             </div>
           </div>
 
@@ -851,16 +855,16 @@
         <div id="perfil-completude"></div>
 
         <div class="abas abas-perfil" role="tablist">
-          <button class="aba ativa" data-aba-perfil="perfil" role="tab" aria-selected="true">Perfil</button>
-          <button class="aba" data-aba-perfil="marca" role="tab" aria-selected="false">Marca</button>
-          <button class="aba" data-aba-perfil="prefs" role="tab" aria-selected="false">Preferências</button>
-          <button class="aba" data-aba-perfil="conta" role="tab" aria-selected="false">Conta</button>
+          <button class="aba ativa" data-aba-perfil="perfil" role="tab" id="tab-perfil" aria-controls="painel-perfil" aria-selected="true">Perfil</button>
+          <button class="aba" data-aba-perfil="marca" role="tab" id="tab-marca" aria-controls="painel-marca" aria-selected="false">Marca</button>
+          <button class="aba" data-aba-perfil="prefs" role="tab" id="tab-prefs" aria-controls="painel-prefs" aria-selected="false">Preferências</button>
+          <button class="aba" data-aba-perfil="conta" role="tab" id="tab-conta" aria-controls="painel-conta" aria-selected="false">Conta</button>
         </div>
 
-        <div class="aba-painel" id="painel-perfil"></div>
-        <div class="aba-painel hidden" id="painel-marca"></div>
-        <div class="aba-painel hidden" id="painel-prefs"></div>
-        <div class="aba-painel hidden" id="painel-conta"></div>
+        <div class="aba-painel" id="painel-perfil" role="tabpanel" aria-labelledby="tab-perfil"></div>
+        <div class="aba-painel hidden" id="painel-marca" role="tabpanel" aria-labelledby="tab-marca"></div>
+        <div class="aba-painel hidden" id="painel-prefs" role="tabpanel" aria-labelledby="tab-prefs"></div>
+        <div class="aba-painel hidden" id="painel-conta" role="tabpanel" aria-labelledby="tab-conta"></div>
       </section>
 
       <!-- ============ CORPO - OQ3 ============ -->
