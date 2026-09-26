@@ -314,7 +314,9 @@
       const termo = semAcentoG(buscaInput.value.trim());
       if(!termo){ buscaRes.classList.remove("aberta"); buscaRes.innerHTML=""; return; }
       const todos = (window.pacientesTodos && window.pacientesTodos()) || [];
-      const filtrados = todos.filter(p => semAcentoG(p.nome||"").includes(termo)).slice(0,6);
+      const filtrados = todos.filter(p =>
+        semAcentoG([p.nome, p.telefone, p.email].filter(Boolean).join(" ")).includes(termo)
+      ).slice(0,6);
       if(filtrados.length===0){
         buscaRes.innerHTML='<div class="busca-global-vazio">Nenhum paciente encontrado.</div>';
       } else {
@@ -1068,6 +1070,7 @@
     $("#np-nome").focus();
   });
   $("#btn-cancelar-paciente").addEventListener("click", () => fecharFormularioPaciente());
+  $("#painel-novo").addEventListener("input", () => { if(window.marcaSuja) window.marcaSuja("paciente"); });
 
   let editandoPacienteId = null;
 
@@ -1111,6 +1114,7 @@
     $("#painel-novo").classList.add("hidden");
     $("#titulo-form-paciente").textContent = "Cadastrar paciente";
     $("#btn-salvar-paciente").textContent = "Salvar paciente";
+    if(window.limpaSuja) window.limpaSuja("paciente");
   }
 
   $("#btn-salvar-paciente").addEventListener("click", async () => {
@@ -1328,6 +1332,7 @@
     notaDeQuandoOQ3();
     desenharHistoricoOQ3();
     toast("OQ3 salvo na ficha de " + p.nome.split(" ")[0] + ".");
+    if(window.limpaSuja) window.limpaSuja("oq3");
     } finally { destravarBotao(btn); }
   });
 
@@ -1514,6 +1519,7 @@
     notaDeQuandoPQQ();
     desenharHistoricoPQQ();
     toast("PQQ salvo na ficha de " + p.nome.split(" ")[0] + ".");
+    if(window.limpaSuja) window.limpaSuja("pqq");
     } finally { destravarBotao(btn); }
   });
 
@@ -1539,9 +1545,12 @@
     btn.addEventListener("click", () => {
       const alvo = btn.dataset.limpar;
       (alvo === "oq3" ? camposOQ3 : camposPQQ).forEach(s => $(s).value = "");
+      if(window.limpaSuja) window.limpaSuja(alvo);
       toast("Formulario limpo.");
     });
   });
+  camposOQ3.forEach(s => $(s).addEventListener("input", () => { if(window.marcaSuja) window.marcaSuja("oq3"); }));
+  camposPQQ.forEach(s => $(s).addEventListener("input", () => { if(window.marcaSuja) window.marcaSuja("pqq"); }));
 
   /* ============================================================
      MAPA DO PROPOSITO
@@ -2997,6 +3006,14 @@
         levarPara(destino, pid);
       });
     }
+
+    /* --- Proteção contra perda de dados não salvos --- */
+    var sujeiras = new Set();
+    window.marcaSuja = function (chave) { sujeiras.add(chave); };
+    window.limpaSuja = function (chave) { sujeiras.delete(chave); };
+    window.addEventListener("beforeunload", function (e) {
+      if (sujeiras.size > 0) { e.preventDefault(); e.returnValue = ""; }
+    });
 
     /* --- Banner offline --- */
     var bannerOff = document.getElementById("banner-offline");

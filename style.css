@@ -2201,6 +2201,19 @@ body.escuro .btn-tema .icone-lua{display:none}
 }
 .fic-barra.sem-dado{opacity:.5}
 
+/* ---------- filtros da linha do tempo ---------- */
+.fic-filtros-linha{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.fic-filtro-btn{
+  padding:5px 14px;border:1px solid var(--input-borda);border-radius:999px;
+  background:none;color:var(--texto-suave);font-size:.72rem;font-family:inherit;
+  cursor:pointer;transition:border-color .15s, color .15s, background .15s;
+}
+.fic-filtro-btn:hover{border-color:var(--dourado-suave);color:var(--texto)}
+.fic-filtro-btn.ativo{
+  background:var(--dourado-bg);border-color:var(--dourado-suave);
+  color:var(--realce);font-weight:500;
+}
+
 /* ---------- a linha do tempo ---------- */
 .fic-tempo{position:relative;margin-top:8px}
 .fic-tempo-mes{

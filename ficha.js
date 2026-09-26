@@ -391,10 +391,9 @@
     if (!alvo) return;
     var pid = paciente();
 
-    var proxima = window.Agenda && window.Agenda.proxima ? window.Agenda.proxima(pid) : null;
     var todas = window.Agenda && window.Agenda.todas ? window.Agenda.todas(pid) : [];
-    // "anterior" e o que ja passou — nao so "o que nao e a proxima", porque
-    // pode haver mais de uma consulta futura marcada.
+    var proximas = todas.filter(function (c) { return diasDesde(c.data) <= 0; })
+      .sort(function (a, b) { return a.data.localeCompare(b.data); });
     var anteriores = todas.filter(function (c) { return diasDesde(c.data) > 0; });
 
     var topo = '<div class="fic-consultas-topo">' +
@@ -412,10 +411,12 @@
 
     var html = topo;
 
-    if (proxima) {
-      html += '<div class="dash-bloco dash-bloco-compacto">' +
-        '<h3 class="dash-titulo">Próxima consulta</h3>' +
-        '<ul class="dash-pendentes">' + linhaConsulta(proxima, true) + "</ul></div>";
+    if (proximas.length > 0) {
+      html += '<div class="dash-bloco dash-bloco-compacto dash-bloco-hoje">' +
+        '<h3 class="dash-titulo">' + (proximas.length === 1 ? "Próxima consulta" : "Próximas consultas") + '</h3>' +
+        '<ul class="dash-pendentes">' + proximas.map(function (c, i) {
+          return linhaConsulta(c, i === 0);
+        }).join("") + "</ul></div>";
     }
 
     html += '<div class="dash-bloco dash-bloco-compacto">' +
@@ -522,12 +523,8 @@
 
   /* ================================================ ABA: LINHA DO TEMPO === */
 
-  /* O que aconteceu com esta pessoa, em ordem. O app guardava os pedaços com
-     data — aplicação do mapa, consulta marcada, arquivo entregue — mas nunca
-     os tinha posto na mesma régua.
+  var filtroLinha = "tudo";
 
-     Ferramenta preenchida NÃO entra: ela não guarda data. Botá-la aqui com a
-     data de hoje seria inventar quando aconteceu. */
   function desenharLinha() {
     var alvo = document.getElementById("fic-visao-timeline") || document.getElementById("aba-linha");
     if (!alvo) return;
@@ -591,36 +588,70 @@
         return;
       }
 
-      var html = '<p class="dash-sub">' + eventos.length +
-        (eventos.length === 1 ? " registro" : " registros") +
-        ", do mais recente para o mais antigo.</p><div class=\"fic-tempo\">";
+      var FILTROS_LINHA = [
+        { id: "tudo", nome: "Tudo" },
+        { id: "consulta", nome: "Consultas" },
+        { id: "mapa", nome: "HOLOSCAN" },
+        { id: "documento", nome: "Documentos" },
+        { id: "ferramenta", nome: "Ferramentas" }
+      ];
 
-      var mesCorrente = null;
-      eventos.forEach(function (e) {
-        var mes = (e.quando || "").slice(0, 7);
-        if (mes !== mesCorrente) {
-          mesCorrente = mes;
-          var p = (e.quando || "").split("-");
-          html += '<div class="fic-tempo-mes">' +
-            (p.length === 3 ? MESES[Number(p[1]) - 1] + " de " + p[0] : "sem data") +
-            "</div>";
-        }
-        var futuro = diasDesde(e.quando) < 0;
-        html += '<button type="button" class="fic-evento ' + e.tipo +
-          (futuro ? " futuro" : "") + '" data-ir="' + e.acao + '">' +
-          '<span class="fic-evento-marca" aria-hidden="true"></span>' +
-          '<span class="fic-evento-corpo">' +
-            '<span class="fic-evento-topo"><b>' + escapar(e.titulo) + "</b>" +
-              '<span class="fic-selo">' + escapar(e.selo) + "</span></span>" +
-            '<span class="fic-evento-quando">' + dataBR(e.quando) +
-              (e.quando ? " &middot; " + (futuro ? emQuantoTempo(-diasDesde(e.quando))
-                                                : haQuantoTempo(diasDesde(e.quando))) : "") +
-              " &middot; " + e.detalhe + "</span>" +
-          "</span></button>";
-      });
+      var visiveis = filtroLinha === "tudo"
+        ? eventos
+        : eventos.filter(function (e) { return e.tipo === filtroLinha; });
 
-      alvo.innerHTML = html + "</div>";
+      var html = '<div class="fic-filtros-linha" role="group" aria-label="Filtrar linha do tempo">' +
+        FILTROS_LINHA.map(function (f) {
+          return '<button type="button" class="fic-filtro-btn' +
+            (filtroLinha === f.id ? " ativo" : "") +
+            '" data-filtro-linha="' + f.id + '" aria-pressed="' +
+            (filtroLinha === f.id) + '">' + f.nome + "</button>";
+        }).join("") + "</div>";
+
+      html += '<p class="dash-sub">' + visiveis.length +
+        (visiveis.length === 1 ? " registro" : " registros") +
+        (filtroLinha !== "tudo" ? " (" + eventos.length + " no total)" : "") +
+        ", do mais recente para o mais antigo.</p>";
+
+      if (visiveis.length === 0) {
+        html += '<div class="dash-vazio">Nenhum registro deste tipo.</div>';
+      } else {
+        html += '<div class="fic-tempo">';
+        var mesCorrente = null;
+        visiveis.forEach(function (e) {
+          var mes = (e.quando || "").slice(0, 7);
+          if (mes !== mesCorrente) {
+            mesCorrente = mes;
+            var p = (e.quando || "").split("-");
+            html += '<div class="fic-tempo-mes">' +
+              (p.length === 3 ? MESES[Number(p[1]) - 1] + " de " + p[0] : "sem data") +
+              "</div>";
+          }
+          var futuro = diasDesde(e.quando) < 0;
+          html += '<button type="button" class="fic-evento ' + e.tipo +
+            (futuro ? " futuro" : "") + '" data-ir="' + e.acao + '">' +
+            '<span class="fic-evento-marca" aria-hidden="true"></span>' +
+            '<span class="fic-evento-corpo">' +
+              '<span class="fic-evento-topo"><b>' + escapar(e.titulo) + "</b>" +
+                '<span class="fic-selo">' + escapar(e.selo) + "</span></span>" +
+              '<span class="fic-evento-quando">' + dataBR(e.quando) +
+                (e.quando ? " &middot; " + (futuro ? emQuantoTempo(-diasDesde(e.quando))
+                                                  : haQuantoTempo(diasDesde(e.quando))) : "") +
+                " &middot; " + e.detalhe + "</span>" +
+            "</span></button>";
+        });
+        html += "</div>";
+      }
+
+      alvo.innerHTML = html;
       ligar(alvo);
+
+      alvo.querySelectorAll("[data-filtro-linha]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          filtroLinha = btn.dataset.filtroLinha;
+          desenharLinha();
+        });
+      });
     };
 
     if (window.ArquivoStore) window.ArquivoStore.listar(pid).then(pintar);
