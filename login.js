@@ -63,28 +63,51 @@
   }
 
   /* ====================================================== LIMPEZA DE DADOS ==
-     Chamado quando a sessao encerra (SIGNED_OUT). Remove dados clinicos do
-     localStorage para que uma troca de conta nao exponha dados de A para B.
+     Chamado quando a sessao encerra (SIGNED_OUT). Isola dados clinicos por
+     conta: guarda o estado atual sob a uid do usuario que esta saindo, depois
+     limpa as chaves principais. Na proxima vez que o mesmo usuario entrar,
+     restaurarEstadoLocal devolve tudo.
+
+     NAO apaga IndexedDB: arquivo-store.js filtra por uid internamente.
      NAO toca nas chaves sb-*-auth-token — o Supabase cuida dessas. */
 
-  function limparEstadoLocal() {
-    var chaves = [
-      "holohacking.dados.pacientes", "holohacking.dados.holoscan",
-      "holohacking.dados.oq3", "holohacking.dados.pqq",
-      "holohacking.dados.consultas", "holohacking.dados.bloqueios",
-      "holohacking.dados.aplicacoes", "holohacking.dados.perfil",
-      "holohacking.pontuacao", "holohacking.questionario",
-      "holohacking.ferramentas", "holohacking.exames",
-      "holohacking.agenda"
-    ];
+  var CHAVES_CLINICAS = [
+    "holohacking.dados.pacientes", "holohacking.dados.holoscan",
+    "holohacking.dados.oq3", "holohacking.dados.pqq",
+    "holohacking.dados.consultas", "holohacking.dados.bloqueios",
+    "holohacking.dados.aplicacoes", "holohacking.dados.perfil",
+    "holohacking.pontuacao", "holohacking.questionario",
+    "holohacking.ferramentas", "holohacking.exames",
+    "holohacking.agenda"
+  ];
+
+  function limparEstadoLocal(uidSaindo) {
     try {
-      chaves.forEach(function (k) { localStorage.removeItem(k); });
+      if (uidSaindo) {
+        CHAVES_CLINICAS.forEach(function (k) {
+          var v = localStorage.getItem(k);
+          if (v !== null) {
+            localStorage.setItem("holohacking._stash." + uidSaindo + "." + k, v);
+          }
+        });
+      }
+      CHAVES_CLINICAS.forEach(function (k) { localStorage.removeItem(k); });
     } catch (e) { /* navegador em modo privado */ }
-    try {
-      indexedDB.deleteDatabase("holohacking");
-    } catch (e) { /* ambiente sem IndexedDB */ }
     if (window.limparEstadoApp) window.limparEstadoApp();
     if (window.limparEstadoPerfil) window.limparEstadoPerfil();
+  }
+
+  function restaurarEstadoLocal(uid) {
+    if (!uid) return;
+    try {
+      CHAVES_CLINICAS.forEach(function (k) {
+        var stash = "holohacking._stash." + uid + "." + k;
+        var v = localStorage.getItem(stash);
+        if (v !== null && localStorage.getItem(k) === null) {
+          localStorage.setItem(k, v);
+        }
+      });
+    } catch (e) { /* navegador em modo privado */ }
   }
 
   window.AuthService = {
@@ -519,6 +542,7 @@
       var sessao = r && r.data && r.data.session;
       sessaoAtual = sessao || null;
       prontoParaAvisar = true;
+      if (sessao) restaurarEstadoLocal(sessao.user.id);
       definirEstadoAuth(sessao ? "autenticado" : "nao_autenticado");
       if (sessao && !modoRecuperacao) liberarApp();
       else if (!modoRecuperacao) campoEmail.focus();
@@ -528,6 +552,7 @@
   function ligarOuvinteDeSessao() {
     if (!window.supabaseClient) return;
     window.supabaseClient.auth.onAuthStateChange(function (evento, sessao) {
+      var uidSaindo = sessaoAtual && sessaoAtual.user ? sessaoAtual.user.id : null;
       sessaoAtual = sessao || null;
       if (!prontoParaAvisar) return; // INITIAL_SESSION ja tratado por verificarSessaoInicial
 
@@ -540,10 +565,11 @@
       }
 
       if (evento === "SIGNED_OUT") {
-        limparEstadoLocal();
+        limparEstadoLocal(uidSaindo);
         definirEstadoAuth("nao_autenticado");
         bloquearApp();
       } else if (sessao && (evento === "SIGNED_IN" || evento === "TOKEN_REFRESHED" || evento === "USER_UPDATED")) {
+        if (evento === "SIGNED_IN") restaurarEstadoLocal(sessao.user.id);
         definirEstadoAuth("autenticado");
         if (!modoRecuperacao) liberarApp();
       }
@@ -669,6 +695,13 @@
      nao para esconder atalho: o botao da saida esta visivel na tela, com o
      nome do que ele faz, e so existe em ambiente local. */
   window.LoginView = { abrirApp: liberarApp };
+
+  if (ambienteLocal()) {
+    window._testeIsolamento = {
+      limpar: limparEstadoLocal,
+      restaurar: restaurarEstadoLocal
+    };
+  }
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", iniciar);

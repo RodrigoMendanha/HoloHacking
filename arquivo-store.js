@@ -189,6 +189,8 @@
       tamanho: arquivo.size,
       arquivo: arquivo
     };
+    var uid = uidAtual();
+    if (uid) registro.uid = uid;
     return transacao("readwrite")
       .then(function (t) {
         /* o pedido produz o resultado; a transacao confirma que ele ficou */
@@ -328,11 +330,16 @@
       var req = t.loja.index("paciente").getAll(paciente);
       return Promise.all([promessa(req), aguardarTransacao(t.tx)]);
     }).then(function (par) {
-      // sem o blob: a lista nao precisa carregar megabytes na memoria
-      return (par[0] || []).map(function (i) {
-        return { id: i.id, nome: i.nome, tipo: i.tipo, data: i.data,
-                 mime: i.mime, tamanho: i.tamanho };
-      }).sort(porData);
+      var uid = uidAtual();
+      return (par[0] || [])
+        .filter(function (i) {
+          if (!uid) return true;
+          return i.uid === uid;
+        })
+        .map(function (i) {
+          return { id: i.id, nome: i.nome, tipo: i.tipo, data: i.data,
+                   mime: i.mime, tamanho: i.tamanho };
+        }).sort(porData);
     });
   }
 
@@ -342,7 +349,13 @@
       var req = t.loja.getAll();
       return Promise.all([promessa(req), aguardarTransacao(t.tx)]);
     }).then(function (par) {
-      return (par[0] || []).map(semBlob).sort(porData);
+      var uid = uidAtual();
+      return (par[0] || [])
+        .filter(function (i) {
+          if (!uid) return true;
+          return i.uid === uid;
+        })
+        .map(semBlob).sort(porData);
     });
   }
 
@@ -353,7 +366,13 @@
     return transacao("readonly").then(function (t) {
       var req = t.loja.get(id);
       return Promise.all([promessa(req), aguardarTransacao(t.tx)]);
-    }).then(function (par) { return par[0]; });
+    }).then(function (par) {
+      var registro = par[0];
+      if (!registro) return registro;
+      var uid = uidAtual();
+      if (uid && registro.uid !== uid) return undefined;
+      return registro;
+    });
   }
 
   /* ---------- leitura — a camada de apresentacao -------------------------
