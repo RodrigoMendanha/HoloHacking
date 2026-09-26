@@ -80,6 +80,9 @@
     try {
       chaves.forEach(function (k) { localStorage.removeItem(k); });
     } catch (e) { /* navegador em modo privado */ }
+    try {
+      indexedDB.deleteDatabase("holohacking");
+    } catch (e) { /* ambiente sem IndexedDB */ }
     if (window.limparEstadoApp) window.limparEstadoApp();
     if (window.limparEstadoPerfil) window.limparEstadoPerfil();
   }
