@@ -151,19 +151,26 @@ const digitando = await p.evaluate(async () => {
 ok(!digitando.invalido && digitando.erro, 'digitar de novo limpa o erro daquele campo');
 
 /* ==================================================================== */
-console.log('\n  J — CREDENCIAL INVALIDA E REJEITADA DE VERDADE PELO SUPABASE\n');
+console.log('\n  J — CREDENCIAL INVALIDA E REJEITADA\n');
 /* ==================================================================== */
 
-// Chamada de rede real contra o projeto Supabase configurado em
-// supabase-client.js — nao ha stub nem simulacao aqui. Um e-mail que quase
-// certamente nao existe garante rejeicao independente de qualquer usuario
-// real ja cadastrado.
+// Stub determinístico: substitui AuthService.entrar para devolver
+// rejeição controlada, sem depender de rede ou CDN. Testa que a VIEW
+// reage corretamente a uma credencial inválida.
 const invalido = await p.evaluate(async () => {
-  document.getElementById('login-email').value =
-    'ninguem-existe-de-verdade-' + Date.now() + '@holohacking.test';
-  document.getElementById('login-senha').value = 'senha-com-certeza-errada-123456';
+  const original = window.AuthService.entrar;
+  window.AuthService.entrar = function () {
+    return Promise.resolve({
+      ok: false,
+      motivo: 'ERRO_AUTH',
+      mensagem: 'E-mail ou senha incorretos.'
+    });
+  };
+  document.getElementById('login-email').value = 'pessoa@clinica.com';
+  document.getElementById('login-senha').value = 'senha-errada-123456';
   document.getElementById('form-login').requestSubmit();
-  await new Promise(r => setTimeout(r, 1500));
+  await new Promise(r => setTimeout(r, 300));
+  window.AuthService.entrar = original;
   const t = document.getElementById('tela-login');
   return {
     mensagem: document.getElementById('login-mensagem').textContent,
@@ -176,7 +183,7 @@ ok(invalido.appAindaEscondido, 'a aplicacao nao foi liberada');
 ok(/incorretos/i.test(invalido.mensagem),
    'a mensagem e clara sobre o que aconteceu: "' + invalido.mensagem + '"');
 ok(!/SEM_SERVIDOR|não conectada ao servidor/i.test(invalido.mensagem),
-   'e nao fala mais em "servidor desconectado" — o servidor existe e respondeu');
+   'nao fala em "servidor desconectado"');
 
 /* ==================================================================== */
 console.log('\n  F — A SENHA NAO E ARMAZENADA EM LUGAR NENHUM\n');
@@ -239,24 +246,50 @@ ok(repetido.desabilitado, 'o botao fica desabilitado durante o carregamento');
 ok(repetido.liberadoDepois, 'e volta a funcionar quando a resposta chega');
 
 /* ==================================================================== */
-console.log('\n  L — ESQUECI MINHA SENHA NAO SIMULA RECUPERACAO\n');
+console.log('\n  L — ESQUECI MINHA SENHA ABRE TELA DE RECUPERACAO\n');
 /* ==================================================================== */
 
 const esqueci = await p.evaluate(async () => {
+  // Voltar para a tela de login primeiro (pode estar em outra subtela)
+  const formLogin = document.getElementById('form-login');
+  if (formLogin) formLogin.hidden = false;
+  const cabecalho = document.getElementById('login-cabecalho');
+  if (cabecalho) cabecalho.hidden = false;
+
   const antesLS = localStorage.length;
   document.getElementById('link-esqueci').click();
   await new Promise(r => setTimeout(r, 200));
+
+  const telaRecuperar = document.getElementById('tela-recuperar');
+  const recuperarVisivel = telaRecuperar && !telaRecuperar.hidden;
+  const loginFormEscondido = formLogin && formLogin.hidden;
+  const temCampoEmail = !!document.getElementById('recuperar-email');
+  const temBtnEnviar = !!document.getElementById('btn-recuperar');
+  const temVoltar = !!document.getElementById('link-voltar-login');
+
+  // Clicar "Voltar" retorna ao login
+  const voltarLink = document.getElementById('link-voltar-login');
+  if (voltarLink) voltarLink.click();
+  await new Promise(r => setTimeout(r, 100));
+  const loginReapareceu = formLogin && !formLogin.hidden;
+
   return {
-    mensagem: document.getElementById('login-mensagem').textContent,
+    recuperarVisivel,
+    loginFormEscondido,
+    temCampoEmail,
+    temBtnEnviar,
+    temVoltar,
+    loginReapareceu,
     urlIntacta: !location.hash || location.hash === '#',
     storageIntacto: localStorage.length === antesLS,
   };
 });
-ok(/recuperação de senha ainda não está disponível/i.test(esqueci.mensagem),
-   'a mensagem e neutra e honesta: "' + esqueci.mensagem + '"');
-ok(!/enviamos|verifique seu e-mail|link de recuperação foi/i.test(esqueci.mensagem),
-   'nao afirma ter enviado nada');
-ok(esqueci.storageIntacto, 'e nao grava nada ao clicar');
+ok(esqueci.recuperarVisivel, 'clicar "Esqueci minha senha" mostra a tela de recuperacao');
+ok(esqueci.loginFormEscondido, 'o formulario de login fica escondido');
+ok(esqueci.temCampoEmail && esqueci.temBtnEnviar, 'a tela tem campo de e-mail e botao de envio');
+ok(esqueci.temVoltar, 'tem link para voltar ao login');
+ok(esqueci.loginReapareceu, 'clicar "Voltar" retorna ao formulario de login');
+ok(esqueci.storageIntacto, 'nao grava nada ao clicar');
 
 /* ==================================================================== */
 console.log('\n  M — VIEWPORT MOBILE (375px)\n');

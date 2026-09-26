@@ -3548,6 +3548,14 @@ body.login-aberto #app,
   .login-linha{flex-direction:column;align-items:flex-start;gap:12px}
 }
 
+.login-subtela-desc{
+  font-size:.85rem;color:var(--texto-suave);font-weight:300;
+  text-align:center;margin-bottom:22px;line-height:1.5;
+}
+.login-voltar-p{
+  text-align:center;margin-top:18px;
+}
+
 @media (prefers-reduced-motion:reduce){
   .login-girador{animation:none}
   .login-botao:hover:not(:disabled){transform:none}

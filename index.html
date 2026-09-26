@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
 </head>
-<body>
+<body class="login-aberto">
 
 <a href="#conteudo-principal" class="skip-link">Ir para o conteúdo</a>
 
@@ -59,7 +59,7 @@
       <p>Plataforma clínica da Nutrição Holística</p>
     </div>
 
-    <h2 class="login-titulo">Entrar na plataforma</h2>
+    <h2 class="login-titulo" id="login-cabecalho">Entrar na plataforma</h2>
 
     <!-- novalidate: a validacao do navegador mostra balao nativo que some
          sozinho e nao e lido de forma confiavel por leitor de tela. A nossa
@@ -113,6 +113,69 @@
          role="status" aria-live="polite" hidden></p>
     </form>
 
+    <!-- RECUPERAR SENHA -->
+    <div id="tela-recuperar" hidden>
+      <h2 class="login-titulo">Recuperar senha</h2>
+      <p class="login-subtela-desc">Informe o e-mail da sua conta.</p>
+      <form id="form-recuperar" novalidate>
+        <div class="login-grupo">
+          <label for="recuperar-email">E-mail</label>
+          <input type="email" id="recuperar-email" name="email"
+                 autocomplete="username" inputmode="email"
+                 spellcheck="false" autocapitalize="none"
+                 aria-describedby="erro-recuperar-email" required>
+          <p class="login-erro" id="erro-recuperar-email" hidden></p>
+        </div>
+        <button type="submit" id="btn-recuperar" class="login-botao">
+          <span class="login-girador" aria-hidden="true"></span>
+          <span class="login-botao-texto">Enviar instruções</span>
+        </button>
+        <p class="login-mensagem" id="recuperar-mensagem"
+           role="status" aria-live="polite" hidden></p>
+      </form>
+      <p class="login-voltar-p">
+        <a href="#" id="link-voltar-login" class="login-link">&larr; Voltar para o login</a>
+      </p>
+    </div>
+
+    <!-- NOVA SENHA (apos clique no link de recuperacao) -->
+    <div id="tela-nova-senha" hidden>
+      <h2 class="login-titulo">Criar nova senha</h2>
+      <form id="form-nova-senha" novalidate>
+        <input type="text" name="username" autocomplete="username" class="sr-only" tabindex="-1" aria-hidden="true">
+        <div class="login-grupo">
+          <label for="nova-senha">Nova senha</label>
+          <div class="login-senha-caixa">
+            <input type="password" id="nova-senha" name="nova-senha"
+                   autocomplete="new-password"
+                   aria-describedby="erro-nova-senha" required>
+            <button type="button" id="btn-olho-nova" class="login-olho"
+                    aria-pressed="false" aria-label="Mostrar senha"
+                    aria-controls="nova-senha">
+              <svg class="olho-ver" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="olho-ocultar" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 6.2A9.9 9.9 0 0 1 12 6c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4"/><path d="M6.6 6.9A17 17 0 0 0 2 13s3.6 7 10 7a9.6 9.6 0 0 0 4.5-1.1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+            </button>
+          </div>
+          <p class="login-erro" id="erro-nova-senha" hidden></p>
+        </div>
+        <div class="login-grupo">
+          <label for="confirmar-senha">Confirmar senha</label>
+          <div class="login-senha-caixa">
+            <input type="password" id="confirmar-senha" name="confirmar-senha"
+                   autocomplete="new-password"
+                   aria-describedby="erro-confirmar-senha" required>
+          </div>
+          <p class="login-erro" id="erro-confirmar-senha" hidden></p>
+        </div>
+        <button type="submit" id="btn-nova-senha" class="login-botao">
+          <span class="login-girador" aria-hidden="true"></span>
+          <span class="login-botao-texto">Salvar nova senha</span>
+        </button>
+        <p class="login-mensagem" id="nova-senha-mensagem"
+           role="status" aria-live="polite" hidden></p>
+      </form>
+    </div>
+
     <p class="login-rodape">Área de acesso profissional</p>
 
     <!-- A SAIDA DE DESENVOLVIMENTO.
@@ -134,7 +197,7 @@
 <!-- ============================================================
      APLICACAO
 ============================================================ -->
-<div id="app">
+<div id="app" aria-hidden="true">
 
   <a href="#conteudo-principal" class="sr-only" id="pular-conteudo">Pular para o conteúdo</a>
 

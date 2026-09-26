@@ -40,6 +40,11 @@
     return h === "localhost" || h === "127.0.0.1" || h === "::1" || h === "";
   }
 
+  function recuperarSenhaUrl() {
+    if (ambienteLocal()) return window.location.origin;
+    return "https://holohacking.com.br";
+  }
+
   /* =========================================================== AUTHSERVICE ==
      A fronteira com o Supabase. Devolve sempre a mesma forma de resposta —
      { ok, motivo, mensagem } — para que a View nunca precise saber se veio
@@ -48,16 +53,38 @@
   function mensagemDeErro(error) {
     var msg = (error && error.message) || "";
     if (/invalid login credentials/i.test(msg)) return "E-mail ou senha incorretos.";
+    if (/user not found/i.test(msg)) return "E-mail ou senha incorretos.";
     if (/email not confirmed/i.test(msg)) return "Esta conta ainda não confirmou o e-mail.";
     if (/too many requests|rate limit/i.test(msg)) return "Muitas tentativas seguidas. Aguarde um instante e tente de novo.";
+    if (/new password should be different/i.test(msg)) return "A nova senha deve ser diferente da anterior.";
+    if (/password.*at least|password.*too short|at least 6/i.test(msg)) return "A senha deve ter pelo menos 6 caracteres.";
+    if (/network|fetch|failed to fetch|load failed/i.test(msg)) return "Sem conexão com o servidor. Verifique sua internet.";
     return "Não foi possível entrar. Tente novamente.";
   }
 
+  /* ====================================================== LIMPEZA DE DADOS ==
+     Chamado quando a sessao encerra (SIGNED_OUT). Remove dados clinicos do
+     localStorage para que uma troca de conta nao exponha dados de A para B.
+     NAO toca nas chaves sb-*-auth-token — o Supabase cuida dessas. */
+
+  function limparEstadoLocal() {
+    var chaves = [
+      "holohacking.dados.pacientes", "holohacking.dados.holoscan",
+      "holohacking.dados.oq3", "holohacking.dados.pqq",
+      "holohacking.dados.consultas", "holohacking.dados.bloqueios",
+      "holohacking.dados.aplicacoes", "holohacking.dados.perfil",
+      "holohacking.pontuacao", "holohacking.questionario",
+      "holohacking.ferramentas", "holohacking.exames",
+      "holohacking.agenda"
+    ];
+    try {
+      chaves.forEach(function (k) { localStorage.removeItem(k); });
+    } catch (e) { /* navegador em modo privado */ }
+    if (window.limparEstadoApp) window.limparEstadoApp();
+    if (window.limparEstadoPerfil) window.limparEstadoPerfil();
+  }
+
   window.AuthService = {
-    /* Recebe o que um signInWithPassword receberia: { email, senha,
-       manterConectado }. manterConectado viaja junto por compatibilidade,
-       mas a sessao do Supabase ja persiste por padrao (persistSession, em
-       supabase-client.js) — nao ha um modo "nao lembrar" implementado ainda. */
     entrar: function (credenciais) {
       if (!window.supabaseClient) {
         return Promise.resolve({
@@ -76,15 +103,50 @@
         });
     },
 
-    /* Ainda nao entrou nesta fase: exigiria uma pagina que trate o link de
-       recuperacao (redirectTo), que nao existe ainda. Dizer isso e melhor do
-       que fingir enviar um e-mail que a pessoa nunca vai poder usar. */
     recuperarSenha: function (email) {
-      return Promise.resolve({
-        ok: false,
-        motivo: "NAO_DISPONIVEL",
-        mensagem: "A recuperação de senha ainda não está disponível nesta etapa."
-      });
+      if (!window.supabaseClient) {
+        return Promise.resolve({
+          ok: false, motivo: "SEM_CLIENTE",
+          mensagem: "Autenticação não está configurada neste ambiente."
+        });
+      }
+      if (!email) {
+        return Promise.resolve({
+          ok: false, motivo: "EMAIL_VAZIO",
+          mensagem: "Informe o e-mail."
+        });
+      }
+      return window.supabaseClient.auth
+        .resetPasswordForEmail(email, { redirectTo: recuperarSenhaUrl() })
+        .then(function () {
+          return {
+            ok: true, motivo: null,
+            mensagem: "Se houver uma conta associada a este e-mail, enviaremos as instruções."
+          };
+        })
+        .catch(function () {
+          return {
+            ok: true, motivo: null,
+            mensagem: "Se houver uma conta associada a este e-mail, enviaremos as instruções."
+          };
+        });
+    },
+
+    trocarSenha: function (novaSenha) {
+      if (!window.supabaseClient) {
+        return Promise.resolve({
+          ok: false, motivo: "SEM_CLIENTE",
+          mensagem: "Autenticação não está configurada neste ambiente."
+        });
+      }
+      return window.supabaseClient.auth
+        .updateUser({ password: novaSenha })
+        .then(function (r) {
+          if (r.error) {
+            return { ok: false, motivo: r.error.name || "ERRO_AUTH", mensagem: mensagemDeErro(r.error) };
+          }
+          return { ok: true, motivo: null, mensagem: "Senha alterada com sucesso." };
+        });
     }
   };
 
@@ -97,16 +159,6 @@
   var sessaoAtual = null;   // objeto Session do supabase-js, ou null
   var prontoParaAvisar = false;
 
-  /* O terceiro estado que faltava: "pendente" nao e "sem sessao". Antes
-     desta correcao, app.js e perfil.js tratavam "getSession() ainda nao
-     respondeu" como se fosse "ninguem logado" — carregavam a lista de
-     pacientes (e desenhavam a aba Conta) direto do DadosLocais, uma unica
-     vez, no load da pagina. Quando a sessao real chegava um instante
-     depois, nada mandava recarregar: o paciente cadastrado no Supabase
-     ficava fora da tela ate a pessoa navegar manualmente, e o botao Sair
-     nunca aparecia. aoMudarEstado() e o gancho que faltava: quem depende de
-     "estou logado?" se inscreve aqui, e roda de novo toda vez que isso
-     muda — inclusive na primeira vez que deixa de ser "pendente". */
   var estadoAuth = "pendente";   // "pendente" | "autenticado" | "nao_autenticado"
   var ouvintesDeEstado = [];
 
@@ -122,10 +174,6 @@
     estado: function () { return estadoAuth; },
     sessaoAtiva: function () { return estadoAuth === "autenticado"; },
     usuarioAtual: function () { return sessaoAtual ? sessaoAtual.user : null; },
-    /* Chama fn(estado) toda vez que o estado mudar. Se o estado ja saiu de
-       "pendente" quando alguem se inscreve, avisa na hora — ninguem que
-       chegar depois perde a resolucao inicial (e o proprio app.js chega
-       DEPOIS, porque carrega antes de login.js no index.html). */
     aoMudarEstado: function (fn) {
       ouvintesDeEstado.push(fn);
       if (estadoAuth !== "pendente") fn(estadoAuth);
@@ -145,7 +193,19 @@
 
   var form, campoEmail, campoSenha, btnOlho, btnEntrar, areaMensagem,
       erroEmail, erroSenha, linkEsqueci, camada, saidaDev, blocoDev;
+  var loginCabecalho;
+
+  // Recuperacao de senha
+  var telaRecuperar, formRecuperar, campoRecuperarEmail, btnRecuperar,
+      recuperarMensagem, erroRecuperarEmail, linkVoltarLogin;
+
+  // Nova senha (apos clicar no link de recuperacao)
+  var telaNovaSenha, formNovaSenha, campoNovaSenha, campoConfirmarSenha,
+      btnNovaSenha, novaSenhaMensagem, erroNovaSenha, erroConfirmarSenha,
+      btnOlhoNova;
+
   var enviando = false;
+  var modoRecuperacao = false;
 
   function pareceEmail(v) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
@@ -169,6 +229,13 @@
     areaMensagem.className = "login-mensagem" + (tipo ? " " + tipo : "");
     areaMensagem.hidden = !texto;
     areaMensagem.textContent = texto || "";
+  }
+
+  function mensagemEm(el, texto, tipo) {
+    if (!el) return;
+    el.className = "login-mensagem" + (tipo ? " " + tipo : "");
+    el.hidden = !texto;
+    el.textContent = texto || "";
   }
 
   function validar() {
@@ -202,9 +269,71 @@
     camada.classList.toggle("enviando", ligado);
   }
 
+  function carregandoRecuperar(ligado) {
+    enviando = ligado;
+    if (btnRecuperar) {
+      btnRecuperar.disabled = ligado;
+      btnRecuperar.setAttribute("aria-busy", ligado ? "true" : "false");
+    }
+    camada.classList.toggle("enviando", ligado);
+  }
+
+  function carregandoNovaSenha(ligado) {
+    enviando = ligado;
+    if (btnNovaSenha) {
+      btnNovaSenha.disabled = ligado;
+      btnNovaSenha.setAttribute("aria-busy", ligado ? "true" : "false");
+    }
+    camada.classList.toggle("enviando", ligado);
+  }
+
+  /* ---------- alternar entre telas internas do cartao ---------------------- */
+
+  function mostrarLogin() {
+    if (loginCabecalho) loginCabecalho.hidden = false;
+    form.hidden = false;
+    if (telaRecuperar) telaRecuperar.hidden = true;
+    if (telaNovaSenha) telaNovaSenha.hidden = true;
+    if (blocoDev) blocoDev.hidden = !ambienteLocal();
+    var rodape = document.querySelector(".login-rodape");
+    if (rodape) rodape.hidden = false;
+  }
+
+  function mostrarRecuperar() {
+    if (loginCabecalho) loginCabecalho.hidden = true;
+    form.hidden = true;
+    if (telaRecuperar) telaRecuperar.hidden = false;
+    if (telaNovaSenha) telaNovaSenha.hidden = true;
+    if (blocoDev) blocoDev.hidden = true;
+    var rodape = document.querySelector(".login-rodape");
+    if (rodape) rodape.hidden = true;
+    mensagemEm(recuperarMensagem, "", null);
+    if (campoRecuperarEmail) {
+      campoRecuperarEmail.value = campoEmail ? campoEmail.value.trim() : "";
+      campoRecuperarEmail.focus();
+    }
+  }
+
+  function mostrarNovaSenha() {
+    if (loginCabecalho) loginCabecalho.hidden = true;
+    form.hidden = true;
+    if (telaRecuperar) telaRecuperar.hidden = true;
+    if (telaNovaSenha) telaNovaSenha.hidden = false;
+    if (blocoDev) blocoDev.hidden = true;
+    var rodape = document.querySelector(".login-rodape");
+    if (rodape) rodape.hidden = true;
+    mensagemEm(novaSenhaMensagem, "", null);
+    if (campoNovaSenha) {
+      campoNovaSenha.value = "";
+      if (campoConfirmarSenha) campoConfirmarSenha.value = "";
+      campoNovaSenha.focus();
+    }
+  }
+
   /* ---------- abrir/fechar o app --------------------------------------- */
 
   function liberarApp() {
+    modoRecuperacao = false;
     camada.hidden = true;
     document.body.classList.remove("login-aberto");
     document.getElementById("app").removeAttribute("aria-hidden");
@@ -214,10 +343,15 @@
     camada.hidden = false;
     document.body.classList.add("login-aberto");
     document.getElementById("app").setAttribute("aria-hidden", "true");
-    mensagem("", null);
-    if (campoSenha) campoSenha.value = "";
-    if (campoEmail) campoEmail.focus();
+    if (!modoRecuperacao) {
+      mostrarLogin();
+      mensagem("", null);
+      if (campoSenha) campoSenha.value = "";
+      if (campoEmail) campoEmail.focus();
+    }
   }
+
+  /* ---------- handlers de formulario --------------------------------------- */
 
   function aoEnviar(e) {
     e.preventDefault();
@@ -250,22 +384,119 @@
       });
   }
 
+  function alternarVisibilidade(campo, botao) {
+    var escondida = campo.type === "password";
+    campo.type = escondida ? "text" : "password";
+    botao.setAttribute("aria-pressed", escondida ? "true" : "false");
+    botao.setAttribute("aria-label", escondida ? "Ocultar senha" : "Mostrar senha");
+    botao.classList.toggle("revelada", escondida);
+    var fim = campo.value.length;
+    campo.focus();
+    try { campo.setSelectionRange(fim, fim); } catch (e) { /* type=text nem sempre aceita */ }
+  }
+
   function alternarSenha() {
-    var escondida = campoSenha.type === "password";
-    campoSenha.type = escondida ? "text" : "password";
-    btnOlho.setAttribute("aria-pressed", escondida ? "true" : "false");
-    btnOlho.setAttribute("aria-label", escondida ? "Ocultar senha" : "Mostrar senha");
-    btnOlho.classList.toggle("revelada", escondida);
-    var fim = campoSenha.value.length;
-    campoSenha.focus();
-    try { campoSenha.setSelectionRange(fim, fim); } catch (e) { /* type=text nem sempre aceita */ }
+    alternarVisibilidade(campoSenha, btnOlho);
   }
 
   function aoEsquecer(e) {
     e.preventDefault();
-    window.AuthService.recuperarSenha(campoEmail.value.trim()).then(function (r) {
-      mensagem(r.mensagem, "aviso");
-    });
+    mostrarRecuperar();
+  }
+
+  function aoVoltarLogin(e) {
+    e.preventDefault();
+    mostrarLogin();
+    if (campoEmail) campoEmail.focus();
+  }
+
+  function aoEnviarRecuperacao(e) {
+    e.preventDefault();
+    if (enviando) return;
+
+    var email = campoRecuperarEmail.value.trim();
+    campoRecuperarEmail.removeAttribute("aria-invalid");
+    if (erroRecuperarEmail) { erroRecuperarEmail.textContent = ""; erroRecuperarEmail.hidden = true; }
+
+    if (!email) {
+      marcarErro(campoRecuperarEmail, erroRecuperarEmail, "Informe o e-mail.");
+      campoRecuperarEmail.focus();
+      return;
+    }
+    if (!pareceEmail(email)) {
+      marcarErro(campoRecuperarEmail, erroRecuperarEmail, "Informe um e-mail válido.");
+      campoRecuperarEmail.focus();
+      return;
+    }
+
+    carregandoRecuperar(true);
+    mensagemEm(recuperarMensagem, "", null);
+
+    window.AuthService.recuperarSenha(email)
+      .then(function (r) {
+        mensagemEm(recuperarMensagem, r.mensagem, r.ok ? "ok" : "aviso");
+      })
+      .catch(function () {
+        mensagemEm(recuperarMensagem, "Não foi possível falar com o servidor.", "aviso");
+      })
+      .then(function () {
+        carregandoRecuperar(false);
+      });
+  }
+
+  function aoEnviarNovaSenha(e) {
+    e.preventDefault();
+    if (enviando) return;
+
+    var nova = campoNovaSenha.value;
+    var confirmar = campoConfirmarSenha.value;
+
+    campoNovaSenha.removeAttribute("aria-invalid");
+    campoConfirmarSenha.removeAttribute("aria-invalid");
+    if (erroNovaSenha) { erroNovaSenha.textContent = ""; erroNovaSenha.hidden = true; }
+    if (erroConfirmarSenha) { erroConfirmarSenha.textContent = ""; erroConfirmarSenha.hidden = true; }
+
+    var primeiro = null;
+    if (!nova) {
+      marcarErro(campoNovaSenha, erroNovaSenha, "Informe a nova senha.");
+      primeiro = primeiro || campoNovaSenha;
+    } else if (nova.length < 6) {
+      marcarErro(campoNovaSenha, erroNovaSenha, "A senha deve ter pelo menos 6 caracteres.");
+      primeiro = primeiro || campoNovaSenha;
+    }
+    if (!confirmar) {
+      marcarErro(campoConfirmarSenha, erroConfirmarSenha, "Confirme a nova senha.");
+      primeiro = primeiro || campoConfirmarSenha;
+    } else if (nova && confirmar !== nova) {
+      marcarErro(campoConfirmarSenha, erroConfirmarSenha, "As senhas não coincidem.");
+      primeiro = primeiro || campoConfirmarSenha;
+    }
+    if (primeiro) {
+      primeiro.focus();
+      return;
+    }
+
+    carregandoNovaSenha(true);
+    mensagemEm(novaSenhaMensagem, "", null);
+
+    window.AuthService.trocarSenha(nova)
+      .then(function (r) {
+        if (r.ok) {
+          mensagemEm(novaSenhaMensagem, "Senha alterada com sucesso. Entrando…", "ok");
+          setTimeout(function () {
+            modoRecuperacao = false;
+            liberarApp();
+          }, 1500);
+        } else {
+          mensagemEm(novaSenhaMensagem, r.mensagem, "aviso");
+        }
+      })
+      .catch(function () {
+        mensagemEm(novaSenhaMensagem, "Não foi possível alterar a senha.", "aviso");
+      })
+      .then(function () {
+        carregandoNovaSenha(false);
+      });
   }
 
   /* A saida de desenvolvimento. So existe (visivel e funcional) em
@@ -286,8 +517,8 @@
       sessaoAtual = sessao || null;
       prontoParaAvisar = true;
       definirEstadoAuth(sessao ? "autenticado" : "nao_autenticado");
-      if (sessao) liberarApp();
-      else campoEmail.focus();
+      if (sessao && !modoRecuperacao) liberarApp();
+      else if (!modoRecuperacao) campoEmail.focus();
     });
   }
 
@@ -296,12 +527,22 @@
     window.supabaseClient.auth.onAuthStateChange(function (evento, sessao) {
       sessaoAtual = sessao || null;
       if (!prontoParaAvisar) return; // INITIAL_SESSION ja tratado por verificarSessaoInicial
+
+      if (evento === "PASSWORD_RECOVERY") {
+        modoRecuperacao = true;
+        definirEstadoAuth("autenticado");
+        bloquearApp();
+        mostrarNovaSenha();
+        return;
+      }
+
       if (evento === "SIGNED_OUT") {
+        limparEstadoLocal();
         definirEstadoAuth("nao_autenticado");
         bloquearApp();
       } else if (sessao && (evento === "SIGNED_IN" || evento === "TOKEN_REFRESHED" || evento === "USER_UPDATED")) {
         definirEstadoAuth("autenticado");
-        liberarApp();
+        if (!modoRecuperacao) liberarApp();
       }
     });
   }
@@ -337,11 +578,67 @@
     linkEsqueci = document.getElementById("link-esqueci");
     saidaDev = document.getElementById("saida-dev");
     blocoDev = document.querySelector(".login-dev");
+    loginCabecalho = document.getElementById("login-cabecalho");
 
+    // Elementos da tela de recuperacao
+    telaRecuperar = document.getElementById("tela-recuperar");
+    formRecuperar = document.getElementById("form-recuperar");
+    campoRecuperarEmail = document.getElementById("recuperar-email");
+    btnRecuperar = document.getElementById("btn-recuperar");
+    recuperarMensagem = document.getElementById("recuperar-mensagem");
+    erroRecuperarEmail = document.getElementById("erro-recuperar-email");
+    linkVoltarLogin = document.getElementById("link-voltar-login");
+
+    // Elementos da tela de nova senha
+    telaNovaSenha = document.getElementById("tela-nova-senha");
+    formNovaSenha = document.getElementById("form-nova-senha");
+    campoNovaSenha = document.getElementById("nova-senha");
+    campoConfirmarSenha = document.getElementById("confirmar-senha");
+    btnNovaSenha = document.getElementById("btn-nova-senha");
+    novaSenhaMensagem = document.getElementById("nova-senha-mensagem");
+    erroNovaSenha = document.getElementById("erro-nova-senha");
+    erroConfirmarSenha = document.getElementById("erro-confirmar-senha");
+    btnOlhoNova = document.getElementById("btn-olho-nova");
+
+    // Formulario de login
     form.addEventListener("submit", aoEnviar);
     btnOlho.addEventListener("click", alternarSenha);
     linkEsqueci.addEventListener("click", aoEsquecer);
     if (saidaDev) saidaDev.addEventListener("click", sairParaOApp);
+
+    // Formulario de recuperacao
+    if (formRecuperar) formRecuperar.addEventListener("submit", aoEnviarRecuperacao);
+    if (linkVoltarLogin) linkVoltarLogin.addEventListener("click", aoVoltarLogin);
+
+    // Formulario de nova senha
+    if (formNovaSenha) formNovaSenha.addEventListener("submit", aoEnviarNovaSenha);
+    if (btnOlhoNova && campoNovaSenha) {
+      btnOlhoNova.addEventListener("click", function () {
+        alternarVisibilidade(campoNovaSenha, btnOlhoNova);
+      });
+    }
+
+    // Limpar erros ao digitar — recuperacao
+    if (campoRecuperarEmail) {
+      campoRecuperarEmail.addEventListener("input", function () {
+        if (campoRecuperarEmail.getAttribute("aria-invalid")) {
+          campoRecuperarEmail.removeAttribute("aria-invalid");
+          if (erroRecuperarEmail) { erroRecuperarEmail.textContent = ""; erroRecuperarEmail.hidden = true; }
+        }
+      });
+    }
+
+    // Limpar erros ao digitar — nova senha
+    [campoNovaSenha, campoConfirmarSenha].forEach(function (c) {
+      if (!c) return;
+      c.addEventListener("input", function () {
+        if (c.getAttribute("aria-invalid")) {
+          c.removeAttribute("aria-invalid");
+          var alvo = c === campoNovaSenha ? erroNovaSenha : erroConfirmarSenha;
+          if (alvo) { alvo.textContent = ""; alvo.hidden = true; }
+        }
+      });
+    });
 
     if (blocoDev && !ambienteLocal()) blocoDev.hidden = true;
 

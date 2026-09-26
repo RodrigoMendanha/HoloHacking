@@ -39,6 +39,13 @@
   var supaAssets = {};           // "supa:uuid" -> storage_path (para download)
   var desenhando = false;        // a assinatura desenhada a mao esta aberta?
 
+  window.limparEstadoPerfil = function () {
+    perfil = null;
+    urls = {};
+    supaAssets = {};
+    ligado = false;
+  };
+
   var PADRAO = {
     id: LINHA,
     nome: "", email: "", profissao: "Nutricionista", registro: "",
@@ -823,8 +830,6 @@
         '<button type="button" class="perf-tirar forte" id="btn-apagar-tudo">Apagar todos os dados</button>' +
       "</div>";
 
-    /* Fase 1 do Supabase: a conta existe de verdade agora. Sem campo de nova
-       senha ainda — so o que a Fase 1 pediu: quem esta logado, e sair. */
     var usuario = window.HoloAuth && window.HoloAuth.usuarioAtual && window.HoloAuth.usuarioAtual();
     var acesso = usuario
       ? '<p>Você está conectado como <b>' + escapar(usuario.email || "") + "</b>.</p>" +
@@ -837,9 +842,25 @@
         "entrou pelo atalho de desenvolvimento local. Fora de localhost, isto " +
         "deveria ter te levado para a tela de entrada.</p>";
 
+    var trocarSenhaHtml = usuario
+      ? '<div style="margin-bottom:14px">' +
+          '<label for="conta-nova-senha" style="display:block;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--realce);font-weight:600;margin-bottom:6px">Nova senha</label>' +
+          '<input type="password" id="conta-nova-senha" autocomplete="new-password" style="width:100%;padding:10px 14px;border:1px solid var(--input-borda);border-radius:8px;background:var(--input-fundo);color:var(--texto);font-size:.88rem">' +
+        '</div>' +
+        '<div style="margin-bottom:14px">' +
+          '<label for="conta-confirmar-senha" style="display:block;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--realce);font-weight:600;margin-bottom:6px">Confirmar nova senha</label>' +
+          '<input type="password" id="conta-confirmar-senha" autocomplete="new-password" style="width:100%;padding:10px 14px;border:1px solid var(--input-borda);border-radius:8px;background:var(--input-fundo);color:var(--texto);font-size:.88rem">' +
+        '</div>' +
+        '<div class="perf-foto-acoes">' +
+          '<button type="button" class="perf-botao" id="btn-trocar-senha">Alterar senha</button>' +
+        '</div>' +
+        '<p class="perf-aviso" id="conta-senha-aviso"></p>'
+      : '';
+
     alvo.innerHTML =
       cartao("Onde ficam os seus dados", "", dados) +
       cartao("Acesso", "", acesso) +
+      (trocarSenhaHtml ? cartao("Alterar senha", "", trocarSenhaHtml) : "") +
       cartao("Apagar tudo", "", perigo);
 
     if (window.ArquivoStore && window.ArquivoStore.listarTudo) {
@@ -1062,6 +1083,49 @@
     window.HoloAuth.sair();
   }
 
+  function trocarSenhaConta() {
+    var nova = document.getElementById("conta-nova-senha");
+    var confirmar = document.getElementById("conta-confirmar-senha");
+    var aviso = document.getElementById("conta-senha-aviso");
+    if (!nova || !confirmar) return;
+
+    var novaSenha = nova.value;
+    var confirmarSenha = confirmar.value;
+
+    if (!novaSenha) {
+      if (aviso) { aviso.textContent = "Informe a nova senha."; aviso.className = "perf-aviso ruim"; }
+      nova.focus(); return;
+    }
+    if (novaSenha.length < 6) {
+      if (aviso) { aviso.textContent = "A senha deve ter pelo menos 6 caracteres."; aviso.className = "perf-aviso ruim"; }
+      nova.focus(); return;
+    }
+    if (novaSenha !== confirmarSenha) {
+      if (aviso) { aviso.textContent = "As senhas não coincidem."; aviso.className = "perf-aviso ruim"; }
+      confirmar.focus(); return;
+    }
+
+    var btn = document.getElementById("btn-trocar-senha");
+    if (btn) btn.disabled = true;
+    if (aviso) { aviso.textContent = "Alterando…"; aviso.className = "perf-aviso"; }
+
+    window.AuthService.trocarSenha(novaSenha)
+      .then(function (r) {
+        if (r.ok) {
+          if (aviso) { aviso.textContent = "Senha alterada com sucesso."; aviso.className = "perf-aviso"; }
+          nova.value = ""; confirmar.value = "";
+        } else {
+          if (aviso) { aviso.textContent = r.mensagem || "Não foi possível alterar a senha."; aviso.className = "perf-aviso ruim"; }
+        }
+      })
+      .catch(function () {
+        if (aviso) { aviso.textContent = "Não foi possível alterar a senha."; aviso.className = "perf-aviso ruim"; }
+      })
+      .then(function () {
+        if (btn) btn.disabled = false;
+      });
+  }
+
   function apagarTudo() {
     var frase = "APAGAR";
     var dito = prompt("Isto apaga tudo deste navegador e não dá para desfazer.\n\n" +
@@ -1223,6 +1287,7 @@
       }
       if (ev.target.closest("#btn-apagar-tudo")) { apagarTudo(); return; }
       if (ev.target.closest("#btn-sair")) { sair(); return; }
+      if (ev.target.closest("#btn-trocar-senha")) { trocarSenhaConta(); return; }
     });
 
     // as cores andam em par: mexer no seletor escreve no texto, e vice-versa
@@ -1315,7 +1380,9 @@
          na mao. aoMudarEstado ja avisa na hora se o estado ja resolveu. */
       if (window.HoloAuth && window.HoloAuth.aoMudarEstado) {
         window.HoloAuth.aoMudarEstado(function (estado) {
-          if (estado !== "pendente") window.redesenharPerfil();
+          if (estado !== "pendente") {
+            carregar().then(function () { desenhar(); trocarAba(aba); });
+          }
         });
       }
     });

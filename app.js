@@ -21,6 +21,12 @@
 
   const estado = { pacientes: [], ativo: null, carregado: false };
 
+  window.limparEstadoApp = function () {
+    estado.pacientes = [];
+    estado.ativo = null;
+    estado.carregado = false;
+  };
+
   /* A pontuacao que esta na tela agora, quando ela veio do questionario.
      Null quando a nutricionista esta pontuando a mao — e a diferenca importa
      na hora de salvar: do questionario vem 6,7, da regua vem 7. */
