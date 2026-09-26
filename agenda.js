@@ -88,7 +88,7 @@
     return somar(d, -d.getDay());
   }
   function mesmoDia(a, b) { return iso(a) === iso(b); }
-  function dataBR(s) { return s ? s.split("-").reverse().join("/") : ""; }
+  var dataBR = window.dataBR;
 
   function minutos(hhmm) {
     var p = String(hhmm || "0:0").split(":");
@@ -99,11 +99,7 @@
            String(min % 60).padStart(2, "0");
   }
 
-  function escapar(s) {
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  }
+  var escapar = window.escapar;
 
   /* ---------- ler e gravar ------------------------------------------------ */
 

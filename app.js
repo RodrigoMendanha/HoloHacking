@@ -49,15 +49,8 @@
       String(d.getMonth() + 1).padStart(2, "0") + "-" +
       String(d.getDate()).padStart(2, "0");
   }
-  /* O nome do paciente vai para dentro de innerHTML. Ele e digitado por quem
-     usa, e um nome com & ou < quebrava a lista calado — ou pior, entrava como
-     marcacao. As outras telas ja escapavam; esta era a que faltava. */
-  function escapar(s){
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  }
-  function dataBR(iso){ return iso ? iso.split("-").reverse().join("/") : ""; }
+  var escapar = window.escapar;
+  var dataBR  = window.dataBR;
   function idade(nasc){
     if(!nasc) return "";
     const d = new Date(nasc + "T00:00:00"), hoje = new Date();

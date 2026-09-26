@@ -20,11 +20,7 @@
 (function () {
   "use strict";
 
-  function escapar(s) {
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  }
+  var escapar = window.escapar;
 
   function caixa(titulo, corpo, rascunho) {
     return '<section class="res-caixa">' +
@@ -46,8 +42,7 @@
     }).join("") + "</div>";
   }
 
-  /** Uma data ISO em dd/mm. Formato de tela, nada mais. */
-  function dataBR(iso) {
+  function dataCurta(iso) {
     if (!iso) return "—";
     var d = String(iso).slice(0, 10).split("-");
     return d.length === 3 ? d[2] + "/" + d[1] : String(iso);
@@ -191,7 +186,7 @@
         "<th>Fome</th><th>Saciedade</th><th>Energia</th><th>Digestão</th>" +
         "</tr></thead><tbody>" +
         r.por_hora.map(function (x) {
-          return "<tr><td>" + escapar(dataBR(x.quando)) + "</td><td>" +
+          return "<tr><td>" + escapar(dataCurta(x.quando)) + "</td><td>" +
             escapar(x.hora || "—") + "</td><td>" +
             (x.fome === null ? "—" : x.fome) + "</td><td>" +
             (x.saciedade === null ? "—" : x.saciedade) + "</td><td>" +

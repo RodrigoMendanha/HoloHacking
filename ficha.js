@@ -57,11 +57,8 @@
     for (var i = 0; i < todos.length; i++) if (todos[i].id === id) return todos[i];
     return null;
   }
-  function escapar(s) {
-    return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  }
-  function dataBR(iso) { return iso ? iso.split("-").reverse().join("/") : ""; }
+  var escapar = window.escapar;
+  var dataBR  = window.dataBR;
 
   /** O dia do calendário de um instante, no fuso de quem está olhando. */
   function diaLocal(iso) {

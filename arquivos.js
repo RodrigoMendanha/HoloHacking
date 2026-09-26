@@ -58,10 +58,7 @@
     localStorage.setItem(chave, JSON.stringify(t));
     if (window.Concorrencia) window.Concorrencia.avancarRevisao("caixa:" + chave);
   }
-  function escapar(s) {
-    return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  }
+  var escapar = window.escapar;
   function hoje() {
     var d = new Date();
     return String(d.getDate()).padStart(2, "0") + "/" +
@@ -179,7 +176,7 @@
     alvo.innerHTML = html;
   };
 
-  function dataBR(iso) { return iso ? String(iso).split("-").reverse().join("/") : ""; }
+  var dataBR = window.dataBR;
 
   /* ========================================== ABA HOLOSCAN (na ficha) =====
      Resumo compacto do mesmo confronto que window.desenharHoloscan() e

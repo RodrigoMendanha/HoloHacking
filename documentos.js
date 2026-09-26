@@ -29,15 +29,8 @@
   var filtroTexto = "";
   var ligado = false;
 
-  function escapar(s) {
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  }
-
-  function dataBR(iso) {
-    return iso ? iso.split("-").reverse().join("/") : "sem data";
-  }
+  var escapar = window.escapar;
+  function dataBR(iso) { return window.dataBR(iso) || "sem data"; }
 
   /** Nome de quem o arquivo e. Paciente apagado deixa arquivo orfao, e a tela
       precisa dizer isso em vez de mostrar um id cru. */

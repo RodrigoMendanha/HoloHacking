@@ -20,10 +20,7 @@
   function historico() {
     return window.historicoPontuacao ? window.historicoPontuacao() : [];
   }
-  function escapar(s) {
-    return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  }
+  var escapar = window.escapar;
   function dataBonita(iso) {
     if (!iso) return "";
     var meses = ["jan", "fev", "mar", "abr", "mai", "jun",

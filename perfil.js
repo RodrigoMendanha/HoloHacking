@@ -102,11 +102,7 @@
     { campo: "telefone", rotulo: "Telefone" }
   ];
 
-  function escapar(s) {
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  }
+  var escapar = window.escapar;
 
   /* O dia de hoje no fuso de quem usa: toISOString() é UTC, e depois das 21h
      no Brasil ele já virou amanhã. */

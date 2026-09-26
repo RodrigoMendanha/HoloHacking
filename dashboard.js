@@ -23,11 +23,7 @@
 
   var alvo = null;
 
-  function escapar(s) {
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  }
+  var escapar = window.escapar;
 
   function inicial(nome) {
     return (nome || "?").trim().charAt(0).toUpperCase();
@@ -37,9 +33,7 @@
     return (nome || "").split(" ")[0];
   }
 
-  function dataBR(iso) {
-    return iso ? String(iso).split("-").reverse().join("/") : "";
-  }
+  var dataBR = window.dataBR;
 
   function saudacao() {
     var h = new Date().getHours();

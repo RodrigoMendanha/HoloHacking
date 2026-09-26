@@ -15,11 +15,7 @@
     gemini:  ""
   };
 
-  function escapar(s) {
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  }
+  var escapar = window.escapar;
 
   function pacienteId() {
     return window.pacienteAtivoId ? window.pacienteAtivoId() : null;
@@ -37,11 +33,7 @@
 
   // --- Montagem de contexto ---
 
-  function dataBR(iso) {
-    if (!iso) return "";
-    var p = String(iso).split("-");
-    return p.length === 3 ? p[2] + "/" + p[1] + "/" + p[0] : iso;
-  }
+  var dataBR = window.dataBR;
 
   function linhaSe(rotulo, valor) {
     if (valor == null || valor === "" || valor === undefined) return "";

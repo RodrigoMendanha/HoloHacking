@@ -129,11 +129,7 @@
 
   /* ---------- desenhar --------------------------------------------------- */
 
-  function escapar(s) {
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  }
+  var escapar = window.escapar;
 
   function rotulos(q) {
     return ESCALAS[q.escala] || ESCALAS.frequencia;

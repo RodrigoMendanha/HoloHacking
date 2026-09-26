@@ -24,19 +24,13 @@
 
   var alvo = null;
 
-  function escapar(s) {
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  }
+  var escapar = window.escapar;
 
   function inicial(nome) {
     return (nome || "?").trim().charAt(0).toUpperCase();
   }
 
-  function dataBR(iso) {
-    return iso ? iso.split("-").reverse().join("/") : "—";
-  }
+  function dataBR(iso) { return window.dataBR(iso) || "—"; }
 
   var MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho",
                "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
