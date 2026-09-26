@@ -260,20 +260,15 @@
     if (uid) {
       for (var ri = 0; ri < registros.length; ri++) {
         var r = registros[ri];
-        if (r.uid && r.uid !== uid) {
+        if (!r.uid) {
+          return Promise.reject(new Error(
+            "Registro " + r.id + " sem ownership nao pode ser restaurado por usuario autenticado."));
+        }
+        if (r.uid !== uid) {
           return Promise.reject(new Error(
             "Registro " + r.id + " pertence a outro usuario."));
         }
       }
-      registros = registros.map(function (r) {
-        if (!r.uid) {
-          var copia = {};
-          for (var k in r) { if (Object.prototype.hasOwnProperty.call(r, k)) copia[k] = r[k]; }
-          copia.uid = uid;
-          return copia;
-        }
-        return r;
-      });
     }
     return transacao("readwrite").then(function (t) {
       /* Os pedidos sao criados TODOS na mesma transacao. Criar um pedido

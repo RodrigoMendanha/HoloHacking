@@ -444,56 +444,7 @@ console.log('\n  H — RESTORE NAO PERMITE BYPASS DE OWNERSHIP\n');
 const secH = await p.evaluate(async (uidA, uidB) => {
   if (!window.ArquivoStore) return { skip: true };
 
-  var authOriginal = window.HoloAuth;
-  window.HoloAuth = {
-    sessaoAtiva: function () { return true; },
-    usuarioAtual: function () { return { id: uidB }; },
-    estado: function () { return 'autenticado'; },
-    aoMudarEstado: function () {},
-  };
-
-  // B tries to restore records that belong to A — must be rejected
-  var restoreAlheioErro = false;
-  try {
-    await window.ArquivoStore.substituirTudoEstrito([
-      { id: 'doc-restore-1', paciente: 'pac-A', nome: 'r1.pdf', uid: uidA }
-    ]);
-  } catch (e) {
-    restoreAlheioErro = true;
-  }
-
-  // B restores own records — must succeed and stamp uid
-  var restoreProprioOk = false;
-  try {
-    await window.ArquivoStore.substituirTudoEstrito([
-      { id: 'doc-restore-2', paciente: 'pac-B', nome: 'r2.pdf' }
-    ]);
-    restoreProprioOk = true;
-  } catch (e) { /* failed */ }
-
-  // Check that the restored record got uid=B
-  var regRestaurado = await new Promise(function (resolve, reject) {
-    var req = indexedDB.open('holohacking', 1);
-    req.onsuccess = function () {
-      var tx = req.result.transaction('arquivos', 'readonly');
-      var get = tx.objectStore('arquivos').get('doc-restore-2');
-      get.onsuccess = function () { resolve(get.result); };
-      get.onerror = function () { reject(get.error); };
-    };
-    req.onerror = function () { reject(req.error); };
-  });
-  var uidEstampado = regRestaurado && regRestaurado.uid === uidB;
-
-  // B restores record with own uid explicitly — must succeed
-  var restoreComUidOk = false;
-  try {
-    await window.ArquivoStore.substituirTudoEstrito([
-      { id: 'doc-restore-3', paciente: 'pac-B', nome: 'r3.pdf', uid: uidB }
-    ]);
-    restoreComUidOk = true;
-  } catch (e) { /* failed */ }
-
-  // Cleanup via direct IDB
+  // Helper: direct IDB cleanup
   function idbClear() {
     return new Promise(function (resolve, reject) {
       var req = indexedDB.open('holohacking', 1);
@@ -506,15 +457,79 @@ const secH = await p.evaluate(async (uidA, uidB) => {
       req.onerror = function () { reject(req.error); };
     });
   }
+
+  var authOriginal = window.HoloAuth;
+  window.HoloAuth = {
+    sessaoAtiva: function () { return true; },
+    usuarioAtual: function () { return { id: uidB }; },
+    estado: function () { return 'autenticado'; },
+    aoMudarEstado: function () {},
+  };
+
+  // 1. B tries to restore records that belong to A — must be rejected
+  var restoreAlheioErro = false;
+  try {
+    await window.ArquivoStore.substituirTudoEstrito([
+      { id: 'doc-restore-1', paciente: 'pac-A', nome: 'r1.pdf', uid: uidA }
+    ]);
+  } catch (e) {
+    restoreAlheioErro = true;
+  }
+
+  // 2. B tries to restore record without uid — must be rejected (not stamped)
+  var restoreSemUidErro = false;
+  try {
+    await window.ArquivoStore.substituirTudoEstrito([
+      { id: 'doc-restore-2', paciente: 'pac-B', nome: 'r2.pdf' }
+    ]);
+  } catch (e) {
+    restoreSemUidErro = true;
+  }
+
+  // 3. Confirm no record was written (IDB should be empty after rejections)
+  var idbVazioAposRejeicoes = await new Promise(function (resolve, reject) {
+    var req = indexedDB.open('holohacking', 1);
+    req.onsuccess = function () {
+      var tx = req.result.transaction('arquivos', 'readonly');
+      var count = tx.objectStore('arquivos').count();
+      count.onsuccess = function () { resolve(count.result === 0); };
+      count.onerror = function () { reject(count.error); };
+    };
+    req.onerror = function () { reject(req.error); };
+  });
+
+  // 4. B restores record with own uid explicitly — must succeed
+  var restoreComUidOk = false;
+  try {
+    await window.ArquivoStore.substituirTudoEstrito([
+      { id: 'doc-restore-3', paciente: 'pac-B', nome: 'r3.pdf', uid: uidB }
+    ]);
+    restoreComUidOk = true;
+  } catch (e) { /* failed */ }
+
+  // 5. Confirm the restored record kept uid=B (not reassigned)
+  var regRestaurado = await new Promise(function (resolve, reject) {
+    var req = indexedDB.open('holohacking', 1);
+    req.onsuccess = function () {
+      var tx = req.result.transaction('arquivos', 'readonly');
+      var get = tx.objectStore('arquivos').get('doc-restore-3');
+      get.onsuccess = function () { resolve(get.result); };
+      get.onerror = function () { reject(get.error); };
+    };
+    req.onerror = function () { reject(req.error); };
+  });
+  var uidPreservado = regRestaurado && regRestaurado.uid === uidB;
+
   await idbClear();
   window.HoloAuth = authOriginal;
 
   return {
     skip: false,
     restoreAlheioErro: restoreAlheioErro,
-    restoreProprioOk: restoreProprioOk,
-    uidEstampado: uidEstampado,
+    restoreSemUidErro: restoreSemUidErro,
+    idbVazioAposRejeicoes: idbVazioAposRejeicoes,
     restoreComUidOk: restoreComUidOk,
+    uidPreservado: uidPreservado,
   };
 }, UID_A, UID_B);
 
@@ -522,9 +537,10 @@ if (secH.skip) {
   console.log('  SKIP  ArquivoStore nao disponivel');
 } else {
   ok(secH.restoreAlheioErro, 'H: restore com uid de outro usuario e rejeitado');
-  ok(secH.restoreProprioOk, 'H: restore de registros proprios funciona');
-  ok(secH.uidEstampado, 'H: registro sem uid recebe uid do usuario atual no restore');
-  ok(secH.restoreComUidOk, 'H: restore com uid proprio explicito funciona');
+  ok(secH.restoreSemUidErro, 'H: restore sem uid e rejeitado (nao recebe uid automatico)');
+  ok(secH.idbVazioAposRejeicoes, 'H: nenhum registro gravado apos rejeicoes');
+  ok(secH.restoreComUidOk, 'H: restore com uid proprio funciona');
+  ok(secH.uidPreservado, 'H: uid do registro preservado no restore (nao reatribuido)');
 }
 
 /* ==================================================================== */
