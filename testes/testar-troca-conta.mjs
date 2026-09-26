@@ -218,15 +218,46 @@ const secD = await p.evaluate(async (uidA, uidB) => {
   var pegaA = await window.ArquivoStore.pegar('doc-A1');
   var pegaB = await window.ArquivoStore.pegar('doc-B1');
 
-  // Switch to user B
+  // B cannot remove A's doc even knowing the ID
+  var bRemoveAErro = false;
   uidAtual = uidB;
+  try {
+    await window.ArquivoStore.remover('doc-A1');
+  } catch (e) {
+    bRemoveAErro = true;
+  }
+
+  // Confirm doc-A1 still exists in IDB after B's failed removal
+  var docA1Sobrevive = await new Promise(function (resolve, reject) {
+    var req = indexedDB.open('holohacking', 1);
+    req.onsuccess = function () {
+      var tx = req.result.transaction('arquivos', 'readonly');
+      var get = tx.objectStore('arquivos').get('doc-A1');
+      get.onsuccess = function () { resolve(!!get.result); };
+      get.onerror = function () { reject(get.error); };
+    };
+  });
+
+  // B sees only B's doc
   var listaB = await window.ArquivoStore.listarTudo();
   var bVeDocA = listaB.some(function (d) { return d.id === 'doc-A1'; });
   var bVeDocB = listaB.some(function (d) { return d.id === 'doc-B1'; });
 
-  // Cleanup
-  await idbDel('doc-A1');
-  await idbDel('doc-B1');
+  // B can remove own doc
+  var bRemoveBOk = false;
+  try {
+    await window.ArquivoStore.remover('doc-B1');
+    bRemoveBOk = true;
+  } catch (e) { /* failed */ }
+
+  // Switch back to A — A can still pegar own doc, and can remove it
+  uidAtual = uidA;
+  var pegaAFinal = await window.ArquivoStore.pegar('doc-A1');
+  var aRemoveAOk = false;
+  try {
+    await window.ArquivoStore.remover('doc-A1');
+    aRemoveAOk = true;
+  } catch (e) { /* failed */ }
 
   // Restore original
   window.HoloAuth = authOriginal;
@@ -239,6 +270,11 @@ const secD = await p.evaluate(async (uidA, uidB) => {
     aNaoVeB: !aVeDocB,
     pegaAOk: !!pegaA && pegaA.id === 'doc-A1',
     pegaBNull: !pegaB,
+    bRemoveAErro: bRemoveAErro,
+    docA1Sobrevive: docA1Sobrevive,
+    bRemoveBOk: bRemoveBOk,
+    pegaAFinalOk: !!pegaAFinal && pegaAFinal.id === 'doc-A1',
+    aRemoveAOk: aRemoveAOk,
   };
 }, UID_A, UID_B);
 
@@ -251,6 +287,11 @@ if (secD.skip) {
   ok(secD.aNaoVeB, 'D: A nao ve documento de B');
   ok(secD.pegaAOk, 'D: pegar doc-A1 como A retorna registro');
   ok(secD.pegaBNull, 'D: pegar doc-B1 como A retorna undefined');
+  ok(secD.bRemoveAErro, 'D: B nao consegue remover doc de A (erro)');
+  ok(secD.docA1Sobrevive, 'D: doc-A1 ainda existe no IDB apos tentativa de B');
+  ok(secD.bRemoveBOk, 'D: B consegue remover seu proprio doc');
+  ok(secD.pegaAFinalOk, 'D: A ainda pega doc-A1 apos tentativa de B');
+  ok(secD.aRemoveAOk, 'D: A consegue remover seu proprio doc');
 }
 
 /* ==================================================================== */
@@ -318,6 +359,26 @@ const secE = await p.evaluate(async (uidA) => {
   // pegar legacy as A — must return undefined
   var pegaLegado = await window.ArquivoStore.pegar('doc-legado');
 
+  // A cannot remove legacy record (uid mismatch: undefined !== uidA)
+  var removerLegadoErro = false;
+  try {
+    await window.ArquivoStore.remover('doc-legado');
+  } catch (e) {
+    removerLegadoErro = true;
+  }
+
+  // Confirm legacy still exists after failed removal
+  var legadoSobrevive = await new Promise(function (resolve, reject) {
+    var db = indexedDB.open('holohacking', 1);
+    db.onsuccess = function () {
+      var tx = db.result.transaction('arquivos', 'readonly');
+      var req = tx.objectStore('arquivos').get('doc-legado');
+      req.onsuccess = function () { resolve(!!req.result); };
+      req.onerror = function () { reject(req.error); };
+    };
+    db.onerror = function () { reject(db.error); };
+  });
+
   // Cleanup
   window.HoloAuth = authOriginal;
   await idbDel('doc-legado');
@@ -327,6 +388,8 @@ const secE = await p.evaluate(async (uidA) => {
     semUid: semUid,
     invisivelNaLista: !veDocLegado,
     pegarRetornaUndef: !pegaLegado,
+    removerLegadoErro: removerLegadoErro,
+    legadoSobrevive: legadoSobrevive,
   };
 }, UID_A);
 
@@ -336,6 +399,8 @@ if (secE.skip) {
   ok(secE.semUid, 'E: registro legado gravado sem uid');
   ok(secE.invisivelNaLista, 'E: legado nao atribuido invisivel na listagem de A');
   ok(secE.pegarRetornaUndef, 'E: pegar legado como A retorna undefined');
+  ok(secE.removerLegadoErro, 'E: A nao consegue remover registro legado (erro)');
+  ok(secE.legadoSobrevive, 'E: legado permanece no IndexedDB apos tentativa');
 }
 
 /* ==================================================================== */
@@ -371,6 +436,96 @@ const secG = await p.evaluate(async () => {
 ok(secG.pacientesVazios, 'G: lista de pacientes em memoria vazia');
 ok(secG.ativoNull, 'G: nenhum paciente ativo em memoria');
 ok(secG.naoCarregado, 'G: estado "carregado" voltou para false');
+
+/* ==================================================================== */
+console.log('\n  H — RESTORE NAO PERMITE BYPASS DE OWNERSHIP\n');
+/* ==================================================================== */
+
+const secH = await p.evaluate(async (uidA, uidB) => {
+  if (!window.ArquivoStore) return { skip: true };
+
+  var authOriginal = window.HoloAuth;
+  window.HoloAuth = {
+    sessaoAtiva: function () { return true; },
+    usuarioAtual: function () { return { id: uidB }; },
+    estado: function () { return 'autenticado'; },
+    aoMudarEstado: function () {},
+  };
+
+  // B tries to restore records that belong to A — must be rejected
+  var restoreAlheioErro = false;
+  try {
+    await window.ArquivoStore.substituirTudoEstrito([
+      { id: 'doc-restore-1', paciente: 'pac-A', nome: 'r1.pdf', uid: uidA }
+    ]);
+  } catch (e) {
+    restoreAlheioErro = true;
+  }
+
+  // B restores own records — must succeed and stamp uid
+  var restoreProprioOk = false;
+  try {
+    await window.ArquivoStore.substituirTudoEstrito([
+      { id: 'doc-restore-2', paciente: 'pac-B', nome: 'r2.pdf' }
+    ]);
+    restoreProprioOk = true;
+  } catch (e) { /* failed */ }
+
+  // Check that the restored record got uid=B
+  var regRestaurado = await new Promise(function (resolve, reject) {
+    var req = indexedDB.open('holohacking', 1);
+    req.onsuccess = function () {
+      var tx = req.result.transaction('arquivos', 'readonly');
+      var get = tx.objectStore('arquivos').get('doc-restore-2');
+      get.onsuccess = function () { resolve(get.result); };
+      get.onerror = function () { reject(get.error); };
+    };
+    req.onerror = function () { reject(req.error); };
+  });
+  var uidEstampado = regRestaurado && regRestaurado.uid === uidB;
+
+  // B restores record with own uid explicitly — must succeed
+  var restoreComUidOk = false;
+  try {
+    await window.ArquivoStore.substituirTudoEstrito([
+      { id: 'doc-restore-3', paciente: 'pac-B', nome: 'r3.pdf', uid: uidB }
+    ]);
+    restoreComUidOk = true;
+  } catch (e) { /* failed */ }
+
+  // Cleanup via direct IDB
+  function idbClear() {
+    return new Promise(function (resolve, reject) {
+      var req = indexedDB.open('holohacking', 1);
+      req.onsuccess = function () {
+        var tx = req.result.transaction('arquivos', 'readwrite');
+        var clr = tx.objectStore('arquivos').clear();
+        clr.onsuccess = function () { resolve(); };
+        clr.onerror = function () { reject(clr.error); };
+      };
+      req.onerror = function () { reject(req.error); };
+    });
+  }
+  await idbClear();
+  window.HoloAuth = authOriginal;
+
+  return {
+    skip: false,
+    restoreAlheioErro: restoreAlheioErro,
+    restoreProprioOk: restoreProprioOk,
+    uidEstampado: uidEstampado,
+    restoreComUidOk: restoreComUidOk,
+  };
+}, UID_A, UID_B);
+
+if (secH.skip) {
+  console.log('  SKIP  ArquivoStore nao disponivel');
+} else {
+  ok(secH.restoreAlheioErro, 'H: restore com uid de outro usuario e rejeitado');
+  ok(secH.restoreProprioOk, 'H: restore de registros proprios funciona');
+  ok(secH.uidEstampado, 'H: registro sem uid recebe uid do usuario atual no restore');
+  ok(secH.restoreComUidOk, 'H: restore com uid proprio explicito funciona');
+}
 
 /* ==================================================================== */
 /* Limpeza final — remover stashes de teste */

@@ -208,14 +208,33 @@
       });
   }
 
-  /** Quando esta promessa cumpre, o arquivo nao volta: a transacao commitou. */
+  /** Quando esta promessa cumpre, o arquivo nao volta: a transacao commitou.
+      Com usuario autenticado, so remove registro do proprio uid. */
   function remover(id) {
     var impedido = barrado();
     if (impedido) return Promise.reject(impedido);
+    var uid = uidAtual();
+    if (!uid) {
+      return transacao("readwrite").then(function (t) {
+        var pedido = promessa(t.loja.delete(id));
+        return Promise.all([pedido, aguardarTransacao(t.tx)]);
+      }).then(function () { return true; });
+    }
     return transacao("readwrite").then(function (t) {
-      var pedido = promessa(t.loja.delete(id));
-      return Promise.all([pedido, aguardarTransacao(t.tx)]);
-    }).then(function () { return true; });
+      var esperar = aguardarTransacao(t.tx);
+      return promessa(t.loja.get(id)).then(function (reg) {
+        if (!reg) return esperar.then(function () { return true; });
+        if (reg.uid !== uid) {
+          try { t.tx.abort(); } catch (ignorado) {}
+          return esperar.catch(function () {}).then(function () {
+            throw new Error("Sem permissao: registro pertence a outro usuario.");
+          });
+        }
+        return promessa(t.loja.delete(id)).then(function () {
+          return esperar;
+        }).then(function () { return true; });
+      });
+    });
   }
 
   /** Troca TODO o conteudo da loja pelos registros dados, numa transacao so.
@@ -236,6 +255,25 @@
   function substituirTudoEstrito(registros) {
     if (!Array.isArray(registros)) {
       return Promise.reject(new TypeError("substituirTudoEstrito espera um array"));
+    }
+    var uid = uidAtual();
+    if (uid) {
+      for (var ri = 0; ri < registros.length; ri++) {
+        var r = registros[ri];
+        if (r.uid && r.uid !== uid) {
+          return Promise.reject(new Error(
+            "Registro " + r.id + " pertence a outro usuario."));
+        }
+      }
+      registros = registros.map(function (r) {
+        if (!r.uid) {
+          var copia = {};
+          for (var k in r) { if (Object.prototype.hasOwnProperty.call(r, k)) copia[k] = r[k]; }
+          copia.uid = uid;
+          return copia;
+        }
+        return r;
+      });
     }
     return transacao("readwrite").then(function (t) {
       /* Os pedidos sao criados TODOS na mesma transacao. Criar um pedido
@@ -286,20 +324,20 @@
     if (typeof pid !== "string" || !pid) {
       return Promise.reject(new TypeError("pid invalido"));
     }
+    var uid = uidAtual();
     return transacao("readwrite").then(function (t) {
       var esperar = aguardarTransacao(t.tx);
       var pedidos;
       try {
-        /* getAllKeys no indice devolve as CHAVES PRIMARIAS dos registros
-           daquele paciente — exatamente o que o delete precisa, e sem trazer
-           um megabyte de blob para a memoria so para descobrir um id. */
-        pedidos = [promessa(t.loja.index("paciente").getAllKeys(pid))
-          .then(function (chaves) {
-            /* os deletes sao criados DENTRO da mesma transacao; cria-los
-               depois de um await a deixaria fechar por inatividade */
-            return Promise.all((chaves || []).map(function (k) {
-              return promessa(t.loja.delete(k));
-            })).then(function () { return (chaves || []).length; });
+        pedidos = [promessa(t.loja.index("paciente").getAll(pid))
+          .then(function (regs) {
+            var proprios = (regs || []).filter(function (r) {
+              if (!uid) return true;
+              return r.uid === uid;
+            });
+            return Promise.all(proprios.map(function (r) {
+              return promessa(t.loja.delete(r.id));
+            })).then(function () { return proprios.length; });
           })];
       } catch (e) {
         try { t.tx.abort(); } catch (ignorado) {}
