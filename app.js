@@ -596,12 +596,13 @@
 
   function menuDoPaciente(p, s){
     const itens = [
+      { acao:"ficha",        texto:"Abrir ficha" },
+      { acao:"nova-consulta",texto:"Agendar consulta" },
       { acao:"holoscan",    texto: s.dados.pontuacao ? "Reaplicar HOLOSCAN" : "Aplicar HOLOSCAN" },
       { acao:"questionario", texto:"Abrir questionário" },
       { acao:"corpo",        texto:"Aplicar OQ³" },
       { acao:"mente",        texto:"Aplicar PQQ" },
       { acao:"espirito",     texto:"Ver Mapa do Propósito" },
-      { acao:"ficha",        texto:"Abrir ficha" },
       { separa:true },
       { acao:"status",       texto: s.inativo ? "Reativar paciente" : "Marcar como inativo" },
       { acao:"remover",      texto:"Remover paciente", perigo:true }
@@ -863,6 +864,13 @@
       irPara("holoscan");
       const b = document.getElementById("btn-abrir-questionario");
       if(b) b.click();
+      return;
+    }
+
+    if(destino === "nova-consulta"){
+      irPara("agenda");
+      const novo = document.querySelector('[data-novo="consulta"]');
+      if(novo) novo.click();
       return;
     }
 

@@ -380,7 +380,7 @@
 
     alvo.innerHTML = blocoCabecalho(c, agenda) +
       hojeBloco +
-      (hojeBloco ? "" : blocoProximosAtendimentos(agenda)) +
+      blocoProximosAtendimentos(agenda) +
       blocoOnboarding(c) +
       blocoPendencias(c) +
       blocoPacientesRecentes() +

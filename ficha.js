@@ -329,8 +329,9 @@
     var hj = new Date().toISOString().slice(0, 10);
     var passadas = todas.filter(function (c) { return c.data < hj; });
     if (passadas.length === 0) return "";
-    var ultima = passadas[0]; // todas() já vem decrescente
+    var ultima = passadas[0];
     var desde = ultima.data;
+    var diasAtras = diasDesde(desde);
 
     var itens = [];
 
@@ -338,19 +339,29 @@
     if (apps.length > 0)
       itens.push(apps.length + (apps.length === 1 ? " aplicação HOLOSCAN" : " aplicações HOLOSCAN"));
 
+    if (apps.length >= 2) {
+      var delta = apps[apps.length - 1].indice - apps[0].indice;
+      itens.push("Índice HOLOS " + (delta > 0 ? "subiu " + delta : delta < 0 ? "caiu " + Math.abs(delta) : "sem mudança"));
+    }
+
     var ferr = (d.ferramentas || []).filter(function (f) { return f.quando >= desde; });
     if (ferr.length > 0)
       itens.push(ferr.length + (ferr.length === 1 ? " ferramenta aplicada" : " ferramentas aplicadas"));
 
-    if (itens.length === 0) return "";
+    if (d.exames > 0)
+      itens.push(d.exames + (d.exames === 1 ? " valor de exame registrado" : " valores de exame registrados"));
 
     return '<div class="dash-bloco dash-bloco-compacto fic-retorno">' +
       '<h3 class="dash-titulo">Desde a última consulta</h3>' +
       '<p class="dash-sub">Última consulta em ' + escapar(dataBR(desde)) +
-        " (" + escapar(ultima.tipo || "Consulta") + ")</p>" +
-      '<ul class="fic-retorno-lista">' + itens.map(function (t) {
-        return "<li>" + escapar(t) + "</li>";
-      }).join("") + "</ul></div>";
+        " (" + escapar(ultima.tipo || "Consulta") + ")" +
+        (diasAtras !== null ? " &middot; " + haQuantoTempo(diasAtras) : "") + "</p>" +
+      (itens.length > 0
+        ? '<ul class="fic-retorno-lista">' + itens.map(function (t) {
+            return "<li>" + escapar(t) + "</li>";
+          }).join("") + "</ul>"
+        : '<p class="dash-vazio">Nenhuma atividade registrada desde então.</p>') +
+      "</div>";
   }
 
   /* ==================================================== ABA: CONSULTAS === */
