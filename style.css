@@ -3949,6 +3949,16 @@ body.escuro .cal-hoje-titulo{color:var(--dourado)}
   .rel-acoes{flex-direction:column;gap:10px}
   .rel-registro{width:100%}
   .rel-btn{flex:1}
+  .barra-paciente-ctx{flex-direction:column;align-items:flex-start;padding:8px 16px}
+  .bpctx-acoes{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .bpctx-btn{white-space:nowrap;font-size:.68rem;padding:3px 7px}
+  .fic-filtros-linha{gap:4px}
+  .fic-filtro-btn{padding:4px 10px;font-size:.68rem}
+  .cal-form-acoes{flex-direction:column;gap:8px}
+  .cal-form-acoes .btn-dourado{width:100%}
+  .dash-acoes-rapidas{flex-direction:column;gap:8px}
+  .dash-acoes-rapidas .perf-botao{width:100%}
+  .fic-continuidade{flex-wrap:wrap}
 }
 @media(min-width:768px) and (max-width:1365px){
   .perf-grade{grid-template-columns:repeat(2,1fr)}
@@ -3980,6 +3990,18 @@ body.escuro .cal-hoje-titulo{color:var(--dourado)}
   outline:2px solid var(--dourado);outline-offset:2px;
 }
 .fic-evento:focus-visible{outline:2px solid var(--dourado);outline-offset:1px;border-radius:8px}
+.fic-filtro-btn:focus-visible,
+.btn-dourado:focus-visible,
+.bpctx-btn:focus-visible,
+.busca-global-item:focus-visible,
+.fic-pilula:focus-visible,
+.pac-acao-principal:focus-visible,
+.pac-acao-mais:focus-visible,
+.pac-menu-item:focus-visible,
+.cal-evento:focus-visible,
+.cal-chip:focus-visible,
+.cal-seta:focus-visible,
+.cal-vista:focus-visible{outline:2px solid var(--dourado);outline-offset:2px}
 :focus:not(:focus-visible){outline:none}
 
 /* ---------- Skip to content link ----------------------- */

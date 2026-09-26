@@ -312,7 +312,7 @@
     function semAcentoG(t){ return t.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase(); }
     function atualizarBuscaGlobal(){
       const termo = semAcentoG(buscaInput.value.trim());
-      if(!termo){ buscaRes.classList.remove("aberta"); buscaRes.innerHTML=""; return; }
+      if(!termo){ buscaRes.classList.remove("aberta"); buscaRes.innerHTML=""; buscaInput.closest("[role=combobox]").setAttribute("aria-expanded","false"); return; }
       const todos = (window.pacientesTodos && window.pacientesTodos()) || [];
       const filtrados = todos.filter(p =>
         semAcentoG([p.nome, p.telefone, p.email].filter(Boolean).join(" ")).includes(termo)
@@ -327,6 +327,7 @@
         ).join("");
       }
       buscaRes.classList.add("aberta");
+      buscaInput.closest("[role=combobox]").setAttribute("aria-expanded","true");
     }
     buscaInput.addEventListener("input", atualizarBuscaGlobal);
     buscaInput.addEventListener("focus", () => { if(buscaInput.value.trim()) atualizarBuscaGlobal(); });
@@ -336,14 +337,18 @@
       buscaInput.value = "";
       buscaRes.classList.remove("aberta");
       buscaRes.innerHTML = "";
+      buscaInput.closest("[role=combobox]").setAttribute("aria-expanded","false");
       const pid = item.dataset.id;
       if(pid && window.abrirFichaDe){ irPara("pacientes"); window.abrirFichaDe(pid); }
     });
     document.addEventListener("click", ev => {
-      if(!ev.target.closest("#busca-global")) buscaRes.classList.remove("aberta");
+      if(!ev.target.closest("#busca-global")){
+        buscaRes.classList.remove("aberta");
+        buscaInput.closest("[role=combobox]").setAttribute("aria-expanded","false");
+      }
     });
     buscaInput.addEventListener("keydown", ev => {
-      if(ev.key==="Escape"){ buscaInput.value=""; buscaRes.classList.remove("aberta"); }
+      if(ev.key==="Escape"){ buscaInput.value=""; buscaRes.classList.remove("aberta"); buscaInput.closest("[role=combobox]").setAttribute("aria-expanded","false"); }
       if(ev.key==="Enter"){
         ev.preventDefault();
         const primeiro = buscaRes.querySelector(".busca-global-item");

@@ -303,9 +303,9 @@
   <main class="principal" id="conteudo-principal">
     <header class="topo">
       <div class="caminho">Plataforma - <b id="caminho-atual">Dashboard</b></div>
-      <div class="busca-global" id="busca-global">
+      <div class="busca-global" id="busca-global" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-owns="busca-global-resultados">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input type="search" id="busca-global-input" placeholder="Buscar paciente..." aria-label="Buscar paciente" autocomplete="off">
+        <input type="search" id="busca-global-input" placeholder="Buscar paciente..." aria-label="Buscar paciente por nome, telefone ou e-mail" aria-controls="busca-global-resultados" aria-autocomplete="list" autocomplete="off">
         <div class="busca-global-resultados" id="busca-global-resultados" role="listbox"></div>
       </div>
       <div class="chip-usuario">
@@ -325,7 +325,7 @@
     </div>
 
     <!-- Barra de contexto do paciente — visível quando há paciente ativo fora da ficha -->
-    <div id="barra-paciente-ctx" class="barra-paciente-ctx" hidden>
+    <div id="barra-paciente-ctx" class="barra-paciente-ctx" hidden role="navigation" aria-label="Contexto do paciente ativo">
       <div class="bpctx-quem">
         <span class="bpctx-avatar" id="bpctx-avatar">P</span>
         <span class="bpctx-nome" id="bpctx-nome">Paciente</span>
