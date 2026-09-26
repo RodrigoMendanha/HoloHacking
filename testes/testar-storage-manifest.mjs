@@ -286,11 +286,12 @@ ok(ordem.manifesto < ordem.dados,
    na Fase 1 do Supabase (CDN do supabase-js + supabase-client.js +
    dados-router.js, as tres antes de dados.js/app.js consumirem `sb`), e
    na Etapa 10 (migracao-supa.js, o migrador localStorage→Supabase). */
-ok(ordem.total === 34,
-   'o index tem 34 tags de script: 22 de antes do P0 + concorrencia.js + ' +
+ok(ordem.total === 35,
+   'o index tem 35 tags de script: 22 de antes do P0 + concorrencia.js + ' +
    'armazenamento.js + validar-backup.js + restaurar-backup.js + ' +
    'importar-v1.js + excluir-paciente.js + login.js + CDN supabase-js + ' +
-   'supabase-client.js + dados-router.js + migracao-supa.js + holos-ai.js — ' + ordem.total);
+   'supabase-client.js + dados-router.js + migracao-supa.js + holos-ai.js + ' +
+   'utils.js — ' + ordem.total);
 /* A tela de entrada e a ultima a carregar: nada do app depende dela, e ela
    nao depende de nada do app. Se um dia depender, esta linha cai junto. */
 ok(ordem.login === ordem.total - 1,
