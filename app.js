@@ -322,7 +322,7 @@
       } else {
         buscaRes.innerHTML = filtrados.map(p =>
           '<div class="busca-global-item" role="option" data-id="'+escapar(p.id)+'">' +
-          '<span class="pac-avatar">'+(p.nome||"?").trim().charAt(0).toUpperCase()+'</span>' +
+          '<span class="pac-avatar">'+escapar((p.nome||"?").trim().charAt(0).toUpperCase())+'</span>' +
           '<span>'+escapar(p.nome)+'</span></div>'
         ).join("");
       }
@@ -426,7 +426,7 @@
 
   function atualizarSeletores(){
     const opcoes = estado.pacientes.length
-      ? estado.pacientes.map(p => '<option value="'+p.id+'"'+(p.id===estado.ativo?' selected':'')+'>'+p.nome+'</option>').join("")
+      ? estado.pacientes.map(p => '<option value="'+p.id+'"'+(p.id===estado.ativo?' selected':'')+'>'+escapar(p.nome)+'</option>').join("")
       : '<option value="">Nenhum paciente cadastrado</option>';
     $$(".seletor-paciente").forEach(s => { s.innerHTML = opcoes; });
   }
