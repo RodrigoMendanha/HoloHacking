@@ -318,6 +318,28 @@
       </div>
     </header>
 
+    <!-- Banner de conexão offline — gerenciado por app.js -->
+    <div id="banner-offline" class="banner-offline" role="status" aria-live="polite" hidden>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M1 1l22 22"/><path d="M16.7 13.3A6 6 0 0 0 12 11a5.9 5.9 0 0 0-4.7 2.3"/><path d="M8.5 16.4a3 3 0 0 1 7 0"/><circle cx="12" cy="19" r="1"/><path d="M20.5 10.2A14.6 14.6 0 0 0 12 8c-1.8 0-3.5.3-5 .9"/><path d="M5 5a16 16 0 0 0-3 2.7"/><path d="M22 7.5A16 16 0 0 0 16 5"/></svg>
+      <span id="banner-offline-texto">Você está offline. Algumas alterações podem não ser sincronizadas.</span>
+    </div>
+
+    <!-- Barra de contexto do paciente — visível quando há paciente ativo fora da ficha -->
+    <div id="barra-paciente-ctx" class="barra-paciente-ctx" hidden>
+      <div class="bpctx-quem">
+        <span class="bpctx-avatar" id="bpctx-avatar">P</span>
+        <span class="bpctx-nome" id="bpctx-nome">Paciente</span>
+      </div>
+      <div class="bpctx-acoes">
+        <button type="button" class="bpctx-btn bpctx-btn-pri" data-bpctx="ficha" title="Voltar à ficha do paciente">Voltar à ficha</button>
+        <button type="button" class="bpctx-btn" data-bpctx="aba:consultas" title="Consultas">Consultas</button>
+        <button type="button" class="bpctx-btn" data-bpctx="aba:holoscan" title="HOLOSCAN">HOLOSCAN</button>
+        <button type="button" class="bpctx-btn" data-bpctx="aba:ferramentas" title="Ferramentas">Ferramentas</button>
+        <button type="button" class="bpctx-btn" data-bpctx="aba:documentos" title="Documentos">Documentos</button>
+        <button type="button" class="bpctx-btn" data-bpctx="aba:holos-ai" title="HOLOS AI">HOLOS AI</button>
+      </div>
+    </div>
+
     <div class="conteudo" id="conteudo-principal">
 
       <div id="anuncio-dinamico" class="sr-only" aria-live="polite" aria-atomic="true"></div>

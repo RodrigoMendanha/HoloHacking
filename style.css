@@ -189,6 +189,48 @@ input,textarea,select{font-family:inherit}
   font-family:var(--fonte-display);font-weight:600;font-size:.95rem;
   border:1px solid var(--dourado-suave);
 }
+/* ---------- banner offline ---------- */
+.banner-offline{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 40px;
+  background:var(--dourado-bg);
+  border-bottom:1px solid var(--dourado-suave);
+  color:var(--texto);font-size:.82rem;font-weight:400;
+}
+.banner-offline[hidden]{display:none}
+.banner-offline svg{color:var(--dourado);flex-shrink:0}
+.banner-offline.online{background:rgba(31,107,71,.1);border-color:rgba(31,107,71,.3)}
+.banner-offline.online svg{color:var(--verde-suave)}
+
+/* ---------- barra de contexto do paciente ---------- */
+.barra-paciente-ctx{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:8px 40px;
+  background:var(--sup-card);
+  border-bottom:1px solid var(--borda-suave);
+  font-size:.82rem;
+}
+.barra-paciente-ctx[hidden]{display:none}
+.bpctx-quem{display:flex;align-items:center;gap:8px;min-width:0}
+.bpctx-avatar{
+  width:26px;height:26px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--verde-medio),var(--verde-escuro));
+  color:var(--dourado-claro);display:flex;align-items:center;justify-content:center;
+  font-family:var(--fonte-display);font-weight:600;font-size:.78rem;
+  border:1px solid var(--dourado-suave);
+}
+.bpctx-nome{font-weight:500;color:var(--titulo);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bpctx-acoes{display:flex;gap:6px;flex-wrap:wrap}
+.bpctx-btn{
+  padding:4px 10px;border-radius:6px;
+  background:transparent;border:1px solid var(--borda-suave);
+  color:var(--texto-suave);font-size:.75rem;font-weight:400;
+  transition:border-color .15s, color .15s;
+}
+.bpctx-btn:hover{border-color:var(--dourado-suave);color:var(--titulo)}
+.bpctx-btn-pri{background:var(--dourado-bg);border-color:var(--dourado-suave);color:var(--realce);font-weight:500}
+.bpctx-btn-pri:hover{background:var(--dourado-suave);color:var(--verde-escuro)}
+
 .conteudo{padding:44px 40px 80px;max-width:1080px;margin:0 auto}
 
 .secao{display:none;animation:aparecer .45s ease both}
@@ -585,6 +627,16 @@ mark{background:rgba(201,163,90,.32);color:inherit;border-radius:3px;padding:0 2
   transition:transform .2s, filter .2s;
 }
 .btn-verde:hover{transform:translateY(-2px);filter:brightness(1.12)}
+.btn-dourado{
+  display:inline-flex;align-items:center;gap:9px;
+  padding:10px 22px;border:none;border-radius:8px;
+  background:linear-gradient(135deg,var(--dourado),var(--dourado-escuro,#8a6d2b));
+  color:var(--fundo);font-weight:600;font-size:.72rem;
+  letter-spacing:.18em;text-transform:uppercase;
+  transition:transform .2s, filter .2s;
+}
+.btn-dourado:hover{transform:translateY(-2px);filter:brightness(1.15)}
+.btn-dourado:disabled{opacity:.5;pointer-events:none;transform:none;filter:none}
 .btn-verde:disabled,.btn-fantasma:disabled{opacity:.5;pointer-events:none;transform:none;filter:none}
 .obrigatorio{color:var(--dourado);font-weight:600}
 .btn-fantasma{
@@ -811,6 +863,10 @@ body.escuro .btn-tema .icone-lua{display:none}
   .linha-dupla{grid-template-columns:1fr}
   .conteudo{padding:32px 20px 70px}
   .topo{padding:16px 20px}
+  .banner-offline{padding:8px 20px}
+  .barra-paciente-ctx{padding:8px 16px;flex-wrap:wrap;gap:8px}
+  .bpctx-acoes{gap:4px}
+  .bpctx-btn{padding:4px 8px;font-size:.72rem}
   #app{flex-direction:column}
   .sidebar{
     width:100%;height:auto;position:static;

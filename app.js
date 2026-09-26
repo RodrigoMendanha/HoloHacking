@@ -186,8 +186,24 @@
       perfil: window.redesenharPerfil
     }[secao];
     if(typeof redesenhar === "function") redesenhar();
-
+    atualizarBarraPaciente(secao);
     window.scrollTo({ top:0, behavior:"smooth" });
+  }
+
+  function atualizarBarraPaciente(secao) {
+    var barra = document.getElementById("barra-paciente-ctx");
+    if (!barra) return;
+    var p = pacienteAtivo();
+    var fichaVisivel = secao === "pacientes" &&
+        !document.getElementById("vista-ficha").classList.contains("hidden");
+    if (p && !fichaVisivel) {
+      document.getElementById("bpctx-avatar").textContent =
+        (p.nome || "P").charAt(0).toUpperCase();
+      document.getElementById("bpctx-nome").textContent = p.nome || "Paciente";
+      barra.hidden = false;
+    } else {
+      barra.hidden = true;
+    }
   }
 
   function fecharFerramentas(){
@@ -430,6 +446,7 @@
   window.definirPacienteAtivo = (id) => definirAtivo(id);
   window.irParaSecao = (secao) => irPara(secao);
   window.abrirFichaDe = (id) => abrirFicha(id);
+  window.levarParaFicha = (destino, id) => levarPara(destino, id);
   window.pacienteAtivoNome = () => {
     const p = pacienteAtivo();
     return p ? p.nome : null;
@@ -811,6 +828,7 @@
 
     $("#vista-lista-pacientes").classList.add("hidden");
     $("#vista-ficha").classList.remove("hidden");
+    atualizarBarraPaciente("pacientes");
     if(typeof window.redesenharFicha === "function") window.redesenharFicha();
     window.scrollTo({ top:0, behavior:"smooth" });
   }
@@ -2965,6 +2983,47 @@
       });
     } else {
       carregarTudo();
+    }
+
+    /* --- Barra de contexto do paciente --- */
+    var barraCtx = document.getElementById("barra-paciente-ctx");
+    if (barraCtx) {
+      barraCtx.addEventListener("click", function (e) {
+        var btn = e.target.closest("[data-bpctx]");
+        if (!btn) return;
+        var destino = btn.getAttribute("data-bpctx");
+        var pid = window.pacienteAtivoId ? window.pacienteAtivoId() : null;
+        if (!pid) return;
+        levarPara(destino, pid);
+      });
+    }
+
+    /* --- Banner offline --- */
+    var bannerOff = document.getElementById("banner-offline");
+    var textoOff  = document.getElementById("banner-offline-texto");
+    if (bannerOff) {
+      var timerOnline = null;
+      function mostrarEstado() {
+        if (navigator.onLine) {
+          if (bannerOff.hidden) return;
+          bannerOff.classList.add("online");
+          textoOff.textContent = "Conexão restabelecida.";
+          clearTimeout(timerOnline);
+          timerOnline = setTimeout(function () {
+            bannerOff.hidden = true;
+            bannerOff.classList.remove("online");
+          }, 4000);
+        } else {
+          clearTimeout(timerOnline);
+          bannerOff.classList.remove("online");
+          textoOff.textContent =
+            "Você está offline. Algumas alterações podem não ser sincronizadas.";
+          bannerOff.hidden = false;
+        }
+      }
+      window.addEventListener("online", mostrarEstado);
+      window.addEventListener("offline", mostrarEstado);
+      if (!navigator.onLine) mostrarEstado();
     }
   });
 

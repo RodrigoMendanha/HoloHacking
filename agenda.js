@@ -546,6 +546,7 @@
       '<p class="perf-aviso" id="cal-aviso"></p>' +
       '<div class="cal-form-acoes">' +
         (c.id ? '<button type="button" class="perf-tirar forte" data-apagar="consulta">Desmarcar</button>' : "") +
+        (c.id && c.paciente_id ? '<button type="button" class="btn-dourado" data-abrir-atendimento="' + escapar(c.paciente_id) + '">Abrir atendimento</button>' : "") +
         '<button type="button" class="btn-verde" data-salvar="consulta">' +
           (c.id ? "Salvar" : "Marcar consulta") + "</button>" +
       "</div></div>";
@@ -788,6 +789,13 @@
 
       if (ev.target.closest("[data-ir-pacientes]")) {
         if (window.irParaSecao) window.irParaSecao("pacientes");
+        return;
+      }
+
+      var abrirAt = ev.target.closest("[data-abrir-atendimento]");
+      if (abrirAt) {
+        var pid = abrirAt.dataset.abrirAtendimento;
+        if (pid && window.levarParaFicha) window.levarParaFicha("ficha", pid);
         return;
       }
 
