@@ -523,7 +523,14 @@ const timeline = await p.evaluate(async (pid) => {
   // reload agenda so it picks up the new consultations
   if (window.Agenda && window.Agenda.recarregar) await window.Agenda.recarregar();
 
-  // inject exam file into ArquivoStore so the timeline sees it
+  // inject structured exam values into holohacking.exames (local lab data)
+  var chaveEx = 'holohacking.exames';
+  var examesAtuais = {};
+  try { examesAtuais = JSON.parse(localStorage.getItem(chaveEx) || '{}'); } catch (e) {}
+  examesAtuais[pid] = { glicose: '92', colesterol_total: '185' };
+  localStorage.setItem(chaveEx, JSON.stringify(examesAtuais));
+
+  // inject an exam-type document via ArquivoStore — it must stay as "documento"
   if (window.ArquivoStore && window.ArquivoStore.listar) {
     var originalListar = window.ArquivoStore.listar;
     window.ArquivoStore.listar = function (p) {
@@ -627,12 +634,14 @@ if (timeline.temTimeline) {
   if (timeline.resultados.exame) {
     ok(timeline.resultados.exame.tipos.every(t => t === 'exame'),
        'filtro Exames mostra apenas exames');
-    ok(!timeline.resultados.exame.tipos.includes('consulta'),
-       'exames não aparecem como consulta');
-    ok(!timeline.resultados.exame.tipos.includes('ferramenta'),
-       'exames não aparecem como ferramenta');
     ok(timeline.resultados.exame.total > 0,
        'exame aparece no filtro Exames: ' + timeline.resultados.exame.total);
+  }
+  if (timeline.resultados.documento) {
+    ok(timeline.resultados.documento.tipos.every(t => t === 'documento'),
+       'filtro Documentos mostra apenas documentos');
+    ok(timeline.resultados.documento.total > 0,
+       'documento "Exame laboratorial" permanece como documento: ' + timeline.resultados.documento.total);
   }
   if (timeline.resultados.ferramenta) {
     ok(timeline.resultados.ferramenta.tipos.every(t => t === 'ferramenta'),

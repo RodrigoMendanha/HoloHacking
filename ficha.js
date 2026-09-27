@@ -581,13 +581,19 @@
       });
     }
 
-    var TIPOS_EXAME = ["Exame laboratorial", "Laudo"];
+    if (d.exames > 0) {
+      eventos.push({
+        quando: "", tipo: "exame", selo: "Exames",
+        titulo: "Exames laboratoriais registrados",
+        detalhe: d.exames + (d.exames === 1 ? " exame" : " exames") + " no painel",
+        acao: "aba:visao"
+      });
+    }
 
     var pintar = function (arquivos) {
       arquivos.forEach(function (a) {
-        var ehExame = TIPOS_EXAME.indexOf(a.tipo) >= 0;
         eventos.push({
-          quando: a.data || "", tipo: ehExame ? "exame" : "documento",
+          quando: a.data || "", tipo: "documento",
           selo: a.tipo || "Documento",
           titulo: a.nome, detalhe: window.ArquivoStore.tamanhoLegivel(a.tamanho),
           acao: "aba:documentos"
