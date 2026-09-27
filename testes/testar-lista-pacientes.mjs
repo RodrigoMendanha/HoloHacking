@@ -287,19 +287,22 @@ const inativo = await p.evaluate(async (id) => {
   const rotulo = item.textContent;
   item.click();
   await new Promise(r => setTimeout(r, 300));
+  const confirmar = document.getElementById('modal-confirmar-ok');
+  if (confirmar) confirmar.click();
+  await new Promise(r => setTimeout(r, 300));
   const card = [...document.querySelectorAll('#lista-pacientes .card-paciente')]
     .find(c => c.dataset.id === id);
   const chip = n => Number([...document.querySelectorAll('.pac-chip')]
     .find(c => c.dataset.filtro === n).querySelector('.pac-chip-n').textContent);
   return { rotulo, status: card.querySelector('.pac-status').textContent,
-           classe: card.className, ativos: chip('ativos'), inativos: chip('inativos') };
+           classe: card.className, ativos: chip('ativos'), arquivados: chip('arquivados') };
 }, ids.ana);
 
-conferir(/Marcar como inativo/.test(inativo.rotulo), 'o menu oferece marcar inativo');
-conferir(inativo.status === 'Inativo' && /inativo/.test(inativo.classe),
+conferir(/Arquivar paciente/.test(inativo.rotulo), 'o menu oferece arquivar paciente');
+conferir(inativo.status === 'Arquivado' && /inativo/.test(inativo.classe),
   'e o cartão passa a dizer isso: ' + inativo.status);
-conferir(inativo.ativos === 3 && inativo.inativos === 1,
-  'as contagens acompanham: ' + inativo.ativos + ' ativos, ' + inativo.inativos + ' inativo');
+conferir(inativo.ativos === 3 && inativo.arquivados === 1,
+  'as contagens acompanham: ' + inativo.ativos + ' ativos, ' + inativo.arquivados + ' arquivado');
 
 // e sobrevive a recarregar: status e dado guardado, nao estado de tela
 await p.reload({ waitUntil: 'networkidle2' });
@@ -310,7 +313,7 @@ const depois = await p.evaluate((id) => {
     .find(c => c.dataset.id === id);
   return card.querySelector('.pac-status').textContent;
 }, ids.ana);
-conferir(depois === 'Inativo', 'o status sobrevive a recarregar a página');
+conferir(depois === 'Arquivado', 'o status sobrevive a recarregar a página');
 
 // selecao em lote
 const lote = await p.evaluate(async () => {
@@ -321,19 +324,22 @@ const lote = await p.evaluate(async () => {
   const acao = document.querySelector('[data-lote="inativar"]');
   const temAcao = !!acao;
   if (acao) acao.click();
+  await new Promise(r => setTimeout(r, 300));
+  const confirmar = document.getElementById('modal-confirmar-ok');
+  if (confirmar) confirmar.click();
   await new Promise(r => setTimeout(r, 500));
   return {
     conta, rotulo, temAcao,
-    inativos: [...document.querySelectorAll('#lista-pacientes .pac-status')]
-      .filter(s => s.textContent === 'Inativo').length,
+    arquivados: [...document.querySelectorAll('#lista-pacientes .pac-status')]
+      .filter(s => s.textContent === 'Arquivado').length,
     limpou: document.getElementById('pac-sel-acoes').classList.contains('hidden'),
   };
 });
 
 conferir(/4 selecionados/.test(lote.conta), 'selecionar todos pega os 4: ' + lote.conta);
 conferir(/Limpar seleção/.test(lote.rotulo), 'e o botão vira o contrário dele mesmo');
-conferir(lote.temAcao && lote.inativos === 4,
-  'marcar em lote vale para todos: ' + lote.inativos + ' inativos');
+conferir(lote.temAcao && lote.arquivados === 4,
+  'arquivar em lote vale para todos: ' + lote.arquivados + ' arquivados');
 conferir(lote.limpou, 'e a seleção se desfaz depois de agir');
 
 /* ------------------------------------------- o cadastro antigo ----------- */

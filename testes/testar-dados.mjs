@@ -105,10 +105,12 @@ ok(pacote.tabelas === pacote.conhecidas.join(','),
 // Remover saiu do X do cartao e foi para o menu de acoes: um clique torto na
 // lista nao pode mais apagar a ficha de ninguem.
 const removido = await p.evaluate(async () => {
-  window.confirm = () => true;
   document.querySelector('.nav-item[data-secao="pacientes"]').click();
   document.querySelector('[data-menu]').click();
   document.querySelector('[data-item="remover"]').click();
+  await new Promise(r => setTimeout(r, 400));
+  const confirmar = document.getElementById('modal-confirmar-ok');
+  if (confirmar) confirmar.click();
   await new Promise(r => setTimeout(r, 400));
   return { cards: document.querySelectorAll('.card-paciente').length,
            tabelas: window.DadosLocais.resumo() };

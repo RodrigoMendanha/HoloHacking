@@ -338,13 +338,16 @@ const antesDeRemover = await p.evaluate(async () => ({
 }));
 ok(antesDeRemover.documentos === 2, 'cenário montado: 2 documentos, 2 pacientes');
 
-/* o caminho real da interface: menu do paciente → Remover → confirm */
+/* o caminho real da interface: menu do paciente → Remover → modal de confirmação */
 const removeu = await p.evaluate(async () => {
   document.querySelector('.nav-item[data-secao="pacientes"]').click();
   await new Promise(r => setTimeout(r, 400));
   const botao = document.querySelector('[data-item="remover"][data-id="pac-A"]');
   if (!botao) return { achou: false };
   botao.click();
+  await new Promise(r => setTimeout(r, 400));
+  const confirmar = document.getElementById('modal-confirmar-ok');
+  if (confirmar) confirmar.click();
   await new Promise(r => setTimeout(r, 700));
   return { achou: true };
 });
