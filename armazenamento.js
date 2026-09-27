@@ -802,7 +802,7 @@
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
     a.href = url;
-    a.download = "holohacking-backup-" + new Date().toISOString().slice(0, 10) + ".json";
+    a.download = "holohacking-backup-" + hojeISO() + ".json";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

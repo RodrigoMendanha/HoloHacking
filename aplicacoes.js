@@ -132,6 +132,10 @@
   /** Começa uma aplicação nova, mesmo havendo anteriores. É o que preserva o
       histórico: a de antes continua lá, fechada, com a data dela. */
   function novaAplicacao(ferramenta) {
+    if (window.pacienteArquivado && window.pacienteArquivado()) {
+      if (window.avisar) window.avisar("Paciente arquivado — reative antes de aplicar ferramentas.");
+      return Promise.reject(new Error("paciente arquivado"));
+    }
     var b = banco();
     var nova = {
       paciente_id: pacienteAtual(),

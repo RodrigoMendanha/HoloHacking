@@ -29,7 +29,8 @@
     return p[2] + " " + meses[Number(p[1]) - 1] + " " + p[0];
   }
   function semanasEntre(a, b) {
-    var d = (new Date(b) - new Date(a)) / 86400000;
+    var sa = String(a).slice(0, 10), sb = String(b).slice(0, 10);
+    var d = (new Date(sb + "T00:00:00") - new Date(sa + "T00:00:00")) / 86400000;
     return isNaN(d) ? null : Math.round(d / 7);
   }
 

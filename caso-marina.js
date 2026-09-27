@@ -129,7 +129,7 @@
   function doze(semanasAtras) {
     var d = new Date();
     d.setDate(d.getDate() - semanasAtras * 7);
-    return d.toISOString().slice(0, 10);
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
   }
 
   /** Monta o caso inteiro. Devolve as duas Pontuacoes, na ordem. */

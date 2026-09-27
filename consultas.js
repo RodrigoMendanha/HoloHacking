@@ -49,7 +49,7 @@
   /* ---------- os numeros do topo ----------------------------------------- */
 
   function blocoNumeros(lista) {
-    var mesAtual = new Date().toISOString().slice(0, 7);
+    var mesAtual = hojeISO().slice(0, 7);
     var neste = lista.filter(function (c) {
       return (c.quando || "").slice(0, 7) === mesAtual;
     }).length;

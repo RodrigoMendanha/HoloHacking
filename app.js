@@ -145,6 +145,16 @@
   $("#modal-confirmar-acao").addEventListener("click", e => {
     if(e.target.id === "modal-confirmar-acao") fecharModalConfirmar(null);
   });
+  $("#modal-confirmar-acao").addEventListener("keydown", e => {
+    if(e.key === "Escape"){ fecharModalConfirmar(null); return; }
+    if(e.key !== "Tab") return;
+    const caixa = document.querySelector("#modal-confirmar-acao .fic-janela-caixa");
+    const focs = caixa.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    if(!focs.length) return;
+    const first = focs[0], last = focs[focs.length - 1];
+    if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+  });
 
   /* ---------- aparencia ----------
 
@@ -489,6 +499,12 @@
 
   // o que formulario.js enxerga daqui de dentro
   window.pacienteAtivoId = () => estado.ativo || null;
+  window.pacienteArquivado = function(id) {
+    var pid = id || estado.ativo;
+    if (!pid) return false;
+    var p = estado.pacientes.find(function(x){ return x.id === pid; });
+    return p ? p.status === "inativo" : false;
+  };
   // false enquanto a lista de pacientes nao voltou do banco. Quem guarda por
   // paciente tem que esperar por isto antes de gravar a primeira resposta.
   window.pacientesCarregados = () => estado.carregado;
@@ -923,7 +939,7 @@
       const json = JSON.stringify(dados, null, 2);
       const blob = new Blob([json], { type: "application/json" });
       const url = URL.createObjectURL(blob);
-      const nome = (p.nome || "paciente").replace(/[^a-zA-Z0-9À-ú ]/g, "").replace(/\s+/g, "-").slice(0, 60);
+      const nome = (p.nome || "paciente").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s+/g, "-").toLowerCase().slice(0, 60);
       const a = document.createElement("a");
       a.href = url;
       a.download = "prontuario-" + nome + "-" + hojeISO() + ".json";
@@ -942,7 +958,8 @@
   async function reunirDadosPaciente(p){
     const id = p.id;
     const exportado = {
-      versao: "1.0",
+      produto: "HoloHacking",
+      versaoExportacao: "1.0",
       exportadoEm: new Date().toISOString(),
       paciente: {
         nome: p.nome, sexo: p.sexo, nascimento: p.nascimento,

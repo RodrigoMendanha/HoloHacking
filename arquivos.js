@@ -757,6 +757,10 @@
 
   function receberArquivos(lista) {
     if (!lista || lista.length === 0) return;
+    if (window.pacienteArquivado && window.pacienteArquivado()) {
+      if (window.avisar) window.avisar("Paciente arquivado — reative antes de enviar documentos.");
+      return;
+    }
     var aviso = document.getElementById("doc-aviso");
     var nome = document.getElementById("doc-nome").value.trim();
     var meta = {

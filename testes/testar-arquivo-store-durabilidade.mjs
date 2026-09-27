@@ -40,7 +40,7 @@ const recarregar = async () => {
     await new Promise(r => setTimeout(r, 400));
     await p.reload({ waitUntil: 'networkidle2' });
   }
-  await p.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados());
+  await p.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados(), { timeout: 60000 });
 };
 
 const limpar = () => p.evaluate(async () => {

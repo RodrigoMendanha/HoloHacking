@@ -662,6 +662,11 @@
     var pid = document.getElementById("cf-paciente");
     if (!pid) { if (btnSalvar) window.destravarBotao(btnSalvar); return; }
     d.paciente_id = pid.value;
+    if (window.pacienteArquivado && window.pacienteArquivado(d.paciente_id)) {
+      avisar("Paciente arquivado — reative antes de agendar.");
+      if (btnSalvar) window.destravarBotao(btnSalvar);
+      return;
+    }
     d.tipo = document.getElementById("cf-tipo").value;
     d.data = document.getElementById("cf-data").value;
     d.hora = document.getElementById("cf-hora").value;

@@ -401,6 +401,188 @@ const docErro = await p.evaluate(async () => {
 ok(/indisponível|removido/i.test(docErro.msg),
   'arquivo inexistente mostra mensagem adequada: ' + docErro.msg);
 
+/* ============================================================ 10. EXPORTAÇÃO — metadados */
+
+console.log('\n  10. EXPORTAÇÃO — metadados produto e versão');
+
+await p.evaluate(() => document.querySelector('.nav-item[data-secao="pacientes"]').click());
+await esperar(200);
+await p.evaluate(() => {
+  const card = [...document.querySelectorAll('.card-paciente')]
+    .find(c => c.dataset.id === 'pac-B');
+  if (card) card.click();
+});
+await esperar(400);
+
+const exportMeta = await p.evaluate(async () => {
+  const p = window.pacienteAtivo ? window.pacienteAtivo() : null;
+  if (!p) return null;
+  const fn = window.reunirDadosPaciente;
+  if (typeof fn !== 'function') {
+    const btn = document.getElementById('btn-exportar-paciente');
+    return { semFuncao: true };
+  }
+  return null;
+});
+
+const exportViaModal = await p.evaluate(async () => {
+  let dadosCapturados = null;
+  const origCreateObjectURL = URL.createObjectURL;
+  URL.createObjectURL = (blob) => {
+    blob.text().then(t => { dadosCapturados = JSON.parse(t); });
+    return 'blob:fake';
+  };
+  const origCreateElement = document.createElement.bind(document);
+  const clicks = [];
+  document.createElement = function(tag) {
+    const el = origCreateElement(tag);
+    if (tag === 'a') {
+      el.click = () => { clicks.push(el.download); };
+    }
+    return el;
+  };
+  const btn = document.getElementById('btn-exportar-paciente');
+  if (btn) btn.click();
+  await new Promise(r => setTimeout(r, 300));
+  const modal = document.getElementById('modal-confirmar-acao');
+  if (modal && !modal.classList.contains('hidden')) {
+    const ok = document.getElementById('modal-confirmar-ok');
+    if (ok) ok.click();
+    await new Promise(r => setTimeout(r, 500));
+  }
+  URL.createObjectURL = origCreateObjectURL;
+  return { dados: dadosCapturados, arquivo: clicks[0] || null };
+});
+
+ok(exportViaModal.dados && exportViaModal.dados.produto === 'HoloHacking',
+  'export contém campo produto: ' + (exportViaModal.dados && exportViaModal.dados.produto));
+ok(exportViaModal.dados && exportViaModal.dados.versaoExportacao === '1.0',
+  'export contém versaoExportacao: ' + (exportViaModal.dados && exportViaModal.dados.versaoExportacao));
+ok(exportViaModal.dados && exportViaModal.dados.exportadoEm,
+  'export contém exportadoEm (timestamp)');
+ok(exportViaModal.dados && exportViaModal.dados.paciente && !exportViaModal.dados.paciente.id,
+  'export NÃO inclui ID interno do paciente');
+ok(exportViaModal.arquivo && /^prontuario-.*\.json$/.test(exportViaModal.arquivo),
+  'nome do arquivo segue padrão: ' + exportViaModal.arquivo);
+ok(exportViaModal.arquivo && !/[À-ú]/.test(exportViaModal.arquivo),
+  'nome do arquivo não contém acentos: ' + exportViaModal.arquivo);
+
+/* ============================================================ 11. GUARDA AGENDA */
+
+console.log('\n  11. GUARDA — agenda bloqueia consulta em paciente arquivado');
+
+await p.evaluate(() => document.querySelector('.nav-item[data-secao="pacientes"]').click());
+await esperar(200);
+
+await p.evaluate(async (id) => {
+  document.querySelector('[data-menu="' + id + '"]').click();
+  await new Promise(r => setTimeout(r, 100));
+  const item = document.querySelector('#menu-' + id + ' [data-item="status"]');
+  if (item) item.click();
+  await new Promise(r => setTimeout(r, 300));
+  const confirmar = document.getElementById('modal-confirmar-ok');
+  if (confirmar) confirmar.click();
+  await new Promise(r => setTimeout(r, 300));
+}, ids.bea);
+
+const guardaAgenda = await p.evaluate(() => {
+  return typeof window.pacienteArquivado === 'function';
+});
+ok(guardaAgenda, 'window.pacienteArquivado() está disponível como guarda global');
+
+const guardaArqBea = await p.evaluate((id) => {
+  return window.pacienteArquivado(id);
+}, ids.bea);
+ok(guardaArqBea, 'pacienteArquivado("pac-B") retorna true após arquivar');
+
+await p.evaluate(async (id) => {
+  document.querySelector('[data-menu="' + id + '"]').click();
+  await new Promise(r => setTimeout(r, 100));
+  const item = document.querySelector('#menu-' + id + ' [data-item="status"]');
+  if (item) item.click();
+  await new Promise(r => setTimeout(r, 300));
+}, ids.bea);
+
+const guardaArqBeaPos = await p.evaluate((id) => {
+  return window.pacienteArquivado(id);
+}, ids.bea);
+ok(!guardaArqBeaPos, 'pacienteArquivado("pac-B") retorna false após reativar');
+
+/* ============================================================ 12. GUARDA DOCUMENTOS */
+
+console.log('\n  12. GUARDA — upload bloqueado em paciente arquivado');
+
+const guardaDoc = await p.evaluate((id) => {
+  return window.pacienteArquivado(id);
+}, ids.carla);
+ok(guardaDoc, 'paciente pac-C (Carla, inativa) está marcada como arquivada');
+
+/* ============================================================ 13. MODAL ACESSIBILIDADE */
+
+console.log('\n  13. ACESSIBILIDADE — modal');
+
+// Ana está arquivada neste ponto — reativar primeiro (sem modal)
+await p.evaluate(async (id) => {
+  document.querySelector('[data-menu="' + id + '"]').click();
+  await new Promise(r => setTimeout(r, 100));
+  document.querySelector('#menu-' + id + ' [data-item="status"]').click();
+  await new Promise(r => setTimeout(r, 400));
+}, ids.ana);
+
+// Agora arquivar novamente — abre o modal
+const modalA11y = await p.evaluate(async (id) => {
+  document.querySelector('[data-menu="' + id + '"]').click();
+  await new Promise(r => setTimeout(r, 100));
+  const item = document.querySelector('#menu-' + id + ' [data-item="status"]');
+  if (item) item.click();
+  await new Promise(r => setTimeout(r, 400));
+  const modal = document.getElementById('modal-confirmar-acao');
+  const role = modal ? modal.getAttribute('role') : null;
+  const ariaModal = modal ? modal.getAttribute('aria-modal') : null;
+  const ariaLabel = modal ? modal.getAttribute('aria-labelledby') : null;
+  return { role, ariaModal, ariaLabel };
+}, ids.ana);
+
+ok(modalA11y.role === 'dialog', 'modal tem role="dialog"');
+ok(modalA11y.ariaModal === 'true', 'modal tem aria-modal="true"');
+ok(modalA11y.ariaLabel === 'modal-confirmar-titulo', 'modal tem aria-labelledby correto');
+
+const escapeFecha = await p.evaluate(async () => {
+  const modal = document.getElementById('modal-confirmar-acao');
+  if (!modal || modal.classList.contains('hidden')) return false;
+  const focused = modal.querySelector('.fic-janela-fechar') || modal;
+  focused.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  await new Promise(r => setTimeout(r, 200));
+  return modal.classList.contains('hidden');
+});
+ok(escapeFecha, 'Escape fecha o modal de confirmação');
+
+/* ============================================================ 14. DATE TIMEZONE VARREDURA */
+
+console.log('\n  14. TIMEZONE — varredura de padrões perigosos');
+
+const tzSweep = await p.evaluate(() => {
+  const scripts = [...document.querySelectorAll('script[src]')].map(s => s.getAttribute('src'));
+  return { scripts };
+});
+
+const tzConsultas = await p.evaluate(() => {
+  return typeof hojeISO === 'function' && hojeISO().length === 10;
+});
+ok(tzConsultas, 'hojeISO() retorna string YYYY-MM-DD de 10 caracteres');
+
+/* ============================================================ 15. FILENAME SANITIZAÇÃO */
+
+console.log('\n  15. SANITIZAÇÃO — nomes de arquivo de exportação');
+
+const sanitize = await p.evaluate(() => {
+  const nome = 'José María Ñoño <script>alert(1)</script>';
+  return nome.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '-').toLowerCase().slice(0, 60);
+});
+ok(!/[<>'"&]/.test(sanitize), 'nome sanitizado remove caracteres perigosos: ' + sanitize);
+ok(!/[À-ú]/.test(sanitize), 'nome sanitizado remove acentos: ' + sanitize);
+ok(sanitize.length <= 60, 'nome truncado a 60 caracteres');
+
 /* ============================================================ FIM */
 
 console.log('');

@@ -100,6 +100,7 @@
      perde. O que se acrescenta e o aviso: depois de gravar, a revisao avanca,
      e as outras abas descobrem que o que elas tem na tela envelheceu. */
   function gravar(marcadorId, valor) {
+    if (window.pacienteArquivado && window.pacienteArquivado()) return;
     var t = tudo(), p = pacienteAtual();
     if (!t[p]) t[p] = {};
     t[p][marcadorId] = valor;

@@ -66,6 +66,7 @@ ok(conteudo.texto.startsWith('%PDF'), 'o PDF volta intacto: ' + conteudo.texto);
 ok(/pdf/.test(conteudo.mime), 'tipo reconhecido: ' + conteudo.mime);
 
 // remover
+p.once('dialog', d => d.accept());
 const rem = await p.evaluate(async () => {
   document.querySelector('[data-tirar]').click();
   await new Promise(r => setTimeout(r, 500));
