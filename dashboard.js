@@ -53,13 +53,13 @@
   /* ---------- os blocos --------------------------------------------------- */
 
   function blocoCabecalho(c, agenda) {
-    var nPac = c ? c.total : 0;
+    var nPac = c ? c.linhas.filter(function (l) { return l.paciente.status !== "inativo"; }).length : 0;
     var nPend = c ? c.pendentes.length : 0;
 
     var consultasHoje = 0;
     var proxLabel = "&mdash;";
     if (agenda && agenda.linhas) {
-      var hj = new Date().toISOString().slice(0, 10);
+      var hj = hojeISO();
       consultasHoje = agenda.linhas.filter(function (l) {
         return l.marcada === hj;
       }).length;
@@ -96,7 +96,7 @@
   }
 
   function blocoConsultasHoje(agenda) {
-    var hj = new Date().toISOString().slice(0, 10);
+    var hj = hojeISO();
     var hoje = ((agenda && agenda.linhas) || []).filter(function (l) {
       return l.marcada === hj;
     });
@@ -126,7 +126,7 @@
   }
 
   function blocoProximosAtendimentos(agenda) {
-    var hj = new Date().toISOString().slice(0, 10);
+    var hj = hojeISO();
     var proximas = ((agenda && agenda.linhas) || []).filter(function (l) {
       return l.marcada && l.marcada > hj && l.faltam !== null && l.faltam >= 0;
     }).slice(0, 3);

@@ -36,7 +36,8 @@
 
   function diasDesde(iso) {
     if (!iso) return null;
-    var d = new Date(iso);
+    var s = String(iso).slice(0, 10);
+    var d = new Date(s + "T00:00:00");
     if (isNaN(d)) return null;
     return Math.floor((Date.now() - d.getTime()) / 86400000);
   }

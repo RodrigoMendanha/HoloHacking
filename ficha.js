@@ -326,7 +326,7 @@
 
   function blocoRetorno(d, pid) {
     var todas = window.Agenda && window.Agenda.todas ? window.Agenda.todas(pid) : [];
-    var hj = new Date().toISOString().slice(0, 10);
+    var hj = hojeISO();
     var passadas = todas.filter(function (c) { return c.data < hj; });
     if (passadas.length === 0) return "";
     var ultima = passadas[0];

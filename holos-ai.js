@@ -54,7 +54,7 @@
     t += linhaSe("Sexo", p.sexo);
     if (p.nascimento) {
       t += linhaSe("Nascimento", dataBR(p.nascimento));
-      var idade = Math.floor((Date.now() - new Date(p.nascimento).getTime()) / 31557600000);
+      var idade = Math.floor((Date.now() - new Date(p.nascimento + "T00:00:00").getTime()) / 31557600000);
       if (idade > 0 && idade < 150) t += linhaSe("Idade", idade + " anos");
     }
     t += linhaSe("Queixa principal", p.queixa);
