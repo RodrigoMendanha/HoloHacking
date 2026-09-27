@@ -511,8 +511,32 @@ const timeline = await p.evaluate(async (pid) => {
     }).select().single();
   }
 
+  // insert an exam document via ArquivoStore mock in localStorage
+  if (dl) {
+    await dl.from('aplicacoes').insert({
+      paciente_id: pid, ferramenta_id: 'roda_vida',
+      status: 'concluida', iniciada_em: '2026-09-18T08:00:00',
+      concluida_em: '2026-09-18T08:30:00'
+    }).select().single();
+  }
+
   // reload agenda so it picks up the new consultations
   if (window.Agenda && window.Agenda.recarregar) await window.Agenda.recarregar();
+
+  // inject exam file into ArquivoStore so the timeline sees it
+  if (window.ArquivoStore && window.ArquivoStore.listar) {
+    var originalListar = window.ArquivoStore.listar;
+    window.ArquivoStore.listar = function (p) {
+      return originalListar(p).then(function (lista) {
+        lista.push({
+          id: 'exam-fake-1', nome: 'Hemograma completo',
+          tipo: 'Exame laboratorial', data: '2026-09-15',
+          tamanho: 120000, paciente_id: pid
+        });
+        return lista;
+      });
+    };
+  }
 
   // activate the patient and go to ficha
   document.querySelector('.nav-item[data-secao="pacientes"]').click();
@@ -538,7 +562,7 @@ const timeline = await p.evaluate(async (pid) => {
 
   // test each filter
   var resultados = {};
-  var filtrosIds = ['tudo', 'consulta', 'mapa', 'documento', 'ferramenta'];
+  var filtrosIds = ['tudo', 'consulta', 'mapa', 'exame', 'ferramenta', 'documento'];
   for (var i = 0; i < filtrosIds.length; i++) {
     var btn = alvo.querySelector('[data-filtro-linha="' + filtrosIds[i] + '"]');
     if (btn) {
@@ -548,6 +572,7 @@ const timeline = await p.evaluate(async (pid) => {
       var tipos = [...eventos].map(e => {
         if (e.classList.contains('consulta')) return 'consulta';
         if (e.classList.contains('mapa')) return 'mapa';
+        if (e.classList.contains('exame')) return 'exame';
         if (e.classList.contains('documento')) return 'documento';
         if (e.classList.contains('ferramenta')) return 'ferramenta';
         return 'outro';
@@ -589,8 +614,9 @@ if (timeline.temTimeline) {
   ok(timeline.nomesFiltros.includes('Tudo'), 'filtro "Tudo" presente');
   ok(timeline.nomesFiltros.includes('Consultas'), 'filtro "Consultas" presente');
   ok(timeline.nomesFiltros.includes('HOLOSCAN'), 'filtro "HOLOSCAN" presente');
-  ok(timeline.nomesFiltros.includes('Documentos'), 'filtro "Documentos" presente');
+  ok(timeline.nomesFiltros.includes('Exames'), 'filtro "Exames" presente');
   ok(timeline.nomesFiltros.includes('Ferramentas'), 'filtro "Ferramentas" presente');
+  ok(timeline.nomesFiltros.includes('Documentos'), 'filtro "Documentos" presente');
 
   if (timeline.resultados.consulta) {
     ok(timeline.resultados.consulta.tipos.every(t => t === 'consulta'),
@@ -598,10 +624,22 @@ if (timeline.temTimeline) {
     ok(timeline.resultados.consulta.pressed === 'true',
        'aria-pressed=true no filtro ativo');
   }
+  if (timeline.resultados.exame) {
+    ok(timeline.resultados.exame.tipos.every(t => t === 'exame'),
+       'filtro Exames mostra apenas exames');
+    ok(!timeline.resultados.exame.tipos.includes('consulta'),
+       'exames não aparecem como consulta');
+    ok(!timeline.resultados.exame.tipos.includes('ferramenta'),
+       'exames não aparecem como ferramenta');
+    ok(timeline.resultados.exame.total > 0,
+       'exame aparece no filtro Exames: ' + timeline.resultados.exame.total);
+  }
   if (timeline.resultados.ferramenta) {
     ok(timeline.resultados.ferramenta.tipos.every(t => t === 'ferramenta'),
        'filtro Ferramentas mostra apenas ferramentas');
   }
+  ok(timeline.eventosTudo > 0 && timeline.resultados.tudo,
+     'evento de exame aparece em Tudo: ' + timeline.eventosTudo + ' eventos');
   ok(timeline.eventosTudoFinal === timeline.eventosTudo,
      '"Tudo" restaura todos os eventos: ' + timeline.eventosTudoFinal);
 } else {

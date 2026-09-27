@@ -2239,6 +2239,7 @@ body.escuro .btn-tema .icone-lua{display:none}
 .fic-evento:last-child .fic-evento-marca::before{display:none}
 .fic-evento.consulta .fic-evento-marca{border-color:var(--dourado)}
 .fic-evento.documento .fic-evento-marca{border-color:var(--texto-suave)}
+.fic-evento.exame .fic-evento-marca{border-color:#4a9}
 /* O que ainda não aconteceu não é registro: é promessa. Fica oco. */
 .fic-evento.futuro .fic-evento-marca{background:transparent;border-style:dashed}
 .fic-evento-corpo{display:flex;flex-direction:column;gap:3px;min-width:0}

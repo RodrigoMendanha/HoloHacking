@@ -226,8 +226,8 @@ conferir(/Consulta marcada/.test(linha.eventos[0].txt) && /futuro/.test(linha.ev
   linha.eventos[0].txt.slice(0, 40));
 conferir(linha.eventos.some(e => /2ª aplicação do HOLOSCAN/.test(e.txt) && /Índice 88/.test(e.txt)),
   'a aplicação do mapa traz o Índice daquele dia');
-conferir(linha.eventos.some(e => /Hemograma/.test(e.txt) && /documento/.test(e.cls)),
-  'o documento entra na mesma régua');
+conferir(linha.eventos.some(e => /Hemograma/.test(e.txt) && /exame/.test(e.cls)),
+  'o exame laboratorial entra na mesma régua');
 conferir(linha.eventos.some(e => /1ª aplicação/.test(e.txt) && /há 3 meses/.test(e.txt)),
   'e a primeira aplicação fica lá atrás, com o tempo em palavras');
 conferir(linha.meses.length >= 3, 'agrupado por mês: ' + linha.meses.join(' · '));

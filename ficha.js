@@ -581,10 +581,14 @@
       });
     }
 
+    var TIPOS_EXAME = ["Exame laboratorial", "Laudo"];
+
     var pintar = function (arquivos) {
       arquivos.forEach(function (a) {
+        var ehExame = TIPOS_EXAME.indexOf(a.tipo) >= 0;
         eventos.push({
-          quando: a.data || "", tipo: "documento", selo: a.tipo || "Documento",
+          quando: a.data || "", tipo: ehExame ? "exame" : "documento",
+          selo: a.tipo || "Documento",
           titulo: a.nome, detalhe: window.ArquivoStore.tamanhoLegivel(a.tamanho),
           acao: "aba:documentos"
         });
@@ -603,8 +607,9 @@
         { id: "tudo", nome: "Tudo" },
         { id: "consulta", nome: "Consultas" },
         { id: "mapa", nome: "HOLOSCAN" },
-        { id: "documento", nome: "Documentos" },
-        { id: "ferramenta", nome: "Ferramentas" }
+        { id: "exame", nome: "Exames" },
+        { id: "ferramenta", nome: "Ferramentas" },
+        { id: "documento", nome: "Documentos" }
       ];
 
       var visiveis = filtroLinha === "tudo"
@@ -625,7 +630,10 @@
         ", do mais recente para o mais antigo.</p>";
 
       if (visiveis.length === 0) {
-        html += '<div class="dash-vazio">Nenhum registro deste tipo.</div>';
+        var vazioMsg = filtroLinha === "exame"
+          ? "Nenhum exame registrado neste período."
+          : "Nenhum registro deste tipo.";
+        html += '<div class="dash-vazio">' + vazioMsg + '</div>';
       } else {
         html += '<div class="fic-tempo">';
         var mesCorrente = null;
