@@ -100,6 +100,52 @@
   window.travarBotao = travarBotao;
   window.destravarBotao = destravarBotao;
 
+  /* ---------- modal de confirmacao ---------- */
+  let _modalResolver = null;
+  function abrirModalConfirmar(opts){
+    const modal = $("#modal-confirmar-acao");
+    $("#modal-confirmar-titulo").textContent = opts.titulo || "Confirmar";
+    $("#modal-confirmar-sub").textContent = opts.subtitulo || "";
+    $("#modal-confirmar-corpo").innerHTML = opts.corpo || "";
+    const rodape = $("#modal-confirmar-rodape");
+    rodape.innerHTML = "";
+    if(opts.botaoArquivar){
+      const ba = document.createElement("button");
+      ba.type = "button";
+      ba.className = "btn-arquivar";
+      ba.textContent = opts.botaoArquivar;
+      ba.addEventListener("click", () => fecharModalConfirmar("arquivar"));
+      rodape.appendChild(ba);
+    }
+    const bc = document.createElement("button");
+    bc.type = "button";
+    bc.className = "btn-cancelar";
+    bc.textContent = "Cancelar";
+    bc.addEventListener("click", () => fecharModalConfirmar(null));
+    rodape.appendChild(bc);
+    if(opts.botaoConfirmar){
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "btn-perigo";
+      b.textContent = opts.botaoConfirmar;
+      b.id = "modal-confirmar-ok";
+      if(opts.desabilitado) b.disabled = true;
+      b.addEventListener("click", () => fecharModalConfirmar("confirmar"));
+      rodape.appendChild(b);
+    }
+    modal.classList.remove("hidden");
+    modal.querySelector(".fic-janela-fechar").focus();
+    return new Promise(r => { _modalResolver = r; });
+  }
+  function fecharModalConfirmar(resultado){
+    $("#modal-confirmar-acao").classList.add("hidden");
+    if(_modalResolver){ _modalResolver(resultado); _modalResolver = null; }
+  }
+  $("#modal-confirmar-fechar").addEventListener("click", () => fecharModalConfirmar(null));
+  $("#modal-confirmar-acao").addEventListener("click", e => {
+    if(e.target.id === "modal-confirmar-acao") fecharModalConfirmar(null);
+  });
+
   /* ---------- aparencia ----------
 
      Era um interruptor que seguia o sistema em toda carga: escolher o claro,
@@ -479,15 +525,12 @@
   ============================================================ */
 
   const FILTROS = [
-    { id:"todos",    rotulo:"Todos",              cabe: () => true },
-    { id:"ativos",   rotulo:"Ativos",             cabe: s => !s.inativo },
-    { id:"novos",    rotulo:"Novos (30d)",        cabe: s => s.novo },
-    { id:"silencio", rotulo:"Sem contato (90d+)", cabe: s => s.semContato },
-    { id:"inativos", rotulo:"Inativos",           cabe: s => s.inativo },
-    /* No produto de referencia isto e "portal vazio": o paciente recebe um
-       link e nunca abre. Aqui nao ha portal — quem preenche e ela —, entao o
-       que existe de verdade e a ficha que ninguem comecou. */
-    { id:"vazias",   rotulo:"Ficha vazia",        cabe: s => s.vazia }
+    { id:"todos",      rotulo:"Todos",              cabe: () => true },
+    { id:"ativos",     rotulo:"Ativos",             cabe: s => !s.inativo },
+    { id:"novos",      rotulo:"Novos (30d)",        cabe: s => s.novo },
+    { id:"silencio",   rotulo:"Sem contato (90d+)", cabe: s => s.semContato },
+    { id:"arquivados", rotulo:"Arquivados",         cabe: s => s.inativo },
+    { id:"vazias",     rotulo:"Ficha vazia",        cabe: s => s.vazia }
   ];
 
   let filtroPac = "todos";
@@ -582,8 +625,8 @@
       + '<span class="pac-avatar">' + escapar(p.nome.charAt(0).toUpperCase()) + "</span>"
       + '<span class="pac-info">'
         + '<span class="pac-nome"><h4>' + escapar(p.nome) + "</h4>" + sexoDe(p)
-          + '<span class="pac-status' + (s.inativo ? "" : " ativo") + '">'
-          + (s.inativo ? "Inativo" : "Ativo") + "</span></span>"
+          + '<span class="pac-status' + (s.inativo ? " arquivado" : " ativo") + '">'
+          + (s.inativo ? "Arquivado" : "Ativo") + "</span></span>"
         + '<span class="pac-meta">' + metaDoPaciente(p, s) + "</span>"
       + "</span>"
       + '<button type="button" class="pac-abrir" data-ficha="' + p.id + '" '
@@ -609,7 +652,7 @@
       { acao:"mente",        texto:"Aplicar PQQ" },
       { acao:"espirito",     texto:"Ver Mapa do Propósito" },
       { separa:true },
-      { acao:"status",       texto: s.inativo ? "Reativar paciente" : "Marcar como inativo" },
+      { acao:"status",       texto: s.inativo ? "Reativar paciente" : "Arquivar paciente" },
       { acao:"remover",      texto:"Remover paciente", perigo:true }
     ];
     return '<span class="pac-menu hidden" id="menu-' + p.id + '" role="menu">'
@@ -670,7 +713,7 @@
     caixa.innerHTML = '<span class="pac-sel-conta">' + selecionados.size
         + (selecionados.size === 1 ? " selecionado" : " selecionados") + "</span>"
       + '<button type="button" class="pac-sel-btn" data-lote="' + (algumAtivo ? "inativar" : "ativar") + '">'
-        + (algumAtivo ? "Marcar como inativo" : "Reativar") + "</button>"
+        + (algumAtivo ? "Arquivar" : "Reativar") + "</button>"
       + '<button type="button" class="pac-sel-btn perigo" data-lote="remover">Remover</button>';
   }
 
@@ -801,8 +844,22 @@
 
     const inativo = p.status === "inativo";
     const selo = $("#ficha-status");
-    selo.textContent = inativo ? "Inativo" : "Ativo";
+    selo.textContent = inativo ? "Arquivado" : "Ativo";
+    selo.classList.toggle("arquivado", inativo);
     selo.classList.toggle("ativo", !inativo);
+
+    const acoes = document.querySelectorAll(".fic-acoes-topo button[data-atalho], .fic-acoes-topo button[data-ir]");
+    acoes.forEach(b => b.classList.toggle("bloqueado", inativo));
+    let aviso = document.getElementById("fic-aviso-arquivado");
+    if(inativo && !aviso){
+      aviso = document.createElement("div");
+      aviso.id = "fic-aviso-arquivado";
+      aviso.className = "fic-aviso-arquivado";
+      aviso.textContent = "Paciente arquivado — reative para registrar novos atendimentos.";
+      document.querySelector(".fic-topo").appendChild(aviso);
+    } else if(!inativo && aviso){
+      aviso.remove();
+    }
 
     /* Telefone e e-mail viram link: a ficha é aberta quando se vai falar com a
        pessoa, e copiar o número na mão é o passo que sobrava. */
@@ -847,6 +904,82 @@
     $("#ficha-ver-detalhes").setAttribute("aria-expanded", aberto ? "false" : "true");
   });
 
+  /* ---------- exportar dados do paciente ---------- */
+  $("#btn-exportar-paciente").addEventListener("click", async () => {
+    const p = pacienteAtivo();
+    if(!p){ toast("Nenhum paciente selecionado."); return; }
+    const r = await abrirModalConfirmar({
+      titulo: "Exportar dados de " + escapar(p.nome) + "?",
+      corpo: "<p>Um arquivo JSON será gerado com todos os dados clínicos deste paciente.</p>"
+        + '<p style="margin-top:8px;font-size:.82rem;color:var(--texto-suave)">'
+        + "O arquivo pode conter informações sensíveis. Trate-o com o mesmo sigilo do prontuário.</p>",
+      botaoConfirmar: "Exportar"
+    });
+    if(r !== "confirmar") return;
+    const btn = $("#btn-exportar-paciente");
+    if(!travarBotao(btn, "Exportando…")) return;
+    try {
+      const dados = await reunirDadosPaciente(p);
+      const json = JSON.stringify(dados, null, 2);
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const nome = (p.nome || "paciente").replace(/[^a-zA-Z0-9À-ú ]/g, "").replace(/\s+/g, "-").slice(0, 60);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "prontuario-" + nome + "-" + hojeISO() + ".json";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      toast("Dados exportados com sucesso.");
+    } catch(e){
+      toast("Erro ao exportar: " + (e.message || "falha desconhecida"));
+    } finally {
+      destravarBotao(btn);
+    }
+  });
+
+  async function reunirDadosPaciente(p){
+    const id = p.id;
+    const exportado = {
+      versao: "1.0",
+      exportadoEm: new Date().toISOString(),
+      paciente: {
+        nome: p.nome, sexo: p.sexo, nascimento: p.nascimento,
+        email: p.email, telefone: p.telefone, queixa: p.queixa,
+        objetivo: p.objetivo, inicio: p.inicio, status: p.status,
+        created_at: p.created_at
+      }
+    };
+    if(p.oq3) exportado.oq3 = p.oq3;
+    if(p.pqq) exportado.pqq = p.pqq;
+    if(p.holoscan) exportado.holoscan = p.holoscan;
+    const sit = window.Panorama && window.Panorama.doPaciente
+      ? window.Panorama.doPaciente(id) : null;
+    if(sit){
+      if(sit.pontuacao) exportado.pontuacao = sit.pontuacao;
+      if(sit.ferramentas && sit.ferramentas.length) exportado.ferramentas = sit.ferramentas;
+      if(sit.historico && sit.historico.length) exportado.historico = sit.historico;
+      if(sit.exames) exportado.totalExames = sit.exames;
+    }
+    if(window.Agenda && window.Agenda.todas){
+      const consultas = window.Agenda.todas(id);
+      if(consultas && consultas.length) exportado.consultas = consultas;
+    }
+    if(window.ArquivoStore && window.ArquivoStore.listar){
+      try {
+        const docs = await window.ArquivoStore.listar(id);
+        if(docs && docs.length){
+          exportado.documentos = docs.map(d => ({
+            id: d.id, nome: d.nome, tipo: d.tipo,
+            tamanho: d.tamanho, created_at: d.created_at
+          }));
+        }
+      } catch(e){}
+    }
+    return exportado;
+  }
+
   /* ---------- o que cada acao da lista faz ----------
 
      Um lugar so decide para onde cada destino leva, porque o mesmo destino
@@ -890,6 +1023,66 @@
     $$(".pac-acao-mais").forEach(b => b.setAttribute("aria-expanded", "false"));
   }
 
+  async function confirmarArquivar(ids, nomeExibicao){
+    const consultas = window.Agenda && window.Agenda.todas
+      ? ids.flatMap(id => (window.Agenda.todas(id) || []).filter(c => c.data >= hojeISO()))
+      : [];
+    let corpo = "<p>O paciente ficará oculto da listagem principal e não será possível "
+      + "registrar novos atendimentos enquanto estiver arquivado.</p>";
+    if(consultas.length > 0){
+      corpo += '<p style="margin-top:10px;color:var(--movimento-desce)">'
+        + "⚠ Há <b>" + consultas.length + "</b> " + (consultas.length === 1 ? "consulta futura agendada" : "consultas futuras agendadas")
+        + " que continuarão visíveis na agenda.</p>";
+    }
+    corpo += '<p style="margin-top:10px;font-size:.82rem;color:var(--texto-suave)">'
+      + "Você poderá reativar a qualquer momento.</p>";
+    const r = await abrirModalConfirmar({
+      titulo: "Arquivar " + escapar(nomeExibicao) + "?",
+      corpo: corpo,
+      botaoConfirmar: "Arquivar"
+    });
+    if(r === "confirmar") mudarStatus(ids, "inativo");
+  }
+
+  async function confirmarRemover(ids, nomeExibicao){
+    const resumo = await contarRegistros(ids);
+    let corpo = "<p>Esta ação é <b>irreversível</b>. Todos os registros dessa ficha serão apagados:</p>"
+      + '<ul style="margin:10px 0;font-size:.88rem;color:var(--texto)">';
+    if(resumo.consultas)   corpo += "<li>" + resumo.consultas + " consulta(s)</li>";
+    if(resumo.holoscan)    corpo += "<li>" + resumo.holoscan + " aplicação(ões) HOLOSCAN</li>";
+    if(resumo.documentos)  corpo += "<li>" + resumo.documentos + " documento(s)</li>";
+    if(resumo.ferramentas) corpo += "<li>" + resumo.ferramentas + " ferramenta(s) aplicada(s)</li>";
+    if(!resumo.consultas && !resumo.holoscan && !resumo.documentos && !resumo.ferramentas)
+      corpo += "<li>Nenhum registro clínico encontrado</li>";
+    corpo += "</ul>"
+      + '<p style="font-size:.82rem;color:var(--texto-suave)">Considere <b>arquivar</b> o paciente em vez de excluir.</p>';
+    const r = await abrirModalConfirmar({
+      titulo: "Excluir " + escapar(nomeExibicao) + "?",
+      corpo: corpo,
+      botaoConfirmar: "Excluir definitivamente",
+      botaoArquivar: "Arquivar em vez disso"
+    });
+    if(r === "confirmar") removerPacientes(ids);
+    else if(r === "arquivar") mudarStatus(ids, "inativo");
+  }
+
+  async function contarRegistros(ids){
+    let consultas = 0, holoscan = 0, documentos = 0, ferramentas = 0;
+    for(const id of ids){
+      if(window.Agenda && window.Agenda.todas) consultas += (window.Agenda.todas(id) || []).length;
+      const sit = window.Panorama && window.Panorama.doPaciente ? window.Panorama.doPaciente(id) : null;
+      if(sit){
+        if(sit.pontuacao) holoscan++;
+        ferramentas += (sit.ferramentas || []).length;
+      }
+      if(window.ArquivoStore && window.ArquivoStore.listar){
+        try { const docs = await window.ArquivoStore.listar(id); documentos += (docs || []).length; }
+        catch(e){}
+      }
+    }
+    return { consultas, holoscan, documentos, ferramentas };
+  }
+
   async function mudarStatus(ids, novo){
     for(const id of ids){
       const { error } = await sb.from("pacientes").update({ status: novo }).eq("id", id);
@@ -901,8 +1094,8 @@
     renderPacientes();
     const quantos = ids.length;
     toast(quantos === 1
-      ? (novo === "inativo" ? "Paciente marcado como inativo." : "Paciente reativado.")
-      : quantos + (novo === "inativo" ? " marcados como inativos." : " reativados."));
+      ? (novo === "inativo" ? "Paciente arquivado." : "Paciente reativado.")
+      : quantos + (novo === "inativo" ? " pacientes arquivados." : " reativados."));
   }
 
   /* Antes, isto apagava UMA coisa: a linha do paciente na tabela. As
@@ -975,11 +1168,13 @@
       const p = estado.pacientes.find(x => x.id === id);
       if(!p) return;
       if(item.dataset.item === "status"){
-        mudarStatus([id], p.status === "inativo" ? "ativo" : "inativo");
-      } else if(item.dataset.item === "remover"){
-        if(confirm("Remover " + p.nome + "? Todos os registros dessa ficha serão apagados.")){
-          removerPacientes([id]);
+        if(p.status !== "inativo"){
+          confirmarArquivar([id], p.nome);
+        } else {
+          mudarStatus([id], "ativo");
         }
+      } else if(item.dataset.item === "remover"){
+        confirmarRemover([id], p.nome);
       } else {
         levarPara(item.dataset.item, id);
       }
@@ -997,12 +1192,19 @@
       const ids = [...selecionados];
       if(!ids.length) return;
       if(lote.dataset.lote === "remover"){
-        if(confirm("Remover " + ids.length + (ids.length === 1 ? " paciente" : " pacientes")
-           + "? Todos os registros dessas fichas serão apagados.")){
-          removerPacientes(ids);
-        }
+        const nomes = ids.map(id => {
+          const pp = estado.pacientes.find(x => x.id === id);
+          return pp ? pp.nome : "";
+        }).filter(Boolean);
+        confirmarRemover(ids, nomes.length === 1 ? nomes[0] : ids.length + " pacientes");
+      } else if(lote.dataset.lote === "inativar"){
+        const nomes = ids.map(id => {
+          const pp = estado.pacientes.find(x => x.id === id);
+          return pp ? pp.nome : "";
+        }).filter(Boolean);
+        confirmarArquivar(ids, nomes.length === 1 ? nomes[0] : ids.length + " pacientes");
       } else {
-        mudarStatus(ids, lote.dataset.lote === "inativar" ? "inativo" : "ativo");
+        mudarStatus(ids, "ativo");
       }
       return;
     }

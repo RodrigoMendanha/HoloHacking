@@ -2304,7 +2304,34 @@ body.escuro .btn-tema .icone-lua{display:none}
 }
 .fic-janela-fechar:hover{color:var(--texto);background:var(--halo)}
 .fic-janela-corpo{padding:22px 26px 26px;overflow-y:auto}
+.fic-janela-rodape{
+  display:flex;justify-content:flex-end;gap:10px;
+  padding:14px 26px;border-top:1px solid var(--borda-suave);
+}
+.fic-janela-rodape .btn-cancelar{
+  border:1px solid var(--borda-suave);background:var(--sup-fundo);
+  color:var(--texto);padding:8px 18px;border-radius:8px;cursor:pointer;font-size:.88rem;
+}
+.fic-janela-rodape .btn-cancelar:hover{background:var(--halo)}
+.fic-janela-rodape .btn-perigo{
+  border:none;background:var(--movimento-desce);
+  color:#fff;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:.88rem;font-weight:500;
+}
+.fic-janela-rodape .btn-perigo:hover{opacity:.85}
+.fic-janela-rodape .btn-arquivar{
+  border:none;background:var(--dourado);
+  color:#fff;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:.88rem;font-weight:500;
+}
+.fic-janela-rodape .btn-arquivar:hover{opacity:.85}
+.fic-janela-estreita .fic-janela-caixa,
+.fic-janela-estreita{width:min(32rem,100%)}
 .fic-janela-acoes{display:flex;justify-content:flex-end;margin-top:22px}
+.fic-acoes-topo .bloqueado{opacity:.4;pointer-events:none}
+.fic-aviso-arquivado{
+  display:flex;align-items:center;gap:8px;padding:8px 16px;margin:8px 0 0;
+  background:rgba(220,80,60,.08);border:1px solid rgba(220,80,60,.25);border-radius:8px;
+  font-size:.82rem;color:var(--movimento-desce);
+}
 
 .fic-res{
   border:1px solid var(--dourado-suave);border-radius:12px;
@@ -3065,6 +3092,10 @@ body.escuro .btn-tema .icone-lua{display:none}
 .pac-status.ativo{
   color:var(--movimento-sobe);border-color:transparent;
   background:var(--halo);
+}
+.pac-status.arquivado{
+  color:var(--movimento-desce);border-color:var(--movimento-desce);
+  background:transparent;
 }
 
 .pac-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px}

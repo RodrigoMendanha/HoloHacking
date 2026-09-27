@@ -602,17 +602,27 @@
       var abrir = ev.target.closest("[data-abrir]");
       if (abrir) {
         window.ArquivoStore.pegar(abrir.dataset.abrir).then(function (r) {
-          if (!r) return;
-          // o navegador abre; o endereco temporario e liberado depois
+          if (!r || !r.arquivo) {
+            if (window.avisar) window.avisar("Arquivo indisponível. Pode ter sido removido.");
+            return;
+          }
           var url = URL.createObjectURL(r.arquivo);
           window.open(url, "_blank");
           setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+        }).catch(function () {
+          if (window.avisar) window.avisar("Erro ao abrir o arquivo.");
         });
         return;
       }
       var tirar = ev.target.closest("[data-tirar]");
       if (tirar) {
-        window.ArquivoStore.remover(tirar.dataset.tirar).then(listarDocumentos);
+        if (!confirm("Excluir este documento? Esta ação não pode ser desfeita.")) return;
+        window.ArquivoStore.remover(tirar.dataset.tirar).then(function () {
+          listarDocumentos();
+          if (window.avisar) window.avisar("Documento excluído.");
+        }).catch(function (err) {
+          if (window.avisar) window.avisar("Erro ao excluir documento.");
+        });
       }
     });
   }

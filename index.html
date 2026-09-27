@@ -817,6 +817,7 @@
                 <button type="button" class="perf-botao" data-ir="aba:documentos">Registrar exames</button>
                 <button type="button" class="perf-botao" data-ir="aba:documentos">Novo documento</button>
                 <button type="button" class="btn-verde" data-atalho="holoscan">Aplicar HOLOSCAN</button>
+                <button type="button" class="perf-botao" id="btn-exportar-paciente" aria-label="Exportar dados do paciente">Exportar dados</button>
               </div>
             </header>
 
@@ -906,6 +907,23 @@
                         aria-label="Fechar">&times;</button>
               </div>
               <div class="fic-janela-corpo" id="fic-janela-corpo"></div>
+            </div>
+          </div>
+
+          <!-- Modal de confirmacao: arquivar e excluir paciente -->
+          <div class="fic-janela hidden" id="modal-confirmar-acao" role="dialog"
+               aria-modal="true" aria-labelledby="modal-confirmar-titulo">
+            <div class="fic-janela-caixa fic-janela-estreita">
+              <div class="fic-janela-topo">
+                <div>
+                  <h3 id="modal-confirmar-titulo">Confirmar</h3>
+                  <p id="modal-confirmar-sub"></p>
+                </div>
+                <button type="button" class="fic-janela-fechar" id="modal-confirmar-fechar"
+                        aria-label="Fechar">&times;</button>
+              </div>
+              <div class="fic-janela-corpo" id="modal-confirmar-corpo"></div>
+              <div class="fic-janela-rodape" id="modal-confirmar-rodape"></div>
             </div>
           </div>
         </div>
