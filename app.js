@@ -1063,6 +1063,27 @@
 
   async function confirmarRemover(ids, nomeExibicao){
     const resumo = await contarRegistros(ids);
+    const temHistorico = resumo.consultas || resumo.holoscan || resumo.documentos || resumo.ferramentas;
+    const autenticado = window.HoloAuth && window.HoloAuth.sessaoAtiva();
+
+    if(temHistorico && autenticado){
+      let corpo = "<p>Este paciente possui histórico clínico e não pode ser excluído definitivamente.</p>"
+        + '<ul style="margin:10px 0;font-size:.88rem;color:var(--texto)">';
+      if(resumo.consultas)   corpo += "<li>" + resumo.consultas + " consulta(s)</li>";
+      if(resumo.holoscan)    corpo += "<li>" + resumo.holoscan + " aplicação(ões) HOLOSCAN</li>";
+      if(resumo.documentos)  corpo += "<li>" + resumo.documentos + " documento(s)</li>";
+      if(resumo.ferramentas) corpo += "<li>" + resumo.ferramentas + " ferramenta(s) aplicada(s)</li>";
+      corpo += "</ul>"
+        + '<p style="font-size:.82rem;color:var(--texto-suave)">Arquive o paciente para preservar o prontuário.</p>';
+      const r = await abrirModalConfirmar({
+        titulo: "Não é possível excluir " + escapar(nomeExibicao),
+        corpo: corpo,
+        botaoArquivar: "Arquivar paciente"
+      });
+      if(r === "arquivar") mudarStatus(ids, "inativo");
+      return;
+    }
+
     let corpo = "<p>Esta ação é <b>irreversível</b>. Todos os registros dessa ficha serão apagados:</p>"
       + '<ul style="margin:10px 0;font-size:.88rem;color:var(--texto)">';
     if(resumo.consultas)   corpo += "<li>" + resumo.consultas + " consulta(s)</li>";
@@ -1128,9 +1149,15 @@
       toast("A exclusão segura não está disponível neste navegador.");
       return;
     }
-    /* Uma operacao so para todos os selecionados: N operacoes seriam N
-       snapshots e N janelas de crash, e um crash no meio deixaria metade
-       apagada e metade nao, sem nada dizendo qual era qual. */
+    if(window.HoloAuth && window.HoloAuth.sessaoAtiva() && window.supabaseClient){
+      for(const id of ids){
+        const { error } = await window.supabaseClient.from("patients").delete().eq("id", id);
+        if(error){
+          toast("Não foi possível excluir: paciente possui dados no prontuário. Arquive-o.");
+          return;
+        }
+      }
+    }
     const r = await window.Armazenamento.excluirPaciente(ids, { confirmado: true });
     if(!r.aplicado){
       toast("Não foi possível remover: " + (r.motivo || "erro desconhecido"));
