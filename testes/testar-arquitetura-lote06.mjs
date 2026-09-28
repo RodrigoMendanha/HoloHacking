@@ -98,11 +98,34 @@ const appJs = lerArquivo('app.js');
 ok(/HoloAuth.*sessaoAtiva\(\)/.test(appJs) && /Não é possível excluir/.test(appJs),
   'confirmarRemover verifica sessão autenticada e bloqueia exclusão com histórico');
 
+ok(/supabaseClient\.from\(.*consultations.*\).*count.*exact/.test(appJs),
+  'contarRegistros consulta consultations no Supabase quando autenticado');
+
+ok(/supabaseClient\.from\(.*holoscan_applications.*\).*count.*exact/.test(appJs),
+  'contarRegistros consulta holoscan_applications no Supabase');
+
+ok(/supabaseClient\.from\(.*lab_collections.*\).*count.*exact/.test(appJs),
+  'contarRegistros consulta lab_collections (exames) no Supabase');
+
+ok(/supabaseClient\.from\(.*tool_applications.*\).*count.*exact/.test(appJs),
+  'contarRegistros consulta tool_applications no Supabase');
+
+ok(/supabaseClient\.from\(.*documents.*\).*count.*exact/.test(appJs),
+  'contarRegistros consulta documents no Supabase');
+
+ok(/resumo\.exames/.test(appJs),
+  'temHistorico inclui exames (lab_collections) na verificação');
+
 ok(/supabaseClient\.from\(.*patients.*\)\.delete\(\)/.test(appJs),
   'removerPacientes tenta deletar do Supabase antes do cleanup local');
 
 ok(/paciente possui dados no prontuário/.test(appJs),
   'removerPacientes mostra mensagem adequada se RESTRICT bloquear');
+
+const deleteIdx = appJs.indexOf('supabaseClient.from("patients").delete()');
+const localIdx = appJs.indexOf('Armazenamento.excluirPaciente', deleteIdx);
+ok(deleteIdx > 0 && localIdx > deleteIdx,
+  'removerPacientes: Supabase delete aparece ANTES do cleanup local no código');
 
 /* ============================================================ D) EXPORTAÇÃO */
 
@@ -119,6 +142,14 @@ ok(/Panorama.*doPaciente/.test(appJs),
 
 ok(/produto.*HoloHacking/.test(appJs) && /versaoExportacao/.test(appJs),
   'exportação inclui metadados de produto');
+
+ok(!/access_token|refresh_token|service_role|anon.*key|supabase.*secret/.test(
+  appJs.slice(appJs.indexOf('reunirDadosPaciente'), appJs.indexOf('reunirDadosPaciente') + 2000)),
+  'exportação NÃO inclui tokens, secrets ou service_role');
+
+ok(!/signedUrl|createSignedUrl/.test(
+  appJs.slice(appJs.indexOf('reunirDadosPaciente'), appJs.indexOf('reunirDadosPaciente') + 2000)),
+  'exportação NÃO gera signed URLs');
 
 /* ============================================================ E) ARQUIVAMENTO */
 

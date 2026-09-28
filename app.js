@@ -1063,7 +1063,7 @@
 
   async function confirmarRemover(ids, nomeExibicao){
     const resumo = await contarRegistros(ids);
-    const temHistorico = resumo.consultas || resumo.holoscan || resumo.documentos || resumo.ferramentas;
+    const temHistorico = resumo.consultas || resumo.holoscan || resumo.documentos || resumo.ferramentas || resumo.exames;
     const autenticado = window.HoloAuth && window.HoloAuth.sessaoAtiva();
 
     if(temHistorico && autenticado){
@@ -1071,6 +1071,7 @@
         + '<ul style="margin:10px 0;font-size:.88rem;color:var(--texto)">';
       if(resumo.consultas)   corpo += "<li>" + resumo.consultas + " consulta(s)</li>";
       if(resumo.holoscan)    corpo += "<li>" + resumo.holoscan + " aplicação(ões) HOLOSCAN</li>";
+      if(resumo.exames)      corpo += "<li>" + resumo.exames + " coleta(s) de exames</li>";
       if(resumo.documentos)  corpo += "<li>" + resumo.documentos + " documento(s)</li>";
       if(resumo.ferramentas) corpo += "<li>" + resumo.ferramentas + " ferramenta(s) aplicada(s)</li>";
       corpo += "</ul>"
@@ -1088,9 +1089,10 @@
       + '<ul style="margin:10px 0;font-size:.88rem;color:var(--texto)">';
     if(resumo.consultas)   corpo += "<li>" + resumo.consultas + " consulta(s)</li>";
     if(resumo.holoscan)    corpo += "<li>" + resumo.holoscan + " aplicação(ões) HOLOSCAN</li>";
+    if(resumo.exames)      corpo += "<li>" + resumo.exames + " coleta(s) de exames</li>";
     if(resumo.documentos)  corpo += "<li>" + resumo.documentos + " documento(s)</li>";
     if(resumo.ferramentas) corpo += "<li>" + resumo.ferramentas + " ferramenta(s) aplicada(s)</li>";
-    if(!resumo.consultas && !resumo.holoscan && !resumo.documentos && !resumo.ferramentas)
+    if(!resumo.consultas && !resumo.holoscan && !resumo.documentos && !resumo.ferramentas && !resumo.exames)
       corpo += "<li>Nenhum registro clínico encontrado</li>";
     corpo += "</ul>"
       + '<p style="font-size:.82rem;color:var(--texto-suave)">Considere <b>arquivar</b> o paciente em vez de excluir.</p>';
@@ -1105,8 +1107,26 @@
   }
 
   async function contarRegistros(ids){
-    let consultas = 0, holoscan = 0, documentos = 0, ferramentas = 0;
+    let consultas = 0, holoscan = 0, documentos = 0, ferramentas = 0, exames = 0;
+    const autenticado = window.HoloAuth && window.HoloAuth.sessaoAtiva() && window.supabaseClient;
     for(const id of ids){
+      if(autenticado){
+        try {
+          const [rC, rH, rL, rT, rD] = await Promise.all([
+            window.supabaseClient.from("consultations").select("id", { count: "exact", head: true }).eq("patient_id", id),
+            window.supabaseClient.from("holoscan_applications").select("id", { count: "exact", head: true }).eq("patient_id", id),
+            window.supabaseClient.from("lab_collections").select("id", { count: "exact", head: true }).eq("patient_id", id),
+            window.supabaseClient.from("tool_applications").select("id", { count: "exact", head: true }).eq("patient_id", id),
+            window.supabaseClient.from("documents").select("id", { count: "exact", head: true }).eq("patient_id", id)
+          ]);
+          consultas   += rC.count || 0;
+          holoscan    += rH.count || 0;
+          exames      += rL.count || 0;
+          ferramentas += rT.count || 0;
+          documentos  += rD.count || 0;
+          continue;
+        } catch(e){ /* fallback to local below */ }
+      }
       if(window.Agenda && window.Agenda.todas) consultas += (window.Agenda.todas(id) || []).length;
       const sit = window.Panorama && window.Panorama.doPaciente ? window.Panorama.doPaciente(id) : null;
       if(sit){
@@ -1118,7 +1138,7 @@
         catch(e){}
       }
     }
-    return { consultas, holoscan, documentos, ferramentas };
+    return { consultas, holoscan, documentos, ferramentas, exames };
   }
 
   async function mudarStatus(ids, novo){

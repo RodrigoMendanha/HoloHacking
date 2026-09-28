@@ -245,7 +245,7 @@ const exclusao = await p.evaluate(async (id) => {
   return {
     visivel,
     titulo: titulo ? titulo.textContent : '',
-    temResumo: corpo ? /consulta|documento|HOLOSCAN|Nenhum/i.test(corpo.textContent) : false,
+    temResumo: corpo ? /consulta|documento|HOLOSCAN|exame|Nenhum/i.test(corpo.textContent) : false,
     temArquivar,
     temExcluir,
     mencionaArquivar: corpo ? /arquivar/i.test(corpo.textContent) : false
@@ -582,6 +582,214 @@ const sanitize = await p.evaluate(() => {
 ok(!/[<>'"&]/.test(sanitize), 'nome sanitizado remove caracteres perigosos: ' + sanitize);
 ok(!/[À-ú]/.test(sanitize), 'nome sanitizado remove acentos: ' + sanitize);
 ok(sanitize.length <= 60, 'nome truncado a 60 caracteres');
+
+/* ============================================================ 16. EXCLUSÃO AUTENTICADA (MOCKED) */
+
+console.log('\n  16. EXCLUSÃO AUTENTICADA — mock Supabase');
+
+// Navegar para a lista de pacientes e reativar pac-A para ter um paciente ativo disponível
+await p.evaluate(() => document.querySelector('.nav-item[data-secao="pacientes"]').click());
+await esperar(300);
+
+// Reativar pac-A se estiver arquivado
+await p.evaluate(async (id) => {
+  const card = document.querySelector('.card-paciente[data-id="' + id + '"]');
+  if (!card) return;
+  const badge = card.querySelector('.badge-status');
+  if (badge && /Arquivado/i.test(badge.textContent)) {
+    document.querySelector('[data-menu="' + id + '"]').click();
+    await new Promise(r => setTimeout(r, 100));
+    const item = document.querySelector('#menu-' + id + ' [data-item="status"]');
+    if (item) item.click();
+    await new Promise(r => setTimeout(r, 400));
+    const ok = document.getElementById('modal-confirmar-ok');
+    if (ok) ok.click();
+    await new Promise(r => setTimeout(r, 400));
+  }
+}, ids.ana);
+await esperar(400);
+
+// 16a: COM HISTÓRICO — mock Supabase returning counts
+const mockHistResult = await p.evaluate(async (id) => {
+  const calls = [];
+  const origAuth = window.HoloAuth;
+  const origSupa = window.supabaseClient;
+  window.HoloAuth = { sessaoAtiva: () => true, usuarioAtual: () => ({ id: 'uid-mock' }) };
+  window.supabaseClient = {
+    from: (table) => {
+      calls.push(table);
+      return {
+        select: () => ({
+          eq: () => Promise.resolve({
+            count: table === 'consultations' ? 3 : 0,
+            error: null
+          })
+        }),
+        delete: () => ({
+          eq: () => Promise.resolve({ error: { message: 'violates FK constraint' } })
+        }),
+        update: () => ({
+          eq: () => Promise.resolve({ error: null })
+        })
+      };
+    }
+  };
+
+  document.querySelector('[data-menu="' + id + '"]').click();
+  await new Promise(r => setTimeout(r, 100));
+  const item = document.querySelector('#menu-' + id + ' [data-item="remover"]');
+  if (item) item.click();
+  await new Promise(r => setTimeout(r, 800));
+
+  const modal = document.getElementById('modal-confirmar-acao');
+  const titulo = document.getElementById('modal-confirmar-titulo');
+  const corpo = document.getElementById('modal-confirmar-corpo');
+  const rodape = document.getElementById('modal-confirmar-rodape');
+  const temExcluir = !!document.getElementById('modal-confirmar-ok');
+
+  const result = {
+    visivel: modal && !modal.classList.contains('hidden'),
+    titulo: titulo ? titulo.textContent : '',
+    temExcluir,
+    temArquivar: rodape ? !!rodape.querySelector('.btn-arquivar') : false,
+    bloqueou: titulo ? /Não é possível excluir/.test(titulo.textContent) : false,
+    queriesSupa: calls.filter(t => t !== 'patients'),
+    corpoTexto: corpo ? corpo.textContent : ''
+  };
+
+  const fechar = document.getElementById('modal-confirmar-fechar');
+  if (fechar) fechar.click();
+  window.HoloAuth = origAuth;
+  window.supabaseClient = origSupa;
+  return result;
+}, ids.ana);
+
+ok(mockHistResult.visivel, '16a: modal abre para paciente autenticado com histórico');
+ok(mockHistResult.bloqueou, '16a: título diz "Não é possível excluir"');
+ok(!mockHistResult.temExcluir, '16a: botão "Excluir definitivamente" NÃO aparece');
+ok(mockHistResult.temArquivar, '16a: botão "Arquivar paciente" aparece');
+ok(mockHistResult.queriesSupa.includes('consultations'), '16a: contarRegistros consultou consultations');
+ok(mockHistResult.queriesSupa.includes('holoscan_applications'), '16a: contarRegistros consultou holoscan_applications');
+ok(mockHistResult.queriesSupa.includes('lab_collections'), '16a: contarRegistros consultou lab_collections');
+ok(mockHistResult.queriesSupa.includes('tool_applications'), '16a: contarRegistros consultou tool_applications');
+ok(mockHistResult.queriesSupa.includes('documents'), '16a: contarRegistros consultou documents');
+ok(/3 consulta/.test(mockHistResult.corpoTexto), '16a: modal mostra contagem de consultas do Supabase');
+
+await esperar(300);
+
+// 16b: SEM HISTÓRICO — mock Supabase returning zero counts
+const mockSemResult = await p.evaluate(async (id) => {
+  const origAuth = window.HoloAuth;
+  const origSupa = window.supabaseClient;
+  window.HoloAuth = { sessaoAtiva: () => true, usuarioAtual: () => ({ id: 'uid-mock' }) };
+  window.supabaseClient = {
+    from: (table) => ({
+      select: () => ({
+        eq: () => Promise.resolve({ count: 0, error: null })
+      }),
+      delete: () => ({
+        eq: () => Promise.resolve({ error: null })
+      }),
+      update: () => ({
+        eq: () => Promise.resolve({ error: null })
+      })
+    })
+  };
+
+  document.querySelector('[data-menu="' + id + '"]').click();
+  await new Promise(r => setTimeout(r, 100));
+  const item = document.querySelector('#menu-' + id + ' [data-item="remover"]');
+  if (item) item.click();
+  await new Promise(r => setTimeout(r, 800));
+
+  const modal = document.getElementById('modal-confirmar-acao');
+  const titulo = document.getElementById('modal-confirmar-titulo');
+  const temExcluir = !!document.getElementById('modal-confirmar-ok');
+
+  const result = {
+    visivel: modal && !modal.classList.contains('hidden'),
+    titulo: titulo ? titulo.textContent : '',
+    temExcluir,
+    permiteExcluir: titulo ? /Excluir/.test(titulo.textContent) : false
+  };
+
+  const fechar = document.getElementById('modal-confirmar-fechar');
+  if (fechar) fechar.click();
+  window.HoloAuth = origAuth;
+  window.supabaseClient = origSupa;
+  return result;
+}, ids.ana);
+
+ok(mockSemResult.visivel, '16b: modal abre para paciente sem histórico');
+ok(mockSemResult.permiteExcluir, '16b: título permite excluir: ' + mockSemResult.titulo);
+ok(mockSemResult.temExcluir, '16b: botão "Excluir definitivamente" APARECE');
+
+await esperar(300);
+
+// 16c: FALHA REMOTA — Supabase delete falha, local preservado
+const mockFalhaResult = await p.evaluate(async (id) => {
+  const origAuth = window.HoloAuth;
+  const origSupa = window.supabaseClient;
+  let deleteChamado = false;
+  window.HoloAuth = { sessaoAtiva: () => true, usuarioAtual: () => ({ id: 'uid-mock' }) };
+  window.supabaseClient = {
+    from: (table) => ({
+      select: () => ({
+        eq: () => Promise.resolve({ count: 0, error: null })
+      }),
+      delete: () => ({
+        eq: () => {
+          deleteChamado = true;
+          return Promise.resolve({ error: { message: 'RESTRICT violation' } });
+        }
+      }),
+      update: () => ({
+        eq: () => Promise.resolve({ error: null })
+      })
+    })
+  };
+
+  document.querySelector('[data-menu="' + id + '"]').click();
+  await new Promise(r => setTimeout(r, 100));
+  const item = document.querySelector('#menu-' + id + ' [data-item="remover"]');
+  if (item) item.click();
+  await new Promise(r => setTimeout(r, 800));
+
+  const modal = document.getElementById('modal-confirmar-acao');
+  if (modal && !modal.classList.contains('hidden')) {
+    const okBtn = document.getElementById('modal-confirmar-ok');
+    if (okBtn) okBtn.click();
+    await new Promise(r => setTimeout(r, 800));
+  }
+
+  const pacs = JSON.parse(localStorage.getItem('holohacking.dados.pacientes') || '[]');
+  const aindaTem = pacs.some(p => p.id === id);
+
+  window.HoloAuth = origAuth;
+  window.supabaseClient = origSupa;
+  return { deleteChamado, aindaTem };
+}, ids.ana);
+
+ok(mockFalhaResult.deleteChamado, '16c: Supabase delete foi tentado');
+ok(mockFalhaResult.aindaTem, '16c: falha remota preservou cache local do paciente');
+
+await esperar(300);
+
+// 16d: EXPORTAÇÃO — segurança (sem tokens)
+const exportSeg = await p.evaluate(() => {
+  const pacs = JSON.parse(localStorage.getItem('holohacking.dados.pacientes') || '[]');
+  const pac = pacs[0];
+  if (!pac) return { ok: true };
+  const json = JSON.stringify(pac);
+  return {
+    semToken: !/access_token|refresh_token|service_role|anon.*key/.test(json),
+    semSignedUrl: !/signedUrl|createSignedUrl/.test(json),
+    semSenha: !/password|senha/.test(json)
+  };
+});
+ok(exportSeg.semToken !== false, '16d: dados do paciente não contêm tokens');
+ok(exportSeg.semSignedUrl !== false, '16d: dados do paciente não contêm signed URLs');
+ok(exportSeg.semSenha !== false, '16d: dados do paciente não contêm senhas');
 
 /* ============================================================ FIM */
 
