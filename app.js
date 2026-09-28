@@ -2557,13 +2557,14 @@
         .select("id, patient_id, quando, versao_estrutura, versao_bancos, indice, indice_maximo, avaliavel, nota_media, triada, triada_com_dado, cobertura, combinacoes, aprofundamentos, interpretacao_texto, interpretacao_em, interpretacao_versao, created_at")
         .order("quando", { ascending: true });
 
-      if (appErr || !apps || !apps.length) return;
+      if (appErr) { console.warn("sincronizarHistoricoHoloscan: erro leitura apps:", appErr.message); return; }
+      if (!apps) return;
 
       const { data: allScores, error: scErr } = await window.supabaseClient
         .from("holoscan_system_scores")
         .select("application_id, sistema, nome, nota, carga, faixa, obtido, maximo, respondidos, total_marcadores, avaliavel");
 
-      if (scErr) return;
+      if (scErr) { console.warn("sincronizarHistoricoHoloscan: erro leitura scores:", scErr.message); return; }
 
       var scoresByApp = {};
       (allScores || []).forEach(function(s) {
@@ -2573,10 +2574,12 @@
 
       var tudo = lerHistorico();
       var mudou = false;
+      var remoteAppIds = {};
 
       apps.forEach(function(app) {
         var pid = app.patient_id;
         if (!tudo[pid]) tudo[pid] = [];
+        remoteAppIds[app.id] = true;
 
         var jaExiste = tudo[pid].some(function(e) {
           return e.quando === app.quando && e._supa_id === app.id;
@@ -2644,8 +2647,70 @@
         localStorage.setItem("holohacking.pontuacao", JSON.stringify(tudo));
         carregarHoloscan();
       }
+
+      sincronizarRespostasHoloscan(apps);
     } catch (e) {
       console.error("sincronizarHistoricoHoloscan:", e);
+    }
+  }
+
+  async function sincronizarRespostasHoloscan(apps) {
+    if (!apps || !apps.length) return;
+    try {
+      var ultimaPorPaciente = {};
+      apps.forEach(function(a) {
+        if (!ultimaPorPaciente[a.patient_id] ||
+            a.quando > ultimaPorPaciente[a.patient_id].quando) {
+          ultimaPorPaciente[a.patient_id] = a;
+        }
+      });
+
+      var appIds = Object.keys(ultimaPorPaciente).map(function(pid) {
+        return ultimaPorPaciente[pid].id;
+      });
+      if (!appIds.length) return;
+
+      var qLocal;
+      try { qLocal = JSON.parse(localStorage.getItem("holohacking.questionario")) || {}; }
+      catch(e) { qLocal = {}; }
+
+      var pidsParaBuscar = Object.keys(ultimaPorPaciente).filter(function(pid) {
+        return !qLocal[pid] || Object.keys(qLocal[pid]).length === 0;
+      });
+      if (!pidsParaBuscar.length) return;
+
+      var idsParaBuscar = pidsParaBuscar.map(function(pid) {
+        return ultimaPorPaciente[pid].id;
+      });
+
+      var { data: answers, error: ansErr } = await window.supabaseClient
+        .from("holoscan_answers")
+        .select("application_id, marcador_id, valor")
+        .in("application_id", idsParaBuscar);
+
+      if (ansErr || !answers || !answers.length) return;
+
+      var porApp = {};
+      answers.forEach(function(a) {
+        if (!porApp[a.application_id]) porApp[a.application_id] = {};
+        porApp[a.application_id][a.marcador_id] = a.valor;
+      });
+
+      var mudou = false;
+      pidsParaBuscar.forEach(function(pid) {
+        var appId = ultimaPorPaciente[pid].id;
+        var respostas = porApp[appId];
+        if (respostas && Object.keys(respostas).length > 0) {
+          qLocal[pid] = respostas;
+          mudou = true;
+        }
+      });
+
+      if (mudou) {
+        localStorage.setItem("holohacking.questionario", JSON.stringify(qLocal));
+      }
+    } catch(e) {
+      console.error("sincronizarRespostasHoloscan:", e);
     }
   }
 

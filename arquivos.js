@@ -478,11 +478,12 @@
 
     return window.supabaseClient
       .from("lab_collections")
-      .select("id, patient_id, coletado_em")
+      .select("id, patient_id, coletado_em, data_coleta_desconhecida, laboratorio, observacoes, created_at")
       .in("patient_id", ids)
       .order("coletado_em", { ascending: false })
       .then(function (colRes) {
-        if (colRes.error || !colRes.data || !colRes.data.length) return;
+        if (colRes.error) { console.warn("sincronizarExames: erro leitura coletas:", colRes.error.message); return; }
+        if (!colRes.data || !colRes.data.length) return;
 
         var maisRecente = {};
         colRes.data.forEach(function (c) {
@@ -495,10 +496,11 @@
 
         return window.supabaseClient
           .from("lab_results")
-          .select("collection_id, exame_id, valor")
+          .select("collection_id, exame_id, valor, unidade_no_momento, ideal_min_no_momento, ideal_max_no_momento, nome_exame_no_momento, sistema_no_momento")
           .in("collection_id", colIds)
           .then(function (resRes) {
-            if (resRes.error || !resRes.data) return;
+            if (resRes.error) { console.warn("sincronizarExames: erro leitura resultados:", resRes.error.message); return; }
+            if (!resRes.data) return;
 
             var porCollection = {};
             resRes.data.forEach(function (r) {
@@ -514,9 +516,14 @@
             Object.keys(maisRecente).forEach(function (pid) {
               var col = maisRecente[pid];
               var vals = porCollection[col.id] || {};
-              var localVals = tudo[pid] || {};
+              if (Object.keys(vals).length === 0) return;
 
-              if (Object.keys(localVals).length === 0 && Object.keys(vals).length > 0) {
+              var localVals = tudo[pid] || {};
+              var localCount = Object.keys(localVals).length;
+              var remoteCount = Object.keys(vals).length;
+
+              if (localCount === 0 || remoteCount > localCount ||
+                  JSON.stringify(localVals) !== JSON.stringify(vals)) {
                 tudo[pid] = vals;
                 mudou = true;
               }
@@ -525,6 +532,9 @@
             if (mudou) {
               localStorage.setItem(CHAVE_EX, JSON.stringify(tudo));
             }
+
+            window._coletasRemotasPorPaciente = maisRecente;
+            window._resultadosRemotosPorColeta = porCollection;
           });
       })
       .catch(function (e) {
