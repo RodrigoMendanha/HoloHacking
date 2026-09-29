@@ -91,6 +91,10 @@ begin
     'results', jsonb_build_array(resultado)));
   select count(*) into n from public.lab_results where collection_id = v_col;
   if n <> 1 then raise exception 'CHECAGEM salvar_coleta_exames (com data): % resultados (esperado 1)', n; end if;
+  -- a data escolhida e a que fica gravada (o campo "Data da coleta" do painel)
+  select count(*) into n from public.lab_collections
+   where id = v_col and coletado_em = date '1900-01-01' and data_coleta_desconhecida = false;
+  if n <> 1 then raise exception 'CHECAGEM salvar_coleta_exames (com data): a data escolhida nao foi gravada'; end if;
   raise notice 'ok salvar_coleta_exames com data';
 
   -- 4. salvar_coleta_exames, data desconhecida
