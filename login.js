@@ -78,11 +78,19 @@
     "holohacking.dados.aplicacoes", "holohacking.dados.perfil",
     "holohacking.pontuacao", "holohacking.questionario",
     "holohacking.ferramentas", "holohacking.exames",
-    "holohacking.agenda"
+    "holohacking.agenda", "holohacking.sincronizacao"
   ];
+
+  /* De quem sao as caixas clinicas que estao no disco AGORA. Gravado quando
+     uma sessao comeca, apagado no logout. Sem isto, uma sessao que terminou
+     sem SIGNED_OUT (token expirado, navegador fechado) deixava as caixas da
+     conta A no disco, e a conta B que entrasse depois as herdava — inclusive
+     para a migracao local → servidor, que as enviaria como sendo de B. */
+  var CHAVE_DONO = "holohacking.dono_local";
 
   function limparEstadoLocal(uidSaindo) {
     try {
+      if (!uidSaindo) uidSaindo = localStorage.getItem(CHAVE_DONO);
       if (uidSaindo) {
         CHAVES_CLINICAS.forEach(function (k) {
           var v = localStorage.getItem(k);
@@ -92,14 +100,32 @@
         });
       }
       CHAVES_CLINICAS.forEach(function (k) { localStorage.removeItem(k); });
+      localStorage.removeItem(CHAVE_DONO);
     } catch (e) { /* navegador em modo privado */ }
     if (window.limparEstadoApp) window.limparEstadoApp();
     if (window.limparEstadoPerfil) window.limparEstadoPerfil();
+    if (window.Sincronizacao) window.Sincronizacao.esquecer();
+    if (window.Agenda && window.Agenda.esquecer) window.Agenda.esquecer();
+    if (window.Aplicacoes && window.Aplicacoes.esquecer) window.Aplicacoes.esquecer();
   }
 
   function restaurarEstadoLocal(uid) {
     if (!uid) return;
     try {
+      /* O disco ainda tem as caixas de OUTRA conta (a sessao dela terminou
+         sem logout): guarda-as no stash dela e limpa antes de restaurar. */
+      var dono = localStorage.getItem(CHAVE_DONO);
+      if (dono && dono !== uid) {
+        CHAVES_CLINICAS.forEach(function (k) {
+          var v = localStorage.getItem(k);
+          if (v !== null) localStorage.setItem("holohacking._stash." + dono + "." + k, v);
+          localStorage.removeItem(k);
+        });
+        if (window.limparEstadoApp) window.limparEstadoApp();
+        if (window.Sincronizacao) window.Sincronizacao.esquecer();
+        if (window.Agenda && window.Agenda.esquecer) window.Agenda.esquecer();
+        if (window.Aplicacoes && window.Aplicacoes.esquecer) window.Aplicacoes.esquecer();
+      }
       CHAVES_CLINICAS.forEach(function (k) {
         var stash = "holohacking._stash." + uid + "." + k;
         var v = localStorage.getItem(stash);
@@ -107,6 +133,7 @@
           localStorage.setItem(k, v);
         }
       });
+      localStorage.setItem(CHAVE_DONO, uid);
     } catch (e) { /* navegador em modo privado */ }
   }
 

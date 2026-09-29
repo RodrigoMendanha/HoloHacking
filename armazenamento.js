@@ -260,6 +260,30 @@
       id: "pqq.migrado", chave: "holohacking.pqq.migrado",
       exportar: false, importar: false, limparTudo: true,
       observacao: "limpar ou reavaliar numa restauracao"
+    },
+    /* ---- Release 01: sessao Supabase ---------------------------------- */
+    {
+      id: "supa.migrado.legado", chave: "holohacking.migrado_supa_v1",
+      exportar: false, importar: false, limparTudo: true,
+      observacao: "marca GLOBAL da migracao local → Supabase antes do Release " +
+                  "01. So e lida (migracao-supa.js), nunca mais gravada."
+    },
+    {
+      id: "supa.migrado.conta", chave: "holohacking.migrado_supa.", prefixo: true,
+      exportar: false, importar: false, limparTudo: true,
+      observacao: "uma marca por uid: holohacking.migrado_supa.<uid>."
+    },
+    {
+      id: "sincronizacao", chave: "holohacking.sincronizacao",
+      exportar: false, importar: false, limparTudo: true,
+      observacao: "o que o navegador sabe da relacao entre as caixas locais e " +
+                  "o servidor (sincronizacao.js). Nao e dado clinico; " +
+                  "restaurar um backup a descarta."
+    },
+    {
+      id: "dono.local", chave: "holohacking.dono_local",
+      exportar: false, importar: false, limparTudo: true,
+      observacao: "o uid dono das caixas clinicas no disco (login.js)."
     }
   ];
 
