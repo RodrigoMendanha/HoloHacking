@@ -91,14 +91,26 @@ function semChave(texto: string, chave: string): string {
 
 type Fala = { autor: "visitante" | "agente"; texto: string };
 
-function limparHistorico(bruto: unknown): Fala[] {
+/** Quem falou, no formato do hub. O hub so aceita autor "visitante" ou
+    "agente" e DESCARTA CALADO qualquer outro item (ex.: {role, content}),
+    e o agente responde sem lembrar da conversa. Por isso a funcao aceita
+    tambem o formato role/content e o converte: a nutricionista vira
+    "visitante" e o MetaNutri vira "agente". O que nao da para mapear sai. */
+const AUTOR: Record<string, "visitante" | "agente"> = {
+  visitante: "visitante", user: "visitante", usuario: "visitante", nutricionista: "visitante",
+  agente: "agente", assistant: "agente", model: "agente", metanutri: "agente",
+};
+
+export function limparHistorico(bruto: unknown): Fala[] {
   if (!Array.isArray(bruto)) return [];
   const falas: Fala[] = [];
   for (const f of bruto) {
     if (!f || typeof f !== "object") continue;
-    const autor = (f as Record<string, unknown>).autor;
-    const texto = (f as Record<string, unknown>).texto;
-    if ((autor !== "visitante" && autor !== "agente") || typeof texto !== "string") continue;
+    const item = f as Record<string, unknown>;
+    const quem = typeof item.autor === "string" ? item.autor : item.role;
+    const texto = typeof item.texto === "string" ? item.texto : item.content;
+    const autor = typeof quem === "string" ? AUTOR[quem.trim().toLowerCase()] : undefined;
+    if (!autor || typeof texto !== "string") continue;
     const t = texto.trim();
     if (!t) continue;
     falas.push({ autor, texto: t.slice(0, MAX_MENSAGEM) });
