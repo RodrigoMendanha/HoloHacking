@@ -17,6 +17,7 @@
  *
  * Quando uma delas falhar, é sinal de progresso — não de regressão.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({

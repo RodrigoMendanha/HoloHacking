@@ -12,6 +12,7 @@
  *
  * A decisao D5 (27/08) e a regra: a palavra e "avaliacao integral".
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 

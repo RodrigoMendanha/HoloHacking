@@ -16,6 +16,7 @@
  *          nenhuma das superficies do Holoscan — nem tela, nem tooltip, nem
  *          relatorio.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 

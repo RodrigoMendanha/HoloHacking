@@ -9,6 +9,7 @@
  *   F  Sessao expirada bloqueia o app
  *   G  Tela de login protege telas clinicas
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';

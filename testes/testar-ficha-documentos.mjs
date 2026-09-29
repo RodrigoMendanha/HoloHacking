@@ -24,6 +24,7 @@
  *   NAVEGACAO    o atalho do cabecalho ("Novo documento") continua levando
  *                para esta aba sem zerar a tela.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { writeFileSync, mkdirSync } from 'node:fs';
 
@@ -39,7 +40,7 @@ const ruim = []; p.on('pageerror', e => ruim.push(e.message));
 await p.goto('http://127.0.0.1:5500/', { waitUntil: 'networkidle2' });
 await p.addStyleTag({ content: '*{transition:none!important;animation:none!important}' });
 await p.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados());
-const ok = (c, t) => console.log((c ? '  ok    ' : '  FALHA ') + t);
+const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
 let falhou = false;
 const conferir = (c, t) => { if (!c) falhou = true; ok(c, t); };
 

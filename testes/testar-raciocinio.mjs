@@ -11,6 +11,7 @@
  * resposta alta abre a pergunta seguinte, a hipotese diz o que conferir antes
  * de concluir, e o que sai do escopo da nutricao aparece separado e na frente.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 

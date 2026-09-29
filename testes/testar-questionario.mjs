@@ -3,6 +3,7 @@
  * sozinho. Usa o caso de exemplo, cujo resultado no terminal e Indice 43
  * com CMB-001 disparando.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 

@@ -12,6 +12,7 @@
  *   7. EXPORTAR         botão "Exportar dados", gera JSON do paciente
  *   8. DASHBOARD        "Pacientes ativos" exclui arquivados da contagem
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { congelarRelogio } from './relogio-fixo.mjs';
 

@@ -20,6 +20,7 @@
  * Formulários da ficha, que monta um resumo com as mesmas respostas. Os dois
  * caminhos estão fechados, e os dois são cobrados aqui.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const PAYLOAD = '<img src=x onerror="window.__xss=1">';

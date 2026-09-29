@@ -21,6 +21,7 @@
  *
  * E o teste mais importante do arquivo e o ultimo: ZERO ESCRITA.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({

@@ -1,4 +1,5 @@
 /** A ficha reune o que estava espalhado, e acusa o que ninguem via. */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));

@@ -3,6 +3,7 @@
  * nova aplicacao. Ferramentas legadas continuam legiveis no historico mas nao
  * podem ser abertas como nova aplicacao.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({

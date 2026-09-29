@@ -19,6 +19,7 @@
  *   CMB-004/007   as duas combinações que leem `indice` e `triada.*`;
  *   ferramenta.*  o canal existe, ninguém usa, e expor não muda nada.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 

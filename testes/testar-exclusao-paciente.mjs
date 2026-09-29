@@ -24,6 +24,7 @@
  *
  *   FALHA VOLTA TUDO — pelo mesmo motor do P0.4b, sem mecanismo proprio.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({

@@ -1,4 +1,5 @@
 /** A regra que governa tudo: exame confronta, nunca pontua. */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 const nav = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', headless:'new', args:['--no-sandbox'] });
 const p = await nav.newPage();

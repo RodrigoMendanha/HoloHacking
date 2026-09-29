@@ -4,6 +4,7 @@
  * outros tres altos. Entao exame alterado no metabolico deve CONFIRMAR, e
  * exame alterado no detox (nota 6.7) deve DIVERGIR.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 

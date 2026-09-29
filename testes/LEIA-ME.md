@@ -1,19 +1,41 @@
 # Testes do app
 
-Rodam o app num Chrome de verdade, e **nao tocam em banco nenhum**: desde
-13/09 a persistencia e `dados.js`, que guarda no navegador. Cada rodada sobe
-um perfil limpo do Chrome, entao os testes comecam sempre do zero e nao deixam
-nada para tras. `testar-app` roda isolado, em jsdom.
+Rodam o app num Chrome de verdade, e **nao tocam em banco nenhum**: sem
+sessao Supabase a persistencia e `dados.js`, que guarda no navegador; as
+suites que exercitam o caminho autenticado usam um Supabase simulado dentro
+da pagina. Cada rodada sobe um perfil limpo do Chrome, entao os testes
+comecam sempre do zero e nao deixam nada para tras. `testar-app` roda
+isolado, em jsdom.
 
-Precisa do servidor local no ar:
+## Comando canonico (release)
 
-    npx serve -l 5500 .        (ou qualquer servidor estatico na porta 5500)
+    npm ci
+    npm run test:release        (identico a: npm run teste)
 
-E do puppeteer-core, que usa o Chrome ja instalado:
+`testes/rodar.mjs` sobe um servidor estatico temporario em
+`127.0.0.1:5500`, roda todas as suites de `testes/suites.mjs` em processos
+separados, derruba o servidor e sai com exit 1 se qualquer suite:
 
-    npm i -D puppeteer-core
+  - terminou com exit != 0, ou
+  - imprimiu alguma linha `FALHA`, ou
+  - nao imprimiu nenhuma assercao `ok`.
 
-Depois:
+Toda `testar-*.mjs` importa `guarda-falhas.mjs`, que forca exit 1 quando a
+suite imprimiu `FALHA` — mesmo rodando a suite sozinha, fora do runner.
+`testar-guarda-falhas.mjs` prova isso a cada rodada. Suite nova precisa
+entrar em `suites.mjs`; o runner recusa arquivo `testar-*.mjs` fora da lista.
+
+Opcoes: `--so <trecho-do-nome>`, `--verboso`, `--servidor-existente`
+(nao sobe servidor; use so se a 5500 ja serve ESTE repositorio). A saida de
+cada suite fica em `testes/.saida/` (ignorado pelo git).
+
+O Chrome usado e `CHROME_PATH` ou, por padrao,
+`/opt/pw-browsers/chromium-1194/chrome-linux/chrome`.
+
+## Rodar uma suite solta
+
+Com um servidor estatico na 5500 (`npx serve -l 5500 .`):
+
 
     node testes/testar-app.mjs           navegacao, as 30 ferramentas, salvar
     node testes/testar-dashboard.mjs     o trabalho de hoje, e nao a apresentacao

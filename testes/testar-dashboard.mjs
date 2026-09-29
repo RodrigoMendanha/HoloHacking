@@ -6,6 +6,7 @@
  * As regras de pendencia sao as de panorama.js, as mesmas que a ficha usa.
  * Este teste confere que as duas telas contam a mesma historia.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 

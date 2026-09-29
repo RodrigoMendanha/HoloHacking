@@ -13,6 +13,7 @@
  *   4. o histórico antigo (snapshot salvo antes de existir qualquer noção
  *      de status) continua legível e não é alterado no disco.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 

@@ -22,6 +22,7 @@
  * O conteúdo clínico não é assunto deste teste porque não mudou: os mesmos
  * cinco campos, com os mesmos nomes.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({

@@ -9,6 +9,7 @@
  * F  Aparencia sobrevive ao logout
  * G  Memoria limpa no logout
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({

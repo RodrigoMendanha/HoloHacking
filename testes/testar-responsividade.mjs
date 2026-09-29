@@ -6,6 +6,7 @@
  * Roda no Puppeteer contra o servidor local e segue o padrao ok()/falhou dos
  * outros testes do projeto.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const VIEWPORTS = [375, 768, 1366, 1920];

@@ -21,6 +21,7 @@
  * primeira mutacao. Crash antes do marcador nao deixa pendencia, porque nada
  * foi tocado. Crash depois deixa, e qualquer escrita normal descobre.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({

@@ -2,6 +2,7 @@
  * Roda o app num DOM de verdade e executa o fluxo da demo:
  * abrir ferramenta -> preencher -> salvar -> ver o selo mudar -> reabrir.
  */
+import './guarda-falhas.mjs';
 import { JSDOM, VirtualConsole } from 'jsdom';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

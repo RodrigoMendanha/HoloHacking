@@ -17,6 +17,7 @@
  *   TRÍADE         identifica a dimensão mais baixa e para aí — não diz mais
  *                  que é por onde a conduta começa.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 

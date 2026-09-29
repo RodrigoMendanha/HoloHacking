@@ -14,6 +14,7 @@
  * O invariante que nao pode cair junto: exame continua FORA do Indice. Ele
  * cruza, nao pontua.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 

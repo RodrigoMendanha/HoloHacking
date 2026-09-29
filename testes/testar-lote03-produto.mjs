@@ -11,6 +11,7 @@
  *   ACESSIBILIDADE skip-link, focus-visible, reduced-motion, tabpanel roles
  *   PRESERVAÇÃO   6+1 ferramentas, 84 perguntas, 5 sistemas intactos
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 import { congelarRelogio } from './relogio-fixo.mjs';
@@ -28,7 +29,7 @@ await p.goto('http://127.0.0.1:5500/', { waitUntil: 'networkidle2' });
 await p.addStyleTag({ content: '*{transition:none!important;animation:none!important}' });
 await p.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados());
 let falhou = false;
-const ok = (c, t) => console.log((c ? '  ok    ' : '  FALHA ') + t);
+const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
 const conferir = (c, t) => { if (!c) falhou = true; ok(c, t); };
 
 /* ========================================================= ACESSIBILIDADE */

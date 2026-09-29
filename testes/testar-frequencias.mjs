@@ -11,6 +11,7 @@
  *   1. parado, a tela nao mostra nada — nem quadro vazio com ar de resultado;
  *   2. o desenho continua certo, para o dia em que a chave for religada.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 

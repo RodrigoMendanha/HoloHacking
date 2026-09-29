@@ -22,6 +22,7 @@
  *          mesmo — inclusive o paciente que nao era o do meio, e inclusive o
  *          snapshot clinico byte a byte (restaurar NAO recalcula nada).
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({

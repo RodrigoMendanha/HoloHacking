@@ -11,6 +11,7 @@
  *   - o snapshot fica byte a byte igual no disco depois de ser lido/exibido
  *     — nada é migrado, recalculado ou reescrito silenciosamente.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({

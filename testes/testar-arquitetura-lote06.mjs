@@ -12,6 +12,7 @@
  *   F) documentos autenticados seguem Supabase + ownership
  *   G) questionário mostra feedback ao bloquear gravar em arquivado
  */
+import './guarda-falhas.mjs';
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 

@@ -1,4 +1,5 @@
 /** Subir PDF e foto de exame, listar, abrir e remover. */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { writeFileSync, mkdirSync } from 'node:fs';
 mkdirSync('amostras', { recursive: true });

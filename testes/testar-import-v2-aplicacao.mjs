@@ -23,6 +23,7 @@
  *
  * Nada disto esta ligado a interface, e um teste prova que nao esta.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({

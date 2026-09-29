@@ -13,6 +13,7 @@
  * daqui, mas sem sessao (ninguem loga neste teste) ele nao faz nenhuma
  * chamada de REST/Auth sozinho — se um dia fizer, isto continua pegando.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({

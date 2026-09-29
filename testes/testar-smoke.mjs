@@ -9,6 +9,7 @@
  *   E  Scripts carregaram (window.HoloAuth, LoginView, DadosRouter)
  *   F  Nenhum 404 em recurso critico
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({

@@ -23,6 +23,7 @@
  * testar-import-v2-aplicacao) e a ligacao com a tela depois ainda
  * (testar-backup-ui): o botao Exportar hoje chama este V2, nao mais o V1.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({

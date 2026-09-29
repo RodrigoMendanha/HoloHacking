@@ -17,6 +17,7 @@
  *   choque     duas consultas no mesmo horário avisam, e não impedem
  *   migração   o retorno marcado na versão anterior vira consulta e não some
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 import { congelarRelogio } from './relogio-fixo.mjs';
@@ -39,7 +40,7 @@ const ruim = []; p.on('pageerror', e => ruim.push(e.message));
 await p.goto('http://127.0.0.1:5500/', { waitUntil: 'networkidle2' });
 await p.addStyleTag({ content: '*{transition:none!important;animation:none!important}' });
 await p.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados());
-const ok = (c, t) => console.log((c ? '  ok    ' : '  FALHA ') + t);
+const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
 let falhou = false;
 const conferir = (c, t) => { if (!c) falhou = true; ok(c, t); };
 

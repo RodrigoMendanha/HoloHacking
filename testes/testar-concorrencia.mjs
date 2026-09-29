@@ -20,6 +20,7 @@
  * E o teste de lost update reproduz o cenario antigo item por item: A grava,
  * B grava com cache velho, e o item de A nao pode sumir em silencio.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({

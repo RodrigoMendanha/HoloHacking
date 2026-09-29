@@ -4,6 +4,7 @@
  * Tudo com stub: sem chamada de rede, sem CDN, sem Supabase real.
  * O que se testa e o comportamento da VIEW — validacao, estados, navegacao.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({

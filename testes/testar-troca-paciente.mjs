@@ -7,6 +7,7 @@
  * aparecia como "0 de 100" — numa escala onde 100 e o melhor, o pior resultado
  * possivel.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 

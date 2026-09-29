@@ -27,6 +27,7 @@
  * existirem — e diz claramente "PULADO" quando nao existirem, em vez de fingir
  * que testou.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({

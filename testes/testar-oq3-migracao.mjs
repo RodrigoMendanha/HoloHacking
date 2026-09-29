@@ -15,6 +15,7 @@
  *      que faltam sem tocar na que já estava;
  *   4  a tabela de origem nunca é apagada.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({

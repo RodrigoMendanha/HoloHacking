@@ -34,6 +34,7 @@
  * testar-login.mjs para como criar esses usuarios (nao invento credencial
  * nenhuma aqui).
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const ok = (c, t) => { globalThis.__falhou = globalThis.__falhou || false; if (!c) globalThis.__falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };

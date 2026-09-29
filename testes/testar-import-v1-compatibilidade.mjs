@@ -25,6 +25,7 @@
  *
  * O fixture principal e um V1 REAL, gerado pelo proprio app.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({

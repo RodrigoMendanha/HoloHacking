@@ -14,6 +14,7 @@
  * Os adaptadores e o diagnostico sao somente leitura. O teste prova isso
  * medindo o disco antes e depois de rodar o diagnostico: byte a byte igual.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({

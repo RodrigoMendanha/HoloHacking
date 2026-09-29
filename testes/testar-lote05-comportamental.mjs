@@ -13,6 +13,7 @@
  *   8. UTILS.JS                 escapar e dataBR centralizados, sem sobreescrita
  *   9. XSS CORRIGIDO            selector options e avatar da busca escapam HTML
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 import { congelarRelogio } from './relogio-fixo.mjs';

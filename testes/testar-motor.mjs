@@ -3,6 +3,7 @@
  * o caso de exemplo, ver Indice 43 com CMB-001 disparando — o mesmo que sai
  * hoje no terminal.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 
@@ -32,7 +33,8 @@ const r = await p.evaluate((respostas) => {
   };
 }, caso.respostas);
 
-const ok = (c, t) => console.log((c ? '  ok    ' : '  FALHA ') + t);
+let falhou = false;
+const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
 if (r.erro) { console.log('  FALHA', r.erro); process.exit(1); }
 
 ok(r.resumo.marcadores === 84, 'motor carregou ' + r.resumo.marcadores + ' marcadores');
@@ -47,3 +49,4 @@ console.log('  leitura:  ' + r.combinacoes.join('; '));
 
 await nav.close();
 console.log(ruim.length ? '\n  ERRO: ' + ruim[0] : '\n  sem erro de JS');
+process.exit(falhou || ruim.length ? 1 : 0);

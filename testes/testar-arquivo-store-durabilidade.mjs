@@ -18,6 +18,7 @@
  * O erro e forcado por caminhos deterministicos do proprio codigo — chave
  * invalida de IndexedDB e colisao de id real — e nao por timing aleatorio.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const CICLOS = 30;   /* reloads reais por cenario de durabilidade */

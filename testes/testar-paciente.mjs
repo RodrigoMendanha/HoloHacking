@@ -5,6 +5,7 @@
  *
  * O Supabase e dublado — nenhum paciente de verdade e criado.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({

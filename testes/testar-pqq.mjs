@@ -21,6 +21,7 @@
  * ausência daquele fallback. O conteúdo clínico não é assunto aqui porque não
  * mudou — os mesmos sete campos, com os mesmos nomes.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({

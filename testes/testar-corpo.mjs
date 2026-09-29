@@ -31,6 +31,7 @@
  *   HISTÓRICO    concluir fecha a aplicação; começar outra guarda a anterior.
  *   LINGUAGEM    a síntese observa; não conclui.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 
 const nav = await puppeteer.launch({

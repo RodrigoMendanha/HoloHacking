@@ -25,13 +25,14 @@
  * Cada data roda numa aba de navegacao ISOLADA (browser context proprio),
  * para nao herdar paciente nem localStorage de uma data para outra.
  */
+import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 import { congelarRelogio } from './relogio-fixo.mjs';
 
 const caso = JSON.parse(readFileSync(new URL('caso.json', import.meta.url), 'utf8'));
 
-const ok = (c, t) => console.log((c ? '  ok    ' : '  FALHA ') + t);
+const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
 let falhou = false;
 const conferir = (c, t) => { if (!c) falhou = true; ok(c, t); };
 
