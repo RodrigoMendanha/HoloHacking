@@ -349,8 +349,10 @@
      tolerantes, mais abaixo, sao casca por cima destas. */
 
   function semBlob(i) {
-    return { id: i.id, paciente: i.paciente, nome: i.nome, tipo: i.tipo,
-             data: i.data, mime: i.mime, tamanho: i.tamanho };
+    var r = { id: i.id, paciente: i.paciente, nome: i.nome, tipo: i.tipo,
+              data: i.data, mime: i.mime, tamanho: i.tamanho };
+    if (i._supa_id) r._supa_id = i._supa_id;
+    return r;
   }
   function porData(a, b) { return (b.data || "").localeCompare(a.data || ""); }
 
@@ -370,9 +372,40 @@
           return i.uid === uid;
         })
         .map(function (i) {
-          return { id: i.id, nome: i.nome, tipo: i.tipo, data: i.data,
-                   mime: i.mime, tamanho: i.tamanho };
+          var item = { id: i.id, nome: i.nome, tipo: i.tipo, data: i.data,
+                       mime: i.mime, tamanho: i.tamanho };
+          /* a copia local de um documento que tambem esta no servidor sabe
+             qual e: a listagem hibrida deduplica por identidade, nao por nome */
+          if (i._supa_id) item._supa_id = i._supa_id;
+          return item;
         }).sort(porData);
+    });
+  }
+
+  /** Grava no registro local o id do documento no servidor. */
+  function vincular(id, supaId) {
+    return transacao("readwrite").then(function (t) {
+      var esperar = aguardarTransacao(t.tx);
+      return promessa(t.loja.get(id)).then(function (reg) {
+        if (!reg) return esperar;
+        reg._supa_id = supaId;
+        return promessa(t.loja.put(reg)).then(function () { return esperar; });
+      });
+    });
+  }
+
+  /** Apaga as copias locais (do uid atual) de um documento do servidor. */
+  function removerCopiasDe(supaId) {
+    var uid = uidAtual();
+    return transacao("readwrite").then(function (t) {
+      var esperar = aguardarTransacao(t.tx);
+      return promessa(t.loja.getAll()).then(function (todos) {
+        var alvo = (todos || []).filter(function (r) {
+          return r._supa_id === supaId && (!uid || r.uid === uid);
+        });
+        return Promise.all(alvo.map(function (r) { return promessa(t.loja.delete(r.id)); }))
+          .then(function () { return esperar; });
+      });
     });
   }
 
@@ -498,8 +531,16 @@
           tamanho_bytes: arquivo.size,
           storage_path: caminho
         }).select().single().then(function (docRes) {
-          if (docRes.error) console.error("documents insert:", docRes.error);
-          return docRes.data || null;
+          if (docRes.error || !docRes.data) {
+            console.error("documents insert:", docRes.error);
+            /* o arquivo subiu mas a linha nao: sem ela ninguem o encontra.
+               Tira o objeto orfao do bucket e reporta falha. */
+            return Promise.resolve(window.supabaseClient.storage
+              .from("patient-documents").remove([caminho]))
+              .catch(function () {})
+              .then(function () { return null; });
+          }
+          return docRes.data;
         });
       })
       .catch(function (e) { console.error("salvarSupa:", e); return null; });
@@ -541,35 +582,59 @@
       .catch(function (e) { console.error("pegarSupa:", e); return undefined; });
   }
 
+  /** Rejeita se o servidor nao confirmou a exclusao — a tela nao pode dizer
+      "excluido" de um documento que continua la. */
   function removerSupa(supaId) {
-    if (!temSupa() || !supaId) return Promise.resolve();
-    return window.supabaseClient.from("documents")
+    if (!temSupa() || !supaId) return Promise.reject(new Error("Sem sessão para excluir do servidor."));
+    return Promise.resolve(window.supabaseClient.from("documents")
       .select("storage_path")
       .eq("id", supaId)
-      .single()
+      .single())
       .then(function (r) {
-        if (r.error || !r.data) return;
+        if (r.error || !r.data) throw (r.error || new Error("Documento não encontrado no servidor."));
         var caminho = r.data.storage_path;
-        return window.supabaseClient.from("documents")
-          .delete().eq("id", supaId)
-          .then(function () {
-            return window.supabaseClient.storage
+        return Promise.resolve(window.supabaseClient.from("documents")
+          .delete().eq("id", supaId))
+          .then(function (d) {
+            if (d && d.error) throw d.error;
+            /* a linha saiu; o objeto no bucket e limpeza — se falhar, fica
+               orfao mas inacessivel (bucket privado, sem linha que aponte) */
+            return Promise.resolve(window.supabaseClient.storage
               .from("patient-documents")
-              .remove([caminho]);
+              .remove([caminho]))
+              .catch(function (e) { console.error("storage remove:", e); });
           });
-      })
-      .catch(function (e) { console.error("removerSupa:", e); });
+      });
   }
 
   /* ---------- API publica com roteamento --------------------------------- */
 
+  var UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+  /** Salva no IndexedDB e, com sessao, no servidor — e so resolve depois de
+      saber o que aconteceu com os dois. O registro devolvido diz:
+        sincronizado: true   local + servidor
+        sincronizado: false  so neste navegador (o envio falhou)
+        sincronizado: null   sem sessao, ou nao e documento de paciente
+      O local nunca e desfeito por causa de falha remota. */
   function salvarHibrido(paciente, arquivo, meta) {
     var impedido = barrado();
     if (impedido) return Promise.reject(impedido);
 
-    var promLocal = salvar(paciente, arquivo, meta);
-    salvarSupa(paciente, arquivo, meta);
-    return promLocal;
+    return salvar(paciente, arquivo, meta).then(function (registro) {
+      if (!temSupa() || !UUID_RE.test(String(paciente))) {
+        registro.sincronizado = null;
+        return registro;
+      }
+      return salvarSupa(paciente, arquivo, meta).then(function (doc) {
+        if (!doc || !doc.id) { registro.sincronizado = false; return registro; }
+        registro._supa_id = doc.id;
+        registro.sincronizado = true;
+        return vincular(registro.id, doc.id)
+          .catch(function (e) { console.error("vincular documento:", e); })
+          .then(function () { return registro; });
+      });
+    });
   }
 
   function listarHibrido(paciente) {
@@ -578,14 +643,67 @@
       .then(function (par) {
         var local = par[0] || [];
         var supa = par[1];
-        if (!supa) return local;
-        var idsSupa = {};
-        supa.forEach(function (d) { idsSupa[d.nome + "|" + d.tamanho] = true; });
+        if (!supa) return local;        // servidor fora: mostra o que ha aqui
+        var idsSupa = {}, chaves = {};
+        supa.forEach(function (d) {
+          idsSupa[d._supa_id] = true;
+          chaves[d.nome + "|" + d.tamanho] = true;
+        });
         var extras = local.filter(function (d) {
-          return !idsSupa[d.nome + "|" + d.tamanho];
+          /* copia de documento do servidor: se ele ainda existe la, ja esta na
+             lista; se nao existe mais, foi excluido — o servidor manda */
+          if (d._supa_id) return false;
+          return !chaves[d.nome + "|" + d.tamanho];   // legado sem vinculo
+        }).map(function (d) {
+          /* so existe neste navegador: a tela diz isso, nunca "sincronizado" */
+          return Object.assign({}, d, { so_local: true });
         });
         return supa.concat(extras);
       });
+  }
+
+  /** Todos os documentos de todos os pacientes: servidor + o que so existe
+      aqui. Sem sessao, ou com o servidor fora, so o local. */
+  function listarTudoSupa() {
+    var linhas = [];
+    function pagina(de) {
+      return Promise.resolve(window.supabaseClient.from("documents")
+        .select("id, patient_id, nome, tipo, data_documento, mime_type, tamanho_bytes, created_at")
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: true })
+        .range(de, de + 999))
+        .then(function (r) {
+          if (!r || r.error) throw (r && r.error) || new Error("sem resposta");
+          var d = r.data || [];
+          linhas = linhas.concat(d);
+          return d.length >= 1000 ? pagina(de + 1000) : linhas;
+        });
+    }
+    return pagina(0).then(function (todas) {
+      return todas.map(function (d) {
+        return { id: "supa:" + d.id, paciente: d.patient_id, nome: d.nome, tipo: d.tipo,
+                 data: d.data_documento || "", mime: d.mime_type, tamanho: d.tamanho_bytes,
+                 _supa_id: d.id };
+      });
+    }).catch(function (e) { console.error("documents (todos):", e); return null; });
+  }
+
+  function listarTudoHibrido() {
+    if (!temSupa()) return listarTudo();
+    return Promise.all([listarTudo(), listarTudoSupa()]).then(function (par) {
+      var local = par[0] || [], supa = par[1];
+      if (!supa) return local;
+      var chaves = {};
+      supa.forEach(function (d) { chaves[d.paciente + "|" + d.nome + "|" + d.tamanho] = true; });
+      var extras = local.filter(function (d) {
+        if (d._supa_id) return false;
+        if (!UUID_RE.test(String(d.paciente))) return true;       // perfil etc.: nunca vai ao servidor
+        return !chaves[d.paciente + "|" + d.nome + "|" + d.tamanho];
+      }).map(function (d) {
+        return UUID_RE.test(String(d.paciente)) ? Object.assign({}, d, { so_local: true }) : d;
+      });
+      return supa.concat(extras);
+    });
   }
 
   function pegarHibrido(id) {
@@ -617,7 +735,10 @@
   function removerHibrido(id) {
     if (typeof id === "string" && id.indexOf("supa:") === 0) {
       var supaId = id.slice(5);
-      return removerSupa(supaId);
+      /* a copia local sai junto — senao o documento "voltava" na lista */
+      return removerSupa(supaId).then(function () {
+        return removerCopiasDe(supaId).catch(function (e) { console.error("remover copia local:", e); });
+      });
     }
     var impedido = barrado();
     if (impedido) return Promise.reject(impedido);
@@ -631,6 +752,7 @@
     /* tolerantes — para a tela */
     listar: listarHibrido,
     listarTudo: listarTudo,
+    listarTudoHibrido: listarTudoHibrido,
 
     /* estritas — para backup, diagnostico e restauracao */
     substituirTudoEstrito: substituirTudoEstrito,

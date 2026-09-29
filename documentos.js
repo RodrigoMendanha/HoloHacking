@@ -13,8 +13,10 @@
    acrescenta e a travessia: todos os pacientes de uma vez, filtro por tipo, e
    o quanto de espaco isso tudo ja ocupa neste navegador.
 
-   LGPD: exame e laudo sao dado pessoal sensivel. Continuam sem sair daqui,
-   como em arquivo-store.js — esta tela so os lista, e remover remove de vez.
+   LGPD: exame e laudo sao dado pessoal sensivel. Sem sessao continuam sem
+   sair daqui; com sessao a lista junta o bucket privado da conta (via
+   ArquivoStore.listarTudoHibrido) e o que so existe neste navegador — esta
+   tela so os lista, e remover remove de vez.
    =========================================================================== */
 
 (function () {
@@ -48,7 +50,8 @@
   function desenhar() {
     if (!alvo || !window.ArquivoStore || !window.ArquivoStore.listarTudo) return;
 
-    window.ArquivoStore.listarTudo().then(function (todos) {
+    var listar = window.ArquivoStore.listarTudoHibrido || window.ArquivoStore.listarTudo;
+    listar().then(function (todos) {
       var itens = todos.filter(function (d) { return d.paciente !== DONO_PERFIL; });
       window.ArquivoStore.espaco().then(function (e) {
         pintar(itens, e);
@@ -136,6 +139,7 @@
             '<span class="doc-todos-dono">' + escapar(nomeDe(d.paciente)) + "</span></span>" +
           '<span class="doc-data">' + escapar(dataBR(d.data)) + "</span>" +
           '<span class="doc-tam">' + window.ArquivoStore.tamanhoLegivel(d.tamanho) + "</span>" +
+          (d.so_local ? '<span class="doc-tipo" title="O envio ao servidor falhou: este arquivo não aparece em outro computador.">só neste dispositivo</span>' : "") +
           '<button type="button" class="doc-abrir" data-abrir="' + escapar(d.id) + '">abrir</button>' +
           '<button type="button" class="doc-tirar" data-tirar="' + escapar(d.id) +
             '" aria-label="Remover ' + escapar(d.nome) + '">&times;</button>' +
@@ -189,7 +193,9 @@
       }
       var tirar = ev.target.closest("[data-tirar]");
       if (tirar) {
-        window.ArquivoStore.remover(tirar.dataset.tirar).then(desenhar);
+        window.ArquivoStore.remover(tirar.dataset.tirar).then(desenhar).catch(function () {
+          if (window.avisar) window.avisar("Erro ao excluir documento.");
+        });
       }
     });
   }
