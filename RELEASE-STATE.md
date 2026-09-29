@@ -267,3 +267,137 @@ senha, caminho de storage, URL nem binário.
    do disco, a leitura local falha (a cópia remota não é afetada).
 9. **Infra fora deste lote:** SMTP próprio, configuração final do Supabase
    Auth, URLs oficiais dos agentes HOLOS AI e deploy.
+
+---
+
+## 11. Roteiro de homologação
+
+Para quem vai testar, sem conhecimento técnico. Siga na ordem. Nunca escreva
+senha, e-mail de paciente ou nome de paciente em issue, commit ou mensagem de
+chat: para falar de um paciente de teste, diga "paciente de teste 1".
+
+O app **não tem tela de criar conta**. Uma conta nova só nasce no painel do
+Supabase, e quem cria é o Rodrigo.
+
+### 11.1 Criar a segunda conta de nutricionista (Rodrigo)
+
+Hoje o banco tem 1 conta de nutricionista em uso.
+
+1. Entre em supabase.com, no projeto do HoloHacking.
+2. Menu da esquerda: **Authentication** → **Users**.
+3. Botão **Add user** → **Create new user**.
+4. Preencha o e-mail da nutricionista e uma senha provisória. Marque
+   **Auto Confirm User**. Clique em **Create user**.
+5. A senha provisória vai para ela por um canal privado (ligação ou mensagem
+   direta), nunca por e-mail em grupo nem por arquivo. Ela pode trocá-la depois
+   em "Esqueci minha senha", na tela de login.
+6. Não precisa criar mais nada. O banco cria o perfil dela sozinho na hora
+   (gatilho `on_auth_user_created`). O nome do perfil começa igual ao e-mail, e
+   ela ajusta em **Perfil**.
+7. Conferência: em **Users** aparecem 2 contas de nutricionista, com a nova já
+   confirmada. O Claude pode confirmar pela contagem, sem ver dado nenhum.
+
+Cada nutricionista só vê os próprios pacientes. O teste abaixo é **de cada
+uma, na própria conta**, em dois aparelhos.
+
+### 11.2 O teste: salvar no aparelho A, ver no aparelho B
+
+Antes de começar:
+- o deploy da `646bfcb` precisa estar no ar, conferido pelo hash
+  (`docs/deploy.md` §3.4);
+- no aparelho A e no aparelho B (por exemplo, computador e celular), abra
+  https://holohacking.com.br e aperte **Ctrl+Shift+R** uma vez (no celular,
+  feche e abra a aba).
+
+**No aparelho A**
+
+1. Tela **Entrar na plataforma**: preencha **E-mail** e **Senha**, clique em
+   **Entrar**.
+2. Menu da esquerda, grupo Atendimento: **Pacientes** → botão verde **Novo
+   paciente**. Preencha só **Nome** (use um nome de teste, não de paciente
+   real) e clique em **Salvar paciente**.
+   - Tem de aparecer: "<primeiro nome> cadastrado com sucesso." e a ficha
+     dele se abre.
+3. No topo da ficha, clique em **Aplicar HOLOSCAN**.
+4. Clique em **Aplicar questionário — 84 perguntas**. Responda algumas
+   perguntas (pode ser todas) e clique em **Gerar o mapa**. Se faltar alguma,
+   o app pergunta "Faltam X de 84 perguntas. Gerar o mapa mesmo assim?":
+   clique em OK.
+   - **Não use os controles deslizantes "pontue os cinco sistemas à mão".**
+     Por esse caminho o HOLOSCAN fica só neste aparelho, e mesmo assim
+     aparece a mensagem de sucesso. O teste tem de ser pelo questionário.
+5. Clique em **Salvar HOLOSCAN**.
+   - Tem de aparecer: "HOLOSCAN salvo na ficha de <primeiro nome>. Score: <n>".
+   - Se aparecer "Os dados foram salvos neste dispositivo, mas não foi
+     possível sincronizá-los…", **o teste falhou**. Anote a hora e avise.
+6. Volte à ficha (**Pacientes** → clique no paciente) → botão **Registrar
+   exames**. Na aba **Documentos**, cartão **Os valores do exame**, digite 2
+   ou 3 valores (glicose, por exemplo). Clique em **Conferir com o mapa**.
+   - Quando dá certo, não aparece mensagem nenhuma.
+   - Se aparecer "Exames salvos só neste dispositivo — não foi possível
+     enviar ao servidor…", **o teste falhou**. Anote a hora e avise.
+7. Anote o score do passo 5 e os valores do passo 6.
+
+**No aparelho B**
+
+1. Entre com **a mesma conta**.
+2. **Pacientes** → abra o paciente de teste. Espere uns segundos: a ficha se
+   redesenha quando o servidor responde.
+3. Aba **Visão geral**, bloco **Exames**: tem de aparecer "N valores
+   registrados.", com N igual ao número de valores digitados no passo 6.
+4. Aba **HOLOSCAN**:
+   - bloco **Mapa HOLOS — última aplicação**: a data de hoje, "Índice X de
+     100 · N de 84 respondidas", com X igual ao score anotado;
+   - mais abaixo, **Histórico de coletas**: uma linha "Data da coleta não
+     informada" com "N exames".
+5. Se aparecer "Não foi possível carregar o HOLOSCAN do servidor" ou "Não foi
+   possível carregar os exames do servidor", **o teste falhou**. Anote a hora
+   e avise.
+
+**Sobre a data da coleta.** O painel de exames não tem campo de data da
+coleta (§3 e §10.1). Na `646bfcb`, toda coleta registrada pelo app aparece
+como "Data da coleta não informada", e isso é o esperado. Uma coleta com data
+só existe hoje pelo caminho da RPC, que a tela da `646bfcb` não usa. Esse
+caminho é conferido pela checagem do §1b. Testar "coleta com data" pela tela
+depende de criar o campo, que é decisão de produto.
+
+**Pronto** quando as duas nutricionistas passarem os passos A e B, cada uma
+na própria conta.
+
+### 11.3 Recuperar os 4 salvamentos que falharam em 29-set
+
+Em 29-set, entre 18:15 e 18:18 UTC, 2 HOLOSCAN e 2 envios de exames da conta
+de homologação falharam por causa do erro nas RPCs. Nada chegou ao servidor,
+mas a cópia ficou no navegador em que foram feitos (Chrome, no Windows). As
+RPCs estão consertadas desde as 19:26 UTC de 29-set. Por isso, até a versão
+que está no ar hoje (`cfce960`) já grava. Não precisa esperar o deploy.
+
+1. Abra **o mesmo Chrome, no mesmo computador** usado em 29-set. Se os dados
+   do site foram apagados nesse Chrome, a cópia se perdeu e é preciso
+   refazer a aplicação.
+2. Entre na **mesma conta**.
+3. HOLOSCAN: menu **HOLOSCAN**. No campo **Paciente**, escolha o paciente
+   daquele dia.
+   - Se o mapa já aparece preenchido, clique em **Salvar HOLOSCAN**.
+   - Se não aparece, clique em **Aplicar questionário — 84 perguntas**. As
+     respostas daquele dia continuam marcadas. Clique em **Gerar o mapa** e
+     depois em **Salvar HOLOSCAN**.
+   - Tem de aparecer "HOLOSCAN salvo na ficha de <primeiro nome>. Score: <n>".
+     Com a `cfce960`, se aparecer "Erro ao salvar HOLOSCAN no servidor.",
+     pare e avise.
+4. Exames: abra a ficha do mesmo paciente → **Registrar exames**. No cartão
+   **Os valores do exame**, os valores daquele dia continuam lá. Clique em
+   **Conferir com o mapa**.
+   - A `cfce960` não mostra mensagem nenhuma, nem de sucesso nem de erro.
+     Ela grava a coleta com a data de hoje.
+5. Confira em outro aparelho, como no §11.2 aparelho B. Na `cfce960`, a ficha
+   do outro aparelho mostra o HOLOSCAN e os valores atuais, mas não mostra o
+   histórico de coletas: esse histórico só vem com a `646bfcb`.
+6. Peça ao Claude para contar as linhas no banco. Depois da recuperação tem
+   de haver pelo menos 1 aplicação HOLOSCAN e 1 coleta de exames. Em 29-set,
+   às 19:57 UTC, havia 0 de cada.
+
+Se a recuperação só acontecer depois do deploy da `646bfcb`, basta o passo 2.
+Ao entrar, a migração dela reenvia o HOLOSCAN que ficou só no navegador. Os
+exames sobem como "data não informada" se o paciente ainda não tiver coleta no
+servidor.
