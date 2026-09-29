@@ -134,6 +134,26 @@ const t1b = await salvar(A);
 ok(remotas(P).length === 1 && /já está salvo e sincronizado/.test(t1b),
    'clicar Salvar de novo nao cria segunda aplicacao remota: ' + t1b);
 
+/* os dois caminhos do "Salvar HOLOSCAN", uma mensagem para cada */
+const MSG_SO_AQUI = 'Salvo só neste aparelho. Pra salvar na sua conta e ver em outro aparelho, use o questionário.';
+ok(t1.indexOf(MSG_SO_AQUI) < 0, 'questionario: a mensagem e a de salvo na ficha, nao a de so neste aparelho');
+const remotasAntesRegua = remotas(P).length;
+await A.evaluate(async () => {
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
+  const b = document.getElementById('btn-repontuar');
+  if (b) b.click();
+  await new Promise(r => setTimeout(r, 100));
+  const regua = document.getElementById('holo-fungico');
+  regua.disabled = false;
+  regua.value = '6';
+  regua.dispatchEvent(new Event('input', { bubbles: true }));
+});
+const tRegua = await salvar(A);
+ok(tRegua === MSG_SO_AQUI, 'controles deslizantes: "' + tRegua + '"');
+ok(!/salvo na ficha/.test(tRegua) && remotas(P).length === remotasAntesRegua,
+   'controles deslizantes: nao diz que salvou na ficha, e nada vai ao servidor');
+await calcular(A, 0);
+
 /* ==================================================================== */
 titulo('B. LOCAL OK + SERVIDOR FALHA → NENHUM SUCESSO FALSO');
 /* ==================================================================== */
