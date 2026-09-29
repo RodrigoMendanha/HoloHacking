@@ -216,9 +216,13 @@
       : "";
 
     if (quantidade === 0) {
+      var falhouLeitura = window.Sincronizacao && window.Sincronizacao.falhou("exames");
       alvo.innerHTML = topo +
-        '<div class="lista-vazia"><strong>Nenhum exame registrado</strong>' +
-        "<span>Registre exames para confrontar os dados laboratoriais com o mapa do HOLOSCAN.</span></div>" +
+        (falhouLeitura
+          ? '<div class="lista-vazia"><strong>Não foi possível carregar os exames do servidor</strong>' +
+            "<span>Verifique a conexão e abra o app de novo. Nenhum exame foi apagado.</span></div>"
+          : '<div class="lista-vazia"><strong>Nenhum exame registrado</strong>' +
+            "<span>Registre exames para confrontar os dados laboratoriais com o mapa do HOLOSCAN.</span></div>") +
         avisoSemMapa;
       ligarHoloscanAba();
       return;
@@ -266,13 +270,11 @@
       }).join("") + "</div>" +
     "</div>";
 
-    // Secao 6: sem coleta datada persistida, o honesto e dizer isso — nao
-    // fingir um historico que nao existe.
+    // Secao 6: com sessao, as coletas vem do servidor (sincronizacao.js),
+    // da mais nova para a mais antiga. Sem leitura remota, o honesto e dizer
+    // que so ha o estado atual — nao fingir um historico que nao existe.
     html += '<div class="dash-bloco dash-bloco-compacto">' +
-      '<h3 class="dash-titulo">Histórico de coletas</h3>' +
-      '<p class="dash-vazio">O HOLOSCAN mostra sempre o estado atual dos exames lançados — ' +
-      "não há coleta por data persistida ainda. Histórico completo entra com a persistência no Supabase.</p>" +
-    "</div>";
+      '<h3 class="dash-titulo">Histórico de coletas</h3>' + blocoColetas() + "</div>";
 
     // Secao 7: a relacao entre as duas camadas, sem linguagem de correcao.
     html += '<div class="fic-continuidade">' +
@@ -282,6 +284,32 @@
 
     alvo.innerHTML = html;
     ligarHoloscanAba();
+  }
+
+  function blocoColetas() {
+    var coletas = window.Sincronizacao ? window.Sincronizacao.coletas(paciente()) : null;
+    if (!coletas) {
+      var falhou = window.Sincronizacao && window.Sincronizacao.falhou("exames");
+      return '<p class="dash-vazio">' + (falhou
+        ? "Não foi possível ler o histórico de coletas do servidor agora. " +
+          "Os valores acima são os salvos neste dispositivo."
+        : "O HOLOSCAN mostra sempre o estado atual dos exames lançados — " +
+          "não há coleta por data persistida neste dispositivo. O histórico por " +
+          "coleta aparece quando você está conectado à sua conta.") + "</p>";
+    }
+    if (!coletas.length) return '<p class="dash-vazio">Nenhuma coleta registrada no servidor.</p>';
+    return '<ul class="dash-pendentes">' + coletas.slice().reverse().map(function (c) {
+      var n = (c.resultados || []).length;
+      var quando = c.data_coleta_desconhecida || !c.coletado_em
+        ? "Data da coleta não informada" : dataBR(c.coletado_em);
+      return '<li class="dash-pendente">' +
+        '<span class="pac-avatar">' + escapar(c.data_coleta_desconhecida || !c.coletado_em
+          ? "?" : String(c.coletado_em).slice(8, 10)) + "</span>" +
+        '<span class="dash-quem"><b>' + escapar(quando) + "</b>" +
+          '<span class="dash-porque">' + n + (n === 1 ? " exame" : " exames") +
+          (c.laboratorio ? " &middot; " + escapar(c.laboratorio) : "") + "</span></span>" +
+      "</li>";
+    }).join("") + "</ul>";
   }
 
   var holoscanAbaLigada = false;
@@ -378,61 +406,48 @@
     return window.supabaseClient && window.HoloAuth && window.HoloAuth.sessaoAtiva();
   }
 
+  /* A data gravada como coletado_em. O painel de exames NAO tem campo de
+     data de coleta (e criar um e mudanca de tela, fora do Release 01): a
+     unica data que a profissional informa e o dia em que confere e salva.
+     Por isso: hoje, no fuso local. Ver RELEASE-STATE.md. */
+  function dataDoRegistro() {
+    return window.hojeISO ? window.hojeISO() : window.Sincronizacao.hoje();
+  }
+
+  /** Salva no servidor e AVISA se nao conseguiu. O valor local ja foi
+      gravado antes (conferir) e continua, marcado como pendente: a proxima
+      carga tenta de novo com a data em que foi registrado. */
   function salvarColetaSupa(valores) {
-    if (!temSupa()) return;
-    var g = motor();
-    if (!g || !g.listaDeExames) return;
+    if (!temSupa() || !window.Sincronizacao) return;
     var pid = paciente();
     if (!pid || pid === SEM_PACIENTE) return;
-
-    var chaves = Object.keys(valores);
-    if (chaves.length === 0) return;
-
-    var lista = g.listaDeExames();
-    var porId = {};
-    lista.forEach(function (e) { porId[e.id] = e; });
-
-    var results = [];
-    chaves.forEach(function (eid) {
-      var e = porId[eid];
-      if (!e) return;
-      var partes = e.faixa.split(" a ");
-      results.push({
-        exame_id: eid,
-        valor: valores[eid],
-        unidade_no_momento: e.unidade,
-        ideal_min_no_momento: Number(partes[0]),
-        ideal_max_no_momento: Number(partes[1]),
-        nome_exame_no_momento: e.exame,
-        sistema_no_momento: e.sistema
-      });
+    if (Object.keys(valores).length === 0) return;
+    window.Sincronizacao.salvarColeta(pid, valores, dataDoRegistro()).then(function (r) {
+      if (r.ok) {
+        window.Sincronizacao.atualizarColetas(pid).then(function () {
+          if (pid === paciente()) desenharHoloscanAba();
+        });
+        return;
+      }
+      if (r.motivo === "vazio" || r.motivo === "offline") return;
+      if (window.avisar) {
+        window.avisar("Exames salvos só neste dispositivo — não foi possível enviar ao servidor. " +
+                      "Eles serão reenviados na próxima vez que o app abrir com conexão.");
+      }
     });
-
-    var payload = {
-      collection: {
-        patient_id: pid,
-        coletado_em: null,
-        data_coleta_desconhecida: false
-      },
-      results: results
-    };
-
-    var hoje = new Date();
-    payload.collection.coletado_em = hoje.getFullYear() + "-" +
-      String(hoje.getMonth() + 1).padStart(2, "0") + "-" +
-      String(hoje.getDate()).padStart(2, "0");
-
-    window.supabaseClient.rpc("salvar_coleta_exames", { payload: payload })
-      .then(function (res) {
-        if (res.error) console.error("salvarColetaSupa:", res.error);
-      });
   }
 
   function conferir(salvarNoSupa) {
     var g = motor();
     if (!g) return;
     var valores = colherExames();
+    var antes = JSON.stringify(ler(CHAVE_EX));
     gravar(CHAVE_EX, valores);
+    /* digitado e ainda nao conferido: a sincronizacao nao pode trocar isto
+       pelo valor do servidor na proxima carga */
+    if (!salvarNoSupa && JSON.stringify(valores) !== antes && window.Sincronizacao) {
+      window.Sincronizacao.marcarRascunhoExames(paciente());
+    }
 
     var conta = document.querySelector("#ex-corpo .ex-conta");
     var n = Object.keys(valores).length;
@@ -469,68 +484,6 @@
 
     if (salvarNoSupa) salvarColetaSupa(valores);
   }
-
-  window.sincronizarExames = function (pacientes) {
-    if (!temSupa()) return Promise.resolve();
-    if (!pacientes || !pacientes.length) return Promise.resolve();
-
-    var ids = pacientes.map(function (p) { return p.id; });
-
-    return window.supabaseClient
-      .from("lab_collections")
-      .select("id, patient_id, coletado_em")
-      .in("patient_id", ids)
-      .order("coletado_em", { ascending: false })
-      .then(function (colRes) {
-        if (colRes.error || !colRes.data || !colRes.data.length) return;
-
-        var maisRecente = {};
-        colRes.data.forEach(function (c) {
-          if (!maisRecente[c.patient_id]) maisRecente[c.patient_id] = c;
-        });
-
-        var colIds = Object.keys(maisRecente).map(function (pid) {
-          return maisRecente[pid].id;
-        });
-
-        return window.supabaseClient
-          .from("lab_results")
-          .select("collection_id, exame_id, valor")
-          .in("collection_id", colIds)
-          .then(function (resRes) {
-            if (resRes.error || !resRes.data) return;
-
-            var porCollection = {};
-            resRes.data.forEach(function (r) {
-              if (!porCollection[r.collection_id]) porCollection[r.collection_id] = {};
-              porCollection[r.collection_id][r.exame_id] = r.valor;
-            });
-
-            var tudo;
-            try { tudo = JSON.parse(localStorage.getItem(CHAVE_EX)) || {}; }
-            catch (e) { tudo = {}; }
-
-            var mudou = false;
-            Object.keys(maisRecente).forEach(function (pid) {
-              var col = maisRecente[pid];
-              var vals = porCollection[col.id] || {};
-              var localVals = tudo[pid] || {};
-
-              if (Object.keys(localVals).length === 0 && Object.keys(vals).length > 0) {
-                tudo[pid] = vals;
-                mudou = true;
-              }
-            });
-
-            if (mudou) {
-              localStorage.setItem(CHAVE_EX, JSON.stringify(tudo));
-            }
-          });
-      })
-      .catch(function (e) {
-        console.error("sincronizarExames:", e);
-      });
-  };
 
   function desenharConfronto(r, quantos) {
     var alvo = document.getElementById("ex-confronto");
@@ -644,7 +597,9 @@
       '<p class="arq-intro">O papel que o paciente traz e os números que saem dele. ' +
       "São a mesma coisa em dois passos: primeiro o arquivo fica guardado, depois " +
       "você lê o que ele diz e lança aqui embaixo. " +
-      "<b>O arquivo fica guardado neste navegador</b> e não vai para lugar nenhum.</p>" +
+      (temSupa()
+        ? "<b>O arquivo vai para o armazenamento privado da sua conta</b> e fica em cópia neste navegador.</p>"
+        : "<b>O arquivo fica guardado neste navegador</b> e não vai para lugar nenhum.</p>") +
 
       '<section class="arq-cartao" aria-label="Documentos do paciente">' +
         '<h4 class="arq-titulo">O que o paciente trouxe</h4>' +
@@ -733,8 +688,9 @@
             '<span class="doc-tam">' + window.ArquivoStore.tamanhoLegivel(d.tamanho) + "</span>" +
             '<span class="doc-data">' +
               (d.data ? escapar(d.data.split("-").reverse().join("/")) : "sem data") + "</span>" +
-            '<button type="button" class="doc-abrir" data-abrir="' + d.id + '">abrir</button>' +
-            '<button type="button" class="doc-tirar" data-tirar="' + d.id + '" ' +
+            (d.so_local ? '<span class="doc-tipo" title="O envio ao servidor falhou: este arquivo não aparece em outro computador.">só neste dispositivo</span>' : "") +
+            '<button type="button" class="doc-abrir" data-abrir="' + escapar(d.id) + '">abrir</button>' +
+            '<button type="button" class="doc-tirar" data-tirar="' + escapar(d.id) + '" ' +
             'aria-label="Remover">&times;</button></div>';
         }).join("") + "</div>";
       }
@@ -747,9 +703,11 @@
     if (!el) return;
     window.ArquivoStore.espaco().then(function (e) {
       if (!e) { el.textContent = ""; return; }
-      el.innerHTML = "Os arquivos ficam <b>neste navegador</b>, não no servidor: " +
-        "trocar de computador não os leva junto. Exame e laudo são dado de saúde, " +
-        "e por enquanto ficar só aqui e mais seguro do que subir sem login. " +
+      el.innerHTML = (temSupa()
+        ? "Os arquivos ficam no armazenamento privado da sua conta, com cópia neste navegador. "
+        : "Os arquivos ficam <b>neste navegador</b>, não no servidor: " +
+          "trocar de computador não os leva junto. Exame e laudo são dado de saúde, " +
+          "e sem login eles não sobem para lugar nenhum. ") +
         "Espaço usado: " + window.ArquivoStore.tamanhoLegivel(e.usado) + " de " +
         window.ArquivoStore.tamanhoLegivel(e.total) + ".";
     });
@@ -769,18 +727,33 @@
     };
     var pendentes = Array.prototype.slice.call(lista);
     var erros = [];
+    var soLocal = [];
 
     Promise.all(pendentes.map(function (a, i) {
       return window.ArquivoStore.salvar(paciente(), a, {
         nome: pendentes.length === 1 && nome ? nome : a.name,
         tipo: meta.tipo, data: meta.data
+      }).then(function (reg) {
+        // guardado aqui, mas o envio ao servidor falhou: dizer isso, nao "ok"
+        if (reg && reg.sincronizado === false) soLocal.push(a.name);
       }).catch(function (e) { erros.push(a.name + ": " + e.message); });
     })).then(function () {
       document.getElementById("doc-nome").value = "";
-      aviso.innerHTML = erros.length
-        ? '<p class="q-erro">' + erros.map(escapar).join("<br>") + "</p>"
-        : '<p class="doc-ok">' + pendentes.length + " arquivo(s) guardado(s).</p>";
-      if (!erros.length) setTimeout(function () { aviso.innerHTML = ""; }, 3500);
+      var html = "";
+      if (erros.length) html += '<p class="q-erro">' + erros.map(escapar).join("<br>") + "</p>";
+      if (soLocal.length) {
+        html += '<p class="q-erro">' + soLocal.length +
+          (soLocal.length === 1 ? " arquivo ficou" : " arquivos ficaram") +
+          " salvo(s) <b>somente neste dispositivo</b> — o envio ao servidor falhou e " +
+          (soLocal.length === 1 ? "ele não aparece" : "eles não aparecem") +
+          " em outro computador. Tente adicionar de novo com conexão: " +
+          soLocal.map(escapar).join(", ") + "</p>";
+      }
+      var certos = pendentes.length - erros.length - soLocal.length;
+      if (certos > 0) html += '<p class="doc-ok">' + certos + " arquivo(s) guardado(s)" +
+        (temSupa() ? " e sincronizado(s)." : ".") + "</p>";
+      aviso.innerHTML = html;
+      if (!erros.length && !soLocal.length) setTimeout(function () { aviso.innerHTML = ""; }, 3500);
       listarDocumentos();
     });
   }

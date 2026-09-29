@@ -112,8 +112,9 @@
       Promise.resolve(b.from("consultas").select("*").order("data", { ascending: true })),
       Promise.resolve(b.from("bloqueios").select("*").order("data", { ascending: true }))
     ]).then(function (r) {
-      consultas = r[0].data || [];
-      bloqueios = r[1].data || [];
+      /* erro nao e vazio: se a leitura falhou, fica o que ja se tinha */
+      if (!r[0] || !r[0].error) consultas = (r[0] && r[0].data) || [];
+      if (!r[1] || !r[1].error) bloqueios = (r[1] && r[1].data) || [];
     });
   }
 
@@ -857,7 +858,14 @@
           return b.data.localeCompare(a.data) || minutos(b.hora) - minutos(a.hora);
         });
     },
-    recarregar: function () { return carregar().then(desenhar); }
+    recarregar: function () { return carregar().then(desenhar); },
+    /** So os dados, sem desenhar: a sincronizacao (sincronizacao.js) chama
+        isto depois do login. A primeira carga, no DOMContentLoaded, pode ter
+        corrido antes de a sessao existir — e ai leu o navegador, nao o
+        servidor. */
+    carregarDados: function () { return carregar(); },
+    /** Logout: a agenda da conta que saiu nao fica em memoria. */
+    esquecer: function () { consultas = []; bloqueios = []; }
   };
 
   document.addEventListener("DOMContentLoaded", function () {

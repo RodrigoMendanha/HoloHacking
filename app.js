@@ -416,6 +416,7 @@
   /* ============================================================
      CARREGAR OS DADOS  (de onde, ver dados.js)
   ============================================================ */
+  let cargas = 0;
   async function carregarTudo(){
     if (window.migrarParaSupabase) await window.migrarParaSupabase();
 
@@ -454,8 +455,22 @@
     // debaixo de uma chave e procurado debaixo de outra.
     avisarTrocaDePaciente();
 
-    sincronizarHistoricoHoloscan(pacientes);
-    if (window.sincronizarExames) window.sincronizarExames(pacientes);
+    /* Com sessao, HOLOSCAN, exames, consultas e aplicacoes de ferramenta sao
+       relidos do servidor e as caixas locais passam a ser copia dele (ver
+       sincronizacao.js). A lista ja apareceu; quando a leitura termina, as
+       telas que dependem dela se redesenham. Sem sessao, resolve na hora. */
+    if (window.Sincronizacao) {
+      const esta = ++cargas;
+      window.Sincronizacao.hidratar(pacientes).then(function (r) {
+        if (esta !== cargas) return;   // outra carga (troca de sessao) ja passou por cima
+        carregarHoloscan();
+        avisarTrocaDePaciente();
+        if (r && (r.holoscan === "erro" || r.exames === "erro") && window.avisar) {
+          window.avisar("Não foi possível ler o HOLOSCAN ou os exames do servidor. " +
+                        "Mostrando o que está salvo neste dispositivo.");
+        }
+      });
+    }
   }
 
   /* O cadastro antigo tinha um campo "Contato" que aceitava as duas coisas.
@@ -957,6 +972,11 @@
 
   async function reunirDadosPaciente(p){
     const id = p.id;
+    /* Com sessao, o que se exporta e o que o SERVIDOR tem: espera a leitura
+       remota em curso terminar (sincronizacao.js) antes de juntar, para um
+       navegador limpo nao exportar um prontuario vazio so porque ninguem
+       abriu as abas antes. */
+    if(window.Sincronizacao) { try { await window.Sincronizacao.aguardar(); } catch(e){ /* exporta o que houver */ } }
     const exportado = {
       produto: "HoloHacking",
       versaoExportacao: "1.0",
@@ -978,6 +998,37 @@
       if(sit.ferramentas && sit.ferramentas.length) exportado.ferramentas = sit.ferramentas;
       if(sit.historico && sit.historico.length) exportado.historico = sit.historico;
       if(sit.exames) exportado.totalExames = sit.exames;
+      if(sit.exames) exportado.exames = sit.valoresExames;
+      if(sit.respondidas) {
+        try {
+          const q = (JSON.parse(localStorage.getItem("holohacking.questionario")) || {})[id];
+          if(q) exportado.respostasHoloscan = q;
+        } catch(e){ /* sem respostas */ }
+      }
+    }
+    /* Coletas datadas vem do servidor (so existem com sessao). Sem elas, o
+       arquivo leva os valores atuais acima e diz que o historico nao veio. */
+    const coletas = window.Sincronizacao ? window.Sincronizacao.coletas(id) : null;
+    if(coletas && coletas.length){
+      exportado.coletasExames = coletas.map(c => ({
+        id: c.id, coletado_em: c.coletado_em,
+        data_coleta_desconhecida: c.data_coleta_desconhecida,
+        laboratorio: c.laboratorio, observacao: c.observacao,
+        resultados: (c.resultados || []).map(r => ({
+          exame_id: r.exame_id, valor: r.valor, unidade: r.unidade_no_momento,
+          nome: r.nome_exame_no_momento, sistema: r.sistema_no_momento
+        }))
+      }));
+    }
+    if(window.Aplicacoes && window.Aplicacoes.doPaciente){
+      const apps = window.Aplicacoes.doPaciente(id);
+      if(apps && apps.length) exportado.aplicacoesFerramentas = apps.map(a => ({
+        id: a.id, ferramenta_id: a.ferramenta_id, versao_ferramenta: a.versao_ferramenta,
+        status: a.status, consulta_id: a.consulta_id || null,
+        iniciada_em: a.iniciada_em, concluida_em: a.concluida_em, atualizada_em: a.atualizada_em,
+        respostas: a.respostas, resultado: a.resultado,
+        leitura: a.leitura, prioridade: a.prioridade, proximo_passo: a.proximo_passo
+      }));
     }
     if(window.Agenda && window.Agenda.todas){
       const consultas = window.Agenda.todas(id);
@@ -987,9 +1038,11 @@
       try {
         const docs = await window.ArquivoStore.listar(id);
         if(docs && docs.length){
+          /* So metadados: nem o binario, nem caminho de storage, nem URL. */
           exportado.documentos = docs.map(d => ({
-            id: d.id, nome: d.nome, tipo: d.tipo,
-            tamanho: d.tamanho, created_at: d.created_at
+            id: d.id, nome: d.nome, tipo: d.tipo, data: d.data || "",
+            tamanho: d.tamanho, created_at: d.created_at,
+            no_servidor: !!d._supa_id
           }));
         }
       } catch(e){}
@@ -1169,26 +1222,57 @@
       toast("A exclusão segura não está disponível neste navegador.");
       return;
     }
-    if(window.HoloAuth && window.HoloAuth.sessaoAtiva() && window.supabaseClient){
-      for(const id of ids){
+    const autenticado = !!(window.HoloAuth && window.HoloAuth.sessaoAtiva() && window.supabaseClient);
+    /* UM POR UM, e cada um inteiro antes do proximo. Nao ha transacao entre o
+       servidor e este navegador, e fingir uma seria pior: antes, os DELETE
+       remotos iam todos primeiro e a limpeza local vinha depois — se o
+       terceiro falhasse, o primeiro e o segundo ja nao existiam no servidor
+       mas continuavam aqui. Agora cada paciente so sai do navegador depois
+       que saiu do servidor, e a falha de um para a fila sem deixar nenhum
+       dos anteriores pela metade. */
+    const removidos = [];
+    let bloqueado = false, falhaLocal = null;
+    for(const id of ids){
+      if(autenticado){
         const { error } = await window.supabaseClient.from("patients").delete().eq("id", id);
-        if(error){
-          toast("Não foi possível excluir: paciente possui dados no prontuário. Arquive-o.");
-          return;
-        }
+        if(error){ bloqueado = true; break; }
       }
+      const r = await window.Armazenamento.excluirPaciente([id], { confirmado: true, raizRemota: autenticado });
+      if(!r.aplicado){ falhaLocal = r.motivo || "erro desconhecido"; if(!autenticado) break; }
+      removidos.push(id);
     }
-    const r = await window.Armazenamento.excluirPaciente(ids, { confirmado: true });
-    if(!r.aplicado){
-      toast("Não foi possível remover: " + (r.motivo || "erro desconhecido"));
-      return;
-    }
-    ids.forEach(id => {
+    removidos.forEach(id => {
       estado.pacientes = estado.pacientes.filter(x => x.id !== id);
       if(estado.ativo === id) definirAtivo(estado.pacientes[0] ? estado.pacientes[0].id : null);
+      selecionados.delete(id);
     });
+    if(removidos.length) renderPacientes();
+
+    if(!autenticado && falhaLocal && !removidos.length){
+      toast("Não foi possível remover: " + falhaLocal);
+      return;
+    }
+    if(bloqueado && !removidos.length){
+      toast("Não foi possível excluir: paciente possui dados no prontuário. Arquive-o.");
+      return;
+    }
+    if(bloqueado){
+      toast(removidos.length + (removidos.length === 1 ? " paciente removido. " : " pacientes removidos. ") +
+            "Os demais não foram excluídos: paciente possui dados no prontuário. Arquive-o.");
+      return;
+    }
+    if(falhaLocal && !autenticado){
+      toast(removidos.length + (removidos.length === 1 ? " paciente removido. " : " pacientes removidos. ") +
+            "Não foi possível remover os demais: " + falhaLocal);
+      return;
+    }
+    if(falhaLocal){
+      /* So acontece com sessao: o servidor ja excluiu, a copia deste navegador
+         e que nao saiu. Ela nao volta para a lista (a lista vem do servidor). */
+      toast("Paciente excluído no servidor, mas a limpeza deste navegador falhou: " + falhaLocal);
+      return;
+    }
     selecionados.clear();
-    renderPacientes();
     toast(ids.length === 1 ? "Paciente removido." : ids.length + " pacientes removidos.");
   }
 
@@ -2547,108 +2631,6 @@
   /* Guarda o HISTORICO, nao a ultima. Sobrescrever apagava a aplicacao
      anterior — e sem duas nao ha o que comparar, que e a promessa de rastrear
      evolucao em 4, 8 e 12 semanas. */
-  async function sincronizarHistoricoHoloscan(pacientes) {
-    if (!window.supabaseClient || !window.HoloAuth || !window.HoloAuth.sessaoAtiva()) return;
-    if (!pacientes || !pacientes.length) return;
-
-    try {
-      const { data: apps, error: appErr } = await window.supabaseClient
-        .from("holoscan_applications")
-        .select("id, patient_id, quando, versao_estrutura, versao_bancos, indice, indice_maximo, avaliavel, nota_media, triada, triada_com_dado, cobertura, combinacoes, aprofundamentos, interpretacao_texto, interpretacao_em, interpretacao_versao, created_at")
-        .order("quando", { ascending: true });
-
-      if (appErr || !apps || !apps.length) return;
-
-      const { data: allScores, error: scErr } = await window.supabaseClient
-        .from("holoscan_system_scores")
-        .select("application_id, sistema, nome, nota, carga, faixa, obtido, maximo, respondidos, total_marcadores, avaliavel");
-
-      if (scErr) return;
-
-      var scoresByApp = {};
-      (allScores || []).forEach(function(s) {
-        if (!scoresByApp[s.application_id]) scoresByApp[s.application_id] = [];
-        scoresByApp[s.application_id].push(s);
-      });
-
-      var tudo = lerHistorico();
-      var mudou = false;
-
-      apps.forEach(function(app) {
-        var pid = app.patient_id;
-        if (!tudo[pid]) tudo[pid] = [];
-
-        var jaExiste = tudo[pid].some(function(e) {
-          return e.quando === app.quando && e._supa_id === app.id;
-        });
-        if (jaExiste) return;
-
-        var mesmoDia = tudo[pid].findIndex(function(e) {
-          return e.quando === app.quando;
-        });
-
-        var sist = scoresByApp[app.id] || [];
-        var pontuacao = {
-          quando: app.quando,
-          versao_estrutura: app.versao_estrutura,
-          versao_bancos: app.versao_bancos,
-          indice: app.indice,
-          indice_maximo: app.indice_maximo,
-          avaliavel: app.avaliavel,
-          nota_media: app.nota_media,
-          triada: app.triada,
-          triada_com_dado: app.triada_com_dado,
-          cobertura: app.cobertura,
-          combinacoes: app.combinacoes || [],
-          aprofundamentos: app.aprofundamentos || [],
-          sistemas: sist.map(function(s) {
-            return {
-              sistema: s.sistema,
-              nome: s.nome,
-              nota: s.nota,
-              carga: s.carga,
-              faixa: s.faixa,
-              obtido: s.obtido,
-              maximo: s.maximo,
-              respondidos: s.respondidos,
-              total_marcadores: s.total_marcadores,
-              avaliavel: s.avaliavel
-            };
-          }),
-          _supa_id: app.id
-        };
-
-        if (app.interpretacao_texto) {
-          pontuacao.interpretacao = {
-            texto: app.interpretacao_texto,
-            quando_escrita: app.interpretacao_em || app.quando,
-            versao: app.interpretacao_versao || 1
-          };
-        }
-
-        if (mesmoDia >= 0) {
-          if (tudo[pid][mesmoDia].interpretacao && !pontuacao.interpretacao) {
-            pontuacao.interpretacao = tudo[pid][mesmoDia].interpretacao;
-          }
-          tudo[pid][mesmoDia] = pontuacao;
-        } else {
-          tudo[pid].push(pontuacao);
-        }
-        mudou = true;
-      });
-
-      if (mudou) {
-        Object.keys(tudo).forEach(function(pid) {
-          tudo[pid].sort(function(a, b) { return (a.quando || "").localeCompare(b.quando || ""); });
-        });
-        localStorage.setItem("holohacking.pontuacao", JSON.stringify(tudo));
-        carregarHoloscan();
-      }
-    } catch (e) {
-      console.error("sincronizarHistoricoHoloscan:", e);
-    }
-  }
-
   function lerHistorico(){
     let tudo;
     try { tudo = JSON.parse(localStorage.getItem("holohacking.pontuacao")) || {}; }
@@ -2667,10 +2649,19 @@
     // versao_estrutura marca snapshots desta rodada (revisao clinica do
     // HOLOSCAN) sem tocar nos antigos — nada le esse campo ainda, existe
     // so para uma migracao futura saber distinguir os dois formatos.
-    const nova = Object.assign({}, r, { quando: hoje, versao_estrutura: 2 });
+    /* calculado_em: o instante do calculo. E o que permite a sincronizacao
+       (sincronizacao.js) saber se esta entrada, ainda sem identidade remota,
+       e mais nova do que a aplicacao do mesmo dia que o servidor ja tem. */
+    const nova = Object.assign({}, r, { quando: hoje, versao_estrutura: 2,
+                                         calculado_em: new Date().toISOString() });
+    delete nova._supa_id;
+    delete nova._supa_criado_em;
     if(!tudo[id]) tudo[id] = [];
-    // reaplicar no mesmo dia substitui, em vez de criar duas do mesmo dia
-    const mesmoDia = tudo[id].findIndex(x => x.quando === hoje);
+    /* reaplicar no mesmo dia substitui, em vez de criar duas do mesmo dia —
+       mas so substitui o que ainda NAO foi salvo no servidor. Uma aplicacao
+       com _supa_id e um registro remoto proprio: dois HOLOSCAN salvos no
+       mesmo dia sao dois registros, e o calculo novo vira uma entrada nova. */
+    const mesmoDia = tudo[id].findIndex(x => x.quando === hoje && !x._supa_id);
     if(mesmoDia >= 0){
       // Interpretacao profissional e escrita por fora, num campo separado
       // do resultado calculado. Reaplicar o HOLOSCAN no mesmo dia
@@ -3185,13 +3176,27 @@
         score_holos: total
       };
 
+      /* A entrada local que acabou de ir para o servidor ganha a identidade
+         remota: e a de hoje ainda sem _supa_id (guardarPontuacao so deixa
+         uma assim por dia). Nunca a "ultima" as cegas — com dois HOLOSCAN
+         no mesmo dia, a ultima pode ser outra aplicacao ja salva. */
       try {
         var hist = lerHistorico();
         var entradas = hist[p.id] || [];
-        var ult = entradas[entradas.length - 1];
-        if (ult && ult.quando === hoje) {
-          ult._supa_id = appId;
+        var alvoLocal = null;
+        for (var ie = entradas.length - 1; ie >= 0; ie--) {
+          if (entradas[ie].quando === hoje && !entradas[ie]._supa_id) { alvoLocal = entradas[ie]; break; }
+        }
+        if (alvoLocal) {
+          alvoLocal._supa_id = appId;
+          alvoLocal._supa_criado_em = new Date().toISOString();
           localStorage.setItem("holohacking.pontuacao", JSON.stringify(hist));
+          if (window.Concorrencia) window.Concorrencia.avancarRevisao("pontuacao");
+        }
+        if (window.Sincronizacao) {
+          var qSalvo = {};
+          respostasRaw.forEach(function(a) { qSalvo[a.marcador_id] = a.valor; });
+          window.Sincronizacao.registrarHoloscanSalvo(p.id, appId, qSalvo);
         }
       } catch(e) { /* nao critico */ }
 

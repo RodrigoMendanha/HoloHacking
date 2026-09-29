@@ -128,8 +128,10 @@ ok(soltas.length === 0,
    'nenhuma chave holohacking.* no disco esta fora do manifesto, das marcas ou ' +
    'do legado' + (soltas.length ? ': ' + JSON.stringify(soltas) : ''));
 
-ok(m.marcas.length === 2 && m.marcas.indexOf('oq3.migrado') >= 0 &&
-   m.marcas.indexOf('pqq.migrado') >= 0,
+ok(m.marcas.length === 6 && m.marcas.indexOf('oq3.migrado') >= 0 &&
+   m.marcas.indexOf('pqq.migrado') >= 0 &&
+   m.marcas.indexOf('supa.migrado.legado') >= 0 && m.marcas.indexOf('supa.migrado.conta') >= 0 &&
+   m.marcas.indexOf('sincronizacao') >= 0 && m.marcas.indexOf('dono.local') >= 0,
    'as marcas de migracao estao registradas a parte, nao como armazenamento: ' +
    m.marcas.join(', '));
 ok(m.legadas.length === 2 && m.legadas.indexOf('ferramentas') >= 0 &&
@@ -287,12 +289,12 @@ ok(ordem.manifesto < ordem.dados,
    na Fase 1 do Supabase (CDN do supabase-js + supabase-client.js +
    dados-router.js, as tres antes de dados.js/app.js consumirem `sb`), e
    na Etapa 10 (migracao-supa.js, o migrador localStorage→Supabase). */
-ok(ordem.total === 35,
-   'o index tem 35 tags de script: 22 de antes do P0 + concorrencia.js + ' +
+ok(ordem.total === 36,
+   'o index tem 36 tags de script: 22 de antes do P0 + concorrencia.js + ' +
    'armazenamento.js + validar-backup.js + restaurar-backup.js + ' +
    'importar-v1.js + excluir-paciente.js + login.js + CDN supabase-js + ' +
    'supabase-client.js + dados-router.js + migracao-supa.js + holos-ai.js + ' +
-   'utils.js — ' + ordem.total);
+   'utils.js + sincronizacao.js (Release 01) — ' + ordem.total);
 /* A tela de entrada e a ultima a carregar: nada do app depende dela, e ela
    nao depende de nada do app. Se um dia depender, esta linha cai junto. */
 ok(ordem.login === ordem.total - 1,

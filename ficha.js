@@ -344,12 +344,27 @@
       itens.push("Índice HOLOS " + (delta > 0 ? "subiu " + delta : delta < 0 ? "caiu " + Math.abs(delta) : "sem mudança"));
     }
 
-    var ferr = (d.ferramentas || []).filter(function (f) { return f.quando >= desde; });
+    /* d.ferramentas e a lista de IDS de ferramenta preenchida (Panorama), sem
+       data — o filtro por f.quando nunca achava nada. As aplicacoes datadas
+       estao em window.Aplicacoes, a mesma fonte da linha do tempo. */
+    var ferr = window.Aplicacoes
+      ? window.Aplicacoes.doPaciente(pid).filter(function (a) {
+          return a.status !== "rascunho" && diaLocal(a.concluida_em || a.iniciada_em) >= desde;
+        })
+      : [];
     if (ferr.length > 0)
       itens.push(ferr.length + (ferr.length === 1 ? " ferramenta aplicada" : " ferramentas aplicadas"));
 
-    if (d.exames > 0)
+    var coletasRet = window.Sincronizacao ? window.Sincronizacao.coletas(pid) : null;
+    if (coletasRet) {
+      var novas = coletasRet.filter(function (c) {
+        return !c.data_coleta_desconhecida && c.coletado_em && c.coletado_em >= desde;
+      });
+      if (novas.length > 0)
+        itens.push(novas.length + (novas.length === 1 ? " coleta de exames registrada" : " coletas de exames registradas"));
+    } else if (d.exames > 0) {
       itens.push(d.exames + (d.exames === 1 ? " valor de exame registrado" : " valores de exame registrados"));
+    }
 
     return '<div class="dash-bloco dash-bloco-compacto fic-retorno">' +
       '<h3 class="dash-titulo">Desde a última consulta</h3>' +
@@ -487,9 +502,15 @@
       "</div>";
 
     if (!d.historico.length) {
+      /* erro de leitura nao e "nenhum HOLOSCAN": o servidor pode ter
+         aplicacoes que este navegador nao conseguiu ler agora */
+      var falhouLeitura = window.Sincronizacao && window.Sincronizacao.falhou("holoscan");
       alvo.innerHTML = topo +
-        '<div class="lista-vazia"><strong>Nenhuma aplicação HOLOSCAN</strong>' +
-        "<span>Faça a primeira aplicação para mapear prioridades de investigação.</span></div>" +
+        (falhouLeitura
+          ? '<div class="lista-vazia"><strong>Não foi possível carregar o HOLOSCAN do servidor</strong>' +
+            "<span>Verifique a conexão e abra o app de novo. Nenhuma aplicação foi apagada.</span></div>"
+          : '<div class="lista-vazia"><strong>Nenhuma aplicação HOLOSCAN</strong>' +
+            "<span>Faça a primeira aplicação para mapear prioridades de investigação.</span></div>") +
         '<div id="aba-holoscan-laboratorial"></div>' +
         blocoContinuidadeHoloscan();
       if (window.desenharHoloscanLaboratorial) window.desenharHoloscanLaboratorial();
@@ -581,7 +602,24 @@
       });
     }
 
-    if (d.exames > 0) {
+    /* Com sessao, cada coleta do servidor e um evento com a propria data
+       (sincronizacao.js). Sem leitura remota, o painel local e um evento so,
+       sem data — ele nao sabe quando foi coletado. Nunca os dois: a coleta
+       remota ja E o que o painel mostra. */
+    var coletas = window.Sincronizacao ? window.Sincronizacao.coletas(pid) : null;
+    if (coletas && coletas.length) {
+      coletas.forEach(function (c) {
+        var n = (c.resultados || []).length;
+        var semData = c.data_coleta_desconhecida || !c.coletado_em;
+        eventos.push({
+          quando: semData ? "" : c.coletado_em, tipo: "exame", selo: "Exames",
+          titulo: "Coleta de exames" + (semData ? " (data não informada)" : ""),
+          detalhe: n + (n === 1 ? " exame" : " exames") +
+                   (c.laboratorio ? " &middot; " + escapar(c.laboratorio) : ""),
+          acao: "aba:visao"
+        });
+      });
+    } else if (d.exames > 0) {
       eventos.push({
         quando: "", tipo: "exame", selo: "Exames",
         titulo: "Exames laboratoriais registrados",

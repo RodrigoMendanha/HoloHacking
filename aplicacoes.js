@@ -69,7 +69,8 @@
     var b = banco();
     if (!b) { cache = []; return Promise.resolve(cache); }
     return Promise.resolve(b.from("aplicacoes").select("*")).then(function (r) {
-      cache = r.data || [];
+      /* erro nao e vazio: se a leitura falhou, fica o que ja se tinha */
+      if (!r || !r.error) cache = (r && r.data) || [];
       return cache;
     });
   }
@@ -423,6 +424,8 @@
 
   window.Aplicacoes = {
     carregar: carregar,
+    /** Logout: as aplicacoes da conta que saiu nao ficam em memoria. */
+    esquecer: function () { cache = []; },
     abrir: abrir,
     nova: novaAplicacao,
     salvarRespostas: salvarRespostas,
