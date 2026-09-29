@@ -73,4 +73,7 @@ export const SUITES = [
   'testar-arquitetura-lote06.mjs',
   'testar-responsividade.mjs',
   'testar-smoke.mjs',
+  'testar-release01-regras.mjs',
+  'testar-release01-multidispositivo.mjs',
+  'testar-release01-contas-migracao.mjs',
 ];
