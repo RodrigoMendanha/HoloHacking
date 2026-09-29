@@ -36,7 +36,7 @@ Cada afirmação está marcada:
   leituras que só a `646bfcb` e as seguintes fazem. Não dá para distinguir
   `646bfcb` de `b355dd4` só por leitura: confira o hash (§3.4).
 - **[confirmado]** A Edge Function `holos-ai` (a porta do MetaNutri) já está
-  no Supabase, versão 2, `verify_jwt = false`, com o mesmo código do repo
+  no Supabase, versão 3, `verify_jwt = false`, com o mesmo código do repo
   (`supabase/functions/holos-ai/`). Ela não depende do deploy da VPS. Falta
   só a chave (§6).
 - **[confirmado]** As RPCs `salvar_holoscan_completo` e `salvar_coleta_exames`
@@ -248,9 +248,9 @@ supabase functions deploy holos-ai --no-verify-jwt --project-ref sllhyymeeyoozok
 ```
 
 `--no-verify-jwt` é de propósito: a função confere o JWT ela mesma e
-responde 401 sem sessão. Hashes do código que está no ar (versão 2):
+responde 401 sem sessão. Hashes do código que está no ar (versão 3, rodada 07):
 
 ```
 fcaf5708c97d2a87def3b74e6af6eb37177c441ce8b734cb6bd51dfd1d623873  supabase/functions/holos-ai/index.ts
-807d3b4b7364c93e1eac0f82a77cbf30453efb2b0542af1902008ea235144da1  supabase/functions/holos-ai/metanutri.ts
+bb18a608dca436191913aaa33a9fcafa15b524c3ca89b0141201962f7b0d9f1d  supabase/functions/holos-ai/metanutri.ts
 ```
