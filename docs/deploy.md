@@ -112,6 +112,15 @@ O Caddy não precisa mudar se o nome e a porta forem os mesmos.
 
 ### 3.4 Conferir na própria VPS
 
+Num comando só, os 39 arquivos contra o §3.5 (tem de sair `OK: 39 de 39`):
+
+```sh
+sh scripts/conferir-producao.sh                            # o domínio público
+sh scripts/conferir-producao.sh http://127.0.0.1:<PORTA>   # só o container
+```
+
+Os comandos abaixo são a mesma conferência, arquivo por arquivo.
+
 ```sh
 curl -sI http://127.0.0.1:<PORTA>/app.js | grep -i cache-control   # Cache-Control: no-cache
 curl -s  http://127.0.0.1:<PORTA>/app.js | sha256sum               # dfca9ef7fd1f...
