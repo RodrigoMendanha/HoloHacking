@@ -2699,6 +2699,8 @@
   const MSG_NAO_SINCRONIZADO = "Os dados foram salvos neste dispositivo, mas não foi possível " +
     "sincronizá-los. Tente salvar novamente quando estiver conectado.";
   window.MSG_NAO_SINCRONIZADO = MSG_NAO_SINCRONIZADO;
+  const MSG_SO_NESTE_APARELHO = "Salvo só neste aparelho. Pra salvar na sua conta e ver em " +
+    "outro aparelho, use o questionário.";
 
   /* Devolve false quando nao ha aplicacao onde prender o texto. Senao, um
      objeto (truthy) com `remoto`: Promise do destino no servidor —
@@ -3272,7 +3274,12 @@
 
     p.holoscan = data;
     renderPacientes();
-    toast("HOLOSCAN salvo na ficha de " + p.nome.split(" ")[0] + ". Score: " + total);
+    /* Pontuado a mao (as reguas), a tabela "holoscan" nao vai ao servidor
+       (dados-router.js): fica so neste navegador. A mensagem nao pode dizer
+       que salvou na ficha como se estivesse na conta. */
+    toast(pontuacaoNaTela
+      ? "HOLOSCAN salvo na ficha de " + p.nome.split(" ")[0] + ". Score: " + total
+      : MSG_SO_NESTE_APARELHO);
     } finally { destravarBotao(btn); }
   });
 

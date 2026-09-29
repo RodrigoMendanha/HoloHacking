@@ -134,6 +134,26 @@ const t1b = await salvar(A);
 ok(remotas(P).length === 1 && /já está salvo e sincronizado/.test(t1b),
    'clicar Salvar de novo nao cria segunda aplicacao remota: ' + t1b);
 
+/* os dois caminhos do "Salvar HOLOSCAN", uma mensagem para cada */
+const MSG_SO_AQUI = 'Salvo só neste aparelho. Pra salvar na sua conta e ver em outro aparelho, use o questionário.';
+ok(t1.indexOf(MSG_SO_AQUI) < 0, 'questionario: a mensagem e a de salvo na ficha, nao a de so neste aparelho');
+const remotasAntesRegua = remotas(P).length;
+await A.evaluate(async () => {
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
+  const b = document.getElementById('btn-repontuar');
+  if (b) b.click();
+  await new Promise(r => setTimeout(r, 100));
+  const regua = document.getElementById('holo-fungico');
+  regua.disabled = false;
+  regua.value = '6';
+  regua.dispatchEvent(new Event('input', { bubbles: true }));
+});
+const tRegua = await salvar(A);
+ok(tRegua === MSG_SO_AQUI, 'controles deslizantes: "' + tRegua + '"');
+ok(!/salvo na ficha/.test(tRegua) && remotas(P).length === remotasAntesRegua,
+   'controles deslizantes: nao diz que salvou na ficha, e nada vai ao servidor');
+await calcular(A, 0);
+
 /* ==================================================================== */
 titulo('B. LOCAL OK + SERVIDOR FALHA → NENHUM SUCESSO FALSO');
 /* ==================================================================== */
@@ -232,8 +252,10 @@ titulo('E. DATA DA COLETA DE EXAMES');
 /* ==================================================================== */
 
 const exames = await A.evaluate(() => window.HOLOSCAN.listaDeExames().slice(0, 3).map(e => e.id));
-async function conferirPeloPainel(valores) {
-  return A.evaluate(async (pid, valores) => {
+/* o painel: "Conferir com o mapa" com o campo "Data da coleta" (data = '' deixa vazio).
+   Devolve a mensagem que a tela mostrou ao lado do campo. */
+async function conferirPeloPainel(valores, data) {
+  return A.evaluate(async (pid, valores, data) => {
     window.abrirFichaDe(pid);
     await new Promise(r => setTimeout(r, 200));
     document.querySelector('[data-aba="documentos"]').click();
@@ -242,35 +264,67 @@ async function conferirPeloPainel(valores) {
       const inp = document.querySelector('#ex-corpo .ex-linha[data-exame="' + id + '"] input');
       inp.value = String(valores[id]); inp.dispatchEvent(new Event('input', { bubbles: true }));
     });
+    document.getElementById('ex-data-coleta').value = data || '';
     document.querySelector('#ex-corpo [data-acao="conferir"]').click();
     await new Promise(r => setTimeout(r, 600));
-  }, P, valores);
+    return document.getElementById('ex-data-erro').textContent;
+  }, P, valores, data);
+}
+/* registro SEM data de coleta: o legado (migracao, reenvio de pendente antigo).
+   O painel nao grava mais assim; o caminho continua na sincronizacao. */
+async function registrarSemData(pid, valores) {
+  return A.evaluate(async (pid, valores) => {
+    const t = JSON.parse(localStorage.getItem('holohacking.exames') || '{}');
+    t[pid] = valores;
+    localStorage.setItem('holohacking.exames', JSON.stringify(t));
+    const r = await window.Sincronizacao.salvarColeta(pid, valores, null);
+    if (r.ok) await window.Sincronizacao.atualizarColetas(pid);
+    return r;
+  }, pid, valores);
 }
 const coletas = () => srv.linhas('lab_collections').filter(c => c.patient_id === P);
+function diaLocal(deslocamentoDias) {
+  const d = new Date(Date.now() + deslocamentoDias * 86400000);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
 
-await conferirPeloPainel({ [exames[0]]: 90 });
-ok(coletas().length === 1 && coletas()[0].data_coleta_desconhecida === true && coletas()[0].coletado_em === null,
-   'sem data informada (o painel nao tem o campo): data da coleta DESCONHECIDA');
+let msgData = await conferirPeloPainel({ [exames[0]]: 90 }, '');
+ok(coletas().length === 0 && /Informe a data da coleta/.test(msgData),
+   'sem data da coleta: nao salva no servidor, e a tela diz "' + msgData + '"');
+msgData = await conferirPeloPainel({ [exames[0]]: 90 }, diaLocal(1));
+ok(coletas().length === 0 && /não pode ser futura/.test(msgData),
+   'data futura (' + diaLocal(1) + '): nao salva, e a tela diz "' + msgData + '"');
+const localSemData = await A.evaluate((pid) =>
+  (JSON.parse(localStorage.getItem('holohacking.exames') || '{}')[pid] || {}), P);
+ok(localSemData[exames[0]] === 90, 'o valor digitado continua no aparelho (nao se perde)');
+msgData = await conferirPeloPainel({ [exames[0]]: 90 }, '2026-03-20');
+ok(msgData === '' && coletas().length === 1 && coletas()[0].coletado_em === '2026-03-20' &&
+   coletas()[0].data_coleta_desconhecida === false,
+   'com a data da coleta: grava pela RPC com a data escolhida (2026-03-20)');
 ok(!!coletas()[0].created_at, 'o momento do registro fica em created_at/updated_at (dado tecnico)');
+
+await registrarSemData(P, { [exames[0]]: 85 });
+ok(coletas().some(c => c.data_coleta_desconhecida === true && c.coletado_em === null),
+   'registro legado sem data: data da coleta DESCONHECIDA, nunca "hoje"');
 
 const hist = await A.evaluate((pid, eid) => window.Sincronizacao.salvarColeta(pid, { [eid]: 70 }, '2026-03-15'),
   P, exames[1]);
 ok(hist.ok && coletas().some(c => c.coletado_em === '2026-03-15' && c.data_coleta_desconhecida === false),
    'data historica valida informada: gravada como veio (2026-03-15)');
-await conferirPeloPainel({ [exames[0]]: 95 });
+await registrarSemData(P, { [exames[0]]: 95 });
 const resultadosDe = (cid) => srv.linhas('lab_results').filter(r => r.collection_id === cid)
   .map(r => r.exame_id + '=' + r.valor).sort().join(',');
 {
   const sd = coletas().filter(c => c.data_coleta_desconhecida)
     .sort((a, b) => a.created_at.localeCompare(b.created_at));
-  ok(coletas().length === 3 && sd.length === 2 && sd[0].id !== sd[1].id,
+  ok(coletas().length === 4 && sd.length === 2 && sd[0].id !== sd[1].id,
      'segundo registro sem data = coleta NOVA, com id proprio (nao atualiza a primeira)');
-  ok(resultadosDe(sd[0].id) === exames[0] + '=90' && resultadosDe(sd[1].id) === exames[0] + '=95',
+  ok(resultadosDe(sd[0].id) === exames[0] + '=85' && resultadosDe(sd[1].id) === exames[0] + '=95',
      'cada coleta sem data mantem os proprios resultados: ' + resultadosDe(sd[0].id) + ' | ' + resultadosDe(sd[1].id));
   ok(coletas().some(c => c.coletado_em === '2026-03-15'), 'e a coleta historica nao foi tocada');
 }
 const antesDuplo = coletas().length;
-await conferirPeloPainel({ [exames[0]]: 95 });
+await registrarSemData(P, { [exames[0]]: 95 });
 ok(coletas().length === antesDuplo, 'conferir de novo os MESMOS valores nao cria coleta repetida');
 
 // reenvio: a coleta pendente de uma data historica volta com a MESMA data
@@ -287,14 +341,14 @@ srv.falhar.length = 0;
 await recarregar(A);
 ok(coletas().some(c => c.coletado_em === '2026-02-10'),
    'reenvio na proxima carga usa a data original (2026-02-10), nao a de hoje');
-ok(!coletas().some(c => c.coletado_em && c.coletado_em !== '2026-03-15' && c.coletado_em !== '2026-02-10'),
+ok(!coletas().some(c => c.coletado_em && !['2026-03-20', '2026-03-15', '2026-02-10'].includes(c.coletado_em)),
    'nenhuma coleta ganhou a data do reenvio');
 
 // registro sem data que falha NO MEIO (coleta gravada, resultados nao):
 // o reenvio completa a MESMA coleta, sem criar outra
 const semDataAntes = coletas().filter(c => c.data_coleta_desconhecida).map(c => c.id);
 srv.falhar.push({ tabela: 'lab_results', acao: 'upsert' });
-await conferirPeloPainel({ [exames[0]]: 101 });
+await registrarSemData(P, { [exames[0]]: 101 });
 srv.falhar.length = 0;
 const registrado = await A.evaluate((pid) =>
   Object.entries(JSON.parse(localStorage.getItem('holohacking.exames') || '{}')[pid] || {})
@@ -333,32 +387,19 @@ async function lerNoFuso(fuso) {
 const sp = await lerNoFuso('America/Sao_Paulo');
 const ki = await lerNoFuso('Pacific/Kiritimati');
 const la = await lerNoFuso('Pacific/Pago_Pago');
-ok([sp, ki, la].every(r => /15\/03\/2026/.test(r.txt) && /10\/02\/2026/.test(r.txt)),
-   'UTC-3, UTC+14 e UTC-11 mostram 15/03/2026 e 10/02/2026 — o fuso nao muda o dia');
+ok([sp, ki, la].every(r => /20\/03\/2026/.test(r.txt) && /15\/03\/2026/.test(r.txt) && /10\/02\/2026/.test(r.txt)),
+   'UTC-3, UTC+14 e UTC-11 mostram 20/03, 15/03 e 10/02/2026 — o fuso nao muda o dia');
 ok([sp, ki, la].every(r => r.coletas.includes('2026-03-15') && r.coletas.includes('2026-02-10')),
    'e a data guardada e a mesma string nos tres');
 ok([sp, ki, la].every(r => /Data da coleta não informada/.test(r.txt)),
    'a coleta sem data aparece como "Data da coleta não informada" nos tres fusos');
 
 /* ==================================================================== */
-titulo('F. DUAS COLETAS SEM DATA, NAVEGADOR B LIMPO');
+titulo('F. DUAS COLETAS SEM DATA (LEGADO), NAVEGADOR B LIMPO');
 /* ==================================================================== */
 
 const Q = await cadastrar(A, 'Paciente Duas Coletas');
-async function conferirQ(valores) {
-  await A.evaluate(async (pid, valores) => {
-    window.abrirFichaDe(pid);
-    await new Promise(r => setTimeout(r, 200));
-    document.querySelector('[data-aba="documentos"]').click();
-    await new Promise(r => setTimeout(r, 300));
-    Object.keys(valores).forEach(id => {
-      const inp = document.querySelector('#ex-corpo .ex-linha[data-exame="' + id + '"] input');
-      inp.value = String(valores[id]); inp.dispatchEvent(new Event('input', { bubbles: true }));
-    });
-    document.querySelector('#ex-corpo [data-acao="conferir"]').click();
-    await new Promise(r => setTimeout(r, 600));
-  }, Q, valores);
-}
+const conferirQ = (valores) => registrarSemData(Q, valores);
 await conferirQ({ [exames[0]]: 80, [exames[1]]: 4.9 });
 await conferirQ({ [exames[0]]: 110, [exames[1]]: 6.3 });
 const colQ = srv.linhas('lab_collections').filter(c => c.patient_id === Q);

@@ -123,14 +123,27 @@ As decisões ficam em `holohacking.sincronizacao` (metadado, não dado clínico;
 entra no stash por conta). As tabelas de decisão são testadas uma a uma em
 `testar-release01-regras.mjs`.
 
-**Data da coleta de exames.** O painel de exames **não tem campo de data de
-coleta**, então a profissional nunca informa essa data. Por isso, conferir e
-salvar grava **data de coleta desconhecida** (`data_coleta_desconhecida =
-true`, `coletado_em = null`). Não se inventa "hoje". O momento do registro
-fica em `created_at`/`updated_at`: é dado técnico, usado para escolher a
-coleta atual e para o "registrada desde" do retorno, e nunca é mostrado como
-data da coleta. A tela e a linha do tempo dizem "data não informada".
-Consequências:
+**Data da coleta de exames.** Desde a rodada 04, o painel de exames tem o
+campo **Data da coleta**, ao lado de "Conferir com o mapa":
+- é **obrigatório** para registrar. Sem ele, "Conferir com o mapa" confere na
+  tela, mantém os valores no aparelho (como rascunho) e **não** envia ao
+  servidor. A tela diz "Informe a data da coleta para registrar os exames.";
+- **não aceita data futura** ("A data da coleta não pode ser futura.");
+- a data vai como `coletado_em` pela RPC `salvar_coleta_exames`, que já
+  recebia esse parâmetro. Não houve mudança de RPC, tabela nem RLS. Uma coleta
+  com data é **uma por paciente e dia**: registrar de novo no mesmo dia
+  atualiza a coleta daquele dia.
+
+Não se inventa "hoje". O momento do registro fica em
+`created_at`/`updated_at`: é dado técnico, usado para escolher a coleta
+atual e para o "registrada desde" do retorno, e nunca é mostrado como data
+da coleta. A linha do tempo e o "Histórico de coletas" mostram a data da
+coleta.
+
+**Coletas sem data** (as registradas antes do campo, e o legado migrado do
+navegador) continuam como **data de coleta desconhecida**
+(`data_coleta_desconhecida = true`, `coletado_em = null`). A tela e a linha do
+tempo dizem "Data da coleta não informada". Consequências para esse caso:
 - **cada registro sem data é uma coleta própria.** A RPC `salvar_coleta_exames`
   reaproveitaria "a" coleta sem data do paciente e apagaria os resultados dela.
   Não há constraint no schema que exija isso; é só a busca da RPC. Por isso,
@@ -242,9 +255,9 @@ senha, caminho de storage, URL nem binário.
 
 ## 10. Pendências conhecidas
 
-1. **Data de coleta de exames:** falta um campo de data de coleta no painel.
-   Sem ele, os registros ficam como data desconhecida (ver §3). Criar o campo
-   é mudança de tela e depende de decisão de produto.
+1. ~~Data de coleta de exames~~ **resolvido na rodada 04:** o painel tem o
+   campo "Data da coleta", obrigatório e sem data futura (ver §3). As coletas
+   antigas sem data continuam "Data da coleta não informada".
 2. ~~HOLOSCAN cujo "Salvar" falhou~~ **resolvido:** o local fica, o aviso é
    "Os dados foram salvos neste dispositivo, mas não foi possível
    sincronizá-los…", e salvar de novo tenta de novo. Não há fila automática.
@@ -267,3 +280,148 @@ senha, caminho de storage, URL nem binário.
    do disco, a leitura local falha (a cópia remota não é afetada).
 9. **Infra fora deste lote:** SMTP próprio, configuração final do Supabase
    Auth, URLs oficiais dos agentes HOLOS AI e deploy.
+
+---
+
+## 11. Roteiro de homologação
+
+Para quem vai testar, sem conhecimento técnico. Siga na ordem. Nunca escreva
+senha, e-mail de paciente ou nome de paciente em issue, commit ou mensagem de
+chat: para falar de um paciente de teste, diga "paciente de teste 1".
+
+O app **não tem tela de criar conta**. Uma conta nova só nasce no painel do
+Supabase, e quem cria é o Rodrigo.
+
+### 11.1 Criar a segunda conta de nutricionista (Rodrigo)
+
+Hoje o banco tem 1 conta de nutricionista em uso.
+
+1. Entre em supabase.com, no projeto do HoloHacking.
+2. Menu da esquerda: **Authentication** → **Users**.
+3. Botão **Add user** → **Create new user**.
+4. Preencha o e-mail da nutricionista e uma senha provisória. Marque
+   **Auto Confirm User**. Clique em **Create user**.
+5. A senha provisória vai para ela por um canal privado (ligação ou mensagem
+   direta), nunca por e-mail em grupo nem por arquivo. Ela pode trocá-la depois
+   em "Esqueci minha senha", na tela de login.
+6. Não precisa criar mais nada. O banco cria o perfil dela sozinho na hora
+   (gatilho `on_auth_user_created`). O nome do perfil começa igual ao e-mail, e
+   ela ajusta em **Perfil**.
+7. Conferência: em **Users** aparecem 2 contas de nutricionista, com a nova já
+   confirmada. O Claude pode confirmar pela contagem, sem ver dado nenhum.
+
+Cada nutricionista só vê os próprios pacientes. O teste abaixo é **de cada
+uma, na própria conta**, em dois aparelhos.
+
+### 11.2 O teste: salvar no aparelho A, ver no aparelho B
+
+Antes de começar:
+- o deploy da `main` com a rodada 04 precisa estar no ar, conferido pelo
+  hash (`docs/deploy.md` §3.4 e §3.5). Sem ele não há o campo "Data da
+  coleta";
+- no aparelho A e no aparelho B (por exemplo, computador e celular), abra
+  https://holohacking.com.br e aperte **Ctrl+Shift+R** uma vez (no celular,
+  feche e abra a aba).
+
+**No aparelho A**
+
+1. Tela **Entrar na plataforma**: preencha **E-mail** e **Senha**, clique em
+   **Entrar**.
+2. Menu da esquerda, grupo Atendimento: **Pacientes** → botão verde **Novo
+   paciente**. Preencha só **Nome** (use um nome de teste, não de paciente
+   real) e clique em **Salvar paciente**.
+   - Tem de aparecer: "<primeiro nome> cadastrado com sucesso." e a ficha
+     dele se abre.
+3. No topo da ficha, clique em **Aplicar HOLOSCAN**.
+4. Clique em **Aplicar questionário — 84 perguntas**. Responda algumas
+   perguntas (pode ser todas) e clique em **Gerar o mapa**. Se faltar alguma,
+   o app pergunta "Faltam X de 84 perguntas. Gerar o mapa mesmo assim?":
+   clique em OK.
+   - **Não use os controles deslizantes "pontue os cinco sistemas à mão".**
+     Por esse caminho o HOLOSCAN fica só neste aparelho, e o app avisa:
+     "Salvo só neste aparelho. Pra salvar na sua conta e ver em outro
+     aparelho, use o questionário." Se essa mensagem aparecer, volte ao
+     passo 4 pelo questionário.
+5. Clique em **Salvar HOLOSCAN**.
+   - Tem de aparecer: "HOLOSCAN salvo na ficha de <primeiro nome>. Score: <n>".
+   - Se aparecer "Os dados foram salvos neste dispositivo, mas não foi
+     possível sincronizá-los…", **o teste falhou**. Anote a hora e avise.
+6. Volte à ficha (**Pacientes** → clique no paciente) → botão **Registrar
+   exames**. Na aba **Documentos**, cartão **Os valores do exame**:
+   1. Clique em **Conferir com o mapa** sem preencher a data. Tem de
+      aparecer, ao lado do campo: "Informe a data da coleta para registrar
+      os exames." Nada vai ao servidor.
+   2. Em **Data da coleta**, tente escolher amanhã. O calendário não deixa
+      (ou, digitada, aparece "A data da coleta não pode ser futura.").
+   3. Escolha uma data **passada, que não seja hoje** (por exemplo, a de uma
+      semana atrás). Digite 2 ou 3 valores (glicose, por exemplo). Clique em
+      **Conferir com o mapa**.
+   - Quando dá certo, não aparece mensagem nenhuma e o aviso do campo some.
+   - Se aparecer "Exames salvos só neste dispositivo — não foi possível
+     enviar ao servidor…", **o teste falhou**. Anote a hora e avise.
+7. Anote o score do passo 5, a data da coleta e os valores do passo 6.
+
+**No aparelho B**
+
+1. Entre com **a mesma conta**.
+2. **Pacientes** → abra o paciente de teste. Espere uns segundos: a ficha se
+   redesenha quando o servidor responde.
+3. Aba **Visão geral**, bloco **Exames**: tem de aparecer "N valores
+   registrados.", com N igual ao número de valores digitados no passo 6.
+4. Aba **HOLOSCAN**:
+   - bloco **Mapa HOLOS — última aplicação**: a data de hoje, "Índice X de
+     100 · N de 84 respondidas", com X igual ao score anotado;
+   - mais abaixo, **Histórico de coletas**: uma linha com **a data da coleta
+     anotada** (dd/mm/aaaa, não a de hoje) e "N exames".
+5. Aba **Visão geral**, **Linha do tempo**: um evento "Coleta de exames" na
+   **data da coleta anotada**, não na data de hoje.
+6. Se aparecer "Não foi possível carregar o HOLOSCAN do servidor" ou "Não foi
+   possível carregar os exames do servidor", **o teste falhou**. Anote a hora
+   e avise.
+
+**Sobre a data da coleta.** Coletas registradas antes do campo continuam
+como "Data da coleta não informada", e isso é o esperado. Toda coleta nova
+registrada pela tela tem a data escolhida (§3).
+
+**Pronto** quando as duas nutricionistas passarem os passos A e B, cada uma
+na própria conta.
+
+### 11.3 Recuperar os 4 salvamentos que falharam em 29-set
+
+Em 29-set, entre 18:15 e 18:18 UTC, 2 HOLOSCAN e 2 envios de exames da conta
+de homologação falharam por causa do erro nas RPCs. Nada chegou ao servidor,
+mas a cópia ficou no navegador em que foram feitos (Chrome, no Windows). As
+RPCs estão consertadas desde as 19:26 UTC de 29-set. Por isso, até a versão
+que está no ar hoje (`cfce960`) já grava. Não precisa esperar o deploy.
+
+1. Abra **o mesmo Chrome, no mesmo computador** usado em 29-set. Se os dados
+   do site foram apagados nesse Chrome, a cópia se perdeu e é preciso
+   refazer a aplicação.
+2. Entre na **mesma conta**.
+3. HOLOSCAN: menu **HOLOSCAN**. No campo **Paciente**, escolha o paciente
+   daquele dia.
+   - Se o mapa já aparece preenchido, clique em **Salvar HOLOSCAN**.
+   - Se não aparece, clique em **Aplicar questionário — 84 perguntas**. As
+     respostas daquele dia continuam marcadas. Clique em **Gerar o mapa** e
+     depois em **Salvar HOLOSCAN**.
+   - Tem de aparecer "HOLOSCAN salvo na ficha de <primeiro nome>. Score: <n>".
+     Com a `cfce960`, se aparecer "Erro ao salvar HOLOSCAN no servidor.",
+     pare e avise.
+4. Exames: abra a ficha do mesmo paciente → **Registrar exames**. No cartão
+   **Os valores do exame**, os valores daquele dia continuam lá. Clique em
+   **Conferir com o mapa**.
+   - A `cfce960` não mostra mensagem nenhuma, nem de sucesso nem de erro.
+     Ela grava a coleta com a data de hoje (ela não tem o campo "Data da
+     coleta").
+5. Confira em outro aparelho, como no §11.2 aparelho B. Na `cfce960`, a ficha
+   do outro aparelho mostra o HOLOSCAN e os valores atuais, mas não mostra o
+   histórico de coletas: esse histórico só vem com a `main` nova.
+6. Peça ao Claude para contar as linhas no banco. Depois da recuperação tem
+   de haver pelo menos 1 aplicação HOLOSCAN e 1 coleta de exames. Em 29-set,
+   às 19:57 UTC, havia 0 de cada.
+
+Se a recuperação só acontecer depois do deploy da `main` nova, o passo 2
+reenvia sozinho o HOLOSCAN que ficou só no navegador (migração). Os exames
+sobem sozinhos como "Data da coleta não informada" se o paciente ainda não
+tiver coleta no servidor. Para registrar com a data certa, faça o passo 4
+preenchendo **Data da coleta** com a data em que o sangue foi colhido.

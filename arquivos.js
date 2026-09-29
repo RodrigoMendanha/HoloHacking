@@ -365,9 +365,12 @@
 
     var html =
       '<div class="ex-acoes">' +
+      '<label class="ex-data" for="ex-data-coleta">Data da coleta ' +
+        '<input type="date" id="ex-data-coleta" required max="' + hojeISO() + '"></label>' +
       '<button type="button" class="btn-verde" data-acao="conferir">Conferir com o mapa</button>' +
       '<button type="button" class="btn-fantasma" data-acao="limpar-ex">Limpar</button>' +
-      '<span class="ex-conta"></span></div>' +
+      '<span class="ex-conta"></span>' +
+      '<span class="ex-data-erro" id="ex-data-erro" role="alert"></span></div>' +
       '<div id="ex-confronto"></div>';
 
     Object.keys(porSistema).forEach(function (sis) {
@@ -406,14 +409,49 @@
     return window.supabaseClient && window.HoloAuth && window.HoloAuth.sessaoAtiva();
   }
 
-  /* A data da COLETA. O painel de exames nao tem campo de data de coleta
-     (criar um e mudanca de tela, fora do Release 01) — entao a profissional
-     nunca informa essa data, e o registro vai como DATA DE COLETA
-     DESCONHECIDA (data_coleta_desconhecida = true, coletado_em = null).
-     Gravar "hoje" inventaria que o sangue foi colhido no dia do cadastro.
-     Quando o registro foi feito continua no created_at/updated_at da linha,
-     que e dado tecnico, nunca mostrado como data da coleta. */
-  function dataDaColeta() { return null; }
+  /* A data da COLETA: o campo "Data da coleta" do painel. E obrigatoria
+     para registrar e nunca pode ser futura. Vai para o servidor como
+     coletado_em (a data CLINICA), nunca "hoje" por conta propria: o momento
+     do registro continua no created_at/updated_at da linha, dado tecnico.
+     Coletas antigas sem data continuam "Data da coleta não informada". */
+  function hojeISO() {
+    var d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" +
+           String(d.getDate()).padStart(2, "0");
+  }
+
+  /** "" se a data serve; senao, a frase que a tela mostra. */
+  function problemaDataColeta(v) {
+    v = String(v || "").trim();
+    if (!v) return "Informe a data da coleta para registrar os exames.";
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
+    var d = m && new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    if (!d || d.getFullYear() !== Number(m[1]) || d.getMonth() !== Number(m[2]) - 1 ||
+        d.getDate() !== Number(m[3])) return "Data da coleta inválida.";
+    if (v > hojeISO()) return "A data da coleta não pode ser futura.";
+    return "";
+  }
+
+  function dataDaColeta() {
+    var c = document.getElementById("ex-data-coleta");
+    return c ? String(c.value || "").trim() : "";
+  }
+
+  /** Registrar = conferir E salvar. Sem data valida, confere na tela mas
+      nao salva no servidor, e diz por que. */
+  function registrar() {
+    var erro = problemaDataColeta(dataDaColeta());
+    var alvo = document.getElementById("ex-data-erro");
+    if (alvo) alvo.textContent = erro;
+    if (erro) {
+      conferir();                 // o digitado ja ficou como rascunho (input)
+      if (window.avisar) window.avisar(erro);
+      var c = document.getElementById("ex-data-coleta");
+      if (c) c.focus();
+      return;
+    }
+    conferir(true);
+  }
 
   /** Salva no servidor e AVISA se nao conseguiu. O valor local ja foi
       gravado antes (conferir) e continua, marcado como pendente: a proxima
@@ -538,12 +576,16 @@
 
     painel.addEventListener("input", function (ev) {
       if (ev.target.matches(".ex-linha input")) conferir();
+      if (ev.target.id === "ex-data-coleta") {
+        var erro = document.getElementById("ex-data-erro");
+        if (erro) erro.textContent = "";
+      }
     });
 
     painel.addEventListener("click", function (ev) {
       var a = ev.target.closest("[data-acao]");
       if (a) {
-        if (a.dataset.acao === "conferir") conferir(true);
+        if (a.dataset.acao === "conferir") registrar();
         if (a.dataset.acao === "limpar-ex") { gravar(CHAVE_EX, {}); desenharExames(); }
         // O botao do topo e o do estado vazio so abrem o MESMO seletor de
         // arquivo que a zona de arrastar ja usa — nao e um fluxo novo.

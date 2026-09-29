@@ -432,9 +432,9 @@
   }
 
   /** A coleta que o painel mostra como "atual": a ultima REGISTRADA
-      (updated_at), nao a de data clinica maior. Registro sem data de coleta
-      (o caso do painel, que nao tem esse campo) e o mais comum, e ele nao
-      tem data clinica para comparar. */
+      (updated_at), nao a de data clinica maior: registrar hoje uma coleta
+      antiga nao pode esconder a que foi registrada ontem. E registro legado
+      sem data de coleta nao tem data clinica para comparar. */
   function ultimaRegistrada(coletas) {
     var u = null;
     (coletas || []).forEach(function (c) {
