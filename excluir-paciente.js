@@ -63,7 +63,7 @@
      cadastro. Aceita-lo aqui apagaria esse deposito inteiro de uma vez, e o
      pedido teria sido "apague este paciente". */
 
-  function conferirId(pid) {
+  function conferirId(pid, opcoes) {
     if (pid === null || pid === undefined) {
       return { ok: false, codigo: "ID_AUSENTE", mensagem: "nenhum id foi dado" };
     }
@@ -80,6 +80,12 @@
                   "destruiria o dado de todos os que nunca tiveram ficha."
       };
     }
+    /* raizRemota: com sessao Supabase o cadastro mora no servidor, nao na
+       tabela local — e quem chama ja o excluiu la (app.js, removerPacientes).
+       O que resta aqui sao as caixas locais DAQUELE id, e elas precisam sair
+       mesmo sem linha na tabela local. Sem isto a limpeza recusava com
+       PACIENTE_NAO_EXISTE e o cache clinico ficava orfao no navegador. */
+    if (opcoes && opcoes.raizRemota === true) return { ok: true };
     var lista = A.adaptador(raiz()).lerTudo(raiz());
     var existe = lista.some(function (p) { return p && p.id === pid; });
     if (!existe) {
@@ -289,7 +295,7 @@
     var recusa = null;
     pids.forEach(function (pid) {
       if (recusa) return;
-      var v = conferirId(pid);
+      var v = conferirId(pid, opcoes);
       if (!v.ok) recusa = { pid: pid, v: v };
     });
     if (recusa) {
