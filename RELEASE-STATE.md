@@ -8,7 +8,7 @@ este arquivo e documentos anteriores divergirem (inclusive
 - **Feature freeze** até o primeiro release para nutricionistas: nada de
   funcionalidade nova, tela nova ou migration nova sem decisão explícita.
 - **Produção** (holohacking.com.br) ainda roda uma versão anterior. Este
-  release não foi deployado.
+  release não foi deployado. O passo a passo do deploy está em `docs/deploy.md`.
 
 ---
 
@@ -40,6 +40,30 @@ memória com RLS por `nutritionist_id`, esquema **estrito** (coluna fora da
 migration é erro), FKs RESTRICT/CASCADE, as duas RPCs, Storage com prefixo por
 uid e o limite de 1000 linhas do PostgREST. Dois contextos de navegador
 diferentes funcionam como dois computadores com o mesmo banco.
+
+**Limite:** o banco falso reimplementa as RPCs em JS e nunca executa o SQL
+do Postgres. Por isso o 42703 (`record "r" has no field "elem"`) nas RPCs
+passou verde em todos os testes. Ele foi consertado na migration
+`20260929192605_fix_rpc_record_value`. O item 1b cobre esse limite.
+
+### 1b. Checagem das RPCs no banco real (antes de cada deploy)
+
+```
+SUPABASE_DB_URL='<connection string do Postgres>' sh supabase/checagem/checar-rpcs.sh
+```
+
+- A connection string fica em Supabase > Project Settings > Database. Passe-a
+  só no ambiente. **Nunca** a coloque em arquivo, commit ou mensagem.
+- O script roda `supabase/checagem/rpcs-escrita.sql` com `psql`, tudo entre
+  `BEGIN` e `ROLLBACK`, então nada fica gravado. Ele chama
+  `salvar_holoscan_completo`, `salvar_holoscope_completo` e
+  `salvar_coleta_exames` (com e sem data). As chamadas são feitas como a dona
+  do primeiro paciente do banco, com papel `authenticated` e as claims dela.
+  Depois de cada chamada, confere as linhas gravadas.
+- Exit 0 com `CHECAGEM DAS RPCs: OK` libera o deploy. Qualquer outro exit
+  bloqueia o deploy.
+- Em 29-set o script passou com as RPCs consertadas. Com o laço antigo
+  (`r.elem`) recriado dentro da transação, ele falhou com 42703.
 
 ---
 

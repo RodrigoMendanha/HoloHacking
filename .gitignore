@@ -21,7 +21,9 @@ motor/node_modules/
 
 # Trabalho interno (plano, revisao do Rodrigo, roteiro e locucao do video).
 # Fica no repositorio holos, nao neste, que e publico.
-docs/
+# Excecao: deploy.md, passo a passo operacional sem segredo nem dado clinico.
+docs/*
+!docs/deploy.md
 
 # Capturas de tela dos testes: geradas a cada rodada, nao sao fonte.
 /*.png
