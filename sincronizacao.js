@@ -245,11 +245,13 @@
     var porId = {};
     rem.forEach(function (r) { porId[r._supa_id] = r; });
 
-    /* interpretacao escrita aqui e cuja gravacao remota falhou: o servidor
-       nao tem nenhuma, a daqui sobrevive. Se o servidor tem, ele manda. */
+    /* interpretacao escrita aqui e ainda nao confirmada pelo servidor
+       (pendente) sobrevive a versao remota; sem remota, a daqui tambem
+       sobrevive. Confirmada, o servidor manda. */
     loc.forEach(function (l) {
       var r = l && l._supa_id ? porId[l._supa_id] : null;
-      if (r && !r.interpretacao && l.interpretacao) r.interpretacao = l.interpretacao;
+      if (!r || !l.interpretacao) return;
+      if (!r.interpretacao || l.interpretacao.pendente) r.interpretacao = l.interpretacao;
     });
 
     var pendentes = loc.filter(function (l) {
@@ -429,6 +431,20 @@
       String(a.id).localeCompare(String(b.id));
   }
 
+  /** A coleta que o painel mostra como "atual": a ultima REGISTRADA
+      (updated_at), nao a de data clinica maior. Registro sem data de coleta
+      (o caso do painel, que nao tem esse campo) e o mais comum, e ele nao
+      tem data clinica para comparar. */
+  function ultimaRegistrada(coletas) {
+    var u = null;
+    (coletas || []).forEach(function (c) {
+      var t = String(c.updated_at || c.created_at || "");
+      if (!u || t > String(u.updated_at || u.created_at || "") ||
+          (t === String(u.updated_at || u.created_at || "") && compararColetas(c, u) > 0)) u = c;
+    });
+    return u;
+  }
+
   function valoresDaColeta(c) {
     var v = {};
     (c.resultados || []).forEach(function (r) {
@@ -440,10 +456,10 @@
   /** PURA. Decide os valores locais de UM paciente.
         local     valores no navegador ({exameId: valor})
         registro  sync.exames[pid] ou undefined
-        coletas   coletas remotas do paciente, ordenadas (a ultima e a atual)
+        coletas   coletas remotas do paciente (a atual e a ultima registrada)
       Devolve { valores (ou null = apagar), registro }. */
   function decidirExames(local, registro, coletas) {
-    var ult = coletas && coletas.length ? coletas[coletas.length - 1] : null;
+    var ult = ultimaRegistrada(coletas);
     var est = registro && registro.estado;
     if (est === "rascunho" || est === "pendente") {
       return { valores: local || {}, registro: registro };    // nunca descartar o que foi digitado aqui
@@ -491,10 +507,10 @@
   }
 
   /** Grava a coleta de um paciente no servidor e diz se funcionou.
-      coletadoEm: a data a gravar. O painel de exames NAO tem campo de data
-      de coleta; quem chama passa a data do registro (hoje) — ver
-      RELEASE-STATE.md. Uma coleta pendente de outro dia e reenviada com a
-      data em que foi registrada, nunca com a de hoje. */
+      coletadoEm: a data CLINICA da coleta ("AAAA-MM-DD"), ou null quando
+      ninguem a informou — ai vai como data de coleta desconhecida, nunca
+      como "hoje". Um envio pendente e reenviado com a MESMA data (ou a
+      mesma ausencia de data) com que foi registrado. */
   function salvarColeta(pid, valores, coletadoEm) {
     if (!temSupa()) return Promise.resolve({ ok: false, motivo: "offline" });
     if (!pid || !UUID_RE.test(pid)) return Promise.resolve({ ok: false, motivo: "paciente" });

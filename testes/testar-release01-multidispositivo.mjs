@@ -187,15 +187,20 @@ ok(histA.length === 1 && histA[0]._supa_id === (apps1[0] || {}).id,
    'a entrada local de A ganhou a identidade remota (_supa_id)');
 
 const exames = await A.p.evaluate(() => window.HOLOSCAN.listaDeExames().slice(0, 3).map(e => e.id));
-const vals1 = { [exames[0]]: 91, [exames[1]]: 5.4 };
-await registrarExamesPelaTela(A.p, vals1);
+/* uma coleta historica com data clinica valida (o caminho do app que recebe
+   data), e depois o registro pelo painel, que nao tem campo de data */
 const antiga = diaLocal(-60);
 const salvaAntiga = await A.p.evaluate((pid, eid, d) =>
   window.Sincronizacao.salvarColeta(pid, { [eid]: 77 }, d), P, exames[2], antiga);
-ok(salvaAntiga.ok, 'segunda coleta (de ' + antiga + ') salva pelo mesmo caminho do app');
+ok(salvaAntiga.ok, 'coleta historica (de ' + antiga + ') salva com a data clinica informada');
+const vals1 = { [exames[0]]: 91, [exames[1]]: 5.4 };
+await registrarExamesPelaTela(A.p, vals1);
 const colsA = srv.linhas('lab_collections').filter(c => c.patient_id === P);
-ok(colsA.length === 2 && colsA.some(c => c.coletado_em === HOJE) && colsA.some(c => c.coletado_em === antiga),
-   'servidor tem as duas coletas, com as datas: ' + colsA.map(c => c.coletado_em).join(', '));
+ok(colsA.length === 2 && colsA.some(c => c.coletado_em === antiga && c.data_coleta_desconhecida === false),
+   'a data historica valida foi preservada: ' + antiga);
+ok(colsA.some(c => c.coletado_em === null && c.data_coleta_desconhecida === true),
+   'o registro pelo painel (sem data informada) vai como DATA DE COLETA DESCONHECIDA — nunca "hoje"');
+ok(!colsA.some(c => c.coletado_em === HOJE), 'nenhuma coleta ganhou a data de hoje por conta propria');
 
 const app = await A.p.evaluate(async () => {
   const a = await window.Aplicacoes.nova({ id: 'roda_vida' });
@@ -276,8 +281,9 @@ ok(Object.keys(eb.questionario).length === 84 &&
 ok(eb.exames && eb.exames[exames[0]] === 91 && eb.exames[exames[1]] === 5.4 && eb.exames[exames[2]] === undefined,
    'valores atuais de exame = os da coleta mais recente: ' + JSON.stringify(eb.exames));
 ok(Array.isArray(eb.coletas) && eb.coletas.length === 2 &&
-   eb.coletas[0].coletado_em === antiga && eb.coletas[1].coletado_em === HOJE,
-   'as duas coletas, com datas, da mais antiga para a mais nova');
+   eb.coletas.some(c => c.coletado_em === antiga) &&
+   eb.coletas.some(c => c.data_coleta_desconhecida === true && c.coletado_em === null),
+   'as duas coletas em B: a datada com a data original, a sem data como desconhecida');
 ok(eb.aplicacoes.length === 3 && eb.aplicacoes.every(a => a.s === 'concluida') &&
    ['roda_vida', 'oq3', 'pqq'].every(f => eb.aplicacoes.some(a => a.f === f)),
    'as ferramentas aplicadas em A (Roda, OQ³, PQQ) aparecem em B');
@@ -332,7 +338,9 @@ const tela = await B.p.evaluate(async (pid) => {
   };
 }, P);
 ok(tela.holoNaLinha === 1, 'linha do tempo: 1 HOLOSCAN (sem duplicar remoto + cache)');
-ok(tela.coletasNaLinha === 2, 'linha do tempo: 2 coletas de exame, cada uma com a sua data');
+ok(tela.coletasNaLinha === 2, 'linha do tempo: 2 coletas de exame');
+ok(/Coleta de exames \(data não informada\)/.test(tela.linha),
+   'a coleta sem data aparece como "data não informada", sem data inventada');
 ok(/Roda/.test(tela.linha) && /Consulta/.test(tela.linha) && /Laudo glicemia/.test(tela.linha),
    'linha do tempo: ferramenta, consulta e documento tambem');
 ok(/Mapa HOLOS/.test(tela.abaHolo), 'aba HOLOSCAN da ficha mostra o Mapa HOLOS vindo do servidor');
@@ -375,7 +383,9 @@ if (json) {
      'com o HOLOSCAN (historico + ultima pontuacao)');
   ok(json.respostasHoloscan && Object.keys(json.respostasHoloscan).length === 84, 'com as 84 respostas');
   ok(json.exames && json.exames[exames[0]] === 91, 'com os valores atuais de exame');
-  ok(Array.isArray(json.coletasExames) && json.coletasExames.length === 2, 'com as 2 coletas datadas');
+  ok(Array.isArray(json.coletasExames) && json.coletasExames.length === 2 &&
+     json.coletasExames.some(c => c.data_coleta_desconhecida === true && c.coletado_em === null),
+     'com as 2 coletas (a sem data exportada como desconhecida)');
   ok(Array.isArray(json.aplicacoesFerramentas) && json.aplicacoesFerramentas.length === 3, 'com as ferramentas');
   ok(Array.isArray(json.consultas) && json.consultas.length === 1, 'com a consulta');
   ok(Array.isArray(json.documentos) && json.documentos.length === 1 && json.documentos[0].no_servidor === true,
@@ -422,7 +432,8 @@ ok(Object.keys(holo2.respostas).every(k => eb.questionario[k] === holo2.resposta
    'B: respostas locais antigas (intocadas) trocadas pelas da aplicacao nova');
 ok(eb.exames && eb.exames[exames[0]] === 88 && eb.exames[exames[1]] === 6.1,
    'B: valores de exame antigos trocados pelos do servidor: ' + JSON.stringify(eb.exames));
-ok(eb.coletas.length === 2, 'B: a coleta de hoje foi atualizada, nao duplicada (2 coletas)');
+ok(eb.coletas.length === 2 && eb.coletas.some(c => c.coletado_em === antiga),
+   'B: a coleta sem data foi atualizada, nao duplicada, e a historica continua com a data dela');
 
 // rascunho: B digita e nao confere — a proxima carga NAO troca pelo servidor
 await ativar(B.p, P);

@@ -100,11 +100,23 @@ entra no stash por conta). As tabelas de decisão são testadas uma a uma em
 `testar-release01-regras.mjs`.
 
 **Data da coleta de exames.** O painel de exames **não tem campo de data de
-coleta**. Conferir e salvar grava `coletado_em = hoje` (fuso local), que é a
-data em que a profissional registra. Um reenvio pendente usa a data do
-registro, nunca a do reenvio. A migração de valores legados (sem data) grava
-`data_coleta_desconhecida = true`. A RPC mantém uma coleta por paciente e por
-dia (upsert).
+coleta**, então a profissional nunca informa essa data. Por isso, conferir e
+salvar grava **data de coleta desconhecida** (`data_coleta_desconhecida =
+true`, `coletado_em = null`). Não se inventa "hoje". O momento do registro
+fica em `created_at`/`updated_at`: é dado técnico, usado para escolher a
+coleta atual e para o "registrada desde" do retorno, e nunca é mostrado como
+data da coleta. A tela e a linha do tempo dizem "data não informada".
+Consequências:
+- a RPC mantém **uma** coleta sem data por paciente (upsert), e cada registro
+  pelo painel atualiza essa coleta;
+- coletas com data clínica válida (vindas de outros caminhos, ou já
+  existentes) são preservadas;
+- um reenvio pendente usa a mesma data, ou a mesma ausência de data, com que
+  foi registrado;
+- os valores atuais do painel são os da última coleta **registrada**.
+
+Datas são strings `AAAA-MM-DD` de ponta a ponta. O teste lê a mesma coleta em
+UTC−3, UTC+14 e UTC−11 e o dia não muda.
 
 ---
 
@@ -196,13 +208,16 @@ senha, caminho de storage, URL nem binário.
 
 ## 10. Pendências conhecidas
 
-1. **Data de coleta de exames:** o painel não tem campo. Hoje a data gravada é
-   a do registro. Um campo de data é mudança de tela e depende de decisão de
-   produto.
-2. **HOLOSCAN cujo "Salvar" falhou no servidor:** fica local (aviso na hora) e
-   não é reenviado automaticamente. Reenvia ao salvar de novo.
-3. **Interpretação do HOLOSCAN:** a gravação remota ainda é fire-and-forget.
-   Se falhar, a local sobrevive, mas só neste navegador.
+1. **Data de coleta de exames:** falta um campo de data de coleta no painel.
+   Sem ele, os registros ficam como data desconhecida (ver §3). Criar o campo
+   é mudança de tela e depende de decisão de produto.
+2. ~~HOLOSCAN cujo "Salvar" falhou~~ **resolvido:** o local fica, o aviso é
+   "Os dados foram salvos neste dispositivo, mas não foi possível
+   sincronizá-los…", e salvar de novo tenta de novo. Não há fila automática.
+3. ~~Interpretação fire-and-forget~~ **resolvido:** "Salvo." só depois da
+   confirmação do servidor. Se falhar, aparece o aviso e o texto fica marcado
+   como pendente; a hidratação não o troca pela versão antiga do servidor, e
+   salvar de novo reenvia.
 4. **Leituras via DadosRouter** (pacientes, consultas, aplicações) **não são
    paginadas.** Acima de 1000 linhas por tabela, o PostgREST corta. O HOLOSCAN
    e os exames já são paginados.

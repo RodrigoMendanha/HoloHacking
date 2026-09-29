@@ -2696,6 +2696,17 @@
 
      NAO cria um snapshot so para guardar o texto: se nao existir aplicacao
      do dia, nao ha onde prender a interpretacao, e a funcao recusa. */
+  const MSG_NAO_SINCRONIZADO = "Os dados foram salvos neste dispositivo, mas não foi possível " +
+    "sincronizá-los. Tente salvar novamente quando estiver conectado.";
+  window.MSG_NAO_SINCRONIZADO = MSG_NAO_SINCRONIZADO;
+
+  /* Devolve false quando nao ha aplicacao onde prender o texto. Senao, um
+     objeto (truthy) com `remoto`: Promise do destino no servidor —
+       "sincronizado"  o servidor confirmou
+       "falhou"        o servidor recusou ou nao respondeu (o local fica)
+       "pendente"      a aplicacao ainda nao existe no servidor (HOLOSCAN nao
+                       sincronizado): o texto fica so aqui por enquanto
+       "local"         sem sessao — nao ha servidor envolvido */
   window.guardarInterpretacao = function(texto, quando){
     const id = (window.pacienteAtivoId && window.pacienteAtivoId()) || "_sem_paciente";
     const tudo = lerHistorico();
@@ -2707,21 +2718,43 @@
     localStorage.setItem("holohacking.pontuacao", JSON.stringify(tudo));
     if (window.Concorrencia) window.Concorrencia.avancarRevisao("pontuacao");
 
-    if (alvo._supa_id && window.supabaseClient
-        && window.HoloAuth && window.HoloAuth.sessaoAtiva()) {
-      window.supabaseClient.from("holoscan_applications")
+    const comSessao = !!(window.supabaseClient && window.HoloAuth && window.HoloAuth.sessaoAtiva());
+    if (!comSessao) return { ok: true, remoto: Promise.resolve("local") };
+    /* Com sessao, o texto fica marcado como pendente ate o servidor confirmar:
+       a sincronizacao (sincronizacao.js) nao troca uma interpretacao pendente
+       pela versao, mais antiga, que o servidor tiver. */
+    alvo.interpretacao.pendente = true;
+    localStorage.setItem("holohacking.pontuacao", JSON.stringify(tudo));
+    if (!alvo._supa_id) return { ok: true, remoto: Promise.resolve("pendente") };
+    const supaId = alvo._supa_id;
+
+    const remoto = Promise.resolve(window.supabaseClient.from("holoscan_applications")
         .update({
           interpretacao_texto: String(texto || ""),
           interpretacao_em: new Date().toISOString(),
           interpretacao_versao: 1
         })
-        .eq("id", alvo._supa_id)
-        .then(function(res) {
-          if (res.error) console.error("interpretacao supa:", res.error);
-        });
-    }
+        .eq("id", supaId)
+        .select("id"))
+      .then(function(res) {
+        /* sem erro E com a linha devolvida: um update que o RLS filtrou
+           (0 linhas) tambem nao e sucesso */
+        if (res && !res.error && Array.isArray(res.data) && res.data.length) {
+          try {
+            const t2 = lerHistorico();
+            const e2 = (t2[id] || []).find(x => x._supa_id === supaId);
+            if (e2 && e2.interpretacao && e2.interpretacao.texto === String(texto || "")) {
+              delete e2.interpretacao.pendente;
+              localStorage.setItem("holohacking.pontuacao", JSON.stringify(t2));
+            }
+          } catch (e) { /* a marca fica; nao perde nada */ }
+          return "sincronizado";
+        }
+        console.error("interpretacao supa:", res && res.error);
+        return "falhou";
+      }, function(e) { console.error("interpretacao supa:", e); return "falhou"; });
 
-    return true;
+    return { ok: true, remoto: remoto };
   };
 
   /** A interpretacao da aplicacao pedida, ou da mais recente se `quando`
@@ -3096,6 +3129,13 @@
     const temSupa = window.supabaseClient
       && window.HoloAuth && window.HoloAuth.sessaoAtiva();
 
+    if (temSupa && pontuacaoNaTela && pontuacaoNaTela._supa_id) {
+      /* ja confirmado pelo servidor: clicar de novo criaria uma segunda
+         aplicacao remota identica */
+      toast("Este HOLOSCAN já está salvo e sincronizado.");
+      return;
+    }
+
     if (temSupa && pontuacaoNaTela) {
       const r = pontuacaoNaTela;
       const hoje = hojeISO();
@@ -3156,14 +3196,24 @@
         })
       };
 
-      const { data: appId, error: rpcErr } =
-        await window.supabaseClient.rpc("salvar_holoscan_completo", { payload: payload });
+      /* O calculo ja esta guardado neste navegador (guardarPontuacao, no
+         momento do calculo). Aqui se espera o servidor: so ha mensagem de
+         sucesso se ele confirmou. Se falhou — erro devolvido ou rede caida —
+         o local fica como esta, sem identidade remota, e salvar de novo tenta
+         de novo (e a entrada de hoje ainda sem _supa_id que recebe o id). */
+      let appId = null, rpcErr = null;
+      try {
+        const res = await window.supabaseClient.rpc("salvar_holoscan_completo", { payload: payload });
+        appId = res && res.data; rpcErr = res ? res.error : new Error("sem resposta");
+        if (!rpcErr && !appId) rpcErr = new Error("servidor nao devolveu o id");
+      } catch (e) { rpcErr = e; }
 
       if (rpcErr) {
         console.error("RPC holoscan:", rpcErr);
-        toast("Erro ao salvar HOLOSCAN no servidor.");
+        toast(MSG_NAO_SINCRONIZADO);
         return;
       }
+      r._supa_id = appId;
 
       p.holoscan = {
         id: appId,
@@ -3190,6 +3240,8 @@
         if (alvoLocal) {
           alvoLocal._supa_id = appId;
           alvoLocal._supa_criado_em = new Date().toISOString();
+          // a interpretacao do dia foi junto no payload: nao esta mais pendente
+          if (alvoLocal.interpretacao) delete alvoLocal.interpretacao.pendente;
           localStorage.setItem("holohacking.pontuacao", JSON.stringify(hist));
           if (window.Concorrencia) window.Concorrencia.avancarRevisao("pontuacao");
         }

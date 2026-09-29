@@ -66,7 +66,13 @@ const r = await p.evaluate(() => {
     pendente: E({ x: 9 }, { estado: 'pendente' }, [col('c1', '2026-09-01', { x: 2 })]),
     apagadaLa: E({ x: 1 }, { estado: 'sincronizado', coleta: 'c1' }, []),
     legado: E({ x: 1 }, null, []),
-    ultima: E({}, null, [col('c1', '2026-08-01', { x: 1 }), col('c2', '2026-09-01', { x: 2 })])
+    ultima: E({}, null, [col('c1', '2026-08-01', { x: 1 }), col('c2', '2026-09-01', { x: 2 })]),
+    semDataMaisNova: E({}, null, [
+      Object.assign(col('c1', '2026-09-01', { x: 1 }), { updated_at: '2026-09-02T10:00:00Z' }),
+      Object.assign(col('c2', null, { x: 2 }, true), { updated_at: '2026-09-20T10:00:00Z' })]),
+    datadaMaisNova: E({}, null, [
+      Object.assign(col('c2', null, { x: 2 }, true), { updated_at: '2026-09-01T10:00:00Z' }),
+      Object.assign(col('c1', '2025-01-01', { x: 1 }), { updated_at: '2026-09-20T10:00:00Z' })])
   };
 
   return { m1, m2, m3, q, e };
@@ -103,7 +109,11 @@ ok(r.e.rascunho.valores.x === 9, 'rascunho digitado aqui: fica');
 ok(r.e.pendente.valores.x === 9, 'pendente de envio: fica');
 ok(r.e.apagadaLa.valores === null, 'era copia de coleta que o servidor nao tem mais: sai');
 ok(r.e.legado.valores.x === 1, 'legado local sem nada no servidor: fica (a migracao decide)');
-ok(r.e.ultima.valores.x === 2 && r.e.ultima.registro.coleta === 'c2', 'entre duas coletas, a de data maior');
+ok(r.e.ultima.valores.x === 2 && r.e.ultima.registro.coleta === 'c2', 'sem carimbo de registro: a de data clinica maior');
+ok(r.e.semDataMaisNova.valores.x === 2 && r.e.semDataMaisNova.registro.coletado_em === null,
+   'valores atuais = a ULTIMA REGISTRADA, mesmo sem data de coleta (e o registro nao ganha data)');
+ok(r.e.datadaMaisNova.valores.x === 1 && r.e.datadaMaisNova.registro.coletado_em === '2025-01-01',
+   'coleta historica registrada por ultimo: e ela a atual, com a data historica intacta');
 
 console.log('');
 ok(ruim.length === 0, 'sem erro de JS' + (ruim[0] ? ': ' + ruim[0] : ''));

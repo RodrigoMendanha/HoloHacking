@@ -357,8 +357,12 @@
 
     var coletasRet = window.Sincronizacao ? window.Sincronizacao.coletas(pid) : null;
     if (coletasRet) {
+      /* "registrada desde": com data de coleta, a data da coleta; sem ela, o
+         dia em que o registro foi feito (updated_at) — e o texto diz
+         "registrada", nao "coletada" */
       var novas = coletasRet.filter(function (c) {
-        return !c.data_coleta_desconhecida && c.coletado_em && c.coletado_em >= desde;
+        if (!c.data_coleta_desconhecida && c.coletado_em) return c.coletado_em >= desde;
+        return diaLocal(c.updated_at || c.created_at) >= desde;
       });
       if (novas.length > 0)
         itens.push(novas.length + (novas.length === 1 ? " coleta de exames registrada" : " coletas de exames registradas"));

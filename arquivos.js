@@ -406,13 +406,14 @@
     return window.supabaseClient && window.HoloAuth && window.HoloAuth.sessaoAtiva();
   }
 
-  /* A data gravada como coletado_em. O painel de exames NAO tem campo de
-     data de coleta (e criar um e mudanca de tela, fora do Release 01): a
-     unica data que a profissional informa e o dia em que confere e salva.
-     Por isso: hoje, no fuso local. Ver RELEASE-STATE.md. */
-  function dataDoRegistro() {
-    return window.hojeISO ? window.hojeISO() : window.Sincronizacao.hoje();
-  }
+  /* A data da COLETA. O painel de exames nao tem campo de data de coleta
+     (criar um e mudanca de tela, fora do Release 01) — entao a profissional
+     nunca informa essa data, e o registro vai como DATA DE COLETA
+     DESCONHECIDA (data_coleta_desconhecida = true, coletado_em = null).
+     Gravar "hoje" inventaria que o sangue foi colhido no dia do cadastro.
+     Quando o registro foi feito continua no created_at/updated_at da linha,
+     que e dado tecnico, nunca mostrado como data da coleta. */
+  function dataDaColeta() { return null; }
 
   /** Salva no servidor e AVISA se nao conseguiu. O valor local ja foi
       gravado antes (conferir) e continua, marcado como pendente: a proxima
@@ -422,7 +423,7 @@
     var pid = paciente();
     if (!pid || pid === SEM_PACIENTE) return;
     if (Object.keys(valores).length === 0) return;
-    window.Sincronizacao.salvarColeta(pid, valores, dataDoRegistro()).then(function (r) {
+    window.Sincronizacao.salvarColeta(pid, valores, dataDaColeta()).then(function (r) {
       if (r.ok) {
         window.Sincronizacao.atualizarColetas(pid).then(function () {
           if (pid === paciente()) desenharHoloscanAba();
@@ -1100,11 +1101,26 @@
         var aviso = document.getElementById("rel-interpretacao-aviso");
         if (!campo) return;
         var salvou = window.guardarInterpretacao && window.guardarInterpretacao(campo.value);
-        if (aviso) {
-          aviso.textContent = salvou
-            ? "Salvo."
-            : "Aplique o HOLOSCAN hoje antes de registrar a interpretação.";
+        if (!salvou) {
+          if (aviso) aviso.textContent = "Aplique o HOLOSCAN hoje antes de registrar a interpretação.";
+          return;
         }
+        /* so diz "Salvo." quando o servidor confirmou (ou quando nao ha
+           servidor nenhum envolvido) — nunca antes de saber */
+        if (aviso) aviso.textContent = "Salvando…";
+        Promise.resolve(salvou.remoto).then(function (destino) {
+          if (!aviso) return;
+          if (destino === "sincronizado" || destino === "local") {
+            aviso.textContent = "Salvo.";
+          } else if (destino === "pendente") {
+            aviso.textContent = "Salvo neste dispositivo. O HOLOSCAN deste dia ainda não foi " +
+              "sincronizado — salve o HOLOSCAN para enviar também a interpretação.";
+          } else {
+            aviso.textContent = window.MSG_NAO_SINCRONIZADO ||
+              "Salvo neste dispositivo, mas não foi possível sincronizar.";
+            if (window.avisar) window.avisar(aviso.textContent);
+          }
+        });
         return;
       }
     });
