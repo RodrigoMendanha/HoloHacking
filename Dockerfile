@@ -11,6 +11,7 @@ RUN printf '%s\n' \
     '  server_tokens off;' \
     '  add_header X-Content-Type-Options nosniff always;' \
     '  add_header Referrer-Policy strict-origin-when-cross-origin always;' \
+    '  add_header Cache-Control "no-cache" always;' \
     '  location / {' \
     '    try_files $uri $uri/ /index.html;' \
     '  }' \
