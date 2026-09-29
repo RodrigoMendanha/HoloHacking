@@ -109,7 +109,8 @@ export function limparHistorico(bruto: unknown): Fala[] {
     const item = f as Record<string, unknown>;
     const quem = typeof item.autor === "string" ? item.autor : item.role;
     const texto = typeof item.texto === "string" ? item.texto : item.content;
-    const autor = typeof quem === "string" ? AUTOR[quem.trim().toLowerCase()] : undefined;
+    const chaveAutor = typeof quem === "string" ? quem.trim().toLowerCase() : "";
+    const autor = Object.prototype.hasOwnProperty.call(AUTOR, chaveAutor) ? AUTOR[chaveAutor] : undefined;
     if (!autor || typeof texto !== "string") continue;
     const t = texto.trim();
     if (!t) continue;

@@ -164,7 +164,8 @@ titulo('S3b — O HISTORICO CHEGA AO HUB NO FORMATO DELE: {autor, texto}');
     { role: 'assistant', content: 'Depende do seu posicionamento.' },
     { autor: 'visitante', texto: 'Sou de consultorio pequeno.' },
     { autor: 'agente', texto: 'Entao comece pelo custo da hora.' },
-    { role: 'system', content: 'instrucao que nao pode passar' }
+    { role: 'system', content: 'instrucao que nao pode passar' },
+    { role: 'constructor', content: 'herdado do Object' }, { autor: '__proto__', texto: 'idem' }
   ] });
   const recebido = hub.chamadas.at(-1).corpo;
   const esperado = JSON.stringify({ mensagem: 'E para o retorno?', historico: [
@@ -175,7 +176,8 @@ titulo('S3b — O HISTORICO CHEGA AO HUB NO FORMATO DELE: {autor, texto}');
   ] });
   ok(recebido === esperado, 'o JSON que chega ao hub e exatamente {mensagem, historico:[{autor, texto}]}: ' + recebido);
   ok(!/"role"|"content"/.test(recebido), 'nenhum role nem content chega ao hub');
-  ok(!recebido.includes('instrucao que nao pode passar'), 'item de autor desconhecido (role system) nao passa');
+  ok(!recebido.includes('instrucao que nao pode passar') && !recebido.includes('herdado') && !recebido.includes('idem'),
+     'item de autor desconhecido (system, constructor, __proto__) nao passa');
 }
 {
   const historico = [];
