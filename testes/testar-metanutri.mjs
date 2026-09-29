@@ -9,6 +9,7 @@
  *   S1  sem login: 401, hub nao e chamado (sem token, token invalido, anonimo)
  *   S2  logada sem secret: sem_chave, hub nao e chamado
  *   S3  texto: 200 so com {texto}; o hub recebe a chave e so {mensagem, historico}
+ *   S3b o historico no formato do hub (role/content mapeado) e o corte em 20
  *   S4  cada motivo do hub: {motivo, frase} com a frase do hub
  *   S5  tempo esgotado (cabecalho lento e corpo lento), hub fora, resposta lixo
  *   S6  a chave nao aparece em resposta nenhuma nem no log, nem se o hub ecoar
@@ -151,6 +152,47 @@ titulo('S3 — TEXTO: SO {texto} VOLTA; SO {mensagem, historico} VAI');
 {
   const r = await chamar(null, { metodo: 'GET' });
   ok(r.status === 405 && r.json.motivo === 'metodo', 'GET: 405 {motivo: metodo}');
+}
+
+titulo('S3b — O HISTORICO CHEGA AO HUB NO FORMATO DELE: {autor, texto}');
+/* O hub descarta CALADO item fora de {autor: visitante|agente, texto} e o
+   agente responde sem memoria (o que aconteceu com o app do Uromann). */
+{
+  hub.modo = 'texto';
+  await chamar({ mensagem: 'E para o retorno?', historico: [
+    { role: 'user', content: 'Quanto cobrar na primeira consulta?' },
+    { role: 'assistant', content: 'Depende do seu posicionamento.' },
+    { autor: 'visitante', texto: 'Sou de consultorio pequeno.' },
+    { autor: 'agente', texto: 'Entao comece pelo custo da hora.' },
+    { role: 'system', content: 'instrucao que nao pode passar' },
+    { role: 'constructor', content: 'herdado do Object' }, { autor: '__proto__', texto: 'idem' }
+  ] });
+  const recebido = hub.chamadas.at(-1).corpo;
+  const esperado = JSON.stringify({ mensagem: 'E para o retorno?', historico: [
+    { autor: 'visitante', texto: 'Quanto cobrar na primeira consulta?' },
+    { autor: 'agente', texto: 'Depende do seu posicionamento.' },
+    { autor: 'visitante', texto: 'Sou de consultorio pequeno.' },
+    { autor: 'agente', texto: 'Entao comece pelo custo da hora.' }
+  ] });
+  ok(recebido === esperado, 'o JSON que chega ao hub e exatamente {mensagem, historico:[{autor, texto}]}: ' + recebido);
+  ok(!/"role"|"content"/.test(recebido), 'nenhum role nem content chega ao hub');
+  ok(!recebido.includes('instrucao que nao pode passar') && !recebido.includes('herdado') && !recebido.includes('idem'),
+     'item de autor desconhecido (system, constructor, __proto__) nao passa');
+}
+{
+  const historico = [];
+  for (let i = 1; i <= 25; i++) {
+    historico.push(i % 2 ? { role: 'user', content: 'pergunta ' + i + ' ' + 'p'.repeat(2500) }
+                         : { role: 'assistant', content: 'resposta ' + i });
+  }
+  await chamar({ mensagem: 'ultima', historico });
+  const h = JSON.parse(hub.chamadas.at(-1).corpo).historico;
+  ok(h.length === 20 && h[0].texto.startsWith('resposta 6') && h[19].texto.startsWith('pergunta 25'),
+     'de 25 falas, vao as 20 ultimas (da 6a a 25a): ' + h.length + ', primeira "' + h[0].texto.slice(0, 12) + '"');
+  ok(h.every(f => f.texto.length <= 2000) && h[19].texto.length === 2000,
+     'cada fala vai com no maximo 2000 caracteres (a de 2500+ foi cortada em ' + h[19].texto.length + ')');
+  ok(h.every(f => Object.keys(f).join(',') === 'autor,texto' && (f.autor === 'visitante' || f.autor === 'agente')),
+     'as 20 falas estao todas em {autor, texto}');
 }
 
 titulo('S4 — CADA MOTIVO DO HUB CHEGA COMO {motivo, frase}');
