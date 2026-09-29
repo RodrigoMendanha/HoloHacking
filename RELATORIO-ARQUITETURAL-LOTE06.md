@@ -1,3 +1,7 @@
+> **Histórico.** Este relatório descreve o fechamento do Lote 06 e ficou parcialmente
+> desatualizado (ex.: signed URLs, OQ3/PQQ, leitura remota de HOLOSCAN/exames, 67 suítes).
+> O estado técnico atual está em [`RELEASE-STATE.md`](RELEASE-STATE.md).
+
 # RELATÓRIO ARQUITETURAL CORRIGIDO — LOTE 06
 
 ## ARQUITETURA
