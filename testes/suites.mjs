@@ -78,4 +78,5 @@ export const SUITES = [
   'testar-release01-contas-migracao.mjs',
   'testar-release01-falhas-remotas.mjs',
   'testar-metanutri.mjs',
+  'testar-conferir-producao.mjs',
 ];
