@@ -107,8 +107,18 @@ fica em `created_at`/`updated_at`: é dado técnico, usado para escolher a
 coleta atual e para o "registrada desde" do retorno, e nunca é mostrado como
 data da coleta. A tela e a linha do tempo dizem "data não informada".
 Consequências:
-- a RPC mantém **uma** coleta sem data por paciente (upsert), e cada registro
-  pelo painel atualiza essa coleta;
+- **cada registro sem data é uma coleta própria.** A RPC `salvar_coleta_exames`
+  reaproveitaria "a" coleta sem data do paciente e apagaria os resultados dela.
+  Não há constraint no schema que exija isso; é só a busca da RPC. Por isso,
+  no caso sem data, o app grava direto em `lab_collections`/`lab_results`
+  (mesmas policies de RLS) com o UUID da coleta gerado no cliente:
+  - a coleta entra por upsert por `id` com `ignoreDuplicates`;
+  - os resultados entram por upsert pela unique `(collection_id, exame_id)`.
+
+  O reenvio de um registro que falhou usa o **mesmo** id e completa a mesma
+  coleta. Conferir de novo valores idênticos aos da coleta atual não cria
+  outra. Coletas **com** data continuam pela RPC (uma por paciente e dia);
+- coletas antigas não foram reescritas nem divididas;
 - coletas com data clínica válida (vindas de outros caminhos, ou já
   existentes) são preservadas;
 - um reenvio pendente usa a mesma data, ou a mesma ausência de data, com que

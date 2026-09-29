@@ -511,23 +511,121 @@
       ninguem a informou — ai vai como data de coleta desconhecida, nunca
       como "hoje". Um envio pendente e reenviado com a MESMA data (ou a
       mesma ausencia de data) com que foi registrado. */
-  function salvarColeta(pid, valores, coletadoEm) {
+  function novoIdColeta() {
+    if (window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID();
+    var h = "0123456789abcdef", t = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
+    return t.replace(/[xy]/g, function (c) {
+      var r = Math.random() * 16 | 0;
+      return h[c === "x" ? r : (r & 3 | 8)];
+    });
+  }
+
+  function marcarPendente(pid, registro) {
+    var s = lerSync();
+    s.exames[pid] = registro;
+    gravarSync(s);
+  }
+
+  function marcarSincronizado(pid, coletaId, coletadoEm) {
+    var s = lerSync();
+    s.exames[pid] = { estado: "sincronizado", coleta: coletaId || null, coletado_em: coletadoEm || null };
+    gravarSync(s);
+  }
+
+  /* COLETA SEM DATA — uma coleta NOVA por registro.
+
+     A RPC salvar_coleta_exames procura "a" coleta sem data do paciente
+     (data_coleta_desconhecida = true, limit 1) e a reaproveita, apagando os
+     resultados dela: dois registros sem data em dias diferentes viravam um
+     so, e o primeiro sumia. O schema nao exige isso (lab_collections nao tem
+     unique por data nem por "sem data"); e so a busca da RPC. Mudar a RPC e
+     migration — entao, para o caso sem data, o app grava direto nas tabelas,
+     sob as mesmas policies de RLS, com a IDENTIDADE da coleta gerada aqui:
+
+       1. lab_collections: upsert por id, ignoreDuplicates — o reenvio do
+          mesmo registro cai na mesma linha, nunca numa segunda;
+       2. lab_results: upsert por (collection_id, exame_id) — a unique que o
+          schema ja tem; um comando so, atomico;
+       3. resultados da coleta que nao estao mais no registro saem.
+
+     Se o passo 2 ou 3 falhar, o registro fica pendente com o MESMO id e a
+     proxima tentativa completa a mesma coleta. */
+  function salvarColetaSemData(pid, payload, coletaId) {
+    var linhaColeta = { id: coletaId, patient_id: pid, coletado_em: null, data_coleta_desconhecida: true };
+    var resultados = payload.results.map(function (r) {
+      return Object.assign({ collection_id: coletaId }, r);
+    });
+    var exames = resultados.map(function (r) { return r.exame_id; });
+
+    return Promise.resolve(sb().from("lab_collections")
+        .upsert([linhaColeta], { onConflict: "id", ignoreDuplicates: true }))
+      .then(function (r) {
+        if (!r || r.error) throw (r && r.error) || new Error("sem resposta (coleta)");
+        return sb().from("lab_results").upsert(resultados, { onConflict: "collection_id,exame_id" });
+      })
+      .then(function (r) {
+        if (!r || r.error) throw (r && r.error) || new Error("sem resposta (resultados)");
+        return sb().from("lab_results").select("id, exame_id").eq("collection_id", coletaId);
+      })
+      .then(function (r) {
+        if (!r || r.error) throw (r && r.error) || new Error("sem resposta (conferencia)");
+        var sobra = (r.data || []).filter(function (x) { return exames.indexOf(x.exame_id) < 0; })
+          .map(function (x) { return x.id; });
+        if (!sobra.length) return null;
+        return Promise.resolve(sb().from("lab_results").delete().in("id", sobra)).then(function (d) {
+          if (d && d.error) throw d.error;
+        });
+      })
+      .then(function () { return coletaId; });
+  }
+
+  /** Grava a coleta de um paciente no servidor e diz se funcionou.
+      coletadoEm: a data CLINICA da coleta ("AAAA-MM-DD"), ou null quando
+      ninguem a informou — ai vai como data de coleta desconhecida, nunca
+      como "hoje".
+        com data  → RPC salvar_coleta_exames (uma coleta por paciente e dia)
+        sem data  → coleta propria, com id gerado aqui (ver salvarColetaSemData)
+      opcoes.coletaId: reenvio de um registro sem data que falhou — usa o
+      MESMO id, para completar a mesma coleta em vez de criar outra.
+      Um envio pendente e reenviado com a MESMA data (ou a mesma ausencia de
+      data) com que foi registrado. */
+  function salvarColeta(pid, valores, coletadoEm, opcoes) {
+    opcoes = opcoes || {};
     if (!temSupa()) return Promise.resolve({ ok: false, motivo: "offline" });
     if (!pid || !UUID_RE.test(pid)) return Promise.resolve({ ok: false, motivo: "paciente" });
     var payload = payloadColeta(pid, valores, coletadoEm);
     if (!payload) return Promise.resolve({ ok: false, motivo: "vazio" });
 
-    var s = lerSync();
-    s.exames[pid] = { estado: "pendente", coleta: (s.exames[pid] || {}).coleta || null,
-                      coletado_em: coletadoEm || null };
-    gravarSync(s);
+    var anterior = lerSync().exames[pid] || {};
 
+    if (!coletadoEm) {
+      /* registrar de novo exatamente o que a coleta atual ja tem nao e uma
+         coleta nova — e clicar duas vezes em "Conferir" */
+      if (!opcoes.coletaId && anterior.estado === "sincronizado" && anterior.coleta) {
+        var atual = (coletasPorPaciente[pid] || []).filter(function (c) { return c.id === anterior.coleta; })[0];
+        if (atual && assinatura(valoresDaColeta(atual)) === assinatura(
+              valoresDaColeta({ resultados: payload.results }))) {
+          return Promise.resolve({ ok: true, coleta: atual.id, semMudanca: true });
+        }
+      }
+      var coletaId = opcoes.coletaId || novoIdColeta();
+      marcarPendente(pid, { estado: "pendente", coleta: coletaId, coletado_em: null, coletaPropria: true });
+      return salvarColetaSemData(pid, payload, coletaId)
+        .then(function (id) {
+          marcarSincronizado(pid, id, null);
+          return { ok: true, coleta: id };
+        })
+        .catch(function (e) {
+          console.error("[sincronizacao] coleta sem data:", e && e.message ? e.message : e);
+          return { ok: false, motivo: "erro", erro: e, coleta: coletaId };
+        });
+    }
+
+    marcarPendente(pid, { estado: "pendente", coleta: anterior.coleta || null, coletado_em: coletadoEm });
     return Promise.resolve(sb().rpc("salvar_coleta_exames", { payload: payload }))
       .then(function (r) {
         if (!r || r.error) throw (r && r.error) || new Error("sem resposta");
-        var s2 = lerSync();
-        s2.exames[pid] = { estado: "sincronizado", coleta: r.data || null, coletado_em: coletadoEm || null };
-        gravarSync(s2);
+        marcarSincronizado(pid, r.data || null, coletadoEm);
         return { ok: true, coleta: r.data || null };
       })
       .catch(function (e) {
@@ -558,7 +656,12 @@
           var s2 = lerSync(); delete s2.exames[pid]; gravarSync(s2);
           return null;
         }
-        return salvarColeta(pid, ex[pid], r.coletado_em || null);
+        /* reenvio: mesma data (ou mesma ausencia de data) e, sem data, a
+           MESMA coleta. Pendente antigo sem id proprio (gravado antes desta
+           regra) vira coleta nova — nunca reaproveita a coleta de outro
+           registro. */
+        return salvarColeta(pid, ex[pid], r.coletado_em || null,
+                            r.coletaPropria && r.coleta ? { coletaId: r.coleta } : {});
       });
     });
     return cadeia;

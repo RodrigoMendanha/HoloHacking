@@ -51,6 +51,9 @@ const FILHAS = {           // tabela -> [coluna, mae]
   ai_messages: ['thread_id', 'ai_threads']
 };
 const COM_PACIENTE = ['consultations', 'holoscan_applications', 'lab_collections', 'tool_applications', 'documents', 'ai_threads'];
+const UNICAS = {           // uniques alem da PK, como nas migrations
+  lab_results: [['collection_id', 'exame_id']]
+};
 const FERRAMENTAS = ['oq3', 'pqq', 'linha_momentum', 'mapa_crencas', 'roda_vida', 'carta_futuro'];
 
 const erro = (message, code) => ({ data: null, error: { message, code: code || 'XX000' } });
@@ -236,7 +239,19 @@ export function criarServidor() {
       const lista = Array.isArray(q.dados) ? q.dados : [q.dados];
       const novas = [];
       for (const d of lista) {
-        const existe = d && d.id && s.tabelas[t].find(l => l.id === d.id);
+        /* conflito pela coluna do onConflict (padrao: id) — ou, num insert,
+           por qualquer unique declarada na migration */
+        const alvo = (q.acao === 'upsert' && q.upsert && q.upsert.onConflict)
+          ? q.upsert.onConflict.split(',').map(c => c.trim()) : ['id'];
+        const bate = (cols) => (l) => cols.every(c => d[c] !== undefined && d[c] !== null && String(l[c]) === String(d[c]));
+        let existe = d && s.tabelas[t].find(bate(alvo));
+        if (!existe && d && q.acao === 'insert') {
+          for (const u of (UNICAS[t] || [])) {
+            if (s.tabelas[t].some(bate(u)) || novas.some(n => n.nova && u.every(c => String(n.nova[c]) === String(d[c])))) {
+              return erro('duplicate key value violates unique constraint "' + t + '_' + u.join('_') + '_unique"', '23505');
+            }
+          }
+        }
         if (existe) {
           if (q.acao === 'upsert' && q.upsert && q.upsert.ignoreDuplicates) continue;
           if (q.acao === 'upsert') {                     // merge: update da linha propria
@@ -254,7 +269,8 @@ export function criarServidor() {
       }
       const feitas = novas.map(n => {
         if (n.nova) { s.tabelas[t].push(n.nova); return n.nova; }
-        Object.assign(n.merge, n.d, { updated_at: carimbo() });
+        Object.assign(n.merge, n.d);
+        if ((COLUNAS[t] || []).includes('updated_at')) n.merge.updated_at = carimbo();
         return n.merge;
       });
       if (!q.retornar) return { data: null, error: null };

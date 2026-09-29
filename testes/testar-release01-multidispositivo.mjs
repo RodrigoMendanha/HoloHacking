@@ -432,8 +432,9 @@ ok(Object.keys(holo2.respostas).every(k => eb.questionario[k] === holo2.resposta
    'B: respostas locais antigas (intocadas) trocadas pelas da aplicacao nova');
 ok(eb.exames && eb.exames[exames[0]] === 88 && eb.exames[exames[1]] === 6.1,
    'B: valores de exame antigos trocados pelos do servidor: ' + JSON.stringify(eb.exames));
-ok(eb.coletas.length === 2 && eb.coletas.some(c => c.coletado_em === antiga),
-   'B: a coleta sem data foi atualizada, nao duplicada, e a historica continua com a data dela');
+ok(eb.coletas.length === 3 && eb.coletas.some(c => c.coletado_em === antiga) &&
+   eb.coletas.filter(c => c.data_coleta_desconhecida).length === 2,
+   'B: o segundo registro sem data virou coleta NOVA (3 no total) e a historica continua com a data dela');
 
 // rascunho: B digita e nao confere — a proxima carga NAO troca pelo servidor
 await ativar(B.p, P);
