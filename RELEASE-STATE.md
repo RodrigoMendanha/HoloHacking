@@ -8,7 +8,7 @@ este arquivo e documentos anteriores divergirem (inclusive
 - **Feature freeze** até o primeiro release para nutricionistas: nada de
   funcionalidade nova, tela nova ou migration nova sem decisão explícita.
 - **Produção** (holohacking.com.br) ainda roda uma versão anterior. Este
-  release não foi deployado.
+  release não foi deployado. O passo a passo do deploy está em `docs/deploy.md`.
 
 ---
 
