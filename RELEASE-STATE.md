@@ -7,6 +7,8 @@ este arquivo e documentos anteriores divergirem (inclusive
 
 - **Feature freeze** até o primeiro release para nutricionistas: nada de
   funcionalidade nova, tela nova ou migration nova sem decisão explícita.
+  Exceção decidida na rodada 06: o **MetaNutri** (§12), sem migration e sem
+  mexer em RLS, Auth ou tabelas.
 - **Produção** (holohacking.com.br) ainda roda uma versão anterior. Este
   release não foi deployado. O passo a passo do deploy está em `docs/deploy.md`.
 
@@ -247,9 +249,13 @@ senha, caminho de storage, URL nem binário.
   `supabase-client.js` é pública por desenho.
 - Dados vindos do servidor são escapados como os locais. Há teste com payload
   HTML no nome do paciente, no laboratório, no documento e na leitura.
-- `supabase/functions/holos-ai` (Gemini, lê `GEMINI_API_KEY` e
-  `SUPABASE_SERVICE_ROLE_KEY` do ambiente da função) **existe e não é chamada
-  pelo frontend**: é um componente dormente.
+- `supabase/functions/holos-ai` é, desde a rodada 06, a porta do MetaNutri
+  (§12). A versão antiga (Gemini, com contexto de paciente e `service_role`)
+  saiu. A função nova não usa `service_role` nem lê tabela nenhuma: confere o
+  JWT em `/auth/v1/user` e só fala com o hub. A chave do hub fica no secret
+  `METANUTRI_AGENTE_KEY` e não aparece em arquivo servido (teste
+  `testar-metanutri`, parte B).
+- As tabelas `ai_threads` e `ai_messages` continuam no banco, sem uso.
 
 ---
 
@@ -425,3 +431,75 @@ reenvia sozinho o HOLOSCAN que ficou só no navegador (migração). Os exames
 sobem sozinhos como "Data da coleta não informada" se o paciente ainda não
 tiver coleta no servidor. Para registrar com a data certa, faça o passo 4
 preenchendo **Data da coleta** com a data em que o sangue foi colhido.
+
+---
+
+## 12. MetaNutri (mentor de negócio)
+
+O MetaNutri é o agente de IA do hub da Codeless (equipe Mendanhas), treinado
+no curso MetaNutri Academy e nos PDFs dos Materiais. É mentor de **negócio**
+da nutricionista: precificação, captação, posicionamento e consultório. **Não
+é clínico** e não recebe dado de paciente.
+
+### 12.1 Como funciona
+
+```
+tela (metanutri.js) --JWT da sessão--> Edge Function holos-ai --chave ags_--> hub
+```
+
+- **Entrada:** menu **Negócio → MetaNutri**. Só aparece com sessão ativa; sem
+  login (ou na saída de desenvolvimento) fica escondida.
+- **Tela:** a linha fixa "Mentor de negócio. Não responde sobre pacientes.",
+  a conversa e o campo de até 2000 caracteres. Enter envia, Shift+Enter quebra
+  linha. Enquanto espera aparece "MetaNutri está pensando…". Em erro aparece a
+  frase (a do hub, quando ele recusa) e o botão **Tentar de novo**.
+- **Memória:** a conversa fica só na memória da tela. Não vai para o banco,
+  para `localStorage` nem para IndexedDB. Recarregar a página ou sair da conta
+  apaga tudo. O hub também não grava. A cada fala a tela manda as 20 últimas
+  falas como histórico.
+- **Corpo do pedido:** só `{mensagem, historico}`. Uma pergunta com o nome
+  completo de um paciente da conta não sai da tela: aparece "Tire o nome do
+  paciente da pergunta…".
+- **Função `holos-ai`** (`supabase/functions/holos-ai/`, deploy com
+  `verify_jwt = false`, porque a conferência é feita no código):
+  - sem sessão válida: **401** `{motivo: "sem_login"}`;
+  - sem o secret: **503** `{motivo: "sem_chave"}` com frase humana;
+  - resposta do hub: **200** `{texto}`, ou `{motivo, frase}` com a frase do hub
+    (`chave_invalida` e `sem_chave` 503, `limite_do_dia` e `devagar` 429,
+    `mensagem` 400, `ia_falhou` e `banco` 502);
+  - teto de 60 s: **504** `{motivo: "tempo_esgotado"}`; hub fora do ar ou
+    resposta estranha: **502** `{motivo: "hub_fora"}`;
+  - log: uma linha por pedido (`metanutri status=… motivo=… ms=…`), sem
+    pergunta, sem resposta e sem chave.
+- **Teste:** `testes/testar-metanutri.mjs`, com um hub falso HTTP de verdade.
+
+### 12.2 Ligar (Luan)
+
+A função já está no Supabase. Falta só a chave: ver `docs/deploy.md` §6.
+Enquanto a chave não é colada, a tela mostra "O MetaNutri ainda não foi
+ligado neste app. Avise o suporte do HoloHacking." e nada mais quebra.
+
+### 12.3 Roteiro de teste pela tela
+
+Vale depois do deploy da `main` com a rodada 06 na VPS. Não escreva nome de
+paciente nas perguntas.
+
+1. Sem entrar na conta: o menu não mostra **MetaNutri**.
+2. Entre na sua conta. O menu mostra **Negócio → MetaNutri**. Clique.
+3. Confira a linha fixa: "Mentor de negócio. Não responde sobre pacientes."
+4. **Sem a chave** (antes do §6 do deploy): pergunte "Como definir o preço
+   da minha consulta?". Tem de aparecer a frase "O MetaNutri ainda não foi
+   ligado neste app…" e o botão **Tentar de novo**.
+5. **Com a chave:** clique em **Tentar de novo**. Aparece "MetaNutri está
+   pensando…" e depois a resposta. A pergunta não aparece duas vezes.
+6. Pergunte algo que dependa da resposta anterior, por exemplo "E para o
+   retorno?". A resposta tem de levar em conta a conversa.
+7. Escreva uma pergunta com o nome completo de um paciente de teste. A
+   pergunta não é enviada e aparece "Tire o nome do paciente da pergunta…".
+8. Recarregue a página e volte ao MetaNutri: a conversa sumiu. Saia da conta:
+   a entrada some do menu.
+9. No celular (ou janela estreita), repita os passos 2 a 5: nada sai da tela
+   na horizontal, e o botão **Enviar** se toca sem zoom.
+10. Se aparecer outra frase (limite do dia, devagar, falha da IA), é a frase
+    do hub: anote o horário e peça ao Claude para ler o log da função
+    `holos-ai` naquele horário.
