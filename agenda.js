@@ -664,7 +664,7 @@
     if (!pid) { if (btnSalvar) window.destravarBotao(btnSalvar); return; }
     d.paciente_id = pid.value;
     if (window.pacienteArquivado && window.pacienteArquivado(d.paciente_id)) {
-      avisar("Paciente arquivado — reative antes de agendar.");
+      avisar(window.MSG_ARQUIVADO);
       if (btnSalvar) window.destravarBotao(btnSalvar);
       return;
     }

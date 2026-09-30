@@ -887,7 +887,7 @@
       aviso = document.createElement("div");
       aviso.id = "fic-aviso-arquivado";
       aviso.className = "fic-aviso-arquivado";
-      aviso.textContent = "Paciente arquivado — reative para registrar novos atendimentos.";
+      aviso.textContent = window.MSG_ARQUIVADO;
       document.querySelector(".fic-topo").appendChild(aviso);
     } else if(!inativo && aviso){
       aviso.remove();
@@ -1688,6 +1688,7 @@
   async function salvarOQ3(){
     const p = pacienteAtivo();
     if(!p){ toast("Selecione um paciente para salvar o OQ3."); return false; }
+    if(window.bloqueioArquivado(p.id)) return false;
     if(!window.Aplicacoes){ toast("Erro ao salvar OQ3."); return false; }
     const respostas = respostasOQ3();
     const algo = Object.keys(respostas).filter(k => k !== "data_consulta").some(k => {
@@ -1898,6 +1899,7 @@
   async function salvarPQQ(){
     const p = pacienteAtivo();
     if(!p){ toast("Selecione um paciente para salvar o PQQ."); return false; }
+    if(window.bloqueioArquivado(p.id)) return false;
     if(!window.Aplicacoes){ toast("Erro ao salvar PQQ."); return false; }
     const respostas = respostasPQQ();
     const algo = Object.keys(respostas).filter(k => k !== "data_consulta").some(k => {
@@ -3195,6 +3197,7 @@
     try {
     const p = pacienteAtivo();
     if(!p){ toast("Selecione um paciente para salvar o HOLOSCAN."); return; }
+    if(window.bloqueioArquivado(p.id)) return;
 
     const scores = pontuacaoNaTela
       ? ORDEM_MOTOR.map(id => {

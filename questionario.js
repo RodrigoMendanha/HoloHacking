@@ -101,7 +101,7 @@
      e as outras abas descobrem que o que elas tem na tela envelheceu. */
   function gravar(marcadorId, valor) {
     if (window.pacienteArquivado && window.pacienteArquivado()) {
-      if (window.avisar) window.avisar("Paciente arquivado — reative para registrar novas informações.");
+      if (window.avisar) window.avisar(window.MSG_ARQUIVADO);
       return;
     }
     var t = tudo(), p = pacienteAtual();

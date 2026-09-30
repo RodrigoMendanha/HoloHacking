@@ -116,9 +116,28 @@ export function criarServidor() {
     return s.tabelas.patients.find(p => p.id === pid && p.nutritionist_id === uid);
   }
 
+  // trigger bloquear_escrita_paciente_arquivado (rodada 08, onda 4)
+  const GUARDA_ARQUIVADO = ['consultations', 'holoscan_applications', 'lab_collections', 'lab_results',
+                            'tool_applications', 'documents'];
+  function erroArquivado(tabela, linha) {
+    if (!GUARDA_ARQUIVADO.includes(tabela)) return null;
+    let pid = linha.patient_id;
+    if (tabela === 'lab_results') {
+      const c = s.tabelas.lab_collections.find(x => x.id === linha.collection_id);
+      pid = c && c.patient_id;
+    }
+    const p = pid && s.tabelas.patients.find(x => x.id === pid);
+    if (p && p.status === 'inativo') {
+      return erro('paciente arquivado: reative antes de registrar novas informacoes', 'P0001');
+    }
+    return null;
+  }
+
   function checarLinha(tabela, linha, uid) {
     const e = validarColunas(tabela, linha);
     if (e) return e;
+    const arq = erroArquivado(tabela, linha);
+    if (arq) return arq;
     if (DONO_DIRETO.includes(tabela) && linha.nutritionist_id !== uid) {
       return erro('new row violates row-level security policy for table "' + tabela + '"', '42501');
     }
@@ -260,7 +279,7 @@ export function criarServidor() {
           if (q.acao === 'upsert' && q.upsert && q.upsert.ignoreDuplicates) continue;
           if (q.acao === 'upsert') {                     // merge: update da linha propria
             if (dono(t, existe) !== uid) return erro('new row violates row-level security policy', '42501');
-            const e = validarColunas(t, d); if (e) return e;
+            const e = validarColunas(t, d) || erroArquivado(t, Object.assign({}, existe, d)); if (e) return e;
             novas.push({ merge: existe, d });
             continue;
           }
@@ -358,6 +377,8 @@ export function criarServidor() {
       const desconhecida = !!c.data_coleta_desconhecida;
       const dt = desconhecida ? null : (c.coletado_em || new Date().toISOString().slice(0, 10));
       if (!pacienteDe(uid, c.patient_id)) return erro('violates foreign key constraint', '23503');
+      const arqColeta = erroArquivado('lab_collections', c);
+      if (arqColeta) return arqColeta;
       let col = s.tabelas.lab_collections.find(x => x.nutritionist_id === uid && x.patient_id === c.patient_id &&
         (desconhecida ? x.data_coleta_desconhecida === true : x.coletado_em === dt));
       // rodada 08: data de coleta no futuro (tolerancia de 1 dia sobre o UTC) e recusada

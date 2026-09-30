@@ -127,7 +127,9 @@
   function abrir(ferramenta) {
     var existente = rascunho(ferramenta.id) || ultima(ferramenta.id);
     if (existente) return Promise.resolve(existente);
-    return novaAplicacao(ferramenta);
+    /* abrir e VER — permitido ate para paciente arquivado; o formulario vem
+       em branco e so gravar() e barrado */
+    return Promise.resolve(aplicacaoEmBranco(ferramenta));
   }
 
   /** Começa uma aplicação nova, mesmo havendo anteriores. É o que preserva o
@@ -138,10 +140,14 @@
       fechar uma ferramenta não deixa rascunho fantasma no histórico. */
   function novaAplicacao(ferramenta) {
     if (window.pacienteArquivado && window.pacienteArquivado()) {
-      if (window.avisar) window.avisar("Paciente arquivado — reative antes de registrar novas informações.");
+      if (window.avisar) window.avisar(window.MSG_ARQUIVADO);
       return Promise.reject(new Error("paciente arquivado"));
     }
-    return Promise.resolve({
+    return Promise.resolve(aplicacaoEmBranco(ferramenta));
+  }
+
+  function aplicacaoEmBranco(ferramenta) {
+    return ({
       paciente_id: pacienteAtual(),
       consulta_id: consultaDeHoje(),
       ferramenta_id: ferramenta.id,
@@ -166,7 +172,7 @@
     var mudanca = Object.assign({}, campos, { atualizada_em: agora() });
     if (!b) { Object.assign(app, mudanca); return Promise.resolve(app); }
     if (window.pacienteArquivado && window.pacienteArquivado() && app.paciente_id === pacienteAtual()) {
-      return Promise.reject(new Error("Paciente arquivado — reative antes de registrar novas informações."));
+      return Promise.reject(new Error(window.MSG_ARQUIVADO || "paciente arquivado"));
     }
     var falha = function (r, oque) {
       var e = (r && r.error) || new Error("o servidor não confirmou " + oque);

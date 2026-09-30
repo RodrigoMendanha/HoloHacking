@@ -133,3 +133,23 @@
     limparTudo: function () { sujas.clear(); }
   };
 })();
+
+/* ---------- PACIENTE ARQUIVADO (rodada 08) -----------------------------------
+   Arquivado pode: ver, ler o historico, exportar, reativar. Nao pode: nova
+   consulta, HOLOSCAN, coleta, ferramenta, documento, edicao clinica. Toda
+   escrita clinica pergunta aqui antes; o servidor recusa de novo (migration
+   20260930150000). bloqueioArquivado(pid) avisa e devolve true se barrou. */
+(function () {
+  "use strict";
+  var MSG = "Paciente arquivado — reative antes de registrar novas informações.";
+  window.MSG_ARQUIVADO = MSG;
+  window.bloqueioArquivado = function (pid) {
+    if (!window.pacienteArquivado || !window.pacienteArquivado(pid)) return false;
+    if (window.avisar) window.avisar(MSG);
+    return true;
+  };
+  /** O erro que o servidor devolve para escrita em paciente arquivado. */
+  window.erroDeArquivado = function (e) {
+    return /arquivad|inativo/i.test(String((e && (e.message || e.details)) || e || ""));
+  };
+})();

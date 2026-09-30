@@ -509,6 +509,7 @@
 
   function excluirColetaComConfirmacao(coletaId) {
     var pid = paciente();
+    if (window.bloqueioArquivado && window.bloqueioArquivado(pid)) return Promise.resolve(false);
     var coletas = coletasRemotas(pid) || [];
     var c = coletas.filter(function (x) { return x.id === coletaId; })[0];
     if (!c || !window.Sincronizacao) return Promise.resolve(false);
@@ -588,6 +589,7 @@
       tem coleta registrada e recusada aqui (e no servidor): para mudar
       aquela coleta, o caminho e "Editar". */
   function registrar() {
+    if (window.bloqueioArquivado && window.bloqueioArquivado(paciente())) return Promise.resolve(false);
     var editando = modoColeta.tipo === "editar" && modoColeta.coleta;
     var alvo = document.getElementById("ex-data-erro");
     var erro = editando ? "" : problemaDataColeta(dataDaColeta());
@@ -670,6 +672,11 @@
         return false;
       }
       if (r.motivo === "vazio" || r.motivo === "offline") { mostrarEstadoSalvo("local"); return false; }
+      if (window.erroDeArquivado && window.erroDeArquivado(r.erro)) {
+        mostrarEstadoSalvo("nao_salvo");
+        if (window.avisar) window.avisar(window.MSG_ARQUIVADO);
+        return false;
+      }
       mostrarEstadoSalvo(editando ? "nao_salvo" : "nao_sincronizado");
       if (window.avisar) window.avisar(editando
         ? "Não foi possível salvar as alterações da coleta no servidor. Nada mudou lá; tente de novo."
@@ -1019,7 +1026,7 @@
   function receberArquivos(lista) {
     if (!lista || lista.length === 0) return;
     if (window.pacienteArquivado && window.pacienteArquivado()) {
-      if (window.avisar) window.avisar("Paciente arquivado — reative antes de enviar documentos.");
+      if (window.avisar) window.avisar(window.MSG_ARQUIVADO);
       return;
     }
     var aviso = document.getElementById("doc-aviso");
@@ -1405,6 +1412,10 @@
         var campo = document.getElementById("rel-interpretacao");
         var aviso = document.getElementById("rel-interpretacao-aviso");
         if (!campo) return;
+        if (window.bloqueioArquivado && window.bloqueioArquivado(paciente())) {
+          if (aviso) aviso.textContent = window.MSG_ARQUIVADO;
+          return;
+        }
         var salvou = window.guardarInterpretacao && window.guardarInterpretacao(campo.value);
         if (!salvou) {
           if (aviso) aviso.textContent = "Aplique o HOLOSCAN hoje antes de registrar a interpretação.";

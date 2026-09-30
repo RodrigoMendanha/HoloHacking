@@ -122,8 +122,8 @@ Os comandos abaixo são a mesma conferência, arquivo por arquivo.
 
 ```sh
 curl -sI http://127.0.0.1:<PORTA>/app.js | grep -i cache-control   # Cache-Control: no-cache
-curl -s  http://127.0.0.1:<PORTA>/app.js | sha256sum               # 2e45a1d8335e...
-curl -s  http://127.0.0.1:<PORTA>/arquivos.js | sha256sum          # edbcb17640e0...
+curl -s  http://127.0.0.1:<PORTA>/app.js | sha256sum               # 2078f554223e...
+curl -s  http://127.0.0.1:<PORTA>/arquivos.js | sha256sum          # af6a843b8aa8...
 curl -s  http://127.0.0.1:<PORTA>/index.html | sha256sum           # 3b506304caad...
 curl -s  https://holohacking.com.br/sincronizacao.js | sha256sum   # 1d363c320cf3...
 ```
@@ -154,12 +154,12 @@ a imagem do `docker build` da branch de saneamento (o nginx ainda põe o
 3b506304caad5b352a110a453745823140de24e9155696cd8a3011424cf90a9b  index.html
 ebfd54f26a7fa461bfedc8415d7e47898d42cf2327989056d45e434539af0f12  style.css
 cd6ef22455f446156c4109649b2d0fc1fe803f0c6697e1029fa71e50ba44cf84  favicon.svg
-1a09c374ba7ddfde9088fd207845bcad3680bc918172831b83cf548ff285eb8f  agenda.js
-69c803234fd06c80f38da999d4b912f4361df5fa41bb5487d9eb10d607bee29d  aplicacoes.js
-2e45a1d8335ea70531cd27ccfecebfd4b427f93204fb9bab9fe5263f4792c32f  app.js
+0123c3be9f9a0e469f605fe6924e1ae76a11b15cda016a0209229fdd5818df2f  agenda.js
+2243d3895aefe00fd8d6275c6f4b2de2c211c15988982442c34cd3cd74b5425a  aplicacoes.js
+2078f554223ed86d13af3a908e5b992ff343273aea4dee6b372c5475bff132bf  app.js
 d3efacba60b26bc2da2311a273881948882570773e4016f59ce2a0845661746c  armazenamento.js
 d7302d5134bfa79098755da5f10405972e8ae7e3becfe6c0caad1d1d7a577e7e  arquivo-store.js
-edbcb17640e089a826843462181b5b66e53410c7b90744d4021005edb33051c1  arquivos.js
+af6a843b8aa8fa3638ccf179e674cc7fb5c286e8afb9e12b3a470ab8417e340b  arquivos.js
 410b78815fa33df41eeadd22c8f3dbfb5b5bfeecaf89784fb2d35a590474cdb7  caso-marina.js
 e66cd4b4cd1163cce5680b8d2b56b820c44c1cf430ed413d8de2fe7766112a14  concorrencia.js
 685ae026fbdd6b534aba6b131f461b99c43a465949b87c68c0091a2b34ef1d88  consultas.js
@@ -181,13 +181,13 @@ d3309f4a715f1f3d239842065a19f9cf2ba73baedbdb97fd979206ab8088e934  login.js
 166b0e323628000f7e1a8274eb5b0012d5a22af67d4804c7b4d4f0e95efacf55  migracao-supa.js
 cc6df703549926d580fabab5726f3fbed93de876d918ed1be6e28bf93b21d1a1  panorama.js
 9edf7e3f792faf245fe3bc1ea904d4cda15e50d9922ece11e5a6f07345791707  perfil.js
-21596bde9cc52f9b42b4a8af7bbb3d2f7ae6a1138244415bd6eb4737cad7f6b2  questionario.js
+6249295a8f4ee756ae75c3357eb158ce7726e24e7e0c8eaa637609a156ae4c91  questionario.js
 8849e59a1d3fe76723aa1e59cc75213fc64172259c5bccd6d9b1151f21a9fb63  render-resultado.js
 23520f5f414deb288f083d0a08389a1c96d1ec918c50fb95d44c3b8b36758e8c  restaurar-backup.js
 2848d87ee9677b5327939694c6461d4f2eee0b11ec5cf44462d52c3a07f0964a  resultado-corpo.js
 1d363c320cf373cf29ae395cf5e341f8a5a924acedbcc6204b10530487a67f5c  sincronizacao.js
 482687b6663c97cfc92151da80a62ff0fdfa8f82fc3ff24a399ab583d3ff0d6d  supabase-client.js
-2dee11ab2af5024a2fbec615529151f01d449b7b597c617e2ca9d2ac68648aa6  utils.js
+25719c0c46cf3c05003594ae67f48257a03873a34d16a78282329e8bd7882054  utils.js
 f99c4197f8ac91ec9e5ec2f6970c12ad8ec0e3d8dc4513da856289799c095b68  validar-backup.js
 ```
 

@@ -81,5 +81,6 @@ export const SUITES = [
   'testar-rodada08-holoscan.mjs',
   'testar-rodada08-exames.mjs',
   'testar-rodada08-ferramentas.mjs',
+  'testar-rodada08-arquivado.mjs',
   'testar-conferir-producao.mjs',
 ];

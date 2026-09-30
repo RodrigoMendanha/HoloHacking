@@ -197,7 +197,7 @@ const questionario = lerArquivo('questionario.js');
 ok(/pacienteArquivado.*\{/.test(questionario),
   'gravar() verifica pacienteArquivado com bloco (não silencioso)');
 
-ok(/avisar.*Paciente arquivado/.test(questionario),
+ok(/avisar.*(Paciente arquivado|MSG_ARQUIVADO)/.test(questionario),
   'gravar() mostra toast quando paciente está arquivado');
 
 /* ============================================================ RLS */

@@ -149,6 +149,29 @@ begin
   end;
   if not pegou then raise exception 'CHECAGEM rodada 08: coleta com data futura foi aceita'; end if;
   raise notice 'ok identidade da coleta e data futura';
+
+  -- 7. rodada 08, onda 4: paciente arquivado nao recebe escrita clinica
+  update public.patients set status = 'inativo' where id = v_pid;
+  pegou := false;
+  begin
+    insert into public.tool_applications (nutritionist_id, patient_id, ferramenta_id, versao_ferramenta)
+    values (v_uid, v_pid, 'mapa_crencas', 'checagem');
+  exception when others then
+    if sqlerrm like 'paciente arquivado%' then pegou := true; else raise; end if;
+  end;
+  if not pegou then raise exception 'CHECAGEM rodada 08: escrita direta em paciente arquivado foi aceita'; end if;
+  pegou := false;
+  begin
+    perform public.salvar_coleta_exames(jsonb_build_object(
+      'collection', jsonb_build_object('patient_id', v_pid, 'coletado_em', '1990-01-03',
+                                       'data_coleta_desconhecida', false),
+      'results', jsonb_build_array(resultado)));
+  exception when others then
+    if sqlerrm like 'paciente arquivado%' then pegou := true; else raise; end if;
+  end;
+  if not pegou then raise exception 'CHECAGEM rodada 08: RPC em paciente arquivado foi aceita'; end if;
+  update public.patients set status = 'ativo' where id = v_pid;
+  raise notice 'ok paciente arquivado bloqueado';
 end
 $$;
 
