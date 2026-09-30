@@ -142,7 +142,8 @@ const nova = await p.evaluate(async () => {
   };
 });
 ok(nova.limpos, '"Nova aplicação" abre um formulário em branco');
-ok(nova.quantas === 2, 'e a anterior continua lá: ' + nova.quantas + ' aplicações');
+/* rodada 08: abrir a nova nao grava rascunho — ela entra ao salvar */
+ok(nova.quantas === 1, 'e a anterior continua lá, sozinha ate a nova ser salva: ' + nova.quantas + ' aplicação(ões)');
 
 await preencher({
   objetivo: 'Manter o peso',
@@ -222,15 +223,15 @@ const troca = await p.evaluate(async () => {
   };
 });
 ok(troca.campoVazio === '', 'trocar de paciente abre o PQQ em branco, não o da anterior');
-/* Abrir a tela abre uma aplicação — é o padrão de todas as ferramentas. O que
-   não pode acontecer é ela nascer com a resposta de outra pessoa dentro. */
-ok(troca.carlaEstados.join(',') === 'rascunho',
-   'a nova paciente ganha um rascunho vazio, como em qualquer ferramenta: ' +
-   troca.carlaEstados.join(' + '));
+/* Rodada 08: abrir a tela NAO grava nada — sem rascunho fantasma. E o que
+   aparece na tela nao pode nascer com a resposta de outra pessoa dentro. */
+ok(troca.carlaEstados.length === 0,
+   'a nova paciente nao ganha rascunho so por abrir a tela: ' +
+   (troca.carlaEstados.join(' + ') || '(nenhuma aplicação)'));
 ok(troca.carlaRespostas.every(r => r === '{}' || r === 'null'),
    'e ele nasce sem nenhuma resposta herdada: ' + troca.carlaRespostas.join(' '));
-ok(troca.donos.filter(d => d.indexOf(troca.carlaId) === 0).length === 1,
-   'só uma aplicação sob a paciente nova');
+ok(troca.donos.filter(d => d.indexOf(troca.carlaId) === 0).length === 0,
+   'nenhuma aplicação sob a paciente nova antes de salvar');
 ok(troca.donos.filter(d => d.indexOf(troca.carlaId) !== 0 &&
                            d.endsWith(':concluida')).length === 2,
    'e as duas concluídas da Marina continuam dela, intactas: ' +

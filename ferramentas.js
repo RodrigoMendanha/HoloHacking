@@ -348,6 +348,7 @@ window.CATALOGO_FERRAMENTAS = [
   {
     id: "mapa_crencas", modulo: "mente", numero: "02",
     titulo: "Mapa de Crenças Alimentares",
+    exige_resposta: true,   // rodada 08: nao conclui vazio
     chamada: "o que ele acredita sobre comida",
     descricao: "Levantamento das crenças limitantes sobre a comida e o corpo.",
     campos: [

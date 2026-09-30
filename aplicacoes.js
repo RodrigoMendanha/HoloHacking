@@ -131,14 +131,17 @@
   }
 
   /** Começa uma aplicação nova, mesmo havendo anteriores. É o que preserva o
-      histórico: a de antes continua lá, fechada, com a data dela. */
+      histórico: a de antes continua lá, fechada, com a data dela.
+
+      Rodada 08: abrir NAO grava nada. A aplicação nova existe só na tela
+      (sem id) até o primeiro "Salvar rascunho" ou "Concluir" — abrir e
+      fechar uma ferramenta não deixa rascunho fantasma no histórico. */
   function novaAplicacao(ferramenta) {
     if (window.pacienteArquivado && window.pacienteArquivado()) {
-      if (window.avisar) window.avisar("Paciente arquivado — reative antes de aplicar ferramentas.");
+      if (window.avisar) window.avisar("Paciente arquivado — reative antes de registrar novas informações.");
       return Promise.reject(new Error("paciente arquivado"));
     }
-    var b = banco();
-    var nova = {
+    return Promise.resolve({
       paciente_id: pacienteAtual(),
       consulta_id: consultaDeHoje(),
       ferramenta_id: ferramenta.id,
@@ -152,20 +155,41 @@
       leitura: null,
       prioridade: null,
       proximo_passo: null
-    };
-    if (!b) return Promise.resolve(nova);
-
-    return Promise.resolve(b.from("aplicacoes").insert(nova).select().single())
-      .then(function (r) { return carregar().then(function () { return r.data || nova; }); });
+    });
   }
 
+  /** Grava e só depois muda a aplicação em memória. Rejeita se o banco
+      recusou (erro, ou nenhuma linha afetada): quem chamou não pode dizer
+      "salvo". A aplicação sem id (ainda não gravada) vira INSERT. */
   function gravar(app, campos) {
     var b = banco();
     var mudanca = Object.assign({}, campos, { atualizada_em: agora() });
-    Object.assign(app, mudanca);
-    if (!b || !app.id) return Promise.resolve(app);
-    return Promise.resolve(b.from("aplicacoes").update(mudanca).eq("id", app.id))
-      .then(carregar)
+    if (!b) { Object.assign(app, mudanca); return Promise.resolve(app); }
+    if (window.pacienteArquivado && window.pacienteArquivado() && app.paciente_id === pacienteAtual()) {
+      return Promise.reject(new Error("Paciente arquivado — reative antes de registrar novas informações."));
+    }
+    var falha = function (r, oque) {
+      var e = (r && r.error) || new Error("o servidor não confirmou " + oque);
+      throw e;
+    };
+    if (!app.id) {
+      var linha = Object.assign({}, app, mudanca);
+      return Promise.resolve(b.from("aplicacoes").insert(linha).select().single())
+        .then(function (r) {
+          if (!r || r.error || !r.data || !r.data.id) falha(r, "a gravação");
+          Object.assign(app, linha, { id: r.data.id });
+          return carregar();
+        })
+        .then(function () { return app; });
+    }
+    return Promise.resolve(b.from("aplicacoes").update(mudanca).eq("id", app.id).select())
+      .then(function (r) {
+        if (!r || r.error) falha(r, "a gravação");
+        var linhas = Array.isArray(r.data) ? r.data : (r.data ? [r.data] : []);
+        if (!linhas.length) falha(null, "a gravação (nenhuma linha alterada)");
+        Object.assign(app, mudanca);
+        return carregar();
+      })
       .then(function () { return app; });
   }
 
@@ -196,7 +220,10 @@
   function apagar(id) {
     var b = banco();
     if (!b) return Promise.resolve();
-    return Promise.resolve(b.from("aplicacoes").delete().eq("id", id)).then(carregar);
+    return Promise.resolve(b.from("aplicacoes").delete().eq("id", id)).then(function (r) {
+      if (r && r.error) throw r.error;
+      return carregar();
+    });
   }
 
   /* ---------- o status que o card mostra ----------------------------------

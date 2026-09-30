@@ -126,7 +126,7 @@
     if(opts.botaoConfirmar){
       const b = document.createElement("button");
       b.type = "button";
-      b.className = "btn-perigo";
+      b.className = opts.classeConfirmar || "btn-perigo";
       b.textContent = opts.botaoConfirmar;
       b.id = "modal-confirmar-ok";
       if(opts.desabilitado) b.disabled = true;
@@ -1682,25 +1682,47 @@
     desenharHistoricoOQ3();
   }
 
-  $("#btn-salvar-oq3").addEventListener("click", async function () {
-    const btn = this;
-    if(!travarBotao(btn, "Salvando…")) return;
-    try {
+  /* Rodada 08: "OQ3 salvo" so depois que o servidor confirmou; falha diz
+     que nada foi registrado e mantem o que foi digitado. OQ3 vazio nao
+     conclui. Devolve true/false (a guarda de navegacao usa). */
+  async function salvarOQ3(){
     const p = pacienteAtivo();
-    if(!p){ toast("Selecione um paciente para salvar o OQ3."); return; }
-    if(!window.Aplicacoes){ toast("Erro ao salvar OQ3."); return; }
-
-    if(!aplicacaoOQ3) aplicacaoOQ3 = await window.Aplicacoes.abrir(FERR_OQ3);
-    // resultado fica null: o OQ3 nao deriva sintese nenhuma.
-    await window.Aplicacoes.concluir(aplicacaoOQ3, respostasOQ3(), null);
-
+    if(!p){ toast("Selecione um paciente para salvar o OQ3."); return false; }
+    if(!window.Aplicacoes){ toast("Erro ao salvar OQ3."); return false; }
+    const respostas = respostasOQ3();
+    const algo = Object.keys(respostas).filter(k => k !== "data_consulta").some(k => {
+      const v = respostas[k];
+      return v !== null && v !== undefined && String(v).trim() !== "";
+    });
+    if(!algo){ toast("Preencha ao menos um campo do OQ3 antes de salvar."); return false; }
+    try {
+      if(!aplicacaoOQ3) aplicacaoOQ3 = await window.Aplicacoes.abrir(FERR_OQ3);
+      // resultado fica null: o OQ3 nao deriva sintese nenhuma.
+      await window.Aplicacoes.concluir(aplicacaoOQ3, respostas, null);
+    } catch(e) {
+      console.error("[oq3] salvar:", e && e.message ? e.message : e);
+      toast(/arquivado/i.test(String(e && e.message))
+        ? "Paciente arquivado — reative antes de registrar novas informações."
+        : "Não foi possível salvar o OQ3 no servidor — nada foi registrado. O que você digitou continua na tela.");
+      return false;
+    }
     sincronizarOQ3();
     renderPacientes();
     notaDeQuandoOQ3();
     desenharHistoricoOQ3();
     toast("OQ3 salvo na ficha de " + p.nome.split(" ")[0] + ".");
     if(window.limpaSuja) window.limpaSuja("oq3");
-    } finally { destravarBotao(btn); }
+    return true;
+  }
+  if(window.registrarSujeira) window.registrarSujeira("oq3", {
+    salvar: salvarOQ3,
+    descartar: () => { if(aplicacaoOQ3) pintarOQ3(aplicacaoOQ3.respostas || vazioOQ3()); }
+  });
+
+  $("#btn-salvar-oq3").addEventListener("click", async function () {
+    const btn = this;
+    if(!travarBotao(btn, "Salvando…")) return;
+    try { await salvarOQ3(); } finally { destravarBotao(btn); }
   });
 
   /* Comecar outra aplicacao e um gesto explicito — e o que garante que a
@@ -1712,11 +1734,12 @@
     const p = pacienteAtivo();
     if(!p){ toast("Selecione um paciente primeiro."); return; }
     if(!window.Aplicacoes) return;
-    aplicacaoOQ3 = await window.Aplicacoes.nova(FERR_OQ3);
+    try { aplicacaoOQ3 = await window.Aplicacoes.nova(FERR_OQ3); }
+    catch(e) { return; }   // arquivado: nova() ja avisou
     pintarOQ3(vazioOQ3());
     notaDeQuandoOQ3();
     desenharHistoricoOQ3();
-    toast("Nova aplicação do OQ3. A anterior continua no histórico.");
+    toast("Nova aplicação do OQ3 — ela entra no histórico quando for salva. A anterior continua lá.");
     } finally { destravarBotao(btn); }
   });
 
@@ -1869,25 +1892,47 @@
     desenharHistoricoPQQ();
   }
 
-  $("#btn-salvar-pqq").addEventListener("click", async function () {
-    const btn = this;
-    if(!travarBotao(btn, "Salvando…")) return;
-    try {
+  /* Rodada 08: "PQQ salvo" so depois que o servidor confirmou; falha diz
+     que nada foi registrado e mantem o que foi digitado. PQQ vazio nao
+     conclui. Devolve true/false (a guarda de navegacao usa). */
+  async function salvarPQQ(){
     const p = pacienteAtivo();
-    if(!p){ toast("Selecione um paciente para salvar o PQQ."); return; }
-    if(!window.Aplicacoes){ toast("Erro ao salvar PQQ."); return; }
-
-    if(!aplicacaoPQQ) aplicacaoPQQ = await window.Aplicacoes.abrir(FERR_PQQ);
-    // resultado fica null: o PQQ nao deriva sintese nenhuma.
-    await window.Aplicacoes.concluir(aplicacaoPQQ, respostasPQQ(), null);
-
+    if(!p){ toast("Selecione um paciente para salvar o PQQ."); return false; }
+    if(!window.Aplicacoes){ toast("Erro ao salvar PQQ."); return false; }
+    const respostas = respostasPQQ();
+    const algo = Object.keys(respostas).filter(k => k !== "data_consulta").some(k => {
+      const v = respostas[k];
+      return v !== null && v !== undefined && String(v).trim() !== "";
+    });
+    if(!algo){ toast("Preencha ao menos um campo do PQQ antes de salvar."); return false; }
+    try {
+      if(!aplicacaoPQQ) aplicacaoPQQ = await window.Aplicacoes.abrir(FERR_PQQ);
+      // resultado fica null: o PQQ nao deriva sintese nenhuma.
+      await window.Aplicacoes.concluir(aplicacaoPQQ, respostas, null);
+    } catch(e) {
+      console.error("[pqq] salvar:", e && e.message ? e.message : e);
+      toast(/arquivado/i.test(String(e && e.message))
+        ? "Paciente arquivado — reative antes de registrar novas informações."
+        : "Não foi possível salvar o PQQ no servidor — nada foi registrado. O que você digitou continua na tela.");
+      return false;
+    }
     sincronizarPQQ();
     renderPacientes();
     notaDeQuandoPQQ();
     desenharHistoricoPQQ();
     toast("PQQ salvo na ficha de " + p.nome.split(" ")[0] + ".");
     if(window.limpaSuja) window.limpaSuja("pqq");
-    } finally { destravarBotao(btn); }
+    return true;
+  }
+  if(window.registrarSujeira) window.registrarSujeira("pqq", {
+    salvar: salvarPQQ,
+    descartar: () => { if(aplicacaoPQQ) pintarPQQ(aplicacaoPQQ.respostas || vazioPQQ()); }
+  });
+
+  $("#btn-salvar-pqq").addEventListener("click", async function () {
+    const btn = this;
+    if(!travarBotao(btn, "Salvando…")) return;
+    try { await salvarPQQ(); } finally { destravarBotao(btn); }
   });
 
   $("#btn-nova-pqq").addEventListener("click", async function () {
@@ -1897,11 +1942,12 @@
     const p = pacienteAtivo();
     if(!p){ toast("Selecione um paciente primeiro."); return; }
     if(!window.Aplicacoes) return;
-    aplicacaoPQQ = await window.Aplicacoes.nova(FERR_PQQ);
+    try { aplicacaoPQQ = await window.Aplicacoes.nova(FERR_PQQ); }
+    catch(e) { return; }   // arquivado: nova() ja avisou
     pintarPQQ(vazioPQQ());
     notaDeQuandoPQQ();
     desenharHistoricoPQQ();
-    toast("Nova aplicação do PQQ. A anterior continua no histórico.");
+    toast("Nova aplicação do PQQ — ela entra no histórico quando for salva. A anterior continua lá.");
     } finally { destravarBotao(btn); }
   });
 
@@ -3384,13 +3430,57 @@
       });
     }
 
-    /* --- Proteção contra perda de dados não salvos --- */
-    var sujeiras = new Set();
-    window.marcaSuja = function (chave) { sujeiras.add(chave); };
-    window.limpaSuja = function (chave) { sujeiras.delete(chave); };
+    /* --- Proteção contra perda de dados não salvos ---
+       O registro (marcaSuja / limpaSuja / registrarSujeira) mora em utils.js.
+       Aqui: fechar a aba cai no aviso do navegador; navegar DENTRO do app
+       (menu lateral, "Voltar" das ferramentas, barra do paciente) pergunta
+       Salvar / Descartar / Cancelar. Salvar so segue se o servidor
+       confirmou; se falhar, a pessoa fica na tela com o que digitou. */
     window.addEventListener("beforeunload", function (e) {
-      if (sujeiras.size > 0) { e.preventDefault(); e.returnValue = ""; }
+      if (window.Sujeira && window.Sujeira.tem()) { e.preventDefault(); e.returnValue = ""; }
     });
+    var navegacaoLiberada = false;
+    document.addEventListener("click", function (e) {
+      if (navegacaoLiberada || !window.Sujeira || !window.Sujeira.tem()) return;
+      var alvo = e.target.closest('.nav-item[data-secao], .btn-voltar, [data-bpctx]');
+      if (!alvo) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      var chaves = window.Sujeira.lista();
+      var seguir = function () {
+        navegacaoLiberada = true;
+        try { alvo.click(); } finally { navegacaoLiberada = false; }
+      };
+      window.abrirModalConfirmar({
+        titulo: "Alterações não salvas",
+        subtitulo: "",
+        corpo: "<p>Há alterações nesta tela que ainda não foram salvas.</p>" +
+               "<p><b>Salvar</b> grava antes de sair. <b>Descartar</b> sai sem gravar. " +
+               "<b>Cancelar</b> continua aqui.</p>",
+        botaoArquivar: "Descartar",
+        botaoConfirmar: "Salvar",
+        classeConfirmar: "btn-verde"
+      }).then(function (r) {
+        if (!r) return;
+        if (r === "arquivar") {
+          chaves.forEach(function (k) {
+            var h = window.Sujeira.acoes(k);
+            try { if (h && h.descartar) h.descartar(); } catch (err) { console.error(err); }
+            window.limpaSuja(k);
+          });
+          seguir();
+          return;
+        }
+        Promise.all(chaves.map(function (k) {
+          var h = window.Sujeira.acoes(k);
+          if (!h || !h.salvar) return Promise.resolve(false);
+          return Promise.resolve(h.salvar()).then(function (x) { return x !== false; }, function () { return false; });
+        })).then(function (res) {
+          if (res.every(Boolean)) { chaves.forEach(function (k) { window.limpaSuja(k); }); seguir(); }
+          else if (window.avisar) window.avisar("Não foi possível salvar tudo — você continua nesta tela, com o que digitou.");
+        });
+      });
+    }, true);
 
     /* --- Banner offline --- */
     var bannerOff = document.getElementById("banner-offline");

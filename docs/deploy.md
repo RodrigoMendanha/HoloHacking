@@ -122,8 +122,8 @@ Os comandos abaixo são a mesma conferência, arquivo por arquivo.
 
 ```sh
 curl -sI http://127.0.0.1:<PORTA>/app.js | grep -i cache-control   # Cache-Control: no-cache
-curl -s  http://127.0.0.1:<PORTA>/app.js | sha256sum               # ad2d48a141ad...
-curl -s  http://127.0.0.1:<PORTA>/arquivos.js | sha256sum          # 943b8bc5bd06...
+curl -s  http://127.0.0.1:<PORTA>/app.js | sha256sum               # 2e45a1d8335e...
+curl -s  http://127.0.0.1:<PORTA>/arquivos.js | sha256sum          # edbcb17640e0...
 curl -s  http://127.0.0.1:<PORTA>/index.html | sha256sum           # 3b506304caad...
 curl -s  https://holohacking.com.br/sincronizacao.js | sha256sum   # 1d363c320cf3...
 ```
@@ -152,28 +152,28 @@ a imagem do `docker build` da branch de saneamento (o nginx ainda põe o
 
 ```
 3b506304caad5b352a110a453745823140de24e9155696cd8a3011424cf90a9b  index.html
-0cf3c0fc51e5139975e98a3f3fc2199ba3ccc57d100bb14399ddc60b0b063b9f  style.css
+ebfd54f26a7fa461bfedc8415d7e47898d42cf2327989056d45e434539af0f12  style.css
 cd6ef22455f446156c4109649b2d0fc1fe803f0c6697e1029fa71e50ba44cf84  favicon.svg
 1a09c374ba7ddfde9088fd207845bcad3680bc918172831b83cf548ff285eb8f  agenda.js
-547c3592c469cb26ae8c800ca592698b942e1ef22df1b1b5f8ab61b3d8dd4e98  aplicacoes.js
-ad2d48a141ad6d8a45d90a48e2b56da08cb5b43de1239a1497d430d6ee3add78  app.js
+69c803234fd06c80f38da999d4b912f4361df5fa41bb5487d9eb10d607bee29d  aplicacoes.js
+2e45a1d8335ea70531cd27ccfecebfd4b427f93204fb9bab9fe5263f4792c32f  app.js
 d3efacba60b26bc2da2311a273881948882570773e4016f59ce2a0845661746c  armazenamento.js
 d7302d5134bfa79098755da5f10405972e8ae7e3becfe6c0caad1d1d7a577e7e  arquivo-store.js
-943b8bc5bd06a1dbf423832d5d3d38ecd6449d75e218c3d4bdf333c1c95d6339  arquivos.js
+edbcb17640e089a826843462181b5b66e53410c7b90744d4021005edb33051c1  arquivos.js
 410b78815fa33df41eeadd22c8f3dbfb5b5bfeecaf89784fb2d35a590474cdb7  caso-marina.js
 e66cd4b4cd1163cce5680b8d2b56b820c44c1cf430ed413d8de2fe7766112a14  concorrencia.js
 685ae026fbdd6b534aba6b131f461b99c43a465949b87c68c0091a2b34ef1d88  consultas.js
 6da59e2472a3d78eb7a6d9f7906ebd0f2fe3eba74ef7345d4723f3f77664f994  corpo-bancos.js
 067d8023b58aee9b63d7accb58f75efbc2d86dc499e28e58ea868276e2ff5a3e  dados-router.js
-8a5d42956edd044e0c0a949790e49e877e0631ab37974863720230d3ef94443a  dados.js
+a77e7bf6acab37680d25eb5451442539bda71a84c6e921940a6065b9b9a3b806  dados.js
 9050e7a396452363a89caef423b2f291ba079a1b89ad6dbf0b705bbbb608999d  dashboard.js
 3dc77dc11f87b4ba84105161194d306ee70b554ab1d6012d1df40dc1c2360f14  demo.js
 43455b20ca6c84f847f839d70ac7e25f9cfa83036ea7e5d3256d9f04f0dadbf4  documentos.js
 be74e1fb5321796fd207c03fbf0abd964b925db26fc8095c3ee6424cd6f4f5b6  evolucao.js
 11e08342911df7f528993946a7e07746a9c26f66657eb0d139e746ade32e161f  excluir-paciente.js
-b41d0539ec749cc46551f8821f2faba3014b178ecea747c06828d733d3873d03  ferramentas.js
+e31299488b3b783791cc2fc79b8aff907c604058f41cefb9ee959b5877664688  ferramentas.js
 666eb26c73909f62f0f450c63df394c9c9db981f57bf43c12c8f090bf7056a68  ficha.js
-cc3eecad693512374d08dee1372e73f76d1e68832ab6298ac6e75d4d0fe4436d  formulario.js
+660b2218e216a8b68655c9935b4e9b2bc182ba63c6b232e9b4b4b85876ad900e  formulario.js
 d621f96a80646afc7bac9efe631d9e971ae0a0f0bd4911726a39bcbd787e1a19  holos-ai.js
 b6c7e8b1341a10bf45c2f895218e5529176b9c36aa035be6a2aa1ed0fb41cfac  holoscan.js
 b2705ac28dc9f6175ec5586ef02e86b00f2fe1265dbb23a34e3bb2cebb8718c3  importar-v1.js
@@ -187,7 +187,7 @@ cc6df703549926d580fabab5726f3fbed93de876d918ed1be6e28bf93b21d1a1  panorama.js
 2848d87ee9677b5327939694c6461d4f2eee0b11ec5cf44462d52c3a07f0964a  resultado-corpo.js
 1d363c320cf373cf29ae395cf5e341f8a5a924acedbcc6204b10530487a67f5c  sincronizacao.js
 482687b6663c97cfc92151da80a62ff0fdfa8f82fc3ff24a399ab583d3ff0d6d  supabase-client.js
-39524af45aeaa022745e644ff8f29d1c395f815b824215bc9e80cd3c6ddc360d  utils.js
+2dee11ab2af5024a2fbec615529151f01d449b7b597c617e2ca9d2ac68648aa6  utils.js
 f99c4197f8ac91ec9e5ec2f6970c12ad8ec0e3d8dc4513da856289799c095b68  validar-backup.js
 ```
 

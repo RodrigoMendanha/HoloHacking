@@ -143,10 +143,10 @@ const segunda = await p.evaluate(async () => {
   };
 });
 ok(segunda.camposLimpos, '"Nova aplicação" abre um formulário em branco');
-ok(segunda.quantas === 2, 'e a anterior continua lá: ' + segunda.quantas + ' aplicações');
-ok(segunda.estados.filter(s => s === 'concluida').length === 1 &&
-   segunda.estados.filter(s => s === 'rascunho').length === 1,
-   'uma concluída e uma em preenchimento: ' + segunda.estados.join(' + '));
+/* rodada 08: abrir a nova nao grava rascunho — ela entra ao salvar */
+ok(segunda.quantas === 1, 'e a anterior continua lá, sozinha ate a nova ser salva: ' + segunda.quantas + ' aplicação(ões)');
+ok(segunda.estados.join(',') === 'concluida',
+   'a anterior segue concluída; nenhum rascunho fantasma: ' + segunda.estados.join(' + '));
 
 await preencher({
   data: '2026-09-14',

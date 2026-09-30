@@ -112,3 +112,24 @@
     cobertura: cobertura, fmt: fmt, porNota: porNota, porLeitura: porLeitura, notas: notas
   };
 })();
+
+/* ---------- EDICAO NAO SALVA (rodada 08) ------------------------------------
+   Um registro so, carregado antes de todo modulo: cada tela marca o que
+   editou sem salvar (marcaSuja), limpa quando o servidor confirmou
+   (limpaSuja) e registra como salvar e como descartar (registrarSujeira).
+   A navegacao interna (app.js) pergunta Salvar / Descartar / Cancelar, e o
+   fechamento da aba cai no aviso do navegador. */
+(function () {
+  "use strict";
+  var sujas = new Set();
+  var acoes = {};
+  window.marcaSuja = function (chave) { sujas.add(chave); };
+  window.limpaSuja = function (chave) { sujas.delete(chave); };
+  window.registrarSujeira = function (chave, handlers) { acoes[chave] = handlers || {}; };
+  window.Sujeira = {
+    lista: function () { return Array.from(sujas); },
+    tem: function () { return sujas.size > 0; },
+    acoes: function (chave) { return acoes[chave] || null; },
+    limparTudo: function () { sujas.clear(); }
+  };
+})();

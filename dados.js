@@ -125,8 +125,9 @@
   }
 
   Consulta.prototype.select = function () {
-    // Depois de insert(), .select() so diz "me devolva a linha gravada".
-    if (this.acao !== "insert") this.acao = "select";
+    // Depois de insert()/update(), .select() so diz "me devolva a linha
+    // gravada" — como no Supabase.
+    if (this.acao !== "insert" && this.acao !== "update") this.acao = "select";
     return this;
   };
 

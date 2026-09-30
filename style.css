@@ -901,6 +901,7 @@ body.escuro .btn-tema .icone-lua{display:none}
 
 .campos{display:flex;flex-direction:column;gap:22px;margin-bottom:26px}
 .aviso-salvo{font-size:.78rem;color:var(--dourado);font-weight:500;letter-spacing:.04em}
+.aviso-salvo.erro{color:#b4553c;letter-spacing:0}
 
 /* a regua herdaria o padding e a borda de .grupo input; nao pode */
 .grupo input[type="range"]{

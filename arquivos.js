@@ -482,6 +482,7 @@
       '<b>São rascunho, não homologadas clinicamente, e esperam a revisão do Rodrigo.</b></p>';
 
     html += blocoColetasDoPainel(coletas);
+    if (window.limpaSuja) window.limpaSuja("exames");
 
     alvo.innerHTML = html;
     ligarPainel();
@@ -723,6 +724,9 @@
       }
     }
     if (!soDesenho && !salvarNoSupa) mostrarEstadoSalvo(temSupa() ? "nao_salvo" : "");
+    /* editar coleta existente: o digitado so existe no formulario — sair sem
+       salvar pergunta. (Na coleta nova o rascunho ja fica guardado.) */
+    if (!soDesenho && !salvarNoSupa && editando && window.marcaSuja) window.marcaSuja("exames");
 
     var conta = document.querySelector("#ex-corpo .ex-conta");
     var n = Object.keys(valores).length;
@@ -800,6 +804,13 @@
     html += '<p class="arq-nota holo-fronteira">A Leitura Integrada organiza informações ' +
       'laboratoriais para apoiar a interpretação profissional. Não realiza diagnóstico.</p>';
     alvo.innerHTML = html;
+  }
+
+  if (window.registrarSujeira) {
+    window.registrarSujeira("exames", {
+      salvar: function () { return registrar(); },
+      descartar: function () { desenharExames({ manter: true }); }
+    });
   }
 
   var painelLigado = false;

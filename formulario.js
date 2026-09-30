@@ -238,6 +238,7 @@
   /* ---------- desenhar a ferramenta inteira -------------------------------- */
 
   function desenhar(f, alvo, app) {
+    if (window.limpaSuja) window.limpaSuja("ferramenta");
     var r = (app && app.respostas) || {};
     var resultado = window.ResultadoCorpo
       ? window.ResultadoCorpo.derivar(f, r) : null;
@@ -391,9 +392,40 @@
   function avisar(alvo, papel, texto) {
     var el = alvo.querySelector('[data-papel="' + papel + '"]');
     if (!el) return;
+    el.classList.remove("erro");
     el.textContent = texto;
     setTimeout(function () { el.textContent = ""; }, 2600);
   }
+
+  /** Aviso que NAO some sozinho: falha de gravacao e recusa de validacao. */
+  function avisarFixo(alvo, papel, texto) {
+    var el = alvo.querySelector('[data-papel="' + papel + '"]');
+    if (!el) { if (window.avisar) window.avisar(texto); return; }
+    el.classList.add("erro");
+    el.setAttribute("role", "alert");
+    el.textContent = texto;
+  }
+
+  function mensagemDeFalha(e) {
+    var m = String((e && e.message) || "");
+    if (/arquivado/i.test(m)) return "Paciente arquivado — reative antes de registrar novas informações.";
+    return "Não foi possível salvar no servidor — nada foi registrado. " +
+           "As respostas continuam na tela; tente de novo.";
+  }
+
+  /** Alguma resposta de verdade? Texto nao vazio, numero, opcao marcada, ou
+      item de lista com algum campo preenchido. */
+  function temResposta(v) {
+    if (v === null || v === undefined) return false;
+    if (typeof v === "string") return v.trim() !== "";
+    if (typeof v === "number") return !isNaN(v);
+    if (typeof v === "boolean") return true;
+    if (Array.isArray(v)) return v.some(temResposta);
+    if (typeof v === "object") return Object.keys(v).some(function (k) { return temResposta(v[k]); });
+    return false;
+  }
+
+  var salvarAberta = null;
 
   function redesenharSintese(f, alvo) {
     var caixa = alvo.querySelector('[data-papel="sintese"]');
@@ -407,6 +439,19 @@
   function ligarContainer(alvo) {
     if (containersLigados.indexOf(alvo) >= 0) return;
     containersLigados.push(alvo);
+
+    /* edicao nao salva: a navegacao interna pergunta Salvar / Descartar */
+    alvo.addEventListener("input", function (ev) {
+      if (!aberta || aberta.alvo !== alvo) return;
+      if (ev.target.closest(".form-ferramenta") && window.marcaSuja) window.marcaSuja("ferramenta");
+    });
+    alvo.addEventListener("click", function (ev) {
+      if (!aberta || aberta.alvo !== alvo) return;
+      if (ev.target.closest(".form-ferramenta .grupo-escala button, .form-ferramenta .grupo-opcoes button, " +
+                            "[data-limpar], [data-mais-item], [data-tirar-item]") && window.marcaSuja) {
+        window.marcaSuja("ferramenta");
+      }
+    }, true);
 
     alvo.addEventListener("click", function (ev) {
       // a ferramenta aberta AGORA, nao a que estava aberta quando isto foi ligado
@@ -508,23 +553,41 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
 
+    /* Rodada 08 — regra universal: nada de "salvo" antes do servidor
+       confirmar. Se a gravacao falha, a tela diz que NAO salvou, as
+       respostas continuam no formulario e o botao pode ser clicado de novo.
+       Devolve Promise<boolean>. */
     var guardar = function (concluir) {
       var app = aberta && aberta.app;
-      if (!app || !window.Aplicacoes) return;
+      if (!app || !window.Aplicacoes) return Promise.resolve(false);
       var dados = colher(f, alvo);
+      /* so a ferramenta que declara exige_resposta recusa concluir vazia;
+         nas outras, concluir sem responder e decisao do metodo (grava null) */
+      if (concluir && f.exige_resposta && !temResposta(dados)) {
+        avisarFixo(alvo, "aviso", "Preencha ao menos um campo antes de concluir — " +
+          "uma aplicação vazia não entra no histórico.");
+        return Promise.resolve(false);
+      }
       var resultado = window.ResultadoCorpo
         ? window.ResultadoCorpo.derivar(f, dados) : null;
       var p = concluir
         ? window.Aplicacoes.concluir(app, dados, resultado)
         : window.Aplicacoes.salvarRespostas(app, dados, resultado);
-      Promise.resolve(p).then(function () {
+      return Promise.resolve(p).then(function () {
+        if (window.limpaSuja) window.limpaSuja("ferramenta");
         marcarCard(f.id);
         if (concluir) desenhar(f, alvo, app);
         else redesenharSintese(f, alvo);
         // depois do redesenho: escrever antes apagaria junto com o elemento
         avisar(alvo, "aviso", concluir ? "Aplicação concluída." : "Rascunho salvo.");
+        return true;
+      }, function (e) {
+        console.error("[formulario] gravar aplicacao:", e && e.message ? e.message : e);
+        avisarFixo(alvo, "aviso", mensagemDeFalha(e));
+        return false;
       });
     };
+    salvarAberta = function () { return guardar(false); };
 
     alvo.querySelector('[data-acao="concluir"]').addEventListener("click", function () {
       var btn = this;
@@ -545,8 +608,9 @@
           aberta = { f: f, alvo: alvo, app: nova };
           desenhar(f, alvo, nova);
           marcarCard(f.id);
-          avisar(alvo, "aviso", "Aplicação nova. A anterior ficou no histórico.");
-        });
+          avisar(alvo, "aviso", "Aplicação nova — ela entra no histórico quando for salva. " +
+                               "A anterior continua lá.");
+        }, function (e) { avisarFixo(alvo, "aviso", mensagemDeFalha(e)); });
       });
     }
 
@@ -564,6 +628,9 @@
         )).then(function () {
           avisar(alvo, "aviso-leitura", "Leitura registrada.");
           marcarCard(f.id);
+        }, function (e) {
+          console.error("[formulario] registrar leitura:", e && e.message ? e.message : e);
+          avisarFixo(alvo, "aviso-leitura", mensagemDeFalha(e));
         });
       });
     }
@@ -605,6 +672,8 @@
       aberta = { f: f, alvo: alvo, app: app };
       desenhar(f, alvo, app);
       window.abrirFerramenta("vista-gen-" + f.modulo);
+    }, function (e) {
+      console.error("[formulario] abrir ferramenta:", e && e.message ? e.message : e);
     });
   }
 
@@ -637,6 +706,16 @@
   };
 
   window.remarcarCardsDeFerramenta = marcarTodos;
+
+  /* para a guarda de navegacao (app.js): salvar ou descartar o que esta aberto */
+  if (window.registrarSujeira) {
+    window.registrarSujeira("ferramenta", {
+      salvar: function () { return salvarAberta ? salvarAberta() : Promise.resolve(false); },
+      descartar: function () {
+        if (aberta && aberta.app) desenhar(aberta.f, aberta.alvo, aberta.app);
+      }
+    });
+  }
 
   document.addEventListener("DOMContentLoaded", function () {
     if (ligado) return;

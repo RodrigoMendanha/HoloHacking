@@ -111,8 +111,9 @@ ok(vistaNova.querySelector('#campo-crencas').value === '',
    'a aplicacao nova comeca vazia');
 ok(vistaNova.querySelectorAll('.ferr-hist-item').length === 1,
    'e a anterior foi para o historico, nao para o lixo');
-ok(window.DadosLocais.resumo().aplicacoes === 2,
-   'duas aplicacoes guardadas: ' + window.DadosLocais.resumo().aplicacoes);
+/* rodada 08: abrir a nova nao grava — ela so entra quando for salva */
+ok(window.DadosLocais.resumo().aplicacoes === 1,
+   'a nova ainda nao foi guardada (so ao salvar): ' + window.DadosLocais.resumo().aplicacoes);
 
 // --------------------------------------------------- tipos de campo dificeis
 const roda = doc.querySelector('[data-ferramenta="roda_vida"]');
