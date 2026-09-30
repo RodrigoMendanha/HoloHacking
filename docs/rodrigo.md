@@ -34,7 +34,7 @@ git log --oneline -1
 ```
 
 Você vê uma linha que começa pelo commit do merge mais recente da `main`
-(o saneamento do MetaNutri ou depois).
+(a de 30-set ou depois).
 
 **1.3 Construir e trocar o container**
 

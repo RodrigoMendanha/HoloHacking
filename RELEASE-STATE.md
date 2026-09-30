@@ -253,12 +253,10 @@ senha, caminho de storage, URL nem binário.
   (camada de IA que discute o caso a partir do HOLOSCAN, sem diagnosticar nem
   alterar score) será feita numa rodada própria. A versão antiga (Gemini, com
   `service_role`) foi removida do repositório.
-- **Supabase remoto:** a Edge Function `holos-ai` publicada ainda roda a
-  versão 3 de 29-set, um proxy do MetaNutri (agente de negócio de outro
-  projeto, removido deste repositório no saneamento). Ela só muda numa futura
-  implantação controlada. O frontend não a chama, e sem o secret dela
-  responde "sem_chave". As tabelas `ai_threads` e `ai_messages` continuam no
-  banco, vazias, até a rodada da HOLOS AI.
+- **Supabase remoto:** a Edge Function `holos-ai` publicada é a mesma versão
+  inerte do repositório (versão 4, 30-set, `verify_jwt = true`). As tabelas
+  `ai_threads` e `ai_messages` continuam no banco, vazias, até a rodada da
+  HOLOS AI.
 
 ---
 

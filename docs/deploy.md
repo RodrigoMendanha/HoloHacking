@@ -28,18 +28,16 @@ Cada afirmação está marcada:
   `646bfcb`.
 - **[informado]** Produção conhecida em 30-set: `849472f` (os mesmos arquivos
   servidos que a `646bfcb`).
-- **[confirmado]** O que vai para o ar é a `main` depois do saneamento do
-  MetaNutri: a `646bfcb`, o Cache-Control, o campo "Data da coleta" e o aviso
-  dos controles deslizantes. Os 38 arquivos servidos são **idênticos** aos da
-  `b355dd4` (rodada 04); o MetaNutri, que entrou nas rodadas 06/07, foi
-  removido. Os hashes esperados estão no §3.5.
+- **[confirmado]** O que vai para o ar é a `main` atual: a `646bfcb`, o
+  Cache-Control, o campo "Data da coleta" e o aviso dos controles
+  deslizantes. Os 38 arquivos servidos são **idênticos** aos da `b355dd4`
+  (rodada 04). Os hashes esperados estão no §3.5.
 - **[confirmado]** Em 29-set, às 21:08 UTC, os logs do Supabase já mostravam
   leituras que só a `646bfcb` e as seguintes fazem. Não dá para distinguir
   `646bfcb` de `b355dd4` só por leitura: confira o hash (§3.4).
-- **[confirmado]** A Edge Function `holos-ai` publicada no Supabase ainda é a
-  versão 3 de 29-set (proxy do MetaNutri). No repositório ela agora é inerte
-  (HOLOS AI não configurada). O deploy da VPS não depende dela nem a altera.
-  Ver §6.
+- **[confirmado]** A Edge Function `holos-ai` publicada no Supabase é a
+  versão inerte do repositório (HOLOS AI não configurada). O deploy da VPS não
+  depende dela nem a altera. Ver §6.
 - **[confirmado]** As RPCs `salvar_holoscan_completo` e `salvar_coleta_exames`
   foram consertadas no banco de produção pela migration
   `20260929192605_fix_rpc_record_value`. O deploy do front **não** mexe no banco.
@@ -82,7 +80,7 @@ variante compose do passo 3.3.
 
 ### 3.2 Trazer o código
 
-O deploy é da **`main`** depois do saneamento do MetaNutri. Ela contém a
+O deploy é da **`main`** atual. Ela contém a
 `646bfcb`, o Cache-Control (`8e040b6`), o campo "Data da coleta" e o aviso
 dos controles deslizantes.
 
@@ -128,21 +126,18 @@ curl -s  http://127.0.0.1:<PORTA>/app.js | sha256sum               # d2e922ff41a
 curl -s  http://127.0.0.1:<PORTA>/arquivos.js | sha256sum          # 7a7d638038bd...
 curl -s  http://127.0.0.1:<PORTA>/index.html | sha256sum           # 3b506304caad...
 curl -s  https://holohacking.com.br/sincronizacao.js | sha256sum   # 58552c7c0682...
-curl -s  -o /dev/null -w '%{http_code} %{content_type}\n' http://127.0.0.1:<PORTA>/metanutri.js
 ```
 
-A última linha tem de mostrar `text/html` (o fallback do SPA): o
-`metanutri.js` **não** existe mais. Se vier `application/javascript`, o
-deploy pegou a `main` das rodadas 06/07 (`app.js` `dfca9ef7fd1f...`). Se o
-`sincronizacao.js` der 200 com o HTML do index, o arquivo não existe no
-container e o deploy **não** pegou a `main` nova. Se `app.js` ou `arquivos.js`
+Se o `app.js` der `dfca9ef7fd1f...`, o deploy pegou um commit das rodadas
+06/07, que não deve ir ao ar. Se o `sincronizacao.js` der 200 com o HTML do
+index, o arquivo não existe no container e o deploy **não** pegou a `main`
+nova. Se `app.js` ou `arquivos.js`
 baterem com os hashes da `646bfcb`/`849472f` (`dfbb3ef9a448...`,
 `931bafd5ce52...`), o ar continua na versão de antes da rodada 04.
 
 Conferência na tela:
 - na ficha de um paciente, aba **Documentos**, cartão **Os valores do
-  exame**, tem de existir o campo **Data da coleta**;
-- o menu **não** tem grupo "Negócio" nem item "MetaNutri".
+  exame**, tem de existir o campo **Data da coleta**.
 
 Depois, **uma vez**, recarregue o app no navegador de quem usa com Ctrl+Shift+R.
 Isso cobre quem ainda tem os arquivos antigos em cache, de antes do
@@ -230,24 +225,21 @@ migração da `main` nova reenvia o que ficou só no aparelho (ver RELEASE-STATE
 
 ## 6. Edge Function `holos-ai` (HOLOS AI)
 
-**Estado em 30-set:**
-- **Repositório:** `supabase/functions/holos-ai/` é **inerte**. Responde 503
+- `supabase/functions/holos-ai/` é **inerte**: responde 503
   `{"erro":"HOLOS_AI_NAO_CONFIGURADA"}`, não chama serviço externo, não lê
   secret nem tabela. O frontend não chama a função.
-- **Supabase remoto:** continua com a versão 3 de 29-set (proxy do MetaNutri,
-  `verify_jwt = false`). Ela não foi alterada no saneamento e **só muda numa
-  futura implantação controlada**. Até lá ninguém no app a chama. Sem secret
-  configurado, ela só responde "sem_chave".
+- **Publicada no Supabase** em 30-set como versão 4, `verify_jwt = true`, com o
+  mesmo código do repositório.
+- Não configure secret nenhum para a `holos-ai` até a rodada da HOLOS AI
+  definir a arquitetura dela.
 
-**Implantação controlada (NÃO executada; decidir antes):**
+Para republicar, só se o código mudar:
 
 ```sh
 supabase functions deploy holos-ai --project-ref sllhyymeeyoozokgbnuv
 ```
 
-Isso publica a versão inerte. Não configure secret nenhum para a `holos-ai`
-até a rodada da HOLOS AI definir a arquitetura dela. Hashes do código inerte
-do repositório:
+Hashes do código publicado:
 
 ```
 233e51b5a51b628d87aadfa6a17c01d2f11c5fa5e0b828a4ef7fd7b32ba00cb9  supabase/functions/holos-ai/index.ts

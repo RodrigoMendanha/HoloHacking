@@ -7,7 +7,7 @@
  *   2  OPTIONS: 204 com CORS (o navegador nao quebra no preflight)
  *   3  o corpo do pedido nem e lido — dado clinico nao entra
  *   4  o codigo nao chama rede, nao le secret/env, nao usa service_role,
- *      e nao tem resto do MetaNutri (hub, chave, historico)
+ *      e nao aponta para URL externa nenhuma
  */
 import './guarda-falhas.mjs';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -39,8 +39,8 @@ ok(arquivos.sort().join(',') === 'index.ts,indisponivel.ts', 'a funcao so tem in
 const src = arquivos.map(f => readFileSync(new URL(f, dir), 'utf8')).join('\n');
 const codigo = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
 ok(!/fetch\(|Deno\.env|createClient|\.from\(|\.rpc\(/.test(codigo), 'o codigo nao chama rede, nao le env, nao usa supabase-js');
-ok(!/service_role|GEMINI|ANTHROPIC|OPENAI|METANUTRI|hub\.luansales|agente-site|historico/i.test(src),
-   'nenhuma chave de IA, service_role nem resto do MetaNutri (nem em comentario)');
+ok(!/service_role|GEMINI|ANTHROPIC|OPENAI|https?:\/\//i.test(src),
+   'nenhuma chave de IA, service_role nem URL externa (nem em comentario)');
 ok(/Deno\.serve\(\(req: Request\) => tratar\(req\)\)/.test(src), 'index.ts so liga o handler inerte ao Deno.serve');
 
 process.exit(falhou ? 1 : 0);
