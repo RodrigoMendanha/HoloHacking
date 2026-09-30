@@ -142,6 +142,7 @@
           (d.so_local ? '<span class="doc-tipo" title="O envio ao servidor falhou: este arquivo não aparece em outro computador.">só neste dispositivo</span>' : "") +
           '<button type="button" class="doc-abrir" data-abrir="' + escapar(d.id) + '">abrir</button>' +
           '<button type="button" class="doc-tirar" data-tirar="' + escapar(d.id) +
+            '" data-nome="' + escapar(d.nome) + '" data-paciente="' + escapar(d.paciente || "") +
             '" aria-label="Remover ' + escapar(d.nome) + '">&times;</button>' +
           "</li>";
       }).join("") + "</ul>";
@@ -193,9 +194,8 @@
       }
       var tirar = ev.target.closest("[data-tirar]");
       if (tirar) {
-        window.ArquivoStore.remover(tirar.dataset.tirar).then(desenhar).catch(function () {
-          if (window.avisar) window.avisar("Erro ao excluir documento.");
-        });
+        window.excluirDocumento(tirar.dataset.tirar, tirar.dataset.nome, tirar.dataset.paciente)
+          .then(function (saiu) { if (saiu) desenhar(); });
       }
     });
   }

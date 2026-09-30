@@ -565,21 +565,15 @@ ok(apagouNormal.marcador === null && apagouNormal.revisao === null &&
    'bancos restantes = ' +
    (apagouNormal.bancos ? apagouNormal.bancos.join(', ') : 'indisponivel'));
 
-/* com pendencia: o caminho e explicito, nao silencioso */
-const caminhoExplicito = await A.evaluate(async () => {
+/* rodada 08: "Apagar tudo" saiu da interface — nenhuma tela destroi a
+   carteira inteira. O motor de limpeza (acima) continua para o logout e
+   para a recuperacao; o botao e o caminho da tela, nao. */
+const semApagarTudo = await A.evaluate(async () => {
   const t = await (await fetch('/perfil.js')).text();
-  return {
-    avisaAntes: /Havia uma restauração incompleta/.test(t),
-    leOMarcador: /lerMarcador\(\)/.test(t),
-    limpaDepois: /limparRecuperacao\(\)/.test(t) && /Concorrencia\.limpar\(\)/.test(t)
-  };
+  return { botao: /btn-apagar-tudo/.test(t), funcao: /function apagarTudo/.test(t) };
 });
-ok(caminhoExplicito.leOMarcador && caminhoExplicito.avisaAntes &&
-   caminhoExplicito.limpaDepois,
-   'e com pendencia o caminho e EXPLICITO: apagarTudo le o marcador, avisa ' +
-   'que havia uma restauracao incompleta e que nao havera como recuperar, e ' +
-   'so entao apaga tudo junto. Seguir em silencio seria esconder que houve ' +
-   'uma operacao pela metade');
+ok(!semApagarTudo.botao && !semApagarTudo.funcao,
+   'e o "Apagar tudo" nao existe mais na interface (nem botao, nem caminho de tela)');
 
 /* ------------------------------------------------------------------ fim - */
 console.log('');

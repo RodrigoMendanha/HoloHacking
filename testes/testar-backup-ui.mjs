@@ -173,7 +173,7 @@ ok(exportado.formato === 'holohacking.backup' || typeof exportado.formato === 's
    'o pacote entregue tem o discriminador de formato: ' + exportado.formato);
 ok(exportado.versao === 2, 'e diz versao 2: ' + exportado.versao);
 ok(exportado.temHash, 'com sha256 do conteudo canonico');
-ok(/backup completo/i.test(exportado.rotulo), 'o botao diz o que faz: "' + exportado.rotulo + '"');
+ok(/Exportar backup deste navegador/.test(exportado.rotulo), 'o botao diz o que faz: "' + exportado.rotulo + '"');
 ok(/importar backup/i.test(exportado.rotuloImportar || ''),
    'e o de importar tambem: "' + (exportado.rotuloImportar || '').trim() + '"');
 ok(/completo/i.test(exportado.aviso), 'o aviso confirma: "' + exportado.aviso + '"');

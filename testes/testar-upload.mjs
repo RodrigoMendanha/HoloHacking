@@ -70,6 +70,8 @@ ok(/pdf/.test(conteudo.mime), 'tipo reconhecido: ' + conteudo.mime);
 p.once('dialog', d => d.accept());
 const rem = await p.evaluate(async () => {
   document.querySelector('[data-tirar]').click();
+  await new Promise(r => setTimeout(r, 150));
+  document.getElementById('modal-confirmar-ok').click();   // rodada 08: confirma no modal global
   await new Promise(r => setTimeout(r, 500));
   return document.querySelectorAll('.doc-item').length;
 });

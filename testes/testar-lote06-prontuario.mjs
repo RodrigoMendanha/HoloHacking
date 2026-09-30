@@ -366,22 +366,25 @@ await p.evaluate(() => {
 await esperar(400);
 
 const docConf = await p.evaluate(async () => {
-  const temConfirmNativo = [];
-  const origConfirm = window.confirm;
-  window.confirm = (msg) => { temConfirmNativo.push(msg); return false; };
   const painel = document.getElementById('aba-documentos');
+  let pediu = false, msg = '';
   if (painel) {
     const fakeBtn = document.createElement('button');
     fakeBtn.setAttribute('data-tirar', 'id-inexistente');
     painel.appendChild(fakeBtn);
     fakeBtn.click();
     await new Promise(r => setTimeout(r, 100));
+    const modal = document.getElementById('modal-confirmar-acao');
+    pediu = !modal.classList.contains('hidden');
+    msg = document.getElementById('modal-confirmar-titulo').textContent + ' ' +
+          document.getElementById('modal-confirmar-corpo').textContent;
+    document.getElementById('modal-confirmar-fechar').click();
     fakeBtn.remove();
   }
-  window.confirm = origConfirm;
-  return { pediu: temConfirmNativo.length > 0, msg: temConfirmNativo[0] || '' };
+  return { pediu, msg };
 });
 
+/* rodada 08: a confirmacao e o modal global, nao o confirm() nativo */
 ok(docConf.pediu, 'excluir documento pede confirmação');
 ok(/excluir|desfeita/i.test(docConf.msg), 'mensagem de confirmação adequada: ' + docConf.msg);
 

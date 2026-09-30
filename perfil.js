@@ -12,7 +12,7 @@
      PERFIL        o que sai impresso: nome, registro, especialidade, contato
      MARCA         a cara do documento: cores, logo, assinatura, carimbo
      PREFERENCIAS  como o app se comporta: modulos do menu e aparencia
-     CONTA         onde os dados estao, como levar embora, como apagar
+     CONTA         onde os dados estao, como levar embora
 
    O que NAO esta aqui, e por que: o app de referencia tem "Plano e Pagamento"
    e um bloco de troca de senha em Seguranca. Este app nao tem cobranca, e a
@@ -354,34 +354,74 @@
     });
   }
 
+  /* Rodada 08: remover uma imagem do perfil (foto, logo, assinatura,
+     carimbo) pede confirmacao, e so tira da tela depois que o servidor
+     confirmou que a linha saiu. Se o arquivo do bucket nao puder ser
+     removido, a tela diz isso em vez de engolir. */
+  var NOME_IMAGEM = { foto_id: "a foto", logo_id: "o logo", assinatura_id: "a assinatura",
+                      carimbo_id: "o carimbo" };
+
   function tirarImagem(campo) {
     var id = perfil[campo];
-    if (!id) return;
-    perfil[campo] = "";
-    if (urls[id]) { URL.revokeObjectURL(urls[id]); delete urls[id]; }
+    if (!id) return Promise.resolve(false);
+    var oque = NOME_IMAGEM[campo] || "a imagem";
+    var perguntar = window.abrirModalConfirmar
+      ? window.abrirModalConfirmar({
+          titulo: "Remover " + oque.replace(/^(a|o) /, ""),
+          corpo: "<p>Remover " + oque + " do seu perfil? Documentos já gerados não mudam.</p>",
+          botaoConfirmar: "Remover"
+        })
+      : Promise.resolve(confirm("Remover " + oque + "?") ? "confirmar" : null);
+    return perguntar.then(function (r) {
+      if (r !== "confirmar") return false;
+      return removerImagem(campo, id);
+    });
+  }
+
+  function removerImagem(campo, id) {
+    var soltar = function () {
+      perfil[campo] = "";
+      if (urls[id]) { URL.revokeObjectURL(urls[id]); delete urls[id]; }
+    };
 
     if (id.indexOf("supa:") === 0 && temSupa()) {
       var realId = id.slice(5);
       var path = supaAssets[id];
-      delete supaAssets[id];
-      window.supabaseClient.from("professional_assets")
-        .delete().eq("id", realId)
-        .then(function () {
-          if (path) {
-            return window.supabaseClient.storage
-              .from("professional-assets").remove([path]);
-          }
+      return Promise.resolve(window.supabaseClient.from("professional_assets")
+        .delete().eq("id", realId).select("id"))
+        .then(function (d) {
+          if (!d || d.error) throw (d && d.error) || new Error("sem resposta do servidor");
+          if (!Array.isArray(d.data) || !d.data.length) throw new Error("o servidor não confirmou a remoção");
+          delete supaAssets[id];
+          soltar();
+          if (!path) return "ok";
+          return Promise.resolve(window.supabaseClient.storage.from("professional-assets").remove([path]))
+            .then(function (x) { if (x && x.error) throw x.error; return "ok"; })
+            .catch(function (e) { console.error("storage remove:", e && e.message ? e.message : e); return "arquivo"; });
         })
-        .catch(function () {})
-        .then(function () { return salvar("Imagem removida."); })
-        .then(desenhar);
-      return;
+        .then(function (estado) {
+          return salvar(estado === "arquivo"
+            ? "Imagem removida do perfil; o arquivo não pôde ser apagado do armazenamento agora."
+            : "Imagem removida.");
+        })
+        .then(function () { desenhar(); return true; })
+        .catch(function (e) {
+          console.error("[perfil] remover imagem:", e && e.message ? e.message : e);
+          aviso("Não foi possível remover a imagem — ela continua no perfil. Tente de novo.", true);
+          return false;
+        });
     }
 
-    (window.ArquivoStore ? window.ArquivoStore.remover(id) : Promise.resolve())
-      .catch(function () {})
-      .then(function () { return salvar("Imagem removida."); })
-      .then(desenhar);
+    return (window.ArquivoStore ? window.ArquivoStore.remover(id) : Promise.resolve())
+      .then(function () {
+        soltar();
+        return salvar("Imagem removida.");
+      })
+      .then(function () { desenhar(); return true; })
+      .catch(function (e) {
+        aviso("Não foi possível remover a imagem — ela continua no perfil.", true);
+        return false;
+      });
   }
 
   /* ---------- a completude ------------------------------------------------ */
@@ -796,35 +836,35 @@
       { n: "—", r: "arquivos", id: "conta-arquivos" }
     ];
 
-    var dados =
-      '<p class="perf-onde">Tudo o que você registrou está <b>' + escapar(onde) +
-        "</b>. Não há servidor no meio: nada sai daqui sozinho, e nada chega " +
-        "de outro computador.</p>" +
-      '<div class="dash-numeros">' + linhas.map(function (l) {
-        return '<div class="dash-tile"' + (l.id ? ' id="' + l.id + '"' : "") + "><b>" +
-          escapar(l.n) + "</b><span>" + escapar(l.r) + "</span></div>";
-      }).join("") + "</div>" +
-      '<p class="perf-ajuda">Isso quer dizer duas coisas ao mesmo tempo: os dados dos ' +
-      "seus pacientes não estão expostos em lugar nenhum, e ninguém faz cópia deles " +
-      "por você. Limpar os dados do navegador apaga tudo. <b>Exporte de vez em quando.</b></p>" +
-      '<p class="perf-ajuda">O backup completo leva <b>tudo</b>: cadastro, mapas ' +
-      "HOLOSCAN, respostas do questionário, valores de exame, consultas, ferramentas " +
-      "aplicadas, seu perfil — e os arquivos (laudos, fotos, sua assinatura). Fica de " +
-      "fora só a aparência clara/escura, que é preferência deste navegador.</p>" +
-      '<div class="perf-foto-acoes">' +
-        '<button type="button" class="btn-verde" id="btn-exportar">Exportar backup completo</button>' +
-        '<button type="button" class="perf-botao" id="btn-importar">Importar backup</button>' +
-        '<input type="file" id="arq-importar" accept=".json,application/json" class="hidden">' +
-      "</div>" +
-      '<p class="perf-aviso" id="conta-aviso"></p>';
-
-    var perigo =
-      '<p>Apaga os pacientes, os mapas, os formulários e este perfil deste navegador. ' +
-      "Os arquivos guardados (exames, laudos, sua assinatura) também vão junto. " +
-      "Não dá para desfazer.</p>" +
-      '<div class="perf-foto-acoes">' +
-        '<button type="button" class="perf-tirar forte" id="btn-apagar-tudo">Apagar todos os dados</button>' +
-      "</div>";
+    /* Rodada 08: o texto diz onde o dado REALMENTE esta. Com conta, o dado
+       clinico fica no servidor (Supabase, sob login e RLS) — "tudo esta
+       neste navegador" e "nao ha servidor no meio" eram falsos. O backup
+       completo local (exportar/importar) so existe no modo local sem conta,
+       onde ele e de fato o dado todo; com conta, a exportacao e por
+       paciente, na ficha, lida do servidor. "Apagar tudo" nao existe mais:
+       nenhuma tela destroi a carteira inteira de uma vez. */
+    var comConta = !!(window.HoloAuth && window.HoloAuth.sessaoAtiva && window.HoloAuth.sessaoAtiva());
+    var dados = comConta
+      ? '<p class="perf-onde">Os dados clínicos que você registra ficam <b>na sua conta</b>, ' +
+          "no servidor do HoloHacking, protegidos pelo seu login — só a sua conta os lê.</p>" +
+        '<p class="perf-ajuda">Este navegador guarda uma cópia de trabalho para a tela abrir ' +
+          "rápido; sair da conta limpa essa cópia. Para levar os dados de um paciente, use " +
+          "<b>Exportar</b> na ficha dele.</p>"
+      : '<p class="perf-onde">Modo local, sem conta: o que você registrou está <b>' + escapar(onde) +
+          "</b> e em nenhum outro lugar.</p>" +
+        '<div class="dash-numeros">' + linhas.map(function (l) {
+          return '<div class="dash-tile"' + (l.id ? ' id="' + l.id + '"' : "") + "><b>" +
+            escapar(l.n) + "</b><span>" + escapar(l.r) + "</span></div>";
+        }).join("") + "</div>" +
+        '<p class="perf-ajuda">Limpar os dados do navegador apaga esta cópia. ' +
+          "<b>Exporte de vez em quando.</b> O backup leva cadastro, mapas HOLOSCAN, respostas, " +
+          "exames, consultas, ferramentas, perfil e arquivos; fica de fora só a aparência.</p>" +
+        '<div class="perf-foto-acoes">' +
+          '<button type="button" class="btn-verde" id="btn-exportar">Exportar backup deste navegador</button>' +
+          '<button type="button" class="perf-botao" id="btn-importar">Importar backup</button>' +
+          '<input type="file" id="arq-importar" accept=".json,application/json" class="hidden">' +
+        "</div>" +
+        '<p class="perf-aviso" id="conta-aviso"></p>';
 
     var usuario = window.HoloAuth && window.HoloAuth.usuarioAtual && window.HoloAuth.usuarioAtual();
     var acesso = usuario
@@ -856,8 +896,7 @@
     alvo.innerHTML =
       cartao("Onde ficam os seus dados", "", dados) +
       cartao("Acesso", "", acesso) +
-      (trocarSenhaHtml ? cartao("Alterar senha", "", trocarSenhaHtml) : "") +
-      cartao("Apagar tudo", "", perigo);
+      (trocarSenhaHtml ? cartao("Alterar senha", "", trocarSenhaHtml) : "");
 
     if (window.ArquivoStore && window.ArquivoStore.listarTudo) {
       window.ArquivoStore.listarTudo().then(function (itens) {
@@ -1122,71 +1161,6 @@
       });
   }
 
-  function apagarTudo() {
-    var frase = "APAGAR";
-    var dito = prompt("Isto apaga tudo deste navegador e não dá para desfazer.\n\n" +
-                      'Escreva ' + frase + " para confirmar:");
-    if (dito !== frase) { contaAviso("Nada foi apagado."); return; }
-    /* O que vem abaixo e exatamente o que ja acontecia; o que muda e o
-       envelope. Se outra aba estiver restaurando, esta espera a vez — e se o
-       navegador nao tiver Web Locks, nao ha exclusividade honesta a oferecer,
-       entao segue como sempre seguiu, que e o comportamento que ja existia. */
-    var C = window.Concorrencia;
-    var comProtecao = (C && C.temWebLocks())
-      ? function (fn) { return C.comExclusividade("apagar_tudo", fn); }
-      : function (fn) { return Promise.resolve().then(fn); };
-
-    /* HA UMA RECUPERACAO PENDENTE?
-
-       Apagar tudo e a unica operacao que pode seguir mesmo assim, e a razao e
-       simples: ela nao precisa do estado anterior para nada — vai destruir o
-       estado anterior de qualquer jeito. Recuperar antes seria restaurar um
-       dado para apaga-lo no segundo seguinte.
-
-       O que NAO pode acontecer e apagar o marcador e seguir em silencio, como
-       se a pendencia nunca tivesse existido: a pessoa precisa saber que havia
-       uma restauracao pela metade. Entao o aviso e explicito, o marcador e o
-       banco operacional saem JUNTO com o resto, e so no fim. */
-    var pendente = C && C.lerMarcador();
-    if (pendente) {
-      contaAviso("Havia uma restauração incompleta neste navegador. " +
-                 "Apagar tudo remove também o que ela tinha guardado para " +
-                 "poder desfazer — não haverá como recuperar depois.");
-    }
-
-    comProtecao(function () { return apagarTudoAgora(); });
-  }
-
-  function apagarTudoAgora() {
-    banco().apagarTudo();
-    var limpar = [];
-    if (window.ArquivoStore && window.ArquivoStore.listarTudo) {
-      limpar.push(window.ArquivoStore.listarTudo().then(function (itens) {
-        return Promise.all(itens.map(function (i) {
-          return window.ArquivoStore.remover(i.id).catch(function () {});
-        }));
-      }));
-    }
-    ["holohacking.pontuacao", "holohacking.questionario", "holohacking.ferramentas",
-     "holohacking.exames", "holohacking.agenda", "holohacking.aparencia"].forEach(function (k) {
-      try { localStorage.removeItem(k); } catch (e) { /* idem */ }
-    });
-    /* O banco de recuperacao guarda uma copia inteira do estado enquanto uma
-       restauracao acontece — dado clinico, portanto. Se uma operacao tiver
-       sido interrompida, ele ainda esta la. "Apagar tudo" tem que alcanca-lo,
-       senao volta a ficar incompleto como estava antes do P0.2. */
-    if (window.Armazenamento && window.Armazenamento.limparRecuperacao) {
-      limpar.push(window.Armazenamento.limparRecuperacao());
-    }
-    /* A revisao e o anuncio tambem sao operacionais e tambem vao embora. A
-       limpeza vem por ultimo: enquanto as outras chaves somem, a revisao ainda
-       serve para avisar as outras abas do que esta acontecendo. */
-    return Promise.all(limpar).then(function () {
-      if (window.Concorrencia) window.Concorrencia.limpar();
-      location.reload();
-    });
-  }
-
   function contaAviso(texto, ruim) {
     var el = document.getElementById("conta-aviso");
     if (!el) { if (window.avisar) window.avisar(texto); return; }
@@ -1281,7 +1255,6 @@
         document.getElementById("arq-importar").click();
         return;
       }
-      if (ev.target.closest("#btn-apagar-tudo")) { apagarTudo(); return; }
       if (ev.target.closest("#btn-sair")) { sair(); return; }
       if (ev.target.closest("#btn-trocar-senha")) { trocarSenhaConta(); return; }
     });

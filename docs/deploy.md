@@ -122,9 +122,9 @@ Os comandos abaixo são a mesma conferência, arquivo por arquivo.
 
 ```sh
 curl -sI http://127.0.0.1:<PORTA>/app.js | grep -i cache-control   # Cache-Control: no-cache
-curl -s  http://127.0.0.1:<PORTA>/app.js | sha256sum               # 2078f554223e...
-curl -s  http://127.0.0.1:<PORTA>/arquivos.js | sha256sum          # af6a843b8aa8...
-curl -s  http://127.0.0.1:<PORTA>/index.html | sha256sum           # 3b506304caad...
+curl -s  http://127.0.0.1:<PORTA>/app.js | sha256sum               # c01cff7dc294...
+curl -s  http://127.0.0.1:<PORTA>/arquivos.js | sha256sum          # 26e9996e26cd...
+curl -s  http://127.0.0.1:<PORTA>/index.html | sha256sum           # 3e5a3f1188c6...
 curl -s  https://holohacking.com.br/sincronizacao.js | sha256sum   # 1d363c320cf3...
 ```
 
@@ -151,15 +151,15 @@ a imagem do `docker build` da branch de saneamento (o nginx ainda põe o
 `50x.html` dele, que não é nosso):
 
 ```
-3b506304caad5b352a110a453745823140de24e9155696cd8a3011424cf90a9b  index.html
+3e5a3f1188c6cf81d82b5e0dcfa0f9a8c78de204d6fc42eb75da4d35385d6a28  index.html
 ebfd54f26a7fa461bfedc8415d7e47898d42cf2327989056d45e434539af0f12  style.css
 cd6ef22455f446156c4109649b2d0fc1fe803f0c6697e1029fa71e50ba44cf84  favicon.svg
-0123c3be9f9a0e469f605fe6924e1ae76a11b15cda016a0209229fdd5818df2f  agenda.js
+d079bec87cb65c2b448696b7d1d990b00f950cc9be4bbff6bdb82be01388aaa2  agenda.js
 2243d3895aefe00fd8d6275c6f4b2de2c211c15988982442c34cd3cd74b5425a  aplicacoes.js
-2078f554223ed86d13af3a908e5b992ff343273aea4dee6b372c5475bff132bf  app.js
+c01cff7dc29475db1844610f6ab514a39845c0f2bb3230abb520b57d6c4d80c5  app.js
 d3efacba60b26bc2da2311a273881948882570773e4016f59ce2a0845661746c  armazenamento.js
-d7302d5134bfa79098755da5f10405972e8ae7e3becfe6c0caad1d1d7a577e7e  arquivo-store.js
-af6a843b8aa8fa3638ccf179e674cc7fb5c286e8afb9e12b3a470ab8417e340b  arquivos.js
+5c0b2916e9a7858df64084a7a73de464e1edd75a6f5f7112b7070726ab41c064  arquivo-store.js
+26e9996e26cd9a115657056b2cf84453b953a5180587a7a69ac569793bdf4c24  arquivos.js
 410b78815fa33df41eeadd22c8f3dbfb5b5bfeecaf89784fb2d35a590474cdb7  caso-marina.js
 e66cd4b4cd1163cce5680b8d2b56b820c44c1cf430ed413d8de2fe7766112a14  concorrencia.js
 685ae026fbdd6b534aba6b131f461b99c43a465949b87c68c0091a2b34ef1d88  consultas.js
@@ -168,7 +168,7 @@ e66cd4b4cd1163cce5680b8d2b56b820c44c1cf430ed413d8de2fe7766112a14  concorrencia.j
 a77e7bf6acab37680d25eb5451442539bda71a84c6e921940a6065b9b9a3b806  dados.js
 9050e7a396452363a89caef423b2f291ba079a1b89ad6dbf0b705bbbb608999d  dashboard.js
 3dc77dc11f87b4ba84105161194d306ee70b554ab1d6012d1df40dc1c2360f14  demo.js
-43455b20ca6c84f847f839d70ac7e25f9cfa83036ea7e5d3256d9f04f0dadbf4  documentos.js
+d7920a0868425c28a2b3192214010fee62bf1153a0c9c9478e8bc9481940cfcc  documentos.js
 be74e1fb5321796fd207c03fbf0abd964b925db26fc8095c3ee6424cd6f4f5b6  evolucao.js
 11e08342911df7f528993946a7e07746a9c26f66657eb0d139e746ade32e161f  excluir-paciente.js
 e31299488b3b783791cc2fc79b8aff907c604058f41cefb9ee959b5877664688  ferramentas.js
@@ -180,7 +180,7 @@ b2705ac28dc9f6175ec5586ef02e86b00f2fe1265dbb23a34e3bb2cebb8718c3  importar-v1.js
 d3309f4a715f1f3d239842065a19f9cf2ba73baedbdb97fd979206ab8088e934  login.js
 166b0e323628000f7e1a8274eb5b0012d5a22af67d4804c7b4d4f0e95efacf55  migracao-supa.js
 cc6df703549926d580fabab5726f3fbed93de876d918ed1be6e28bf93b21d1a1  panorama.js
-9edf7e3f792faf245fe3bc1ea904d4cda15e50d9922ece11e5a6f07345791707  perfil.js
+8e9ca59fa95d36df3c2bd1516ec04a2054ea30cfd14f0d910725e69aa0112629  perfil.js
 6249295a8f4ee756ae75c3357eb158ce7726e24e7e0c8eaa637609a156ae4c91  questionario.js
 8849e59a1d3fe76723aa1e59cc75213fc64172259c5bccd6d9b1151f21a9fb63  render-resultado.js
 23520f5f414deb288f083d0a08389a1c96d1ec918c50fb95d44c3b8b36758e8c  restaurar-backup.js

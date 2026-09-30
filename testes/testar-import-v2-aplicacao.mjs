@@ -658,11 +658,13 @@ const noApagarTudo = await p.evaluate(() => {
 });
 const fonteperfil = await p.evaluate(async () => {
   const t = await (await fetch('/perfil.js')).text();
-  return t.indexOf('limparRecuperacao') >= 0;
+  return { apagarTudo: /function apagarTudo|btn-apagar-tudo/.test(t),
+           motor: typeof window.Armazenamento.limparRecuperacao === 'function' };
 });
-ok(fonteperfil,
-   'e o fluxo de apagar tudo em perfil.js passa a chamar limparRecuperacao(): ' +
-   'o operacional nao volta a ficar de fora como acontecia antes do P0.2');
+/* rodada 08: "Apagar tudo" saiu da tela; a limpeza do banco operacional
+   continua no motor (Armazenamento.limparRecuperacao), usada no logout */
+ok(!fonteperfil.apagarTudo && fonteperfil.motor,
+   'o "Apagar tudo" saiu de perfil.js, e limparRecuperacao() continua no motor');
 
 /* ==================================================================== */
 console.log('');

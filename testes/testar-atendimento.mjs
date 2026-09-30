@@ -251,6 +251,8 @@ const removido = await p.evaluate(async () => {
   b.dispatchEvent(new Event('input', { bubbles: true }));
   await new Promise(r => setTimeout(r, 400));
   document.querySelector('[data-tirar]').click();
+  await new Promise(r => setTimeout(r, 150));
+  document.getElementById('modal-confirmar-ok').click();   // rodada 08: confirma no modal
   await new Promise(r => setTimeout(r, 500));
   const naTela = document.querySelectorAll('.doc-todos-item').length;
   const noBanco = (await window.ArquivoStore.listarTudo()).length;

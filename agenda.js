@@ -733,7 +733,12 @@
     var d = editando.dado;
     if (!d.id) return;
     if (!confirm(tipo === "consulta" ? "Desmarcar esta consulta?" : "Remover este bloqueio?")) return;
-    apagar(tipo === "consulta" ? "consultas" : "bloqueios", d.id).then(function () {
+    apagar(tipo === "consulta" ? "consultas" : "bloqueios", d.id).then(function (r) {
+      if (r && r.error) {
+        avisar(window.mensagemHumana ? window.mensagemHumana(r.error)
+                                     : "Não foi possível remover agora. Nada mudou; tente de novo.");
+        return;
+      }
       editando = null;
       return carregar().then(desenhar);
     });

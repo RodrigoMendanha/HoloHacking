@@ -681,7 +681,7 @@ const ui = await p.evaluate(async () => {
   return {
     chamaMotor: /Armazenamento\.excluirPaciente\(/.test(t),
     naoApagaDireto: !/sb\.from\("pacientes"\)\.delete\(\)/.test(t),
-    mantemToast: /pacientes removidos/.test(t),
+    mantemToast: /pacientes excluídos/.test(t),   // rodada 08: "excluídos", contando so os que sairam
     mantemAtivo: /definirAtivo\(estado\.pacientes\[0\]/.test(t),
     semBackupUI: !/aplicarBackupV2|aplicarBackupV1|gerarBackupV2/.test(t)
   };

@@ -910,22 +910,6 @@
             </div>
           </div>
 
-          <!-- Modal de confirmacao: arquivar e excluir paciente -->
-          <div class="fic-janela hidden" id="modal-confirmar-acao" role="dialog"
-               aria-modal="true" aria-labelledby="modal-confirmar-titulo">
-            <div class="fic-janela-caixa fic-janela-estreita">
-              <div class="fic-janela-topo">
-                <div>
-                  <h3 id="modal-confirmar-titulo">Confirmar</h3>
-                  <p id="modal-confirmar-sub"></p>
-                </div>
-                <button type="button" class="fic-janela-fechar" id="modal-confirmar-fechar"
-                        aria-label="Fechar">&times;</button>
-              </div>
-              <div class="fic-janela-corpo" id="modal-confirmar-corpo"></div>
-              <div class="fic-janela-rodape" id="modal-confirmar-rodape"></div>
-            </div>
-          </div>
         </div>
       </section>
       <!-- ============ CONSULTAS ============ -->
@@ -1219,6 +1203,25 @@
 
     </div>
   </main>
+
+      <!-- Modal de confirmacao GLOBAL (rodada 08): fora de qualquer secao, para
+       ser visivel de toda tela — arquivar/excluir paciente, excluir coleta,
+       excluir documento, edicao nao salva. -->
+      <div class="fic-janela hidden" id="modal-confirmar-acao" role="dialog"
+           aria-modal="true" aria-labelledby="modal-confirmar-titulo">
+        <div class="fic-janela-caixa fic-janela-estreita">
+          <div class="fic-janela-topo">
+            <div>
+              <h3 id="modal-confirmar-titulo">Confirmar</h3>
+              <p id="modal-confirmar-sub"></p>
+            </div>
+            <button type="button" class="fic-janela-fechar" id="modal-confirmar-fechar"
+                    aria-label="Fechar">&times;</button>
+          </div>
+          <div class="fic-janela-corpo" id="modal-confirmar-corpo"></div>
+          <div class="fic-janela-rodape" id="modal-confirmar-rodape"></div>
+        </div>
+      </div>
 </div>
 
 <div id="toast" role="status" aria-live="polite"></div>

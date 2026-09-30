@@ -583,7 +583,13 @@
   }
 
   /** Rejeita se o servidor nao confirmou a exclusao — a tela nao pode dizer
-      "excluido" de um documento que continua la. */
+      "excluido" de um documento que continua la.
+
+      Rodada 08: a linha so conta como excluida se o DELETE devolveu a linha
+      (0 linhas = RLS filtrou = nada saiu). Depois sai o objeto do bucket; se
+      ESSE passo falhar, resolve com { armazenamento: "falhou" } para a tela
+      dizer isso — o documento ja nao aparece para ninguem, mas o arquivo
+      ficou no armazenamento e isso nao e escondido. */
   function removerSupa(supaId) {
     if (!temSupa() || !supaId) return Promise.reject(new Error("Sem sessão para excluir do servidor."));
     return Promise.resolve(window.supabaseClient.from("documents")
@@ -594,15 +600,23 @@
         if (r.error || !r.data) throw (r.error || new Error("Documento não encontrado no servidor."));
         var caminho = r.data.storage_path;
         return Promise.resolve(window.supabaseClient.from("documents")
-          .delete().eq("id", supaId))
+          .delete().eq("id", supaId).select("id"))
           .then(function (d) {
-            if (d && d.error) throw d.error;
-            /* a linha saiu; o objeto no bucket e limpeza — se falhar, fica
-               orfao mas inacessivel (bucket privado, sem linha que aponte) */
+            if (!d || d.error) throw (d && d.error) || new Error("sem resposta do servidor");
+            if (!Array.isArray(d.data) || !d.data.length) {
+              throw new Error("O servidor não confirmou a exclusão do documento.");
+            }
             return Promise.resolve(window.supabaseClient.storage
               .from("patient-documents")
               .remove([caminho]))
-              .catch(function (e) { console.error("storage remove:", e); });
+              .then(function (x) {
+                if (x && x.error) throw x.error;
+                return { armazenamento: "ok" };
+              })
+              .catch(function (e) {
+                console.error("storage remove:", e && e.message ? e.message : e);
+                return { armazenamento: "falhou" };
+              });
           });
       });
   }
@@ -736,8 +750,10 @@
     if (typeof id === "string" && id.indexOf("supa:") === 0) {
       var supaId = id.slice(5);
       /* a copia local sai junto — senao o documento "voltava" na lista */
-      return removerSupa(supaId).then(function () {
-        return removerCopiasDe(supaId).catch(function (e) { console.error("remover copia local:", e); });
+      return removerSupa(supaId).then(function (res) {
+        return removerCopiasDe(supaId)
+          .catch(function (e) { console.error("remover copia local:", e); })
+          .then(function () { return res; });
       });
     }
     var impedido = barrado();

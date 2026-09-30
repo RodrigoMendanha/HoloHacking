@@ -1111,55 +1111,97 @@
     corpo += '<p style="margin-top:10px;font-size:.82rem;color:var(--texto-suave)">'
       + "Você poderá reativar a qualquer momento.</p>";
     const r = await abrirModalConfirmar({
-      titulo: "Arquivar " + escapar(nomeExibicao) + "?",
+      titulo: "Arquivar " + nomeExibicao + "?",
       corpo: corpo,
       botaoConfirmar: "Arquivar"
     });
     if(r === "confirmar") mudarStatus(ids, "inativo");
   }
 
-  async function confirmarRemover(ids, nomeExibicao){
-    const resumo = await contarRegistros(ids);
-    const temHistorico = resumo.consultas || resumo.holoscan || resumo.documentos || resumo.ferramentas || resumo.exames;
-    const autenticado = window.HoloAuth && window.HoloAuth.sessaoAtiva();
+  /* EXCLUSAO DE PACIENTE (rodada 08). A regra e por paciente, nao por lote:
+       sem historico clinico  → pode ser excluido
+       com historico          → so pode ser arquivado (o prontuario fica)
+       historico desconhecido → tratado como "com historico": se a contagem
+                                no servidor falhou, nao se exclui no escuro
+     Num lote misto, os vazios saem e os bloqueados sao listados pelo nome. */
+  function temHistorico(resumo){
+    return !!(resumo.erro || resumo.consultas || resumo.holoscan || resumo.documentos ||
+              resumo.ferramentas || resumo.exames);
+  }
+  function descreverHistorico(r){
+    if(r.erro) return "não foi possível verificar o histórico agora";
+    const partes = [];
+    if(r.consultas)   partes.push(r.consultas + (r.consultas === 1 ? " consulta" : " consultas"));
+    if(r.holoscan)    partes.push(r.holoscan + (r.holoscan === 1 ? " HOLOSCAN" : " HOLOSCANs"));
+    if(r.exames)      partes.push(r.exames + (r.exames === 1 ? " coleta de exames" : " coletas de exames"));
+    if(r.documentos)  partes.push(r.documentos + (r.documentos === 1 ? " documento" : " documentos"));
+    if(r.ferramentas) partes.push(r.ferramentas + (r.ferramentas === 1 ? " ferramenta aplicada" : " ferramentas aplicadas"));
+    return partes.length ? partes.join(", ") : "nenhum registro clínico";
+  }
+  function nomeDoPaciente(id){
+    const p = estado.pacientes.find(x => x.id === id);
+    return p ? p.nome : "Paciente";
+  }
+  function listaDeNomes(itens, comHistorico){
+    return '<ul style="margin:10px 0;font-size:.88rem;color:var(--texto)">' +
+      itens.map(x => "<li><b>" + escapar(x.nome) + "</b>" +
+        (comHistorico ? " — " + escapar(descreverHistorico(x.resumo)) : "") + "</li>").join("") +
+      "</ul>";
+  }
 
-    if(temHistorico && autenticado){
-      let corpo = "<p>Este paciente possui histórico clínico e não pode ser excluído definitivamente.</p>"
-        + '<ul style="margin:10px 0;font-size:.88rem;color:var(--texto)">';
-      if(resumo.consultas)   corpo += "<li>" + resumo.consultas + " consulta(s)</li>";
-      if(resumo.holoscan)    corpo += "<li>" + resumo.holoscan + " aplicação(ões) HOLOSCAN</li>";
-      if(resumo.exames)      corpo += "<li>" + resumo.exames + " coleta(s) de exames</li>";
-      if(resumo.documentos)  corpo += "<li>" + resumo.documentos + " documento(s)</li>";
-      if(resumo.ferramentas) corpo += "<li>" + resumo.ferramentas + " ferramenta(s) aplicada(s)</li>";
-      corpo += "</ul>"
-        + '<p style="font-size:.82rem;color:var(--texto-suave)">Arquive o paciente para preservar o prontuário.</p>';
+  async function confirmarRemover(ids){
+    const itens = [];
+    for(const id of ids){
+      itens.push({ id, nome: nomeDoPaciente(id), resumo: await contarRegistros([id]) });
+    }
+    /* Sem conta (modo local de desenvolvimento) nao ha prontuario no
+       servidor a preservar: a exclusao em cascata local continua permitida,
+       mostrando o que vai junto. Com conta, historico so arquiva. */
+    const autenticado = !!(window.HoloAuth && window.HoloAuth.sessaoAtiva());
+    const livres = itens.filter(x => !autenticado || !temHistorico(x.resumo));
+    const presos = itens.filter(x => autenticado && temHistorico(x.resumo));
+    const um = (n, s, p) => n === 1 ? s : p;
+
+    if(!livres.length){
+      const corpo = "<p>" + um(presos.length, "Este paciente possui", "Estes pacientes possuem") +
+        " histórico clínico e " + um(presos.length, "não pode ser excluído", "não podem ser excluídos") +
+        " — o prontuário é preservado.</p>" + listaDeNomes(presos, true) +
+        '<p style="font-size:.82rem;color:var(--texto-suave)">Arquive para tirar da lista principal ' +
+        "sem apagar nada.</p>";
       const r = await abrirModalConfirmar({
-        titulo: "Não é possível excluir " + escapar(nomeExibicao),
+        titulo: presos.length === 1 ? "Não é possível excluir " + presos[0].nome
+                                    : "Não é possível excluir " + presos.length + " pacientes",
         corpo: corpo,
-        botaoArquivar: "Arquivar paciente"
+        botaoArquivar: um(presos.length, "Arquivar paciente", "Arquivar pacientes")
       });
-      if(r === "arquivar") mudarStatus(ids, "inativo");
+      if(r === "arquivar") mudarStatus(presos.map(x => x.id), "inativo");
       return;
     }
 
-    let corpo = "<p>Esta ação é <b>irreversível</b>. Todos os registros dessa ficha serão apagados:</p>"
-      + '<ul style="margin:10px 0;font-size:.88rem;color:var(--texto)">';
-    if(resumo.consultas)   corpo += "<li>" + resumo.consultas + " consulta(s)</li>";
-    if(resumo.holoscan)    corpo += "<li>" + resumo.holoscan + " aplicação(ões) HOLOSCAN</li>";
-    if(resumo.exames)      corpo += "<li>" + resumo.exames + " coleta(s) de exames</li>";
-    if(resumo.documentos)  corpo += "<li>" + resumo.documentos + " documento(s)</li>";
-    if(resumo.ferramentas) corpo += "<li>" + resumo.ferramentas + " ferramenta(s) aplicada(s)</li>";
-    if(!resumo.consultas && !resumo.holoscan && !resumo.documentos && !resumo.ferramentas && !resumo.exames)
-      corpo += "<li>Nenhum registro clínico encontrado</li>";
-    corpo += "</ul>"
-      + '<p style="font-size:.82rem;color:var(--texto-suave)">Considere <b>arquivar</b> o paciente em vez de excluir.</p>';
+    const comRegistros = livres.some(x => temHistorico(x.resumo));
+    let corpo = "<p>Esta ação é <b>irreversível</b>. " +
+      (comRegistros
+        ? um(livres.length, "Será excluído, com todos os registros da ficha:",
+                            "Serão excluídos, com todos os registros das fichas:")
+        : um(livres.length, "Este paciente não tem", "Estes pacientes não têm") +
+          " registro clínico e " + um(livres.length, "será excluído:", "serão excluídos:")) + "</p>" +
+      listaDeNomes(livres, true);
+    if(presos.length){
+      corpo += "<p style=\"margin-top:10px\">" +
+        um(presos.length, "Não será excluído (tem histórico clínico; arquive-o):",
+                          "Não serão excluídos (têm histórico clínico; arquive-os):") + "</p>" +
+        listaDeNomes(presos, true);
+    }
+    corpo += '<p style="font-size:.82rem;color:var(--texto-suave)">Considere <b>arquivar</b> ' +
+      "em vez de excluir: o paciente sai da lista e nada se perde.</p>";
     const r = await abrirModalConfirmar({
-      titulo: "Excluir " + escapar(nomeExibicao) + "?",
+      titulo: livres.length === 1 ? "Excluir " + livres[0].nome + "?"
+                                  : "Excluir " + livres.length + " pacientes?",
       corpo: corpo,
       botaoConfirmar: "Excluir definitivamente",
       botaoArquivar: "Arquivar em vez disso"
     });
-    if(r === "confirmar") removerPacientes(ids);
+    if(r === "confirmar") removerPacientes(livres.map(x => x.id));
     else if(r === "arquivar") mudarStatus(ids, "inativo");
   }
 
@@ -1176,13 +1218,17 @@
             window.supabaseClient.from("tool_applications").select("id", { count: "exact", head: true }).eq("patient_id", id),
             window.supabaseClient.from("documents").select("id", { count: "exact", head: true }).eq("patient_id", id)
           ]);
+          if([rC, rH, rL, rT, rD].some(x => !x || x.error)) return { consultas, holoscan, documentos, ferramentas, exames, erro: true };
           consultas   += rC.count || 0;
           holoscan    += rH.count || 0;
           exames      += rL.count || 0;
           ferramentas += rT.count || 0;
           documentos  += rD.count || 0;
           continue;
-        } catch(e){ /* fallback to local below */ }
+        } catch(e){
+          /* sem saber, nao se exclui: historico desconhecido conta como historico */
+          return { consultas, holoscan, documentos, ferramentas, exames, erro: true };
+        }
       }
       if(window.Agenda && window.Agenda.todas) consultas += (window.Agenda.todas(id) || []).length;
       const sit = window.Panorama && window.Panorama.doPaciente ? window.Panorama.doPaciente(id) : null;
@@ -1235,6 +1281,7 @@
        que saiu do servidor, e a falha de um para a fila sem deixar nenhum
        dos anteriores pela metade. */
     const removidos = [];
+    const ativoAntes = estado.ativo;
     let bloqueado = false, falhaLocal = null;
     for(const id of ids){
       if(autenticado){
@@ -1251,6 +1298,11 @@
       selecionados.delete(id);
     });
     if(removidos.length) renderPacientes();
+    /* a ficha de quem acabou de ser excluido nao pode continuar aberta */
+    if(removidos.indexOf(ativoAntes) >= 0 && !$("#vista-ficha").classList.contains("hidden")){
+      $("#vista-ficha").classList.add("hidden");
+      $("#vista-lista-pacientes").classList.remove("hidden");
+    }
 
     if(!autenticado && falhaLocal && !removidos.length){
       toast("Não foi possível remover: " + falhaLocal);
@@ -1277,7 +1329,7 @@
       return;
     }
     selecionados.clear();
-    toast(ids.length === 1 ? "Paciente removido." : ids.length + " pacientes removidos.");
+    toast(removidos.length === 1 ? "Paciente excluído." : removidos.length + " pacientes excluídos.");
   }
 
   /* ---------- os cliques ---------- */
@@ -1326,7 +1378,7 @@
           mudarStatus([id], "ativo");
         }
       } else if(item.dataset.item === "remover"){
-        confirmarRemover([id], p.nome);
+        confirmarRemover([id]);
       } else {
         levarPara(item.dataset.item, id);
       }
@@ -1344,11 +1396,7 @@
       const ids = [...selecionados];
       if(!ids.length) return;
       if(lote.dataset.lote === "remover"){
-        const nomes = ids.map(id => {
-          const pp = estado.pacientes.find(x => x.id === id);
-          return pp ? pp.nome : "";
-        }).filter(Boolean);
-        confirmarRemover(ids, nomes.length === 1 ? nomes[0] : ids.length + " pacientes");
+        confirmarRemover(ids);
       } else if(lote.dataset.lote === "inativar"){
         const nomes = ids.map(id => {
           const pp = estado.pacientes.find(x => x.id === id);

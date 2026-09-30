@@ -879,16 +879,46 @@
       }
       var tirar = ev.target.closest("[data-tirar]");
       if (tirar) {
-        if (!confirm("Excluir este documento? Esta ação não pode ser desfeita.")) return;
-        window.ArquivoStore.remover(tirar.dataset.tirar).then(function () {
-          listarDocumentos();
-          if (window.avisar) window.avisar("Documento excluído.");
-        }).catch(function (err) {
-          if (window.avisar) window.avisar("Erro ao excluir documento.");
-        });
+        window.excluirDocumento(tirar.dataset.tirar, tirar.dataset.nome, paciente())
+          .then(function (saiu) { if (saiu) listarDocumentos(); });
       }
     });
   }
+
+  /* EXCLUIR DOCUMENTO (rodada 08) — um caminho so, para a aba da ficha e a
+     tela Documentos: confirma no modal global, exclui a linha e o arquivo,
+     e diz o que aconteceu de verdade (inclusive se so o arquivo ficou para
+     tras). Paciente arquivado nao tem documento excluido. Resolve true se
+     o documento saiu. */
+  window.excluirDocumento = function (id, nome, pid) {
+    if (pid && window.bloqueioArquivado && window.bloqueioArquivado(pid)) return Promise.resolve(false);
+    var perguntar = window.abrirModalConfirmar
+      ? window.abrirModalConfirmar({
+          titulo: "Excluir documento",
+          subtitulo: nome || "",
+          corpo: "<p>O documento e o arquivo guardado dele serão removidos. " +
+                 "Esta ação não pode ser desfeita.</p>",
+          botaoConfirmar: "Excluir documento"
+        })
+      : Promise.resolve(confirm("Excluir este documento? Esta ação não pode ser desfeita.") ? "confirmar" : null);
+    return perguntar.then(function (r) {
+      if (r !== "confirmar") return false;
+      return window.ArquivoStore.remover(id).then(function (res) {
+        if (window.avisar) {
+          window.avisar(res && res.armazenamento === "falhou"
+            ? "Documento excluído da ficha, mas o arquivo não pôde ser removido do armazenamento " +
+              "agora. Ele não aparece para ninguém; avise o suporte."
+            : "Documento excluído.");
+        }
+        return true;
+      }, function (err) {
+        console.error("[documentos] excluir:", err && err.message ? err.message : err);
+        if (window.avisar) window.avisar("Não foi possível excluir o documento — ele continua na ficha. " +
+                                         "Tente de novo.");
+        return false;
+      });
+    });
+  };
 
   /* =========================================================== DOCUMENTOS */
 
@@ -1000,7 +1030,7 @@
               (d.data ? escapar(d.data.split("-").reverse().join("/")) : "sem data") + "</span>" +
             (d.so_local ? '<span class="doc-tipo" title="O envio ao servidor falhou: este arquivo não aparece em outro computador.">só neste dispositivo</span>' : "") +
             '<button type="button" class="doc-abrir" data-abrir="' + escapar(d.id) + '">abrir</button>' +
-            '<button type="button" class="doc-tirar" data-tirar="' + escapar(d.id) + '" ' +
+            '<button type="button" class="doc-tirar" data-tirar="' + escapar(d.id) + '" data-nome="' + escapar(d.nome || "") + '" ' +
             'aria-label="Remover">&times;</button></div>';
         }).join("") + "</div>";
       }
