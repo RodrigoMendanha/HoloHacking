@@ -346,7 +346,63 @@
     return window.ultimaPontuacao ? window.ultimaPontuacao() : null;
   }
 
-  function desenharExames() {
+  /* IDENTIDADE DA COLETA (rodada 08).
+
+     O painel trabalha em um de dois modos, sempre visivel no topo:
+       "nova"    Nova coleta — formulario VAZIO. Nunca herda os valores da
+                 coleta anterior: um valor herdado seria gravado com a data
+                 da coleta nova, e o sangue de marco passaria a ser de junho.
+                 A excecao e o rascunho desta mesma coleta nova, ainda nao
+                 salvo (digitado aqui e guardado para nao se perder).
+       "editar"  Editar coleta existente — carrega os valores DAQUELA coleta,
+                 com a data dela travada. Salvar troca os valores dela.
+     Sem sessao nao ha coleta no servidor: o painel continua sendo o valor
+     atual guardado neste navegador (legado local).
+
+     O estado do salvamento aparece ao lado: Não salvo / Salvando... /
+     Salvo / Não sincronizado (com "Tentar de novo"). "Salvo" so aparece
+     depois que o servidor confirmou. */
+  var modoColeta = { pid: null, tipo: "nova", coleta: null };
+  var estadoSalvo = "";
+
+  function coletasRemotas(pid) {
+    return window.Sincronizacao ? window.Sincronizacao.coletas(pid) : null;
+  }
+
+  function rotuloColeta(c) {
+    return c.data_coleta_desconhecida || !c.coletado_em ? "sem data informada" : dataBR(c.coletado_em);
+  }
+
+  var TEXTO_ESTADO = {
+    nao_salvo: "Não salvo",
+    salvando: "Salvando...",
+    salvo: "Salvo",
+    nao_sincronizado: "Não sincronizado",
+    local: "Salvo neste dispositivo"
+  };
+
+  function mostrarEstadoSalvo(novo) {
+    estadoSalvo = novo || "";
+    var el = document.getElementById("ex-salvo");
+    if (!el) return;
+    el.className = "ex-salvo" + (estadoSalvo ? " " + estadoSalvo : "");
+    el.innerHTML = estadoSalvo ? escapar(TEXTO_ESTADO[estadoSalvo] || "") +
+      (estadoSalvo === "nao_sincronizado"
+        ? ' <button type="button" class="btn-fantasma" data-acao="reenviar-ex">Tentar de novo</button>' : "")
+      : "";
+  }
+
+  function estadoInicial(pid) {
+    if (!temSupa() || !window.Sincronizacao) return "";
+    var reg = window.Sincronizacao.estadoExames(pid);
+    if (!reg) return "";
+    if (reg.estado === "rascunho") return "nao_salvo";
+    if (reg.estado === "pendente") return "nao_sincronizado";
+    return "";
+  }
+
+  function desenharExames(opcoes) {
+    opcoes = opcoes || {};
     var alvo = document.getElementById("ex-corpo");
     if (!alvo) return;
     var g = motor();
@@ -355,20 +411,55 @@
       return;
     }
 
+    var pid = paciente();
+    var coletas = coletasRemotas(pid);
+    if (opcoes.editar && coletas) {
+      var alvoCol = coletas.filter(function (c) { return c.id === opcoes.editar; })[0];
+      if (alvoCol) modoColeta = { pid: pid, tipo: "editar", coleta: alvoCol };
+    } else if (!opcoes.manter || modoColeta.pid !== pid) {
+      modoColeta = { pid: pid, tipo: "nova", coleta: null };
+    }
+    var editando = modoColeta.tipo === "editar" && modoColeta.coleta;
+
     var lista = g.listaDeExames();
-    var valores = ler(CHAVE_EX);
+    var valores, dataInicial = "";
+    var reg = temSupa() && window.Sincronizacao ? window.Sincronizacao.estadoExames(pid) : null;
+    if (editando) {
+      valores = window.Sincronizacao.valoresDaColeta(modoColeta.coleta);
+      dataInicial = modoColeta.coleta.data_coleta_desconhecida ? "" : (modoColeta.coleta.coletado_em || "");
+    } else if (coletas && !(reg && (reg.estado === "rascunho" || reg.estado === "pendente"))) {
+      valores = {};                             // nova coleta: nada herdado
+    } else {
+      valores = ler(CHAVE_EX);                  // rascunho desta coleta nova, ou legado local
+      /* so o PENDENTE carrega a data com que foi registrado; o rascunho
+         herda do registro anterior a data da coleta passada */
+      if (reg && reg.estado === "pendente" && reg.coletado_em) dataInicial = reg.coletado_em;
+    }
     var porSistema = {};
     lista.forEach(function (e) {
       (porSistema[e.sistema] = porSistema[e.sistema] || []).push(e);
     });
 
-    var html =
+    var cabecalho = '<div class="ex-modo" id="ex-modo">' +
+      (editando
+        ? '<b>Editar coleta existente</b> &middot; coleta de ' + escapar(rotuloColeta(modoColeta.coleta)) +
+          ' <button type="button" class="btn-fantasma" data-acao="nova-coleta">Nova coleta</button>'
+        : "<b>Nova coleta</b>" + (coletas ? " &middot; o formulário começa vazio; para mudar uma coleta já registrada, use Editar na lista abaixo" : "")) +
+      "</div>";
+
+    var html = cabecalho +
       '<div class="ex-acoes">' +
       '<label class="ex-data" for="ex-data-coleta">Data da coleta ' +
-        '<input type="date" id="ex-data-coleta" required max="' + hojeISO() + '"></label>' +
-      '<button type="button" class="btn-verde" data-acao="conferir">Conferir com o mapa</button>' +
+        '<input type="date" id="ex-data-coleta" required max="' + hojeISO() + '"' +
+        (dataInicial ? ' value="' + escapar(dataInicial) + '"' : "") +
+        (editando ? " disabled" : "") + "></label>" +
+      '<button type="button" class="btn-verde" data-acao="conferir">' +
+        (editando ? "Salvar alterações" : "Conferir com o mapa") + "</button>" +
       '<button type="button" class="btn-fantasma" data-acao="limpar-ex">Limpar</button>' +
+      (reg && reg.estado === "rascunho" && coletas && !editando
+        ? '<button type="button" class="btn-fantasma" data-acao="descartar-ex">Descartar rascunho</button>' : "") +
       '<span class="ex-conta"></span>' +
+      '<span class="ex-salvo" id="ex-salvo" role="status" aria-live="polite"></span>' +
       '<span class="ex-data-erro" id="ex-data-erro" role="alert"></span></div>' +
       '<div id="ex-confronto"></div>';
 
@@ -390,9 +481,64 @@
       'que as do laboratório de propósito: laboratório marca doença, aqui se olha terreno. ' +
       '<b>São rascunho, não homologadas clinicamente, e esperam a revisão do Rodrigo.</b></p>';
 
+    html += blocoColetasDoPainel(coletas);
+
     alvo.innerHTML = html;
     ligarPainel();
-    conferir();
+    conferir(false, true);
+    mostrarEstadoSalvo(editando ? "" : estadoInicial(pid));
+  }
+
+  /** A lista de coletas do servidor dentro do painel, com Editar e Excluir. */
+  function blocoColetasDoPainel(coletas) {
+    if (!coletas) return "";
+    if (!coletas.length) return '<div class="ex-coletas"><h4>Coletas registradas</h4>' +
+      '<p class="dash-vazio">Nenhuma coleta registrada no servidor.</p></div>';
+    return '<div class="ex-coletas"><h4>Coletas registradas</h4><ul class="ex-coletas-lista">' +
+      coletas.slice().reverse().map(function (c) {
+        var n = (c.resultados || []).length;
+        var atual = modoColeta.tipo === "editar" && modoColeta.coleta && modoColeta.coleta.id === c.id;
+        return '<li class="ex-coleta' + (atual ? " atual" : "") + '" data-coleta="' + escapar(c.id) + '">' +
+          "<b>" + escapar(rotuloColeta(c)) + "</b> &middot; " + n + (n === 1 ? " exame" : " exames") +
+          ' <button type="button" class="btn-fantasma" data-acao="editar-coleta" data-coleta="' + escapar(c.id) + '">Editar</button>' +
+          ' <button type="button" class="btn-fantasma btn-perigo-leve" data-acao="excluir-coleta" data-coleta="' + escapar(c.id) + '">Excluir coleta</button>' +
+          "</li>";
+      }).join("") + "</ul></div>";
+  }
+
+  function excluirColetaComConfirmacao(coletaId) {
+    var pid = paciente();
+    var coletas = coletasRemotas(pid) || [];
+    var c = coletas.filter(function (x) { return x.id === coletaId; })[0];
+    if (!c || !window.Sincronizacao) return Promise.resolve(false);
+    var n = (c.resultados || []).length;
+    var perguntar = window.abrirModalConfirmar
+      ? window.abrirModalConfirmar({
+          titulo: "Excluir coleta",
+          subtitulo: "Coleta de " + rotuloColeta(c),
+          corpo: "<p>Esta coleta e os " + n + (n === 1 ? " resultado" : " resultados") +
+                 " dela serão removidos do servidor. As outras coletas não mudam.</p>" +
+                 "<p>Esta ação não pode ser desfeita.</p>",
+          botaoConfirmar: "Excluir coleta"
+        })
+      : Promise.resolve(window.confirm("Excluir a coleta de " + rotuloColeta(c) + "?") ? "confirmar" : null);
+    return perguntar.then(function (r) {
+      if (r !== "confirmar") return false;
+      return window.Sincronizacao.excluirColeta(pid, coletaId).then(function (res) {
+        if (!res.ok) {
+          if (window.avisar) window.avisar(res.motivo === "offline"
+            ? "Sem conexão com a sua conta — a coleta não foi excluída."
+            : "Não foi possível excluir a coleta no servidor. Nada foi apagado; tente de novo.");
+          return false;
+        }
+        if (pid !== paciente()) return true;
+        if (window.avisar) window.avisar("Coleta excluída.");
+        var manter = !(modoColeta.tipo === "editar" && modoColeta.coleta && modoColeta.coleta.id === coletaId);
+        desenharExames({ manter: manter });
+        desenharHoloscanAba();
+        return true;
+      });
+    });
   }
 
   function colherExames() {
@@ -437,55 +583,146 @@
   }
 
   /** Registrar = conferir E salvar. Sem data valida, confere na tela mas
-      nao salva no servidor, e diz por que. */
+      nao salva no servidor, e diz por que. Em "Nova coleta", uma data que ja
+      tem coleta registrada e recusada aqui (e no servidor): para mudar
+      aquela coleta, o caminho e "Editar". */
   function registrar() {
-    var erro = problemaDataColeta(dataDaColeta());
+    var editando = modoColeta.tipo === "editar" && modoColeta.coleta;
     var alvo = document.getElementById("ex-data-erro");
+    var erro = editando ? "" : problemaDataColeta(dataDaColeta());
+    if (!erro && !editando) {
+      var coletas = coletasRemotas(paciente());
+      var data = dataDaColeta();
+      var mesma = (coletas || []).filter(function (c) {
+        return !c.data_coleta_desconhecida && c.coletado_em === data;
+      })[0];
+      if (mesma) erro = "Já existe uma coleta em " + dataBR(data) +
+        ". Para mudar os valores dela, use Editar na lista de coletas.";
+    }
     if (alvo) alvo.textContent = erro;
     if (erro) {
       conferir();                 // o digitado ja ficou como rascunho (input)
       if (window.avisar) window.avisar(erro);
       var c = document.getElementById("ex-data-coleta");
-      if (c) c.focus();
-      return;
+      if (c && !editando) c.focus();
+      return Promise.resolve(false);
     }
-    conferir(true);
+    return conferir(true);
   }
 
-  /** Salva no servidor e AVISA se nao conseguiu. O valor local ja foi
-      gravado antes (conferir) e continua, marcado como pendente: a proxima
-      carga tenta de novo com a data em que foi registrado. */
+  var MSG_FALHA_COLETA = "Exames salvos só neste dispositivo — não foi possível enviar ao servidor. " +
+                         "Eles serão reenviados na próxima vez que o app abrir com conexão.";
+
+  /** Salva no servidor e AVISA se nao conseguiu. Em "Nova coleta" o valor
+      local ja foi gravado antes (conferir) e continua, marcado como
+      pendente: a proxima carga tenta de novo com a data em que foi
+      registrado. Devolve Promise<boolean> (true = o servidor confirmou). */
   function salvarColetaSupa(valores) {
-    if (!temSupa() || !window.Sincronizacao) return;
+    if (!temSupa() || !window.Sincronizacao) {
+      mostrarEstadoSalvo("local");
+      return Promise.resolve(false);
+    }
     var pid = paciente();
-    if (!pid || pid === SEM_PACIENTE) return;
-    if (Object.keys(valores).length === 0) return;
-    window.Sincronizacao.salvarColeta(pid, valores, dataDaColeta()).then(function (r) {
+    if (!pid || pid === SEM_PACIENTE) return Promise.resolve(false);
+    if (Object.keys(valores).length === 0) {
+      mostrarEstadoSalvo("");
+      if (window.avisar) window.avisar("Preencha ao menos um exame para registrar a coleta.");
+      return Promise.resolve(false);
+    }
+    var editando = modoColeta.tipo === "editar" && modoColeta.coleta ? modoColeta.coleta : null;
+    var data = editando ? (editando.data_coleta_desconhecida ? null : editando.coletado_em) : dataDaColeta();
+    var opcoes = editando
+      ? (editando.data_coleta_desconhecida ? { coletaId: editando.id, modo: "editar" } : { modo: "editar" })
+      : { modo: "nova" };
+    mostrarEstadoSalvo("salvando");
+    var botao = document.querySelector('#ex-corpo [data-acao="conferir"]');
+    if (botao) botao.disabled = true;
+    return window.Sincronizacao.salvarColeta(pid, valores, data, opcoes).then(function (r) {
+      if (botao) botao.disabled = false;
       if (r.ok) {
-        window.Sincronizacao.atualizarColetas(pid).then(function () {
-          if (pid === paciente()) desenharHoloscanAba();
+        return window.Sincronizacao.atualizarColetas(pid).then(function () {
+          if (pid !== paciente()) return true;
+          /* o que ficou salvo vira o valor atual deste aparelho; e o painel
+             passa a EDITAR a coleta que acabou de ser gravada (salvar de
+             novo nao cria uma segunda) */
+          gravar(CHAVE_EX, valores);
+          var col = (coletasRemotas(pid) || []).filter(function (c) { return c.id === r.coleta; })[0];
+          if (col) desenharExames({ editar: col.id });
+          mostrarEstadoSalvo("salvo");
+          desenharHoloscanAba();
+          return true;
         });
-        return;
       }
-      if (r.motivo === "vazio" || r.motivo === "offline") return;
-      if (window.avisar) {
-        window.avisar("Exames salvos só neste dispositivo — não foi possível enviar ao servidor. " +
-                      "Eles serão reenviados na próxima vez que o app abrir com conexão.");
+      if (pid !== paciente()) return false;
+      if (r.motivo === "ja_existe") {
+        mostrarEstadoSalvo("nao_salvo");
+        var e1 = document.getElementById("ex-data-erro");
+        var m1 = "Já existe uma coleta nessa data. Para mudar os valores dela, use Editar na lista de coletas.";
+        if (e1) e1.textContent = m1;
+        if (window.avisar) window.avisar(m1);
+        return false;
       }
+      if (r.motivo === "data_futura") {
+        mostrarEstadoSalvo("nao_salvo");
+        var e2 = document.getElementById("ex-data-erro");
+        if (e2) e2.textContent = "A data da coleta não pode ser futura.";
+        return false;
+      }
+      if (r.motivo === "vazio" || r.motivo === "offline") { mostrarEstadoSalvo("local"); return false; }
+      mostrarEstadoSalvo(editando ? "nao_salvo" : "nao_sincronizado");
+      if (window.avisar) window.avisar(editando
+        ? "Não foi possível salvar as alterações da coleta no servidor. Nada mudou lá; tente de novo."
+        : MSG_FALHA_COLETA);
+      return false;
     });
   }
 
-  function conferir(salvarNoSupa) {
+  /** "Tentar de novo" de um envio pendente: reenvia O MESMO registro (mesma
+      data, mesma coleta), sem o modo "nova" — se o primeiro envio chegou e
+      so a resposta se perdeu, ele cai na mesma coleta. */
+  function reenviarColeta() {
+    var pid = paciente();
+    var reg = window.Sincronizacao && window.Sincronizacao.estadoExames(pid);
+    if (!reg || reg.estado !== "pendente") return registrar();
+    mostrarEstadoSalvo("salvando");
+    return window.Sincronizacao.salvarColeta(pid, ler(CHAVE_EX), reg.coletado_em || null,
+        reg.coletaPropria && reg.coleta ? { coletaId: reg.coleta } : {})
+      .then(function (r) {
+        if (pid !== paciente()) return r.ok;
+        if (!r.ok) {
+          mostrarEstadoSalvo("nao_sincronizado");
+          if (window.avisar) window.avisar(MSG_FALHA_COLETA);
+          return false;
+        }
+        return window.Sincronizacao.atualizarColetas(pid).then(function () {
+          if (pid !== paciente()) return true;
+          desenharExames({ editar: r.coleta });
+          mostrarEstadoSalvo("salvo");
+          desenharHoloscanAba();
+          return true;
+        });
+      });
+  }
+
+  /** conferir(salvarNoSupa, soDesenho): refaz a leitura na tela.
+        soDesenho  so desenha (abrir o painel nao e editar: nao grava nada)
+      Em "Editar coleta existente" o digitado fica so no formulario ate
+      salvar — o valor atual deste aparelho continua o da coleta atual. */
+  function conferir(salvarNoSupa, soDesenho) {
     var g = motor();
-    if (!g) return;
+    if (!g) return Promise.resolve(false);
     var valores = colherExames();
-    var antes = JSON.stringify(ler(CHAVE_EX));
-    gravar(CHAVE_EX, valores);
-    /* digitado e ainda nao conferido: a sincronizacao nao pode trocar isto
-       pelo valor do servidor na proxima carga */
-    if (!salvarNoSupa && JSON.stringify(valores) !== antes && window.Sincronizacao) {
-      window.Sincronizacao.marcarRascunhoExames(paciente());
+    var editando = modoColeta.tipo === "editar" && modoColeta.coleta;
+    if (!soDesenho && !editando) {
+      var antes = JSON.stringify(ler(CHAVE_EX));
+      gravar(CHAVE_EX, valores);
+      /* digitado e ainda nao conferido: a sincronizacao nao pode trocar isto
+         pelo valor do servidor na proxima carga */
+      if (!salvarNoSupa && JSON.stringify(valores) !== antes && window.Sincronizacao) {
+        window.Sincronizacao.marcarRascunhoExames(paciente());
+      }
     }
+    if (!soDesenho && !salvarNoSupa) mostrarEstadoSalvo(temSupa() ? "nao_salvo" : "");
 
     var conta = document.querySelector("#ex-corpo .ex-conta");
     var n = Object.keys(valores).length;
@@ -520,7 +757,8 @@
     // parado na leitura de antes ate o proximo "Salvar HOLOSCAN".
     if (window.desenharHoloscan) window.desenharHoloscan("holo-confronto");
 
-    if (salvarNoSupa) salvarColetaSupa(valores);
+    if (salvarNoSupa) return salvarColetaSupa(valores);
+    return Promise.resolve(false);
   }
 
   function desenharConfronto(r, quantos) {
@@ -585,7 +823,19 @@
       var a = ev.target.closest("[data-acao]");
       if (a) {
         if (a.dataset.acao === "conferir") registrar();
-        if (a.dataset.acao === "limpar-ex") { gravar(CHAVE_EX, {}); desenharExames(); }
+        if (a.dataset.acao === "limpar-ex") {
+          document.querySelectorAll("#ex-corpo .ex-linha input").forEach(function (i) { i.value = ""; });
+          conferir();
+        }
+        if (a.dataset.acao === "nova-coleta") desenharExames();
+        if (a.dataset.acao === "editar-coleta") desenharExames({ editar: a.dataset.coleta });
+        if (a.dataset.acao === "excluir-coleta") excluirColetaComConfirmacao(a.dataset.coleta);
+        if (a.dataset.acao === "reenviar-ex") reenviarColeta();
+        if (a.dataset.acao === "descartar-ex" && window.Sincronizacao) {
+          window.Sincronizacao.descartarRascunhoExames(paciente());
+          desenharExames();
+          desenharHoloscanAba();
+        }
         // O botao do topo e o do estado vazio so abrem o MESMO seletor de
         // arquivo que a zona de arrastar ja usa — nao e um fluxo novo.
         if (a.dataset.acao === "adicionar-documento") {

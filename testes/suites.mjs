@@ -79,5 +79,6 @@ export const SUITES = [
   'testar-release01-falhas-remotas.mjs',
   'testar-holos-ai-funcao.mjs',
   'testar-rodada08-holoscan.mjs',
+  'testar-rodada08-exames.mjs',
   'testar-conferir-producao.mjs',
 ];

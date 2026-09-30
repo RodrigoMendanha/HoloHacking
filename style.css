@@ -1356,6 +1356,15 @@ body.escuro .btn-tema .icone-lua{display:none}
 .ex-data input{font:inherit;color:var(--texto);background:transparent;border:1px solid rgba(201,163,90,.4);border-radius:6px;padding:6px 8px}
 .ex-data-erro{font-size:.82rem;color:var(--texto);border-left:2px solid var(--dourado);padding-left:10px;flex-basis:100%}
 .ex-data-erro:empty{display:none}
+.ex-modo{font-size:.85rem;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ex-salvo{font-size:.8rem;color:var(--texto-suave)}
+.ex-salvo:empty{display:none}
+.ex-salvo.salvo{color:var(--verde,#3c7a4b)}
+.ex-salvo.nao_sincronizado{color:#b4553c}
+.ex-coletas{margin-top:22px}
+.ex-coletas-lista{list-style:none;padding:0;margin:0}
+.ex-coleta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:6px 0;border-bottom:1px solid var(--linha,rgba(0,0,0,.08))}
+.ex-coleta.atual{font-weight:600}
 .ex-bloco{margin-bottom:26px}
 .ex-bloco:last-of-type{margin-bottom:0}
 /* O título do sistema precisa de ar em cima: sem isso ele encostava no texto

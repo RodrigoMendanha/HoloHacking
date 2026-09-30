@@ -137,6 +137,7 @@
     modal.querySelector(".fic-janela-fechar").focus();
     return new Promise(r => { _modalResolver = r; });
   }
+  window.abrirModalConfirmar = abrirModalConfirmar;
   function fecharModalConfirmar(resultado){
     $("#modal-confirmar-acao").classList.add("hidden");
     if(_modalResolver){ _modalResolver(resultado); _modalResolver = null; }

@@ -122,10 +122,10 @@ Os comandos abaixo são a mesma conferência, arquivo por arquivo.
 
 ```sh
 curl -sI http://127.0.0.1:<PORTA>/app.js | grep -i cache-control   # Cache-Control: no-cache
-curl -s  http://127.0.0.1:<PORTA>/app.js | sha256sum               # 56c16ca6b82e...
-curl -s  http://127.0.0.1:<PORTA>/arquivos.js | sha256sum          # fe6456eb7234...
+curl -s  http://127.0.0.1:<PORTA>/app.js | sha256sum               # ad2d48a141ad...
+curl -s  http://127.0.0.1:<PORTA>/arquivos.js | sha256sum          # 943b8bc5bd06...
 curl -s  http://127.0.0.1:<PORTA>/index.html | sha256sum           # 3b506304caad...
-curl -s  https://holohacking.com.br/sincronizacao.js | sha256sum   # f288a92fa2bd...
+curl -s  https://holohacking.com.br/sincronizacao.js | sha256sum   # 1d363c320cf3...
 ```
 
 Se o `app.js` der `dfca9ef7fd1f...`, o deploy pegou um commit das rodadas
@@ -152,14 +152,14 @@ a imagem do `docker build` da branch de saneamento (o nginx ainda põe o
 
 ```
 3b506304caad5b352a110a453745823140de24e9155696cd8a3011424cf90a9b  index.html
-0e58b880e7b4ad49f908620258b0815319a41d9cabac99d65a220408bc1a767b  style.css
+0cf3c0fc51e5139975e98a3f3fc2199ba3ccc57d100bb14399ddc60b0b063b9f  style.css
 cd6ef22455f446156c4109649b2d0fc1fe803f0c6697e1029fa71e50ba44cf84  favicon.svg
 1a09c374ba7ddfde9088fd207845bcad3680bc918172831b83cf548ff285eb8f  agenda.js
 547c3592c469cb26ae8c800ca592698b942e1ef22df1b1b5f8ab61b3d8dd4e98  aplicacoes.js
-56c16ca6b82e124e619077f1b4cbfc7a88b31466c3320aa7754da1c16dbfeb51  app.js
+ad2d48a141ad6d8a45d90a48e2b56da08cb5b43de1239a1497d430d6ee3add78  app.js
 d3efacba60b26bc2da2311a273881948882570773e4016f59ce2a0845661746c  armazenamento.js
 d7302d5134bfa79098755da5f10405972e8ae7e3becfe6c0caad1d1d7a577e7e  arquivo-store.js
-fe6456eb72344b5670c81d3670acd34f68813bc6eeb07fb60f005661268be81c  arquivos.js
+943b8bc5bd06a1dbf423832d5d3d38ecd6449d75e218c3d4bdf333c1c95d6339  arquivos.js
 410b78815fa33df41eeadd22c8f3dbfb5b5bfeecaf89784fb2d35a590474cdb7  caso-marina.js
 e66cd4b4cd1163cce5680b8d2b56b820c44c1cf430ed413d8de2fe7766112a14  concorrencia.js
 685ae026fbdd6b534aba6b131f461b99c43a465949b87c68c0091a2b34ef1d88  consultas.js
@@ -185,7 +185,7 @@ cc6df703549926d580fabab5726f3fbed93de876d918ed1be6e28bf93b21d1a1  panorama.js
 8849e59a1d3fe76723aa1e59cc75213fc64172259c5bccd6d9b1151f21a9fb63  render-resultado.js
 23520f5f414deb288f083d0a08389a1c96d1ec918c50fb95d44c3b8b36758e8c  restaurar-backup.js
 2848d87ee9677b5327939694c6461d4f2eee0b11ec5cf44462d52c3a07f0964a  resultado-corpo.js
-f288a92fa2bd93ce4a4857400e0220e63b0021908e2b7a9f55fc7689e206e742  sincronizacao.js
+1d363c320cf373cf29ae395cf5e341f8a5a924acedbcc6204b10530487a67f5c  sincronizacao.js
 482687b6663c97cfc92151da80a62ff0fdfa8f82fc3ff24a399ab583d3ff0d6d  supabase-client.js
 39524af45aeaa022745e644ff8f29d1c395f815b824215bc9e80cd3c6ddc360d  utils.js
 f99c4197f8ac91ec9e5ec2f6970c12ad8ec0e3d8dc4513da856289799c095b68  validar-backup.js

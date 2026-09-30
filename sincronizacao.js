@@ -633,6 +633,12 @@
         });
     }
 
+    /* rodada 08: "nova" pede ao servidor que RECUSE se ja existe coleta
+       nesta data (em vez de substituir os resultados dela); "editar" e o
+       caminho explicito de trocar os valores de uma coleta existente. O
+       reenvio de pendente vai sem modo: se o primeiro envio chegou e so a
+       resposta se perdeu, ele cai na mesma coleta em vez de travar. */
+    if (opcoes.modo === "nova" || opcoes.modo === "editar") payload.collection.modo = opcoes.modo;
     marcarPendente(pid, { estado: "pendente", coleta: anterior.coleta || null, coletado_em: coletadoEm });
     return Promise.resolve(sb().rpc("salvar_coleta_exames", { payload: payload }))
       .then(function (r) {
@@ -642,6 +648,16 @@
       })
       .catch(function (e) {
         console.error("[sincronizacao] salvar_coleta_exames:", e && e.message ? e.message : e);
+        var msg = String((e && e.message) || "");
+        if (/coleta ja existe/.test(msg)) {
+          /* nada foi gravado: o que estava sincronizado continua sincronizado */
+          if (anterior.estado) marcarPendente(pid, anterior); else { var s0 = lerSync(); delete s0.exames[pid]; gravarSync(s0); }
+          return { ok: false, motivo: "ja_existe", erro: e };
+        }
+        if (/futur/.test(msg)) {
+          if (anterior.estado) marcarPendente(pid, anterior); else { var s1 = lerSync(); delete s1.exames[pid]; gravarSync(s1); }
+          return { ok: false, motivo: "data_futura", erro: e };
+        }
         return { ok: false, motivo: "erro", erro: e };
       });
   }
@@ -792,6 +808,69 @@
     gravarSync(s);
   }
 
+  /** O registro de sincronizacao dos exames do paciente (copia) ou null:
+      { estado: "rascunho" | "pendente" | "sincronizado", coleta, coletado_em }. */
+  function estadoExames(pid) {
+    var r = lerSync().exames[pid];
+    return r ? JSON.parse(JSON.stringify(r)) : null;
+  }
+
+  /* Faz os valores locais voltarem a ser os da coleta atual do servidor
+     (ou nenhum, se o servidor nao tem coleta). So com leitura remota ok. */
+  function voltarParaServidor(pid) {
+    if (estado.exames !== "ok" || !coletasPorPaciente[pid]) return false;
+    var ex = lerJSON(CHAVE_EX), s = lerSync();
+    var ult = ultimaRegistrada(coletasPorPaciente[pid]);
+    if (ult) {
+      ex[pid] = valoresDaColeta(ult);
+      s.exames[pid] = { estado: "sincronizado", coleta: ult.id,
+                        coletado_em: ult.data_coleta_desconhecida ? null : ult.coletado_em };
+    } else {
+      delete ex[pid];
+      delete s.exames[pid];
+    }
+    gravarJSON(CHAVE_EX, ex, "caixa:" + CHAVE_EX);
+    gravarSync(s);
+    return true;
+  }
+
+  /** Descarta o rascunho de exames do paciente: volta ao que o servidor tem. */
+  function descartarRascunhoExames(pid) {
+    return voltarParaServidor(pid);
+  }
+
+  /** EXCLUIR COLETA (rodada 08): apaga UMA coleta — a linha de
+      lab_collections e, por ON DELETE CASCADE, os lab_results dela. So
+      responde ok depois que o servidor confirma que a linha saiu (delete com
+      retorno). Os valores locais passam a ser os da coleta atual que sobrou;
+      um rascunho digitado aqui nao e tocado. */
+  function excluirColeta(pid, coletaId) {
+    if (!temSupa()) return Promise.resolve({ ok: false, motivo: "offline" });
+    if (!pid || !UUID_RE.test(pid) || !coletaId) return Promise.resolve({ ok: false, motivo: "paciente" });
+    return Promise.resolve(sb().from("lab_collections").delete()
+        .eq("id", coletaId).eq("patient_id", pid).select("id"))
+      .then(function (r) {
+        if (!r || r.error) throw (r && r.error) || new Error("sem resposta");
+        if (!(r.data || []).length) return { ok: false, motivo: "nao_encontrada" };
+        coletasPorPaciente[pid] = (coletasPorPaciente[pid] || []).filter(function (c) { return c.id !== coletaId; });
+        var reg = lerSync().exames[pid];
+        if (!reg || reg.estado === "sincronizado") {
+          voltarParaServidor(pid);
+        } else if (reg.coleta === coletaId) {
+          var s = lerSync(); s.exames[pid].coleta = null; gravarSync(s);
+        }
+        return atualizarColetas(pid).then(function () {
+          var reg2 = lerSync().exames[pid];
+          if (!reg2 || reg2.estado === "sincronizado") voltarParaServidor(pid);
+          return { ok: true };
+        });
+      })
+      .catch(function (e) {
+        console.error("[sincronizacao] excluir coleta:", e && e.message ? e.message : e);
+        return { ok: false, motivo: "erro", erro: e };
+      });
+  }
+
   /** Relê so as coletas de um paciente (depois de salvar uma). */
   function atualizarColetas(pid) {
     if (!temSupa() || !pid || !UUID_RE.test(pid)) return Promise.resolve();
@@ -836,6 +915,10 @@
     },
     atualizarColetas: atualizarColetas,
     marcarRascunhoExames: marcarRascunhoExames,
+    estadoExames: estadoExames,
+    descartarRascunhoExames: descartarRascunhoExames,
+    excluirColeta: excluirColeta,
+    valoresDaColeta: function (c) { return valoresDaColeta(c || {}); },
     registrarHoloscanSalvo: registrarHoloscanSalvo,
     hoje: hojeLocal,
 

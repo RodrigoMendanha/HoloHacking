@@ -42,6 +42,7 @@ declare
   v_col uuid;
   v_col2 uuid;
   n int;
+  pegou boolean;
   app_payload jsonb;
   score jsonb := jsonb_build_object(
     'sistema','fungico','nome','Fungico','nota',1,'carga',1,'faixa','baixo',
@@ -125,6 +126,29 @@ begin
      and nota is null and carga is null and faixa is null and avaliavel = false;
   if n <> 1 then raise exception 'CHECAGEM rodada 08: sistema sem dado nao gravou nota null'; end if;
   raise notice 'ok ausencia de dado = null';
+
+  -- 6. rodada 08, onda 2: "nova" numa data ocupada e data futura sao recusadas
+  pegou := false;
+  begin
+    perform public.salvar_coleta_exames(jsonb_build_object(
+      'collection', jsonb_build_object('patient_id', v_pid, 'coletado_em', '1990-01-02',
+                                       'data_coleta_desconhecida', false, 'modo', 'nova'),
+      'results', jsonb_build_array(resultado)));
+    perform public.salvar_coleta_exames(jsonb_build_object(
+      'collection', jsonb_build_object('patient_id', v_pid, 'coletado_em', '1990-01-02',
+                                       'data_coleta_desconhecida', false, 'modo', 'nova'),
+      'results', jsonb_build_array(resultado)));
+  exception when unique_violation then pegou := true;
+  end;
+  if not pegou then raise exception 'CHECAGEM rodada 08: "nova" em data ocupada nao foi recusada'; end if;
+  pegou := false;
+  begin
+    insert into public.lab_collections (nutritionist_id, patient_id, coletado_em, data_coleta_desconhecida)
+    values (v_uid, v_pid, current_date + 5, false);
+  exception when sqlstate '22008' then pegou := true;
+  end;
+  if not pegou then raise exception 'CHECAGEM rodada 08: coleta com data futura foi aceita'; end if;
+  raise notice 'ok identidade da coleta e data futura';
 end
 $$;
 
