@@ -534,23 +534,6 @@ export async function ligarPagina(page, servidor) {
       req.respond({ status: 200, contentType: 'text/javascript', body: BIBLIOTECA });
       return;
     }
-    /* Edge Functions: servidor.funcoes[nome] = async (Request) => Response.
-       Sem funcao registrada, o pedido cai no abort abaixo, como a rede. */
-    const fn = /^https:\/\/[a-z0-9]+\.supabase\.co\/functions\/v1\/([a-z0-9-]+)/.exec(url);
-    if (fn && servidor.funcoes && servidor.funcoes[fn[1]]) {
-      const cors = { 'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS' };
-      if (req.method() === 'OPTIONS') { req.respond({ status: 204, headers: cors, body: '' }); return; }
-      const pedido = new Request(url, { method: req.method(), headers: req.headers(),
-        body: req.method() === 'POST' ? (req.postData() || '') : undefined });
-      servidor.log.push({ op: 'funcao', nome: fn[1], corpo: req.postData() || '', headers: req.headers() });
-      Promise.resolve(servidor.funcoes[fn[1]](pedido))
-        .then(async (r) => req.respond({ status: r.status, headers: { ...cors, ...Object.fromEntries(r.headers) },
-          body: await r.text() }))
-        .catch(() => req.respond({ status: 500, headers: cors, body: '' }));
-      return;
-    }
     if (!/^http:\/\/127\.0\.0\.1:5500\//.test(url) && !/^(data|blob):/.test(url)) {
       req.abort();   // nada sai para a rede de verdade
       return;

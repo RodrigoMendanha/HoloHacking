@@ -352,8 +352,6 @@ const app = await p.evaluate(async () => {
   const confronto = document.getElementById('secao-confronto').classList.contains('ativa');
   return {
     telaFechada: document.getElementById('tela-login').hidden,
-    metanutriEscondido: document.getElementById('nav-metanutri').hidden &&
-      getComputedStyle(document.getElementById('nav-metanutri')).display === 'none',
     appLiberado: !document.getElementById('app').getAttribute('aria-hidden'),
     secoes, navs, holoscan, confronto,
     // a camada de entrada nao pode ter virado uma secao do app
@@ -363,22 +361,20 @@ const app = await p.evaluate(async () => {
 /* Lista nominal, nao contagem: um numero certo com a secao errada passaria. */
 const SECOES = ['secao-dashboard', 'secao-holoscan', 'secao-confronto', 'secao-pacientes',
                 'secao-consultas', 'secao-agenda', 'secao-documentos', 'secao-perfil',
-                'secao-corpo', 'secao-mente', 'secao-espirito',
-                'secao-metanutri'];   // MetaNutri: mentor de negocio, nao clinico
+                'secao-corpo', 'secao-mente', 'secao-espirito'];
 const MENU = ['dashboard', 'pacientes', 'consultas', 'agenda', 'documentos',
-              'holoscan', 'confronto', 'corpo', 'mente', 'espirito', 'metanutri', 'perfil'];
+              'holoscan', 'confronto', 'corpo', 'mente', 'espirito', 'perfil'];
 const faltando = SECOES.filter(s => !app.secoes.includes(s));
 const sobrando = app.secoes.filter(s => !SECOES.includes(s));
 
 ok(app.telaFechada && app.appLiberado, 'a saida de desenvolvimento descobre o app');
 ok(faltando.length === 0 && sobrando.length === 0,
-   'as ' + SECOES.length + ' secoes continuam exatamente as mesmas' +
+   'as ' + SECOES.length + ' secoes clinicas continuam exatamente as mesmas' +
    (faltando.length ? ' | sumiu: ' + faltando.join(', ') : '') +
    (sobrando.length ? ' | apareceu: ' + sobrando.join(', ') : ''));
 ok(JSON.stringify(app.navs) === JSON.stringify(MENU),
    'o menu continua com os mesmos ' + MENU.length + ' itens, na mesma ordem: ' + app.navs.join(', '));
 ok(app.holoscan && app.confronto, 'HOLOSCAN e Leitura Integrada continuam abrindo pelo menu');
-ok(app.metanutriEscondido, 'sem sessao (saida de desenvolvimento), a entrada MetaNutri fica escondida');
 ok(app.loginNaoEhSecao, 'a tela de entrada nao virou secao nem item de menu');
 
 await nav.close();

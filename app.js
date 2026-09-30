@@ -208,8 +208,7 @@
     agenda:"Agenda", documentos:"Documentos",
     holoscan:"HOLOSCAN", confronto:"Leitura Integrada",
     corpo:"Módulo Corpo", mente:"Módulo Mente",
-    espirito:"Módulo Espírito", perfil:"Perfil",
-    metanutri:"MetaNutri"
+    espirito:"Módulo Espírito", perfil:"Perfil"
   };
   function irPara(secao){
     $$(".nav-item").forEach(b => b.classList.toggle("ativo", b.dataset.secao === secao));

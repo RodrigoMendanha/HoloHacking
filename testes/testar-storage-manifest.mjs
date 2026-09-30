@@ -288,14 +288,13 @@ ok(ordem.manifesto < ordem.dados,
    reparar — e foi exatamente o que ele fez quando login.js entrou, e de novo
    na Fase 1 do Supabase (CDN do supabase-js + supabase-client.js +
    dados-router.js, as tres antes de dados.js/app.js consumirem `sb`), e
-   na Etapa 10 (migracao-supa.js, o migrador localStorage→Supabase), e na
-   rodada 06 (metanutri.js, o chat do mentor de negocio). */
-ok(ordem.total === 37,
-   'o index tem 37 tags de script: 22 de antes do P0 + concorrencia.js + ' +
+   na Etapa 10 (migracao-supa.js, o migrador localStorage→Supabase). */
+ok(ordem.total === 36,
+   'o index tem 36 tags de script: 22 de antes do P0 + concorrencia.js + ' +
    'armazenamento.js + validar-backup.js + restaurar-backup.js + ' +
    'importar-v1.js + excluir-paciente.js + login.js + CDN supabase-js + ' +
    'supabase-client.js + dados-router.js + migracao-supa.js + holos-ai.js + ' +
-   'utils.js + sincronizacao.js (Release 01) + metanutri.js (rodada 06) — ' + ordem.total);
+   'utils.js + sincronizacao.js (Release 01) — ' + ordem.total);
 /* A tela de entrada e a ultima a carregar: nada do app depende dela, e ela
    nao depende de nada do app. Se um dia depender, esta linha cai junto. */
 ok(ordem.login === ordem.total - 1,

@@ -34,7 +34,7 @@ git log --oneline -1
 ```
 
 Você vê uma linha que começa pelo commit do merge mais recente da `main`
-(rodada 07 ou depois).
+(o saneamento do MetaNutri ou depois).
 
 **1.3 Construir e trocar o container**
 
@@ -67,8 +67,8 @@ sh scripts/conferir-producao.sh
 Você tem de ver:
 
 ```
-Conferindo 39 arquivos em https://holohacking.com.br
-OK: 39 de 39 arquivos batem com docs/deploy.md §3.5
+Conferindo 38 arquivos em https://holohacking.com.br
+OK: 38 de 38 arquivos batem com docs/deploy.md §3.5
 ```
 
 Se aparecer `DIFEREM:`, o ar não é a `main`. A lista diz quais arquivos.
@@ -131,24 +131,5 @@ Se em qualquer passo aparecer "…não foi possível sincronizá-los…", "Exame
 salvos só neste dispositivo…" ou "Não foi possível carregar…", o teste
 falhou: anote a hora e avise.
 
-### 4.2 O MetaNutri (RELEASE-STATE §12.3)
-
-Só responde depois que o Luan colar a chave (`docs/deploy.md` §6). Antes
-disso, o passo 3 abaixo mostra a frase de "ainda não foi ligado", e isso
-também é o esperado.
-
-1. Sem entrar na conta, o menu **não** mostra **MetaNutri**.
-2. Entre na conta. O menu mostra **Negócio → MetaNutri**. Clique. Você vê
-   a linha "Mentor de negócio. Não responde sobre pacientes."
-3. Pergunte "Como definir o preço da minha consulta?" e clique em **Enviar**.
-   - Sem a chave, você vê "O MetaNutri ainda não foi ligado neste app.
-     Avise o suporte do HoloHacking." e o botão **Tentar de novo**.
-   - Com a chave, você vê "MetaNutri está pensando…" e depois a resposta.
-4. Pergunte "E para o retorno?". A resposta leva em conta a pergunta
-   anterior (ele lembra da conversa).
-5. Escreva uma pergunta com o nome completo do paciente de teste. Ela não é
-   enviada, e você vê "Tire o nome do paciente da pergunta…".
-6. Recarregue a página: a conversa some. Saia da conta: o item some do menu.
-
 **Pronto** quando os passos 1 e 2 derem OK, e as duas nutricionistas
-passarem o 4.1 e o 4.2, cada uma na própria conta.
+passarem o 4.1, cada uma na própria conta.
