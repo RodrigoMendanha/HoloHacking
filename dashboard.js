@@ -184,7 +184,7 @@
       { mov: "MAPEAR",      nome: "HOLOSCAN",          texto: "Mapear prioridades de investigação.",                destino: "holoscan" },
       { mov: "CONFRONTAR",  nome: "Leitura Integrada", texto: "Confrontar o mapa com dados laboratoriais.",         destino: "confronto" },
       { mov: "INTEGRAR",    nome: "Ferramentas",       texto: "Integrar ferramentas e condutas ao caso.",           destino: "corpo" },
-      { mov: "ACOMPANHAR",  nome: "Evolução",          texto: "Acompanhar mudanças entre aplicações.",              destino: "pacientes" }
+      { mov: "ACOMPANHAR",  nome: "Evolução",          texto: "Acompanhar mudanças entre aplicações.",              destino: "evolucao" }
     ];
 
     var passos = etapas.map(function (e, i) {
@@ -408,6 +408,28 @@
           if (window.irParaSecao) window.irParaSecao("agenda");
           var novaConsulta = document.querySelector('[data-novo="consulta"]');
           if (novaConsulta) novaConsulta.click();
+          return;
+        }
+
+        /* Rodada 08: "Evolução → Abrir" leva ao comparativo de verdade (antes x
+           agora, Indice, sistemas, Triade, aplicacoes e datas), que mora no
+           HOLOSCAN — e so existe a partir da segunda aplicacao. */
+        if (destino === "evolucao") {
+          var hist = window.historicoPontuacao ? window.historicoPontuacao() : [];
+          if (!window.pacienteAtivoId || !window.pacienteAtivoId()) {
+            if (window.avisar) window.avisar("Escolha um paciente para ver a evolução dele.");
+            if (window.irParaSecao) window.irParaSecao("pacientes");
+            return;
+          }
+          if (hist.length < 2) {
+            if (window.avisar) window.avisar("A evolução aparece a partir da segunda aplicação do HOLOSCAN deste paciente.");
+            if (window.irParaSecao) window.irParaSecao("holoscan");
+            return;
+          }
+          if (window.irParaSecao) window.irParaSecao("holoscan");
+          if (window.redesenharEvolucao) window.redesenharEvolucao();
+          var evo = document.getElementById("holo-evolucao");
+          if (evo && evo.scrollIntoView) evo.scrollIntoView({ behavior: "smooth", block: "start" });
           return;
         }
 

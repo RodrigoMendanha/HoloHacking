@@ -51,7 +51,7 @@ const duas = await p.evaluate((r) => {
     indices: [...e.querySelectorAll('.evo-um b')].map(x=>x.textContent),
     ganho: e.querySelector('.evo-ganho')?.textContent,
     frase: e.querySelector('.evo-frase')?.textContent.replace(/\s+/g,' ').trim(),
-    linhas: [...e.querySelectorAll('.evo-linha')].map(x=>x.textContent.replace(/\s+/g,' ').trim()),
+    linhas: [...e.querySelectorAll('.evo-linhas .evo-linha')   /* rodada 08: a Tríade tem linhas proprias */].map(x=>x.textContent.replace(/\s+/g,' ').trim()),
     poligonos: e.querySelectorAll('polygon').length,
     historico: JSON.parse(localStorage.getItem('holohacking.pontuacao'))[pid].length,
   };

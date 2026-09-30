@@ -1001,7 +1001,7 @@
     const p = pacienteAtivo();
     if(!p){ toast("Nenhum paciente selecionado."); return; }
     const r = await abrirModalConfirmar({
-      titulo: "Exportar dados de " + escapar(p.nome) + "?",
+      titulo: "Exportar dados de " + p.nome + "?",
       corpo: "<p>Um arquivo JSON será gerado com todos os dados clínicos deste paciente.</p>"
         + '<p style="margin-top:8px;font-size:.82rem;color:var(--texto-suave)">'
         + "O arquivo pode conter informações sensíveis. Trate-o com o mesmo sigilo do prontuário.</p>",
@@ -1025,7 +1025,8 @@
       setTimeout(() => URL.revokeObjectURL(url), 60000);
       toast("Dados exportados com sucesso.");
     } catch(e){
-      toast("Erro ao exportar: " + (e.message || "falha desconhecida"));
+      console.error("[exportar]", e);
+      toast("Erro ao exportar: " + (e.message || "falha desconhecida") + ".");
     } finally {
       destravarBotao(btn);
     }
@@ -1038,6 +1039,17 @@
        navegador limpo nao exportar um prontuario vazio so porque ninguem
        abriu as abas antes. */
     if(window.Sincronizacao) { try { await window.Sincronizacao.aguardar(); } catch(e){ /* exporta o que houver */ } }
+    /* Rodada 08: com conta, o HOLOSCAN exportado e o do SERVIDOR, aplicacao
+       por aplicacao (aplicacao + respostas + notas por sistema). Se a
+       leitura falhar, a exportacao e cancelada — um arquivo que parece
+       completo e nao e seria pior que nenhum. */
+    const comConta = !!(window.HoloAuth && window.HoloAuth.sessaoAtiva() && window.Sincronizacao);
+    let holoscanServidor = null;
+    if(comConta){
+      const r = await window.Sincronizacao.holoscanDoServidor(id);
+      if(!r.ok) throw new Error("não foi possível ler o HOLOSCAN do servidor agora. Nada foi exportado; tente de novo");
+      holoscanServidor = r.aplicacoes;
+    }
     const exportado = {
       produto: "HoloHacking",
       versaoExportacao: "1.0",
@@ -1049,6 +1061,10 @@
         created_at: p.created_at
       }
     };
+    if(holoscanServidor){
+      exportado.fonte = "servidor";
+      exportado.holoscanAplicacoes = holoscanServidor;
+    }
     if(p.oq3) exportado.oq3 = p.oq3;
     if(p.pqq) exportado.pqq = p.pqq;
     if(p.holoscan) exportado.holoscan = p.holoscan;
@@ -1096,7 +1112,10 @@
     }
     if(window.Agenda && window.Agenda.todas){
       const consultas = window.Agenda.todas(id);
-      if(consultas && consultas.length) exportado.consultas = consultas;
+      if(consultas && consultas.length) exportado.consultas = consultas.map(c => ({
+        id: c.id, data: c.data, hora: c.hora, duracao: c.duracao, tipo: c.tipo,
+        nota: c.nota || "", created_at: c.created_at
+      }));
     }
     if(window.ArquivoStore && window.ArquivoStore.listar){
       try {

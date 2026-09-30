@@ -118,33 +118,42 @@
     return t;
   }
 
+  /* Rodada 08: exames com nome, resultado, unidade, data e faixa. Com conta,
+     vem das coletas do servidor (cada uma com a data dela); sem conta, dos
+     valores do painel, com a faixa do banco de exames. */
   function dadosExames() {
     var pid = pacienteId();
     if (!pid) return "";
+    var coletas = window.Sincronizacao ? window.Sincronizacao.coletas(pid) : null;
+    var t = "";
+    if (coletas && coletas.length) {
+      coletas.slice().reverse().forEach(function (c) {
+        var quando = c.data_coleta_desconhecida || !c.coletado_em ? "data não informada" : dataBR(c.coletado_em);
+        t += "\n### Coleta — " + quando + (c.laboratorio ? " (" + c.laboratorio + ")" : "") + "\n";
+        (c.resultados || []).forEach(function (r) {
+          t += "- " + (r.nome_exame_no_momento || r.exame_id) + ": " + r.valor +
+            (r.unidade_no_momento ? " " + r.unidade_no_momento : "") +
+            (r.ideal_min_no_momento != null && r.ideal_max_no_momento != null
+              ? " (faixa " + r.ideal_min_no_momento + "–" + r.ideal_max_no_momento + ")" : "") +
+            " — " + quando + "\n";
+        });
+      });
+      return t;
+    }
     var exames;
-    try {
-      exames = JSON.parse(localStorage.getItem("holohacking.exames")) || {};
-    } catch (e) { return ""; }
+    try { exames = JSON.parse(localStorage.getItem("holohacking.exames")) || {}; }
+    catch (e) { return ""; }
     var d = exames[pid];
     if (!d || typeof d !== "object") return "";
     var g = window.HOLOSCAN || null;
-    var mapa = g && g.questionario ? g.questionario() : [];
-    var exDef = g && g.exames ? g.exames() : [];
-    var nomes = {};
-    exDef.forEach(function (e) { nomes[e.id] = e.nome; });
-    var chaves = Object.keys(d).filter(function (k) { return d[k] !== "" && d[k] != null; });
-    if (!chaves.length) return "";
-    var t = "";
-    chaves.forEach(function (k) {
-      var nome = nomes[k] || k;
-      var ref = exDef.find(function (e) { return e.id === k; });
-      var linha = "- " + nome + ": " + d[k];
-      if (ref) {
-        if (ref.unidade) linha += " " + ref.unidade;
-        if (ref.min != null && ref.max != null)
-          linha += " (ref: " + ref.min + "–" + ref.max + ")";
-      }
-      t += linha + "\n";
+    var lista = g && g.listaDeExames ? g.listaDeExames() : [];
+    var porId = {};
+    lista.forEach(function (e) { porId[e.id] = e; });
+    Object.keys(d).filter(function (k) { return d[k] !== "" && d[k] != null; }).forEach(function (k) {
+      var ref = porId[k];
+      t += "- " + (ref ? ref.exame : k) + ": " + d[k] +
+        (ref && ref.unidade ? " " + ref.unidade : "") +
+        (ref && ref.faixa ? " (faixa " + ref.faixa + ")" : "") + " — data da coleta não registrada\n";
     });
     return t;
   }
@@ -174,68 +183,113 @@
     return t;
   }
 
-  function dadosFerramentas() {
+  function respostasDe(fid, pid) {
+    var a = window.Aplicacoes && window.Aplicacoes.ultima ? window.Aplicacoes.ultima(fid, pid) : null;
+    return a ? { app: a, r: a.respostas || {} } : null;
+  }
+
+  /* OQ3, PQQ e Mapa do Proposito: a ultima aplicacao concluida (ou o que a
+     ficha tem). O Mapa do Proposito e montado do OQ3 + PQQ, como na tela —
+     sem inferir nada que nao esteja escrito. */
+  function dadosOQ3PQQ() {
     var pid = pacienteId();
     if (!pid) return "";
+    var p = pacienteAtivo() || {};
+    var oq3 = respostasDe("oq3", pid), pqq = respostasDe("pqq", pid);
+    var o = oq3 ? oq3.r : (p.oq3 || {}), q = pqq ? pqq.r : (p.pqq || {});
     var t = "";
-    // OQ3
-    var p = pacienteAtivo();
-    if (p && p.oq3) {
-      var o = p.oq3;
-      if (o.quer || o.precisa || o.consegue) {
-        t += "\n### OQ3\n";
-        t += linhaSe("O que quer", o.quer);
-        t += linhaSe("O que precisa", o.precisa);
-        t += linhaSe("O que consegue", o.consegue);
-        t += linhaSe("Alavancas", o.alavancas);
-      }
+    if (o.quer || o.precisa || o.consegue || o.alavancas) {
+      t += "\n### OQ³" + (oq3 && oq3.app.concluida_em ? " — " + dataBR(oq3.app.concluida_em) : "") + "\n";
+      t += linhaSe("O que quer", o.quer);
+      t += linhaSe("O que precisa", o.precisa);
+      t += linhaSe("O que consegue", o.consegue);
+      t += linhaSe("Alavancas", o.alavancas);
     }
-    // PQQ
-    if (p && p.pqq) {
-      var q = p.pqq;
-      if (q.objetivo || q.verdadeiro) {
-        t += "\n### PQQ\n";
-        t += linhaSe("Objetivo", q.objetivo);
-        t += linhaSe("Verdadeiro objetivo", q.verdadeiro);
-        ["r1", "r2", "r3", "r4", "r5"].forEach(function (k, i) {
-          if (q[k]) t += linhaSe("Porquê " + (i + 1), q[k]);
-        });
-      }
-    }
-    // Aplicacoes de ferramentas (se disponivel)
-    var dados;
-    try {
-      dados = JSON.parse(localStorage.getItem("holohacking.dados.aplicacoes")) || [];
-    } catch (e) { dados = []; }
-    var doP = dados.filter(function (a) { return a.paciente_id === pid; });
-    if (doP.length) {
-      t += "\n### Ferramentas aplicadas\n";
-      doP.forEach(function (a) {
-        t += "- " + (a.ferramenta || a.tool_id || "Ferramenta") +
-          " em " + dataBR(a.data || a.created_at) + "\n";
-        if (a.resultado) t += "  Resultado: " + String(a.resultado).slice(0, 200) + "\n";
+    if (q.objetivo || q.verdadeiro || q.r1) {
+      t += "\n### PQQ" + (pqq && pqq.app.concluida_em ? " — " + dataBR(pqq.app.concluida_em) : "") + "\n";
+      t += linhaSe("Objetivo", q.objetivo);
+      ["r1", "r2", "r3", "r4", "r5"].forEach(function (k, i) {
+        if (q[k]) t += linhaSe("Por quê " + (i + 1), q[k]);
       });
+      t += linhaSe("O verdadeiro", q.verdadeiro);
+    }
+    if (t) {
+      t += "\n### Mapa do Propósito\n";
+      t += linhaSe("Quer", o.quer);
+      t += linhaSe("Precisa", o.precisa);
+      t += linhaSe("Consegue", o.consegue);
+      t += linhaSe("Alavancas", o.alavancas);
+      t += linhaSe("Objetivo", q.objetivo);
+      t += q.verdadeiro ? linhaSe("Propósito", "“" + q.verdadeiro + "”")
+                        : "- Propósito: não definido (o PQQ não tem \"O verdadeiro\" preenchido)\n";
     }
     return t;
   }
 
+  var FERRAMENTAS_CONTEXTO = ["linha_momentum", "mapa_crencas", "roda_vida", "carta_futuro"];
+
+  function valorLegivel(v) {
+    if (v === null || v === undefined || v === "") return "";
+    if (Array.isArray(v)) return v.map(valorLegivel).filter(Boolean).join("; ");
+    if (typeof v === "object") return Object.keys(v).map(function (k) { return valorLegivel(v[k]); }).filter(Boolean).join(", ");
+    return String(v);
+  }
+
+  /* Linha do Momentum, Mapa de Crencas, Roda da Vida e Carta ao Futuro: a
+     ultima aplicacao concluida de cada uma, campo a campo, com o rotulo do
+     catalogo. Campo sem resposta nao entra. */
+  function dadosFerramentasCatalogo() {
+    var pid = pacienteId();
+    if (!pid || !window.CATALOGO_FERRAMENTAS) return "";
+    var t = "";
+    FERRAMENTAS_CONTEXTO.forEach(function (fid) {
+      var f = window.CATALOGO_FERRAMENTAS.filter(function (x) { return x.id === fid; })[0];
+      var ap = respostasDe(fid, pid);
+      if (!f || !ap) return;
+      var linhas = "";
+      (f.grupos || []).forEach(function (g) {
+        if (g.origem === "momentum_dimensoes" && window.CorpoBancos && window.CorpoBancos.MOMENTUM) {
+          window.CorpoBancos.MOMENTUM.dimensoes.forEach(function (d) {
+            var v = valorLegivel(ap.r[d.id]);
+            if (v) linhas += "- " + d.rotulo + ": " + v + "\n";
+          });
+        }
+      });
+      (f.campos || []).forEach(function (c) {
+        var v = valorLegivel(ap.r[c.id]);
+        if (v) linhas += "- " + c.rotulo + ": " + v + "\n";
+      });
+      if (f.lista && Array.isArray(ap.r[f.lista.id])) {
+        ap.r[f.lista.id].forEach(function (item, i) {
+          var v = valorLegivel(item);
+          if (v) linhas += "- " + (f.lista.titulo_item || "Item") + " " + (i + 1) + ": " + v + "\n";
+        });
+      }
+      if (ap.app.leitura) linhas += "- Leitura profissional: " + ap.app.leitura + "\n";
+      if (!linhas) return;
+      t += "\n### " + f.titulo + (ap.app.concluida_em ? " — " + dataBR(ap.app.concluida_em) : "") + "\n" + linhas;
+    });
+    return t;
+  }
+
+  function dadosFerramentas() {
+    return dadosOQ3PQQ() + dadosFerramentasCatalogo();
+  }
+
+  /* Rodada 08: as consultas vem da agenda (que, com conta, e o servidor):
+     proximas e anteriores, com data, hora, tipo e observacao. */
   function dadosConsultas() {
     var pid = pacienteId();
-    if (!pid) return "";
-    var dados;
-    try {
-      dados = JSON.parse(localStorage.getItem("holohacking.dados.consultas")) || [];
-    } catch (e) { dados = []; }
-    var doP = dados.filter(function (c) { return c.patient_id === pid; })
-      .sort(function (a, b) { return (b.data || "").localeCompare(a.data || ""); });
-    if (!doP.length) return "";
+    if (!pid || !window.Agenda || !window.Agenda.todas) return "";
+    var todas = window.Agenda.todas(pid);
+    if (!todas.length) return "";
+    var hoje = window.hojeISO ? window.hojeISO() : new Date().toISOString().slice(0, 10);
     var t = "";
-    doP.slice(0, 5).forEach(function (c, i) {
-      t += "\n### " + (i === 0 ? "Última consulta" : "Consulta " + (i + 1)) +
-        " — " + dataBR(c.data) + "\n";
-      t += linhaSe("Tipo", c.tipo);
-      t += linhaSe("Observações", c.observacoes);
-      t += linhaSe("Conduta", c.conduta);
+    todas.slice(0, 8).forEach(function (c) {
+      t += "- " + (c.data >= hoje ? "Marcada" : "Realizada") + " — " + dataBR(c.data) +
+        (c.hora ? " às " + String(c.hora).slice(0, 5) : "") +
+        (c.tipo ? " · " + c.tipo : "") + (c.duracao ? " · " + c.duracao + " min" : "") +
+        (c.nota ? " · " + c.nota : "") + "\n";
     });
     return t;
   }
@@ -289,8 +343,8 @@
     t += secaoSe("HOLOSCAN — Mapa HOLOS atual", dadosHoloscan());
     t += secaoSe("Camada Laboratorial", dadosExames());
     t += secaoSe("Leitura Integrada", dadosLeituraIntegrada());
-    t += secaoSe("Consultas recentes", dadosConsultas());
-    t += secaoSe("Ferramentas (OQ3, PQQ e outras)", dadosFerramentas());
+    t += secaoSe("Consultas", dadosConsultas());
+    t += secaoSe("Ferramentas (OQ³, PQQ, Mapa do Propósito e outras)", dadosFerramentas());
     var evo = dadosEvolucao();
     if (evo) t += secaoSe("Evolução do HOLOSCAN", evo);
     return t.trim() || "Nenhum dado disponível para este paciente.";

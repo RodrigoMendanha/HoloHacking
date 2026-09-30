@@ -99,6 +99,34 @@
         'stroke="var(--dourado)" stroke-width="2.5" stroke-linejoin="round"/>' : "") + "</svg>";
   }
 
+  /* Rodada 08: antes x agora tambem na Triade, e a lista de todas as
+     aplicacoes (data e Indice) — a evolucao nao e so a primeira e a ultima. */
+  var EIXOS = [["fisico", "Físico"], ["mental", "Mental"], ["espiritual", "Espiritual"]];
+  function blocoTriada(antes, depois) {
+    var ta = antes.triada || {}, td = depois.triada || {};
+    var F = window.HoloAusencia.fmt;
+    var linhas = EIXOS.filter(function (e) { return e[0] in ta || e[0] in td; });
+    if (!linhas.length) return "";
+    return '<div class="evo-triada"><h5 class="evo-sub">Tríade</h5>' +
+      linhas.map(function (e) {
+        var a = ta[e[0]], d = td[e[0]];
+        var tem = typeof a === "number" && typeof d === "number";
+        var delta = tem ? +(d - a).toFixed(1) : null;
+        return '<div class="evo-linha evo-linha-triada"><span class="evo-nome">' + e[1] + "</span>" +
+          '<span class="evo-de">' + F(a) + "</span>" +
+          '<span class="evo-para">' + F(d) + "</span>" +
+          '<span class="evo-delta ' + (delta === null ? "sem-dado" : delta > 0 ? "sobe" : delta < 0 ? "desce" : "igual") + '">' +
+            (delta === null ? "—" : (delta > 0 ? "+" : "") + delta.toFixed(1)) + "</span></div>";
+      }).join("") + "</div>";
+  }
+  function blocoAplicacoes(h) {
+    return '<div class="evo-aplicacoes"><h5 class="evo-sub">Aplicações</h5><ol class="evo-lista">' +
+      h.map(function (p, i) {
+        return "<li><span>" + (i + 1) + "ª &middot; " + escapar(dataBonita(p.quando)) + "</span>" +
+          "<b>Índice " + escapar(p.indice) + "</b></li>";
+      }).join("") + "</ol></div>";
+  }
+
   function desenhar() {
     var alvo = document.getElementById("holo-evolucao");
     if (!alvo) return;
@@ -158,6 +186,8 @@
             (l.delta === null ? "—" : (l.delta > 0 ? "+" : "") + l.delta.toFixed(1)) + "</span></div>";
       }).join("") +
       "</div></div></div>" +
+      blocoTriada(antes, depois) +
+      blocoAplicacoes(h) +
       '<p class="evo-nota">Linha pontilhada: a primeira aplicação. ' +
       'Área cheia: a de agora.' +
       (h.length > 2 ? " Há " + h.length + " aplicações no histórico." : "") + "</p>";

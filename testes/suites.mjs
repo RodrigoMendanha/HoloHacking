@@ -85,5 +85,6 @@ export const SUITES = [
   'testar-rodada08-exclusoes.mjs',
   'testar-rodada08-jornada.mjs',
   'testar-rodada08-sessao.mjs',
+  'testar-rodada08-contexto.mjs',
   'testar-conferir-producao.mjs',
 ];

@@ -808,6 +808,44 @@
     gravarSync(s);
   }
 
+  /** EXPORTACAO (rodada 08): todas as aplicacoes do HOLOSCAN de um paciente
+      como estao NO SERVIDOR — cada uma com as respostas e as notas por
+      sistema dela. { ok: true, aplicacoes } ou { ok: false }. Nada do cache
+      local entra: exportacao nao pode misturar rascunho com registro. */
+  function holoscanDoServidor(pid) {
+    if (!temSupa() || !pid || !UUID_RE.test(pid)) return Promise.resolve({ ok: false });
+    return lerEmLote("holoscan_applications", COLS_APP, "patient_id", [pid], ["quando", "created_at", "id"])
+      .then(function (apps) {
+        if (!apps.ok) return { ok: false };
+        var ids = apps.linhas.map(function (a) { return a.id; });
+        if (!ids.length) return { ok: true, aplicacoes: [] };
+        return Promise.all([
+          lerEmLote("holoscan_system_scores", COLS_SCORE, "application_id", ids, ["application_id", "sistema"]),
+          lerEmLote("holoscan_answers", COLS_ANSWER, "application_id", ids, ["application_id", "marcador_id"])
+        ]).then(function (r) {
+          if (!r[0].ok || !r[1].ok) return { ok: false };
+          var sc = {}, an = {};
+          r[0].linhas.forEach(function (x) { (sc[x.application_id] = sc[x.application_id] || []).push(x); });
+          r[1].linhas.forEach(function (x) { (an[x.application_id] = an[x.application_id] || []).push(x); });
+          var lista = apps.linhas.slice().sort(function (a, b) {
+            return String(a.quando).localeCompare(String(b.quando)) ||
+                   String(a.created_at).localeCompare(String(b.created_at));
+          }).map(function (a) {
+            var app = {};
+            Object.keys(a).forEach(function (k) { if (k !== "patient_id") app[k] = a[k]; });
+            app.sistemas = (sc[a.id] || []).map(function (x) {
+              var o = Object.assign({}, x); delete o.application_id; return o;
+            });
+            app.respostas = (an[a.id] || []).map(function (x) {
+              return { marcador_id: x.marcador_id, valor: x.valor };
+            });
+            return app;
+          });
+          return { ok: true, aplicacoes: lista };
+        });
+      });
+  }
+
   /** O registro de sincronizacao dos exames do paciente (copia) ou null:
       { estado: "rascunho" | "pendente" | "sincronizado", coleta, coletado_em }. */
   function estadoExames(pid) {
@@ -916,6 +954,7 @@
     atualizarColetas: atualizarColetas,
     marcarRascunhoExames: marcarRascunhoExames,
     estadoExames: estadoExames,
+    holoscanDoServidor: holoscanDoServidor,
     descartarRascunhoExames: descartarRascunhoExames,
     excluirColeta: excluirColeta,
     valoresDaColeta: function (c) { return valoresDaColeta(c || {}); },

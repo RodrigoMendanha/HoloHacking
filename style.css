@@ -1118,6 +1118,10 @@ body.escuro .btn-tema .icone-lua{display:none}
   padding:8px 0;border-bottom:1px solid rgba(201,163,90,.08);
 }
 .evo-linha:last-child{border-bottom:none}
+.evo-triada,.evo-aplicacoes{margin-top:14px}
+.evo-sub{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--texto-suave);margin:0 0 6px}
+.evo-lista{margin:0;padding-left:0;list-style:none;font-size:.85rem}
+.evo-lista li{display:flex;justify-content:space-between;gap:12px;padding:3px 0;border-bottom:1px solid var(--linha,rgba(0,0,0,.06))}
 .evo-nome{font-size:.86rem;font-weight:300;color:var(--texto)}
 .evo-de,.evo-para{
   text-align:right;font-variant-numeric:tabular-nums;font-size:.84rem;

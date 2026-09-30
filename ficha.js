@@ -583,7 +583,7 @@
 
     (d.historico || []).forEach(function (p, i) {
       eventos.push({
-        quando: p.quando, tipo: "mapa", selo: "HOLOSCAN",
+        quando: p.quando, ts: p._supa_criado_em || p.calculado_em || p.quando, tipo: "mapa", selo: "HOLOSCAN",
         titulo: (i + 1) + "ª aplicação do HOLOSCAN",
         detalhe: "Índice " + p.indice + " de " + p.indice_maximo,
         acao: "aba:visao"
@@ -598,7 +598,7 @@
         .filter(function (a) { return a.status !== "rascunho"; })
         .forEach(function (a) {
           eventos.push({
-            quando: diaLocal(a.concluida_em || a.iniciada_em),
+            quando: diaLocal(a.concluida_em || a.iniciada_em), ts: a.concluida_em || a.iniciada_em,
             tipo: "ferramenta", selo: nomeFerramenta(a.ferramenta_id),
             titulo: nomeFerramenta(a.ferramenta_id) + " aplicada",
             detalhe: a.leitura ? escapar(a.leitura) : "sem leitura registrada",
@@ -610,7 +610,7 @@
     if (window.Agenda && window.Agenda.todas) {
       window.Agenda.todas(pid).forEach(function (c) {
         eventos.push({
-          quando: c.data, hora: c.hora, tipo: "consulta", selo: c.tipo || "Consulta",
+          quando: c.data, hora: c.hora, ts: c.data + "T" + (c.hora || "00:00"), tipo: "consulta", selo: c.tipo || "Consulta",
           titulo: (diasDesde(c.data) < 0 ? "Consulta marcada" : "Consulta"),
           detalhe: c.hora + " &middot; " + (c.duracao || 60) + " min" +
                    (c.nota ? " &middot; " + escapar(c.nota) : ""),
@@ -629,7 +629,7 @@
         var n = (c.resultados || []).length;
         var semData = c.data_coleta_desconhecida || !c.coletado_em;
         eventos.push({
-          quando: semData ? "" : c.coletado_em, tipo: "exame", selo: "Exames",
+          quando: semData ? "" : c.coletado_em, ts: c.created_at || "", tipo: "exame", selo: "Exames",
           titulo: "Coleta de exames" + (semData ? " (data não informada)" : ""),
           detalhe: n + (n === 1 ? " exame" : " exames") +
                    (c.laboratorio ? " &middot; " + escapar(c.laboratorio) : ""),
@@ -648,14 +648,21 @@
     var pintar = function (arquivos) {
       arquivos.forEach(function (a) {
         eventos.push({
-          quando: a.data || "", tipo: "documento",
+          quando: a.data || "", ts: a.created_at || "", tipo: "documento",
           selo: a.tipo || "Documento",
           titulo: a.nome, detalhe: window.ArquivoStore.tamanhoLegivel(a.tamanho),
           acao: "aba:documentos"
         });
       });
 
-      eventos.sort(function (a, b) { return (b.quando || "").localeCompare(a.quando || ""); });
+      /* rodada 08: dia primeiro (a data clinica), e no mesmo dia o carimbo
+         real de quando aconteceu — antes a ordem do mesmo dia era a ordem em
+         que os blocos foram juntados aqui. Sem data vai para o fim. */
+      eventos.sort(function (a, b) {
+        if (!a.quando !== !b.quando) return a.quando ? -1 : 1;
+        return (b.quando || "").localeCompare(a.quando || "") ||
+               String(b.ts || "").localeCompare(String(a.ts || ""));
+      });
 
       if (!eventos.length) {
         alvo.innerHTML = '<div class="dash-vazio">Nada aconteceu ainda. ' +

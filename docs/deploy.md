@@ -122,10 +122,10 @@ Os comandos abaixo são a mesma conferência, arquivo por arquivo.
 
 ```sh
 curl -sI http://127.0.0.1:<PORTA>/app.js | grep -i cache-control   # Cache-Control: no-cache
-curl -s  http://127.0.0.1:<PORTA>/app.js | sha256sum               # 4bf721ebb70b...
+curl -s  http://127.0.0.1:<PORTA>/app.js | sha256sum               # 9ffb794f7453...
 curl -s  http://127.0.0.1:<PORTA>/arquivos.js | sha256sum          # 26e9996e26cd...
 curl -s  http://127.0.0.1:<PORTA>/index.html | sha256sum           # 3e5a3f1188c6...
-curl -s  https://holohacking.com.br/sincronizacao.js | sha256sum   # 1d363c320cf3...
+curl -s  https://holohacking.com.br/sincronizacao.js | sha256sum   # 52d51d4e6717...
 ```
 
 Se o `app.js` der `dfca9ef7fd1f...`, o deploy pegou um commit das rodadas
@@ -152,11 +152,11 @@ a imagem do `docker build` da branch de saneamento (o nginx ainda põe o
 
 ```
 3e5a3f1188c6cf81d82b5e0dcfa0f9a8c78de204d6fc42eb75da4d35385d6a28  index.html
-ebfd54f26a7fa461bfedc8415d7e47898d42cf2327989056d45e434539af0f12  style.css
+e8adab36a6560e53fcf14858eb2c5bfd87ba769af88e479eb55e07fe734ce583  style.css
 cd6ef22455f446156c4109649b2d0fc1fe803f0c6697e1029fa71e50ba44cf84  favicon.svg
 be6c481671b1209238ef5043bdae543a597e08a782ae945121c17fa883c29320  agenda.js
 2243d3895aefe00fd8d6275c6f4b2de2c211c15988982442c34cd3cd74b5425a  aplicacoes.js
-4bf721ebb70b70cd2ac48afff2c2743784c1b5ad3654ae78ff14cd28735a1205  app.js
+9ffb794f7453f61914e3384993e9d93e820fd1131496b56a9563a5c4260a0aa3  app.js
 d3efacba60b26bc2da2311a273881948882570773e4016f59ce2a0845661746c  armazenamento.js
 5c0b2916e9a7858df64084a7a73de464e1edd75a6f5f7112b7070726ab41c064  arquivo-store.js
 26e9996e26cd9a115657056b2cf84453b953a5180587a7a69ac569793bdf4c24  arquivos.js
@@ -166,15 +166,15 @@ ff7fe4c0fc6e91ec5f8f1bd6a5ec63f31e130386d22f68a81593aa527da333f9  consultas.js
 6da59e2472a3d78eb7a6d9f7906ebd0f2fe3eba74ef7345d4723f3f77664f994  corpo-bancos.js
 067d8023b58aee9b63d7accb58f75efbc2d86dc499e28e58ea868276e2ff5a3e  dados-router.js
 a77e7bf6acab37680d25eb5451442539bda71a84c6e921940a6065b9b9a3b806  dados.js
-9050e7a396452363a89caef423b2f291ba079a1b89ad6dbf0b705bbbb608999d  dashboard.js
+392ece6789795745726d86bde90d5a94038cbea4d8369a1e01e842f1e8eca293  dashboard.js
 3dc77dc11f87b4ba84105161194d306ee70b554ab1d6012d1df40dc1c2360f14  demo.js
 d7920a0868425c28a2b3192214010fee62bf1153a0c9c9478e8bc9481940cfcc  documentos.js
-be74e1fb5321796fd207c03fbf0abd964b925db26fc8095c3ee6424cd6f4f5b6  evolucao.js
+7df733172e7e6c6a269b4001b0bea84419bdc5bb18dc6ca71975ecc5ca879502  evolucao.js
 11e08342911df7f528993946a7e07746a9c26f66657eb0d139e746ade32e161f  excluir-paciente.js
 e31299488b3b783791cc2fc79b8aff907c604058f41cefb9ee959b5877664688  ferramentas.js
-666eb26c73909f62f0f450c63df394c9c9db981f57bf43c12c8f090bf7056a68  ficha.js
+e6b99a8df5a89d6f1310153e44d2240865f9945ad11904a571c62be6862ab1a5  ficha.js
 660b2218e216a8b68655c9935b4e9b2bc182ba63c6b232e9b4b4b85876ad900e  formulario.js
-d621f96a80646afc7bac9efe631d9e971ae0a0f0bd4911726a39bcbd787e1a19  holos-ai.js
+3f3450bcd1523b2711070911d0a08c937da9e185ecd26f117f98ddc8f47735ee  holos-ai.js
 b6c7e8b1341a10bf45c2f895218e5529176b9c36aa035be6a2aa1ed0fb41cfac  holoscan.js
 b2705ac28dc9f6175ec5586ef02e86b00f2fe1265dbb23a34e3bb2cebb8718c3  importar-v1.js
 2da07818f2274bad2b7ea8afaa5aede26b61039127c2e498aa95938adbae4451  login.js
@@ -185,7 +185,7 @@ cc6df703549926d580fabab5726f3fbed93de876d918ed1be6e28bf93b21d1a1  panorama.js
 8849e59a1d3fe76723aa1e59cc75213fc64172259c5bccd6d9b1151f21a9fb63  render-resultado.js
 23520f5f414deb288f083d0a08389a1c96d1ec918c50fb95d44c3b8b36758e8c  restaurar-backup.js
 2848d87ee9677b5327939694c6461d4f2eee0b11ec5cf44462d52c3a07f0964a  resultado-corpo.js
-1d363c320cf373cf29ae395cf5e341f8a5a924acedbcc6204b10530487a67f5c  sincronizacao.js
+52d51d4e67173745483d58e70aef7d99c78e1a5b930b44436355c3720248eada  sincronizacao.js
 482687b6663c97cfc92151da80a62ff0fdfa8f82fc3ff24a399ab583d3ff0d6d  supabase-client.js
 acdfee513cb26463cfa177e621bbc5e8fef99fef2afb5a917c29aaa4e3f83b90  utils.js
 f99c4197f8ac91ec9e5ec2f6970c12ad8ec0e3d8dc4513da856289799c095b68  validar-backup.js
