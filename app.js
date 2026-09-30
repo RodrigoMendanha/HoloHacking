@@ -349,7 +349,16 @@
     fecharFerramentas();
     window.scrollTo({ top:0, behavior:"smooth" });
   }));
-  $$(".nav-item").forEach(b => b.addEventListener("click", () => irPara(b.dataset.secao)));
+  /* Rodada 08: "Pacientes" no menu lateral e SEMPRE a lista — antes, com
+     uma ficha aberta, clicar nele deixava a ficha na tela. */
+  $$(".nav-item").forEach(b => b.addEventListener("click", () => {
+    irPara(b.dataset.secao);
+    if(b.dataset.secao === "pacientes"){
+      $("#vista-ficha").classList.add("hidden");
+      $("#vista-lista-pacientes").classList.remove("hidden");
+      renderPacientes();
+    }
+  }));
   // "aba:x" abre uma aba da ficha aberta, nao uma secao do menu — irPara("aba:x")
   // nao batia com secao nenhuma e zerava a tela (nenhuma .secao ficava ativa).
   $$("[data-ir]").forEach(c => c.addEventListener("click", () => {
@@ -1484,7 +1493,11 @@
     $("#painel-novo").classList.remove("hidden");
     $("#np-nome").focus();
   });
-  $("#btn-cancelar-paciente").addEventListener("click", () => fecharFormularioPaciente());
+  $("#btn-cancelar-paciente").addEventListener("click", () => {
+    const voltar = voltarParaFicha;
+    fecharFormularioPaciente();
+    if(voltar && estado.pacientes.some(x => x.id === voltar)) abrirFicha(voltar);
+  });
   $("#painel-novo").addEventListener("input", () => { if(window.marcaSuja) window.marcaSuja("paciente"); });
 
   let editandoPacienteId = null;
@@ -1511,9 +1524,17 @@
     $("#np-queixa").value = p.queixa || "";
   }
 
+  /* Rodada 08: o formulario mora dentro da lista de pacientes, que fica
+     escondida enquanto a ficha esta aberta — "Editar" abria um formulario
+     invisivel. Agora ele mostra a vista da lista (com o formulario) e, ao
+     salvar ou cancelar, volta para a ficha de onde veio. */
+  let voltarParaFicha = null;
   $("#btn-editar-paciente").addEventListener("click", () => {
     const p = pacienteAtivo();
     if(!p) return;
+    voltarParaFicha = p.id;
+    $("#vista-ficha").classList.add("hidden");
+    $("#vista-lista-pacientes").classList.remove("hidden");
     editandoPacienteId = p.id;
     preencherFormulario(p);
     $("#titulo-form-paciente").textContent = "Editar paciente";
@@ -1526,6 +1547,7 @@
   function fecharFormularioPaciente(){
     camposNovo.forEach(s => $(s).value = "");
     editandoPacienteId = null;
+    voltarParaFicha = null;
     $("#painel-novo").classList.add("hidden");
     $("#titulo-form-paciente").textContent = "Cadastrar paciente";
     $("#btn-salvar-paciente").textContent = "Salvar paciente";
@@ -1550,8 +1572,9 @@
         const idx = estado.pacientes.findIndex(x => x.id === editandoPacienteId);
         if(idx >= 0) Object.assign(estado.pacientes[idx], data);
         normalizarContato(estado.pacientes[idx] || data);
+        const editado = editandoPacienteId;
         fecharFormularioPaciente();
-        abrirFicha(editandoPacienteId);
+        abrirFicha(editado);
         renderPacientes();
         toast(campos.nome.split(" ")[0] + " atualizado com sucesso.");
       } else {

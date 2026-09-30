@@ -202,6 +202,11 @@ const editado = await p.evaluate(async () => {
   document.getElementById('cf-duracao').value = '30';
   document.getElementById('cf-nota').value = 'Levar o exame de sangue';
   document.querySelector('[data-salvar="consulta"]').click();
+  await new Promise(r => setTimeout(r, 200));
+  /* rodada 08: a consulta de Carla ja passou (relogio em 16/09) — mudar a
+     hora dela pede confirmacao antes de gravar */
+  const modalPassado = !document.getElementById('modal-confirmar-acao').classList.contains('hidden');
+  if (modalPassado) document.getElementById('modal-confirmar-ok').click();
   await new Promise(r => setTimeout(r, 500));
   const depois = [...document.querySelectorAll('.cal-evento.consulta')]
     .find(e => /Carla Souza/.test(e.innerText));
@@ -231,15 +236,21 @@ const choque = await p.evaluate(async (ids) => {
   document.getElementById('cf-data').value = ids.qua;
   document.getElementById('cf-hora').value = '15:00';   // dentro do 14:30+90
   document.querySelector('[data-salvar="consulta"]').click();
+  await new Promise(r => setTimeout(r, 250));
+  /* rodada 08: o conflito e perguntado ANTES de gravar */
+  const titulo = document.getElementById('modal-confirmar-titulo').textContent;
+  const corpo = document.getElementById('modal-confirmar-corpo').textContent;
+  const antes = window.DadosLocais.exportar().tabelas.consultas.length;
+  document.getElementById('modal-confirmar-ok').click();
   await new Promise(r => setTimeout(r, 600));
   return {
-    aviso: document.getElementById('toast').textContent,
+    titulo, corpo, antes,
     quantas: window.DadosLocais.exportar().tabelas.consultas.length,
   };
 }, ids);
 
-conferir(/já havia consulta às 14:30/.test(choque.aviso),
-  'marcar em cima de outra avisa: ' + choque.aviso);
+conferir(choque.titulo === 'Conflito de horário' && /Já há consulta às 14:30/.test(choque.corpo) && choque.antes === 3,
+  'marcar em cima de outra avisa ANTES de gravar: ' + choque.corpo.slice(0, 60));
 conferir(choque.quantas === 4,
   'mas não impede — às vezes é remarcação: ' + choque.quantas + ' consultas');
 

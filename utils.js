@@ -153,3 +153,32 @@
     return /arquivad|inativo/i.test(String((e && (e.message || e.details)) || e || ""));
   };
 })();
+
+/* ---------- MENSAGEM HUMANA (rodada 08) --------------------------------------
+   O erro do Postgres/PostgREST ("violates check constraint ...", "42501")
+   nao vai para a tela. mensagemHumana(erro) devolve a frase que a pessoa
+   entende; o erro cru continua no console para diagnostico. */
+(function () {
+  "use strict";
+  window.mensagemHumana = function (e) {
+    var m = String((e && (e.message || e.details || e.hint)) || e || "");
+    var code = e && e.code ? String(e.code) : "";
+    if (/arquivad/i.test(m)) return window.MSG_ARQUIVADO;
+    if (/futur/i.test(m)) return "A data não pode ser no futuro.";
+    if (/coleta ja existe/i.test(m)) return "Já existe uma coleta nessa data. Para mudar os valores dela, use Editar.";
+    if (/Failed to fetch|NetworkError|network|sem conex/i.test(m)) {
+      return "Sem conexão com o servidor. Nada foi gravado; tente de novo.";
+    }
+    if (code === "42501" || /row-level security|permission denied|JWT/i.test(m)) {
+      return "Sem permissão para esta ação. Entre de novo na sua conta e tente outra vez.";
+    }
+    if (code === "23505" || /duplicate key/i.test(m)) return "Este registro já existe.";
+    if (code === "23503" || /foreign key/i.test(m)) {
+      return "Este registro depende de outro que não existe mais (ou ainda é usado por outro).";
+    }
+    if (code === "23514" || code === "22007" || code === "22008" || /check constraint|invalid input/i.test(m)) {
+      return "Algum campo tem um valor que não é aceito. Confira e tente de novo.";
+    }
+    return "Não foi possível concluir agora. Nada foi alterado; tente de novo.";
+  };
+})();

@@ -115,6 +115,50 @@
       "</li>";
   }
 
+  /* ---------- as consultas de verdade (rodada 08) ------------------------
+     A tela abre com as CONSULTAS registradas na agenda (tabela
+     consultations): proximas e anteriores, de toda a carteira. As aplicacoes
+     do HOLOSCAN continuam logo abaixo, com esse nome — antes elas eram a
+     tela inteira, e uma consulta marcada nunca aparecia em "Consultas". */
+
+  function nomeDoPaciente(pid) {
+    var todos = (window.pacientesTodos && window.pacientesTodos()) || [];
+    for (var i = 0; i < todos.length; i++) if (todos[i].id === pid) return todos[i].nome;
+    return "Paciente";
+  }
+
+  function linhaConsulta(c) {
+    var nome = nomeDoPaciente(c.paciente_id);
+    return '<li class="cons-linha">' +
+      '<span class="con-dia">' + escapar(dataBR(c.data)) +
+        (c.hora ? " &middot; " + escapar(String(c.hora).slice(0, 5)) : "") + "</span>" +
+      '<span class="pac-avatar">' + escapar(inicial(nome)) + "</span>" +
+      '<span class="con-quem"><b>' + escapar(nome) + "</b>" +
+        '<span class="con-detalhe">' + escapar(c.tipo || "Consulta") +
+          (c.duracao ? " &middot; " + escapar(c.duracao) + " min" : "") +
+          (c.nota ? " &middot; " + escapar(c.nota) : "") + "</span></span>" +
+      '<button type="button" class="dash-ir" data-paciente="' + escapar(c.paciente_id) +
+        '">Abrir ficha <span aria-hidden="true">&rarr;</span></button>' +
+      "</li>";
+  }
+
+  function blocoAgenda() {
+    var todas = window.Agenda && window.Agenda.daCarteira ? window.Agenda.daCarteira() : null;
+    if (!todas) return "";
+    var hoje = hojeISO();
+    var proximas = todas.filter(function (c) { return c.data >= hoje; });
+    var anteriores = todas.filter(function (c) { return c.data < hoje; }).reverse();
+    var html = '<div class="dash-bloco" id="consultas-agenda"><h3 class="dash-titulo">Próximas consultas</h3>';
+    html += proximas.length
+      ? '<ul class="con-lista">' + proximas.map(linhaConsulta).join("") + "</ul>"
+      : '<p class="dash-vazio">Nenhuma consulta marcada daqui para a frente.</p>';
+    html += '<h3 class="dash-titulo">Consultas anteriores</h3>';
+    html += anteriores.length
+      ? '<ul class="con-lista">' + anteriores.map(linhaConsulta).join("") + "</ul>"
+      : '<p class="dash-vazio">Nenhuma consulta anterior registrada na agenda.</p>';
+    return html + "</div>";
+  }
+
   /* ---------- desenhar ---------------------------------------------------- */
 
   function desenhar() {
@@ -128,9 +172,10 @@
       '<div class="secao-cabeca">' +
         '<span class="eyebrow">Atendimento &mdash; histórico</span>' +
         "<h2>Suas <em>consultas</em></h2>" +
-        "<p>Cada aplicação do HOLOSCAN é um atendimento registrado. " +
-        "Esta é a linha do tempo da sua carteira inteira, da mais recente para a mais antiga.</p>" +
-      "</div>";
+        "<p>As consultas registradas na agenda, próximas e anteriores. Abaixo, as " +
+        "aplicações do HOLOSCAN da carteira inteira, da mais recente para a mais antiga.</p>" +
+      "</div>" + blocoAgenda() +
+      '<h3 class="dash-titulo">Aplicações do HOLOSCAN</h3>';
 
     if (lista.length === 0) {
       alvo.innerHTML = cabeca +

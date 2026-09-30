@@ -676,27 +676,62 @@
 
     if (!d.data || !d.hora) { avisar("Informe o dia e a hora."); if (btnSalvar) window.destravarBotao(btnSalvar); return; }
 
-    /* Duas consultas no mesmo horário é quase sempre engano de digitação, e
-       descobrir isso na hora da consulta é tarde. Avisa e deixa passar: às
-       vezes é de propósito — remarcou e vai cancelar a outra em seguida. */
+    /* Rodada 08: o conflito de horario e a consulta no passado sao
+       perguntados ANTES de gravar — antes, o aviso de choque vinha depois,
+       com a consulta ja marcada. Continua sendo possivel marcar mesmo assim
+       (as vezes e de proposito), mas agora e uma decisao, nao uma surpresa. */
+    var a1 = minutos(d.hora), a2 = a1 + (d.duracao || 60);
     var choque = consultas.filter(function (c) {
       if (c.id === d.id || c.data !== d.data) return false;
-      var a1 = minutos(d.hora), a2 = a1 + d.duracao;
       var b1 = minutos(c.hora), b2 = b1 + (Number(c.duracao) || 60);
       return a1 < b2 && b1 < a2;
     })[0];
+    var bloqueio = bloqueios.filter(function (b) {
+      if (b.data !== d.data) return false;
+      if (b.dia_todo) return true;
+      if (!b.inicio || !b.fim) return false;
+      return a1 < minutos(b.fim) && minutos(b.inicio) < a2;
+    })[0];
+    var agora = new Date();
+    var passado = d.data < iso(hoje()) ||
+      (d.data === iso(hoje()) && a1 < agora.getHours() * 60 + agora.getMinutes());
+    var original = d.id ? consultas.filter(function (c) { return c.id === d.id; })[0] : null;
+    var mudouQuando = !original || original.data !== d.data || original.hora !== d.hora;
 
-    gravarConsulta(d).then(function (r) {
-      if (r && r.error) { avisar(r.error.message); return; }
-      editando = null;
-      foco = deIso(d.data);
-      return carregar().then(function () {
-        desenhar();
-        if (window.avisar) {
-          window.avisar(choque
-            ? "Marcado — mas já havia consulta às " + choque.hora + " neste dia."
-            : "Consulta marcada para " + dataBR(d.data) + " às " + d.hora + ".");
+    var perguntas = [];
+    if (choque) perguntas.push("Já há consulta às " + String(choque.hora).slice(0, 5) +
+      (choque.paciente_id ? " (" + nomeDe(choque.paciente_id) + ")" : "") + " neste dia — os horários se sobrepõem.");
+    if (bloqueio) perguntas.push(bloqueio.dia_todo ? "Este dia está bloqueado na agenda" +
+        (bloqueio.motivo ? " (" + bloqueio.motivo + ")" : "") + "."
+      : "O horário cai num bloqueio da agenda (" + String(bloqueio.inicio).slice(0, 5) + "–" +
+        String(bloqueio.fim).slice(0, 5) + ").");
+    if (passado && mudouQuando) perguntas.push("A data e a hora ficam no passado (" + dataBR(d.data) +
+      " às " + d.hora + ") — isto registra uma consulta que já aconteceu.");
+
+    var decidir = !perguntas.length || !window.abrirModalConfirmar
+      ? Promise.resolve("confirmar")
+      : window.abrirModalConfirmar({
+          titulo: choque || bloqueio ? "Conflito de horário" : "Consulta no passado",
+          corpo: perguntas.map(function (p) { return "<p>" + escapar(p) + "</p>"; }).join("") +
+                 "<p>Deseja salvar mesmo assim?</p>",
+          botaoConfirmar: "Salvar mesmo assim",
+          classeConfirmar: "btn-verde"
+        });
+
+    decidir.then(function (resp) {
+      if (resp !== "confirmar") return null;
+      return gravarConsulta(d).then(function (r) {
+        if (r && r.error) {
+          avisar(window.mensagemHumana ? window.mensagemHumana(r.error)
+                                       : "Não foi possível salvar a consulta. Nada foi gravado; tente de novo.");
+          return;
         }
+        editando = null;
+        foco = deIso(d.data);
+        return carregar().then(function () {
+          desenhar();
+          if (window.avisar) window.avisar("Consulta marcada para " + dataBR(d.data) + " às " + d.hora + ".");
+        });
       });
     }).finally(function () { if (btnSalvar) window.destravarBotao(btnSalvar); });
   }
@@ -712,6 +747,8 @@
     d.motivo = document.getElementById("bf-motivo").value.trim();
 
     if (!d.data) { avisar("Informe o dia."); if (btnSalvar) window.destravarBotao(btnSalvar); return; }
+    /* dia todo: sem horario — manda null, nunca a hora que sobrou no campo */
+    if (d.dia_todo) { d.inicio = null; d.fim = null; }
     if (!d.dia_todo) {
       if (!d.inicio || !d.fim) { avisar("Informe o início e o fim."); if (btnSalvar) window.destravarBotao(btnSalvar); return; }
       if (minutos(d.fim) <= minutos(d.inicio)) {
@@ -722,7 +759,11 @@
     }
 
     gravarBloqueio(d).then(function (r) {
-      if (r && r.error) { avisar(r.error.message); return; }
+      if (r && r.error) {
+        avisar(window.mensagemHumana ? window.mensagemHumana(r.error)
+                                     : "Não foi possível salvar o bloqueio. Nada foi gravado; tente de novo.");
+        return;
+      }
       editando = null;
       foco = deIso(d.data);
       return carregar().then(desenhar);
@@ -835,6 +876,9 @@
       }
       if (ev.target.id === "bf-dia-todo" && editando) {
         editando.dado.dia_todo = ev.target.checked;
+        /* rodada 08: redesenhar nao pode perder a data ja escolhida */
+        var campoData = document.getElementById("bf-data");
+        if (campoData && campoData.value) editando.dado.data = campoData.value;
         editando.dado.inicio = document.getElementById("bf-inicio").value;
         editando.dado.fim = document.getElementById("bf-fim").value;
         editando.dado.motivo = document.getElementById("bf-motivo").value;
@@ -862,6 +906,14 @@
         .sort(function (a, b) {
           return b.data.localeCompare(a.data) || minutos(b.hora) - minutos(a.hora);
         });
+    },
+    /** Todas as consultas da carteira (copia), da mais antiga para a mais
+        nova — a tela Consultas le daqui. */
+    daCarteira: function () {
+      return consultas.filter(function (c) { return c && typeof c.data === "string"; })
+        .sort(function (a, b) {
+          return a.data.localeCompare(b.data) || minutos(a.hora) - minutos(b.hora);
+        }).map(function (c) { return Object.assign({}, c); });
     },
     recarregar: function () { return carregar().then(desenhar); },
     /** So os dados, sem desenhar: a sincronizacao (sincronizacao.js) chama
