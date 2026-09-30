@@ -122,7 +122,7 @@ Os comandos abaixo são a mesma conferência, arquivo por arquivo.
 
 ```sh
 curl -sI http://127.0.0.1:<PORTA>/app.js | grep -i cache-control   # Cache-Control: no-cache
-curl -s  http://127.0.0.1:<PORTA>/app.js | sha256sum               # 179362f65fdf...
+curl -s  http://127.0.0.1:<PORTA>/app.js | sha256sum               # 4bf721ebb70b...
 curl -s  http://127.0.0.1:<PORTA>/arquivos.js | sha256sum          # 26e9996e26cd...
 curl -s  http://127.0.0.1:<PORTA>/index.html | sha256sum           # 3e5a3f1188c6...
 curl -s  https://holohacking.com.br/sincronizacao.js | sha256sum   # 1d363c320cf3...
@@ -156,7 +156,7 @@ ebfd54f26a7fa461bfedc8415d7e47898d42cf2327989056d45e434539af0f12  style.css
 cd6ef22455f446156c4109649b2d0fc1fe803f0c6697e1029fa71e50ba44cf84  favicon.svg
 be6c481671b1209238ef5043bdae543a597e08a782ae945121c17fa883c29320  agenda.js
 2243d3895aefe00fd8d6275c6f4b2de2c211c15988982442c34cd3cd74b5425a  aplicacoes.js
-179362f65fdfb8d801c432def6c673bac1ad6cd9c1d37890b246cfccbdb06f31  app.js
+4bf721ebb70b70cd2ac48afff2c2743784c1b5ad3654ae78ff14cd28735a1205  app.js
 d3efacba60b26bc2da2311a273881948882570773e4016f59ce2a0845661746c  armazenamento.js
 5c0b2916e9a7858df64084a7a73de464e1edd75a6f5f7112b7070726ab41c064  arquivo-store.js
 26e9996e26cd9a115657056b2cf84453b953a5180587a7a69ac569793bdf4c24  arquivos.js
@@ -177,7 +177,7 @@ e31299488b3b783791cc2fc79b8aff907c604058f41cefb9ee959b5877664688  ferramentas.js
 d621f96a80646afc7bac9efe631d9e971ae0a0f0bd4911726a39bcbd787e1a19  holos-ai.js
 b6c7e8b1341a10bf45c2f895218e5529176b9c36aa035be6a2aa1ed0fb41cfac  holoscan.js
 b2705ac28dc9f6175ec5586ef02e86b00f2fe1265dbb23a34e3bb2cebb8718c3  importar-v1.js
-d3309f4a715f1f3d239842065a19f9cf2ba73baedbdb97fd979206ab8088e934  login.js
+2da07818f2274bad2b7ea8afaa5aede26b61039127c2e498aa95938adbae4451  login.js
 166b0e323628000f7e1a8274eb5b0012d5a22af67d4804c7b4d4f0e95efacf55  migracao-supa.js
 cc6df703549926d580fabab5726f3fbed93de876d918ed1be6e28bf93b21d1a1  panorama.js
 8e9ca59fa95d36df3c2bd1516ec04a2054ea30cfd14f0d910725e69aa0112629  perfil.js

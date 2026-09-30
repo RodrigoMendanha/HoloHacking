@@ -25,7 +25,58 @@
     estado.pacientes = [];
     estado.ativo = null;
     estado.carregado = false;
+    limparTelaClinica();
   };
+
+  /* Rodada 08 — LOGOUT NAO DEIXA DADO CLINICO NA PAGINA. A tela de entrada
+     cobre o app, mas o HTML de baixo continuava com nomes, fichas, respostas
+     e exames da conta que saiu (visiveis no inspetor, e na proxima conta ate
+     o primeiro redesenho). Aqui: todo campo digitavel do app volta vazio, e
+     todo conteudo desenhado por JS com dado de paciente e esvaziado — cada
+     tela se desenha de novo quando for aberta pela proxima sessao. */
+  const DESENHADOS_POR_JS = [
+    "#lista-pacientes", "#pac-sel-acoes", ".aba-painel", "[id^='vista-gen-']", ".ferr-historico",
+    "#agenda-corpo", "#consultas-corpo", "#documentos-corpo", "#fic-janela-corpo",
+    "#dash-trabalho",
+    "#holo-prioridades", "#holo-dominantes", "#holo-confronto", "#holo-leitura",
+    "#holo-triada", "#holo-evolucao", "#holo-territorios",
+    "#holo-frequencias", "#holo-origem", "#painel-pac-revisao"
+  ].join(", ");
+  /* o Mapa do Proposito e a interpretacao tem texto-guia no HTML: voltam
+     para ele, nao para vazio */
+  const MAPA_IDS = ["holo-interpretacao", "mapa-paciente", "mapa-objetivo", "mapa-quer", "mapa-precisa", "mapa-consegue",
+                    "mapa-alavancas", "mapa-proposito", "mapa-impressao"];
+  const MAPA_INICIAL = {};
+  MAPA_IDS.forEach(id => { const el = document.getElementById(id); if(el) MAPA_INICIAL[id] = el.innerHTML; });
+  function limparTelaClinica(){
+    const app = document.getElementById("app");
+    if(!app) return;
+    app.querySelectorAll("input, textarea").forEach(el => {
+      const t = (el.type || "").toLowerCase();
+      if(t === "button" || t === "submit" || t === "hidden" || t === "range" || t === "color") return;
+      if(t === "checkbox" || t === "radio"){ el.checked = false; return; }
+      el.value = "";
+    });
+    app.querySelectorAll(DESENHADOS_POR_JS).forEach(el => { el.innerHTML = ""; });
+    /* seletores de paciente (HOLOSCAN, OQ3, PQQ, mapa, confronto): so a
+       opcao vazia fica — as outras sao nomes de paciente */
+    app.querySelectorAll("select").forEach(sel => {
+      [...sel.options].forEach(o => { if(o.value && sel.id && /^sel-/.test(sel.id)) o.remove(); });
+    });
+    MAPA_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if(el && MAPA_INICIAL[id] !== undefined) el.innerHTML = MAPA_INICIAL[id];
+    });
+    ["ficha-nome", "ficha-sobre", "ficha-avatar"].forEach(id => {
+      const el = document.getElementById(id); if(el) el.textContent = "";
+    });
+    const nome = document.getElementById("bpctx-nome"); if(nome) nome.textContent = "Paciente";
+    const barra = document.getElementById("barra-paciente-ctx"); if(barra) barra.hidden = true;
+    const ficha = document.getElementById("vista-ficha");
+    const lista = document.getElementById("vista-lista-pacientes");
+    if(ficha) ficha.classList.add("hidden");
+    if(lista) lista.classList.remove("hidden");
+  }
 
   /* A pontuacao que esta na tela agora, quando ela veio do questionario.
      Null quando a nutricionista esta pontuando a mao — e a diferenca importa
@@ -1566,9 +1617,36 @@
 
     try {
       if(editandoPacienteId){
-        const { data, error } = await sb.from("pacientes").update(campos)
-          .eq("id", editandoPacienteId).select().single();
-        if(error){ toast("Não foi possível salvar. Tente novamente."); return; }
+        /* Rodada 08 — concorrencia entre abas/aparelhos: manda SO os campos
+           que mudaram (editar o telefone aqui nao desfaz a queixa editada
+           noutra aba) e, com conta, exige que o cadastro ainda esteja na
+           versao que foi aberta (updated_at). Se outra aba salvou antes,
+           nada e gravado e a tela diz isso. */
+        const original = estado.pacientes.find(x => x.id === editandoPacienteId) || {};
+        const mudancas = {};
+        Object.keys(campos).forEach(k => {
+          const antes = original[k] === undefined || original[k] === "" ? null : original[k];
+          const agora = campos[k] === undefined || campos[k] === "" ? null : campos[k];
+          if(antes !== agora) mudancas[k] = campos[k];
+        });
+        if(!Object.keys(mudancas).length){
+          const mesmo = editandoPacienteId;
+          fecharFormularioPaciente();
+          abrirFicha(mesmo);
+          toast("Nada mudou no cadastro.");
+          return;
+        }
+        const comConta = !!(window.HoloAuth && window.HoloAuth.sessaoAtiva());
+        let q = sb.from("pacientes").update(mudancas).eq("id", editandoPacienteId);
+        if(comConta && original.updated_at) q = q.eq("updated_at", original.updated_at);
+        const { data: linhas, error } = await q.select();
+        if(error){ toast(window.mensagemHumana(error)); return; }
+        const data = Array.isArray(linhas) ? linhas[0] : linhas;
+        if(!data){
+          toast("Este cadastro foi alterado em outra aba ou aparelho depois que você o abriu. " +
+                "Nada foi gravado — feche e abra a ficha de novo para ver a versão atual.");
+          return;
+        }
         const idx = estado.pacientes.findIndex(x => x.id === editandoPacienteId);
         if(idx >= 0) Object.assign(estado.pacientes[idx], data);
         normalizarContato(estado.pacientes[idx] || data);
@@ -1578,10 +1656,28 @@
         renderPacientes();
         toast(campos.nome.split(" ")[0] + " atualizado com sucesso.");
       } else {
+        /* nome igual ignorando acento, caixa e espacos: quase sempre e o
+           mesmo paciente cadastrado duas vezes. Avisa e deixa decidir —
+           homonimos existem. */
+        const normal = t => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase().replace(/\s+/g, " ").trim();
+        const parecido = estado.pacientes.find(x => normal(x.nome) === normal(campos.nome));
+        if(parecido){
+          const r = await abrirModalConfirmar({
+            titulo: "Já existe paciente com nome semelhante.",
+            corpo: "<p>Já existe <b>" + escapar(parecido.nome) + "</b>" +
+                   (parecido.status === "inativo" ? " (arquivado)" : "") +
+                   " na sua carteira. Se for a mesma pessoa, abra a ficha dela em vez de cadastrar de novo.</p>" +
+                   "<p>Cadastrar outro paciente com este nome mesmo assim?</p>",
+            botaoConfirmar: "Cadastrar mesmo assim",
+            classeConfirmar: "btn-verde"
+          });
+          if(r !== "confirmar") return;
+        }
         const { data, error } = await sb.from("pacientes").insert(
           Object.assign({}, campos, { status: "ativo" })
         ).select().single();
-        if(error){ toast("Não foi possível cadastrar. Tente novamente."); return; }
+        if(error){ toast(window.mensagemHumana(error)); return; }
         normalizarContato(data);
         data.oq3 = vazioOQ3();
         data.pqq = vazioPQQ();

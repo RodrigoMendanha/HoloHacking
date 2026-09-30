@@ -102,6 +102,7 @@
       CHAVES_CLINICAS.forEach(function (k) { localStorage.removeItem(k); });
       localStorage.removeItem(CHAVE_DONO);
     } catch (e) { /* navegador em modo privado */ }
+    if (window.Sujeira) window.Sujeira.limparTudo();   // edicao nao salva da conta que saiu
     if (window.limparEstadoApp) window.limparEstadoApp();
     if (window.limparEstadoPerfil) window.limparEstadoPerfil();
     if (window.Sincronizacao) window.Sincronizacao.esquecer();
