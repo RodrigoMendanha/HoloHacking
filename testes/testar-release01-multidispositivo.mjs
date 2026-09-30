@@ -155,6 +155,7 @@ const estadoLocal = (p, pid) => p.evaluate((pid) => {
   return {
     historico: (L('holohacking.pontuacao')[pid]) || [],
     questionario: L('holohacking.questionario')[pid] || {},
+    aplicadas: (L('holohacking.respostas_aplicadas')[pid] || {}).respostas || {},
     exames: L('holohacking.exames')[pid] || null,
     coletas: window.Sincronizacao.coletas(pid),
     aplicacoes: window.Aplicacoes.doPaciente(pid).map(a => ({ id: a.id, f: a.ferramenta_id, s: a.status })),
@@ -278,9 +279,11 @@ ok((eb.historico[0].sistemas || []).length === 5 &&
    eb.historico[0].sistemas.map(s => s.sistema).join(',') ===
    'fungico,acido_inflamatorio,metabolico,detox_linfatico,mental_emocional_espiritual',
    'os 5 scores, na ordem do motor');
-ok(Object.keys(eb.questionario).length === 84 &&
-   Object.keys(holo1.respostas).every(k => eb.questionario[k] === holo1.respostas[k]),
-   'as 84 respostas voltaram para o questionario de B, identicas');
+ok(Object.keys(eb.aplicadas).length === 84 &&
+   Object.keys(holo1.respostas).every(k => eb.aplicadas[k] === holo1.respostas[k]),
+   'as 84 respostas da aplicacao chegaram a B (respostas aplicadas), identicas');
+ok(Object.keys(eb.questionario).length === 0,
+   'rodada 08: o questionario de B comeca VAZIO — reaplicar nao copia a aplicacao anterior');
 ok(eb.exames && eb.exames[exames[0]] === 91 && eb.exames[exames[1]] === 5.4 && eb.exames[exames[2]] === undefined,
    'valores atuais de exame = os da coleta mais recente: ' + JSON.stringify(eb.exames));
 ok(Array.isArray(eb.coletas) && eb.coletas.length === 2 &&
@@ -438,8 +441,9 @@ ok(eb.historico.some(e => e.quando === '2026-01-10' && !e._supa_id),
    'B: entrada so-local (nunca salva) de outro dia foi preservada');
 ok(String(eb.historico[eb.historico.length - 1].indice) === holo2.indice,
    'B: a ultima e a aplicacao mais nova de A (Indice ' + holo2.indice + ')');
-ok(Object.keys(holo2.respostas).every(k => eb.questionario[k] === holo2.respostas[k]),
-   'B: respostas locais antigas (intocadas) trocadas pelas da aplicacao nova');
+ok(Object.keys(holo2.respostas).every(k => eb.aplicadas[k] === holo2.respostas[k]) &&
+   Object.keys(eb.questionario).length === 0,
+   'B: respostas aplicadas = as da aplicacao nova; a copia velha saiu do rascunho');
 ok(eb.exames && eb.exames[exames[0]] === 88 && eb.exames[exames[1]] === 6.1,
    'B: valores de exame antigos trocados pelos do servidor: ' + JSON.stringify(eb.exames));
 ok(eb.coletas.length === 3 && eb.coletas.some(c => c.coletado_em === antiga) &&

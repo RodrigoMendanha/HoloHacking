@@ -217,9 +217,14 @@
           existentes[e.patient_id + "|" + e.quando] = true;
         });
 
-        var qDados;
+        var qDados, apDados;
         try { qDados = JSON.parse(localStorage.getItem("holohacking.questionario")) || {}; }
         catch (e) { qDados = {}; }
+        /* Rodada 08: salvar o HOLOSCAN (mesmo sem sessao) move as respostas do
+           rascunho para respostas_aplicadas. A aplicacao local ainda nao
+           enviada leva as respostas de la. */
+        try { apDados = JSON.parse(localStorage.getItem("holohacking.respostas_aplicadas")) || {}; }
+        catch (e) { apDados = {}; }
 
         var pendentes = [];
 
@@ -246,8 +251,10 @@
 
             var isUltima = idx === lista.length - 1;
             var answers = [];
-            if (isUltima && qDados[pid]) {
-              var q = qDados[pid];
+            var ap = apDados[pid];
+            var daAplicada = ap && !ap.app && ap.quando === ent.quando && ap.respostas;
+            var q = daAplicada ? ap.respostas : (isUltima ? qDados[pid] : null);
+            if (q && Object.keys(q).length) {
               answers = Object.keys(q).map(function (mid) {
                 return { marcador_id: mid, valor: q[mid] };
               });

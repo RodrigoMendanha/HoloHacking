@@ -608,8 +608,8 @@ const intacto = await A.evaluate(async () => {
     idsManifesto: Ar.MANIFESTO.map(e => e.id)
   };
 });
-ok(intacto.manifesto === 13 && intacto.exportaveis === 12 && intacto.noBackup === 12,
-   'o manifesto segue com 13 e o Backup V2 com 12 — a revisao nao virou dado');
+ok(intacto.manifesto === 14 && intacto.exportaveis === 13 && intacto.noBackup === 13,
+   'o manifesto segue com 14 e o Backup V2 com 13 — a revisao nao virou dado');
 ok(!intacto.citaRevisao &&
    intacto.idsManifesto.indexOf('revisao') === -1,
    'e `holohacking.revisao` nao aparece no pacote nem no manifesto');

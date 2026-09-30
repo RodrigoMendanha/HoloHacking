@@ -47,6 +47,7 @@
 
   var CHAVE_PONT = "holohacking.pontuacao";
   var CHAVE_Q = "holohacking.questionario";
+  var CHAVE_APLICADAS = "holohacking.respostas_aplicadas";
   var CHAVE_EX = "holohacking.exames";
   var CHAVE_SYNC = "holohacking.sincronizacao";
 
@@ -396,22 +397,33 @@
       });
       if (mudouPont) gravarJSON(CHAVE_PONT, tudo, "pontuacao");
 
-      // 2. respostas do questionario
-      var mudouQ = false;
+      /* 2. respostas (rodada 08)
+         As respostas da ultima aplicacao do servidor vao para
+         holohacking.respostas_aplicadas (so para rever o que foi respondido).
+         O rascunho do questionario (holohacking.questionario) NUNCA e
+         preenchido com elas: reaplicar comeca vazio. Rascunho que e so copia
+         de aplicacao ja salva ("substituir", ou igual as remotas) e apagado;
+         rascunho de verdade (respostas novas, nao salvas) fica. */
+      var ap = lerJSON(CHAVE_APLICADAS);
+      var mudouQ = false, mudouAp = false;
       ids.forEach(function (pid) {
         var lista = porPaciente[pid];
         if (!lista || !lista.length) return;
         var ult = lista[lista.length - 1];
         var remotas = respostasUltima[ult._supa_id] || {};
-        if (decisoes[pid] === "substituir") {
-          q[pid] = Object.assign({}, remotas);
-          mudouQ = true;
+        if (!vazio(remotas)) {
+          var novo = { app: ult._supa_id, quando: ult.quando, respostas: Object.assign({}, remotas) };
+          if (JSON.stringify(ap[pid]) !== JSON.stringify(novo)) { ap[pid] = novo; mudouAp = true; }
         }
-        if (decisoes[pid] === "substituir" || assinatura(q[pid]) === assinatura(remotas)) {
-          sync.questionario[pid] = { app: ult._supa_id, assinatura: assinatura(q[pid]) };
+        var copia = decisoes[pid] === "substituir" ||
+          (!vazio(q[pid]) && assinatura(q[pid]) === assinatura(remotas));
+        if (copia && q[pid] !== undefined) { delete q[pid]; mudouQ = true; }
+        if (copia || vazio(q[pid])) {
+          sync.questionario[pid] = { app: ult._supa_id, assinatura: assinatura({}) };
         }
       });
       if (mudouQ) gravarJSON(CHAVE_Q, q, "questionario");
+      if (mudouAp) gravarJSON(CHAVE_APLICADAS, ap, "respostas_aplicadas");
       gravarSync(sync);
 
       return { estado: "ok", aplicacoes: apps.length };

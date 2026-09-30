@@ -61,14 +61,14 @@ const m = await p.evaluate(() => {
   };
 });
 
-/* A — as 13 conhecidas, nem mais nem menos */
+/* A — as 14 conhecidas, nem mais nem menos */
 const ESPERADAS = ['pacientes', 'aplicacoes', 'consultas', 'bloqueios', 'holoscan',
                    'oq3', 'pqq', 'perfil', 'questionario', 'pontuacao', 'exames',
-                   'aparencia', 'arquivos'];
+                   'aparencia', 'arquivos', 'respostas_aplicadas'];
 ok(m.existe, 'window.Armazenamento existe');
-ok(m.total === 13, 'o manifesto tem exatamente 13 armazenamentos: ' + m.total);
+ok(m.total === 14, 'o manifesto tem exatamente 14 armazenamentos: ' + m.total);
 ok(ESPERADAS.every(id => m.ids.indexOf(id) >= 0) && m.ids.length === ESPERADAS.length,
-   'e sao os 13 conhecidos, sem sobra nem falta');
+   'e sao os 14 conhecidos, sem sobra nem falta');
 
 /* B — ids unicos */
 ok(new Set(m.ids).size === m.ids.length,
@@ -100,8 +100,8 @@ const d = await p.evaluate(() => {
 });
 ok(d.backendsValidos && d.formasValidas && d.escoposValidos,
    'backend, forma e escopo de toda entrada saem dos vocabularios declarados');
-ok(d.tresFormas.lista === 8 && d.tresFormas.mapa === 4 && d.tresFormas.loja === 1,
-   'as tres formas cobrem as 13: lista=' + d.tresFormas.lista +
+ok(d.tresFormas.lista === 8 && d.tresFormas.mapa === 5 && d.tresFormas.loja === 1,
+   'as tres formas cobrem as 14: lista=' + d.tresFormas.lista +
    ' mapaPorPaciente=' + d.tresFormas.mapa + ' objectStore=' + d.tresFormas.loja);
 
 /* ==================================================================== */
@@ -151,8 +151,8 @@ console.log('');
 /* ==================================================================== */
 
 /* F/G — sensibilidade e o caso aparencia */
-ok(m.exportaveis.length === 12,
-   'entradas com exportar:true: ' + m.exportaveis.length + ' de 13');
+ok(m.exportaveis.length === 13,
+   'entradas com exportar:true: ' + m.exportaveis.length + ' de 14');
 ok(m.exportaveis.indexOf('aparencia') === -1,
    'a unica de fora e aparencia — e essa omissao esta CERTA: preferencia de ' +
    'quem usa este navegador, regeneravel');
@@ -164,7 +164,7 @@ ok(m.aparencia.derivavel === true && m.aparencia.categoria === 'configuracao',
    'e esta classificada como configuracao regeneravel');
 
 const CLINICAS = ['pacientes', 'aplicacoes', 'consultas', 'holoscan', 'oq3', 'pqq',
-                  'questionario', 'pontuacao', 'exames', 'arquivos'];
+                  'questionario', 'respostas_aplicadas', 'pontuacao', 'exames', 'arquivos'];
 ok(m.sensiveis.length === CLINICAS.length &&
    CLINICAS.every(id => m.sensiveis.indexOf(id) >= 0),
    'sensivel:true em ' + m.sensiveis.length + ' entradas — as que carregam dado ' +
@@ -196,17 +196,17 @@ console.log('');
 
 /* H — as tres estrategias de identidade */
 const porEscopo = (e) => m.porPaciente.filter(x => x.escopo === e).map(x => x.id);
-ok(m.porPaciente.length === 9,
+ok(m.porPaciente.length === 10,
    'armazenamentos ligados a paciente: ' + m.porPaciente.length +
    ' (pacientes e a raiz, nao filho; bloqueios, perfil e aparencia sao globais)');
 
 const A_CAMPO = ['aplicacoes', 'consultas', 'holoscan', 'oq3', 'pqq'];
-const B_CHAVE = ['questionario', 'pontuacao', 'exames'];
+const B_CHAVE = ['questionario', 'respostas_aplicadas', 'pontuacao', 'exames'];
 ok(A_CAMPO.every(id => porEscopo('campo_paciente_id').indexOf(id) >= 0) &&
    porEscopo('campo_paciente_id').length === 5,
    'A — campo paciente_id: ' + porEscopo('campo_paciente_id').join(', '));
 ok(B_CHAVE.every(id => porEscopo('chave_do_mapa').indexOf(id) >= 0) &&
-   porEscopo('chave_do_mapa').length === 3,
+   porEscopo('chave_do_mapa').length === 4,
    'B — o pacienteId E a chave do mapa: ' + porEscopo('chave_do_mapa').join(', '));
 ok(porEscopo('index_paciente').join(',') === 'arquivos',
    'C — IndexedDB, campo `paciente` com index: ' + porEscopo('index_paciente').join(', '));
@@ -529,20 +529,21 @@ ok(diag.r.alterou_dado === false && diag.intacto && diag.docsIguais,
    'e o diagnostico NAO alterou nada: localStorage byte a byte igual, e os ' +
    'documentos do IndexedDB intactos');
 
-/* os 9 destinos que a exclusao deixa para tras sao alcancaveis pelo manifesto */
+/* os 10 destinos que a exclusao deixa para tras sao alcancaveis pelo manifesto */
 const noveDestinos = await p.evaluate(() => {
   const A = window.Armazenamento;
   return A.MANIFESTO
     .filter(e => e.excluirComPaciente && e.id !== 'pacientes')
     .map(e => e.id);
 });
-ok(noveDestinos.length === 9,
-   'o manifesto declara os 9 destinos que uma exclusao precisa alcancar alem ' +
+ok(noveDestinos.length === 10,
+   'o manifesto declara os 10 destinos que uma exclusao precisa alcancar alem ' +
    'do cadastro: ' + noveDestinos.join(', '));
 ok(noveDestinos.every(id => ['aplicacoes', 'consultas', 'holoscan', 'oq3', 'pqq',
-                             'questionario', 'pontuacao', 'exames', 'arquivos']
+                             'questionario', 'pontuacao', 'exames', 'arquivos',
+                             'respostas_aplicadas']
                              .indexOf(id) >= 0),
-   'e sao exatamente os 9 que o teste de persistencia mostrou ficando orfaos hoje');
+   'e sao os 9 que o teste de persistencia mostrou ficando orfaos, mais respostas_aplicadas (rodada 08)');
 
 /* P — estado limpo */
 const limpo = await p.evaluate(async () => {

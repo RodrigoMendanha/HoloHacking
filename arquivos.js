@@ -338,9 +338,8 @@
   function notasDoPaciente() {
     var p = window.ultimaPontuacao ? window.ultimaPontuacao() : null;
     if (!p || !p.sistemas) return {};
-    var n = {};
-    p.sistemas.forEach(function (s) { n[s.sistema] = s.nota; });
-    return n;
+    // so quem tem nota: sistema sem resposta nao entra no confronto como 10
+    return window.HoloAusencia.notas(p);
   }
 
   function pontuacaoGuardada() {
@@ -903,19 +902,21 @@
       // diferentes, e a antiga faltava aqui).
       (p.quando ? '<p class="rel-meta">Aplicado em ' + escapar(dataBR(p.quando)) + "</p>" : "");
 
-    var ordenados = p.sistemas.slice().sort(function (a, b) { return a.nota - b.nota; });
+    var A = window.HoloAusencia;
+    var ordenados = p.sistemas.slice().sort(A.porLeitura);
     html += '<div class="rel-bloco"><h4>Mapa de prioridades</h4>';
     ordenados.forEach(function (s) {
-      var semDado = s.avaliavel === false;
+      var semDado = A.semNota(s), insuf = !semDado && !A.suficiente(s);
       // respondidos/total_marcadores podem faltar num snapshot bem antigo —
       // nao inventa numero quando o campo nao existe.
       var temContagem = typeof s.respondidos === "number" && typeof s.total_marcadores === "number";
       var partes = [
         semDado ? "nenhuma pergunta respondida" : (temContagem ? s.respondidos + " de " + s.total_marcadores + " respondidas" : ""),
-        s.faixa ? "faixa " + escapar(s.faixa) : ""
+        insuf ? "dados insuficientes" : "",
+        s.faixa && !insuf ? "faixa " + escapar(s.faixa) : ""
       ].filter(Boolean);
       html += '<p class="rel-prioridade"><b>' + escapar(s.nome) + "</b> — " +
-        (semDado ? "—" : s.nota.toFixed(1)) +
+        A.fmt(s.nota) +
         (partes.length ? " &middot; " + partes.join(" &middot; ") : "") +
         "</p>";
     });
@@ -934,9 +935,9 @@
 
     if (p.triada) {
       html += '<div class="rel-bloco"><h4>Tríada</h4><p class="rel-triada">' +
-        "Físico <b>" + p.triada.fisico.toFixed(1) + "</b> &middot; " +
-        "Mental <b>" + p.triada.mental.toFixed(1) + "</b> &middot; " +
-        "Espiritual <b>" + p.triada.espiritual.toFixed(1) + "</b></p></div>";
+        "Físico <b>" + A.fmt(p.triada.fisico) + "</b> &middot; " +
+        "Mental <b>" + A.fmt(p.triada.mental) + "</b> &middot; " +
+        "Espiritual <b>" + A.fmt(p.triada.espiritual) + "</b></p></div>";
     }
 
     // Revisao clinica do HOLOSCAN: nenhuma CMB aparece no relatorio nesta
@@ -958,8 +959,9 @@
     ordenados.forEach(function (s) {
       html += '<div class="rel-sistema"><div class="rel-sistema-topo">' +
         "<b>" + escapar(s.nome) + "</b>" +
-        '<span class="rel-nota">' + (s.avaliavel === false ? "—" : s.nota.toFixed(1)) + "</span>" +
-        '<span class="rel-faixa">' + escapar(s.faixa || "") + "</span></div>" +
+        '<span class="rel-nota">' + A.fmt(s.nota) + "</span>" +
+        '<span class="rel-faixa">' + escapar(A.semNota(s) ? "sem dado"
+          : !A.suficiente(s) ? "dados insuficientes" : (s.faixa || "")) + "</span></div>" +
         '<p class="rel-passos">Área do mapa. Investigar com mais profundidade na consulta.</p>' +
         "</div>";
     });

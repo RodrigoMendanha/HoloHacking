@@ -20,6 +20,7 @@ begin;
 create temp table _checagem_alvo on commit drop as
   select nutritionist_id as uid, id as pid
   from public.patients
+  where status = 'ativo'
   order by created_at
   limit 1;
 grant select on _checagem_alvo to authenticated;
@@ -105,9 +106,28 @@ begin
   select count(*) into n from public.lab_results where collection_id = v_col2;
   if n <> 1 then raise exception 'CHECAGEM salvar_coleta_exames (sem data): % resultados (esperado 1)', n; end if;
   raise notice 'ok salvar_coleta_exames sem data';
+
+  -- 5. rodada 08: ausencia de dado grava null, nunca 10 (mesmo que o cliente mande 10)
+  v_app := public.salvar_holoscan_completo(jsonb_build_object(
+    'application', app_payload
+      || jsonb_build_object('triada', jsonb_build_object('fisico', 3, 'mental', 10, 'espiritual', 10),
+                            'triada_com_dado', jsonb_build_object('fisico', true, 'mental', false, 'espiritual', false)),
+    'answers', jsonb_build_array(jsonb_build_object('marcador_id','checagem_m1','valor',2)),
+    'scores', jsonb_build_array(score, jsonb_build_object(
+      'sistema','mental_emocional_espiritual','nome','MEE','nota',10,'carga',0,'faixa','alto',
+      'obtido',0,'maximo',0,'respondidos',0,'total_marcadores',29,'avaliavel',false))));
+  select count(*) into n from public.holoscan_applications
+   where id = v_app and triada->'mental' = 'null'::jsonb and triada->'espiritual' = 'null'::jsonb
+     and (triada->>'fisico')::numeric = 3;
+  if n <> 1 then raise exception 'CHECAGEM rodada 08: eixo da Triada sem dado nao virou null'; end if;
+  select count(*) into n from public.holoscan_system_scores
+   where application_id = v_app and sistema = 'mental_emocional_espiritual'
+     and nota is null and carga is null and faixa is null and avaliavel = false;
+  if n <> 1 then raise exception 'CHECAGEM rodada 08: sistema sem dado nao gravou nota null'; end if;
+  raise notice 'ok ausencia de dado = null';
 end
 $$;
 
-select 'CHECAGEM OK: 4 chamadas de RPC gravaram o esperado (sera desfeito)' as resultado;
+select 'CHECAGEM OK: as chamadas de RPC gravaram o esperado (sera desfeito)' as resultado;
 
 rollback;

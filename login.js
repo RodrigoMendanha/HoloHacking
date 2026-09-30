@@ -76,7 +76,7 @@
     "holohacking.dados.oq3", "holohacking.dados.pqq",
     "holohacking.dados.consultas", "holohacking.dados.bloqueios",
     "holohacking.dados.aplicacoes", "holohacking.dados.perfil",
-    "holohacking.pontuacao", "holohacking.questionario",
+    "holohacking.pontuacao", "holohacking.questionario", "holohacking.respostas_aplicadas",
     "holohacking.ferramentas", "holohacking.exames",
     "holohacking.agenda", "holohacking.sincronizacao"
   ];

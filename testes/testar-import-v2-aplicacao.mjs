@@ -233,8 +233,8 @@ const depois = await retrato();
 ok(aplicou.r.aplicado === true && aplicou.r.fase === 'concluido' &&
    aplicou.r.erros.length === 0,
    'B — aplicado, fase=' + aplicou.r.fase + ', 0 erros');
-ok(aplicou.r.armazenamentos.length === 12 && aplicou.r.documentos === 3,
-   'os 12 armazenamentos e os 3 documentos: ' + aplicou.r.armazenamentos.length +
+ok(aplicou.r.armazenamentos.length === 13 && aplicou.r.documentos === 3,
+   'os 13 armazenamentos e os 3 documentos: ' + aplicou.r.armazenamentos.length +
    ' e ' + aplicou.r.documentos);
 
 /* C — aparencia */
@@ -595,9 +595,9 @@ const operacional = await p.evaluate(async () => {
     banco: A.BANCO_RECUPERACAO
   };
 });
-ok(operacional.manifesto === 13 && operacional.exportaveis === 12,
-   'o STORAGE_MANIFEST continua com os mesmos 13 armazenamentos do produto e ' +
-   '12 exportaveis — o operacional NAO virou o 14º dado do modelo');
+ok(operacional.manifesto === 14 && operacional.exportaveis === 13,
+   'o STORAGE_MANIFEST continua com os mesmos 14 armazenamentos do produto e ' +
+   '13 exportaveis — o operacional NAO virou o 15º dado do modelo');
 ok(operacional.idsManifesto.indexOf('recuperacao') === -1,
    'e "recuperacao" nao aparece no manifesto do produto');
 const op = operacional.operacionais[0];
@@ -621,8 +621,8 @@ const backupLimpo = await p.evaluate(async () => {
   return { n: pac.armazenamentos.length,
            cita: JSON.stringify(pac).indexOf('recuperacao') >= 0 };
 });
-ok(backupLimpo.n === 12 && !backupLimpo.cita,
-   'e o Backup V2 continua com exatamente 12 armazenamentos, sem citar o ' +
+ok(backupLimpo.n === 13 && !backupLimpo.cita,
+   'e o Backup V2 continua com exatamente 13 armazenamentos, sem citar o ' +
    'operacional em lugar nenhum');
 
 /* apagarTudo alcanca o banco operacional */

@@ -72,20 +72,25 @@
     if (p.cobertura && typeof p.cobertura.percentual === "number")
       t += linhaSe("Cobertura", p.cobertura.percentual + "%");
     t += "\n### Sistemas (do mais sobrecarregado ao mais equilibrado)\n";
-    var ordenados = p.sistemas.slice().sort(function (a, b) { return a.nota - b.nota; });
+    var A = window.HoloAusencia;
+    var ordenados = p.sistemas.slice().sort(A.porLeitura);
     ordenados.forEach(function (s) {
-      var partes = [s.faixa ? "faixa " + s.faixa : ""];
+      var sem = A.semNota(s), insuf = !sem && !A.suficiente(s);
+      var partes = [s.faixa && !insuf ? "faixa " + s.faixa : ""];
       if (typeof s.respondidos === "number" && typeof s.total_marcadores === "number")
         partes.push(s.respondidos + "/" + s.total_marcadores + " respondidas");
-      if (s.avaliavel === false) partes.push("sem dados suficientes");
-      t += "- " + s.nome + ": " + (s.avaliavel === false ? "—" : s.nota.toFixed(1)) +
+      if (sem) partes.push("sem dado: nenhuma pergunta respondida");
+      else if (insuf) partes.push("dados insuficientes");
+      t += "- " + s.nome + ": " + A.fmt(s.nota) +
         (partes.filter(Boolean).length ? " (" + partes.filter(Boolean).join(", ") + ")" : "") + "\n";
     });
     if (p.triada) {
       t += "\n### Tríada\n";
-      t += "- Físico: " + p.triada.fisico.toFixed(1) + "\n";
-      t += "- Mental: " + p.triada.mental.toFixed(1) + "\n";
-      t += "- Espiritual: " + p.triada.espiritual.toFixed(1) + "\n";
+      t += "- Físico: " + A.fmt(p.triada.fisico) + "\n";
+      t += "- Mental: " + A.fmt(p.triada.mental) + "\n";
+      t += "- Espiritual: " + A.fmt(p.triada.espiritual) + "\n";
+      if (p.triada.fisico === null || p.triada.mental === null || p.triada.espiritual === null)
+        t += "(— = eixo sem resposta; não é nota)\n";
     }
     if (typeof p.indice === "number") {
       t += "\n### Índice HOLOS\n";
@@ -152,15 +157,17 @@
     var t = "";
     hist.forEach(function (snap, i) {
       t += "\n### Aplicação " + (i + 1) + " — " + dataBR(snap.quando) + "\n";
-      var ordenados = snap.sistemas.slice().sort(function (a, b) { return a.nota - b.nota; });
+      var A2 = window.HoloAusencia;
+      var ordenados = snap.sistemas.slice().sort(A2.porLeitura);
       ordenados.forEach(function (s) {
-        t += "- " + s.nome + ": " + (s.avaliavel === false ? "—" : s.nota.toFixed(1)) +
-          (s.faixa ? " (" + s.faixa + ")" : "") + "\n";
+        t += "- " + s.nome + ": " + A2.fmt(s.nota) +
+          (A2.semNota(s) ? " (sem dado)" : !A2.suficiente(s) ? " (dados insuficientes)"
+            : s.faixa ? " (" + s.faixa + ")" : "") + "\n";
       });
       if (snap.triada)
-        t += "- Tríada: F " + snap.triada.fisico.toFixed(1) +
-          " / M " + snap.triada.mental.toFixed(1) +
-          " / E " + snap.triada.espiritual.toFixed(1) + "\n";
+        t += "- Tríada: F " + A2.fmt(snap.triada.fisico) +
+          " / M " + A2.fmt(snap.triada.mental) +
+          " / E " + A2.fmt(snap.triada.espiritual) + "\n";
       if (typeof snap.indice === "number")
         t += "- Índice HOLOS: " + snap.indice + "\n";
     });
@@ -262,7 +269,7 @@
     if (!d || typeof d !== "object" || !Object.keys(d).length) return "";
     var pont = window.ultimaPontuacao ? window.ultimaPontuacao(pid) : null;
     var notas = {};
-    if (pont && pont.sistemas) pont.sistemas.forEach(function (s) { notas[s.sistema] = s.nota; });
+    if (pont && pont.sistemas) notas = window.HoloAusencia.notas(pont);
     var r;
     try { r = g.lerExames(d, notas); } catch (e) { return ""; }
     if (!r.confronto || !r.confronto.length) return "";

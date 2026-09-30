@@ -589,7 +589,7 @@ ok(dry.pacientes === 2 && dry.aplicacoes === 2 && dry.documentos === 3,
 ok(dry.orfaos >= 2 && dry.registros_orfaos >= 2 && dry.sem_paciente >= 1,
    'orfaos: ' + dry.orfaos + ' destino(s), ' + dry.registros_orfaos +
    ' registro(s); sentinela: ' + dry.sem_paciente);
-ok(dry.substituidos.length === 12 &&
+ok(dry.substituidos.length === 13 &&
    dry.substituidos.every(s => s.id && s.forma !== undefined || s.id === 'arquivos'),
    'quais armazenamentos SERIAM substituidos: ' + dry.substituidos.length);
 ok(dry.preservados.length === 1 && dry.preservados[0].id === 'aparencia',

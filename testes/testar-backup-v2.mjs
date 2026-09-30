@@ -169,13 +169,13 @@ ok(v2.manifesto_versao === 1 && v2.manifesto_versao === v2.manifesto_versao_do_m
 
 /* D — a regra central */
 const representados = v2.chavesDados.length + (v2.qtdArquivos >= 0 ? 1 : 0);
-ok(v2.exportaveisDoManifesto.length === 12,
-   'D — o manifesto marca 12 entradas com exportar:true: ' +
+ok(v2.exportaveisDoManifesto.length === 13,
+   'D — o manifesto marca 13 entradas com exportar:true: ' +
    v2.exportaveisDoManifesto.length);
 ok(v2.armazenamentos.join(',') === v2.exportaveisDoManifesto.join(','),
    'e o pacote declara exatamente essas 12, na mesma ordem — lista derivada ' +
    'do manifesto, nao escrita a mao');
-ok(representados === 12,
+ok(representados === 13,
    'representados no conteudo: ' + v2.chavesDados.length + ' em `dados` + ' +
    'a lista `arquivos` = ' + representados);
 ok(v2.chavesDados.join(',') ===

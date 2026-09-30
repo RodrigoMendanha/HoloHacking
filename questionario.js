@@ -342,6 +342,45 @@
     botao.innerHTML = "Aplicar question\u00e1rio &mdash; " + perguntas.length + " perguntas";
   }
 
+  /* ---------- encerrar uma aplicacao (rodada 08) -------------------------
+
+     A caixa holohacking.questionario[pid] e o RASCUNHO da aplicacao em
+     andamento. Salvo o HOLOSCAN, aquelas respostas passam a ser da aplicacao
+     salva: vao para holohacking.respostas_aplicadas[pid] (so para rever o que
+     foi respondido) e o rascunho fica vazio. Assim a proxima aplicacao comeca
+     do zero: reaplicar nao e copiar a anterior em silencio. */
+  var CHAVE_APLICADAS = "holohacking.respostas_aplicadas";
+
+  function encerrarAplicacao(pid, appId, quando) {
+    if (!pid) return;
+    var t = tudo();
+    var respostas = t[pid] || {};
+    var ap;
+    try { ap = JSON.parse(localStorage.getItem(CHAVE_APLICADAS)) || {}; } catch (e) { ap = {}; }
+    if (Object.keys(respostas).length) {
+      ap[pid] = { app: appId || null, quando: quando || null, respostas: respostas };
+      localStorage.setItem(CHAVE_APLICADAS, JSON.stringify(ap));
+    }
+    delete t[pid];
+    localStorage.setItem(CHAVE, JSON.stringify(t));
+    if (window.Concorrencia) window.Concorrencia.avancarRevisao("questionario");
+    if (aberto() && pacienteAtual() === pid) desenhar();
+  }
+
+  /** As respostas da ultima aplicacao salva deste paciente (so leitura). */
+  function respostasAplicadas(pid) {
+    try {
+      var ap = JSON.parse(localStorage.getItem(CHAVE_APLICADAS)) || {};
+      return (ap[pid] && ap[pid].respostas) || {};
+    } catch (e) { return {}; }
+  }
+
+  window.QuestionarioHolo = {
+    encerrarAplicacao: encerrarAplicacao,
+    respostasAplicadas: respostasAplicadas,
+    CHAVE_APLICADAS: CHAVE_APLICADAS
+  };
+
   document.addEventListener("DOMContentLoaded", function () {
     caixa = document.getElementById("q-lista");
     if (!caixa) return;

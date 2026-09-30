@@ -46,6 +46,12 @@
   /** Pentagono com os dois momentos sobrepostos: o antes fica fantasma. */
   function radarDuplo(antes, depois, tam, rotulos) {
     var C = tam / 2, R = tam * .36, i, a, moldura = "", eixos = "", nomes = "";
+    /* Com algum sistema sem nota, o poligono daquela aplicacao nao e
+       desenhado: qualquer vertice inventado seria afirmacao sobre dado que
+       nao existe (mesma regra da Triade). */
+    function completo(valores) {
+      return valores.every(function (v) { return typeof v === "number" && !isNaN(v); });
+    }
     function pontos(valores) {
       var p = [];
       for (var k = 0; k < 5; k++) {
@@ -79,16 +85,18 @@
                ((rotulos && rotulos[i]) || "") + "</text>";
 
       // e o ponto de agora em cada vertice, para o olho achar o valor
-      var rr = R * depois[i] / 10;
-      nomes += '<circle cx="' + (C + rr * Math.cos(a)).toFixed(1) + '" cy="' +
-               (C + rr * Math.sin(a)).toFixed(1) + '" r="3.5" fill="var(--dourado)"/>';
+      if (typeof depois[i] === "number" && !isNaN(depois[i])) {
+        var rr = R * depois[i] / 10;
+        nomes += '<circle cx="' + (C + rr * Math.cos(a)).toFixed(1) + '" cy="' +
+                 (C + rr * Math.sin(a)).toFixed(1) + '" r="3.5" fill="var(--dourado)"/>';
+      }
     }
     return '<svg width="' + (tam + 60) + '" height="' + tam + '" viewBox="' +
            (-30) + ' 0 ' + (tam + 60) + ' ' + tam + '" class="evo-radar">' + moldura + eixos + nomes +
-      '<polygon points="' + pontos(antes) + '" fill="none" ' +
-      'stroke="rgba(201,163,90,.45)" stroke-width="1.5" stroke-dasharray="4 3"/>' +
-      '<polygon points="' + pontos(depois) + '" fill="rgba(201,163,90,.2)" ' +
-      'stroke="var(--dourado)" stroke-width="2.5" stroke-linejoin="round"/></svg>';
+      (completo(antes) ? '<polygon points="' + pontos(antes) + '" fill="none" ' +
+        'stroke="rgba(201,163,90,.45)" stroke-width="1.5" stroke-dasharray="4 3"/>' : "") +
+      (completo(depois) ? '<polygon points="' + pontos(depois) + '" fill="rgba(201,163,90,.2)" ' +
+        'stroke="var(--dourado)" stroke-width="2.5" stroke-linejoin="round"/>' : "") + "</svg>";
   }
 
   function desenhar() {
@@ -108,9 +116,13 @@
     });
     var linhas = Object.keys(porSistema).map(function (k) {
       var x = porSistema[k];
+      var tem = typeof x.antes === "number" && typeof x.depois === "number";
       return { nome: x.nome, antes: x.antes, depois: x.depois,
-               delta: +(x.depois - x.antes).toFixed(1) };
-    }).sort(function (a, b) { return b.delta - a.delta; });
+               delta: tem ? +(x.depois - x.antes).toFixed(1) : null };
+    }).sort(function (a, b) {
+      if ((a.delta === null) !== (b.delta === null)) return a.delta === null ? 1 : -1;
+      return (b.delta || 0) - (a.delta || 0);
+    });
 
     var vAntes = antes.sistemas.map(function (s) { return s.nota; });
     var vDepois = depois.sistemas.map(function (s) { return s.nota; });
@@ -137,12 +149,13 @@
       "</p>" +
       '<div class="evo-linhas">' +
       linhas.map(function (l) {
-        var cls = l.delta > 0 ? "sobe" : l.delta < 0 ? "desce" : "igual";
+        var F = window.HoloAusencia.fmt;
+        var cls = l.delta === null ? "sem-dado" : l.delta > 0 ? "sobe" : l.delta < 0 ? "desce" : "igual";
         return '<div class="evo-linha"><span class="evo-nome">' + escapar(l.nome) + "</span>" +
-          '<span class="evo-de">' + l.antes.toFixed(1) + "</span>" +
-          '<span class="evo-para">' + l.depois.toFixed(1) + "</span>" +
+          '<span class="evo-de">' + F(l.antes) + "</span>" +
+          '<span class="evo-para">' + F(l.depois) + "</span>" +
           '<span class="evo-delta ' + cls + '">' +
-            (l.delta > 0 ? "+" : "") + l.delta.toFixed(1) + "</span></div>";
+            (l.delta === null ? "—" : (l.delta > 0 ? "+" : "") + l.delta.toFixed(1)) + "</span></div>";
       }).join("") +
       "</div></div></div>" +
       '<p class="evo-nota">Linha pontilhada: a primeira aplicação. ' +

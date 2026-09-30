@@ -999,12 +999,15 @@
       if(sit.historico && sit.historico.length) exportado.historico = sit.historico;
       if(sit.exames) exportado.totalExames = sit.exames;
       if(sit.exames) exportado.exames = sit.valoresExames;
-      if(sit.respondidas) {
-        try {
-          const q = (JSON.parse(localStorage.getItem("holohacking.questionario")) || {})[id];
-          if(q) exportado.respostasHoloscan = q;
-        } catch(e){ /* sem respostas */ }
-      }
+      /* respostasHoloscan: as da ultima aplicacao SALVA. Um questionario em
+         andamento (rascunho, ainda sem mapa salvo) vai separado, com o nome
+         dizendo o que e. */
+      try {
+        const aplicadas = window.QuestionarioHolo ? window.QuestionarioHolo.respostasAplicadas(id) : {};
+        if(Object.keys(aplicadas).length) exportado.respostasHoloscan = aplicadas;
+        const q = (JSON.parse(localStorage.getItem("holohacking.questionario")) || {})[id];
+        if(q && Object.keys(q).length) exportado.questionarioEmAndamento = q;
+      } catch(e){ /* sem respostas */ }
     }
     /* Coletas datadas vem do servidor (so existem com sessao). Sem elas, o
        arquivo leva os valores atuais acima e diz que o historico nao veio. */
@@ -1999,14 +2002,21 @@
   }
 
   function updateRadar(scores, pronta){
+    /* Sistema sem nota (so com a Pontuacao do motor) nao ganha vertice: o
+       poligono so e desenhado com os cinco, e o ponto dele some. Desenhar 0
+       ou 10 ali seria afirmar um dado que nao existe. */
+    const semNotaEm = (i) => !!pronta && window.HoloAusencia.semNota(
+      (pronta.sistemas || []).find(x => x.sistema === ORDEM_MOTOR[i]));
+    const completo = scores.every((s, i) => !semNotaEm(i));
     const pontos = scores.map((s, i) => pentagonPoint(s / 10 * R_MAX, i).join(",")).join(" ");
     const fill = radarSVG.querySelector("#radar-fill");
-    if(fill) fill.setAttribute("points", pontos);
+    if(fill) fill.setAttribute("points", completo ? pontos : pentagonPoints(0));
     const dots = radarSVG.querySelectorAll(".radar-dot");
     scores.forEach((s, i) => {
       const [x, y] = pentagonPoint(s / 10 * R_MAX, i);
       dots[i].setAttribute("cx", x);
       dots[i].setAttribute("cy", y);
+      dots[i].style.display = semNotaEm(i) ? "none" : "";
     });
 
     // O indice vem do motor. Era "soma x 2" escrito aqui — mesma conta, mas
@@ -2453,8 +2463,14 @@
     if(!calculado){ caixa.innerHTML = ""; return; }
 
     // as duas notas mais baixas: e por onde a conduta comeca
+    /* Com a Pontuacao do motor, so disputa "critico" quem tem nota com
+       cobertura suficiente: sistema sem resposta (ou quase) nao e o mais
+       baixo de nada. Pontuando a mao, as cinco reguas valem como antes. */
+    const legivel = (i) => !pronta || window.HoloAusencia.suficiente(
+      (pronta.sistemas || []).find(x => x.sistema === ORDEM_MOTOR[i]));
     const ordem = sistemas
-      .map((s, i) => ({ chave: s, nota: scores[i], dado: terreno()[s] }))
+      .map((s, i) => ({ chave: s, nota: scores[i], dado: terreno()[s], ok: legivel(i) }))
+      .filter(x => x.ok)
       .sort((a, b) => a.nota - b.nota);
     /* Empate entre sistemas continua sendo resolvido pela ordem do array —
        exatamente como antes. A diferenca e que agora fica registrado. */
@@ -2652,7 +2668,7 @@
     /* calculado_em: o instante do calculo. E o que permite a sincronizacao
        (sincronizacao.js) saber se esta entrada, ainda sem identidade remota,
        e mais nova do que a aplicacao do mesmo dia que o servidor ja tem. */
-    const nova = Object.assign({}, r, { quando: hoje, versao_estrutura: 2,
+    const nova = Object.assign({}, window.HoloAusencia.normalizar(r), { quando: hoje, versao_estrutura: 2,
                                          calculado_em: new Date().toISOString() });
     delete nova._supa_id;
     delete nova._supa_criado_em;
@@ -2682,7 +2698,10 @@
   /** Todas as aplicacoes de um paciente, da mais antiga para a mais nova. */
   window.historicoPontuacao = function(id){
     const pid = id || (window.pacienteAtivoId && window.pacienteAtivoId()) || "_sem_paciente";
-    return lerHistorico()[pid] || [];
+    /* Entrada gravada antes da rodada 08 (ou vinda do servidor antigo) pode
+       trazer o 10 que a conta devolve para sistema/eixo sem resposta. Quem le
+       o historico recebe sempre a ausencia explicita (null). */
+    return (lerHistorico()[pid] || []).map(window.HoloAusencia.normalizar);
   };
 
   /* ------------------------------------------------------------------------
@@ -2779,8 +2798,9 @@
      Sem essa separacao, olhar a primeira aplicacao a regravaria com a data de
      hoje e destruiria o proprio historico que se queria comparar. */
   window.aplicarPontuacao = function(r){
-    guardarPontuacao(r);
-    window.desenharPontuacao(r);
+    const n = window.HoloAusencia.normalizar(r);
+    guardarPontuacao(n);
+    window.desenharPontuacao(n);
   };
 
   window.desenharPontuacao = function(r, restaurando){
@@ -2920,21 +2940,25 @@
     const caixa = $("#holo-prioridades");
     if(!caixa) return;
     if(!r){ caixa.innerHTML = ""; return; }
-    const ordenado = r.sistemas.slice().sort((a, b) => a.nota - b.nota);
+    const A = window.HoloAusencia;
+    const ordenado = r.sistemas.slice().sort(A.porLeitura);
     const linhas = ordenado.map(s => {
-      const semDado = s.avaliavel === false;
+      const semDado = A.semNota(s);
+      const insuficiente = !semDado && !A.suficiente(s);
       // s.respondidos/total_marcadores podem faltar num snapshot bem antigo,
       // salvo antes desses campos existirem no motor — nao inventa numero.
       const temContagem = typeof s.respondidos === "number" && typeof s.total_marcadores === "number";
       const cobertura = semDado
         ? "nenhuma pergunta respondida"
         : temContagem ? s.respondidos + " de " + s.total_marcadores + " respondidas" : "";
-      const conta = [cobertura, s.faixa ? "faixa " + s.faixa : ""].filter(Boolean).join(" &middot; ");
+      const conta = [cobertura,
+        insuficiente ? '<b class="dados-insuficientes">dados insuficientes</b>' : "",
+        s.faixa && !insuficiente ? "faixa " + s.faixa : ""].filter(Boolean).join(" &middot; ");
       // Classes proprias (prio-*), NAO terr-*: territorios (#holo-territorios)
       // ja usa .terr-linha para outra lista, e testar-raciocinio.mjs conta
       // .terr-linha esperando achar so as dele. Reaproveitar o nome de
       // classe misturava as duas listas na mesma consulta.
-      return '<li class="prio-linha' + (semDado ? " sem-dado" : "") + '">'
+      return '<li class="prio-linha' + (semDado ? " sem-dado" : insuficiente ? " insuficiente" : "") + '">'
            + '<span class="prio-nome">' + s.nome
              + '<i>Área do mapa. Investigar com mais profundidade na consulta.</i></span>'
            + '<span class="prio-conta">' + conta + '</span>'
@@ -2968,7 +2992,8 @@
     if(!triada){ caixa.classList.add("hidden"); caixa.innerHTML = ""; return; }
 
     const L = 260, C = L / 2, R = 88;
-    const temDado = (i) => !comDado || comDado[EIXOS_TRIADA[i][0]] !== false;
+    const temDado = (i) => (!comDado || comDado[EIXOS_TRIADA[i][0]] !== false)
+      && typeof triada[EIXOS_TRIADA[i][0]] === "number";
     const todosComDado = [0,1,2].every(temDado);
     const valores = EIXOS_TRIADA.map(e => triada[e[0]] ?? 0);
 
@@ -3066,8 +3091,13 @@
     desenharTriada(null);
     desenharFrequencias(null);
     desenharTerritorios(null);
+    desenharPrioridades(null);
+    desenharDominantes(null);
     const origem = $("#holo-origem");
     if(origem) origem.innerHTML = "";
+    const total = $("#holo-score-total");
+    if(total) total.textContent = "—";
+    if(window.desenharHoloscan) window.desenharHoloscan("holo-confronto");
 
     // a evolucao e por paciente: quem nao tem duas aplicacoes nao mostra nada
     if(window.redesenharEvolucao) window.redesenharEvolucao();
@@ -3122,7 +3152,7 @@
     const scores = pontuacaoNaTela
       ? ORDEM_MOTOR.map(id => {
           const s = pontuacaoNaTela.sistemas.find(x => x.sistema === id);
-          return s ? s.nota : 0;
+          return s && !window.HoloAusencia.semNota(s) ? s.nota : null;
         })
       : sistemas.map(s => parseInt($("#holo-" + s).value) || 0);
 
@@ -3247,12 +3277,11 @@
           localStorage.setItem("holohacking.pontuacao", JSON.stringify(hist));
           if (window.Concorrencia) window.Concorrencia.avancarRevisao("pontuacao");
         }
-        if (window.Sincronizacao) {
-          var qSalvo = {};
-          respostasRaw.forEach(function(a) { qSalvo[a.marcador_id] = a.valor; });
-          window.Sincronizacao.registrarHoloscanSalvo(p.id, appId, qSalvo);
-        }
-      } catch(e) { /* nao critico */ }
+        /* A aplicacao esta salva: o rascunho do questionario vira as
+           respostas DELA e fica vazio. A proxima aplicacao comeca do zero. */
+        if (window.Sincronizacao) window.Sincronizacao.registrarHoloscanSalvo(p.id, appId, {});
+        if (window.QuestionarioHolo) window.QuestionarioHolo.encerrarAplicacao(p.id, appId, hoje);
+      } catch(e) { console.error("encerrar aplicacao:", e); }
 
       renderPacientes();
       toast("HOLOSCAN salvo na ficha de " + p.nome.split(" ")[0] + ". Score: " + total);
@@ -3273,6 +3302,10 @@
     if(error){ toast("Erro ao salvar HOLOSCAN."); return; }
 
     p.holoscan = data;
+    // salvo pelo questionario (sem sessao): encerra a aplicacao do mesmo jeito
+    if (pontuacaoNaTela && window.QuestionarioHolo) {
+      window.QuestionarioHolo.encerrarAplicacao(p.id, null, hojeISO());
+    }
     renderPacientes();
     /* Pontuado a mao (as reguas), a tabela "holoscan" nao vai ao servidor
        (dados-router.js): fica so neste navegador. A mensagem nao pode dizer

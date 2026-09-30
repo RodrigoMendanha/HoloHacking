@@ -211,8 +211,8 @@ console.log('\n  F/G — O QUE JA VINHA CONTINUA; APARENCIA CONTINUA FORA\n');
   .forEach(t => ok(Object.prototype.hasOwnProperty.call(d, t), 'F — ' + t + ' continua no backup'));
 ok(!Object.prototype.hasOwnProperty.call(d, 'aparencia'),
    'G — aparencia NAO entra: e preferencia deste navegador, nao prontuario');
-ok(exportado.armazenamentos.length === 12,
-   'sao os 12 armazenamentos exportaveis do manifesto: ' + exportado.armazenamentos.length);
+ok(exportado.armazenamentos.length === 13,
+   'sao os 13 armazenamentos exportaveis do manifesto: ' + exportado.armazenamentos.length);
 
 /* ==================================================================== */
 console.log('\n  L/K/M — IDA E VOLTA PELA INTERFACE\n');

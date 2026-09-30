@@ -322,11 +322,16 @@ export function criarServidor() {
     if (nome === 'salvar_holoscan_completo') {
       if (!p || !p.application || !p.answers || !p.scores) return erro('payload incompleto', 'P0001');
       const a = p.application;
+      // rodada 08: eixo sem dado grava null, como a RPC real
+      const triadaNorm = {};
+      Object.keys(a.triada || {}).forEach(k => {
+        triadaNorm[k] = a.triada_com_dado && a.triada_com_dado[k] === false ? null : a.triada[k];
+      });
       const app = novaLinha('holoscan_applications', {
         nutritionist_id: uid, patient_id: a.patient_id, quando: a.quando,
         versao_estrutura: a.versao_estrutura, versao_bancos: a.versao_bancos,
         indice: a.indice, indice_maximo: a.indice_maximo, avaliavel: a.avaliavel,
-        nota_media: a.nota_media, triada: a.triada, triada_com_dado: a.triada_com_dado,
+        nota_media: a.nota_media, triada: triadaNorm, triada_com_dado: a.triada_com_dado,
         cobertura: a.cobertura, combinacoes: a.combinacoes || [], aprofundamentos: a.aprofundamentos || [],
         interpretacao_texto: a.interpretacao_texto || null,
         interpretacao_em: a.interpretacao_em || null,
@@ -337,8 +342,10 @@ export function criarServidor() {
       s.tabelas.holoscan_applications.push(app);
       p.answers.forEach(r => s.tabelas.holoscan_answers.push(novaLinha('holoscan_answers',
         { application_id: app.id, marcador_id: r.marcador_id, valor: Number(r.valor) }, uid)));
+      // rodada 08: sistema sem resposta grava nota/carga/faixa null
       p.scores.forEach(r => s.tabelas.holoscan_system_scores.push(novaLinha('holoscan_system_scores',
-        Object.assign({ application_id: app.id }, r), uid)));
+        Object.assign({ application_id: app.id }, r,
+          r.avaliavel ? {} : { nota: null, carga: null, faixa: null }), uid)));
       return { data: app.id, error: null };
     }
     if (nome === 'salvar_coleta_exames') {

@@ -197,16 +197,16 @@ const destinos = await p.evaluate(() => {
   };
 });
 const ESPERADOS = ['aplicacoes', 'arquivos', 'consultas', 'exames', 'holoscan',
-                   'oq3', 'pontuacao', 'pqq', 'questionario'];
+                   'oq3', 'pontuacao', 'pqq', 'questionario', 'respostas_aplicadas'];
 ok(destinos.daExclusao.join(',') === ESPERADOS.join(','),
-   'os 9 destinos filhos vem do manifesto, nao de lista escrita a mao: ' +
+   'os 10 destinos filhos vem do manifesto, nao de lista escrita a mao: ' +
    destinos.daExclusao.join(', '));
-ok(destinos.doManifesto.length === 10 &&
+ok(destinos.doManifesto.length === 11 &&
    destinos.doManifesto.indexOf('pacientes') >= 0,
    'e a raiz `pacientes` tambem tem excluirComPaciente:true — mas sai da ' +
    'lista de filhos, porque ela nao e filha de si mesma');
-ok(destinos.manifesto === 13 && destinos.exportaveis === 12,
-   'manifesto continua com 13 e Backup V2 com 12');
+ok(destinos.manifesto === 14 && destinos.exportaveis === 13,
+   'manifesto continua com 14 e Backup V2 com 13');
 
 /* ==================================================================== */
 console.log('');
@@ -703,8 +703,8 @@ const intacto = await p.evaluate(async () => {
            noBackup: pac.armazenamentos.length,
            v1: window.DadosLocais.exportar().versao };
 });
-ok(intacto.manifesto === 13 && intacto.exportaveis === 12 &&
-   intacto.noBackup === 12 && intacto.v1 === 1,
+ok(intacto.manifesto === 14 && intacto.exportaveis === 13 &&
+   intacto.noBackup === 13 && intacto.v1 === 1,
    'manifesto 13, Backup V2 com 12, e o V1 continua oficial na interface');
 
 /* ------------------------------------------------------------------ fim - */

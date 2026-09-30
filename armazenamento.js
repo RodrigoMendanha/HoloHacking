@@ -193,6 +193,17 @@
       hoje: { exportado: false, excluido: false }
     },
     {
+      id: "respostas_aplicadas", backend: BACKEND.LOCAL, chave: "holohacking.respostas_aplicadas",
+      forma: FORMA.MAPA, categoria: CATEGORIA.FONTE,
+      escopo: ESCOPO.CHAVE, pacienteScoped: true, campoPaciente: null,
+      exportar: true, importar: true, excluirComPaciente: true, limparTudo: true,
+      derivavel: false, sensivel: true, versao: 1,
+      descricao: "As respostas da ultima aplicacao SALVA do paciente, so para " +
+                 "rever o que foi respondido. O rascunho de uma aplicacao nova " +
+                 "fica em holohacking.questionario e comeca vazio (rodada 08).",
+      hoje: { exportado: false, excluido: false }
+    },
+    {
       id: "pontuacao", backend: BACKEND.LOCAL, chave: "holohacking.pontuacao",
       forma: FORMA.MAPA, categoria: CATEGORIA.FONTE,
       escopo: ESCOPO.CHAVE, pacienteScoped: true, campoPaciente: null,

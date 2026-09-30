@@ -118,9 +118,9 @@ const separacao = await A.evaluate(async () => {
     chaveRevisao: C.CHAVE_REVISAO, nomeLock: C.NOME_LOCK
   };
 });
-ok(separacao.manifesto === 13 && separacao.exportaveis === 12 &&
-   separacao.noBackup === 12 && !separacao.noManifesto,
-   'A — o marcador NAO faz parte do manifesto: 13 armazenamentos e 12 ' +
+ok(separacao.manifesto === 14 && separacao.exportaveis === 13 &&
+   separacao.noBackup === 13 && !separacao.noManifesto,
+   'A — o marcador NAO faz parte do manifesto: 14 armazenamentos e 13 ' +
    'exportaveis, como antes');
 ok(!separacao.citaMarcador,
    'B — e nao entra no Backup V2: a string "operacao_critica" nao aparece no ' +

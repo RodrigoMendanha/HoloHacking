@@ -265,31 +265,39 @@
       (p.quando ? '<span class="fic-quando">' + escapar(dataBR(p.quando)) + "</span>" : "") +
       "</div>";
 
+    var A = window.HoloAusencia;
     if (p.triada) {
       html += '<div class="fic-triada">' +
         ["fisico", "mental", "espiritual"].map(function (e) {
           return "<span><i>" + e[0].toUpperCase() + e.slice(1) + "</i>" +
-                 p.triada[e].toFixed(1) + "</span>";
+                 A.fmt(p.triada[e]) + "</span>";
         }).join("") + "</div>";
     }
 
-    var piores = p.sistemas.slice().sort(function (a, b) { return a.nota - b.nota; }).slice(0, 2);
+    /* "Mais baixos" so entre quem tem nota com cobertura suficiente: sistema
+       sem resposta ou quase sem resposta nao e "o mais baixo" de nada. */
+    var piores = p.sistemas.filter(A.suficiente).sort(A.porNota).slice(0, 2);
     html += '<div class="fic-piores"><span class="fic-rot">Mais baixos</span>' +
-      piores.map(function (s) {
-        return '<span class="fic-sis">' + escapar(s.nome) + " <b>" + s.nota.toFixed(1) + "</b></span>";
-      }).join("") + "</div></div>";
+      (piores.length ? piores.map(function (s) {
+        return '<span class="fic-sis">' + escapar(s.nome) + " <b>" + A.fmt(s.nota) + "</b></span>";
+      }).join("") : '<span class="fic-sis">dados insuficientes</span>') + "</div></div>";
 
     /* Os cinco sistemas, do mais carregado ao mais equilibrado. Antes só os
        dois piores apareciam aqui, e quem quisesse o resto ia para o relatório. */
     html += '<div class="fic-sistemas"><span class="fic-rot">Os cinco sistemas</span>' +
-      p.sistemas.slice().sort(function (a, b) { return a.nota - b.nota; })
+      p.sistemas.slice().sort(A.porLeitura)
         .map(function (s) {
-          var largura = Math.round(s.nota / 10 * 100);
-          return '<div class="fic-barra' + (s.avaliavel === false ? " sem-dado" : "") + '">' +
+          var sem = A.semNota(s), insuf = !sem && !A.suficiente(s);
+          var largura = sem ? 0 : Math.round(s.nota / 10 * 100);
+          var cob = typeof s.respondidos === "number" && typeof s.total_marcadores === "number"
+            ? s.respondidos + "/" + s.total_marcadores : "";
+          return '<div class="fic-barra' + (sem ? " sem-dado" : insuf ? " insuficiente" : "") + '">' +
             '<span class="fic-barra-nome">' + escapar(s.nome) + "</span>" +
             '<span class="fic-barra-trilho"><i style="width:' + largura + '%"></i></span>' +
-            '<span class="fic-barra-n">' + s.nota.toFixed(1) + "</span>" +
-            '<span class="fic-barra-faixa">' + escapar(s.faixa || "") + "</span></div>";
+            '<span class="fic-barra-n">' + A.fmt(s.nota) + "</span>" +
+            '<span class="fic-barra-faixa">' +
+              escapar(sem ? "sem dado" : insuf ? "dados insuficientes" : (s.faixa || "")) +
+              (cob ? " · " + cob : "") + "</span></div>";
         }).join("") + "</div>";
 
     // Revisao clinica do HOLOSCAN: nenhuma CMB aparece na interface clinica
@@ -525,10 +533,15 @@
     var html = topo;
 
     if (d.pontuacao) {
-      var estado = d.respondidas === 0 ? "não iniciado"
-        : d.respondidas + " de " + d.totalPerguntas + " respondidas";
+      /* A cobertura e a da aplicacao mostrada (o rascunho de uma aplicacao
+         nova, se houver, vem a parte). */
+      var cob = d.pontuacao.cobertura;
+      var estado = cob && typeof cob.respondidos === "number" && typeof cob.total === "number"
+        ? cob.respondidos + " de " + cob.total + " respondidas"
+        : (d.respondidas === 0 ? "não iniciado" : d.respondidas + " de " + d.totalPerguntas + " respondidas");
+      if (cob && d.respondidas > 0) estado += " · nova aplicação em andamento: " + d.respondidas + " respondidas";
       var sistemas = d.pontuacao.sistemas.map(function (s) {
-        return '<span class="fic-sis">' + escapar(s.nome) + " <b>" + s.nota.toFixed(1) + "</b></span>";
+        return '<span class="fic-sis">' + escapar(s.nome) + " <b>" + window.HoloAusencia.fmt(s.nota) + "</b></span>";
       }).join("");
       html += '<div class="dash-bloco dash-bloco-compacto">' +
         '<h3 class="dash-titulo">Mapa HOLOS — última aplicação</h3>' +
@@ -727,9 +740,14 @@
 
   /* ================================================== ABA: FORMULÁRIOS ==== */
 
+  /* O rascunho em andamento, se houver; senao, as respostas da ultima
+     aplicacao salva (rodada 08: salvar esvazia o rascunho). */
   function respostasGuardadas() {
-    try { return (JSON.parse(localStorage.getItem(CAIXA_Q)) || {})[paciente()] || {}; }
-    catch (e) { return {}; }
+    var rascunho = {};
+    try { rascunho = (JSON.parse(localStorage.getItem(CAIXA_Q)) || {})[paciente()] || {}; }
+    catch (e) { rascunho = {}; }
+    if (Object.keys(rascunho).length) return rascunho;
+    return window.QuestionarioHolo ? window.QuestionarioHolo.respostasAplicadas(paciente()) : {};
   }
 
   function perguntasDoMotor() {
@@ -923,7 +941,7 @@
         dataBR(d.pontuacao.quando) + "</span></div>" +
         '<div class="fic-res-grade">' + d.pontuacao.sistemas.map(function (s) {
           return '<div class="fic-res-sis"><span>' + escapar(s.nome) + "</span><b>" +
-            s.nota.toFixed(1) + "</b></div>";
+            window.HoloAusencia.fmt(s.nota) + "</b></div>";
         }).join("") + "</div></div>";
     } else if (respondidas.length > 0) {
       html += '<div class="dash-vazio">Respondido, e o mapa ainda não foi gerado. ' +

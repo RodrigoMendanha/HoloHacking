@@ -524,7 +524,7 @@ const intacto = await p.evaluate(async () => {
   };
 });
 ok(intacto.formato === 'holohacking-backup' && intacto.versao === 2 &&
-   intacto.armazenamentos === 12 && intacto.documentos === 2,
+   intacto.armazenamentos === 13 && intacto.documentos === 2,
    'o Backup V2 sai exatamente igual, agora lendo pela estrita: ' +
    intacto.armazenamentos + ' armazenamentos, ' + intacto.documentos + ' documentos');
 ok(intacto.suspeitas.length === 0,

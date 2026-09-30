@@ -135,7 +135,7 @@
     // exame alterado onde ele nao se queixa
     if (d.exames > 0 && d.pontuacao && window.HOLOSCAN && window.HOLOSCAN.lerExames) {
       var notas = {};
-      d.pontuacao.sistemas.forEach(function (s) { notas[s.sistema] = s.nota; });
+      notas = window.HoloAusencia.notas(d.pontuacao);
       try {
         var r = window.HOLOSCAN.lerExames(d.valoresExames, notas);
         // Revisao clinica do HOLOSCAN (Holoscan): "nao batem" sugeria que um
@@ -183,9 +183,9 @@
     var frequencia = {};
     comMapa.forEach(function (l) {
       l.dados.pontuacao.sistemas
-        .filter(function (s) { return s.avaliavel !== false; })
+        .filter(window.HoloAusencia.suficiente)
         .slice()
-        .sort(function (a, b) { return a.nota - b.nota; })
+        .sort(window.HoloAusencia.porNota)
         .slice(0, 2)
         .forEach(function (s) {
           frequencia[s.sistema] = (frequencia[s.sistema] || 0) + 1;
@@ -321,9 +321,9 @@
       var h = (window.historicoPontuacao && window.historicoPontuacao(p.id)) || [];
       h.forEach(function (pont, i) {
         var maisBaixos = (pont.sistemas || [])
-          .filter(function (s) { return s.avaliavel !== false; })
+          .filter(window.HoloAusencia.suficiente)
           .slice()
-          .sort(function (a, b) { return a.nota - b.nota; })
+          .sort(window.HoloAusencia.porNota)
           .slice(0, 2)
           .map(function (s) {
             return { sistema: s.sistema, nome: NOME_SISTEMA[s.sistema] || s.sistema,

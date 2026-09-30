@@ -181,12 +181,12 @@ ok(plano.modo_seguro === 'substituicao_limpa' && plano.rotulo === 'BACKUP PARCIA
    plano.modo_seguro + ' — nunca "backup completo"');
 ok(plano.restaura.length === 8 &&
    plano.limpa_por_ausencia_no_formato.sort().join(',') ===
-     'arquivos,exames,pontuacao,questionario',
-   'restaura 8 tabelas e limpa os 4 que o formato nunca teve: ' +
+     'arquivos,exames,pontuacao,questionario,respostas_aplicadas',
+   'restaura 8 tabelas e limpa os 5 que o formato nunca teve: ' +
    plano.limpa_por_ausencia_no_formato.join(', '));
 ok(plano.preserva_local.join(',') === 'aparencia',
    'e preserva a aparencia local: ' + plano.preserva_local.join(', '));
-ok(plano.perdas_conhecidas.length === 4 &&
+ok(plano.perdas_conhecidas.length === 5 &&
    plano.perdas_conhecidas.every(x => /nunca guardou/.test(x.porque)),
    'cada perda diz POR QUE: "' + plano.perdas_conhecidas[0].porque + '" — nao e ' +
    'que o V1 dissesse que nao havia, e que o formato nunca carregou');
@@ -203,8 +203,8 @@ const derivada = await p.evaluate(() => {
            exportaveis: A.exportaveis().length };
 });
 ok(derivada.soma === derivada.exportaveis && derivada.fachada === 8 &&
-   derivada.ausentes === 4,
-   'e ela e DERIVADA do manifesto: 8 da fachada + 4 ausentes = ' +
+   derivada.ausentes === 5,
+   'e ela e DERIVADA do manifesto: 8 da fachada + 5 ausentes = ' +
    derivada.exportaveis + ' exportaveis. Nenhuma lista escrita a mao');
 
 /* ==================================================================== */
@@ -261,8 +261,8 @@ const conversao = await p.evaluate(async (pac) => {
 }, v1);
 
 ok(conversao.ok && conversao.formato === 'holohacking-backup' &&
-   conversao.versao === 2 && conversao.armazenamentos === 12,
-   'E — a conversao produz um pacote V2 com os 12 armazenamentos');
+   conversao.versao === 2 && conversao.armazenamentos === 13,
+   'E — a conversao produz um pacote V2 com os 13 armazenamentos');
 ok(conversao.valido === true && conversao.erros.length === 0,
    'e ele passa no proprio validarBackupV2(), sem nenhum erro');
 ok(conversao.hashOk,
@@ -352,10 +352,10 @@ ok(aplicou.tipo_origem === 'v1_legado' && aplicou.restauracao_parcial === true &
    aplicou.modo === 'substituicao_limpa' && aplicou.rotulo === 'BACKUP PARCIAL LEGADO',
    'V — o retorno declara: tipo_origem=' + aplicou.tipo_origem +
    ', restauracao_parcial=' + aplicou.restauracao_parcial + ', modo=' + aplicou.modo);
-ok(aplicou.restaurados.length === 8 && aplicou.vazios.length === 4 &&
-   aplicou.perdas === 4 && aplicou.preservado.join(',') === 'aparencia',
+ok(aplicou.restaurados.length === 8 && aplicou.vazios.length === 5 &&
+   aplicou.perdas === 5 && aplicou.preservado.join(',') === 'aparencia',
    'e lista o que foi restaurado (8), o que ficou vazio porque nunca existiu ' +
-   'no formato (4) e o que foi preservado local (aparencia)');
+   'no formato (5) e o que foi preservado local (aparencia)');
 ok(aplicou.precisa_recarregar === true && aplicou.exclusividade === 'web_locks',
    'precisa_recarregar=' + aplicou.precisa_recarregar + ', exclusividade=' +
    aplicou.exclusividade);
@@ -635,8 +635,8 @@ const intacto = await p.evaluate(async () => {
                window.DadosLocais.exportar().versao === 1
   };
 });
-ok(intacto.manifesto === 13, 'X — o manifesto continua com 13 armazenamentos');
-ok(intacto.exportaveis === 12 && intacto.noBackup === 12,
+ok(intacto.manifesto === 14, 'X — o manifesto continua com 14 armazenamentos');
+ok(intacto.exportaveis === 13 && intacto.noBackup === 13,
    'Y — e o Backup V2 continua com 12: o V1 nao mexeu em nada disso');
 ok(intacto.v1Oficial,
    'o importador legado DadosLocais.importar() continua existindo e intocado');

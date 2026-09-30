@@ -3395,6 +3395,8 @@ a.pac-link:hover{color:var(--dourado);text-decoration:underline;text-underline-o
   font-variant-numeric:lining-nums tabular-nums;
 }
 .terr-linha.sem-dado, .prio-linha.sem-dado{opacity:.62}
+.prio-linha.insuficiente{opacity:.8}
+.dados-insuficientes{font-weight:600;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.04em;font-size:.72rem}
 .terr-linha.sem-dado .terr-conta, .prio-linha.sem-dado .prio-conta{color:#b4553c;opacity:1}
 .terr-buraco{
   font-size:.84rem;font-weight:300;color:var(--texto-suave);
