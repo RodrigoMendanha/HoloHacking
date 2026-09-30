@@ -120,9 +120,9 @@
     /* §14.6 — sem critério validado, não há sugestão automática. */
     classificacao_automatica: false,
     por_que_sem_sugestao:
-      "O estado do Momentum não é sugerido pelo sistema: a especificação (§14.6) " +
-      "pede derivação multi-dimensional com validação profissional, e essa regra " +
-      "ainda não foi escrita. Escolha o estado e registre a justificativa.",
+      "O estado do Momentum não é sugerido pelo sistema: ele depende de uma " +
+      "leitura das seis dimensões juntas, feita por você. Escolha o estado e " +
+      "registre a justificativa.",
 
     /* As seis dimensões — §14.3. Cada uma é 0–10 — §14.4.
        Nenhuma é marcada como invertida: a especificação não marca nenhuma, e
@@ -188,8 +188,8 @@
     status: STATUS.rascunho,
     classificacao_automatica: false,
     por_que_sem_niveis:
-      "Os três níveis do §11.5 — adequado, atenção, prioridade — existem no " +
-      "método, mas nenhuma faixa numérica foi definida. Até que sejam, o sistema " +
+      "Os três níveis — adequado, atenção, prioridade — existem no método, mas " +
+      "as faixas numéricas ainda estão em validação. Por enquanto, o sistema " +
       "mostra a medida observada e não a classifica.",
     indicadores: [
       { id: "duracao",      nome: "Duração",

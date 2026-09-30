@@ -296,7 +296,7 @@
             '<span class="fic-barra-trilho"><i style="width:' + largura + '%"></i></span>' +
             '<span class="fic-barra-n">' + A.fmt(s.nota) + "</span>" +
             '<span class="fic-barra-faixa">' +
-              escapar(sem ? "sem dado" : insuf ? "dados insuficientes" : (s.faixa || "")) +
+              escapar(sem ? "sem dado" : insuf ? "dados insuficientes" : (window.rotuloExibivel(s.faixa) || "")) +
               (cob ? " · " + cob : "") + "</span></div>";
         }).join("") + "</div>";
 

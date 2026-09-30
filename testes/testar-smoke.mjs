@@ -19,7 +19,9 @@ const p = await nav.newPage();
 await p.setViewport({ width: 1366, height: 900 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
 const falhas404 = [];
-p.on('response', r => { if (r.status() === 404 && !r.url().includes('favicon')) falhas404.push(r.url()); });
+/* /version.json so existe na imagem construida (Dockerfile, rodada 08); o
+   servidor de teste serve o repositorio cru, onde ele nao existe de proposito */
+p.on('response', r => { if (r.status() === 404 && !r.url().includes('favicon') && !/\/version\.json$/.test(r.url())) falhas404.push(r.url()); });
 await p.goto('http://127.0.0.1:5500/', { waitUntil: 'networkidle2' });
 
 let falhou = false;

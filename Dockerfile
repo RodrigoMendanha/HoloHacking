@@ -2,6 +2,16 @@ FROM nginx:stable-alpine
 
 COPY index.html style.css favicon.svg *.js /usr/share/nginx/html/
 
+# Rodada 08 — build auditavel: /version.json diz qual codigo esta no ar.
+# O commit vem de fora (o contexto do build nao leva o .git):
+#   docker build --build-arg COMMIT=$(git rev-parse --short HEAD) -t holohacking:... .
+# Sem o argumento, o arquivo diz "desconhecido" — nunca inventa um commit.
+ARG VERSAO=0.2.0
+ARG COMMIT=desconhecido
+RUN printf '{"version":"%s","commit":"%s","builtAt":"%s"}\n' \
+      "$VERSAO" "$COMMIT" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+      > /usr/share/nginx/html/version.json && cat /usr/share/nginx/html/version.json
+
 RUN printf '%s\n' \
     'server {' \
     '  listen 80;' \

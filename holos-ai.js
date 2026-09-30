@@ -76,7 +76,7 @@
     var ordenados = p.sistemas.slice().sort(A.porLeitura);
     ordenados.forEach(function (s) {
       var sem = A.semNota(s), insuf = !sem && !A.suficiente(s);
-      var partes = [s.faixa && !insuf ? "faixa " + s.faixa : ""];
+      var partes = [s.faixa && !insuf ? "faixa " + window.rotuloExibivel(s.faixa) : ""];
       if (typeof s.respondidos === "number" && typeof s.total_marcadores === "number")
         partes.push(s.respondidos + "/" + s.total_marcadores + " respondidas");
       if (sem) partes.push("sem dado: nenhuma pergunta respondida");
@@ -131,7 +131,7 @@
         var quando = c.data_coleta_desconhecida || !c.coletado_em ? "data não informada" : dataBR(c.coletado_em);
         t += "\n### Coleta — " + quando + (c.laboratorio ? " (" + c.laboratorio + ")" : "") + "\n";
         (c.resultados || []).forEach(function (r) {
-          t += "- " + (r.nome_exame_no_momento || r.exame_id) + ": " + r.valor +
+          t += "- " + window.rotuloExibivel(r.nome_exame_no_momento || r.exame_id) + ": " + r.valor +
             (r.unidade_no_momento ? " " + r.unidade_no_momento : "") +
             (r.ideal_min_no_momento != null && r.ideal_max_no_momento != null
               ? " (faixa " + r.ideal_min_no_momento + "–" + r.ideal_max_no_momento + ")" : "") +
@@ -151,7 +151,7 @@
     lista.forEach(function (e) { porId[e.id] = e; });
     Object.keys(d).filter(function (k) { return d[k] !== "" && d[k] != null; }).forEach(function (k) {
       var ref = porId[k];
-      t += "- " + (ref ? ref.exame : k) + ": " + d[k] +
+      t += "- " + (ref ? window.rotuloExibivel(ref.exame) : k) + ": " + d[k] +
         (ref && ref.unidade ? " " + ref.unidade : "") +
         (ref && ref.faixa ? " (faixa " + ref.faixa + ")" : "") + " — data da coleta não registrada\n";
     });
@@ -171,7 +171,7 @@
       ordenados.forEach(function (s) {
         t += "- " + s.nome + ": " + A2.fmt(s.nota) +
           (A2.semNota(s) ? " (sem dado)" : !A2.suficiente(s) ? " (dados insuficientes)"
-            : s.faixa ? " (" + s.faixa + ")" : "") + "\n";
+            : s.faixa ? " (" + window.rotuloExibivel(s.faixa) + ")" : "") + "\n";
       });
       if (snap.triada)
         t += "- Tríada: F " + A2.fmt(snap.triada.fisico) +

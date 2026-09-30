@@ -182,3 +182,24 @@
     return "Não foi possível concluir agora. Nada foi alterado; tente de novo.";
   };
 })();
+
+/* ---------- ROTULOS EXIBIVEIS (rodada 08) ------------------------------------
+   O banco do motor guarda alguns rotulos sem acento ("medio", "Acido urico").
+   O dado do motor nao muda (ele e o metodo, e os snapshots gravados usam o
+   nome dele); so a TELA mostra a forma correta. */
+(function () {
+  "use strict";
+  var MAPA = {
+    "medio": "médio",
+    "Acido urico": "Ácido úrico",
+    "Triglicerideos": "Triglicerídeos",
+    "PCR ultrassensivel": "PCR ultrassensível",
+    "Magnesio eritrocitario": "Magnésio eritrocitário",
+    "Homocisteina": "Homocisteína"
+  };
+  window.rotuloExibivel = function (s) {
+    if (s === null || s === undefined) return s;
+    var t = String(s);
+    return Object.prototype.hasOwnProperty.call(MAPA, t) ? MAPA[t] : t;
+  };
+})();

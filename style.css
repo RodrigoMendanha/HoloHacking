@@ -3421,7 +3421,7 @@ a.pac-link:hover{color:var(--dourado);text-decoration:underline;text-underline-o
 
 @media (max-width:640px){
   .terr-linha, .prio-linha{grid-template-columns:1fr 3rem}
-  .terr-conta, .prio-conta{grid-column:1/-1;margin-top:2px}
+  .terr-conta, .prio-conta{grid-column:1/-1;margin-top:2px;white-space:normal;min-width:0}
 }
 
 /* =========================================================================
@@ -4068,4 +4068,25 @@ body.escuro .cal-hoje-titulo{color:var(--dourado)}
 /* ---------- Reduced motion ----------------------------- */
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}
+}
+
+/* ---------- rodada 08: 375 px -------------------------------------------
+   O menu lateral virava um bloco de ~490 px antes de qualquer tela; aqui ele
+   vira uma faixa unica que rola na horizontal, com a marca compacta. O toast
+   nao passa da largura da tela (mensagem longa empurrava a pagina para o
+   lado), e as abas do Perfil quebram linha em vez de esconder "Conta". */
+#toast{max-width:calc(100vw - 32px);white-space:normal;text-align:center;box-sizing:border-box}
+@media (max-width:480px){
+  .sidebar{padding:10px 12px 8px}
+  .sidebar-marca{flex-direction:row;align-items:center;gap:10px;padding-bottom:8px;margin-bottom:8px}
+  .sidebar-marca svg{width:30px;height:28px}
+  .sidebar-marca .nome em{display:none}
+  .sidebar nav{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;gap:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px}
+  .sidebar nav::-webkit-scrollbar{display:none}
+  .nav-grupo{flex-wrap:nowrap;gap:4px}
+  .nav-grupo ~ .nav-grupo{padding-top:0;border-top:none;border-left:1px solid rgba(201,163,90,.3);padding-left:6px}
+  .nav-item{padding:7px 10px;font-size:.74rem;white-space:nowrap}
+  .abas-perfil{flex-wrap:wrap;overflow:visible}
+  .abas-perfil .aba{padding:10px 12px;letter-spacing:.1em}
+  #toast{letter-spacing:.04em;padding:10px 18px;border-radius:14px}
 }

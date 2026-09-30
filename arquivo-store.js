@@ -546,8 +546,36 @@
       .catch(function (e) { console.error("salvarSupa:", e); return null; });
   }
 
+  /* Rodada 08 — PEDIDO REPETIDO. Abrir o app pedia a lista de documentos 12
+     vezes, e abrir uma ficha mais 9: cada bloco da tela (painel, linha do
+     tempo, atalhos, contagem) perguntava por conta propria. Agora pedidos
+     iguais feitos quase juntos (1,5 s) compartilham a mesma resposta; salvar
+     ou excluir documento invalida na hora. Cada chamador recebe copia. */
+  var cacheListas = {};
+  var JANELA_MS = 1500;
+  function compartilhado(chave, fazer) {
+    var agora = Date.now();
+    var e = cacheListas[chave];
+    if (!e || agora - e.t > JANELA_MS) {
+      e = cacheListas[chave] = { t: agora, p: fazer() };
+      e.p.then(function (r) { if (r === null && cacheListas[chave] === e) delete cacheListas[chave]; },
+               function () { if (cacheListas[chave] === e) delete cacheListas[chave]; });
+    }
+    return e.p.then(function (lista) {
+      return Array.isArray(lista) ? lista.map(function (o) { return Object.assign({}, o); }) : lista;
+    });
+  }
+  function invalidarListas() { cacheListas = {}; }
+
   function listarSupa(paciente) {
     if (!temSupa()) return Promise.resolve(null);
+    /* sem paciente de verdade nao ha o que perguntar: "_sem_paciente" nao e
+       uuid e o servidor responderia 400 */
+    if (!UUID_RE.test(String(paciente))) return Promise.resolve([]);
+    return compartilhado("pac:" + uidAtual() + ":" + paciente, function () { return listarSupaAgora(paciente); });
+  }
+
+  function listarSupaAgora(paciente) {
     return window.supabaseClient.from("documents")
       .select("id, nome, tipo, data_documento, mime_type, tamanho_bytes, storage_path")
       .eq("patient_id", paciente)
@@ -635,7 +663,7 @@
     var impedido = barrado();
     if (impedido) return Promise.reject(impedido);
 
-    return salvar(paciente, arquivo, meta).then(function (registro) {
+    return depoisDeEscrever(salvar(paciente, arquivo, meta).then(function (registro) {
       if (!temSupa() || !UUID_RE.test(String(paciente))) {
         registro.sincronizado = null;
         return registro;
@@ -648,7 +676,7 @@
           .catch(function (e) { console.error("vincular documento:", e); })
           .then(function () { return registro; });
       });
-    });
+    }));
   }
 
   function listarHibrido(paciente) {
@@ -679,6 +707,10 @@
   /** Todos os documentos de todos os pacientes: servidor + o que so existe
       aqui. Sem sessao, ou com o servidor fora, so o local. */
   function listarTudoSupa() {
+    return compartilhado("tudo:" + uidAtual(), listarTudoSupaAgora);
+  }
+
+  function listarTudoSupaAgora() {
     var linhas = [];
     function pagina(de) {
       return Promise.resolve(window.supabaseClient.from("documents")
@@ -750,20 +782,29 @@
     if (typeof id === "string" && id.indexOf("supa:") === 0) {
       var supaId = id.slice(5);
       /* a copia local sai junto — senao o documento "voltava" na lista */
-      return removerSupa(supaId).then(function (res) {
+      return depoisDeEscrever(removerSupa(supaId).then(function (res) {
         return removerCopiasDe(supaId)
           .catch(function (e) { console.error("remover copia local:", e); })
           .then(function () { return res; });
-      });
+      }));
     }
     var impedido = barrado();
     if (impedido) return Promise.reject(impedido);
-    return remover(id);
+    return depoisDeEscrever(remover(id));
+  }
+
+  /* escrever invalida a lista compartilhada — antes e depois, para que nem
+     um pedido em voo durante a gravacao sirva a lista velha */
+  function depoisDeEscrever(p) {
+    invalidarListas();
+    return p.then(function (r) { invalidarListas(); return r; },
+                  function (e) { invalidarListas(); throw e; });
   }
 
   window.ArquivoStore = {
     salvar: salvarHibrido,
     remover: removerHibrido,
+    esquecerListas: invalidarListas,
 
     /* tolerantes — para a tela */
     listar: listarHibrido,

@@ -103,6 +103,7 @@
       localStorage.removeItem(CHAVE_DONO);
     } catch (e) { /* navegador em modo privado */ }
     if (window.Sujeira) window.Sujeira.limparTudo();   // edicao nao salva da conta que saiu
+    if (window.ArquivoStore && window.ArquivoStore.esquecerListas) window.ArquivoStore.esquecerListas();
     if (window.limparEstadoApp) window.limparEstadoApp();
     if (window.limparEstadoPerfil) window.limparEstadoPerfil();
     if (window.Sincronizacao) window.Sincronizacao.esquecer();

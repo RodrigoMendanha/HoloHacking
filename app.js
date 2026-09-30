@@ -1326,7 +1326,7 @@
   async function mudarStatus(ids, novo){
     for(const id of ids){
       const { error } = await sb.from("pacientes").update({ status: novo }).eq("id", id);
-      if(error){ toast("Erro ao salvar: " + error.message); return; }
+      if(error){ console.error("[pacientes] status:", error); toast(window.mensagemHumana(error)); return; }
       const p = estado.pacientes.find(x => x.id === id);
       if(p) p.status = novo;
     }
@@ -3188,7 +3188,7 @@
         : temContagem ? s.respondidos + " de " + s.total_marcadores + " respondidas" : "";
       const conta = [cobertura,
         insuficiente ? '<b class="dados-insuficientes">dados insuficientes</b>' : "",
-        s.faixa && !insuficiente ? "faixa " + s.faixa : ""].filter(Boolean).join(" &middot; ");
+        s.faixa && !insuficiente ? "faixa " + window.rotuloExibivel(s.faixa) : ""].filter(Boolean).join(" &middot; ");
       // Classes proprias (prio-*), NAO terr-*: territorios (#holo-territorios)
       // ja usa .terr-linha para outra lista, e testar-raciocinio.mjs conta
       // .terr-linha esperando achar so as dele. Reaproveitar o nome de
@@ -3276,7 +3276,7 @@
     });
 
     caixa.innerHTML =
-      '<h4 class="leitura-titulo">Triada HOLOS</h4>'
+      '<h4 class="leitura-titulo">Tríade HOLOS</h4>'
       + '<div class="triada-corpo">'
       +   '<svg viewBox="0 0 ' + L + ' ' + L + '" width="' + L + '" height="' + L + '" '
       +   'class="triada-grafico" aria-hidden="true">' + svg + "</svg>"

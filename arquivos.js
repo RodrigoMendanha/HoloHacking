@@ -159,7 +159,7 @@
       porSistema[sis].forEach(function (e) {
         var v = valores[e.id];
         var a = avaliadoPorId[e.id];
-        html += "<li>" + escapar(e.exame) + ": " +
+        html += "<li>" + escapar(window.rotuloExibivel(e.exame)) + ": " +
           (v === undefined
             ? "sem valor lançado"
             : escapar(v) + " " + escapar(e.unidade) +
@@ -468,7 +468,7 @@
       porSistema[sis].forEach(function (e) {
         var v = valores[e.id];
         html += '<div class="ex-linha" data-exame="' + e.id + '">' +
-          '<span class="ex-nome">' + escapar(e.exame) + "</span>" +
+          '<span class="ex-nome">' + escapar(window.rotuloExibivel(e.exame)) + "</span>" +
           '<span class="ex-faixa">faixa cadastrada ' + e.faixa + " " + escapar(e.unidade) + "</span>" +
           '<input type="number" step="any" inputmode="decimal" value="' +
             (v === undefined ? "" : escapar(v)) + '" placeholder="—">' +
@@ -1053,8 +1053,34 @@
     });
   }
 
+  /* Rodada 08 — tipos aceitos para documento de paciente. Confere o tipo que
+     o navegador informa e a extensao (alguns navegadores mandam HEIC/CSV sem
+     tipo); o resto e recusado antes de sair do aparelho. */
+  var TIPOS_DOC = {
+    "application/pdf": ["pdf"], "image/png": ["png"], "image/jpeg": ["jpg", "jpeg"],
+    "image/webp": ["webp"], "image/heic": ["heic"], "image/heif": ["heic", "heif"],
+    "text/plain": ["txt"], "text/csv": ["csv"]
+  };
+  var EXT_SEM_TIPO = ["heic", "heif", "csv", "txt"];
+  function tipoAceito(a) {
+    var ext = String(a.name || "").toLowerCase().split(".").pop();
+    var t = String(a.type || "").toLowerCase();
+    if (!t) return EXT_SEM_TIPO.indexOf(ext) >= 0;
+    return !!TIPOS_DOC[t] && TIPOS_DOC[t].indexOf(ext) >= 0;
+  }
+
   function receberArquivos(lista) {
     if (!lista || lista.length === 0) return;
+    var recusados = Array.prototype.filter.call(lista, function (a) { return !tipoAceito(a); });
+    if (recusados.length) {
+      var avisoTipo = document.getElementById("doc-aviso");
+      var msg = "Tipo de arquivo não aceito: " + recusados.map(function (a) { return a.name; }).join(", ") +
+        ". Envie PDF, imagem (PNG, JPG, WEBP, HEIC), TXT ou CSV.";
+      if (avisoTipo) avisoTipo.innerHTML = '<p class="q-erro">' + escapar(msg) + "</p>";
+      else if (window.avisar) window.avisar(msg);
+      lista = Array.prototype.filter.call(lista, tipoAceito);
+      if (!lista.length) return;
+    }
     if (window.pacienteArquivado && window.pacienteArquivado()) {
       if (window.avisar) window.avisar(window.MSG_ARQUIVADO);
       return;
@@ -1211,7 +1237,7 @@
       var partes = [
         semDado ? "nenhuma pergunta respondida" : (temContagem ? s.respondidos + " de " + s.total_marcadores + " respondidas" : ""),
         insuf ? "dados insuficientes" : "",
-        s.faixa && !insuf ? "faixa " + escapar(s.faixa) : ""
+        s.faixa && !insuf ? "faixa " + escapar(window.rotuloExibivel(s.faixa)) : ""
       ].filter(Boolean);
       html += '<p class="rel-prioridade"><b>' + escapar(s.nome) + "</b> — " +
         A.fmt(s.nota) +
@@ -1259,7 +1285,7 @@
         "<b>" + escapar(s.nome) + "</b>" +
         '<span class="rel-nota">' + A.fmt(s.nota) + "</span>" +
         '<span class="rel-faixa">' + escapar(A.semNota(s) ? "sem dado"
-          : !A.suficiente(s) ? "dados insuficientes" : (s.faixa || "")) + "</span></div>" +
+          : !A.suficiente(s) ? "dados insuficientes" : (window.rotuloExibivel(s.faixa) || "")) + "</span></div>" +
         '<p class="rel-passos">Área do mapa. Investigar com mais profundidade na consulta.</p>' +
         "</div>";
     });

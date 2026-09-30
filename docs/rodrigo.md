@@ -39,7 +39,8 @@ Você vê uma linha que começa pelo commit do merge mais recente da `main`
 **1.3 Construir e trocar o container**
 
 ```sh
-docker build -t holohacking:$(git rev-parse --short HEAD) .
+docker build --build-arg COMMIT=$(git rev-parse --short HEAD) \
+  -t holohacking:$(git rev-parse --short HEAD) .
 docker stop <CONTAINER> && docker rename <CONTAINER> <CONTAINER>-anterior
 docker run -d --name <CONTAINER> --restart unless-stopped -p <PORTA>:80 \
   holohacking:$(git rev-parse --short HEAD)

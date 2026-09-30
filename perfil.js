@@ -234,7 +234,7 @@
 
   function salvar(mensagem) {
     return Promise.resolve(gravar()).then(function (r) {
-      if (r && r.error) { aviso(r.error.message, true); return false; }
+      if (r && r.error) { console.error("[perfil] salvar:", r.error); aviso(window.mensagemHumana(r.error), true); return false; }
       espalhar();
       if (mensagem && window.avisar) window.avisar(mensagem);
       return true;
@@ -258,9 +258,20 @@
 
   /* ---------- as imagens -------------------------------------------------- */
 
+  /* rodada 08: varios blocos pedem a mesma imagem ao mesmo tempo (foto no
+     rodape, no cabecalho, no relatorio) — um download so por imagem */
+  var baixando = {};
   function urlDe(id) {
     if (!id) return Promise.resolve("");
     if (urls[id]) return Promise.resolve(urls[id]);
+    if (baixando[id]) return baixando[id];
+    var p = urlDeAgora(id);
+    baixando[id] = p;
+    p.then(function () { delete baixando[id]; }, function () { delete baixando[id]; });
+    return p;
+  }
+
+  function urlDeAgora(id) {
 
     if (id.indexOf("supa:") === 0 && temSupa()) {
       var path = supaAssets[id];
@@ -301,7 +312,7 @@
     }).then(function () {
       return salvar(tipo + " atualizado.");
     }).then(function () { desenhar(); return true; })
-      .catch(function (e) { aviso(e.message || "Não foi possível guardar a imagem.", true); return false; });
+      .catch(function (e) { console.error("[perfil] imagem:", e); aviso("Não foi possível guardar a imagem. " + window.mensagemHumana(e), true); return false; });
   }
 
   function guardarImagemSupa(campo, arquivo, tipo) {
@@ -349,7 +360,8 @@
       return salvar(tipo + " atualizado.");
     }).then(function () { desenhar(); return true; })
     .catch(function (e) {
-      aviso(e.message || "Não foi possível guardar a imagem.", true);
+      console.error("[perfil] imagem:", e);
+      aviso("Não foi possível guardar a imagem. " + window.mensagemHumana(e), true);
       return false;
     });
   }
@@ -821,6 +833,34 @@
         aparencia);
   }
 
+  /* Rodada 08 — BUILD AUDITAVEL: /version.json e gerado no build da imagem
+     (Dockerfile) com versao, commit e data. Lido uma vez por pagina. Sem o
+     arquivo (servidor local de desenvolvimento), a tela diz isso. */
+  var versaoApp = null;
+  function lerVersao() {
+    if (!versaoApp) {
+      if (typeof fetch !== "function") { versaoApp = Promise.resolve(null); return versaoApp; }
+      versaoApp = fetch("/version.json", { cache: "no-store" })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .catch(function () { return null; });
+    }
+    return versaoApp;
+  }
+  window.versaoDoApp = lerVersao;
+  function mostrarVersao() {
+    lerVersao().then(function (v) {
+      var el = document.getElementById("conta-versao");
+      if (!el) return;
+      if (!v || !v.version) {
+        el.textContent = "Versão local de desenvolvimento (este servidor não publicou version.json).";
+        return;
+      }
+      var quando = v.builtAt ? new Date(v.builtAt) : null;
+      el.textContent = "Versão " + v.version + " · commit " + (v.commit || "desconhecido") +
+        (quando && !isNaN(quando) ? " · construída em " + quando.toLocaleString("pt-BR") : "");
+    });
+  }
+
   /* ========================================================= ABA: CONTA === */
 
   function painelConta() {
@@ -896,7 +936,9 @@
     alvo.innerHTML =
       cartao("Onde ficam os seus dados", "", dados) +
       cartao("Acesso", "", acesso) +
-      (trocarSenhaHtml ? cartao("Alterar senha", "", trocarSenhaHtml) : "");
+      (trocarSenhaHtml ? cartao("Alterar senha", "", trocarSenhaHtml) : "") +
+      cartao("Versão do app", "", '<p class="perf-ajuda" id="conta-versao">Lendo a versão…</p>');
+    mostrarVersao();
 
     if (window.ArquivoStore && window.ArquivoStore.listarTudo) {
       window.ArquivoStore.listarTudo().then(function (itens) {
@@ -1302,10 +1344,15 @@
                   assinatura_id: "perf-assinatura-alvo", carimbo_id: "perf-carimbo-alvo" };
     var entrada = document.createElement("input");
     entrada.type = "file";
-    entrada.accept = "image/png,image/jpeg,image/webp,image/svg+xml";
+    /* rodada 08: sem SVG (pode carregar script) — so PNG, JPG e WEBP */
+    entrada.accept = "image/png,image/jpeg,image/webp";
     entrada.addEventListener("change", function () {
       var arq = entrada.files[0];
       if (!arq) return;
+      if (["image/png", "image/jpeg", "image/webp"].indexOf(String(arq.type).toLowerCase()) < 0) {
+        aviso("Tipo de imagem não aceito. Envie PNG, JPG ou WEBP.", true);
+        return;
+      }
       if (arq.size > 4 * 1024 * 1024) {
         aviso("Imagem muito grande (máximo 4 MB).", true);
         return;

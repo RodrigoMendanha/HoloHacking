@@ -197,7 +197,7 @@
         : ""
     ].filter(Boolean).join("");
 
-    return '<button class="btn-voltar" type="button">&larr; Voltar as ferramentas</button>' +
+    return '<button class="btn-voltar" type="button">&larr; Voltar às ferramentas</button>' +
       '<div class="secao-cabeca">' +
         '<span class="eyebrow">' + MODULOS[f.modulo] + " - Ferramenta " + f.numero + "</span>" +
         "<h2>" + escapar(f.titulo) + " &mdash; <em>" + escapar(f.chamada) + "</em></h2>" +

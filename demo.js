@@ -325,7 +325,7 @@
       quadro: function (p) { rolarAte("#radar-svg", p, .12, .6); } },
 
     /* 6 — a Triada, app de verdade */
-    { dur: 9, continua: true, legenda: "Triada HOLOS",
+    { dur: 9, continua: true, legenda: "Tríade HOLOS",
       entrar: function () { mostrarPainel(false); },
       quadro: function (p) { rolarAte("#holo-triada", p, .05, .55); } },
 
