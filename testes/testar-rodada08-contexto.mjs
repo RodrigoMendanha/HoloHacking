@@ -200,6 +200,15 @@ tem(/Mapa de Crenças[\s\S]*carboidrato engorda/, 'o Mapa de Crenças');
 tem(/Roda Holística da Vida[\s\S]*Saúde: 4[\s\S]*trabalho/, 'a Roda da Vida (Roda Holística da Vida)');
 tem(/Carta ao Futuro[\s\S]*querida eu do futuro/, 'a Carta ao Futuro');
 
+/* onda 9: sem URL configurada, o agente nao e um botao morto */
+const agentes = await A.evaluate(() => ['ai-btn-chatgpt', 'ai-btn-gemini'].map(id => {
+  const el = document.getElementById(id);
+  return { dev: /Em desenvolvimento/.test(el.textContent), desabilitado: el.getAttribute('aria-disabled') === 'true',
+           semHref: !el.getAttribute('href') };
+}));
+ok(agentes.every(a => a.dev && a.desabilitado && a.semHref),
+   'ChatGPT e Gemini sem URL: marcados "Em desenvolvimento", aria-disabled, sem link');
+
 ok(errosJS.length === 0, 'nenhum erro de JavaScript' + (errosJS.length ? ': ' + errosJS.join(' | ') : ''));
 await nav.close();
 console.log('\n' + (falhou ? 'RESULTADO: FALHOU' : 'RESULTADO: VERDE') + '\n');

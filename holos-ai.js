@@ -455,31 +455,37 @@
     ligarEventos();
   }
 
+  /* Rodada 08: sem URL configurada, o botao nao pode parecer que funciona.
+     Fica marcado "Em desenvolvimento", com aria-disabled, sem href — e o
+     clique nao faz nada (ligarEventos). Com URL, vira link normal. */
+  function ajustarAgente(el, url, nome) {
+    if (!el) return;
+    var selo = el.querySelector(".ai-selo-dev");
+    if (url) {
+      el.href = url;
+      el.classList.remove("ai-btn-indisponivel");
+      el.removeAttribute("title");
+      el.removeAttribute("aria-disabled");
+      el.setAttribute("aria-label", "Abrir HOLOS AI no " + nome);
+      if (selo) selo.remove();
+    } else {
+      el.removeAttribute("href");
+      el.classList.add("ai-btn-indisponivel");
+      el.setAttribute("aria-disabled", "true");
+      el.setAttribute("aria-label", "HOLOS AI no " + nome + " — em desenvolvimento");
+      el.title = "Em desenvolvimento: o agente ainda não foi configurado. O contexto abaixo já pode ser copiado.";
+      if (!selo) {
+        selo = document.createElement("span");
+        selo.className = "ai-selo-dev";
+        selo.textContent = "Em desenvolvimento";
+        el.appendChild(selo);
+      }
+    }
+  }
+
   function atualizarLinksAgentes() {
-    var chatgpt = document.getElementById("ai-btn-chatgpt");
-    var gemini = document.getElementById("ai-btn-gemini");
-    if (chatgpt) {
-      if (HOLOS_AI_URLS.chatgpt) {
-        chatgpt.href = HOLOS_AI_URLS.chatgpt;
-        chatgpt.classList.remove("ai-btn-indisponivel");
-        chatgpt.removeAttribute("title");
-      } else {
-        chatgpt.removeAttribute("href");
-        chatgpt.classList.add("ai-btn-indisponivel");
-        chatgpt.title = "Link será configurado em breve";
-      }
-    }
-    if (gemini) {
-      if (HOLOS_AI_URLS.gemini) {
-        gemini.href = HOLOS_AI_URLS.gemini;
-        gemini.classList.remove("ai-btn-indisponivel");
-        gemini.removeAttribute("title");
-      } else {
-        gemini.removeAttribute("href");
-        gemini.classList.add("ai-btn-indisponivel");
-        gemini.title = "Link será configurado em breve";
-      }
-    }
+    ajustarAgente(document.getElementById("ai-btn-chatgpt"), HOLOS_AI_URLS.chatgpt, "ChatGPT");
+    ajustarAgente(document.getElementById("ai-btn-gemini"), HOLOS_AI_URLS.gemini, "Gemini");
   }
 
   function ligarEventos() {

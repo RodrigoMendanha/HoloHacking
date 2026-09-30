@@ -3883,6 +3883,7 @@ body.login-aberto #app,
 .ai-hub-btn:hover{background:var(--halo);border-color:var(--dourado)}
 .ai-btn-icone{font-size:1.2rem;color:var(--dourado)}
 .ai-btn-indisponivel{opacity:.45;cursor:not-allowed}
+.ai-selo-dev{display:inline-block;margin-left:8px;padding:1px 7px;border-radius:999px;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;border:1px solid currentColor;opacity:.9}
 .ai-hub-contexto{margin-bottom:24px}
 .ai-hub-contexto h4{font-size:.9rem;font-weight:600;color:var(--titulo);margin:0 0 6px}
 .ai-hub-instrucao{font-size:.82rem;font-weight:300;color:var(--texto-suave);margin:0 0 14px}
