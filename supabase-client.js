@@ -46,10 +46,6 @@
   /* auth.persistSession usa localStorage por padrão — é a sessão da pessoa
      que usa o app, não um segredo do servidor. autoRefreshToken mantém a
      sessão viva sem exigir login de novo a cada expiração do access token. */
-  /* Para quem fala com as Edge Functions por fetch (metanutri.js): so a URL
-     e a chave publica, as mesmas de cima. */
-  window.supabaseProjeto = { url: PROJECT_URL, chavePublica: PUBLISHABLE_KEY };
-
   window.supabaseClient = window.supabase.createClient(PROJECT_URL, PUBLISHABLE_KEY, {
     auth: {
       persistSession: true,

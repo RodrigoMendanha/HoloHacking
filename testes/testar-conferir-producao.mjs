@@ -4,7 +4,7 @@
  * Sobe um servidor HTTP local que serve o que o Dockerfile copia (index.html,
  * style.css, favicon.svg, *.js da raiz), com o fallback do nginx (arquivo que
  * nao existe volta como index.html), e roda o script contra ele:
- *   1  tudo igual ao docs/deploy.md §3.5: "OK: 39 de 39", exit 0
+ *   1  tudo igual ao docs/deploy.md §3.5: "OK: N de N", exit 0
  *   2  um arquivo alterado: reprova, exit 1, e nomeia o arquivo
  *   3  um arquivo faltando: reprova e diz que voltou o index.html
  *   4  endereco fora do ar: reprova, exit 1
@@ -52,21 +52,22 @@ const rodar = (base) => new Promise(r => {
 });
 
 let r = await rodar(BASE);
-ok(r.code === 0 && /OK: 39 de 39/.test(r.out), 'tudo igual: "OK: 39 de 39", exit 0 → ' + r.out.trim().split('\n').at(-1));
+const N = servidos.length;
+ok(r.code === 0 && r.out.includes(`OK: ${N} de ${N}`), `tudo igual: "OK: ${N} de ${N}", exit 0 → ` + r.out.trim().split('\n').at(-1));
 
 mexidos = { 'app.js': Buffer.concat([conteudo['app.js'], Buffer.from('\n// mexido\n')]) };
 r = await rodar(BASE);
-ok(r.code === 1 && /DIFEREM: 1 de 39/.test(r.out) && /^\s+app\.js\s+esperado/m.test(r.out),
+ok(r.code === 1 && r.out.includes(`DIFEREM: 1 de ${N}`) && /^\s+app\.js\s+esperado/m.test(r.out),
    'app.js alterado: exit 1 e o app.js nomeado → ' + r.out.trim().split('\n').slice(1).join(' | '));
 
-mexidos = { 'metanutri.js': null };
+mexidos = { 'sincronizacao.js': null };
 r = await rodar(BASE);
-ok(r.code === 1 && /metanutri\.js .*voltou o index\.html/.test(r.out),
-   'metanutri.js faltando: exit 1 e "voltou o index.html"');
+ok(r.code === 1 && /sincronizacao\.js .*voltou o index\.html/.test(r.out),
+   'sincronizacao.js faltando: exit 1 e "voltou o index.html"');
 
 srv.close();
 r = await rodar('http://127.0.0.1:1');
-ok(r.code === 1 && /DIFEREM: 39 de 39/.test(r.out), 'endereco fora do ar: exit 1, os 39 listados');
+ok(r.code === 1 && r.out.includes(`DIFEREM: ${N} de ${N}`), `endereco fora do ar: exit 1, os ${N} listados`);
 
 const src = readFileSync(SCRIPT, 'utf8');
 ok(!/Authorization|apikey|token|senha|password/i.test(src.replace(/^#.*$/gm, '')), 'o script nao usa credencial nenhuma');

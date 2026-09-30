@@ -260,15 +260,6 @@
         </button>
       </div>
 
-      <!-- MetaNutri: mentor de NEGOCIO (metanutri.js). So aparece logada. -->
-      <p class="nav-titulo" id="nav-titulo-metanutri" hidden>Negócio</p>
-      <div class="nav-grupo" role="group" aria-labelledby="nav-titulo-metanutri" id="nav-grupo-metanutri" hidden>
-        <button class="nav-item" data-secao="metanutri" id="nav-metanutri" hidden>
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4h-1A.5.5 0 0 1 4 15.5Z"/><path d="M8.5 9.5h7M8.5 12.5h4"/></svg>
-          MetaNutri
-        </button>
-      </div>
-
       <p class="nav-titulo" id="nav-grupo-config">Configurações</p>
       <div class="nav-grupo" role="group" aria-labelledby="nav-grupo-config">
         <button class="nav-item" data-secao="perfil">
@@ -986,29 +977,6 @@
         <div class="aba-painel hidden" id="painel-conta" role="tabpanel" aria-labelledby="tab-conta"></div>
       </section>
 
-      <!-- ============ METANUTRI (mentor de negocio) ============ -->
-      <section class="secao" id="secao-metanutri">
-        <div class="secao-cabeca">
-          <span class="eyebrow">Negócio</span>
-          <h2>Meta<em>Nutri</em></h2>
-          <p>Seu mentor de negócio: precificação, captação, posicionamento e consultório.
-             A conversa fica só nesta tela e some quando você sai da conta ou recarrega a página.</p>
-        </div>
-        <div class="mn-chat">
-          <p class="mn-aviso" id="mn-aviso">Mentor de negócio. Não responde sobre pacientes.</p>
-          <div class="mn-conversa" id="mn-conversa" aria-live="polite"></div>
-          <form class="mn-form" id="mn-form" autocomplete="off">
-            <label class="sr-only" for="mn-mensagem">Sua pergunta ao MetaNutri</label>
-            <textarea id="mn-mensagem" rows="3" maxlength="2000"
-              placeholder="Ex.: como definir o preço da minha consulta?"></textarea>
-            <div class="mn-rodape">
-              <span class="mn-contador" id="mn-contador" aria-live="off">0/2000</span>
-              <button type="submit" class="btn-verde mn-enviar" id="mn-enviar">Enviar</button>
-            </div>
-          </form>
-        </div>
-      </section>
-
       <!-- ============ CORPO - OQ3 ============ -->
       <section class="secao" id="secao-corpo">
         <div class="secao-cabeca cabeca-modulo">
@@ -1320,7 +1288,6 @@
 <script src="/caso-marina.js"></script>
 <script src="/demo.js"></script>
 <script src="/holos-ai.js"></script>
-<script src="/metanutri.js"></script>
 <!-- Por ultimo: a tela de entrada nao depende de nada do app, e o app nao
      depende dela. O dia em que a autenticacao real chegar, e este arquivo que
      muda — nao os de cima. -->
