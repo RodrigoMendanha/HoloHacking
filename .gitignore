@@ -22,10 +22,14 @@ motor/node_modules/
 # Trabalho interno (plano, revisao do Rodrigo, roteiro e locucao do video).
 # Fica no repositorio holos, nao neste, que e publico.
 # Excecoes: deploy.md e rodrigo.md, passo a passo operacional sem segredo
-# nem dado clinico.
+# nem dado clinico; e, da rodada 08, as regras de exclusao, de sessao e o
+# plano da HOLOS AI (regras do produto, sem segredo nem dado clinico).
 docs/*
 !docs/deploy.md
 !docs/rodrigo.md
+!docs/exclusoes.md
+!docs/sessao.md
+!docs/holos-ai-plano.md
 
 # Capturas de tela dos testes: geradas a cada rodada, nao sao fonte.
 /*.png
