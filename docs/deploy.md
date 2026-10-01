@@ -157,13 +157,13 @@ Cache-Control. Nas próximas atualizações não precisa.
 
 ### 3.5 Hashes esperados (sha256 dos arquivos servidos pela `main` saneada)
 
-Todos os 48 arquivos que o `Dockerfile` copia (`index.html style.css favicon.svg
-*.js`). Atualizados na Etapa 4 da V1 (branch `claude/v1-etapa4-pacote-metodologico`,
+Todos os 49 arquivos que o `Dockerfile` copia (`index.html style.css favicon.svg
+*.js`). Atualizados na Etapa 4.2 da V1 (branch `claude/v1-etapa4-2-metodologia-final`, inclui `metodologia-decisoes-v1.js` e `questionario.js`; antes, Etapa 4:
 inclui `metodologia.js`, `atendimento.js`, `anamnese.js`, `conduta.js`, `timeline.js`, `relatorios.js`, `metodologia-inventario.js`, `metodologia-pacote.js`, `metodologia-motor.js` e `metodologia-homologacao.js`), conferidos contra a imagem do `docker build` da branch (o nginx ainda põe o
 `50x.html` dele, que não é nosso):
 
 ```
-6900d69b61a8ae9631c9eb0058d5234c7e506470fd6861a647f24c0750a095a8  index.html
+3fa435ae1948475873d293cee99030b7e5a5e6f059766be86931270bea8a1d3e  index.html
 9edb50a1fe964f29d755df4c696f3865a8b42f27145878bebf504148a38b39ca  style.css
 cd6ef22455f446156c4109649b2d0fc1fe803f0c6697e1029fa71e50ba44cf84  favicon.svg
 fca789a5d4169bc1d4b5b0d1d2e934e9f1317384b435ea44e486966fe5eaa8d7  agenda.js
@@ -193,15 +193,16 @@ a89bb8938005013575b8f93d37228a3356decc23093a3fcd475e5925eac58a32  holos-ai.js
 b6c7e8b1341a10bf45c2f895218e5529176b9c36aa035be6a2aa1ed0fb41cfac  holoscan.js
 b2705ac28dc9f6175ec5586ef02e86b00f2fe1265dbb23a34e3bb2cebb8718c3  importar-v1.js
 d0098b6c672f2d283cabb347205c676e3ac117fd960e8274ba3a64d13a984f2e  login.js
-0b1e916ec12c9d1b80ac602eec72b05fdf86ce93afb9005963bf37715df716bd  metodologia-homologacao.js
-1beefcaf7503b6d4503abacc2770719d5086d82a2a490de67e7c3fd0ae4bc9c6  metodologia-inventario.js
-4b6c12fd97c5c372dca9227485c47f22621a432a67a288cc128fc33e408584d1  metodologia-motor.js
-710fbfcc25baefa268b371a4933804279c90795ae68baedead7f4815b8be0460  metodologia-pacote.js
+690ba8b48f68d5932426b45d564894ffdb3a2641a5ffe8970f298d206bfbe58a  metodologia-decisoes-v1.js
+f00b2ccd3ae318bb988934c3a894484c4e7b32e05d41268c1ce64ea1f9570fc5  metodologia-homologacao.js
+aa6a886c1ad2b8000ccbbe4321faf7be4159c12be0109a8d19f09718405d4439  metodologia-inventario.js
+ae87ad9c758f4ccf14cbb0404db8538b8705f4069049c4b002140ef1ec109bd8  metodologia-motor.js
+d23cd316ab38b376309ccfd660f297815fac93584e5c0a297773a40bbe73b611  metodologia-pacote.js
 33624972d9967e1edcb3cff6a7a653829c51f6058c52b4d7fb0231416055d049  metodologia.js
 166b0e323628000f7e1a8274eb5b0012d5a22af67d4804c7b4d4f0e95efacf55  migracao-supa.js
 0aa32a8554ffecbe0e7198a13ed65aa2ea062478eaf632f45d1fa90978ef0db1  panorama.js
 2beaabe619d8dd09438a7bfbbc4677e52cd015cea5483086b6cee46865cd13a3  perfil.js
-6249295a8f4ee756ae75c3357eb158ce7726e24e7e0c8eaa637609a156ae4c91  questionario.js
+8ac728c67627b0bc4d7f70b0fb98fa75a493822c74c9a3385d7e3e52bb4a7cb3  questionario.js
 03690803167dd95e8a999729dca908f39e8f454eeb6d23172c9cd8aa8903ce9c  relatorios.js
 8849e59a1d3fe76723aa1e59cc75213fc64172259c5bccd6d9b1151f21a9fb63  render-resultado.js
 23520f5f414deb288f083d0a08389a1c96d1ec918c50fb95d44c3b8b36758e8c  restaurar-backup.js
