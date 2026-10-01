@@ -93,8 +93,61 @@ na seção **Decisões pendentes**, sem resposta.
 29. **Só registro consolidado alimenta histórico oficial.** Rascunho não entra em
     dashboard, timeline consolidada, contexto da HOLOS AI nem exportação sem rótulo.
 
+### Etapa 3 — Evolução, Timeline e Relatório clínico base (01/10/2026)
+
+30. **Evolução é histórico longitudinal por atendimento, nunca "primeira × última".**
+    Dois pontos escolhidos explicitamente (atendimento anterior × atual; linha de base
+    escolhida × atual; dois atendimentos; duas datas). Nada é assumido como linha de base
+    em silêncio. (Mestre §8, §19, §31)
+31. **Nenhum delta metodológico.** Notas, Índice, Tríada e faixas do HOLOSCAN não têm
+    delta oficial enquanto o Pacote Metodológico V1 não for homologado: só datas, versão,
+    cobertura bruta, interpretação profissional e id de aplicação lado a lado. Nunca
+    "melhorou", "piorou" ou "+X%".
+32. **Delta numérico só entre a mesma coisa na mesma unidade.** Medidas da anamnese (mesmo
+    rótulo + mesma unidade), exames (mesmo `exame_id` + unidade compatível, sem equivalência
+    inventada) e ferramentas (mesma ferramenta + mesma versão + mesma chave numérica).
+    Incompatível fica lado a lado, com o motivo.
+33. **Acordos: estado anterior → estado atual.** Continuado, alterado, revisto, encerrado,
+    novo, sem registro na conduta atual; nenhum índice de adesão; "sem registro" não é
+    "não cumpriu". (Mestre §30)
+34. **Timeline só com o consolidado.** Atendimento, anamnese/conduta salvas ou revisadas,
+    acordo alterado, HOLOSCAN com identidade remota, coleta, ferramenta concluída,
+    documento anexado, relatório emitido; agendamento como evento administrativo. Rascunho,
+    prévia e cache local não sincronizado ficam fora. Data clínica ordena; data de registro
+    é consultável. Revisão aparece ligada ao registro original, não como novo evento.
+35. **Relatório = emissão versionada de fontes escolhidas.** `report_emissions`: rascunho
+    editável; emissão imutável com `source_snapshot` e `content_snapshot` montados pelo
+    servidor a partir de fontes validadas (mesmo paciente/profissional, só consolidadas);
+    correção = retificação (`supersedes_report_id`, `revision_number + 1`), original
+    acessível. Nada vem selecionado por padrão; conteúdo íntimo (campos emocionais, sentido
+    pessoal, respostas das ferramentas) só por escolha explícita.
+36. **Tipos de conteúdo no snapshot.** RELATO_DO_PACIENTE, OBSERVACAO_PROFISSIONAL,
+    DADO_MEDIDO, DADO_DOCUMENTAL, INDICADOR_CALCULADO, TEXTO_ASSISTIDO (estrutura;
+    nenhum texto assistido é gerado). Metodologia não homologada nunca entra como
+    resultado oficial (`resultados_oficiais: false`).
+37. **`content_hash` é hash técnico (sha256 do snapshot), não assinatura digital.**
+    Impressão/PDF pelo navegador a partir do snapshot, não da ficha viva; nenhum serviço
+    pago; nenhum PDF assinado prometido; binário não persistido.
+38. **Proveniência fechada no servidor.** `source_anamnesis_id` exige fonte consolidada de
+    outro atendimento (nunca a própria linha); `origin_agreement_id` exige acordo de outra
+    conduta (nunca o próprio). As FKs compostas já impedem cruzar paciente/profissional.
+39. **Relatório conta como histórico.** Paciente com emissão não é "sem histórico"; não há
+    policy de DELETE em `report_emissions`.
+40. **Solicitação de exames com assinatura: não implementada** (pendência registrada na
+    tela e aqui). Envio externo, provider da HOLOS AI e Pacote Metodológico seguem fora.
+
 ## Decisões pendentes (não decididas aqui)
 
+- **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`
+  continua texto livre; nenhum documento assinado é gerado. (Mestre §30, §41)
+- **Envio externo de relatórios** (e-mail, WhatsApp, portal) — fora; emissão só é vista e
+  impressa pela profissional.
+- **Comparabilidade entre aplicações do HOLOSCAN** (edição, itens, escalas, pesos, cobertura,
+  janela temporal) — depende do Pacote Metodológico; a Evolução não calcula delta algum.
+- **Equivalências entre exames** (PCR × PCR-us, unidades) — nenhuma criada; delta só no mesmo
+  `exame_id` e unidade igual. (Mestre §21)
+- **Documentos × atendimento** — `documents` continua sem `encounter_id`; o relatório referencia
+  documento por id (metadados), não por atendimento.
 - **Texto assistido** — nenhuma geração de texto existe; quando existir, entra como
   proposta identificada e só vira prontuário após confirmação (Mestre §30, §36).
 - **Vocabulário de `type`/`modality` do atendimento e campos fechados da anamnese** —
@@ -107,7 +160,6 @@ na seção **Decisões pendentes**, sem resposta.
   histórico fica sem `encounter_id`.
 - **Exclusão de atendimento** — `encounters` não tem policy de DELETE; como a exclusão
   completa de paciente (Rodada 08) trata atendimentos fica para decisão.
-- **Documentos × atendimento** — sem `encounter_id` até Relatórios/Emissões.
 - **Anamnese obrigatória** — formulário estruturado previsto no Mestre §9, ausente no AS-IS.
 - **Conduta obrigatória** — entidade clínica prevista no Mestre §30, ausente no AS-IS.
 - **Catálogo final das 10 ferramentas** — 3 de Corpo, 3 de Mente, 4 de Espírito

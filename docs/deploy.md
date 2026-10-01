@@ -134,10 +134,10 @@ Os comandos abaixo são a mesma conferência, arquivo por arquivo.
 
 ```sh
 curl -sI http://127.0.0.1:<PORTA>/app.js | grep -i cache-control   # Cache-Control: no-cache
-curl -s  http://127.0.0.1:<PORTA>/app.js | sha256sum               # e0ec1b5b041c...
-curl -s  http://127.0.0.1:<PORTA>/arquivos.js | sha256sum          # eeec4b819f3f...
-curl -s  http://127.0.0.1:<PORTA>/index.html | sha256sum           # 4c01ee32b730...
-curl -s  https://holohacking.com.br/sincronizacao.js | sha256sum   # 52d51d4e6717...
+curl -s  http://127.0.0.1:<PORTA>/app.js | sha256sum               # ffbf500d145d...
+curl -s  http://127.0.0.1:<PORTA>/arquivos.js | sha256sum          # cfd8116a5c80...
+curl -s  http://127.0.0.1:<PORTA>/index.html | sha256sum           # f4b9cddcdf71...
+curl -s  https://holohacking.com.br/sincronizacao.js | sha256sum   # 3ca13489a548...
 ```
 
 Se o `app.js` der `dfca9ef7fd1f...`, o deploy pegou um commit das rodadas
@@ -157,52 +157,54 @@ Cache-Control. Nas próximas atualizações não precisa.
 
 ### 3.5 Hashes esperados (sha256 dos arquivos servidos pela `main` saneada)
 
-Todos os 42 arquivos que o `Dockerfile` copia (`index.html style.css favicon.svg
-*.js`). Atualizados na Etapa 2 da V1 (branch `claude/v1-etapa2-anamnese-conduta`,
-inclui `metodologia.js`, `atendimento.js`, `anamnese.js` e `conduta.js`), conferidos contra a imagem do `docker build` da branch (o nginx ainda põe o
+Todos os 44 arquivos que o `Dockerfile` copia (`index.html style.css favicon.svg
+*.js`). Atualizados na Etapa 3 da V1 (branch `claude/v1-etapa3-evolucao-relatorios`,
+inclui `metodologia.js`, `atendimento.js`, `anamnese.js`, `conduta.js`, `timeline.js` e `relatorios.js`), conferidos contra a imagem do `docker build` da branch (o nginx ainda põe o
 `50x.html` dele, que não é nosso):
 
 ```
-c91a357adc999f2dc2d78e4969d4b519482cbaa4a3d830d73bb0fb94888a1dbe  index.html
-eedf1ce1b79069cf9dc5b5a8006efbf9535f8a2f1f96c43d50db7fc678733390  style.css
+f4b9cddcdf7145b5146ad79040bc34fd93098c13e50ec8d14394e750656a8c22  index.html
+122d48cf27ab2e7dba9eb29619dabe5a33251a6adf3cae4e37b8a0db337d55ef  style.css
 cd6ef22455f446156c4109649b2d0fc1fe803f0c6697e1029fa71e50ba44cf84  favicon.svg
 fca789a5d4169bc1d4b5b0d1d2e934e9f1317384b435ea44e486966fe5eaa8d7  agenda.js
 cd0daa04a10e165dd536874170bf3c005d9bdb4041b15deb766c2b30596dfef4  anamnese.js
 b1ea48449d74ba8427c7a59947ae73d55a4d88896ea1fcf4f9823dc4087bd049  aplicacoes.js
-f5f11682a1c385fedbfaf08a8bc5ee348f57260e4b4a4f59d2c2c815aea60406  app.js
+ffbf500d145d24368598b31c45ea767b602e9acd2bdda6d26bc67a625543ebfa  app.js
 d3efacba60b26bc2da2311a273881948882570773e4016f59ce2a0845661746c  armazenamento.js
 77f0a880c8784e9e45ad608e4c62dc9791f9a750d75225d85edd9e15a150ce69  arquivo-store.js
-c183ae647a0e9c61b50789bab77a31c7e1c6bdbc6ee786d65d2f5138e71999b9  arquivos.js
+cfd8116a5c80f86c58cdb2fc2eb69775782fafeac4d0b5c2fdf1068605c834ae  arquivos.js
 cbb3209dee942992cf56d60882d03b84c2fdad0358057b1cee5dbd877df38e6f  atendimento.js
 410b78815fa33df41eeadd22c8f3dbfb5b5bfeecaf89784fb2d35a590474cdb7  caso-marina.js
 e66cd4b4cd1163cce5680b8d2b56b820c44c1cf430ed413d8de2fe7766112a14  concorrencia.js
 3b0a3b2f9a14aa7ca801e986427046b65097859675c0605ef9bb2ffd467951fe  conduta.js
 63204f8891ceceb557fcd57c8d5d708acdaa0a128f3e55d75b40fbc0f471a641  consultas.js
 25ffbc8bf45aec67e9214f403c5a1ffd297f183eaa664f53cebdb7d92e9c50f9  corpo-bancos.js
-ec71e3d0995be085f30b35524191b558c8fc8e73bf758b3877cda1a916cac756  dados-router.js
+1d06cf25622085cc928ed2cfb49410aa8be0f770f6db7c7b6de52c7b818b762f  dados-router.js
 a77e7bf6acab37680d25eb5451442539bda71a84c6e921940a6065b9b9a3b806  dados.js
-dd2ed61e948fa4b37b2f3a35099f5a7d6e69382a1576e73d2a8227836646cd11  dashboard.js
+53db625e8fb01b77c3bff3eb8ecffa10af663d13cfce2fb6c99120e5d0a99dc7  dashboard.js
 a29fad23f5ea2543661b0cd1429670340afbc0ec6654928a6a92fa9d117bf890  demo.js
 d7920a0868425c28a2b3192214010fee62bf1153a0c9c9478e8bc9481940cfcc  documentos.js
-e0113a4a7080e8d9e1733329a44812fffbf3a1ed7c7a38a5e0cfef589f4d7aa2  evolucao.js
+7f32dfd8e05f7f00014b733ce519c0b73d5d223235dc6187cb4aeb14a1ec772e  evolucao.js
 11e08342911df7f528993946a7e07746a9c26f66657eb0d139e746ade32e161f  excluir-paciente.js
 66e3f1a501b0a1fc98db4c4d1801148e01cfde71ad1b79ba0d8302f296c5e52b  ferramentas.js
-eb05c966a406ca48a4a592dbdc658daecf6e30a01392a44f197f2aa78b4c1a3f  ficha.js
+638a42d91204fd2dec1fd3e6f231631210f6ca0bfe593cc29158ee0759ce3d5b  ficha.js
 ace6c65cf3f034c43125a348d7c8a834f217b31912916a9f16450f5454bbb178  formulario.js
-00953ef2863e63032186234c3acf424725107167f1f3db6a58286b5271e78e4c  holos-ai.js
+a89bb8938005013575b8f93d37228a3356decc23093a3fcd475e5925eac58a32  holos-ai.js
 b6c7e8b1341a10bf45c2f895218e5529176b9c36aa035be6a2aa1ed0fb41cfac  holoscan.js
 b2705ac28dc9f6175ec5586ef02e86b00f2fe1265dbb23a34e3bb2cebb8718c3  importar-v1.js
-e7e053d4a4dd5b3350e9f8ae8fcdb6333c211f185842d04f300f9e182012d00d  login.js
+d0098b6c672f2d283cabb347205c676e3ac117fd960e8274ba3a64d13a984f2e  login.js
 96d867af34caf51c2e184475750e112815bb728459cec0f13eca8cbdf229643f  metodologia.js
 166b0e323628000f7e1a8274eb5b0012d5a22af67d4804c7b4d4f0e95efacf55  migracao-supa.js
 0aa32a8554ffecbe0e7198a13ed65aa2ea062478eaf632f45d1fa90978ef0db1  panorama.js
 2beaabe619d8dd09438a7bfbbc4677e52cd015cea5483086b6cee46865cd13a3  perfil.js
 6249295a8f4ee756ae75c3357eb158ce7726e24e7e0c8eaa637609a156ae4c91  questionario.js
+03690803167dd95e8a999729dca908f39e8f454eeb6d23172c9cd8aa8903ce9c  relatorios.js
 8849e59a1d3fe76723aa1e59cc75213fc64172259c5bccd6d9b1151f21a9fb63  render-resultado.js
 23520f5f414deb288f083d0a08389a1c96d1ec918c50fb95d44c3b8b36758e8c  restaurar-backup.js
 2848d87ee9677b5327939694c6461d4f2eee0b11ec5cf44462d52c3a07f0964a  resultado-corpo.js
-ed4ad46ce1fc53b653ea4ea1eb846f49a02ba4824f84d8b4c67b961dfb2f531e  sincronizacao.js
+3ca13489a5484c666a012e09c08980b35cc701aa4bb81b482b58670dd83e1f36  sincronizacao.js
 482687b6663c97cfc92151da80a62ff0fdfa8f82fc3ff24a399ab583d3ff0d6d  supabase-client.js
+ea61ca3d6e30f84763cd53788059181f985404bac25c8968b8b8e3963f12bb03  timeline.js
 078361d4aace416d6e43c2ff741ae6f4ec4ec5c07630d7395f6213070c265022  utils.js
 f99c4197f8ac91ec9e5ec2f6970c12ad8ec0e3d8dc4513da856289799c095b68  validar-backup.js
 ```
