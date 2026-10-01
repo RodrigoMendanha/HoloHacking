@@ -886,6 +886,7 @@
                 <button class="aba" data-aba="ferramentas" role="tab" id="tab-ferramentas" aria-controls="aba-ferramentas" aria-selected="false">Ferramentas</button>
                 <button class="aba" data-aba="documentos" role="tab" id="tab-documentos" aria-controls="aba-documentos" aria-selected="false">Documentos</button>
                 <button class="aba" data-aba="conduta" role="tab" id="tab-conduta" aria-controls="aba-conduta" aria-selected="false">Conduta</button>
+                <button class="aba" data-aba="evolucao" role="tab" id="tab-evolucao" aria-controls="aba-evolucao" aria-selected="false">Evolução</button>
                 <button class="aba" data-aba="relatorio" role="tab" id="tab-relatorio" aria-controls="aba-relatorio" aria-selected="false">Relatório</button>
                 <button class="aba" data-aba="holos-ai" role="tab" id="tab-holos-ai" aria-controls="aba-holos-ai" aria-selected="false">HOLOS AI</button>
               </div>
@@ -898,7 +899,12 @@
               <div class="aba-painel hidden" id="aba-holoscan" role="tabpanel" aria-labelledby="tab-holoscan"></div>
               <div class="aba-painel hidden" id="aba-ferramentas" role="tabpanel" aria-labelledby="tab-ferramentas"></div>
               <div class="aba-painel hidden" id="aba-documentos" role="tabpanel" aria-labelledby="tab-documentos"></div>
-              <div class="aba-painel hidden" id="aba-relatorio" role="tabpanel" aria-labelledby="tab-relatorio"></div>
+              <!-- V1 Etapa 3: evolucao por atendimento (evolucao.js) e relatorios versionados (relatorios.js) -->
+              <div class="aba-painel hidden" id="aba-evolucao" role="tabpanel" aria-labelledby="tab-evolucao"></div>
+              <div class="aba-painel hidden" id="aba-relatorio" role="tabpanel" aria-labelledby="tab-relatorio">
+                <div id="relatorios-emissoes"></div>
+                <div id="relatorio-checklist"></div>
+              </div>
               <div class="aba-painel hidden" id="aba-holos-ai" role="tabpanel" aria-labelledby="tab-holos-ai"></div>
             </div>
           </div>
@@ -1297,6 +1303,7 @@
 <script src="/arquivo-store.js"></script>
 <script src="/arquivos.js"></script>
 <script src="/ficha.js"></script>
+<script src="/timeline.js"></script>
 <script src="/evolucao.js"></script>
 <script src="/dashboard.js"></script>
 <script src="/consultas.js"></script>
@@ -1304,6 +1311,7 @@
 <script src="/atendimento.js"></script>
 <script src="/anamnese.js"></script>
 <script src="/conduta.js"></script>
+<script src="/relatorios.js"></script>
 <script src="/documentos.js"></script>
 <script src="/perfil.js"></script>
 <script src="/caso-marina.js"></script>

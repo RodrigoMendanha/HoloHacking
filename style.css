@@ -4146,3 +4146,72 @@ body.escuro .cal-hoje-titulo{color:var(--dourado)}
 .cd-ref-grupo{margin:6px 0}
 .cd-decisao{align-items:center}
 .perf-campo.largo textarea{width:100%;padding:8px 10px;border:1px solid var(--borda,#cfd4cc);border-radius:8px;font:inherit;resize:vertical}
+
+
+/* ======================================================================
+   V1 Etapa 3 — Evolucao por atendimento, timeline e relatorios
+   ====================================================================== */
+.evo-cabecalho{margin-bottom:10px}
+.evo-selecao{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:flex-end;padding:12px 14px;border:1px solid var(--linha,rgba(201,163,90,.18));border-radius:10px;margin-bottom:12px}
+.evo-campo{display:flex;flex-direction:column;gap:4px;font-size:.8rem}
+.evo-campo span{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--texto-suave)}
+.evo-campo select,.evo-campo input{font:inherit;padding:5px 8px;border:1px solid var(--linha,rgba(0,0,0,.15));border-radius:6px;background:transparent;color:var(--texto)}
+.evo-fontes{display:flex;flex-wrap:wrap;gap:6px 14px;width:100%;font-size:.78rem}
+.evo-fonte{display:inline-flex;align-items:center;gap:4px}
+.evo-pontos{width:100%;margin:0;font-size:.82rem;color:var(--texto)}
+.evo-resumo{font-size:.82rem;color:var(--texto-suave);margin:0 0 10px}
+.evo-secao{border:1px solid var(--linha,rgba(201,163,90,.18));border-radius:10px;margin-bottom:10px;overflow:hidden}
+.evo-secao-titulo{width:100%;text-align:left;background:transparent;border:0;padding:10px 14px;font:inherit;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--texto-suave);cursor:pointer}
+.evo-secao-titulo::before{content:"\25BE";margin-right:8px;color:var(--dourado)}
+.evo-secao.fechada .evo-secao-titulo::before{content:"\25B8"}
+.evo-secao-corpo{padding:0 14px 12px}
+.evo-par{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+.evo-col{flex:1;min-width:220px;font-size:.84rem}
+.evo-col-titulo{display:block;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dourado);margin-bottom:3px}
+.evo-tabela{width:100%;border-collapse:collapse;font-size:.82rem;margin:6px 0}
+.evo-tabela th{font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:var(--texto-suave);text-align:left;padding:4px 6px;border-bottom:1px solid var(--linha,rgba(0,0,0,.1))}
+.evo-tabela td{padding:5px 6px;border-bottom:1px solid var(--linha,rgba(0,0,0,.06));vertical-align:top}
+.evo-tag{display:inline-block;font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;padding:1px 6px;border-radius:4px;border:1px solid var(--linha,rgba(0,0,0,.15));color:var(--texto-suave)}
+.evo-tag.novo,.evo-tag.alterado{border-color:var(--dourado);color:var(--dourado)}
+.evo-tag.negado{border-color:#c98a7a;color:#c98a7a}
+.evo-sem-delta{font-size:.76rem;color:var(--texto-suave);font-style:italic}
+.evo-delta-cel b{font-weight:500}
+.evo-lista-simples{margin:4px 0;padding-left:18px;font-size:.84rem}
+.evo-ferr{margin-bottom:8px}
+.fic-registro{font-size:.72rem;color:var(--texto-suave)}
+.fic-evento.revisao .fic-selo{border-style:dashed}
+.fic-evento.administrativo{opacity:.85}
+.rel-topo{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.rel-emissoes{list-style:none;margin:10px 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.rel-emissao{display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid var(--linha,rgba(201,163,90,.18));border-radius:10px;flex-wrap:wrap}
+.rel-emissao.substituida{opacity:.7}
+.rel-emissao-corpo{flex:1;min-width:200px;display:flex;flex-direction:column}
+.rel-selo{font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:4px;border:1px solid var(--dourado);color:var(--dourado)}
+.rel-selo.rascunho{border-style:dashed;color:var(--texto-suave);border-color:var(--texto-suave)}
+.rel-meta{font-size:.78rem;color:var(--texto-suave);margin:2px 0}
+.rel-acoes{display:flex;gap:6px;flex-wrap:wrap}
+.rel-form{margin-top:8px}
+.rel-campos{display:flex;gap:14px;flex-wrap:wrap;margin:8px 0}
+.rel-campo{display:flex;flex-direction:column;gap:4px;font-size:.8rem;flex:1;min-width:180px}
+.rel-campo span{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--texto-suave)}
+.rel-campo input,.rel-campo textarea{font:inherit;padding:6px 8px;border:1px solid var(--linha,rgba(0,0,0,.15));border-radius:6px;background:transparent;color:var(--texto)}
+.rel-campo-texto{width:100%}
+.rel-grupo{border:1px solid var(--linha,rgba(201,163,90,.18));border-radius:10px;padding:8px 12px;margin:8px 0;display:flex;flex-direction:column;gap:4px}
+.rel-grupo legend{font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--texto-suave);padding:0 6px}
+.rel-fonte{font-size:.82rem;display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap}
+.rel-acordos{display:flex;flex-direction:column;gap:2px;width:100%;padding-left:22px}
+.rel-fonte-acordo{font-size:.78rem}
+.rel-botoes{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0}
+.rel-estado{font-size:.78rem;color:var(--texto-suave)}
+.rel-documento{border:1px solid var(--linha,rgba(201,163,90,.25));border-radius:10px;padding:16px 20px;margin-top:10px;background:rgba(255,255,255,.02)}
+.rel-documento.previa{border-style:dashed}
+.rel-previa-selo{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:#c98a7a;font-weight:600}
+.rel-cabecalho h3{margin:0 0 6px}
+.rel-secao{margin-top:14px}
+.rel-secao h4{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dourado);margin:0 0 6px}
+.rel-secao h5{font-size:.8rem;margin:8px 0 2px}
+.rel-lista{margin:4px 0;padding-left:18px;font-size:.84rem}
+.rel-tipo{font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--linha,rgba(0,0,0,.2));border-radius:3px;padding:0 4px;color:var(--texto-suave);margin-right:4px}
+.rel-aviso{font-size:.78rem;border-left:3px solid var(--dourado);padding-left:8px;color:var(--texto-suave)}
+.rel-rodape{margin-top:14px;border-top:1px solid var(--linha,rgba(0,0,0,.1));padding-top:8px}
+.rel-rodape code{font-size:.7rem;word-break:break-all}

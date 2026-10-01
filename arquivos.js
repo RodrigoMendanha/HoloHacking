@@ -1177,7 +1177,10 @@
   var registroAtual = "nutri";
 
   function desenharRelatorio() {
-    var alvo = document.getElementById("aba-relatorio");
+    /* V1 Etapa 3: as emissoes versionadas ficam em #relatorios-emissoes
+       (relatorios.js); o checklist da rodada 08 continua abaixo. */
+    if (window.Relatorios) window.Relatorios.desenhar();
+    var alvo = document.getElementById("relatorio-checklist") || document.getElementById("aba-relatorio");
     var p = pontuacaoGuardada();
     var g = motor();
 
@@ -1466,7 +1469,9 @@
       b.setAttribute("aria-selected", ativa ? "true" : "false");
       b.setAttribute("tabindex", ativa ? "0" : "-1");
     });
-    ["visao", "consultas", "holoscan", "ferramentas", "documentos", "relatorio", "holos-ai"]
+    /* V1 Etapa 2/3: anamnese, conduta e evolucao tambem sao paineis da ficha
+       (antes ficavam fora desta lista e nunca eram mostrados/escondidos). */
+    ["visao", "consultas", "anamnese", "conduta", "evolucao", "holoscan", "ferramentas", "documentos", "relatorio", "holos-ai"]
       .forEach(function (n) {
         var painel = document.getElementById("aba-" + n);
         if (painel) {
