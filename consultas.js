@@ -85,15 +85,12 @@
   /* ---------- uma linha --------------------------------------------------- */
 
   function linha(c) {
-    /* A variacao so existe da segunda aplicacao em diante. Na primeira nao ha
-       com o que comparar, e escrever "+0" ali seria afirmar que nada mudou. */
-    var variacao = "";
-    if (c.variacao !== null) {
-      var sinal = c.variacao > 0 ? "subiu" : c.variacao < 0 ? "desceu" : "igual";
-      var texto = c.variacao === 0 ? "sem mudança"
-                : (c.variacao > 0 ? "+" : "") + Math.round(c.variacao * 10) / 10;
-      variacao = '<span class="con-var ' + sinal + '">' + escapar(texto) + "</span>";
-    }
+    /* Etapa 0 da V1: a variacao do Indice entre aplicacoes ("+3", "subiu")
+       nao e mais escrita aqui. Comparar duas aplicacoes exige verificacao de
+       comparabilidade (Mestre §19) que ainda nao existe; ate la, cada linha
+       mostra o seu Indice com o selo "em homologacao", lado a lado. */
+    var M = window.Metodologia;
+    var variacao = M ? '<span class="con-var homologacao">' + M.selo() + "</span>" : "";
 
     var baixos = c.maisBaixos.map(function (s) {
       return escapar(s.nome) + " " + (Math.round(s.nota * 10) / 10);

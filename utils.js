@@ -32,11 +32,19 @@
        porNota(a, b)   ordena do mais carregado ao mais leve; sem nota por ultimo
        notas(r)        mapa sistema -> nota, SO com quem tem nota
 
-     COBERTURA_MINIMA e um limiar de APRESENTACAO (quantas perguntas do sistema
-     precisam de resposta para a nota ser mostrada como leitura, e nao como
-     "dados insuficientes"). Nao muda o calculo nem o Indice. O valor precisa
-     de validacao da responsavel pelo metodo. */
-  var COBERTURA_MINIMA = 0.5;
+     COBERTURA MINIMA (Etapa 0 da V1): a Rodada 08 tinha aqui um corte de 0,5
+     (sistema com menos de metade das perguntas respondidas aparecia como
+     "dados insuficientes"). O Documento Mestre (secao 18) proibe presumir
+     50%, 70% ou qualquer outro corte sem politica de parcialidade homologada.
+     O corte foi REMOVIDO e nao foi substituido: a cobertura bruta
+     (respondidos/total) continua calculada e mostrada, mas nao decide
+     avaliabilidade. Quando o Pacote Metodologico trouxer uma politica, ela
+     entra por window.Metodologia.coberturaMinima() — nunca por um numero
+     escrito aqui. */
+  function coberturaMinima() {
+    return window.Metodologia && typeof window.Metodologia.coberturaMinima === "function"
+      ? window.Metodologia.coberturaMinima() : null;
+  }
 
   function vazioNum(v) { return v === null || v === undefined || typeof v !== "number" || isNaN(v); }
 
@@ -50,10 +58,15 @@
     return s.respondidos / s.total_marcadores;
   }
 
+  /** Tem nota E, se houver politica homologada de cobertura minima, cobre o
+      minimo. Sem politica (hoje), ter nota basta — e a nota inteira vai para a
+      tela com o selo "em homologacao" (window.Metodologia). */
   function suficiente(s) {
     if (semNota(s)) return false;
+    var minimo = coberturaMinima();
+    if (minimo === null || minimo === undefined) return true;
     var c = cobertura(s);
-    return c === null || c >= COBERTURA_MINIMA;
+    return c === null || c >= minimo;
   }
 
   function normalizar(r) {
@@ -107,7 +120,7 @@
   }
 
   window.HoloAusencia = {
-    COBERTURA_MINIMA: COBERTURA_MINIMA,
+    coberturaMinima: coberturaMinima,
     normalizar: normalizar, semNota: semNota, suficiente: suficiente,
     cobertura: cobertura, fmt: fmt, porNota: porNota, porLeitura: porLeitura, notas: notas
   };

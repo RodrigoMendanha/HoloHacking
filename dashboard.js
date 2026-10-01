@@ -19,8 +19,6 @@
 (function () {
   "use strict";
 
-  var MINIMO_PARA_TERRENO = 3;
-
   var alvo = null;
 
   var escapar = window.escapar;
@@ -234,16 +232,14 @@
     return html + "</ul></div>";
   }
 
+  /* Etapa 0 da V1: os tiles "reavaliacoes vencidas" (regra de 28 dias) e
+     "Indice HOLOS medio" (media de notas em rascunho, com mapas nao
+     consolidados) sairam. "com HOLOSCAN" conta so aplicacoes consolidadas
+     (panorama.js, consolidada()). Nenhum numero substituto (Mestre §33). */
   function blocoNumeros(c) {
-    var vencidas = c.linhas.filter(function (l) {
-      return l.alertas.some(function (a) { return /reavalia/.test(a.curto); });
-    }).length;
-
     var tiles = [
       { n: c.total, r: c.total === 1 ? "paciente" : "pacientes" },
-      { n: c.comMapa, r: "com HOLOSCAN" },
-      { n: vencidas, r: vencidas === 1 ? "reavaliação vencida" : "reavaliações vencidas" },
-      { n: c.indiceMedio === null ? "—" : c.indiceMedio, r: "Índice HOLOS médio" }
+      { n: c.comMapa, r: "com HOLOSCAN" }
     ];
 
     return '<div class="dash-numeros">' + tiles.map(function (t) {
@@ -252,33 +248,17 @@
     }).join("") + "</div>";
   }
 
+  /* "O terreno da sua carteira" esta DESLIGADO ate existir Pacote
+     Metodologico aprovado: era uma estatistica sobre notas em rascunho.
+     O bloco diz isso em vez de desenhar barras. */
   function blocoTerreno(c) {
-    if (c.comMapa < MINIMO_PARA_TERRENO) {
-      if (c.comMapa === 0) return "";
-      return '<div class="dash-bloco">' +
-        '<h3 class="dash-titulo">O terreno da sua carteira</h3>' +
-        '<p class="dash-vazio">Com ' + c.comMapa +
-        (c.comMapa === 1 ? " paciente mapeado" : " pacientes mapeados") +
-        " ainda não há padrão para ler — a partir de " + MINIMO_PARA_TERRENO +
-        " o que se repete começa a aparecer aqui.</p></div>";
-    }
-
-    var maior = c.terreno[0].vezes;
-    var linhas = c.terreno.map(function (t) {
-      var largura = Math.round(t.vezes / maior * 100);
-      var frase = t.vezes + " de " + c.comMapa + " pacientes mapeados";
-      return '<li class="dash-barra" title="' + escapar(t.nome + ": " + frase) + '">' +
-        '<span class="dash-barra-nome">' + escapar(t.nome) + "</span>" +
-        '<span class="dash-barra-trilho"><i style="width:' + largura + '%"></i></span>' +
-        '<span class="dash-barra-n">' + t.vezes + "</span>" +
-        "</li>";
-    }).join("");
-
-    return '<div class="dash-bloco">' +
-      '<h3 class="dash-titulo">O terreno da sua carteira</h3>' +
-      '<p class="dash-sub">Quantas vezes cada sistema aparece entre os dois mais baixos ' +
-      "dos seus " + c.comMapa + " pacientes mapeados.</p>" +
-      '<ul class="dash-terreno">' + linhas + "</ul></div>";
+    if (c.comMapa === 0) return "";
+    var M = window.Metodologia;
+    return '<div class="dash-bloco dash-homologacao">' +
+      '<h3 class="dash-titulo">O terreno da sua carteira ' + (M ? M.selo() : "") + "</h3>" +
+      '<p class="dash-vazio">Indicadores agregados da carteira (terreno que se repete, ' +
+      "Índice HOLOS médio) ficam desligados até o Pacote Metodológico da V1 ser aprovado: " +
+      "as notas de hoje vêm de perguntas, pesos e faixas em homologação.</p></div>";
   }
 
   /* ---------- onboarding contextual --------------------------------------- */

@@ -4090,3 +4090,12 @@ body.escuro .cal-hoje-titulo{color:var(--dourado)}
   .abas-perfil .aba{padding:10px 12px;letter-spacing:.1em}
   #toast{letter-spacing:.04em;padding:10px 18px;border-radius:14px}
 }
+
+/* ---------- EM HOMOLOGAÇÃO (Etapa 0 da V1) ----------------------------------
+   Um selo só, igual em toda tela que mostra nota, faixa, Índice, Tríade,
+   Leitura Integrada ou comparação: o conteúdo metodológico ainda não foi
+   aprovado (window.Metodologia). */
+.selo-homologacao{display:inline-block;padding:2px 8px;border:1px solid #b4553c;border-radius:999px;color:#b4553c;font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;vertical-align:middle}
+.aviso-homologacao{margin:6px 0 10px;font-size:.82rem;line-height:1.45;color:var(--texto-suave)}
+.aviso-homologacao .selo-homologacao{margin-right:6px}
+@media print{.aviso-homologacao{color:#444}}

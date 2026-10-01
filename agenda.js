@@ -9,17 +9,16 @@
    não tem duração, não convive com as outras do mesmo dia e não sabe que a
    terça à tarde está bloqueada.
 
-   Agora são três camadas sobre o mesmo calendário:
+   Agora são duas camadas sobre o mesmo calendário:
 
      CONSULTAS   o atendimento marcado: paciente, dia, hora, duração
      BLOQUEIOS   o tempo que não está disponível — almoço, aula, viagem
-     SUGESTÕES   o retorno de 4 semanas que o método promete, calculado,
-                 aparecendo só para quem ainda não tem consulta marcada
 
-   As duas primeiras são dado que alguém escreveu. A terceira é cálculo, e por
-   isso se veste diferente na tela: é um convite para marcar, não um
-   compromisso assumido. Confundir as duas faria o app dizer que há consulta
-   onde não há.
+   As duas são dado que alguém escreveu. A terceira camada que existiu aqui
+   (SUGESTÕES: o retorno de 4 semanas calculado a partir da última aplicação)
+   foi retirada na Etapa 0 da V1: o Documento Mestre (§29, §33) diz que o
+   prazo de acompanhamento é definido pela profissional, sem retorno
+   universal automático. O calendário mostra só o que alguém marcou.
 
    A data que a versão anterior guardava (holohacking.agenda) vira consulta na
    primeira carga — ver migrar(). Ninguém perde o que já tinha marcado.
@@ -53,7 +52,7 @@
   var alvo = null;
   var vista = "semana";          // dia | semana | mes
   var foco = hoje();             // a data que ancora o período mostrado
-  var filtros = { consultas: true, bloqueios: true, sugestoes: true };
+  var filtros = { consultas: true, bloqueios: true };
   var consultas = [];
   var bloqueios = [];
   var editando = null;           // {tipo:"consulta"|"bloqueio", dado:{...}} ou null
@@ -196,30 +195,9 @@
       .sort(function (a, b) { return minutos(a.inicio) - minutos(b.inicio); });
   }
 
-  /* O retorno de 4 semanas de quem ainda não tem nada marcado daqui para a
-     frente. Quem já foi agendado sai da lista na hora — senão a tela
-     continuaria pedindo o que já foi feito. */
-  function sugestoes() {
-    if (!filtros.sugestoes || !window.Panorama || !window.Panorama.agenda) return [];
-    var a;
-    try { a = window.Panorama.agenda(); } catch (e) { return []; }
-    var deHoje = iso(hoje());
-    return a.linhas.filter(function (l) {
-      if (!l.derivada) return false;
-      return !consultas.some(function (c) {
-        return c.paciente_id === l.paciente.id && c.data >= deHoje;
-      });
-    });
-  }
-
-  function sugestoesDe(dia) {
-    return sugestoes().filter(function (l) { return l.derivada === dia; });
-  }
-
   function vazioNoPeriodo(dias) {
     return dias.every(function (d) {
-      return consultasDe(d).length === 0 && bloqueiosDe(d).length === 0 &&
-             sugestoesDe(d).length === 0;
+      return consultasDe(d).length === 0 && bloqueiosDe(d).length === 0;
     });
   }
 
@@ -303,8 +281,7 @@
   function chips() {
     var quais = [
       { id: "consultas", nome: "Consultas" },
-      { id: "bloqueios", nome: "Bloqueios" },
-      { id: "sugestoes", nome: "Retornos sugeridos" }
+      { id: "bloqueios", nome: "Bloqueios" }
     ];
     return '<div class="cal-chips" role="group" aria-label="O que mostrar">' +
       quais.map(function (q) {
@@ -369,15 +346,6 @@
           escapar(b.motivo || "Bloqueado") + "</button>";
       });
 
-    /* A sugestão é cálculo, não compromisso — por isso ela é tracejada e diz
-       de onde veio. Clicar nela abre a consulta já com o paciente escolhido. */
-    itens = itens.concat(sugestoesDe(dia).map(function (l) {
-      return '<button type="button" class="cal-faixa-item sugestao" ' +
-        'data-sugerir="' + escapar(l.paciente.id) + '" data-dia="' + dia + '" ' +
-        'title="Retorno de 4 semanas de ' + escapar(l.paciente.nome) +
-        '. Ninguém marcou ainda.">' + escapar(l.paciente.nome) + "</button>";
-    }));
-
     return itens.join("");
   }
 
@@ -423,7 +391,7 @@
     var mesAtual = foco.getMonth();
     var celulas = dias.map(function (d) {
       var dt = deIso(d);
-      var cs = consultasDe(d), bs = bloqueiosDe(d), ss = sugestoesDe(d);
+      var cs = consultasDe(d), bs = bloqueiosDe(d);
 
       var itens = bs.map(function (b) {
         return '<button type="button" class="cal-pilula bloqueio" data-abrir="bloqueio" ' +
@@ -434,10 +402,6 @@
         return '<button type="button" class="cal-pilula consulta" data-abrir="consulta" ' +
           'data-id="' + escapar(c.id) + '">' + escapar(c.hora) + " " +
           escapar(nomeDe(c.paciente_id)) + "</button>";
-      })).concat(ss.map(function (l) {
-        return '<button type="button" class="cal-pilula sugestao" data-sugerir="' +
-          escapar(l.paciente.id) + '" data-dia="' + d + '">' +
-          escapar(l.paciente.nome) + "</button>";
       }));
 
       return '<div class="cal-celula' + (dt.getMonth() !== mesAtual ? " fora" : "") +
@@ -815,12 +779,6 @@
         if (novo.dataset.novo === "consulta") {
           novaConsulta(null, null, window.pacienteAtivoId ? window.pacienteAtivoId() : null);
         } else novoBloqueio();
-        return;
-      }
-
-      var sugerir = ev.target.closest("[data-sugerir]");
-      if (sugerir) {
-        novaConsulta(sugerir.dataset.dia, "09:00", sugerir.dataset.sugerir);
         return;
       }
 

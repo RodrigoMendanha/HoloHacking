@@ -107,16 +107,14 @@
     var F = window.HoloAusencia.fmt;
     var linhas = EIXOS.filter(function (e) { return e[0] in ta || e[0] in td; });
     if (!linhas.length) return "";
+    // Etapa 0 da V1: antes e agora lado a lado, sem delta (ver desenhar()).
     return '<div class="evo-triada"><h5 class="evo-sub">Tríade</h5>' +
       linhas.map(function (e) {
         var a = ta[e[0]], d = td[e[0]];
-        var tem = typeof a === "number" && typeof d === "number";
-        var delta = tem ? +(d - a).toFixed(1) : null;
         return '<div class="evo-linha evo-linha-triada"><span class="evo-nome">' + e[1] + "</span>" +
           '<span class="evo-de">' + F(a) + "</span>" +
           '<span class="evo-para">' + F(d) + "</span>" +
-          '<span class="evo-delta ' + (delta === null ? "sem-dado" : delta > 0 ? "sobe" : delta < 0 ? "desce" : "igual") + '">' +
-            (delta === null ? "—" : (delta > 0 ? "+" : "") + delta.toFixed(1)) + "</span></div>";
+          '<span class="evo-delta sem-dado" title="sem comparação calculada">&middot;</span></div>';
       }).join("") + "</div>";
   }
   function blocoAplicacoes(h) {
@@ -127,6 +125,18 @@
       }).join("") + "</ol></div>";
   }
 
+  /* Etapa 0 da V1 — LADO A LADO, SEM DELTA.
+
+     O Documento Mestre (§8, §19, §31) exige que um motor verifique a
+     comparabilidade de duas aplicacoes (edicao, itens, escalas, pesos,
+     politica de parcialidade, cobertura por eixo, contexto temporal) antes
+     de qualquer diferenca numerica; enquanto isso nao existe, "mostra as
+     fontes lado a lado sem calcular melhora ou piora". Entao saiu daqui o
+     ganho (+N), a frase "o Indice subiu/caiu", a coluna de delta e as
+     classes sobe/desce. O que fica: a primeira e a ultima aplicacao lado a
+     lado (numeros e radar), a Triade das duas, e a lista de todas as
+     aplicacoes — tudo com o selo "em homologacao". O historico nao e
+     reescrito. */
   function desenhar() {
     var alvo = document.getElementById("holo-evolucao");
     if (!alvo) return;
@@ -134,62 +144,51 @@
     if (h.length < 2) { alvo.classList.add("hidden"); alvo.innerHTML = ""; return; }
 
     var antes = h[0], depois = h[h.length - 1];
-    var ganho = depois.indice - antes.indice;
     var sem = semanasEntre(antes.quando, depois.quando);
+    var F = window.HoloAusencia.fmt;
+    var M = window.Metodologia;
 
     var porSistema = {};
     antes.sistemas.forEach(function (s) { porSistema[s.sistema] = { nome: s.nome, antes: s.nota }; });
     depois.sistemas.forEach(function (s) {
       if (porSistema[s.sistema]) porSistema[s.sistema].depois = s.nota;
     });
-    var linhas = Object.keys(porSistema).map(function (k) {
-      var x = porSistema[k];
-      var tem = typeof x.antes === "number" && typeof x.depois === "number";
-      return { nome: x.nome, antes: x.antes, depois: x.depois,
-               delta: tem ? +(x.depois - x.antes).toFixed(1) : null };
-    }).sort(function (a, b) {
-      if ((a.delta === null) !== (b.delta === null)) return a.delta === null ? 1 : -1;
-      return (b.delta || 0) - (a.delta || 0);
-    });
+    // ordem estavel e tecnica: a do motor, sem hierarquia por diferenca
+    var linhas = Object.keys(porSistema).map(function (k) { return porSistema[k]; });
 
     var vAntes = antes.sistemas.map(function (s) { return s.nota; });
     var vDepois = depois.sistemas.map(function (s) { return s.nota; });
 
     var html =
-      '<h4 class="leitura-titulo">Evolução</h4>' +
+      '<h4 class="leitura-titulo">Aplicações lado a lado ' + (M ? M.selo("comparabilidade não verificada") : "") + "</h4>" +
+      '<p class="evo-nota">Duas aplicações do HOLOSCAN, uma ao lado da outra. O sistema não ' +
+      "calcula melhora nem piora: a regra de comparabilidade entre aplicações ainda não foi " +
+      "homologada.</p>" +
       '<div class="evo-corpo">' +
       radarDuplo(vAntes, vDepois, 250,
                  antes.sistemas.map(function (s) { return ROTULO[s.sistema] || s.nome; })) +
       '<div class="evo-numeros">' +
       '<div class="evo-indice">' +
       '<span class="evo-um"><i>' + escapar(dataBonita(antes.quando)) + "</i><b>" +
-        antes.indice + "</b></span>" +
-      '<span class="evo-seta">&rarr;</span>' +
+        escapar(antes.indice) + "</b></span>" +
+      '<span class="evo-seta">&middot;</span>' +
       '<span class="evo-um agora"><i>' + escapar(dataBonita(depois.quando)) + "</i><b>" +
-        depois.indice + "</b></span>" +
-      '<span class="evo-ganho ' + (ganho >= 0 ? "sobe" : "desce") + '">' +
-        (ganho >= 0 ? "+" : "") + ganho + "</span></div>" +
+        escapar(depois.indice) + "</b></span></div>" +
       '<p class="evo-frase">' +
-        (sem ? "Em <b>" + sem + " semanas</b>, " : "") +
-        (ganho > 0 ? "o Índice subiu <b>" + ganho + " pontos</b>."
-         : ganho < 0 ? "o Índice caiu <b>" + Math.abs(ganho) + " pontos</b>."
-         : "o Índice ficou igual.") +
-      "</p>" +
+        (sem ? "<b>" + sem + " semanas</b> entre as duas aplicações. " : "") +
+        "Índice HOLOS de cada uma, sem diferença calculada.</p>" +
       '<div class="evo-linhas">' +
       linhas.map(function (l) {
-        var F = window.HoloAusencia.fmt;
-        var cls = l.delta === null ? "sem-dado" : l.delta > 0 ? "sobe" : l.delta < 0 ? "desce" : "igual";
         return '<div class="evo-linha"><span class="evo-nome">' + escapar(l.nome) + "</span>" +
           '<span class="evo-de">' + F(l.antes) + "</span>" +
           '<span class="evo-para">' + F(l.depois) + "</span>" +
-          '<span class="evo-delta ' + cls + '">' +
-            (l.delta === null ? "—" : (l.delta > 0 ? "+" : "") + l.delta.toFixed(1)) + "</span></div>";
+          '<span class="evo-delta sem-dado" title="sem comparação calculada">&middot;</span></div>';
       }).join("") +
       "</div></div></div>" +
       blocoTriada(antes, depois) +
       blocoAplicacoes(h) +
       '<p class="evo-nota">Linha pontilhada: a primeira aplicação. ' +
-      'Área cheia: a de agora.' +
+      'Área cheia: a mais recente.' +
       (h.length > 2 ? " Há " + h.length + " aplicações no histórico." : "") + "</p>";
 
     alvo.innerHTML = html;

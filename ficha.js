@@ -259,6 +259,7 @@
 
     var p = d.pontuacao;
     html += '<div class="fic-mapa"><span class="fic-rot fic-rot-mapa">Mapa HOLOS</span>' +
+      (window.Metodologia ? window.Metodologia.avisoHtml() : "") +
       '<div class="fic-indice">' +
       '<span class="fic-rot">Índice HOLOS</span>' +
       "<b>" + p.indice + '</b><span class="fic-de">de ' + p.indice_maximo + "</span>" +

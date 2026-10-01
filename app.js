@@ -2272,10 +2272,16 @@
     // regra clinica escrita direto no JS. Removidas nesta rodada (revisao
     // clinica do HOLOSCAN): o Indice fica com uma frase fixa, a mesma para
     // qualquer valor, dizendo o que ele E, nao o que ele "significa".
+    const M = window.Metodologia;
+    const manual = M && M.modoHomologacao();
     const msg = semMapa
-      ? "Aplique o questionário ou pontue os cinco sistemas à mão para gerar a leitura."
+      ? (manual
+          ? "Aplique o questionário ou pontue os cinco sistemas à mão para gerar a leitura."
+          : "Aplique o questionário para gerar a leitura.")
       : "O Índice HOLOS resume as respostas deste mapa e não representa percentual de saúde.";
-    $("#holo-interpretacao").textContent = msg;
+    /* Etapa 0 da V1: o Indice usa pesos (0,20) que o Mestre nao adota como
+       decisao final (§16). A frase ganha o selo "em homologacao". */
+    $("#holo-interpretacao").innerHTML = escapar(msg) + (semMapa || !M ? "" : " " + M.selo());
     lerTerreno(scores, pronta);
   }
 
@@ -3094,7 +3100,9 @@
           ? ' &middot; <b class="holo-parcial">questionário incompleto ('
             + cob.percentual + '%)</b>'
           : "")
-      + ' &middot; <button type="button" class="btn-relink" id="btn-repontuar">pontuar à mão</button>'
+      + (window.Metodologia && window.Metodologia.modoHomologacao()
+          ? ' &middot; <button type="button" class="btn-relink" id="btn-repontuar">pontuar à mão</button>'
+          : "")
       + (faltando.length
           ? '<span class="holo-sem-dado">Sem resposta nenhuma em: ' + faltando.join(", ")
             + '. Estes sistemas ficaram fora do Índice.</span>'
@@ -3200,7 +3208,11 @@
            + '<span class="prio-nota">' + (semDado ? "—" : s.nota.toFixed(1)) + '</span>'
            + '</li>';
     }).join("");
-    caixa.innerHTML = '<ul class="prio-lista">' + linhas + '</ul>';
+    /* Etapa 0 da V1: toda nota/faixa/ordem desta lista vem de bancos em
+       rascunho (perguntas, pesos, faixas). O selo diz isso uma vez, aqui no
+       topo do mapa (window.Metodologia). */
+    const M = window.Metodologia;
+    caixa.innerHTML = (M ? M.avisoHtml() : "") + '<ul class="prio-lista">' + linhas + '</ul>';
   }
 
   function desenharDominantes(r){
@@ -3276,7 +3288,8 @@
     });
 
     caixa.innerHTML =
-      '<h4 class="leitura-titulo">Tríade HOLOS</h4>'
+      '<h4 class="leitura-titulo">Tríade HOLOS '
+      + (window.Metodologia ? window.Metodologia.selo() : "") + '</h4>'
       + '<div class="triada-corpo">'
       +   '<svg viewBox="0 0 ' + L + ' ' + L + '" width="' + L + '" height="' + L + '" '
       +   'class="triada-grafico" aria-hidden="true">' + svg + "</svg>"
@@ -3377,6 +3390,22 @@
     });
   });
 
+  /* PONTUACAO MANUAL = LEGADO / EM REVISAO (Etapa 0 da V1).
+
+     As cinco reguas 0-10 nao sao o questionario: nao tem cobertura, nem
+     Triade, nem contrato no Documento Mestre, e regua intocada valia 0
+     ("nota zero por regua intocada", proibido em §15). Elas saem da jornada
+     normal sem apagar o codigo: so aparecem com ?homologacao=1 na URL
+     (window.Metodologia.modoHomologacao()). Nada aqui sincroniza com o
+     servidor. */
+  const MANUAL_LIBERADA = !!(window.Metodologia && window.Metodologia.modoHomologacao());
+  if(!MANUAL_LIBERADA){
+    document.querySelectorAll(".holo-modos span, .holo-range-wrap, #btn-voltar-manual")
+      .forEach(el => el.classList.add("hidden"));
+    sistemas.forEach(s => { const el = $("#holo-" + s); if(el) el.disabled = true; });
+  }
+  window.pontuacaoManualLiberada = () => MANUAL_LIBERADA;
+
   $("#btn-salvar-holoscan").addEventListener("click", async function () {
     const btn = this;
     if(!travarBotao(btn, "Salvando…")) return;
@@ -3384,6 +3413,12 @@
     const p = pacienteAtivo();
     if(!p){ toast("Selecione um paciente para salvar o HOLOSCAN."); return; }
     if(window.bloqueioArquivado(p.id)) return;
+    /* Etapa 0 da V1: sem mapa do questionario na tela, o unico caminho seria
+       salvar as reguas — legado em revisao, fora da jornada normal. */
+    if(!pontuacaoNaTela && !MANUAL_LIBERADA){
+      toast("Aplique o questionário para salvar o HOLOSCAN. A pontuação manual pelas réguas é legado em revisão e não é salva.");
+      return;
+    }
 
     const scores = pontuacaoNaTela
       ? ORDEM_MOTOR.map(id => {

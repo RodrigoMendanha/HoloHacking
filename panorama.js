@@ -19,7 +19,23 @@
   "use strict";
 
   var SEM_PACIENTE = "_sem_paciente";
-  var DIAS_REAVALIACAO = 28;          // as 4 semanas do metodo
+
+  /* Etapa 0 da V1: a "reavaliacao de 4 semanas" (DIAS_REAVALIACAO = 28) que
+     vivia aqui foi NEUTRALIZADA. O Documento Mestre (secoes 29 e 33) diz que
+     prazos de acompanhamento sao definidos pela profissional, sem retorno
+     universal automatico e sem cronograma inventado. Nao ha numero
+     substituto: nenhum alerta de "reavaliacao vencida", nenhuma data de
+     retorno derivada. A agenda mostra so o que alguem marcou. */
+
+  /** Uma aplicacao do HOLOSCAN consolidada e a que o servidor aceitou
+      (_supa_id). Sem sessao (modo local de desenvolvimento, so em
+      localhost) a caixa local e a propria persistencia. Mapa gerado e nao
+      salvo e previa: nao conta em indicador nenhum (Mestre §20, §33, §38.1). */
+  function consolidada(p) {
+    if (!p) return false;
+    var comSessao = window.HoloAuth && window.HoloAuth.sessaoAtiva && window.HoloAuth.sessaoAtiva();
+    return comSessao ? !!p._supa_id : true;
+  }
 
   var NOME_SISTEMA = {
     fungico: "Fúngico",
@@ -121,39 +137,14 @@
                    acao: "holoscan", botao: "Ver por onde começar" });
     }
 
-    if (d.pontuacao && d.pontuacao.quando) {
-      var dias = diasDesde(d.pontuacao.quando);
-      if (dias !== null && dias >= DIAS_REAVALIACAO) {
-        saida.push({ peso: 2, grau: "aviso",
-                     curto: "reavaliação vencida há " + (dias - DIAS_REAVALIACAO) + " dias",
-                     texto: "Última aplicação há " + dias + " dias. " +
-                            "A reavaliação de 4 semanas venceu.",
-                     acao: "holoscan", botao: "Reaplicar" });
-      }
-    }
-
-    // exame alterado onde ele nao se queixa
-    if (d.exames > 0 && d.pontuacao && window.HOLOSCAN && window.HOLOSCAN.lerExames) {
-      var notas = {};
-      notas = window.HoloAusencia.notas(d.pontuacao);
-      try {
-        var r = window.HOLOSCAN.lerExames(d.valoresExames, notas);
-        // Revisao clinica do HOLOSCAN (Holoscan): "nao batem" sugeria que um
-        // dos dois lados esta errado. Divergencia e convite a aprofundar, nao
-        // veredito. window.Holoscan (arquivos.js) e quem decide o estado —
-        // se ainda nao carregou, nao alertamos nada (fail-safe, nao inventa).
-        if (window.Holoscan) {
-          r.confronto.filter(function (c) { return window.Holoscan.estado(c) === "DIVERGENTE"; })
-            .forEach(function (c) {
-              var nome = NOME_SISTEMA[c.sistema] || c.sistema;
-              saida.push({ peso: 2, grau: "aviso",
-                           curto: "relato e exames divergem no " + nome,
-                           texto: "Sistema " + nome + ": relato e exames laboratoriais divergem — aprofundar.",
-                           acao: "aba:documentos", botao: "Ver exames" });
-            });
-        }
-      } catch (e) { /* sem alerta e melhor do que alerta errado */ }
-    }
+    /* Etapa 0 da V1 — dois alertas sairam daqui, de proposito:
+         - "reavaliacao vencida ha N dias" (28 dias): retorno universal
+           automatico nao existe na V1 (Mestre §33);
+         - "relato e exames divergem no <sistema>": a Leitura Integrada
+           atual usa regra ainda nao homologada (nota <= 3 x um exame fora da
+           faixa); regra em homologacao nao alimenta pendencia nem indicador
+           (Mestre §24, §33, §38.1). A leitura continua na propria tela, com
+           o selo "em homologacao". */
 
     return saida;
   }
@@ -170,35 +161,24 @@
       return { paciente: p, dados: d, alertas: av };
     });
 
-    var comMapa = linhas.filter(function (l) { return !!l.dados.pontuacao; });
+    /* "Com HOLOSCAN" conta so aplicacoes consolidadas (Mestre §33:
+       "Contagens de mapas consideram aplicacoes efetivamente consolidadas"). */
+    var comMapa = linhas.filter(function (l) { return consolidada(l.dados.pontuacao); });
     var pendentes = linhas.filter(function (l) { return l.alertas.length > 0; });
     pendentes.sort(function (a, b) {
       return a.alertas[0].peso - b.alertas[0].peso ||
              a.paciente.nome.localeCompare(b.paciente.nome);
     });
 
-    /* O terreno da carteira: quantas vezes cada sistema aparece entre os dois
-       mais baixos dos pacientes mapeados. E a leitura que so este produto
-       consegue dar — nao sobre um paciente, mas sobre quem ela atende. */
-    var frequencia = {};
-    comMapa.forEach(function (l) {
-      l.dados.pontuacao.sistemas
-        .filter(window.HoloAusencia.suficiente)
-        .slice()
-        .sort(window.HoloAusencia.porNota)
-        .slice(0, 2)
-        .forEach(function (s) {
-          frequencia[s.sistema] = (frequencia[s.sistema] || 0) + 1;
-        });
-    });
-    var terreno = Object.keys(frequencia).map(function (k) {
-      return { sistema: k, nome: NOME_SISTEMA[k] || k, vezes: frequencia[k] };
-    }).sort(function (a, b) { return b.vezes - a.vezes || a.nome.localeCompare(b.nome); });
-
-    var indices = comMapa.map(function (l) { return l.dados.pontuacao.indice; });
-    var media = indices.length
-      ? Math.round(indices.reduce(function (a, b) { return a + b; }, 0) / indices.length)
-      : null;
+    /* Etapa 0 da V1: "o terreno da carteira" (quantas vezes cada sistema
+       aparece entre os dois mais baixos) e o "Indice HOLOS medio" foram
+       DESLIGADOS. Os dois somavam notas calculadas com bancos em rascunho e
+       incluiam mapas nao consolidados; o Mestre (§33) exige elegibilidade e
+       versoes comparaveis para qualquer media entre pacientes e diz que
+       rascunho/previa nao melhora estatistica. Sem substituto: o dashboard
+       mostra o estado "em homologacao" (window.Metodologia). */
+    var terreno = [];
+    var media = null;
 
     return {
       total: pacientes.length,
@@ -207,6 +187,7 @@
       indiceMedio: media,
       pendentes: pendentes,
       terreno: terreno,
+      indicadoresEmHomologacao: true,
       linhas: linhas
     };
   }
@@ -370,6 +351,8 @@
     return c ? { data: c.data, hora: c.hora, nota: c.nota || "" } : null;
   }
 
+  /* somarDias(iso, dias) ficou sem uso na Etapa 0 (era o "+28"); mantido
+     por ser utilitario puro, sem regra. */
   function somarDias(iso, dias) {
     var d = new Date(iso + "T00:00:00");
     if (isNaN(d)) return null;
@@ -394,7 +377,9 @@
     var linhas = pacientes.map(function (p) {
       var d = doPaciente(p.id);
       var ultima = d.pontuacao && d.pontuacao.quando ? d.pontuacao.quando : null;
-      var derivada = ultima ? somarDias(ultima, DIAS_REAVALIACAO) : null;
+      /* Etapa 0 da V1: sem data de retorno derivada (era ultima + 28 dias).
+         O campo continua existindo, sempre null, para quem o le. */
+      var derivada = null;
       var consulta = marcado(p.id);
       var quando = (consulta && consulta.data) || derivada;
       var dias = quando ? faltam(quando) : null;
@@ -448,6 +433,8 @@
     DIAS_SEM_CONTATO: DIAS_SEM_CONTATO,
     DIAS_NOVO: DIAS_NOVO,
     NOME_SISTEMA: NOME_SISTEMA,
-    DIAS_REAVALIACAO: DIAS_REAVALIACAO
+    consolidada: consolidada,
+    /* Etapa 0 da V1: nao existe prazo universal de reavaliacao. */
+    DIAS_REAVALIACAO: null
   };
 })();
