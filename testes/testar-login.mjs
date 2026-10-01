@@ -354,6 +354,8 @@ const app = await p.evaluate(async () => {
     telaFechada: document.getElementById('tela-login').hidden,
     appLiberado: !document.getElementById('app').getAttribute('aria-hidden'),
     secoes, navs, holoscan, confronto,
+    // Etapa 4: o item Metodologia existe no DOM mas fica oculto sem a flag de homologacao
+    metodologiaOculta: (() => { const b = document.getElementById('nav-metodologia'); return !!b && (b.hidden || b.classList.contains('hidden') || getComputedStyle(b).display === 'none'); })(),
     // a camada de entrada nao pode ter virado uma secao do app
     loginNaoEhSecao: !secoes.includes('tela-login') && !navs.includes('login'),
   };
@@ -361,9 +363,11 @@ const app = await p.evaluate(async () => {
 /* Lista nominal, nao contagem: um numero certo com a secao errada passaria. */
 const SECOES = ['secao-dashboard', 'secao-holoscan', 'secao-confronto', 'secao-pacientes',
                 'secao-consultas', 'secao-agenda', 'secao-documentos', 'secao-perfil',
-                'secao-corpo', 'secao-mente', 'secao-espirito'];
+                'secao-corpo', 'secao-mente', 'secao-espirito',
+                // Etapa 4: secao interna Metodologia / Homologacao (consulta, so com ?homologacao=1)
+                'secao-metodologia'];
 const MENU = ['dashboard', 'pacientes', 'consultas', 'agenda', 'documentos',
-              'holoscan', 'confronto', 'corpo', 'mente', 'espirito', 'perfil'];
+              'holoscan', 'confronto', 'corpo', 'mente', 'espirito', 'metodologia', 'perfil'];
 const faltando = SECOES.filter(s => !app.secoes.includes(s));
 const sobrando = app.secoes.filter(s => !SECOES.includes(s));
 
@@ -375,6 +379,7 @@ ok(faltando.length === 0 && sobrando.length === 0,
 ok(JSON.stringify(app.navs) === JSON.stringify(MENU),
    'o menu continua com os mesmos ' + MENU.length + ' itens, na mesma ordem: ' + app.navs.join(', '));
 ok(app.holoscan && app.confronto, 'HOLOSCAN e Leitura Integrada continuam abrindo pelo menu');
+ok(app.metodologiaOculta, 'o item Metodologia / Homologacao fica oculto sem ?homologacao=1 (flag interna)');
 ok(app.loginNaoEhSecao, 'a tela de entrada nao virou secao nem item de menu');
 
 await nav.close();

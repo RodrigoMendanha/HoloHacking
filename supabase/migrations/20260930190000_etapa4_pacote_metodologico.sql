@@ -469,7 +469,7 @@ begin
     for r2 in select * from public.methodology_ranges f where f.package_id = p_package_id and f.destination_type = r.destination_type and f.destination_id = r.destination_id order by f.lower_bound, f.upper_bound loop
       n := n + 1;
       if r2.lower_bound >= r2.upper_bound then erros := erros || jsonb_build_object('codigo','faixa_ordem_invalida','onde',r.destination_id||'/'||r2.label,'mensagem','limite inferior >= superior'); end if;
-      if ant is not null then
+      if n > 1 then
         if r2.lower_bound < ant.upper_bound or (r2.lower_bound = ant.upper_bound and r2.lower_inclusive and ant.upper_inclusive) then
           erros := erros || jsonb_build_object('codigo','faixa_sobreposta','onde',r.destination_id||'/'||r2.label,'mensagem','sobrepoe "'||ant.label||'"');
         elsif r2.lower_bound > ant.upper_bound or (r2.lower_bound = ant.upper_bound and not r2.lower_inclusive and not ant.upper_inclusive) then
@@ -480,7 +480,7 @@ begin
       end if;
       ant := r2;
     end loop;
-    if ant is not null and r.destination_type <> 'index' and (ant.upper_bound < 10 or not ant.upper_inclusive) then
+    if n > 0 and r.destination_type <> 'index' and (ant.upper_bound < 10 or not ant.upper_inclusive) then
       erros := erros || jsonb_build_object('codigo','faixa_lacuna','onde',r.destination_id||'/'||ant.label,'mensagem','dominio nao termina em 10 inclusivo');
     end if;
   end loop;
@@ -562,7 +562,7 @@ begin
   end if;
   v := public.validar_pacote_metodologico(p_package_id);
   if not (v->>'publicavel')::boolean then
-    raise exception 'publicacao bloqueada pelo validador: % erro(s) — %', v->>'total_erros', left(v->'erros'::text, 400) using errcode = 'P0001', hint = 'publicacao_bloqueada';
+    raise exception 'publicacao bloqueada pelo validador: % erro(s) — %', v->>'total_erros', left((v->'erros')::text, 400) using errcode = 'P0001', hint = 'publicacao_bloqueada';
   end if;
   -- hash do conteudo (ordem canonica por chave natural)
   select jsonb_build_object(
