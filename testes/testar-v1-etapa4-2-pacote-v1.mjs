@@ -177,7 +177,7 @@ titulo('VALIDADOR, HISTORICO E DETERMINISMO');
 const v = P.validar(C);
 ok(v.publicavel && v.total_erros === 0, 'validador no candidato: nenhum bloqueio metodologico (0 erros)');
 ok(C.status === 'em_revisao' && C.version === 2 && C.code === 'HOLOS-V1' && !B.podeCalcularOficial() && erro(() => M.calcular({ responses: {}, methodology_package: C, mode: 'oficial' })).codigo === 'oficial_bloqueado', 'candidato HOLOS-V1@2 em_revisao: modo oficial recusa (gate tecnico pendente), barreira continua em homologacao');
-ok(C.registros.length === 15 && C.registros.every(r => r.responsible && r.decided_at === '2026-10-01' && /fechada/.test(r.decision)), '15 decisoes registradas com responsavel e data');
+ok(C.registros.length === 0 && !('responsavel' in D) && D.resumo.length === 15 && !/lideran/i.test(JSON.stringify(C)), 'nenhum registro de homologacao nem aprovacao criado pelo codigo (15 decisoes so como texto; nada atribuido a "Liderança")');
 const base2 = P.importarInventario(inv, 'HOLOS-V1', 1);
 ok(P.hashConteudo(base2) === P.hashConteudo(base) && C.lineage.parent_content_hash === P.hashConteudo(base) && C.lineage.parent_status === 'rascunho' && C.lineage.parent_version === 1, 'pacote antigo reproduzivel: mesmo hash ao reimportar; linhagem guarda versao, status e hash anteriores');
 const vb = P.validar(base2), cods = new Set(vb.erros.map(e => e.codigo));

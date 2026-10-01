@@ -64,15 +64,22 @@ function gravarFixture(uid, code, mut) {
   return pk;
 }
 const REG = { responsible: 'Responsável humano (teste)', justification: 'fixture aprovado para teste', decided_at: '2026-10-01' };
+/** Dupla aprovacao (migration 20261001210000): Aprovacao 1 Daniel + Aprovacao 2 Rodrigo sobre o hash atual, pela RPC. */
+function aprovarDuplo(uid, id) {
+  const h = rpc(uid, 'metodologia_hash_conteudo', { p_package_id: id }).data;
+  const a = rpc(uid, 'registrar_aprovacao_metodologica', { p_package_id: id, p_etapa: 1, p_responsavel: 'Daniel', p_justificativa: 'fixture conferido (teste)', p_content_hash: h });
+  const b = rpc(uid, 'registrar_aprovacao_metodologica', { p_package_id: id, p_etapa: 2, p_responsavel: 'Rodrigo', p_justificativa: 'revisao final do fixture (teste)', p_content_hash: h });
+  return a.error || b.error || null;
+}
 
 titulo('7-8. APROVACAO NAO E EDICAO ADMINISTRATIVA');
 const fx = gravarFixture(UA, 'TEST_FIXTURE_ONLY');
 let r = update(UA, 'methodology_packages', { status: 'aprovado' }, eq('id', fx.id));
 ok(r.error && /aprovar_pacote_metodologico/.test(r.error.message) && linha('methodology_packages', fx.id).status === 'em_revisao', '8: UPDATE direto para "aprovado" e recusado: pacote continua em_revisao');
 r = rpc(UA, 'aprovar_pacote_metodologico', { p_package_id: fx.id, p_registro: { responsible: '', justification: 'x' } });
-ok(r.error && /responsavel humano/.test(r.error.message), '7: aprovacao sem responsavel humano e recusada');
+ok(r.error && /Aprovacao 1 \(Daniel\) e Aprovacao 2 \(Rodrigo\)/.test(r.error.message), '7: aprovacao sem as duas aprovacoes humanas (Daniel e Rodrigo) e recusada');
 r = rpc(UA, 'aprovar_pacote_metodologico', { p_package_id: fx.id, p_registro: null });
-ok(r.error && /registro de homologacao/.test(r.error.message), '7: aprovacao sem registro e recusada');
+ok(r.error && /Aprovacao 1/.test(r.error.message) && linha('methodology_packages', fx.id).status === 'em_revisao', '7: aprovacao sem registro e recusada; pacote continua em_revisao');
 const vazio = insert(UA, 'methodology_packages', { code: 'VAZIO', version: 1, status: 'em_revisao' }).data[0];
 r = rpc(UA, 'aprovar_pacote_metodologico', { p_package_id: vazio.id, p_registro: REG });
 ok(r.error && /publicacao bloqueada pelo validador/.test(r.error.message) && linha('methodology_packages', vazio.id).status === 'em_revisao', '7: pacote incompleto: validador bloqueia a aprovacao');
@@ -97,10 +104,11 @@ r = rpc(UA, 'aprovar_pacote_metodologico', { p_package_id: fx2.id, p_registro: R
 ok(r.error && /publicacao bloqueada/.test(r.error.message), '7: com esses erros a aprovacao e recusada');
 
 titulo('1. PACOTE APROVADO E IMUTAVEL');
+ok(aprovarDuplo(UA, fx.id) === null && srv.linhas('methodology_package_approvals').filter(a => a.package_id === fx.id && !a.invalidated_at).length === 2, 'Aprovacao 1 (Daniel) e Aprovacao 2 (Rodrigo) registradas pela RPC');
 r = rpc(UA, 'aprovar_pacote_metodologico', { p_package_id: fx.id, p_registro: REG });
 ok(!r.error && r.data.status === 'aprovado' && /^[0-9a-f]{64}$/.test(r.data.content_hash) && linha('methodology_packages', fx.id).status === 'aprovado', 'fixture completo aprovado pela RPC, com hash');
 const reg = srv.linhas('methodology_homologation_records').filter(x => x.package_id === fx.id);
-ok(reg.length === 1 && reg[0].responsible === REG.responsible && reg[0].decision === 'aprovado' && reg[0].created_by === UA, 'registro de homologacao gravado com o responsavel informado (nao inventado)');
+ok(reg.length === 1 && /^Daniel .*Rodrigo/.test(reg[0].responsible) && reg[0].responsible !== REG.responsible && reg[0].decision === 'aprovado' && reg[0].created_by === UA, 'registro de homologacao nomeia Daniel e Rodrigo (vem das aprovacoes, nao do chamador)');
 r = update(UA, 'methodology_packages', { justification: 'mudar depois' }, eq('id', fx.id));
 ok(r.error && /imutavel/.test(r.error.message), '1: pacote aprovado nao muda (justification)');
 r = update(UA, 'methodology_packages', { status: 'rascunho' }, eq('id', fx.id));
@@ -113,7 +121,7 @@ ok(r.error && /imutavel/.test(r.error.message), '1: nenhuma associacao nova entr
 r = del(UA, 'methodology_associations', eq('package_id', fx.id));
 ok(r.error && /imutavel/.test(r.error.message) && srv.linhas('methodology_associations').filter(x => x.package_id === fx.id).length === 6, '1: nada e apagado de pacote aprovado');
 r = update(UA, 'methodology_homologation_records', { responsible: 'outro' }, eq('id', reg[0].id));
-ok(!r.error && r.data.length === 0 && linha('methodology_homologation_records', reg[0].id).responsible === REG.responsible, '+: registro de homologacao nao muda (sem policy de UPDATE: 0 linhas; trigger recusa qualquer UPDATE)');
+ok(!r.error && r.data.length === 0 && linha('methodology_homologation_records', reg[0].id).responsible === reg[0].responsible && /Daniel/.test(reg[0].responsible), '+: registro de homologacao nao muda (sem policy de UPDATE: 0 linhas; trigger recusa qualquer UPDATE)');
 r = del(UA, 'methodology_packages', eq('id', fx.id));
 ok(!r.error && linha('methodology_packages', fx.id), 'sem DELETE de pacote (0 linhas, sem erro)');
 
@@ -139,6 +147,7 @@ ok(!P.vigente(ret) && semPol.ehSaidaHomologacao({ mode: 'oficial', package_statu
 
 titulo('9. PACOTE NAO VIGENTE NAO VIRA OFICIAL');
 const fut = gravarFixture(UA, 'FUTURO');
+aprovarDuplo(UA, fut.id);
 r = rpc(UA, 'aprovar_pacote_metodologico', { p_package_id: fut.id, p_registro: Object.assign({}, REG, { effective_from: '2099-01-01' }) });
 ok(!r.error && linha('methodology_packages', fut.id).status === 'aprovado', 'pacote aprovado com vigencia futura');
 const M = globalThis.MotorMetodologico;
