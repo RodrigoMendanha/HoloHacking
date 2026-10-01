@@ -38,7 +38,7 @@ begin
   exception when others then insert into _log values ('08 ok: UPDATE direto para aprovado recusado: ' || left(sqlerrm, 50)); end;
   -- 7. aprovacao incompleta: sem responsavel; pacote vazio
   begin v := public.aprovar_pacote_metodologico(pk, '{"responsible":"","justification":"x"}'); insert into _log values ('07a FALHOU: sem responsavel aceito');
-  exception when others then insert into _log values ('07a ok: sem responsavel humano recusado: ' || left(sqlerrm, 40)); end;
+  exception when others then insert into _log values ('07a ok: aprovacao sem as duas aprovacoes humanas recusada: ' || left(sqlerrm, 40)); end;
   insert into public.methodology_packages (nutritionist_id, code, version, status) values (uid, 'VAZIO', 1, 'em_revisao') returning id into vazio;
   v := public.validar_pacote_metodologico(vazio);
   insert into _log values ('22 ' || case when (v->>'publicavel') = 'false' and v->'erros' @> '[{"codigo":"vazio"}]' and v->'erros' @> '[{"codigo":"politica_parcialidade_ausente"}]' and v->'erros' @> '[{"codigo":"indice_incompleto"}]' then 'ok' else 'FALHOU' end || ': validador aponta pacote vazio (' || (v->>'total_erros') || ' erros)');
@@ -61,11 +61,14 @@ begin
   insert into _log values ('DL ok: filhas de pacote em_revisao podem ser apagadas pelo dono');
 
   -- 1. aprovar pelo RPC; depois imutavel
-  v := public.aprovar_pacote_metodologico(pk, jsonb_build_object('responsible', 'Responsavel humano (teste)', 'justification', 'fixture aprovado para teste', 'decided_at', '2026-10-01'));
+  -- dupla aprovacao (migration 210000): Aprovacao 1 Daniel, Aprovacao 2 Rodrigo, sobre o hash atual
+  v := public.registrar_aprovacao_metodologica(pk, 1, 'Daniel', 'fixture conferido (teste)', public.metodologia_hash_conteudo(pk));
+  v := public.registrar_aprovacao_metodologica(pk, 2, 'Rodrigo', 'revisao final do fixture (teste)', public.metodologia_hash_conteudo(pk));
+  v := public.aprovar_pacote_metodologico(pk, jsonb_build_object('decided_at', '2026-10-01'));
   select status, content_hash into t, h from public.methodology_packages where id = pk;
   insert into _log values ('01 ' || case when t = 'aprovado' and length(h) = 64 and (v->>'status') = 'aprovado' then 'ok' else 'FALHOU' end || ': fixture aprovado pela RPC com hash sha256');
-  select count(*) into n from public.methodology_homologation_records where package_id = pk and decision = 'aprovado' and responsible = 'Responsavel humano (teste)';
-  insert into _log values ('23 ' || case when n = 1 then 'ok' else 'FALHOU' end || ': registro de homologacao gravado com o responsavel informado');
+  select count(*) into n from public.methodology_homologation_records where package_id = pk and decision = 'aprovado' and responsible like 'Daniel%' and responsible like '%Rodrigo%';
+  insert into _log values ('23 ' || case when n = 1 then 'ok' else 'FALHOU' end || ': registro de homologacao nomeia Daniel (aprovacao 1) e Rodrigo (aprovacao 2)');
   begin update public.methodology_packages set justification = 'depois' where id = pk; insert into _log values ('01b FALHOU: pacote aprovado alterado');
   exception when others then insert into _log values ('01b ok: pacote aprovado imutavel: ' || left(sqlerrm, 40)); end;
   begin update public.methodology_packages set status = 'rascunho' where id = pk; insert into _log values ('01c FALHOU: aprovado voltou a rascunho');
