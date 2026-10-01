@@ -396,6 +396,12 @@ begin
     if payload->>'expected_updated_at' is not null and atual.updated_at <> (payload->>'expected_updated_at')::timestamptz then
       raise exception 'a anamnese foi alterada em outro lugar; recarregue antes de salvar' using errcode = 'P0001', hint = 'conflito';
     end if;
+    -- "marcar como revisada": so o status muda, na MESMA linha
+    if atual.status = 'salvo' and v_status = 'revisado'
+       and (payload - 'id' - 'status' - 'operation_id' - 'expected_updated_at') = '{}'::jsonb then
+      update public.anamneses set status = 'revisado' where id = v_id;
+      return v_id;
+    end if;
     if atual.status = 'rascunho' then
       update public.anamneses set
         content = coalesce(payload->'content', content),
@@ -403,6 +409,10 @@ begin
         revision_note = coalesce(payload->>'revision_note', revision_note),
         operation_id = coalesce(operation_id, v_op)
       where id = v_id;
+      -- rascunho de correcao consolidado: so agora a revisao anterior e substituida
+      if v_status <> 'rascunho' and atual.supersedes_id is not null then
+        update public.anamneses set superseded_at = now() where id = atual.supersedes_id and superseded_at is null;
+      end if;
       return v_id;
     end if;
     -- consolidada: nova revisao, a anterior fica intacta
@@ -413,7 +423,10 @@ begin
       coalesce(payload->'content', atual.content), atual.source_anamnesis_id, atual.copied_from_previous,
       atual.id, payload->>'revision_note', v_op)
     returning id into novo;
-    update public.anamneses set superseded_at = now() where id = atual.id;
+    -- um rascunho de correcao NAO substitui a vigente; so quando consolidado
+    if v_status <> 'rascunho' then
+      update public.anamneses set superseded_at = now() where id = atual.id;
+    end if;
     return novo;
   end if;
   -- nova anamnese para o atendimento
@@ -424,10 +437,7 @@ begin
   select a.id into v_id from public.anamneses a where a.encounter_id = v_enc and a.status = 'rascunho';
   if v_id is not null then
     -- ja ha rascunho deste atendimento: e ele que recebe (idempotente por natureza)
-    update public.anamneses set content = coalesce(payload->'content', content), status = v_status,
-      revision_note = coalesce(payload->>'revision_note', revision_note), operation_id = coalesce(operation_id, v_op)
-    where id = v_id;
-    return v_id;
+    return public.salvar_anamnese(payload || jsonb_build_object('id', v_id));
   end if;
   select coalesce(max(revision_number),0)+1 into n from public.anamneses where encounter_id = v_enc;
   insert into public.anamneses (nutritionist_id, patient_id, encounter_id, revision_number, status, content,
@@ -532,6 +542,12 @@ begin
       raise exception 'a conduta foi alterada em outro lugar; recarregue antes de salvar' using errcode = 'P0001', hint = 'conflito';
     end if;
     v_pid := atual.patient_id; v_enc := atual.encounter_id;
+    -- "marcar como revisada": so o status muda, na MESMA linha
+    if atual.status = 'salvo' and v_status = 'revisado'
+       and (payload - 'id' - 'status' - 'operation_id' - 'expected_updated_at') = '{}'::jsonb then
+      update public.conducts set status = 'revisado' where id = v_id;
+      return v_id;
+    end if;
     if atual.status = 'rascunho' then
       alvo := v_id; promover := true;
       update public.conducts set
@@ -569,7 +585,10 @@ begin
         atual.previous_conduct_id, atual.previous_decision, atual.previous_decision_note,
         atual.id, payload->>'revision_note', v_op)
       returning id into alvo;
-      update public.conducts set superseded_at = now() where id = atual.id;
+      -- um rascunho de correcao NAO substitui a vigente; so quando consolidado
+      if v_status <> 'rascunho' then
+        update public.conducts set superseded_at = now() where id = atual.id;
+      end if;
     end if;
   else
     v_enc := (payload->>'encounter_id')::uuid;
@@ -630,6 +649,9 @@ begin
   -- so agora o rascunho e consolidado (os acordos ja estao sincronizados)
   if promover and v_status <> 'rascunho' then
     update public.conducts set status = v_status where id = alvo;
+    -- rascunho de correcao consolidado: a revisao anterior passa a substituida
+    update public.conducts c set superseded_at = now()
+      where c.id = (select supersedes_id from public.conducts where id = alvo) and c.superseded_at is null;
   end if;
   return alvo;
 end;
