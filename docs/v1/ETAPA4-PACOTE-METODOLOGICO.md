@@ -128,3 +128,26 @@ As decisões humanas estão em `docs/v1/metodologia/HOMOLOGACAO-PENDENTE.md`.
   qualquer aplicação
 
 Não iniciado: catálogo laboratorial, Leitura Integrada final, aprovação de metodologia.
+
+---
+
+# ETAPA 4.1 — PACOTE DE DECISÃO HUMANA (01/10/2026)
+
+`docs/v1/metodologia/PACOTE-DECISAO-HUMANA-V1.md` (15 decisões, sem recomendação) e
+`RESUMO-DECISOES-HUMANAS.md`. Banco real: VALIDAÇÃO REAL PENDENTE — CONEXÃO DIRETA NÃO DISPONÍVEL.
+
+# ETAPA 4.2 — CONSOLIDAÇÃO DO PACOTE METODOLÓGICO V1 (01/10/2026)
+
+**DECISÕES METODOLÓGICAS V1 FECHADAS** — `docs/v1/metodologia/PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`.
+
+**PUBLICAÇÃO TÉCNICA PENDENTE DE VALIDAÇÃO NO BANCO REAL.**
+
+- branch: `claude/v1-etapa4-2-metodologia-final` (a partir de `433de68`; a branch da Etapa 4.1 fica preservada)
+- candidato: HOLOS-V1@2, `em_revisao`, hash `3593d782…f24c4`; linhagem para HOLOS-V1@1 (rascunho, hash `7e7e55dc…213cc`, preservado)
+- validador: 0 bloqueios metodológicos no candidato (JS e SQL); o importado continua bloqueado
+- motor: `motor-generico-2.0.0`, contrato `holoscan-motor-contrato-v1`, aritmética racional exata, sem fallback
+- migration nova: `20261001200000_etapa4_2_contrato_metodologico_v1.sql` — **NÃO aplicada**
+- cadeia 130000→200000 + harness Etapa 4 (33) + Etapa 4.2 (18) em PostgreSQL 16 local, BEGIN/ROLLBACK: **51/51 ok**; nada persistiu
+- banco real: não tocado; sem conexão direta autorizada neste ambiente
+- testes: 92 suítes, 2950 asserções, 0 falhas (nenhuma asserção removida; +1 suíte `testar-v1-etapa4-2-pacote-v1.mjs`, 82 asserções)
+- deploy: NÃO
