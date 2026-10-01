@@ -78,7 +78,11 @@
       tabela: "encounters",
       campos: {},
       inverso: {}
-    }
+    },
+    /* V1, Etapa 2: anamnese, conduta e acordos (nomes iguais ao banco). */
+    anamneses: { tabela: "anamneses", campos: {}, inverso: {} },
+    condutas:  { tabela: "conducts",  campos: {}, inverso: {} },
+    acordos:   { tabela: "agreements", campos: {}, inverso: {} }
   };
 
   /* ---------- proxy que traduz campos na ida e na volta ------------------- */

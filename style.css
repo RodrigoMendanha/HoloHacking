@@ -4114,3 +4114,35 @@ body.escuro .cal-hoje-titulo{color:var(--dourado)}
 .fic-at-acoes { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
 .at-linha-ativa { outline: 2px solid var(--verde, #2f7d4f); outline-offset: 2px; border-radius: 10px; }
 .cal-evento.consulta.cancelada, .cal-pilula.consulta.cancelada { opacity: .45; text-decoration: line-through; }
+
+/* ---------- V1, Etapa 2: anamnese e conduta ---------- */
+.an-topo{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px;margin:0 0 8px}
+.an-topo b{display:block}
+.an-salvo{font-size:.82rem;opacity:.8}
+.an-acoes{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}
+.an-titulo{margin:6px 0}
+.an-dominio{border:1px solid var(--borda,#e3e6e1);border-radius:10px;padding:8px 12px;margin:8px 0;background:var(--superficie-2,rgba(0,0,0,.02))}
+.an-dominio summary{cursor:pointer;list-style:revert}
+.an-conta{font-size:.8rem;opacity:.7;margin-left:6px}
+.an-item{border-top:1px dashed var(--borda,#e3e6e1);padding:8px 0}
+.an-item.previo{background:rgba(212,175,55,.08)}
+.an-linha{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+.an-linha input[type=text],.an-linha input[type=number],.an-linha input[type=date],.an-linha select{flex:1 1 140px;min-width:0;padding:6px 8px;border:1px solid var(--borda,#cfd4cc);border-radius:8px;font:inherit}
+.an-check{display:inline-flex;align-items:center;gap:4px;font-size:.85rem;margin-right:10px}
+.an-selo{display:inline-block;font-size:.72rem;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:999px;margin-right:6px}
+.an-selo.previo{background:rgba(212,175,55,.25)}
+.an-selo.informado{background:rgba(0,0,0,.08)}
+.an-estado{opacity:.75}
+.an-origem{font-size:.8rem;opacity:.7;margin-left:6px}
+.an-medida{font-size:.85rem;opacity:.85}
+.an-revisoes ul{margin:4px 0 10px;padding-left:18px;font-size:.88rem}
+.an-revisoes li.rascunho{opacity:.7}
+.cd-acordos{list-style:none;padding:0;margin:6px 0}
+.cd-acordo{border:1px solid var(--borda,#e3e6e1);border-radius:10px;padding:8px 10px;margin:6px 0}
+.cd-acordo.edit input[type=text]{width:100%;padding:6px 8px;border:1px solid var(--borda,#cfd4cc);border-radius:8px;font:inherit;margin-bottom:4px}
+.cd-acordo-estado{display:inline-block;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;padding:2px 7px;border-radius:999px;background:rgba(0,0,0,.08);margin-left:6px}
+.cd-acoes-inline{display:inline-flex;flex-wrap:wrap;gap:4px;margin-left:8px}
+.cd-anterior{border-left:3px solid var(--dourado,#c9a227)}
+.cd-ref-grupo{margin:6px 0}
+.cd-decisao{align-items:center}
+.perf-campo.largo textarea{width:100%;padding:8px 10px;border:1px solid var(--borda,#cfd4cc);border-radius:8px;font:inherit;resize:vertical}

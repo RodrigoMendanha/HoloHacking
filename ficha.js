@@ -162,6 +162,40 @@
     }
   }
 
+  /* V1, Etapa 2: o bloco clinico do atendimento — ultimo atendimento, estado
+     da anamnese e conduta VIGENTES (consolidadas; rascunho nunca e vigente) e
+     o retorno planejado. Nada aqui interpreta. */
+  function blocoAtendimentoClinico(pid) {
+    var A = window.AtendimentoAtual, An = window.Anamnese, Cd = window.Conduta;
+    if (!A || !An || !Cd) return "";
+    var lista = A.doPaciente(pid).sort(function (a, b) { return String(b.occurred_at).localeCompare(String(a.occurred_at)); });
+    var ultimo = lista[0] || null;
+    var ativo = A.atual();
+    var foco = (ativo && ativo.patient_id === pid) ? ativo : ultimo;
+    var linhas = [];
+    linhas.push(["Último atendimento", ultimo ? A.rotuloQuando(ultimo) + (ultimo.consultation_id ? " · com agendamento" : " · sem agendamento") : "nenhum registrado"]);
+    if (foco) {
+      var an = An.vigente(foco.id), anR = An.rascunhoDe(foco.id);
+      linhas.push(["Anamnese" + (foco === ativo ? " (atendimento ativo)" : ""), an ? "rev. " + an.revision_number + " · " + an.status + " · " + An.contarItens(an.content) + " itens" : (anR ? "rascunho (não consolidada)" : "não registrada")]);
+      var cd = Cd.vigente(foco.id), cdR = Cd.rascunhoDe(foco.id);
+      linhas.push(["Conduta vigente", cd ? "rev. " + cd.revision_number + " · " + cd.status + (cd.objective ? " · " + cd.objective : "") : (cdR ? "rascunho (não é conduta vigente)" : "não registrada")]);
+      if (cd && cd.return_plan) linhas.push(["Retorno previsto", cd.return_plan]);
+      if (cd) {
+        var ag = Cd.acordosDe(cd.id);
+        if (ag.length) linhas.push(["Acordos", ag.map(function (g) { return g.description + " [" + Cd.rotulo(g.status) + "]"; }).join(" · ")]);
+      }
+    }
+    var prox = window.Agenda && window.Agenda.proxima ? window.Agenda.proxima(pid) : null;
+    if (prox) linhas.push(["Próxima consulta marcada (agenda)", dataBR(prox.data) + " às " + String(prox.hora).slice(0, 5)]);
+    return '<div class="dash-bloco dash-bloco-compacto" id="fic-atendimento-clinico">' +
+      '<h3 class="dash-titulo">Atendimento clínico</h3>' +
+      linhas.map(function (l) { return '<div class="fic-det"><span>' + escapar(l[0]) + "</span><b>" + escapar(l[1]) + "</b></div>"; }).join("") +
+      '<div class="fic-continuidade"><button type="button" class="fic-chip" data-ir="aba:anamnese">Anamnese</button>' +
+      '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="holoscan">HOLOSCAN</button>' +
+      '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="aba:conduta">Conduta</button></div>' +
+    "</div>";
+  }
+
   /* ================================================= ABA: VISÃO CLÍNICA === */
 
   /* Exames: resumo compacto, nao duplica o HOLOSCAN — so diz quantos valores
@@ -241,6 +275,8 @@
       });
       html += "</div>";
     }
+
+    html += blocoAtendimentoClinico(pid);
 
     if (!d.pontuacao) {
       html += '<div class="dash-vazio">Sem HOLOSCAN aplicado. O mapa é o que ' +
@@ -656,6 +692,33 @@
         });
     }
 
+    /* V1, Etapa 2: eventos CONSOLIDADOS de anamnese e conduta (rascunho nao
+       entra). A revisao 1 e o registro; as seguintes aparecem como "revisao"
+       — correcao documental, nao novo evento clinico. Data clinica = a do
+       atendimento; data de registro = created_at (no detalhe). */
+    if (window.AtendimentoAtual && window.Anamnese && window.Conduta) {
+      var A2 = window.AtendimentoAtual;
+      var diaDoAtendimento = function (eid) { var e = A2.porId(eid); return e ? A2.paraParede(e.occurred_at, e.timezone || A2.fuso()).data : ""; };
+      window.Anamnese.doPaciente(pid).filter(window.Anamnese.consolidada).forEach(function (a) {
+        var revisao = a.revision_number > 1;
+        eventos.push({ quando: diaDoAtendimento(a.encounter_id), ts: a.created_at, tipo: "anamnese",
+          selo: revisao ? "Revisão" : "Anamnese", titulo: revisao ? "Revisão da anamnese (rev. " + a.revision_number + ")" : "Anamnese salva",
+          detalhe: a.status + " · " + window.Anamnese.contarItens(a.content) + " itens · registrada em " + dataBR(String(a.created_at).slice(0, 10)) +
+            (a.revision_note ? " · " + escapar(a.revision_note) : ""), acao: "aba:anamnese", revisao: revisao });
+      });
+      window.Conduta.doPaciente(pid).filter(window.Conduta.consolidada).forEach(function (c) {
+        var revisao = c.revision_number > 1;
+        eventos.push({ quando: diaDoAtendimento(c.encounter_id), ts: c.created_at, tipo: "conduta",
+          selo: revisao ? "Revisão" : "Conduta", titulo: revisao ? "Revisão da conduta (rev. " + c.revision_number + ")" : "Conduta salva",
+          detalhe: c.status + (c.objective ? " · " + escapar(c.objective) : "") + " · registrada em " + dataBR(String(c.created_at).slice(0, 10)) +
+            (c.revision_note ? " · " + escapar(c.revision_note) : ""), acao: "aba:conduta", revisao: revisao });
+        window.Conduta.acordosDe(c.id).filter(function (g) { return g.status_changed_at; }).forEach(function (g) {
+          eventos.push({ quando: diaLocal(g.status_changed_at), ts: g.status_changed_at, tipo: "conduta", selo: "Acordo",
+            titulo: "Acordo: " + escapar(g.description), detalhe: window.Conduta.rotulo(g.status) + (g.status_note ? " · " + escapar(g.status_note) : ""), acao: "aba:conduta" });
+        });
+      });
+    }
+
     if (window.Agenda && window.Agenda.todas) {
       window.Agenda.todas(pid).forEach(function (c) {
         eventos.push({
@@ -723,6 +786,8 @@
       var FILTROS_LINHA = [
         { id: "tudo", nome: "Tudo" },
         { id: "consulta", nome: "Agendamentos" },
+        { id: "anamnese", nome: "Anamnese" },
+        { id: "conduta", nome: "Conduta" },
         { id: "mapa", nome: "HOLOSCAN" },
         { id: "exame", nome: "Exames" },
         { id: "ferramenta", nome: "Ferramentas" },
@@ -1115,6 +1180,8 @@
   var DESENHOS = {
     visao: desenharVisao,
     consultas: desenharConsultas,
+    anamnese: function () { if (window.Anamnese) window.Anamnese.desenhar(); },
+    conduta: function () { if (window.Conduta) window.Conduta.desenhar(); },
     holoscan: desenharHolo,
     ferramentas: desenharFormularios,
     linha: desenharLinha,

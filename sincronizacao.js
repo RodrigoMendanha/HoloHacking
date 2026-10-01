@@ -785,6 +785,10 @@
       ? Promise.resolve(window.Aplicacoes.carregar()).catch(function () {}) : Promise.resolve();
     var recarregarAtendimentos = window.AtendimentoAtual && window.AtendimentoAtual.carregar
       ? Promise.resolve(window.AtendimentoAtual.carregar()).catch(function () {}) : Promise.resolve();
+    var recarregarAnamneses = window.Anamnese && window.Anamnese.carregar
+      ? Promise.resolve(window.Anamnese.carregar()).catch(function () {}) : Promise.resolve();
+    var recarregarCondutas = window.Conduta && window.Conduta.carregar
+      ? Promise.resolve(window.Conduta.carregar()).catch(function () {}) : Promise.resolve();
 
     emCurso = Promise.all([
       sincronizarHoloscan(ids, uid, gen).catch(function (e) {
@@ -795,7 +799,9 @@
       }),
       recarregarAgenda,
       recarregarAplicacoes,
-      recarregarAtendimentos
+      recarregarAtendimentos,
+      recarregarAnamneses,
+      recarregarCondutas
     ]).then(function (r) {
       if (gen === geracao) estado = { holoscan: r[0].estado, exames: r[1].estado };
       return { holoscan: r[0].estado, exames: r[1].estado };

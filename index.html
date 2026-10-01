@@ -333,6 +333,7 @@
       <div class="bpctx-acoes">
         <button type="button" class="bpctx-btn bpctx-btn-pri" data-bpctx="ficha" title="Voltar à ficha do paciente">Voltar à ficha</button>
         <button type="button" class="bpctx-btn" data-bpctx="aba:consultas" title="Atendimentos">Atendimentos</button>
+        <button type="button" class="bpctx-btn" data-bpctx="aba:anamnese" title="Anamnese">Anamnese</button>
         <button type="button" class="bpctx-btn" data-bpctx="aba:holoscan" title="HOLOSCAN">HOLOSCAN</button>
         <button type="button" class="bpctx-btn" data-bpctx="aba:ferramentas" title="Ferramentas">Ferramentas</button>
         <button type="button" class="bpctx-btn" data-bpctx="aba:documentos" title="Documentos">Documentos</button>
@@ -880,15 +881,20 @@
               <div class="abas" role="tablist">
                 <button class="aba ativa" data-aba="visao" role="tab" id="tab-visao" aria-controls="aba-visao" aria-selected="true">Visão geral</button>
                 <button class="aba" data-aba="consultas" role="tab" id="tab-consultas" aria-controls="aba-consultas" aria-selected="false">Atendimentos</button>
+                <button class="aba" data-aba="anamnese" role="tab" id="tab-anamnese" aria-controls="aba-anamnese" aria-selected="false">Anamnese</button>
                 <button class="aba" data-aba="holoscan" role="tab" id="tab-holoscan" aria-controls="aba-holoscan" aria-selected="false">HOLOSCAN</button>
                 <button class="aba" data-aba="ferramentas" role="tab" id="tab-ferramentas" aria-controls="aba-ferramentas" aria-selected="false">Ferramentas</button>
                 <button class="aba" data-aba="documentos" role="tab" id="tab-documentos" aria-controls="aba-documentos" aria-selected="false">Documentos</button>
+                <button class="aba" data-aba="conduta" role="tab" id="tab-conduta" aria-controls="aba-conduta" aria-selected="false">Conduta</button>
                 <button class="aba" data-aba="relatorio" role="tab" id="tab-relatorio" aria-controls="aba-relatorio" aria-selected="false">Relatório</button>
                 <button class="aba" data-aba="holos-ai" role="tab" id="tab-holos-ai" aria-controls="aba-holos-ai" aria-selected="false">HOLOS AI</button>
               </div>
 
               <div class="aba-painel" id="aba-visao" role="tabpanel" aria-labelledby="tab-visao"></div>
               <div class="aba-painel hidden" id="aba-consultas" role="tabpanel" aria-labelledby="tab-consultas"></div>
+              <!-- V1 Etapa 2: anamnese e conduta pertencem ao atendimento ativo (anamnese.js, conduta.js) -->
+              <div class="aba-painel hidden" id="aba-anamnese" role="tabpanel" aria-labelledby="tab-anamnese"></div>
+              <div class="aba-painel hidden" id="aba-conduta" role="tabpanel" aria-labelledby="tab-conduta"></div>
               <div class="aba-painel hidden" id="aba-holoscan" role="tabpanel" aria-labelledby="tab-holoscan"></div>
               <div class="aba-painel hidden" id="aba-ferramentas" role="tabpanel" aria-labelledby="tab-ferramentas"></div>
               <div class="aba-painel hidden" id="aba-documentos" role="tabpanel" aria-labelledby="tab-documentos"></div>
@@ -1296,6 +1302,8 @@
 <script src="/consultas.js"></script>
 <script src="/agenda.js"></script>
 <script src="/atendimento.js"></script>
+<script src="/anamnese.js"></script>
+<script src="/conduta.js"></script>
 <script src="/documentos.js"></script>
 <script src="/perfil.js"></script>
 <script src="/caso-marina.js"></script>
