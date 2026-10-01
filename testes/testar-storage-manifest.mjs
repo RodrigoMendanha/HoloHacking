@@ -289,8 +289,8 @@ ok(ordem.manifesto < ordem.dados,
    na Fase 1 do Supabase (CDN do supabase-js + supabase-client.js +
    dados-router.js, as tres antes de dados.js/app.js consumirem `sb`), e
    na Etapa 10 (migracao-supa.js, o migrador localStorage→Supabase). */
-ok(ordem.total === 46,
-   'o index tem 46 tags de script: 22 de antes do P0 + concorrencia.js + metodologia.js (Etapa 0 da V1) + atendimento.js (Etapa 1) + anamnese.js + conduta.js (Etapa 2) + timeline.js + relatorios.js (Etapa 3) + metodologia-inventario.js + metodologia-pacote.js + metodologia-motor.js + metodologia-homologacao.js (Etapa 4) + ' +
+ok(ordem.total === 47,
+   'o index tem 47 tags de script: 22 de antes do P0 + concorrencia.js + metodologia.js (Etapa 0 da V1) + atendimento.js (Etapa 1) + anamnese.js + conduta.js (Etapa 2) + timeline.js + relatorios.js (Etapa 3) + metodologia-inventario.js + metodologia-pacote.js + metodologia-motor.js + metodologia-homologacao.js (Etapa 4) + metodologia-decisoes-v1.js (Etapa 4.2) + ' +
    'armazenamento.js + validar-backup.js + restaurar-backup.js + ' +
    'importar-v1.js + excluir-paciente.js + login.js + CDN supabase-js + ' +
    'supabase-client.js + dados-router.js + migracao-supa.js + holos-ai.js + ' +
