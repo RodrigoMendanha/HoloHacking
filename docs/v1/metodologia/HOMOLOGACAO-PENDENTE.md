@@ -1,5 +1,11 @@
 # O QUE DANIEL / LIDERANÇA DO MÉTODO PRECISA DECIDIR?
 
+> **ETAPA 4.2 — DECISÕES METODOLÓGICAS V1 FECHADAS.** Todos os itens abaixo foram decididos
+> (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`) e aplicados na nova versão candidata do pacote
+> (HOLOS-V1@2, `em_revisao`, 0 bloqueios metodológicos no validador). Este documento fica como
+> registro histórico do que estava pendente. **PUBLICAÇÃO TÉCNICA PENDENTE DE VALIDAÇÃO NO BANCO
+> REAL.**
+
 Etapa 4 — 01/10/2026. Base: `inventario-metodologico-v1.json` (verdade executável) e
 `MATRIZ-HOMOLOGACAO-V1.md` (item a item).
 
@@ -52,14 +58,19 @@ deles a decisão resolve.
   (pesos atuais 1 a 3, matriz tema "Associação/Peso").
 - Decidir as **associações secundárias** das 9 emoções com dois sistemas. Hoje o peso
   secundário é igual ao primário (`peso_secundario_fator = 1`, anotado "decidido 27/08" sem
-  registro de homologação). → resolve 4 bloqueios `conflito_pendente`.
+  registro de homologação). Essas 9 secundárias **não** geram bloqueio próprio no validador.
+  *(Correção, Etapa 4.2: a versão anterior deste item dizia que ele "resolve 4 bloqueios
+  `conflito_pendente`". Está errado: os 4 `conflito_pendente` vêm das quatro linhas primárias
+  de SNT-101 (Fúngico/Metabólico) e SNT-501 (Metabólico/Mental Emocional Espiritual) e se
+  resolvem no item 6.)*
 
 ## 6. SNT-101 e SNT-501 (ver `PENDENCIA-SNT-101-SNT-501.md`)
 
 - **SNT-101**: hoje conta para Fúngico (peso 2) **e** Metabólico (peso 3), em duas linhas
   primárias. Decidir: um sistema só, os dois (com qual papel e peso), ou outro desenho.
 - **SNT-501**: hoje conta para Metabólico (peso 2) **e** Mental Emocional Espiritual (peso 3).
-  Mesma decisão. → resolve o bloqueio `snt_pendente`.
+  Mesma decisão. → resolve o bloqueio `snt_pendente` **e os 4 bloqueios `conflito_pendente`**
+  (as duas linhas de cada ID).
 
 ## 7. Parcialidade (ausência)
 

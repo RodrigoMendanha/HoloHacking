@@ -2,6 +2,10 @@
 
 Etapa 4.1 · 01/10/2026 · para a liderança do método (Daniel e responsáveis clínicos).
 
+> **ETAPA 4.2 — DECISÕES METODOLÓGICAS V1 FECHADAS.** As 15 decisões abaixo foram tomadas e estão preenchidas nos campos de cada bloco. Consolidação: `PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`. Aplicadas na nova versão candidata do pacote (HOLOS-V1@2, `em_revisao`): o validador não aponta nenhum bloqueio metodológico.
+>
+> **PUBLICAÇÃO TÉCNICA PENDENTE DE VALIDAÇÃO NO BANCO REAL.** O candidato não é publicado nem aprovado enquanto a cadeia de migrations (agora 130000→200000) não for validada no Supabase.
+
 > **Estado técnico do banco real:** VALIDAÇÃO REAL PENDENTE — CONEXÃO DIRETA NÃO DISPONÍVEL. A cadeia de migrations 130000→190000 foi validada apenas em PostgreSQL 16 local (BEGIN/ROLLBACK, 33/33 verificações). Nenhuma migration foi aplicada no banco real. Isso não altera as decisões abaixo, que são metodológicas.
 
 ## Como usar este documento
@@ -96,16 +100,16 @@ A coleta continua como experimental. Nenhum resultado do HOLOSCAN é oficial. A 
 
 **Campo para decisão humana:**
 
-DECISÃO: ______________________
+DECISÃO (Etapa 4.2 — FECHADA): Edição V1 com 84 perguntas (49/19/16); EMO-506 fora; SNT-101 e SNT-501 com ID único; SNT-302, SNT-310 e EMO-506 não são recriadas. Contexto temporal por item (7 valores permitidos).
 
 Justificativa:
-________________________________
+Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-________________________________
+Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
 
 Data:
-________________________________
+01/10/2026
 
 
 ---
@@ -152,16 +156,16 @@ As respostas são guardadas no valor 0–3 atual, mas nenhuma pontuação é ofi
 
 **Campo para decisão humana:**
 
-DECISÃO: ______________________
+DECISÃO (Etapa 4.2 — FECHADA): Escalas 0–3: frequência (Nunca/Às vezes/Frequente/Sempre) e intensidade (Nada/Um pouco/Bastante/Muito); atribuição do Anexo A mantida (73/11); escala desconhecida é erro.
 
 Justificativa:
-________________________________
+Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-________________________________
+Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
 
 Data:
-________________________________
+01/10/2026
 
 
 ---
@@ -213,16 +217,16 @@ Os 9 itens invertidos e seus sistemas não têm resultado oficial.
 
 **Campo para decisão humana:**
 
-DECISÃO: ______________________
+DECISÃO (Etapa 4.2 — FECHADA): 9 invertidas (SNT-507, EMO-507, ESP-101, ESP-102, ESP-201, ESP-202, ESP-301, ESP-302, ESP-501); 75 diretas; z = resposta ou 3 − resposta; orientação ausente é erro.
 
 Justificativa:
-________________________________
+Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-________________________________
+Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
 
 Data:
-________________________________
+01/10/2026
 
 
 ---
@@ -287,16 +291,16 @@ Nenhuma nota de sistema é oficial.
 
 **Campo para decisão humana:**
 
-DECISÃO: ______________________
+DECISÃO (Etapa 4.2 — FECHADA): Exatamente um sistema primário pontuável por pergunta; as 9 secundárias recuperadas ficam como secondary_contextual, sem contribuição numérica.
 
 Justificativa:
-________________________________
+Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-________________________________
+Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
 
 Data:
-________________________________
+01/10/2026
 
 
 ---
@@ -363,16 +367,16 @@ Sistema Fúngico, Sistema Metabólico e o eixo físico da Tríada não podem ter
 
 **Campo para decisão humana:**
 
-DECISÃO: ______________________
+DECISÃO (Etapa 4.2 — FECHADA): Primário pontuável: Sistema Fúngico, peso 1; Metabólico = secondary_contextual (linha histórica SNT-302); Tríada físico peso 1; ultimos_30_dias.
 
 Justificativa:
-________________________________
+Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-________________________________
+Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
 
 Data:
-________________________________
+01/10/2026
 
 
 ---
@@ -439,16 +443,16 @@ Sistema Metabólico, Sistema Mental-Emocional-Espiritual e o eixo físico da Tr�
 
 **Campo para decisão humana:**
 
-DECISÃO: ______________________
+DECISÃO (Etapa 4.2 — FECHADA): Primário pontuável: Sistema Mental Emocional Espiritual, peso 1; Metabólico = secondary_contextual (linha histórica SNT-310); Tríada físico peso 1; ultimos_30_dias.
 
 Justificativa:
-________________________________
+Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-________________________________
+Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
 
 Data:
-________________________________
+01/10/2026
 
 
 ---
@@ -491,16 +495,16 @@ Nenhuma nota de sistema, eixo ou Índice é oficial.
 
 **Campo para decisão humana:**
 
-DECISÃO: ______________________
+DECISÃO (Etapa 4.2 — FECHADA): Todos os 84 vínculos primários com peso 1; hierarquia 1/2/3 sai da fórmula e fica como legacy_recovered_weight.
 
 Justificativa:
-________________________________
+Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-________________________________
+Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
 
 Data:
-________________________________
+01/10/2026
 
 
 ---
@@ -548,16 +552,16 @@ As respostas são guardadas e a cobertura de preenchimento é mostrada. Nenhuma 
 
 **Campo para decisão humana:**
 
-DECISÃO: ______________________
+DECISÃO (Etapa 4.2 — FECHADA): Cobertura por sistema = respondidos válidos / itens primários; avaliável com cobertura ≥ 0,80; em branco, recusada e não aplicável não são zero e reduzem a cobertura; nota pelos respondidos.
 
 Justificativa:
-________________________________
+Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-________________________________
+Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
 
 Data:
-________________________________
+01/10/2026
 
 
 ---
@@ -611,16 +615,16 @@ Nenhum rótulo ou mensagem de faixa é exibido como oficial.
 
 **Campo para decisão humana:**
 
-DECISÃO: ______________________
+DECISÃO (Etapa 4.2 — FECHADA): 0 ≤ nota < 10/3 baixa; 10/3 ≤ nota < 20/3 intermediária; 20/3 ≤ nota ≤ 10 alta; classificação com precisão interna; exibição com 1 casa; mensagens neutras.
 
 Justificativa:
-________________________________
+Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-________________________________
+Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
 
 Data:
-________________________________
+01/10/2026
 
 
 ---
@@ -675,16 +679,16 @@ Nenhum Índice é oficial. O validador mantém o bloqueio "configuração do Ín
 
 **Campo para decisão humana:**
 
-DECISÃO: ______________________
+DECISÃO (Etapa 4.2 — FECHADA): Pesos 0,20; só com os cinco sistemas avaliáveis; sem renormalização; sem Índice parcial; Índice = 10 × Σ(nota × 0,20); 0–100; 1 casa; sem faixas.
 
 Justificativa:
-________________________________
+Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-________________________________
+Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
 
 Data:
-________________________________
+01/10/2026
 
 
 ---
@@ -736,16 +740,16 @@ A Tríada não emite nota oficial. O validador mantém 3 bloqueios "configuraç�
 
 **Campo para decisão humana:**
 
-DECISÃO: ______________________
+DECISÃO (Etapa 4.2 — FECHADA): Eixos físico/mental/espiritual pelo bloco (49/19/16), peso 1, mesma orientação; eixo avaliável com cobertura ≥ 0,80; sem nota global, sem faixa, sem interpretação automática.
 
 Justificativa:
-________________________________
+Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-________________________________
+Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
 
 Data:
-________________________________
+01/10/2026
 
 
 ---
@@ -787,16 +791,16 @@ A Evolução não mostra diferença de HOLOSCAN.
 
 **Campo para decisão humana:**
 
-DECISÃO: ______________________
+DECISÃO (Etapa 4.2 — FECHADA): Delta só com mesmo paciente, edição, pacote, contrato do motor, sistema avaliável nas duas e mesmo conjunto pontuado; senão lado a lado; nunca melhorou/piorou automático.
 
 Justificativa:
-________________________________
+Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-________________________________
+Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
 
 Data:
-________________________________
+01/10/2026
 
 
 ---
@@ -844,16 +848,16 @@ Os textos aparecem marcados como rascunho e não entram como conteúdo oficial.
 
 **Campo para decisão humana:**
 
-DECISÃO: ______________________
+DECISÃO (Etapa 4.2 — FECHADA): Nomes oficiais dos cinco sistemas e textos oficiais seguros; impacto espiritual causal e equivalentes fora do conteúdo oficial (legado preservado em provenance).
 
 Justificativa:
-________________________________
+Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-________________________________
+Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
 
 Data:
-________________________________
+01/10/2026
 
 
 ---
@@ -889,16 +893,16 @@ O pacote não pode ser publicado, mesmo que todas as outras decisões estejam to
 
 **Campo para decisão humana:**
 
-DECISÃO: ______________________
+DECISÃO (Etapa 4.2 — FECHADA): REF-01, REF-02 e REF-03 com resultado esperado exato e de tela.
 
 Justificativa:
-________________________________
+Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-________________________________
+Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
 
 Data:
-________________________________
+01/10/2026
 
 
 ---
@@ -938,16 +942,16 @@ Nenhuma combinação ou sugestão automática é mostrada.
 
 **Campo para decisão humana:**
 
-DECISÃO: ______________________
+DECISÃO (Etapa 4.2 — FECHADA): Nenhuma combinação ou sugestão automática oficial na V1; CMB-001..016, REC-001..023 e SEL-001 como legado não oficial; seleção manual profissional preservada.
 
 Justificativa:
-________________________________
+Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-________________________________
+Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
 
 Data:
-________________________________
+01/10/2026
 
 
 ---

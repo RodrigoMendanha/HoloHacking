@@ -169,14 +169,56 @@ na seção **Decisões pendentes**, sem resposta.
 51. **Tela Metodologia / Homologação** só para consulta, visível com `?homologacao=1`; exporta
     JSON/CSV só de metodologia; não existe botão "aprovar tudo".
 
+### Etapa 4.2 — Pacote Metodológico V1: decisões humanas fechadas (01/10/2026)
+
+**DECISÕES METODOLÓGICAS V1 FECHADAS.** Detalhe completo: `docs/v1/metodologia/PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`.
+**PUBLICAÇÃO TÉCNICA PENDENTE DE VALIDAÇÃO NO BANCO REAL** (cadeia 130000→200000).
+
+52. **Questionário V1**: 84 perguntas (49/19/16); EMO-506 fora; SNT-101 e SNT-501 com um único ID;
+    SNT-302, SNT-310 e EMO-506 não são recriadas. Cada item tem exatamente um contexto temporal
+    dentre 7 valores permitidos (nenhum item em `ultimos_7_dias` nesta edição).
+53. **Escalas 0–3** (frequência: Nunca/Às vezes/Frequente/Sempre; intensidade: Nada/Um pouco/
+    Bastante/Muito); 73/11 mantido. Escala desconhecida é erro (o questionário não cai mais em
+    frequência).
+54. **Orientação**: 9 invertidas, 75 diretas; z = resposta ou 3 − resposta; ausente é erro.
+55. **Um primário pontuável por pergunta.** As 9 secundárias recuperadas e as linhas metabólicas de
+    SNT-101 (histórica SNT-302) e SNT-501 (histórica SNT-310) viram `secondary_contextual`: sem
+    peso, sem soma, fora de denominador, cobertura, Índice e Tríada.
+56. **SNT-101 → Sistema Fúngico; SNT-501 → Sistema Mental Emocional Espiritual**, peso 1, Tríada
+    física peso 1, `ultimos_30_dias`.
+57. **Peso 1 em todos os vínculos primários**; 1/2/3 só como `legacy_recovered_weight`.
+58. **Parcialidade**: sistema e eixo avaliáveis com cobertura ≥ 0,80 (itens primários / do eixo);
+    em branco, recusada e não aplicável não são zero e reduzem a cobertura; nota pelos respondidos
+    (10 − 10·Σz/Σ3); cobertura exibida junto da nota quando < 100%. Sem denominador completo, sem 50%.
+59. **Faixas** [0, 10/3) baixa, [10/3, 20/3) intermediária, [20/3, 10] alta, classificadas pela
+    fração exata (nunca pelo valor de tela); exibição com 1 casa; mensagens neutras.
+60. **Índice** = 10 × Σ(nota × 0,20), só com os cinco sistemas avaliáveis; sem renormalização, sem
+    Índice parcial, sem faixas; 1 casa.
+61. **Tríada** pelo bloco (49/19/16), peso 1, mesma orientação, cobertura ≥ 0,80 por eixo; sem nota
+    global, sem faixa, sem interpretação automática.
+62. **Comparabilidade**: delta só com mesmo paciente, edição, versão do pacote, contrato do motor,
+    sistema avaliável nas duas e mesmo conjunto pontuado; senão lado a lado. Só "subiu/desceu/
+    permaneceu"; nunca "melhorou/piorou".
+63. **Nomenclatura e textos oficiais** dos cinco sistemas; impacto espiritual causal, padrão
+    emocional e mensagens antigas só em `legacy` (provenance), nunca em conteúdo oficial.
+64. **REF-01/REF-02/REF-03** no pacote, com esperado exato e de tela; o validador JS confere cada um
+    contra o motor.
+65. **Nenhuma CMB/REC/SEL oficial**; política `suggestion` com `automatica: false` e a mensagem "Não
+    há sugestão automática validada para esta edição."; seleção manual profissional mantida.
+66. **Nova versão, não edição**: o candidato é HOLOS-V1@2 (`em_revisao`), com linhagem (código,
+    versão, status e hash do importado) e hash SHA-256 próprio; o importado continua reproduzível.
+    Motor sem fallback; aritmética racional exata. Migration 20261001200000 (NÃO aplicada) leva o
+    contrato ao banco.
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`
   continua texto livre; nenhum documento assinado é gerado. (Mestre §30, §41)
 - **Envio externo de relatórios** (e-mail, WhatsApp, portal) — fora; emissão só é vista e
   impressa pela profissional.
-- **Comparabilidade entre aplicações do HOLOSCAN** (edição, itens, escalas, pesos, cobertura,
-  janela temporal) — depende do Pacote Metodológico; a Evolução não calcula delta algum.
+- **Comparabilidade entre aplicações do HOLOSCAN** — regra DECIDIDA na Etapa 4.2 (item 62) e
+  implementada no motor (`MotorMetodologico.comparar`); a Evolução continua sem delta do HOLOSCAN
+  até o pacote ser publicado (nenhum pacote aprovado).
 - **Equivalências entre exames** (PCR × PCR-us, unidades) — nenhuma criada; delta só no mesmo
   `exame_id` e unidade igual. (Mestre §21)
 - **Documentos × atendimento** — `documents` continua sem `encounter_id`; o relatório referencia
@@ -203,23 +245,13 @@ na seção **Decisões pendentes**, sem resposta.
 - **HOLOS AI obrigatória no lançamento inicial?** (Mestre §41.4)
 - **Política de data futura de coleta** — regra da Rodada 08 sem contrato no Mestre;
   separada em `supabase/migrations-pendentes/`.
-- **Homologação do Pacote Metodológico V1** — todas as decisões listadas em
-  `docs/v1/metodologia/HOMOLOGACAO-PENDENTE.md` (sistemas, itens, escalas, inversões,
-  associações, pesos, SNT-101/SNT-501, parcialidade, faixas, Índice, Tríada, comparabilidade,
-  CMB/REC/SEL, caso de referência).
-- **Política de parcialidade** — denominadores, exclusões (recusa, não aplicável) e
-  mínimos por sistema, eixo e Índice. (Mestre §14.3, §15, §18)
-- **Pesos** — por item, por contribuição e por sistema; os pesos do AS-IS (1-3 por
-  pergunta; SNT-101 e SNT-501 com pesos diferentes por sistema) não são oficiais.
-- **Faixas** — limites, rótulos e mensagens; 3/6 do AS-IS não é oficial.
-- **Índice** — pesos α (0,20 iguais não é decisão final), elegibilidade global,
-  política de índice parcial. (Mestre §16)
-- **Tríada** — escala, pesos, política de contribuição por ID, elegibilidade por eixo.
-  (Mestre §17)
+- ~~**Homologação do Pacote Metodológico V1**, parcialidade, pesos, faixas, Índice, Tríada~~ —
+  **DECIDIDAS na Etapa 4.2** (itens 52–66). Pendente só a **publicação técnica**: validar a
+  cadeia 130000→200000 no banco real e aprovar o HOLOS-V1@2 pela RPC, com responsável nominal.
 - **Leitura Integrada** — vínculo exame↔domínio, suficiência, janela temporal,
   unidades/referências, resultados mistos, versionamento da regra. (Mestre §24)
-- **Regras de sugestão de ferramentas** — nenhuma das 23 REC nem SEL-001 é aprovada.
-  (Mestre §29)
+- **Regras de sugestão de ferramentas** — nenhuma das 23 REC nem SEL-001 é aprovada; a Etapa 4.2
+  decidiu que nenhuma sugestão automática é oficial na V1 (item 65). (Mestre §29)
 - **Conteúdo mínimo para "Concluir" uma ferramenta** — a guarda técnica da Rodada 08
   (Mapa de Crenças não conclui vazio; OQ3/PQQ não salvam vazios) fica mantida como
   guarda de aplicação vazia, pendente de decisão metodológica.
