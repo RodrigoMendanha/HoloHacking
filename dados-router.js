@@ -84,7 +84,17 @@
     condutas:  { tabela: "conducts",  campos: {}, inverso: {} },
     acordos:   { tabela: "agreements", campos: {}, inverso: {} },
     /* V1, Etapa 3: emissoes versionadas de relatorio. */
-    relatorios: { tabela: "report_emissions", campos: {}, inverso: {} }
+    relatorios: { tabela: "report_emissions", campos: {}, inverso: {} },
+    /* V1, Etapa 4: Pacote Metodologico (nomes iguais ao banco). */
+    pacotes_metodologicos:  { tabela: "methodology_packages", campos: {}, inverso: {} },
+    metodologia_edicoes:    { tabela: "methodology_questionnaire_editions", campos: {}, inverso: {} },
+    metodologia_escalas:    { tabela: "methodology_scales", campos: {}, inverso: {} },
+    metodologia_sistemas:   { tabela: "methodology_systems", campos: {}, inverso: {} },
+    metodologia_perguntas:  { tabela: "methodology_questions", campos: {}, inverso: {} },
+    metodologia_associacoes:{ tabela: "methodology_associations", campos: {}, inverso: {} },
+    metodologia_faixas:     { tabela: "methodology_ranges", campos: {}, inverso: {} },
+    metodologia_regras:     { tabela: "methodology_rules", campos: {}, inverso: {} },
+    metodologia_registros:  { tabela: "methodology_homologation_records", campos: {}, inverso: {} }
   };
 
   /* ---------- proxy que traduz campos na ida e na volta ------------------- */

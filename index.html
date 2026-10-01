@@ -262,6 +262,10 @@
 
       <p class="nav-titulo" id="nav-grupo-config">Configurações</p>
       <div class="nav-grupo" role="group" aria-labelledby="nav-grupo-config">
+        <button class="nav-item hidden" data-secao="metodologia" id="nav-metodologia">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16M4 12h10M4 19h7"/><circle cx="18" cy="17" r="3"/></svg>
+          Metodologia <span class="nav-tag">Homologação</span>
+        </button>
         <button class="nav-item" data-secao="perfil">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.4 3.1-6 7-6s7 2.6 7 6"/></svg>
           Perfil
@@ -954,6 +958,19 @@
         <div id="documentos-corpo"></div>
       </section>
 
+      <!-- ============ METODOLOGIA / HOMOLOGACAO (V1 Etapa 4) ============
+           Consulta do Pacote Metodologico e do inventario recuperado. So com
+           ?homologacao=1. Nenhum botao "aprovar tudo"; aprovacao so pela RPC
+           com registro de homologacao (metodologia-homologacao.js). -->
+      <section class="secao" id="secao-metodologia">
+        <div class="secao-cabeca">
+          <span class="eyebrow">Metodologia</span>
+          <h2>Pacote Metodológico <em>em homologação</em></h2>
+          <p>Inventário recuperado dos bancos do motor e pacotes cadastrados. Tudo aqui é para consulta e revisão humana: nada vira resultado oficial nesta tela.</p>
+        </div>
+        <div id="metodologia-corpo"></div>
+      </section>
+
       <!-- ============ PERFIL / CONFIGURACOES ============ -->
       <section class="secao" id="secao-perfil">
         <div class="secao-cabeca">
@@ -1257,6 +1274,9 @@
 <script src="/utils.js"></script>
 <!-- Etapa 0 da V1: a fronteira unica entre conteudo em homologacao e saida
      oficial. Vem logo depois de utils.js porque HoloAusencia a consulta. -->
+<script src="/metodologia-inventario.js"></script>
+<script src="/metodologia-pacote.js"></script>
+<script src="/metodologia-motor.js"></script>
 <script src="/metodologia.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"></script>
 <script src="/supabase-client.js"></script>
@@ -1312,6 +1332,7 @@
 <script src="/anamnese.js"></script>
 <script src="/conduta.js"></script>
 <script src="/relatorios.js"></script>
+<script src="/metodologia-homologacao.js"></script>
 <script src="/documentos.js"></script>
 <script src="/perfil.js"></script>
 <script src="/caso-marina.js"></script>
