@@ -171,7 +171,7 @@ persistiu**. Migrations **não aplicadas** em produção.
 
 | Item | Valor |
 |---|---|
-| Suíte final | 87 suítes · 2719 asserções · 0 falhas (`scratchpad/final-etapa3.log`) |
+| Suíte final | 87 suítes · 2720 asserções · 0 falhas (`scratchpad/final3-etapa3.log`) |
 | Novas | `testar-v1-etapa3-banco.mjs` (48 asserções), `testar-v1-etapa3.mjs` (66 asserções) |
 | Ajustada também | `testar-holos-ai.mjs` (5 atalhos de contexto; +1 asserção) |
 | Ajustadas | `testar-storage-manifest.mjs` (42 scripts), `testar-arquivos.mjs` (aba Evolução), `testar-v1-etapa2.mjs` ("Anamnese revisada"; regex sem distinção de caixa porque o painel agora é realmente exibido) |
