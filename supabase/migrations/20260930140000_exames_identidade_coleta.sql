@@ -1,40 +1,37 @@
--- Rodada 08, onda 2 — EXAMES: identidade da coleta e data nao futura.
+-- Rodada 08, onda 2 — reescrita na Etapa 0 da V1 (reconciliacao com o
+-- Documento Mestre). NAO APLICADA em producao ate esta data.
 --
--- 1. lab_collections ganha um trigger que recusa coletado_em no futuro
---    (tolerancia de 1 dia sobre a data UTC, para quem registra a leste de
---    Greenwich). Vale para a RPC e para a escrita direta (coleta sem data
---    e exclusao usam a tabela sob RLS). Linhas existentes nao sao tocadas.
--- 2. salvar_coleta_exames aceita collection.modo:
---      "nova"    se ja existe coleta do paciente nessa data, RAISE — antes a
---                RPC reaproveitava a coleta e APAGAVA os resultados dela;
---      "editar"  / ausente: comportamento de antes (troca os resultados da
---                coleta daquela data). O front antigo nao manda modo e
---                continua funcionando igual.
---    E recusa data futura com mensagem propria.
+-- EXAMES: identidade da coleta e o ID, nunca (paciente + data).
+--
+-- Documento Mestre, secoes 22, 34.2 e 43.2: "Duas coletas na mesma data tem
+-- IDs independentes"; "Coletas nao usam apenas paciente mais data como
+-- identidade"; "Editar uma coleta e diferente de criar outra".
+--
+-- A RPC salvar_coleta_exames em producao (fase6 + fix_rpc_record_value)
+-- faz UPSERT por (nutritionist_id, patient_id, coletado_em): uma segunda
+-- coleta na mesma data substitui a primeira e APAGA os resultados dela. A
+-- versao anterior desta migration (Rodada 08) trocava isso por uma RECUSA
+-- ("coleta ja existe nesta data") no modo "nova" — tambem contraria ao
+-- Mestre, porque continuava tratando a data como identidade.
+--
+-- O que esta versao faz:
+--   * collection.id presente  -> EDITAR aquela coleta (tem de ser do
+--                                 nutricionista autenticado; senao RAISE);
+--                                 atualiza data/laboratorio/observacao e
+--                                 TROCA os resultados dela;
+--   * collection.id ausente   -> INSERIR uma coleta nova, sempre, mesmo que
+--                                 ja exista outra na mesma data.
+--   * collection.modo e aceito e ignorado (compatibilidade com o front da
+--     Rodada 08); a identidade vem so do id.
+--   * nenhuma busca por data; nenhuma recusa por data.
+--
+-- O que NAO esta aqui (de proposito): a regra "data da coleta nao pode ser
+-- futura" da Rodada 08. Ela nao e contrato do Mestre e foi separada em
+-- supabase/migrations-pendentes/PENDENTE_lab_collections_data_nao_futura.sql,
+-- pendente de decisao de produto/clinica.
 --
 -- Nao muda: tabelas, colunas, RLS, grants, assinatura da RPC.
 -- CREATE OR REPLACE preserva dono, SECURITY DEFINER e privilegios.
-
-create or replace function public.lab_collections_data_nao_futura()
-returns trigger
-language plpgsql
-set search_path = ''
-as $$
-begin
-  if new.coletado_em is not null
-     and new.coletado_em > (now() at time zone 'utc')::date + 1 then
-    raise exception 'data da coleta no futuro: %', new.coletado_em using errcode = '22008';
-  end if;
-  return new;
-end;
-$$;
-
-revoke all on function public.lab_collections_data_nao_futura() from public, anon, authenticated;
-
-drop trigger if exists lab_collections_data_nao_futura on public.lab_collections;
-create trigger lab_collections_data_nao_futura
-  before insert or update of coletado_em on public.lab_collections
-  for each row execute function public.lab_collections_data_nao_futura();
 
 CREATE OR REPLACE FUNCTION public.salvar_coleta_exames(payload jsonb)
  RETURNS uuid
@@ -50,7 +47,6 @@ declare
   pid       uuid;
   dt        date;
   desconhecida boolean;
-  modo      text;
   r         record;
 begin
   if uid is null then
@@ -63,54 +59,38 @@ begin
 
   pid := (col_data->>'patient_id')::uuid;
   desconhecida := coalesce((col_data->>'data_coleta_desconhecida')::boolean, false);
-  modo := col_data->>'modo';
 
   if desconhecida then
     dt := null;
   else
-    dt := coalesce((col_data->>'coletado_em')::date, current_date);
+    dt := (col_data->>'coletado_em')::date;
+    if dt is null then
+      raise exception 'coleta com data: informe coletado_em, ou marque data_coleta_desconhecida';
+    end if;
   end if;
 
-  -- rodada 08: data de coleta no futuro nao existe (tolerancia de 1 dia
-  -- sobre o UTC, para o fuso de quem registra)
-  if dt is not null and dt > (now() at time zone 'utc')::date + 1 then
-    raise exception 'data da coleta no futuro: %', dt using errcode = '22008';
-  end if;
+  -- Etapa 0: identidade da coleta e o id. Com id, EDITA aquela coleta; sem
+  -- id, INSERE uma nova. Nunca procura coleta por (paciente, data).
+  if col_data->>'id' is not null then
+    col_id := (col_data->>'id')::uuid;
 
-  -- tentar encontrar collection existente para upsert
-  if desconhecida then
-    select id into col_id
-    from public.lab_collections
-    where nutritionist_id = uid
-      and patient_id = pid
-      and data_coleta_desconhecida = true
-    limit 1;
-  else
-    select id into col_id
-    from public.lab_collections
-    where nutritionist_id = uid
-      and patient_id = pid
-      and coletado_em = dt
-    limit 1;
-  end if;
+    -- a coleta tem de existir e ser do nutricionista autenticado
+    perform 1 from public.lab_collections c
+      where c.id = col_id and c.nutritionist_id = uid and c.patient_id = pid;
+    if not found then
+      raise exception 'coleta % nao encontrada para este paciente', col_id using errcode = 'P0002';
+    end if;
 
-  -- rodada 08: "nova" nunca substitui a coleta que ja existe na data; para
-  -- trocar os valores dela o cliente manda "editar" (ou nada: legado)
-  if col_id is not null and modo = 'nova' then
-    raise exception 'coleta ja existe nesta data: %', dt using errcode = '23505';
-  end if;
-
-  if col_id is not null then
-    -- atualizar campos da collection existente
     update public.lab_collections
-    set laboratorio = col_data->>'laboratorio',
-        observacao  = col_data->>'observacao'
-    where id = col_id;
+       set coletado_em = dt,
+           data_coleta_desconhecida = desconhecida,
+           laboratorio = col_data->>'laboratorio',
+           observacao  = col_data->>'observacao'
+     where id = col_id;
 
-    -- limpar results antigos
+    -- editar = trocar os resultados DESTA coleta
     delete from public.lab_results where collection_id = col_id;
   else
-    -- criar nova collection
     insert into public.lab_collections (
       nutritionist_id, patient_id, coletado_em,
       data_coleta_desconhecida, laboratorio, observacao
@@ -122,7 +102,6 @@ begin
     returning id into col_id;
   end if;
 
-  -- inserir results
   for r in select * from jsonb_array_elements(res_data) as elem
   loop
     insert into public.lab_results (

@@ -165,10 +165,9 @@ export function criarServidor() {
       const ok = (linha.data_coleta_desconhecida === true && linha.coletado_em == null) ||
                  (linha.data_coleta_desconhecida === false && linha.coletado_em != null);
       if (!ok) return erro('violates check constraint "lab_collections_data_coerente"', '23514');
-      // trigger lab_collections_data_nao_futura (rodada 08)
-      if (linha.coletado_em && linha.coletado_em > new Date(Date.now() + 86400000).toISOString().slice(0, 10)) {
-        return erro('data da coleta no futuro', '22008');
-      }
+      // Etapa 0 da V1: o trigger de "data da coleta no futuro" (rodada 08)
+      // saiu de supabase/migrations/ (pendente de decisao de produto);
+      // o falso espelha o banco: nenhuma recusa por data.
     }
     return null;
   }
@@ -372,22 +371,24 @@ export function criarServidor() {
       return { data: app.id, error: null };
     }
     if (nome === 'salvar_coleta_exames') {
+      // Etapa 0 da V1: espelha a migration 20260930140000 reescrita —
+      // identidade pelo id (collection.id → editar; sem id → inserir),
+      // nunca por (paciente, data); nenhuma recusa por data.
       if (!p || !p.collection || !p.results) return erro('payload incompleto', 'P0001');
       const c = p.collection;
       const desconhecida = !!c.data_coleta_desconhecida;
-      const dt = desconhecida ? null : (c.coletado_em || new Date().toISOString().slice(0, 10));
+      const dt = desconhecida ? null : (c.coletado_em || null);
+      if (!desconhecida && !dt) return erro('coleta com data: informe coletado_em, ou marque data_coleta_desconhecida', 'P0001');
       if (!pacienteDe(uid, c.patient_id)) return erro('violates foreign key constraint', '23503');
       const arqColeta = erroArquivado('lab_collections', c);
       if (arqColeta) return arqColeta;
-      let col = s.tabelas.lab_collections.find(x => x.nutritionist_id === uid && x.patient_id === c.patient_id &&
-        (desconhecida ? x.data_coleta_desconhecida === true : x.coletado_em === dt));
-      // rodada 08: data de coleta no futuro (tolerancia de 1 dia sobre o UTC) e recusada
-      if (dt && dt > new Date(Date.now() + 86400000).toISOString().slice(0, 10)) {
-        return erro('data da coleta no futuro', '22008');
+      let col = null;
+      if (c.id) {
+        col = s.tabelas.lab_collections.find(x => x.id === c.id && x.nutritionist_id === uid && x.patient_id === c.patient_id);
+        if (!col) return erro('coleta ' + c.id + ' nao encontrada para este paciente', 'P0002');
       }
-      // rodada 08: modo "nova" nao substitui a coleta que ja existe na data
-      if (col && c.modo === 'nova') return erro('coleta ja existe nesta data', '23505');
       if (col) {
+        col.coletado_em = dt; col.data_coleta_desconhecida = desconhecida;
         col.laboratorio = c.laboratorio || null; col.observacao = c.observacao || null;
         col.updated_at = carimbo();
         s.tabelas.lab_results = s.tabelas.lab_results.filter(r => r.collection_id !== col.id);

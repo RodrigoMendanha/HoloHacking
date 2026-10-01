@@ -173,7 +173,11 @@
     html += '<p class="arq-nota holo-fronteira">A Leitura Integrada organiza informações laboratoriais ' +
       "para apoiar a interpretação profissional. Não realiza diagnóstico.</p>";
 
-    alvo.innerHTML = html;
+    /* Etapa 0 da V1: a regra desta leitura (nota <= 3 x um exame fora da
+       faixa cadastrada) ainda nao tem vinculo exame-dominio aprovado,
+       suficiencia, temporalidade nem versao (Mestre §24). Ela fica, com o
+       selo, para homologacao — nao como Leitura Integrada V1. */
+    alvo.innerHTML = (window.Metodologia ? window.Metodologia.avisoHtml() : "") + html;
   };
 
   var dataBR = window.dataBR;
@@ -205,6 +209,7 @@
 
     var topo = '<div class="fic-consultas-topo">' +
       '<button type="button" class="btn-verde" data-ir="aba:documentos">Registrar exames</button>' +
+      (window.Metodologia ? window.Metodologia.selo("Leitura Integrada") : "") +
     "</div>";
 
     // Secao 3: nao bloqueia o registro sem HOLOSCAN, so avisa que o
@@ -575,7 +580,9 @@
     var d = m && new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
     if (!d || d.getFullYear() !== Number(m[1]) || d.getMonth() !== Number(m[2]) - 1 ||
         d.getDate() !== Number(m[3])) return "Data da coleta inválida.";
-    if (v > hojeISO()) return "A data da coleta não pode ser futura.";
+    /* Etapa 0 da V1: a recusa de data futura (Rodada 08) saiu daqui. Nao e
+       contrato do Documento Mestre; esta PENDENTE de decisao de produto/
+       clinica (supabase/migrations-pendentes/). So o formato e conferido. */
     return "";
   }
 
@@ -585,23 +592,15 @@
   }
 
   /** Registrar = conferir E salvar. Sem data valida, confere na tela mas
-      nao salva no servidor, e diz por que. Em "Nova coleta", uma data que ja
-      tem coleta registrada e recusada aqui (e no servidor): para mudar
-      aquela coleta, o caminho e "Editar". */
+      nao salva no servidor, e diz por que. Em "Nova coleta" a data NAO e
+      identidade: duas coletas na mesma data sao duas coletas, cada uma com
+      o seu id (Etapa 0 da V1, Mestre §22). Para mudar os valores de uma
+      coleta existente, o caminho e "Editar", pelo id dela. */
   function registrar() {
     if (window.bloqueioArquivado && window.bloqueioArquivado(paciente())) return Promise.resolve(false);
     var editando = modoColeta.tipo === "editar" && modoColeta.coleta;
     var alvo = document.getElementById("ex-data-erro");
     var erro = editando ? "" : problemaDataColeta(dataDaColeta());
-    if (!erro && !editando) {
-      var coletas = coletasRemotas(paciente());
-      var data = dataDaColeta();
-      var mesma = (coletas || []).filter(function (c) {
-        return !c.data_coleta_desconhecida && c.coletado_em === data;
-      })[0];
-      if (mesma) erro = "Já existe uma coleta em " + dataBR(data) +
-        ". Para mudar os valores dela, use Editar na lista de coletas.";
-    }
     if (alvo) alvo.textContent = erro;
     if (erro) {
       conferir();                 // o digitado ja ficou como rascunho (input)
@@ -634,9 +633,10 @@
     }
     var editando = modoColeta.tipo === "editar" && modoColeta.coleta ? modoColeta.coleta : null;
     var data = editando ? (editando.data_coleta_desconhecida ? null : editando.coletado_em) : dataDaColeta();
-    var opcoes = editando
-      ? (editando.data_coleta_desconhecida ? { coletaId: editando.id, modo: "editar" } : { modo: "editar" })
-      : { modo: "nova" };
+    /* Etapa 0 da V1: identidade pelo id. Editar = o id da coleta escolhida;
+       nova = sem id (sincronizacao.js gera um novo), mesmo que ja exista
+       coleta nessa data. */
+    var opcoes = editando ? { coletaId: editando.id, modo: "editar" } : { modo: "nova" };
     mostrarEstadoSalvo("salvando");
     var botao = document.querySelector('#ex-corpo [data-acao="conferir"]');
     if (botao) botao.disabled = true;
@@ -657,20 +657,6 @@
         });
       }
       if (pid !== paciente()) return false;
-      if (r.motivo === "ja_existe") {
-        mostrarEstadoSalvo("nao_salvo");
-        var e1 = document.getElementById("ex-data-erro");
-        var m1 = "Já existe uma coleta nessa data. Para mudar os valores dela, use Editar na lista de coletas.";
-        if (e1) e1.textContent = m1;
-        if (window.avisar) window.avisar(m1);
-        return false;
-      }
-      if (r.motivo === "data_futura") {
-        mostrarEstadoSalvo("nao_salvo");
-        var e2 = document.getElementById("ex-data-erro");
-        if (e2) e2.textContent = "A data da coleta não pode ser futura.";
-        return false;
-      }
       if (r.motivo === "vazio" || r.motivo === "offline") { mostrarEstadoSalvo("local"); return false; }
       if (window.erroDeArquivado && window.erroDeArquivado(r.erro)) {
         mostrarEstadoSalvo("nao_salvo");
@@ -1224,7 +1210,9 @@
       // Secao 3 da Etapa 6: a data da APLICACAO, nao a de hoje (.rel-meta do
       // cabecalho ja mostra quando o relatorio foi gerado — sao datas
       // diferentes, e a antiga faltava aqui).
-      (p.quando ? '<p class="rel-meta">Aplicado em ' + escapar(dataBR(p.quando)) + "</p>" : "");
+      (p.quando ? '<p class="rel-meta">Aplicado em ' + escapar(dataBR(p.quando)) + "</p>" : "") +
+      // Etapa 0 da V1: notas, faixas, Indice e Triade vem de bancos em rascunho
+      (window.Metodologia ? window.Metodologia.avisoHtml() : "");
 
     var A = window.HoloAusencia;
     var ordenados = p.sistemas.slice().sort(A.porLeitura);
@@ -1306,7 +1294,8 @@
     var ex = ler(CHAVE_EX);
     var rExames = g.lerExames(ex, notasDoPaciente());
     html += '<section class="rel-parte" data-origem="automatico">' +
-      "<h3>B. Leitura Integrada (Holoscan) — o que os exames acrescentam</h3><div class=\"rel-bloco\">";
+      "<h3>B. Leitura Integrada (Holoscan) — o que os exames acrescentam " +
+      (window.Metodologia ? window.Metodologia.selo() : "") + "</h3><div class=\"rel-bloco\">";
     rExames.confronto.forEach(function (c) {
       html += "<p><b>" + NOME_SISTEMA[c.sistema] + "</b> — " +
         escapar(window.Holoscan.rotulo(c)) + ". " + escapar(window.Holoscan.texto(c)) + "</p>";
