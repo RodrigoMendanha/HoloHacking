@@ -1178,6 +1178,31 @@
         }
       } catch(e){}
     }
+    /* V1, Etapa 3: timeline consolidada, metadados da Evolucao (selecao e
+       deltas comparaveis, sem julgamento) e as emissoes de relatorio com o
+       snapshot integral e a relacao de retificacao. */
+    if(window.Timeline && window.Timeline.eventos){
+      try {
+        const docs = exportado.documentos ? exportado.documentos.map(d => Object.assign({}, d, { _supa_id: d.no_servidor ? d.id : null })) : [];
+        exportado.timeline = window.Timeline.eventos(id, { documentos: docs }).map(e => ({
+          tipo: e.tipo, titulo: String(e.titulo).replace(/<[^>]+>/g, ""), data_clinica: e.quando || null, registrado_em: e.registrado_em || null,
+          revisao: !!e.revisao, original_id: e.original || null, administrativo: !!e.administrativo, ref: e.ref || null
+        }));
+      } catch(e){ console.error("[exportar] timeline:", e); }
+    }
+    if(window.Evolucao && window.Evolucao.metadados){
+      try { exportado.evolucao = window.Evolucao.metadados(id); } catch(e){ console.error("[exportar] evolucao:", e); }
+    }
+    if(window.Relatorios && window.Relatorios.doPaciente){
+      const rel = window.Relatorios.doPaciente(id);
+      if(rel.length) exportado.relatorios = rel.map(r => ({
+        id: r.id, status: r.status, rotulo: r.status === "emitido" ? "EMITIDO" : "RASCUNHO (não emitido)", report_type: r.report_type, revision_number: r.revision_number,
+        title: r.title, period_start: r.period_start, period_end: r.period_end, encounter_id: r.encounter_id || null,
+        template_version: r.template_version, issued_at: r.issued_at, created_at: r.created_at, updated_at: r.updated_at, created_by: r.created_by,
+        supersedes_report_id: r.supersedes_report_id || null, superseded_at: r.superseded_at || null, content_hash: r.content_hash || null,
+        selected_sources: r.selected_sources, source_snapshot: r.source_snapshot, content_snapshot: r.content_snapshot
+      }));
+    }
     return exportado;
   }
 
@@ -1254,8 +1279,9 @@
   function temHistorico(resumo){
     /* V1 Etapa 1: qualquer atendimento (encounters) e historico clinico;
        Etapa 2: anamnese e conduta tambem (mesmo em rascunho: e trabalho clinico). */
+    /* Etapa 3: relatorio emitido (ou em rascunho) tambem e historico. */
     return !!(resumo.erro || resumo.consultas || resumo.atendimentos || resumo.anamneses || resumo.condutas ||
-              resumo.holoscan || resumo.documentos || resumo.ferramentas || resumo.exames);
+              resumo.holoscan || resumo.documentos || resumo.ferramentas || resumo.exames || resumo.relatorios);
   }
   function descreverHistorico(r){
     if(r.erro) return "não foi possível verificar o histórico agora";
@@ -1268,6 +1294,7 @@
     if(r.exames)      partes.push(r.exames + (r.exames === 1 ? " coleta de exames" : " coletas de exames"));
     if(r.documentos)  partes.push(r.documentos + (r.documentos === 1 ? " documento" : " documentos"));
     if(r.ferramentas) partes.push(r.ferramentas + (r.ferramentas === 1 ? " ferramenta aplicada" : " ferramentas aplicadas"));
+    if(r.relatorios)  partes.push(r.relatorios + (r.relatorios === 1 ? " relatório" : " relatórios"));
     return partes.length ? partes.join(", ") : "nenhum registro clínico";
   }
   function nomeDoPaciente(id){
@@ -1338,12 +1365,12 @@
   }
 
   async function contarRegistros(ids){
-    let consultas = 0, atendimentos = 0, anamneses = 0, condutas = 0, holoscan = 0, documentos = 0, ferramentas = 0, exames = 0;
+    let consultas = 0, atendimentos = 0, anamneses = 0, condutas = 0, holoscan = 0, documentos = 0, ferramentas = 0, exames = 0, relatorios = 0;
     const autenticado = window.HoloAuth && window.HoloAuth.sessaoAtiva() && window.supabaseClient;
     for(const id of ids){
       if(autenticado){
         try {
-          const [rC, rH, rL, rT, rD, rE, rA, rK] = await Promise.all([
+          const [rC, rH, rL, rT, rD, rE, rA, rK, rR] = await Promise.all([
             window.supabaseClient.from("consultations").select("id", { count: "exact", head: true }).eq("patient_id", id),
             window.supabaseClient.from("holoscan_applications").select("id", { count: "exact", head: true }).eq("patient_id", id),
             window.supabaseClient.from("lab_collections").select("id", { count: "exact", head: true }).eq("patient_id", id),
@@ -1351,13 +1378,15 @@
             window.supabaseClient.from("documents").select("id", { count: "exact", head: true }).eq("patient_id", id),
             window.supabaseClient.from("encounters").select("id", { count: "exact", head: true }).eq("patient_id", id),
             window.supabaseClient.from("anamneses").select("id", { count: "exact", head: true }).eq("patient_id", id),
-            window.supabaseClient.from("conducts").select("id", { count: "exact", head: true }).eq("patient_id", id)
+            window.supabaseClient.from("conducts").select("id", { count: "exact", head: true }).eq("patient_id", id),
+            window.supabaseClient.from("report_emissions").select("id", { count: "exact", head: true }).eq("patient_id", id)
           ]);
-          if([rC, rH, rL, rT, rD, rE, rA, rK].some(x => !x || x.error)) return { consultas, atendimentos, anamneses, condutas, holoscan, documentos, ferramentas, exames, erro: true };
+          if([rC, rH, rL, rT, rD, rE, rA, rK, rR].some(x => !x || x.error)) return { consultas, atendimentos, anamneses, condutas, holoscan, documentos, ferramentas, exames, relatorios, erro: true };
           consultas   += rC.count || 0;
           atendimentos += rE.count || 0;
           anamneses   += rA.count || 0;
           condutas    += rK.count || 0;
+          relatorios  += rR.count || 0;
           holoscan    += rH.count || 0;
           exames      += rL.count || 0;
           ferramentas += rT.count || 0;
@@ -1365,7 +1394,7 @@
           continue;
         } catch(e){
           /* sem saber, nao se exclui: historico desconhecido conta como historico */
-          return { consultas, atendimentos, anamneses, condutas, holoscan, documentos, ferramentas, exames, erro: true };
+          return { consultas, atendimentos, anamneses, condutas, holoscan, documentos, ferramentas, exames, relatorios, erro: true };
         }
       }
       if(window.Agenda && window.Agenda.todas) consultas += (window.Agenda.todas(id, { incluirCanceladas: true }) || []).length;
@@ -1382,7 +1411,7 @@
         catch(e){}
       }
     }
-    return { consultas, atendimentos, anamneses, condutas, holoscan, documentos, ferramentas, exames };
+    return { consultas, atendimentos, anamneses, condutas, holoscan, documentos, ferramentas, exames, relatorios };
   }
 
   async function mudarStatus(ids, novo){

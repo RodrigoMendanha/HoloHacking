@@ -325,13 +325,46 @@
     return "Atendimento de " + window.AtendimentoAtual.rotuloQuando(e) + " · rev. " + v.revision_number + " · " + v.status + "\n" + Cd.textoBruto(v);
   }
 
+  /* V1, Etapa 3: a timeline CONSOLIDADA (timeline.js) — so o que foi
+     registrado; agendamento fora; o HOLOSCAN entra com data, versao e
+     cobertura (nenhum Indice, nota ou faixa). */
+  function dadosTimeline() {
+    var pid = pacienteId(); if (!pid || !window.Timeline) return "";
+    var ev = window.Timeline.eventos(pid, { semAgenda: true });
+    if (!ev.length) return "";
+    return ev.map(function (e) {
+      var titulo = String(e.titulo).replace(/<[^>]+>/g, "");
+      var det = e.tipo === "mapa" ? String(e.detalhe).replace(/Índice [^·]*·?\s*/, "").trim() : String(e.detalhe || "").replace(/<[^>]+>/g, "").replace(/&middot;/g, "·");
+      return "- " + (e.quando ? dataBR(e.quando) : "sem data clínica") + " — " + titulo + (det ? " — " + det : "") +
+        (e.revisao ? " [revisão ligada ao registro original]" : "") + (e.registrado_em ? " (registrado em " + dataBR(String(e.registrado_em).slice(0, 10)) + ")" : "");
+    }).join("\n");
+  }
+
+  /* Relatorios EMITIDOS (snapshot), so quando a profissional escolhe o
+     atalho; rascunho de relatorio nunca entra. */
+  function dadosRelatorios() {
+    var pid = pacienteId(); var R = window.Relatorios; if (!pid || !R) return "";
+    var lista = R.emitidos(pid); if (!lista.length) return "";
+    return lista.map(function (r) {
+      return "## Emissão nº " + r.revision_number + " — " + (r.title || "Relatório clínico") + " — emitida em " + dataBR(String(r.issued_at).slice(0, 10)) +
+        (r.supersedes_report_id ? " (retifica " + r.supersedes_report_id + ")" : "") + (r.superseded_at ? " (substituída por retificação)" : "") + "\n" + R.textoBruto(r);
+    }).join("\n\n");
+  }
+  function gerarRelatorios() {
+    var t = cabecalhoContexto("Relatórios emitidos");
+    t += secaoSe("Paciente", dadosPaciente());
+    t += secaoSe("Relatórios emitidos (snapshots, nunca rascunho)", dadosRelatorios() || "(nenhum relatório emitido)");
+    return t.trim();
+  }
+
   // --- Geradores por tipo de atalho ---
 
   var ATALHOS_CONTEXTO = [
     { id: "completo",  rotulo: "Caso completo",  gerar: gerarCompleto },
     { id: "holoscan",  rotulo: "HOLOSCAN",        gerar: gerarHoloscan },
     { id: "exames",    rotulo: "Exames",           gerar: gerarExames },
-    { id: "evolucao",  rotulo: "Evolução / retorno", gerar: gerarEvolucao }
+    { id: "evolucao",  rotulo: "Evolução / retorno", gerar: gerarEvolucao },
+    { id: "relatorios", rotulo: "Relatórios emitidos", gerar: gerarRelatorios }
   ];
 
   function cabecalhoContexto(tipo) {
@@ -356,6 +389,7 @@
     t += secaoSe("Atendimentos registrados", dadosAtendimentos());
     t += secaoSe("Anamnese (salva/revisada, texto da profissional)", dadosAnamnese());
     t += secaoSe("Conduta e acordos (salvos/revisados)", dadosConduta());
+    t += secaoSe("Linha do tempo consolidada (data clínica e data de registro)", dadosTimeline());
     t += secaoSe("Agenda (agendamentos)", dadosConsultas());
     t += secaoSe("Ferramentas (OQ³, PQQ, Mapa do Propósito e outras)", dadosFerramentas());
     var evo = dadosEvolucao();
@@ -388,6 +422,7 @@
     t += secaoSe("Atendimentos registrados", dadosAtendimentos());
     t += secaoSe("Anamnese (salva/revisada, texto da profissional)", dadosAnamnese());
     t += secaoSe("Conduta e acordos (salvos/revisados)", dadosConduta());
+    t += secaoSe("Linha do tempo consolidada (data clínica e data de registro)", dadosTimeline());
     t += secaoSe("Agenda (agendamentos recentes)", dadosConsultas());
     t += secaoSe("Ferramentas (OQ3, PQQ e outras)", dadosFerramentas());
     return t.trim() || "Nenhum dado de evolução disponível.";

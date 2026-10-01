@@ -222,6 +222,28 @@
       }).join("") + "</ul></div>";
   }
 
+  /* V1, Etapa 3: pendencias OPERACIONAIS — rascunhos de anamnese/conduta nao
+     consolidados e relatorios em rascunho. Contagens, nao julgamentos; nada
+     de Indice medio ou metodologia nao homologada. */
+  function blocoRascunhosPendentes() {
+    var An = window.Anamnese, Cd = window.Conduta, R = window.Relatorios;
+    var nAn = An ? An.doPaciente ? (window.pacientesTodos() || []).reduce(function (n, p) { return n + An.doPaciente(p.id).filter(function (a) { return a.status === "rascunho"; }).length; }, 0) : 0 : 0;
+    var nCd = Cd ? (window.pacientesTodos() || []).reduce(function (n, p) { return n + Cd.doPaciente(p.id).filter(function (c) { return c.status === "rascunho"; }).length; }, 0) : 0;
+    var rel = R && R.todosRascunhos ? R.todosRascunhos() : [];
+    if (!nAn && !nCd && !rel.length) return "";
+    var nomeDe = function (pid) { var p = (window.pacientesTodos() || []).filter(function (x) { return x.id === pid; })[0]; return p ? p.nome : "Paciente"; };
+    return '<div class="dash-bloco dash-bloco-compacto" id="dash-rascunhos">' +
+      '<h3 class="dash-titulo">Rascunhos pendentes <em>' + (nAn + nCd + rel.length) + "</em></h3>" +
+      '<p class="dash-sub">' + [nAn ? nAn + (nAn === 1 ? " anamnese em rascunho" : " anamneses em rascunho") : "",
+        nCd ? nCd + (nCd === 1 ? " conduta em rascunho" : " condutas em rascunho") : "",
+        rel.length ? rel.length + (rel.length === 1 ? " relatório em rascunho" : " relatórios em rascunho") : ""].filter(Boolean).join(" · ") + ". Nada disso entra na timeline, na Evolução nem na HOLOS AI.</p>" +
+      (rel.length ? '<ul class="dash-pendentes" id="dash-relatorios-rascunho">' + rel.slice(0, 5).map(function (r) {
+        return '<li class="dash-pendente"><span class="pac-avatar">' + escapar(inicial(nomeDe(r.patient_id))) + "</span>" +
+          '<span class="dash-quem"><b>' + escapar(nomeDe(r.patient_id)) + "</b><span class=\"dash-porque\">relatório em rascunho · " + escapar(r.title || "Relatório clínico") + "</span></span>" +
+          '<button type="button" class="dash-ir" data-paciente="' + escapar(r.patient_id) + '" data-destino="aba:relatorio">Abrir <span aria-hidden="true">&rarr;</span></button></li>';
+      }).join("") + "</ul>" : "") + "</div>";
+  }
+
   function blocoPendencias(c) {
     if (c.pendentes.length === 0) {
       return '<div class="dash-bloco">' +
@@ -386,6 +408,7 @@
       blocoOnboarding(c) +
       blocoPendencias(c) +
       blocoAtendimentosSemConduta() +
+      blocoRascunhosPendentes() +
       blocoPacientesRecentes() +
       blocoNumeros(c) +
       blocoTerreno(c) +

@@ -112,6 +112,8 @@
     if (window.AtendimentoAtual && window.AtendimentoAtual.esquecer) window.AtendimentoAtual.esquecer();
     if (window.Anamnese && window.Anamnese.esquecer) window.Anamnese.esquecer();
     if (window.Conduta && window.Conduta.esquecer) window.Conduta.esquecer();
+    if (window.Relatorios && window.Relatorios.esquecer) window.Relatorios.esquecer();
+    if (window.Evolucao && window.Evolucao.esquecer) window.Evolucao.esquecer();
   }
 
   function restaurarEstadoLocal(uid) {
@@ -133,6 +135,8 @@
         if (window.AtendimentoAtual && window.AtendimentoAtual.esquecer) window.AtendimentoAtual.esquecer();
         if (window.Anamnese && window.Anamnese.esquecer) window.Anamnese.esquecer();
         if (window.Conduta && window.Conduta.esquecer) window.Conduta.esquecer();
+        if (window.Relatorios && window.Relatorios.esquecer) window.Relatorios.esquecer();
+        if (window.Evolucao && window.Evolucao.esquecer) window.Evolucao.esquecer();
       }
       CHAVES_CLINICAS.forEach(function (k) {
         var stash = "holohacking._stash." + uid + "." + k;
