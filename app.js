@@ -1124,6 +1124,38 @@
         summary_text: e.summary_text || null, created_at: e.created_at, updated_at: e.updated_at
       }));
     }
+    /* V1, Etapa 2: anamneses e condutas por REVISAO, com estado, autoria e
+       datas; rascunho vai rotulado como tal (nao e registro oficial). */
+    if(window.Anamnese && window.Anamnese.doPaciente){
+      const an = window.Anamnese.doPaciente(id);
+      if(an.length) exportado.anamneses = an.map(a => ({
+        id: a.id, encounter_id: a.encounter_id, revision_number: a.revision_number, status: a.status,
+        registro_oficial: a.status !== "rascunho", rotulo: a.status === "rascunho" ? "RASCUNHO — não consolidado" : "consolidado",
+        content_version: a.content_version, content: a.content,
+        source_anamnesis_id: a.source_anamnesis_id || null, copied_from_previous: !!a.copied_from_previous,
+        supersedes_id: a.supersedes_id || null, superseded_at: a.superseded_at || null, revision_note: a.revision_note || null,
+        reviewed_at: a.reviewed_at || null, reviewed_by: a.reviewed_by || null, created_at: a.created_at, updated_at: a.updated_at
+      }));
+    }
+    if(window.Conduta && window.Conduta.doPaciente){
+      const cd = window.Conduta.doPaciente(id);
+      if(cd.length) exportado.condutas = cd.map(c => {
+        const o = { id: c.id, encounter_id: c.encounter_id, revision_number: c.revision_number, status: c.status,
+          registro_oficial: c.status !== "rascunho", rotulo: c.status === "rascunho" ? "RASCUNHO — não consolidado" : "consolidado",
+          priorities: c.priorities || [], related_tools: c.related_tools || [], references: c.references || {},
+          previous_conduct_id: c.previous_conduct_id || null, previous_decision: c.previous_decision || null,
+          previous_decision_note: c.previous_decision_note || null, supersedes_id: c.supersedes_id || null,
+          superseded_at: c.superseded_at || null, revision_note: c.revision_note || null,
+          reviewed_at: c.reviewed_at || null, reviewed_by: c.reviewed_by || null, created_at: c.created_at, updated_at: c.updated_at,
+          acordos: (window.Conduta.acordosDe(c.id) || []).map(g => ({
+            id: g.id, description: g.description, responsible: g.responsible || null, due_text: g.due_text || null,
+            follow_up: g.follow_up || null, status: g.status, status_note: g.status_note || null,
+            status_changed_at: g.status_changed_at || null, origin_agreement_id: g.origin_agreement_id || null,
+            created_at: g.created_at, updated_at: g.updated_at })) };
+        window.Conduta.CAMPOS.forEach(f => { o[f[0]] = c[f[0]] || null; });
+        return o;
+      });
+    }
     if(window.Agenda && window.Agenda.todas){
       const consultas = window.Agenda.todas(id, { incluirCanceladas: true });
       if(consultas && consultas.length) exportado.agendamentos = consultas.map(c => ({
@@ -1220,14 +1252,17 @@
                                 no servidor falhou, nao se exclui no escuro
      Num lote misto, os vazios saem e os bloqueados sao listados pelo nome. */
   function temHistorico(resumo){
-    /* V1 Etapa 1: qualquer atendimento (encounters) e historico clinico */
-    return !!(resumo.erro || resumo.consultas || resumo.atendimentos || resumo.holoscan ||
-              resumo.documentos || resumo.ferramentas || resumo.exames);
+    /* V1 Etapa 1: qualquer atendimento (encounters) e historico clinico;
+       Etapa 2: anamnese e conduta tambem (mesmo em rascunho: e trabalho clinico). */
+    return !!(resumo.erro || resumo.consultas || resumo.atendimentos || resumo.anamneses || resumo.condutas ||
+              resumo.holoscan || resumo.documentos || resumo.ferramentas || resumo.exames);
   }
   function descreverHistorico(r){
     if(r.erro) return "não foi possível verificar o histórico agora";
     const partes = [];
     if(r.atendimentos) partes.push(r.atendimentos + (r.atendimentos === 1 ? " atendimento" : " atendimentos"));
+    if(r.anamneses)   partes.push(r.anamneses + (r.anamneses === 1 ? " anamnese" : " anamneses"));
+    if(r.condutas)    partes.push(r.condutas + (r.condutas === 1 ? " conduta" : " condutas"));
     if(r.consultas)   partes.push(r.consultas + (r.consultas === 1 ? " consulta" : " consultas"));
     if(r.holoscan)    partes.push(r.holoscan + (r.holoscan === 1 ? " HOLOSCAN" : " HOLOSCANs"));
     if(r.exames)      partes.push(r.exames + (r.exames === 1 ? " coleta de exames" : " coletas de exames"));
@@ -1303,22 +1338,26 @@
   }
 
   async function contarRegistros(ids){
-    let consultas = 0, atendimentos = 0, holoscan = 0, documentos = 0, ferramentas = 0, exames = 0;
+    let consultas = 0, atendimentos = 0, anamneses = 0, condutas = 0, holoscan = 0, documentos = 0, ferramentas = 0, exames = 0;
     const autenticado = window.HoloAuth && window.HoloAuth.sessaoAtiva() && window.supabaseClient;
     for(const id of ids){
       if(autenticado){
         try {
-          const [rC, rH, rL, rT, rD, rE] = await Promise.all([
+          const [rC, rH, rL, rT, rD, rE, rA, rK] = await Promise.all([
             window.supabaseClient.from("consultations").select("id", { count: "exact", head: true }).eq("patient_id", id),
             window.supabaseClient.from("holoscan_applications").select("id", { count: "exact", head: true }).eq("patient_id", id),
             window.supabaseClient.from("lab_collections").select("id", { count: "exact", head: true }).eq("patient_id", id),
             window.supabaseClient.from("tool_applications").select("id", { count: "exact", head: true }).eq("patient_id", id),
             window.supabaseClient.from("documents").select("id", { count: "exact", head: true }).eq("patient_id", id),
-            window.supabaseClient.from("encounters").select("id", { count: "exact", head: true }).eq("patient_id", id)
+            window.supabaseClient.from("encounters").select("id", { count: "exact", head: true }).eq("patient_id", id),
+            window.supabaseClient.from("anamneses").select("id", { count: "exact", head: true }).eq("patient_id", id),
+            window.supabaseClient.from("conducts").select("id", { count: "exact", head: true }).eq("patient_id", id)
           ]);
-          if([rC, rH, rL, rT, rD, rE].some(x => !x || x.error)) return { consultas, atendimentos, holoscan, documentos, ferramentas, exames, erro: true };
+          if([rC, rH, rL, rT, rD, rE, rA, rK].some(x => !x || x.error)) return { consultas, atendimentos, anamneses, condutas, holoscan, documentos, ferramentas, exames, erro: true };
           consultas   += rC.count || 0;
           atendimentos += rE.count || 0;
+          anamneses   += rA.count || 0;
+          condutas    += rK.count || 0;
           holoscan    += rH.count || 0;
           exames      += rL.count || 0;
           ferramentas += rT.count || 0;
@@ -1326,11 +1365,13 @@
           continue;
         } catch(e){
           /* sem saber, nao se exclui: historico desconhecido conta como historico */
-          return { consultas, atendimentos, holoscan, documentos, ferramentas, exames, erro: true };
+          return { consultas, atendimentos, anamneses, condutas, holoscan, documentos, ferramentas, exames, erro: true };
         }
       }
       if(window.Agenda && window.Agenda.todas) consultas += (window.Agenda.todas(id, { incluirCanceladas: true }) || []).length;
       if(window.AtendimentoAtual && window.AtendimentoAtual.doPaciente) atendimentos += window.AtendimentoAtual.doPaciente(id).length;
+      if(window.Anamnese && window.Anamnese.doPaciente) anamneses += window.Anamnese.doPaciente(id).length;
+      if(window.Conduta && window.Conduta.doPaciente) condutas += window.Conduta.doPaciente(id).length;
       const sit = window.Panorama && window.Panorama.doPaciente ? window.Panorama.doPaciente(id) : null;
       if(sit){
         if(sit.pontuacao) holoscan++;
@@ -1341,7 +1382,7 @@
         catch(e){}
       }
     }
-    return { consultas, atendimentos, holoscan, documentos, ferramentas, exames };
+    return { consultas, atendimentos, anamneses, condutas, holoscan, documentos, ferramentas, exames };
   }
 
   async function mudarStatus(ids, novo){

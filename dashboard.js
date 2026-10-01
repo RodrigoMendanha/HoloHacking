@@ -202,6 +202,26 @@
       '<div class="dash-jornada">' + passos + "</div></div>";
   }
 
+  /* V1, Etapa 2: pendencia OPERACIONAL objetiva — atendimento registrado sem
+     conduta consolidada (rascunho nao conta). Nao e julgamento clinico; nada
+     de rascunho, previa ou anamnese nao consolidada alimenta numero algum. */
+  function blocoAtendimentosSemConduta() {
+    var A = window.AtendimentoAtual, Cd = window.Conduta;
+    if (!A || !Cd) return "";
+    var pend = A.todos().filter(function (e) { return !Cd.vigente(e.id); })
+      .sort(function (a, b) { return String(b.occurred_at).localeCompare(String(a.occurred_at)); });
+    if (!pend.length) return "";
+    var nomeDe = function (pid) { var p = (window.pacientesTodos() || []).filter(function (x) { return x.id === pid; })[0]; return p ? p.nome : "Paciente"; };
+    return '<div class="dash-bloco dash-bloco-compacto" id="dash-sem-conduta">' +
+      '<h3 class="dash-titulo">Atendimentos sem conduta salva <em>' + pend.length + "</em></h3>" +
+      '<ul class="dash-pendentes">' + pend.slice(0, 5).map(function (e) {
+        return '<li class="dash-pendente"><span class="pac-avatar">' + escapar(inicial(nomeDe(e.patient_id))) + "</span>" +
+          '<span class="dash-quem"><b>' + escapar(nomeDe(e.patient_id)) + "</b><span class=\"dash-porque\">" + escapar(A.rotuloQuando(e)) +
+          (Cd.rascunhoDe(e.id) ? " · conduta em rascunho" : " · sem conduta") + "</span></span>" +
+          '<button type="button" class="dash-ir" data-paciente="' + escapar(e.patient_id) + '" data-destino="ficha">Abrir <span aria-hidden="true">&rarr;</span></button></li>';
+      }).join("") + "</ul></div>";
+  }
+
   function blocoPendencias(c) {
     if (c.pendentes.length === 0) {
       return '<div class="dash-bloco">' +
@@ -365,6 +385,7 @@
       blocoProximosAtendimentos(agenda) +
       blocoOnboarding(c) +
       blocoPendencias(c) +
+      blocoAtendimentosSemConduta() +
       blocoPacientesRecentes() +
       blocoNumeros(c) +
       blocoTerreno(c) +

@@ -305,6 +305,26 @@
     return t;
   }
 
+  /* V1, Etapa 2: anamnese e conduta SALVAS/REVISADAS do atendimento
+     selecionado (ou, sem selecao, do ultimo atendimento com registro). So
+     o que a profissional escreveu, com estado e origem; rascunho nunca;
+     nenhum texto assistido existe para ser incluido. */
+  function atendimentoDeContexto() {
+    var pid = pacienteId(); var A = window.AtendimentoAtual; if (!pid || !A) return null;
+    var ativo = A.atual(); if (ativo && ativo.patient_id === pid) return ativo;
+    return A.doPaciente(pid).sort(function (a, b) { return String(b.occurred_at).localeCompare(String(a.occurred_at)); })[0] || null;
+  }
+  function dadosAnamnese() {
+    var e = atendimentoDeContexto(); var An = window.Anamnese; if (!e || !An) return "";
+    var v = An.vigente(e.id); if (!v) return "";
+    return "Atendimento de " + window.AtendimentoAtual.rotuloQuando(e) + " · rev. " + v.revision_number + " · " + v.status + "\n" + An.textoBruto(v);
+  }
+  function dadosConduta() {
+    var e = atendimentoDeContexto(); var Cd = window.Conduta; if (!e || !Cd) return "";
+    var v = Cd.vigente(e.id); if (!v) return "";
+    return "Atendimento de " + window.AtendimentoAtual.rotuloQuando(e) + " · rev. " + v.revision_number + " · " + v.status + "\n" + Cd.textoBruto(v);
+  }
+
   // --- Geradores por tipo de atalho ---
 
   var ATALHOS_CONTEXTO = [
@@ -334,6 +354,8 @@
     t += secaoSe("HOLOSCAN — Mapa HOLOS atual", dadosHoloscan());
     t += secaoSe("Camada Laboratorial", dadosExames());
     t += secaoSe("Atendimentos registrados", dadosAtendimentos());
+    t += secaoSe("Anamnese (salva/revisada, texto da profissional)", dadosAnamnese());
+    t += secaoSe("Conduta e acordos (salvos/revisados)", dadosConduta());
     t += secaoSe("Agenda (agendamentos)", dadosConsultas());
     t += secaoSe("Ferramentas (OQ³, PQQ, Mapa do Propósito e outras)", dadosFerramentas());
     var evo = dadosEvolucao();
@@ -364,6 +386,8 @@
     if (evo) t += secaoSe("Aplicações do HOLOSCAN (datas e cobertura)", evo);
     else t += secaoSe("HOLOSCAN — Mapa HOLOS atual", dadosHoloscan());
     t += secaoSe("Atendimentos registrados", dadosAtendimentos());
+    t += secaoSe("Anamnese (salva/revisada, texto da profissional)", dadosAnamnese());
+    t += secaoSe("Conduta e acordos (salvos/revisados)", dadosConduta());
     t += secaoSe("Agenda (agendamentos recentes)", dadosConsultas());
     t += secaoSe("Ferramentas (OQ3, PQQ e outras)", dadosFerramentas());
     return t.trim() || "Nenhum dado de evolução disponível.";
