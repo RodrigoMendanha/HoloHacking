@@ -151,11 +151,10 @@ conferir(con.linhas[0].nome === 'Marina Alves' && /2ª/.test(con.linhas[0].detal
   'a mais recente vem primeiro: ' + con.linhas[0].nome + ' / ' + con.linhas[0].detalhe);
 conferir(con.linhas[2].nome === 'Carla Souza',
   'a mais antiga vem por ultimo: ' + con.linhas[2].nome);
-conferir(con.linhas[0].variacao !== null && /^\+/.test(con.linhas[0].variacao),
-  'a 2ª aplicacao mostra o quanto andou: ' + con.linhas[0].variacao);
-const primeiras = con.linhas.filter(l => /1ª/.test(l.detalhe));
-conferir(primeiras.every(l => l.variacao === null),
-  'a 1ª aplicacao nao inventa variacao (' + primeiras.length + ' delas)');
+/* Etapa 0 da V1: sem variacao calculada entre aplicacoes (comparabilidade
+   nao homologada, Mestre §19); cada linha leva o selo "em homologação". */
+conferir(con.linhas.every(l => l.variacao !== null && /Em homologação/.test(l.variacao) && !/[+-]\d/.test(l.variacao)),
+  'nenhuma linha inventa "o quanto andou"; todas levam o selo: ' + con.linhas[0].variacao);
 conferir(con.linhas.every(l => /mais baixos:/.test(l.detalhe)),
   'cada linha diz quais sistemas pesaram');
 conferir(con.tiles.some(t => /^3 atendimentos/.test(t)),

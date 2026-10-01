@@ -78,6 +78,7 @@ export const SUITES = [
   'testar-release01-contas-migracao.mjs',
   'testar-release01-falhas-remotas.mjs',
   'testar-holos-ai-funcao.mjs',
+  'testar-v1-etapa0.mjs',
   'testar-rodada08-holoscan.mjs',
   'testar-rodada08-exames.mjs',
   'testar-rodada08-ferramentas.mjs',

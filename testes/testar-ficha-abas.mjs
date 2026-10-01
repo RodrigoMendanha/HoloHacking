@@ -186,8 +186,11 @@ conferir(/há 8 dias/.test(faixa.ultima.txt),
   'a faixa diz quando foi a última aplicação: ' + faixa.ultima.txt);
 conferir(/às 10:00/.test(faixa.proxima.txt) && /em 6 dias/.test(faixa.proxima.txt),
   'e quando é a próxima consulta: ' + faixa.proxima.txt);
-conferir(/pendência/.test(faixa.aberto.txt) && /alerta/.test(faixa.aberto.cls),
-  'o que está em aberto acende: ' + faixa.aberto.txt);
+/* Etapa 0 da V1: a unica pendencia deste caso era a divergencia relato x
+   exame, que vem de regra ainda nao homologada e deixou de virar alerta
+   (Mestre §24, §33). Sem pendencia operacional, a faixa diz "tudo em dia". */
+conferir(faixa.aberto && /tudo em dia/.test(faixa.aberto.txt) && !/alerta/.test(faixa.aberto.cls),
+  'sem pendência inventada por regra em homologação: ' + faixa.aberto.txt);
 conferir(/1 preenchidos/.test(faixa.exames.txt), 'conta os exames: ' + faixa.exames.txt);
 conferir(/1 arquivo/.test(faixa.docs.txt), 'e os documentos: ' + faixa.docs.txt);
 

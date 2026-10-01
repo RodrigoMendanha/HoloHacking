@@ -23,7 +23,8 @@ const nav = await puppeteer.launch({
 const p = await nav.newPage();
 await p.setViewport({ width: 1500, height: 1200 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
-await p.goto('http://127.0.0.1:5500/', { waitUntil: 'networkidle2' });
+// Etapa 0 da V1: 'pontuar a mao' (btn-repontuar) e LEGADO / EM REVISAO e so existe com ?homologacao=1
+await p.goto('http://127.0.0.1:5500/?homologacao=1', { waitUntil: 'networkidle2' });
 await p.addStyleTag({ content: '*{transition:none!important;animation:none!important}' });
 await p.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados());
 let falhou = false;

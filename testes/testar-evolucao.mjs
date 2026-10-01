@@ -50,6 +50,8 @@ const duas = await p.evaluate((r) => {
     visivel: !e.classList.contains('hidden'),
     indices: [...e.querySelectorAll('.evo-um b')].map(x=>x.textContent),
     ganho: e.querySelector('.evo-ganho')?.textContent,
+    selo: !!e.querySelector('.selo-homologacao'),
+    deltas: [...e.querySelectorAll('.evo-delta')].map(x => x.textContent.trim()),
     frase: e.querySelector('.evo-frase')?.textContent.replace(/\s+/g,' ').trim(),
     linhas: [...e.querySelectorAll('.evo-linhas .evo-linha')   /* rodada 08: a Tríade tem linhas proprias */].map(x=>x.textContent.replace(/\s+/g,' ').trim()),
     poligonos: e.querySelectorAll('polygon').length,
@@ -60,9 +62,12 @@ const duas = await p.evaluate((r) => {
 ok(duas.visivel, 'com duas, a evolucao aparece');
 ok(duas.historico === 2, 'o historico guarda as duas: ' + duas.historico);
 ok(duas.indices.length === 2, 'mostra os dois indices: ' + duas.indices.join(' -> '));
-ok(/^\+/.test(duas.ganho||''), 'mostra o ganho: ' + duas.ganho);
-ok(/semanas/.test(duas.frase||''), 'frase: ' + duas.frase);
-ok(duas.linhas.length === 5, 'os 5 sistemas com o antes, o depois e a diferenca');
+/* Etapa 0 da V1: lado a lado, sem delta — comparabilidade nao homologada
+   (Mestre §8, §19). Nenhum "+N", nenhum "subiu/caiu". */
+ok(duas.ganho === undefined && duas.selo, 'nao mostra ganho nem "subiu/caiu"; mostra o selo "em homologação"');
+ok(duas.deltas.length > 0 && duas.deltas.every(d => !/[+-]\d/.test(d)), 'nenhuma diferença numérica calculada: ' + duas.deltas.join(' '));
+ok(/semanas/.test(duas.frase||'') && !/subiu|caiu/.test(duas.frase||''), 'frase: ' + duas.frase);
+ok(duas.linhas.length === 5, 'os 5 sistemas com o antes e o depois, lado a lado');
 ok(duas.poligonos === 6, duas.poligonos + ' poligonos (4 da moldura + antes + depois)');
 console.log('    ' + duas.linhas.slice(0,3).join('\n    '));
 

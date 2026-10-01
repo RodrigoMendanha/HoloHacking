@@ -105,11 +105,11 @@ await p.evaluate(async () => {
   l.querySelector('input').dispatchEvent(new Event('input',{bubbles:true}));
 });
 const comExame = await verFicha();
-/* Revisao clinica do HOLOSCAN (Holoscan): "nao batem" sugeria que um dos
-   dois lados esta errado. panorama.js passou a falar em divergencia — um
-   convite a aprofundar, nao veredito. */
-ok(comExame.alertas.some(a=>/divergem/i.test(a)),
-   'ACUSA divergencia entre relato e exame: ' + (comExame.alertas.find(a=>/diverg/i.test(a))||''));
+/* Etapa 0 da V1: a Leitura Integrada atual usa regra nao homologada (nota
+   <= 3 x um exame fora da faixa). Regra em homologacao nao vira pendencia
+   nem alerta (Mestre §24, §33); a leitura fica na propria tela, com selo. */
+ok(!comExame.alertas.some(a=>/diverg/i.test(a)),
+   'NAO transforma a divergencia relato x exame em alerta/pendencia (regra em homologacao)');
 ok(comExame.faixa.some(l=>/1 preenchidos/.test(l)),
    'a faixa conta os exames preenchidos: ' + (comExame.faixa.find(l=>/preenchid/.test(l))||''));
 ok(comExame.faixa.some(l=>/ÚLTIMA APLICAÇÃO/i.test(l) || /Última aplicação/i.test(l)),

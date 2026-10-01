@@ -156,37 +156,46 @@ conferir(almoco && /bloqueio/.test(almoco.classe) && /consulta/.test(carla.class
    nela, sumia assim que a tela rolava para o horário de trabalho. */
 conferir(semana.faixa.some(f => /bloqueio.*Supervisão/.test(f)),
   'o bloqueio de dia inteiro fica na faixa sem hora');
-conferir(semana.faixa.some(f => /sugestao.*Marina Alves/.test(f)),
-  'e a sugestão de retorno também: ' + (semana.faixa.find(f => /sugestao/.test(f)) || '—'));
+/* Etapa 0 da V1: a camada "Retornos sugeridos" (ultima aplicacao + 28 dias)
+   foi retirada — o prazo de retorno e da profissional (Mestre §29, §33). A
+   Marina, com aplicacao ha 26 dias, NAO ganha sugestao nenhuma. */
+conferir(!semana.faixa.some(f => /sugestao/.test(f)) && semana.faixa.every(f => !/Marina Alves/.test(f)),
+  'nenhuma sugestão de retorno automática na faixa (regra de 28 dias neutralizada)');
+const chips = await p.evaluate(() => [...document.querySelectorAll('.cal-chip')].map(c => c.textContent.trim()));
+conferir(chips.length === 2 && !chips.some(c => /sugerid/i.test(c)),
+  'os filtros são só Consultas e Bloqueios: ' + chips.join(' · '));
 
-/* ------------------------------- a sugestão vira consulta e some --------- */
+/* --------------------- o retorno é marcado pela profissional, à mão ----- */
 
-const virou = await p.evaluate(async () => {
-  document.querySelector('.cal-faixa-item.sugestao').click();
+const virou = await p.evaluate(async (ids) => {
+  window.definirPacienteAtivo(ids.marina);
+  document.querySelector('[data-novo="consulta"]').click();
   await new Promise(r => setTimeout(r, 250));
+  const sel = document.getElementById('cf-paciente');
+  sel.value = ids.marina;
+  document.getElementById('cf-data').value = ids.daquiA2;
+  document.getElementById('cf-tipo').value = 'Reavaliação HOLOSCAN';
+  document.getElementById('cf-hora').value = '11:00';
   const form = {
-    paciente: document.getElementById('cf-paciente').selectedOptions[0].textContent,
+    paciente: sel.selectedOptions[0].textContent,
     tipo: document.getElementById('cf-tipo').value,
     data: document.getElementById('cf-data').value,
   };
-  document.getElementById('cf-hora').value = '11:00';
   document.querySelector('[data-salvar="consulta"]').click();
   await new Promise(r => setTimeout(r, 500));
   return {
     form,
-    sugestoes: document.querySelectorAll('.cal-faixa-item.sugestao').length,
+    sugestoes: document.querySelectorAll('.cal-faixa-item.sugestao, .cal-pilula.sugestao').length,
     consultas: [...document.querySelectorAll('.cal-evento.consulta')]
       .map(e => e.innerText.replace(/\n/g, ' ')),
   };
-});
+}, ids);
 
 conferir(virou.form.paciente === 'Marina Alves' && virou.form.data === ids.daquiA2,
-  'clicar na sugestão abre a consulta já com a pessoa e o dia: ' +
+  'a profissional marca o retorno escolhendo pessoa e dia: ' +
   virou.form.paciente + ' / ' + virou.form.data);
-conferir(virou.form.tipo === 'Reavaliação HOLOSCAN',
-  'e com o tipo que faz sentido para um retorno de 4 semanas: ' + virou.form.tipo);
-conferir(virou.sugestoes === 0,
-  'depois de marcada, a sugestão some — ela pedia o que já foi feito');
+conferir(virou.form.tipo === 'Reavaliação HOLOSCAN', 'com o tipo escolhido por ela: ' + virou.form.tipo);
+conferir(virou.sugestoes === 0, 'e nenhuma sugestão automática aparece em lugar nenhum');
 conferir(virou.consultas.some(c => /Marina Alves/.test(c) && /11:00/.test(c)),
   'e a consulta aparece na grade: ' + (virou.consultas.find(c => /Marina/.test(c)) || '—'));
 

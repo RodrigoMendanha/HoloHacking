@@ -149,31 +149,52 @@ ok(valoresSrv(col1.id)[EX[0]] === 90 && valoresSrv(col1.id)[EX[1]] === 5,
    'e a coleta 1 continua com os valores dela');
 
 /* ==================================================================== */
-titulo('3. NOVA COLETA EM DATA QUE JA TEM COLETA');
+titulo('3. NOVA COLETA EM DATA QUE JA TEM COLETA = SEGUNDA COLETA, ID PROPRIO (Etapa 0 da V1)');
 /* ==================================================================== */
+/* Mestre §22 / §34.2 / §43.2: duas coletas na mesma data tem IDs
+   independentes; data nao e identidade. A Rodada 08 recusava — a Etapa 0
+   corrige. */
 
 await abrirPainel(P);
+await A.evaluate(() => { const b = document.querySelector('#ex-corpo [data-acao="nova-coleta"]'); if (b) b.click(); });
 vistos = await registrar({ [EX[0]]: 1 }, D1);
 e = await painel();
-ok(/Já existe uma coleta/.test(e.erro) && coletasDe(P).length === 2 && valoresSrv(col1.id)[EX[0]] === 90,
-   'a tela recusa e nada muda no servidor: "' + e.erro + '"');
-ok(!vistos.includes('Salvo'), 'nenhum "Salvo" apareceu: ' + (vistos.join(' → ') || '(nenhum estado)'));
+const naData = coletasDe(P).filter(c => c.coletado_em === D1);
+ok(e.erro === '' && coletasDe(P).length === 3 && naData.length === 2 && naData[0].id !== naData[1].id,
+   'a tela aceita: duas coletas em ' + D1 + ', ids diferentes (' + coletasDe(P).length + ' coletas no total)');
+ok(valoresSrv(col1.id)[EX[0]] === 90 && valoresSrv(col1.id)[EX[1]] === 5,
+   'a coleta 1 nao foi tocada (90 e 5)');
+const col1b = naData.find(c => c.id !== col1.id);
+ok(col1b && JSON.stringify(valoresSrv(col1b.id)) === JSON.stringify({ [EX[0]]: 1 }),
+   'a segunda coleta da mesma data tem SO o valor digitado nela');
+ok(vistos.includes('Salvo') && e.salvo === 'Salvo', 'estados: ' + vistos.join(' → '));
 
-const rpcNova = await A.evaluate(async (pid, d, eid) => {
-  const r = await window.supabaseClient.rpc('salvar_coleta_exames', { payload: {
-    collection: { patient_id: pid, coletado_em: d, data_coleta_desconhecida: false, modo: 'nova' },
-    results: [{ exame_id: eid, valor: 1, unidade_no_momento: 'x', ideal_min_no_momento: 0,
-                ideal_max_no_momento: 2, nome_exame_no_momento: 'x', sistema_no_momento: 'metabolico' }] } });
-  return r.error ? r.error.message : 'sem erro';
-}, P, D1, EX[0]);
-ok(/coleta ja existe/.test(rpcNova) && valoresSrv(col1.id)[EX[0]] === 90,
-   'o SERVIDOR tambem recusa modo "nova" numa data ocupada: ' + rpcNova);
+// a RPC (migration 20260930140000 reescrita, espelhada no falso): sem id
+// INSERE; com id EDITA aquela coleta — nunca procura por (paciente, data)
+const rpc = await A.evaluate(async (pid, d, eid, idEditar) => {
+  const res = (v) => [{ exame_id: eid, valor: v, unidade_no_momento: 'x', ideal_min_no_momento: 0,
+                        ideal_max_no_momento: 2, nome_exame_no_momento: 'x', sistema_no_momento: 'metabolico' }];
+  const r1 = await window.supabaseClient.rpc('salvar_coleta_exames', { payload: {
+    collection: { patient_id: pid, coletado_em: d, data_coleta_desconhecida: false, modo: 'nova' }, results: res(1) } });
+  const r2 = await window.supabaseClient.rpc('salvar_coleta_exames', { payload: {
+    collection: { id: idEditar, patient_id: pid, coletado_em: d, data_coleta_desconhecida: false }, results: res(2) } });
+  return { nova: r1.error ? r1.error.message : r1.data, editada: r2.error ? r2.error.message : r2.data };
+}, P, D1, EX[0], col1b.id);
+ok(coletasDe(P).filter(c => c.coletado_em === D1).length === 3 && rpc.nova && rpc.nova !== col1.id && rpc.nova !== col1b.id,
+   'RPC sem id: INSERE uma terceira coleta na mesma data (id ' + String(rpc.nova).slice(0, 8) + '…)');
+ok(rpc.editada === col1b.id && JSON.stringify(valoresSrv(col1b.id)) === JSON.stringify({ [EX[0]]: 2 }) &&
+   valoresSrv(col1.id)[EX[0]] === 90,
+   'RPC com id: EDITA so aquela coleta (2), e a coleta 1 segue com 90');
 
 /* ==================================================================== */
-titulo('4. DATA FUTURA RECUSADA NO SERVIDOR');
+titulo('4. DATA FUTURA: SEM REGRA (pendente de decisao de produto/clinica)');
 /* ==================================================================== */
+/* A recusa de data futura da Rodada 08 nao e contrato do Mestre; saiu da
+   migration 140000 para supabase/migrations-pendentes/. Nem a RPC, nem a
+   escrita direta, nem a tela recusam — nenhuma regra inventada no lugar. */
 
 const futura = new Date(Date.now() + 5 * 86400000).toISOString().slice(0, 10);
+const antesFut = coletasDe(P).length;
 const fut = await A.evaluate(async (pid, d, eid) => {
   const r1 = await window.supabaseClient.rpc('salvar_coleta_exames', { payload: {
     collection: { patient_id: pid, coletado_em: d, data_coleta_desconhecida: false },
@@ -183,8 +204,8 @@ const fut = await A.evaluate(async (pid, d, eid) => {
     .insert([{ patient_id: pid, coletado_em: d, data_coleta_desconhecida: false }]);
   return [r1.error ? r1.error.message : 'sem erro', r2.error ? r2.error.message : 'sem erro'];
 }, P, futura, EX[0]);
-ok(/futuro/.test(fut[0]) && /futuro/.test(fut[1]) && coletasDe(P).length === 2,
-   'RPC e escrita direta com ' + futura + ' recusadas: ' + fut.join(' | '));
+ok(fut[0] === 'sem erro' && fut[1] === 'sem erro' && coletasDe(P).length === antesFut + 2,
+   'RPC e escrita direta com ' + futura + ' aceitas (sem regra de data futura): ' + fut.join(' | '));
 
 /* ==================================================================== */
 titulo('5. EDITAR COLETA EXISTENTE');
@@ -201,8 +222,9 @@ await A.evaluate((eid) => {
 }, EX[0]);
 e = await painel();
 ok(e.salvo === 'Não salvo', 'alterar um valor mostra "Não salvo"');
+const antesEdicao = coletasDe(P).length;
 vistos = await registrar({}, null);
-ok(valoresSrv(col1.id)[EX[0]] === 95 && valoresSrv(col1.id)[EX[1]] === 5 && coletasDe(P).length === 2,
+ok(valoresSrv(col1.id)[EX[0]] === 95 && valoresSrv(col1.id)[EX[1]] === 5 && coletasDe(P).length === antesEdicao,
    'salvar troca SO a coleta editada (95), sem criar outra');
 ok(JSON.stringify(valoresSrv(col2.id)) === JSON.stringify({ [EX[0]]: 80 }), 'e a coleta 2 nao mudou');
 
@@ -211,11 +233,15 @@ titulo('6. FALHA NAO VIRA "SALVO"; TENTAR DE NOVO COMPLETA');
 /* ==================================================================== */
 
 await abrirPainel(P);
-srv.falhar.push({ tabela: 'rpc:salvar_coleta_exames', acao: 'rpc', vezes: 1 });
+await A.evaluate(() => { const b = document.querySelector('#ex-corpo [data-acao="nova-coleta"]'); if (b) b.click(); });
+const antesFalha = coletasDe(P).length;
+// Etapa 0 da V1: a coleta vai direto na tabela, por id; a falha simulada e na
+// escrita de lab_collections (nada chega ao servidor)
+srv.falhar.push({ tabela: 'lab_collections', acao: 'upsert', vezes: 1 });
 vistos = await registrar({ [EX[2]]: 7 }, '2026-07-01');
 e = await painel();
-ok(!vistos.includes('Salvo') && /Não sincronizado/.test(e.salvo) && coletasDe(P).length === 2,
-   'RPC falhou: estados ' + vistos.join(' → ') + ' — nenhum "Salvo", nada no servidor');
+ok(!vistos.includes('Salvo') && /Não sincronizado/.test(e.salvo) && coletasDe(P).length === antesFalha,
+   'servidor falhou: estados ' + vistos.join(' → ') + ' — nenhum "Salvo", nada no servidor');
 ok(await A.evaluate(() => !!document.querySelector('#ex-corpo [data-acao="reenviar-ex"]')),
    'e o botao "Tentar de novo" aparece');
 await A.evaluate(async () => {
@@ -233,6 +259,7 @@ titulo('7. EXCLUIR COLETA');
 
 await abrirPainel(P);
 const antesRes = srv.linhas('lab_results').length;
+const antesExcluir = coletasDe(P).length;
 const n2 = resultadosDe(col2.id).length;
 await A.evaluate(async (id) => {
   document.querySelector('#ex-corpo [data-acao="excluir-coleta"][data-coleta="' + id + '"]').click();
@@ -250,10 +277,10 @@ await A.evaluate(async () => {
 ok(!coletasDe(P).some(c => c.id === col2.id) && resultadosDe(col2.id).length === 0 &&
    srv.linhas('lab_results').length === antesRes - n2,
    'a coleta e os ' + n2 + ' resultado(s) dela sairam do servidor');
-ok(coletasDe(P).length === 2 && valoresSrv(col1.id)[EX[0]] === 95,
+ok(coletasDe(P).length === antesExcluir - 1 && valoresSrv(col1.id)[EX[0]] === 95,
    'as outras coletas ficaram intactas');
 e = await painel();
-ok(e.coletas === 2, 'a lista do painel mostra as 2 que sobraram');
+ok(e.coletas === antesExcluir - 1, 'a lista do painel mostra as ' + (antesExcluir - 1) + ' que sobraram');
 
 /* ==================================================================== */
 titulo('8. TROCAR DE PACIENTE');

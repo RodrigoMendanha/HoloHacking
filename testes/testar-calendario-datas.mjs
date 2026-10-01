@@ -97,13 +97,13 @@ async function conferirData(rotulo, isoHoje) {
     };
   });
 
-  conferir(!!agenda && agenda.quando === r.esperada,
-    rotulo + ' (hoje ' + r.hoje + '): retorno de 4 semanas cai em ' + r.esperada + ' — ' +
-    (agenda ? agenda.quando : 'paciente sumiu da agenda'));
-  conferir(!!agenda && agenda.grupo === 'semana' && agenda.faltam === 2,
-    rotulo + ': classificado como "semana", faltam 2 dias — ' + (agenda ? agenda.grupo + '/' + agenda.faltam : '—'));
+  /* Etapa 0 da V1: nao existe retorno derivado (ultima + 28 dias). O paciente
+     continua na agenda derivada, sem data e no grupo "sem" (Mestre §33). */
+  conferir(!!agenda && agenda.quando === null && agenda.grupo === 'sem',
+    rotulo + ' (hoje ' + r.hoje + '): sem retorno automatico de 4 semanas — ' +
+    (agenda ? agenda.grupo + '/' + agenda.quando : 'paciente sumiu da agenda'));
   conferir((grade.colunas === 7 || grade.vazia) && /–/.test(grade.rotulo),
-    rotulo + ': grade de 7 colunas (ou semana vazia, se a sugestão cair fora dela) ' +
+    rotulo + ': grade de 7 colunas (ou semana vazia, sem sugestao nenhuma) ' +
     'com período domingo–sábado: ' + grade.rotulo +
     (grade.vazia ? ' (semana vazia)' : ' (' + grade.colunas + ' colunas)'));
   conferir(ruim.length === 0, rotulo + ': sem erro de JS' + (ruim.length ? ' — ' + ruim[0] : ''));

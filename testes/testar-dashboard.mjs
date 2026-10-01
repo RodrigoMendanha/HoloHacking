@@ -94,6 +94,7 @@ const cheio = await p.evaluate(() => {
       t.querySelector('b').textContent + ' ' + t.querySelector('span').textContent),
     barras: [...document.querySelectorAll('.dash-barra')].map(b =>
       b.querySelector('.dash-barra-nome').textContent + '=' + b.querySelector('.dash-barra-n').textContent),
+    homologacao: !!document.querySelector('.dash-homologacao .selo-homologacao'),
     recentes: [...document.querySelectorAll('#dash-lista-recentes .dash-pendente b')].map(b => b.textContent),
   };
 });
@@ -105,7 +106,10 @@ ok(cheio.recentes.length === 3, 'pacientes recentes mostra no máximo 3: ' + che
 ok(cheio.recentes[0] === 'Sofia Martins', 'e o mais novo cadastro vem primeiro: ' + cheio.recentes[0]);
 
 const carla = cheio.pendentes.find(x => /Carla/.test(x.nome));
-ok(/reavalia/.test(carla.porque), 'a reavaliação vencida da Carla aparece: ' + carla.porque);
+/* Etapa 0 da V1: o alerta "reavaliação vencida" (28 dias) foi neutralizado —
+   prazo de acompanhamento é da profissional (Mestre §33). A Carla continua
+   na lista só pela pendência operacional ("mapa sem conduta"). */
+ok(carla && !/reavalia/.test(carla.porque), 'nenhuma "reavaliação vencida" automática para a Carla: ' + carla.porque);
 const helena = cheio.pendentes.find(x => /Helena/.test(x.nome));
 ok(/12 de 84/.test(helena.porque) && helena.botao === 'Continuar',
    'o questionário parado da Helena convida a continuar: ' + helena.porque);
@@ -114,7 +118,10 @@ ok(sofia.botao === 'Aplicar agora', 'quem não tem mapa é chamada para aplicar'
 
 ok(cheio.tiles.join(' | ').includes('5 pacientes'), 'tiles: ' + cheio.tiles.join(' · '));
 ok(cheio.tiles.some(t => /3 com HOLOSCAN/.test(t)), 'conta quem tem mapa');
-ok(cheio.barras.length > 0, 'o terreno da carteira: ' + cheio.barras.join(' · '));
+/* Etapa 0 da V1: "terreno da carteira" e "Índice HOLOS médio" ficam
+   desligados até o Pacote Metodológico (Mestre §33) — o bloco diz isso. */
+ok(cheio.barras.length === 0 && cheio.homologacao, 'o terreno da carteira não desenha barras: bloco "em homologação"');
+ok(!cheio.tiles.some(t => /Índice HOLOS médio|reavaliaç(ão|ões) vencida/.test(t)), 'sem tile de Índice médio nem de reavaliações vencidas: ' + cheio.tiles.join(' · '));
 
 // --- o botao leva mesmo ao paciente certo --------------------------------
 const ida = await p.evaluate(async () => {

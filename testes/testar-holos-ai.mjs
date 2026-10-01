@@ -84,6 +84,9 @@ await p.evaluate((respostas) => {
   if (window.HOLOSCAN) {
     var pontuacao = window.HOLOSCAN.calcular(respostas);
     pontuacao.quando = new Date().toISOString().slice(0, 10);
+    // Etapa 0 da V1: so aplicacao CONSOLIDADA (aceita pelo servidor) entra no
+    // contexto; este mock representa uma aplicacao ja salva.
+    pontuacao._supa_id = 'mock-aplicacao-salva';
     var dados = {}; dados[MOCK.id] = [pontuacao];
     localStorage.setItem('holohacking.pontuacao', JSON.stringify(dados));
     window.ultimaPontuacao = (pid) => {

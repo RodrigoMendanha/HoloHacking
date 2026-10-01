@@ -96,13 +96,17 @@ ok(mee(aplicado.cru).nota === null && mee(aplicado.cru).carga === null && mee(ap
    'caixa local: mental_emocional_espiritual sem nota (null), avaliavel false');
 ok(!/10\.0/.test(aplicado.triada) && /—/.test(aplicado.triada), 'tela da Triade: "—" nos eixos sem resposta, nenhum 10.0');
 
-titulo('6 — COBERTURA PARCIAL VISIVEL');
-ok(/1 de 16 respondidas/.test(aplicado.prioridades) && /dados insuficientes/i.test(aplicado.prioridades),
-   'prioridades: Detox "1 de 16 respondidas" e marcado "dados insuficientes"');
+titulo('6 — COBERTURA PARCIAL VISIVEL (sem corte de 50%: Etapa 0 da V1)');
+/* Etapa 0 da V1: o corte COBERTURA_MINIMA = 0,5 da Rodada 08 foi removido
+   (Mestre §18: nenhum minimo presumido). A cobertura bruta continua visivel
+   ("1 de 16 respondidas"); o rotulo "dados insuficientes" nao existe mais. */
+ok(/1 de 16 respondidas/.test(aplicado.prioridades) && !/dados insuficientes/i.test(aplicado.prioridades),
+   'prioridades: Detox "1 de 16 respondidas", SEM o rotulo "dados insuficientes" (corte de 50% removido)');
+ok(/em homologação/i.test(aplicado.prioridades), 'prioridades: o selo "Em homologação" aparece no mapa');
 ok(/nenhuma pergunta respondida/.test(aplicado.prioridades), 'prioridades: MEE "nenhuma pergunta respondida"');
 const ordemPrio = await p.evaluate(() => [...document.querySelectorAll('#holo-prioridades .prio-linha')].map(l => l.className));
-ok(ordemPrio.length === 5 && /insuficiente/.test(ordemPrio[3]) && /sem-dado/.test(ordemPrio[4]),
-   'o sistema parcial e o sem dado vao para o fim da ordem, nao disputam prioridade: ' + ordemPrio.join(' | '));
+ok(ordemPrio.length === 5 && !ordemPrio.some(c => /insuficiente/.test(c)) && /sem-dado/.test(ordemPrio[4]),
+   'nenhuma linha "insuficiente"; so o sistema sem dado vai para o fim: ' + ordemPrio.join(' | '));
 const conduta = await p.evaluate(() => document.getElementById('holo-leitura') ? document.getElementById('holo-leitura').innerText : '');
 ok(!/Mental.Emocional/i.test(conduta.split('\n').slice(0, 6).join(' ')),
    'o sistema sem resposta nao e eleito "critico" na leitura do terreno');
@@ -137,7 +141,7 @@ ok(/Mental\s*—/.test(ficha.triada) && /Espiritual\s*—/.test(ficha.triada) &&
 const barraMee = ficha.barras.find(b => /Mental/i.test(b)) || '';
 ok(/—/.test(barraMee) && /sem dado/.test(barraMee) && !/10\.0/.test(barraMee), 'ficha, barra MEE: ' + barraMee);
 const barraDetox = ficha.barras.find(b => /Detox/i.test(b)) || '';
-ok(/dados insuficientes/.test(barraDetox) && /1\/16/.test(barraDetox), 'ficha, barra Detox: ' + barraDetox);
+ok(!/dados insuficientes/.test(barraDetox) && /1\/16/.test(barraDetox), 'ficha, barra Detox (cobertura 1/16 visivel, sem corte): ' + barraDetox);
 
 /* ------------------------------------------------------------------ */
 titulo('4 — A EXPORTACAO NAO INVENTA 10');

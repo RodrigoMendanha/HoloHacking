@@ -42,7 +42,9 @@ async function navegador(nome, fuso) {
   await p.setViewport({ width: 1366, height: 900 });
   p.on('pageerror', e => errosJS.push(nome + ': ' + e.message));
   await ligarPagina(p, srv);
-  await p.goto('http://127.0.0.1:5500/', { waitUntil: 'networkidle2' });
+  /* ?homologacao=1: a secao A exercita as reguas manuais (LEGADO / EM
+     REVISAO), que desde a Etapa 0 da V1 so aparecem nesse modo. */
+  await p.goto('http://127.0.0.1:5500/?homologacao=1', { waitUntil: 'networkidle2' });
   return p;
 }
 async function pronto(p) {
@@ -291,17 +293,22 @@ function diaLocal(deslocamentoDias) {
 let msgData = await conferirPeloPainel({ [exames[0]]: 90 }, '');
 ok(coletas().length === 0 && /Informe a data da coleta/.test(msgData),
    'sem data da coleta: nao salva no servidor, e a tela diz "' + msgData + '"');
-msgData = await conferirPeloPainel({ [exames[0]]: 90 }, diaLocal(1));
-ok(coletas().length === 0 && /não pode ser futura/.test(msgData),
-   'data futura (' + diaLocal(1) + '): nao salva, e a tela diz "' + msgData + '"');
 const localSemData = await A.evaluate((pid) =>
   (JSON.parse(localStorage.getItem('holohacking.exames') || '{}')[pid] || {}), P);
 ok(localSemData[exames[0]] === 90, 'o valor digitado continua no aparelho (nao se perde)');
+/* Etapa 0 da V1: a recusa de data futura (Rodada 08) nao e contrato do
+   Mestre e esta PENDENTE de decisao de produto/clinica — o app nao a
+   aplica por conta propria. A data e gravada como veio. */
+const futura = diaLocal(1);
+msgData = await conferirPeloPainel({ [exames[0]]: 90 }, futura);
+ok(msgData === '' && coletas().some(c => c.coletado_em === futura),
+   'data futura (' + futura + '): aceita e gravada como veio — regra de data futura pendente de decisao');
+await A.evaluate(() => { const b = document.querySelector('#ex-corpo [data-acao="nova-coleta"]'); if (b) b.click(); });
 msgData = await conferirPeloPainel({ [exames[0]]: 90 }, '2026-03-20');
-ok(msgData === '' && coletas().length === 1 && coletas()[0].coletado_em === '2026-03-20' &&
-   coletas()[0].data_coleta_desconhecida === false,
-   'com a data da coleta: grava pela RPC com a data escolhida (2026-03-20)');
-ok(!!coletas()[0].created_at, 'o momento do registro fica em created_at/updated_at (dado tecnico)');
+const c0320 = coletas().find(c => c.coletado_em === '2026-03-20');
+ok(msgData === '' && c0320 && c0320.data_coleta_desconhecida === false,
+   'com a data da coleta: grava com a data escolhida (2026-03-20), identidade pelo id');
+ok(!!c0320.created_at, 'o momento do registro fica em created_at/updated_at (dado tecnico)');
 
 await registrarSemData(P, { [exames[0]]: 85 });
 ok(coletas().some(c => c.data_coleta_desconhecida === true && c.coletado_em === null),
@@ -317,7 +324,7 @@ const resultadosDe = (cid) => srv.linhas('lab_results').filter(r => r.collection
 {
   const sd = coletas().filter(c => c.data_coleta_desconhecida)
     .sort((a, b) => a.created_at.localeCompare(b.created_at));
-  ok(coletas().length === 4 && sd.length === 2 && sd[0].id !== sd[1].id,
+  ok(coletas().length === 5 && sd.length === 2 && sd[0].id !== sd[1].id,
      'segundo registro sem data = coleta NOVA, com id proprio (nao atualiza a primeira)');
   ok(resultadosDe(sd[0].id) === exames[0] + '=85' && resultadosDe(sd[1].id) === exames[0] + '=95',
      'cada coleta sem data mantem os proprios resultados: ' + resultadosDe(sd[0].id) + ' | ' + resultadosDe(sd[1].id));
@@ -328,7 +335,9 @@ await registrarSemData(P, { [exames[0]]: 95 });
 ok(coletas().length === antesDuplo, 'conferir de novo os MESMOS valores nao cria coleta repetida');
 
 // reenvio: a coleta pendente de uma data historica volta com a MESMA data
-srv.falhar.push({ tabela: 'rpc:salvar_coleta_exames', acao: 'rpc' });
+// (Etapa 0 da V1: a coleta vai direto na tabela, por id — a falha simulada
+// e na escrita de lab_collections)
+srv.falhar.push({ tabela: 'lab_collections', acao: 'upsert' });
 const pend = await A.evaluate((pid, eid) => window.Sincronizacao.salvarColeta(pid, { [eid]: 66 }, '2026-02-10'),
   P, exames[2]);
 ok(!pend.ok && !coletas().some(c => c.coletado_em === '2026-02-10'), 'envio falhou: nada novo no servidor');
@@ -341,11 +350,13 @@ srv.falhar.length = 0;
 await recarregar(A);
 ok(coletas().some(c => c.coletado_em === '2026-02-10'),
    'reenvio na proxima carga usa a data original (2026-02-10), nao a de hoje');
-ok(!coletas().some(c => c.coletado_em && !['2026-03-20', '2026-03-15', '2026-02-10'].includes(c.coletado_em)),
+ok(!coletas().some(c => c.coletado_em && !['2026-03-20', '2026-03-15', '2026-02-10', futura].includes(c.coletado_em)),
    'nenhuma coleta ganhou a data do reenvio');
 
 // registro sem data que falha NO MEIO (coleta gravada, resultados nao):
-// o reenvio completa a MESMA coleta, sem criar outra
+// Etapa 0 da V1 — a coleta vazia e DESFEITA (protocolo de consolidacao,
+// Mestre §34.2) e o registro fica pendente com o id; o reenvio refaz a
+// MESMA coleta, sem criar outra
 const semDataAntes = coletas().filter(c => c.data_coleta_desconhecida).map(c => c.id);
 srv.falhar.push({ tabela: 'lab_results', acao: 'upsert' });
 await registrarSemData(P, { [exames[0]]: 101 });
@@ -356,9 +367,8 @@ const registrado = await A.evaluate((pid) =>
 const pendente = await A.evaluate((pid) =>
   (JSON.parse(localStorage.getItem('holohacking.sincronizacao')) || {}).exames[pid], P);
 const novaMeia = coletas().filter(c => c.data_coleta_desconhecida && !semDataAntes.includes(c.id));
-ok(pendente && pendente.estado === 'pendente' && novaMeia.length === 1 && novaMeia[0].id === pendente.coleta &&
-   resultadosDe(novaMeia[0].id) === '',
-   'falha no meio: coleta criada sem resultados, registro pendente com o id dela');
+ok(pendente && pendente.estado === 'pendente' && novaMeia.length === 0,
+   'falha no meio: nenhuma coleta vazia fica no servidor; registro pendente com o id reservado');
 await recarregar(A);
 const semData = coletas().filter(c => c.data_coleta_desconhecida && !semDataAntes.includes(c.id));
 ok(semData.length === 1 && semData[0].id === pendente.coleta && semData[0].coletado_em === null,

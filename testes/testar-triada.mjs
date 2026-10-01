@@ -7,7 +7,8 @@ const nav = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || 
 const p = await nav.newPage();
 await p.setViewport({width:1500,height:1300});
 const ruim=[]; p.on('pageerror',e=>ruim.push(e.message));
-await p.goto('http://127.0.0.1:5500/',{waitUntil:'networkidle2'});
+// Etapa 0 da V1: 'pontuar a mao' (btn-repontuar) e LEGADO / EM REVISAO e so existe com ?homologacao=1
+await p.goto('http://127.0.0.1:5500/?homologacao=1',{waitUntil:'networkidle2'});
 /* Estes testes fotografam um elemento, e a camada de entrada (login.js) o
    cobriria. Dispensa-la aqui nao e autenticar: e descobrir a tela, o mesmo que
    o botao visivel de desenvolvimento faz. */
