@@ -189,7 +189,9 @@ const contexto = await A.evaluate(async (pid) => {
   return (document.getElementById('ai-hub-texto') || {}).textContent || '';
 }, P);
 const tem = (re, nome) => ok(re.test(contexto), 'o contexto traz ' + nome);
-tem(/Glicose de jejum: 95 mg\/dL \(faixa 70–90\) — 20\/08\/2026/, 'exames com nome, resultado, unidade, faixa e data');
+// Etapa 0 (ajuste final): a 'faixa ideal' (exames.csv em rascunho) nao entra no contexto
+tem(/Glicose de jejum: 95 mg\/dL — 20\/08\/2026/, 'exames com nome, resultado, unidade e data (sem faixa do banco em rascunho)');
+ok(!/faixa 70–90/.test(contexto), 'o contexto nao traz a faixa ideal em rascunho');
 tem(/Marcada|Realizada/, 'as consultas');
 tem(/retorno de rotina/, 'a observacao da consulta');
 tem(/### OQ³[\s\S]*quer dormir bem/, 'o OQ³');

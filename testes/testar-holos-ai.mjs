@@ -170,8 +170,9 @@ conferir(contexto.ativoClass, 'atalho clicado fica com classe .ativo');
 conferir(/Contexto HOLOS AI/i.test(contexto.texto), 'cabecalho do contexto presente');
 conferir(/Paciente/i.test(contexto.texto), 'secao Paciente no contexto');
 conferir(/HOLOSCAN/i.test(contexto.texto), 'secao HOLOSCAN no contexto');
-conferir(/Sistemas/i.test(contexto.texto), 'lista de sistemas no contexto');
-conferir(/Tríada|Triada/i.test(contexto.texto), 'triada no contexto');
+// Etapa 0 (ajuste final): nada dependente de metodologia nao aprovada entra
+conferir(!/### Sistemas|### Tríada|- Físico:|### Índice HOLOS|Sinais dominantes|Leituras combinadas/.test(contexto.texto), 'nenhuma nota de sistema, Triada, Indice, dominantes ou CMB no contexto');
+conferir(/Cobertura bruta/.test(contexto.texto) && /não incluídos/.test(contexto.texto), 'so a cobertura bruta e o aviso de que os resultados calculados ficam de fora');
 
 // Verificar que o contexto nao contem dados de outro paciente
 conferir(!/outro_paciente_id|_sem_paciente/i.test(contexto.texto),

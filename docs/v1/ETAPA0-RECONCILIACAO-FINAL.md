@@ -6,8 +6,9 @@ A branch da Rodada 08 virou a fundação V1 reconciliada com o Documento Mestre
 (`HOLOHACKING-V1-ESPECIFICACAO-MESTRE.pdf`, v1.0, 30/09/2026). As correções técnicas da
 Rodada 08 foram preservadas. O que contrariava o Mestre foi ajustado ou desativado: o corte
 de cobertura de 50%, a identidade da coleta por (paciente + data), o retorno universal de 28
-dias, os indicadores agregados do dashboard, os deltas da Evolução e o vazamento de combinações
-CMB para o contexto da HOLOS AI. Toda saída que depende de parâmetro metodológico passou a
+dias, os indicadores agregados do dashboard, os deltas da Evolução e o contexto da HOLOS AI
+(que passou a conter só dado bruto consolidado e texto da profissional — nenhuma nota, faixa,
+Índice, Tríada, prioridade, combinação, Leitura Integrada ou sugestão, nem rotulada). Toda saída que depende de parâmetro metodológico passou a
 carregar o selo "Em homologação" por uma fronteira única (`metodologia.js`). Nenhuma regra
 nova foi inventada, nenhum peso, faixa ou pergunta foi alterado, nenhuma migration foi
 aplicada, nada foi deployado nem mergeado.
@@ -54,7 +55,7 @@ HOLOS AI sem provedor.
 | Dashboard | "Índice HOLOS médio", "terreno da carteira", "reavaliações vencidas"; "com HOLOSCAN" contava mapas não salvos | Só "pacientes" e "com HOLOSCAN" (consolidadas); bloco "em homologação" no lugar do terreno | panorama.js, dashboard.js |
 | Evolução | primeira × última com "+N", "subiu/caiu", deltas | Lado a lado, sem delta, sem ganho; selo "comparabilidade não verificada"; lista de todas as aplicações | evolucao.js |
 | Tela Consultas | variação do Índice "+N" | selo em vez de variação | consultas.js |
-| HOLOS AI | contexto com CMB, mapas não salvos, exames locais com conta | só aplicações consolidadas, sem CMB/REC/SEL, exames só de coletas salvas, cabeçalho e seções marcados "em homologação" | holos-ai.js |
+| HOLOS AI | contexto com notas, faixas, Índice, Tríada, dominantes, CMB, Leitura Integrada, faixa ideal dos exames, mapas não salvos, exames locais com conta | **Ajuste final (revisão humana):** só dado bruto consolidado e texto autoral — cadastro; data e cobertura bruta das aplicações aceitas pelo servidor; interpretação profissional; exames com valor/unidade/laboratório/data (sem faixa ideal); consultas; respostas e leitura profissional das ferramentas. Nenhum conteúdo dependente de metodologia não aprovada entra, nem rotulado "em homologação" (Mestre §36.1) | holos-ai.js |
 
 # Desativado
 
@@ -132,8 +133,17 @@ Lado a lado, sem melhora/piora. Histórico preservado, nada reescrito.
 
 # HOLOS AI
 
-Indisponível ("Em desenvolvimento"); nenhum provedor. Contexto saneado (ver "Ajustado").
-`ai_threads`/`ai_messages` intocadas.
+Indisponível ("Em desenvolvimento"); nenhum provedor. Contexto assistivo (ajuste final
+após revisão humana): o Mestre §36.1 exige "somente registros salvos autorizados e conteúdos
+aprovados". Enquanto o Pacote Metodológico não existe, o contexto **não contém** notas dos
+cinco sistemas, faixas, Índice HOLOS, Tríada numérica, prioridades, sinais dominantes,
+combinações CMB, Leitura Integrada determinística, recomendações REC/SEL nem a "faixa ideal"
+de exames.csv — rotular como "em homologação" não bastava. Contém só dado bruto consolidado
+(cadastro; data e cobertura bruta "N de 84" das aplicações aceitas pelo servidor; exames com
+valor, unidade, laboratório e data da coleta salva; consultas; respostas das ferramentas) e
+texto de autoria humana (interpretação profissional, leitura profissional das ferramentas).
+Mapa gerado e não salvo continua fora. O cabeçalho do contexto diz o que ficou de fora e por
+quê. `ai_threads`/`ai_messages` intocadas.
 
 # Backup
 
@@ -156,7 +166,7 @@ dashboard, evolucao, ficha, ficha-abas, atendimento, calendario, calendario-data
 release01-falhas-remotas, holos-ai, historico-legado, triada, frequencias, storage-manifest.
 `docs/deploy.md §3.5` regenerado com os 39 arquivos servidos.
 
-Resultado final da suíte completa: **81 suítes, 2437 asserções, 0 falhas**
+Resultado final da suíte completa (após o ajuste final do contexto): **81 suítes, 2440 asserções, 0 falhas**
 (baseline: 80 / 2392 / 0).
 
 # Supabase
@@ -188,8 +198,9 @@ posterior ao do código) e o resultado — `version.json.commit` igual a `git re
    Rodada 08 (ausência = 10 gravado, "faixa alto", rascunho pré-preenchido na reaplicação).
 3. Em modo local (localhost, sem sessão) mapas gerados contam como consolidados — é o modo de
    desenvolvimento, não a V1.
-4. O selo "em homologação" é informativo; nada impede a nutricionista de ler os números. O
-   bloqueio real de saída oficial depende do Pacote Metodológico.
+4. Na tela, o selo "em homologação" é informativo; nada impede a nutricionista de ler os
+   números. O bloqueio real de saída oficial depende do Pacote Metodológico. (No contexto da
+   HOLOS AI esses números já não entram.)
 5. `exige_resposta` e a recusa de OQ3/PQQ vazios continuam ativos como guarda técnica
    pendente de decisão.
 

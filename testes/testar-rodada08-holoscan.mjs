@@ -171,9 +171,11 @@ const ctx = await p.evaluate(async () => {
   const t = document.getElementById('ai-hub-texto');
   return t ? t.textContent : '';
 });
-ok(/Mental:\s*—/.test(ctx) && /Espiritual:\s*—/.test(ctx), 'contexto: Triade Mental/Espiritual "—"');
-ok(/Mental-Emocional-Espiritual[^\n]*—[^\n]*sem dado/i.test(ctx) || /Mental[^\n]*: —[^\n]*sem dado/i.test(ctx),
-   'contexto: sistema MEE "— (sem dado…)"');
+/* Etapa 0 (ajuste final, Mestre §36.1): notas, Triade e Indice NAO entram
+   mais no contexto — nem como "—". So dado bruto consolidado. */
+ok(!/### Tríada|- Mental:|- Físico:|### Sistemas/.test(ctx), 'contexto: sem Triade nem notas de sistema (metodologia nao aprovada)');
+ok(/Cobertura bruta: 30 de 84/.test(ctx) && /Resultados calculados: não incluídos/.test(ctx),
+   'contexto: traz a cobertura bruta da aplicacao salva e o aviso do que ficou de fora');
 ok(!/: 10\.0/.test(ctx), 'contexto: nenhum "10.0" inventado');
 
 /* ------------------------------------------------------------------ */

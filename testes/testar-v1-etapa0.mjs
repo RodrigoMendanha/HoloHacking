@@ -26,7 +26,8 @@
  *   18  troca de paciente continua sem vazamento
  *   19  retorno universal de 28 dias nao dirige a V1
  *   20  Dashboard nao promove conteudo nao aprovado a indicador oficial
- *   21  HOLOS AI indisponivel nao envia contexto irregular
+ *   21  HOLOS AI indisponivel nao envia contexto irregular (nenhum conteudo
+ *       dependente de metodologia nao aprovada; so dado bruto consolidado)
  */
 import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
@@ -358,9 +359,14 @@ const ctx = await p.evaluate(async (pidA, pidB) => {
 const appA = srv.linhas('holoscan_applications').find(a => a.patient_id === A);
 ok(appA && Array.isArray(appA.combinacoes), 'a aplicacao salva continua guardando as CMB no servidor (dado preservado)');
 ok(!/CMB-|Leituras combinadas/.test(ctx.a), '8: nenhuma CMB no contexto assistivo de A');
-ok(/HOLOSCAN/.test(ctx.a) && /EM HOMOLOGAÇÃO|em homologação/.test(ctx.a) && /Sistemas .*em homologação/.test(ctx.a),
-   '21: o contexto de A traz o HOLOSCAN salvo marcado "em homologacao"');
-ok(!/### Sistemas/.test(ctx.b), '21: a previa de B (mapa nao salvo) NAO entra no contexto');
+/* Ajuste final da Etapa 0 (Mestre §36.1): conteudo dependente de metodologia
+   nao aprovada NAO entra no contexto — nem rotulado "em homologacao". */
+const proibido = /### Sistemas|### Tríada|- Físico:|### Índice HOLOS|faixa \d|## Leitura Integrada|Sinais dominantes|Leituras combinadas|Convergente|Divergente|Dados insuficientes|dados insuficientes|Prioridades/;
+ok(!proibido.test(ctx.a), '21: nenhuma nota, faixa, Indice, Triada, prioridade ou Leitura Integrada no contexto de A');
+ok(/## HOLOSCAN/.test(ctx.a) && /Cobertura bruta: 30 de 84/.test(ctx.a) && /Resultados calculados: não incluídos/.test(ctx.a),
+   '21: o contexto de A traz so dado bruto da aplicacao salva (data, cobertura) e o aviso');
+ok(/NÃO estão incluídos/.test(ctx.a), '21: o cabecalho diz o que ficou de fora e por que');
+ok(!/## HOLOSCAN|Cobertura bruta/.test(ctx.b), '21: a previa de B (mapa nao salvo) NAO entra no contexto');
 ok(ctx.urls.every(u => !u), '21: botoes ChatGPT/Gemini sem URL (provedor nao integrado)');
 ok(!/REC-|SEL-|Sugest/.test(ctx.a), '8: nenhuma regra REC/SEL no contexto');
 
