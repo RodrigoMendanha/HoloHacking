@@ -46,10 +46,37 @@ na seção **Decisões pendentes**, sem resposta.
     REC/SEL, mapas não consolidados e rascunhos não entram no contexto da HOLOS AI.
     (Mestre §29, §35, §36.1)
 
+### Etapa 1 — Agenda × Atendimento (01/10/2026)
+
+16. **Agenda e Atendimento são entidades distintas.** `consultations` é o AGENDAMENTO
+    (administrativo); `encounters` é o ATENDIMENTO clínico. Agendamento pode existir
+    sem atendimento; atendimento pode existir sem agendamento. (Mestre §6)
+17. **Vínculo clínico é sempre explícito.** HOLOSCAN, ferramentas e coletas novas ligam-se
+    ao atendimento escolhido (`encounter_id`). Nunca se procura "a consulta de hoje", "a
+    primeira desta data" nem "a última consulta" para criar vínculo. (Mestre §6, §8)
+18. **Atendimento só nasce por gesto explícito.** "Iniciar atendimento" (da agenda) ou
+    "Novo atendimento" (da ficha), com confirmação de data/hora. Marcar, abrir agenda,
+    abrir ficha ou a hora chegar não criam atendimento.
+19. **Cancelar não apaga; reagendar preserva o original.** `cancelled_at` +
+    `cancellation_reason`; reagendamento cria novo agendamento ligado por
+    `rescheduled_from_id`/`rescheduled_to_id`, numa operação atômica. (Mestre §6, §33)
+20. **Aplicação oficial do HOLOSCAN exige atendimento ativo.** Sem ele, nada é
+    consolidado no servidor; o rascunho local do questionário continua permitido.
+21. **Histórico não recebe backfill por data.** `encounter_id` dos registros anteriores
+    fica NULL até vinculação humana explícita, se essa função vier a existir.
+22. **`tool_applications.consultation_id` é legado.** Vínculo antigo com o agendamento;
+    preservado, não apagado, não backfilled. `encounter_id` é o vínculo clínico V1.
+
 ## Decisões pendentes (não decididas aqui)
 
-- **Agenda × Atendimento** — separação lógica entre agendamento e atendimento clínico
-  (entidade, estados, vínculo das aplicações ao atendimento escolhido). (Mestre §6)
+- **Estados de agendamento e de atendimento** — o Mestre propõe estados; a Etapa 1 usa o
+  mínimo funcional (`cancelled_at`; `encounters.status` texto livre, "aberto" por
+  padrão) sem CHECK. Enum definitivo pendente de produto. (Mestre §6)
+- **Vinculação humana de registros históricos a atendimentos** — função não criada; o
+  histórico fica sem `encounter_id`.
+- **Exclusão de atendimento** — `encounters` não tem policy de DELETE; como a exclusão
+  completa de paciente (Rodada 08) trata atendimentos fica para decisão.
+- **Documentos × atendimento** — sem `encounter_id` até Relatórios/Emissões.
 - **Anamnese obrigatória** — formulário estruturado previsto no Mestre §9, ausente no AS-IS.
 - **Conduta obrigatória** — entidade clínica prevista no Mestre §30, ausente no AS-IS.
 - **Catálogo final das 10 ferramentas** — 3 de Corpo, 3 de Mente, 4 de Espírito
