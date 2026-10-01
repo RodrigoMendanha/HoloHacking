@@ -67,7 +67,38 @@ na seção **Decisões pendentes**, sem resposta.
 22. **`tool_applications.consultation_id` é legado.** Vínculo antigo com o agendamento;
     preservado, não apagado, não backfilled. `encounter_id` é o vínculo clínico V1.
 
+### Etapa 2 — Anamnese estruturada e Conduta (01/10/2026)
+
+23. **Anamnese e Conduta pertencem ao atendimento.** `encounter_id NOT NULL` com FK
+    composta (paciente/profissional); nenhum registro cruza paciente. (Mestre §9, §30)
+24. **Estados clínicos do Mestre §38.1.** `rascunho` (editável, fora dos indicadores),
+    `salvo` (aceito pelo servidor), `revisado` (conferência identificada). Consolidado é
+    imutável: corrigir cria revisão nova e preserva a anterior. "Revisado" não é
+    homologação metodológica.
+25. **Vazio ≠ negado.** Cada item da anamnese tem estado (`informado`,
+    `negado_explicitamente`, `desconhecido`, `nao_investigado`, `nao_aplicavel`,
+    `recusado`) e origem (`relato_paciente`, `observacao_profissional`,
+    `documento_externo`, `dado_medido`) obrigatórios; nenhum valor padrão para peso,
+    altura, alergia, intolerância, diagnóstico ou condição; diagnóstico informado continua
+    informado. Medida exige unidade; nenhuma conversão.
+26. **Cópia da anamnese anterior é ação explícita.** Itens entram como prévios a revisar,
+    com `source_anamnesis_id`; nunca automática; nunca alcança o HOLOSCAN.
+27. **Conduta não depende de score.** Nenhum campo obrigatório; nenhuma exigência de nota,
+    faixa, Índice, HOLOSCAN completo ou ferramenta; nenhum medicamento ou encaminhamento
+    como ordem autônoma; nenhum alerta, limiar ou diagnóstico inventado.
+28. **Acordos têm estados funcionais, não adesão.** `proposto`, `acordado`,
+    `em_acompanhamento`, `concluido`, `revisto`, `encerrado`; só mudam por ação explícita;
+    nenhum score de adesão. No retorno, a conduta anterior é mostrada e nada é
+    transportado automaticamente (continuar/substituir/encerrar com justificativa).
+29. **Só registro consolidado alimenta histórico oficial.** Rascunho não entra em
+    dashboard, timeline consolidada, contexto da HOLOS AI nem exportação sem rótulo.
+
 ## Decisões pendentes (não decididas aqui)
+
+- **Texto assistido** — nenhuma geração de texto existe; quando existir, entra como
+  proposta identificada e só vira prontuário após confirmação (Mestre §30, §36).
+- **Vocabulário de `type`/`modality` do atendimento e campos fechados da anamnese** —
+  texto livre por ora; sem questionário fechado.
 
 - **Estados de agendamento e de atendimento** — o Mestre propõe estados; a Etapa 1 usa o
   mínimo funcional (`cancelled_at`; `encounters.status` texto livre, "aberto" por

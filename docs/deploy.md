@@ -157,40 +157,42 @@ Cache-Control. Nas próximas atualizações não precisa.
 
 ### 3.5 Hashes esperados (sha256 dos arquivos servidos pela `main` saneada)
 
-Todos os 40 arquivos que o `Dockerfile` copia (`index.html style.css favicon.svg
-*.js`). Atualizados na Etapa 1 da V1 (branch `claude/v1-etapa1-atendimentos`,
-inclui `metodologia.js` e `atendimento.js`), conferidos contra a imagem do `docker build` da branch (o nginx ainda põe o
+Todos os 42 arquivos que o `Dockerfile` copia (`index.html style.css favicon.svg
+*.js`). Atualizados na Etapa 2 da V1 (branch `claude/v1-etapa2-anamnese-conduta`,
+inclui `metodologia.js`, `atendimento.js`, `anamnese.js` e `conduta.js`), conferidos contra a imagem do `docker build` da branch (o nginx ainda põe o
 `50x.html` dele, que não é nosso):
 
 ```
-c640fe1bb702fdb765df2c6f17f71e1f0de3aa85fd3be55efdf35d502345844c  index.html
-ab27f7f9e6ade9270036f486c9e90ea20aeb3c833e3fac59ff9fd253e166ec08  style.css
+c91a357adc999f2dc2d78e4969d4b519482cbaa4a3d830d73bb0fb94888a1dbe  index.html
+eedf1ce1b79069cf9dc5b5a8006efbf9535f8a2f1f96c43d50db7fc678733390  style.css
 cd6ef22455f446156c4109649b2d0fc1fe803f0c6697e1029fa71e50ba44cf84  favicon.svg
 fca789a5d4169bc1d4b5b0d1d2e934e9f1317384b435ea44e486966fe5eaa8d7  agenda.js
+cd0daa04a10e165dd536874170bf3c005d9bdb4041b15deb766c2b30596dfef4  anamnese.js
 b1ea48449d74ba8427c7a59947ae73d55a4d88896ea1fcf4f9823dc4087bd049  aplicacoes.js
-d3e9c41817d118676e394a26a299f82c77d8c710f379f99fcd959d83bc1d4c8d  app.js
+f5f11682a1c385fedbfaf08a8bc5ee348f57260e4b4a4f59d2c2c815aea60406  app.js
 d3efacba60b26bc2da2311a273881948882570773e4016f59ce2a0845661746c  armazenamento.js
 77f0a880c8784e9e45ad608e4c62dc9791f9a750d75225d85edd9e15a150ce69  arquivo-store.js
 c183ae647a0e9c61b50789bab77a31c7e1c6bdbc6ee786d65d2f5138e71999b9  arquivos.js
 cbb3209dee942992cf56d60882d03b84c2fdad0358057b1cee5dbd877df38e6f  atendimento.js
 410b78815fa33df41eeadd22c8f3dbfb5b5bfeecaf89784fb2d35a590474cdb7  caso-marina.js
 e66cd4b4cd1163cce5680b8d2b56b820c44c1cf430ed413d8de2fe7766112a14  concorrencia.js
+3b0a3b2f9a14aa7ca801e986427046b65097859675c0605ef9bb2ffd467951fe  conduta.js
 63204f8891ceceb557fcd57c8d5d708acdaa0a128f3e55d75b40fbc0f471a641  consultas.js
 25ffbc8bf45aec67e9214f403c5a1ffd297f183eaa664f53cebdb7d92e9c50f9  corpo-bancos.js
-1db5f32fca34f33efcbf9d2eb70c2c7424e62642b0fe462bf3fdbe710c762bb3  dados-router.js
+ec71e3d0995be085f30b35524191b558c8fc8e73bf758b3877cda1a916cac756  dados-router.js
 a77e7bf6acab37680d25eb5451442539bda71a84c6e921940a6065b9b9a3b806  dados.js
-bf4daeda06461c02511c79a13e29e4d88ea317873ae4c79fd2d79d8b3fc86d7a  dashboard.js
+dd2ed61e948fa4b37b2f3a35099f5a7d6e69382a1576e73d2a8227836646cd11  dashboard.js
 a29fad23f5ea2543661b0cd1429670340afbc0ec6654928a6a92fa9d117bf890  demo.js
 d7920a0868425c28a2b3192214010fee62bf1153a0c9c9478e8bc9481940cfcc  documentos.js
 e0113a4a7080e8d9e1733329a44812fffbf3a1ed7c7a38a5e0cfef589f4d7aa2  evolucao.js
 11e08342911df7f528993946a7e07746a9c26f66657eb0d139e746ade32e161f  excluir-paciente.js
 66e3f1a501b0a1fc98db4c4d1801148e01cfde71ad1b79ba0d8302f296c5e52b  ferramentas.js
-87530ba017686e8f5119234f29032ef9fbf623572400523dd1c7568f149df2d5  ficha.js
+eb05c966a406ca48a4a592dbdc658daecf6e30a01392a44f197f2aa78b4c1a3f  ficha.js
 ace6c65cf3f034c43125a348d7c8a834f217b31912916a9f16450f5454bbb178  formulario.js
-e16b69e7e76c4588fce1c7bc1716977226ea01f49e77c7e8d8c03432f40a0901  holos-ai.js
+00953ef2863e63032186234c3acf424725107167f1f3db6a58286b5271e78e4c  holos-ai.js
 b6c7e8b1341a10bf45c2f895218e5529176b9c36aa035be6a2aa1ed0fb41cfac  holoscan.js
 b2705ac28dc9f6175ec5586ef02e86b00f2fe1265dbb23a34e3bb2cebb8718c3  importar-v1.js
-6a585af5a168456ae920608b58eda071c037493b0ffba79379c0f77c35a2a52f  login.js
+e7e053d4a4dd5b3350e9f8ae8fcdb6333c211f185842d04f300f9e182012d00d  login.js
 96d867af34caf51c2e184475750e112815bb728459cec0f13eca8cbdf229643f  metodologia.js
 166b0e323628000f7e1a8274eb5b0012d5a22af67d4804c7b4d4f0e95efacf55  migracao-supa.js
 0aa32a8554ffecbe0e7198a13ed65aa2ea062478eaf632f45d1fa90978ef0db1  panorama.js
@@ -199,7 +201,7 @@ b2705ac28dc9f6175ec5586ef02e86b00f2fe1265dbb23a34e3bb2cebb8718c3  importar-v1.js
 8849e59a1d3fe76723aa1e59cc75213fc64172259c5bccd6d9b1151f21a9fb63  render-resultado.js
 23520f5f414deb288f083d0a08389a1c96d1ec918c50fb95d44c3b8b36758e8c  restaurar-backup.js
 2848d87ee9677b5327939694c6461d4f2eee0b11ec5cf44462d52c3a07f0964a  resultado-corpo.js
-e79c2c869c1cfa85ba26145b862dd0d793139e71f7629e7f1ba6446ad7566117  sincronizacao.js
+ed4ad46ce1fc53b653ea4ea1eb846f49a02ba4824f84d8b4c67b961dfb2f531e  sincronizacao.js
 482687b6663c97cfc92151da80a62ff0fdfa8f82fc3ff24a399ab583d3ff0d6d  supabase-client.js
 078361d4aace416d6e43c2ff741ae6f4ec4ec5c07630d7395f6213070c265022  utils.js
 f99c4197f8ac91ec9e5ec2f6970c12ad8ec0e3d8dc4513da856289799c095b68  validar-backup.js
