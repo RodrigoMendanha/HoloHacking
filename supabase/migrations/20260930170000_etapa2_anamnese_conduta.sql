@@ -41,12 +41,13 @@ begin
   if c->'dominios' is null then return true; end if;              -- anamnese vazia e valida (nada afirmado)
   if jsonb_typeof(c->'dominios') <> 'object' then return false; end if;
   for dom in select key, value from jsonb_each(c->'dominios') loop
-    if not (dom.key = any(dominios)) then return false; end if;
+    if not (coalesce(dom.key,'') = any(dominios)) then return false; end if;
     if jsonb_typeof(dom.value) <> 'object' or jsonb_typeof(dom.value->'itens') <> 'array' then return false; end if;
     for it in select * from jsonb_array_elements(dom.value->'itens') loop
       if jsonb_typeof(it) <> 'object' then return false; end if;
-      if not ((it->>'estado') = any(estados)) then return false; end if;    -- estado OBRIGATORIO: vazio nunca vira "nao"
-      if not ((it->>'origem') = any(origens)) then return false; end if;    -- origem OBRIGATORIA
+      -- coalesce: item SEM a chave (NULL) tambem e recusado — NULL = any(...) seria NULL, nao false
+      if not (coalesce(it->>'estado','') = any(estados)) then return false; end if;    -- estado OBRIGATORIO: vazio nunca vira "nao"
+      if not (coalesce(it->>'origem','') = any(origens)) then return false; end if;    -- origem OBRIGATORIA
       m := it->'medida';
       if m is not null and jsonb_typeof(m) <> 'null' then
         if jsonb_typeof(m) <> 'object' then return false; end if;
@@ -481,7 +482,9 @@ begin
     raise exception 'este atendimento ja tem um rascunho de anamnese' using errcode = 'P0001', hint = 'rascunho_existente';
   end if;
   -- cada item vira informacao PREVIA, a revisar; a origem original fica no item
+  -- (jsonb_set so cria o ULTIMO nivel do caminho: 'dominios' precisa existir antes)
   if fonte.content->'dominios' is not null then
+    novo_conteudo := '{"dominios":{}}'::jsonb;
     for dom in select key, value from jsonb_each(fonte.content->'dominios') loop
       itens := '[]'::jsonb;
       for it in select * from jsonb_array_elements(coalesce(dom.value->'itens','[]'::jsonb)) loop
