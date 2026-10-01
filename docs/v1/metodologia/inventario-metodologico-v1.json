@@ -7296,6 +7296,14 @@
       "copia_anterior": [
         {
           "arquivo": "Holos AI/motor/bancos/sintomas.csv",
+          "linha": 32,
+          "id": "SNT-310",
+          "sistema": "metabolico",
+          "peso": 2,
+          "enunciado": "Você acorda cansado mesmo tendo dormido o suficiente?"
+        },
+        {
+          "arquivo": "Holos AI/motor/bancos/sintomas.csv",
           "linha": 43,
           "id": "SNT-501",
           "sistema": "mental_emocional_espiritual",

@@ -24,6 +24,7 @@
  */
 
 import { randomUUID, createHash } from 'node:crypto';
+import '../metodologia-pacote.js';   // o MESMO validador de publicacao do navegador (Etapa 4)
 
 const COLUNAS = {
   patients: ['id', 'nutritionist_id', 'nome', 'nascimento', 'telefone', 'email', 'sexo', 'inicio', 'queixa', 'status', 'created_at', 'updated_at'],
@@ -36,8 +37,18 @@ const COLUNAS = {
   agreements: ['id', 'nutritionist_id', 'patient_id', 'conduct_id', 'description', 'responsible', 'due_text', 'follow_up', 'status', 'status_note', 'status_changed_at', 'position', 'origin_agreement_id', 'operation_id', 'created_at', 'updated_at'],
   // V1 Etapa 3 (migration 20260930180000): emissoes versionadas de relatorio
   report_emissions: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'report_type', 'revision_number', 'status', 'title', 'period_start', 'period_end', 'selected_sources', 'professional_text', 'source_snapshot', 'content_snapshot', 'content_hash', 'template_version', 'issued_at', 'created_by', 'supersedes_report_id', 'superseded_at', 'operation_id', 'created_at', 'updated_at'],
+  // V1 Etapa 4 (migration 20260930190000): Pacote Metodologico
+  methodology_packages: ['id', 'nutritionist_id', 'code', 'version', 'status', 'origin', 'justification', 'responsible', 'reviewed_by', 'reviewed_at', 'effective_from', 'effective_to', 'content_hash', 'approved_at', 'approved_by', 'retired_at', 'retired_reason', 'notes', 'created_by', 'created_at', 'updated_at'],
+  methodology_questionnaire_editions: ['id', 'nutritionist_id', 'package_id', 'code', 'version', 'status', 'item_count', 'notes', 'created_at', 'updated_at'],
+  methodology_scales: ['id', 'nutritionist_id', 'package_id', 'code', 'min_value', 'max_value', 'labels', 'kind', 'status', 'source', 'notes', 'created_at', 'updated_at'],
+  methodology_systems: ['id', 'nutritionist_id', 'package_id', 'code', 'name', 'public_text', 'definition', 'emotional_pattern', 'spiritual_impact', 'color', 'position', 'status', 'source', 'notes', 'created_at', 'updated_at'],
+  methodology_questions: ['id', 'nutritionist_id', 'package_id', 'edition_id', 'stable_id', 'statement', 'block', 'scale_code', 'response_labels', 'orientation', 'temporal_context', 'status', 'source', 'notes', 'version', 'position', 'created_at', 'updated_at'],
+  methodology_associations: ['id', 'nutritionist_id', 'package_id', 'question_stable_id', 'destination_type', 'destination_id', 'weight', 'role', 'status', 'source', 'conflict', 'conflict_note', 'created_at', 'updated_at'],
+  methodology_ranges: ['id', 'nutritionist_id', 'package_id', 'destination_type', 'destination_id', 'lower_bound', 'upper_bound', 'lower_inclusive', 'upper_inclusive', 'label', 'message_nutri', 'message_paciente', 'status', 'source', 'created_at', 'updated_at'],
+  methodology_rules: ['id', 'nutritionist_id', 'package_id', 'rule_type', 'target', 'payload', 'status', 'source', 'notes', 'created_at', 'updated_at'],
+  methodology_homologation_records: ['id', 'nutritionist_id', 'package_id', 'topic', 'element', 'version', 'decision', 'responsible', 'decided_at', 'source', 'justification', 'evidence', 'created_by', 'created_at'],
   schedule_blocks: ['id', 'nutritionist_id', 'data', 'inicio', 'fim', 'dia_todo', 'motivo', 'created_at', 'updated_at'],
-  holoscan_applications: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'quando', 'versao_estrutura', 'versao_bancos', 'indice', 'indice_maximo', 'avaliavel', 'nota_media', 'triada', 'triada_com_dado', 'cobertura', 'combinacoes', 'aprofundamentos', 'interpretacao_texto', 'interpretacao_em', 'interpretacao_versao', 'created_at', 'updated_at'],
+  holoscan_applications: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'quando', 'versao_estrutura', 'versao_bancos', 'indice', 'indice_maximo', 'avaliavel', 'nota_media', 'triada', 'triada_com_dado', 'cobertura', 'combinacoes', 'aprofundamentos', 'interpretacao_texto', 'interpretacao_em', 'interpretacao_versao', 'created_at', 'updated_at', 'methodology_package_id'],
   holoscan_answers: ['id', 'application_id', 'marcador_id', 'valor', 'created_at'],
   holoscan_system_scores: ['id', 'application_id', 'sistema', 'nome', 'nota', 'carga', 'faixa', 'obtido', 'maximo', 'respondidos', 'total_marcadores', 'avaliavel', 'created_at'],
   lab_collections: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'coletado_em', 'data_coleta_desconhecida', 'laboratorio', 'observacao', 'created_at', 'updated_at'],
@@ -50,7 +61,9 @@ const COLUNAS = {
   ai_messages: ['id', 'thread_id', 'role', 'content', 'metadata', 'created_at']
 };
 
-const DONO_DIRETO = ['patients', 'consultations', 'encounters', 'anamneses', 'conducts', 'agreements', 'report_emissions', 'schedule_blocks', 'holoscan_applications',
+const METODOLOGIA = ['methodology_packages', 'methodology_questionnaire_editions', 'methodology_scales', 'methodology_systems', 'methodology_questions', 'methodology_associations', 'methodology_ranges', 'methodology_rules', 'methodology_homologation_records'];
+const FILHAS_PACOTE = METODOLOGIA.filter(t => t !== 'methodology_packages');
+const DONO_DIRETO = [...METODOLOGIA, 'patients', 'consultations', 'encounters', 'anamneses', 'conducts', 'agreements', 'report_emissions', 'schedule_blocks', 'holoscan_applications',
   'lab_collections', 'tool_applications', 'documents', 'professional_assets', 'ai_threads'];
 const FILHAS = {           // tabela -> [coluna, mae]
   holoscan_answers: ['application_id', 'holoscan_applications'],
@@ -100,6 +113,7 @@ export function criarServidor() {
     tabelas: Object.fromEntries(Object.keys(COLUNAS).map(t => [t, []])),
     storage: { 'patient-documents': {}, 'professional-assets': {} },
     falhar: [],
+    aprovacaoRpc: null,
     log: [],
     maxLinhas: 1000,
     relogio: 0
@@ -135,7 +149,16 @@ export function criarServidor() {
     return null;
   }
 
-  function visiveis(tabela, uid) { return s.tabelas[tabela].filter(l => dono(tabela, l) === uid); }
+  function pacoteDe(id) { return s.tabelas.methodology_packages.find(p => p.id === id); }
+  function visiveis(tabela, uid) {
+    return s.tabelas[tabela].filter(l => {
+      if (dono(tabela, l) === uid) return true;
+      // RLS da Etapa 4: pacote aprovado/retirado (e suas filhas) e legivel por qualquer autenticado
+      if (tabela === 'methodology_packages') return ['aprovado', 'retirado'].includes(l.status);
+      if (FILHAS_PACOTE.includes(tabela)) { const p = pacoteDe(l.package_id); return !!p && ['aprovado', 'retirado'].includes(p.status); }
+      return false;
+    });
+  }
 
   function validarColunas(tabela, obj) {
     const cols = COLUNAS[tabela];
@@ -255,6 +278,34 @@ export function criarServidor() {
       }
       if (linha.operation_id && s.tabelas.agreements.some(x => x.id !== linha.id && x.nutritionist_id === uid && x.operation_id === linha.operation_id)) return erro('duplicate key value violates unique constraint "agreements_operation_unique"', '23505');
     }
+    if (tabela === 'methodology_packages') {
+      if (!['rascunho', 'em_revisao', 'aprovado', 'retirado'].includes(linha.status)) return erro('violates check constraint "methodology_packages_status_valido"', '23514');
+      if (!linha.code || !String(linha.code).trim()) return erro('violates check constraint "methodology_packages_code_nao_vazio"', '23514');
+      if (['aprovado', 'retirado'].includes(linha.status) && !(linha.content_hash && linha.responsible && linha.reviewed_by && linha.reviewed_at && linha.effective_from && linha.approved_at && linha.approved_by)) return erro('violates check constraint "methodology_packages_aprovado_completo"', '23514');
+      if (linha.status === 'retirado' && !linha.retired_at) return erro('violates check constraint "methodology_packages_retirado_completo"', '23514');
+      if (s.tabelas.methodology_packages.some(x => x.id !== linha.id && x.nutritionist_id === uid && x.code === linha.code && x.version === linha.version)) return erro('duplicate key value violates unique constraint "methodology_packages_code_version_unique"', '23505');
+    }
+    if (FILHAS_PACOTE.includes(tabela)) {
+      const p = s.tabelas.methodology_packages.find(x => x.id === linha.package_id && x.nutritionist_id === uid);
+      if (!p) return erro('violates foreign key constraint "' + tabela + '_package_fk"', '23503');
+      if (tabela !== 'methodology_homologation_records' && linha.status && !['rascunho', 'para_homologacao', 'aprovado', 'retirado', 'aprovada', 'retirada'].includes(linha.status)) return erro('violates check constraint "' + tabela + '_status_valido"', '23514');
+      if (tabela === 'methodology_questions') {
+        if (linha.orientation != null && !['direta', 'invertida'].includes(linha.orientation)) return erro('violates check constraint "methodology_questions_orientacao_valida"', '23514');
+        if (!['fisico', 'mental_emocional', 'espiritual'].includes(linha.block)) return erro('violates check constraint "methodology_questions_bloco_valido"', '23514');
+        if (!s.tabelas.methodology_questionnaire_editions.some(e => e.id === linha.edition_id && e.nutritionist_id === uid)) return erro('violates foreign key constraint "methodology_questions_edition_fk"', '23503');
+        if (s.tabelas.methodology_questions.some(x => x.id !== linha.id && x.edition_id === linha.edition_id && x.stable_id === linha.stable_id)) return erro('duplicate key value violates unique constraint "methodology_questions_stable_id_unique"', '23505');
+      }
+      if (tabela === 'methodology_associations' && !['system', 'triad'].includes(linha.destination_type)) return erro('violates check constraint "methodology_associations_tipo_valido"', '23514');
+      if (tabela === 'methodology_ranges' && !['system', 'index', 'triad'].includes(linha.destination_type)) return erro('violates check constraint "methodology_ranges_tipo_valido"', '23514');
+      if (tabela === 'methodology_scales' && (!(linha.max_value > linha.min_value) || s.tabelas.methodology_scales.some(x => x.id !== linha.id && x.package_id === linha.package_id && x.code === linha.code))) return erro('violates constraint on methodology_scales (intervalo/code_unique)', '23514');
+      if (tabela === 'methodology_systems' && s.tabelas.methodology_systems.some(x => x.id !== linha.id && x.package_id === linha.package_id && x.code === linha.code)) return erro('duplicate key value violates unique constraint "methodology_systems_code_unique"', '23505');
+      if (tabela === 'methodology_rules') {
+        if (!['scoring', 'absence', 'index', 'triad', 'coverage', 'comparability', 'example'].includes(linha.rule_type)) return erro('violates check constraint "methodology_rules_tipo_valido"', '23514');
+        if (s.tabelas.methodology_rules.some(x => x.id !== linha.id && x.package_id === linha.package_id && x.rule_type === linha.rule_type && x.target === linha.target)) return erro('duplicate key value violates unique constraint "methodology_rules_tipo_alvo_unique"', '23505');
+      }
+      if (tabela === 'methodology_homologation_records' && (!linha.responsible || !String(linha.responsible).trim() || !linha.decision || !String(linha.decision).trim() || !linha.decided_at || !linha.topic || !linha.element)) return erro('violates check constraint "methodology_records_*"', '23514');
+    }
+    if (tabela === 'holoscan_applications' && linha.methodology_package_id && !s.tabelas.methodology_packages.some(x => x.id === linha.methodology_package_id)) return erro('violates foreign key constraint "holoscan_applications_methodology_package_id_fkey"', '23503');
     if (tabela === 'report_emissions') {
       if (!['rascunho', 'emitido'].includes(linha.status)) return erro('violates check constraint "report_emissions_status_valido"', '23514');
       if (linha.report_type && !['relatorio_clinico', 'evolucao', 'encaminhamento'].includes(linha.report_type)) return erro('violates check constraint "report_emissions_tipo_valido"', '23514');
@@ -308,6 +359,14 @@ export function criarServidor() {
     if (tabela === 'anamneses') { if (!l.status) l.status = 'rascunho'; if (l.revision_number === undefined) l.revision_number = 1; if (l.content_version === undefined) l.content_version = 1; if (l.content === undefined) l.content = {}; if (l.copied_from_previous === undefined) l.copied_from_previous = false; }
     if (tabela === 'conducts') { if (!l.status) l.status = 'rascunho'; if (l.revision_number === undefined) l.revision_number = 1; if (!l.priorities) l.priorities = []; if (!l.related_tools) l.related_tools = []; if (!l.references) l.references = {}; }
     if (tabela === 'agreements') { if (!l.status) l.status = 'proposto'; if (l.position === undefined) l.position = 0; }
+    if (tabela === 'methodology_packages') { if (!l.status) l.status = 'rascunho'; if (l.version === undefined) l.version = 1; if (!l.created_by) l.created_by = uid; }
+    if (FILHAS_PACOTE.includes(tabela) && tabela !== 'methodology_homologation_records' && !l.status) l.status = 'rascunho';
+    if (tabela === 'methodology_questionnaire_editions' && l.version === undefined) l.version = 1;
+    if (tabela === 'methodology_questions' && l.version === undefined) l.version = 1;
+    if (tabela === 'methodology_associations' && l.conflict === undefined) l.conflict = false;
+    if (tabela === 'methodology_ranges') { if (l.lower_inclusive === undefined) l.lower_inclusive = true; if (l.upper_inclusive === undefined) l.upper_inclusive = true; }
+    if (tabela === 'methodology_rules') { if (!l.target) l.target = 'global'; if (!l.payload) l.payload = {}; }
+    if (tabela === 'methodology_homologation_records' && !l.created_by) l.created_by = uid;
     if (tabela === 'report_emissions') { if (!l.status) l.status = 'rascunho'; if (!l.report_type) l.report_type = 'relatorio_clinico'; if (l.revision_number === undefined) l.revision_number = 1; if (!l.selected_sources) l.selected_sources = {}; if (l.template_version === undefined) l.template_version = 1; }
     // carimbar_revisao: revisado recebe reviewed_at/by do servidor
     if ((tabela === 'anamneses' || tabela === 'conducts') && l.status === 'revisado') { l.reviewed_at = l.reviewed_at || t; l.reviewed_by = uid; }
@@ -380,6 +439,13 @@ export function criarServidor() {
       return finalizar(q, projetar(linhas, q.colunas));
     }
 
+    if ((q.acao === 'insert' || q.acao === 'upsert') && FILHAS_PACOTE.includes(t) && t !== 'methodology_homologation_records') {   // o registro de homologacao nao tem o trigger de imutabilidade (so de UPDATE)
+      const linhasIns = Array.isArray(q.dados) ? q.dados : [q.dados];
+      for (const d of linhasIns) {
+        const p = s.tabelas.methodology_packages.find(x => x.id === d.package_id);
+        if (p && ['aprovado', 'retirado'].includes(p.status) && s.aprovacaoRpc !== p.id) return erro('conteudo de pacote ' + p.status + ' e imutavel: crie uma nova versao do pacote', 'P0001');
+      }
+    }
     if (q.acao === 'insert' || q.acao === 'upsert') {
       const lista = Array.isArray(q.dados) ? q.dados : [q.dados];
       const novas = [];
@@ -423,10 +489,29 @@ export function criarServidor() {
     }
 
     if (q.acao === 'update') {
-      const alvo = filtrar(visiveis(t, uid), q.filtros);
+      // policy de UPDATE: nas tabelas de metodologia so o dono (a leitura e mais ampla); registro de homologacao nao tem policy de UPDATE
+      let alvo = filtrar(visiveis(t, uid), q.filtros);
+      if (METODOLOGIA.includes(t)) alvo = alvo.filter(l => l.nutritionist_id === uid);
+      if (t === 'methodology_homologation_records') alvo = [];
       const e0 = validarColunas(t, q.dados); if (e0) return e0;
       for (const l of alvo) {
         const teste = Object.assign({}, l, q.dados);
+        // triggers BEFORE UPDATE da Etapa 4 disparam antes das constraints (como no Postgres)
+        if (t === 'methodology_packages') {
+          const novo = teste;
+          const sem = (o, chaves) => { const c = {}; Object.keys(o).sort().forEach(k => { if (!chaves.includes(k) && o[k] !== undefined) c[k] = o[k]; }); return JSON.stringify(c); };
+          if (novo.status === 'aprovado' && l.status !== 'aprovado' && s.aprovacaoRpc !== l.id) return erro('aprovacao nao e edicao administrativa: use aprovar_pacote_metodologico (validador + registro de homologacao)', 'P0001');
+          if (l.status === 'aprovado' && novo.status !== 'aprovado' && novo.status !== 'retirado') return erro('pacote aprovado e imutavel: alteracao exige NOVA VERSAO', 'P0001');
+          if (l.status === 'aprovado' && novo.status === 'retirado' && sem(l, ['updated_at', 'status', 'retired_at', 'retired_reason', 'effective_to']) !== sem(novo, ['updated_at', 'status', 'retired_at', 'retired_reason', 'effective_to'])) return erro('pacote aprovado e imutavel: retirar so muda status, retired_at, retired_reason e effective_to', 'P0001');
+          if (l.status === 'aprovado' && novo.status === 'aprovado' && sem(l, ['updated_at']) !== sem(novo, ['updated_at'])) return erro('pacote aprovado e imutavel: alteracao exige NOVA VERSAO', 'P0001');
+          if (l.status === 'retirado' && sem(l, ['updated_at']) !== sem(novo, ['updated_at'])) return erro('pacote retirado e historico: permanece recuperavel e nao muda', 'P0001');
+          if (l.status !== 'aprovado' && novo.status === 'retirado') return erro('so um pacote aprovado pode ser retirado', 'P0001');
+        }
+        if (FILHAS_PACOTE.includes(t) && t !== 'methodology_homologation_records') {
+          const p = s.tabelas.methodology_packages.find(x => x.id === l.package_id);
+          if (p && ['aprovado', 'retirado'].includes(p.status) && s.aprovacaoRpc !== p.id) return erro('conteudo de pacote ' + p.status + ' e imutavel: crie uma nova versao do pacote', 'P0001');
+          if (('package_id' in q.dados && q.dados.package_id !== l.package_id) || ('nutritionist_id' in q.dados && q.dados.nutritionist_id !== l.nutritionist_id)) return erro('elemento nao muda de pacote nem de profissional', 'P0001');
+        }
         const e = checarLinha(t, teste, uid); if (e) return e;
         // trigger proteger_revisao_consolidada (V1 Etapa 2)
         if ((t === 'anamneses' || t === 'conducts') && l.status !== 'rascunho') {
@@ -449,7 +534,7 @@ export function criarServidor() {
         }
         // trigger proteger_snapshot_holoscan (+ encounter_id, V1 Etapa 1 ajuste final)
         if (t === 'holoscan_applications') {
-          const IMUTAVEIS = ['nutritionist_id', 'patient_id', 'encounter_id', 'quando', 'versao_estrutura', 'versao_bancos',
+          const IMUTAVEIS = ['nutritionist_id', 'patient_id', 'encounter_id', 'methodology_package_id', 'quando', 'versao_estrutura', 'versao_bancos',
             'indice', 'indice_maximo', 'avaliavel', 'nota_media', 'triada', 'triada_com_dado', 'cobertura', 'combinacoes', 'aprofundamentos'];
           const mudou = IMUTAVEIS.find(c => c in q.dados && JSON.stringify(q.dados[c] === undefined ? null : q.dados[c]) !== JSON.stringify(l[c] === undefined ? null : l[c]));
           if (mudou) return erro('campos historicos do snapshot HOLOSCAN sao imutaveis (inclusive o atendimento, encounter_id); somente interpretacao_texto, interpretacao_em e interpretacao_versao podem ser alterados', 'P0001');
@@ -471,7 +556,15 @@ export function criarServidor() {
 
     if (q.acao === 'delete') {
       // encounters, anamneses, conducts: sem policy de DELETE (RLS) — zero linhas, sem erro, como no Postgres
-      if (t === 'encounters' || t === 'anamneses' || t === 'conducts' || t === 'report_emissions') return q.retornar ? finalizar(q, []) : { data: null, error: null };
+      if (t === 'encounters' || t === 'anamneses' || t === 'conducts' || t === 'report_emissions' || t === 'methodology_packages' || t === 'methodology_homologation_records') return q.retornar ? finalizar(q, []) : { data: null, error: null };
+      if (FILHAS_PACOTE.includes(t)) {
+        const alvoF = filtrar(visiveis(t, uid), q.filtros);
+        for (const l of alvoF) { const p = s.tabelas.methodology_packages.find(x => x.id === l.package_id); if (p && ['aprovado', 'retirado'].includes(p.status) && p.nutritionist_id === uid) return erro('conteudo de pacote ' + p.status + ' e imutavel: crie uma nova versao do pacote', 'P0001'); }
+        const idsF = new Set(alvoF.filter(l => { const p = s.tabelas.methodology_packages.find(x => x.id === l.package_id); return p && p.nutritionist_id === uid && ['rascunho', 'em_revisao'].includes(p.status); }).map(l => l.id));
+        const feitas = s.tabelas[t].filter(l => idsF.has(l.id));
+        s.tabelas[t] = s.tabelas[t].filter(l => !idsF.has(l.id));
+        return q.retornar ? finalizar(q, projetar(feitas, q.colunas)) : { data: null, error: null };
+      }
       let alvo = filtrar(visiveis(t, uid), q.filtros);
       // agreements: so de conduta em RASCUNHO (policy agreements_delete_rascunho)
       if (t === 'agreements') alvo = alvo.filter(g => { const c = s.tabelas.conducts.find(x => x.id === g.conduct_id); return c && c.status === 'rascunho'; });
@@ -704,6 +797,49 @@ export function criarServidor() {
         if (alvo.supersedes_id) { const ant = s.tabelas.conducts.find(x => x.id === alvo.supersedes_id); if (ant && !ant.superseded_at) atualizar('conducts', ant.id, { superseded_at: agora() }); }
       }
       return { data: alvo.id, error: null };
+    }
+    // ---------- V1 Etapa 4: pacote metodologico ----------
+    const montarPacote = (id) => {
+      const p = s.tabelas.methodology_packages.find(x => x.id === id); if (!p) return null;
+      const filhas = (t) => s.tabelas[t].filter(x => x.package_id === id);
+      return Object.assign({}, p, { edicao: filhas('methodology_questionnaire_editions')[0] || null, escalas: filhas('methodology_scales'), sistemas: filhas('methodology_systems'),
+        perguntas: filhas('methodology_questions'), associacoes: filhas('methodology_associations'), faixas: filhas('methodology_ranges'), regras: filhas('methodology_rules'), registros: filhas('methodology_homologation_records') });
+    };
+    if (nome === 'validar_pacote_metodologico') {
+      const id = args && args.p_package_id; const p = montarPacote(id);
+      if (!p || !visiveis('methodology_packages', uid).some(x => x.id === id)) return erro('pacote ' + id + ' nao encontrado', 'P0002');
+      return { data: globalThis.PacoteMetodologico.validar(p), error: null };
+    }
+    if (nome === 'aprovar_pacote_metodologico') {
+      const id = args && args.p_package_id, reg = (args && args.p_registro) || null;
+      const pk = s.tabelas.methodology_packages.find(x => x.id === id && x.nutritionist_id === uid);
+      if (!pk) return erro('pacote ' + id + ' nao encontrado', 'P0002');
+      if (pk.status !== 'em_revisao') return erro('so um pacote em_revisao pode ser aprovado (status atual: ' + pk.status + ')', 'P0001');
+      if (!reg || !String(reg.responsible || '').trim() || !String(reg.justification || '').trim()) return erro('aprovacao exige registro de homologacao com responsavel humano e justificativa', 'P0001');
+      const v = globalThis.PacoteMetodologico.validar(montarPacote(id));
+      if (!v.publicavel) return erro('publicacao bloqueada pelo validador: ' + v.total_erros + ' erro(s) — ' + JSON.stringify(v.erros).slice(0, 400), 'P0001');
+      const p = montarPacote(id);
+      const limpar = (o) => { const c = Object.assign({}, o); ['id', 'created_at', 'updated_at', 'nutritionist_id', 'package_id', 'edition_id'].forEach(k => delete c[k]); return c; };
+      const conteudo = { questions: p.perguntas.map(limpar), associations: p.associacoes.map(limpar), ranges: p.faixas.map(limpar), systems: p.sistemas.map(limpar), scales: p.escalas.map(limpar), rules: p.regras.map(limpar) };
+      const h = createHash('sha256').update(JSON.stringify(conteudo), 'utf8').digest('hex');
+      const r0 = inserir('methodology_homologation_records', { package_id: id, topic: 'pacote', element: pk.code, version: String(pk.version), decision: 'aprovado', responsible: reg.responsible, decided_at: reg.decided_at || agora().slice(0, 10), source: reg.source || null, justification: reg.justification, evidence: reg.evidence || 'validar_pacote_metodologico: 0 erros' });
+      if (r0.error) return r0;
+      s.aprovacaoRpc = id;
+      const r = atualizar('methodology_packages', id, { status: 'aprovado', approved_at: agora(), approved_by: uid, reviewed_by: uid, reviewed_at: agora(), responsible: reg.responsible, justification: reg.justification || pk.justification, effective_from: reg.effective_from || pk.effective_from || agora().slice(0, 10), content_hash: h });
+      s.aprovacaoRpc = null;
+      if (r.error) return r;
+      return { data: { id, status: 'aprovado', content_hash: h, validacao: v }, error: null };
+    }
+    if (nome === 'retirar_pacote_metodologico') {
+      const id = args && args.p_package_id;
+      const pk = s.tabelas.methodology_packages.find(x => x.id === id && x.nutritionist_id === uid);
+      if (!pk) return erro('pacote ' + id + ' nao encontrado', 'P0002');
+      if (pk.status !== 'aprovado') return erro('so um pacote aprovado pode ser retirado', 'P0001');
+      if (!String((args && args.p_responsible) || '').trim()) return erro('retirada exige responsavel', 'P0001');
+      const r0 = inserir('methodology_homologation_records', { package_id: id, topic: 'pacote', element: pk.code, version: String(pk.version), decision: 'retirado', responsible: args.p_responsible, decided_at: agora().slice(0, 10), justification: args.p_motivo || null });
+      if (r0.error) return r0;
+      const r = atualizar('methodology_packages', id, { status: 'retirado', retired_at: agora(), retired_reason: args.p_motivo || null, effective_to: agora().slice(0, 10) });
+      return r.error ? r : { data: id, error: null };
     }
     // ---------- V1 Etapa 3: relatorios ----------
     const opRel = (op, soEmitido) => op ? s.tabelas.report_emissions.find(x => x.nutritionist_id === uid && x.operation_id === op && (!soEmitido || x.status === 'emitido')) : null;

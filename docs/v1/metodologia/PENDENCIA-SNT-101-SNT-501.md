@@ -69,6 +69,7 @@ Confirmar se o item contribui para um ou dois sistemas, com que peso em cada um,
 
 | Arquivo:linha | ID na cópia | Sistema | Peso | Enunciado |
 |---|---|---|---|---|
+| Holos AI/motor/bancos/sintomas.csv:32 | SNT-310 | metabolico | 2 | Você acorda cansado mesmo tendo dormido o suficiente? |
 | Holos AI/motor/bancos/sintomas.csv:43 | SNT-501 | mental_emocional_espiritual | 3 | Você acorda cansado mesmo dormindo as horas necessárias? |
 
 ### Diferenças encontradas

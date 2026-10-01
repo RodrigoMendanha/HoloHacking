@@ -227,7 +227,9 @@ function pendenciaSNT(id) {
   const p = porId.get(id);
   const linhas = [B.sintomas, B.emocoes, B.espiritual].flatMap((t, k) => t.map((l, i) => ({ l, arquivo: [FONTES.sintomas, FONTES.emocoes, FONTES.espiritual][k], n: i + 2 })))
     .filter((x) => x.l.id === id);
-  const antigas = antigoSintomas.map((l, i) => ({ l, n: i + 2 })).filter((x) => x.l.id === id || x.l.pergunta === p.enunciado);
+  // copia anterior: a mesma linha (posicao) do arquivo antigo, quando o ID de la nao existe mais hoje (renomeado), ou o mesmo ID
+  const linhasAtuais = linhas.map((x) => x.n);
+  const antigas = antigoSintomas.map((l, i) => ({ l, n: i + 2 })).filter((x) => x.l.id === id || (linhasAtuais.includes(x.n) && !porId.has(x.l.id)));
   return {
     id, enunciado: p.enunciado, bloco: p.bloco, rotulo: p.rotulo,
     linhas_atuais: linhas.map((x) => ({ arquivo: x.arquivo, linha: x.n, sistema: x.l.sistema, peso: Number(x.l.peso), escala: x.l.escala, sentido: x.l.sentido, chacra: x.l.chacra || null, territorio: x.l.territorio || null, fonte: x.l.fonte, status: x.l.status })),

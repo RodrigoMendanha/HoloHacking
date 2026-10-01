@@ -48,7 +48,7 @@ const comCorte = runtime.filter(f => /COBERTURA_MINIMA\s*=\s*0?\.\d|coberturaMin
 ok(comCorte.length === 0, 'nenhum arquivo de runtime define COBERTURA_MINIMA = 0,5 (ou outro): ' + (comCorte.join(', ') || 'nenhum'));
 ok(!/^\s*var DIAS_REAVALIACAO\s*=\s*\d/m.test(ler('panorama.js')) && /DIAS_REAVALIACAO:\s*null/.test(ler('panorama.js')),
    'panorama.js nao define DIAS_REAVALIACAO = 28 (exporta null)');
-ok(/coberturaMinima\(\)\s*\{\s*return null;/.test(ler('metodologia.js')), 'Metodologia.coberturaMinima() devolve null (sem politica homologada)');
+ok(/function coberturaMinima\(\)\s*\{/.test(ler('metodologia.js')) && !/coberturaMinima\(\)\s*\{[^}]*return\s+0?\.\d/.test(ler('metodologia.js')) && /return null;/.test(ler('metodologia.js').split('function coberturaMinima')[1].split('}')[0] + '}' + ler('metodologia.js').split('function coberturaMinima')[1].split('}')[1]), 'Metodologia.coberturaMinima() devolve null sem politica homologada (nenhum numero escrito; Etapa 4: le o pacote aprovado)');
 
 /* ==================================================================== */
 titulo('7 — SNT-101 / SNT-501 SEM CORRECAO INVENTADA');
