@@ -62,16 +62,35 @@
     return t;
   }
 
+  /* Etapa 0 da V1 — o que ENTRA e o que NAO entra no contexto (Mestre §29,
+     §35, §36.1): so registros salvos autorizados e conteudo identificado.
+       - aplicacoes CONSOLIDADAS (aceitas pelo servidor); mapa gerado e nao
+         salvo e previa e fica de fora;
+       - nenhuma combinacao CMB (oculta na interface, nao homologada);
+       - nenhuma regra REC/SEL;
+       - notas, faixas, Indice, Triade e Leitura Integrada marcados como
+         "em homologacao" — o leitor sabe que nao e saida oficial V1. */
+  function consolidada(p) {
+    return window.Panorama && window.Panorama.consolidada ? window.Panorama.consolidada(p) : !!p;
+  }
+  function ultimaConsolidada(pid) {
+    var h = window.historicoPontuacao ? window.historicoPontuacao(pid) : [];
+    var c = h.filter(consolidada);
+    return c.length ? c[c.length - 1] : null;
+  }
+  var EM_HOMOLOGACAO = " (em homologação)";
+
   function dadosHoloscan() {
     var pid = pacienteId();
-    if (!pid || !window.ultimaPontuacao) return "";
-    var p = window.ultimaPontuacao(pid);
+    if (!pid || !window.historicoPontuacao) return "";
+    var p = ultimaConsolidada(pid);
     if (!p) return "";
     var t = "";
     t += linhaSe("Data da aplicação", dataBR(p.quando));
     if (p.cobertura && typeof p.cobertura.percentual === "number")
       t += linhaSe("Cobertura", p.cobertura.percentual + "%");
-    t += "\n### Sistemas (do mais sobrecarregado ao mais equilibrado)\n";
+    t += linhaSe("Situação metodológica", "em homologação — perguntas, pesos, faixas e regras não aprovados; nenhum número abaixo é saída oficial V1");
+    t += "\n### Sistemas (do mais sobrecarregado ao mais equilibrado)" + EM_HOMOLOGACAO + "\n";
     var A = window.HoloAusencia;
     var ordenados = p.sistemas.slice().sort(A.porLeitura);
     ordenados.forEach(function (s) {
@@ -85,7 +104,7 @@
         (partes.filter(Boolean).length ? " (" + partes.filter(Boolean).join(", ") + ")" : "") + "\n";
     });
     if (p.triada) {
-      t += "\n### Tríada\n";
+      t += "\n### Tríada" + EM_HOMOLOGACAO + "\n";
       t += "- Físico: " + A.fmt(p.triada.fisico) + "\n";
       t += "- Mental: " + A.fmt(p.triada.mental) + "\n";
       t += "- Espiritual: " + A.fmt(p.triada.espiritual) + "\n";
@@ -93,7 +112,7 @@
         t += "(— = eixo sem resposta; não é nota)\n";
     }
     if (typeof p.indice === "number") {
-      t += "\n### Índice HOLOS\n";
+      t += "\n### Índice HOLOS" + EM_HOMOLOGACAO + "\n";
       t += linhaSe("Valor", p.indice);
       if (typeof p.indice_maximo === "number")
         t += linhaSe("Máximo possível", p.indice_maximo);
@@ -105,12 +124,8 @@
         t += "- " + s.nome + ": " + s.dominantes.map(function (d) { return d.rotulo || d.marcador_id; }).join(", ") + "\n";
       });
     }
-    if (p.combinacoes && p.combinacoes.length) {
-      t += "\n### Leituras combinadas\n";
-      p.combinacoes.forEach(function (c) {
-        if (c.leitura) t += "- " + c.id + ": " + c.leitura + "\n";
-      });
-    }
+    /* As combinacoes CMB-001..016 NAO entram: estao ocultas na interface e
+       nao foram homologadas (Mestre §29, §35). */
     var interp = window.interpretacaoDe ? window.interpretacaoDe(p.quando, pid) : null;
     if (interp && interp.texto) {
       t += "\n### Interpretação profissional\n" + interp.texto + "\n";
@@ -140,6 +155,9 @@
       });
       return t;
     }
+    /* Com conta, so coleta salva no servidor entra. O painel local pode ser
+       rascunho/pendente — nao e registro consolidado (Mestre §36.1). */
+    if (autenticado()) return "";
     var exames;
     try { exames = JSON.parse(localStorage.getItem("holohacking.exames")) || {}; }
     catch (e) { return ""; }
@@ -161,9 +179,9 @@
   function dadosEvolucao() {
     var pid = pacienteId();
     if (!pid || !window.historicoPontuacao) return "";
-    var hist = window.historicoPontuacao(pid);
+    var hist = window.historicoPontuacao(pid).filter(consolidada);
     if (hist.length < 2) return "";
-    var t = "";
+    var t = "(aplicações lado a lado; sem comparabilidade verificada — em homologação)\n";
     hist.forEach(function (snap, i) {
       t += "\n### Aplicação " + (i + 1) + " — " + dataBR(snap.quando) + "\n";
       var A2 = window.HoloAusencia;
@@ -308,6 +326,9 @@
     return "# Contexto HOLOS AI — " + tipo + "\n" +
       "Paciente: " + (p ? p.nome : "desconhecido") + "\n" +
       "Gerado em: " + new Date().toLocaleString("pt-BR") + "\n" +
+      "Conteúdo: só registros salvos no servidor. Notas, faixas, Índice, Tríada e Leitura " +
+      "Integrada estão EM HOMOLOGAÇÃO (Pacote Metodológico V1 não aprovado) e não são " +
+      "saída oficial. Combinações e sugestões automáticas não entram.\n" +
       "---\n";
   }
 
@@ -321,7 +342,7 @@
     catch (e) { return ""; }
     var d = exames[pid];
     if (!d || typeof d !== "object" || !Object.keys(d).length) return "";
-    var pont = window.ultimaPontuacao ? window.ultimaPontuacao(pid) : null;
+    var pont = ultimaConsolidada(pid);
     var notas = {};
     if (pont && pont.sistemas) notas = window.HoloAusencia.notas(pont);
     var r;
@@ -342,7 +363,7 @@
     t += secaoSe("Paciente", dadosPaciente());
     t += secaoSe("HOLOSCAN — Mapa HOLOS atual", dadosHoloscan());
     t += secaoSe("Camada Laboratorial", dadosExames());
-    t += secaoSe("Leitura Integrada", dadosLeituraIntegrada());
+    t += secaoSe("Leitura Integrada" + EM_HOMOLOGACAO, dadosLeituraIntegrada());
     t += secaoSe("Consultas", dadosConsultas());
     t += secaoSe("Ferramentas (OQ³, PQQ, Mapa do Propósito e outras)", dadosFerramentas());
     var evo = dadosEvolucao();
