@@ -1,0 +1,377 @@
+tipo,id,bloco_ou_sistema,destino,valor,orientacao,escala,fonte,status_recuperado,status_homologacao,conflito,observacao
+sistema,fungico,,,Sistema Fúngico,,,motor/bancos/sistemas.csv:2 — rascunho 13/09 — aguarda revisão do Rodrigo,rascunho,pendente_homologacao,,"O terreno em que a microbiota perde equilíbrio a favor de fungos e leveduras. Caracteriza-se por sinais em mucosa e pele que voltam, por resposta rápida ao carboidrato simples, e por uma sensação de peso e desorganização que acompanha o quadro."
+sistema,acido_inflamatorio,,,Sistema Ácido-Inflamatório,,,motor/bancos/sistemas.csv:3 — rascunho 13/09 — o termo ácido não está definido e aguarda o Rodrigo,rascunho,pendente_homologacao,,"O terreno de inflamação de baixo grau sustentada. Expressa-se como dor sem causa mecânica clara, rigidez ao acordar, e mucosas e pele reagindo mais do que deveriam — acompanhado de um encurtamento do pavio."
+sistema,metabolico,,,Sistema Metabólico,,,motor/bancos/sistemas.csv:4 — rascunho 13/09 — aguarda revisão do Rodrigo,rascunho,pendente_homologacao,,"O terreno da desregulação da glicose e da resposta à insulina, lido junto com o comportamento alimentar que o sustenta. É o único sistema em que o sinal do corpo e o padrão de comer estão na mesma leitura — porque um alimenta o outro."
+sistema,detox_linfatico,,,Sistema Detox + Linfático,,,motor/bancos/sistemas.csv:5 — rascunho 13/09 — o termo detox não está definido e aguarda o Rodrigo,rascunho,pendente_homologacao,,"O terreno da sobrecarga das vias de eliminação — hepática, intestinal e linfática. Expressa-se como o que entra e não sai: retenção, intestino lento, pele sem viço — e como sensibilidade aumentada a tudo que precisa ser metabolizado."
+sistema,mental_emocional_espiritual,,,Sistema Mental-Emocional-Espiritual,,,motor/bancos/sistemas.csv:6 — rascunho 13/09 — aguarda revisão do Rodrigo,rascunho,pendente_homologacao,,"O terreno do estado do sistema nervoso e da relação da pessoa consigo mesma. Reúne sono, alerta, foco e a narrativa interna — e chega até a pergunta de sentido. É o sistema que descreve em que estado a pessoa chega para tudo o mais."
+escala,frequencia,,,Nunca / Às vezes / Frequente / Sempre,,0..3,questionario.js (ESCALAS) + motor/bancos/config.csv (escala_max),estrutura_recuperada,pendente_homologacao,,Arquitetura 0..3 recuperada. Rotulos e sentido de cada escala precisam ser confirmados na edicao oficial (Mestre §12).
+escala,intensidade,,,Nada / Um pouco / Bastante / Muito,,0..3,questionario.js (ESCALAS) + motor/bancos/config.csv (escala_max),estrutura_recuperada,pendente_homologacao,,Arquitetura 0..3 recuperada. Rotulos e sentido de cada escala precisam ser confirmados na edicao oficial (Mestre §12).
+pergunta,SNT-101,fisico,,Você sente vontade forte de doce ou pão quase todo dia?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,mesmo ID em 2 linhas primarias (fungico peso 2 / metabolico peso 3),vontade intensa e recorrente de doce
+pergunta,SNT-102,fisico,,Sua barriga incha ou dá gases depois das refeições?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,distensão abdominal após refeição
+pergunta,SNT-103,fisico,,Sua língua costuma ter uma camada esbranquiçada?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,língua com saburra branca
+pergunta,SNT-104,fisico,,Você tem candidíase ou sapinho com frequência?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,candidíase de repetição
+pergunta,SNT-105,fisico,,Você tem micose de pele ou unha que volta sempre?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,micose recorrente
+pergunta,SNT-106,fisico,,Você sente coceira na região íntima ou anal?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,coceira anal ou genital
+pergunta,SNT-107,fisico,,Sua cabeça fica pesada ou confusa depois de comer massa ou doce?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,névoa mental após carboidrato
+pergunta,SNT-108,fisico,,Você tem caspa ou coceira no couro cabeludo com frequência?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,caspa ou coceira no couro cabeludo
+pergunta,SNT-109,fisico,,Você precisou tomar antibiótico ao longo da vida?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,histórico de uso repetido de antibiótico
+pergunta,SNT-110,fisico,,Você passa mal com pouca bebida alcoólica?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,intolerância a álcool
+pergunta,SNT-111,fisico,,Você vive com nariz entupido ou sinusite?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,sinusite ou rinite crônica
+pergunta,SNT-201,fisico,,Você sente dor nas articulações mesmo sem ter feito esforço?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,dor articular sem esforço
+pergunta,SNT-202,fisico,,Você acorda com o corpo travado que leva um tempo para soltar?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,rigidez ao acordar
+pergunta,SNT-203,fisico,,Você sente o corpo dolorido sem causa clara?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,dor muscular difusa
+pergunta,SNT-204,fisico,,Você sente azia ou queimação no estômago?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,queimação estomacal
+pergunta,SNT-205,fisico,,Você tem dor de cabeça mais de uma vez por semana?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,dor de cabeça frequente
+pergunta,SNT-206,fisico,,"Sua pele tem crises de acne inflamada, eczema ou psoríase?",direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,pele inflamada
+pergunta,SNT-207,fisico,,Sua gengiva sangra ao escovar?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,gengiva que sangra
+pergunta,SNT-208,fisico,,Você percebe que piora quando come ultraprocessado ou açúcar?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,piora clara com ultraprocessado
+pergunta,SNT-209,fisico,,Suas mãos ou dedos amanhecem inchados?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,inchaço nas mãos ao acordar
+pergunta,SNT-210,fisico,,Seus exames costumam mostrar PCR ou VHS acima do normal?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,marcador inflamatório alterado no exame
+pergunta,SNT-301,fisico,,Você fica com muito sono logo depois do almoço?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,sonolência forte depois do almoço
+pergunta,SNT-303,fisico,,Você sente fome de novo pouco tempo depois de ter comido?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,fome pouco tempo depois de comer
+pergunta,SNT-304,fisico,,Você come depois do jantar mesmo sem fome real?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,compulsão ou beliscar à noite
+pergunta,SNT-305,fisico,,Sua gordura se concentra na barriga?,direta,intensidade,rascunho-literatura-funcional,rascunho,pendente_homologacao,,acúmulo de gordura abdominal
+pergunta,SNT-306,fisico,,A pele do seu pescoço ou axila está mais escura e aveludada?,direta,intensidade,rascunho-literatura-funcional,rascunho,pendente_homologacao,,escurecimento nas dobras da pele
+pergunta,SNT-307,fisico,,Você fica irritado ou trêmulo se atrasa uma refeição?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,irritação forte se atrasa a refeição
+pergunta,SNT-308,fisico,,Você tem dificuldade de perder peso mesmo comendo pouco?,direta,intensidade,rascunho-literatura-funcional,rascunho,pendente_homologacao,,dificuldade de perder peso mesmo comendo pouco
+pergunta,SNT-309,fisico,,Seus exames costumam mostrar triglicerídeos altos ou HDL baixo?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,triglicerídeos altos ou HDL baixo
+pergunta,SNT-401,fisico,,Você percebe inchaço nas pernas ou nos pés no fim do dia?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,retenção de líquido
+pergunta,SNT-402,fisico,,Seu rosto amanhece inchado?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,rosto inchado ao acordar
+pergunta,SNT-403,fisico,,Cheiros fortes te incomodam mais do que incomodam as outras pessoas?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,intolerância a cheiros fortes
+pergunta,SNT-404,fisico,,Comida gordurosa te faz passar mal ou pesa muito?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,mal-estar com alimento gorduroso
+pergunta,SNT-405,fisico,,Você passa um dia ou mais sem evacuar?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,intestino preso
+pergunta,SNT-406,fisico,,Uma taça já te dá ressaca no dia seguinte?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,ressaca intensa com pouco álcool
+pergunta,SNT-407,fisico,,Você reage muito forte a medicamento ou a café?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,sensibilidade a medicamento ou cafeína
+pergunta,SNT-408,fisico,,Sua pele está opaca ou com olheiras marcadas?,direta,intensidade,rascunho-literatura-funcional,rascunho,pendente_homologacao,,pele opaca e olheiras
+pergunta,SNT-409,fisico,,Seu suor tem odor forte?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,odor corporal forte
+pergunta,SNT-410,fisico,,Você tem celulite acentuada?,direta,intensidade,rascunho-literatura-funcional,rascunho,pendente_homologacao,,celulite acentuada
+pergunta,SNT-501,fisico,,Você acorda cansado mesmo dormindo as horas necessárias?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,mesmo ID em 2 linhas primarias (metabolico peso 2 / mental_emocional_espiritual peso 3),sono não reparador
+pergunta,SNT-502,fisico,,Você demora a dormir porque a cabeça não desliga?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,dificuldade de dormir por pensamento acelerado
+pergunta,SNT-503,fisico,,Você acorda de madrugada e custa a voltar a dormir?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,despertar de madrugada
+pergunta,SNT-504,fisico,,Você se preocupa muito com coisas que ainda nem aconteceram?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,ansiedade antecipatória
+pergunta,SNT-505,fisico,,Você come para se acalmar quando fica ansioso ou triste?,direta,frequencia,livro p. 90 (Trava do Trauma Alimentar),rascunho,pendente_homologacao,,comer para acalmar emoção
+pergunta,SNT-506,fisico,,Você sente que está sempre em alerta esperando algo dar errado?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,estado de alerta constante
+pergunta,SNT-507,fisico,,Você consegue perceber quando está com fome e quando já está satisfeito?,invertida,frequencia,livro p. 91 (Trava da Desconexão Corpo-Mente),rascunho,pendente_homologacao,,não percebe fome nem saciedade
+pergunta,SNT-508,fisico,,Você tem dificuldade de manter o foco em uma tarefa?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,dificuldade de concentração
+pergunta,SNT-509,fisico,,Você perde a paciência com facilidade?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,irritabilidade
+pergunta,SNT-510,fisico,,Você tem se afastado das pessoas?,direta,frequencia,rascunho-literatura-funcional,rascunho,pendente_homologacao,,afastamento das pessoas
+pergunta,EMO-101,mental_emocional,,Você adia começar coisas mesmo sabendo que precisa fazer?,direta,frequencia,material 11/08 (padrão do Fúngico: estagnação e desordem),rascunho,pendente_homologacao,,desânimo para começar as coisas
+pergunta,EMO-102,mental_emocional,,Você sente que sua vida está desorganizada e não consegue pôr ordem?,direta,frequencia,material 11/08 (padrão do Fúngico: estagnação e desordem),rascunho,pendente_homologacao,,sensação de vida bagunçada
+pergunta,EMO-103,mental_emocional,,Você sente um peso para sair do lugar mesmo querendo mudar?,direta,frequencia,material 11/08 (padrão do Fúngico),rascunho,pendente_homologacao,,peso para sair do lugar
+pergunta,EMO-201,mental_emocional,,Você se irrita com facilidade por coisas pequenas?,direta,frequencia,material 11/08 (padrão do Ácido-Inflamatório: irritação e reatividade),rascunho,pendente_homologacao,,irritação com coisas pequenas
+pergunta,EMO-202,mental_emocional,,Sua raiva sobe rápido e demora a passar?,direta,frequencia,material 11/08 (padrão do Ácido-Inflamatório),rascunho,pendente_homologacao,,raiva que sobe rápido
+pergunta,EMO-203,mental_emocional,,Você costuma aceitar o que não quer para evitar conflito?,direta,frequencia,material 11/08 (impacto espiritual: bloqueio no plexo solar),rascunho,pendente_homologacao,,dificuldade de dizer não
+pergunta,EMO-204,mental_emocional,,Você engole o que gostaria de dizer para não criar problema?,direta,frequencia,material 11/08 (impacto espiritual: bloqueio no plexo solar),rascunho,pendente_homologacao,,engolir o que gostaria de dizer
+pergunta,EMO-301,mental_emocional,,Você sente um vazio que a comida parece tentar preencher?,direta,frequencia,material 11/08 (padrão do Metabólico: vazio e falta de propósito),rascunho,pendente_homologacao,,sensação de vazio
+pergunta,EMO-302,mental_emocional,,Você passa os dias no piloto automático sem perceber o que está fazendo?,direta,frequencia,livro p. 56 (Propósito de Vida e Nutrição),rascunho,pendente_homologacao,,vida no automático
+pergunta,EMO-303,mental_emocional,,Você usa comida como recompensa depois de um dia difícil?,direta,frequencia,livro p. 90 (Trava da Resistência ao Prazer),rascunho,pendente_homologacao,,comida como recompensa
+pergunta,EMO-401,mental_emocional,,Você se pega remoendo uma mágoa antiga?,direta,frequencia,material 11/08 (padrão do Detox: acúmulo de mágoas),rascunho,pendente_homologacao,,mágoa antiga não resolvida
+pergunta,EMO-402,mental_emocional,,Você costuma guardar o que sente em vez de falar?,direta,frequencia,material 11/08 (padrão do Detox: emoções não processadas),rascunho,pendente_homologacao,,emoção guardada sem processar
+pergunta,EMO-403,mental_emocional,,Você tem dificuldade de aceitar ajuda ou cuidado das pessoas?,direta,frequencia,material 11/08 (padrão do Detox),rascunho,pendente_homologacao,,dificuldade de receber cuidado
+pergunta,EMO-501,mental_emocional,,Você fala consigo mesmo de um jeito que não falaria com um amigo?,direta,frequencia,livro p. 92 (Reparentalização Nutricional),rascunho,pendente_homologacao,,autocrítica severa
+pergunta,EMO-502,mental_emocional,,Quando você sai da linha um dia você sente que perdeu tudo e abandona?,direta,frequencia,livro p. 89 (Trava da Perfeição),rascunho,pendente_homologacao,,pensamento tudo ou nada
+pergunta,EMO-503,mental_emocional,,Você se descreve com frases como sempre fui assim ou não tenho força de vontade?,direta,frequencia,livro p. 89 (Trava da Identidade Limitante),rascunho,pendente_homologacao,,identidade fixa sobre si
+pergunta,EMO-504,mental_emocional,,Você sente culpa ou vergonha depois de comer?,direta,frequencia,livro p. 90 (Trava do Trauma Alimentar),rascunho,pendente_homologacao,,culpa depois de comer
+pergunta,EMO-505,mental_emocional,,Você sente que seu corpo trabalha contra você?,direta,frequencia,livro p. 91 (Trava da Desconexão Corpo-Mente),rascunho,pendente_homologacao,,corpo visto como adversário
+pergunta,EMO-507,mental_emocional,,Você olha para sua vida hoje e se reconhece nela?,invertida,frequencia,material 11/08 (padrão do Mental-Emocional: desconexão de si),rascunho,pendente_homologacao,,desconexão de si mesmo
+pergunta,ESP-101,espiritual,,Você sente que sua vida tem uma direção clara?,invertida,intensidade,livro p. 56 (Propósito de Vida e Nutrição),rascunho,pendente_homologacao,,ausência de direção
+pergunta,ESP-102,espiritual,,Você sabe dizer o que veio fazer nesta vida?,invertida,intensidade,livro p. 57 (Reconexão com o Propósito),rascunho,pendente_homologacao,,não sabe qual é a própria contribuição
+pergunta,ESP-103,espiritual,,Sua rotina de hoje te afasta do que você quer para a sua vida?,direta,intensidade,livro p. 57 (Avaliação de Alinhamento),rascunho,pendente_homologacao,,rotina desalinhada do que diz querer
+pergunta,ESP-201,espiritual,,Suas escolhas alimentares combinam com aquilo que você diz valorizar?,invertida,frequencia,livro p. 54 (A Nutrição como Expressão de Propósito e Valores),rascunho,pendente_homologacao,,incoerência entre valor e escolha alimentar
+pergunta,ESP-202,espiritual,,Você tem clareza sobre o que é inegociável para você?,invertida,intensidade,livro p. 57 (Clarificação de Valores),rascunho,pendente_homologacao,,não sabe nomear os próprios valores
+pergunta,ESP-203,espiritual,,Você abre mão do que é inegociável para você só para agradar alguém?,direta,frequencia,livro p. 46 (princípios inegociáveis),rascunho,pendente_homologacao,,abre mão do que é inegociável
+pergunta,ESP-301,espiritual,,Você sente que existe algo maior te sustentando?,invertida,intensidade,livro p. 38 (O Pilar Espiritual),rascunho,pendente_homologacao,,desconexão com algo maior
+pergunta,ESP-302,espiritual,,Você reserva um momento do dia para agradecer alguma coisa?,invertida,frequencia,livro p. 60 (Gratidão Consciente),rascunho,pendente_homologacao,,ausência de gratidão no cotidiano
+pergunta,ESP-303,espiritual,,Você começa a comer sem fazer nenhuma pausa antes?,direta,frequencia,livro p. 62 (Pausa Consciente),rascunho,pendente_homologacao,,come sem nenhum momento de pausa
+pergunta,ESP-401,espiritual,,Você sente que não merece as coisas boas que conquista?,direta,frequencia,livro p. 86 (Investigação de Crenças Limitantes),rascunho,pendente_homologacao,,crença de não merecimento
+pergunta,ESP-402,espiritual,,Quando as coisas começam a dar certo você acaba boicotando?,direta,frequencia,livro p. 89 (travas mentais e emocionais),rascunho,pendente_homologacao,,autossabotagem recorrente
+pergunta,ESP-403,espiritual,,Você repete sobre si mesmo histórias que ouviu na família e nunca questionou?,direta,frequencia,livro p. 91 (Biografia Consciente),rascunho,pendente_homologacao,,história limitante sobre si
+pergunta,ESP-404,espiritual,,Você acredita que para ter saúde precisa sofrer ou se privar?,direta,intensidade,livro p. 90 (Trava da Resistência ao Prazer),rascunho,pendente_homologacao,,saúde associada a sofrimento
+pergunta,ESP-405,espiritual,,Você carrega o peso de não ter conseguido perdoar alguém?,direta,frequencia,material 11/08 (padrão do Detox: acúmulo de mágoas),rascunho,pendente_homologacao,,mágoa que trava o fluxo
+pergunta,ESP-501,espiritual,,Você passa algum tempo em contato com a natureza?,invertida,frequencia,livro p. 39 (alimentação como ato sagrado),rascunho,pendente_homologacao,,desconexão com a natureza
+pergunta,ESP-502,espiritual,,Você faz suas refeições sozinho e com pressa?,direta,frequencia,livro p. 63 (Comunhão Consciente),rascunho,pendente_homologacao,,come sempre sozinho e com pressa
+associacao,SNT-101,,system:fungico,2,,primaria,motor/bancos/sintomas.csv:2,,pendente_homologacao,sim,mesmo ID em 2 linhas primarias (fungico peso 2 / metabolico peso 3)
+associacao,SNT-102,,system:fungico,3,,primaria,motor/bancos/sintomas.csv:3,,pendente_homologacao,,
+associacao,SNT-103,,system:fungico,3,,primaria,motor/bancos/sintomas.csv:4,,pendente_homologacao,,
+associacao,SNT-104,,system:fungico,3,,primaria,motor/bancos/sintomas.csv:5,,pendente_homologacao,,
+associacao,SNT-105,,system:fungico,3,,primaria,motor/bancos/sintomas.csv:6,,pendente_homologacao,,
+associacao,SNT-106,,system:fungico,2,,primaria,motor/bancos/sintomas.csv:7,,pendente_homologacao,,
+associacao,SNT-107,,system:fungico,2,,primaria,motor/bancos/sintomas.csv:8,,pendente_homologacao,,
+associacao,SNT-108,,system:fungico,1,,primaria,motor/bancos/sintomas.csv:9,,pendente_homologacao,,
+associacao,SNT-109,,system:fungico,2,,primaria,motor/bancos/sintomas.csv:10,,pendente_homologacao,,
+associacao,SNT-110,,system:fungico,2,,primaria,motor/bancos/sintomas.csv:11,,pendente_homologacao,,
+associacao,SNT-111,,system:fungico,1,,primaria,motor/bancos/sintomas.csv:12,,pendente_homologacao,,
+associacao,SNT-201,,system:acido_inflamatorio,3,,primaria,motor/bancos/sintomas.csv:13,,pendente_homologacao,,
+associacao,SNT-202,,system:acido_inflamatorio,3,,primaria,motor/bancos/sintomas.csv:14,,pendente_homologacao,,
+associacao,SNT-203,,system:acido_inflamatorio,2,,primaria,motor/bancos/sintomas.csv:15,,pendente_homologacao,,
+associacao,SNT-204,,system:acido_inflamatorio,2,,primaria,motor/bancos/sintomas.csv:16,,pendente_homologacao,,
+associacao,SNT-205,,system:acido_inflamatorio,2,,primaria,motor/bancos/sintomas.csv:17,,pendente_homologacao,,
+associacao,SNT-206,,system:acido_inflamatorio,2,,primaria,motor/bancos/sintomas.csv:18,,pendente_homologacao,,
+associacao,SNT-207,,system:acido_inflamatorio,2,,primaria,motor/bancos/sintomas.csv:19,,pendente_homologacao,,
+associacao,SNT-208,,system:acido_inflamatorio,2,,primaria,motor/bancos/sintomas.csv:20,,pendente_homologacao,,
+associacao,SNT-209,,system:acido_inflamatorio,2,,primaria,motor/bancos/sintomas.csv:21,,pendente_homologacao,,
+associacao,SNT-210,,system:acido_inflamatorio,3,,primaria,motor/bancos/sintomas.csv:22,,pendente_homologacao,,
+associacao,SNT-301,,system:metabolico,3,,primaria,motor/bancos/sintomas.csv:23,,pendente_homologacao,,
+associacao,SNT-101,,system:metabolico,3,,primaria,motor/bancos/sintomas.csv:24,,pendente_homologacao,sim,mesmo ID em 2 linhas primarias (fungico peso 2 / metabolico peso 3)
+associacao,SNT-303,,system:metabolico,3,,primaria,motor/bancos/sintomas.csv:25,,pendente_homologacao,,
+associacao,SNT-304,,system:metabolico,3,,primaria,motor/bancos/sintomas.csv:26,,pendente_homologacao,,
+associacao,SNT-305,,system:metabolico,3,,primaria,motor/bancos/sintomas.csv:27,,pendente_homologacao,,
+associacao,SNT-306,,system:metabolico,3,,primaria,motor/bancos/sintomas.csv:28,,pendente_homologacao,,
+associacao,SNT-307,,system:metabolico,2,,primaria,motor/bancos/sintomas.csv:29,,pendente_homologacao,,
+associacao,SNT-308,,system:metabolico,2,,primaria,motor/bancos/sintomas.csv:30,,pendente_homologacao,,
+associacao,SNT-309,,system:metabolico,3,,primaria,motor/bancos/sintomas.csv:31,,pendente_homologacao,,
+associacao,SNT-501,,system:metabolico,2,,primaria,motor/bancos/sintomas.csv:32,,pendente_homologacao,sim,mesmo ID em 2 linhas primarias (metabolico peso 2 / mental_emocional_espiritual peso 3)
+associacao,SNT-401,,system:detox_linfatico,3,,primaria,motor/bancos/sintomas.csv:33,,pendente_homologacao,,
+associacao,SNT-402,,system:detox_linfatico,2,,primaria,motor/bancos/sintomas.csv:34,,pendente_homologacao,,
+associacao,SNT-403,,system:detox_linfatico,3,,primaria,motor/bancos/sintomas.csv:35,,pendente_homologacao,,
+associacao,SNT-404,,system:detox_linfatico,2,,primaria,motor/bancos/sintomas.csv:36,,pendente_homologacao,,
+associacao,SNT-405,,system:detox_linfatico,3,,primaria,motor/bancos/sintomas.csv:37,,pendente_homologacao,,
+associacao,SNT-406,,system:detox_linfatico,2,,primaria,motor/bancos/sintomas.csv:38,,pendente_homologacao,,
+associacao,SNT-407,,system:detox_linfatico,2,,primaria,motor/bancos/sintomas.csv:39,,pendente_homologacao,,
+associacao,SNT-408,,system:detox_linfatico,2,,primaria,motor/bancos/sintomas.csv:40,,pendente_homologacao,,
+associacao,SNT-409,,system:detox_linfatico,2,,primaria,motor/bancos/sintomas.csv:41,,pendente_homologacao,,
+associacao,SNT-410,,system:detox_linfatico,1,,primaria,motor/bancos/sintomas.csv:42,,pendente_homologacao,,
+associacao,SNT-501,,system:mental_emocional_espiritual,3,,primaria,motor/bancos/sintomas.csv:43,,pendente_homologacao,sim,mesmo ID em 2 linhas primarias (metabolico peso 2 / mental_emocional_espiritual peso 3)
+associacao,SNT-502,,system:mental_emocional_espiritual,3,,primaria,motor/bancos/sintomas.csv:44,,pendente_homologacao,,
+associacao,SNT-503,,system:mental_emocional_espiritual,2,,primaria,motor/bancos/sintomas.csv:45,,pendente_homologacao,,
+associacao,SNT-504,,system:mental_emocional_espiritual,3,,primaria,motor/bancos/sintomas.csv:46,,pendente_homologacao,,
+associacao,SNT-505,,system:mental_emocional_espiritual,3,,primaria,motor/bancos/sintomas.csv:47,,pendente_homologacao,,
+associacao,SNT-506,,system:mental_emocional_espiritual,3,,primaria,motor/bancos/sintomas.csv:48,,pendente_homologacao,,
+associacao,SNT-507,,system:mental_emocional_espiritual,3,,primaria,motor/bancos/sintomas.csv:49,,pendente_homologacao,,
+associacao,SNT-508,,system:mental_emocional_espiritual,2,,primaria,motor/bancos/sintomas.csv:50,,pendente_homologacao,,
+associacao,SNT-509,,system:mental_emocional_espiritual,2,,primaria,motor/bancos/sintomas.csv:51,,pendente_homologacao,,
+associacao,SNT-510,,system:mental_emocional_espiritual,2,,primaria,motor/bancos/sintomas.csv:52,,pendente_homologacao,,
+associacao,EMO-101,,system:fungico,3,,primaria,motor/bancos/emocoes.csv:2,,pendente_homologacao,,
+associacao,EMO-101,,system:metabolico,3,,secundaria,motor/bancos/emocoes.csv:2 × config.csv peso_secundario_fator=1,,pendente_homologacao,,"peso secundario derivado de peso_secundario_fator (""decidido 27/08"", sem homologacao)"
+associacao,EMO-102,,system:fungico,2,,primaria,motor/bancos/emocoes.csv:3,,pendente_homologacao,,
+associacao,EMO-103,,system:fungico,2,,primaria,motor/bancos/emocoes.csv:4,,pendente_homologacao,,
+associacao,EMO-103,,system:mental_emocional_espiritual,2,,secundaria,motor/bancos/emocoes.csv:4 × config.csv peso_secundario_fator=1,,pendente_homologacao,,"peso secundario derivado de peso_secundario_fator (""decidido 27/08"", sem homologacao)"
+associacao,EMO-201,,system:acido_inflamatorio,3,,primaria,motor/bancos/emocoes.csv:5,,pendente_homologacao,,
+associacao,EMO-201,,system:mental_emocional_espiritual,3,,secundaria,motor/bancos/emocoes.csv:5 × config.csv peso_secundario_fator=1,,pendente_homologacao,,"peso secundario derivado de peso_secundario_fator (""decidido 27/08"", sem homologacao)"
+associacao,EMO-202,,system:acido_inflamatorio,3,,primaria,motor/bancos/emocoes.csv:6,,pendente_homologacao,,
+associacao,EMO-203,,system:acido_inflamatorio,2,,primaria,motor/bancos/emocoes.csv:7,,pendente_homologacao,,
+associacao,EMO-203,,system:detox_linfatico,2,,secundaria,motor/bancos/emocoes.csv:7 × config.csv peso_secundario_fator=1,,pendente_homologacao,,"peso secundario derivado de peso_secundario_fator (""decidido 27/08"", sem homologacao)"
+associacao,EMO-204,,system:acido_inflamatorio,2,,primaria,motor/bancos/emocoes.csv:8,,pendente_homologacao,,
+associacao,EMO-301,,system:metabolico,3,,primaria,motor/bancos/emocoes.csv:9,,pendente_homologacao,,
+associacao,EMO-301,,system:mental_emocional_espiritual,3,,secundaria,motor/bancos/emocoes.csv:9 × config.csv peso_secundario_fator=1,,pendente_homologacao,,"peso secundario derivado de peso_secundario_fator (""decidido 27/08"", sem homologacao)"
+associacao,EMO-302,,system:metabolico,3,,primaria,motor/bancos/emocoes.csv:10,,pendente_homologacao,,
+associacao,EMO-302,,system:mental_emocional_espiritual,3,,secundaria,motor/bancos/emocoes.csv:10 × config.csv peso_secundario_fator=1,,pendente_homologacao,,"peso secundario derivado de peso_secundario_fator (""decidido 27/08"", sem homologacao)"
+associacao,EMO-303,,system:metabolico,2,,primaria,motor/bancos/emocoes.csv:11,,pendente_homologacao,,
+associacao,EMO-401,,system:detox_linfatico,3,,primaria,motor/bancos/emocoes.csv:12,,pendente_homologacao,,
+associacao,EMO-402,,system:detox_linfatico,3,,primaria,motor/bancos/emocoes.csv:13,,pendente_homologacao,,
+associacao,EMO-402,,system:mental_emocional_espiritual,3,,secundaria,motor/bancos/emocoes.csv:13 × config.csv peso_secundario_fator=1,,pendente_homologacao,,"peso secundario derivado de peso_secundario_fator (""decidido 27/08"", sem homologacao)"
+associacao,EMO-403,,system:detox_linfatico,2,,primaria,motor/bancos/emocoes.csv:14,,pendente_homologacao,,
+associacao,EMO-501,,system:mental_emocional_espiritual,3,,primaria,motor/bancos/emocoes.csv:15,,pendente_homologacao,,
+associacao,EMO-502,,system:mental_emocional_espiritual,3,,primaria,motor/bancos/emocoes.csv:16,,pendente_homologacao,,
+associacao,EMO-502,,system:metabolico,3,,secundaria,motor/bancos/emocoes.csv:16 × config.csv peso_secundario_fator=1,,pendente_homologacao,,"peso secundario derivado de peso_secundario_fator (""decidido 27/08"", sem homologacao)"
+associacao,EMO-503,,system:mental_emocional_espiritual,3,,primaria,motor/bancos/emocoes.csv:17,,pendente_homologacao,,
+associacao,EMO-504,,system:mental_emocional_espiritual,3,,primaria,motor/bancos/emocoes.csv:18,,pendente_homologacao,,
+associacao,EMO-504,,system:metabolico,3,,secundaria,motor/bancos/emocoes.csv:18 × config.csv peso_secundario_fator=1,,pendente_homologacao,,"peso secundario derivado de peso_secundario_fator (""decidido 27/08"", sem homologacao)"
+associacao,EMO-505,,system:mental_emocional_espiritual,3,,primaria,motor/bancos/emocoes.csv:19,,pendente_homologacao,,
+associacao,EMO-507,,system:mental_emocional_espiritual,3,,primaria,motor/bancos/emocoes.csv:20,,pendente_homologacao,,
+associacao,ESP-101,,system:metabolico,3,,primaria,motor/bancos/espiritual.csv:2,,pendente_homologacao,,
+associacao,ESP-102,,system:mental_emocional_espiritual,2,,primaria,motor/bancos/espiritual.csv:3,,pendente_homologacao,,
+associacao,ESP-103,,system:metabolico,2,,primaria,motor/bancos/espiritual.csv:4,,pendente_homologacao,,
+associacao,ESP-201,,system:mental_emocional_espiritual,3,,primaria,motor/bancos/espiritual.csv:5,,pendente_homologacao,,
+associacao,ESP-202,,system:mental_emocional_espiritual,2,,primaria,motor/bancos/espiritual.csv:6,,pendente_homologacao,,
+associacao,ESP-203,,system:acido_inflamatorio,2,,primaria,motor/bancos/espiritual.csv:7,,pendente_homologacao,,
+associacao,ESP-301,,system:mental_emocional_espiritual,2,,primaria,motor/bancos/espiritual.csv:8,,pendente_homologacao,,
+associacao,ESP-302,,system:mental_emocional_espiritual,2,,primaria,motor/bancos/espiritual.csv:9,,pendente_homologacao,,
+associacao,ESP-303,,system:metabolico,2,,primaria,motor/bancos/espiritual.csv:10,,pendente_homologacao,,
+associacao,ESP-401,,system:mental_emocional_espiritual,3,,primaria,motor/bancos/espiritual.csv:11,,pendente_homologacao,,
+associacao,ESP-402,,system:mental_emocional_espiritual,3,,primaria,motor/bancos/espiritual.csv:12,,pendente_homologacao,,
+associacao,ESP-403,,system:mental_emocional_espiritual,2,,primaria,motor/bancos/espiritual.csv:13,,pendente_homologacao,,
+associacao,ESP-404,,system:acido_inflamatorio,2,,primaria,motor/bancos/espiritual.csv:14,,pendente_homologacao,,
+associacao,ESP-405,,system:detox_linfatico,3,,primaria,motor/bancos/espiritual.csv:15,,pendente_homologacao,,
+associacao,ESP-501,,system:fungico,2,,primaria,motor/bancos/espiritual.csv:16,,pendente_homologacao,,
+associacao,ESP-502,,system:detox_linfatico,2,,primaria,motor/bancos/espiritual.csv:17,,pendente_homologacao,,
+associacao,SNT-101,,triad:fisico,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-102,,triad:fisico,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-103,,triad:fisico,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-104,,triad:fisico,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-105,,triad:fisico,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-106,,triad:fisico,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-107,,triad:fisico,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-108,,triad:fisico,1,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-109,,triad:fisico,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-110,,triad:fisico,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-111,,triad:fisico,1,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-201,,triad:fisico,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-202,,triad:fisico,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-203,,triad:fisico,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-204,,triad:fisico,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-205,,triad:fisico,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-206,,triad:fisico,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-207,,triad:fisico,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-208,,triad:fisico,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-209,,triad:fisico,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-210,,triad:fisico,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-301,,triad:fisico,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-303,,triad:fisico,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-304,,triad:fisico,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-305,,triad:fisico,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-306,,triad:fisico,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-307,,triad:fisico,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-308,,triad:fisico,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-309,,triad:fisico,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-501,,triad:fisico,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-401,,triad:fisico,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-402,,triad:fisico,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-403,,triad:fisico,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-404,,triad:fisico,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-405,,triad:fisico,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-406,,triad:fisico,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-407,,triad:fisico,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-408,,triad:fisico,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-409,,triad:fisico,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-410,,triad:fisico,1,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-502,,triad:fisico,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-503,,triad:fisico,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-504,,triad:fisico,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-505,,triad:fisico,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-506,,triad:fisico,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-507,,triad:fisico,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-508,,triad:fisico,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-509,,triad:fisico,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,SNT-510,,triad:fisico,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,EMO-101,,triad:mental,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,EMO-102,,triad:mental,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,EMO-103,,triad:mental,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,EMO-201,,triad:mental,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,EMO-202,,triad:mental,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,EMO-203,,triad:mental,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,EMO-204,,triad:mental,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,EMO-301,,triad:mental,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,EMO-302,,triad:mental,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,EMO-303,,triad:mental,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,EMO-401,,triad:mental,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,EMO-402,,triad:mental,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,EMO-403,,triad:mental,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,EMO-501,,triad:mental,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,EMO-502,,triad:mental,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,EMO-503,,triad:mental,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,EMO-504,,triad:mental,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,EMO-505,,triad:mental,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,EMO-507,,triad:mental,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,ESP-101,,triad:espiritual,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,ESP-102,,triad:espiritual,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,ESP-103,,triad:espiritual,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,ESP-201,,triad:espiritual,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,ESP-202,,triad:espiritual,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,ESP-203,,triad:espiritual,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,ESP-301,,triad:espiritual,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,ESP-302,,triad:espiritual,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,ESP-303,,triad:espiritual,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,ESP-401,,triad:espiritual,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,ESP-402,,triad:espiritual,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,ESP-403,,triad:espiritual,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,ESP-404,,triad:espiritual,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,ESP-405,,triad:espiritual,3,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,ESP-501,,triad:espiritual,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+associacao,ESP-502,,triad:espiritual,2,,derivada,"motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",,pendente_homologacao,,"vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)"
+faixa,fungico:baixo,fungico,system,nota <= 3,,,motor/bancos/regras.csv:2 + motor/bancos/mensagens.csv,rascunho,pendente_homologacao,,O Fúngico é o terreno mais carregado deste mapa. Os sinais de mucosa e pele aparecem junto com a vontade recorrente de doce — e o padrão emocional que o material associa a ele é estagnação e desordem.
+faixa,fungico:medio,fungico,system,3 < nota <= 6,,,motor/bancos/regras.csv:2 + motor/bancos/mensagens.csv,rascunho,pendente_homologacao,,"O Fúngico tem sinais presentes, mas ainda não dominantes. Vale olhar quais marcadores pesaram antes de intervir aqui."
+faixa,fungico:alto,fungico,system,nota > 6,,,motor/bancos/regras.csv:2 + motor/bancos/mensagens.csv,rascunho,pendente_homologacao,,O Fúngico está equilibrado hoje. Não é prioridade de conduta neste momento.
+faixa,acido_inflamatorio:baixo,acido_inflamatorio,system,nota <= 3,,,motor/bancos/regras.csv:3 + motor/bancos/mensagens.csv,rascunho,pendente_homologacao,,"O Ácido-Inflamatório é o terreno mais carregado deste mapa: dor sem causa mecânica clara, rigidez ao acordar e mucosas reagindo mais do que deveriam. O padrão emocional associado é irritação e reatividade."
+faixa,acido_inflamatorio:medio,acido_inflamatorio,system,3 < nota <= 6,,,motor/bancos/regras.csv:3 + motor/bancos/mensagens.csv,rascunho,pendente_homologacao,,O Ácido-Inflamatório tem sinais presentes sem dominar o quadro. Vale conferir os marcadores de dor e o par emocional antes de intervir.
+faixa,acido_inflamatorio:alto,acido_inflamatorio,system,nota > 6,,,motor/bancos/regras.csv:3 + motor/bancos/mensagens.csv,rascunho,pendente_homologacao,,O Ácido-Inflamatório está equilibrado hoje.
+faixa,metabolico:baixo,metabolico,system,nota <= 3,,,motor/bancos/regras.csv:4 + motor/bancos/mensagens.csv,rascunho,pendente_homologacao,,O Metabólico é o terreno mais carregado deste mapa: a energia oscila ao longo do dia e o comer acompanha essa oscilação. O padrão emocional associado é vazio e falta de propósito — e é o sistema onde sinal do corpo e comportamento alimentar se sustentam um ao outro.
+faixa,metabolico:medio,metabolico,system,3 < nota <= 6,,,motor/bancos/regras.csv:4 + motor/bancos/mensagens.csv,rascunho,pendente_homologacao,,O Metabólico tem sinais presentes sem dominar o quadro. Vale conferir a compulsão e a resposta depois das refeições.
+faixa,metabolico:alto,metabolico,system,nota > 6,,,motor/bancos/regras.csv:4 + motor/bancos/mensagens.csv,rascunho,pendente_homologacao,,O Metabólico está equilibrado hoje.
+faixa,detox_linfatico:baixo,detox_linfatico,system,nota <= 3,,,motor/bancos/regras.csv:5 + motor/bancos/mensagens.csv,rascunho,pendente_homologacao,,"O Detox + Linfático é o terreno mais carregado deste mapa: o que entra não está saindo na mesma medida — retenção, intestino lento, e sensibilidade aumentada a cheiro, álcool e medicamento. O padrão emocional associado é acúmulo de mágoas e emoções não processadas."
+faixa,detox_linfatico:medio,detox_linfatico,system,3 < nota <= 6,,,motor/bancos/regras.csv:5 + motor/bancos/mensagens.csv,rascunho,pendente_homologacao,,O Detox + Linfático tem sinais presentes sem dominar o quadro. Vale conferir retenção e sensibilidade a odores.
+faixa,detox_linfatico:alto,detox_linfatico,system,nota > 6,,,motor/bancos/regras.csv:5 + motor/bancos/mensagens.csv,rascunho,pendente_homologacao,,O Detox + Linfático está equilibrado hoje.
+faixa,mental_emocional_espiritual:baixo,mental_emocional_espiritual,system,nota <= 3,,,motor/bancos/regras.csv:6 + motor/bancos/mensagens.csv,rascunho,pendente_homologacao,,"O Mental-Emocional-Espiritual é o terreno mais carregado deste mapa: sono, estado de alerta e a narrativa interna aparecem juntos. É o sistema que descreve em que estado a paciente chega para tudo o mais — e por isso costuma sustentar os outros quatro."
+faixa,mental_emocional_espiritual:medio,mental_emocional_espiritual,system,3 < nota <= 6,,,motor/bancos/regras.csv:6 + motor/bancos/mensagens.csv,rascunho,pendente_homologacao,,O Mental-Emocional-Espiritual tem sinais presentes sem dominar o quadro. Vale conferir a narrativa interna e a qualidade do sono.
+faixa,mental_emocional_espiritual:alto,mental_emocional_espiritual,system,nota > 6,,,motor/bancos/regras.csv:6 + motor/bancos/mensagens.csv,rascunho,pendente_homologacao,,O Mental-Emocional-Espiritual está equilibrado hoje.
+indice_peso,fungico,fungico,index,0.2,,,motor/bancos/regras.csv (peso_indice) + motor/src/motor.ts + motor/bancos/config.csv,nao_oficial,pendente_homologacao,,pesos iguais nao sao decisao final (Mestre §16)
+indice_peso,acido_inflamatorio,acido_inflamatorio,index,0.2,,,motor/bancos/regras.csv (peso_indice) + motor/src/motor.ts + motor/bancos/config.csv,nao_oficial,pendente_homologacao,,pesos iguais nao sao decisao final (Mestre §16)
+indice_peso,metabolico,metabolico,index,0.2,,,motor/bancos/regras.csv (peso_indice) + motor/src/motor.ts + motor/bancos/config.csv,nao_oficial,pendente_homologacao,,pesos iguais nao sao decisao final (Mestre §16)
+indice_peso,detox_linfatico,detox_linfatico,index,0.2,,,motor/bancos/regras.csv (peso_indice) + motor/src/motor.ts + motor/bancos/config.csv,nao_oficial,pendente_homologacao,,pesos iguais nao sao decisao final (Mestre §16)
+indice_peso,mental_emocional_espiritual,mental_emocional_espiritual,index,0.2,,,motor/bancos/regras.csv (peso_indice) + motor/src/motor.ts + motor/bancos/config.csv,nao_oficial,pendente_homologacao,,pesos iguais nao sao decisao final (Mestre §16)
+combinacao,CMB-001,,leitura,metabolico <= 3 E mental_emocional_espiritual <= 3,,,motor/bancos/combinacoes.csv:2 — material HOLOSCAN bloco 1,confirmado,pendente_homologacao,,Paciente vivendo em estado crônico de ameaça
+combinacao,CMB-002,,leitura,fungico <= 3 E metabolico <= 4,,,motor/bancos/combinacoes.csv:3 — rascunho-literatura-funcional,rascunho,pendente_homologacao,,Terreno fúngico sustentado por oferta constante de açúcar
+combinacao,CMB-003,,leitura,detox_linfatico <= 4 E acido_inflamatorio <= 4 E fungico >= 7,,,motor/bancos/combinacoes.csv:4 — rascunho-literatura-funcional,rascunho,pendente_homologacao,,Sobrecarga com pouco componente fúngico — olhar fígado e intestino antes de microbiota
+combinacao,CMB-004,,leitura,mental_emocional_espiritual <= 2 E indice <= 40,,,motor/bancos/combinacoes.csv:5 — rascunho-literatura-funcional,rascunho,pendente_homologacao,,Dimensão mental-emocional puxando o quadro inteiro para baixo
+combinacao,CMB-005,,leitura,acido_inflamatorio <= 3 E mental_emocional_espiritual <= 4,,,motor/bancos/combinacoes.csv:6 — rascunho-literatura-funcional,rascunho,pendente_homologacao,,Inflamação acompanhada de reatividade emocional sustentada
+combinacao,CMB-006,,leitura,marcador.SNT-502 >= 2 E marcador.SNT-506 >= 2 E marcador.SNT-304 >= 2,,,motor/bancos/combinacoes.csv:7 — rascunho-literatura-funcional,rascunho,pendente_homologacao,,Noite em alerta sustentando a compulsão — o sono vem antes da dieta
+combinacao,CMB-007,,leitura,marcador.EMO-301 >= 2 E marcador.EMO-303 >= 2 E triada.espiritual <= 4,,,motor/bancos/combinacoes.csv:8 — rascunho-literatura-funcional,rascunho,pendente_homologacao,,Comida ocupando o lugar do que falta de sentido
+combinacao,CMB-008,,leitura,marcador.EMO-203 >= 2 E marcador.EMO-204 >= 2 E acido_inflamatorio <= 4,,,motor/bancos/combinacoes.csv:9 — material 11/08 (impacto espiritual: bloqueio no plexo solar),rascunho,pendente_homologacao,,Limite ausente acompanhando o quadro inflamatório
+combinacao,CMB-009,,leitura,marcador.EMO-401 >= 2 E marcador.EMO-402 >= 2 E detox_linfatico <= 4,,,motor/bancos/combinacoes.csv:10 — material 11/08 (padrão do Detox: acúmulo de mágoas),rascunho,pendente_homologacao,,Retenção emocional acompanhando a retenção física
+combinacao,CMB-010,,leitura,marcador.EMO-501 >= 2 E marcador.EMO-502 >= 2 E marcador.EMO-504 >= 2,,,motor/bancos/combinacoes.csv:11 — livro p. 89-90 (Travas da Perfeição e do Trauma Alimentar),rascunho,pendente_homologacao,,Ciclo de perfeição e abandono — a culpa reiniciando a compulsão
+combinacao,CMB-011,,leitura,marcador.ESP-502 >= 2 E marcador.ESP-303 >= 2 E marcador.SNT-102 >= 2,,,motor/bancos/combinacoes.csv:12 — livro p. 62-63 (Pausa e Comunhão Conscientes),rascunho,pendente_homologacao,,Ato alimentar sem pausa nem contexto acompanhando a queixa digestiva
+combinacao,CMB-012,,leitura,marcador.SNT-507 >= 2 E marcador.SNT-505 >= 2,,,motor/bancos/combinacoes.csv:13 — livro p. 91 (Trava da Desconexão Corpo-Mente),rascunho,pendente_homologacao,,Fome e saciedade fora do alcance — comer regulado por emoção e não por sinal
+combinacao,CMB-013,,encaminhar,marcador.SNT-210 >= 2,,,motor/bancos/combinacoes.csv:14 — escopo — diagnóstico e conduta sobre exame são ato médico,rascunho,pendente_homologacao,,Exame inflamatório alterado relatado — leitura e conduta são do médico
+combinacao,CMB-014,,encaminhar,marcador.SNT-309 >= 2 E marcador.SNT-306 >= 2,,,motor/bancos/combinacoes.csv:15 — escopo — diagnóstico metabólico é ato médico,rascunho,pendente_homologacao,,Alteração lipídica relatada com sinal de resistência insulínica — pede avaliação médica
+combinacao,CMB-015,,encaminhar,marcador.SNT-104 >= 2 E marcador.SNT-105 >= 2,,,motor/bancos/combinacoes.csv:16 — escopo — diagnóstico e tratamento de infecção são ato médico,rascunho,pendente_homologacao,,Infecção fúngica de repetição relatada — pede avaliação médica
+combinacao,CMB-016,,encaminhar,mental_emocional_espiritual <= 2 E marcador.SNT-510 >= 2 E marcador.SNT-506 >= 2,,,motor/bancos/combinacoes.csv:17 — escopo — sofrimento mental é de outro profissional,rascunho,pendente_homologacao,,Sofrimento mental sustentado com isolamento — pede avaliação em saúde mental
+recomendacao,REC-001,,gatilhos_respostas,holoscan,,,corpo-bancos.js,legado,pendente_homologacao,,
+recomendacao,REC-002,,diario_corporal,holoscan,,,corpo-bancos.js,legado,pendente_homologacao,,
+recomendacao,REC-003,,mapa_rotina,holoscan,,,corpo-bancos.js,legado,pendente_homologacao,,
+recomendacao,REC-004,,reenquadramento,holoscan,,,corpo-bancos.js,legado,pendente_homologacao,,
+recomendacao,REC-005,,ritmo_sono,holoscan,,,corpo-bancos.js,legado,pendente_homologacao,,
+recomendacao,REC-006,,autocompaixao,holoscan,,,corpo-bancos.js,legado,pendente_homologacao,,
+recomendacao,REC-007,,pqq,holoscan,,,corpo-bancos.js,legado,pendente_homologacao,,
+recomendacao,REC-008,,circulo_sentido,holoscan,,,corpo-bancos.js,legado,pendente_homologacao,,
+recomendacao,REC-009,,ancoras_motivacao,holoscan,,,corpo-bancos.js,legado,pendente_homologacao,,
+recomendacao,REC-010,,historia_alimentar,holoscan,,,corpo-bancos.js,legado,pendente_homologacao,,
+recomendacao,REC-011,,diario_emocoes,holoscan,,,corpo-bancos.js,legado,pendente_homologacao,,
+recomendacao,REC-012,,conexao_pertencimento,holoscan,,,corpo-bancos.js,legado,pendente_homologacao,,
+recomendacao,REC-013,,autocompaixao,holoscan,,,corpo-bancos.js,legado,pendente_homologacao,,
+recomendacao,REC-014,,roda_vida,holoscan,,,corpo-bancos.js,legado,pendente_homologacao,,
+recomendacao,REC-015,,praticas_contemplativas,holoscan,,,corpo-bancos.js,legado,pendente_homologacao,,
+recomendacao,REC-016,,linha_momentum,momentum,,,corpo-bancos.js,nao_validado,pendente_homologacao,,
+recomendacao,REC-017,,hidratacao_movimento,momentum,,,corpo-bancos.js,nao_validado,pendente_homologacao,,
+recomendacao,REC-018,,mapa_rotina,momentum,,,corpo-bancos.js,nao_validado,pendente_homologacao,,
+recomendacao,REC-019,,inventario_habitos,momentum,,,corpo-bancos.js,nao_validado,pendente_homologacao,,
+recomendacao,REC-020,,check_comprometimento,momentum,,,corpo-bancos.js,nao_validado,pendente_homologacao,,
+recomendacao,REC-021,,energia_vital,momentum,,,corpo-bancos.js,nao_validado,pendente_homologacao,,
+recomendacao,REC-022,,leitura_sinais,momentum,,,corpo-bancos.js,nao_validado,pendente_homologacao,,
+recomendacao,REC-023,,diario_corporal,momentum,,,corpo-bancos.js,nao_validado,pendente_homologacao,,
+selecao,SEL-001,,,pior=2 segundo=1 max=4,,,corpo-bancos.js,rascunho,pendente_homologacao,,
+escopo,ESC-001,,bloqueio,Prescrição de medicamento é ato médico,,,motor/politicas/escopo.csv,sem coluna status,pendente_homologacao,,
+escopo,ESC-002,,bloqueio,Indicação de dose,,,motor/politicas/escopo.csv,sem coluna status,pendente_homologacao,,
+escopo,ESC-003,,bloqueio,Suspensão de medicamento é ato médico,,,motor/politicas/escopo.csv,sem coluna status,pendente_homologacao,,
+escopo,ESC-004,,bloqueio,Diagnóstico de doença é ato médico,,,motor/politicas/escopo.csv,sem coluna status,pendente_homologacao,,
+escopo,ESC-005,,bloqueio,Promessa de cura,,,motor/politicas/escopo.csv,sem coluna status,pendente_homologacao,,
+escopo,ESC-006,,aviso,Interpretação de exame fora do escopo nutricional,,,motor/politicas/escopo.csv,sem coluna status,pendente_homologacao,,
+escopo,ESC-007,,aviso,Conduta restritiva sem avaliação individual,,,motor/politicas/escopo.csv,sem coluna status,pendente_homologacao,,
+escopo,ESC-008,,bloqueio,Conduta terapêutica para doença é ato médico,,,motor/politicas/escopo.csv,sem coluna status,pendente_homologacao,,
+escopo,ESC-009,,bloqueio,Pedido de dose,,,motor/politicas/escopo.csv,sem coluna status,pendente_homologacao,,
+escopo,ESC-010,,aviso,Pedido de indicação de suplemento ou medicamento,,,motor/politicas/escopo.csv,sem coluna status,pendente_homologacao,,
+escopo,ESC-011,,bloqueio,Pedido de quantidade a ingerir — é prescrição,,,motor/politicas/escopo.csv,sem coluna status,pendente_homologacao,,
+eixo_terapeutico,fungico:1,fungico,,Reprogramação Metabólica,,,motor/bancos/eixos.csv:2 — app.js ate 13/09 — roteamento a confirmar,rascunho,pendente_homologacao,,"microbiota, anti-inflamatório, nutrientes"
+eixo_terapeutico,fungico:2,fungico,,Inteligência Espiritual,,,motor/bancos/eixos.csv:3 — app.js ate 13/09 — roteamento a confirmar,rascunho,pendente_homologacao,,"práticas contemplativas, consciência"
+eixo_terapeutico,acido_inflamatorio:1,acido_inflamatorio,,Reprogramação Metabólica,,,motor/bancos/eixos.csv:4 — app.js ate 13/09 — roteamento a confirmar,rascunho,pendente_homologacao,,"anti-inflamatório, detoxificação"
+eixo_terapeutico,acido_inflamatorio:2,acido_inflamatorio,,Neuroregulação,,,motor/bancos/eixos.csv:5 — app.js ate 13/09 — roteamento a confirmar,rascunho,pendente_homologacao,,"estratégias vagais, respiração"
+eixo_terapeutico,metabolico:1,metabolico,,Reprogramação Metabólica,,,motor/bancos/eixos.csv:6 — app.js ate 13/09 — roteamento a confirmar,rascunho,pendente_homologacao,,"metabolismo, suplementação, nutrientes"
+eixo_terapeutico,metabolico:2,metabolico,,Neuroregulação,,,motor/bancos/eixos.csv:7 — app.js ate 13/09 — roteamento a confirmar,rascunho,pendente_homologacao,,"dopamina natural, sono"
+eixo_terapeutico,metabolico:3,metabolico,,Inteligência Espiritual,,,motor/bancos/eixos.csv:8 — app.js ate 13/09 — roteamento a confirmar,rascunho,pendente_homologacao,,"propósito, autopercepção"
+eixo_terapeutico,detox_linfatico:1,detox_linfatico,,Reprogramação Metabólica,,,motor/bancos/eixos.csv:9 — app.js ate 13/09 — roteamento a confirmar,rascunho,pendente_homologacao,,"detoxificação, microbiota"
+eixo_terapeutico,detox_linfatico:2,detox_linfatico,,Neuroregulação,,,motor/bancos/eixos.csv:10 — app.js ate 13/09 — roteamento a confirmar,rascunho,pendente_homologacao,,"respiração, grounding"
+eixo_terapeutico,mental_emocional_espiritual:1,mental_emocional_espiritual,,Neuroregulação,,,motor/bancos/eixos.csv:11 — app.js ate 13/09 — roteamento a confirmar,rascunho,pendente_homologacao,,"estratégias vagais, sono, mindfulness"
+eixo_terapeutico,mental_emocional_espiritual:2,mental_emocional_espiritual,,Inteligência Espiritual,,,motor/bancos/eixos.csv:12 — app.js ate 13/09 — roteamento a confirmar,rascunho,pendente_homologacao,,"coerência interna, journaling, consciência"
+exame_relacionado,EXA-001,fungico,,0..0.9 indice,,,motor/bancos/exames.csv — literatura funcional — revisar,rascunho,pendente_homologacao,,Candida albicans IgG
+exame_relacionado,EXA-002,acido_inflamatorio,,0..1 mg/L,,,motor/bancos/exames.csv — literatura funcional — revisar,rascunho,pendente_homologacao,,PCR ultrassensivel
+exame_relacionado,EXA-003,acido_inflamatorio,,0..15 mm/h,,,motor/bancos/exames.csv — literatura funcional — revisar,rascunho,pendente_homologacao,,VHS
+exame_relacionado,EXA-004,acido_inflamatorio,,3..5.5 mg/dL,,,motor/bancos/exames.csv — literatura funcional — revisar,rascunho,pendente_homologacao,,Acido urico
+exame_relacionado,EXA-005,metabolico,,70..90 mg/dL,,,motor/bancos/exames.csv — literatura funcional — revisar,rascunho,pendente_homologacao,,Glicemia de jejum
+exame_relacionado,EXA-006,metabolico,,2..6 uUI/mL,,,motor/bancos/exames.csv — literatura funcional — revisar,rascunho,pendente_homologacao,,Insulina de jejum
+exame_relacionado,EXA-007,metabolico,,0..1.8 indice,,,motor/bancos/exames.csv — literatura funcional — revisar,rascunho,pendente_homologacao,,HOMA-IR
+exame_relacionado,EXA-008,metabolico,,4.5..5.4 %,,,motor/bancos/exames.csv — literatura funcional — revisar,rascunho,pendente_homologacao,,Hemoglobina glicada
+exame_relacionado,EXA-009,metabolico,,40..100 mg/dL,,,motor/bancos/exames.csv — literatura funcional — revisar,rascunho,pendente_homologacao,,Triglicerideos
+exame_relacionado,EXA-010,metabolico,,55..100 mg/dL,,,motor/bancos/exames.csv — literatura funcional — revisar,rascunho,pendente_homologacao,,HDL
+exame_relacionado,EXA-011,metabolico,,0.5..2 uUI/mL,,,motor/bancos/exames.csv — literatura funcional — revisar,rascunho,pendente_homologacao,,TSH
+exame_relacionado,EXA-012,metabolico,,1..1.5 ng/dL,,,motor/bancos/exames.csv — literatura funcional — revisar,rascunho,pendente_homologacao,,T4 livre
+exame_relacionado,EXA-013,detox_linfatico,,10..26 U/L,,,motor/bancos/exames.csv — literatura funcional — revisar,rascunho,pendente_homologacao,,TGO (AST)
+exame_relacionado,EXA-014,detox_linfatico,,10..26 U/L,,,motor/bancos/exames.csv — literatura funcional — revisar,rascunho,pendente_homologacao,,TGP (ALT)
+exame_relacionado,EXA-015,detox_linfatico,,10..25 U/L,,,motor/bancos/exames.csv — literatura funcional — revisar,rascunho,pendente_homologacao,,GGT
+exame_relacionado,EXA-016,detox_linfatico,,0.2..1.2 mg/dL,,,motor/bancos/exames.csv — literatura funcional — revisar,rascunho,pendente_homologacao,,Bilirrubina total
+exame_relacionado,EXA-017,detox_linfatico,,15..40 mg/dL,,,motor/bancos/exames.csv — literatura funcional — revisar,rascunho,pendente_homologacao,,Ureia
+exame_relacionado,EXA-018,detox_linfatico,,0.6..1.1 mg/dL,,,motor/bancos/exames.csv — literatura funcional — revisar,rascunho,pendente_homologacao,,Creatinina
+exame_relacionado,EXA-019,mental_emocional_espiritual,,40..60 ng/mL,,,motor/bancos/exames.csv — literatura funcional — revisar,rascunho,pendente_homologacao,,Vitamina D (25-OH)
+exame_relacionado,EXA-020,mental_emocional_espiritual,,500..900 pg/mL,,,motor/bancos/exames.csv — literatura funcional — revisar,rascunho,pendente_homologacao,,Vitamina B12
+exame_relacionado,EXA-021,mental_emocional_espiritual,,50..150 ng/mL,,,motor/bancos/exames.csv — literatura funcional — revisar,rascunho,pendente_homologacao,,Ferritina
+exame_relacionado,EXA-022,mental_emocional_espiritual,,4.2..6.8 mg/dL,,,motor/bancos/exames.csv — literatura funcional — revisar,rascunho,pendente_homologacao,,Magnesio eritrocitario
+exame_relacionado,EXA-023,mental_emocional_espiritual,,4..7 umol/L,,,motor/bancos/exames.csv — literatura funcional — revisar,rascunho,pendente_homologacao,,Homocisteina
+exame_relacionado,EXA-024,mental_emocional_espiritual,,10..18 ug/dL,,,motor/bancos/exames.csv — literatura funcional — revisar,rascunho,pendente_homologacao,,Cortisol matinal
