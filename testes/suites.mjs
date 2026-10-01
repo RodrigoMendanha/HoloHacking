@@ -92,5 +92,7 @@ export const SUITES = [
   'testar-v1-etapa1.mjs',
   'testar-v1-etapa2-banco.mjs',
   'testar-v1-etapa2.mjs',
+  'testar-v1-etapa3-banco.mjs',
+  'testar-v1-etapa3.mjs',
   'testar-conferir-producao.mjs',
 ];

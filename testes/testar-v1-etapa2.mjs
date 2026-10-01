@@ -184,7 +184,7 @@ await A.evaluate(async () => { document.getElementById('modal-confirmar-ok').cli
 const copia = anamneses(PA).find(a => a.encounter_id === E2);
 ok(copia && copia.status === 'rascunho' && copia.copied_from_previous && copia.source_anamnesis_id === an[1].id, 'a copia nasce como rascunho com source_anamnesis_id da rev. 2');
 const previos = await A.evaluate(() => ({ itens: document.querySelectorAll('#aba-anamnese .an-item.previo').length, selos: document.querySelectorAll('#aba-anamnese .an-selo.previo').length, texto: document.querySelector('#aba-anamnese .an-titulo').innerText }));
-ok(previos.itens === 3 && previos.selos >= 3 && /itens prévios precisam ser revisados/.test(previos.texto), 'na tela, cada item copiado aparece como previo a revisar');
+ok(previos.itens === 3 && previos.selos >= 3 && /itens prévios precisam ser revisados/i.test(previos.texto), 'na tela, cada item copiado aparece como previo a revisar');
 const qDepois = await A.evaluate((pid) => JSON.stringify((JSON.parse(localStorage.getItem('holohacking.questionario')) || {})[pid] || {}), PA);
 ok(qAntes === '{}' && qDepois === '{}' && srv.linhas('holoscan_applications').length === 0, 'o HOLOSCAN continua vazio: a copia nao preenche questionario nem aplicacao');
 
@@ -210,7 +210,7 @@ const ag = srv.linhas('agreements').filter(g => g.conduct_id === cd[0].id);
 ok(ag.length === 1 && ag[0].status === 'acordado' && ag[0].description === 'Jantar até 20h', 'o acordo foi salvo com a situacao escolhida');
 await A.evaluate(async (e2) => { window.AtendimentoAtual.selecionarPorId(e2); await new Promise(r => setTimeout(r, 300)); }, E2);
 const retorno = await texto('#cd-anterior');
-ok(/Conduta anterior \(retorno\)/.test(retorno) && /Dormir melhor/.test(retorno) && /retorno em 3 semanas/.test(retorno) && /Jantar até 20h/.test(retorno) && /Acordado/.test(retorno),
+ok(/Conduta anterior \(retorno\)/.test(retorno) && /Dormir melhor/.test(retorno) && /retorno em 3 semanas/.test(retorno) && /Jantar até 20h/.test(retorno) && /Acordado/i.test(retorno),
    'no atendimento de retorno, a conduta anterior aparece com objetivo, retorno planejado e acordos');
 ok(condutas(PA).filter(c => c.encounter_id === E2).length === 0 && srv.linhas('agreements').find(g => g.id === ag[0].id).status === 'acordado',
    'nada foi transportado nem mudou de estado sozinho');
@@ -256,7 +256,7 @@ const visao = await texto('#fic-atendimento-clinico');
 ok(/Último atendimento/i.test(visao) && /Conduta vigente/i.test(visao) && /rev\. 1 · salvo/.test(visao) && /Manter o jantar cedo/.test(visao) && !/rascunho de correção/.test(visao),
    'Visao geral: ultimo atendimento, anamnese e conduta VIGENTE (rev. 1), nunca o rascunho — ' + visao.replace(/\s+/g, ' ').slice(0, 300));
 const tl = await A.evaluate(() => [...document.querySelectorAll('#fic-visao-timeline .fic-evento')].map(e => e.innerText.replace(/\s+/g, ' ')).join(' | '));
-ok(/Anamnese salva/.test(tl) && /Revisão da anamnese \(rev\. 2\)/.test(tl) && /Conduta salva/.test(tl) && !/rascunho de correção/.test(tl),
+ok(/Anamnese salva/.test(tl) && /Anamnese revisada \(rev\. 2\)/.test(tl) && /Conduta salva/.test(tl) && !/rascunho de correção/.test(tl),
    'timeline: anamnese salva, revisao como revisao, conduta salva; rascunho fora — ' + tl.slice(0, 300));
 const filtros = await A.evaluate(() => [...document.querySelectorAll('[data-filtro-linha]')].map(b => b.textContent.trim()));
 ok(filtros.includes('Anamnese') && filtros.includes('Conduta'), 'filtros da timeline: ' + filtros.join(' · '));

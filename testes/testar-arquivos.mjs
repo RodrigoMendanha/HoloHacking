@@ -39,7 +39,7 @@ const base = await p.evaluate(() => {
   };
 });
 ok(base.visivel, 'a secao Arquivos abre');
-ok(base.abas.join(',') === 'Visão geral,Atendimentos,Anamnese,HOLOSCAN,Ferramentas,Documentos,Conduta,Relatório,HOLOS AI',
+ok(base.abas.join(',') === 'Visão geral,Atendimentos,Anamnese,HOLOSCAN,Ferramentas,Documentos,Conduta,Evolução,Relatório,HOLOS AI',
    'as nove abas (Anamnese e Conduta na Etapa 2): ' + base.abas.join(' · '));
 /* Exames e documentos eram duas abas, e a separacao estava errada: os valores
    saem do PDF. Agora e um lugar so, em dois passos. */
