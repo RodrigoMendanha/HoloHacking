@@ -82,6 +82,8 @@ Migration `supabase/migrations/20260930160000_etapa1_atendimentos.sql`
    já cancelado/reagendado.
 6. `salvar_holoscan_completo` recriada com `encounter_id` (mantém a normalização
    de ausência da 130000).
+7. `proteger_snapshot_holoscan` recriada com `encounter_id` entre os campos
+   imutáveis (ajuste final).
 
 # RLS e segurança
 
@@ -142,8 +144,11 @@ atendimento ativo **deste** paciente; sem ele mostra "Selecione ou inicie um
 atendimento para salvar." e não chama a RPC. O rascunho local do questionário
 (`holohacking.questionario`) continua intacto. `salvar_holoscan_completo` grava o
 `encounter_id`. Histórico: NULL, sem backfill. Hidratação (`COLS_APP`) e exportação
-levam `encounter_id`. Pendência: `proteger_snapshot_holoscan` não lista
-`encounter_id` como imutável.
+levam `encounter_id`. **Ajuste final:** `proteger_snapshot_holoscan` (recriada na
+seção 7 da migration 160000) trata `encounter_id` como imutável — depois de
+consolidada, a aplicação não é reassociada a outro atendimento do mesmo paciente
+nem tem o vínculo anulado; a interpretação profissional continua editável; linhas
+históricas com `encounter_id` NULL não são tocadas.
 
 # Ferramentas
 
@@ -160,6 +165,16 @@ levam `encounter_id`. Pendência: `proteger_snapshot_holoscan` não lista
 marcada → a coleta sai com `encounter_id`; desmarcada → sem vínculo (ou desvincula
 ao editar). Nunca por data. Identidade por ID, duas coletas na mesma data e nova
 coleta vazia continuam como na Etapa 0.
+
+# Exclusão de paciente (ajuste final)
+
+`contarRegistros` passa a contar `encounters` (servidor: `count` por `patient_id`;
+local: `AtendimentoAtual.doPaciente`) e `temHistorico` considera qualquer
+atendimento como histórico clínico. Paciente com 1 atendimento e nenhum outro
+registro **não** é tratado como vazio: o modal "Não é possível excluir …" oferece
+só Arquivar, explicando "1 atendimento". Nenhuma policy de DELETE foi adicionada a
+`encounters`; a contagem local inclui agendamentos cancelados. Teste em
+`testar-v1-etapa1.mjs` (seção "Ajuste final").
 
 # Exportação
 
@@ -196,7 +211,7 @@ Nenhuma aplicada em produção.
 | Medida | Baseline (Etapa 0) | Final (Etapa 1) |
 |---|---|---|
 | Suítes | 81 | **83** (+2) |
-| Asserções | 2440 | **2515** (+75) |
+| Asserções | 2440 | **2523** (+83; inclui o ajuste final) |
 | Falhas | 0 | **0** |
 
 Suítes novas (em `testes/suites.mjs`):
@@ -229,7 +244,11 @@ T3 ok, T4 ok, T5 ok, T6 ok, T7 ok, T8 ok, T8b ok, T9 ok, T9b ok, T10 ok (trigger
 arquivado), T11 ok, T12 ok, T13 ok, T14 ok, T15 ok (`salvar_holoscan_completo`
 grava `encounter_id`). O único "FALHOU" foi uma checagem extra `updated_at >
 created_at`, impossível dentro de uma transação (`now()` é fixo) — artefato do
-teste, não defeito. Checagem posterior: tabela `encounters` 0, colunas
+teste, não defeito. **Ajuste final:** cadeia revalidada em BEGIN/ROLLBACK com a
+seção 7: atendimentos A e B do mesmo paciente, HOLOSCAN ligado a A, `UPDATE
+encounter_id = B` recusado, anular recusado, vínculo permanece A, interpretação
+editável; checagem posterior: nada persistiu (`proteger_snapshot_holoscan` em
+produção segue sem `encounter_id`). Checagem posterior: tabela `encounters` 0, colunas
 `encounter_id` 0, colunas de cancelamento 0, funções novas 0, triggers de arquivado
 0, pacientes de teste 0, CHECK da 130000 0, `salvar_holoscan_completo` sem
 `encounter_id`. **Nada persistiu.**
@@ -253,15 +272,18 @@ documento ser commitado; o resultado (HTTP 200 em todos, `commit` igual ao HEAD,
 2. Vinculação humana de registros históricos a atendimentos — função não criada.
 3. Exclusão de atendimento (sem policy de DELETE) × exclusão completa de paciente
    da Rodada 08 — decidir; a policy de DELETE de `consultations` permanece por isso.
-4. `proteger_snapshot_holoscan` não protege `encounter_id` (o app nunca o altera).
+   (Ajuste final: paciente com atendimento já conta como "com histórico" e só
+   arquiva; pendente é só o destino dos atendimentos numa exclusão completa futura.)
+4. ~~`proteger_snapshot_holoscan` não protege `encounter_id`~~ — resolvido no ajuste
+   final (campo imutável; testado no banco real e no falso).
 5. `encounters.status`/`type`/`modality` sem vocabulário — texto livre por ora.
 6. Modo local (sem sessão): atendimentos só em memória; não entram no manifesto de
    armazenamento nem no backup (decisão desta etapa para não ampliar o modo local).
 7. Documentos × atendimento — adiado para Relatórios/Emissões.
 8. Anamnese e Conduta — não implementadas; nascerão com `encounter_id` NOT NULL.
 9. Quatro estados do paciente — não migrados; `ativo/inativo` mantido.
-10. Timeline da visão geral da ficha ainda usa o filtro "Consultas" para agendamentos
-    (texto apenas; não deduz atendimento).
+10. ~~Timeline da visão geral com filtro "Consultas"~~ — resolvido no ajuste final:
+    filtro "Agendamentos"; eventos "Agendamento" / "Consulta marcada (agendamento)".
 11. Pendências herdadas da Etapa 0 (ver `ETAPA0-RECONCILIACAO-FINAL.md`).
 
 # Prontidão para Etapa 2

@@ -620,7 +620,8 @@ const timeline = await p.evaluate(async (pid) => {
 
 if (timeline.temTimeline) {
   ok(timeline.nomesFiltros.includes('Tudo'), 'filtro "Tudo" presente');
-  ok(timeline.nomesFiltros.includes('Consultas'), 'filtro "Consultas" presente');
+  /* V1 Etapa 1 (ajuste final): a agenda e agendamento, e o filtro diz isso */
+  ok(timeline.nomesFiltros.includes('Agendamentos') && !timeline.nomesFiltros.includes('Consultas'), 'filtro "Agendamentos" presente (não "Consultas")');
   ok(timeline.nomesFiltros.includes('HOLOSCAN'), 'filtro "HOLOSCAN" presente');
   ok(timeline.nomesFiltros.includes('Exames'), 'filtro "Exames" presente');
   ok(timeline.nomesFiltros.includes('Ferramentas'), 'filtro "Ferramentas" presente');

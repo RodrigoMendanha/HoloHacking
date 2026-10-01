@@ -168,7 +168,7 @@ const linha = await A.evaluate(async (pid) => {
   return [...document.querySelectorAll('#fic-visao-timeline .fic-evento')].map(e =>
     e.querySelector('.fic-evento-topo b').textContent);
 }, P);
-const iConsulta = linha.findIndex(t => /Consulta/.test(t));
+const iConsulta = linha.findIndex(t => /Agendamento/.test(t));
 const iCarta = linha.findIndex(t => /Carta/.test(t));
 const iOq3 = linha.findIndex(t => /OQ3|OQ³/.test(t));
 ok(iCarta >= 0 && iConsulta >= 0 && iCarta < iOq3 && iOq3 < iConsulta,

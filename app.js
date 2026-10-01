@@ -1220,12 +1220,14 @@
                                 no servidor falhou, nao se exclui no escuro
      Num lote misto, os vazios saem e os bloqueados sao listados pelo nome. */
   function temHistorico(resumo){
-    return !!(resumo.erro || resumo.consultas || resumo.holoscan || resumo.documentos ||
-              resumo.ferramentas || resumo.exames);
+    /* V1 Etapa 1: qualquer atendimento (encounters) e historico clinico */
+    return !!(resumo.erro || resumo.consultas || resumo.atendimentos || resumo.holoscan ||
+              resumo.documentos || resumo.ferramentas || resumo.exames);
   }
   function descreverHistorico(r){
     if(r.erro) return "não foi possível verificar o histórico agora";
     const partes = [];
+    if(r.atendimentos) partes.push(r.atendimentos + (r.atendimentos === 1 ? " atendimento" : " atendimentos"));
     if(r.consultas)   partes.push(r.consultas + (r.consultas === 1 ? " consulta" : " consultas"));
     if(r.holoscan)    partes.push(r.holoscan + (r.holoscan === 1 ? " HOLOSCAN" : " HOLOSCANs"));
     if(r.exames)      partes.push(r.exames + (r.exames === 1 ? " coleta de exames" : " coletas de exames"));
@@ -1301,20 +1303,22 @@
   }
 
   async function contarRegistros(ids){
-    let consultas = 0, holoscan = 0, documentos = 0, ferramentas = 0, exames = 0;
+    let consultas = 0, atendimentos = 0, holoscan = 0, documentos = 0, ferramentas = 0, exames = 0;
     const autenticado = window.HoloAuth && window.HoloAuth.sessaoAtiva() && window.supabaseClient;
     for(const id of ids){
       if(autenticado){
         try {
-          const [rC, rH, rL, rT, rD] = await Promise.all([
+          const [rC, rH, rL, rT, rD, rE] = await Promise.all([
             window.supabaseClient.from("consultations").select("id", { count: "exact", head: true }).eq("patient_id", id),
             window.supabaseClient.from("holoscan_applications").select("id", { count: "exact", head: true }).eq("patient_id", id),
             window.supabaseClient.from("lab_collections").select("id", { count: "exact", head: true }).eq("patient_id", id),
             window.supabaseClient.from("tool_applications").select("id", { count: "exact", head: true }).eq("patient_id", id),
-            window.supabaseClient.from("documents").select("id", { count: "exact", head: true }).eq("patient_id", id)
+            window.supabaseClient.from("documents").select("id", { count: "exact", head: true }).eq("patient_id", id),
+            window.supabaseClient.from("encounters").select("id", { count: "exact", head: true }).eq("patient_id", id)
           ]);
-          if([rC, rH, rL, rT, rD].some(x => !x || x.error)) return { consultas, holoscan, documentos, ferramentas, exames, erro: true };
+          if([rC, rH, rL, rT, rD, rE].some(x => !x || x.error)) return { consultas, atendimentos, holoscan, documentos, ferramentas, exames, erro: true };
           consultas   += rC.count || 0;
+          atendimentos += rE.count || 0;
           holoscan    += rH.count || 0;
           exames      += rL.count || 0;
           ferramentas += rT.count || 0;
@@ -1322,10 +1326,11 @@
           continue;
         } catch(e){
           /* sem saber, nao se exclui: historico desconhecido conta como historico */
-          return { consultas, holoscan, documentos, ferramentas, exames, erro: true };
+          return { consultas, atendimentos, holoscan, documentos, ferramentas, exames, erro: true };
         }
       }
-      if(window.Agenda && window.Agenda.todas) consultas += (window.Agenda.todas(id) || []).length;
+      if(window.Agenda && window.Agenda.todas) consultas += (window.Agenda.todas(id, { incluirCanceladas: true }) || []).length;
+      if(window.AtendimentoAtual && window.AtendimentoAtual.doPaciente) atendimentos += window.AtendimentoAtual.doPaciente(id).length;
       const sit = window.Panorama && window.Panorama.doPaciente ? window.Panorama.doPaciente(id) : null;
       if(sit){
         if(sit.pontuacao) holoscan++;
@@ -1336,7 +1341,7 @@
         catch(e){}
       }
     }
-    return { consultas, holoscan, documentos, ferramentas, exames };
+    return { consultas, atendimentos, holoscan, documentos, ferramentas, exames };
   }
 
   async function mudarStatus(ids, novo){

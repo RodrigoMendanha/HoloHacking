@@ -332,6 +332,13 @@ export function criarServidor() {
       for (const l of alvo) {
         const teste = Object.assign({}, l, q.dados);
         const e = checarLinha(t, teste, uid); if (e) return e;
+        // trigger proteger_snapshot_holoscan (+ encounter_id, V1 Etapa 1 ajuste final)
+        if (t === 'holoscan_applications') {
+          const IMUTAVEIS = ['nutritionist_id', 'patient_id', 'encounter_id', 'quando', 'versao_estrutura', 'versao_bancos',
+            'indice', 'indice_maximo', 'avaliavel', 'nota_media', 'triada', 'triada_com_dado', 'cobertura', 'combinacoes', 'aprofundamentos'];
+          const mudou = IMUTAVEIS.find(c => c in q.dados && JSON.stringify(q.dados[c] === undefined ? null : q.dados[c]) !== JSON.stringify(l[c] === undefined ? null : l[c]));
+          if (mudou) return erro('campos historicos do snapshot HOLOSCAN sao imutaveis (inclusive o atendimento, encounter_id); somente interpretacao_texto, interpretacao_em e interpretacao_versao podem ser alterados', 'P0001');
+        }
       }
       alvo.forEach(l => {
         Object.assign(l, q.dados);

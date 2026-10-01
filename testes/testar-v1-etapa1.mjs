@@ -407,6 +407,40 @@ const vazou = contexto.match(/### Índice HOLOS|### Tríada|- Físico:|faixa \d|
 ok(!vazou, '20: nenhuma metodologia nao homologada voltou ao contexto' + (vazou ? ' — vazou: ' + vazou[0] + ' em "' + contexto.slice(Math.max(0, vazou.index - 60), vazou.index + 60).replace(/\n/g, ' ') + '"' : ''));
 
 /* ==================================================================== */
+titulo('AJUSTE FINAL — ATENDIMENTO E HISTORICO CLINICO NA EXCLUSAO');
+/* ==================================================================== */
+const PC = await cadastrar('Paciente Tres');
+await A.evaluate(async (pid) => { await window.AtendimentoAtual.iniciar({ patient_id: pid, occurred_at: new Date().toISOString() }); }, PC);
+const soAtendimento = {
+  encounters: srv.linhas('encounters').filter(e => e.patient_id === PC).length,
+  holos: srv.linhas('holoscan_applications').filter(a => a.patient_id === PC).length,
+  ferr: srv.linhas('tool_applications').filter(a => a.patient_id === PC).length,
+  coletas: srv.linhas('lab_collections').filter(a => a.patient_id === PC).length,
+  docs: srv.linhas('documents').filter(a => a.patient_id === PC).length,
+  consultas: srv.linhas('consultations').filter(a => a.patient_id === PC).length,
+};
+ok(soAtendimento.encounters === 1 && !soAtendimento.holos && !soAtendimento.ferr && !soAtendimento.coletas && !soAtendimento.docs && !soAtendimento.consultas,
+   'cenario: 1 atendimento, 0 HOLOSCAN, 0 ferramentas, 0 exames, 0 documentos, 0 agendamentos');
+const modalExcluir = await A.evaluate(async (id) => {
+  document.querySelector('.nav-item[data-secao="pacientes"]').click(); await new Promise(r => setTimeout(r, 250));
+  const v = document.getElementById('voltar-lista'); if (v) v.click();
+  document.querySelector('[data-menu="' + id + '"]').click(); await new Promise(r => setTimeout(r, 150));
+  document.querySelector('#menu-' + id + ' [data-item="remover"]').click(); await new Promise(r => setTimeout(r, 700));
+  const m = document.getElementById('modal-confirmar-acao');
+  return { visivel: !m.classList.contains('hidden'),
+           titulo: document.getElementById('modal-confirmar-titulo').textContent,
+           corpo: document.getElementById('modal-confirmar-corpo').innerText,
+           excluir: !!document.getElementById('modal-confirmar-ok'),
+           arquivar: !!m.querySelector('.btn-arquivar') };
+}, PC);
+ok(modalExcluir.visivel && /Não é possível excluir Paciente Tres/.test(modalExcluir.titulo) && !modalExcluir.excluir && modalExcluir.arquivar,
+   'paciente so com atendimento NAO e "sem historico": sem botao de excluir, so Arquivar — "' + modalExcluir.titulo + '"');
+ok(/1 atendimento/.test(modalExcluir.corpo), 'o modal explica o motivo: "1 atendimento"');
+await A.evaluate(() => { const f = document.getElementById('modal-confirmar-fechar'); if (f) f.click(); });
+ok(srv.linhas('patients').some(p => p.id === PC) && srv.linhas('encounters').filter(e => e.patient_id === PC).length === 1,
+   'paciente e atendimento continuam no servidor');
+
+/* ==================================================================== */
 titulo('FUSO, IDEMPOTENCIA E CONCORRENCIA');
 /* ==================================================================== */
 const fuso = await A.evaluate(() => {

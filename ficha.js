@@ -659,8 +659,8 @@
     if (window.Agenda && window.Agenda.todas) {
       window.Agenda.todas(pid).forEach(function (c) {
         eventos.push({
-          quando: c.data, hora: c.hora, ts: c.data + "T" + (c.hora || "00:00"), tipo: "consulta", selo: c.tipo || "Consulta",
-          titulo: (diasDesde(c.data) < 0 ? "Consulta marcada" : "Consulta"),
+          quando: c.data, hora: c.hora, ts: c.data + "T" + (c.hora || "00:00"), tipo: "consulta", selo: c.tipo || "Agendamento",
+          titulo: (diasDesde(c.data) < 0 ? "Consulta marcada (agendamento)" : "Agendamento"),
           detalhe: c.hora + " &middot; " + (c.duracao || 60) + " min" +
                    (c.nota ? " &middot; " + escapar(c.nota) : ""),
           acao: "agenda"
@@ -722,7 +722,7 @@
 
       var FILTROS_LINHA = [
         { id: "tudo", nome: "Tudo" },
-        { id: "consulta", nome: "Consultas" },
+        { id: "consulta", nome: "Agendamentos" },
         { id: "mapa", nome: "HOLOSCAN" },
         { id: "exame", nome: "Exames" },
         { id: "ferramenta", nome: "Ferramentas" },

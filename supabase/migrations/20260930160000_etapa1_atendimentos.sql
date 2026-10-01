@@ -19,6 +19,8 @@
 --      INVOKER: a RLS continua decidindo o que cada profissional ve.
 --   5. salvar_holoscan_completo passa a aceitar application.encounter_id
 --      (mantendo a normalizacao de ausencia da migration 130000).
+--   6. proteger_snapshot_holoscan passa a tratar encounter_id como imutavel:
+--      aplicacao consolidada nao e reassociada a outro atendimento.
 --
 -- Nao muda: RLS e policies existentes, estados do paciente, CHECKs de tipo
 -- de consulta, snapshot do HOLOSCAN, identidade da coleta. Nenhum DELETE,
@@ -381,3 +383,44 @@ BEGIN
   RETURN app_id;
 END;
 $function$;
+
+-- ============================================================================
+-- 7. encounter_id do HOLOSCAN e imutavel depois de consolidado
+-- ============================================================================
+-- A FK composta impede vincular a atendimento de OUTRO paciente; isto impede
+-- tambem reassociar, depois de gravado, a outro atendimento do MESMO paciente
+-- (ou apagar/colocar o vinculo). Mesmo corpo da funcao da migration
+-- 20260923200000 mais a linha de encounter_id. Interpretacao profissional
+-- (interpretacao_texto/_em/_versao) continua editavel. Linhas historicas com
+-- encounter_id NULL nao sao tocadas: so UPDATE que tente mudar o valor e
+-- recusado.
+
+CREATE OR REPLACE FUNCTION public.proteger_snapshot_holoscan()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+BEGIN
+  IF new.nutritionist_id       IS DISTINCT FROM old.nutritionist_id
+  OR new.patient_id            IS DISTINCT FROM old.patient_id
+  OR new.encounter_id          IS DISTINCT FROM old.encounter_id
+  OR new.quando                IS DISTINCT FROM old.quando
+  OR new.versao_estrutura      IS DISTINCT FROM old.versao_estrutura
+  OR new.versao_bancos         IS DISTINCT FROM old.versao_bancos
+  OR new.indice                IS DISTINCT FROM old.indice
+  OR new.indice_maximo         IS DISTINCT FROM old.indice_maximo
+  OR new.avaliavel             IS DISTINCT FROM old.avaliavel
+  OR new.nota_media            IS DISTINCT FROM old.nota_media
+  OR new.triada                IS DISTINCT FROM old.triada
+  OR new.triada_com_dado       IS DISTINCT FROM old.triada_com_dado
+  OR new.cobertura             IS DISTINCT FROM old.cobertura
+  OR new.combinacoes           IS DISTINCT FROM old.combinacoes
+  OR new.aprofundamentos       IS DISTINCT FROM old.aprofundamentos
+  THEN
+    RAISE EXCEPTION 'campos historicos do snapshot HOLOSCAN sao imutaveis (inclusive o atendimento, encounter_id); '
+      'somente interpretacao_texto, interpretacao_em e interpretacao_versao '
+      'podem ser alterados';
+  END IF;
+  RETURN new;
+END;
+$$;

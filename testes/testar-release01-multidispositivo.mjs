@@ -355,8 +355,8 @@ ok(tela.eventosExame.some(t => t.includes(dataBR(DATA1))) &&
    'evolucao: cada coleta aparece na data da coleta (' + dataBR(DATA1) + ', ' + dataBR(antiga) +
    '), nao na do registro (' + dataBR(HOJE) + ')');
 ok(!/data não informada/.test(tela.linha), 'e nenhuma coleta com data virou "data não informada"');
-ok(/Roda/.test(tela.linha) && /Consulta/.test(tela.linha) && /Laudo glicemia/.test(tela.linha),
-   'linha do tempo: ferramenta, consulta e documento tambem');
+ok(/Roda/.test(tela.linha) && /Agendamento/.test(tela.linha) && /Laudo glicemia/.test(tela.linha),
+   'linha do tempo: ferramenta, agendamento e documento tambem');
 ok(/Mapa HOLOS/.test(tela.abaHolo), 'aba HOLOSCAN da ficha mostra o Mapa HOLOS vindo do servidor');
 ok(tela.indiceTela === holo1.indice, 'a secao HOLOSCAN desenha o mapa de A em B: Indice ' + tela.indiceTela);
 ok(/1 aplicação HOLOSCAN/.test(tela.retorno) && /3 ferramentas aplicadas/.test(tela.retorno) &&

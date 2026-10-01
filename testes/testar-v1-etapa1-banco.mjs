@@ -122,6 +122,22 @@ const la = insert(UA, 'lab_collections', { patient_id: pa, encounter_id: ea, col
 ok(!r.error && srv.linhas('holoscan_applications').find(a => a.id === r.data).encounter_id === ea && !ta.error && !la.error,
    'os mesmos registros, do paciente certo, aceitam o encounter dele (holoscan grava encounter_id)');
 
+titulo('AJUSTE FINAL. encounter_id DO HOLOSCAN E IMUTAVEL');
+const eb = insert(UA, 'encounters', { patient_id: pa, occurred_at: new Date().toISOString() }).data[0].id;
+r = srv.tratar({ op: 'rpc', uid: UA, nome: 'salvar_holoscan_completo', args: { payload: { application: {
+  patient_id: pa, encounter_id: ea, quando: hoje, versao_estrutura: 2, indice: 40, indice_maximo: 100, avaliavel: true,
+  nota_media: 4, triada: {}, triada_com_dado: {}, cobertura: {} }, answers: [], scores: [] } } });
+const hidA = r.data;
+ok(!r.error && srv.linhas('holoscan_applications').find(a => a.id === hidA).encounter_id === ea, 'HOLOSCAN salvo ligado ao atendimento A (paciente com A e B)');
+r = update(UA, 'holoscan_applications', { encounter_id: eb }, eq('id', hidA));
+ok(r.error && /imutaveis/.test(r.error.message) && srv.linhas('holoscan_applications').find(a => a.id === hidA).encounter_id === ea,
+   'trocar encounter_id para o atendimento B do MESMO paciente e recusado; o vinculo continua A');
+r = update(UA, 'holoscan_applications', { encounter_id: null }, eq('id', hidA));
+ok(r.error && srv.linhas('holoscan_applications').find(a => a.id === hidA).encounter_id === ea, 'nem anular o vinculo depois de consolidado');
+r = update(UA, 'holoscan_applications', { interpretacao_texto: 'leitura da profissional', interpretacao_versao: 1 }, eq('id', hidA));
+ok(!r.error && srv.linhas('holoscan_applications').find(a => a.id === hidA).interpretacao_texto === 'leitura da profissional',
+   'a interpretacao profissional continua editavel');
+
 titulo('EXTRA. NADA APAGA ATENDIMENTO');
 r = del(UA, 'encounters', eq('id', ea));
 ok(!r.error && srv.linhas('encounters').some(e => e.id === ea), 'DELETE em encounters nao apaga nada (sem policy)');
