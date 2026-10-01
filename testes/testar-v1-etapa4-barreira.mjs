@@ -11,6 +11,8 @@
  *  Legado identificado (indiceDoMotor, combinacoesDoMotor, reguas manuais, REC/SEL) continua fora da saida oficial.
  *  A tela Metodologia/Homologacao so existe com ?homologacao=1 e nao tem "aprovar tudo".
  *  Modo oficial recusa pacote rascunho; nenhum fallback.
+ *  Etapa 4.2: o CANDIDATO V1 (decisoes fechadas) e gravado pela tela como nova versao em_revisao
+ *  (linhagem, hash, 15 registros), confere REF-01..03 e continua fora da saida oficial.
  */
 import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
@@ -64,6 +66,21 @@ const hom = await A.evaluate(() => {
 ok(hom.mode === 'homologacao' && hom.status === 'rascunho' && hom.versao === 1 && hom.contribs > 0, 'modo homologacao executa o rascunho (trilha gerada) e carrega mode/package_status/package_version');
 ok(hom.notaA.nota === null && /sem politica de denominador/.test(hom.notaA.motivo), 'sem politica de ausencia aprovada, nem em homologacao sai nota de sistema (dados e cobertura preservados)');
 ok(hom.oficial === 'oficial_bloqueado' && hom.eh === true, 'modo oficial recusa o rascunho; a saida de homologacao e reconhecida pela barreira');
+
+titulo('CANDIDATO V1 (DECISOES FECHADAS) GRAVADO EM REVISAO — SEM PUBLICAR');
+await A.evaluate(async () => { const sel = document.querySelector('[data-mh-pacote]'); sel.value = 'candidato'; sel.dispatchEvent(new Event('change')); await new Promise(r => setTimeout(r, 300)); });
+const telaCand = await texto('#metodologia-corpo');
+ok(/DECISOES METODOLOGICAS V1 FECHADAS/.test(telaCand) && /PUBLICACAO TECNICA PENDENTE DE VALIDACAO NO BANCO REAL/.test(telaCand) && /Nenhum erro estrutural/.test(telaCand) && /candidato, não gravado/.test(telaCand) && /Bloqueada/.test(telaCand), 'tela: candidato V1 com decisoes fechadas, publicacao tecnica pendente, validador sem erros e saida oficial ainda bloqueada');
+await A.evaluate(async () => { document.querySelector('[data-mh-aba="regras"]').click(); await new Promise(r => setTimeout(r, 200)); });
+const telaRegras = await texto('#metodologia-corpo');
+ok(/REF-01[\s\S]*confere[\s\S]*REF-02[\s\S]*confere[\s\S]*REF-03[\s\S]*confere/.test(telaRegras) && /Não há sugestão automática validada para esta edição\./.test(telaRegras), 'aba de regras: REF-01..03 conferem com o motor; "Não há sugestão automática validada para esta edição."');
+await A.evaluate(async () => { document.querySelector('[data-mh-aba="resumo"]').click(); await new Promise(r => setTimeout(r, 100)); document.querySelector('[data-mh-acao="gravar-candidato"]').click(); for (let i = 0; i < 80 && !/Candidato gravado/.test(document.getElementById('mh-estado').textContent); i++) await new Promise(r => setTimeout(r, 100)); });
+const pk2 = srv.linhas('methodology_packages').find(x => x.version === 2);
+ok(pk2 && pk2.status === 'em_revisao' && pk2.lineage && pk2.lineage.parent_version === 1 && /^[0-9a-f]{64}$/.test(pk2.content_hash) && !pk2.approved_at, 'candidato gravado como NOVA VERSAO (v2) em_revisao, com linhagem e hash; nada aprovado');
+ok(srv.linhas('methodology_questions').filter(x => x.package_id === pk2.id && x.temporal_context).length === 84 && srv.linhas('methodology_associations').filter(x => x.package_id === pk2.id).length === 179 && srv.linhas('methodology_homologation_records').filter(x => x.package_id === pk2.id).length === 15 && srv.linhas('methodology_questions').filter(x => x.package_id === pk.id && x.status === 'para_homologacao').length === 84, 'v2 com 84 perguntas, 179 associacoes e 15 registros de decisao; o rascunho v1 continua intacto');
+const b2 = await A.evaluate(() => { const M = window.Metodologia, P = window.PacoteMetodologico, Mo = window.MotorMetodologico; const c = P.todos().find(x => x.version === 2); let of = null; try { Mo.calcular({ responses: {}, methodology_package: c, mode: 'oficial' }); } catch (e) { of = e.codigo; } const ref = c.regras.find(r => r.target === 'REF-03'); const h = Mo.calcular({ responses: ref.payload.entrada.responses, methodology_package: c, mode: 'homologacao' }); return { status: M.status(), ativo: M.obterPacoteAtivo(), motivo: M.motivosBloqueio()[0], of, val: P.validar(c).total_erros, idx: h.index_result.valor_exibicao, eh: M.ehSaidaHomologacao(h) }; });
+ok(b2.status === 'em_homologacao' && b2.ativo === null && /nenhum Pacote Metodológico aprovado \(2 em rascunho/.test(b2.motivo) && b2.of === 'oficial_bloqueado' && b2.val === 0, 'candidato em_revisao (0 erros no validador) nao vira oficial: barreira em homologacao, modo oficial recusa');
+ok(b2.idx === '66.7' && b2.eh === true, 'modo homologacao com o candidato lido do servidor: REF-03 -> Indice 66.7, e a saida continua marcada como homologacao');
 
 titulo('CONTEXTOS OFICIAIS NAO RECEBEM O RASCUNHO NEM O LEGADO');
 // paciente com HOLOSCAN aplicado (coleta experimental consolidada)

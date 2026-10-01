@@ -4,9 +4,10 @@
  *
  *  - contrato de entrada/saida; mode/package_status/package_version na saida
  *  - determinismo: mesma entrada + mesmas versoes = mesmo resultado; trilha por contribuicao
- *  - direta e invertida; multiplas associacoes (primaria e secundaria)
- *  - ausencia != 0; 0 valido = respondido; recusado/nao aplicavel fora do denominador
- *  - orientacao ausente nao vira direta
+ *  - direta e invertida; primaria pontua, secondary_contextual so contexto (Etapa 4.2)
+ *  - ausencia != 0; 0 valido = respondido; recusado/nao aplicavel nao sao resposta valida (reduzem a cobertura)
+ *  - orientacao ausente = erro (nunca vira direta)
+ *  - aritmetica racional exata: nota_exata, exibicao com 1 casa, faixa pela fracao
  *  - ID desconhecido, valor fora da escala, opcao inexistente = erro (nunca zero silencioso)
  *  - faixas (inclusividade), Indice (alphas, sem indice parcial), Triada por ID
  *  - modo OFICIAL recusa pacote rascunho / nao vigente / nao publicavel; sem fallback
@@ -28,13 +29,13 @@ function fixture(extra) {
   p.escalas = [{ code: 'e03', min_value: 0, max_value: 3, labels: ['Nunca', 'Às vezes', 'Frequente', 'Sempre'], status: 'aprovado' }];
   p.sistemas = [{ code: 'A', name: 'Sistema A', status: 'aprovado' }, { code: 'B', name: 'Sistema B', status: 'aprovado' }];
   p.perguntas = [
-    { stable_id: 'Q1', statement: 'q1', block: 'fisico', scale_code: 'e03', orientation: 'direta', status: 'aprovado' },
-    { stable_id: 'Q2', statement: 'q2', block: 'fisico', scale_code: 'e03', orientation: 'invertida', status: 'aprovado' },
-    { stable_id: 'Q3', statement: 'q3', block: 'mental_emocional', scale_code: 'e03', orientation: 'direta', status: 'aprovado' },
-    { stable_id: 'Q4', statement: 'q4', block: 'espiritual', scale_code: 'e03', orientation: 'direta', status: 'aprovado' }];
+    { stable_id: 'Q1', statement: 'q1', block: 'fisico', scale_code: 'e03', orientation: 'direta', temporal_context: 'ultimos_30_dias', status: 'aprovado' },
+    { stable_id: 'Q2', statement: 'q2', block: 'fisico', scale_code: 'e03', orientation: 'invertida', temporal_context: 'atualmente', status: 'aprovado' },
+    { stable_id: 'Q3', statement: 'q3', block: 'mental_emocional', scale_code: 'e03', orientation: 'direta', temporal_context: 'habitualmente', status: 'aprovado' },
+    { stable_id: 'Q4', statement: 'q4', block: 'espiritual', scale_code: 'e03', orientation: 'direta', temporal_context: 'sem_periodo_especifico', status: 'aprovado' }];
   p.associacoes = [
     { question_stable_id: 'Q1', destination_type: 'system', destination_id: 'A', weight: 2, role: 'primaria', status: 'aprovado' },
-    { question_stable_id: 'Q1', destination_type: 'system', destination_id: 'B', weight: 1, role: 'secundaria', status: 'aprovado' },
+    { question_stable_id: 'Q1', destination_type: 'system', destination_id: 'B', weight: null, role: 'secondary_contextual', status: 'aprovado' },
     { question_stable_id: 'Q2', destination_type: 'system', destination_id: 'A', weight: 1, role: 'primaria', status: 'aprovado' },
     { question_stable_id: 'Q3', destination_type: 'system', destination_id: 'B', weight: 3, role: 'primaria', status: 'aprovado' },
     { question_stable_id: 'Q4', destination_type: 'system', destination_id: 'B', weight: 1, role: 'primaria', status: 'aprovado' },
@@ -50,7 +51,7 @@ function fixture(extra) {
     { rule_type: 'scoring', target: 'A', payload: { formula: 'fixture' }, status: 'aprovado' }, { rule_type: 'scoring', target: 'B', payload: { formula: 'fixture' }, status: 'aprovado' },
     { rule_type: 'absence', target: 'global', payload: { denominador: 'respondidos', cobertura_minima: 0.5, recusado: 'exclui', nao_aplicavel: 'exclui', minimos: {} }, status: 'aprovado' },
     { rule_type: 'index', target: 'global', payload: { alphas: { A: 0.5, B: 0.5 }, elegibilidade: 'todos', indice_parcial: false }, status: 'aprovado' },
-    ...['fisico', 'mental', 'espiritual'].map(e => ({ rule_type: 'triad', target: e, payload: { contribuicao: 'por_id', escala: '0..10', elegibilidade: 'uma_resposta', agregacao: 'ponderada' }, status: 'aprovado' })),
+    ...['fisico', 'mental', 'espiritual'].map(e => ({ rule_type: 'triad', target: e, payload: { contribuicao: 'por_id', escala: '0..10', elegibilidade: 'cobertura_minima', cobertura_minima: 0.5, agregacao: 'ponderada' }, status: 'aprovado' })),
     { rule_type: 'example', target: 'ex1', payload: { entrada: { Q1: 3, Q2: 0 }, esperado: { A: { nota: 0 } } }, status: 'aprovado' }];
   return p;
 }
@@ -58,37 +59,36 @@ const calc = (resp, extra) => M.calcular(Object.assign({ responses: resp, method
 
 titulo('CONTRATO, DETERMINISMO, TRILHA');
 const r = calc({ Q1: 3, Q2: 0, Q3: 1, Q4: 2 });
-ok(['mode', 'package_status', 'package_version', 'package_code', 'engine_version', 'edition', 'coverage', 'item_contributions', 'system_results', 'index_result', 'triad_result', 'non_evaluable_reasons', 'trace'].every(k => k in r), 'saida carrega todos os campos do contrato');
+ok(['mode', 'package_status', 'package_version', 'package_code', 'package_content_hash', 'engine_version', 'engine_contract_version', 'edition', 'coverage', 'item_contributions', 'contextual_associations', 'system_results', 'index_result', 'triad_result', 'non_evaluable_reasons', 'trace'].every(k => k in r), 'saida carrega todos os campos do contrato (inclusive contrato do motor e associacoes contextuais)');
 ok(r.mode === 'oficial' && r.package_status === 'aprovado' && r.package_version === 1 && r.engine_version === 'teste-1' && r.edition.code === 'fx-q', 'mode, package_status, package_version, engine_version e edicao na saida');
 const r2 = calc({ Q4: 2, Q3: 1, Q2: 0, Q1: 3 });
 ok(JSON.stringify(r) === JSON.stringify(r2), 'determinismo: mesma entrada (em outra ordem) + mesmas versoes = mesmo resultado');
 ok(r.trace.hash_entrada === r2.trace.hash_entrada && r.trace.hash_entrada !== calc({ Q1: 2, Q2: 0, Q3: 1, Q4: 2 }).trace.hash_entrada, 'hash da entrada estavel e sensivel a resposta diferente');
 const c1 = r.item_contributions.find(c => c.question_id === 'Q1' && c.destination === 'A');
 ok(c1 && c1.raw_response === 3 && c1.oriented_value === 3 && c1.weight === 2 && c1.contribution === 6 && c1.max === 6, 'trilha: question_id, raw_response, oriented_value, destination, weight, contribution');
-ok(r.item_contributions.length === 9 && r.trace.passos.length === 2 + 1 + 3, 'uma contribuicao por associacao respondida; passos de sistema, indice e triada');
+ok(r.item_contributions.length === 8 && r.contextual_associations.length === 1 && r.trace.passos.length === 2 + 1 + 3, 'uma contribuicao por associacao pontuavel respondida (4 primarias + 4 Triada); a secondary_contextual fica a parte; passos de sistema, indice e triada');
 
 titulo('DIRETA, INVERTIDA, MULTIPLAS ASSOCIACOES, FAIXAS');
 const c2 = r.item_contributions.find(c => c.question_id === 'Q2' && c.destination === 'A');
 ok(c2.raw_response === 0 && c2.oriented_value === 3 && c2.contribution === 3, 'invertida: resposta 0 vira valor orientado 3 (max - resposta)');
 ok(r.system_results.A.carga === 10 && r.system_results.A.nota === 0 && r.system_results.A.faixa === 'baixo', 'sistema A: (6+3)/(6+3) = carga 10, nota 0, faixa baixo');
-ok(r.system_results.B.respondidos === 3 && r.system_results.B.carga === 5.3333 && r.system_results.B.nota === 4.6667 && r.system_results.B.faixa === 'baixo', 'sistema B recebe Q1 como secundaria (peso 1) + Q3 + Q4: nota 4,6667');
+ok(r.system_results.B.respondidos === 2 && r.system_results.B.total === 2 && r.system_results.B.nota_exata === '35/6' && r.system_results.B.nota_exibicao === '5.8' && r.system_results.B.faixa === 'alto' && r.contextual_associations[0].question_id === 'Q1' && r.contextual_associations[0].contribution === null && !r.item_contributions.some(c => c.question_id === 'Q1' && c.destination === 'B'), 'sistema B so com as primarias Q3 + Q4 (nota 35/6 = 5,8): Q1 secondary_contextual nao soma, nao entra no denominador nem na cobertura');
 ok(calc({ Q1: 0, Q2: 3, Q3: 0, Q4: 0 }).system_results.A.nota === 10 && calc({ Q1: 0, Q2: 3, Q3: 0, Q4: 0 }).system_results.A.faixa === 'alto', 'resposta 0 em direta e 3 em invertida = nota 10, faixa alto (limite 5 exclusivo abaixo)');
-ok(calc({ Q1: 3, Q2: 1, Q3: 0, Q4: 0 }).system_results.A.nota === 1.1111 && calc({ Q1: 3, Q2: 1, Q3: 0, Q4: 0 }).system_results.A.faixa === 'baixo', 'faixa le a nota com precisao interna (6+2)/9 -> nota 1,1111, nao arredondada');
+ok(calc({ Q1: 3, Q2: 1, Q3: 0, Q4: 0 }).system_results.A.nota_exata === '10/9' && calc({ Q1: 3, Q2: 1, Q3: 0, Q4: 0 }).system_results.A.nota_exibicao === '1.1' && calc({ Q1: 3, Q2: 1, Q3: 0, Q4: 0 }).system_results.A.faixa === 'baixo', 'faixa le a nota exata (6+2)/9 -> nota 10/9 (tela 1.1), nao arredondada');
 const limite = calc({ Q1: 1, Q2: 2, Q3: 0, Q4: 0 }); // A: (2 + 1)/(6+3) -> carga 3.3333 nota 6.6667
-ok(limite.system_results.A.nota === 6.6667 && limite.system_results.A.faixa === 'alto', 'inclusividade respeitada: nota 6,67 cai em (5, 10]');
+ok(limite.system_results.A.nota_exata === '20/3' && limite.system_results.A.nota_exibicao === '6.7' && limite.system_results.A.faixa === 'alto', 'inclusividade respeitada: nota 20/3 (tela 6.7) cai em (5, 10]');
 
 titulo('AUSENCIA != 0; 0 VALIDO = RESPONDIDO; RECUSA E NAO APLICAVEL');
 const aus = calc({ Q1: 0, Q2: null, Q3: 1, Q4: 0 });
-ok(aus.coverage.respondidos === 3 && aus.coverage.pendentes === 1 && aus.coverage.rotulo === 'cobertura de preenchimento' && aus.coverage.total === 4, 'ausencia (null) nao conta como respondida; 0 conta — cobertura de preenchimento 3/4');
+ok(aus.coverage.respondidos === 3 && aus.coverage.pendentes === 1 && aus.coverage.em_branco === 1 && aus.coverage.fracao === '3/4' && aus.coverage.rotulo === 'cobertura de preenchimento' && aus.coverage.total === 4, 'ausencia (null) nao conta como respondida; 0 conta — cobertura de preenchimento 3/4');
 ok(aus.system_results.A.respondidos === 1 && aus.system_results.A.nota === 10 && !aus.item_contributions.some(c => c.question_id === 'Q2'), 'Q2 ausente: nenhuma contribuicao, nenhum zero inventado; A so com Q1 (0 => nota 10 do que foi respondido)');
 const zero = calc({ Q1: 0, Q2: 3, Q3: 0, Q4: 0 });
-ok(zero.item_contributions.filter(c => c.question_id === 'Q1').length === 3 && zero.item_contributions.find(c => c.question_id === 'Q1').contribution === 0 && zero.coverage.respondidos === 4, '0 valido e respondido: entra na trilha com contribuicao 0 e no denominador');
+ok(zero.item_contributions.filter(c => c.question_id === 'Q1').length === 2 && zero.item_contributions.find(c => c.question_id === 'Q1').contribution === 0 && zero.coverage.respondidos === 4, '0 valido e respondido: entra na trilha (sistema primario + Triada) com contribuicao 0 e no denominador');
 const rec = calc({ Q1: 3, Q2: 0, Q3: 2, Q4: 2 }, { response_states: { Q3: 'recusado', Q4: 'nao_aplicavel' } });
-ok(rec.coverage.recusados === 1 && rec.coverage.nao_aplicaveis === 1 && rec.coverage.respondidos === 2 && !rec.item_contributions.some(c => c.question_id === 'Q3' || c.question_id === 'Q4'), 'recusado e nao aplicavel contados a parte e fora do denominador (politica do fixture)');
-ok(rec.system_results.B.avaliavel === false && /cobertura 1\/3 abaixo do minimo aprovado 0.5/.test(rec.system_results.B.motivo) && rec.system_results.B.nota === null, 'cobertura minima aprovada no fixture (0,5) bloqueia a nota de B com motivo; nada e inventado');
-const semOri = fixture(); semOri.perguntas[0].orientation = null;
-const so = M.calcular({ responses: { Q1: 3, Q2: 0, Q3: 1, Q4: 1 }, methodology_package: semOri, mode: 'homologacao' });
-ok(!so.item_contributions.some(c => c.question_id === 'Q1') && so.non_evaluable_reasons.some(m => /Q1 sem orientacao/.test(m)), 'orientacao ausente nao e tratada como direta: item fica fora, com motivo');
+ok(rec.coverage.recusados === 1 && rec.coverage.nao_aplicaveis === 1 && rec.coverage.respondidos === 2 && !rec.item_contributions.some(c => c.question_id === 'Q3' || c.question_id === 'Q4'), 'recusado e nao aplicavel contados a parte: nao sao resposta valida, nao viram zero');
+ok(rec.system_results.B.avaliavel === false && /nenhum item primario respondido/.test(rec.system_results.B.motivo) && rec.system_results.B.nota === null && rec.system_results.B.cobertura === 0, 'B sem nenhuma resposta valida (recusado + nao aplicavel): cobertura 0, sem nota, com motivo; nada e inventado');
+const erroOri = (() => { const semOri = fixture(); semOri.perguntas[0].orientation = null; try { M.calcular({ responses: { Q1: 3, Q2: 0, Q3: 1, Q4: 1 }, methodology_package: semOri, mode: 'homologacao' }); return null; } catch (e) { return e; } })();
+ok(erroOri && erroOri.codigo === 'orientacao_ausente' && /nunca inferida/.test(erroOri.message), 'orientacao ausente num item respondido = ERRO (nunca tratada como direta)');
 
 titulo('VALORES INVALIDOS = ERRO DE VALIDACAO');
 const erro = (f) => { try { f(); return null; } catch (e) { return e; } };
@@ -98,10 +98,10 @@ ok(erro(() => calc({ Q1: 1 }, { response_states: { Q7: 'recusado' } })).codigo =
 ok(erro(() => M.calcular({ responses: { Q1: 1 }, mode: 'oficial' })).codigo === 'pacote_ausente', 'sem pacote: configuracao metodologica indisponivel (erro)');
 
 titulo('INDICE E TRIADA');
-ok(r.index_result.avaliavel && r.index_result.valor === 23.33 && r.index_result.faixa === 'metade-baixa', 'Indice = 10 x (0,5 x 0 + 0,5 x 4,6667) = 23,33; faixa do Indice do fixture');
+ok(r.index_result.avaliavel && r.index_result.valor_exato === '175/6' && r.index_result.valor_exibicao === '29.2' && r.index_result.faixa === 'metade-baixa', 'Indice = 10 x (0,5 x 0 + 0,5 x 35/6) = 175/6 (tela 29.2); faixa do Indice do fixture');
 const parcial = calc({ Q3: 2, Q4: 1 });
-ok(parcial.system_results.A.avaliavel === false && parcial.index_result.avaliavel === false && /sistema\(s\) sem nota: A/.test(parcial.index_result.motivo) && parcial.index_result.valor === null, 'sistema A sem resposta: sem Indice (sem indice parcial aprovado), motivo registrado, nada renormalizado');
-ok(r.triad_result.fisico.nota === 0 && r.triad_result.mental.nota === 6.6667 && r.triad_result.espiritual.nota === 3.3333, 'Triada por ID: fisico (Q1,Q2), mental (Q3), espiritual (Q4)');
+ok(parcial.system_results.A.avaliavel === false && parcial.index_result.avaliavel === false && /sistema\(s\) nao avaliavel\(is\): A/.test(parcial.index_result.motivo) && parcial.index_result.valor === null, 'sistema A sem resposta: sem Indice (sem Indice parcial), motivo registrado, nada renormalizado');
+ok(r.triad_result.fisico.nota_exata === '0' && r.triad_result.mental.nota_exata === '20/3' && r.triad_result.espiritual.nota_exata === '10/3', 'Triada por ID: fisico (Q1,Q2), mental (Q3), espiritual (Q4), em fracao exata');
 ok(parcial.triad_result.fisico.avaliavel === false && parcial.triad_result.fisico.nota === null && /sem dados suficientes/.test(parcial.triad_result.fisico.motivo), 'eixo sem dados: nulo com motivo (nunca 10)');
 
 titulo('MODO OFICIAL x MODO HOMOLOGACAO');

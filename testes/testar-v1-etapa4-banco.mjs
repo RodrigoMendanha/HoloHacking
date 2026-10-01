@@ -44,9 +44,9 @@ function gravarFixture(uid, code, mut) {
   const A = 'aprovado';
   insert(uid, 'methodology_scales', { package_id: pk.id, code: 'e03', min_value: 0, max_value: 3, labels: ['a', 'b', 'c', 'd'], status: A });
   insert(uid, 'methodology_systems', [{ package_id: pk.id, code: 'A', name: 'Sistema A', status: A }, { package_id: pk.id, code: 'B', name: 'Sistema B', status: A }]);
-  insert(uid, 'methodology_questions', [{ package_id: pk.id, edition_id: ed.id, stable_id: 'Q1', statement: 'q1', block: 'fisico', scale_code: 'e03', orientation: 'direta', status: A },
-    { package_id: pk.id, edition_id: ed.id, stable_id: 'Q2', statement: 'q2', block: 'fisico', scale_code: 'e03', orientation: 'invertida', status: A },
-    { package_id: pk.id, edition_id: ed.id, stable_id: 'Q3', statement: 'q3', block: 'mental_emocional', scale_code: 'e03', orientation: 'direta', status: A }]);
+  insert(uid, 'methodology_questions', [{ package_id: pk.id, edition_id: ed.id, stable_id: 'Q1', statement: 'q1', block: 'fisico', scale_code: 'e03', orientation: 'direta', temporal_context: 'ultimos_30_dias', status: A },
+    { package_id: pk.id, edition_id: ed.id, stable_id: 'Q2', statement: 'q2', block: 'fisico', scale_code: 'e03', orientation: 'invertida', temporal_context: 'ultimos_30_dias', status: A },
+    { package_id: pk.id, edition_id: ed.id, stable_id: 'Q3', statement: 'q3', block: 'mental_emocional', scale_code: 'e03', orientation: 'direta', temporal_context: 'ultimos_30_dias', status: A }]);
   insert(uid, 'methodology_associations', [{ package_id: pk.id, question_stable_id: 'Q1', destination_type: 'system', destination_id: 'A', weight: 2, role: 'primaria', status: A },
     { package_id: pk.id, question_stable_id: 'Q2', destination_type: 'system', destination_id: 'A', weight: 1, role: 'primaria', status: A },
     { package_id: pk.id, question_stable_id: 'Q3', destination_type: 'system', destination_id: 'B', weight: 3, role: 'primaria', status: A },
@@ -58,7 +58,7 @@ function gravarFixture(uid, code, mut) {
   insert(uid, 'methodology_rules', [{ package_id: pk.id, rule_type: 'scoring', target: 'A', payload: { formula: 'fixture' }, status: A }, { package_id: pk.id, rule_type: 'scoring', target: 'B', payload: { formula: 'fixture' }, status: A },
     { package_id: pk.id, rule_type: 'absence', target: 'global', payload: { denominador: 'respondidos', cobertura_minima: 0.5, recusado: 'exclui', nao_aplicavel: 'exclui', minimos: {} }, status: A },
     { package_id: pk.id, rule_type: 'index', target: 'global', payload: { alphas: { A: 0.5, B: 0.5 }, elegibilidade: 'todos', indice_parcial: false }, status: A },
-    ...['fisico', 'mental', 'espiritual'].map(e => ({ package_id: pk.id, rule_type: 'triad', target: e, payload: { contribuicao: 'por_id', escala: '0..10', elegibilidade: 'uma', agregacao: 'ponderada' }, status: A })),
+    ...['fisico', 'mental', 'espiritual'].map(e => ({ package_id: pk.id, rule_type: 'triad', target: e, payload: { contribuicao: 'por_id', escala: '0..10', elegibilidade: 'cobertura_minima', cobertura_minima: 0.8, agregacao: 'ponderada' }, status: A })),
     { package_id: pk.id, rule_type: 'example', target: 'ex1', payload: { entrada: { Q1: 3 }, esperado: { A: { nota: 0 } } }, status: A }]);
   if (mut) mut(pk);
   return pk;

@@ -38,13 +38,13 @@ const COLUNAS = {
   // V1 Etapa 3 (migration 20260930180000): emissoes versionadas de relatorio
   report_emissions: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'report_type', 'revision_number', 'status', 'title', 'period_start', 'period_end', 'selected_sources', 'professional_text', 'source_snapshot', 'content_snapshot', 'content_hash', 'template_version', 'issued_at', 'created_by', 'supersedes_report_id', 'superseded_at', 'operation_id', 'created_at', 'updated_at'],
   // V1 Etapa 4 (migration 20260930190000): Pacote Metodologico
-  methodology_packages: ['id', 'nutritionist_id', 'code', 'version', 'status', 'origin', 'justification', 'responsible', 'reviewed_by', 'reviewed_at', 'effective_from', 'effective_to', 'content_hash', 'approved_at', 'approved_by', 'retired_at', 'retired_reason', 'notes', 'created_by', 'created_at', 'updated_at'],
+  methodology_packages: ['id', 'nutritionist_id', 'code', 'version', 'status', 'origin', 'justification', 'responsible', 'reviewed_by', 'reviewed_at', 'effective_from', 'effective_to', 'content_hash', 'approved_at', 'approved_by', 'retired_at', 'retired_reason', 'notes', 'created_by', 'created_at', 'updated_at', 'lineage'],
   methodology_questionnaire_editions: ['id', 'nutritionist_id', 'package_id', 'code', 'version', 'status', 'item_count', 'notes', 'created_at', 'updated_at'],
   methodology_scales: ['id', 'nutritionist_id', 'package_id', 'code', 'min_value', 'max_value', 'labels', 'kind', 'status', 'source', 'notes', 'created_at', 'updated_at'],
-  methodology_systems: ['id', 'nutritionist_id', 'package_id', 'code', 'name', 'public_text', 'definition', 'emotional_pattern', 'spiritual_impact', 'color', 'position', 'status', 'source', 'notes', 'created_at', 'updated_at'],
+  methodology_systems: ['id', 'nutritionist_id', 'package_id', 'code', 'name', 'public_text', 'definition', 'emotional_pattern', 'spiritual_impact', 'color', 'position', 'status', 'source', 'notes', 'created_at', 'updated_at', 'legacy'],
   methodology_questions: ['id', 'nutritionist_id', 'package_id', 'edition_id', 'stable_id', 'statement', 'block', 'scale_code', 'response_labels', 'orientation', 'temporal_context', 'status', 'source', 'notes', 'version', 'position', 'created_at', 'updated_at'],
-  methodology_associations: ['id', 'nutritionist_id', 'package_id', 'question_stable_id', 'destination_type', 'destination_id', 'weight', 'role', 'status', 'source', 'conflict', 'conflict_note', 'created_at', 'updated_at'],
-  methodology_ranges: ['id', 'nutritionist_id', 'package_id', 'destination_type', 'destination_id', 'lower_bound', 'upper_bound', 'lower_inclusive', 'upper_inclusive', 'label', 'message_nutri', 'message_paciente', 'status', 'source', 'created_at', 'updated_at'],
+  methodology_associations: ['id', 'nutritionist_id', 'package_id', 'question_stable_id', 'destination_type', 'destination_id', 'weight', 'role', 'status', 'source', 'conflict', 'conflict_note', 'created_at', 'updated_at', 'legacy'],
+  methodology_ranges: ['id', 'nutritionist_id', 'package_id', 'destination_type', 'destination_id', 'lower_bound', 'upper_bound', 'lower_inclusive', 'upper_inclusive', 'label', 'message_nutri', 'message_paciente', 'status', 'source', 'created_at', 'updated_at', 'legacy', 'lower_bound_exact', 'upper_bound_exact'],
   methodology_rules: ['id', 'nutritionist_id', 'package_id', 'rule_type', 'target', 'payload', 'status', 'source', 'notes', 'created_at', 'updated_at'],
   methodology_homologation_records: ['id', 'nutritionist_id', 'package_id', 'topic', 'element', 'version', 'decision', 'responsible', 'decided_at', 'source', 'justification', 'evidence', 'created_by', 'created_at'],
   schedule_blocks: ['id', 'nutritionist_id', 'data', 'inicio', 'fim', 'dia_todo', 'motivo', 'created_at', 'updated_at'],
@@ -292,15 +292,20 @@ export function criarServidor() {
       if (tabela === 'methodology_questions') {
         if (linha.orientation != null && !['direta', 'invertida'].includes(linha.orientation)) return erro('violates check constraint "methodology_questions_orientacao_valida"', '23514');
         if (!['fisico', 'mental_emocional', 'espiritual'].includes(linha.block)) return erro('violates check constraint "methodology_questions_bloco_valido"', '23514');
+        // V1 Etapa 4.2 (migration 20261001200000)
+        if (linha.temporal_context != null && !globalThis.PacoteMetodologico.CONTEXTOS_TEMPORAIS.includes(linha.temporal_context)) return erro('violates check constraint "methodology_questions_contexto_temporal_valido"', '23514');
         if (!s.tabelas.methodology_questionnaire_editions.some(e => e.id === linha.edition_id && e.nutritionist_id === uid)) return erro('violates foreign key constraint "methodology_questions_edition_fk"', '23503');
         if (s.tabelas.methodology_questions.some(x => x.id !== linha.id && x.edition_id === linha.edition_id && x.stable_id === linha.stable_id)) return erro('duplicate key value violates unique constraint "methodology_questions_stable_id_unique"', '23505');
       }
       if (tabela === 'methodology_associations' && !['system', 'triad'].includes(linha.destination_type)) return erro('violates check constraint "methodology_associations_tipo_valido"', '23514');
+      if (tabela === 'methodology_associations' && linha.role != null && !['primaria', 'secondary_contextual', 'triade_por_bloco', 'secundaria', 'derivada'].includes(linha.role)) return erro('violates check constraint "methodology_associations_papel_conhecido"', '23514');
+      if (tabela === 'methodology_associations' && linha.role === 'secondary_contextual' && linha.weight != null) return erro('violates check constraint "methodology_associations_contextual_sem_peso"', '23514');
+      if (tabela === 'methodology_ranges' && ['lower_bound_exact', 'upper_bound_exact'].some(k => linha[k] != null && !/^-?[0-9]+(\.[0-9]+)?(\/[1-9][0-9]*)?$/.test(linha[k]))) return erro('violates check constraint "methodology_ranges_limite_exato_formato"', '23514');
       if (tabela === 'methodology_ranges' && !['system', 'index', 'triad'].includes(linha.destination_type)) return erro('violates check constraint "methodology_ranges_tipo_valido"', '23514');
       if (tabela === 'methodology_scales' && (!(linha.max_value > linha.min_value) || s.tabelas.methodology_scales.some(x => x.id !== linha.id && x.package_id === linha.package_id && x.code === linha.code))) return erro('violates constraint on methodology_scales (intervalo/code_unique)', '23514');
       if (tabela === 'methodology_systems' && s.tabelas.methodology_systems.some(x => x.id !== linha.id && x.package_id === linha.package_id && x.code === linha.code)) return erro('duplicate key value violates unique constraint "methodology_systems_code_unique"', '23505');
       if (tabela === 'methodology_rules') {
-        if (!['scoring', 'absence', 'index', 'triad', 'coverage', 'comparability', 'example'].includes(linha.rule_type)) return erro('violates check constraint "methodology_rules_tipo_valido"', '23514');
+        if (!['scoring', 'absence', 'index', 'triad', 'coverage', 'comparability', 'example', 'suggestion'].includes(linha.rule_type)) return erro('violates check constraint "methodology_rules_tipo_valido"', '23514');
         if (s.tabelas.methodology_rules.some(x => x.id !== linha.id && x.package_id === linha.package_id && x.rule_type === linha.rule_type && x.target === linha.target)) return erro('duplicate key value violates unique constraint "methodology_rules_tipo_alvo_unique"', '23505');
       }
       if (tabela === 'methodology_homologation_records' && (!linha.responsible || !String(linha.responsible).trim() || !linha.decision || !String(linha.decision).trim() || !linha.decided_at || !linha.topic || !linha.element)) return erro('violates check constraint "methodology_records_*"', '23514');
