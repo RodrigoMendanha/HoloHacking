@@ -94,7 +94,8 @@
     metodologia_associacoes:{ tabela: "methodology_associations", campos: {}, inverso: {} },
     metodologia_faixas:     { tabela: "methodology_ranges", campos: {}, inverso: {} },
     metodologia_regras:     { tabela: "methodology_rules", campos: {}, inverso: {} },
-    metodologia_registros:  { tabela: "methodology_homologation_records", campos: {}, inverso: {} }
+    metodologia_registros:  { tabela: "methodology_homologation_records", campos: {}, inverso: {} },
+    metodologia_aprovacoes: { tabela: "methodology_package_approvals", campos: {}, inverso: {} }
   };
 
   /* ---------- proxy que traduz campos na ida e na volta ------------------- */

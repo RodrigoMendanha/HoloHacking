@@ -10,8 +10,10 @@
    status e hash proprios).
 
    O pacote candidato fica em "em_revisao" ate o gate tecnico (cadeia de
-   migrations validada no banco real). A aprovacao formal continua exclusiva
-   da RPC aprovar_pacote_metodologico, com responsavel humano.
+   migrations validada no banco real) e ate a DUPLA APROVACAO humana:
+   Aprovacao 1 = Daniel (responsavel primario pela homologacao), Aprovacao 2 =
+   Rodrigo (segundo responsavel / revisao final). Nenhuma aprovacao e criada
+   por este arquivo nem por codigo.
    =========================================================================== */
 (function () {
   "use strict";
@@ -33,7 +35,6 @@
     id: "HOLOS-V1-DECISOES-FINAIS",
     etapa: "4.2",
     decidido_em: "2026-10-01",
-    responsavel: "Liderança do método HOLOSCAN — decisões V1 encerradas (registro da Etapa 4.2)",
     status_metodologico: "DECISOES METODOLOGICAS V1 FECHADAS",
     status_tecnico: "PUBLICACAO TECNICA PENDENTE DE VALIDACAO NO BANCO REAL",
 
@@ -112,8 +113,10 @@
     // D15 — CMB / REC / SEL
     sugestoes: { automatica: false, mensagem: "Não há sugestão automática validada para esta edição.", legado_nao_oficial: { combinacoes: "CMB-001..CMB-016", recomendacoes: "REC-001..REC-023", selecao: "SEL-001" }, executar_regras: false, catalogo_manual: "biblioteca das 10 ferramentas disponível para seleção manual profissional" },
 
-    // registro das 15 decisoes (vira methodology_homologation_records do candidato)
-    registros: [
+    // resumo das 15 decisoes — so texto. NAO e aprovacao e NAO vira registro de
+    // homologacao: a homologacao exige Aprovacao 1 (Daniel) e Aprovacao 2 (Rodrigo),
+    // registradas por pessoa, no sistema, sobre o mesmo package_id/version/content_hash.
+    resumo: [
       ["Decisão 1", "questionário", "Edição V1 com 84 perguntas (49/19/16); EMO-506 fora; SNT-101 e SNT-501 com ID único; SNT-302, SNT-310 e EMO-506 não são recriadas. Contexto temporal por item (7 valores permitidos)."],
       ["Decisão 2", "escalas", "Escalas 0–3: frequência (Nunca/Às vezes/Frequente/Sempre) e intensidade (Nada/Um pouco/Bastante/Muito); atribuição do Anexo A mantida (73/11); escala desconhecida é erro."],
       ["Decisão 3", "orientação", "9 invertidas (SNT-507, EMO-507, ESP-101, ESP-102, ESP-201, ESP-202, ESP-301, ESP-302, ESP-501); 75 diretas; z = resposta ou 3 − resposta; orientação ausente é erro."],

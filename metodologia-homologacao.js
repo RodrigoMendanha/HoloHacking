@@ -19,6 +19,7 @@
   "use strict";
   var escapar = window.escapar;
   var aba = "resumo", pacoteSel = null, filtroItens = "";
+  var hashes = {};   // package_id -> hash do conteudo conferido no servidor (so quando a pessoa pede)
 
   function inventario() { return window.MetodologiaInventario || null; }
   function decisoes() { return window.MetodologiaDecisoesV1 || null; }
@@ -49,6 +50,7 @@
       '<div class="fic-det"><span>Hash</span><b>' + escapar(p.content_hash || "—") + "</b></div>" +
       '<div class="fic-det"><span>Responsável</span><b>' + escapar(p.responsible || "— (nenhum responsável humano registrado)") + "</b></div>" +
       "</div>" + htmlLinhagem(p) + "</div>" +
+      htmlAprovacoes(p) +
       '<div class="dash-bloco"><h3 class="dash-titulo">Saída oficial</h3><p class="dash-sub">' + (bloqueios.length ? "<b>Bloqueada.</b> " + escapar(bloqueios.join("; ")) : "Liberada pelo pacote ativo.") + "</p>" +
       '<p class="dash-sub">Status da barreira: <b>' + escapar(M ? M.status() : "?") + "</b></p></div>" +
       '<div class="dash-bloco"><h3 class="dash-titulo">Validador de publicação <em>' + v.total_erros + "</em></h3>" +
@@ -108,6 +110,32 @@
       refs.map(function (r) { var dif = M && r.payload && r.payload.formato === "v1" ? M.conferirExemplo(p, r.payload) : null; return "<li><b>" + escapar(r.target) + "</b> — " + escapar((r.payload && r.payload.descricao) || "") + " · " + (dif === null ? "sem conferência" : dif.length ? "<b>DIVERGE</b>: " + escapar(dif.join("; ")) : "confere (motor = esperado)") + "</li>"; }).join("") + "</ul></div>";
   }
   function EIXOS() { return P().EIXOS; }
+  /** Dupla aprovacao: so para pacote GRAVADO. Nenhum campo vem preenchido; nada e registrado sem clique. */
+  function htmlAprovacoes(p) {
+    if (!p.id || p._inventario || p._candidato || !P().estadoAprovacao) return "";
+    var h = hashes[p.id] || null, e = P().estadoAprovacao(p, h), A = P().APROVADORES;
+    var linha = function (n, a, valida) {
+      return "<li>Aprovação " + n + " — " + escapar(A[n].responsavel) + " (" + escapar(A[n].papel) + "): " +
+        (a ? (valida ? "<b>registrada</b>" : "<b>registrada, mas não vale para o conteúdo atual</b>") + " em " + escapar(String(a.approved_at || "").slice(0, 16)) + " · versão " + escapar(String(a.package_version)) + " · hash " + escapar(String(a.content_hash).slice(0, 12)) + "…" : "pendente") + "</li>";
+    };
+    var html = '<div class="dash-bloco" id="mh-aprovacoes"><h3 class="dash-titulo">Homologação — dupla aprovação</h3>' +
+      '<p class="dash-sub">Ordem obrigatória: Aprovação 1 (Daniel), depois Aprovação 2 (Rodrigo), sobre o mesmo pacote, versão e hash de conteúdo. Se o pacote mudar entre as duas, o ciclo recomeça. Nenhuma aprovação é criada automaticamente.</p>' +
+      '<ul class="mh-lista">' + linha(1, e.aprovacao1, e.valida1) + linha(2, e.aprovacao2, e.valida2) + "</ul>" +
+      (e.invalidadas ? '<p class="dash-sub">' + e.invalidadas + " aprovação(ões) invalidada(s) por mudança no pacote (histórico mantido).</p>" : "");
+    if (p.status !== "em_revisao") return html + '<p class="dash-sub">Aprovações só são registradas em pacote <code>em_revisao</code>.</p></div>';
+    if (!h) return html + '<p><button type="button" class="btn-fantasma" data-mh-acao="conferir-hash">Conferir o hash do conteúdo no servidor</button></p></div>';
+    html += '<p class="dash-sub">Hash do conteúdo atual (servidor): <code id="mh-hash-servidor">' + escapar(h) + "</code> · versão " + escapar(String(p.version)) + "</p>";
+    if (e.proxima === 1 || e.proxima === 2) {
+      html += '<div class="mh-aprovar" data-mh-etapa="' + e.proxima + '"><label class="evo-campo"><span>Responsável (Aprovação ' + e.proxima + ")</span>" +
+        '<input type="text" data-mh-resp autocomplete="off" value=""></label>' +
+        '<label class="evo-campo"><span>Justificativa</span><textarea data-mh-just rows="2"></textarea></label>' +
+        '<label><input type="checkbox" data-mh-conferi> Conferi o pacote ' + escapar(p.code + " v" + p.version) + " com o hash " + escapar(h.slice(0, 12)) + "…</label> " +
+        '<button type="button" class="btn-fantasma" data-mh-acao="registrar-aprovacao">Registrar Aprovação ' + e.proxima + "</button></div>";
+    } else if (e.proxima === "homologar") {
+      html += '<p><button type="button" class="btn-fantasma" data-mh-acao="homologar">Homologar pacote (Aprovações 1 e 2 válidas)</button></p>';
+    }
+    return html + "</div>";
+  }
   function htmlLinhagem(p) {
     var D = decisoes(), l = p.lineage;
     if (!l) return "";
@@ -148,6 +176,8 @@
     el.innerHTML = html;
     ligar(el);
   }
+  /** Redesenha e so depois escreve o aviso (o redesenho troca o #mh-estado). */
+  function avisar(txt) { desenhar(); var e = document.getElementById("mh-estado"); if (e) e.textContent = txt; }
   function ligar(el) {
     var sel = el.querySelector("[data-mh-pacote]"); if (sel) sel.addEventListener("change", function () { pacoteSel = sel.value; desenhar(); });
     var filtro = el.querySelector("[data-mh-filtro]"); if (filtro) filtro.addEventListener("input", function () { filtroItens = filtro.value; var corpo = el.querySelector("#mh-itens tbody"); if (corpo) corpo.innerHTML = htmlItens(pacoteAtual()).split("<tbody>")[1].split("</tbody>")[0]; });
@@ -158,14 +188,31 @@
         var estado = document.getElementById("mh-estado");
         if (b.dataset.mhAcao === "exportar-json") baixar("pacote-metodologico-" + p.code + "-v" + p.version + ".json", P().exportarJSON(p), "application/json");
         if (b.dataset.mhAcao === "exportar-csv") baixar("pacote-metodologico-" + p.code + "-v" + p.version + ".csv", P().exportarCSV(p), "text/csv");
+        if (b.dataset.mhAcao === "conferir-hash") {
+          P().hashNoServidor(p.id).then(function (h) { hashes[p.id] = h; desenhar(); })
+            .catch(function (e) { if (estado) estado.textContent = "Não foi possível conferir: " + (window.mensagemHumana ? window.mensagemHumana(e) : e.message); });
+        }
+        if (b.dataset.mhAcao === "registrar-aprovacao") {
+          var caixa = el.querySelector(".mh-aprovar"), etapa = Number(caixa.dataset.mhEtapa);
+          var resp = caixa.querySelector("[data-mh-resp]").value, just = caixa.querySelector("[data-mh-just]").value;
+          if (!caixa.querySelector("[data-mh-conferi]").checked) { if (estado) estado.textContent = "Marque que conferiu o pacote e o hash."; return; }
+          if (estado) estado.textContent = "Registrando Aprovação " + etapa + "…";
+          P().registrarAprovacao(p.id, etapa, resp, just, hashes[p.id]).then(function () { avisar("Aprovação " + etapa + " registrada."); })
+            .catch(function (e) { delete hashes[p.id]; avisar("Aprovação recusada: " + (window.mensagemHumana ? window.mensagemHumana(e) : e.message)); });
+        }
+        if (b.dataset.mhAcao === "homologar") {
+          if (estado) estado.textContent = "Homologando…";
+          P().homologar(p.id).then(function () { avisar("Pacote homologado (aprovado)."); })
+            .catch(function (e) { delete hashes[p.id]; avisar("Homologação recusada: " + (window.mensagemHumana ? window.mensagemHumana(e) : e.message)); });
+        }
         if (b.dataset.mhAcao === "gravar-candidato") {
           if (estado) estado.textContent = "Gravando candidato…";
-          P().salvarRascunho(p).then(function (id) { pacoteSel = id; if (estado) estado.textContent = "Candidato gravado (status em_revisao; nada aprovado; publicação técnica pendente)."; desenhar(); })
+          P().salvarRascunho(p).then(function (id) { pacoteSel = id; avisar("Candidato gravado (status em_revisao; nada aprovado; publicação técnica pendente)."); })
             .catch(function (e) { if (estado) estado.textContent = "Não foi possível gravar: " + (window.mensagemHumana ? window.mensagemHumana(e) : e.message); });
         }
         if (b.dataset.mhAcao === "importar-rascunho") {
           if (estado) estado.textContent = "Gravando rascunho…";
-          P().salvarRascunho(p).then(function (id) { pacoteSel = id; if (estado) estado.textContent = "Rascunho gravado (status rascunho; nada aprovado)."; desenhar(); })
+          P().salvarRascunho(p).then(function (id) { pacoteSel = id; avisar("Rascunho gravado (status rascunho; nada aprovado)."); })
             .catch(function (e) { if (estado) estado.textContent = "Não foi possível gravar: " + (window.mensagemHumana ? window.mensagemHumana(e) : e.message); });
         }
       });

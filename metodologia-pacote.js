@@ -268,7 +268,7 @@
      com linhagem (code/version/status/hash do pacote anterior) e hash novo.
      Toda divergencia entre as decisoes e o inventario e ERRO (nada e ajustado
      em silencio). Status do pacote: em_revisao (gate tecnico pendente);
-     elementos: aprovado (decisoes humanas fechadas, registradas em registros). */
+     elementos: aprovado (decisoes fechadas). Nenhum registro de homologacao e criado: a homologacao do pacote exige Aprovacao 1 (Daniel) e Aprovacao 2 (Rodrigo). */
   function aplicarDecisoesV1(base, D) {
     if (!base || !base.perguntas || !D) throw new Error("pacote base e decisoes sao obrigatorios");
     var falhas = [];
@@ -357,7 +357,8 @@
         esperado: { sistemas: sist, indice: ref.esperado.indice, triade: tri, cobertura: ref.esperado.cobertura },
         exibicao: { sistemas: sx, indice: ref.exibicao.indice, triade: tx } }, "Decisão 14"));
     });
-    p.registros = D.registros.map(function (r) { return { topic: r[0], element: r[1], version: p.code + "@" + p.version, decision: "aprovada — decisao metodologica V1 fechada", responsible: D.responsavel, decided_at: D.decidido_em, source: "Etapa 4.2", justification: r[2], evidence: "docs/v1/metodologia/PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md" }; });
+    // Nenhum registro de homologacao nasce aqui: aprovar e ato humano (Aprovacao 1 Daniel, Aprovacao 2 Rodrigo).
+    p.registros = [];
     p.content_hash = hashConteudo(p);
     return p;
   }
@@ -401,7 +402,7 @@
     return Promise.resolve(t.select("*").order("created_at", { ascending: true })).then(function (r) {
       if (!r || r.error || !Array.isArray(r.data)) return cache;
       var pacotes = r.data.map(function (row) { return Object.assign(novo(row.code, row.version), row); });
-      var nomes = [["metodologia_edicoes", "edicoes"], ["metodologia_escalas", "escalas"], ["metodologia_sistemas", "sistemas"], ["metodologia_perguntas", "perguntas"], ["metodologia_associacoes", "associacoes"], ["metodologia_faixas", "faixas"], ["metodologia_regras", "regras"], ["metodologia_registros", "registros"]];
+      var nomes = [["metodologia_edicoes", "edicoes"], ["metodologia_escalas", "escalas"], ["metodologia_sistemas", "sistemas"], ["metodologia_perguntas", "perguntas"], ["metodologia_associacoes", "associacoes"], ["metodologia_faixas", "faixas"], ["metodologia_regras", "regras"], ["metodologia_registros", "registros"], ["metodologia_aprovacoes", "aprovacoes"]];
       return Promise.all(nomes.map(function (n) { var tt = tabela(n[0]); return tt ? Promise.resolve(tt.select("*")) : Promise.resolve({ data: [] }); })).then(function (rs) {
         rs.forEach(function (res, i) {
           var chave = nomes[i][1]; var linhas = (res && !res.error && Array.isArray(res.data)) ? res.data : [];
@@ -420,7 +421,7 @@
   function ativo(dia) { return cache.filter(function (p) { return vigente(p, dia); }).sort(function (a, b) { return String(b.effective_from).localeCompare(String(a.effective_from)); })[0] || null; }
 
   /** Grava um pacote novo (rascunho, ou em_revisao para o candidato V1) no
-      servidor: pacote + filhas + registros de decisao. Nunca grava status aprovado. */
+      servidor: pacote + filhas. Nunca grava status aprovado nem aprovacao. */
   function salvarRascunho(p) {
     if (!temSupa()) return Promise.reject(new Error("Sem sessao: o pacote fica so na tela."));
     if (p.status === "aprovado" || p.status === "retirado") return Promise.reject(new Error("aprovacao nao e gravacao: use a RPC com registro de homologacao"));
@@ -444,6 +445,35 @@
       });
     });
   }
+  /* ---------- dupla aprovacao (migration 20261001210000) -------------------
+     Aprovacao 1 = Daniel (responsavel primario pela homologacao); Aprovacao 2 =
+     Rodrigo (segundo responsavel / revisao final). Cada uma e um ATO HUMANO: a
+     pessoa confere o hash calculado no servidor e registra. Nada aqui cria
+     aprovacao sozinho. A homologacao (status aprovado) exige as duas sobre o
+     mesmo package_id, version e content_hash. */
+  var APROVADORES = { 1: { responsavel: "Daniel", papel: "responsável primário pela homologação" }, 2: { responsavel: "Rodrigo", papel: "segundo responsável / revisão final" } };
+  /** Estado do ciclo, a partir das aprovacoes gravadas e do hash atual do servidor. Puro. */
+  function estadoAprovacao(p, hashAtual) {
+    var vig = (p.aprovacoes || []).filter(function (a) { return !a.invalidated_at; });
+    var a1 = vig.filter(function (a) { return a.step === 1; })[0] || null, a2 = vig.filter(function (a) { return a.step === 2; })[0] || null;
+    var vale = function (a) { return !!a && a.package_version === p.version && (!hashAtual || a.content_hash === hashAtual); };
+    var ok1 = vale(a1), ok2 = ok1 && vale(a2) && a2.content_hash === a1.content_hash;
+    return { aprovacao1: a1, aprovacao2: a2, valida1: ok1, valida2: ok2, invalidadas: (p.aprovacoes || []).filter(function (a) { return !!a.invalidated_at; }).length,
+      proxima: p.status !== "em_revisao" ? null : !ok1 ? 1 : !ok2 ? 2 : "homologar", homologavel: p.status === "em_revisao" && ok1 && ok2 };
+  }
+  function rpc(nome, args) {
+    if (!temSupa()) return Promise.reject(new Error("sem sessao"));
+    return Promise.resolve(raiz.supabaseClient.rpc(nome, args)).then(function (r) { if (r.error) throw r.error; return r.data; });
+  }
+  function hashNoServidor(id) { return rpc("metodologia_hash_conteudo", { p_package_id: id }); }
+  /** Registra UMA aprovacao (etapa 1 ou 2) digitada pela pessoa, sobre o hash que ela conferiu. */
+  function registrarAprovacao(id, etapa, responsavel, justificativa, hashConferido) {
+    return rpc("registrar_aprovacao_metodologica", { p_package_id: id, p_etapa: etapa, p_responsavel: responsavel, p_justificativa: justificativa, p_content_hash: hashConferido }).then(function (d) { return carregar().then(function () { return d; }); });
+  }
+  /** Passa a aprovado — o servidor recusa sem as duas aprovacoes validas sobre o conteudo atual. */
+  function homologar(id, effectiveFrom) {
+    return rpc("aprovar_pacote_metodologico", { p_package_id: id, p_registro: effectiveFrom ? { effective_from: effectiveFrom } : {} }).then(function (d) { return carregar().then(function () { return d; }); });
+  }
   function validarNoServidor(id) {
     if (!temSupa()) return Promise.reject(new Error("sem sessao"));
     return Promise.resolve(raiz.supabaseClient.rpc("validar_pacote_metodologico", { p_package_id: id })).then(function (r) { if (r.error) throw r.error; return r.data; });
@@ -456,6 +486,7 @@
     aplicarDecisoesV1: aplicarDecisoesV1, hashConteudo: hashConteudo, sha256: sha256, valorExato: valorExato, termoCausal: termoCausal,
     exportarJSON: exportarJSON, exportarCSV: exportarCSV, resumo: resumo,
     carregar: carregar, todos: todos, porId: porId, ativo: ativo, salvarRascunho: salvarRascunho, validarNoServidor: validarNoServidor,
+    APROVADORES: APROVADORES, estadoAprovacao: estadoAprovacao, hashNoServidor: hashNoServidor, registrarAprovacao: registrarAprovacao, homologar: homologar,
     esquecer: function () { cache = []; }
   };
 })();
