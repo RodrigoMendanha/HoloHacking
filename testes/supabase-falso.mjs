@@ -30,6 +30,10 @@ const COLUNAS = {
   consultations: ['id', 'nutritionist_id', 'patient_id', 'data', 'hora', 'duracao_min', 'tipo', 'nota', 'cancelled_at', 'cancellation_reason', 'rescheduled_from_id', 'rescheduled_to_id', 'created_at', 'updated_at'],
   // V1 Etapa 1: o atendimento clinico (migration 20260930160000)
   encounters: ['id', 'nutritionist_id', 'patient_id', 'consultation_id', 'occurred_at', 'timezone', 'type', 'modality', 'status', 'summary_text', 'operation_id', 'created_at', 'updated_at'],
+  // V1 Etapa 2 (migration 20260930170000)
+  anamneses: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'revision_number', 'status', 'content_version', 'content', 'source_anamnesis_id', 'copied_from_previous', 'supersedes_id', 'superseded_at', 'revision_note', 'reviewed_at', 'reviewed_by', 'operation_id', 'created_at', 'updated_at'],
+  conducts: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'revision_number', 'status', 'priorities', 'objective', 'nutrition_strategy', 'actions', 'resources', 'related_tools', 'requested_exams', 'referrals', 'monitoring', 'return_plan', 'observations', 'nutrition_diagnosis', 'dietary_prescription', 'professional_guidance', 'references', 'previous_conduct_id', 'previous_decision', 'previous_decision_note', 'supersedes_id', 'superseded_at', 'revision_note', 'reviewed_at', 'reviewed_by', 'operation_id', 'created_at', 'updated_at'],
+  agreements: ['id', 'nutritionist_id', 'patient_id', 'conduct_id', 'description', 'responsible', 'due_text', 'follow_up', 'status', 'status_note', 'status_changed_at', 'position', 'origin_agreement_id', 'operation_id', 'created_at', 'updated_at'],
   schedule_blocks: ['id', 'nutritionist_id', 'data', 'inicio', 'fim', 'dia_todo', 'motivo', 'created_at', 'updated_at'],
   holoscan_applications: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'quando', 'versao_estrutura', 'versao_bancos', 'indice', 'indice_maximo', 'avaliavel', 'nota_media', 'triada', 'triada_com_dado', 'cobertura', 'combinacoes', 'aprofundamentos', 'interpretacao_texto', 'interpretacao_em', 'interpretacao_versao', 'created_at', 'updated_at'],
   holoscan_answers: ['id', 'application_id', 'marcador_id', 'valor', 'created_at'],
@@ -44,7 +48,7 @@ const COLUNAS = {
   ai_messages: ['id', 'thread_id', 'role', 'content', 'metadata', 'created_at']
 };
 
-const DONO_DIRETO = ['patients', 'consultations', 'encounters', 'schedule_blocks', 'holoscan_applications',
+const DONO_DIRETO = ['patients', 'consultations', 'encounters', 'anamneses', 'conducts', 'agreements', 'schedule_blocks', 'holoscan_applications',
   'lab_collections', 'tool_applications', 'documents', 'professional_assets', 'ai_threads'];
 const FILHAS = {           // tabela -> [coluna, mae]
   holoscan_answers: ['application_id', 'holoscan_applications'],
@@ -52,7 +56,31 @@ const FILHAS = {           // tabela -> [coluna, mae]
   lab_results: ['collection_id', 'lab_collections'],
   ai_messages: ['thread_id', 'ai_threads']
 };
-const COM_PACIENTE = ['consultations', 'encounters', 'holoscan_applications', 'lab_collections', 'tool_applications', 'documents', 'ai_threads'];
+const COM_PACIENTE = ['consultations', 'encounters', 'anamneses', 'conducts', 'agreements', 'holoscan_applications', 'lab_collections', 'tool_applications', 'documents', 'ai_threads'];
+const DOMINIOS_AN = ['motivo_objetivo','historia_alimentar','rotina_acesso','sono','atividade_fisica','sintomas_relatados','condicoes_diagnosticos_informados','medicamentos','suplementos','alergias_informadas','intolerancias_informadas','antecedentes','contexto_familiar','contexto_social','avaliacoes','medidas','emocional','sentido_pessoal'];
+const ESTADOS_AN = ['informado','negado_explicitamente','desconhecido','nao_investigado','nao_aplicavel','recusado'];
+const ORIGENS_AN = ['relato_paciente','observacao_profissional','documento_externo','dado_medido'];
+const ESTADOS_ACORDO = ['proposto','acordado','em_acompanhamento','concluido','revisto','encerrado'];
+// validar_conteudo_anamnese (CHECK): estado e origem obrigatorios; medida com unidade; vazio e valido
+function conteudoAnamneseValido(c) {
+  if (!c || typeof c !== 'object' || Array.isArray(c)) return false;
+  if (c.dominios === undefined || c.dominios === null) return true;
+  if (typeof c.dominios !== 'object' || Array.isArray(c.dominios)) return false;
+  for (const [k, v] of Object.entries(c.dominios)) {
+    if (!DOMINIOS_AN.includes(k)) return false;
+    if (!v || typeof v !== 'object' || !Array.isArray(v.itens)) return false;
+    for (const it of v.itens) {
+      if (!it || typeof it !== 'object') return false;
+      if (!ESTADOS_AN.includes(it.estado)) return false;
+      if (!ORIGENS_AN.includes(it.origem)) return false;
+      if (it.medida !== undefined && it.medida !== null) {
+        if (typeof it.medida !== 'object') return false;
+        if (it.medida.valor !== undefined && it.medida.valor !== null && !(it.medida.unidade && String(it.medida.unidade).trim())) return false;
+      }
+    }
+  }
+  return true;
+}
 // V1 Etapa 1: tabelas com encounter_id e FK composta (encounter_id, patient_id, nutritionist_id)
 const COM_ENCOUNTER = ['holoscan_applications', 'tool_applications', 'lab_collections'];
 const UNICAS = {           // uniques alem da PK, como nas migrations
@@ -121,7 +149,7 @@ export function criarServidor() {
   }
 
   // trigger bloquear_escrita_paciente_arquivado (rodada 08, onda 4)
-  const GUARDA_ARQUIVADO = ['consultations', 'encounters', 'holoscan_applications', 'lab_collections', 'lab_results',
+  const GUARDA_ARQUIVADO = ['consultations', 'encounters', 'anamneses', 'conducts', 'agreements', 'holoscan_applications', 'lab_collections', 'lab_results',
                             'tool_applications', 'documents'];
   function erroArquivado(tabela, linha) {
     if (!GUARDA_ARQUIVADO.includes(tabela)) return null;
@@ -173,6 +201,45 @@ export function criarServidor() {
         return erro('duplicate key value violates unique constraint "encounters_operation_unique"', '23505');
       }
     }
+    if (tabela === 'anamneses' || tabela === 'conducts') {
+      if (!linha.encounter_id) return erro('null value in column "encounter_id" violates not-null constraint', '23502');
+      const e = s.tabelas.encounters.find(x => x.id === linha.encounter_id && x.patient_id === linha.patient_id && x.nutritionist_id === uid);
+      if (!e) return erro('violates foreign key constraint "' + tabela + '_encounter_fk"', '23503');
+      if (!['rascunho', 'salvo', 'revisado'].includes(linha.status)) return erro('violates check constraint "' + tabela + '_status_valido"', '23514');
+      if (s.tabelas[tabela].some(x => x.id !== linha.id && x.encounter_id === linha.encounter_id && x.revision_number === linha.revision_number)) {
+        return erro('duplicate key value violates unique constraint "' + tabela + '_encounter_revision_unique"', '23505');
+      }
+      if (linha.status === 'rascunho' && s.tabelas[tabela].some(x => x.id !== linha.id && x.encounter_id === linha.encounter_id && x.status === 'rascunho')) {
+        return erro('duplicate key value violates unique constraint "' + tabela + '_um_rascunho_por_atendimento"', '23505');
+      }
+      if (linha.operation_id && s.tabelas[tabela].some(x => x.id !== linha.id && x.nutritionist_id === uid && x.operation_id === linha.operation_id)) {
+        return erro('duplicate key value violates unique constraint "' + tabela + '_operation_unique"', '23505');
+      }
+      for (const col of (tabela === 'anamneses' ? ['source_anamnesis_id', 'supersedes_id'] : ['previous_conduct_id', 'supersedes_id'])) {
+        if (!linha[col]) continue;
+        const r = s.tabelas[tabela].find(x => x.id === linha[col] && x.patient_id === linha.patient_id && x.nutritionist_id === uid);
+        if (!r) return erro('violates foreign key constraint "' + tabela + '_' + col.replace('_id', '') + '_fk"', '23503');
+      }
+      if (tabela === 'anamneses' && !conteudoAnamneseValido(linha.content)) return erro('violates check constraint "anamneses_conteudo_valido"', '23514');
+      if (tabela === 'conducts') {
+        if (linha.previous_decision != null && !['continuar', 'substituir', 'encerrar'].includes(linha.previous_decision)) return erro('violates check constraint "conducts_decisao_valida"', '23514');
+        const refs = linha.references || {};
+        const alvos = { holoscan_application_ids: 'holoscan_applications', tool_application_ids: 'tool_applications', lab_collection_ids: 'lab_collections', document_ids: 'documents', previous_encounter_ids: 'encounters' };
+        for (const [k, t] of Object.entries(alvos)) {
+          for (const id of (refs[k] || [])) {
+            if (!s.tabelas[t].some(x => x.id === id && x.patient_id === linha.patient_id && x.nutritionist_id === uid)) return erro('referencia de outro paciente ou inexistente (' + k + ')', 'P0001');
+          }
+        }
+      }
+    }
+    if (tabela === 'agreements') {
+      if (!linha.description || !String(linha.description).trim()) return erro('violates check constraint "agreements_descricao_nao_vazia"', '23514');
+      if (!ESTADOS_ACORDO.includes(linha.status)) return erro('violates check constraint "agreements_status_valido"', '23514');
+      const c = s.tabelas.conducts.find(x => x.id === linha.conduct_id && x.patient_id === linha.patient_id && x.nutritionist_id === uid);
+      if (!c) return erro('violates foreign key constraint "agreements_conduct_fk"', '23503');
+      if (linha.origin_agreement_id && !s.tabelas.agreements.some(x => x.id === linha.origin_agreement_id && x.patient_id === linha.patient_id && x.nutritionist_id === uid)) return erro('violates foreign key constraint "agreements_origin_fk"', '23503');
+      if (linha.operation_id && s.tabelas.agreements.some(x => x.id !== linha.id && x.nutritionist_id === uid && x.operation_id === linha.operation_id)) return erro('duplicate key value violates unique constraint "agreements_operation_unique"', '23505');
+    }
     if (COM_ENCOUNTER.includes(tabela) && linha.encounter_id) {
       const e = s.tabelas.encounters.find(x => x.id === linha.encounter_id &&
         x.patient_id === linha.patient_id && x.nutritionist_id === uid);
@@ -215,6 +282,11 @@ export function criarServidor() {
       if (!l.atualizada_em) l.atualizada_em = t;
     }
     if (tabela === 'lab_collections' && l.data_coleta_desconhecida === undefined) l.data_coleta_desconhecida = false;
+    if (tabela === 'anamneses') { if (!l.status) l.status = 'rascunho'; if (l.revision_number === undefined) l.revision_number = 1; if (l.content_version === undefined) l.content_version = 1; if (l.content === undefined) l.content = {}; if (l.copied_from_previous === undefined) l.copied_from_previous = false; }
+    if (tabela === 'conducts') { if (!l.status) l.status = 'rascunho'; if (l.revision_number === undefined) l.revision_number = 1; if (!l.priorities) l.priorities = []; if (!l.related_tools) l.related_tools = []; if (!l.references) l.references = {}; }
+    if (tabela === 'agreements') { if (!l.status) l.status = 'proposto'; if (l.position === undefined) l.position = 0; }
+    // carimbar_revisao: revisado recebe reviewed_at/by do servidor
+    if ((tabela === 'anamneses' || tabela === 'conducts') && l.status === 'revisado') { l.reviewed_at = l.reviewed_at || t; l.reviewed_by = uid; }
     return l;
   }
 
@@ -332,6 +404,17 @@ export function criarServidor() {
       for (const l of alvo) {
         const teste = Object.assign({}, l, q.dados);
         const e = checarLinha(t, teste, uid); if (e) return e;
+        // trigger proteger_revisao_consolidada (V1 Etapa 2)
+        if ((t === 'anamneses' || t === 'conducts') && l.status !== 'rascunho') {
+          const livres = ['updated_at', 'superseded_at', 'status', 'reviewed_at', 'reviewed_by'];
+          const mudou = Object.keys(q.dados).find(c => !livres.includes(c) && JSON.stringify(q.dados[c] === undefined ? null : q.dados[c]) !== JSON.stringify(l[c] === undefined ? null : l[c]));
+          if (mudou) return erro('revisao consolidada e imutavel: corrija criando uma nova revisao', 'P0001');
+          if ('status' in q.dados && q.dados.status !== l.status && !(l.status === 'salvo' && q.dados.status === 'revisado')) return erro('revisao consolidada so pode passar de salvo para revisado', 'P0001');
+          if (l.superseded_at && 'superseded_at' in q.dados && q.dados.superseded_at !== l.superseded_at) return erro('superseded_at nao pode ser alterado depois de definido', 'P0001');
+        }
+        if (t === 'agreements' && (('conduct_id' in q.dados && q.dados.conduct_id !== l.conduct_id) || ('patient_id' in q.dados && q.dados.patient_id !== l.patient_id))) {
+          return erro('acordo nao muda de conduta, paciente ou profissional', 'P0001');
+        }
         // trigger proteger_snapshot_holoscan (+ encounter_id, V1 Etapa 1 ajuste final)
         if (t === 'holoscan_applications') {
           const IMUTAVEIS = ['nutritionist_id', 'patient_id', 'encounter_id', 'quando', 'versao_estrutura', 'versao_bancos',
@@ -341,17 +424,25 @@ export function criarServidor() {
         }
       }
       alvo.forEach(l => {
+        const statusAntes = l.status;
         Object.assign(l, q.dados);
         if ((COLUNAS[t] || []).includes('updated_at')) l.updated_at = carimbo();
+        if (t === 'agreements' && 'status' in q.dados && q.dados.status !== statusAntes) l.status_changed_at = agora();
+        if ((t === 'anamneses' || t === 'conducts')) {
+          if (l.status === 'revisado' && statusAntes !== 'revisado') { l.reviewed_at = l.reviewed_at || agora(); l.reviewed_by = uid; }
+          if (l.status !== 'revisado') { l.reviewed_at = null; l.reviewed_by = null; }
+        }
       });
       if (!q.retornar) return { data: null, error: null };
       return finalizar(q, projetar(alvo, q.colunas));
     }
 
     if (q.acao === 'delete') {
-      // encounters: sem policy de DELETE (RLS) — zero linhas, sem erro, como no Postgres
-      if (t === 'encounters') return q.retornar ? finalizar(q, []) : { data: null, error: null };
-      const alvo = filtrar(visiveis(t, uid), q.filtros);
+      // encounters, anamneses, conducts: sem policy de DELETE (RLS) — zero linhas, sem erro, como no Postgres
+      if (t === 'encounters' || t === 'anamneses' || t === 'conducts') return q.retornar ? finalizar(q, []) : { data: null, error: null };
+      let alvo = filtrar(visiveis(t, uid), q.filtros);
+      // agreements: so de conduta em RASCUNHO (policy agreements_delete_rascunho)
+      if (t === 'agreements') alvo = alvo.filter(g => { const c = s.tabelas.conducts.find(x => x.id === g.conduct_id); return c && c.status === 'rascunho'; });
       if (t === 'patients') {
         for (const p of alvo) {
           for (const filha of COM_PACIENTE) {
@@ -477,6 +568,110 @@ export function criarServidor() {
       orig.cancelled_at = agora(); orig.cancellation_reason = a.p_motivo || 'reagendada';
       orig.rescheduled_to_id = novo.id; orig.updated_at = carimbo();
       return { data: novo.id, error: null };
+    }
+    // ---------------- V1 Etapa 2 ----------------
+    const encontrarAtendimento = (eid) => s.tabelas.encounters.find(e => e.id === eid && e.nutritionist_id === uid);
+    const maxRev = (t, eid) => s.tabelas[t].filter(x => x.encounter_id === eid).reduce((m, x) => Math.max(m, x.revision_number), 0);
+    const porOp = (t, op) => op ? s.tabelas[t].find(x => x.nutritionist_id === uid && x.operation_id === op) : null;
+    const atualizar = (t, id, dados) => consultar(uid, { tabela: t, acao: 'update', dados, filtros: [{ op: 'eq', col: 'id', val: id }], ordem: [], range: null, colunas: '*', single: null, opcoes: {}, retornar: true });
+    const inserir = (t, dados) => consultar(uid, { tabela: t, acao: 'insert', dados, filtros: [], ordem: [], range: null, colunas: '*', single: null, opcoes: {}, retornar: true });
+
+    if (nome === 'salvar_anamnese') {
+      if (!p) return erro('payload vazio', 'P0001');
+      const status = p.status || 'rascunho';
+      if (!['rascunho', 'salvo', 'revisado'].includes(status)) return erro('status invalido', 'P0001');
+      const ja = porOp('anamneses', p.operation_id); if (ja) return { data: ja.id, error: null };
+      let atual = p.id ? s.tabelas.anamneses.find(a => a.id === p.id && a.nutritionist_id === uid) : null;
+      if (p.id && !atual) return erro('anamnese ' + p.id + ' nao encontrada', 'P0002');
+      if (atual && p.expected_updated_at && atual.updated_at !== p.expected_updated_at) return erro('a anamnese foi alterada em outro lugar; recarregue antes de salvar', 'P0001');
+      const soStatus = (x) => Object.keys(x).every(k => ['id', 'status', 'operation_id', 'expected_updated_at'].includes(k) || x[k] === undefined);
+      if (atual && atual.status === 'salvo' && status === 'revisado' && soStatus(p)) { const r = atualizar('anamneses', atual.id, { status: 'revisado' }); return r.error ? r : { data: atual.id, error: null }; }
+      if (atual && atual.status === 'rascunho') {
+        const r = atualizar('anamneses', atual.id, { content: p.content !== undefined ? p.content : atual.content, status, revision_note: p.revision_note !== undefined && p.revision_note !== null ? p.revision_note : atual.revision_note, operation_id: atual.operation_id || p.operation_id || null });
+        if (!r.error && status !== 'rascunho' && atual.supersedes_id) { const ant = s.tabelas.anamneses.find(x => x.id === atual.supersedes_id); if (ant && !ant.superseded_at) atualizar('anamneses', ant.id, { superseded_at: agora() }); }
+        return r.error ? r : { data: atual.id, error: null };
+      }
+      if (atual) {
+        const r = inserir('anamneses', { patient_id: atual.patient_id, encounter_id: atual.encounter_id, revision_number: maxRev('anamneses', atual.encounter_id) + 1, status, content_version: atual.content_version,
+          content: p.content !== undefined ? p.content : atual.content, source_anamnesis_id: atual.source_anamnesis_id || null, copied_from_previous: atual.copied_from_previous, supersedes_id: atual.id, revision_note: p.revision_note || null, operation_id: p.operation_id || null });
+        if (r.error) return r;
+        if (status !== 'rascunho') atualizar('anamneses', atual.id, { superseded_at: agora() });
+        return { data: r.data[0].id, error: null };
+      }
+      const e = encontrarAtendimento(p.encounter_id); if (!e) return erro('atendimento ' + p.encounter_id + ' nao encontrado', 'P0002');
+      const rasc = s.tabelas.anamneses.find(a => a.encounter_id === e.id && a.status === 'rascunho');
+      if (rasc) { const r = atualizar('anamneses', rasc.id, { content: p.content !== undefined ? p.content : rasc.content, status, revision_note: p.revision_note || rasc.revision_note || null, operation_id: rasc.operation_id || p.operation_id || null }); return r.error ? r : { data: rasc.id, error: null }; }
+      const r = inserir('anamneses', { patient_id: e.patient_id, encounter_id: e.id, revision_number: maxRev('anamneses', e.id) + 1, status, content: p.content || {},
+        source_anamnesis_id: p.source_anamnesis_id || null, copied_from_previous: !!p.copied_from_previous, revision_note: p.revision_note || null, operation_id: p.operation_id || null });
+      return r.error ? r : { data: r.data[0].id, error: null };
+    }
+    if (nome === 'criar_anamnese_a_partir_de') {
+      const a = args || {};
+      const ja = porOp('anamneses', a.p_operation_id); if (ja) return { data: ja.id, error: null };
+      const e = encontrarAtendimento(a.p_encounter_id); if (!e) return erro('atendimento nao encontrado', 'P0002');
+      const fonte = s.tabelas.anamneses.find(x => x.id === a.p_source_id && x.nutritionist_id === uid);
+      if (!fonte) return erro('anamnese de origem nao encontrada', 'P0002');
+      if (fonte.patient_id !== e.patient_id) return erro('anamnese de origem e de outro paciente', 'P0001');
+      if (fonte.status === 'rascunho') return erro('so uma anamnese salva ou revisada pode ser copiada', 'P0001');
+      if (s.tabelas.anamneses.some(x => x.encounter_id === e.id && x.status === 'rascunho')) return erro('este atendimento ja tem um rascunho de anamnese', 'P0001');
+      const conteudo = { dominios: {} };
+      Object.entries((fonte.content || {}).dominios || {}).forEach(([k, v]) => { conteudo.dominios[k] = { itens: (v.itens || []).map(it => Object.assign({}, it, { previo: true, fonte_anamnese_id: fonte.id })) }; });
+      const r = inserir('anamneses', { patient_id: e.patient_id, encounter_id: e.id, revision_number: maxRev('anamneses', e.id) + 1, status: 'rascunho', content_version: fonte.content_version, content: conteudo, source_anamnesis_id: fonte.id, copied_from_previous: true, operation_id: a.p_operation_id || null });
+      return r.error ? r : { data: r.data[0].id, error: null };
+    }
+    if (nome === 'salvar_conduta') {
+      if (!p) return erro('payload vazio', 'P0001');
+      const status = p.status || 'rascunho';
+      if (!['rascunho', 'salvo', 'revisado'].includes(status)) return erro('status invalido', 'P0001');
+      const ja = porOp('conducts', p.operation_id); if (ja) return { data: ja.id, error: null };
+      const CAMPOS = ['objective', 'nutrition_strategy', 'actions', 'resources', 'requested_exams', 'referrals', 'monitoring', 'return_plan', 'observations', 'nutrition_diagnosis', 'dietary_prescription', 'professional_guidance'];
+      const campos = (base) => { const o = {}; CAMPOS.forEach(c => { o[c] = p[c] !== undefined ? (p[c] === '' ? null : p[c]) : (base ? base[c] : null); }); return o; };
+      let atual = p.id ? s.tabelas.conducts.find(c => c.id === p.id && c.nutritionist_id === uid) : null;
+      if (p.id && !atual) return erro('conduta ' + p.id + ' nao encontrada', 'P0002');
+      if (atual && p.expected_updated_at && atual.updated_at !== p.expected_updated_at) return erro('a conduta foi alterada em outro lugar; recarregue antes de salvar', 'P0001');
+      let e, alvo, promover = false;
+      const soStatusC = (x) => Object.keys(x).every(k => ['id', 'status', 'operation_id', 'expected_updated_at'].includes(k) || x[k] === undefined);
+      if (atual && atual.status === 'salvo' && status === 'revisado' && soStatusC(p)) { const r = atualizar('conducts', atual.id, { status: 'revisado' }); return r.error ? r : { data: atual.id, error: null }; }
+      if (!atual) {
+        e = encontrarAtendimento(p.encounter_id); if (!e) return erro('atendimento ' + p.encounter_id + ' nao encontrado', 'P0002');
+        atual = s.tabelas.conducts.find(c => c.encounter_id === e.id && c.status === 'rascunho') || null;
+      } else e = encontrarAtendimento(atual.encounter_id);
+      if (atual && atual.status === 'rascunho') {
+        promover = true;
+        const r = atualizar('conducts', atual.id, Object.assign(campos(atual), { priorities: p.priorities || atual.priorities, related_tools: p.related_tools || atual.related_tools, references: p.references || atual.references,
+          previous_conduct_id: p.previous_conduct_id || atual.previous_conduct_id || null, previous_decision: p.previous_decision || atual.previous_decision || null,
+          previous_decision_note: p.previous_decision_note !== undefined ? p.previous_decision_note : atual.previous_decision_note, revision_note: p.revision_note || atual.revision_note || null, operation_id: atual.operation_id || p.operation_id || null }));
+        if (r.error) return r; alvo = atual;
+      } else if (atual) {
+        const r = inserir('conducts', Object.assign(campos(atual), { patient_id: atual.patient_id, encounter_id: atual.encounter_id, revision_number: maxRev('conducts', atual.encounter_id) + 1, status,
+          priorities: p.priorities || atual.priorities, related_tools: p.related_tools || atual.related_tools, references: p.references || atual.references,
+          previous_conduct_id: atual.previous_conduct_id || null, previous_decision: atual.previous_decision || null, previous_decision_note: atual.previous_decision_note || null,
+          supersedes_id: atual.id, revision_note: p.revision_note || null, operation_id: p.operation_id || null }));
+        if (r.error) return r; alvo = r.data[0];
+        if (status !== 'rascunho') atualizar('conducts', atual.id, { superseded_at: agora() });
+      } else {
+        promover = true;
+        const r = inserir('conducts', Object.assign(campos(null), { patient_id: e.patient_id, encounter_id: e.id, revision_number: maxRev('conducts', e.id) + 1, status: 'rascunho',
+          priorities: p.priorities || [], related_tools: p.related_tools || [], references: p.references || {}, previous_conduct_id: p.previous_conduct_id || null,
+          previous_decision: p.previous_decision || null, previous_decision_note: p.previous_decision_note || null, revision_note: p.revision_note || null, operation_id: p.operation_id || null }));
+        if (r.error) return r; alvo = r.data[0];
+      }
+      if (Array.isArray(p.agreements)) {
+        const mantidos = [];
+        for (const g of p.agreements) {
+          let ex = g.operation_id ? s.tabelas.agreements.find(x => x.nutritionist_id === uid && x.operation_id === g.operation_id) : null;
+          if (!ex && g.id) ex = s.tabelas.agreements.find(x => x.id === g.id && x.conduct_id === alvo.id && x.nutritionist_id === uid);
+          if (ex) { const r = atualizar('agreements', ex.id, { description: g.description || ex.description, responsible: g.responsible || null, due_text: g.due_text || null, follow_up: g.follow_up || null, status: g.status || ex.status, status_note: g.status_note || null, position: g.position !== undefined ? g.position : ex.position }); if (r.error) return r; }
+          else { const r = inserir('agreements', { patient_id: e.patient_id, conduct_id: alvo.id, description: g.description, responsible: g.responsible || null, due_text: g.due_text || null, follow_up: g.follow_up || null, status: g.status || 'proposto', status_note: g.status_note || null, position: g.position || 0, origin_agreement_id: g.origin_agreement_id || null, operation_id: g.operation_id || null }); if (r.error) return r; ex = r.data[0]; }
+          mantidos.push(ex.id);
+        }
+        if (promover) s.tabelas.agreements = s.tabelas.agreements.filter(x => x.conduct_id !== alvo.id || mantidos.includes(x.id));
+      }
+      if (promover && status !== 'rascunho') {
+        const r = atualizar('conducts', alvo.id, { status }); if (r.error) return r;
+        if (alvo.supersedes_id) { const ant = s.tabelas.conducts.find(x => x.id === alvo.supersedes_id); if (ant && !ant.superseded_at) atualizar('conducts', ant.id, { superseded_at: agora() }); }
+      }
+      return { data: alvo.id, error: null };
     }
     return erro('function ' + nome + ' does not exist', '42883');
   }
