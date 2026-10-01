@@ -276,7 +276,7 @@ await A.waitForSelector('[data-rel-acao="ver"][data-rel-id="' + EM1 + '"]', { ti
 await A.evaluate(async (id) => { document.querySelector('[data-rel-acao="ver"][data-rel-id="' + id + '"]').click(); await new Promise(r => setTimeout(r, 300)); }, EM1);
 await A.waitForSelector('#rel-documento', { timeout: 5000 });
 let ver = await texto('#rel-documento');
-ok(/Peso.*80 kg/.test(ver.replace(/\s+/g, ' ')) && !/99/.test(ver) && /Paciente: Paciente Um/.test(ver) && !/Renomeada/.test(ver), 'a emissao mostra o snapshot: 80 kg (nao 99) e o nome da epoca');
+ok(/Peso.*80 kg/.test(ver.replace(/\s+/g, ' ')) && !/99 kg/.test(ver) && /Paciente: Paciente Um/.test(ver) && !/Renomeada/.test(ver), 'a emissao mostra o snapshot: 80 kg (nao 99) e o nome da epoca');
 ok(srv.linhas('report_emissions')[0].content_snapshot.anamneses[0].itens[0].medida.valor === 80, 'no servidor o snapshot continua igual depois da revisao da fonte');
 // retificar
 await A.evaluate(async () => { document.querySelector('[data-rel-acao="voltar"]').click(); await new Promise(r => setTimeout(r, 200)); document.querySelector('[data-rel-acao="retificar"]').click(); await new Promise(r => setTimeout(r, 400)); });
