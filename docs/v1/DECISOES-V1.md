@@ -209,6 +209,12 @@ na seção **Decisões pendentes**, sem resposta.
     versão, status e hash do importado) e hash SHA-256 próprio; o importado continua reproduzível.
     Motor sem fallback; aritmética racional exata. Migration 20261001200000 (NÃO aplicada) leva o
     contrato ao banco.
+67. **Homologação por dupla aprovação, em ordem.** Aprovação 1 = Daniel (responsável primário pela
+    homologação); Aprovação 2 = Rodrigo (segundo responsável / revisão final). O pacote só passa a
+    aprovado com as duas registradas sobre o mesmo `package_id`, `version` e `content_hash`. Se o
+    pacote mudar entre elas, o ciclo daquela versão é invalidado e exige de novo 1 e 2. Nenhuma
+    aprovação é automática (só a RPC escreve) e nenhuma pode ser atribuída a "Liderança do método
+    HOLOSCAN". Migration 20261001210000 (NÃO aplicada).
 
 ## Decisões pendentes (não decididas aqui)
 
@@ -247,7 +253,8 @@ na seção **Decisões pendentes**, sem resposta.
   separada em `supabase/migrations-pendentes/`.
 - ~~**Homologação do Pacote Metodológico V1**, parcialidade, pesos, faixas, Índice, Tríada~~ —
   **DECIDIDAS na Etapa 4.2** (itens 52–66). Pendente só a **publicação técnica**: validar a
-  cadeia 130000→200000 no banco real e aprovar o HOLOS-V1@2 pela RPC, com responsável nominal.
+  cadeia 130000→210000 no banco real, registrar a Aprovação 1 (Daniel) e a Aprovação 2 (Rodrigo)
+  sobre o mesmo pacote, versão e hash, e então homologar o HOLOS-V1@2 (item 67).
 - **Leitura Integrada** — vínculo exame↔domínio, suficiência, janela temporal,
   unidades/referências, resultados mistos, versionamento da regra. (Mestre §24)
 - **Regras de sugestão de ferramentas** — nenhuma das 23 REC nem SEL-001 é aprovada; a Etapa 4.2

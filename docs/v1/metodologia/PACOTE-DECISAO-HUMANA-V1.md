@@ -4,7 +4,9 @@ Etapa 4.1 · 01/10/2026 · para a liderança do método (Daniel e responsáveis 
 
 > **ETAPA 4.2 — DECISÕES METODOLÓGICAS V1 FECHADAS.** As 15 decisões abaixo foram tomadas e estão preenchidas nos campos de cada bloco. Consolidação: `PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`. Aplicadas na nova versão candidata do pacote (HOLOS-V1@2, `em_revisao`): o validador não aponta nenhum bloqueio metodológico.
 >
-> **PUBLICAÇÃO TÉCNICA PENDENTE DE VALIDAÇÃO NO BANCO REAL.** O candidato não é publicado nem aprovado enquanto a cadeia de migrations (agora 130000→200000) não for validada no Supabase.
+> **PUBLICAÇÃO TÉCNICA PENDENTE DE VALIDAÇÃO NO BANCO REAL.** O candidato não é publicado nem aprovado enquanto a cadeia de migrations (agora 130000→210000) não for validada no Supabase.
+>
+> **HOMOLOGAÇÃO = DUPLA APROVAÇÃO.** Aprovação 1: Daniel (responsável primário pela homologação). Aprovação 2: Rodrigo (segundo responsável / revisão final). As duas sobre o mesmo `package_id`, `version` e `content_hash`; se o pacote mudar entre elas, o ciclo recomeça. Nenhuma aprovação é automática nem atribuída a grupo.
 
 > **Estado técnico do banco real:** VALIDAÇÃO REAL PENDENTE — CONEXÃO DIRETA NÃO DISPONÍVEL. A cadeia de migrations 130000→190000 foi validada apenas em PostgreSQL 16 local (BEGIN/ROLLBACK, 33/33 verificações). Nenhuma migration foi aplicada no banco real. Isso não altera as decisões abaixo, que são metodológicas.
 
@@ -106,7 +108,7 @@ Justificativa:
 Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
+Decisão de método registrada na Etapa 4.2 (texto). A homologação do pacote não é atribuída a nenhum grupo: exige Aprovação 1 de **Daniel** (responsável primário) e Aprovação 2 de **Rodrigo** (revisão final), registradas no sistema sobre o mesmo pacote, versão e hash.
 
 Data:
 01/10/2026
@@ -162,7 +164,7 @@ Justificativa:
 Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
+Decisão de método registrada na Etapa 4.2 (texto). A homologação do pacote não é atribuída a nenhum grupo: exige Aprovação 1 de **Daniel** (responsável primário) e Aprovação 2 de **Rodrigo** (revisão final), registradas no sistema sobre o mesmo pacote, versão e hash.
 
 Data:
 01/10/2026
@@ -223,7 +225,7 @@ Justificativa:
 Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
+Decisão de método registrada na Etapa 4.2 (texto). A homologação do pacote não é atribuída a nenhum grupo: exige Aprovação 1 de **Daniel** (responsável primário) e Aprovação 2 de **Rodrigo** (revisão final), registradas no sistema sobre o mesmo pacote, versão e hash.
 
 Data:
 01/10/2026
@@ -297,7 +299,7 @@ Justificativa:
 Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
+Decisão de método registrada na Etapa 4.2 (texto). A homologação do pacote não é atribuída a nenhum grupo: exige Aprovação 1 de **Daniel** (responsável primário) e Aprovação 2 de **Rodrigo** (revisão final), registradas no sistema sobre o mesmo pacote, versão e hash.
 
 Data:
 01/10/2026
@@ -373,7 +375,7 @@ Justificativa:
 Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
+Decisão de método registrada na Etapa 4.2 (texto). A homologação do pacote não é atribuída a nenhum grupo: exige Aprovação 1 de **Daniel** (responsável primário) e Aprovação 2 de **Rodrigo** (revisão final), registradas no sistema sobre o mesmo pacote, versão e hash.
 
 Data:
 01/10/2026
@@ -449,7 +451,7 @@ Justificativa:
 Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
+Decisão de método registrada na Etapa 4.2 (texto). A homologação do pacote não é atribuída a nenhum grupo: exige Aprovação 1 de **Daniel** (responsável primário) e Aprovação 2 de **Rodrigo** (revisão final), registradas no sistema sobre o mesmo pacote, versão e hash.
 
 Data:
 01/10/2026
@@ -501,7 +503,7 @@ Justificativa:
 Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
+Decisão de método registrada na Etapa 4.2 (texto). A homologação do pacote não é atribuída a nenhum grupo: exige Aprovação 1 de **Daniel** (responsável primário) e Aprovação 2 de **Rodrigo** (revisão final), registradas no sistema sobre o mesmo pacote, versão e hash.
 
 Data:
 01/10/2026
@@ -558,7 +560,7 @@ Justificativa:
 Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
+Decisão de método registrada na Etapa 4.2 (texto). A homologação do pacote não é atribuída a nenhum grupo: exige Aprovação 1 de **Daniel** (responsável primário) e Aprovação 2 de **Rodrigo** (revisão final), registradas no sistema sobre o mesmo pacote, versão e hash.
 
 Data:
 01/10/2026
@@ -621,7 +623,7 @@ Justificativa:
 Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
+Decisão de método registrada na Etapa 4.2 (texto). A homologação do pacote não é atribuída a nenhum grupo: exige Aprovação 1 de **Daniel** (responsável primário) e Aprovação 2 de **Rodrigo** (revisão final), registradas no sistema sobre o mesmo pacote, versão e hash.
 
 Data:
 01/10/2026
@@ -685,7 +687,7 @@ Justificativa:
 Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
+Decisão de método registrada na Etapa 4.2 (texto). A homologação do pacote não é atribuída a nenhum grupo: exige Aprovação 1 de **Daniel** (responsável primário) e Aprovação 2 de **Rodrigo** (revisão final), registradas no sistema sobre o mesmo pacote, versão e hash.
 
 Data:
 01/10/2026
@@ -746,7 +748,7 @@ Justificativa:
 Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
+Decisão de método registrada na Etapa 4.2 (texto). A homologação do pacote não é atribuída a nenhum grupo: exige Aprovação 1 de **Daniel** (responsável primário) e Aprovação 2 de **Rodrigo** (revisão final), registradas no sistema sobre o mesmo pacote, versão e hash.
 
 Data:
 01/10/2026
@@ -797,7 +799,7 @@ Justificativa:
 Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
+Decisão de método registrada na Etapa 4.2 (texto). A homologação do pacote não é atribuída a nenhum grupo: exige Aprovação 1 de **Daniel** (responsável primário) e Aprovação 2 de **Rodrigo** (revisão final), registradas no sistema sobre o mesmo pacote, versão e hash.
 
 Data:
 01/10/2026
@@ -854,7 +856,7 @@ Justificativa:
 Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
+Decisão de método registrada na Etapa 4.2 (texto). A homologação do pacote não é atribuída a nenhum grupo: exige Aprovação 1 de **Daniel** (responsável primário) e Aprovação 2 de **Rodrigo** (revisão final), registradas no sistema sobre o mesmo pacote, versão e hash.
 
 Data:
 01/10/2026
@@ -899,7 +901,7 @@ Justificativa:
 Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
+Decisão de método registrada na Etapa 4.2 (texto). A homologação do pacote não é atribuída a nenhum grupo: exige Aprovação 1 de **Daniel** (responsável primário) e Aprovação 2 de **Rodrigo** (revisão final), registradas no sistema sobre o mesmo pacote, versão e hash.
 
 Data:
 01/10/2026
@@ -948,7 +950,7 @@ Justificativa:
 Decisão metodológica V1 encerrada pela liderança do método e registrada na Etapa 4.2 (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`). As opções acima ficam como registro do que foi considerado.
 
 Responsável:
-Liderança do método HOLOSCAN (registro da Etapa 4.2; assinatura nominal na aprovação formal do pacote)
+Decisão de método registrada na Etapa 4.2 (texto). A homologação do pacote não é atribuída a nenhum grupo: exige Aprovação 1 de **Daniel** (responsável primário) e Aprovação 2 de **Rodrigo** (revisão final), registradas no sistema sobre o mesmo pacote, versão e hash.
 
 Data:
 01/10/2026

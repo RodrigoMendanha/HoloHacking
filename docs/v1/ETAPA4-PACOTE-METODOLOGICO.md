@@ -151,3 +151,15 @@ Não iniciado: catálogo laboratorial, Leitura Integrada final, aprovação de m
 - banco real: não tocado; sem conexão direta autorizada neste ambiente
 - testes: 92 suítes, 2950 asserções, 0 falhas (nenhuma asserção removida; +1 suíte `testar-v1-etapa4-2-pacote-v1.mjs`, 82 asserções)
 - deploy: NÃO
+
+# HOMOLOGAÇÃO POR DUPLA APROVAÇÃO (01/10/2026)
+
+- Aprovação 1 = **Daniel** (responsável primário pela homologação); Aprovação 2 = **Rodrigo** (segundo
+  responsável / revisão final). Ordem obrigatória; as duas sobre o mesmo `package_id`, `version` e
+  `content_hash`; pacote alterado entre elas invalida o ciclo. Nada automático; nada atribuído a
+  "Liderança do método HOLOSCAN" (os 15 registros gerados na Etapa 4.2 com esse responsável foram
+  removidos — o candidato nasce sem registro algum).
+- migration nova: `20261001210000_dupla_aprovacao_metodologica.sql` — **NÃO aplicada**
+- cadeia 130000→210000 + harnesses (33 + 18 + 22) em PostgreSQL 16 local, BEGIN/ROLLBACK: **73/73 ok**
+- banco real: não tocado
+- testes: ver bloco TESTES abaixo (suíte completa rodada no HEAD final)

@@ -6,18 +6,21 @@ Etapa 4.2 · 01/10/2026 · branch `claude/v1-etapa4-2-metodologia-final`
 > As 15 decisões abaixo foram tomadas pela liderança do método e estão encerradas. Elas foram registradas em dado (`metodologia-decisoes-v1.js`) e aplicadas numa **nova versão candidata** do pacote. Nenhuma foi reinterpretada; nenhuma alternativa foi recomendada.
 
 > ## PUBLICAÇÃO TÉCNICA PENDENTE DE VALIDAÇÃO NO BANCO REAL
-> O candidato **não** foi publicado nem aprovado. A cadeia de migrations, agora **130000→200000**, só foi validada num PostgreSQL 16 local (BEGIN/ROLLBACK). Enquanto ela não for validada no Supabase real, o pacote fica `em_revisao` e nenhuma saída do HOLOSCAN é oficial.
+> O candidato **não** foi publicado nem aprovado. A cadeia de migrations, agora **130000→210000**, só foi validada num PostgreSQL 16 local (BEGIN/ROLLBACK). Enquanto ela não for validada no Supabase real, o pacote fica `em_revisao` e nenhuma saída do HOLOSCAN é oficial.
+
+> ## HOMOLOGAÇÃO = DUPLA APROVAÇÃO (ordem obrigatória)
+> **Aprovação 1 — Daniel**, responsável primário pela homologação. **Aprovação 2 — Rodrigo**, segundo responsável / revisão final. O pacote só passa a aprovado com as duas registradas sobre exatamente o mesmo `package_id`, `version` e `content_hash`. Se o pacote mudar entre as duas, o ciclo daquela versão é invalidado e exige de novo a Aprovação 1 e a Aprovação 2. Nenhuma aprovação é criada automaticamente; nenhuma pode ser atribuída a "Liderança do método HOLOSCAN".
 
 ## 1. O pacote candidato
 
 | | Pacote importado (histórico) | Candidato V1 |
 |---|---|---|
 | Código / versão | HOLOS-V1 @ 1 | HOLOS-V1 @ **2** |
-| Status | `rascunho` | `em_revisao` (aprovação formal só pela RPC, com responsável nominal) |
+| Status | `rascunho` | `em_revisao` (homologação só por dupla aprovação: Daniel, depois Rodrigo — seção 10) |
 | Hash do conteúdo (SHA-256) | `7e7e55dc40a4cb994275ff258008001c3bad2d44df311635c23278c3d4c213cc` | `3593d782f1cd3a35b05ecae36836ab71746064cc99960853705dd3e2ac3f24c4` |
 | Validador | bloqueado: os 12 bloqueios da Etapa 4 continuam; com o contrato V1, 115 erros em 12 códigos | **0 erros** (JS e SQL) |
 | Edição | 84 itens, sem contexto temporal | HOLOSCAN-V1 v1, 84 itens, `aprovada` |
-| Elementos | `para_homologacao` | `aprovado` (decisões fechadas, 15 registros de decisão) |
+| Elementos | `para_homologacao` | `aprovado` (decisões fechadas); **nenhum** registro de homologação nem aprovação criado pelo código |
 
 - **Geração:** `node scripts/pacote-candidato-v1.mjs`. Ele lê o inventário, importa o HOLOS-V1@1 sem editá-lo e aplica `aplicarDecisoesV1`. Grava `docs/v1/metodologia/pacote-metodologico-v1-candidato.json` e `supabase/tests/etapa4-2-pacotes.sql`. Com `--check`, prova que os arquivos gravados são idênticos ao que o gerador produz agora (determinismo).
 - **Linhagem:** o candidato guarda `lineage` = {código, versão, status e hash do pacote anterior, decisões aplicadas}.
@@ -108,14 +111,28 @@ Os fixtures são de teste (`testes/testar-v1-etapa4-2-pacote-v1.mjs`) e não sã
 | `metodologia-homologacao.js` | Opção "Candidato V1 — decisões fechadas", status metodológico e técnico, linhagem, pesos legados, limites exatos, REF conferidos, política de sugestão. Botão "Gravar candidato V1 (em_revisao, sem aprovar)". |
 | `questionario.js` | Escala desconhecida deixa de cair em frequência: o item aparece como erro, sem botões. |
 | `supabase/migrations/20261001200000_etapa4_2_contrato_metodologico_v1.sql` | **Não aplicada.** Adiciona `lineage` e `legacy`, limites exatos de faixa, CHECK de contexto temporal (7 valores), papéis conhecidos, `secondary_contextual` sem peso, `rule_type` `suggestion` e o validador SQL com o contrato V1. |
+| `supabase/migrations/20261001210000_dupla_aprovacao_metodologica.sql` | **Não aplicada.** Tabela `methodology_package_approvals` (só a RPC escreve), `metodologia_hash_conteudo`, `registrar_aprovacao_metodologica` (etapa 1 = Daniel, etapa 2 = Rodrigo, hash conferido = hash do servidor), triggers que invalidam as aprovações quando o pacote muda, e `aprovar_pacote_metodologico` reescrita: só homologa com as duas aprovações válidas sobre o conteúdo atual; o registro de homologação nomeia Daniel e Rodrigo. CHECK impede qualquer atribuição a "Liderança". |
 | `scripts/pacote-candidato-v1.mjs` | Gera e confere (`--check`) o candidato e o SQL do harness. |
-| `scripts/validar-cadeia-local.sh` + `supabase/tests/etapa4-2-harness.sql` | Cadeia 130000→200000 + harness Etapa 4 (33) + Etapa 4.2 (18) em PostgreSQL local, com BEGIN/ROLLBACK: **51/51 ok**. O validador SQL dá 0 erros no candidato e o importado continua bloqueado. |
+| `scripts/validar-cadeia-local.sh` + `supabase/tests/*.sql` | Cadeia 130000→210000 + harness Etapa 4 (33) + Etapa 4.2 (18) + dupla aprovação (22) em PostgreSQL local, com BEGIN/ROLLBACK: **73/73 ok**. O validador SQL dá 0 erros no candidato e o importado continua bloqueado. |
 
 ## 9. O que falta para publicar (gate técnico, fora desta etapa)
 
-1. Validar a cadeia 130000→200000 no Supabase real, por conexão direta autorizada, com BEGIN/ROLLBACK e ON_ERROR_STOP. **Pendente: não há conexão direta disponível neste ambiente.**
+1. Validar a cadeia 130000→210000 no Supabase real, por conexão direta autorizada, com BEGIN/ROLLBACK e ON_ERROR_STOP. **Pendente: não há conexão direta disponível neste ambiente.**
 2. Aplicar as migrations em produção (decisão de quem administra o banco).
 3. Gravar o candidato pela tela de homologação (`?homologacao=1`) como `em_revisao`.
-4. Aprovar com `aprovar_pacote_metodologico`, informando o responsável nominal e a justificativa. A RPC roda o validador e calcula o hash no servidor.
+4. Dupla aprovação (seção 10) e, só então, "Homologar".
+
+## 10. Homologação — dupla aprovação
+
+| Passo | Quem | O que faz | O que o servidor exige |
+|---|---|---|---|
+| Aprovação 1 | **Daniel** — responsável primário pela homologação | Na tela de homologação, confere o hash do conteúdo calculado pelo servidor, digita o próprio nome e a justificativa, marca "conferi" e registra | pacote `em_revisao`; validador sem erros; hash conferido = hash atual; nenhuma Aprovação 1 vigente |
+| Aprovação 2 | **Rodrigo** — segundo responsável / revisão final | O mesmo, depois da Aprovação 1 | Aprovação 1 vigente sobre o **mesmo** `package_id`, `version` e `content_hash` |
+| Homologar | quem opera a tela | Clica "Homologar" | as duas aprovações válidas sobre o conteúdo atual; o registro de homologação nomeia Daniel e Rodrigo e guarda o hash |
+
+- Qualquer mudança no pacote (pergunta, associação, faixa, regra, escala, sistema, edição, `code` ou `version`) **invalida** as aprovações vigentes daquela versão: ficam como histórico, com motivo, e o ciclo recomeça pela Aprovação 1. Voltar o conteúdo ao hash antigo **não** ressuscita uma aprovação invalidada.
+- Não existe aprovação automática: a tabela de aprovações não aceita escrita direta; o candidato nasce sem registro algum; o campo "responsável" da tela vem vazio.
+- Nenhuma aprovação nem registro de homologação pode ser atribuído a "Liderança do método HOLOSCAN" (CHECK no banco e recusa na RPC).
+- Provas: `testes/testar-v1-dupla-aprovacao.mjs` (31 asserções), fluxo na tela em `testar-v1-etapa4-barreira.mjs`, e `supabase/tests/dupla-aprovacao-harness.sql` (22 checagens no PostgreSQL local).
 
 Até lá, a barreira (`window.Metodologia`) continua em `em_homologacao` e nenhuma tela oficial recebe número do HOLOSCAN.

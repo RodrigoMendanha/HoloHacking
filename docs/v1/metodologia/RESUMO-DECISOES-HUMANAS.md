@@ -1,7 +1,7 @@
 # Homologação V1 — decisões necessárias
 
 > **DECISÕES METODOLÓGICAS V1 FECHADAS (Etapa 4.2).** Cada bloqueio abaixo traz a decisão tomada em "Decidido". Detalhe: `PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`.
-> **PUBLICAÇÃO TÉCNICA PENDENTE DE VALIDAÇÃO NO BANCO REAL.**
+> **PUBLICAÇÃO TÉCNICA PENDENTE DE VALIDAÇÃO NO BANCO REAL.** Homologação só por dupla aprovação: Aprovação 1 Daniel, depois Aprovação 2 Rodrigo, sobre o mesmo pacote, versão e hash.
 
 Resumo do `PACOTE-DECISAO-HUMANA-V1.md`. "Valor atual" é o que foi recuperado dos arquivos antes da decisão (registro histórico). Até a publicação técnica do pacote, o HOLOSCAN coleta respostas e mostra cobertura, mas não mostra resultado oficial.
 
