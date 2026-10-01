@@ -256,7 +256,7 @@
 
   /* ---------- navegacao ---------- */
   const nomesSecao = {
-    dashboard:"Dashboard", pacientes:"Pacientes", consultas:"Consultas",
+    dashboard:"Dashboard", pacientes:"Pacientes", consultas:"Atendimentos",
     agenda:"Agenda", documentos:"Documentos",
     holoscan:"HOLOSCAN", confronto:"Leitura Integrada",
     corpo:"Módulo Corpo", mente:"Módulo Mente",
@@ -987,6 +987,7 @@
     $("#vista-ficha").classList.remove("hidden");
     atualizarBarraPaciente("pacientes");
     if(typeof window.redesenharFicha === "function") window.redesenharFicha();
+    if(window.AtendimentoAtual) window.AtendimentoAtual.desenharCabecalho();
     window.scrollTo({ top:0, behavior:"smooth" });
   }
 
@@ -1091,7 +1092,7 @@
     const coletas = window.Sincronizacao ? window.Sincronizacao.coletas(id) : null;
     if(coletas && coletas.length){
       exportado.coletasExames = coletas.map(c => ({
-        id: c.id, coletado_em: c.coletado_em,
+        id: c.id, coletado_em: c.coletado_em, encounter_id: c.encounter_id || null,
         data_coleta_desconhecida: c.data_coleta_desconhecida,
         laboratorio: c.laboratorio, observacao: c.observacao,
         resultados: (c.resultados || []).map(r => ({
@@ -1104,17 +1105,32 @@
       const apps = window.Aplicacoes.doPaciente(id);
       if(apps && apps.length) exportado.aplicacoesFerramentas = apps.map(a => ({
         id: a.id, ferramenta_id: a.ferramenta_id, versao_ferramenta: a.versao_ferramenta,
-        status: a.status, consulta_id: a.consulta_id || null,
+        status: a.status, consulta_id: a.consulta_id || null, encounter_id: a.encounter_id || null,
         iniciada_em: a.iniciada_em, concluida_em: a.concluida_em, atualizada_em: a.atualizada_em,
         respostas: a.respostas, resultado: a.resultado,
         leitura: a.leitura, prioridade: a.prioridade, proximo_passo: a.proximo_passo
       }));
     }
+    /* V1, Etapa 1: ATENDIMENTOS (encounters) e AGENDAMENTOS (agenda) sao
+       coisas diferentes e vao com nomes diferentes. A agenda leva tambem os
+       cancelados/reagendados (historico), marcados como tal. */
+    if(window.AtendimentoAtual && window.AtendimentoAtual.doPaciente){
+      const atend = window.AtendimentoAtual.doPaciente(id);
+      if(atend && atend.length) exportado.atendimentos = atend.map(e => ({
+        id: e.id, occurred_at: e.occurred_at, timezone: e.timezone || null,
+        consultation_id: e.consultation_id || null,
+        origem: e.consultation_id ? "com_agendamento" : "sem_agendamento",
+        type: e.type || null, modality: e.modality || null, status: e.status || null,
+        summary_text: e.summary_text || null, created_at: e.created_at, updated_at: e.updated_at
+      }));
+    }
     if(window.Agenda && window.Agenda.todas){
-      const consultas = window.Agenda.todas(id);
-      if(consultas && consultas.length) exportado.consultas = consultas.map(c => ({
+      const consultas = window.Agenda.todas(id, { incluirCanceladas: true });
+      if(consultas && consultas.length) exportado.agendamentos = consultas.map(c => ({
         id: c.id, data: c.data, hora: c.hora, duracao: c.duracao, tipo: c.tipo,
-        nota: c.nota || "", created_at: c.created_at
+        nota: c.nota || "", created_at: c.created_at,
+        cancelled_at: c.cancelled_at || null, cancellation_reason: c.cancellation_reason || null,
+        rescheduled_from_id: c.rescheduled_from_id || null, rescheduled_to_id: c.rescheduled_to_id || null
       }));
     }
     if(window.ArquivoStore && window.ArquivoStore.listar){
@@ -3439,6 +3455,17 @@
       return;
     }
 
+    /* V1, Etapa 1: a aplicacao OFICIAL (servidor) pertence a um ATENDIMENTO
+       escolhido explicitamente. Sem atendimento ativo deste paciente, nada e
+       consolidado — e nenhum vinculo e deduzido pela data. O rascunho do
+       questionario continua neste navegador, intacto. */
+    const atendimento = window.AtendimentoAtual ? window.AtendimentoAtual.atual() : null;
+    if (temSupa && pontuacaoNaTela && (!atendimento || atendimento.patient_id !== p.id)) {
+      toast(window.AtendimentoAtual ? window.AtendimentoAtual.MSG_SEM_ATENDIMENTO
+                                    : "Selecione ou inicie um atendimento para salvar.");
+      return;
+    }
+
     if (temSupa && pontuacaoNaTela) {
       const r = pontuacaoNaTela;
       const hoje = hojeISO();
@@ -3463,6 +3490,7 @@
       var payload = {
         application: {
           patient_id: p.id,
+          encounter_id: atendimento.id,
           quando: hoje,
           versao_estrutura: r.versao_estrutura || 2,
           versao_bancos: r.versao_bancos || null,

@@ -375,7 +375,39 @@
   }
 
   function rotuloColeta(c) {
-    return c.data_coleta_desconhecida || !c.coletado_em ? "sem data informada" : dataBR(c.coletado_em);
+    return (c.data_coleta_desconhecida || !c.coletado_em ? "sem data informada" : dataBR(c.coletado_em)) +
+      (c.encounter_id ? " · vinculada a atendimento" : "");
+  }
+
+  /* V1, Etapa 1: o vinculo da coleta com o ATENDIMENTO e opcional e explicito
+     (uma caixa marcada por quem atende). So aparece quando ha atendimento
+     ativo deste paciente; nunca e deduzido pela data. */
+  function atendimentoAtivoDaFicha() {
+    var A = window.AtendimentoAtual;
+    var pid = paciente();
+    var e = A && A.atual ? A.atual() : null;
+    return e && e.patient_id === pid ? e : null;
+  }
+  function blocoVinculoAtendimento(editando) {
+    var e = atendimentoAtivoDaFicha();
+    var jaVinculada = editando && modoColeta.coleta && modoColeta.coleta.encounter_id;
+    if (!e && !jaVinculada) return "";
+    if (!e && jaVinculada) {
+      return '<span class="ex-vinculo" id="ex-vinculo">Vinculada a um atendimento</span>';
+    }
+    var marcada = jaVinculada ? modoColeta.coleta.encounter_id === e.id : false;
+    return '<label class="ex-vinculo" id="ex-vinculo"><input type="checkbox" id="ex-vincular-atendimento"' +
+      (marcada ? " checked" : "") + "> Vincular ao atendimento ativo (" +
+      escapar(window.AtendimentoAtual.rotuloQuando(e)) + ")</label>";
+  }
+  /** O que mandar como encounter_id: undefined = nao mexer; null = desvincular; id = vincular. */
+  function vinculoEscolhido(editando) {
+    var cb = document.getElementById("ex-vincular-atendimento");
+    var e = atendimentoAtivoDaFicha();
+    if (!cb || !e) return undefined;
+    if (cb.checked) return e.id;
+    if (editando && modoColeta.coleta && modoColeta.coleta.encounter_id === e.id) return null;   // desmarcou
+    return editando ? undefined : null;
   }
 
   var TEXTO_ESTADO = {
@@ -458,6 +490,7 @@
         '<input type="date" id="ex-data-coleta" required max="' + hojeISO() + '"' +
         (dataInicial ? ' value="' + escapar(dataInicial) + '"' : "") +
         (editando ? " disabled" : "") + "></label>" +
+      blocoVinculoAtendimento(editando) +
       '<button type="button" class="btn-verde" data-acao="conferir">' +
         (editando ? "Salvar alterações" : "Conferir com o mapa") + "</button>" +
       '<button type="button" class="btn-fantasma" data-acao="limpar-ex">Limpar</button>' +
@@ -637,6 +670,8 @@
        nova = sem id (sincronizacao.js gera um novo), mesmo que ja exista
        coleta nessa data. */
     var opcoes = editando ? { coletaId: editando.id, modo: "editar" } : { modo: "nova" };
+    var vinculo = vinculoEscolhido(!!editando);
+    if (vinculo !== undefined) opcoes.encounterId = vinculo;
     mostrarEstadoSalvo("salvando");
     var botao = document.querySelector('#ex-corpo [data-acao="conferir"]');
     if (botao) botao.disabled = true;

@@ -13,7 +13,13 @@
      Aplicacao {
        id, created_at        ...... do dados.js
        paciente_id           ...... de quem é
-       consulta_id           ...... a qual atendimento pertence (ou null)
+       consulta_id           ...... LEGADO: vínculo com o agendamento (agenda).
+                                    Até a V1 era deduzido ("a consulta de hoje");
+                                    novas aplicações gravam null. Não apagado,
+                                    não backfilled.
+       encounter_id          ...... V1: o ATENDIMENTO clínico explicitamente
+                                    ativo quando a aplicação foi gravada (ou
+                                    null se não havia). Nunca deduzido por data.
        ferramenta_id         ...... qual ferramenta
        versao_ferramenta     ...... a versão do catálogo quando foi aplicada
        status                ...... rascunho | concluida | revisada
@@ -103,20 +109,15 @@
     })[0] || null;
   }
 
-  /* ---------- a qual consulta a aplicação pertence -------------------------
-     A especificação pede o vínculo (§3.1). Aqui ele é a consulta de HOJE deste
-     paciente, se houver uma marcada. Não havendo, fica null — inventar um
-     vínculo seria afirmar que houve atendimento. */
-  function consultaDeHoje() {
-    if (!window.Agenda || !window.Agenda.doDia) return null;
-    var d = new Date();
-    var hoje = d.getFullYear() + "-" +
-      String(d.getMonth() + 1).padStart(2, "0") + "-" +
-      String(d.getDate()).padStart(2, "0");
-    var lista;
-    try { lista = window.Agenda.doDia(hoje) || []; } catch (e) { return null; }
-    var minha = lista.filter(function (c) { return c.paciente_id === pacienteAtual(); });
-    return minha.length ? minha[0].id : null;
+  /* ---------- a qual ATENDIMENTO a aplicação pertence ----------------------
+     V1, Etapa 1: o vínculo clínico é com o atendimento explicitamente ativo
+     (atendimento.js) no momento em que a aplicação é GRAVADA pela primeira
+     vez. Não havendo, fica null. Nunca se procura "a consulta de hoje", "a
+     primeira consulta desta data" nem "a última consulta": a agenda é
+     agendamento, não atendimento. */
+  function atendimentoAtivoDe(pid) {
+    if (!window.AtendimentoAtual || !window.AtendimentoAtual.idPara) return null;
+    return window.AtendimentoAtual.idPara(pid) || null;
   }
 
   /* ---------- criar, salvar, concluir -------------------------------------- */
@@ -149,7 +150,8 @@
   function aplicacaoEmBranco(ferramenta) {
     return ({
       paciente_id: pacienteAtual(),
-      consulta_id: consultaDeHoje(),
+      consulta_id: null,
+      encounter_id: null,
       ferramenta_id: ferramenta.id,
       versao_ferramenta: VERSAO_CATALOGO,
       status: "rascunho",
@@ -180,6 +182,9 @@
     };
     if (!app.id) {
       var linha = Object.assign({}, app, mudanca);
+      /* o atendimento ativo DESTE paciente, se houver, no momento da primeira
+         gravacao — escolhido por quem atende, nunca deduzido pela data */
+      if (!linha.encounter_id) linha.encounter_id = atendimentoAtivoDe(linha.paciente_id);
       return Promise.resolve(b.from("aplicacoes").insert(linha).select().single())
         .then(function (r) {
           if (!r || r.error || !r.data || !r.data.id) falha(r, "a gravação");

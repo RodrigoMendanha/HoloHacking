@@ -59,14 +59,14 @@
   var ORDEM_SISTEMAS = ["fungico", "acido_inflamatorio", "metabolico",
                         "detox_linfatico", "mental_emocional_espiritual"];
 
-  var COLS_APP = "id, patient_id, quando, versao_estrutura, versao_bancos, indice, " +
+  var COLS_APP = "id, patient_id, encounter_id, quando, versao_estrutura, versao_bancos, indice, " +
     "indice_maximo, avaliavel, nota_media, triada, triada_com_dado, cobertura, " +
     "combinacoes, aprofundamentos, interpretacao_texto, interpretacao_em, " +
     "interpretacao_versao, created_at";
   var COLS_SCORE = "application_id, sistema, nome, nota, carga, faixa, obtido, " +
     "maximo, respondidos, total_marcadores, avaliavel";
   var COLS_ANSWER = "application_id, marcador_id, valor";
-  var COLS_COLETA = "id, patient_id, coletado_em, data_coleta_desconhecida, " +
+  var COLS_COLETA = "id, patient_id, encounter_id, coletado_em, data_coleta_desconhecida, " +
     "laboratorio, observacao, created_at, updated_at";
   var COLS_RESULT = "id, collection_id, exame_id, valor, unidade_no_momento, " +
     "ideal_min_no_momento, ideal_max_no_momento, nome_exame_no_momento, sistema_no_momento";
@@ -564,10 +564,13 @@
      proxima tentativa completa a mesma coleta. A RPC continua existindo
      (migration 20260930140000, reescrita sem upsert por data) para outros
      clientes; o app nao a chama mais. */
-  function salvarColetaPorId(pid, payload, coletaId, coletadoEm) {
+  function salvarColetaPorId(pid, payload, coletaId, coletadoEm, encounterId) {
+    /* V1, Etapa 1: encounter_id so quando quem atende pediu o vinculo
+       (checkbox) — nunca deduzido pela data. undefined = nao mexer. */
     var linhaColeta = { id: coletaId, patient_id: pid,
                         coletado_em: coletadoEm || null,
                         data_coleta_desconhecida: !coletadoEm };
+    if (encounterId !== undefined) linhaColeta.encounter_id = encounterId;
     var resultados = payload.results.map(function (r) {
       return Object.assign({ collection_id: coletaId }, r);
     });
@@ -594,6 +597,13 @@
       })
       .then(function (r) {
         if (!r || r.error) throw (r && r.error) || new Error("sem resposta (coleta)");
+        /* coleta ja existente (editar): o upsert com ignoreDuplicates nao toca
+           nela; o vinculo pedido e gravado a parte */
+        if (criadaAgora || encounterId === undefined) return r;
+        return Promise.resolve(sb().from("lab_collections").update({ encounter_id: encounterId }).eq("id", coletaId));
+      })
+      .then(function (r) {
+        if (!r || r.error) throw (r && r.error) || new Error("sem resposta (vinculo)");
         return Promise.resolve(sb().from("lab_results").upsert(resultados, { onConflict: "collection_id,exame_id" }))
           .then(function (r2) {
             if (!r2 || r2.error) throw (r2 && r2.error) || new Error("sem resposta (resultados)");
@@ -650,7 +660,8 @@
 
     var coletaId = opcoes.coletaId || novoIdColeta();
     marcarPendente(pid, { estado: "pendente", coleta: coletaId, coletado_em: coletadoEm || null, coletaPropria: true });
-    return salvarColetaPorId(pid, payload, coletaId, coletadoEm || null)
+    return salvarColetaPorId(pid, payload, coletaId, coletadoEm || null,
+                             "encounterId" in opcoes ? (opcoes.encounterId || null) : undefined)
       .then(function (id) {
         marcarSincronizado(pid, id, coletadoEm || null);
         return { ok: true, coleta: id };
@@ -772,6 +783,8 @@
       ? Promise.resolve(window.Agenda.carregarDados()).catch(function () {}) : Promise.resolve();
     var recarregarAplicacoes = window.Aplicacoes && window.Aplicacoes.carregar
       ? Promise.resolve(window.Aplicacoes.carregar()).catch(function () {}) : Promise.resolve();
+    var recarregarAtendimentos = window.AtendimentoAtual && window.AtendimentoAtual.carregar
+      ? Promise.resolve(window.AtendimentoAtual.carregar()).catch(function () {}) : Promise.resolve();
 
     emCurso = Promise.all([
       sincronizarHoloscan(ids, uid, gen).catch(function (e) {
@@ -781,7 +794,8 @@
         console.error("[sincronizacao] exames:", e); return { estado: "erro" };
       }),
       recarregarAgenda,
-      recarregarAplicacoes
+      recarregarAplicacoes,
+      recarregarAtendimentos
     ]).then(function (r) {
       if (gen === geracao) estado = { holoscan: r[0].estado, exames: r[1].estado };
       return { holoscan: r[0].estado, exames: r[1].estado };
