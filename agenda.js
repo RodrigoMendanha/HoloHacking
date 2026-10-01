@@ -11,8 +11,16 @@
 
    Agora são duas camadas sobre o mesmo calendário:
 
-     CONSULTAS   o atendimento marcado: paciente, dia, hora, duração
+     CONSULTAS   o AGENDAMENTO: paciente, dia, hora, duração. É compromisso
+                 administrativo — não é o atendimento clínico. O atendimento
+                 (encounters, atendimento.js) só nasce por "Iniciar
+                 atendimento", nunca por marcar, abrir ou pela hora chegar.
      BLOQUEIOS   o tempo que não está disponível — almoço, aula, viagem
+
+   V1, Etapa 1: desmarcar NÃO apaga (cancelled_at + motivo; a grade esconde
+   canceladas por padrão, "Ver canceladas" mostra) e reagendar preserva o
+   original (RPC reagendar_consulta: novo agendamento com rescheduled_from_id,
+   original cancelado com rescheduled_to_id).
 
    As duas são dado que alguém escreveu. A terceira camada que existiu aqui
    (SUGESTÕES: o retorno de 4 semanas calculado a partir da última aplicação)
@@ -52,7 +60,7 @@
   var alvo = null;
   var vista = "semana";          // dia | semana | mes
   var foco = hoje();             // a data que ancora o período mostrado
-  var filtros = { consultas: true, bloqueios: true };
+  var filtros = { consultas: true, bloqueios: true, canceladas: false };
   var consultas = [];
   var bloqueios = [];
   var editando = null;           // {tipo:"consulta"|"bloqueio", dado:{...}} ou null
@@ -183,9 +191,14 @@
 
   /* ---------- as três camadas de um dia ----------------------------------- */
 
+  /** Agendamento vigente: nao cancelado (o reagendado tambem fica cancelado,
+      com rescheduled_to_id apontando para o novo). */
+  function vigente(c) { return !!c && !c.cancelled_at; }
+  function vigentes() { return consultas.filter(vigente); }
+
   function consultasDe(dia) {
     if (!filtros.consultas) return [];
-    return consultas.filter(function (c) { return c.data === dia; })
+    return consultas.filter(function (c) { return c.data === dia && (vigente(c) || filtros.canceladas); })
       .sort(function (a, b) { return minutos(a.hora) - minutos(b.hora); });
   }
 
@@ -281,7 +294,8 @@
   function chips() {
     var quais = [
       { id: "consultas", nome: "Consultas" },
-      { id: "bloqueios", nome: "Bloqueios" }
+      { id: "bloqueios", nome: "Bloqueios" },
+      { id: "canceladas", nome: "Ver canceladas" }
     ];
     return '<div class="cal-chips" role="group" aria-label="O que mostrar">' +
       quais.map(function (q) {
@@ -291,8 +305,8 @@
           '<span class="cal-chip-marca" aria-hidden="true"></span>' +
           escapar(q.nome) + "</button>";
       }).join("") +
-      '<span class="cal-chips-nota">Sugestão é cálculo, não compromisso: o retorno de ' +
-      "4 semanas de quem ainda não tem consulta marcada.</span></div>";
+      '<span class="cal-chips-nota">Agendamento não é atendimento: o atendimento clínico ' +
+      "só existe depois de \"Iniciar atendimento\".</span></div>";
   }
 
   /* ---------- a grade de horas (Dia e Semana) ----------------------------- */
@@ -326,7 +340,7 @@
     });
 
     consultasDe(dia).forEach(function (c) {
-      html += '<button type="button" class="cal-evento consulta" ' +
+      html += '<button type="button" class="cal-evento consulta' + (vigente(c) ? "" : " cancelada") + '" ' +
         'style="' + posicao(minutos(c.hora), Number(c.duracao) || 60) + '" ' +
         'data-abrir="consulta" data-id="' + escapar(c.id) + '">' +
         "<b>" + escapar(nomeDe(c.paciente_id)) + "</b>" +
@@ -399,7 +413,7 @@
           escapar(b.dia_todo ? "dia todo" : b.inicio) + " " +
           escapar(b.motivo || "Bloqueado") + "</button>";
       }).concat(cs.map(function (c) {
-        return '<button type="button" class="cal-pilula consulta" data-abrir="consulta" ' +
+        return '<button type="button" class="cal-pilula consulta' + (vigente(c) ? "" : " cancelada") + '" data-abrir="consulta" ' +
           'data-id="' + escapar(c.id) + '">' + escapar(c.hora) + " " +
           escapar(nomeDe(c.paciente_id)) + "</button>";
       }));
@@ -480,11 +494,24 @@
         "</div></div>";
     }
 
+    var cancelada = !!c.cancelled_at;
+    var atendimentoDe = c.id && window.AtendimentoAtual ? window.AtendimentoAtual.porAgendamento(c.id) : null;
+    var avisoCancelada = cancelada
+      ? '<p class="perf-ajuda cal-cancelada-aviso">Agendamento cancelado' +
+        (c.cancellation_reason ? " &mdash; " + escapar(c.cancellation_reason) : "") +
+        (c.rescheduled_to_id ? ' &middot; <button type="button" class="btn-fantasma" data-abrir="consulta" data-id="' +
+          escapar(c.rescheduled_to_id) + '">ver o novo agendamento</button>' : "") +
+        ". Fica no histórico; não é apagado.</p>"
+      : "";
+    var origem = c.rescheduled_from_id
+      ? '<p class="perf-ajuda">Reagendado a partir de <button type="button" class="btn-fantasma" data-abrir="consulta" data-id="' +
+        escapar(c.rescheduled_from_id) + '">um agendamento anterior</button>.</p>'
+      : "";
     return '<div class="cal-form">' +
       '<div class="cal-form-topo">' +
-        "<h3>" + (c.id ? "Editar consulta" : "Nova consulta") + "</h3>" +
+        "<h3>" + (c.id ? (cancelada ? "Consulta cancelada" : "Editar consulta") : "Nova consulta") + "</h3>" +
         '<button type="button" class="perf-tirar" data-fechar="1">fechar</button>' +
-      "</div>" +
+      "</div>" + avisoCancelada + origem +
       '<div class="perf-grade">' +
         '<div class="perf-campo"><label for="cf-paciente">Paciente</label>' +
           '<select id="cf-paciente">' + pacientes.map(function (p) {
@@ -510,10 +537,15 @@
         '" placeholder="O que precisa lembrar sobre este atendimento"></div>' +
       '<p class="perf-aviso" id="cal-aviso"></p>' +
       '<div class="cal-form-acoes">' +
-        (c.id ? '<button type="button" class="perf-tirar forte" data-apagar="consulta">Desmarcar</button>' : "") +
-        (c.id && c.paciente_id ? '<button type="button" class="btn-dourado" data-abrir-atendimento="' + escapar(c.paciente_id) + '">Abrir atendimento</button>' : "") +
-        '<button type="button" class="btn-verde" data-salvar="consulta">' +
-          (c.id ? "Salvar" : "Marcar consulta") + "</button>" +
+        (c.id && !cancelada ? '<button type="button" class="perf-tirar forte" data-cancelar="consulta">Desmarcar</button>' : "") +
+        (c.id && !cancelada ? '<button type="button" class="perf-botao" data-reagendar="consulta">Reagendar</button>' : "") +
+        (c.id && !cancelada && c.paciente_id
+          ? (atendimentoDe
+              ? '<button type="button" class="btn-dourado" data-abrir-atendimento-id="' + escapar(atendimentoDe.id) + '">Abrir atendimento</button>'
+              : '<button type="button" class="btn-dourado" data-iniciar-atendimento="' + escapar(c.id) + '">Iniciar atendimento</button>')
+          : "") +
+        (!cancelada ? '<button type="button" class="btn-verde" data-salvar="consulta">' +
+          (c.id ? "Salvar" : "Marcar consulta") + "</button>" : "") +
       "</div></div>";
   }
 
@@ -579,7 +611,7 @@
   function marcarNoMenu() {
     var tag = document.getElementById("nav-agenda-venc");
     if (!tag) return;
-    var n = consultas.filter(function (c) { return c.data === iso(hoje()); }).length;
+    var n = vigentes().filter(function (c) { return c.data === iso(hoje()); }).length;
     tag.textContent = n;
     tag.classList.toggle("hidden", n === 0);
   }
@@ -645,7 +677,7 @@
        com a consulta ja marcada. Continua sendo possivel marcar mesmo assim
        (as vezes e de proposito), mas agora e uma decisao, nao uma surpresa. */
     var a1 = minutos(d.hora), a2 = a1 + (d.duracao || 60);
-    var choque = consultas.filter(function (c) {
+    var choque = vigentes().filter(function (c) {
       if (c.id === d.id || c.data !== d.data) return false;
       var b1 = minutos(c.hora), b2 = b1 + (Number(c.duracao) || 60);
       return a1 < b2 && b1 < a2;
@@ -734,11 +766,119 @@
     }).finally(function () { if (btnSalvar) window.destravarBotao(btnSalvar); });
   }
 
+  /* V1, Etapa 1: desmarcar e CANCELAR, nunca apagar. O agendamento fica no
+     historico com cancelled_at e o motivo; a grade o esconde por padrao. */
+  function cancelarAtual() {
+    var d = editando.dado;
+    if (!d.id || d.cancelled_at) return;
+    var pergunta = window.abrirModalConfirmar
+      ? window.abrirModalConfirmar({
+          titulo: "Desmarcar consulta",
+          corpo: "<p>" + escapar(nomeDe(d.paciente_id)) + " &mdash; " + escapar(dataBR(d.data) + " às " + String(d.hora).slice(0, 5)) + "</p>" +
+                 '<div class="perf-campo largo"><label for="cal-motivo">Motivo (opcional)</label>' +
+                 '<input type="text" id="cal-motivo" placeholder="Paciente pediu, imprevisto..."></div>' +
+                 "<p>O agendamento fica no histórico como cancelado; nada é apagado.</p>",
+          botaoConfirmar: "Desmarcar",
+          classeConfirmar: "btn-perigo"
+        })
+      : Promise.resolve(confirm("Desmarcar esta consulta?") ? "confirmar" : null);
+    pergunta.then(function (resp) {
+      if (resp !== "confirmar") return;
+      var motivoEl = document.getElementById("cal-motivo");
+      var motivo = motivoEl && motivoEl.value.trim() ? motivoEl.value.trim() : null;
+      return Promise.resolve(banco().from("consultas").update({
+        cancelled_at: new Date().toISOString(), cancellation_reason: motivo
+      }).eq("id", d.id)).then(function (r) {
+        if (r && r.error) {
+          avisar(window.mensagemHumana ? window.mensagemHumana(r.error)
+                                       : "Não foi possível desmarcar agora. Nada mudou; tente de novo.");
+          return;
+        }
+        editando = null;
+        return carregar().then(function () {
+          desenhar();
+          if (window.avisar) window.avisar("Consulta desmarcada. O agendamento fica no histórico.");
+        });
+      });
+    });
+  }
+
+  /* Reagendar: o original e preservado (cancelado, com rescheduled_to_id) e
+     nasce um novo agendamento com rescheduled_from_id — numa so operacao no
+     servidor (RPC). Sem sessao (desenvolvimento), as duas escritas locais. */
+  function reagendarAtual() {
+    var d = editando.dado;
+    if (!d.id || d.cancelled_at) return;
+    var novaData = document.getElementById("cf-data").value;
+    var novaHora = document.getElementById("cf-hora").value;
+    var duracao = Number(document.getElementById("cf-duracao").value) || d.duracao;
+    var tipo = document.getElementById("cf-tipo").value;
+    var nota = document.getElementById("cf-nota").value.trim();
+    if (!novaData || !novaHora) { avisar("Informe o novo dia e a nova hora."); return; }
+    if (novaData === d.data && String(novaHora).slice(0, 5) === String(d.hora).slice(0, 5)) {
+      avisar("Para reagendar, escolha um dia ou hora diferente. Para mudar só a observação, use Salvar.");
+      return;
+    }
+    var pergunta = window.abrirModalConfirmar
+      ? window.abrirModalConfirmar({
+          titulo: "Reagendar consulta",
+          corpo: "<p>" + escapar(nomeDe(d.paciente_id)) + ": de <b>" + escapar(dataBR(d.data) + " às " + String(d.hora).slice(0, 5)) +
+                 "</b> para <b>" + escapar(dataBR(novaData) + " às " + novaHora) + "</b>.</p>" +
+                 '<div class="perf-campo largo"><label for="cal-motivo">Motivo (opcional)</label>' +
+                 '<input type="text" id="cal-motivo" placeholder="Paciente pediu, imprevisto..."></div>' +
+                 "<p>O agendamento original fica no histórico, ligado ao novo.</p>",
+          botaoConfirmar: "Reagendar",
+          classeConfirmar: "btn-verde"
+        })
+      : Promise.resolve("confirmar");
+    pergunta.then(function (resp) {
+      if (resp !== "confirmar") return;
+      var motivoEl = document.getElementById("cal-motivo");
+      var motivo = motivoEl && motivoEl.value.trim() ? motivoEl.value.trim() : null;
+      var temSupa = window.supabaseClient && window.HoloAuth && window.HoloAuth.sessaoAtiva();
+      var feito;
+      if (temSupa) {
+        var TIPO = { "Primeira consulta": "primeira_consulta", "Retorno": "retorno",
+                     "Reavaliação HOLOSCAN": "reavaliacao_holoscan", "Online": "online" };
+        feito = Promise.resolve(window.supabaseClient.rpc("reagendar_consulta", {
+          p_consultation_id: d.id, p_data: novaData, p_hora: novaHora,
+          p_duracao_min: duracao, p_tipo: TIPO[tipo] || tipo, p_nota: nota, p_motivo: motivo
+        }));
+      } else {
+        var b = banco();
+        feito = Promise.resolve(b.from("consultas").insert({
+          paciente_id: d.paciente_id, data: novaData, hora: novaHora, duracao: duracao,
+          tipo: tipo, nota: nota, rescheduled_from_id: d.id
+        }).select().single()).then(function (r) {
+          if (!r || r.error || !r.data) return r || { error: new Error("sem resposta") };
+          return Promise.resolve(b.from("consultas").update({
+            cancelled_at: new Date().toISOString(), cancellation_reason: motivo || "reagendada",
+            rescheduled_to_id: r.data.id
+          }).eq("id", d.id)).then(function (r2) { return r2 && r2.error ? r2 : { data: r.data.id, error: null }; });
+        });
+      }
+      return feito.then(function (r) {
+        if (!r || r.error) {
+          avisar(window.mensagemHumana ? window.mensagemHumana(r && r.error)
+                                       : "Não foi possível reagendar agora. Nada mudou; tente de novo.");
+          return;
+        }
+        editando = null;
+        foco = deIso(novaData);
+        return carregar().then(function () {
+          desenhar();
+          if (window.avisar) window.avisar("Consulta reagendada para " + dataBR(novaData) + " às " + novaHora + ". O agendamento anterior ficou no histórico.");
+        });
+      });
+    });
+  }
+
   function apagarAtual(tipo) {
     var d = editando.dado;
     if (!d.id) return;
-    if (!confirm(tipo === "consulta" ? "Desmarcar esta consulta?" : "Remover este bloqueio?")) return;
-    apagar(tipo === "consulta" ? "consultas" : "bloqueios", d.id).then(function (r) {
+    if (tipo === "consulta") { cancelarAtual(); return; }
+    if (!confirm("Remover este bloqueio?")) return;
+    apagar("bloqueios", d.id).then(function (r) {
       if (r && r.error) {
         avisar(window.mensagemHumana ? window.mensagemHumana(r.error)
                                      : "Não foi possível remover agora. Nada mudou; tente de novo.");
@@ -797,6 +937,38 @@
       var apagarBtn = ev.target.closest("[data-apagar]");
       if (apagarBtn) { apagarAtual(apagarBtn.dataset.apagar); return; }
 
+      if (ev.target.closest("[data-cancelar]")) { cancelarAtual(); return; }
+      if (ev.target.closest("[data-reagendar]")) { reagendarAtual(); return; }
+
+      /* V1, Etapa 1: o atendimento clinico so nasce aqui, por gesto explicito,
+         depois de confirmar paciente, agendamento de origem e data/hora. */
+      var iniciar = ev.target.closest("[data-iniciar-atendimento]");
+      if (iniciar) {
+        var cons = consultas.filter(function (c) { return c.id === iniciar.dataset.iniciarAtendimento; })[0];
+        if (!cons || !window.AtendimentoAtual) return;
+        var jaExiste = window.AtendimentoAtual.porAgendamento(cons.id);
+        if (jaExiste) {          // nunca duplicar em silencio
+          window.AtendimentoAtual.selecionar(jaExiste);
+          if (window.levarParaFicha) window.levarParaFicha("ficha", cons.paciente_id);
+          return;
+        }
+        window.AtendimentoAtual.abrirDialogo({ patient_id: cons.paciente_id, consulta: cons }).then(function (e) {
+          if (!e) return;
+          editando = null;
+          desenhar();
+          if (window.levarParaFicha) window.levarParaFicha("ficha", cons.paciente_id);
+        });
+        return;
+      }
+      var abrirAtId = ev.target.closest("[data-abrir-atendimento-id]");
+      if (abrirAtId) {
+        if (window.AtendimentoAtual && window.AtendimentoAtual.selecionarPorId(abrirAtId.dataset.abrirAtendimentoId)) {
+          var e2 = window.AtendimentoAtual.atual();
+          if (e2 && window.levarParaFicha) window.levarParaFicha("ficha", e2.patient_id);
+        }
+        return;
+      }
+
       if (ev.target.closest("[data-ir-pacientes]")) {
         if (window.irParaSecao) window.irParaSecao("pacientes");
         return;
@@ -851,24 +1023,40 @@
     /** A próxima consulta de alguém, daqui para a frente. */
     proxima: function (pid) {
       var deHoje = iso(hoje());
-      return consultas.filter(function (c) {
+      return vigentes().filter(function (c) {
         return c.paciente_id === pid && c.data >= deHoje;
       }).sort(function (a, b) {
         return a.data.localeCompare(b.data) || minutos(a.hora) - minutos(b.hora);
       })[0] || null;
     },
-    doDia: function (dia) { return consultasDe(dia); },
-    /** Todas as consultas de alguém, da mais recente para a mais antiga. */
-    todas: function (pid) {
-      return consultas.filter(function (c) { return c.paciente_id === pid; })
+    doDia: function (dia) {
+      return vigentes().filter(function (c) { return c.data === dia; })
+        .sort(function (a, b) { return minutos(a.hora) - minutos(b.hora); });
+    },
+    /** Os agendamentos VIGENTES de alguém, do mais recente para o mais antigo.
+        opcoes.incluirCanceladas: true traz tambem os cancelados/reagendados
+        (historico). */
+    todas: function (pid, opcoes) {
+      var comCanceladas = !!(opcoes && opcoes.incluirCanceladas);
+      return consultas.filter(function (c) { return c.paciente_id === pid && (comCanceladas || vigente(c)); })
         .sort(function (a, b) {
           return b.data.localeCompare(a.data) || minutos(b.hora) - minutos(a.hora);
         });
     },
-    /** Todas as consultas da carteira (copia), da mais antiga para a mais
-        nova — a tela Consultas le daqui. */
+    /** Os agendamentos cancelados/reagendados de alguém (historico). */
+    canceladas: function (pid) {
+      return consultas.filter(function (c) { return c.paciente_id === pid && !vigente(c); })
+        .sort(function (a, b) { return b.data.localeCompare(a.data) || minutos(b.hora) - minutos(a.hora); });
+    },
+    /** Um agendamento pelo id, cancelado ou nao. */
+    porId: function (id) {
+      var c = consultas.filter(function (x) { return x.id === id; })[0];
+      return c ? Object.assign({}, c) : null;
+    },
+    /** Os agendamentos vigentes da carteira (copia), do mais antigo para o
+        mais novo — a tela Atendimentos le daqui para o bloco da agenda. */
     daCarteira: function () {
-      return consultas.filter(function (c) { return c && typeof c.data === "string"; })
+      return vigentes().filter(function (c) { return c && typeof c.data === "string"; })
         .sort(function (a, b) {
           return a.data.localeCompare(b.data) || minutos(a.hora) - minutos(b.hora);
         }).map(function (c) { return Object.assign({}, c); });

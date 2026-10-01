@@ -5,7 +5,9 @@
    A primeira tela que a nutricionista ve ao abrir o app. Responde a tres
    perguntas, na ordem em que elas aparecem na cabeca de quem vai atender:
 
-     1. O que tenho hoje?     consultas do dia, proximos atendimentos
+     1. O que tenho hoje?     consultas marcadas do dia, proximas marcadas
+                              (agendamentos — atendimento realizado e outra
+                              coisa e mora em atendimento.js/encounters)
      2. Quem precisa de mim?  pendencias da carteira, da mais urgente
      3. O que se repete?      o terreno que mais aparece entre pacientes
 
@@ -149,7 +151,7 @@
     }
 
     return '<div class="dash-bloco dash-bloco-compacto">' +
-      '<h3 class="dash-titulo">Próximos atendimentos</h3>' + corpo + "</div>";
+      '<h3 class="dash-titulo">Próximas consultas marcadas</h3>' + corpo + "</div>";
   }
 
   function blocoPacientesRecentes() {
