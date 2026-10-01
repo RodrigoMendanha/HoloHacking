@@ -23,6 +23,7 @@
      consultas  → consultations       (paciente_id→patient_id, duracao→duracao_min, tipo traduzido)
      bloqueios  → schedule_blocks     (campos iguais)
      aplicacoes → tool_applications   (paciente_id→patient_id, consulta_id→consultation_id)
+     atendimentos → encounters        (campos iguais; V1 Etapa 1, so com sessao)
 
    TABELAS QUE CONTINUAM EM DADOSLOCAIS
      holoscan  — estrutura Supabase diferente (snapshot). Etapa 5.
@@ -69,6 +70,14 @@
       tabela: "tool_applications",
       campos: { paciente_id: "patient_id", consulta_id: "consultation_id" },
       inverso: { patient_id: "paciente_id", consultation_id: "consulta_id" }
+    },
+    /* V1, Etapa 1: o ATENDIMENTO clinico (encounters). Nomes iguais ao banco:
+       patient_id, consultation_id, occurred_at. Sem sessao nao ha tabela
+       local: atendimento.js guarda em memoria (so desenvolvimento). */
+    atendimentos: {
+      tabela: "encounters",
+      campos: {},
+      inverso: {}
     }
   };
 

@@ -221,7 +221,7 @@
         </button>
         <button class="nav-item" data-secao="consultas">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9.5 4V2.8h5V4M9.5 10.5h5M9.5 14.5h3"/></svg>
-          Consultas
+          Atendimentos
         </button>
         <button class="nav-item" data-secao="agenda">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/><circle cx="12" cy="15.5" r="1.3"/></svg>
@@ -332,7 +332,7 @@
       </div>
       <div class="bpctx-acoes">
         <button type="button" class="bpctx-btn bpctx-btn-pri" data-bpctx="ficha" title="Voltar à ficha do paciente">Voltar à ficha</button>
-        <button type="button" class="bpctx-btn" data-bpctx="aba:consultas" title="Consultas">Consultas</button>
+        <button type="button" class="bpctx-btn" data-bpctx="aba:consultas" title="Atendimentos">Atendimentos</button>
         <button type="button" class="bpctx-btn" data-bpctx="aba:holoscan" title="HOLOSCAN">HOLOSCAN</button>
         <button type="button" class="bpctx-btn" data-bpctx="aba:ferramentas" title="Ferramentas">Ferramentas</button>
         <button type="button" class="bpctx-btn" data-bpctx="aba:documentos" title="Documentos">Documentos</button>
@@ -813,13 +813,18 @@
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
                   Editar
                 </button>
-                <button type="button" class="perf-botao" data-atalho="agenda">Nova consulta</button>
+                <button type="button" class="perf-botao" data-atalho="agenda">Marcar consulta</button>
                 <button type="button" class="perf-botao" data-ir="aba:documentos">Registrar exames</button>
                 <button type="button" class="perf-botao" data-ir="aba:documentos">Novo documento</button>
                 <button type="button" class="btn-verde" data-atalho="holoscan">Aplicar HOLOSCAN</button>
                 <button type="button" class="perf-botao" id="btn-exportar-paciente" aria-label="Exportar dados do paciente">Exportar dados</button>
               </div>
             </header>
+
+            <!-- V1, Etapa 1: PACIENTE ATIVO + ATENDIMENTO ATIVO, sempre a vista.
+                 Desenhado por atendimento.js. "Nenhum atendimento selecionado"
+                 quando nao ha; nenhum registro clinico novo e salvo sem um. -->
+            <div class="fic-atendimento" id="ficha-atendimento" role="group" aria-label="Atendimento ativo"></div>
 
             <div class="fic-sobre">
               <span class="fic-sobre-rot">Sobre o paciente</span>
@@ -874,7 +879,7 @@
             <div class="ficha-arquivos" id="ficha-arquivos">
               <div class="abas" role="tablist">
                 <button class="aba ativa" data-aba="visao" role="tab" id="tab-visao" aria-controls="aba-visao" aria-selected="true">Visão geral</button>
-                <button class="aba" data-aba="consultas" role="tab" id="tab-consultas" aria-controls="aba-consultas" aria-selected="false">Consultas</button>
+                <button class="aba" data-aba="consultas" role="tab" id="tab-consultas" aria-controls="aba-consultas" aria-selected="false">Atendimentos</button>
                 <button class="aba" data-aba="holoscan" role="tab" id="tab-holoscan" aria-controls="aba-holoscan" aria-selected="false">HOLOSCAN</button>
                 <button class="aba" data-aba="ferramentas" role="tab" id="tab-ferramentas" aria-controls="aba-ferramentas" aria-selected="false">Ferramentas</button>
                 <button class="aba" data-aba="documentos" role="tab" id="tab-documentos" aria-controls="aba-documentos" aria-selected="false">Documentos</button>
@@ -912,11 +917,12 @@
 
         </div>
       </section>
-      <!-- ============ CONSULTAS ============ -->
+      <!-- ============ ATENDIMENTOS (id tecnico: consultas) ============ -->
       <section class="secao" id="secao-consultas">
-        <!-- Desenhada por consultas.js a partir de Panorama.consultas():
-             cada aplicacao do HOLOSCAN e um atendimento registrado, da mais
-             recente para a mais antiga, na carteira inteira. -->
+        <!-- Desenhada por consultas.js: os ATENDIMENTOS clinicos (encounters)
+             da carteira, do mais recente para o mais antigo; abaixo, os
+             agendamentos da agenda e as aplicacoes do HOLOSCAN, cada bloco
+             com o seu nome. Agendamento nao e atendimento. -->
         <div id="consultas-corpo"></div>
       </section>
 
@@ -1289,6 +1295,7 @@
 <script src="/dashboard.js"></script>
 <script src="/consultas.js"></script>
 <script src="/agenda.js"></script>
+<script src="/atendimento.js"></script>
 <script src="/documentos.js"></script>
 <script src="/perfil.js"></script>
 <script src="/caso-marina.js"></script>

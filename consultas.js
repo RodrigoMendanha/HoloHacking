@@ -1,6 +1,15 @@
 /* ===========================================================================
-   CONSULTAS — o que ja aconteceu, em ordem de tempo
+   ATENDIMENTOS — o que ja aconteceu, em ordem de tempo (V1, Etapa 1)
    ===========================================================================
+
+   A tela (id tecnico "consultas") lista os ATENDIMENTOS clinicos registrados
+   (encounters): paciente, data/hora clinica, origem (com/sem agendamento),
+   tipo, e abre a ficha com aquele atendimento selecionado. Abaixo, com o
+   nome certo, os agendamentos da agenda (proximos e anteriores) e as
+   aplicacoes do HOLOSCAN. Agendamento futuro nao e atendimento; aplicacao
+   do HOLOSCAN nao e atendimento; cada bloco e o que diz ser.
+
+   --- o texto abaixo e o da versao anterior, mantido pelo historico ---
 
    O app guardava cada aplicacao do HOLOSCAN dentro do paciente. Isso responde
    "como a Marina evoluiu", e responde bem. Mas nao responde "o que eu atendi
@@ -70,7 +79,7 @@
     }).length;
 
     var tiles = [
-      { n: lista.length, r: lista.length === 1 ? "atendimento" : "atendimentos" },
+      { n: lista.length, r: lista.length === 1 ? "aplicação do HOLOSCAN" : "aplicações do HOLOSCAN" },
       { n: neste, r: "neste mês" },
       { n: atendidas, r: atendidas === 1 ? "paciente atendida" : "pacientes atendidas" },
       { n: voltaram, r: voltaram === 1 ? "voltou para reavaliar" : "voltaram para reavaliar" }
@@ -145,14 +154,57 @@
     var hoje = hojeISO();
     var proximas = todas.filter(function (c) { return c.data >= hoje; });
     var anteriores = todas.filter(function (c) { return c.data < hoje; }).reverse();
-    var html = '<div class="dash-bloco" id="consultas-agenda"><h3 class="dash-titulo">Próximas consultas</h3>';
+    var html = '<div class="dash-bloco" id="consultas-agenda"><h3 class="dash-titulo">Agenda &mdash; próximas consultas marcadas</h3>';
     html += proximas.length
       ? '<ul class="con-lista">' + proximas.map(linhaConsulta).join("") + "</ul>"
       : '<p class="dash-vazio">Nenhuma consulta marcada daqui para a frente.</p>';
-    html += '<h3 class="dash-titulo">Consultas anteriores</h3>';
+    html += '<h3 class="dash-titulo">Agenda &mdash; consultas marcadas anteriores (não são atendimentos)</h3>';
     html += anteriores.length
       ? '<ul class="con-lista">' + anteriores.map(linhaConsulta).join("") + "</ul>"
       : '<p class="dash-vazio">Nenhuma consulta anterior registrada na agenda.</p>';
+    return html + "</div>";
+  }
+
+  /* ---------- os atendimentos de verdade (V1, Etapa 1) ------------------- */
+
+  function linhaAtendimento(e) {
+    var A = window.AtendimentoAtual;
+    var w = A.paraParede(e.occurred_at, e.timezone || A.fuso());
+    var nome = nomeDoPaciente(e.patient_id);
+    return '<li class="at-linha">' +
+      '<span class="con-dia">' + escapar(dataBR(w.data)) + " &middot; " + escapar(w.hora) + "</span>" +
+      '<span class="pac-avatar">' + escapar(inicial(nome)) + "</span>" +
+      '<span class="con-quem"><b>' + escapar(nome) + "</b>" +
+        '<span class="con-detalhe">' + (e.type ? escapar(e.type) + " &middot; " : "") +
+          (e.consultation_id ? "com agendamento" : "sem agendamento") +
+          (e.status ? " &middot; " + escapar(e.status) : "") + "</span></span>" +
+      '<button type="button" class="dash-ir" data-atendimento="' + escapar(e.id) + '" data-paciente-at="' + escapar(e.patient_id) +
+        '">Abrir ficha <span aria-hidden="true">&rarr;</span></button>' +
+      "</li>";
+  }
+
+  function blocoAtendimentos() {
+    var A = window.AtendimentoAtual;
+    var lista = A && A.todos ? A.todos() : [];
+    var html = '<div class="dash-bloco" id="atendimentos-lista"><h3 class="dash-titulo">Atendimentos registrados</h3>';
+    if (!lista.length) {
+      html += '<p class="dash-vazio" id="atendimentos-vazio">Nenhum atendimento registrado. ' +
+        "Um atendimento nasce por \"Iniciar atendimento\" na agenda ou \"Novo atendimento\" na ficha " +
+        "&mdash; nunca pela data chegar.</p>";
+    } else {
+      var mesCorrente = null;
+      lista.forEach(function (e) {
+        var w = A.paraParede(e.occurred_at, e.timezone || A.fuso());
+        var mes = (w.data || "").slice(0, 7);
+        if (mes !== mesCorrente) {
+          if (mesCorrente !== null) html += "</ul>";
+          mesCorrente = mes;
+          html += '<h4 class="dash-sub">' + escapar(mesPorExtenso(w.data)) + '</h4><ul class="con-lista at-lista">';
+        }
+        html += linhaAtendimento(e);
+      });
+      if (mesCorrente !== null) html += "</ul>";
+    }
     return html + "</div>";
   }
 
@@ -168,16 +220,16 @@
     var cabeca =
       '<div class="secao-cabeca">' +
         '<span class="eyebrow">Atendimento &mdash; histórico</span>' +
-        "<h2>Suas <em>consultas</em></h2>" +
-        "<p>As consultas registradas na agenda, próximas e anteriores. Abaixo, as " +
-        "aplicações do HOLOSCAN da carteira inteira, da mais recente para a mais antiga.</p>" +
-      "</div>" + blocoAgenda() +
+        "<h2>Seus <em>atendimentos</em></h2>" +
+        "<p>Os atendimentos clínicos registrados, do mais recente para o mais antigo. " +
+        "Abaixo, a agenda (agendamentos, que não são atendimentos) e as " +
+        "aplicações do HOLOSCAN da carteira.</p>" +
+      "</div>" + blocoAtendimentos() + blocoAgenda() +
       '<h3 class="dash-titulo">Aplicações do HOLOSCAN</h3>';
 
     if (lista.length === 0) {
       alvo.innerHTML = cabeca +
-        '<p class="dash-vazio">Nenhum atendimento registrado ainda. ' +
-        "A primeira consulta aparece aqui assim que você aplicar o HOLOSCAN em alguém.</p>" +
+        '<p class="dash-vazio">Nenhuma aplicação do HOLOSCAN registrada ainda.</p>' +
         '<div class="dash-primeiro">' +
           "<p>O mapa é o que transforma a conversa em registro.</p>" +
           '<button type="button" class="btn-verde" data-secao-destino="holoscan">' +
@@ -209,6 +261,14 @@
   }
 
   function ligar() {
+    alvo.querySelectorAll("[data-atendimento]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var pid = b.dataset.pacienteAt;
+        if (window.definirPacienteAtivo) window.definirPacienteAtivo(pid);
+        if (window.AtendimentoAtual) window.AtendimentoAtual.selecionarPorId(b.dataset.atendimento);
+        if (window.abrirFichaDe) window.abrirFichaDe(pid);
+      });
+    });
     alvo.querySelectorAll("[data-paciente]").forEach(function (b) {
       b.addEventListener("click", function () {
         var pid = b.dataset.paciente;

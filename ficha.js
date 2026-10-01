@@ -422,27 +422,53 @@
     "</li>";
   }
 
-  /* So consulta MARCADA de verdade (window.Agenda) entra aqui — a data
-     derivada da reavaliacao de 4 semanas e uma sugestao, nao um compromisso,
-     e nao pode aparecer como se fosse uma consulta. */
+  /* ================================================ ABA: ATENDIMENTOS ==== */
+
+  /* V1, Etapa 1. A aba (id tecnico "consultas") lista os ATENDIMENTOS
+     clinicos do paciente (encounters) — cada um abre como contexto ativo —
+     e, abaixo, com o nome certo, os AGENDAMENTOS da agenda. Abrir a aba ou
+     um atendimento antigo nao cria nada; so "Novo atendimento" cria. */
+  function linhaAtendimento(e, ativo) {
+    var A = window.AtendimentoAtual;
+    var w = A.paraParede(e.occurred_at, e.timezone || A.fuso());
+    return '<li class="dash-pendente fic-at-linha' + (ativo ? " at-linha-ativa" : "") + '" data-atendimento="' + escapar(e.id) + '">' +
+      '<span class="pac-avatar">' + escapar((w.data || "").slice(8, 10) || "?") + "</span>" +
+      '<span class="dash-quem"><b>' + escapar(dataBR(w.data)) + " às " + escapar(w.hora) + "</b>" +
+        '<span class="dash-porque">' + (e.type ? escapar(e.type) + " &middot; " : "") +
+          (e.consultation_id ? "com agendamento de origem" : "sem agendamento") +
+          (e.status ? " &middot; " + escapar(e.status) : "") +
+          (ativo ? " &middot; <b>ativo</b>" : "") + "</span></span>" +
+      '<button type="button" class="dash-ir" data-abrir-atendimento="' + escapar(e.id) + '">' +
+        (ativo ? "Selecionado" : "Abrir") + ' <span aria-hidden="true">&rarr;</span></button>' +
+    "</li>";
+  }
+
   function desenharConsultas() {
     var alvo = document.getElementById("aba-consultas");
     if (!alvo) return;
     var pid = paciente();
+    var A = window.AtendimentoAtual;
+    var arquivado = window.pacienteArquivado && window.pacienteArquivado(pid);
+
+    var atendimentos = A && A.doPaciente ? A.doPaciente(pid) : [];
+    var ativo = A && A.atual ? A.atual() : null;
+    var ativoId = ativo && ativo.patient_id === pid ? ativo.id : null;
 
     var todas = window.Agenda && window.Agenda.todas ? window.Agenda.todas(pid) : [];
+    var canceladas = window.Agenda && window.Agenda.canceladas ? window.Agenda.canceladas(pid) : [];
     var proximas = todas.filter(function (c) { return diasDesde(c.data) <= 0; })
       .sort(function (a, b) { return a.data.localeCompare(b.data); });
     var anteriores = todas.filter(function (c) { return diasDesde(c.data) > 0; });
 
     var topo = '<div class="fic-consultas-topo">' +
-      '<button type="button" class="btn-verde" data-ir="nova-consulta">Nova consulta</button>' +
+      (arquivado ? "" : '<button type="button" class="btn-verde" data-novo-atendimento="1">Novo atendimento</button>') +
+      '<button type="button" class="perf-botao" data-ir="nova-consulta">Marcar consulta (agenda)</button>' +
     "</div>";
 
-    if (!todas.length) {
+    if (!atendimentos.length && !todas.length && !canceladas.length) {
       alvo.innerHTML = topo +
-        '<div class="lista-vazia"><strong>Nenhuma consulta registrada</strong>' +
-        "<span>Registre uma consulta para iniciar o acompanhamento deste paciente.</span></div>" +
+        '<div class="lista-vazia"><strong>Nenhum atendimento registrado</strong>' +
+        "<span>Inicie um atendimento para registrar o que acontece na consulta. Marcar na agenda não cria atendimento.</span></div>" +
         blocoContinuidade();
       ligar(alvo);
       return;
@@ -450,22 +476,44 @@
 
     var html = topo;
 
+    html += '<div class="dash-bloco dash-bloco-compacto" id="fic-atendimentos">' +
+      '<h3 class="dash-titulo">Atendimentos</h3>' +
+      (atendimentos.length === 0
+        ? '<p class="dash-vazio">Nenhum atendimento registrado. Marcar na agenda não cria atendimento.</p>'
+        : '<ul class="dash-pendentes">' + atendimentos.map(function (e) {
+            return linhaAtendimento(e, e.id === ativoId);
+          }).join("") + "</ul>") +
+      "</div>";
+
     if (proximas.length > 0) {
       html += '<div class="dash-bloco dash-bloco-compacto dash-bloco-hoje">' +
-        '<h3 class="dash-titulo">' + (proximas.length === 1 ? "Próxima consulta" : "Próximas consultas") + '</h3>' +
+        '<h3 class="dash-titulo">' + (proximas.length === 1 ? "Próxima consulta marcada (agenda)" : "Próximas consultas marcadas (agenda)") + '</h3>' +
         '<ul class="dash-pendentes">' + proximas.map(function (c, i) {
           return linhaConsulta(c, i === 0);
         }).join("") + "</ul></div>";
     }
 
     html += '<div class="dash-bloco dash-bloco-compacto">' +
-      '<h3 class="dash-titulo">Consultas anteriores</h3>' +
+      '<h3 class="dash-titulo">Consultas anteriores (agenda)</h3>' +
       (anteriores.length === 0
-        ? '<p class="dash-vazio">Nenhuma consulta anterior.</p>'
+        ? '<p class="dash-vazio">Nenhuma consulta anterior marcada. Agendamento com data passada não é atendimento.</p>'
         : '<ul class="dash-pendentes">' + anteriores.map(function (c) {
             return linhaConsulta(c, false);
           }).join("") + "</ul>") +
       "</div>";
+
+    if (canceladas.length) {
+      html += '<div class="dash-bloco dash-bloco-compacto" id="fic-canceladas">' +
+        '<h3 class="dash-titulo">Consultas canceladas ou reagendadas (histórico)</h3>' +
+        '<ul class="dash-pendentes">' + canceladas.map(function (c) {
+          return '<li class="dash-pendente cancelada">' +
+            '<span class="pac-avatar">' + escapar((c.data || "").slice(8, 10) || "?") + "</span>" +
+            '<span class="dash-quem"><b>' + escapar(dataBR(c.data)) + " às " + escapar(String(c.hora).slice(0, 5)) + "</b>" +
+              '<span class="dash-porque">' + (c.rescheduled_to_id ? "reagendada" : "cancelada") +
+                (c.cancellation_reason ? " &middot; " + escapar(c.cancellation_reason) : "") + "</span></span>" +
+          "</li>";
+        }).join("") + "</ul></div>";
+    }
 
     html += blocoContinuidade();
 
@@ -1021,6 +1069,18 @@
     alvo.addEventListener("click", function (ev) {
       var ver = ev.target.closest("[data-ver]");
       if (ver) { abrirRespostas(); return; }
+
+      /* V1, Etapa 1: atendimentos. Abrir um antigo so SELECIONA; criar e
+         gesto proprio, com confirmacao de data/hora. */
+      var abrirAt = ev.target.closest("[data-abrir-atendimento]");
+      if (abrirAt && window.AtendimentoAtual) {
+        window.AtendimentoAtual.selecionarPorId(abrirAt.dataset.abrirAtendimento);
+        return;
+      }
+      if (ev.target.closest("[data-novo-atendimento]") && window.AtendimentoAtual) {
+        window.AtendimentoAtual.abrirDialogo({ patient_id: paciente() });
+        return;
+      }
 
       var ir = ev.target.closest("[data-ir]");
       if (ir) {

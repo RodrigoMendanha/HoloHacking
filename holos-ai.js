@@ -275,11 +275,32 @@
     if (!todas.length) return "";
     var hoje = window.hojeISO ? window.hojeISO() : new Date().toISOString().slice(0, 10);
     var t = "";
+    /* V1, Etapa 1: a agenda e AGENDAMENTO. Data passada nao quer dizer
+       atendimento realizado — o atendimento e fato proprio (dadosAtendimentos). */
     todas.slice(0, 8).forEach(function (c) {
-      t += "- " + (c.data >= hoje ? "Marcada" : "Realizada") + " — " + dataBR(c.data) +
+      t += "- " + (c.data >= hoje ? "Marcada" : "Marcada (data já passou; não é registro de atendimento)") + " — " + dataBR(c.data) +
         (c.hora ? " às " + String(c.hora).slice(0, 5) : "") +
         (c.tipo ? " · " + c.tipo : "") + (c.duracao ? " · " + c.duracao + " min" : "") +
         (c.nota ? " · " + c.nota : "") + "\n";
+    });
+    return t;
+  }
+
+  /* V1, Etapa 1: os ATENDIMENTOS clinicos registrados (encounters) — dado
+     factual salvo: quando, origem (com/sem agendamento), tipo, e qual esta
+     selecionado agora. Nenhuma nota, nenhum indice, nenhuma leitura. */
+  function dadosAtendimentos() {
+    var pid = pacienteId();
+    var A = window.AtendimentoAtual;
+    if (!pid || !A || !A.doPaciente) return "";
+    var lista = A.doPaciente(pid);
+    if (!lista.length) return "";
+    var ativo = A.atual();
+    var t = "";
+    lista.slice(0, 8).forEach(function (e) {
+      t += "- " + A.rotuloQuando(e) + (e.type ? " · " + e.type : "") +
+        " · " + (e.consultation_id ? "com agendamento de origem" : "sem agendamento") +
+        (ativo && ativo.id === e.id ? " · SELECIONADO" : "") + "\n";
     });
     return t;
   }
@@ -312,7 +333,8 @@
     t += secaoSe("Paciente", dadosPaciente());
     t += secaoSe("HOLOSCAN — Mapa HOLOS atual", dadosHoloscan());
     t += secaoSe("Camada Laboratorial", dadosExames());
-    t += secaoSe("Consultas", dadosConsultas());
+    t += secaoSe("Atendimentos registrados", dadosAtendimentos());
+    t += secaoSe("Agenda (agendamentos)", dadosConsultas());
     t += secaoSe("Ferramentas (OQ³, PQQ, Mapa do Propósito e outras)", dadosFerramentas());
     var evo = dadosEvolucao();
     if (evo) t += secaoSe("Aplicações do HOLOSCAN (datas e cobertura)", evo);
@@ -341,7 +363,8 @@
     var evo = dadosEvolucao();
     if (evo) t += secaoSe("Aplicações do HOLOSCAN (datas e cobertura)", evo);
     else t += secaoSe("HOLOSCAN — Mapa HOLOS atual", dadosHoloscan());
-    t += secaoSe("Consultas recentes", dadosConsultas());
+    t += secaoSe("Atendimentos registrados", dadosAtendimentos());
+    t += secaoSe("Agenda (agendamentos recentes)", dadosConsultas());
     t += secaoSe("Ferramentas (OQ3, PQQ e outras)", dadosFerramentas());
     return t.trim() || "Nenhum dado de evolução disponível.";
   }

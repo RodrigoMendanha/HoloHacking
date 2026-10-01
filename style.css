@@ -4099,3 +4099,18 @@ body.escuro .cal-hoje-titulo{color:var(--dourado)}
 .aviso-homologacao{margin:6px 0 10px;font-size:.82rem;line-height:1.45;color:var(--texto-suave)}
 .aviso-homologacao .selo-homologacao{margin-right:6px}
 @media print{.aviso-homologacao{color:#444}}
+
+/* ---------- V1, Etapa 1: atendimento ativo no cabecalho da ficha ---------- */
+.fic-atendimento {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
+  margin: 10px 0 4px; padding: 10px 14px;
+  border: 1px solid var(--borda, #e3e6e1); border-radius: 12px;
+  background: var(--superficie-2, rgba(0,0,0,.025));
+}
+.fic-at-rot { font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; opacity: .7; }
+.fic-at-valor { font-weight: 600; }
+.fic-at-valor.vazio { font-weight: 500; opacity: .75; }
+.fic-at-origem { font-style: normal; font-weight: 400; opacity: .7; font-size: .85em; }
+.fic-at-acoes { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+.at-linha-ativa { outline: 2px solid var(--verde, #2f7d4f); outline-offset: 2px; border-radius: 10px; }
+.cal-evento.consulta.cancelada, .cal-pilula.consulta.cancelada { opacity: .45; text-decoration: line-through; }
