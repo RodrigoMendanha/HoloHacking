@@ -226,7 +226,8 @@
         };
       }),
       _supa_id: app.id,
-      _supa_criado_em: app.created_at || ""
+      _supa_criado_em: app.created_at || "",
+      _supa_encounter_id: app.encounter_id || null   // V1 Etapa 3: o atendimento (Evolucao por atendimento)
     };
     if (app.interpretacao_texto) {
       e.interpretacao = {
@@ -789,6 +790,8 @@
       ? Promise.resolve(window.Anamnese.carregar()).catch(function () {}) : Promise.resolve();
     var recarregarCondutas = window.Conduta && window.Conduta.carregar
       ? Promise.resolve(window.Conduta.carregar()).catch(function () {}) : Promise.resolve();
+    var recarregarRelatorios = window.Relatorios && window.Relatorios.carregar
+      ? Promise.resolve(window.Relatorios.carregar()).catch(function () {}) : Promise.resolve();
 
     emCurso = Promise.all([
       sincronizarHoloscan(ids, uid, gen).catch(function (e) {
@@ -801,7 +804,8 @@
       recarregarAplicacoes,
       recarregarAtendimentos,
       recarregarAnamneses,
-      recarregarCondutas
+      recarregarCondutas,
+      recarregarRelatorios
     ]).then(function (r) {
       if (gen === geracao) estado = { holoscan: r[0].estado, exames: r[1].estado };
       return { holoscan: r[0].estado, exames: r[1].estado };
