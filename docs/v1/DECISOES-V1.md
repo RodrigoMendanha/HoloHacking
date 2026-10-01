@@ -136,6 +136,39 @@ na seção **Decisões pendentes**, sem resposta.
 40. **Solicitação de exames com assinatura: não implementada** (pendência registrada na
     tela e aqui). Envio externo, provider da HOLOS AI e Pacote Metodológico seguem fora.
 
+### Etapa 4 — Infraestrutura do Pacote Metodológico (01/10/2026)
+
+41. **Código existente não é autoridade metodológica.** Tudo o que existe (84 itens, escalas,
+    9 inversões, 179 associações, pesos, 15 faixas, Índice 0,20, Tríada, CMB/REC/SEL) foi
+    importado como **RASCUNHO / PARA HOMOLOGAÇÃO**. Nada foi aprovado, normalizado ou corrigido.
+42. **Pacote Metodológico persistente e versionado** (`methodology_packages` + edição do
+    questionário, escalas, sistemas, perguntas, associações, faixas, regras e registros de
+    homologação). Status: rascunho, em_revisao, aprovado, retirado.
+43. **Aprovação não é edição administrativa.** Só `aprovar_pacote_metodologico` aprova: exige
+    status `em_revisao`, responsável humano, justificativa e validador com 0 erros; grava registro
+    de homologação e `content_hash` sha256. UPDATE direto para `aprovado` é recusado por trigger.
+44. **Pacote aprovado é imutável; retirado é histórico.** Mudança exige nova versão. Retirar só
+    muda status e vigência; conteúdo continua legível. Sem DELETE de pacote. O snapshot do
+    HOLOSCAN guarda `methodology_package_id` como campo imutável.
+45. **Validador aponta, não corrige.** Duplicidade, referência inexistente, associação órfã,
+    escala ou orientação ausente, peso ausente, conflito, SNT pendente, faixa com lacuna,
+    sobreposição ou ordem inválida, parcialidade, Índice, Tríada, regra e exemplo incompletos.
+46. **Orientação ausente não é direta.** O motor genérico recusa item sem orientação aprovada.
+47. **Dois modos.** HOMOLOGAÇÃO executa qualquer pacote e marca toda saída com `mode`,
+    `package_status` e `package_version`; essa saída não entra em Dashboard, Evolução,
+    relatório, HOLOS AI, Conduta ou sugestão. OFICIAL só com pacote aprovado e vigente, sem
+    fallback para rascunho nem para o motor legado.
+48. **Barreira única:** `window.Metodologia` (obterPacoteAtivo, podeCalcularOficial,
+    podeExibirOficial, motivosBloqueio, modoHomologacao). Hoje não há pacote aprovado: status
+    `em_homologacao`, toda saída oficial bloqueada.
+49. **Cobertura de preenchimento** = IDs validamente respondidos ÷ 84. Só informativa; não decide
+    avaliabilidade. Nenhum corte mínimo foi escolhido (50% continua removido).
+50. **Fixtures TEST_FIXTURE_ONLY** provam o motor (determinismo, direta/invertida, múltiplas
+    associações, ausência ≠ 0, valor inválido = erro, faixas, Índice, Tríada). Nunca são copiadas
+    para o pacote V1.
+51. **Tela Metodologia / Homologação** só para consulta, visível com `?homologacao=1`; exporta
+    JSON/CSV só de metodologia; não existe botão "aprovar tudo".
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`
@@ -170,6 +203,10 @@ na seção **Decisões pendentes**, sem resposta.
 - **HOLOS AI obrigatória no lançamento inicial?** (Mestre §41.4)
 - **Política de data futura de coleta** — regra da Rodada 08 sem contrato no Mestre;
   separada em `supabase/migrations-pendentes/`.
+- **Homologação do Pacote Metodológico V1** — todas as decisões listadas em
+  `docs/v1/metodologia/HOMOLOGACAO-PENDENTE.md` (sistemas, itens, escalas, inversões,
+  associações, pesos, SNT-101/SNT-501, parcialidade, faixas, Índice, Tríada, comparabilidade,
+  CMB/REC/SEL, caso de referência).
 - **Política de parcialidade** — denominadores, exclusões (recusa, não aplicável) e
   mínimos por sistema, eixo e Índice. (Mestre §14.3, §15, §18)
 - **Pesos** — por item, por contribuição e por sistema; os pesos do AS-IS (1-3 por
