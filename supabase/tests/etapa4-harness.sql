@@ -1,5 +1,6 @@
 -- Harness Etapa 4: roda DENTRO da transacao aberta por scripts/validar-cadeia-local.sh (BEGIN ... ROLLBACK).
 -- Fixture TEST_FIXTURE_ONLY; nada aqui representa a metodologia HoloHacking.
+-- Etapa 4.2: o fixture segue o contrato V1 (contexto temporal, cobertura minima do eixo); o pacote V1 real e testado em etapa4-2-harness.sql.
 create temp table _alvo on commit drop as select nutritionist_id as uid from patients where status='ativo' order by created_at limit 1;
 create temp table _log (passo text) on commit drop;
 grant select on _alvo to authenticated; grant insert, select on _log to authenticated;
@@ -13,8 +14,8 @@ begin
   insert into public.methodology_questionnaire_editions (nutritionist_id, package_id, code, version, status, item_count) values (uid, pk, 'fx-q', 1, 'aprovada', 3) returning id into ed;
   insert into public.methodology_scales (nutritionist_id, package_id, code, min_value, max_value, labels, status) values (uid, pk, 'e03', 0, 3, '["a","b","c","d"]', 'aprovado');
   insert into public.methodology_systems (nutritionist_id, package_id, code, name, status) values (uid, pk, 'A', 'Sistema A', 'aprovado'), (uid, pk, 'B', 'Sistema B', 'aprovado');
-  insert into public.methodology_questions (nutritionist_id, package_id, edition_id, stable_id, statement, block, scale_code, orientation, status) values
-    (uid, pk, ed, 'Q1', 'q1', 'fisico', 'e03', 'direta', 'aprovado'), (uid, pk, ed, 'Q2', 'q2', 'fisico', 'e03', 'invertida', 'aprovado'), (uid, pk, ed, 'Q3', 'q3', 'mental_emocional', 'e03', 'direta', 'aprovado');
+  insert into public.methodology_questions (nutritionist_id, package_id, edition_id, stable_id, statement, block, scale_code, orientation, temporal_context, status) values
+    (uid, pk, ed, 'Q1', 'q1', 'fisico', 'e03', 'direta', 'ultimos_30_dias', 'aprovado'), (uid, pk, ed, 'Q2', 'q2', 'fisico', 'e03', 'invertida', 'ultimos_30_dias', 'aprovado'), (uid, pk, ed, 'Q3', 'q3', 'mental_emocional', 'e03', 'direta', 'ultimos_30_dias', 'aprovado');
   select id into q1 from public.methodology_questions where package_id = pk and stable_id = 'Q1';
   insert into public.methodology_associations (nutritionist_id, package_id, question_stable_id, destination_type, destination_id, weight, role, status) values
     (uid, pk, 'Q1', 'system', 'A', 2, 'primaria', 'aprovado'), (uid, pk, 'Q2', 'system', 'A', 1, 'primaria', 'aprovado'), (uid, pk, 'Q3', 'system', 'B', 3, 'primaria', 'aprovado'),
@@ -26,9 +27,9 @@ begin
     (uid, pk, 'scoring', 'A', '{"formula":"fixture"}', 'aprovado'), (uid, pk, 'scoring', 'B', '{"formula":"fixture"}', 'aprovado'),
     (uid, pk, 'absence', 'global', '{"denominador":"respondidos","cobertura_minima":0.5,"recusado":"exclui","nao_aplicavel":"exclui","minimos":{}}', 'aprovado'),
     (uid, pk, 'index', 'global', '{"alphas":{"A":0.5,"B":0.5},"elegibilidade":"todos","indice_parcial":false}', 'aprovado'),
-    (uid, pk, 'triad', 'fisico', '{"contribuicao":"por_id","escala":"0..10","elegibilidade":"uma","agregacao":"ponderada"}', 'aprovado'),
-    (uid, pk, 'triad', 'mental', '{"contribuicao":"por_id","escala":"0..10","elegibilidade":"uma","agregacao":"ponderada"}', 'aprovado'),
-    (uid, pk, 'triad', 'espiritual', '{"contribuicao":"por_id","escala":"0..10","elegibilidade":"uma","agregacao":"ponderada"}', 'aprovado'),
+    (uid, pk, 'triad', 'fisico', '{"contribuicao":"por_id","escala":"0..10","elegibilidade":"cobertura_minima","cobertura_minima":0.8,"agregacao":"ponderada"}', 'aprovado'),
+    (uid, pk, 'triad', 'mental', '{"contribuicao":"por_id","escala":"0..10","elegibilidade":"cobertura_minima","cobertura_minima":0.8,"agregacao":"ponderada"}', 'aprovado'),
+    (uid, pk, 'triad', 'espiritual', '{"contribuicao":"por_id","escala":"0..10","elegibilidade":"cobertura_minima","cobertura_minima":0.8,"agregacao":"ponderada"}', 'aprovado'),
     (uid, pk, 'example', 'ex1', '{"entrada":{"Q1":3},"esperado":{"A":{"nota":0}}}', 'aprovado');
   insert into _log values ('00 ok: fixture TEST_FIXTURE_ONLY montado (em_revisao)');
 
