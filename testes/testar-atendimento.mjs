@@ -157,8 +157,9 @@ conferir(con.linhas.every(l => l.variacao !== null && /Em homologação/.test(l.
   'nenhuma linha inventa "o quanto andou"; todas levam o selo: ' + con.linhas[0].variacao);
 conferir(con.linhas.every(l => /mais baixos:/.test(l.detalhe)),
   'cada linha diz quais sistemas pesaram');
-conferir(con.tiles.some(t => /^3 atendimentos/.test(t)),
-  'conta os atendimentos: ' + (con.tiles.find(t => /atendimento/.test(t)) || '—'));
+/* V1 Etapa 1: aplicacao do HOLOSCAN nao e atendimento — o tile diz o que conta */
+conferir(con.tiles.some(t => /^3 aplicações do HOLOSCAN/.test(t)) && !con.tiles.some(t => /^\d+ atendimentos?$/.test(t)),
+  'conta aplicações do HOLOSCAN, não "atendimentos": ' + (con.tiles.find(t => /aplicaç/.test(t)) || '—'));
 conferir(con.tiles.some(t => /^1 voltou para reavaliar/.test(t)),
   'conta quem voltou: ' + (con.tiles.find(t => /voltou|voltaram/.test(t)) || '—'));
 

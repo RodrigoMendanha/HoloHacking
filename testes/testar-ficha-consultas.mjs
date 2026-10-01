@@ -72,8 +72,10 @@ const vazio = await p.evaluate(() => {
     continuidade: [...document.querySelectorAll('#aba-consultas .fic-chip')].map(b => b.textContent),
   };
 });
-conferir(vazio.titulo === 'Nenhuma consulta registrada', 'título do estado vazio: ' + vazio.titulo);
-conferir(vazio.texto === 'Registre uma consulta para iniciar o acompanhamento deste paciente.',
+/* V1 Etapa 1: a aba e "Atendimentos" — o vazio fala de atendimento e avisa
+   que marcar na agenda nao cria um. */
+conferir(vazio.titulo === 'Nenhum atendimento registrado', 'título do estado vazio: ' + vazio.titulo);
+conferir(/Inicie um atendimento/.test(vazio.texto) && /Marcar na agenda não cria atendimento/.test(vazio.texto),
   'texto do estado vazio: ' + vazio.texto);
 conferir(!vazio.temProxima, 'sem consulta, nenhum bloco "Próxima consulta" aparece');
 conferir(vazio.continuidade.join(',') === 'HOLOSCAN,Leitura Integrada,Documentos',
@@ -125,8 +127,8 @@ const cheio = await p.evaluate(() => {
     quando: li.querySelector('.dash-quem b').textContent,
     porque: li.querySelector('.dash-porque').textContent,
   });
-  const proximaBloco = de('Próxima consulta');
-  const anterioresBloco = de('Consultas anteriores');
+  const proximaBloco = de('Próxima consulta marcada (agenda)');
+  const anterioresBloco = de('Consultas anteriores (agenda)');
   return {
     proxima: proximaBloco ? ler(proximaBloco.querySelector('.dash-pendente')) : null,
     proximaDestacada: !!proximaBloco?.querySelector('.dash-pendente.abrir'),
@@ -148,7 +150,7 @@ conferir(cheio.semTabelaVaziaSemContexto, 'e o estado vazio não aparece mais qu
 /* --------------------------------------------- "Ver na agenda" nao zera -- */
 
 const verAgenda = await p.evaluate(async () => {
-  document.querySelector('#aba-consultas .dash-pendente .dash-ir').click();
+  document.querySelector('#aba-consultas .dash-pendente .dash-ir[data-ir="agenda"]').click();
   await new Promise(r => setTimeout(r, 250));
   return {
     secaoAtiva: document.querySelector('.secao.ativa')?.id,

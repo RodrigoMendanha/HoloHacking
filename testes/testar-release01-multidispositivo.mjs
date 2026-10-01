@@ -124,6 +124,8 @@ async function aplicarHoloscan(p, delta) {
     document.querySelector('[data-acao="calcular"]').click();
     await new Promise(r => setTimeout(r, 200));
     const indice = document.getElementById('holo-score-total').textContent;
+    /* V1 Etapa 1: a aplicacao oficial pertence a um atendimento escolhido */
+    if (!window.AtendimentoAtual.atual()) await window.AtendimentoAtual.iniciar({ patient_id: window.pacienteAtivoId(), occurred_at: new Date().toISOString() });
     document.getElementById('btn-salvar-holoscan').click();
     await new Promise(r => setTimeout(r, 600));
     return { indice, respostas: mapa };
@@ -399,7 +401,11 @@ if (json) {
      json.coletasExames.some(c => c.coletado_em === DATA1 && c.data_coleta_desconhecida === false),
      'com as 2 coletas, cada uma com a propria data da coleta');
   ok(Array.isArray(json.aplicacoesFerramentas) && json.aplicacoesFerramentas.length === 3, 'com as ferramentas');
-  ok(Array.isArray(json.consultas) && json.consultas.length === 1, 'com a consulta');
+  /* V1 Etapa 1: a agenda exporta como "agendamentos" (nao "consultas"), separada de "atendimentos" */
+  ok(Array.isArray(json.agendamentos) && json.agendamentos.length === 1 && !('consultas' in json),
+     'com o agendamento (exportado como agendamento, nao como atendimento)');
+  ok(Array.isArray(json.atendimentos) && json.atendimentos.length === 1 && json.atendimentos[0].origem === 'sem_agendamento',
+     'com o atendimento que o HOLOSCAN exigiu, distinto do agendamento');
   ok(Array.isArray(json.documentos) && json.documentos.length === 1 && json.documentos[0].no_servidor === true,
      'com os metadados do documento');
   ok(!/access_token|refresh_token|service_role|signedUrl|storage_path|senha|password|"b64"/.test(exp),

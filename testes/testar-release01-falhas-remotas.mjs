@@ -105,6 +105,16 @@ async function salvar(p) {
     obs.observe(t, { childList: true, characterData: true, subtree: true });
     t.textContent = '';
     document.querySelector('.nav-item[data-secao="holoscan"]').click();
+    /* V1 Etapa 1: a aplicacao oficial pertence a um atendimento escolhido.
+       Depois de recarregar, o atendimento ja existe no servidor: seleciona-o;
+       so cria um novo se nao houver nenhum (e, com a rede caida, nem isso). */
+    if (!window.AtendimentoAtual.atual()) {
+      const pid = window.pacienteAtivoId();
+      try { await window.AtendimentoAtual.carregar(); } catch (e) {}
+      const ja = window.AtendimentoAtual.doPaciente(pid)[0];
+      if (ja) window.AtendimentoAtual.selecionarPorId(ja.id);
+      else { try { await window.AtendimentoAtual.iniciar({ patient_id: pid, occurred_at: new Date().toISOString() }); } catch (e) {} }
+    }
     document.getElementById('btn-salvar-holoscan').click();
     await new Promise(r => setTimeout(r, 700));
     obs.disconnect();

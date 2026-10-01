@@ -168,7 +168,10 @@ ok(/em homologação/i.test(parcial.prio) && /em homologação/i.test(parcial.tr
 ok(!/dados insuficientes/i.test(parcial.prio), '5: nenhum rotulo "dados insuficientes" (corte removido, nada no lugar)');
 
 // salvar: o servidor recebe respostas, cobertura e scores — e as CMB gravadas
-await p.evaluate(async () => { document.getElementById('btn-salvar-holoscan').click(); await new Promise(r => setTimeout(r, 800)); });
+await p.evaluate(async () => {
+    /* V1 Etapa 1: a aplicacao oficial pertence a um atendimento escolhido */
+    if (!window.AtendimentoAtual.atual()) await window.AtendimentoAtual.iniciar({ patient_id: window.pacienteAtivoId(), occurred_at: new Date().toISOString() });
+  document.getElementById('btn-salvar-holoscan').click(); await new Promise(r => setTimeout(r, 800)); });
 const apps = srv.linhas('holoscan_applications').filter(a => a.patient_id === A);
 const answers = srv.linhas('holoscan_answers').filter(a => apps[0] && a.application_id === apps[0].id);
 ok(apps.length === 1 && answers.length === 30 && apps[0].cobertura && apps[0].cobertura.respondidos === 30,

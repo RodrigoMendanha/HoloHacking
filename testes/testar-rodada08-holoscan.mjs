@@ -114,6 +114,8 @@ ok(!/Mental.Emocional/i.test(conduta.split('\n').slice(0, 6).join(' ')),
 /* ------------------------------------------------------------------ */
 titulo('2 — O BANCO RECEBE NULL');
 await p.evaluate(async () => {
+    /* V1 Etapa 1: a aplicacao oficial pertence a um atendimento escolhido */
+    if (!window.AtendimentoAtual.atual()) await window.AtendimentoAtual.iniciar({ patient_id: window.pacienteAtivoId(), occurred_at: new Date().toISOString() });
   document.getElementById('btn-salvar-holoscan').click();
   await new Promise(r => setTimeout(r, 700));
 });

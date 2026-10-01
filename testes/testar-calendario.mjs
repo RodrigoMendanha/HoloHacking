@@ -162,8 +162,9 @@ conferir(semana.faixa.some(f => /bloqueio.*Supervisão/.test(f)),
 conferir(!semana.faixa.some(f => /sugestao/.test(f)) && semana.faixa.every(f => !/Marina Alves/.test(f)),
   'nenhuma sugestão de retorno automática na faixa (regra de 28 dias neutralizada)');
 const chips = await p.evaluate(() => [...document.querySelectorAll('.cal-chip')].map(c => c.textContent.trim()));
-conferir(chips.length === 2 && !chips.some(c => /sugerid/i.test(c)),
-  'os filtros são só Consultas e Bloqueios: ' + chips.join(' · '));
+/* V1 Etapa 1: o terceiro chip e "Ver canceladas" — historico, nao sugestao */
+conferir(chips.length === 3 && !chips.some(c => /sugerid/i.test(c)) && chips.some(c => /canceladas/i.test(c)),
+  'os filtros são Consultas, Bloqueios e Ver canceladas (nenhuma sugestão): ' + chips.join(' · '));
 
 /* --------------------- o retorno é marcado pela profissional, à mão ----- */
 
@@ -315,23 +316,38 @@ conferir(camadas.devolta.bloqueios === camadas.antes.bloqueios,
   'religar traz de volta — a camada é filtro, não exclusão');
 
 /* -------------------------------------------------------- desmarcar ------ */
+/* V1 Etapa 1: desmarcar e CANCELAR — some da grade, fica no disco com
+   cancelled_at e motivo; "Ver canceladas" mostra de novo. */
 
 const desmarcado = await p.evaluate(async () => {
-  window.confirm = () => true;
   const alvo = [...document.querySelectorAll('.cal-evento.consulta')]
     .find(e => /Carla Souza/.test(e.innerText));
   alvo.click();
   await new Promise(r => setTimeout(r, 250));
-  document.querySelector('[data-apagar="consulta"]').click();
+  const semApagar = !document.querySelector('[data-apagar="consulta"]');
+  document.querySelector('[data-cancelar="consulta"]').click();
+  await new Promise(r => setTimeout(r, 250));
+  const modal = !document.getElementById('modal-confirmar-acao').classList.contains('hidden');
+  document.getElementById('cal-motivo').value = 'paciente pediu';
+  document.getElementById('modal-confirmar-ok').click();
   await new Promise(r => setTimeout(r, 500));
-  return {
-    naTela: [...document.querySelectorAll('.cal-evento.consulta')]
-      .filter(e => /Carla Souza/.test(e.innerText)).length,
-    noDisco: window.DadosLocais.exportar().tabelas.consultas.length,
-  };
+  const tabela = window.DadosLocais.exportar().tabelas.consultas;
+  const carla = tabela.find(c => c.nota === 'Levar o exame de sangue');
+  const naTela = [...document.querySelectorAll('.cal-evento.consulta')]
+    .filter(e => /Carla Souza/.test(e.innerText)).length;
+  document.querySelector('[data-camada="canceladas"]').click();
+  await new Promise(r => setTimeout(r, 250));
+  const comHistorico = [...document.querySelectorAll('.cal-evento.consulta.cancelada')]
+    .filter(e => /Carla Souza/.test(e.innerText)).length;
+  document.querySelector('[data-camada="canceladas"]').click();
+  await new Promise(r => setTimeout(r, 250));
+  return { semApagar, modal, naTela, noDisco: tabela.length,
+           cancelada: !!(carla && carla.cancelled_at), motivo: carla && carla.cancellation_reason, comHistorico };
 });
-conferir(desmarcado.naTela === 0 && desmarcado.noDisco === 3,
-  'desmarcar apaga da tela e do disco: sobraram ' + desmarcado.noDisco);
+conferir(desmarcado.semApagar && desmarcado.modal, 'não há mais "apagar": desmarcar pede confirmação com motivo');
+conferir(desmarcado.naTela === 0 && desmarcado.noDisco === 4 && desmarcado.cancelada && desmarcado.motivo === 'paciente pediu',
+  'desmarcar some da grade mas fica no disco, cancelada e com motivo: ' + desmarcado.noDisco + ' no disco');
+conferir(desmarcado.comHistorico === 1, '"Ver canceladas" mostra a consulta cancelada no histórico');
 
 /* ------------------------------------------------- a migração do antigo -- */
 

@@ -27,14 +27,16 @@ import { randomUUID } from 'node:crypto';
 
 const COLUNAS = {
   patients: ['id', 'nutritionist_id', 'nome', 'nascimento', 'telefone', 'email', 'sexo', 'inicio', 'queixa', 'status', 'created_at', 'updated_at'],
-  consultations: ['id', 'nutritionist_id', 'patient_id', 'data', 'hora', 'duracao_min', 'tipo', 'nota', 'created_at', 'updated_at'],
+  consultations: ['id', 'nutritionist_id', 'patient_id', 'data', 'hora', 'duracao_min', 'tipo', 'nota', 'cancelled_at', 'cancellation_reason', 'rescheduled_from_id', 'rescheduled_to_id', 'created_at', 'updated_at'],
+  // V1 Etapa 1: o atendimento clinico (migration 20260930160000)
+  encounters: ['id', 'nutritionist_id', 'patient_id', 'consultation_id', 'occurred_at', 'timezone', 'type', 'modality', 'status', 'summary_text', 'operation_id', 'created_at', 'updated_at'],
   schedule_blocks: ['id', 'nutritionist_id', 'data', 'inicio', 'fim', 'dia_todo', 'motivo', 'created_at', 'updated_at'],
-  holoscan_applications: ['id', 'nutritionist_id', 'patient_id', 'quando', 'versao_estrutura', 'versao_bancos', 'indice', 'indice_maximo', 'avaliavel', 'nota_media', 'triada', 'triada_com_dado', 'cobertura', 'combinacoes', 'aprofundamentos', 'interpretacao_texto', 'interpretacao_em', 'interpretacao_versao', 'created_at', 'updated_at'],
+  holoscan_applications: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'quando', 'versao_estrutura', 'versao_bancos', 'indice', 'indice_maximo', 'avaliavel', 'nota_media', 'triada', 'triada_com_dado', 'cobertura', 'combinacoes', 'aprofundamentos', 'interpretacao_texto', 'interpretacao_em', 'interpretacao_versao', 'created_at', 'updated_at'],
   holoscan_answers: ['id', 'application_id', 'marcador_id', 'valor', 'created_at'],
   holoscan_system_scores: ['id', 'application_id', 'sistema', 'nome', 'nota', 'carga', 'faixa', 'obtido', 'maximo', 'respondidos', 'total_marcadores', 'avaliavel', 'created_at'],
-  lab_collections: ['id', 'nutritionist_id', 'patient_id', 'coletado_em', 'data_coleta_desconhecida', 'laboratorio', 'observacao', 'created_at', 'updated_at'],
+  lab_collections: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'coletado_em', 'data_coleta_desconhecida', 'laboratorio', 'observacao', 'created_at', 'updated_at'],
   lab_results: ['id', 'collection_id', 'exame_id', 'valor', 'unidade_no_momento', 'ideal_min_no_momento', 'ideal_max_no_momento', 'nome_exame_no_momento', 'sistema_no_momento', 'created_at'],
-  tool_applications: ['id', 'nutritionist_id', 'patient_id', 'consultation_id', 'ferramenta_id', 'versao_ferramenta', 'origem_legada', 'status', 'iniciada_em', 'concluida_em', 'atualizada_em', 'respostas', 'resultado', 'leitura', 'prioridade', 'proximo_passo', 'created_at', 'updated_at'],
+  tool_applications: ['id', 'nutritionist_id', 'patient_id', 'consultation_id', 'encounter_id', 'ferramenta_id', 'versao_ferramenta', 'origem_legada', 'status', 'iniciada_em', 'concluida_em', 'atualizada_em', 'respostas', 'resultado', 'leitura', 'prioridade', 'proximo_passo', 'created_at', 'updated_at'],
   documents: ['id', 'nutritionist_id', 'patient_id', 'nome', 'tipo', 'data_documento', 'mime_type', 'tamanho_bytes', 'storage_path', 'origem_local', 'created_at', 'updated_at'],
   professional_assets: ['id', 'nutritionist_id', 'tipo', 'nome', 'mime_type', 'tamanho_bytes', 'storage_path', 'created_at', 'updated_at'],
   profiles: null,          // nao estrito: o perfil nao e o assunto destes testes
@@ -42,7 +44,7 @@ const COLUNAS = {
   ai_messages: ['id', 'thread_id', 'role', 'content', 'metadata', 'created_at']
 };
 
-const DONO_DIRETO = ['patients', 'consultations', 'schedule_blocks', 'holoscan_applications',
+const DONO_DIRETO = ['patients', 'consultations', 'encounters', 'schedule_blocks', 'holoscan_applications',
   'lab_collections', 'tool_applications', 'documents', 'professional_assets', 'ai_threads'];
 const FILHAS = {           // tabela -> [coluna, mae]
   holoscan_answers: ['application_id', 'holoscan_applications'],
@@ -50,7 +52,9 @@ const FILHAS = {           // tabela -> [coluna, mae]
   lab_results: ['collection_id', 'lab_collections'],
   ai_messages: ['thread_id', 'ai_threads']
 };
-const COM_PACIENTE = ['consultations', 'holoscan_applications', 'lab_collections', 'tool_applications', 'documents', 'ai_threads'];
+const COM_PACIENTE = ['consultations', 'encounters', 'holoscan_applications', 'lab_collections', 'tool_applications', 'documents', 'ai_threads'];
+// V1 Etapa 1: tabelas com encounter_id e FK composta (encounter_id, patient_id, nutritionist_id)
+const COM_ENCOUNTER = ['holoscan_applications', 'tool_applications', 'lab_collections'];
 const UNICAS = {           // uniques alem da PK, como nas migrations
   lab_results: [['collection_id', 'exame_id']]
 };
@@ -117,7 +121,7 @@ export function criarServidor() {
   }
 
   // trigger bloquear_escrita_paciente_arquivado (rodada 08, onda 4)
-  const GUARDA_ARQUIVADO = ['consultations', 'holoscan_applications', 'lab_collections', 'lab_results',
+  const GUARDA_ARQUIVADO = ['consultations', 'encounters', 'holoscan_applications', 'lab_collections', 'lab_results',
                             'tool_applications', 'documents'];
   function erroArquivado(tabela, linha) {
     if (!GUARDA_ARQUIVADO.includes(tabela)) return null;
@@ -156,6 +160,29 @@ export function criarServidor() {
         const c = s.tabelas.consultations.find(x => x.id === linha.consultation_id &&
           x.patient_id === linha.patient_id && x.nutritionist_id === uid);
         if (!c) return erro('violates foreign key constraint "tool_applications_consultation_fk"', '23503');
+      }
+    }
+    if (tabela === 'encounters') {
+      if (!linha.occurred_at) return erro('null value in column "occurred_at" violates not-null constraint', '23502');
+      if (linha.consultation_id) {
+        const c = s.tabelas.consultations.find(x => x.id === linha.consultation_id &&
+          x.patient_id === linha.patient_id && x.nutritionist_id === uid);
+        if (!c) return erro('violates foreign key constraint "encounters_consultation_fk"', '23503');
+      }
+      if (linha.operation_id && s.tabelas.encounters.some(x => x.id !== linha.id && x.nutritionist_id === uid && x.operation_id === linha.operation_id)) {
+        return erro('duplicate key value violates unique constraint "encounters_operation_unique"', '23505');
+      }
+    }
+    if (COM_ENCOUNTER.includes(tabela) && linha.encounter_id) {
+      const e = s.tabelas.encounters.find(x => x.id === linha.encounter_id &&
+        x.patient_id === linha.patient_id && x.nutritionist_id === uid);
+      if (!e) return erro('violates foreign key constraint "' + tabela + '_encounter_fk"', '23503');
+    }
+    if (tabela === 'consultations') {
+      for (const col of ['rescheduled_from_id', 'rescheduled_to_id']) {
+        if (!linha[col]) continue;
+        const c = s.tabelas.consultations.find(x => x.id === linha[col] && x.patient_id === linha.patient_id && x.nutritionist_id === uid);
+        if (!c) return erro('violates foreign key constraint "consultations_' + col.replace('_id', '') + '_fk"', '23503');
       }
     }
     if (tabela === 'patients' && !['ativo', 'inativo'].includes(linha.status)) {
@@ -315,6 +342,8 @@ export function criarServidor() {
     }
 
     if (q.acao === 'delete') {
+      // encounters: sem policy de DELETE (RLS) — zero linhas, sem erro, como no Postgres
+      if (t === 'encounters') return q.retornar ? finalizar(q, []) : { data: null, error: null };
       const alvo = filtrar(visiveis(t, uid), q.filtros);
       if (t === 'patients') {
         for (const p of alvo) {
@@ -350,7 +379,7 @@ export function criarServidor() {
         triadaNorm[k] = a.triada_com_dado && a.triada_com_dado[k] === false ? null : a.triada[k];
       });
       const app = novaLinha('holoscan_applications', {
-        nutritionist_id: uid, patient_id: a.patient_id, quando: a.quando,
+        nutritionist_id: uid, patient_id: a.patient_id, encounter_id: a.encounter_id || null, quando: a.quando,
         versao_estrutura: a.versao_estrutura, versao_bancos: a.versao_bancos,
         indice: a.indice, indice_maximo: a.indice_maximo, avaliavel: a.avaliavel,
         nota_media: a.nota_media, triada: triadaNorm, triada_com_dado: a.triada_com_dado,
@@ -400,6 +429,47 @@ export function criarServidor() {
       p.results.forEach(r => s.tabelas.lab_results.push(novaLinha('lab_results',
         Object.assign({ collection_id: col.id }, r, { valor: Number(r.valor) }), uid)));
       return { data: col.id, error: null };
+    }
+    if (nome === 'criar_atendimento') {
+      // V1 Etapa 1: idempotente por operation_id; RLS/FKs como na migration 160000
+      if (!p || !p.patient_id || !p.occurred_at) return erro('payload incompleto: patient_id e occurred_at sao obrigatorios', 'P0001');
+      const op = p.operation_id || null;
+      if (op) {
+        const ja = s.tabelas.encounters.find(e => e.nutritionist_id === uid && e.operation_id === op);
+        if (ja) {
+          if (ja.patient_id !== p.patient_id) return erro('operation_id ja usado em atendimento de outro paciente', 'P0001');
+          return { data: ja.id, error: null };
+        }
+      }
+      const linha = novaLinha('encounters', {
+        nutritionist_id: uid, patient_id: p.patient_id, consultation_id: p.consultation_id || null,
+        occurred_at: p.occurred_at, timezone: p.timezone || null, type: p.type || null,
+        modality: p.modality || null, status: p.status || null, summary_text: p.summary_text || null,
+        operation_id: op
+      }, uid);
+      const e = checarLinha('encounters', linha, uid);
+      if (e) return e;
+      s.tabelas.encounters.push(linha);
+      return { data: linha.id, error: null };
+    }
+    if (nome === 'reagendar_consulta') {
+      // V1 Etapa 1: atomica — novo agendamento ligado ao original; o original vira cancelado
+      const a = args || {};
+      const orig = s.tabelas.consultations.find(c => c.id === a.p_consultation_id && c.nutritionist_id === uid);
+      if (!orig) return erro('consulta ' + a.p_consultation_id + ' nao encontrada', 'P0002');
+      if (!a.p_data || !a.p_hora) return erro('informe a nova data e a nova hora', 'P0001');
+      if (orig.cancelled_at || orig.rescheduled_to_id) return erro('consulta ja cancelada ou reagendada; reagende a consulta vigente', 'P0001');
+      const novo = novaLinha('consultations', {
+        nutritionist_id: uid, patient_id: orig.patient_id, data: a.p_data, hora: a.p_hora,
+        duracao_min: a.p_duracao_min || orig.duracao_min, tipo: a.p_tipo || orig.tipo,
+        nota: a.p_nota != null ? a.p_nota : orig.nota, rescheduled_from_id: orig.id
+      }, uid);
+      const e = checarLinha('consultations', novo, uid);
+      if (e) return e;
+      s.tabelas.consultations.push(novo);
+      orig.cancelled_at = agora(); orig.cancellation_reason = a.p_motivo || 'reagendada';
+      orig.rescheduled_to_id = novo.id; orig.updated_at = carimbo();
+      return { data: novo.id, error: null };
     }
     return erro('function ' + nome + ' does not exist', '42883');
   }

@@ -88,5 +88,7 @@ export const SUITES = [
   'testar-rodada08-sessao.mjs',
   'testar-rodada08-contexto.mjs',
   'testar-rodada08-versao-ux.mjs',
+  'testar-v1-etapa1-banco.mjs',
+  'testar-v1-etapa1.mjs',
   'testar-conferir-producao.mjs',
 ];
