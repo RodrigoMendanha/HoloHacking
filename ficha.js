@@ -187,12 +187,25 @@
     }
     var prox = window.Agenda && window.Agenda.proxima ? window.Agenda.proxima(pid) : null;
     if (prox) linhas.push(["Próxima consulta marcada (agenda)", dataBR(prox.data) + " às " + String(prox.hora).slice(0, 5)]);
+    /* V1, Etapa 3: a Evolucao disponivel (so por atendimento, nunca "primeira x
+       ultima" automatica) e o ultimo relatorio EMITIDO (rascunho nao conta). */
+    linhas.push(["Última evolução disponível", lista.length >= 2
+      ? "atendimento anterior × atual (" + lista.length + " atendimentos registrados)"
+      : lista.length === 1 ? "só 1 atendimento: sem comparação" : "sem atendimentos: sem comparação"]);
+    if (window.Relatorios && window.Relatorios.ultimoEmitido) {
+      var rel = window.Relatorios.ultimoEmitido(pid);
+      linhas.push(["Último relatório emitido", rel
+        ? (rel.title || "Relatório clínico") + " · emissão nº " + rel.revision_number + " · " + dataBR(String(rel.issued_at).slice(0, 10)) + (rel.superseded_at ? " · substituído por retificação" : "")
+        : "nenhum emitido" + (window.Relatorios.rascunhos(pid).length ? " (há rascunho não emitido)" : "")]);
+    }
     return '<div class="dash-bloco dash-bloco-compacto" id="fic-atendimento-clinico">' +
       '<h3 class="dash-titulo">Atendimento clínico</h3>' +
       linhas.map(function (l) { return '<div class="fic-det"><span>' + escapar(l[0]) + "</span><b>" + escapar(l[1]) + "</b></div>"; }).join("") +
       '<div class="fic-continuidade"><button type="button" class="fic-chip" data-ir="aba:anamnese">Anamnese</button>' +
       '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="holoscan">HOLOSCAN</button>' +
-      '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="aba:conduta">Conduta</button></div>' +
+      '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="aba:conduta">Conduta</button>' +
+      '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="aba:evolucao">Evolução</button>' +
+      '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="aba:relatorio">Relatório</button></div>' +
     "</div>";
   }
 
@@ -664,135 +677,25 @@
     if (!alvo) return;
     var pid = paciente();
     var d = reunir();
-    var eventos = [];
 
-    (d.historico || []).forEach(function (p, i) {
-      eventos.push({
-        quando: p.quando, ts: p._supa_criado_em || p.calculado_em || p.quando, tipo: "mapa", selo: "HOLOSCAN",
-        titulo: (i + 1) + "ª aplicação do HOLOSCAN",
-        detalhe: "Índice " + p.indice + " de " + p.indice_maximo,
-        acao: "aba:visao"
-      });
-    });
-
-    /* Cada aplicacao de ferramenta agora tem data, entao ela entra na linha do
-       tempo — era o registro que faltava, e por isso a nota dizia que nao
-       entrava. Rascunho nao entra: nao aconteceu ainda. */
-    if (window.Aplicacoes) {
-      window.Aplicacoes.doPaciente(pid)
-        .filter(function (a) { return a.status !== "rascunho"; })
-        .forEach(function (a) {
-          eventos.push({
-            quando: diaLocal(a.concluida_em || a.iniciada_em), ts: a.concluida_em || a.iniciada_em,
-            tipo: "ferramenta", selo: nomeFerramenta(a.ferramenta_id),
-            titulo: nomeFerramenta(a.ferramenta_id) + " aplicada",
-            detalhe: a.leitura ? escapar(a.leitura) : "sem leitura registrada",
-            acao: "aba:formularios"
-          });
-        });
-    }
-
-    /* V1, Etapa 2: eventos CONSOLIDADOS de anamnese e conduta (rascunho nao
-       entra). A revisao 1 e o registro; as seguintes aparecem como "revisao"
-       — correcao documental, nao novo evento clinico. Data clinica = a do
-       atendimento; data de registro = created_at (no detalhe). */
-    if (window.AtendimentoAtual && window.Anamnese && window.Conduta) {
-      var A2 = window.AtendimentoAtual;
-      var diaDoAtendimento = function (eid) { var e = A2.porId(eid); return e ? A2.paraParede(e.occurred_at, e.timezone || A2.fuso()).data : ""; };
-      window.Anamnese.doPaciente(pid).filter(window.Anamnese.consolidada).forEach(function (a) {
-        var revisao = a.revision_number > 1;
-        eventos.push({ quando: diaDoAtendimento(a.encounter_id), ts: a.created_at, tipo: "anamnese",
-          selo: revisao ? "Revisão" : "Anamnese", titulo: revisao ? "Revisão da anamnese (rev. " + a.revision_number + ")" : "Anamnese salva",
-          detalhe: a.status + " · " + window.Anamnese.contarItens(a.content) + " itens · registrada em " + dataBR(String(a.created_at).slice(0, 10)) +
-            (a.revision_note ? " · " + escapar(a.revision_note) : ""), acao: "aba:anamnese", revisao: revisao });
-      });
-      window.Conduta.doPaciente(pid).filter(window.Conduta.consolidada).forEach(function (c) {
-        var revisao = c.revision_number > 1;
-        eventos.push({ quando: diaDoAtendimento(c.encounter_id), ts: c.created_at, tipo: "conduta",
-          selo: revisao ? "Revisão" : "Conduta", titulo: revisao ? "Revisão da conduta (rev. " + c.revision_number + ")" : "Conduta salva",
-          detalhe: c.status + (c.objective ? " · " + escapar(c.objective) : "") + " · registrada em " + dataBR(String(c.created_at).slice(0, 10)) +
-            (c.revision_note ? " · " + escapar(c.revision_note) : ""), acao: "aba:conduta", revisao: revisao });
-        window.Conduta.acordosDe(c.id).filter(function (g) { return g.status_changed_at; }).forEach(function (g) {
-          eventos.push({ quando: diaLocal(g.status_changed_at), ts: g.status_changed_at, tipo: "conduta", selo: "Acordo",
-            titulo: "Acordo: " + escapar(g.description), detalhe: window.Conduta.rotulo(g.status) + (g.status_note ? " · " + escapar(g.status_note) : ""), acao: "aba:conduta" });
-        });
-      });
-    }
-
-    if (window.Agenda && window.Agenda.todas) {
-      window.Agenda.todas(pid).forEach(function (c) {
-        eventos.push({
-          quando: c.data, hora: c.hora, ts: c.data + "T" + (c.hora || "00:00"), tipo: "consulta", selo: c.tipo || "Agendamento",
-          titulo: (diasDesde(c.data) < 0 ? "Consulta marcada (agendamento)" : "Agendamento"),
-          detalhe: c.hora + " &middot; " + (c.duracao || 60) + " min" +
-                   (c.nota ? " &middot; " + escapar(c.nota) : ""),
-          acao: "agenda"
-        });
-      });
-    }
-
-    /* Com sessao, cada coleta do servidor e um evento com a propria data
-       (sincronizacao.js). Sem leitura remota, o painel local e um evento so,
-       sem data — ele nao sabe quando foi coletado. Nunca os dois: a coleta
-       remota ja E o que o painel mostra. */
-    var coletas = window.Sincronizacao ? window.Sincronizacao.coletas(pid) : null;
-    if (coletas && coletas.length) {
-      coletas.forEach(function (c) {
-        var n = (c.resultados || []).length;
-        var semData = c.data_coleta_desconhecida || !c.coletado_em;
-        eventos.push({
-          quando: semData ? "" : c.coletado_em, ts: c.created_at || "", tipo: "exame", selo: "Exames",
-          titulo: "Coleta de exames" + (semData ? " (data não informada)" : ""),
-          detalhe: n + (n === 1 ? " exame" : " exames") +
-                   (c.laboratorio ? " &middot; " + escapar(c.laboratorio) : ""),
-          acao: "aba:visao"
-        });
-      });
-    } else if (d.exames > 0) {
-      eventos.push({
-        quando: "", tipo: "exame", selo: "Exames",
-        titulo: "Exames laboratoriais registrados",
-        detalhe: d.exames + (d.exames === 1 ? " exame" : " exames") + " no painel",
-        acao: "aba:visao"
-      });
-    }
-
+    /* V1, Etapa 3: a unica fonte de eventos e o modulo Timeline (timeline.js):
+       so o CONSOLIDADO entra (rascunho, previa e cache nao sincronizado ficam
+       fora); cada evento tem data clinica (ordena) e data de registro
+       (consultavel); revisao aparece ligada ao original, nao como novo evento
+       clinico. O agendamento entra como evento administrativo. */
     var pintar = function (arquivos) {
-      arquivos.forEach(function (a) {
-        eventos.push({
-          quando: a.data || "", ts: a.created_at || "", tipo: "documento",
-          selo: a.tipo || "Documento",
-          titulo: a.nome, detalhe: window.ArquivoStore.tamanhoLegivel(a.tamanho),
-          acao: "aba:documentos"
-        });
-      });
-
-      /* rodada 08: dia primeiro (a data clinica), e no mesmo dia o carimbo
-         real de quando aconteceu — antes a ordem do mesmo dia era a ordem em
-         que os blocos foram juntados aqui. Sem data vai para o fim. */
-      eventos.sort(function (a, b) {
-        if (!a.quando !== !b.quando) return a.quando ? -1 : 1;
-        return (b.quando || "").localeCompare(a.quando || "") ||
-               String(b.ts || "").localeCompare(String(a.ts || ""));
-      });
+      var eventos = window.Timeline
+        ? window.Timeline.eventos(pid, { documentos: arquivos, examesLocais: d.exames })
+        : [];
 
       if (!eventos.length) {
         alvo.innerHTML = '<div class="dash-vazio">Nada aconteceu ainda. ' +
-          "A linha do tempo se enche sozinha conforme você aplica o mapa, " +
+          "A linha do tempo se enche sozinha conforme você registra atendimentos, aplica o mapa, " +
           "marca consultas e guarda documentos.</div>";
         return;
       }
 
-      var FILTROS_LINHA = [
-        { id: "tudo", nome: "Tudo" },
-        { id: "consulta", nome: "Agendamentos" },
-        { id: "anamnese", nome: "Anamnese" },
-        { id: "conduta", nome: "Conduta" },
-        { id: "mapa", nome: "HOLOSCAN" },
-        { id: "exame", nome: "Exames" },
-        { id: "ferramenta", nome: "Ferramentas" },
-        { id: "documento", nome: "Documentos" }
-      ];
+      var FILTROS_LINHA = (window.Timeline ? window.Timeline.TIPOS : []).map(function (t) { return { id: t[0], nome: t[1] }; });
 
       var visiveis = filtroLinha === "tudo"
         ? eventos
@@ -809,7 +712,7 @@
       html += '<p class="dash-sub">' + visiveis.length +
         (visiveis.length === 1 ? " registro" : " registros") +
         (filtroLinha !== "tudo" ? " (" + eventos.length + " no total)" : "") +
-        ", do mais recente para o mais antigo.</p>";
+        ", do mais recente para o mais antigo. Só o que foi efetivamente registrado; data clínica primeiro, data de registro quando difere.</p>";
 
       if (visiveis.length === 0) {
         var vazioMsg = filtroLinha === "exame"
@@ -828,17 +731,23 @@
               (p.length === 3 ? MESES[Number(p[1]) - 1] + " de " + p[0] : "sem data") +
               "</div>";
           }
-          var futuro = diasDesde(e.quando) < 0;
+          var futuro = !!e.quando && diasDesde(e.quando) < 0;
+          /* data de registro: consultavel (title e data-registrado-em), sem
+             se confundir com a data clinica no corpo do evento */
+          var regDia = e.registrado_em ? diaLocal(e.registrado_em) : "";
+          var reg = regDia && !e.administrativo && regDia !== e.quando ? "registrado em " + dataBR(regDia) : "";
           html += '<button type="button" class="fic-evento ' + e.tipo +
-            (futuro ? " futuro" : "") + '" data-ir="' + e.acao + '">' +
+            (futuro ? " futuro" : "") + (e.revisao ? " revisao" : "") + (e.administrativo ? " administrativo" : "") +
+            '" data-ir="' + escapar(e.acao || "aba:visao") + '" data-tl-ref="' + escapar((e.ref && e.ref.id) || "") +
+            '" data-registrado-em="' + escapar(regDia) + '"' + (reg ? ' title="' + escapar(reg) + '"' : "") + ">" +
             '<span class="fic-evento-marca" aria-hidden="true"></span>' +
             '<span class="fic-evento-corpo">' +
-              '<span class="fic-evento-topo"><b>' + escapar(e.titulo) + "</b>" +
+              '<span class="fic-evento-topo"><b>' + e.titulo + "</b>" +
                 '<span class="fic-selo">' + escapar(e.selo) + "</span></span>" +
               '<span class="fic-evento-quando">' + dataBR(e.quando) +
                 (e.quando ? " &middot; " + (futuro ? emQuantoTempo(-diasDesde(e.quando))
                                                   : haQuantoTempo(diasDesde(e.quando))) : "") +
-                " &middot; " + e.detalhe + "</span>" +
+                (e.detalhe ? " &middot; " + e.detalhe : "") + "</span>" +
             "</span></button>";
         });
         html += "</div>";
@@ -1182,6 +1091,7 @@
     consultas: desenharConsultas,
     anamnese: function () { if (window.Anamnese) window.Anamnese.desenhar(); },
     conduta: function () { if (window.Conduta) window.Conduta.desenhar(); },
+    evolucao: function () { if (window.Evolucao) window.Evolucao.desenhar(); },
     holoscan: desenharHolo,
     ferramentas: desenharFormularios,
     linha: desenharLinha,
