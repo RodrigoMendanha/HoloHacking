@@ -135,8 +135,10 @@
 
   var escapar = window.escapar;
 
+  /** Rotulos da escala do item. Escala desconhecida NAO cai em frequencia
+      (decisao V1, Etapa 4.2): devolve null e o item aparece como erro, sem botoes. */
   function rotulos(q) {
-    return ESCALAS[q.escala] || ESCALAS.frequencia;
+    return Object.prototype.hasOwnProperty.call(ESCALAS, q.escala) ? ESCALAS[q.escala] : null;
   }
 
   function desenhar() {
@@ -184,6 +186,12 @@
         var q = doBloco[i];
         var v = dadas[q.id];
         var escala = rotulos(q);
+        if (!escala) {
+          html += '<div class="q-item q-item-erro" data-marcador="' + escapar(q.id) + '">' +
+            '<p class="q-pergunta">' + escapar(q.pergunta) + "</p>" +
+            '<p class="q-erro">Escala desconhecida (' + escapar(String(q.escala)) + '): item sem resposta possível até a correção do banco.</p></div>';
+          continue;
+        }
         html += '<div class="q-item" data-marcador="' + q.id + '">' +
           '<p class="q-pergunta">' + escapar(q.pergunta) + "</p>" +
           '<div class="q-botoes">';

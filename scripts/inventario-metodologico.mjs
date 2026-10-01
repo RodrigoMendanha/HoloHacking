@@ -300,7 +300,9 @@ const sntMd = `# PENDÊNCIA DE HOMOLOGAÇÃO — SNT-101 e SNT-501
 
 Gerado por \`scripts/inventario-metodologico.mjs\` a partir dos bancos atuais. **Nada foi corrigido.** Os dois IDs aparecem em DUAS linhas primárias cada um, com sistemas e pesos diferentes. O Mestre (§12) é explícito: "IDs como SNT-101 e SNT-501 exigem revisão dos vínculos, sem herdar automaticamente pesos inconsistentes encontrados no AS-IS". Enquanto a decisão humana não existir, **nenhuma saída oficial pode depender destes vínculos**.
 
-Status: **PENDENTE DE HOMOLOGAÇÃO** (os dois).
+Status no inventário recuperado: **PENDENTE DE HOMOLOGAÇÃO** (os dois) — registro histórico, preservado sem alteração.
+
+> **Etapa 4.2 — DECISÕES METODOLÓGICAS V1 FECHADAS.** SNT-101: primário pontuável **Sistema Fúngico**, peso 1; Metabólico como \`secondary_contextual\`, sem contribuição numérica (linha histórica SNT-302, não recriada) — Decisão 5. SNT-501: primário pontuável **Sistema Mental Emocional Espiritual**, peso 1; Metabólico como \`secondary_contextual\`, sem contribuição numérica (linha histórica SNT-310, não recriada) — Decisão 6. Tríada de ambos: eixo físico, peso 1. Contexto: \`ultimos_30_dias\`. Aplicado só na **nova versão candidata** do pacote (HOLOS-V1@2); este inventário e o pacote importado (HOLOS-V1@1) continuam como histórico. Ver \`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md\`.
 
 ${[snt101, snt501].map((s) => `## ${s.id} — ${s.rotulo}
 
@@ -359,7 +361,32 @@ matrizLinhas.push(linhaM('Sugestões', rec.length + ' REC + SEL-001', 'REC-001..
 matrizLinhas.push(linhaM('Laboratório (relacionado)', exames.length + ' EXA', 'faixas funcionais rascunho', FONTES.exames, 'catálogo de 45 exames fora desta etapa', 'fora da Etapa 4', 'PENDENTE', 'registro do laudo sem regra presumida'));
 const matrizMd = `# MATRIZ DE HOMOLOGAÇÃO — V1 (Pacote Metodológico)
 
-Gerada por \`scripts/inventario-metodologico.mjs\` a partir de \`inventario-metodologico-v1.json\`. Cada linha é um elemento que **precisa de decisão humana** (Mestre §13, §42). Valor atual = o que foi recuperado dos arquivos, **não** o valor aprovado. Status de todas as linhas: PENDENTE.
+Gerada por \`scripts/inventario-metodologico.mjs\` a partir de \`inventario-metodologico-v1.json\`. Cada linha é um elemento que **precisava de decisão humana** (Mestre §13, §42). Valor atual = o que foi recuperado dos arquivos, **não** o valor aprovado. Status de todas as linhas no inventário recuperado: PENDENTE (registro histórico).
+
+## Situação após a Etapa 4.2
+
+**DECISÕES METODOLÓGICAS V1 FECHADAS.** As 15 decisões estão em \`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md\` e foram aplicadas numa **nova versão candidata** do pacote (HOLOS-V1@2, \`em_revisao\`), gerada por \`scripts/pacote-candidato-v1.mjs\`. Esta matriz e o pacote importado (HOLOS-V1@1) ficam como histórico, sem edição.
+
+**PUBLICAÇÃO TÉCNICA PENDENTE DE VALIDAÇÃO NO BANCO REAL.** O candidato não é publicado enquanto a cadeia de migrations não for validada no Supabase.
+
+| Tema (linhas abaixo) | Decisão V1 | Onde |
+|---|---|---|
+| Pergunta, edição | 84 perguntas (49/19/16); EMO-506 fora; SNT-302/SNT-310/EMO-506 não recriadas; contexto temporal por item | Decisão 1 |
+| Escala | 0–3; frequência (73) e intensidade (11) com os rótulos atuais; escala desconhecida = erro | Decisão 2 |
+| Orientação | 9 invertidas, 75 diretas; ausente = erro | Decisão 3 |
+| Associação | exatamente 1 primário pontuável por pergunta; 9 secundárias = \`secondary_contextual\` (sem contribuição) | Decisão 4 |
+| SNT-101 / SNT-501 | Fúngico / Mental Emocional Espiritual, peso 1; Metabólico contextual | Decisões 5 e 6 |
+| Peso | 1 em todos os 84 vínculos primários; 1/2/3 só como \`legacy_recovered_weight\` | Decisão 7 |
+| Parcialidade, cobertura | cobertura por sistema ≥ 0,80; nota pelos respondidos; ausente ≠ 0 | Decisão 8 |
+| Faixa | [0, 10/3) baixa; [10/3, 20/3) intermediária; [20/3, 10] alta; mensagens neutras | Decisão 9 |
+| Índice | 0,20 × 5; só com os 5 sistemas avaliáveis; sem parcial, sem renormalização; 1 casa | Decisão 10 |
+| Tríada | eixo pelo bloco, peso 1, cobertura ≥ 0,80; sem nota global, sem faixa | Decisão 11 |
+| Comparabilidade | delta só com mesmo paciente/edição/pacote/contrato/conjunto pontuado e sistema avaliável nas duas | Decisão 12 |
+| Sistema (nome, texto) | nomes oficiais e textos seguros; legado causal só em provenance | Decisão 13 |
+| Exemplo | REF-01, REF-02, REF-03 | Decisão 14 |
+| Combinação, sugestão, seleção | nenhuma automática oficial; legado não oficial | Decisão 15 |
+
+## Inventário recuperado (histórico)
 
 Resumo: ${contagem.ids_unicos} IDs únicos (${contagem.fisico}/${contagem.mental_emocional}/${contagem.espiritual}) em ${contagem.linhas_nos_bancos} linhas; ${contagem.associacoes_sistema} associações pergunta→sistema; ${contagem.invertidas_recuperadas.length} invertidas recuperadas; ${faixas.length} faixas; ${combinacoes.length} combinações; ${rec.length} regras de sugestão; conflitos: ${conflitos.length}.
 

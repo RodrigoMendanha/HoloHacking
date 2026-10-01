@@ -2,7 +2,9 @@
 
 Gerado por `scripts/inventario-metodologico.mjs` a partir dos bancos atuais. **Nada foi corrigido.** Os dois IDs aparecem em DUAS linhas primárias cada um, com sistemas e pesos diferentes. O Mestre (§12) é explícito: "IDs como SNT-101 e SNT-501 exigem revisão dos vínculos, sem herdar automaticamente pesos inconsistentes encontrados no AS-IS". Enquanto a decisão humana não existir, **nenhuma saída oficial pode depender destes vínculos**.
 
-Status: **PENDENTE DE HOMOLOGAÇÃO** (os dois).
+Status no inventário recuperado: **PENDENTE DE HOMOLOGAÇÃO** (os dois) — registro histórico, preservado sem alteração.
+
+> **Etapa 4.2 — DECISÕES METODOLÓGICAS V1 FECHADAS.** SNT-101: primário pontuável **Sistema Fúngico**, peso 1; Metabólico como `secondary_contextual`, sem contribuição numérica (linha histórica SNT-302, não recriada) — Decisão 5. SNT-501: primário pontuável **Sistema Mental Emocional Espiritual**, peso 1; Metabólico como `secondary_contextual`, sem contribuição numérica (linha histórica SNT-310, não recriada) — Decisão 6. Tríada de ambos: eixo físico, peso 1. Contexto: `ultimos_30_dias`. Aplicado só na **nova versão candidata** do pacote (HOLOS-V1@2); este inventário e o pacote importado (HOLOS-V1@1) continuam como histórico. Ver `PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`.
 
 ## SNT-101 — vontade intensa e recorrente de doce
 

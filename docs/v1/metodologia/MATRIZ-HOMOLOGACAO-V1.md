@@ -1,6 +1,31 @@
 # MATRIZ DE HOMOLOGAÇÃO — V1 (Pacote Metodológico)
 
-Gerada por `scripts/inventario-metodologico.mjs` a partir de `inventario-metodologico-v1.json`. Cada linha é um elemento que **precisa de decisão humana** (Mestre §13, §42). Valor atual = o que foi recuperado dos arquivos, **não** o valor aprovado. Status de todas as linhas: PENDENTE.
+Gerada por `scripts/inventario-metodologico.mjs` a partir de `inventario-metodologico-v1.json`. Cada linha é um elemento que **precisava de decisão humana** (Mestre §13, §42). Valor atual = o que foi recuperado dos arquivos, **não** o valor aprovado. Status de todas as linhas no inventário recuperado: PENDENTE (registro histórico).
+
+## Situação após a Etapa 4.2
+
+**DECISÕES METODOLÓGICAS V1 FECHADAS.** As 15 decisões estão em `PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md` e foram aplicadas numa **nova versão candidata** do pacote (HOLOS-V1@2, `em_revisao`), gerada por `scripts/pacote-candidato-v1.mjs`. Esta matriz e o pacote importado (HOLOS-V1@1) ficam como histórico, sem edição.
+
+**PUBLICAÇÃO TÉCNICA PENDENTE DE VALIDAÇÃO NO BANCO REAL.** O candidato não é publicado enquanto a cadeia de migrations não for validada no Supabase.
+
+| Tema (linhas abaixo) | Decisão V1 | Onde |
+|---|---|---|
+| Pergunta, edição | 84 perguntas (49/19/16); EMO-506 fora; SNT-302/SNT-310/EMO-506 não recriadas; contexto temporal por item | Decisão 1 |
+| Escala | 0–3; frequência (73) e intensidade (11) com os rótulos atuais; escala desconhecida = erro | Decisão 2 |
+| Orientação | 9 invertidas, 75 diretas; ausente = erro | Decisão 3 |
+| Associação | exatamente 1 primário pontuável por pergunta; 9 secundárias = `secondary_contextual` (sem contribuição) | Decisão 4 |
+| SNT-101 / SNT-501 | Fúngico / Mental Emocional Espiritual, peso 1; Metabólico contextual | Decisões 5 e 6 |
+| Peso | 1 em todos os 84 vínculos primários; 1/2/3 só como `legacy_recovered_weight` | Decisão 7 |
+| Parcialidade, cobertura | cobertura por sistema ≥ 0,80; nota pelos respondidos; ausente ≠ 0 | Decisão 8 |
+| Faixa | [0, 10/3) baixa; [10/3, 20/3) intermediária; [20/3, 10] alta; mensagens neutras | Decisão 9 |
+| Índice | 0,20 × 5; só com os 5 sistemas avaliáveis; sem parcial, sem renormalização; 1 casa | Decisão 10 |
+| Tríada | eixo pelo bloco, peso 1, cobertura ≥ 0,80; sem nota global, sem faixa | Decisão 11 |
+| Comparabilidade | delta só com mesmo paciente/edição/pacote/contrato/conjunto pontuado e sistema avaliável nas duas | Decisão 12 |
+| Sistema (nome, texto) | nomes oficiais e textos seguros; legado causal só em provenance | Decisão 13 |
+| Exemplo | REF-01, REF-02, REF-03 | Decisão 14 |
+| Combinação, sugestão, seleção | nenhuma automática oficial; legado não oficial | Decisão 15 |
+
+## Inventário recuperado (histórico)
 
 Resumo: 84 IDs únicos (49/19/16) em 86 linhas; 95 associações pergunta→sistema; 9 invertidas recuperadas; 15 faixas; 16 combinações; 23 regras de sugestão; conflitos: 8.
 
