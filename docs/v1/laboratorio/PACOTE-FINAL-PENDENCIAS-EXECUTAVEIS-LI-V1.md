@@ -1,6 +1,6 @@
 # Pacote final — pendências executáveis da Leitura Integrada V1
 
-Etapa 5.10 (reclassificado na 5.10.1; Bloco 5 fechado na 5.11) · 02/10/2026 · consolidação **sem preenchimento** das pendências executáveis da Leitura Integrada V1 · fonte dos números: matriz aprovada de `DECISAO-02-VINCULOS-EXAME-DOMINIO-LI.md` (reconferida programaticamente nesta etapa) · autoridade de nomes e blocos: `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md`.
+Etapa 5.10 (reclassificado na 5.10.1; Bloco 5 fechado na 5.11; 20/21 mapeados na 5.12) · 02/10/2026 · consolidação **sem preenchimento** das pendências executáveis da Leitura Integrada V1 · fonte dos números: matriz aprovada de `DECISAO-02-VINCULOS-EXAME-DOMINIO-LI.md` (reconferida programaticamente nesta etapa) · autoridade de nomes e blocos: `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md`.
 
 > **NADA PREENCHIDO.** Todo campo marcado PENDENTE está vazio por decisão: nenhum valor, sistema, regra, corte, mínimo ou janela foi sugerido. Preencher é ato humano de Daniel (Aprovação 1) e Rodrigo (Aprovação 2). Este documento **não** implementa nada: migration, banco, servidor falso, motor, UI e pacote LI real permanecem intocados; LI-V1@1 segue rascunho com 0 aprovações.
 
@@ -15,9 +15,8 @@ Três grupos. Só o grupo **A** significa "regra metodológica ainda indefinida"
 | A2 | 16 | Suficiência D01–D07 | para cada domínio: `coverage_rule`, critério de suficiência e versão |
 | A3 | 17 | Mínimos/conjuntos/grupos D01–D07 | para cada domínio: `min_classifiable_results`, `required_exam_codes`, `required_exam_groups` |
 | A4 | 19 | Resultados mistos D01–D07 | para cada domínio: regra determinística para cada combinação de posições (§7) |
-| A5 | 20/21 | Domínio LI → sistema(s) HOLOSCAN; regra HOLOSCAN → attention_*; múltiplos sistemas | para cada domínio: 0..N sistemas, regra de agregação quando N > 1, regra nota/faixa → `attention_present` / `attention_not_detected` / `indeterminate`, fonte |
 
-**Bloco 5 saiu deste grupo na Etapa 5.11** (DECIDIDO: LI-TEMP-01 v1, ±30 dias — §4). Enquanto A2–A5 estiverem abertos, toda Leitura Integrada real é `sem_dados_suficientes` por regra ausente. **Bloqueadores centrais restantes: 16, 17, 19, 20/21; nenhum outro bloco bloqueia o motor.** A matriz para decidir 20/21 está em `MATRIZ-DECISAO-DOMINIOS-LI-HOLOSCAN-V1.md`.
+**Bloco 5 saiu deste grupo na Etapa 5.11** (LI-TEMP-01 v1 — §4). **Blocos 20/21 saíram do nível domínio→HOLOSCAN na Etapa 5.12** (`DECISAO-20-21-MATRIZ-FINAL-DOMINIOS-HOLOSCAN-V1.md`): D01 → `acido_inflamatorio`, D02/D03 → `metabolico`, D04 → `detox_linfatico`, D05/D06/D07 → nenhum; Regra 20/21-A; `cross_source_role`. **Não afirmar que 20/21 estão executáveis sem 16/17/19.** Enquanto A2–A4 estiverem abertos, toda Leitura Integrada real de D01–D04 é `sem_dados_suficientes` por regra ausente; D05–D07 não têm confronto HOLOSCAN na V1 por decisão (não é SEM DADOS). **Bloqueadores centrais restantes: 16, 17, 19.**
 
 ### B — Gates operacionais / homologação / produção
 
@@ -67,15 +66,15 @@ Nenhuma outra pendência metodológica real foi encontrada nos blocos 1–29.
 9. **Exames sensíveis / observações:** LAB-001 Hemograma completo (composto): conta como 1 posição; componentes não inflam (DECISÃO 17); LAB-016 PCR: variante ultrassensível é vínculo distinto (DECISÃO 11)
 10. **Exames multi-domínio neste domínio:** LAB-025 (LI-D01 + LI-D06), LAB-026 (LI-D01 + LI-D06), LAB-028 (LI-D01 + LI-D06), LAB-029 (LI-D01 + LI-D06) — contam 1× por domínio (DECISÃO 17)
 11. **O que NÃO entra:** LAB-027 Alumínio, LAB-033 Ácido úrico, LAB-044 CK (sem domínio); EXA-003 VHS legado (`additional_legacy`, DECISÃO 28); PCR ultrassensível só pelo vínculo próprio da variante; custom exams (DECISÃO 27); derivados (DECISÃO 26)
-12. **Sistemas HOLOSCAN relacionados:** PENDENTE (Bloco 20/21) — 0..N, só por regra homologada; nenhum sugerido
-13. **Regra HOLOSCAN → attention_present / attention_not_detected / indeterminate:** PENDENTE (Bloco 20/21)
+12. **Sistemas HOLOSCAN relacionados:** `acido_inflamatorio` (1 sistema) — DECIDIDO na Etapa 5.12; cross_source_role: directional = LAB-016, LAB-018; contextual = LAB-001, LAB-025, LAB-026, LAB-028, LAB-029
+13. **Regra HOLOSCAN → attention_present / attention_not_detected / indeterminate:** Regra 20/21-A: baixa → present, intermediária → indeterminate, alta → not_detected, não avaliável → indeterminate (DECIDIDO na Etapa 5.12)
 14. **min_classifiable_results:** PENDENTE (Bloco 17)
 15. **required_exam_codes:** PENDENTE (Bloco 17)
 16. **required_exam_groups:** PENDENTE (Bloco 17)
 17. **Regra de cobertura (coverage_rule):** PENDENTE (Bloco 16)
 18. **Regra de resultados mistos (mixed_results_rule):** PENDENTE (Bloco 19)
 19. **Janela temporal:** LI-TEMP-01 v1 — ±30 dias corridos, inclusivos, global, simétrica, 0 exceções (DECIDIDO na Etapa 5.11; §4)
-20. **Impacto em convergente/divergente:** enquanto 12–18 estiverem PENDENTES, toda leitura deste domínio é `sem_dados_suficientes` (motivos `missing_domain_holoscan_mapping`, `missing_domain_sufficiency_rule`, `mixed_without_rule` conforme o caso; a regra temporal já existe: LI-TEMP-01 v1); convergente/divergente nunca por fallback (precedência do motor, Etapa 5.9)
+20. **Impacto em convergente/divergente:** enquanto 14–18 estiverem PENDENTES, toda leitura deste domínio é `sem_dados_suficientes` (motivos `missing_domain_sufficiency_rule`, `mixed_without_rule` conforme o caso; mapeamento HOLOSCAN e regra temporal já existem); convergente/divergente nunca por fallback (precedência do motor, Etapa 5.9)
 
 ### LI-D02 — Glicêmico e Metabólico
 
@@ -90,15 +89,15 @@ Nenhuma outra pendência metodológica real foi encontrada nos blocos 1–29.
 9. **Exames sensíveis / observações:** LAB-003 Insulina basal: histórico EXA-006 não mapeado (DECISÃO 29)
 10. **Exames multi-domínio neste domínio:** nenhum — contam 1× por domínio (DECISÃO 17)
 11. **O que NÃO entra:** LAB-027/033/044 (sem domínio); EXA-006 Insulina de jejum histórica (legado, DECISÃO 29); EXA-007 HOMA-IR legado (DECISÃO 28); nenhum derivado (DECISÃO 26); custom exams (DECISÃO 27); derivados (DECISÃO 26)
-12. **Sistemas HOLOSCAN relacionados:** PENDENTE (Bloco 20/21) — 0..N, só por regra homologada; nenhum sugerido
-13. **Regra HOLOSCAN → attention_present / attention_not_detected / indeterminate:** PENDENTE (Bloco 20/21)
+12. **Sistemas HOLOSCAN relacionados:** `metabolico` (1 sistema) — DECIDIDO na Etapa 5.12; cross_source_role: directional = LAB-002, LAB-003, LAB-004; contextual = 
+13. **Regra HOLOSCAN → attention_present / attention_not_detected / indeterminate:** Regra 20/21-A: baixa → present, intermediária → indeterminate, alta → not_detected, não avaliável → indeterminate (DECIDIDO na Etapa 5.12)
 14. **min_classifiable_results:** PENDENTE (Bloco 17)
 15. **required_exam_codes:** PENDENTE (Bloco 17)
 16. **required_exam_groups:** PENDENTE (Bloco 17)
 17. **Regra de cobertura (coverage_rule):** PENDENTE (Bloco 16)
 18. **Regra de resultados mistos (mixed_results_rule):** PENDENTE (Bloco 19)
 19. **Janela temporal:** LI-TEMP-01 v1 — ±30 dias corridos, inclusivos, global, simétrica, 0 exceções (DECIDIDO na Etapa 5.11; §4)
-20. **Impacto em convergente/divergente:** enquanto 12–18 estiverem PENDENTES, toda leitura deste domínio é `sem_dados_suficientes` (motivos `missing_domain_holoscan_mapping`, `missing_domain_sufficiency_rule`, `mixed_without_rule` conforme o caso; a regra temporal já existe: LI-TEMP-01 v1); convergente/divergente nunca por fallback (precedência do motor, Etapa 5.9)
+20. **Impacto em convergente/divergente:** enquanto 14–18 estiverem PENDENTES, toda leitura deste domínio é `sem_dados_suficientes` (motivos `missing_domain_sufficiency_rule`, `mixed_without_rule` conforme o caso; mapeamento HOLOSCAN e regra temporal já existem); convergente/divergente nunca por fallback (precedência do motor, Etapa 5.9)
 
 ### LI-D03 — Lipídico
 
@@ -113,15 +112,15 @@ Nenhuma outra pendência metodológica real foi encontrada nos blocos 1–29.
 9. **Exames sensíveis / observações:** LAB-009 HDL: direção `below` (única `below` do catálogo) — resultado acima na direção contrária depende da regra de mistos (DECISÃO 19, pendente)
 10. **Exames multi-domínio neste domínio:** nenhum — contam 1× por domínio (DECISÃO 17)
 11. **O que NÃO entra:** LAB-027/033/044 (sem domínio); LDL calculado ou qualquer razão/índice (DECISÃO 26: 0 derivados); custom exams (DECISÃO 27); derivados (DECISÃO 26)
-12. **Sistemas HOLOSCAN relacionados:** PENDENTE (Bloco 20/21) — 0..N, só por regra homologada; nenhum sugerido
-13. **Regra HOLOSCAN → attention_present / attention_not_detected / indeterminate:** PENDENTE (Bloco 20/21)
+12. **Sistemas HOLOSCAN relacionados:** `metabolico` (1 sistema) — DECIDIDO na Etapa 5.12; cross_source_role: directional = LAB-005, LAB-009; contextual = LAB-006, LAB-007, LAB-008
+13. **Regra HOLOSCAN → attention_present / attention_not_detected / indeterminate:** Regra 20/21-A: baixa → present, intermediária → indeterminate, alta → not_detected, não avaliável → indeterminate (DECIDIDO na Etapa 5.12)
 14. **min_classifiable_results:** PENDENTE (Bloco 17)
 15. **required_exam_codes:** PENDENTE (Bloco 17)
 16. **required_exam_groups:** PENDENTE (Bloco 17)
 17. **Regra de cobertura (coverage_rule):** PENDENTE (Bloco 16)
 18. **Regra de resultados mistos (mixed_results_rule):** PENDENTE (Bloco 19)
 19. **Janela temporal:** LI-TEMP-01 v1 — ±30 dias corridos, inclusivos, global, simétrica, 0 exceções (DECIDIDO na Etapa 5.11; §4)
-20. **Impacto em convergente/divergente:** enquanto 12–18 estiverem PENDENTES, toda leitura deste domínio é `sem_dados_suficientes` (motivos `missing_domain_holoscan_mapping`, `missing_domain_sufficiency_rule`, `mixed_without_rule` conforme o caso; a regra temporal já existe: LI-TEMP-01 v1); convergente/divergente nunca por fallback (precedência do motor, Etapa 5.9)
+20. **Impacto em convergente/divergente:** enquanto 14–18 estiverem PENDENTES, toda leitura deste domínio é `sem_dados_suficientes` (motivos `missing_domain_sufficiency_rule`, `mixed_without_rule` conforme o caso; mapeamento HOLOSCAN e regra temporal já existem); convergente/divergente nunca por fallback (precedência do motor, Etapa 5.9)
 
 ### LI-D04 — Hepático
 
@@ -136,15 +135,15 @@ Nenhuma outra pendência metodológica real foi encontrada nos blocos 1–29.
 9. **Exames sensíveis / observações:** nenhuma registrada
 10. **Exames multi-domínio neste domínio:** nenhum — contam 1× por domínio (DECISÃO 17)
 11. **O que NÃO entra:** LAB-027/033/044 (sem domínio); nenhum outro exame do catálogo; custom exams (DECISÃO 27); derivados (DECISÃO 26)
-12. **Sistemas HOLOSCAN relacionados:** PENDENTE (Bloco 20/21) — 0..N, só por regra homologada; nenhum sugerido
-13. **Regra HOLOSCAN → attention_present / attention_not_detected / indeterminate:** PENDENTE (Bloco 20/21)
+12. **Sistemas HOLOSCAN relacionados:** `detox_linfatico` (1 sistema) — DECIDIDO na Etapa 5.12; cross_source_role: directional = LAB-013, LAB-015; contextual = LAB-012, LAB-014
+13. **Regra HOLOSCAN → attention_present / attention_not_detected / indeterminate:** Regra 20/21-A: baixa → present, intermediária → indeterminate, alta → not_detected, não avaliável → indeterminate (DECIDIDO na Etapa 5.12)
 14. **min_classifiable_results:** PENDENTE (Bloco 17)
 15. **required_exam_codes:** PENDENTE (Bloco 17)
 16. **required_exam_groups:** PENDENTE (Bloco 17)
 17. **Regra de cobertura (coverage_rule):** PENDENTE (Bloco 16)
 18. **Regra de resultados mistos (mixed_results_rule):** PENDENTE (Bloco 19)
 19. **Janela temporal:** LI-TEMP-01 v1 — ±30 dias corridos, inclusivos, global, simétrica, 0 exceções (DECIDIDO na Etapa 5.11; §4)
-20. **Impacto em convergente/divergente:** enquanto 12–18 estiverem PENDENTES, toda leitura deste domínio é `sem_dados_suficientes` (motivos `missing_domain_holoscan_mapping`, `missing_domain_sufficiency_rule`, `mixed_without_rule` conforme o caso; a regra temporal já existe: LI-TEMP-01 v1); convergente/divergente nunca por fallback (precedência do motor, Etapa 5.9)
+20. **Impacto em convergente/divergente:** enquanto 14–18 estiverem PENDENTES, toda leitura deste domínio é `sem_dados_suficientes` (motivos `missing_domain_sufficiency_rule`, `mixed_without_rule` conforme o caso; mapeamento HOLOSCAN e regra temporal já existem); convergente/divergente nunca por fallback (precedência do motor, Etapa 5.9)
 
 ### LI-D05 — Renal e Hidroeletrolítico
 
@@ -159,15 +158,15 @@ Nenhuma outra pendência metodológica real foi encontrada nos blocos 1–29.
 9. **Exames sensíveis / observações:** nenhuma registrada
 10. **Exames multi-domínio neste domínio:** nenhum — contam 1× por domínio (DECISÃO 17)
 11. **O que NÃO entra:** LAB-027 Alumínio, LAB-033 Ácido úrico, LAB-044 CK (sem domínio, por decisão); nenhum derivado; custom exams (DECISÃO 27); derivados (DECISÃO 26)
-12. **Sistemas HOLOSCAN relacionados:** PENDENTE (Bloco 20/21) — 0..N, só por regra homologada; nenhum sugerido
-13. **Regra HOLOSCAN → attention_present / attention_not_detected / indeterminate:** PENDENTE (Bloco 20/21)
+12. **Sistemas HOLOSCAN relacionados:** nenhum na V1 (`holoscan_mapping_mode = none`; sem Convergente/Divergente; não é SEM DADOS) — DECIDIDO na Etapa 5.12; cross_source_role: directional = nenhum; contextual = LAB-010, LAB-011, LAB-019, LAB-020
+13. **Regra HOLOSCAN → attention_present / attention_not_detected / indeterminate:** não se aplica (sem sistema na V1)
 14. **min_classifiable_results:** PENDENTE (Bloco 17)
 15. **required_exam_codes:** PENDENTE (Bloco 17)
 16. **required_exam_groups:** PENDENTE (Bloco 17)
 17. **Regra de cobertura (coverage_rule):** PENDENTE (Bloco 16)
 18. **Regra de resultados mistos (mixed_results_rule):** PENDENTE (Bloco 19)
 19. **Janela temporal:** LI-TEMP-01 v1 — ±30 dias corridos, inclusivos, global, simétrica, 0 exceções (DECIDIDO na Etapa 5.11; §4)
-20. **Impacto em convergente/divergente:** enquanto 12–18 estiverem PENDENTES, toda leitura deste domínio é `sem_dados_suficientes` (motivos `missing_domain_holoscan_mapping`, `missing_domain_sufficiency_rule`, `mixed_without_rule` conforme o caso; a regra temporal já existe: LI-TEMP-01 v1); convergente/divergente nunca por fallback (precedência do motor, Etapa 5.9)
+20. **Impacto em convergente/divergente:** domínio sem confronto HOLOSCAN na V1 por decisão explícita: nunca CONVERGENTE/DIVERGENTE, **não** é SEM DADOS nem `missing_domain_holoscan_mapping`; 14–18 continuam PENDENTES para a leitura laboratorial própria; convergente/divergente nunca por fallback (precedência do motor, Etapa 5.9)
 
 ### LI-D06 — Micronutrientes e Metabolismo Mineral
 
@@ -182,15 +181,15 @@ Nenhuma outra pendência metodológica real foi encontrada nos blocos 1–29.
 9. **Exames sensíveis / observações:** LAB-021 Magnésio: variante eritrocitária é vínculo distinto (DECISÃO 11)
 10. **Exames multi-domínio neste domínio:** LAB-025 (LI-D01 + LI-D06), LAB-026 (LI-D01 + LI-D06), LAB-028 (LI-D01 + LI-D06), LAB-029 (LI-D01 + LI-D06), LAB-034 (LI-D06 + LI-D07) — contam 1× por domínio (DECISÃO 17)
 11. **O que NÃO entra:** LAB-027 Alumínio (sem domínio, por decisão); LAB-033/044; Magnésio eritrocitário só pelo vínculo próprio da variante; 1,25-(OH)2 vitamina D não é LAB-035; custom exams (DECISÃO 27); derivados (DECISÃO 26)
-12. **Sistemas HOLOSCAN relacionados:** PENDENTE (Bloco 20/21) — 0..N, só por regra homologada; nenhum sugerido
-13. **Regra HOLOSCAN → attention_present / attention_not_detected / indeterminate:** PENDENTE (Bloco 20/21)
+12. **Sistemas HOLOSCAN relacionados:** nenhum na V1 (`holoscan_mapping_mode = none`; sem Convergente/Divergente; não é SEM DADOS) — DECIDIDO na Etapa 5.12; cross_source_role: directional = nenhum; contextual = LAB-017, LAB-021, LAB-022, LAB-023, LAB-024, LAB-025, LAB-026, LAB-028, LAB-029, LAB-034, LAB-035, LAB-045
+13. **Regra HOLOSCAN → attention_present / attention_not_detected / indeterminate:** não se aplica (sem sistema na V1)
 14. **min_classifiable_results:** PENDENTE (Bloco 17)
 15. **required_exam_codes:** PENDENTE (Bloco 17)
 16. **required_exam_groups:** PENDENTE (Bloco 17)
 17. **Regra de cobertura (coverage_rule):** PENDENTE (Bloco 16)
 18. **Regra de resultados mistos (mixed_results_rule):** PENDENTE (Bloco 19)
 19. **Janela temporal:** LI-TEMP-01 v1 — ±30 dias corridos, inclusivos, global, simétrica, 0 exceções (DECIDIDO na Etapa 5.11; §4)
-20. **Impacto em convergente/divergente:** enquanto 12–18 estiverem PENDENTES, toda leitura deste domínio é `sem_dados_suficientes` (motivos `missing_domain_holoscan_mapping`, `missing_domain_sufficiency_rule`, `mixed_without_rule` conforme o caso; a regra temporal já existe: LI-TEMP-01 v1); convergente/divergente nunca por fallback (precedência do motor, Etapa 5.9)
+20. **Impacto em convergente/divergente:** domínio sem confronto HOLOSCAN na V1 por decisão explícita: nunca CONVERGENTE/DIVERGENTE, **não** é SEM DADOS nem `missing_domain_holoscan_mapping`; 14–18 continuam PENDENTES para a leitura laboratorial própria; convergente/divergente nunca por fallback (precedência do motor, Etapa 5.9)
 
 ### LI-D07 — Endócrino e Hormonal
 
@@ -205,27 +204,27 @@ Nenhuma outra pendência metodológica real foi encontrada nos blocos 1–29.
 9. **Exames sensíveis / observações:** nenhuma registrada
 10. **Exames multi-domínio neste domínio:** LAB-034 (LI-D06 + LI-D07) — contam 1× por domínio (DECISÃO 17)
 11. **O que NÃO entra:** LAB-027/033/044 (sem domínio); EXA-024 Cortisol matinal legado (`additional_legacy`, DECISÃO 28); custom exams (DECISÃO 27); derivados (DECISÃO 26)
-12. **Sistemas HOLOSCAN relacionados:** PENDENTE (Bloco 20/21) — 0..N, só por regra homologada; nenhum sugerido
-13. **Regra HOLOSCAN → attention_present / attention_not_detected / indeterminate:** PENDENTE (Bloco 20/21)
+12. **Sistemas HOLOSCAN relacionados:** nenhum na V1 (`holoscan_mapping_mode = none`; sem Convergente/Divergente; não é SEM DADOS) — DECIDIDO na Etapa 5.12; cross_source_role: directional = nenhum; contextual = LAB-030, LAB-031, LAB-032, LAB-034, LAB-036, LAB-037, LAB-038, LAB-039, LAB-040, LAB-041, LAB-042, LAB-043
+13. **Regra HOLOSCAN → attention_present / attention_not_detected / indeterminate:** não se aplica (sem sistema na V1)
 14. **min_classifiable_results:** PENDENTE (Bloco 17)
 15. **required_exam_codes:** PENDENTE (Bloco 17)
 16. **required_exam_groups:** PENDENTE (Bloco 17)
 17. **Regra de cobertura (coverage_rule):** PENDENTE (Bloco 16)
 18. **Regra de resultados mistos (mixed_results_rule):** PENDENTE (Bloco 19)
 19. **Janela temporal:** LI-TEMP-01 v1 — ±30 dias corridos, inclusivos, global, simétrica, 0 exceções (DECIDIDO na Etapa 5.11; §4)
-20. **Impacto em convergente/divergente:** enquanto 12–18 estiverem PENDENTES, toda leitura deste domínio é `sem_dados_suficientes` (motivos `missing_domain_holoscan_mapping`, `missing_domain_sufficiency_rule`, `mixed_without_rule` conforme o caso; a regra temporal já existe: LI-TEMP-01 v1); convergente/divergente nunca por fallback (precedência do motor, Etapa 5.9)
+20. **Impacto em convergente/divergente:** domínio sem confronto HOLOSCAN na V1 por decisão explícita: nunca CONVERGENTE/DIVERGENTE, **não** é SEM DADOS nem `missing_domain_holoscan_mapping`; 14–18 continuam PENDENTES para a leitura laboratorial própria; convergente/divergente nunca por fallback (precedência do motor, Etapa 5.9)
 
 ## 3. Matriz final por domínio
 
 | domain_code | domain_name | linked_exam_count | linked_exam_codes | special_variants | holoscan_systems | holoscan_direction_rule | min_classifiable_results | required_exam_codes | required_exam_groups | coverage_rule | mixed_results_rule | temporal_rule | status | decision | justification | responsible | date |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| LI-D01 | Hematológico e Inflamatório | 7 | LAB-001, LAB-016, LAB-018, LAB-025, LAB-026, LAB-028, LAB-029 | LAB-016 ultrassensivel | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | LI-TEMP-01 v1 (±30 dias) | PARÂMETROS PENDENTES | | | | |
-| LI-D02 | Glicêmico e Metabólico | 3 | LAB-002, LAB-003, LAB-004 | — | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | LI-TEMP-01 v1 (±30 dias) | PARÂMETROS PENDENTES | | | | |
-| LI-D03 | Lipídico | 5 | LAB-005, LAB-006, LAB-007, LAB-008, LAB-009 | — | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | LI-TEMP-01 v1 (±30 dias) | PARÂMETROS PENDENTES | | | | |
-| LI-D04 | Hepático | 4 | LAB-012, LAB-013, LAB-014, LAB-015 | — | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | LI-TEMP-01 v1 (±30 dias) | PARÂMETROS PENDENTES | | | | |
-| LI-D05 | Renal e Hidroeletrolítico | 4 | LAB-010, LAB-011, LAB-019, LAB-020 | — | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | LI-TEMP-01 v1 (±30 dias) | PARÂMETROS PENDENTES | | | | |
-| LI-D06 | Micronutrientes e Metabolismo Mineral | 12 | LAB-017, LAB-021, LAB-022, LAB-023, LAB-024, LAB-025, LAB-026, LAB-028, LAB-029, LAB-034, LAB-035, LAB-045 | LAB-021 eritrocitario | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | LI-TEMP-01 v1 (±30 dias) | PARÂMETROS PENDENTES | | | | |
-| LI-D07 | Endócrino e Hormonal | 12 | LAB-030, LAB-031, LAB-032, LAB-034, LAB-036, LAB-037, LAB-038, LAB-039, LAB-040, LAB-041, LAB-042, LAB-043 | — | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | LI-TEMP-01 v1 (±30 dias) | PARÂMETROS PENDENTES | | | | |
+| LI-D01 | Hematológico e Inflamatório | 7 | LAB-001, LAB-016, LAB-018, LAB-025, LAB-026, LAB-028, LAB-029 | LAB-016 ultrassensivel | `acido_inflamatorio` | Regra 20/21-A | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | LI-TEMP-01 v1 (±30 dias) | PARÂMETROS PENDENTES | | | | |
+| LI-D02 | Glicêmico e Metabólico | 3 | LAB-002, LAB-003, LAB-004 | — | `metabolico` | Regra 20/21-A | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | LI-TEMP-01 v1 (±30 dias) | PARÂMETROS PENDENTES | | | | |
+| LI-D03 | Lipídico | 5 | LAB-005, LAB-006, LAB-007, LAB-008, LAB-009 | — | `metabolico` | Regra 20/21-A | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | LI-TEMP-01 v1 (±30 dias) | PARÂMETROS PENDENTES | | | | |
+| LI-D04 | Hepático | 4 | LAB-012, LAB-013, LAB-014, LAB-015 | — | `detox_linfatico` | Regra 20/21-A | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | LI-TEMP-01 v1 (±30 dias) | PARÂMETROS PENDENTES | | | | |
+| LI-D05 | Renal e Hidroeletrolítico | 4 | LAB-010, LAB-011, LAB-019, LAB-020 | — | nenhum (mode = none) | não se aplica | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | LI-TEMP-01 v1 (±30 dias) | PARÂMETROS PENDENTES | | | | |
+| LI-D06 | Micronutrientes e Metabolismo Mineral | 12 | LAB-017, LAB-021, LAB-022, LAB-023, LAB-024, LAB-025, LAB-026, LAB-028, LAB-029, LAB-034, LAB-035, LAB-045 | LAB-021 eritrocitario | nenhum (mode = none) | não se aplica | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | LI-TEMP-01 v1 (±30 dias) | PARÂMETROS PENDENTES | | | | |
+| LI-D07 | Endócrino e Hormonal | 12 | LAB-030, LAB-031, LAB-032, LAB-034, LAB-036, LAB-037, LAB-038, LAB-039, LAB-040, LAB-041, LAB-042, LAB-043 | — | nenhum (mode = none) | não se aplica | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | LI-TEMP-01 v1 (±30 dias) | PARÂMETROS PENDENTES | | | | |
 
 Colunas `decision`, `justification`, `responsible`, `date` vazias por decisão: serão preenchidas por Daniel no ato de decisão, nunca por este documento.
 
@@ -247,21 +246,21 @@ Colunas `decision`, `justification`, `responsible`, `date` vazias por decisão: 
 
 DECISÃO: LI-TEMP-01 v1 (acima). JUSTIFICATIVA: determinismo, proximidade, contexto "últimos 30 dias" do HOLOSCAN aprovado, explicabilidade, versionamento. FONTE: Documento Mestre + pacote HOLOSCAN-V1 + decisão autoral V1. RESPONSÁVEL: Daniel. DATA: 02/10/2026. Detalhe completo em `DECISAO-05-JANELA-TEMPORAL-LI.md`.
 
-## 5. MATRIZ DOMÍNIO LI → HOLOSCAN (Blocos 20/21)
+## 5. MATRIZ DOMÍNIO LI → HOLOSCAN (Blocos 20/21) — DECIDIDA (Etapa 5.12)
 
-Relação 0..N por domínio, só por regra homologada (tabela própria com `domain_id`, `holoscan_system`, `role`, `status`, versão — extensão de schema na implementação). Os 5 sistemas HOLOSCAN existentes **não** são herdados por categoria, nome ou legado. Nenhuma linha sugerida.
+Decisão completa em `DECISAO-20-21-MATRIZ-FINAL-DOMINIOS-HOLOSCAN-V1.md`. Nenhuma herança por categoria, nome ou legado. Todos os domínios com sistema têm exatamente 1 (sem agregação na V1).
 
-| domain_code | holoscan_system_1 | holoscan_system_2 | holoscan_system_3 | aggregation_rule | direction_rule (nota/faixa → attention_*) | source | justification | status |
-|---|---|---|---|---|---|---|---|---|
-| LI-D01 | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE |
-| LI-D02 | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE |
-| LI-D03 | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE |
-| LI-D04 | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE |
-| LI-D05 | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE |
-| LI-D06 | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE |
-| LI-D07 | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PENDENTE |
+| domain_code | holoscan_system_1 | holoscan_system_2 | holoscan_system_3 | aggregation_rule | direction_rule (faixa → attention_*) | directional | contextual | source | justification | status |
+|---|---|---|---|---|---|---|---|---|---|---|
+| LI-D01 | `acido_inflamatorio` | — | — | não se aplica (1) | Regra 20/21-A | LAB-016, LAB-018 | LAB-001, LAB-025, LAB-026, LAB-028, LAB-029 | Mestre + HOLOS-V1@2 + decisão autoral V1 | autoral, comparativa, versionada, não diagnóstica | DECIDIDO |
+| LI-D02 | `metabolico` | — | — | não se aplica (1) | Regra 20/21-A | LAB-002, LAB-003, LAB-004 |  | Mestre + HOLOS-V1@2 + decisão autoral V1 | autoral, comparativa, versionada, não diagnóstica | DECIDIDO |
+| LI-D03 | `metabolico` | — | — | não se aplica (1) | Regra 20/21-A | LAB-005, LAB-009 | LAB-006, LAB-007, LAB-008 | Mestre + HOLOS-V1@2 + decisão autoral V1 | autoral, comparativa, versionada, não diagnóstica | DECIDIDO |
+| LI-D04 | `detox_linfatico` | — | — | não se aplica (1) | Regra 20/21-A | LAB-013, LAB-015 | LAB-012, LAB-014 | Mestre + HOLOS-V1@2 + decisão autoral V1 | autoral, comparativa, versionada, não diagnóstica | DECIDIDO |
+| LI-D05 | nenhum (`holoscan_mapping_mode = none`) | — | — | não se aplica | não se aplica | nenhum | LAB-010, LAB-011, LAB-019, LAB-020 | Mestre + HOLOS-V1@2 + decisão autoral V1 | autoral, comparativa, versionada, não diagnóstica | DECIDIDO |
+| LI-D06 | nenhum (`holoscan_mapping_mode = none`) | — | — | não se aplica | não se aplica | nenhum | LAB-017, LAB-021, LAB-022, LAB-023, LAB-024, LAB-025, LAB-026, LAB-028, LAB-029, LAB-034, LAB-035, LAB-045 | Mestre + HOLOS-V1@2 + decisão autoral V1 | autoral, comparativa, versionada, não diagnóstica | DECIDIDO |
+| LI-D07 | nenhum (`holoscan_mapping_mode = none`) | — | — | não se aplica | não se aplica | nenhum | LAB-030, LAB-031, LAB-032, LAB-034, LAB-036, LAB-037, LAB-038, LAB-039, LAB-040, LAB-041, LAB-042, LAB-043 | Mestre + HOLOS-V1@2 + decisão autoral V1 | autoral, comparativa, versionada, não diagnóstica | DECIDIDO |
 
-`aggregation_rule`: como N sistemas produzem uma única direção HOLOSCAN para o domínio (quando N > 1). `direction_rule`: como a nota/faixa do HOLOS-V1@2 vira `attention_present`, `attention_not_detected` ou `indeterminate`. Ambas exigem fonte; sem elas: `missing_domain_holoscan_mapping`.
+`aggregation_rule` fica reservado para versão futura com N > 1 (exige nova decisão e novo content_hash). Ausência intencional de sistema (D05–D07) **não** gera `missing_domain_holoscan_mapping`.
 
 ## 6. SUFICIÊNCIA POR DOMÍNIO (Blocos 16/17)
 
@@ -306,14 +305,14 @@ Proibido (já decidido): maioria simples automática; média de exames heterogê
 Nenhum item marcado. Marcar é ato humano após decisão registrada. (A) = bloqueador metodológico · (B) = gate operacional · (C) = opcional/acabamento.
 
 - [ ] 1. (A→decidido) Janela temporal: formato e valor decididos documentalmente na Etapa 5.11 (LI-TEMP-01 v1, ±30 dias); marcar é ato humano após registro no pacote LI
-- [ ] 2. (A) LI-D01: suficiência, mínimos, obrigatórios, mistos, sistemas HOLOSCAN e direção decididos
+- [ ] 2. (A) LI-D01: suficiência, mínimos, obrigatórios e mistos decididos (sistema HOLOSCAN e direção já decididos na 5.12)
 - [ ] 3. (A) LI-D02: idem
 - [ ] 4. (A) LI-D03: idem
 - [ ] 5. (A) LI-D04: idem
 - [ ] 6. (A) LI-D05: idem
-- [ ] 7. (A) LI-D06: idem (incluindo tratamento do vínculo distinto Magnésio eritrocitário)
+- [ ] 7. (A) LI-D06: suficiência, mínimos, obrigatórios e mistos decididos (incluindo o vínculo distinto Magnésio eritrocitário; sem sistema HOLOSCAN na V1, decidido na 5.12)
 - [ ] 8. (A) LI-D07: idem
-- [ ] 9. (A) Regra de agregação entre sistemas HOLOSCAN definida para todo domínio com N > 1 sistemas (ou N ≤ 1 declarado)
+- [ ] 9. (A→decidido) Regra de agregação: N ≤ 1 declarado para todos os domínios na Etapa 5.12 (nenhum domínio com N > 1); marcar é ato humano após registro no pacote LI
 - [ ] 10. (B) Vocabulário de reason_codes do motor unificado com a lista da DECISÃO 22 (sem colapsar motivos)
 - [ ] 11. (C) Tabela de tradução reason_code → texto ao paciente (Bloco 24) decidida
 - [ ] 12. (C) Fontes formais consolidadas onde o campo diz FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR (ou declaração explícita de decisão autoral sem bibliografia)

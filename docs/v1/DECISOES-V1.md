@@ -567,6 +567,29 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     exibido só como contexto; arquiteturas A–E e opções de múltiplos sistemas documentadas sem recomendação;
     casos de regressão A–H com EXPECTED = PENDENTE; **nenhuma inferência automática** de relação domínio → sistema.
 
+### Etapa 5.12 — Blocos 20/21: matriz domínios LI → HOLOSCAN e cross_source_role (02/10/2026)
+
+135. **Regra 20/21-A — direção HOLOSCAN (aprovada por Daniel)**: para os 5 sistemas, com as faixas oficiais do
+    HOLOS-V1@2 e sem cortes novos: faixa baixa → `attention_present`; intermediária → `indeterminate`; alta →
+    `attention_not_detected`; sistema não avaliável → `indeterminate`. Direções internas da LI: present ≠ doença,
+    not_detected ≠ saúde, indeterminate ≠ ausência de dado clínico.
+136. **Regra 20/21-B — cross_source_role (aprovada por Daniel)**: cada vínculo exame → domínio é `directional`
+    (pode participar, quando elegível/classificável/suficiente, da direção laboratorial comparada ao HOLOSCAN; não
+    é diagnóstico, peso, voto automático nem resolve o domínio sozinho) ou `contextual` (pertence ao domínio,
+    visível, classificável, rastreável, pode contar para suficiência se a regra futura determinar, mas não produz
+    sozinho direção laboratorial). Atributo adicional do vínculo: 45/42/3/47/5 inalterados.
+137. **Matriz final 20/21 (DECISÃO 20-21, `DECISAO-20-21-MATRIZ-FINAL-DOMINIOS-HOLOSCAN-V1.md`)**: D01 →
+    `acido_inflamatorio` (directional LAB-016, LAB-018; contextual LAB-001, 025, 026, 028, 029); D02 → `metabolico`
+    (directional LAB-002, LAB-003, LAB-004; LAB-003 nunca decide sozinho); D03 → `metabolico` (directional LAB-005,
+    LAB-009; contextual LAB-006, 007, 008); D04 → `detox_linfatico` (directional LAB-013, LAB-015; contextual
+    LAB-012, 014; dados hepáticos são dados clínicos próprios, não prova de score); D05, D06, D07 → nenhum na V1
+    (`holoscan_mapping_mode = none`; todos contextuais; sem Convergente/Divergente; sem herança de legado; ausência
+    intencional ≠ `missing_domain_holoscan_mapping`; não é "Sem dados suficientes"). Direções conceituais por exame
+    registradas; regras de mistos/discordância PENDENTES no Bloco 19. Relação autoral, comparativa, versionada e
+    não diagnóstica. Multidomínio preservado (LAB-034 em D06 e D07), sem duplicar resultado nem voto.
+138. **Status 20/21**: ARQUITETURA + MAPEAMENTO DOMÍNIO→HOLOSCAN DECIDIDOS; estado final CONVERGENTE/DIVERGENTE
+    depende de 16, 17 e 19. **Motor LI não completo.** Bloqueadores metodológicos restantes: 16, 17, 19.
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`

@@ -2,7 +2,7 @@
 
 Etapa 5.8 · 02/10/2026 · material para decisão de **Daniel** (responsável primário) · detalha o bloco 21 de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md` (nome e número do pacote). Depende do bloco 20 e das DECISÕES 01–19.
 
-> **ARQUITETURA DECIDIDA / TABELA DOMÍNIO → SISTEMA(S) E REGRAS DE DIREÇÃO PENDENTES — Etapa 5.9 (02/10/2026, Daniel).** Decisão metodológica humana registrada abaixo. **Ainda não é**: implementação, migration clínica, alteração do banco real, Aprovação 1, Aprovação 2, homologação ou deploy. Nenhuma tabela domínio → sistema, regra de direção, parâmetro ou texto específico por domínio foi criado.
+> **ARQUITETURA + MAPEAMENTO DOMÍNIO→HOLOSCAN DECIDIDOS — Etapa 5.9 (arquitetura) e 5.12 (mapeamento), Daniel, 02/10/2026.** Tabela domínio → sistema, regra de direção HOLOSCAN (20/21-A) e papéis `cross_source_role` (20/21-B) registrados em `DECISAO-20-21-MATRIZ-FINAL-DOMINIOS-HOLOSCAN-V1.md`. O estado final DIVERGENTE **ainda depende dos Blocos 16, 17 e 19**; o motor LI não está completo. **Ainda não é**: implementação, migration, alteração do banco real, Aprovação 1, Aprovação 2, homologação ou deploy.
 
 ## Pergunta (como no pacote)
 
@@ -58,7 +58,9 @@ Antes de avaliar CONVERGENTE ou DIVERGENTE, o motor executa nesta ordem lógica:
 
 **Ausência não é divergência:** se faltar HOLOSCAN elegível, laboratório elegível, referência, cobertura, vínculo, janela, regra ou seleção de resultado, o estado **não** é divergente → avaliar SEM DADOS SUFICIENTES.
 
-**Pendência (não ocultável):** mesma tabela domínio → sistema(s) HOLOSCAN e regras de direção (bloco 20).
+**Mapeamento domínio → HOLOSCAN e regra de direção: decididos na Etapa 5.12** (mesma tabela do bloco 20, `DECISAO-20-21-MATRIZ-FINAL-DOMINIOS-HOLOSCAN-V1.md`). D05/D06/D07 não produzem DIVERGENTE na V1 por decisão explícita (sem sistema), e isso não é SEM DADOS nem erro.
+
+**Pendência restante (não ocultável):** direção laboratorial final depende de 16, 17 e 19. DIVERGENTE não é executável sem eles.
 
 **JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 20–25 e no Documento Mestre (um exame fora não basta; divergência não invalida fonte; ausência não é divergência; sem score; leitura salva congelada). Não atribuída ao legado.
 
@@ -68,4 +70,4 @@ Antes de avaliar CONVERGENTE ou DIVERGENTE, o motor executa nesta ordem lógica:
 
 **DATA:** 02/10/2026.
 
-**Status:** ARQUITETURA DECIDIDA / TABELA DOMÍNIO → SISTEMA(S) E REGRAS DE DIREÇÃO PENDENTES — não implementado, não registrado no banco, não homologado.
+**Status:** ARQUITETURA + MAPEAMENTO DOMÍNIO→HOLOSCAN DECIDIDOS (Etapas 5.9 e 5.12) — estado final depende de 16/17/19; não implementado, não registrado no banco, não homologado.

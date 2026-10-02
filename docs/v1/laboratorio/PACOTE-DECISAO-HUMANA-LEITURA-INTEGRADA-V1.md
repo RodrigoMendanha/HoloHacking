@@ -655,7 +655,7 @@ DATA: ______
 
 ## BLOCO 20 — Regra formal de CONVERGENTE
 
-> **ARQUITETURA DECIDIDA / TABELA DOMÍNIO → SISTEMA(S) PENDENTE — Etapa 5.9 (Daniel, 02/10/2026):** CONVERGENTE só com as duas fontes elegíveis, suficientes, avaliáveis, regras do domínio homologadas, sem precedência de SEM DADOS e direções determinísticas; present+present ou not_detected+not_detected → CONVERGENTE; indeterminate nunca converge; convergência sem sinal não afirma saúde; um exame isolado não converge; tabela LI-D01…D07 → sistema(s) NÃO preenchida (sem inferência por nome) (`DECISAO-20-REGRA-FORMAL-DE-CONVERGENTE-LI.md`). Não implementado, não homologado.
+> **ARQUITETURA + MAPEAMENTO DOMÍNIO→HOLOSCAN DECIDIDOS — Etapas 5.9 e 5.12 (Daniel, 02/10/2026):** arquitetura da 5.9 mantida (present+present ou not_detected+not_detected; indeterminate nunca converge; um exame isolado não converge). Mapeamento 5.12: D01 → `acido_inflamatorio`, D02 → `metabolico`, D03 → `metabolico`, D04 → `detox_linfatico`, D05/D06/D07 → nenhum na V1 (`holoscan_mapping_mode = none`); Regra 20/21-A (baixa → present, intermediária → indeterminate, alta → not_detected, não avaliável → indeterminate); Regra 20/21-B `cross_source_role` directional/contextual por vínculo (`DECISAO-20-21-MATRIZ-FINAL-DOMINIOS-HOLOSCAN-V1.md`). **Estado final depende de 16/17/19.** Não implementado, não homologado.
 
 **O que decidir.** Definição formal de "HOLOSCAN alterado" para um domínio (nota ≤ X, faixa específica, Índice, outro) e a condição de convergência: `laboratório alterado ∧ HOLOSCAN alterado`; e se `laboratório não alterado ∧ HOLOSCAN não alterado` também é convergente (como no legado) ou um estado próprio.
 
@@ -673,18 +673,18 @@ DATA: ______
 
 **Consequência.** (a)/(b) decidem quantos pacientes caem em "HOLOSCAN alterado"; (c)/(d) mudam o número de estados exibidos e os textos.
 
-**Bloqueado enquanto aberto.** Qualquer `convergente`.
+**Bloqueado enquanto aberto.** Qualquer `convergente` — agora bloqueado pelos blocos 16/17/19, não mais pelo mapeamento.
 
-DECISÃO: ______ (critério HOLOSCAN alterado: ______ · "ambos não alterados" = ______)
-JUSTIFICATIVA: ______
-RESPONSÁVEL: ______
-DATA: ______
+DECISÃO: arquitetura (5.9) + mapeamento domínio→HOLOSCAN e regras 20/21-A/B (5.12) — ver `DECISAO-20-21-MATRIZ-FINAL-DOMINIOS-HOLOSCAN-V1.md`; estado final depende de 16/17/19.
+JUSTIFICATIVA: relação autoral, comparativa, versionada, não diagnóstica; faixas HOLOS-V1@2 sem cortes novos.
+RESPONSÁVEL: Daniel.
+DATA: 02/10/2026.
 
 ---
 
 ## BLOCO 21 — Regra formal de DIVERGENTE
 
-> **ARQUITETURA DECIDIDA / TABELA DOMÍNIO → SISTEMA(S) PENDENTE — Etapa 5.9 (Daniel, 02/10/2026):** DIVERGENTE só com ambas as fontes elegíveis/suficientes/avaliáveis/determinísticas; present×not_detected (qualquer ordem) → DIVERGENTE; indeterminate nunca diverge; divergência não é erro nem invalida fonte; textos "HOLOSCAN errado"/"exame contradiz"/"relato inconsistente" proibidos; ausência de qualquer requisito → SEM DADOS, nunca divergente (`DECISAO-21-REGRA-FORMAL-DE-DIVERGENTE-LI.md`). Não implementado, não homologado.
+> **ARQUITETURA + MAPEAMENTO DOMÍNIO→HOLOSCAN DECIDIDOS — Etapas 5.9 e 5.12 (Daniel, 02/10/2026):** arquitetura da 5.9 mantida (present×not_detected em qualquer ordem; indeterminate nunca diverge; divergência não é erro nem invalida fonte; textos de contradição proibidos). Mapeamento, regra de direção e `cross_source_role` iguais ao bloco 20 (`DECISAO-20-21-MATRIZ-FINAL-DOMINIOS-HOLOSCAN-V1.md`); D05/D06/D07 não produzem DIVERGENTE na V1 por decisão explícita. **Estado final depende de 16/17/19.** Não implementado, não homologado.
 
 **O que decidir.** Se divergente é simplesmente `labAlterado ≠ holoAlterado` (hoje) ou se os dois sentidos são tratados de forma diferente: (i) HOLOSCAN alterado + laboratório não alterado; (ii) HOLOSCAN não alterado + laboratório alterado. E se há exigência adicional (por exemplo suficiência maior) para declarar divergência.
 
@@ -702,12 +702,12 @@ DATA: ______
 
 **Consequência.** (b)/(c) mais informação à profissional, mais textos a homologar (bloco 23).
 
-**Bloqueado enquanto aberto.** Qualquer `divergente`.
+**Bloqueado enquanto aberto.** Qualquer `divergente` — agora bloqueado pelos blocos 16/17/19, não mais pelo mapeamento.
 
-DECISÃO: ______
-JUSTIFICATIVA: ______
-RESPONSÁVEL: ______
-DATA: ______
+DECISÃO: idem bloco 20 (`DECISAO-20-21-MATRIZ-FINAL-DOMINIOS-HOLOSCAN-V1.md`); estado final depende de 16/17/19.
+JUSTIFICATIVA: idem bloco 20.
+RESPONSÁVEL: Daniel.
+DATA: 02/10/2026.
 
 ---
 
@@ -982,8 +982,8 @@ Significado dos status: **DECIDIDO** = decisão completa registrada; **ARQUITETU
 | 17 | Número/conjunto mínimo de exames | **ARQUITETURA DECIDIDA / PARÂMETROS PENDENTES** | Daniel | 02/10/2026 (5.8) | **valores por domínio** (min_classifiable_results, required_exam_codes, required_exam_groups) | **sim** |
 | 18 | Tratamento de exames ausentes | **DECIDIDO** | Daniel | 02/10/2026 (5.8) | — | não |
 | 19 | Tratamento de resultados mistos | **ARQUITETURA DECIDIDA / PARÂMETROS PENDENTES** | Daniel | 02/10/2026 (5.8) | **regra de mistos por domínio** | **sim** |
-| 20 | Regra formal de CONVERGENTE | **ARQUITETURA DECIDIDA / PARÂMETROS PENDENTES** | Daniel | 02/10/2026 (5.9) | **tabela domínio → sistema(s) HOLOSCAN + regra de direção** | **sim** |
-| 21 | Regra formal de DIVERGENTE | **ARQUITETURA DECIDIDA / PARÂMETROS PENDENTES** | Daniel | 02/10/2026 (5.9) | **mesma tabela e regras de direção** | **sim** |
+| 20 | Regra formal de CONVERGENTE | **ARQUITETURA + MAPEAMENTO DOMÍNIO→HOLOSCAN DECIDIDOS** | Daniel | 02/10/2026 (5.9 / 5.12) | estado final depende de 16/17/19 (não é pendência própria) | não (bloqueio vem de 16/17/19) |
+| 21 | Regra formal de DIVERGENTE | **ARQUITETURA + MAPEAMENTO DOMÍNIO→HOLOSCAN DECIDIDOS** | Daniel | 02/10/2026 (5.9 / 5.12) | estado final depende de 16/17/19 (não é pendência própria) | não (bloqueio vem de 16/17/19) |
 | 22 | Regra formal de SEM DADOS SUFICIENTES | **DECIDIDO** | Daniel | 02/10/2026 (5.9) | — | não |
 | 23 | Textos exibidos à profissional | **DECIDIDO (estrutura + textos-base)** | Daniel | 02/10/2026 (5.9) | textos por domínio só se necessários — opcional | não |
 | 24 | Textos exibidos ao paciente | **DECIDIDO (estrutura + textos-base)** | Daniel | 02/10/2026 (5.9) | tabela de tradução de motivos (reason_code → texto simples) — necessária antes de exibir ao paciente | não (bloqueia só a exibição ao paciente) |
@@ -993,7 +993,7 @@ Significado dos status: **DECIDIDO** = decisão completa registrada; **ARQUITETU
 | 28 | Legado fora dos 45 | **DECIDIDO** | Daniel | 02/10/2026 (5.10) | — | não |
 | 29 | Insulina de jejum (EXA-006) ↔ Insulina basal (LAB-003) | **DECIDIDO** | Daniel | 02/10/2026 (5.10) | mapeamento manual do histórico (ato operacional posterior, não bloqueia) | não |
 
-**Resumo (atualizado na Etapa 5.11):** 22 DECIDIDOS (1–7, 9, 11–15, 18, 22–29; 23/24 com estrutura + textos-base), 7 com arquitetura decidida e parâmetros pendentes (8, 10, 16, 17, 19, 20, 21; 8 e 10 não bloqueiam), 0 parciais. **Bloqueiam a implementação: 16, 17, 19, 20, 21** — consolidados em `PACOTE-FINAL-PENDENCIAS-EXECUTAVEIS-LI-V1.md`.
+**Resumo (atualizado na Etapa 5.12):** 22 DECIDIDOS (1–7, 9, 11–15, 18, 22–29; 23/24 com estrutura + textos-base), 2 com arquitetura + mapeamento domínio→HOLOSCAN decididos cujo estado final depende de 16/17/19 (20, 21), 5 com arquitetura decidida e parâmetros pendentes (8, 10, 16, 17, 19; 8 e 10 não bloqueiam), 0 parciais. **Bloqueiam a implementação: 16, 17, 19** — consolidados em `PACOTE-FINAL-PENDENCIAS-EXECUTAVEIS-LI-V1.md`.
 
 ## Anexo A — Contagens da Etapa 5 (resolução documental)
 

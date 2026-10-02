@@ -2,7 +2,7 @@
 
 Etapa 5.8 · 02/10/2026 · material para decisão de **Daniel** (responsável primário) · detalha o bloco 20 de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md` (nome e número do pacote). Depende das DECISÕES 01–04, 06, 07, 09, 11–19 e do valor do bloco 5.
 
-> **ARQUITETURA DECIDIDA / TABELA DOMÍNIO → SISTEMA(S) E REGRAS DE DIREÇÃO PENDENTES — Etapa 5.9 (02/10/2026, Daniel).** Decisão metodológica humana registrada abaixo. **Ainda não é**: implementação, migration clínica, alteração do banco real, Aprovação 1, Aprovação 2, homologação ou deploy. Nenhuma tabela domínio → sistema, regra de direção, parâmetro ou texto específico por domínio foi criado.
+> **ARQUITETURA + MAPEAMENTO DOMÍNIO→HOLOSCAN DECIDIDOS — Etapa 5.9 (arquitetura) e 5.12 (mapeamento), Daniel, 02/10/2026.** Tabela domínio → sistema, regra de direção HOLOSCAN (20/21-A) e papéis `cross_source_role` (20/21-B) registrados em `DECISAO-20-21-MATRIZ-FINAL-DOMINIOS-HOLOSCAN-V1.md`. O estado final CONVERGENTE **ainda depende dos Blocos 16, 17 e 19**; o motor LI não está completo. **Ainda não é**: implementação, migration, alteração do banco real, Aprovação 1, Aprovação 2, homologação ou deploy.
 
 ## Pergunta (como no pacote)
 
@@ -66,9 +66,9 @@ Antes de avaliar CONVERGENTE ou DIVERGENTE, o motor executa nesta ordem lógica:
 
 **Um exame isolado:** UM ÚNICO EXAME FORA DA REFERÊNCIA NÃO PRODUZ AUTOMATICAMENTE CONVERGÊNCIA. A fonte laboratorial passa antes pelas regras homologadas de vínculo, elegibilidade, suficiência, resultados mistos e direção laboratorial.
 
-**Tabela domínio → sistema(s) HOLOSCAN: NÃO preenchida** (LI-D01 → ?, …, LI-D07 → ?). A tabela futura declara por domínio: quais sistemas HOLOSCAN participam; qual regra transforma o resultado HOLOSCAN em `attention_present` / `attention_not_detected` / `indeterminate`; como múltiplos sistemas são tratados; como ausência de um sistema é tratada; versão; fonte; justificativa; aprovação. **Não inferir por semelhança de nomes**: LI-D02 "Glicêmico e Metabólico" **não** é automaticamente ligado ao Sistema Metabólico.
+**Tabela domínio → sistema(s) HOLOSCAN: PREENCHIDA na Etapa 5.12** (`DECISAO-20-21-MATRIZ-FINAL-DOMINIOS-HOLOSCAN-V1.md`): D01 → `acido_inflamatorio`; D02 → `metabolico`; D03 → `metabolico`; D04 → `detox_linfatico`; D05, D06, D07 → nenhum na V1 (`holoscan_mapping_mode = none`, ausência intencional ≠ mapeamento faltando). Direção HOLOSCAN (Regra 20/21-A): baixa → `attention_present`, intermediária → `indeterminate`, alta → `attention_not_detected`, não avaliável → `indeterminate`. Papéis `cross_source_role` directional/contextual por vínculo (Regra 20/21-B). Nenhuma inferência por nome foi usada; a relação é autoral, comparativa, versionada, não diagnóstica.
 
-**Pendência (não ocultável):** tabela domínio → sistema(s) HOLOSCAN e regras específicas de derivação de direção (HOLOSCAN e laboratorial) por domínio.
+**Pendência restante (não ocultável):** direção laboratorial final do domínio depende da suficiência (16), dos mínimos/conjuntos (17) e da regra de mistos (19). CONVERGENTE não é executável sem eles.
 
 **JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 20–25 e no Documento Mestre (um exame fora não basta; divergência não invalida fonte; ausência não é divergência; sem score; leitura salva congelada). Não atribuída ao legado.
 
@@ -78,4 +78,4 @@ Antes de avaliar CONVERGENTE ou DIVERGENTE, o motor executa nesta ordem lógica:
 
 **DATA:** 02/10/2026.
 
-**Status:** ARQUITETURA DECIDIDA / TABELA DOMÍNIO → SISTEMA(S) E REGRAS DE DIREÇÃO PENDENTES — não implementado, não registrado no banco, não homologado.
+**Status:** ARQUITETURA + MAPEAMENTO DOMÍNIO→HOLOSCAN DECIDIDOS (Etapas 5.9 e 5.12) — estado final depende de 16/17/19; não implementado, não registrado no banco, não homologado.
