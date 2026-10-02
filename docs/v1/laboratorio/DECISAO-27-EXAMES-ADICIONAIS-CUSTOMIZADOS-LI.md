@@ -45,14 +45,17 @@ Regra por profissional; vínculo sem fonte; custom alterar a contagem dos 45; eq
 
 ## Campo DECISÃO
 
-**DECISÃO (Bloco 27 — exames adicionais/customizados):** exames customizados por profissional (`lab_custom_exams`) são **permitidos como registro factual** (histórico, Evolução por identidade própria, HOLOS AI como fato). Por padrão **não recebem nada relacionado à LI**: sem vínculo a domínio, sem referência metodológica, sem direção, sem participação em cobertura, suficiência, mistos, convergência ou divergência (coerente com DECISÕES 01 regra 6 e 04 regras 16/18).
+> Texto conferido contra o contrato canônico ditado por Daniel na Etapa 5.10.1 (02/10/2026); auditoria em `AUDITORIA-FIDELIDADE-BLOCOS-26-29.md`.
 
-**Regras:**
-1. Custom nunca é promovido a exame-base por nome, categoria, semelhança ou uso frequente.
-2. Custom **nunca altera a contagem dos 45** (decisão 68): promoção ao catálogo é decisão de catálogo, por migration, com novo vínculo decidido no Bloco 2 — não é consequência deste bloco.
-3. Nenhuma "equivalência" custom → LAB é vínculo metodológico; se um dia existir, é recurso de busca/Evolução sem efeito na LI.
-4. Regra por profissional não existe na LI: o pacote é global e homologado.
-5. Resultado custom, para a LI, é `li_eligibility_status = not_eligible` com motivo explícito (código a unificar com a lista da DECISÃO 22 na implementação), nunca silencioso.
+**DECISÃO (Bloco 27 — exames adicionais/customizados):** a profissional pode cadastrar exame adicional/customizado fora dos 45 exames-base (`lab_custom_exams`).
+
+**O registro pode preservar:** nome; valor original; unidade; referência do laudo; variante; material; método; origem; observações; documento relacionado. **Pode aparecer:** na coleta; no histórico.
+
+**Por padrão NÃO recebe:** código LAB-001..045; domínio LI; direção; interpretação automática; referência metodológica; conversão; cálculo derivado; convergência/divergência; participação automática na LI.
+
+**Para participar futuramente da LI:** exige contrato metodológico explícito, versionado e homologado.
+
+Exame customizado **nunca altera silenciosamente** o catálogo-base de 45. Equivalência de customizado com exame canônico: **NÃO inferida por nome**.
 
 **JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 26–29 e no Documento Mestre (catálogo fechado de 45; nada entra na LI sem vínculo homologado; legado é evidência, não regra; identidade não se presume por nome). Não atribuída ao legado.
 

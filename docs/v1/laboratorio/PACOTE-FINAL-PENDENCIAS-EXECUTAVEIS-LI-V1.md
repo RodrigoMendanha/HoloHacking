@@ -1,22 +1,55 @@
 # Pacote final — pendências executáveis da Leitura Integrada V1
 
-Etapa 5.10 · 02/10/2026 · consolidação **sem preenchimento** das pendências executáveis da Leitura Integrada V1 · fonte dos números: matriz aprovada de `DECISAO-02-VINCULOS-EXAME-DOMINIO-LI.md` (reconferida programaticamente nesta etapa) · autoridade de nomes e blocos: `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md`.
+Etapa 5.10 (reclassificado na 5.10.1) · 02/10/2026 · consolidação **sem preenchimento** das pendências executáveis da Leitura Integrada V1 · fonte dos números: matriz aprovada de `DECISAO-02-VINCULOS-EXAME-DOMINIO-LI.md` (reconferida programaticamente nesta etapa) · autoridade de nomes e blocos: `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md`.
 
 > **NADA PREENCHIDO.** Todo campo marcado PENDENTE está vazio por decisão: nenhum valor, sistema, regra, corte, mínimo ou janela foi sugerido. Preencher é ato humano de Daniel (Aprovação 1) e Rodrigo (Aprovação 2). Este documento **não** implementa nada: migration, banco, servidor falso, motor, UI e pacote LI real permanecem intocados; LI-V1@1 segue rascunho com 0 aprovações.
 
-## 1. Pendências executáveis (o que falta para a LI poder ser implementada)
+## 1. Pendências classificadas (Etapa 5.10.1)
 
-| # | Bloco | Pendência | O que precisa ser entregue | Bloqueia |
-|---|---|---|---|---|
-| P1 | 5 | Regra temporal exata | formato (global simétrica / anterior ≠ posterior / por domínio / por exame / exceção com revisão humana) e valor em dias; versionada no pacote LI | **sim** |
-| P2 | 16 | Suficiência por domínio | para cada LI-D01…D07: regra de cobertura (`coverage_rule`), critério e versão | **sim** |
-| P3 | 17 | Mínimos por domínio | para cada domínio: `min_classifiable_results`, `required_exam_codes`, `required_exam_groups` | **sim** |
-| P4 | 19 | Mistos por domínio | para cada domínio: regra determinística para cada combinação de posições (tabela §7) | **sim** |
-| P5 | 20/21 | Domínio → sistema(s) HOLOSCAN + direção | para cada domínio: 0..N sistemas, regra de agregação entre sistemas, regra nota/faixa → `attention_present` / `attention_not_detected` / `indeterminate`, fonte | **sim** |
-| P6 | 24 | Tradução de motivos ao paciente | tabela reason_code → texto simples (bloqueia só a exibição ao paciente, não o motor) | parcial |
-| P7 | 29 | Mapeamento manual do histórico EXA-006 | ato operacional por linha/lote com os campos obrigatórios da DECISÃO 29; não bloqueia a LI | não |
-| P8 | 8/10/14 | Conteúdo opcional | referências metodológicas, conversões de unidade e regras qualitativas: 0 linhas é estado válido; sem elas os resultados afetados ficam `not_classifiable` com motivo | não |
-| P9 | 30 | Ato de homologação | migration em lote com domínios + vínculos + regras → pacote `em_revisao` → Aprovação 1 (Daniel) → Aprovação 2 (Rodrigo) → Homologar, com identidade real; validação da cadeia no banco real (VALIDAÇÃO REAL PENDENTE) | **sim (último passo)** |
+Três grupos. Só o grupo **A** significa "regra metodológica ainda indefinida". O grupo **B** é operacional. O grupo **C** não bloqueia: a decisão atual permite zero.
+
+### A — Bloqueadores metodológicos para o motor LI oficial
+
+| # | Bloco | Pendência | O que precisa ser entregue |
+|---|---|---|---|
+| A1 | 5 | Regra temporal exata | formato (global simétrica / anterior ≠ posterior / por domínio / por exame / exceção com revisão humana) e valor em dias; versionada no pacote LI |
+| A2 | 16 | Suficiência D01–D07 | para cada domínio: `coverage_rule`, critério de suficiência e versão |
+| A3 | 17 | Mínimos/conjuntos/grupos D01–D07 | para cada domínio: `min_classifiable_results`, `required_exam_codes`, `required_exam_groups` |
+| A4 | 19 | Resultados mistos D01–D07 | para cada domínio: regra determinística para cada combinação de posições (§7) |
+| A5 | 20/21 | Domínio LI → sistema(s) HOLOSCAN; regra HOLOSCAN → attention_*; múltiplos sistemas | para cada domínio: 0..N sistemas, regra de agregação quando N > 1, regra nota/faixa → `attention_present` / `attention_not_detected` / `indeterminate`, fonte |
+
+Enquanto A1–A5 estiverem abertos, toda Leitura Integrada real é `sem_dados_suficientes` por regra ausente. **Esses são os bloqueadores centrais; nenhum outro bloco bloqueia o motor.**
+
+### B — Gates operacionais / homologação / produção
+
+Não são metodologia indefinida. Podem impedir a publicação ou a homologação real, mas a regra que dependem já está decidida ou é ato técnico.
+
+| # | Gate | Estado |
+|---|---|---|
+| B1 | aplicar as migrations 20261002100000 e 20261002110000 (e a futura migration em lote da LI) após gate técnico | não aplicadas |
+| B2 | validar a cadeia real do banco | VALIDAÇÃO REAL PENDENTE (sem conexão autorizada) |
+| B3 | cadastrar o `auth.uid` real de Daniel em `methodology_approvers` (scope `integrated_reading`, etapa 1) | tabela vazia |
+| B4 | cadastrar o `auth.uid` real de Rodrigo (etapa 2) | tabela vazia |
+| B5 | Aprovação 1 (Daniel) sobre pacote, versão e `content_hash` | 0 aprovações |
+| B6 | Aprovação 2 (Rodrigo), identidade distinta (quatro olhos) | 0 aprovações |
+| B7 | Homologar (`homologar_pacote_li`) com completude válida e snapshot | não homologado |
+| B8 | `content_hash` final conferido após a migration em lote | inexistente (pacote rascunho) |
+| B9 | deploy | não feito |
+
+**Bloco 30 — o que representa.** A governança técnica de dupla aprovação da LI **já foi estruturada** (Etapa 5.2: dependências, hash canônico, completude, aprovações append-only, invalidação, `homologar_pacote_li`, snapshots; Etapa 5.3: identidade real via `methodology_approvers`). O que permanece é **operacional** (B1–B9): migration não aplicada; tabela de aprovadores vazia; `auth.uid` reais não cadastrados. **Não é decisão metodológica dos Blocos 1–29** e não aparece no grupo A.
+
+### C — Zero declarado / opcional / futuro (não bloqueia)
+
+| # | Bloco | Decisão atual | Consequência enquanto zero |
+|---|---|---|---|
+| C1 | 8 | 0 referências metodológicas aprovadas é estado válido | a LI usa a referência aplicável do laudo (DECISÕES 07/09); sem referência → `not_classifiable` com motivo |
+| C2 | 10 | 0 conversões aprovadas é estado válido | unidade incompatível → não classificável (`incompatible_unit`) |
+| C3 | 14 | 0 regras qualitativas concretas é estado válido | qualitativo sem regra → não classificável (`qualitative_rule_missing`) |
+| C4 | 26 | 0 cálculos derivados oficiais | nada calculado; nenhum derivado na LI |
+| C5 | 27/28 | custom e `additional_legacy` ficam fora da LI automática | nada a decidir para implementar a V1 |
+| C6 | 29 | mapeamento histórico de EXA-006 é caso a caso, com confirmação da profissional | **não** é preciso mapear todos os EXA-006 para implementar a V1 |
+| C7 | 24 | traduções completas de reason_codes → texto ao paciente | pendência de acabamento/UI, desde que nenhuma informação enganosa seja exibida; não bloqueia o motor |
+| C8 | 23 | textos por domínio | só se necessários; textos-base já decididos |
 
 Nenhuma outra pendência metodológica real foi encontrada nos blocos 1–29.
 
@@ -274,25 +307,25 @@ Proibido (já decidido): maioria simples automática; média de exames heterogê
 
 ## 8. CHECKLIST — LI PRONTA PARA IMPLEMENTAÇÃO
 
-Nenhum item marcado. Marcar é ato humano após decisão registrada.
+Nenhum item marcado. Marcar é ato humano após decisão registrada. (A) = bloqueador metodológico · (B) = gate operacional · (C) = opcional/acabamento.
 
-- [ ] 1. Janela temporal: formato e valor em dias decididos e versionados (Bloco 5)
-- [ ] 2. LI-D01: suficiência, mínimos, obrigatórios, mistos, sistemas HOLOSCAN e direção decididos
-- [ ] 3. LI-D02: idem
-- [ ] 4. LI-D03: idem
-- [ ] 5. LI-D04: idem
-- [ ] 6. LI-D05: idem
-- [ ] 7. LI-D06: idem (incluindo tratamento do vínculo distinto Magnésio eritrocitário)
-- [ ] 8. LI-D07: idem
-- [ ] 9. Regra de agregação entre sistemas HOLOSCAN definida para todo domínio com N > 1 sistemas (ou N ≤ 1 declarado)
-- [ ] 10. Vocabulário de reason_codes do motor unificado com a lista da DECISÃO 22 (sem colapsar motivos)
-- [ ] 11. Tabela de tradução reason_code → texto ao paciente (Bloco 24) decidida
-- [ ] 12. Fontes formais consolidadas onde o campo diz FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR (ou declaração explícita de decisão autoral sem bibliografia)
-- [ ] 13. Migration em lote escrita (domínios, 47 vínculos + 2 variantes distintas, regras por domínio, janela, matriz HOLOSCAN) e validada na cadeia local (BEGIN…ROLLBACK)
-- [ ] 14. Servidor falso e motor LI espelhando o conteúdo decidido; testes de regressão A–F (Etapa 5.7) e precedência (Etapa 5.9) passando
-- [ ] 15. Cadeia validada no banco real (VALIDAÇÃO REAL PENDENTE) sem alterar produção
-- [ ] 16. Pacote LI em `em_revisao` com hash conferido; Aprovação 1 (Daniel) e Aprovação 2 (Rodrigo) registradas com identidade real
-- [ ] 17. Homologação explícita do pacote LI (`homologar_pacote_li`) e snapshot gerado; só então a LI deixa de ser `sem_dados_suficientes` por regra ausente
+- [ ] 1. (A) Janela temporal: formato e valor em dias decididos e versionados (Bloco 5)
+- [ ] 2. (A) LI-D01: suficiência, mínimos, obrigatórios, mistos, sistemas HOLOSCAN e direção decididos
+- [ ] 3. (A) LI-D02: idem
+- [ ] 4. (A) LI-D03: idem
+- [ ] 5. (A) LI-D04: idem
+- [ ] 6. (A) LI-D05: idem
+- [ ] 7. (A) LI-D06: idem (incluindo tratamento do vínculo distinto Magnésio eritrocitário)
+- [ ] 8. (A) LI-D07: idem
+- [ ] 9. (A) Regra de agregação entre sistemas HOLOSCAN definida para todo domínio com N > 1 sistemas (ou N ≤ 1 declarado)
+- [ ] 10. (B) Vocabulário de reason_codes do motor unificado com a lista da DECISÃO 22 (sem colapsar motivos)
+- [ ] 11. (C) Tabela de tradução reason_code → texto ao paciente (Bloco 24) decidida
+- [ ] 12. (C) Fontes formais consolidadas onde o campo diz FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR (ou declaração explícita de decisão autoral sem bibliografia)
+- [ ] 13. (B) Migration em lote escrita (domínios, 47 vínculos + 2 variantes distintas, regras por domínio, janela, matriz HOLOSCAN) e validada na cadeia local (BEGIN…ROLLBACK)
+- [ ] 14. (B) Servidor falso e motor LI espelhando o conteúdo decidido; testes de regressão A–F (Etapa 5.7) e precedência (Etapa 5.9) passando
+- [ ] 15. (B) Cadeia validada no banco real (VALIDAÇÃO REAL PENDENTE) sem alterar produção
+- [ ] 16. (B) Pacote LI em `em_revisao` com hash conferido; Aprovação 1 (Daniel) e Aprovação 2 (Rodrigo) registradas com identidade real
+- [ ] 17. (B) Homologação explícita do pacote LI (`homologar_pacote_li`) e snapshot gerado; só então a LI deixa de ser `sem_dados_suficientes` por regra ausente
 
 ## 9. Contagem validada (Etapa 5.10)
 

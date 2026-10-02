@@ -46,17 +46,21 @@ Entrar na LI sem estar no catálogo aprovado; herdar o vínculo legado; tratar H
 
 ## Campo DECISÃO
 
-**DECISÃO (Bloco 28 — legado fora dos 45):** EXA-001 (Candida IgG), EXA-003 (VHS), EXA-007 (HOMA-IR) e EXA-024 (Cortisol matinal) **permanecem `additional_legacy`**: histórico preservado e visível, sem leitura integrada.
+> Texto conferido contra o contrato canônico ditado por Daniel na Etapa 5.10.1 (02/10/2026); auditoria em `AUDITORIA-FIDELIDADE-BLOCOS-26-29.md`.
+
+**DECISÃO (Bloco 28 — legado fora dos 45):** EXA-001 Candida albicans IgG, EXA-003 VHS, EXA-007 HOMA-IR e EXA-024 Cortisol matinal **permanecem `additional_legacy`** na V1.
 
 **Regras (8):**
-1. `origin = additional_legacy`, `exam_code` nulo e `legacy_*` preservados; nada é apagado, remapeado ou convertido.
-2. Nenhum dos 4 recebe vínculo a domínio LI (não têm `exam_code`; vínculo exige exame-base do catálogo).
-3. Nenhum herda o sistema legado do CSV (Candida → fungico; VHS → acido_inflamatorio; HOMA-IR → metabolico; Cortisol → mental_emocional_espiritual): **LEGADO, não homologado, não herdado**.
-4. Nenhum entra em cobertura, suficiência, mistos, convergência ou divergência; para a LI são `not_eligible` com motivo explícito (código a unificar com a lista da DECISÃO 22 na implementação).
-5. Continuam visíveis no histórico, HOLOS AI (como fato legado, formato legado) e Evolução (comparação legado × legado pela mesma identidade `legacy_exame_id`).
-6. Inclusão futura no catálogo-base (46–49) é decisão de catálogo por migration (reabre a decisão 68), item a item, com fonte, e com novo vínculo decidido no Bloco 2 — não decorre deste bloco.
-7. Migração para custom exam **não** é feita: perderia o caráter de registro global histórico sem ganho para a LI.
-8. **HOMA-IR legado não é recalculado** nem reinterpretado como derivado (Bloco 26, regra 4); o valor digitado permanece valor digitado.
+1. Permanecem visíveis no histórico.
+2. Preservam os dados originais disponíveis.
+3. Não são apagados.
+4. Não são convertidos automaticamente em LAB-xxx.
+5. Não participam automaticamente da LI.
+6. Não herdam como regra oficial: `legacy_sistema`; faixa ideal antiga; texto clínico antigo; interpretação antiga.
+7. Não entram na contagem dos 45.
+8. Futuramente podem ser: exame adicional homologado; cálculo derivado homologado; item de catálogo de versão futura — **somente mediante nova decisão metodológica**.
+
+**HOMA-IR histórico:** preservar; não recalcular automaticamente; não converter silenciosamente em cálculo oficial (Bloco 26).
 
 **JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 26–29 e no Documento Mestre (catálogo fechado de 45; nada entra na LI sem vínculo homologado; legado é evidência, não regra; identidade não se presume por nome). Não atribuída ao legado.
 

@@ -46,27 +46,21 @@ Fórmula sem fonte/versão; cálculo com entradas em unidades não verificadas o
 
 ## Campo DECISÃO
 
-**DECISÃO (Bloco 26 — cálculos derivados):** a V1 **não tem cálculo derivado oficial**. `lab_derived_calculations` permanece com **0 linhas**; o motor laboratorial e o motor LI **não calculam nada**; nenhum derivado participa de domínio, cobertura, suficiência, mistos, convergência ou divergência.
+> Texto conferido contra o contrato canônico ditado por Daniel na Etapa 5.10.1 (02/10/2026); auditoria em `AUDITORIA-FIDELIDADE-BLOCOS-26-29.md`.
 
-**Contrato obrigatório para qualquer derivado futuro** (sem ele, o derivado não existe para o sistema):
-- `code` próprio e estável (fora da numeração LAB-001…045);
-- `name` canônico;
-- `formula` explícita e `formula_version`;
-- `inputs`: lista fechada de `exam_codes` obrigatórios do catálogo (com variante/material quando relevantes);
-- `required_units`: unidade exigida de cada entrada (conversão só por regra homologada — DECISÃO 10);
-- `criteria`: critérios de validade (mesma coleta ou regra explícita para coletas distintas; entradas não censuradas — DECISÃO 15; entradas com `classification_status` avaliável; sem entrada qualitativa — DECISÃO 14);
-- `source` (fonte formal) e `justification`;
-- `status` e aprovação em pacote LI (Daniel → Rodrigo → Homologar; o derivado entra no hash do pacote);
-- referência do derivado declarada (laudo ou metodológica — DECISÕES 07/08/09), nunca presumida;
-- vínculo a domínio **somente** por decisão explícita no Bloco 2 (nova linha da matriz), com direção, e com definição prévia de como conta nos blocos 16/17/19 e 20/21.
+**DECISÃO (Bloco 26 — cálculos derivados):** a V1 **admite a arquitetura** para cálculos derivados (`lab_derived_calculations`), mas a LI V1 inicial possui **0 cálculos derivados oficiais**. Nada é calculado pelo sistema na V1.
 
-**Regras (6):**
-1. Nenhum derivado é calculado, exibido como calculado ou usado pela LI na V1.
-2. Nenhum derivado é ativado automaticamente pela presença dos seus componentes numa coleta.
-3. Derivado **digitado** no laudo (valor informado pelo laboratório) é resultado informado, nunca derivado calculado; só entra no catálogo por decisão de catálogo (reabre a decisão 68), não por este bloco.
-4. HOMA-IR legado (EXA-007) permanece `additional_legacy`, **nunca recalculado**, nunca tratado como calculado (Bloco 28).
-5. Derivado futuro só nasce por migration versionada com o contrato completo acima e aprovação dupla; fórmula sem fonte/versão, entrada em unidade não verificada ou censurada e cálculo cruzando coletas sem regra são **proibidos**.
-6. Derivado sem vínculo aprovado no Bloco 2 não participa de nenhuma Leitura Integrada, mesmo que calculado.
+**Qualquer cálculo futuro exige explicitamente:** `calculation_code`; nome; fórmula explícita; `exam_codes` de entrada; variantes aplicáveis quando pertinentes; materiais aplicáveis quando pertinentes; métodos aplicáveis quando pertinentes; unidades de entrada; conversões permitidas; critérios de elegibilidade; tratamento de ausências; precisão; arredondamento; fonte; justificativa; versão; responsável; aprovação metodológica (que segue a governança geral do pacote metodológico — Bloco 30 —, não é atributo clínico do cálculo).
+
+**Regras obrigatórias (6):**
+1. Preservar os valores originais de entrada.
+2. Resultado derivado não substitui o exame original.
+3. Cálculo derivado não entra automaticamente nos 45 exames-base.
+4. Cálculo derivado não recebe domínio automaticamente.
+5. Cálculo derivado não participa da LI sem vínculo próprio homologado.
+6. HOMA-IR ou qualquer outro cálculo não é ativado apenas porque existia no legado.
+
+**HOMA-IR legado (EXA-007):** permanece histórico; não é recalculado automaticamente; não é convertido silenciosamente em cálculo oficial (ver Bloco 28).
 
 **JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 26–29 e no Documento Mestre (catálogo fechado de 45; nada entra na LI sem vínculo homologado; legado é evidência, não regra; identidade não se presume por nome). Não atribuída ao legado.
 

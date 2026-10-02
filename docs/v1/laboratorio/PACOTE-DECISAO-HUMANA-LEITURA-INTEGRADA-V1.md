@@ -817,7 +817,7 @@ DATA: ______
 
 ## BLOCO 26 — Cálculos derivados
 
-> **DECIDIDO — Etapa 5.10 (Daniel, 02/10/2026):** 0 cálculos derivados oficiais na V1; `lab_derived_calculations` vazia; nada calculado nem ativado por componentes; contrato obrigatório para derivado futuro (code, formula, formula_version, inputs, required_units, criteria, source, status, aprovação, referência, vínculo só pelo Bloco 2) e 6 regras; HOMA-IR legado nunca recalculado (`DECISAO-26-CALCULOS-DERIVADOS-LI.md`). Não implementado, não homologado.
+> **DECIDIDO — Etapa 5.10 (Daniel, 02/10/2026; texto conferido na 5.10.1):** arquitetura admitida; **0 cálculos derivados oficiais** na LI V1 inicial; cálculo futuro exige calculation_code, nome, fórmula, exam_codes, variantes/materiais/métodos aplicáveis, unidades, conversões, elegibilidade, ausências, precisão, arredondamento, fonte, justificativa, versão, responsável e aprovação metodológica (governança geral); 6 regras (preservar entradas; não substitui original; não entra nos 45; sem domínio automático; sem LI sem vínculo próprio; nada ativado por existir no legado); HOMA-IR legado histórico, não recalculado, não convertido silenciosamente (`DECISAO-26-CALCULOS-DERIVADOS-LI.md`). Não implementado, não homologado.
 
 **O que decidir.** Se algum cálculo derivado entra na V1 (HOMA-IR, LDL calculado, razões, índices), com fórmula, versão, entradas obrigatórias, unidades exigidas, critérios de validade e fonte; e se o derivado pode receber vínculo a domínio.
 
@@ -844,7 +844,7 @@ DATA: 02/10/2026.
 
 ## BLOCO 27 — Exames adicionais/customizados
 
-> **DECIDIDO — Etapa 5.10 (Daniel, 02/10/2026):** custom permitido como registro factual; por padrão não recebe nada da LI (sem vínculo, referência, direção, cobertura); nunca altera os 45; promoção ao catálogo é decisão de catálogo; equivalência custom → LAB não é vínculo (`DECISAO-27-EXAMES-ADICIONAIS-CUSTOMIZADOS-LI.md`). Não implementado, não homologado.
+> **DECIDIDO — Etapa 5.10 (Daniel, 02/10/2026; texto conferido na 5.10.1):** custom fora dos 45 permitido (preserva nome, valor, unidade, referência do laudo, variante, material, método, origem, observações, documento; aparece na coleta e no histórico); por padrão não recebe código LAB, domínio, direção, interpretação, referência metodológica, conversão, derivado, convergência/divergência nem participação na LI; participação futura só por contrato metodológico explícito, versionado e homologado; nunca altera silenciosamente os 45; equivalência não inferida por nome (`DECISAO-27-EXAMES-ADICIONAIS-CUSTOMIZADOS-LI.md`). Não implementado, não homologado.
 
 **O que decidir.** Se exames customizados por profissional (`lab_custom_exams`) podem, em algum caso, receber vínculo a domínio ou referência metodológica; ou permanecem registro factual sem leitura.
 
@@ -869,7 +869,7 @@ DATA: 02/10/2026.
 
 ## BLOCO 28 — Legado fora dos 45: Candida IgG, VHS, HOMA-IR, Cortisol matinal
 
-> **DECIDIDO — Etapa 5.10 (Daniel, 02/10/2026):** EXA-001/003/007/024 permanecem `additional_legacy` com 8 regras (preservados; sem vínculo; sem herança do sistema legado; fora da LI com motivo explícito; visíveis no histórico/HOLOS AI/Evolução; catálogo só por decisão própria; sem migração para custom; HOMA-IR legado não recalculado) (`DECISAO-28-LEGADO-FORA-DOS-45-LI.md`). Não implementado, não homologado.
+> **DECIDIDO — Etapa 5.10 (Daniel, 02/10/2026; texto conferido na 5.10.1):** EXA-001/003/007/024 permanecem `additional_legacy` com 8 regras (visíveis no histórico; dados preservados; não apagados; não convertidos em LAB-xxx; fora da LI automática; sem herança de legacy_sistema/faixa ideal/texto/interpretação antigos; fora da contagem dos 45; futuro só por nova decisão: exame adicional, cálculo derivado ou catálogo futuro); HOMA-IR histórico não recalculado nem convertido silenciosamente (`DECISAO-28-LEGADO-FORA-DOS-45-LI.md`). Não implementado, não homologado.
 
 **O que decidir.** Destino desses 4 itens (EXA-001, EXA-003, EXA-007, EXA-024): permanecem `additional_legacy` (histórico visível, sem leitura), entram no catálogo-base por migration (passaria a 46–49, exigindo nova decisão de catálogo), ou viram custom exams da profissional.
 
@@ -894,7 +894,7 @@ DATA: 02/10/2026.
 
 ## BLOCO 29 — Insulina de jejum (EXA-006) ↔ Insulina basal (LAB-003)
 
-> **DECIDIDO — Etapa 5.10 (Daniel, 02/10/2026):** EXA-006 **não** é alias automático de LAB-003; registros novos usam LAB-003; histórico EXA-006 permanece legado (`requires_manual_mapping`) até mapeamento manual explícito que preserve source_legacy_id, target_exam_code, responsável, data, motivo, proveniência e versão; nenhum alias textual global (`DECISAO-29-INSULINA-DE-JEJUM-EXA-006-INSULINA-BASAL-LAB-003-LI.md`). IDENTIDADE NÃO HOMOLOGADA. Não implementado, não homologado.
+> **DECIDIDO — Etapa 5.10 (Daniel, 02/10/2026; texto conferido na 5.10.1):** EXA-006 **não** é alias automático de LAB-003; novos registros usam LAB-003; histórico EXA-006 permanece legado até revisão explícita; mapeamento manual só quando a profissional confirmar mesmo exame e condições de coleta, preservando source_legacy_id, target_exam_code, responsável, data, motivo, proveniência e versão da decisão; sem alias textual global; sem migração pelo nome; IDENTIDADE NÃO HOMOLOGADA = sem equivalência global, sem impedir mapeamento individual (`DECISAO-29-INSULINA-DE-JEJUM-EXA-006-INSULINA-BASAL-LAB-003-LI.md`). Não implementado, não homologado.
 
 **Estado exato da migração (sem decidir).**
 - `motor/bancos/exames.csv`: EXA-006 "Insulina de jejum", sistema `metabolico`, unidade `uUI/mL`.

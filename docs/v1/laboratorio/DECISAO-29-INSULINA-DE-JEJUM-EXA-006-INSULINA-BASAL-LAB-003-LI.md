@@ -55,16 +55,21 @@ Remapear sem fonte; apagar `legacy_exame_id`; transformar a sugestão do `MAPA_L
 
 ## Campo DECISÃO
 
-**DECISÃO (Bloco 29 — Insulina de jejum (EXA-006) ↔ Insulina basal (LAB-003)):** EXA-006 **não é alias automático** de LAB-003. **IDENTIDADE NÃO HOMOLOGADA** continua sendo o estado oficial do histórico.
+> Texto conferido contra o contrato canônico ditado por Daniel na Etapa 5.10.1 (02/10/2026); auditoria em `AUDITORIA-FIDELIDADE-BLOCOS-26-29.md`.
 
-**Regras:**
-1. **Registros novos** usam o exame-base **LAB-003 Insulina basal** (catálogo, com vínculo D02 / `any` já decidido no Bloco 2). Não existe entrada nova "Insulina de jejum".
-2. **Registros históricos** de EXA-006 permanecem **legado** (`exam_code` nulo, `requires_manual_mapping = true`, `legacy_exame_id = 'EXA-006'`, valor original preservado) até **mapeamento manual explícito**.
-3. O mapeamento manual, quando ocorrer, é um ato registrado por linha ou por lote revisado, preservando obrigatoriamente: `source_legacy_id` (EXA-006 e o id da linha legada), `target_exam_code` (LAB-003), responsável, data, motivo, proveniência (laudo/laboratório/método/unidade conferidos) e versão do mapeamento. Sem esses campos, não há mapeamento.
-4. **Nenhum alias textual global** "Insulina de jejum" é adicionado a LAB-003: alias de catálogo é nome alternativo do mesmo exame e a identidade aqui não foi provada; a sugestão em `MAPA_LEGADO` continua sendo orientação ao revisor, não mapeamento.
-5. Enquanto não mapeada, a linha EXA-006 não entra em vínculo, classificação, cobertura, suficiência, mistos, convergência, divergência nem comparação longitudinal com LAB-003 (`not_eligible`, motivo `requires_manual_mapping`).
-6. `legacy_exame_id` nunca é apagado, inclusive após mapeamento.
-7. Opções descartadas: alias seguro global (a); variante `jejum` automática (b); custom exam (d).
+**DECISÃO (Bloco 29 — EXA-006 Insulina de jejum × LAB-003 Insulina basal):** EXA-006 "Insulina de jejum" **NÃO é alias automático** de LAB-003 "Insulina basal".
+
+**Novos registros:** usar LAB-003 conforme o catálogo V1.
+
+**Registros históricos EXA-006:** permanecem identificados como legado (hoje: `exam_code` nulo, `requires_manual_mapping = true`, `legacy_exame_id = 'EXA-006'`, valor original preservado) **até revisão explícita**.
+
+**Mapeamento manual para LAB-003** somente quando a profissional confirmar que o registro histórico corresponde ao mesmo exame e às condições de coleta pertinentes. O mapeamento deve preservar: `source_legacy_id = EXA-006`; `target_exam_code = LAB-003`; responsável; data; motivo; proveniência; versão da decisão.
+
+**Sem confirmação:** permanece legado e não participa da LI oficial.
+
+**NÃO** criar alias textual global. **NÃO** migrar automaticamente pelo nome.
+
+**IDENTIDADE NÃO HOMOLOGADA** indica que **não existe equivalência GLOBAL homologada** entre EXA-006 e LAB-003; a expressão **não impede** o mapeamento manual explícito de um registro histórico individual, nas condições acima.
 
 *Lacuna de teste registrada na Etapa 5.9 (check SQL para a linha migrada de EXA-006) permanece aberta; esta etapa é documental.*
 

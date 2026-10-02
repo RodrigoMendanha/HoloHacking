@@ -503,20 +503,27 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
 
 ### Etapa 5.10 — DECISÕES 26–29 registradas; status dos 29 blocos; pacote final de pendências (02/10/2026)
 
-123. **Cálculos derivados (DECISÃO 26)**: 0 derivados oficiais na V1; `lab_derived_calculations` vazia; nada
-    calculado nem ativado por presença de componentes; contrato obrigatório para derivado futuro (code, formula,
-    formula_version, inputs, required_units, criteria, source, status, aprovação dupla, referência declarada,
-    vínculo só por decisão no Bloco 2) e 6 regras; HOMA-IR legado nunca recalculado.
-124. **Exames customizados (DECISÃO 27)**: registro factual permitido; por padrão nada relacionado à LI (sem
-    vínculo, referência, direção, cobertura); nunca alteram os 45; promoção ao catálogo é decisão de catálogo;
-    equivalência custom → LAB não é vínculo; `not_eligible` com motivo explícito.
-125. **Legado fora dos 45 (DECISÃO 28)**: EXA-001/003/007/024 permanecem `additional_legacy` com 8 regras
-    (preservados; sem vínculo; sem herança do sistema legado; fora da LI com motivo; visíveis no histórico,
-    HOLOS AI e Evolução; catálogo só por decisão própria; sem migração para custom; HOMA-IR não recalculado).
-126. **EXA-006 ↔ LAB-003 (DECISÃO 29)**: não é alias automático; registros novos usam LAB-003; histórico EXA-006
-    permanece legado (`requires_manual_mapping`) até mapeamento manual explícito que preserve source_legacy_id,
-    target_exam_code, responsável, data, motivo, proveniência e versão; nenhum alias textual global;
-    `legacy_exame_id` nunca apagado. IDENTIDADE NÃO HOMOLOGADA.
+123. **Cálculos derivados (DECISÃO 26; texto conferido na Etapa 5.10.1)**: arquitetura admitida; 0 derivados
+    oficiais na LI V1 inicial; cálculo futuro exige calculation_code, nome, fórmula, exam_codes, variantes/
+    materiais/métodos aplicáveis, unidades, conversões, elegibilidade, ausências, precisão, arredondamento, fonte,
+    justificativa, versão, responsável e aprovação metodológica (governança geral do pacote); 6 regras (preservar
+    entradas; não substitui original; não entra nos 45; sem domínio automático; sem LI sem vínculo próprio;
+    nada ativado por existir no legado); HOMA-IR legado histórico, não recalculado, não convertido silenciosamente.
+124. **Exames customizados (DECISÃO 27; conferido na 5.10.1)**: cadastro fora dos 45 permitido, preservando nome,
+    valor, unidade, referência do laudo, variante, material, método, origem, observações, documento; aparece na
+    coleta e no histórico; por padrão sem código LAB, domínio, direção, interpretação, referência metodológica,
+    conversão, derivado, convergência/divergência ou participação na LI; participação futura só por contrato
+    explícito, versionado e homologado; nunca altera silenciosamente os 45; equivalência não inferida por nome.
+125. **Legado fora dos 45 (DECISÃO 28; conferido na 5.10.1)**: EXA-001/003/007/024 permanecem `additional_legacy`
+    com 8 regras (visíveis no histórico; dados preservados; não apagados; não convertidos em LAB-xxx; fora da LI
+    automática; sem herança de legacy_sistema, faixa ideal, texto ou interpretação antigos; fora da contagem dos
+    45; futuro — exame adicional, derivado ou catálogo — só por nova decisão); HOMA-IR não recalculado nem
+    convertido silenciosamente.
+126. **EXA-006 ↔ LAB-003 (DECISÃO 29; conferido na 5.10.1)**: não é alias automático; novos registros usam LAB-003;
+    histórico permanece legado até revisão explícita; mapeamento manual individual só quando a profissional
+    confirmar mesmo exame e condições de coleta, preservando source_legacy_id, target_exam_code, responsável, data,
+    motivo, proveniência e versão da decisão; sem alias textual global; sem migração pelo nome. IDENTIDADE NÃO
+    HOMOLOGADA = sem equivalência global, sem impedir o mapeamento individual.
 127. **Correção documental de contagem**: a distribuição por domínio escrita na Etapa 5.5 ("D01 8 · D06 13 ·
     D07 10") era erro de digitação; a matriz aprovada (fonte) dá **D01 7 · D02 3 · D03 5 · D04 4 · D05 4 ·
     D06 12 · D07 12 = 47 pares** (45 exames-base, 42 vinculados, 3 sem domínio, 5 multi-domínio). Nenhum
@@ -527,6 +534,18 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     fichas por domínio LI-D01…D07, matriz final, janela temporal, matriz domínio → HOLOSCAN, suficiência,
     mistos e checklist de 17 itens — **todos os campos pendentes vazios/PENDENTE, sem sugestão de valor**.
     Nada implementado; LI-V1@1 rascunho com 0 aprovações; migration 20261002110000 não aplicada.
+
+### Etapa 5.10.1 — auditoria de fidelidade dos blocos 26–29; pendências reclassificadas (02/10/2026)
+
+130. **Auditoria de fidelidade** (`docs/v1/laboratorio/AUDITORIA-FIDELIDADE-BLOCOS-26-29.md`): os textos 26–29
+    registrados na 5.10 foram comparados campo a campo com o contrato canônico ditado por Daniel; omissões,
+    divergências e acréscimos não aprovados corrigidos; nada reinterpretado; nenhum vínculo alterado.
+131. **Pendências reclassificadas** em `PACOTE-FINAL-PENDENCIAS-EXECUTAVEIS-LI-V1.md` em três grupos:
+    **A** bloqueadores metodológicos do motor LI oficial (5, 16, 17, 19, 20/21); **B** gates operacionais de
+    homologação/produção (migrations, cadeia real, auth.uid reais de Daniel e Rodrigo, Aprovação 1, Aprovação 2,
+    Homologar, content_hash, deploy) — não são metodologia indefinida; **C** zero declarado/opcional/futuro
+    (8, 10, 14, 24, 26, 27, 28, 29) — não bloqueiam. **Bloco 30** = governança já estruturada; pendência apenas
+    operacional (migration não aplicada, tabela de aprovadores vazia, auth.uid reais não cadastrados).
 
 ## Decisões pendentes (não decididas aqui)
 
