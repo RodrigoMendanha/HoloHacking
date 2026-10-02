@@ -2,7 +2,7 @@
 
 Etapa 5.8 · 02/10/2026 · material para decisão de **Daniel** (responsável primário) · detalha o bloco 20 de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md` (nome e número do pacote). Depende das DECISÕES 01–04, 06, 07, 09, 11–19 e do valor do bloco 5.
 
-> **NADA DECIDIDO.** Opções e consequências sem recomendação; nenhuma regra clínica deduzida do legado; nenhuma relação domínio LI → sistema HOLOSCAN criada; nenhum score, peso, corte ou bibliografia. Campos DECISÃO em branco. Nenhuma alteração em migration, banco, servidor falso, motor ou UI.
+> **ARQUITETURA DECIDIDA / TABELA DOMÍNIO → SISTEMA(S) E REGRAS DE DIREÇÃO PENDENTES — Etapa 5.9 (02/10/2026, Daniel).** Decisão metodológica humana registrada abaixo. **Ainda não é**: implementação, migration clínica, alteração do banco real, Aprovação 1, Aprovação 2, homologação ou deploy. Nenhuma tabela domínio → sistema, regra de direção, parâmetro ou texto específico por domínio foi criado.
 
 ## Pergunta (como no pacote)
 
@@ -43,14 +43,39 @@ Cada escolha muda quantos pacientes caem em "HOLOSCAN alterado" e em convergente
 
 Convergente = diagnóstico; convergente alterar nota/Índice/Tríada; nota de pacote não aprovado como saída oficial; relação domínio → sistema inferida pelo nome; corte herdado do legado.
 
+
+## Precedência obrigatória do motor LI (regra estrutural oficial, Etapa 5.9)
+
+Antes de avaliar CONVERGENTE ou DIVERGENTE, o motor executa nesta ordem lógica: (1) validar aplicação HOLOSCAN; (2) validar pacote/versão compatível; (3) validar temporalidade; (4) validar vínculos metodológicos; (5) validar resultados laboratoriais; (6) validar referências/unidades/contexto; (7) validar suficiência do domínio; (8) resolver resultados mistos; (9) derivar direção do HOLOSCAN; (10) derivar direção laboratorial; (11) somente então determinar o estado da LI. **SEM DADOS SUFICIENTES tem precedência** quando qualquer requisito necessário não estiver atendido. **CONVERGENTE e DIVERGENTE nunca são fallback.**
+
+## Direções internas conceituais (nomenclatura metodológica interna)
+
+`attention_present` · `attention_not_detected` · `indeterminate`. **Não** são diagnóstico, score, prognóstico, "doente"/"saudável", nem são mostradas ao paciente como termos técnicos. Existem só para permitir comparação determinística entre fontes. Campos não implementados.
+
 ## Campo DECISÃO
 
-DECISÃO: ______
+**DECISÃO (Bloco 20 — regra formal de CONVERGENTE, arquitetura):** CONVERGENTE só pode existir quando: (A) a fonte HOLOSCAN é elegível, suficiente e avaliável; (B) a fonte laboratorial é elegível, suficiente e avaliável; (C) todas as regras necessárias do domínio estão homologadas; (D) nenhuma condição de SEM DADOS SUFICIENTES tem precedência; (E) as duas fontes produzem direção determinística.
 
-JUSTIFICATIVA: ______
+| HOLOSCAN | LAB | Estado |
+|---|---|---|
+| `attention_present` | `attention_present` | CONVERGENTE |
+| `attention_not_detected` | `attention_not_detected` | CONVERGENTE |
+| qualquer fonte `indeterminate` | — | **não** produz CONVERGENTE → avaliar SEM DADOS SUFICIENTES |
 
-FONTE: ______ (ou FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR)
+**Convergência sem sinal:** CONVERGENTE não significa obrigatoriamente presença de alteração; pode existir quando as duas fontes elegíveis não identificam sinal de atenção na direção comparada. Isso **não** permite afirmar paciente saudável, ausência de doença, ausência de risco, função normal global ou garantia de saúde.
 
-RESPONSÁVEL: ______
+**Um exame isolado:** UM ÚNICO EXAME FORA DA REFERÊNCIA NÃO PRODUZ AUTOMATICAMENTE CONVERGÊNCIA. A fonte laboratorial passa antes pelas regras homologadas de vínculo, elegibilidade, suficiência, resultados mistos e direção laboratorial.
 
-DATA: ______
+**Tabela domínio → sistema(s) HOLOSCAN: NÃO preenchida** (LI-D01 → ?, …, LI-D07 → ?). A tabela futura declara por domínio: quais sistemas HOLOSCAN participam; qual regra transforma o resultado HOLOSCAN em `attention_present` / `attention_not_detected` / `indeterminate`; como múltiplos sistemas são tratados; como ausência de um sistema é tratada; versão; fonte; justificativa; aprovação. **Não inferir por semelhança de nomes**: LI-D02 "Glicêmico e Metabólico" **não** é automaticamente ligado ao Sistema Metabólico.
+
+**Pendência (não ocultável):** tabela domínio → sistema(s) HOLOSCAN e regras específicas de derivação de direção (HOLOSCAN e laboratorial) por domínio.
+
+**JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 20–25 e no Documento Mestre (um exame fora não basta; divergência não invalida fonte; ausência não é divergência; sem score; leitura salva congelada). Não atribuída ao legado.
+
+**FONTE:** Documento Mestre + decisão autoral V1. FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR onde aplicável; nenhuma citação fabricada.
+
+**RESPONSÁVEL:** Daniel (responsável primário). Revisão final de Rodrigo e registro no banco ficam para a homologação do pacote completo.
+
+**DATA:** 02/10/2026.
+
+**Status:** ARQUITETURA DECIDIDA / TABELA DOMÍNIO → SISTEMA(S) E REGRAS DE DIREÇÃO PENDENTES — não implementado, não registrado no banco, não homologado.

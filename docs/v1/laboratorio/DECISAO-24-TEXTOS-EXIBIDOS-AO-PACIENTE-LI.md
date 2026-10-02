@@ -2,7 +2,7 @@
 
 Etapa 5.8 · 02/10/2026 · material para decisão de **Daniel** (responsável primário) · detalha o bloco 24 de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md` (nome e número do pacote). Depende do bloco 23.
 
-> **NADA DECIDIDO.** Opções e consequências sem recomendação; nenhuma regra clínica deduzida do legado; nenhuma relação domínio LI → sistema HOLOSCAN criada; nenhum score, peso, corte ou bibliografia. Campos DECISÃO em branco. Nenhuma alteração em migration, banco, servidor falso, motor ou UI.
+> **ESTRUTURA + TEXTOS-BASE DECIDIDOS — Etapa 5.9 (02/10/2026, Daniel).** Decisão metodológica humana registrada abaixo. **Ainda não é**: implementação, migration clínica, alteração do banco real, Aprovação 1, Aprovação 2, homologação ou deploy. Nenhuma tabela domínio → sistema, regra de direção, parâmetro ou texto específico por domínio foi criado.
 
 ## Pergunta (como no pacote)
 
@@ -37,14 +37,35 @@ Nenhuma superfície voltada ao paciente mostra a LI; o relatório clínico (Etap
 
 Texto que o paciente leia como diagnóstico, culpa ("você relata mas o exame não mostra") ou conduta.
 
+
+## Precedência obrigatória do motor LI (regra estrutural oficial, Etapa 5.9)
+
+Antes de avaliar CONVERGENTE ou DIVERGENTE, o motor executa nesta ordem lógica: (1) validar aplicação HOLOSCAN; (2) validar pacote/versão compatível; (3) validar temporalidade; (4) validar vínculos metodológicos; (5) validar resultados laboratoriais; (6) validar referências/unidades/contexto; (7) validar suficiência do domínio; (8) resolver resultados mistos; (9) derivar direção do HOLOSCAN; (10) derivar direção laboratorial; (11) somente então determinar o estado da LI. **SEM DADOS SUFICIENTES tem precedência** quando qualquer requisito necessário não estiver atendido. **CONVERGENTE e DIVERGENTE nunca são fallback.**
+
+## Direções internas conceituais (nomenclatura metodológica interna)
+
+`attention_present` · `attention_not_detected` · `indeterminate`. **Não** são diagnóstico, score, prognóstico, "doente"/"saudável", nem são mostradas ao paciente como termos técnicos. Existem só para permitir comparação determinística entre fontes. Campos não implementados.
+
 ## Campo DECISÃO
 
-DECISÃO: ______
+**DECISÃO (Bloco 24 — textos ao paciente):** linguagem simples, não diagnóstica, não alarmista, explicável, **sem reason_codes crus**, sem esconder limitações.
 
-JUSTIFICATIVA: ______
+*CONVERGENTE:* "As informações do seu relato e os exames considerados apresentaram um padrão semelhante neste domínio. Esse resultado não representa diagnóstico e deve ser interpretado junto com sua nutricionista."
 
-FONTE: ______ (ou FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR)
+*Convergência sem sinais de atenção (texto específico permitido):* "Nas fontes analisadas, não foram identificados sinais de atenção coincidentes neste domínio. Isso não significa ausência de doença ou garantia de saúde."
 
-RESPONSÁVEL: ______
+*DIVERGENTE:* "Seu relato e os exames considerados apresentaram informações diferentes neste domínio. Isso pode ajudar a profissional a aprofundar a avaliação e não significa que uma das fontes esteja errada."
 
-DATA: ______
+*SEM DADOS:* "Ainda não há informações suficientes para uma leitura integrada deste domínio. Sua nutricionista poderá verificar quais dados precisam ser complementados ou revisados."
+
+*Tradução de motivos:* reason_codes técnicos não aparecem crus; exemplo: `incompatible_variant` → "O tipo do exame disponível não é compatível com a regra utilizada para esta leitura." A tabela completa de traduções **não** foi criada nesta etapa (decisão posterior).
+
+**JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 20–25 e no Documento Mestre (um exame fora não basta; divergência não invalida fonte; ausência não é divergência; sem score; leitura salva congelada). Não atribuída ao legado.
+
+**FONTE:** Documento Mestre + decisão autoral V1. FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR onde aplicável; nenhuma citação fabricada.
+
+**RESPONSÁVEL:** Daniel (responsável primário). Revisão final de Rodrigo e registro no banco ficam para a homologação do pacote completo.
+
+**DATA:** 02/10/2026.
+
+**Status:** ESTRUTURA + TEXTOS-BASE DECIDIDOS — não implementado, não registrado no banco, não homologado.

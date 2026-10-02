@@ -2,7 +2,7 @@
 
 Etapa 5.8 · 02/10/2026 · material para decisão de **Daniel** (responsável primário) · detalha o bloco 23 de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md` (nome e número do pacote). Depende dos blocos 20–22 (estados e motivos) e da DECISÃO 01 (nomes dos domínios).
 
-> **NADA DECIDIDO.** Opções e consequências sem recomendação; nenhuma regra clínica deduzida do legado; nenhuma relação domínio LI → sistema HOLOSCAN criada; nenhum score, peso, corte ou bibliografia. Campos DECISÃO em branco. Nenhuma alteração em migration, banco, servidor falso, motor ou UI.
+> **ESTRUTURA + TEXTOS-BASE DECIDIDOS / TEXTOS ESPECÍFICOS POR DOMÍNIO PENDENTES SOMENTE SE NECESSÁRIOS — Etapa 5.9 (02/10/2026, Daniel).** Decisão metodológica humana registrada abaixo. **Ainda não é**: implementação, migration clínica, alteração do banco real, Aprovação 1, Aprovação 2, homologação ou deploy. Nenhuma tabela domínio → sistema, regra de direção, parâmetro ou texto específico por domínio foi criado.
 
 ## Pergunta (como no pacote)
 
@@ -37,14 +37,37 @@ Regra `text` (`payload.{convergente, divergente, sem_dados_suficientes}`, global
 
 Texto causal; conclusão de diagnóstico, normalidade ou prioridade; conduta; herdar os 4 textos fixos do legado sem decisão.
 
+
+## Precedência obrigatória do motor LI (regra estrutural oficial, Etapa 5.9)
+
+Antes de avaliar CONVERGENTE ou DIVERGENTE, o motor executa nesta ordem lógica: (1) validar aplicação HOLOSCAN; (2) validar pacote/versão compatível; (3) validar temporalidade; (4) validar vínculos metodológicos; (5) validar resultados laboratoriais; (6) validar referências/unidades/contexto; (7) validar suficiência do domínio; (8) resolver resultados mistos; (9) derivar direção do HOLOSCAN; (10) derivar direção laboratorial; (11) somente então determinar o estado da LI. **SEM DADOS SUFICIENTES tem precedência** quando qualquer requisito necessário não estiver atendido. **CONVERGENTE e DIVERGENTE nunca são fallback.**
+
+## Direções internas conceituais (nomenclatura metodológica interna)
+
+`attention_present` · `attention_not_detected` · `indeterminate`. **Não** são diagnóstico, score, prognóstico, "doente"/"saudável", nem são mostradas ao paciente como termos técnicos. Existem só para permitir comparação determinística entre fontes. Campos não implementados.
+
 ## Campo DECISÃO
 
-DECISÃO: ______
+**DECISÃO (Bloco 23 — textos à profissional):**
 
-JUSTIFICATIVA: ______
+*Estrutura exibida, quando disponível:* domínio; estado oficial; aplicação HOLOSCAN utilizada (`application_id`, data clínica); `collection_ids` e datas clínicas; `result_ids`, exames e variantes; direção HOLOSCAN; direção laboratorial; referências utilizadas e origem; resultados excluídos e motivo; suficiência/cobertura; regra LI e versão do pacote; observação profissional **separada**.
 
-FONTE: ______ (ou FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR)
+*Texto-base CONVERGENTE:* "As fontes elegíveis deste domínio apontaram para uma direção semelhante segundo a regra metodológica indicada."
 
-RESPONSÁVEL: ______
+*Texto-base DIVERGENTE:* "As fontes elegíveis deste domínio apontaram para direções diferentes. A divergência não invalida nenhuma das fontes e deve ser considerada na avaliação profissional."
 
-DATA: ______
+*Texto-base SEM DADOS:* "Não foi possível classificar este domínio com a regra atual. Consulte os dados ausentes, incompatíveis, excluídos ou não classificáveis indicados abaixo."
+
+*Linguagem proibida (automática):* "confirma diagnóstico", "confirma doença", "prova", "paciente saudável", "normal global", "cura", "melhora clínica", "piora clínica".
+
+**Pendência (não ocultável):** textos específicos por domínio, somente se necessários.
+
+**JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 20–25 e no Documento Mestre (um exame fora não basta; divergência não invalida fonte; ausência não é divergência; sem score; leitura salva congelada). Não atribuída ao legado.
+
+**FONTE:** Documento Mestre + decisão autoral V1. FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR onde aplicável; nenhuma citação fabricada.
+
+**RESPONSÁVEL:** Daniel (responsável primário). Revisão final de Rodrigo e registro no banco ficam para a homologação do pacote completo.
+
+**DATA:** 02/10/2026.
+
+**Status:** ESTRUTURA + TEXTOS-BASE DECIDIDOS / TEXTOS ESPECÍFICOS POR DOMÍNIO PENDENTES SOMENTE SE NECESSÁRIOS — não implementado, não registrado no banco, não homologado.

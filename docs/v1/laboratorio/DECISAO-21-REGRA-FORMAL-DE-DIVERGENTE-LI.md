@@ -2,7 +2,7 @@
 
 Etapa 5.8 · 02/10/2026 · material para decisão de **Daniel** (responsável primário) · detalha o bloco 21 de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md` (nome e número do pacote). Depende do bloco 20 e das DECISÕES 01–19.
 
-> **NADA DECIDIDO.** Opções e consequências sem recomendação; nenhuma regra clínica deduzida do legado; nenhuma relação domínio LI → sistema HOLOSCAN criada; nenhum score, peso, corte ou bibliografia. Campos DECISÃO em branco. Nenhuma alteração em migration, banco, servidor falso, motor ou UI.
+> **ARQUITETURA DECIDIDA / TABELA DOMÍNIO → SISTEMA(S) E REGRAS DE DIREÇÃO PENDENTES — Etapa 5.9 (02/10/2026, Daniel).** Decisão metodológica humana registrada abaixo. **Ainda não é**: implementação, migration clínica, alteração do banco real, Aprovação 1, Aprovação 2, homologação ou deploy. Nenhuma tabela domínio → sistema, regra de direção, parâmetro ou texto específico por domínio foi criado.
 
 ## Pergunta (como no pacote)
 
@@ -35,14 +35,37 @@ Motor: um só estado `divergente` para os dois sentidos; o trace guarda `labAlte
 
 Divergente invalidar relato ou exame; texto causal; divergente gerar alerta no dashboard (retirado na Etapa 0); hierarquizar qual lado "está certo".
 
+
+## Precedência obrigatória do motor LI (regra estrutural oficial, Etapa 5.9)
+
+Antes de avaliar CONVERGENTE ou DIVERGENTE, o motor executa nesta ordem lógica: (1) validar aplicação HOLOSCAN; (2) validar pacote/versão compatível; (3) validar temporalidade; (4) validar vínculos metodológicos; (5) validar resultados laboratoriais; (6) validar referências/unidades/contexto; (7) validar suficiência do domínio; (8) resolver resultados mistos; (9) derivar direção do HOLOSCAN; (10) derivar direção laboratorial; (11) somente então determinar o estado da LI. **SEM DADOS SUFICIENTES tem precedência** quando qualquer requisito necessário não estiver atendido. **CONVERGENTE e DIVERGENTE nunca são fallback.**
+
+## Direções internas conceituais (nomenclatura metodológica interna)
+
+`attention_present` · `attention_not_detected` · `indeterminate`. **Não** são diagnóstico, score, prognóstico, "doente"/"saudável", nem são mostradas ao paciente como termos técnicos. Existem só para permitir comparação determinística entre fontes. Campos não implementados.
+
 ## Campo DECISÃO
 
-DECISÃO: ______
+**DECISÃO (Bloco 21 — regra formal de DIVERGENTE, arquitetura):** DIVERGENTE só pode existir quando ambas as fontes são elegíveis, suficientes, avaliáveis, têm direção determinística e nenhuma condição de insuficiência tem precedência.
 
-JUSTIFICATIVA: ______
+| HOLOSCAN | LAB | Estado |
+|---|---|---|
+| `attention_present` | `attention_not_detected` | DIVERGENTE |
+| `attention_not_detected` | `attention_present` | DIVERGENTE |
+| qualquer lado `indeterminate` | — | **não** produz DIVERGENTE |
 
-FONTE: ______ (ou FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR)
+**Divergência não é erro:** DIVERGENTE não invalida HOLOSCAN; não invalida exame; não prova que o relato esteja errado; não prova que o laboratório esteja errado; não significa baixa adesão; não significa incoerência do paciente. É apenas diferença entre direções de duas fontes suficientes e elegíveis, segundo regra homologada. **Textos automáticos proibidos:** "HOLOSCAN está errado", "exame contradiz o paciente", "relato inconsistente", "resultado incorreto".
 
-RESPONSÁVEL: ______
+**Ausência não é divergência:** se faltar HOLOSCAN elegível, laboratório elegível, referência, cobertura, vínculo, janela, regra ou seleção de resultado, o estado **não** é divergente → avaliar SEM DADOS SUFICIENTES.
 
-DATA: ______
+**Pendência (não ocultável):** mesma tabela domínio → sistema(s) HOLOSCAN e regras de direção (bloco 20).
+
+**JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 20–25 e no Documento Mestre (um exame fora não basta; divergência não invalida fonte; ausência não é divergência; sem score; leitura salva congelada). Não atribuída ao legado.
+
+**FONTE:** Documento Mestre + decisão autoral V1. FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR onde aplicável; nenhuma citação fabricada.
+
+**RESPONSÁVEL:** Daniel (responsável primário). Revisão final de Rodrigo e registro no banco ficam para a homologação do pacote completo.
+
+**DATA:** 02/10/2026.
+
+**Status:** ARQUITETURA DECIDIDA / TABELA DOMÍNIO → SISTEMA(S) E REGRAS DE DIREÇÃO PENDENTES — não implementado, não registrado no banco, não homologado.

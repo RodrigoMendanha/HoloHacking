@@ -457,6 +457,50 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     paciente, Comparabilidade longitudinal da própria Leitura Integrada (`DECISAO-20…25`); nenhuma relação
     domínio → sistema HOLOSCAN criada; nenhum texto oficial escrito; comparabilidade não assumida.
 
+### Etapa 5.9 — DECISÕES 20–25 registradas; precedência do motor; blocos 26–29 abertos (02/10/2026)
+
+115. **Precedência obrigatória do motor LI (regra estrutural)**: validar aplicação HOLOSCAN → pacote/versão
+    compatível → temporalidade → vínculos → resultados → referências/unidades/contexto → suficiência do
+    domínio → resolver mistos → derivar direção HOLOSCAN → derivar direção laboratorial → só então o estado.
+    SEM DADOS SUFICIENTES tem precedência; CONVERGENTE/DIVERGENTE nunca são fallback. Direções internas
+    conceituais `attention_present` / `attention_not_detected` / `indeterminate` (não diagnóstico, score,
+    prognóstico ou "doente/saudável"; não exibidas ao paciente; campos não implementados).
+116. **CONVERGENTE (DECISÃO 20, arquitetura)**: só com fontes HOLOSCAN e laboratorial elegíveis, suficientes
+    e avaliáveis, regras do domínio homologadas, sem precedência de SEM DADOS e direções determinísticas;
+    present+present ou not_detected+not_detected → convergente; indeterminate nunca; convergência sem sinal
+    não afirma saúde/ausência de doença/risco; um exame isolado fora da referência não converge. **Tabela
+    domínio → sistema(s) HOLOSCAN e regras de direção pendentes** (nenhuma inferência por nome; LI-D02 não é
+    automaticamente o Sistema Metabólico).
+117. **DIVERGENTE (DECISÃO 21, arquitetura)**: present×not_detected em qualquer ordem, só com ambas as fontes
+    elegíveis/suficientes/avaliáveis/determinísticas; indeterminate nunca; divergência não é erro, não invalida
+    HOLOSCAN nem exame, não prova relato ou laboratório errados, não é baixa adesão nem incoerência; textos
+    "HOLOSCAN está errado", "exame contradiz o paciente", "relato inconsistente", "resultado incorreto"
+    proibidos; ausência de qualquer requisito → SEM DADOS, nunca divergente. Mesma tabela pendente.
+118. **SEM DADOS SUFICIENTES (DECISÃO 22)**: estado oficial com precedência; não é erro, negativo, ausência
+    de doença nem divergência; lista explícita de reason_codes (missing_holoscan_source, holoscan_not_evaluable,
+    incompatible_holoscan_version, missing_lab_source, insufficient_domain_coverage, missing_required_exam,
+    missing_reference, ambiguous_reference, qualitative_rule_missing, censored_value_ambiguous,
+    incompatible_unit/variant/material/method, outside_time_window, missing_clinical_date, mixed_without_rule,
+    missing_domain_holoscan_mapping, missing_domain_sufficiency_rule, missing_temporal_rule,
+    duplicate_result_unresolved, e outros aprovados distintos); explicabilidade obrigatória.
+119. **Textos à profissional (DECISÃO 23, estrutura + textos-base)**: estrutura técnica completa (fontes,
+    ids, datas, direções, referências, excluídos e motivos, cobertura, regra/versão, observação separada);
+    3 textos-base neutros; linguagem proibida; textos por domínio pendentes só se necessários.
+120. **Textos ao paciente (DECISÃO 24, estrutura + textos-base)**: simples, não diagnóstico, não alarmista,
+    sem reason_codes crus, sem esconder limitações; 4 textos-base (convergente, convergência sem sinais,
+    divergente, sem dados); tradução de motivos (tabela completa pendente).
+121. **Comparabilidade da LI (DECISÃO 25)**: comparação determinística só entre leituras metodologicamente
+    compatíveis (mesmo paciente, domínio, pacote ou compatibilidade explícita entre versões); usa snapshots;
+    nunca recalcular leitura antiga, reescrever histórico, trocar fonte ou usar updated_at; incompatível →
+    `not_comparable / methodology_not_comparable`, lado a lado, sem delta; mudança de estado nunca é
+    melhora/piora. **Status 116–121: decisões humanas aprovadas; não implementadas, não registradas no banco,
+    não homologadas.** Pendências não ocultáveis: bloco 5 (regra temporal), 16/17/19 (por domínio), 20/21
+    (tabela e direções).
+122. **Blocos 26–29 abertos** sem decisão, com os nomes do pacote: Cálculos derivados; Exames
+    adicionais/customizados; Legado fora dos 45 (Candida IgG, VHS, HOMA-IR, Cortisol matinal); Insulina de
+    jejum (EXA-006) ↔ Insulina basal (LAB-003) — IDENTIDADE NÃO HOMOLOGADA, sem alias automático
+    (`DECISAO-26…29`); dependências dos blocos 5, 16, 17, 19, 20 e 21 marcadas.
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`
