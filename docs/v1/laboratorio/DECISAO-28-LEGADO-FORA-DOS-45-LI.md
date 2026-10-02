@@ -2,7 +2,7 @@
 
 Etapa 5.9 · 02/10/2026 · material para decisão de **Daniel** (responsável primário) · detalha o bloco 28 de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md` (nome e número do pacote). **Dependências:** DECISÃO 01 (regras 6 e 9: sem vínculo, fora da LI; legado não herdado), 04 (regra 17: `additional_legacy` não participa automaticamente), bloco 26 (HOMA-IR é derivado), bloco 27 (via custom).
 
-> **NADA DECIDIDO.** Opções e consequências sem recomendação; nada preenchido por legado, nome parecido, categoria, conhecimento geral, inferência clínica ou "parece lógico". Campos DECISÃO, RESPONSÁVEL e DATA vazios. Nenhuma alteração em migration, banco, servidor falso, motor ou UI.
+> **DECIDIDO — Etapa 5.10 (02/10/2026, Daniel).** Decisão metodológica humana registrada abaixo. **Ainda não é**: implementação, migration clínica, alteração do banco real, Aprovação 1, Aprovação 2, homologação ou deploy. Nenhuma fórmula, alias, vínculo, migration ou mapeamento foi criado.
 
 ## Pergunta (como no pacote)
 
@@ -46,12 +46,24 @@ Entrar na LI sem estar no catálogo aprovado; herdar o vínculo legado; tratar H
 
 ## Campo DECISÃO
 
-DECISÃO: ______
+**DECISÃO (Bloco 28 — legado fora dos 45):** EXA-001 (Candida IgG), EXA-003 (VHS), EXA-007 (HOMA-IR) e EXA-024 (Cortisol matinal) **permanecem `additional_legacy`**: histórico preservado e visível, sem leitura integrada.
 
-JUSTIFICATIVA: ______
+**Regras (8):**
+1. `origin = additional_legacy`, `exam_code` nulo e `legacy_*` preservados; nada é apagado, remapeado ou convertido.
+2. Nenhum dos 4 recebe vínculo a domínio LI (não têm `exam_code`; vínculo exige exame-base do catálogo).
+3. Nenhum herda o sistema legado do CSV (Candida → fungico; VHS → acido_inflamatorio; HOMA-IR → metabolico; Cortisol → mental_emocional_espiritual): **LEGADO, não homologado, não herdado**.
+4. Nenhum entra em cobertura, suficiência, mistos, convergência ou divergência; para a LI são `not_eligible` com motivo explícito (código a unificar com a lista da DECISÃO 22 na implementação).
+5. Continuam visíveis no histórico, HOLOS AI (como fato legado, formato legado) e Evolução (comparação legado × legado pela mesma identidade `legacy_exame_id`).
+6. Inclusão futura no catálogo-base (46–49) é decisão de catálogo por migration (reabre a decisão 68), item a item, com fonte, e com novo vínculo decidido no Bloco 2 — não decorre deste bloco.
+7. Migração para custom exam **não** é feita: perderia o caráter de registro global histórico sem ganho para a LI.
+8. **HOMA-IR legado não é recalculado** nem reinterpretado como derivado (Bloco 26, regra 4); o valor digitado permanece valor digitado.
 
-FONTE: ______ (ou FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR)
+**JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 26–29 e no Documento Mestre (catálogo fechado de 45; nada entra na LI sem vínculo homologado; legado é evidência, não regra; identidade não se presume por nome). Não atribuída ao legado.
 
-RESPONSÁVEL: ______
+**FONTE:** Documento Mestre + decisão autoral V1. FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR onde aplicável; nenhuma citação fabricada.
 
-DATA: ______
+**RESPONSÁVEL:** Daniel (responsável primário). Revisão final de Rodrigo e registro no banco ficam para a homologação do pacote completo.
+
+**DATA:** 02/10/2026.
+
+**Status:** DECIDIDO — não implementado, não registrado no banco, não homologado.

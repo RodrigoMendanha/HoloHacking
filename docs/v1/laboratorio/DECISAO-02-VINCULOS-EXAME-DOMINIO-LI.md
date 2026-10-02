@@ -108,7 +108,8 @@ Legenda: "legado EXA" = item do `exames.csv` mapeado deterministicamente para es
 | sem domínio na V1 | **3** — LAB-027 Alumínio, LAB-033 Ácido úrico, LAB-044 CK |
 | multi-domínio | **5** — LAB-025 B12 (D01+D06), LAB-026 Ácido fólico (D01+D06), LAB-028 Ferro sérico (D01+D06), LAB-029 Ferritina (D01+D06), LAB-034 PTH (D06+D07) |
 | pares exame → domínio | 47 (antes de desdobrar variantes de PCR e Magnésio na implementação) |
-| por domínio | D01: 8 (LAB-001, 016, 018, 025, 026, 028, 029 — PCR conta 1 par) · D02: 3 · D03: 5 · D04: 4 · D05: 4 · D06: 13 · D07: 10 |
+| por domínio | **D01: 7** (LAB-001, 016, 018, 025, 026, 028, 029) · D02: 3 · D03: 5 · D04: 4 · D05: 4 · **D06: 12** (LAB-017, 021, 022, 023, 024, 025, 026, 028, 029, 034, 035, 045) · **D07: 12** (LAB-030, 031, 032, 034, 036, 037, 038, 039, 040, 041, 042, 043) — soma 47 |
+| correção (Etapa 5.10) | a linha anterior dizia "D01: 8 · D06: 13 · D07: 10" por erro de digitação na Etapa 5.5; a **matriz** (os 45 vínculos aprovados) nunca mudou e é a fonte; a contagem foi reconferida programaticamente e a correção foi autorizada por Daniel em 02/10/2026 |
 | vínculos herdados do legado | **0** |
 | categorias usadas automaticamente | **0** |
 | decididos / pendentes | **45 / 0** |

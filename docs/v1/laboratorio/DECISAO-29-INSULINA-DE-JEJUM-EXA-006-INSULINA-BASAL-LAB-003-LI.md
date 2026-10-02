@@ -2,7 +2,7 @@
 
 Etapa 5.9 · 02/10/2026 · material para decisão de **Daniel** (responsável primário) · detalha o bloco 29 de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md` (nome e número do pacote). **Dependências:** DECISÃO 02 (LAB-003 → D02, `any`, com observação de não resolver a identidade), 11 (variantes incompatíveis até declaração explícita; alias não cria equivalência), 04 (`requires_manual_mapping` não participa), 13 (método). **IDENTIDADE NÃO HOMOLOGADA.**
 
-> **NADA DECIDIDO.** Opções e consequências sem recomendação; nada preenchido por legado, nome parecido, categoria, conhecimento geral, inferência clínica ou "parece lógico". Campos DECISÃO, RESPONSÁVEL e DATA vazios. Nenhuma alteração em migration, banco, servidor falso, motor ou UI.
+> **DECIDIDO — Etapa 5.10 (02/10/2026, Daniel).** Decisão metodológica humana registrada abaixo. **Ainda não é**: implementação, migration clínica, alteração do banco real, Aprovação 1, Aprovação 2, homologação ou deploy. Nenhuma fórmula, alias, vínculo, migration ou mapeamento foi criado.
 
 ## Pergunta (como no pacote)
 
@@ -55,12 +55,25 @@ Remapear sem fonte; apagar `legacy_exame_id`; transformar a sugestão do `MAPA_L
 
 ## Campo DECISÃO
 
-DECISÃO: ______
+**DECISÃO (Bloco 29 — Insulina de jejum (EXA-006) ↔ Insulina basal (LAB-003)):** EXA-006 **não é alias automático** de LAB-003. **IDENTIDADE NÃO HOMOLOGADA** continua sendo o estado oficial do histórico.
 
-JUSTIFICATIVA: ______
+**Regras:**
+1. **Registros novos** usam o exame-base **LAB-003 Insulina basal** (catálogo, com vínculo D02 / `any` já decidido no Bloco 2). Não existe entrada nova "Insulina de jejum".
+2. **Registros históricos** de EXA-006 permanecem **legado** (`exam_code` nulo, `requires_manual_mapping = true`, `legacy_exame_id = 'EXA-006'`, valor original preservado) até **mapeamento manual explícito**.
+3. O mapeamento manual, quando ocorrer, é um ato registrado por linha ou por lote revisado, preservando obrigatoriamente: `source_legacy_id` (EXA-006 e o id da linha legada), `target_exam_code` (LAB-003), responsável, data, motivo, proveniência (laudo/laboratório/método/unidade conferidos) e versão do mapeamento. Sem esses campos, não há mapeamento.
+4. **Nenhum alias textual global** "Insulina de jejum" é adicionado a LAB-003: alias de catálogo é nome alternativo do mesmo exame e a identidade aqui não foi provada; a sugestão em `MAPA_LEGADO` continua sendo orientação ao revisor, não mapeamento.
+5. Enquanto não mapeada, a linha EXA-006 não entra em vínculo, classificação, cobertura, suficiência, mistos, convergência, divergência nem comparação longitudinal com LAB-003 (`not_eligible`, motivo `requires_manual_mapping`).
+6. `legacy_exame_id` nunca é apagado, inclusive após mapeamento.
+7. Opções descartadas: alias seguro global (a); variante `jejum` automática (b); custom exam (d).
 
-FONTE: ______ (ou FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR)
+*Lacuna de teste registrada na Etapa 5.9 (check SQL para a linha migrada de EXA-006) permanece aberta; esta etapa é documental.*
 
-RESPONSÁVEL: ______
+**JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 26–29 e no Documento Mestre (catálogo fechado de 45; nada entra na LI sem vínculo homologado; legado é evidência, não regra; identidade não se presume por nome). Não atribuída ao legado.
 
-DATA: ______
+**FONTE:** Documento Mestre + decisão autoral V1. FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR onde aplicável; nenhuma citação fabricada.
+
+**RESPONSÁVEL:** Daniel (responsável primário). Revisão final de Rodrigo e registro no banco ficam para a homologação do pacote completo.
+
+**DATA:** 02/10/2026.
+
+**Status:** DECIDIDO — não implementado, não registrado no banco, não homologado.

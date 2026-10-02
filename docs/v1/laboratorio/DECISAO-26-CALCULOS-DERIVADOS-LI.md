@@ -2,7 +2,7 @@
 
 Etapa 5.9 · 02/10/2026 · material para decisão de **Daniel** (responsável primário) · detalha o bloco 26 de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md` (nome e número do pacote). **Dependências:** DECISÕES 02 (um derivado só teria vínculo se decidido), 10 (unidades das entradas), 15 (censurado nunca entra em derivado), 07/09 (referência do derivado); blocos **16/17/19** (parâmetros pendentes: um derivado conta como posição de cobertura? como entra em mistos?) e **20/21** (direção).
 
-> **NADA DECIDIDO.** Opções e consequências sem recomendação; nada preenchido por legado, nome parecido, categoria, conhecimento geral, inferência clínica ou "parece lógico". Campos DECISÃO, RESPONSÁVEL e DATA vazios. Nenhuma alteração em migration, banco, servidor falso, motor ou UI.
+> **DECIDIDO — Etapa 5.10 (02/10/2026, Daniel).** Decisão metodológica humana registrada abaixo. **Ainda não é**: implementação, migration clínica, alteração do banco real, Aprovação 1, Aprovação 2, homologação ou deploy. Nenhuma fórmula, alias, vínculo, migration ou mapeamento foi criado.
 
 ## Pergunta (como no pacote)
 
@@ -46,12 +46,34 @@ Fórmula sem fonte/versão; cálculo com entradas em unidades não verificadas o
 
 ## Campo DECISÃO
 
-DECISÃO: ______
+**DECISÃO (Bloco 26 — cálculos derivados):** a V1 **não tem cálculo derivado oficial**. `lab_derived_calculations` permanece com **0 linhas**; o motor laboratorial e o motor LI **não calculam nada**; nenhum derivado participa de domínio, cobertura, suficiência, mistos, convergência ou divergência.
 
-JUSTIFICATIVA: ______
+**Contrato obrigatório para qualquer derivado futuro** (sem ele, o derivado não existe para o sistema):
+- `code` próprio e estável (fora da numeração LAB-001…045);
+- `name` canônico;
+- `formula` explícita e `formula_version`;
+- `inputs`: lista fechada de `exam_codes` obrigatórios do catálogo (com variante/material quando relevantes);
+- `required_units`: unidade exigida de cada entrada (conversão só por regra homologada — DECISÃO 10);
+- `criteria`: critérios de validade (mesma coleta ou regra explícita para coletas distintas; entradas não censuradas — DECISÃO 15; entradas com `classification_status` avaliável; sem entrada qualitativa — DECISÃO 14);
+- `source` (fonte formal) e `justification`;
+- `status` e aprovação em pacote LI (Daniel → Rodrigo → Homologar; o derivado entra no hash do pacote);
+- referência do derivado declarada (laudo ou metodológica — DECISÕES 07/08/09), nunca presumida;
+- vínculo a domínio **somente** por decisão explícita no Bloco 2 (nova linha da matriz), com direção, e com definição prévia de como conta nos blocos 16/17/19 e 20/21.
 
-FONTE: ______ (ou FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR)
+**Regras (6):**
+1. Nenhum derivado é calculado, exibido como calculado ou usado pela LI na V1.
+2. Nenhum derivado é ativado automaticamente pela presença dos seus componentes numa coleta.
+3. Derivado **digitado** no laudo (valor informado pelo laboratório) é resultado informado, nunca derivado calculado; só entra no catálogo por decisão de catálogo (reabre a decisão 68), não por este bloco.
+4. HOMA-IR legado (EXA-007) permanece `additional_legacy`, **nunca recalculado**, nunca tratado como calculado (Bloco 28).
+5. Derivado futuro só nasce por migration versionada com o contrato completo acima e aprovação dupla; fórmula sem fonte/versão, entrada em unidade não verificada ou censurada e cálculo cruzando coletas sem regra são **proibidos**.
+6. Derivado sem vínculo aprovado no Bloco 2 não participa de nenhuma Leitura Integrada, mesmo que calculado.
 
-RESPONSÁVEL: ______
+**JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 26–29 e no Documento Mestre (catálogo fechado de 45; nada entra na LI sem vínculo homologado; legado é evidência, não regra; identidade não se presume por nome). Não atribuída ao legado.
 
-DATA: ______
+**FONTE:** Documento Mestre + decisão autoral V1. FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR onde aplicável; nenhuma citação fabricada.
+
+**RESPONSÁVEL:** Daniel (responsável primário). Revisão final de Rodrigo e registro no banco ficam para a homologação do pacote completo.
+
+**DATA:** 02/10/2026.
+
+**Status:** DECIDIDO — não implementado, não registrado no banco, não homologado.

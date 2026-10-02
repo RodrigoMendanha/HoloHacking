@@ -2,7 +2,7 @@
 
 Etapa 5.9 · 02/10/2026 · material para decisão de **Daniel** (responsável primário) · detalha o bloco 27 de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md` (nome e número do pacote). **Dependências:** DECISÃO 01 (regra 6: sem vínculo aprovado fica fora da LI), 02 (vínculo só para `exam_code` do catálogo), 04 (regras 16 e 18: customizado não participa automaticamente; item fora do catálogo exige vínculo explícito homologado).
 
-> **NADA DECIDIDO.** Opções e consequências sem recomendação; nada preenchido por legado, nome parecido, categoria, conhecimento geral, inferência clínica ou "parece lógico". Campos DECISÃO, RESPONSÁVEL e DATA vazios. Nenhuma alteração em migration, banco, servidor falso, motor ou UI.
+> **DECIDIDO — Etapa 5.10 (02/10/2026, Daniel).** Decisão metodológica humana registrada abaixo. **Ainda não é**: implementação, migration clínica, alteração do banco real, Aprovação 1, Aprovação 2, homologação ou deploy. Nenhuma fórmula, alias, vínculo, migration ou mapeamento foi criado.
 
 ## Pergunta (como no pacote)
 
@@ -45,12 +45,21 @@ Regra por profissional; vínculo sem fonte; custom alterar a contagem dos 45; eq
 
 ## Campo DECISÃO
 
-DECISÃO: ______
+**DECISÃO (Bloco 27 — exames adicionais/customizados):** exames customizados por profissional (`lab_custom_exams`) são **permitidos como registro factual** (histórico, Evolução por identidade própria, HOLOS AI como fato). Por padrão **não recebem nada relacionado à LI**: sem vínculo a domínio, sem referência metodológica, sem direção, sem participação em cobertura, suficiência, mistos, convergência ou divergência (coerente com DECISÕES 01 regra 6 e 04 regras 16/18).
 
-JUSTIFICATIVA: ______
+**Regras:**
+1. Custom nunca é promovido a exame-base por nome, categoria, semelhança ou uso frequente.
+2. Custom **nunca altera a contagem dos 45** (decisão 68): promoção ao catálogo é decisão de catálogo, por migration, com novo vínculo decidido no Bloco 2 — não é consequência deste bloco.
+3. Nenhuma "equivalência" custom → LAB é vínculo metodológico; se um dia existir, é recurso de busca/Evolução sem efeito na LI.
+4. Regra por profissional não existe na LI: o pacote é global e homologado.
+5. Resultado custom, para a LI, é `li_eligibility_status = not_eligible` com motivo explícito (código a unificar com a lista da DECISÃO 22 na implementação), nunca silencioso.
 
-FONTE: ______ (ou FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR)
+**JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 26–29 e no Documento Mestre (catálogo fechado de 45; nada entra na LI sem vínculo homologado; legado é evidência, não regra; identidade não se presume por nome). Não atribuída ao legado.
 
-RESPONSÁVEL: ______
+**FONTE:** Documento Mestre + decisão autoral V1. FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR onde aplicável; nenhuma citação fabricada.
 
-DATA: ______
+**RESPONSÁVEL:** Daniel (responsável primário). Revisão final de Rodrigo e registro no banco ficam para a homologação do pacote completo.
+
+**DATA:** 02/10/2026.
+
+**Status:** DECIDIDO — não implementado, não registrado no banco, não homologado.

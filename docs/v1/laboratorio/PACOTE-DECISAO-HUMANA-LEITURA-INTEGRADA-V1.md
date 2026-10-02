@@ -817,7 +817,7 @@ DATA: ______
 
 ## BLOCO 26 — Cálculos derivados
 
-> **Etapa 5.9:** material detalhado para decisão em `DECISAO-26-CALCULOS-DERIVADOS-LI.md` (estado atual, Mestre, legado, conflitos, opções, consequências, dependências; sem recomendação). **PENDENTE.**
+> **DECIDIDO — Etapa 5.10 (Daniel, 02/10/2026):** 0 cálculos derivados oficiais na V1; `lab_derived_calculations` vazia; nada calculado nem ativado por componentes; contrato obrigatório para derivado futuro (code, formula, formula_version, inputs, required_units, criteria, source, status, aprovação, referência, vínculo só pelo Bloco 2) e 6 regras; HOMA-IR legado nunca recalculado (`DECISAO-26-CALCULOS-DERIVADOS-LI.md`). Não implementado, não homologado.
 
 **O que decidir.** Se algum cálculo derivado entra na V1 (HOMA-IR, LDL calculado, razões, índices), com fórmula, versão, entradas obrigatórias, unidades exigidas, critérios de validade e fonte; e se o derivado pode receber vínculo a domínio.
 
@@ -835,16 +835,16 @@ DATA: ______
 
 **Bloqueado enquanto aberto.** Qualquer derivado.
 
-DECISÃO: ______
-JUSTIFICATIVA: ______
-RESPONSÁVEL: ______
-DATA: ______
+DECISÃO: registrada em `DECISAO-26-…` (DECIDIDO).
+JUSTIFICATIVA: decisão autoral V1 (ver documento do bloco).
+RESPONSÁVEL: Daniel.
+DATA: 02/10/2026.
 
 ---
 
 ## BLOCO 27 — Exames adicionais/customizados
 
-> **Etapa 5.9:** material detalhado para decisão em `DECISAO-27-EXAMES-ADICIONAIS-CUSTOMIZADOS-LI.md` (estado atual, Mestre, legado, conflitos, opções, consequências, dependências; sem recomendação). **PENDENTE.**
+> **DECIDIDO — Etapa 5.10 (Daniel, 02/10/2026):** custom permitido como registro factual; por padrão não recebe nada da LI (sem vínculo, referência, direção, cobertura); nunca altera os 45; promoção ao catálogo é decisão de catálogo; equivalência custom → LAB não é vínculo (`DECISAO-27-EXAMES-ADICIONAIS-CUSTOMIZADOS-LI.md`). Não implementado, não homologado.
 
 **O que decidir.** Se exames customizados por profissional (`lab_custom_exams`) podem, em algum caso, receber vínculo a domínio ou referência metodológica; ou permanecem registro factual sem leitura.
 
@@ -860,16 +860,16 @@ DATA: ______
 
 **Bloqueado enquanto aberto.** Nada (default (a)).
 
-DECISÃO: ______
-JUSTIFICATIVA: ______
-RESPONSÁVEL: ______
-DATA: ______
+DECISÃO: registrada em `DECISAO-27-…` (DECIDIDO).
+JUSTIFICATIVA: decisão autoral V1 (ver documento do bloco).
+RESPONSÁVEL: Daniel.
+DATA: 02/10/2026.
 
 ---
 
 ## BLOCO 28 — Legado fora dos 45: Candida IgG, VHS, HOMA-IR, Cortisol matinal
 
-> **Etapa 5.9:** material detalhado para decisão em `DECISAO-28-LEGADO-FORA-DOS-45-LI.md` (estado atual, Mestre, legado, conflitos, opções, consequências, dependências; sem recomendação). **PENDENTE.**
+> **DECIDIDO — Etapa 5.10 (Daniel, 02/10/2026):** EXA-001/003/007/024 permanecem `additional_legacy` com 8 regras (preservados; sem vínculo; sem herança do sistema legado; fora da LI com motivo explícito; visíveis no histórico/HOLOS AI/Evolução; catálogo só por decisão própria; sem migração para custom; HOMA-IR legado não recalculado) (`DECISAO-28-LEGADO-FORA-DOS-45-LI.md`). Não implementado, não homologado.
 
 **O que decidir.** Destino desses 4 itens (EXA-001, EXA-003, EXA-007, EXA-024): permanecem `additional_legacy` (histórico visível, sem leitura), entram no catálogo-base por migration (passaria a 46–49, exigindo nova decisão de catálogo), ou viram custom exams da profissional.
 
@@ -885,16 +885,16 @@ DATA: ______
 
 **Bloqueado enquanto aberto.** Nada (default (a)).
 
-DECISÃO: ______
-JUSTIFICATIVA: ______
-RESPONSÁVEL: ______
-DATA: ______
+DECISÃO: registrada em `DECISAO-28-…` (DECIDIDO).
+JUSTIFICATIVA: decisão autoral V1 (ver documento do bloco).
+RESPONSÁVEL: Daniel.
+DATA: 02/10/2026.
 
 ---
 
 ## BLOCO 29 — Insulina de jejum (EXA-006) ↔ Insulina basal (LAB-003)
 
-> **Etapa 5.9:** material detalhado para decisão em `DECISAO-29-INSULINA-DE-JEJUM-EXA-006-INSULINA-BASAL-LAB-003-LI.md` (estado atual, Mestre, legado, conflitos, opções, consequências, dependências; sem recomendação). **PENDENTE.**
+> **DECIDIDO — Etapa 5.10 (Daniel, 02/10/2026):** EXA-006 **não** é alias automático de LAB-003; registros novos usam LAB-003; histórico EXA-006 permanece legado (`requires_manual_mapping`) até mapeamento manual explícito que preserve source_legacy_id, target_exam_code, responsável, data, motivo, proveniência e versão; nenhum alias textual global (`DECISAO-29-INSULINA-DE-JEJUM-EXA-006-INSULINA-BASAL-LAB-003-LI.md`). IDENTIDADE NÃO HOMOLOGADA. Não implementado, não homologado.
 
 **Estado exato da migração (sem decidir).**
 - `motor/bancos/exames.csv`: EXA-006 "Insulina de jejum", sistema `metabolico`, unidade `uUI/mL`.
@@ -917,10 +917,10 @@ DATA: ______
 
 **Bloqueado enquanto aberto.** Uso de EXA-006 em qualquer leitura.
 
-DECISÃO: ______
-JUSTIFICATIVA: ______
-RESPONSÁVEL: ______
-DATA: ______
+DECISÃO: registrada em `DECISAO-29-…` (DECIDIDO).
+JUSTIFICATIVA: decisão autoral V1 (ver documento do bloco).
+RESPONSÁVEL: Daniel.
+DATA: 02/10/2026.
 
 ---
 
@@ -955,6 +955,45 @@ DATA: 02/10/2026.
 **O que continua aberto:** todo o conteúdo (blocos 1–29). Até ser decidido e levado ao pacote por migration versionada, `LI-V1@1` permanece em `rascunho`, incompleto, e **Homologar** fica bloqueado.
 
 ---
+
+
+## Anexo B — Status dos 29 blocos (Etapa 5.10)
+
+Significado dos status: **DECIDIDO** = decisão completa registrada; **ARQUITETURA DECIDIDA / PARÂMETROS PENDENTES** = a forma da regra está decidida, os valores por domínio não; **PARCIALMENTE DECIDIDO** = parte da decisão registrada, parte expressamente em aberto. Bloco 30 (governança) fechado tecnicamente na Etapa 5.2. Nenhum bloco está registrado no banco, aprovado ou homologado.
+
+| Bloco | Nome | Status | Decidido por | Data (Etapa) | Pendência restante | Bloqueia implementação |
+|---|---|---|---|---|---|---|
+| 1 | Domínios oficiais da Leitura Integrada | **DECIDIDO** | Daniel | 02/10/2026 (5.4) | — | não |
+| 2 | Relação exame/variante/material → domínio | **DECIDIDO** | Daniel | 02/10/2026 (5.5) | variante/material/método por vínculo declarados na implementação (regras já decididas) | não |
+| 3 | Qual aplicação HOLOSCAN é elegível | **DECIDIDO** | Daniel | 02/10/2026 (5.6) | — | não |
+| 4 | Quais coletas são elegíveis | **DECIDIDO** | Daniel | 02/10/2026 (5.6) | — | não |
+| 5 | Janela temporal entre aplicação e coleta | **PARCIALMENTE DECIDIDO** | Daniel | 02/10/2026 (5.6) | **valor/regra temporal exata** (formato e dias) | **sim** |
+| 6 | Política para múltiplas coletas na janela | **DECIDIDO** | Daniel | 02/10/2026 (5.6) | — | não |
+| 7 | Referência laboratorial elegível (do laudo) | **DECIDIDO** | Daniel | 02/10/2026 (5.7) | — | não |
+| 8 | Referência metodológica elegível | **ARQUITETURA DECIDIDA** | Daniel | 02/10/2026 (5.7) | conteúdo (quais referências, limites, fontes) — opcional: 0 referências é estado válido | não |
+| 9 | Política quando não há referência | **DECIDIDO** | Daniel | 02/10/2026 (5.7) | — | não |
+| 10 | Conversões de unidade permitidas | **ARQUITETURA DECIDIDA** | Daniel | 02/10/2026 (5.7) | conteúdo (quais conversões) — opcional: 0 conversões é estado válido | não |
+| 11 | Compatibilidade de variante | **DECIDIDO** | Daniel | 02/10/2026 (5.7) | — | não |
+| 12 | Compatibilidade de material | **DECIDIDO** | Daniel | 02/10/2026 (5.7) | — | não |
+| 13 | Compatibilidade de método | **DECIDIDO** | Daniel | 02/10/2026 (5.7) | — | não |
+| 14 | Resultados qualitativos | **DECIDIDO** | Daniel | 02/10/2026 (5.8) | regras qualitativas por exame — opcional: 0 regras é estado válido | não |
+| 15 | Resultados censurados | **DECIDIDO** | Daniel | 02/10/2026 (5.8) | — | não |
+| 16 | Suficiência mínima por domínio | **ARQUITETURA DECIDIDA / PARÂMETROS PENDENTES** | Daniel | 02/10/2026 (5.8) | **parâmetros por domínio** (cobertura, obrigatórios, critério) | **sim** |
+| 17 | Número/conjunto mínimo de exames | **ARQUITETURA DECIDIDA / PARÂMETROS PENDENTES** | Daniel | 02/10/2026 (5.8) | **valores por domínio** (min_classifiable_results, required_exam_codes, required_exam_groups) | **sim** |
+| 18 | Tratamento de exames ausentes | **DECIDIDO** | Daniel | 02/10/2026 (5.8) | — | não |
+| 19 | Tratamento de resultados mistos | **ARQUITETURA DECIDIDA / PARÂMETROS PENDENTES** | Daniel | 02/10/2026 (5.8) | **regra de mistos por domínio** | **sim** |
+| 20 | Regra formal de CONVERGENTE | **ARQUITETURA DECIDIDA / PARÂMETROS PENDENTES** | Daniel | 02/10/2026 (5.9) | **tabela domínio → sistema(s) HOLOSCAN + regra de direção** | **sim** |
+| 21 | Regra formal de DIVERGENTE | **ARQUITETURA DECIDIDA / PARÂMETROS PENDENTES** | Daniel | 02/10/2026 (5.9) | **mesma tabela e regras de direção** | **sim** |
+| 22 | Regra formal de SEM DADOS SUFICIENTES | **DECIDIDO** | Daniel | 02/10/2026 (5.9) | — | não |
+| 23 | Textos exibidos à profissional | **DECIDIDO (estrutura + textos-base)** | Daniel | 02/10/2026 (5.9) | textos por domínio só se necessários — opcional | não |
+| 24 | Textos exibidos ao paciente | **DECIDIDO (estrutura + textos-base)** | Daniel | 02/10/2026 (5.9) | tabela de tradução de motivos (reason_code → texto simples) — necessária antes de exibir ao paciente | não (bloqueia só a exibição ao paciente) |
+| 25 | Comparabilidade longitudinal da própria LI | **DECIDIDO** | Daniel | 02/10/2026 (5.9) | — | não |
+| 26 | Cálculos derivados | **DECIDIDO** | Daniel | 02/10/2026 (5.10) | — | não |
+| 27 | Exames adicionais/customizados | **DECIDIDO** | Daniel | 02/10/2026 (5.10) | — | não |
+| 28 | Legado fora dos 45 | **DECIDIDO** | Daniel | 02/10/2026 (5.10) | — | não |
+| 29 | Insulina de jejum (EXA-006) ↔ Insulina basal (LAB-003) | **DECIDIDO** | Daniel | 02/10/2026 (5.10) | mapeamento manual do histórico (ato operacional posterior, não bloqueia) | não |
+
+**Resumo:** 21 DECIDIDOS (1–4, 6, 7, 9, 11–15, 18, 22–29; 23/24 com estrutura + textos-base), 7 com arquitetura decidida e parâmetros pendentes (8, 10, 16, 17, 19, 20, 21; 8 e 10 não bloqueiam), 1 parcialmente decidido (5). **Bloqueiam a implementação: 5, 16, 17, 19, 20, 21** — consolidados em `PACOTE-FINAL-PENDENCIAS-EXECUTAVEIS-LI-V1.md`.
 
 ## Anexo A — Contagens da Etapa 5 (resolução documental)
 

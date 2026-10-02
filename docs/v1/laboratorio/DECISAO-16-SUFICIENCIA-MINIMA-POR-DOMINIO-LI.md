@@ -1,6 +1,6 @@
 # DECISÃO 16 — SUFICIÊNCIA MÍNIMA POR DOMÍNIO
 
-Etapa 5.7 · 02/10/2026 · material para decisão de **Daniel** (responsável primário) · detalha o bloco 16 de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md` (nome e número do pacote). Depende das DECISÕES 01 (domínios), 02 (vínculos: D01 8 · D02 3 · D03 5 · D04 4 · D05 4 · D06 13 · D07 10 pares), 04, 06, 09.
+Etapa 5.7 · 02/10/2026 · material para decisão de **Daniel** (responsável primário) · detalha o bloco 16 de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md` (nome e número do pacote). Depende das DECISÕES 01 (domínios), 02 (vínculos: D01 7 · D02 3 · D03 5 · D04 4 · D05 4 · D06 12 · D07 12 = 47 pares; contagem corrigida na Etapa 5.10 a partir da matriz), 04, 06, 09.
 
 > **ARQUITETURA DECIDIDA / PARÂMETROS POR DOMÍNIO PENDENTES — Etapa 5.8 (02/10/2026, Daniel).** Decisão metodológica humana registrada abaixo. **Ainda não é**: implementação, migration clínica, alteração de banco, aprovação formal, homologação ou deploy. Nenhuma regra concreta, corte, peso ou lista foi criado.
 
