@@ -2,7 +2,7 @@
 
 Etapa 5.12 · 02/10/2026 · decisão humana de **Daniel** (responsável primário) · fecha o nível **mapeamento domínio → HOLOSCAN** dos Blocos 20 (CONVERGENTE) e 21 (DIVERGENTE) do `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md`. Preparação em `MATRIZ-DECISAO-DOMINIOS-LI-HOLOSCAN-V1.md` (Etapa 5.11).
 
-> **ARQUITETURA + MAPEAMENTO DOMÍNIO→HOLOSCAN DECIDIDOS — Etapa 5.12 (Daniel, 02/10/2026).** O estado final CONVERGENTE/DIVERGENTE **ainda depende** dos Blocos 16 (suficiência), 17 (mínimos/conjuntos/grupos) e 19 (resultados mistos). **O motor LI não está completo.** Nada implementado, nenhuma migration, nenhuma aprovação, nada homologado. Nenhum vínculo da DECISÃO 02 alterado; nenhum corte novo criado.
+> **ARQUITETURA + MAPEAMENTO DOMÍNIO→HOLOSCAN DECIDIDOS — Etapa 5.12 (Daniel, 02/10/2026).** As dependências metodológicas dos Blocos 16 (suficiência), 17 (mínimos/conjuntos/grupos) e 19 (resultados mistos) foram **resolvidas na Etapa 5.13**. **O motor LI não está implementado.** Nada implementado, nenhuma migration, nenhuma aprovação, nada homologado. Nenhum vínculo da DECISÃO 02 alterado; nenhum corte novo criado.
 
 ## 1. Regra transversal 20/21-A — direção HOLOSCAN (aprovada por Daniel)
 
@@ -116,7 +116,7 @@ A ausência de sistema em D05/D06/D07 **não é erro técnico**: é decisão met
 | 20 — CONVERGENTE | **ARQUITETURA + MAPEAMENTO DOMÍNIO→HOLOSCAN DECIDIDOS** |
 | 21 — DIVERGENTE | **ARQUITETURA + MAPEAMENTO DOMÍNIO→HOLOSCAN DECIDIDOS** |
 
-O estado final CONVERGENTE/DIVERGENTE ainda depende dos Blocos **16, 17 e 19**. **Não declarar o motor LI completo.** 20/21 não são executáveis sem 16/17/19.
+Dependências metodológicas dos Blocos **16, 17 e 19 resolvidas na Etapa 5.13** (`DECISAO-16`, `DECISAO-17`, `DECISAO-19`). A metodologia dos Blocos 20/21 está completa no nível documental. **O motor LI não está implementado**; gates técnicos/operacionais continuam pendentes (Bloco 30).
 
 ## 8. Campo DECISÃO
 
@@ -130,4 +130,4 @@ O estado final CONVERGENTE/DIVERGENTE ainda depende dos Blocos **16, 17 e 19**. 
 
 **DATA:** 02/10/2026.
 
-**Status:** ARQUITETURA + MAPEAMENTO DOMÍNIO→HOLOSCAN DECIDIDOS — estado final depende de 16/17/19; não implementado, não registrado no banco, não homologado.
+**Status:** ARQUITETURA + MAPEAMENTO DOMÍNIO→HOLOSCAN DECIDIDOS; dependências 16/17/19 resolvidas na Etapa 5.13 — não implementado, não registrado no banco, não homologado.

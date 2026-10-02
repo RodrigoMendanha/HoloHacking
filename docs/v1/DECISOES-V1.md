@@ -590,6 +590,31 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
 138. **Status 20/21**: ARQUITETURA + MAPEAMENTO DOMÍNIO→HOLOSCAN DECIDIDOS; estado final CONVERGENTE/DIVERGENTE
     depende de 16, 17 e 19. **Motor LI não completo.** Bloqueadores metodológicos restantes: 16, 17, 19.
 
+### Etapa 5.13 — Blocos 16, 17 e 19 fechados: suficiência, mínimos/grupos e resultados mistos (02/10/2026)
+
+139. **Suficiência por domínio (DECISÃO 16, DECIDIDO)**: suficiência cross-source usa somente vínculos
+    `cross_source_role = directional`; contextual não aumenta cobertura, não substitui obrigatório, não torna
+    suficiente, não cria direção nem convergência/divergência (segue visível, classificável, rastreável);
+    nenhum percentual global (50/60/70/80/100%); `cross_source_sufficiency_mode` rule_based (D01–D04) ou
+    not_applicable (D05–D07); `lab_domain_availability` ≠ `cross_source_sufficiency`.
+140. **Mínimos, obrigatórios e grupos (DECISÃO 17, DECIDIDO)**: D01 min 1, LAB-016 PCR obrigatória, LAB-018
+    opcional; D02 min 2 + grupo GLYCEMIC_ANCHOR = LAB-002 OU LAB-004 (insulina nunca resolve sozinha); D03 min 2,
+    LAB-005 e LAB-009 obrigatórios; D04 min 2, LAB-013 e LAB-015 obrigatórios; D05/D06/D07 null/[]/[]
+    (not_applicable; não é insuficiência nem `missing_domain_holoscan_mapping`). Exame obrigatório ausente ou
+    não classificável → SEM DADOS SUFICIENTES com reason code da causa real.
+141. **Resultados mistos (DECISÃO 19, DECIDIDO)**: sem maioria, média, score, peso, "um vence", contagem ou
+    percentual de alterados; só directional elegíveis/classificáveis/suficientes/temporalmente compatíveis;
+    unanimidade → present ou not_detected; mistura → `indeterminate`; `indeterminate` nunca produz
+    CONVERGENTE/DIVERGENTE → SEM DADOS SUFICIENTES (`mixed_without_rule` ou código mais específico); D01 PCR
+    decide sozinha quando só ela é classificável, PCR + fibrinogênio por unanimidade, fibrinogênio indeterminate
+    não invalida a PCR; D02 agrega só os directional classificáveis após a suficiência; D03/D04 unanimidade dos
+    dois obrigatórios; D05/D06/D07 not_applicable; ordem conceitual de 11 passos preservando 20/21.
+142. **Estado da metodologia LI após 5.13**: blocos 16, 17, 19 DECIDIDOS; 20/21 com dependências resolvidas;
+    **0 bloqueadores metodológicos** para definir o motor oficial da LI. Continuam pendentes (operacional/
+    técnico): implementação, migrations, validação da cadeia real, approvers reais, auth.uid de Daniel e Rodrigo,
+    Aprovação 1, Aprovação 2, Homologar, content_hash final, testes de implementação, deploy. Nada implementado;
+    nada homologado; matriz 20/21 e contagens (45/42/3/47/5; 7/3/5/4/4/12/12) inalteradas.
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`
@@ -629,11 +654,11 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
   **DECIDIDAS na Etapa 4.2** (itens 52–66). Pendente só a **publicação técnica**: validar a
   cadeia 130000→210000 no banco real, registrar a Aprovação 1 (Daniel) e a Aprovação 2 (Rodrigo)
   sobre o mesmo pacote, versão e hash, e então homologar o HOLOS-V1@2 (item 67).
-- **Leitura Integrada** — a Etapa 5 entregou a **infraestrutura** (itens 82–84); as decisões humanas
-  dos blocos 1–29 foram registradas nas Etapas 5.4–5.10 (itens 88–129); continuam pendentes **somente** os
-  parâmetros executáveis: janela temporal (5), suficiência e mínimos por domínio (16/17), mistos por domínio (19),
-  domínio → sistema(s) HOLOSCAN e direção (20/21) — `docs/v1/laboratorio/PACOTE-FINAL-PENDENCIAS-EXECUTAVEIS-LI-V1.md`;
-  a governança (quem aprova) foi fechada tecnicamente na Etapa 5.2 (item 87). (Mestre §24)
+- **Leitura Integrada** — a Etapa 5 entregou a **infraestrutura** (itens 82–84); as decisões humanas dos blocos
+  1–29 foram registradas nas Etapas 5.4–5.13 (itens 88–142): **0 bloqueadores metodológicos**. Pendente só o
+  operacional/técnico (grupo B de `docs/v1/laboratorio/PACOTE-FINAL-PENDENCIAS-EXECUTAVEIS-LI-V1.md`): implementação
+  em lote, migrations, cadeia real, approvers reais, Aprovação 1, Aprovação 2, Homologar, deploy; a governança
+  (quem aprova) foi fechada tecnicamente na Etapa 5.2 (item 87). (Mestre §24)
 - **Regras de sugestão de ferramentas** — nenhuma das 23 REC nem SEL-001 é aprovada; a Etapa 4.2
   decidiu que nenhuma sugestão automática é oficial na V1 (item 65). (Mestre §29)
 - **Conteúdo mínimo para "Concluir" uma ferramenta** — a guarda técnica da Rodada 08

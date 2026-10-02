@@ -2,7 +2,7 @@
 
 Etapa 5.7 · 02/10/2026 · material para decisão de **Daniel** (responsável primário) · detalha o bloco 19 de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md` (nome e número do pacote). Depende das DECISÕES 02 (direções), 09, 14, 15 e dos blocos 16–18.
 
-> **ARQUITETURA CONSERVADORA DECIDIDA / REGRA ESPECÍFICA POR DOMÍNIO PENDENTE — Etapa 5.8 (02/10/2026, Daniel).** Decisão metodológica humana registrada abaixo. **Ainda não é**: implementação, migration clínica, alteração de banco, aprovação formal, homologação ou deploy. Nenhuma regra concreta, corte, peso ou lista foi criado.
+> **DECIDIDO — Etapa 5.8 (arquitetura conservadora) e 5.13 (regras por domínio), Daniel, 02/10/2026.** Regra geral de agregação (unanimidade; mistura → `indeterminate`; `indeterminate` nunca vira convergente/divergente) e regras D01–D04 registradas abaixo; D05/D06/D07 `not_applicable`. **Ainda não é**: implementação, migration, alteração do banco real, Aprovação 1, Aprovação 2, homologação ou deploy. O motor LI não está implementado.
 
 ## Pergunta (como no pacote)
 
@@ -46,22 +46,37 @@ Três eixos independentes por resultado: `classification_status` · `li_eligibil
 
 ## Campo DECISÃO
 
-**DECISÃO (Bloco 19 — resultados mistos, arquitetura conservadora):**
+**DECISÃO (Bloco 19 — resultados mistos): DECIDIDO.**
 
-**Proibido:** maioria simples automática; média de exames heterogêneos; score laboratorial global; "um alterado vence os normais"; "a maioria normal vence o alterado"; normalizar `not_classifiable` como `within`.
+**Princípio geral.** A V1 **não** usa: maioria simples; média; score laboratorial; peso por exame; "um alterado vence"; "um normal vence"; contagem bruta de alterados; percentual de exames alterados. A direção laboratorial usa **somente** resultados `directional` que sejam elegíveis, classificáveis, integrem a regra de suficiência (Blocos 16/17), estejam temporalmente compatíveis (LI-TEMP-01 v1) e tenham referência/unidade/contexto válidos.
 
-- Resultado misto pode envolver combinações de `below`, `within`, `above`, `not_classifiable`.
-- A regra para interpretar mistura é **própria do domínio, versionada e homologada**.
-- Enquanto a regra do domínio não existir: `reason_code = mixed_without_rule`, estado = `sem_dados_suficientes`.
-- Um único exame fora da referência **não** produz automaticamente convergente ou divergente.
-- `not_classifiable` **não** conta como "normal" para resolver mistura.
-- **Não criar score laboratorial global.**
+**Três direções internas.** Cada resultado directional elegível fornece `attention_present`, `attention_not_detected` ou `indeterminate`. A direção agregada do domínio (`laboratory_direction`) é uma dessas três.
 
-Consequência técnica: a política `majority` existente no motor **não** pode ser usada como default; cada domínio exigirá regra `mixed` própria com contrato declarado; o motivo passa a `mixed_without_rule`.
+**Regra geral de agregação (unanimidade).** Se **todos** os resultados directional considerados pela regra do domínio apontarem `attention_present` → `laboratory_direction = attention_present`. Se **todos** apontarem `attention_not_detected` → `attention_not_detected`. Se existir **mistura** entre `attention_present` e `attention_not_detected` → `indeterminate`. **Não resolver por maioria.**
 
-**Pendência:** **REGRAS ESPECÍFICAS POR DOMÍNIO (D01…D07).** Nenhuma definida.
+**Indeterminate não é divergente.** Se `laboratory_direction = indeterminate`, o motor **não** pode produzir CONVERGENTE nem DIVERGENTE. Estado oficial: SEM DADOS SUFICIENTES, reason code `mixed_without_rule` ou reason code mais específico quando o `indeterminate` vier de regra específica já aprovada para o exame.
 
-**JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 14–19 e no Documento Mestre (dado bruto preservado; misto sem regra = sem dados suficientes; nenhuma inferência sem regra homologada). Não atribuída ao legado.
+### Regras por domínio
+
+**D01 (PCR obrigatória).** CASO 1: somente PCR classificável e suficiência satisfeita → direção do D01 = direção da PCR. CASO 2: PCR + Fibrinogênio classificáveis → present + present → `attention_present`; not_detected + not_detected → `attention_not_detected`; present + not_detected ou not_detected + present → `indeterminate`. **Fibrinogênio indeterminate:** se a PCR possui direção determinística e o Fibrinogênio resulta `indeterminate` por condição já prevista (ex.: direção não aplicável ao confronto, `below`), o fibrinogênio **não** invalida automaticamente a suficiência mínima já satisfeita pela PCR. Resultado `indeterminate` opcional não substitui nem necessariamente bloqueia o exame obrigatório classificável; mas `indeterminate` **nunca** é contado como atenção presente ou não detectada.
+
+**D02.** Primeiro validar a suficiência (mínimo 2 classificáveis e LAB-002 OU LAB-004 presente). Depois agregar **apenas** os resultados directional classificáveis que participam daquela leitura: todos present → `attention_present`; todos not_detected → `attention_not_detected`; qualquer mistura present/not_detected → `indeterminate`. Insulina nunca decide isoladamente.
+
+**D03 (LAB-005 + LAB-009 obrigatórios).** present + present → `attention_present`; not_detected + not_detected → `attention_not_detected`; present + not_detected ou not_detected + present → `indeterminate`.
+
+**D04 (LAB-013 + LAB-015 obrigatórios).** present + present → `attention_present`; not_detected + not_detected → `attention_not_detected`; present + not_detected ou not_detected + present → `indeterminate`.
+
+**D05 / D06 / D07.** `mixed_rule = not_applicable`. Não existe direção laboratorial cross-source para comparação com HOLOSCAN nesses domínios. Isso **não** impede classificação individual de exames, visualização, histórico ou comentário profissional.
+
+### Ordem conceitual de avaliação (preserva DECISÕES 20/21 e a precedência da Etapa 5.9)
+
+1. validar fonte HOLOSCAN quando aplicável; 2. validar versão compatível; 3. validar temporalidade (LI-TEMP-01 v1); 4. validar vínculos; 5. validar resultados selecionados; 6. validar referência/unidade/contexto; 7. aplicar suficiência do domínio (16/17); 8. aplicar regra de resultados mistos (19); 9. derivar `laboratory_direction`; 10. derivar `holoscan_direction` (Regra 20/21-A); 11. somente então avaliar CONVERGENTE/DIVERGENTE (DECISÕES 20/21).
+
+### SEM DADOS SUFICIENTES
+
+Usar quando: exame obrigatório ausente; mínimo não atingido; grupo obrigatório não atendido; referência necessária ausente; ambiguidade impede classificação; unidade incompatível; data clínica ausente; fora da janela; duplicidade não resolvida; resultado misto produz direção indeterminada; qualquer outra razão já homologada impedir direção determinística. **Não usar** para D05/D06/D07 apenas porque não possuem confronto HOLOSCAN: nesses domínios `cross_source_sufficiency = not_applicable`.
+
+**JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 16–21 e no Documento Mestre (um exame isolado não resolve; nenhum percentual global; nenhuma maioria/média/score; misto sem resolução determinística = sem dados suficientes). Não atribuída ao legado.
 
 **FONTE:** Documento Mestre + decisão autoral V1. FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR onde aplicável; nenhuma citação fabricada.
 
@@ -69,4 +84,4 @@ Consequência técnica: a política `majority` existente no motor **não** pode 
 
 **DATA:** 02/10/2026.
 
-**Status:** ARQUITETURA CONSERVADORA DECIDIDA / REGRA ESPECÍFICA POR DOMÍNIO PENDENTE — não implementado, não registrado no banco, não homologado.
+**Status:** DECIDIDO — não implementado, não registrado no banco, não homologado.

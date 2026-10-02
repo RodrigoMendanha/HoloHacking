@@ -2,7 +2,7 @@
 
 Etapa 5.7 · 02/10/2026 · material para decisão de **Daniel** (responsável primário) · detalha o bloco 17 de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md` (nome e número do pacote). Depende das DECISÕES 02 e do bloco 16.
 
-> **ARQUITETURA DECIDIDA / VALORES POR DOMÍNIO PENDENTES — Etapa 5.8 (02/10/2026, Daniel).** Decisão metodológica humana registrada abaixo. **Ainda não é**: implementação, migration clínica, alteração de banco, aprovação formal, homologação ou deploy. Nenhuma regra concreta, corte, peso ou lista foi criado.
+> **DECIDIDO — Etapa 5.8 (arquitetura) e 5.13 (valores por domínio), Daniel, 02/10/2026.** Mínimos, exames obrigatórios e grupos obrigatórios registrados abaixo. **Ainda não é**: implementação, migration, alteração do banco real, Aprovação 1, Aprovação 2, homologação ou deploy. O motor LI não está implementado.
 
 ## Pergunta (como no pacote)
 
@@ -47,19 +47,25 @@ Três eixos independentes por resultado: `classification_status` · `li_eligibil
 
 ## Campo DECISÃO
 
-**DECISÃO (Bloco 17 — número/conjunto mínimo, arquitetura):** a suficiência de um domínio poderá ser definida por (A) quantidade mínima de resultados classificáveis; (B) conjunto obrigatório de exames; (C) grupo obrigatório; (D) combinação de quantidade + conjunto/grupo. Contrato conceitual: `min_classifiable_results`, `required_exam_codes`, `required_exam_groups` — **campos não implementados**.
+**DECISÃO (Bloco 17 — mínimos, conjuntos e grupos obrigatórios): DECIDIDO.** Regras de contagem da Etapa 5.8 mantidas (hemograma = 1 posição; componentes não inflam; repetido = 1 posição; multi-domínio conta 1× por domínio; não classificável não conta; pesos não assumidos). Contam para os mínimos **somente** resultados de vínculos `directional` elegíveis e classificáveis; `contextual` **não** conta para a suficiência cross-source na V1 (poderá contar apenas se uma regra futura e versionada do domínio o determinar).
 
-**Regras de contagem:**
-1. Hemograma completo conta como **um** exame-base para cobertura.
-2. Componentes internos do hemograma **não** inflam a suficiência.
-3. Mesmo `exam_code` + `variant` medido várias vezes **não** cria várias posições de cobertura; depois da seleção explícita do `result_id` aplicável (DECISÃO 06), ocupa **uma** posição metodológica.
-4. Exame multi-domínio pode contribuir **uma vez em cada domínio** ao qual possui vínculo oficial (não duplica o exame no prontuário nem na contagem global dos 45).
-5. Exame não classificável **não** conta automaticamente como resultado classificável.
-6. **Não assumir** que todos os exames têm o mesmo peso de suficiência (pesos, se existirem, são decisão com fonte — nenhum criado).
+| Domínio | min_classifiable_results | required_exam_codes (obrigatórios) | required_exam_groups | optional_directional_exam_codes |
+|---|---|---|---|---|
+| LI-D01 | 1 | LAB-016 | — | LAB-018 |
+| LI-D02 | 2 | — | GLYCEMIC_ANCHOR = {LAB-002 OU LAB-004} (pelo menos um) | — |
+| LI-D03 | 2 | LAB-005, LAB-009 | — | — |
+| LI-D04 | 2 | LAB-013, LAB-015 | — | — |
+| LI-D05 | null | [] | [] | — |
+| LI-D06 | null | [] | [] | — |
+| LI-D07 | null | [] | [] | — |
 
-**Pendência:** **PARÂMETROS CONCRETOS POR DOMÍNIO** (quantidades, conjuntos, grupos). Nenhum valor definido.
+**Grupo GLYCEMIC_ANCHOR (D02):** obrigatório possuir pelo menos 2 resultados directional classificáveis **e** pelo menos um deles ser LAB-002 ou LAB-004. LAB-003 Insulina basal nunca resolve D02 isoladamente.
 
-**JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 14–19 e no Documento Mestre (dado bruto preservado; misto sem regra = sem dados suficientes; nenhuma inferência sem regra homologada). Não atribuída ao legado.
+**Exame obrigatório ausente ou não classificável:** SEM DADOS SUFICIENTES com reason code conforme a causa real (`missing_required_exam`, `missing_reference`, `ambiguous_reference`, `incompatible_unit`, `outside_time_window`, `missing_clinical_date`, `duplicate_result_unresolved` etc.). Nenhum contextual substitui exame obrigatório.
+
+**D05/D06/D07:** `cross_source_sufficiency_mode = not_applicable`; valores nulos/vazios não significam insuficiência nem `missing_domain_holoscan_mapping`.
+
+**JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 16–21 e no Documento Mestre (um exame isolado não resolve; nenhum percentual global; nenhuma maioria/média/score; misto sem resolução determinística = sem dados suficientes). Não atribuída ao legado.
 
 **FONTE:** Documento Mestre + decisão autoral V1. FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR onde aplicável; nenhuma citação fabricada.
 
@@ -67,4 +73,4 @@ Três eixos independentes por resultado: `classification_status` · `li_eligibil
 
 **DATA:** 02/10/2026.
 
-**Status:** ARQUITETURA DECIDIDA / VALORES POR DOMÍNIO PENDENTES — não implementado, não registrado no banco, não homologado.
+**Status:** DECIDIDO — não implementado, não registrado no banco, não homologado.

@@ -535,7 +535,7 @@ DATA: ______
 
 ## BLOCO 16 — Suficiência mínima por domínio
 
-> **ARQUITETURA DECIDIDA / PARÂMETROS POR DOMÍNIO PENDENTES — Etapa 5.8 (Daniel, 02/10/2026):** regra própria, explícita e versionada por domínio, declarando vínculos aplicáveis, encontrados, elegíveis, classificáveis, excluídos (com motivos), cobertura, obrigatórios e critério; sem corte universal (não 50/70/80/100%, 1 ou 2 exames); sem suficiência global; sem regra → sem dados suficientes (`DECISAO-16-SUFICIENCIA-MINIMA-POR-DOMINIO-LI.md`). Não implementado, não homologado.
+> **DECIDIDO — Etapas 5.8 e 5.13 (Daniel, 02/10/2026):** arquitetura da 5.8 mantida; parâmetros por domínio (5.13): suficiência cross-source só com vínculos `directional`; sem percentual global; `cross_source_sufficiency_mode` rule_based (D01–D04) / not_applicable (D05–D07); D01 PCR obrigatória (min 1, LAB-018 opcional); D02 min 2 + grupo GLYCEMIC_ANCHOR {LAB-002 OU LAB-004}; D03 LAB-005 + LAB-009 obrigatórios; D04 LAB-013 + LAB-015 obrigatórios; `lab_domain_availability` ≠ `cross_source_sufficiency` (`DECISAO-16-SUFICIENCIA-MINIMA-POR-DOMINIO-LI.md`). Não implementado, não homologado.
 
 **O que decidir.** A partir de quantos resultados classificáveis (ou de qual fração dos exames vinculados) um domínio é avaliável. **Valor em branco.**
 
@@ -557,18 +557,18 @@ DATA: ______
 
 **Consequência matemática.** Com N resultados classificáveis incluídos: (A)/(B) avaliável se `N ≥ min`; (C) avaliável se `N / vinculados ≥ fração`; (D) avaliável se todos os obrigatórios presentes e `N ≥ min`. Se não avaliável → `sem_dados_suficientes` (com `sufficiency` no trace). Um domínio com 1 exame vinculado e `min = 1` reproduz o legado — **isto precisa ser uma decisão explícita, não herança**.
 
-**Bloqueado enquanto aberto.** Qualquer estado diferente de `sem_dados_suficientes`.
+**Bloqueado enquanto aberto.** Nada (decidido na Etapa 5.13).
 
-DECISÃO: ______ (arquitetura: ______ · valor: ______)
-JUSTIFICATIVA: ______
-RESPONSÁVEL: ______
-DATA: ______
+DECISÃO: ver `DECISAO-16-…` (directional only; sem percentual global; rule_based D01–D04, not_applicable D05–D07).
+JUSTIFICATIVA: decisão autoral V1.
+RESPONSÁVEL: Daniel.
+DATA: 02/10/2026.
 
 ---
 
 ## BLOCO 17 — Número/conjunto mínimo de exames
 
-> **ARQUITETURA DECIDIDA / VALORES POR DOMÍNIO PENDENTES — Etapa 5.8 (Daniel, 02/10/2026):** suficiência por quantidade, conjunto, grupo ou combinação (`min_classifiable_results`, `required_exam_codes`, `required_exam_groups`, conceituais); hemograma = 1; componentes não inflam; mesmo exame+variante repetido = 1 posição após seleção do result_id; multi-domínio conta 1× em cada domínio; não classificável não conta como classificável; pesos não assumidos iguais (`DECISAO-17-NUMERO-CONJUNTO-MINIMO-DE-EXAMES-LI.md`). Não implementado, não homologado.
+> **DECIDIDO — Etapas 5.8 e 5.13 (Daniel, 02/10/2026):** regras de contagem da 5.8 mantidas; valores (5.13): D01 min 1, obrigatório LAB-016, opcional LAB-018; D02 min 2, grupo GLYCEMIC_ANCHOR = LAB-002 OU LAB-004, insulina nunca decide sozinha; D03 min 2, obrigatórios LAB-005 e LAB-009; D04 min 2, obrigatórios LAB-013 e LAB-015; D05/D06/D07 null/[]/[] (not_applicable); contextual não conta para a suficiência cross-source (`DECISAO-17-NUMERO-CONJUNTO-MINIMO-DE-EXAMES-LI.md`). Não implementado, não homologado.
 
 **O que decidir.** Se, além da contagem (bloco 16), há exames **obrigatórios** por domínio (sem os quais o domínio não é avaliável) e qual é esse conjunto.
 
@@ -586,12 +586,12 @@ DATA: ______
 
 **Consequência.** (b) domínio sem o obrigatório → `sem_dados_suficientes` mesmo com N alto.
 
-**Bloqueado enquanto aberto.** Nada tecnicamente (default (a)).
+**Bloqueado enquanto aberto.** Nada (decidido na Etapa 5.13).
 
-DECISÃO: ______
-JUSTIFICATIVA: ______
-RESPONSÁVEL: ______
-DATA: ______
+DECISÃO: ver `DECISAO-17-…` (mínimos, obrigatórios e grupos por domínio).
+JUSTIFICATIVA: decisão autoral V1.
+RESPONSÁVEL: Daniel.
+DATA: 02/10/2026.
 
 ---
 
@@ -613,18 +613,18 @@ DATA: ______
 
 **Consequência.** (b) transparência sem efeito no estado; (c) efeito direto na suficiência.
 
-**Bloqueado enquanto aberto.** Nada tecnicamente (default (a)).
+**Bloqueado enquanto aberto.** Nada (decidido na Etapa 5.13).
 
-DECISÃO: ______
-JUSTIFICATIVA: ______
-RESPONSÁVEL: ______
-DATA: ______
+DECISÃO: ver `DECISAO-17-…` (mínimos, obrigatórios e grupos por domínio).
+JUSTIFICATIVA: decisão autoral V1.
+RESPONSÁVEL: Daniel.
+DATA: 02/10/2026.
 
 ---
 
 ## BLOCO 19 — Tratamento de resultados mistos
 
-> **ARQUITETURA CONSERVADORA DECIDIDA / REGRAS POR DOMÍNIO PENDENTES — Etapa 5.8 (Daniel, 02/10/2026):** proibidos maioria simples automática, média heterogênea, score global, "um alterado vence", "maioria normal vence", not_classifiable como within; regra própria por domínio, versionada; sem regra → `mixed_without_rule` / sem dados suficientes; um exame fora não converge (`DECISAO-19-TRATAMENTO-DE-RESULTADOS-MISTOS-LI.md`). Não implementado, não homologado.
+> **DECIDIDO — Etapas 5.8 e 5.13 (Daniel, 02/10/2026):** proibições da 5.8 mantidas (sem maioria, média, score, peso, "um vence", contagem/percentual de alterados); regra geral (5.13): unanimidade dos directional considerados → present ou not_detected; mistura → `indeterminate`; `indeterminate` nunca produz convergente/divergente → SEM DADOS SUFICIENTES (`mixed_without_rule` ou código mais específico); D01 PCR decide sozinha quando só ela é classificável, PCR + Fibrinogênio por unanimidade, fibrinogênio indeterminate não bloqueia a PCR; D02 agrega só os directional classificáveis após suficiência; D03 e D04 unanimidade dos 2 obrigatórios; D05/D06/D07 not_applicable; ordem conceitual de 11 passos (`DECISAO-19-TRATAMENTO-DE-RESULTADOS-MISTOS-LI.md`). Não implementado, não homologado.
 
 **O que decidir.** Quando, no mesmo domínio, há resultados "fora" e "dentro": como se define "laboratório alterado". Política: qualquer fora; maioria; fração; só direção relevante; insuficiente (não decide).
 
@@ -644,12 +644,12 @@ DATA: ______
 
 **Consequência.** (a) mais `sem dados`; (b) depende de N; (c) reproduz o legado; (d)/(e) exigem definição de denominador e direção.
 
-**Bloqueado enquanto aberto.** Qualquer domínio com resultados mistos.
+**Bloqueado enquanto aberto.** Nada (decidido na Etapa 5.13).
 
-DECISÃO: ______ (política: ______ · empate: ______)
-JUSTIFICATIVA: ______
-RESPONSÁVEL: ______
-DATA: ______
+DECISÃO: ver `DECISAO-19-…` (política: unanimidade; empate/mistura: `indeterminate` → SEM DADOS SUFICIENTES).
+JUSTIFICATIVA: decisão autoral V1.
+RESPONSÁVEL: Daniel.
+DATA: 02/10/2026.
 
 ---
 
@@ -978,12 +978,12 @@ Significado dos status: **DECIDIDO** = decisão completa registrada; **ARQUITETU
 | 13 | Compatibilidade de método | **DECIDIDO** | Daniel | 02/10/2026 (5.7) | — | não |
 | 14 | Resultados qualitativos | **DECIDIDO** | Daniel | 02/10/2026 (5.8) | regras qualitativas por exame — opcional: 0 regras é estado válido | não |
 | 15 | Resultados censurados | **DECIDIDO** | Daniel | 02/10/2026 (5.8) | — | não |
-| 16 | Suficiência mínima por domínio | **ARQUITETURA DECIDIDA / PARÂMETROS PENDENTES** | Daniel | 02/10/2026 (5.8) | **parâmetros por domínio** (cobertura, obrigatórios, critério) | **sim** |
-| 17 | Número/conjunto mínimo de exames | **ARQUITETURA DECIDIDA / PARÂMETROS PENDENTES** | Daniel | 02/10/2026 (5.8) | **valores por domínio** (min_classifiable_results, required_exam_codes, required_exam_groups) | **sim** |
+| 16 | Suficiência mínima por domínio | **DECIDIDO** | Daniel | 02/10/2026 (5.8 / 5.13) | — | não |
+| 17 | Número/conjunto mínimo de exames | **DECIDIDO** | Daniel | 02/10/2026 (5.8 / 5.13) | — | não |
 | 18 | Tratamento de exames ausentes | **DECIDIDO** | Daniel | 02/10/2026 (5.8) | — | não |
-| 19 | Tratamento de resultados mistos | **ARQUITETURA DECIDIDA / PARÂMETROS PENDENTES** | Daniel | 02/10/2026 (5.8) | **regra de mistos por domínio** | **sim** |
-| 20 | Regra formal de CONVERGENTE | **ARQUITETURA + MAPEAMENTO DOMÍNIO→HOLOSCAN DECIDIDOS** | Daniel | 02/10/2026 (5.9 / 5.12) | estado final depende de 16/17/19 (não é pendência própria) | não (bloqueio vem de 16/17/19) |
-| 21 | Regra formal de DIVERGENTE | **ARQUITETURA + MAPEAMENTO DOMÍNIO→HOLOSCAN DECIDIDOS** | Daniel | 02/10/2026 (5.9 / 5.12) | estado final depende de 16/17/19 (não é pendência própria) | não (bloqueio vem de 16/17/19) |
+| 19 | Tratamento de resultados mistos | **DECIDIDO** | Daniel | 02/10/2026 (5.8 / 5.13) | — | não |
+| 20 | Regra formal de CONVERGENTE | **ARQUITETURA + MAPEAMENTO DOMÍNIO→HOLOSCAN DECIDIDOS** | Daniel | 02/10/2026 (5.9 / 5.12) | — (dependências 16/17/19 resolvidas na 5.13) | não |
+| 21 | Regra formal de DIVERGENTE | **ARQUITETURA + MAPEAMENTO DOMÍNIO→HOLOSCAN DECIDIDOS** | Daniel | 02/10/2026 (5.9 / 5.12) | — (dependências 16/17/19 resolvidas na 5.13) | não |
 | 22 | Regra formal de SEM DADOS SUFICIENTES | **DECIDIDO** | Daniel | 02/10/2026 (5.9) | — | não |
 | 23 | Textos exibidos à profissional | **DECIDIDO (estrutura + textos-base)** | Daniel | 02/10/2026 (5.9) | textos por domínio só se necessários — opcional | não |
 | 24 | Textos exibidos ao paciente | **DECIDIDO (estrutura + textos-base)** | Daniel | 02/10/2026 (5.9) | tabela de tradução de motivos (reason_code → texto simples) — necessária antes de exibir ao paciente | não (bloqueia só a exibição ao paciente) |
@@ -993,7 +993,7 @@ Significado dos status: **DECIDIDO** = decisão completa registrada; **ARQUITETU
 | 28 | Legado fora dos 45 | **DECIDIDO** | Daniel | 02/10/2026 (5.10) | — | não |
 | 29 | Insulina de jejum (EXA-006) ↔ Insulina basal (LAB-003) | **DECIDIDO** | Daniel | 02/10/2026 (5.10) | mapeamento manual do histórico (ato operacional posterior, não bloqueia) | não |
 
-**Resumo (atualizado na Etapa 5.12):** 22 DECIDIDOS (1–7, 9, 11–15, 18, 22–29; 23/24 com estrutura + textos-base), 2 com arquitetura + mapeamento domínio→HOLOSCAN decididos cujo estado final depende de 16/17/19 (20, 21), 5 com arquitetura decidida e parâmetros pendentes (8, 10, 16, 17, 19; 8 e 10 não bloqueiam), 0 parciais. **Bloqueiam a implementação: 16, 17, 19** — consolidados em `PACOTE-FINAL-PENDENCIAS-EXECUTAVEIS-LI-V1.md`.
+**Resumo (atualizado na Etapa 5.13):** 25 DECIDIDOS (1–7, 9, 11–19, 22–29; 23/24 com estrutura + textos-base), 2 com arquitetura + mapeamento domínio→HOLOSCAN decididos e dependências resolvidas (20, 21), 2 com arquitetura decidida e conteúdo opcional (8, 10; não bloqueiam), 0 parciais. **Bloqueadores metodológicos para o motor oficial da LI: 0.** Gates técnicos/operacionais (grupo B) continuam pendentes — consolidados em `PACOTE-FINAL-PENDENCIAS-EXECUTAVEIS-LI-V1.md`.
 
 ## Anexo A — Contagens da Etapa 5 (resolução documental)
 

@@ -2,7 +2,7 @@
 
 Etapa 5.7 · 02/10/2026 · material para decisão de **Daniel** (responsável primário) · detalha o bloco 16 de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md` (nome e número do pacote). Depende das DECISÕES 01 (domínios), 02 (vínculos: D01 7 · D02 3 · D03 5 · D04 4 · D05 4 · D06 12 · D07 12 = 47 pares; contagem corrigida na Etapa 5.10 a partir da matriz), 04, 06, 09.
 
-> **ARQUITETURA DECIDIDA / PARÂMETROS POR DOMÍNIO PENDENTES — Etapa 5.8 (02/10/2026, Daniel).** Decisão metodológica humana registrada abaixo. **Ainda não é**: implementação, migration clínica, alteração de banco, aprovação formal, homologação ou deploy. Nenhuma regra concreta, corte, peso ou lista foi criado.
+> **DECIDIDO — Etapa 5.8 (arquitetura) e 5.13 (parâmetros por domínio), Daniel, 02/10/2026.** Suficiência cross-source por domínio registrada abaixo (somente vínculos `directional`; sem percentual global; D05/D06/D07 `not_applicable`). **Ainda não é**: implementação, migration, alteração do banco real, Aprovação 1, Aprovação 2, homologação ou deploy. O motor LI não está implementado.
 
 ## Pergunta (como no pacote)
 
@@ -46,18 +46,39 @@ Três eixos independentes por resultado: `classification_status` · `li_eligibil
 
 ## Campo DECISÃO
 
-**DECISÃO (Bloco 16 — suficiência, arquitetura):**
-- Cada domínio LI terá **regra própria, explícita e versionada** de suficiência.
-- A regra deve conseguir declarar: total de vínculos potencialmente aplicáveis; resultados encontrados; resultados elegíveis; resultados classificáveis; resultados excluídos; motivos de exclusão; cobertura calculada; exames ou grupos obrigatórios, se existirem; critério final de suficiência.
-- **Não existe corte universal implícito.** Não assumir 50%, 70%, 80%, 100%, 1 exame, 2 exames ou outro corte.
-- Enquanto a regra completa de um domínio não estiver homologada: estado do domínio = `sem_dados_suficientes`.
-- Suficiência é avaliada **por domínio**; **não** existe suficiência global da LI.
+**DECISÃO (Bloco 16 — suficiência por domínio): DECIDIDO.** Arquitetura da Etapa 5.8 mantida (regra própria, explícita e versionada por domínio; trace com encontrados/elegíveis/classificáveis/excluídos; sem corte universal; suficiência por domínio, nunca global).
 
-Consequência técnica: o payload atual (`min_results`) é insuficiente para o contrato acima; a regra `sufficiency` precisará declarar cobertura, obrigatórios e critério, e o trace listar encontrados/elegíveis/classificáveis/excluídos com motivos (extensão na implementação em lote).
+**Princípio geral de suficiência (aprovado por Daniel):** a suficiência cross-source usa **somente** vínculos `cross_source_role = directional`. Vínculos `contextual` **não** aumentam artificialmente a cobertura cross-source, **não** substituem exame directional obrigatório, **não** tornam o domínio suficiente sozinhos, **não** criam direção laboratorial e **não** criam convergência/divergência. Continuam visíveis, classificáveis quando possível, rastreáveis, disponíveis para interpretação profissional e pertencendo normalmente ao domínio.
 
-**Pendência:** **PARÂMETROS CONCRETOS POR DOMÍNIO (D01…D07).** Nenhum valor definido.
+**Não existe percentual global:** a V1 **não** adota 50%, 60%, 70%, 80%, 100% ou qualquer percentual global como regra universal de suficiência laboratorial. Cada domínio possui regra própria.
 
-**JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 14–19 e no Documento Mestre (dado bruto preservado; misto sem regra = sem dados suficientes; nenhuma inferência sem regra homologada). Não atribuída ao legado.
+**Modelo conceitual:** `cross_source_sufficiency_mode` ∈ {`rule_based`, `not_applicable`}. Quando `rule_based`, podem existir `min_classifiable_results`, `required_exam_codes`, `required_exam_groups`, `optional_directional_exam_codes`. Nomes conceituais; **não** são implementação nesta etapa.
+
+**Duas coisas distintas:** (1) `lab_domain_availability` — o domínio possui resultados laboratoriais válidos e classificáveis; (2) `cross_source_sufficiency` — o domínio atende à regra para confronto com HOLOSCAN. Um domínio pode ter muitos resultados válidos e classificáveis e ainda assim `cross_source_sufficiency = not_applicable`, quando não possui confronto HOLOSCAN na V1 (D05/D06/D07).
+
+### Parâmetros por domínio
+
+| Domínio | holoscan_mapping_mode | cross_source_sufficiency_mode | directional | regra de suficiência | min_classifiable_results | required_exam_codes | required_exam_groups | optional_directional_exam_codes |
+|---|---|---|---|---|---|---|---|---|
+| LI-D01 | `acido_inflamatorio` | `rule_based` | LAB-016, LAB-018 | **LAB-016 PCR é OBRIGATÓRIA** | 1 | LAB-016 | — | LAB-018 |
+| LI-D02 | `metabolico` | `rule_based` | LAB-002, LAB-003, LAB-004 | ≥ 2 directional classificáveis **e** pelo menos um deles LAB-002 ou LAB-004 | 2 | — | GLYCEMIC_ANCHOR = {LAB-002 OU LAB-004} | — |
+| LI-D03 | `metabolico` | `rule_based` | LAB-005, LAB-009 | ambos obrigatórios e classificáveis | 2 | LAB-005, LAB-009 | — | — |
+| LI-D04 | `detox_linfatico` | `rule_based` | LAB-013, LAB-015 | ambos obrigatórios e classificáveis | 2 | LAB-013, LAB-015 | — | — |
+| LI-D05 | `none` | `not_applicable` | nenhum | sem confronto cross-source na V1 | null | [] | [] | — |
+| LI-D06 | `none` | `not_applicable` | nenhum | sem confronto cross-source na V1 | null | [] | [] | — |
+| LI-D07 | `none` | `not_applicable` | nenhum | sem confronto cross-source na V1 | null | [] | [] | — |
+
+**D01 — consequências.** Se a PCR estiver presente, elegível, temporalmente compatível, com referência aplicável, unidade compatível e classificável, D01 satisfaz a suficiência mínima cross-source. Fibrinogênio complementa a direção se classificável; não é obrigatório; sua ausência não torna D01 insuficiente. Se a PCR não for classificável ou faltar: D01 = SEM DADOS SUFICIENTES, com reason code conforme a causa real (`missing_required_exam`, `missing_reference`, `ambiguous_reference`, `incompatible_unit`, `outside_time_window`, `missing_clinical_date` etc.). Não usar contextual para substituir a PCR.
+
+**D02 — casos.** SUFICIENTE estruturalmente: LAB-002 + LAB-004; LAB-002 + LAB-003; LAB-004 + LAB-003; LAB-002 + LAB-003 + LAB-004. INSUFICIENTE: somente LAB-002; somente LAB-003; somente LAB-004; LAB-003 sem LAB-002/LAB-004. **Insulina nunca resolve D02 isoladamente.**
+
+**D03.** Se apenas um de LAB-005/LAB-009 estiver disponível/classificável: SEM DADOS SUFICIENTES. Contextuais LAB-006, LAB-007, LAB-008 não substituem LAB-005 ou LAB-009.
+
+**D04.** Se apenas um de LAB-013/LAB-015 estiver disponível/classificável: SEM DADOS SUFICIENTES. Contextuais LAB-012 AST e LAB-014 Bilirrubina total não substituem ALT ou GGT.
+
+**D05 / D06 / D07.** `holoscan_mapping_mode = none`; `cross_source_sufficiency_mode = not_applicable`; `min_classifiable_results = null`; `required_exam_codes = []`; `required_exam_groups = []`. Não tratar como suficiente automaticamente, nem como insuficiente, nem como `missing_domain_holoscan_mapping`. Não existe confronto cross-source nesses domínios na V1; os resultados laboratoriais continuam normalmente disponíveis. Não marcar como insuficiente simplesmente pela ausência de mapeamento.
+
+**JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 16–21 e no Documento Mestre (um exame isolado não resolve; nenhum percentual global; nenhuma maioria/média/score; misto sem resolução determinística = sem dados suficientes). Não atribuída ao legado.
 
 **FONTE:** Documento Mestre + decisão autoral V1. FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR onde aplicável; nenhuma citação fabricada.
 
@@ -65,4 +86,4 @@ Consequência técnica: o payload atual (`min_results`) é insuficiente para o c
 
 **DATA:** 02/10/2026.
 
-**Status:** ARQUITETURA DECIDIDA / PARÂMETROS POR DOMÍNIO PENDENTES — não implementado, não registrado no banco, não homologado.
+**Status:** DECIDIDO — não implementado, não registrado no banco, não homologado.
