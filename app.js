@@ -3562,10 +3562,16 @@
 
       var interp = window.interpretacaoDe ? window.interpretacaoDe(hoje, p.id) : null;
 
+      /* Etapa 6.0.1: proveniencia metodologica DECLARADA. So quando existe um pacote aprovado e vigente
+         (Metodologia.pacote()); caso contrario fica nula e permanece nula para sempre (sem backfill, sem
+         inferencia por data/faixa/respostas) — docs/v1/laboratorio/POLITICA-COMPATIBILIDADE-APLICACOES-HISTORICAS-HOLOSCAN-LI.md */
+      var pacoteOficial = window.Metodologia && window.Metodologia.pacote ? window.Metodologia.pacote() : null;
       var payload = {
         application: {
           patient_id: p.id,
           encounter_id: atendimento.id,
+          methodology_package_id: pacoteOficial ? pacoteOficial.id : null,
+          methodology_package_version: pacoteOficial ? pacoteOficial.version : null,
           quando: hoje,
           versao_estrutura: r.versao_estrutura || 2,
           versao_bancos: r.versao_bancos || null,

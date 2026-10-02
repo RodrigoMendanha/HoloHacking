@@ -96,9 +96,9 @@
   }
   function identidadeTexto(r) { return nomeExame(r) + (r.variant ? " · " + r.variant : "") + (r.material ? " · " + r.material : "") + (r.method ? " · " + r.method : ""); }
   function referenciaDoLaudo(r) {
-    if (r.reference_status !== "informed") return null;
+    if (r.reference_status !== "informed" && r.reference_status !== "ambiguous") return null;
     var op = r.report_reference_operator || "range";
-    return { source: "laudo", min: r.report_reference_min === null || r.report_reference_min === undefined ? null : Number(r.report_reference_min), max: r.report_reference_max === null || r.report_reference_max === undefined ? null : Number(r.report_reference_max), operator: op, unit: r.report_reference_unit || r.unit_original || null, text: r.report_reference_text || null };
+    return { source: "laudo", ambiguous: r.reference_status === "ambiguous", min: r.report_reference_min === null || r.report_reference_min === undefined ? null : Number(r.report_reference_min), max: r.report_reference_max === null || r.report_reference_max === undefined ? null : Number(r.report_reference_max), operator: op, unit: r.report_reference_unit || r.unit_original || null, text: r.report_reference_text || null };
   }
   /** Classificacao de um resultado contra a referencia DO LAUDO. Nunca contra ideal legado. */
   function classificar(r) { return motor() ? motor().classificar(r, referenciaDoLaudo(r), { conversoes: [] }) : null; }
@@ -121,6 +121,7 @@
     var l = novaLinha({ exam_code: r.exam_code, custom_exam_id: r.custom_exam_id, variant: r.variant, material: r.material, method: r.method });
     l.value_original_text = r.value_original_text || ""; l.unit_original = r.unit_original || ""; l.report_reference_text = r.report_reference_text || "";
     l.report_reference_min = r.report_reference_min === null || r.report_reference_min === undefined ? "" : String(r.report_reference_min); l.report_reference_max = r.report_reference_max === null || r.report_reference_max === undefined ? "" : String(r.report_reference_max); l.notes = r.notes || "";
+    l.reference_ambiguous = r.reference_status === "ambiguous";
     l.components = (dados.componentes[r.id] || []).map(function (k) { return { original_name: k.original_name, value_original_text: k.value_original_text, unit_original: k.unit_original || "", report_reference_text: k.report_reference_text || "" }; });
     return l;
   }
@@ -156,6 +157,7 @@
     editor.linhas.forEach(function (l) {
       var row = document.querySelector('[data-lab-linha="' + l.chave + '"]'); if (!row) return;
       ["variant", "material", "method", "value_original_text", "unit_original", "report_reference_text", "report_reference_min", "report_reference_max", "notes"].forEach(function (k) { var el = row.querySelector('[data-lab-campo="' + k + '"]'); if (el) l[k] = el.value; });
+      var amb = row.querySelector('[data-lab-campo="reference_ambiguous"]'); if (amb) l.reference_ambiguous = !!amb.checked;
       l.components = [].map.call(row.querySelectorAll("[data-lab-comp]"), function (cr) { return { original_name: cr.querySelector('[data-lab-ccampo="original_name"]').value, value_original_text: cr.querySelector('[data-lab-ccampo="value_original_text"]').value, unit_original: cr.querySelector('[data-lab-ccampo="unit_original"]').value, report_reference_text: cr.querySelector('[data-lab-ccampo="report_reference_text"]').value }; });
     });
   }
@@ -177,7 +179,7 @@
         value_original_text: String(l.value_original_text || "").trim() || "ver componentes", qualifier: v.kind === "empty" ? "text" : v.qualifier, numeric_value: v.kind === "numeric" ? v.numeric_value : null, censor_limit: v.kind === "censored" ? v.censor_limit : null,
         unit_original: l.unit_original || null, notes: l.notes || null,
         report_reference_text: temRef ? (String(l.report_reference_text || "").trim() || null) : null, report_reference_min: temRef ? numeroOuNulo(l.report_reference_min) : null, report_reference_max: temRef ? numeroOuNulo(l.report_reference_max) : null,
-        report_reference_operator: temRef ? "range" : null, report_reference_unit: temRef ? (l.unit_original || null) : null,
+        report_reference_operator: temRef ? "range" : null, report_reference_unit: temRef ? (l.unit_original || null) : null, reference_ambiguous: !!(temRef && l.reference_ambiguous),
         components: l.components.filter(function (c) { return String(c.original_name || "").trim() && String(c.value_original_text || "").trim(); }).map(function (c, i) { var cv = motor().interpretarValor(c.value_original_text); return { position: i + 1, original_name: c.original_name.trim(), value_original_text: c.value_original_text.trim(), qualifier: cv.qualifier || "text", numeric_value: cv.kind === "numeric" ? cv.numeric_value : null, censor_limit: cv.kind === "censored" ? cv.censor_limit : null, unit_original: c.unit_original || null, report_reference_text: c.report_reference_text || null }; }) };
       if (r.exam_code !== "LAB-001") r.components = [];
       return r;
@@ -283,7 +285,8 @@
       ' <button type="button" class="btn-fantasma" data-lab-remover="' + l.chave + '">Remover</button></div>' +
       '<div class="lab-linha-valor">' + inp("value_original_text", "valor exatamente como no laudo (7,2 · < 0,10 · Negativo)", "lab-valor") + inp("unit_original", "unidade", "lab-curto") +
       '<span class="lab-interp">' + (v && v.kind === "numeric" ? "numérico " + v.numeric_value : v && v.kind === "censored" ? "censurado (" + v.qualifier + (v.censor_limit !== null ? " " + v.censor_limit : "") + ")" : v && v.kind === "qualitative" ? "qualitativo" : "") + "</span></div>" +
-      '<div class="lab-linha-ref">referência do laudo: ' + inp("report_reference_text", "texto da referência no laudo", "lab-medio") + inp("report_reference_min", "mín.", "lab-curto") + inp("report_reference_max", "máx.", "lab-curto") + inp("notes", "observação", "lab-medio") + "</div>" +
+      '<div class="lab-linha-ref">referência do laudo: ' + inp("report_reference_text", "texto da referência no laudo", "lab-medio") + inp("report_reference_min", "mín.", "lab-curto") + inp("report_reference_max", "máx.", "lab-curto") + inp("notes", "observação", "lab-medio") +
+      ' <label class="lab-ambigua" title="A referência do laudo é ambígua (mais de uma faixa, texto que não permite comparar): o resultado fica não classificável, nada é inventado"><input type="checkbox" data-lab-campo="reference_ambiguous"' + (l.reference_ambiguous ? " checked" : "") + "> referência ambígua</label></div>" +
       (hemo ? '<div class="lab-componentes"><small>Componentes do hemograma (nome, valor, unidade, referência do laudo):</small>' + l.components.map(function (k, i) { return '<div class="lab-comp" data-lab-comp="' + i + '"><input type="text" data-lab-ccampo="original_name" placeholder="componente" value="' + escapar(k.original_name || "") + '"><input type="text" data-lab-ccampo="value_original_text" placeholder="valor" value="' + escapar(k.value_original_text || "") + '"><input type="text" data-lab-ccampo="unit_original" placeholder="unidade" value="' + escapar(k.unit_original || "") + '"><input type="text" data-lab-ccampo="report_reference_text" placeholder="referência" value="' + escapar(k.report_reference_text || "") + '"></div>'; }).join("") +
         ' <button type="button" class="btn-fantasma" data-lab-comp-add="' + l.chave + '">+ componente</button></div>' : "") + "</div>";
   }
@@ -425,7 +428,7 @@
       (d.reason_codes.length ? "<p><b>Motivos:</b><ul>" + d.reason_codes.map(function (m) { return "<li>" + escapar(L.motivoHumano(pk, m)) + " <code>" + escapar(m) + "</code></li>"; }).join("") + "</ul></p>" : "") +
       "<p><b>Exames usados na direção laboratorial:</b> " + (usados.length ? "<ul>" + usados.map(linhaItem).join("") + "</ul>" : "nenhum") + "</p>" +
       "<p><b>Exames contextuais (não formam direção):</b> " + (ctx.length ? "<ul>" + ctx.map(linhaItem).join("") + "</ul>" : "nenhum") + "</p>" +
-      (excl.length ? "<p><b>Excluídos e motivo:</b><ul>" + excl.map(function (i) { return "<li>" + escapar(i.exam_code) + (i.variant ? " · " + escapar(i.variant) : "") + " — " + escapar(L.motivoHumano(pk, i.exclusion_reason)) + "</li>"; }).join("") + "</ul></p>" : "") +
+      (excl.length ? "<p><b>Excluídos e motivo:</b><ul>" + excl.map(function (i) { return "<li>" + escapar(i.exam_code) + (i.variant ? " · " + escapar(i.variant) : "") + " — " + escapar(L.motivoHumano(pk, i.exclusion_reason)) + " <code>" + escapar(i.exclusion_reason || "") + "</code>" + (i.reference_text || i.reference_min !== null && i.reference_min !== undefined ? " · referência original do laudo: " + escapar(i.reference_text || ((i.reference_min === null ? "" : i.reference_min) + " a " + (i.reference_max === null ? "" : i.reference_max))) : "") + "</li>"; }).join("") + "</ul></p>" : "") +
       '<p class="li-regra"><b>Regras:</b> suficiência ' + escapar(d.sufficiency.mode || "—") + (d.sufficiency.min_classifiable_results !== null && d.sufficiency.min_classifiable_results !== undefined ? " (mín. " + d.sufficiency.min_classifiable_results + ", obrigatórios " + escapar((d.sufficiency.required_exam_codes || []).join(", ") || (d.sufficiency.required_exam_groups || []).map(function (g) { return g.code; }).join(", ") || "—") + ")" : "") + " · mistos " + escapar(d.mixed.mode || "—") + " · temporal " + escapar(d.temporal.rule_code || "—") + " v" + escapar(String(d.temporal.rule_version || "—")) + " · pacote " + escapar(pk.code + " v" + pk.version) + " · motor " + escapar(d.engine_version) + "</p>" +
       '<details><summary>Snapshot (congelável)</summary><pre class="mh-pre">' + escapar(JSON.stringify(d.snapshot, null, 2)) + "</pre></details>" +
       (temSupa() && pk.id ? '<button type="button" class="btn-fantasma" data-li-salvar="' + escapar(d.domain_code) + '">Salvar leitura de ' + escapar(d.domain_code) + " (congela fontes)</button>" : "") + "</div>";
@@ -452,7 +455,7 @@
         Object.keys(r.domains).map(function (k) { return htmlDominio(r.domains[k], pk); }).join("") +
         '<div class="li-salvar"><input type="text" id="li-responsavel" placeholder="responsável pela leitura (nome)"><input type="text" id="li-nota" placeholder="observação profissional (separada do snapshot; opcional)"></div></div>';
     }
-    var salvas = dados.leituras.length ? '<div class="dash-bloco dash-bloco-compacto"><h3 class="dash-titulo">Leituras salvas (snapshot congelado; nova coleta não as altera)</h3><ul class="dash-pendentes">' + dados.leituras.map(function (x) { return "<li>" + escapar(String(x.created_at).slice(0, 16)) + (x.domain_code ? " · " + escapar(x.domain_code) : "") + " · <b>" + escapar(ROTULO_ESTADO[x.state] || x.state) + "</b>" + (x.holoscan_direction ? " · HOLOSCAN " + escapar(L.ROTULO_DIRECAO[x.holoscan_direction] || x.holoscan_direction) + " × lab " + escapar(L.ROTULO_DIRECAO[x.laboratory_direction] || x.laboratory_direction || "—") : "") + " · rev " + x.revision + (x.superseded_at ? " (substituída)" : "") + " · " + escapar(x.responsible) + (x.professional_note ? " — " + escapar(x.professional_note) : "") + "</li>"; }).join("") + "</ul></div>" : "";
+    var salvas = dados.leituras.length ? '<div class="dash-bloco dash-bloco-compacto"><h3 class="dash-titulo">Leituras salvas (snapshot congelado; nova coleta não as altera)</h3><ul class="dash-pendentes">' + dados.leituras.map(function (x) { return "<li>" + escapar(String(x.created_at).slice(0, 16)) + (x.domain_code ? " · " + escapar(x.domain_code) : "") + " · <b>" + escapar(ROTULO_ESTADO[x.state] || x.state) + "</b>" + (x.holoscan_direction ? " · HOLOSCAN " + escapar(L.ROTULO_DIRECAO[x.holoscan_direction] || x.holoscan_direction) + " × lab " + escapar(L.ROTULO_DIRECAO[x.laboratory_direction] || x.laboratory_direction || "—") : "") + " · rev " + x.revision + (x.superseded_at ? " (substituída)" : "") + " · " + escapar(x.responsible) + (x.professional_note ? " — " + escapar(x.professional_note) : "") + (x.snapshot && x.snapshot.excluded && x.snapshot.excluded.length ? " · excluídos: " + x.snapshot.excluded.map(function (e) { return escapar(e.exam_code + " (" + e.reason + ")"); }).join(", ") : "") + "</li>"; }).join("") + "</ul></div>" : "";
     return aviso + cab + sel + saida + salvas;
   }
   function appSelecionada() { return dados.aplicacoes.filter(function (a) { return a.id === li.app; })[0] || null; }
