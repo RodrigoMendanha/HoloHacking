@@ -628,7 +628,7 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     em_revisao** com 7 domínios, 47 vínculos (9 directional + 38 contextual) e 18 regras; LI-V1@1 preservado;
     0 aprovações. Provas de contagem na própria migration.
 145. **Pacote executável** (`leitura-integrada-pacote-v1.js`): mesmo conteúdo da migration; texto canônico no
-    formato `jsonb::text`; **content_hash candidato `7c6d93a0f91c790ba052c8687822c4513ad27015a7dc86c506d437b52beb6d1a`**,
+    formato `jsonb::text`; **content_hash candidato `fa99ec80507e277307a9b0d2a09a8f0abc1519e55bede08d8715697412137be9`**,
     idêntico em PostgreSQL local, servidor falso e JS. Não homologado.
 146. **Motor 2.0.0** (`leitura-integrada-motor.js`): 11 passos na ordem decidida; HOLOSCAN como fonte congelada
     (HOLOS-V1 ≥ 2 aprovado; faixa → attention_*; não avaliável → indeterminate); LI-TEMP-01 com delta com sinal;
@@ -648,6 +648,27 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     (88), etapa6-li-banco (30), etapa6-li-ui (12); suítes legadas ajustadas por mudança legítima de contrato
     (documentado em `docs/v1/ETAPA6-LEITURA-INTEGRADA.md`); harness SQL `etapa6` (E01–E30) na cadeia local:
     207 checks ok. **Banco real não validado; nada aplicado; nada homologado; nada deployado.**
+
+### Etapa 6.0.1 — fechamento pré-gate real (02/10/2026)
+
+150. **Regra directional indeterminate**: após a suficiência estrutural, participante directional com direção
+    `indeterminate` e sem exceção específica → `laboratory_direction = indeterminate`, SEM DADOS SUFICIENTES,
+    reason code `directional_result_indeterminate`; `mixed_results_indeterminate` só com mistura real
+    present + not_detected; exceção D01 (fibrinogênio opcional) preservada. Regra de mistos v2; pacote JS,
+    migration candidata, motor 2.0.1, fake e testes atualizados (D02 HbA1c, D03 HDL, D04 GGT, exceção D01).
+151. **Referência ambígua ponta a ponta**: `lab_results.reference_status` aceita `ambiguous` (migration
+    20261002130000; referência original preservada; RPC `lab_gravar_resultados` grava `ambiguous` quando declarado);
+    LabMotor → `ambiguous_reference` (não classificável, nada fabricado); motor → item excluído com motivo,
+    status e texto/limites originais no snapshot; persistência e fake; UI (checkbox "referência ambígua" no
+    editor; excluídos com referência original na LI; motivos visíveis na leitura salva). Teste de persistência:
+    salvar → reler → motivo presente.
+152. **Proveniência das aplicações HOLOSCAN** (`POLITICA-COMPATIBILIDADE-APLICACOES-HISTORICAS-HOLOSCAN-LI.md`):
+    nova aplicação recebe `methodology_package_id` + `methodology_package_version` só quando declarados pelo app
+    (pacote aprovado e vigente) e validados pelo servidor; campos imutáveis após o insert (sem backfill);
+    histórica permanece sem vínculo; LI → `incompatible_holoscan_version`. Nada inferido por data, faixa, respostas
+    ou estrutura. Nenhum backfill no banco real.
+153. **content_hash candidato recalculado**: anterior `7c6d93a0…` → **novo `fa99ec80507e277307a9b0d2a09a8f0abc1519e55bede08d8715697412137be9`**;
+    igual em JS, PostgreSQL local (harness E13/E31) e servidor falso. O anterior não é reutilizado.
 
 ## Decisões pendentes (não decididas aqui)
 
@@ -692,7 +713,7 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
   (Etapa 6.0, itens 143–149) concluídas. Pendente só o gate técnico/operacional (grupo B de
   `docs/v1/laboratorio/PACOTE-FINAL-PENDENCIAS-EXECUTAVEIS-LI-V1.md`): validar a cadeia no banco real, aplicar as
   migrations, cadastrar os `auth.uid` reais, Aprovação 1 (Daniel), Aprovação 2 (Rodrigo), Homologar LI-V1@2
-  (hash `7c6d93a0…`), registrar o pacote V1 nas aplicações HOLOSCAN, deploy. (Mestre §24)
+  (hash `fa99ec80…`), registrar o pacote V1 nas aplicações HOLOSCAN, deploy. (Mestre §24)
 - **Regras de sugestão de ferramentas** — nenhuma das 23 REC nem SEL-001 é aprovada; a Etapa 4.2
   decidiu que nenhuma sugestão automática é oficial na V1 (item 65). (Mestre §29)
 - **Conteúdo mínimo para "Concluir" uma ferramenta** — a guarda técnica da Rodada 08

@@ -32,13 +32,13 @@ Não são metodologia indefinida. Podem impedir a publicação ou a homologaçã
 | B2 | validar a cadeia real do banco | VALIDAÇÃO REAL PENDENTE (sem conexão autorizada) |
 | B3 | cadastrar o `auth.uid` real de Daniel em `methodology_approvers` (scope `integrated_reading`, etapa 1) | tabela vazia |
 | B4 | cadastrar o `auth.uid` real de Rodrigo (etapa 2) | tabela vazia |
-| B5 | Aprovação 1 (Daniel) sobre LI-V1@2, versão 2 e `content_hash` `7c6d93a0f91c790ba052c8687822c4513ad27015a7dc86c506d437b52beb6d1a` | 0 aprovações |
+| B5 | Aprovação 1 (Daniel) sobre LI-V1@2, versão 2 e `content_hash` `fa99ec80507e277307a9b0d2a09a8f0abc1519e55bede08d8715697412137be9` | 0 aprovações |
 | B6 | Aprovação 2 (Rodrigo), identidade distinta (quatro olhos) | 0 aprovações |
 | B7 | Homologar (`homologar_pacote_li`) com completude válida e snapshot | não homologado (completude de LI-V1@2: publicável, 0 bloqueios) |
-| B8 | `content_hash` final conferido | **candidato determinístico**: `7c6d93a0…6d1a` (SQL local == pacote JS == servidor falso) |
+| B8 | `content_hash` final conferido | **candidato determinístico**: `fa99ec80…7be9` (SQL local == pacote JS == servidor falso) |
 | B9 | deploy | não feito |
 
-**Estado após a Etapa 6.0:** a metodologia foi **implementada localmente** (`docs/v1/ETAPA6-LEITURA-INTEGRADA.md`): migration, pacote executável, motor 2.0.0, persistência por domínio com snapshot, servidor falso, UI mínima e testes. Banco real não validado; nada homologado; nada deployado.
+**Estado após a Etapa 6.0.1:** a metodologia foi **implementada localmente** (hash recalculado na 6.0.1 após a regra `directional_result_indeterminate`) (`docs/v1/ETAPA6-LEITURA-INTEGRADA.md`): migration, pacote executável, motor 2.0.0, persistência por domínio com snapshot, servidor falso, UI mínima e testes. Banco real não validado; nada homologado; nada deployado.
 
 **Bloco 30 — o que representa.** A governança técnica de dupla aprovação da LI **já foi estruturada** (Etapa 5.2: dependências, hash canônico, completude, aprovações append-only, invalidação, `homologar_pacote_li`, snapshots; Etapa 5.3: identidade real via `methodology_approvers`). O que permanece é **operacional** (B1–B9): migration não aplicada; tabela de aprovadores vazia; `auth.uid` reais não cadastrados. **Não é decisão metodológica dos Blocos 1–29** e não aparece no grupo A.
 

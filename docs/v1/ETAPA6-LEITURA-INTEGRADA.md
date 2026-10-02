@@ -47,7 +47,7 @@ A marcação de referência do laudo como ambígua (`reference_status = 'ambiguo
 | convergence | present+present / not+not → convergente; cruzado → divergente; indeterminate nunca; ordem dos 11 passos |
 | text | textos-base profissional e paciente (DECISÕES 23/24) + texto neutro de domínio sem confronto |
 | reason_semantics | vocabulário aprovado traduzido para humano (inclui `mixed_results_indeterminate`) |
-| **content_hash** | **`7c6d93a0f91c790ba052c8687822c4513ad27015a7dc86c506d437b52beb6d1a`** — sha256 do texto canônico no formato `jsonb::text` (ordem de chaves do PostgreSQL); **idêntico** em SQL local (`li_hash_conteudo`), no servidor falso e no JS |
+| **content_hash** | **`7c6d93a0f91c790ba052c8687822c4513ad27015a7dc86c506d437b52beb6d1a`** (valor da Etapa 6.0; **superado na Etapa 6.0.1** por `fa99ec80507e277307a9b0d2a09a8f0abc1519e55bede08d8715697412137be9`, ver seção final) — sha256 do texto canônico no formato `jsonb::text` (ordem de chaves do PostgreSQL); **idêntico** em SQL local (`li_hash_conteudo`), no servidor falso e no JS |
 
 Direções por exame conforme ditado (5.12): PCR/fibrinogênio/HbA1c/TG/ALT/GGT `above → present, within → not_detected, below → indeterminate`; HDL `below → present, within → not_detected, above → indeterminate`; glicemia e insulina `above/below → present, within → not_detected`. Nota de implementação (conservadora, documentada): em exame **participante** (obrigatório ou membro de grupo) com direção `indeterminate` (ex.: HbA1c abaixo em D02), a direção laboratorial fica `indeterminate`; em exame **opcional** (fibrinogênio em D01) o `indeterminate` não conta nem bloqueia — como ditado.
 
@@ -81,7 +81,7 @@ Ajustes por mudança legítima de contrato (nenhuma asserção removida; todas r
 - `testar-v1-etapa5-ui.mjs`: pacote em uso LI-V1 v2 (em_revisao, não homologado); leitura por domínio; aplicação legada sem pacote V1 → sem dados; D05–D07 neutros; 47 vínculos vêm da migration, não da tela.
 - Harness SQL `etapa5`/`etapa5-2`: consultas a `code = 'LI-V1'` pinadas a `version = 1`.
 
-Cadeia SQL local (`scripts/validar-cadeia-local.sh`, PostgreSQL 16, BEGIN…ROLLBACK): 130000 → **20261002120000** + harnesses (4, 4.2, dupla aprovação, 5, 5.2, 5.3, **6: E01–E30**) = **207 checks ok, 0 FALHOU**. Hash de LI-V1@2 no SQL = `7c6d93a0…` = JS = servidor falso.
+Cadeia SQL local (`scripts/validar-cadeia-local.sh`, PostgreSQL 16, BEGIN…ROLLBACK): 130000 → **20261002120000** + harnesses (4, 4.2, dupla aprovação, 5, 5.2, 5.3, **6: E01–E30**) = **207 checks ok, 0 FALHOU**. Hash de LI-V1@2 no SQL = `7c6d93a0…` = JS = servidor falso (valor da Etapa 6.0; recalculado na 6.0.1).
 
 Suíte completa (`node testes/rodar.mjs`, porta 5500 livre): **102 suítes, 3391 asserções, 0 falhas, 0 reprovadas** (antes da etapa: 99 / 3258). Nenhum teste removido.
 
@@ -93,7 +93,43 @@ Imagem construída localmente na HEAD (`docker build --build-arg COMMIT=$(git re
 
 Supabase real intocado; migrations 20261002100000/110000/120000 não aplicadas; `methodology_approvers` vazia; nenhum `auth.uid` real; 0 aprovações; nada homologado (completude de LI-V1@2 publicável: o que falta é o ato humano). VALIDAÇÃO REAL PENDENTE.
 
-## PRÓXIMO GATE (fora desta etapa)
+## PRÓXIMO GATE (fora desta etapa; atualizado na Etapa 6.0.1)
 
-1. Validar a cadeia 130000 → 20261002120000 no Supabase real (conexão autorizada; BEGIN/ROLLBACK; ON_ERROR_STOP).
-2. Aplicar as migrations. 3. Cadastrar os `auth.uid` reais de Daniel e Rodrigo em `methodology_approvers`. 4. Aprovação 1 (Daniel) e Aprovação 2 (Rodrigo) sobre LI-V1@2 / versão 2 / `7c6d93a0…`. 5. Homologar. 6. Registrar `methodology_package_id` nas aplicações HOLOSCAN calculadas com HOLOS-V1@2 (hoje nenhuma aplicação real carrega o pacote V1: toda leitura real fica em sem dados por `incompatible_holoscan_version` até isso). 7. Deploy.
+1. Validar a cadeia 130000 → 20261002130000 no Supabase real (conexão autorizada; BEGIN/ROLLBACK; ON_ERROR_STOP).
+2. Aplicar as migrations. 3. Cadastrar os `auth.uid` reais de Daniel e Rodrigo em `methodology_approvers`. 4. Aprovação 1 (Daniel) e Aprovação 2 (Rodrigo) sobre LI-V1@2 / versão 2 / `fa99ec80…`. 5. Homologar. 6. **Sem backfill** de `methodology_package_id` nas aplicações HOLOSCAN históricas: regra em `docs/v1/laboratorio/POLITICA-COMPATIBILIDADE-APLICACOES-HISTORICAS-HOLOSCAN-LI.md` (proveniência ausente não é preenchida silenciosamente; a LI devolve `incompatible_holoscan_version`; só aplicações novas calculadas com HOLOS-V1 homologado carregam o pacote). 7. Deploy.
+
+---
+
+# ETAPA 6.0.1 — FECHAMENTO PRÉ-GATE REAL
+
+Branch `claude/v1-etapa6-0-1-fechamento-pre-gate` (sobre `5c4e543`, Etapa 6.0). **Banco real não tocado.** Nenhuma migration aplicada, nenhum approver, nenhuma aprovação, nada homologado, nada deployado.
+
+## 1. Regra do participante direcional indeterminado
+
+Depois de satisfeita a suficiência, se qualquer participante direcional **não opcional** do domínio tiver `direction = indeterminate` (referência ausente/ambígua, qualitativo sem regra, censurado ambíguo, duplicidade não resolvida etc.) e não houver exceção específica, `laboratory_direction = indeterminate`, estado **Sem dados suficientes**, reason code **`directional_result_indeterminate`**. `mixed_results_indeterminate` fica restrito à mistura real `present + not_detected`. **Exceção D01 preservada:** PCR determinística + fibrinogênio (opcional) indeterminado → a direção da PCR vale (`indeterminate_optional_ignored`). Regra declarada no pacote (`mixed.version 2`: `indeterminate_participant_blocks`, `indeterminate_participant_reason`), no motor 2.0.1, no seed da migration 20261002120000 (regenerado), no servidor falso e nos docs (`DECISAO-19`, `DECISAO-22`, `PACOTE-FINAL`, `DECISOES-V1` 150–153).
+
+## 2. `ambiguous_reference` de ponta a ponta
+
+Motor (LabMotor 1.1.0: `ref.ambiguous` → `ambiguous_reference`, direção indeterminate, item excluído) → snapshot (`excluded[]` com `reason`, `reference_status`, `reference_text`, `reference_min/max` originais) → persistência (`lab_results.reference_status in ('informed','missing','ambiguous')`, gravado por `lab_gravar_resultados` a partir de `reference_ambiguous`; constraint `referencia_informada` impede ambíguo sem referência) → servidor falso (mesmas colunas e constraints) → leitura salva (`integrated_readings.snapshot.excluded`) → UI (`laboratorio.js`: caixa "referência ambígua" no editor, motivo humano e referência original na lista de excluídos e nas leituras salvas). Nada fabricado: a referência original permanece visível; o resultado não forma direção. Prova de persistência: salvar → recarregar → motivo presente (teste banco; harness E33/E34).
+
+## 3. Proveniência HOLOSCAN (sem backfill)
+
+Migration `20261002130000_etapa6_0_1_fechamento_pre_gate.sql`: `holoscan_applications.methodology_package_version`, constraint `holoscan_applications_pacote_coerente`, trigger `holoscan_applications_proveniencia` (proveniência imutável; UPDATE de backfill recusado com hint `proveniencia_imutavel`), `salvar_holoscan_completo` aceita `methodology_package_id` + `methodology_package_version` (ambos ou nenhum; pacote existente; versão coerente). `app.js` envia o pacote HOLOS-V1 aprovado vigente ao salvar uma aplicação nova. Histórico sem proveniência **permanece desvinculado**; a LI devolve `incompatible_holoscan_version`; nunca se infere HOLOS-V1@2 por data, faixa, respostas ou estrutura. Política: `POLITICA-COMPATIBILIDADE-APLICACOES-HISTORICAS-HOLOSCAN-LI.md`. **Backfill histórico realizado: NÃO** (nem local, nem real).
+
+## 4. content_hash recalculado
+
+| | |
+|---|---|
+| anterior (6.0) | `7c6d93a0f91c790ba052c8687822c4513ad27015a7dc86c506d437b52beb6d1a` |
+| **novo (6.0.1)** | **`fa99ec80507e277307a9b0d2a09a8f0abc1519e55bede08d8715697412137be9`** |
+
+Igualdade provada em três lugares: JS (`hashConteudo()` do pacote), SQL local (`li_hash_conteudo` sobre a linha seedada; harness E13/E31) e servidor falso (`liHash`; teste banco). O hash antigo não é reutilizado em lugar algum (docs atualizados).
+
+## 5. Validação local
+
+- Cadeia SQL local 130000 → **20261002130000** + harnesses (4, 4.2, dupla aprovação, 5, 5.2, 5.3, 6: **E01–E38**) = **215 checks ok, 0 FALHOU, 0 ERRO GERAL**.
+- Testes novos/ampliados: motor (directional indeterminate D02/D03/D04, exceção D01, mistura real, hash literal), banco (ambiguous persistida após reload, nova aplicação com metadata, histórico sem backfill, backfill recusado, hash JS == fake), harness E31–E38.
+- Suíte completa (`node testes/rodar.mjs`): **102 suítes, 3406 asserções, 0 falhas, 0 reprovadas** (6.0: 3391). Nenhuma asserção removida; única atualização de literal (hash em `testar-v1-etapa5-2-governanca-li-ui.mjs`) por mudança legítima de contrato (regra mixed v2).
+- Docker: `docs/deploy.md` §3.5 regenerado (54 arquivos; `app.js`, `laboratorio.js`, `leitura-integrada-motor.js`, `leitura-integrada-pacote-v1.js` mudaram); build na HEAD final da etapa com `version.json.commit == HEAD` e 54/54 hashes conferidos (registro no relatório final). Nenhum deploy.
+
+VALIDAÇÃO REAL PENDENTE. Próximo gate: o listado acima (validação real da cadeia, migrations, approvers, aprovações, homologação, deploy).

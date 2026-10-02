@@ -134,7 +134,7 @@ Os comandos abaixo são a mesma conferência, arquivo por arquivo.
 
 ```sh
 curl -sI http://127.0.0.1:<PORTA>/app.js | grep -i cache-control   # Cache-Control: no-cache
-curl -s  http://127.0.0.1:<PORTA>/app.js | sha256sum               # 5c6e38522475...
+curl -s  http://127.0.0.1:<PORTA>/app.js | sha256sum               # 9a99174a0df2...
 curl -s  http://127.0.0.1:<PORTA>/arquivos.js | sha256sum          # d40530d439ee...
 curl -s  http://127.0.0.1:<PORTA>/index.html | sha256sum           # 2dca4406d8a4...
 curl -s  https://holohacking.com.br/sincronizacao.js | sha256sum   # 4da93a366a07...
@@ -169,7 +169,7 @@ cd6ef22455f446156c4109649b2d0fc1fe803f0c6697e1029fa71e50ba44cf84  favicon.svg
 fca789a5d4169bc1d4b5b0d1d2e934e9f1317384b435ea44e486966fe5eaa8d7  agenda.js
 cd0daa04a10e165dd536874170bf3c005d9bdb4041b15deb766c2b30596dfef4  anamnese.js
 b1ea48449d74ba8427c7a59947ae73d55a4d88896ea1fcf4f9823dc4087bd049  aplicacoes.js
-5c6e38522475bd43331181e7f511c41dee9e47f1ccd6c5aebc0ff4c197d034d5  app.js
+9a99174a0df288783e65f849da046021b80f66c73c86e5ad48cb28b32f8a776e  app.js
 d3efacba60b26bc2da2311a273881948882570773e4016f59ce2a0845661746c  armazenamento.js
 77f0a880c8784e9e45ad608e4c62dc9791f9a750d75225d85edd9e15a150ce69  arquivo-store.js
 d40530d439eed926cab1a90838fc06c4ee89efb700db4e4ffafc3f7ef9205c83  arquivos.js
@@ -194,9 +194,9 @@ b6c7e8b1341a10bf45c2f895218e5529176b9c36aa035be6a2aa1ed0fb41cfac  holoscan.js
 b2705ac28dc9f6175ec5586ef02e86b00f2fe1265dbb23a34e3bb2cebb8718c3  importar-v1.js
 d68215f0b81b8b8e5929ea43b29f7f51046b78336b96ec9e5814d4eea2444ae0  laboratorio-catalogo.js
 8ad2d6789fdc62fe83f2c9cc85acbf03e481ed40f3dc72575b20bc8eb0b2acbc  laboratorio-motor.js
-ad612883e9e51104a1d2b0e2f090a7e430956b2faa1e8b40b341c85f505a1228  laboratorio.js
-275f1d568c0b2fb51ce65b02d8d14bdec0d59a5d6e4f0498b3a89825142eaa0d  leitura-integrada-motor.js
-2272fe669555490df731aa70241a7bde2689af222a3b443638a64e7767527afa  leitura-integrada-pacote-v1.js
+1115a2a97147900149439fd2c9b1b7344a6ebe9851844af043dc579ecea25b9d  laboratorio.js
+07629098f6cfed3a18d60991bbbbfc6003b8073e7825996c15c2978277ef4827  leitura-integrada-motor.js
+994217cb6cc4208b15fe4d4a9197efd0518c400d68aa0b2f24a6b9a017d2e118  leitura-integrada-pacote-v1.js
 d0098b6c672f2d283cabb347205c676e3ac117fd960e8274ba3a64d13a984f2e  login.js
 51f9b31c0cf3ab7c0b530d07f37a84b205e9e314103ce1397e9a9ff04b3130ba  metodologia-decisoes-v1.js
 dedb3c3ad7f4560aae349d47409bf3636c0909aa6038d55502b5d97fecc5afdb  metodologia-homologacao.js
