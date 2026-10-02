@@ -8,8 +8,8 @@ Significados fixos: CONVERGENTE ≠ diagnóstico; DIVERGENTE não invalida relat
 
 | # | Decisão | Hoje | Legado | Decidir |
 |---|---|---|---|---|
-| 1 | Domínios oficiais | 0 domínios | 5 sistemas HOLOSCAN usados como domínio | lista de domínios; domínio = sistema ou não |
-| 2 | Exame/variante/material → domínio | 0 vínculos | `exames.csv.sistema` (24 EXA → 5 sistemas) | lista com direção e fonte por linha |
+| 1 | Domínios oficiais | **DECIDIDO (Daniel, 02/10/2026, Etapa 5.4)**: arquitetura A, 7 domínios LI-D01…LI-D07, 11 regras; não registrado no banco, não homologado, não implementado | 5 sistemas HOLOSCAN usados como domínio (não herdados) | — (`DECISAO-01-DOMINIOS-LI.md`) |
+| 2 | Exame/variante/material → domínio | 0 vínculos; **matriz dos 45 pronta** (`DECISAO-02-VINCULOS-EXAME-DOMINIO-LI.md`): 0 decididos, 45 pendentes | `exames.csv.sistema` (24 EXA → 5 sistemas) — NÃO HOMOLOGADO PARA VÍNCULO | **PENDENTE**: 0/1/N domínios por exame, variante/material/método, direção, fonte |
 | 3 | Aplicação HOLOSCAN elegível | seleção explícita; pacote HOLOS-V1@2 ainda não aprovado | pontuação local sem id | critérios (avaliável, pacote aprovado, cobertura) |
 | 4 | Coletas elegíveis | salvo/revisado, não substituídas, qualquer `source` | valores atuais locais | restringir ou confirmar |
 | 5 | Janela temporal | sem regra (motor aceita tudo) | sem janela | `max_days` ___, escopo, simetria |
@@ -39,6 +39,6 @@ Significados fixos: CONVERGENTE ≠ diagnóstico; DIVERGENTE não invalida relat
 | 29 | Insulina de jejum ↔ basal | `exam_code` nulo, `requires_manual_mapping` | EXA-006 → metabolico | alias seguro, variante, pendente, custom — **não automático** |
 | 30 | Homologação do pacote LI | **FECHADO TECNICAMENTE (Etapa 5.2)**: Daniel → Rodrigo, hash canônico, invalidação, `homologar_pacote_li` com completude, snapshot; 0 aprovações registradas | sem processo | — (conteúdo dos blocos 1–29 continua aberto) |
 
-**Primeiro bloco que exige decisão humana:** 1 (domínios) — o 30 (governança) foi fechado tecnicamente na Etapa 5.2 (`GOVERNANCA-HOMOLOGACAO-LI-V1.md`), sem nenhuma aprovação real.
+**Primeiro bloco que exige decisão humana:** 2 (vínculos) — o 30 (governança) foi fechado tecnicamente na Etapa 5.2 e o 1 (domínios) foi decidido por Daniel na Etapa 5.4; nenhuma aprovação real registrada.
 
 **Contagens da Etapa 5 (Anexo A do pacote):** harness 114 → 116 = L42/L43 acrescentados em `8a3524c`; EXA: 24 = 19 mapeados + 1 manual (EXA-006) + 4 `additional_legacy`.

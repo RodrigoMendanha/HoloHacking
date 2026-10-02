@@ -1,8 +1,10 @@
 # DECISÃO 01 — DOMÍNIOS OFICIAIS DA LEITURA INTEGRADA
 
-Etapa 5.3 · 02/10/2026 · material para decisão de **Daniel** (responsável primário) · detalha o bloco 1 de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md`.
+Etapa 5.3 · material para decisão de **Daniel** · detalha o bloco 1 de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md`.
 
-> **NÃO HÁ DEFINIÇÃO HOMOLOGADA RECUPERADA.** O repositório não contém nenhuma definição metodológica anterior, aprovada ou com fonte, dos domínios da Leitura Integrada. O que existe é o **legado** (os cinco sistemas do HOLOSCAN usados como "dimensão" pelo confronto antigo) e a **infraestrutura** da Etapa 5 (tabela vazia). Este documento **não** completa a lacuna com conhecimento geral, **não** recomenda arquitetura, **não** propõe nomes oficiais e **não** preenche a decisão.
+> **DECIDIDO — Etapa 5.4 (02/10/2026).** Decisão metodológica humana aprovada por Daniel, registrada abaixo (seção "Campo DECISÃO"). **Ainda não é**: Aprovação 1 registrada no banco, Aprovação 2, homologação formal, publicação ou deploy. Os 7 domínios **não foram inseridos** na migration, no banco, no servidor falso, no motor nem na UI oficial: a implementação será em lote, depois dos vínculos (bloco 2) e das demais regras.
+
+> Levantamento da Etapa 5.3 (mantido como registro): **NÃO HÁ DEFINIÇÃO HOMOLOGADA RECUPERADA.** O repositório não contém nenhuma definição metodológica anterior, aprovada ou com fonte, dos domínios da Leitura Integrada. O que existe é o **legado** (os cinco sistemas do HOLOSCAN usados como "dimensão" pelo confronto antigo) e a **infraestrutura** da Etapa 5 (tabela vazia). Este documento **não** completa a lacuna com conhecimento geral, **não** recomenda arquitetura, **não** propõe nomes oficiais e **não** preenche a decisão.
 
 ## O que precisa ser decidido
 
@@ -81,12 +83,37 @@ Decidido o bloco 1: bloco 2 (vínculos) só pode ser aberto com a lista de domí
 
 ## Campo DECISÃO
 
-DECISÃO (arquitetura e lista de domínios, com código, nome, definição e, se houver, sistema(s) HOLOSCAN relacionados): ______
+**DECISÃO (aprovada por Daniel em 02/10/2026):** arquitetura **A — domínios próprios e independentes do HOLOSCAN**, com a lista fechada de **7 domínios**:
 
-Fonte citada (Documento Mestre §/página ou outra fonte metodológica): ______
+| Código | Nome | Definição | Limite |
+|---|---|---|---|
+| **LI-D01** | Hematológico e Inflamatório | Organiza dados laboratoriais relacionados ao perfil hematológico e a marcadores laboratoriais utilizados na avaliação de processos inflamatórios. | Não representa diagnóstico de inflamação ou doença hematológica. |
+| **LI-D02** | Glicêmico e Metabólico | Organiza dados relacionados ao metabolismo da glicose, resposta insulínica e outros marcadores metabólicos pertinentes. | Não diagnostica diabetes, resistência à insulina ou síndrome metabólica. |
+| **LI-D03** | Lipídico | Organiza dados relacionados ao perfil lipídico e suas variantes laboratoriais. | Não transforma alterações isoladas em avaliação automática de risco cardiovascular. |
+| **LI-D04** | Hepático | Organiza resultados laboratoriais relacionados à avaliação bioquímica hepática. | Não diagnostica doença hepática nem presume função hepática global a partir de marcador isolado. |
+| **LI-D05** | Renal e Hidroeletrolítico | Organiza dados relacionados à avaliação renal e ao equilíbrio de eletrólitos medidos laboratorialmente. | Não infere função renal ou estado de hidratação sem regra e contexto aprovados. |
+| **LI-D06** | Micronutrientes e Metabolismo Mineral | Organiza vitaminas, minerais, elementos e marcadores de metabolismo mineral contemplados pelo catálogo. | Não transforma faixa laboratorial em "nível ideal" autoral. |
+| **LI-D07** | Endócrino e Hormonal | Organiza marcadores relacionados aos eixos tireoidiano e hormonal presentes no catálogo. | Não diagnostica distúrbios endócrinos e não presume significado clínico fora de contexto. |
 
-JUSTIFICATIVA: ______
+**Regras estruturais aprovadas:**
+1. Domínio LI não é Sistema HOLOSCAN.
+2. Nenhuma relação domínio → Sistema HOLOSCAN é inferida pelo nome.
+3. Relação futura domínio → sistema(s) precisa de regra explicitamente homologada.
+4. Um exame pode pertencer a zero domínios, um domínio ou vários domínios.
+5. Cada vínculo precisa ser explicitamente decidido e versionado.
+6. Exame sem vínculo aprovado continua disponível no prontuário, mas não participa da Leitura Integrada.
+7. Não existe domínio genérico "Outros".
+8. As 18 categorias do catálogo são organização de navegação e não domínios.
+9. Os vínculos do confronto legado não são herdados.
+10. Domínio não constitui diagnóstico.
+11. Mudança posterior na lista de domínios altera o conteúdo metodológico e o `content_hash` e exige novo ciclo de homologação.
 
-RESPONSÁVEL (Daniel — responsável primário; depois revisão de Rodrigo): ______
+**Fonte citada:** "Decisão autoral V1 aprovada por Daniel em 02/10/2026, a partir do Documento Mestre e do pacote de decisão da Leitura Integrada. Não apresentada como regra recuperada de literatura ou do legado."
 
-DATA: ______
+**JUSTIFICATIVA:** "Adotar domínios próprios da Leitura Integrada reduz o acoplamento entre o questionário HOLOSCAN e a camada laboratorial, impede herança automática do confronto legado, preserva explicabilidade e permite relações explícitas e versionadas entre domínios, exames e sistemas HOLOSCAN."
+
+**RESPONSÁVEL:** Daniel (responsável primário). Revisão final de Rodrigo e registro no banco (Aprovação 1 → Aprovação 2 → Homologar, com identidade real) ficam para a homologação do pacote completo.
+
+**DATA:** 02/10/2026.
+
+**Status:** DECISÃO METODOLÓGICA HUMANA APROVADA POR DANIEL. Não registrada no banco; não homologada; não implementada. Próximo bloco: **2 — vínculos exame → domínio** (`DECISAO-02-VINCULOS-EXAME-DOMINIO-LI.md`), pendente.

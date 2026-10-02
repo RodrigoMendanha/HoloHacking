@@ -314,6 +314,24 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     sistemas como dimensão) é evidência, não proposta; 5 arquiteturas apresentadas sem recomendação; nenhum
     domínio criado; LI-V1@1 intocado.
 
+### Etapa 5.4 — DECISÃO 01 registrada (domínios da Leitura Integrada) e matriz do Bloco 2 (02/10/2026)
+
+90. **Domínios da Leitura Integrada (DECISÃO 01, Daniel, 02/10/2026)**: arquitetura A — domínios próprios e
+    independentes do HOLOSCAN; 7 domínios: LI-D01 Hematológico e Inflamatório, LI-D02 Glicêmico e Metabólico,
+    LI-D03 Lipídico, LI-D04 Hepático, LI-D05 Renal e Hidroeletrolítico, LI-D06 Micronutrientes e Metabolismo
+    Mineral, LI-D07 Endócrino e Hormonal (definições e limites em `docs/v1/laboratorio/DECISAO-01-DOMINIOS-LI.md`).
+    Regras estruturais: domínio ≠ sistema HOLOSCAN; nenhuma relação inferida pelo nome; relação futura só por
+    regra homologada; exame em 0/1/N domínios; vínculo decidido e versionado; exame sem vínculo fica no
+    prontuário e fora da LI; sem domínio "Outros"; categorias do catálogo não são domínios; vínculos legados não
+    herdados; domínio não é diagnóstico; mudança na lista altera o `content_hash` e exige novo ciclo.
+    Fonte: decisão autoral V1 (não recuperada de literatura ou do legado). **Status: decisão humana aprovada;
+    não registrada no banco (Aprovação 1/2), não homologada, não implementada** (migration/banco/servidor
+    falso/motor/UI intocados; implementação em lote após o bloco 2 e demais regras).
+91. **Bloco 2 (vínculos exame → domínio) aberto** com a matriz dos 45 exames em
+    `docs/v1/laboratorio/DECISAO-02-VINCULOS-EXAME-DOMINIO-LI.md`: 0 decididos, 45 pendentes; categoria e
+    `legacy_sistema` só como contexto (NÃO HOMOLOGADOS PARA VÍNCULO); 12 exames marcados sensíveis; Insulina
+    basal × "Insulina de jejum" continua pendente (bloco 29).
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`

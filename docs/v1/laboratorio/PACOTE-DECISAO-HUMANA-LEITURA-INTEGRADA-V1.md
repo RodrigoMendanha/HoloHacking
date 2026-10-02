@@ -2,7 +2,7 @@
 
 Etapa 5.1 · 02/10/2026 · branch `claude/v1-etapa5-1-decisoes-leitura-integrada` (a partir de `43daba2`) · para a liderança do método e os responsáveis clínicos.
 
-> **NENHUMA DECISÃO CLÍNICA FOI TOMADA NESTE DOCUMENTO.** Os campos DECISÃO, JUSTIFICATIVA, RESPONSÁVEL e DATA estão em branco nos blocos 1–29. **Etapa 5.2:** o bloco 30 (governança) foi **fechado tecnicamente** — a Leitura Integrada reutiliza a dupla aprovação Daniel → Rodrigo do HOLOSCAN (`GOVERNANCA-HOMOLOGACAO-LI-V1.md`); nenhuma aprovação real foi registrada. **Etapa 5.3:** a identidade dos aprovadores passou a ser a conta autenticada autorizada (`docs/v1/metodologia/APROVADORES-AUTORIZADOS.md`), não o nome digitado. Nenhuma opção está recomendada. Nenhum valor numérico de corte, janela ou referência é proposto.
+> **NENHUMA DECISÃO CLÍNICA FOI TOMADA NESTE DOCUMENTO.** Os campos DECISÃO, JUSTIFICATIVA, RESPONSÁVEL e DATA estão em branco nos blocos 2–29; o bloco 1 foi decidido por Daniel em 02/10/2026 (Etapa 5.4, `DECISAO-01-DOMINIOS-LI.md`), sem registro no banco e sem homologação. **Etapa 5.2:** o bloco 30 (governança) foi **fechado tecnicamente** — a Leitura Integrada reutiliza a dupla aprovação Daniel → Rodrigo do HOLOSCAN (`GOVERNANCA-HOMOLOGACAO-LI-V1.md`); nenhuma aprovação real foi registrada. **Etapa 5.3:** a identidade dos aprovadores passou a ser a conta autenticada autorizada (`docs/v1/metodologia/APROVADORES-AUTORIZADOS.md`), não o nome digitado. Nenhuma opção está recomendada. Nenhum valor numérico de corte, janela ou referência é proposto.
 >
 > **Autoridade.** Documento Mestre (§§21–24) = destino da V1. Etapa 5 (`ETAPA5-LABORATORIO.md`) = infraestrutura técnica, já entregue. AS-IS (`INVENTARIO-LABORATORIO-AS-IS.md`) = evidência histórica. **Nenhuma regra do confronto legado é proposta oficial só porque existia**: onde aparece, está marcada **LEGADO / INCOMPATÍVEL COMO REGRA OFICIAL SEM HOMOLOGAÇÃO**.
 >
@@ -38,7 +38,7 @@ Etapa 5.1 · 02/10/2026 · branch `claude/v1-etapa5-1-decisoes-leitura-integrada
 | 25 | Comparabilidade longitudinal da LI | Evolução da própria LI |
 | 26, 27, 28, 29 | Derivados, customizados, legado fora dos 45, Insulina | cobertura de itens específicos |
 
-O bloco **30** (quem aprova e como) foi fechado tecnicamente na Etapa 5.2; o **primeiro bloco que exige decisão humana** passa a ser o **1** (domínios).
+O bloco **30** (quem aprova e como) foi fechado tecnicamente na Etapa 5.2; o bloco **1** (domínios) foi **decidido por Daniel na Etapa 5.4**; o **primeiro bloco que exige decisão humana** passa a ser o **2** (vínculos exame → domínio).
 
 ---
 
@@ -72,7 +72,7 @@ Isto é **evidência histórica**. Nenhuma linha vira domínio ou vínculo da Le
 
 ## BLOCO 1 — Domínios oficiais da Leitura Integrada
 
-> **Etapa 5.3:** material detalhado para a decisão de Daniel em `DECISAO-01-DOMINIOS-LI.md` (Mestre recuperado, legado, nomes existentes, 5 arquiteturas e consequências). **NÃO HÁ DEFINIÇÃO HOMOLOGADA RECUPERADA**; nada decidido.
+> **DECIDIDO — Etapa 5.4 (Daniel, 02/10/2026):** arquitetura A (domínios próprios, independentes do HOLOSCAN); **7 domínios** LI-D01 Hematológico e Inflamatório, LI-D02 Glicêmico e Metabólico, LI-D03 Lipídico, LI-D04 Hepático, LI-D05 Renal e Hidroeletrolítico, LI-D06 Micronutrientes e Metabolismo Mineral, LI-D07 Endócrino e Hormonal; 11 regras estruturais. Registro completo em `DECISAO-01-DOMINIOS-LI.md`. Decisão humana aprovada; **não** registrada no banco, **não** homologada, **não** implementada (lote futuro).
 
 **O que decidir.** Quais domínios existem na Leitura Integrada V1 (nome, código, definição), e se "domínio" é a mesma entidade que "sistema HOLOSCAN" ou outra.
 
@@ -106,6 +106,8 @@ DATA: ______
 ---
 
 ## BLOCO 2 — Relação exame/variante/material → domínio
+
+> **Etapa 5.4:** matriz de decisão dos 45 exames em `DECISAO-02-VINCULOS-EXAME-DOMINIO-LI.md` (0 decididos, 45 pendentes; categoria e legado só como contexto, NÃO HOMOLOGADOS PARA VÍNCULO). **PENDENTE.**
 
 **O que decidir.** Para cada domínio do bloco 1: quais exames (LAB-xxx), com qual variante e material, pertencem ao domínio, e com qual **direção** relevante (`above`, `below`, `any`).
 
