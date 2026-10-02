@@ -92,6 +92,11 @@ begin
   -- painel legado continua podendo editar a propria coleta (comportamento historico isolado)
   update public.lab_results set valor = 0.6, value_original_text = '0.6', numeric_value = 0.6 where collection_id = leg and legacy_exame_id = 'EXA-002';
   insert into _log5 values ('L27 ok: coleta do painel legado (source legacy_panel) mantem o comportamento historico');
+  -- painel legado continua gravando exame_id + valor (sincronizacao.js): o trigger preenche os campos V1 pela mesma tabela de mapeamento
+  insert into public.lab_results (collection_id, exame_id, valor, unidade_no_momento, nome_exame_no_momento) values (leg, 'EXA-005', 90, 'mg/dL', 'Glicemia de jejum');
+  insert into _log5 values ('L42 ' || case when (select value_original_text = '90' and numeric_value = 90 and qualifier = 'eq' and exam_code = 'LAB-002' and unit_original = 'mg/dL' and reference_status = 'missing' and origin = 'legacy_migrated' from public.lab_results where collection_id = leg and legacy_exame_id = 'EXA-005') then 'ok' else 'FALHOU' end || ': gravacao legado pos-migration ganha valor original, numerico e LAB-002 (sem referencia inventada)');
+  update public.lab_results set valor = 95 where collection_id = leg and legacy_exame_id = 'EXA-005';
+  insert into _log5 values ('L43 ' || case when (select value_original_text = '95' and numeric_value = 95 from public.lab_results where collection_id = leg and legacy_exame_id = 'EXA-005') then 'ok' else 'FALHOU' end || ': edicao legado do valor refaz o valor original (sem valor antigo congelado)');
 
   -- RLS / cruzamento
   perform set_config('request.jwt.claims', json_build_object('sub', outro, 'role', 'authenticated')::text, true);

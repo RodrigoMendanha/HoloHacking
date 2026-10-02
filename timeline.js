@@ -113,10 +113,14 @@
 
     var coletas = window.Sincronizacao ? window.Sincronizacao.coletas(pid) : null;
     if (coletas && coletas.length) coletas.forEach(function (c) {
+      if (c.state === "rascunho") return;   // Etapa 5: rascunho nao entra na timeline oficial
       var n = (c.resultados || []).length, semData = c.data_coleta_desconhecida || !c.coletado_em;
-      lista.push(ev({ tipo: "exame", selo: "Exames", titulo: "Coleta de exames" + (semData ? " (data não informada)" : ""),
-        detalhe: n + (n === 1 ? " exame" : " exames") + (c.laboratorio ? " · " + escapar(c.laboratorio) : ""),
-        quando: semData ? "" : c.coletado_em, registrado_em: c.created_at, ref: { tabela: "lab_collections", id: c.id }, acao: "aba:visao" }));
+      var revisao = c.revision > 1 || !!c.supersedes_id;
+      /* Etapa 5: a correcao de uma coleta consolidada e uma REVISAO (nova versao, mesma data
+         clinica), nao uma coleta clinica nova; a versao substituida continua no historico. */
+      lista.push(ev({ tipo: "exame", selo: "Exames", titulo: (revisao ? "Revisão da coleta de exames (versão " + c.revision + ")" : "Coleta de exames") + (semData ? " (data não informada)" : "") + (c.superseded_at ? " — substituída" : ""),
+        detalhe: n + (n === 1 ? " exame" : " exames") + (c.laboratorio ? " · " + escapar(c.laboratorio) : "") + (c.state === "revisado" ? " · revisada" : "") + (revisao && c.revision_note ? " · " + escapar(c.revision_note) : ""),
+        quando: semData ? "" : c.coletado_em, registrado_em: c.created_at, ref: { tabela: "lab_collections", id: c.id }, acao: "aba:documentos" }));
     });
     /* Sem leitura remota, o painel local de exames e um evento so, sem data:
        ele nao sabe quando foi coletado (comportamento anterior da ficha). */

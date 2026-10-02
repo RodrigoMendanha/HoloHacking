@@ -125,9 +125,15 @@
      por sistema: exames disponiveis, valor lancado, unidade, faixa cadastrada,
      estado do exame e o resultado do confronto (Holoscan). Chamado por
      irPara("confronto") e por desenharPontuacao(), ambos em app.js. */
+  function modoHomologacao() { return !!(window.Metodologia && window.Metodologia.modoHomologacao && window.Metodologia.modoHomologacao()); }
   window.desenharHoloscan = function (alvoId) {
     var alvo = document.getElementById(alvoId || "holo-confronto");
     if (!alvo) return;
+    /* Etapa 5 da V1: a Leitura Integrada oficial e a do pacote LI-V1 (sem regra
+       homologada => sem dados suficientes, com motivo). O confronto legado
+       (nota <= 3 + um exame fora da faixa cadastrada) so aparece em modo de
+       homologacao, rotulado como legado — nunca como saida oficial. */
+    if (window.Laboratorio && !modoHomologacao()) { window.Laboratorio.desenharLeituraIntegrada(alvo.id); return; }
     var g = motor();
     if (!g || !g.listaDeExames) { alvo.innerHTML = ""; return; }
 
@@ -177,7 +183,8 @@
        faixa cadastrada) ainda nao tem vinculo exame-dominio aprovado,
        suficiencia, temporalidade nem versao (Mestre §24). Ela fica, com o
        selo, para homologacao — nao como Leitura Integrada V1. */
-    alvo.innerHTML = (window.Metodologia ? window.Metodologia.avisoHtml() : "") + html;
+    alvo.innerHTML = (window.Metodologia ? window.Metodologia.avisoHtml() : "") +
+      '<p class="q-erro">LEGADO (modo de homologação): confronto antigo "nota ≤ 3 × um exame fora da faixa cadastrada". Não é a Leitura Integrada V1 e não é saída oficial.</p>' + html;
   };
 
   var dataBR = window.dataBR;
@@ -199,6 +206,19 @@
   function desenharHoloscanAba() {
     var alvo = document.getElementById("aba-holoscan-laboratorial") || document.getElementById("aba-confronto");
     if (!alvo) return;
+    if (window.Laboratorio && !modoHomologacao()) {
+      /* Etapa 5 da V1: Leitura Integrada oficial (pacote LI-V1) na aba HOLOSCAN da ficha. */
+      alvo.innerHTML = '<div class="fic-consultas-topo">' +
+        '<button type="button" class="btn-verde" data-ir="aba:documentos">Registrar exames</button>' +
+        (window.Metodologia ? window.Metodologia.selo("Leitura Integrada") : "") + "</div>" +
+        '<div class="dash-bloco dash-bloco-compacto"><h3 class="dash-titulo">Leitura Integrada (V1)</h3><div id="aba-holoscan-laboratorial-li"></div>' +
+        '<button type="button" class="fic-ir-min" data-ir="confronto">Abrir a Leitura Integrada completa</button></div>' +
+        '<div class="fic-continuidade"><span class="fic-rot">HOLOSCAN &rarr; mapa de investigação</span>' +
+        '<span class="fic-rot">Leitura Integrada &rarr; integração com exames (sem regra homologada ainda)</span></div>';
+      window.Laboratorio.desenharLeituraIntegrada("aba-holoscan-laboratorial-li");
+      ligarHoloscanAba();
+      return;
+    }
     var g = motor();
     if (!g || !g.listaDeExames || !window.Holoscan) { alvo.innerHTML = ""; return; }
 
@@ -210,7 +230,9 @@
     var topo = '<div class="fic-consultas-topo">' +
       '<button type="button" class="btn-verde" data-ir="aba:documentos">Registrar exames</button>' +
       (window.Metodologia ? window.Metodologia.selo("Leitura Integrada") : "") +
-    "</div>";
+    "</div>" +
+      /* Etapa 5: este caminho so roda em ?homologacao=1 (ou sem o modulo V1) — rotulado como legado */
+      '<p class="q-erro">LEGADO (modo de homologação): confronto antigo "nota ≤ 3 × um exame fora da faixa cadastrada". Não é a Leitura Integrada V1 e não é saída oficial.</p>';
 
     // Secao 3: nao bloqueia o registro sem HOLOSCAN, so avisa que o
     // confronto depende de um mapa disponivel — a mesma frase que
@@ -371,7 +393,8 @@
   var estadoSalvo = "";
 
   function coletasRemotas(pid) {
-    return window.Sincronizacao ? window.Sincronizacao.coletas(pid) : null;
+    /* Etapa 5: o painel legado so ve as coletas do proprio painel; as coletas V1 ficam em #lab-corpo */
+    return window.Sincronizacao ? (window.Sincronizacao.coletasLegado ? window.Sincronizacao.coletasLegado(pid) : window.Sincronizacao.coletas(pid)) : null;
   }
 
   function rotuloColeta(c) {
@@ -984,8 +1007,18 @@
         '<p class="arq-nota" id="doc-espaco"></p>' +
       "</section>" +
 
-      '<section class="arq-cartao" aria-label="Valores de exames">' +
-        '<h4 class="arq-titulo">Os valores do exame</h4>' +
+      '<section class="arq-cartao" aria-label="Exames laboratoriais (V1)">' +
+        '<h4 class="arq-titulo">Exames laboratoriais</h4>' +
+        '<div id="lab-corpo"></div>' +
+      "</section>" +
+
+      /* Etapa 5 da V1: o painel abaixo e LEGADO (24 itens de exames.csv, faixa
+         "ideal" nao homologada, confronto antigo). Fica isolado, rotulado e
+         fora da saida oficial ate ser desligado; a entrada oficial e #lab-corpo. */
+      '<section class="arq-cartao arq-legado" aria-label="Painel legado de exames">' +
+        '<h4 class="arq-titulo">Painel legado (valores locais) — fora da saída oficial</h4>' +
+        '<p class="arq-sub"><b>Legado.</b> Lista fixa de 24 itens com "faixa cadastrada" de rascunho, sem fonte homologada. ' +
+        "Não alimenta Leitura Integrada, Evolução oficial, relatórios nem HOLOS AI. Use o painel acima para registrar coletas.</p>" +
         '<p class="fluxo-clinico">História &rarr; HOLOSCAN &rarr; <b>Leitura Integrada</b> &rarr; Aprofundamento &rarr; Interpretação &rarr; Conduta &rarr; Evolução</p>' +
         '<p class="arq-sub">Opcional. Na primeira consulta o paciente costuma não ter ' +
         "exame nenhum, e o mapa não depende disto. O exame <b>não altera o Índice</b> " +
@@ -1001,6 +1034,7 @@
     ligarDocumentos();
     listarDocumentos();
     desenharExames();
+    if (window.Laboratorio) window.Laboratorio.desenhar();
   }
 
   /* Os exames guardados viram botão: abrir o PDF ao lado enquanto se digita é

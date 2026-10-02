@@ -69,9 +69,10 @@
   /** Referencia aplicavel: { source:'laudo'|'metodologica', min, max, operator ('range'|'lt'|'lte'|'gt'|'gte'), unit, variant?, material?, method?, status? } */
   function compativel(ref, res) {
     var motivos = [];
-    if (ref.variant !== undefined && ref.variant !== null && normT(ref.variant) !== normT(res.variant)) motivos.push("incompatible_variant");
-    if (ref.material !== undefined && ref.material !== null && normT(ref.material) !== normT(res.material)) motivos.push("incompatible_material");
-    if (ref.method !== undefined && ref.method !== null && ref.method_relevant === true && normT(ref.method) !== normT(res.method)) motivos.push("incompatible_method");
+    // a referencia declara a identidade a que se aplica: chave presente (mesmo nula) = exige igualdade; chave ausente = nao restringe
+    if (Object.prototype.hasOwnProperty.call(ref, "variant") && normT(ref.variant) !== normT(res.variant)) motivos.push("incompatible_variant");
+    if (Object.prototype.hasOwnProperty.call(ref, "material") && normT(ref.material) !== normT(res.material)) motivos.push("incompatible_material");
+    if (ref.method_relevant === true && normT(ref.method) !== normT(res.method)) motivos.push("incompatible_method");
     return motivos;
   }
   /** classificar(resultado, referencia, opcoes{ conversoes[] }) */

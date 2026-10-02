@@ -66,10 +66,17 @@
   var COLS_SCORE = "application_id, sistema, nome, nota, carga, faixa, obtido, " +
     "maximo, respondidos, total_marcadores, avaliavel";
   var COLS_ANSWER = "application_id, marcador_id, valor";
+  /* V1, Etapa 5: as colunas novas das coletas/resultados (estado, revisao, valor
+     original, variante, referencia do laudo). As colunas legado continuam. */
   var COLS_COLETA = "id, patient_id, encounter_id, coletado_em, data_coleta_desconhecida, " +
-    "laboratorio, observacao, created_at, updated_at";
+    "laboratorio, observacao, created_at, updated_at, clinical_time, state, source, revision, " +
+    "supersedes_id, superseded_at, revision_note, document_id, reviewed_at, operation_id";
   var COLS_RESULT = "id, collection_id, exame_id, valor, unidade_no_momento, " +
-    "ideal_min_no_momento, ideal_max_no_momento, nome_exame_no_momento, sistema_no_momento";
+    "ideal_min_no_momento, ideal_max_no_momento, nome_exame_no_momento, sistema_no_momento, " +
+    "exam_code, custom_exam_id, variant, value_original_text, numeric_value, qualifier, censor_limit, " +
+    "unit_original, method, material, report_reference_text, report_reference_min, report_reference_max, " +
+    "report_reference_operator, report_reference_unit, reference_status, origin, notes, result_date, " +
+    "legacy_exame_id, requires_manual_mapping, position";
 
   /* ---------- estado em memoria ------------------------------------------- */
 
@@ -448,9 +455,12 @@
       (updated_at), nao a de data clinica maior: registrar hoje uma coleta
       antiga nao pode esconder a que foi registrada ontem. E registro legado
       sem data de coleta nao tem data clinica para comparar. */
+  /* Etapa 5: o painel legado so enxerga coletas do PROPRIO painel (source
+     legacy_panel, ou antigas sem source). Coletas V1 nao viram "valor atual". */
+  function doPainelLegado(c) { return !c.source || c.source === "legacy_panel"; }
   function ultimaRegistrada(coletas) {
     var u = null;
-    (coletas || []).forEach(function (c) {
+    (coletas || []).filter(doPainelLegado).forEach(function (c) {
       var t = String(c.updated_at || c.created_at || "");
       if (!u || t > String(u.updated_at || u.created_at || "") ||
           (t === String(u.updated_at || u.created_at || "") && compararColetas(c, u) > 0)) u = c;
@@ -570,7 +580,8 @@
        (checkbox) — nunca deduzido pela data. undefined = nao mexer. */
     var linhaColeta = { id: coletaId, patient_id: pid,
                         coletado_em: coletadoEm || null,
-                        data_coleta_desconhecida: !coletadoEm };
+                        data_coleta_desconhecida: !coletadoEm,
+                        source: "legacy_panel", state: "salvo" };   // Etapa 5: painel legado, fora da saida oficial
     if (encounterId !== undefined) linhaColeta.encounter_id = encounterId;
     var resultados = payload.results.map(function (r) {
       return Object.assign({ collection_id: coletaId }, r);
@@ -967,6 +978,12 @@
       if (estado.exames !== "ok" || !coletasPorPaciente[pid]) return null;
       return JSON.parse(JSON.stringify(coletasPorPaciente[pid]));
     },
+    /** Etapa 5: so as coletas do painel legado (o painel antigo nao mostra nem edita coletas V1). */
+    coletasLegado: function (pid) {
+      if (estado.exames !== "ok" || !coletasPorPaciente[pid]) return null;
+      return JSON.parse(JSON.stringify(coletasPorPaciente[pid].filter(doPainelLegado)));
+    },
+    doPainelLegado: doPainelLegado,
 
     salvarColeta: salvarColeta,
     /** Leitura remota em lote e paginada; { ok, linhas } ou { ok:false }. */

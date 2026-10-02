@@ -125,10 +125,27 @@
     var coletas = window.Sincronizacao ? window.Sincronizacao.coletas(pid) : null;
     var t = "";
     if (coletas && coletas.length) {
-      coletas.slice().reverse().forEach(function (c) {
+      coletas.filter(function (c) { return !c.superseded_at; }).slice().reverse().forEach(function (c) {
         var quando = c.data_coleta_desconhecida || !c.coletado_em ? "data não informada" : dataBR(c.coletado_em);
         t += "\n### Coleta — " + quando + (c.laboratorio ? " (" + c.laboratorio + ")" : "") + "\n";
+        if (c.state === "rascunho") return;   // Etapa 5: rascunho nao e registro consolidado
         (c.resultados || []).forEach(function (r) {
+          /* Etapa 5: dado factual do laudo (valor original, unidade, variante, material,
+             referencia DO LAUDO). Nunca ideal legado, classificacao ou inferencia. */
+          if (r.legacy_exame_id) {
+            /* linha do painel legado (migrada ou gravada pelo painel antigo): so o fato registrado — nome, valor,
+               unidade e data; sem ideal legado, sem classificacao */
+            t += "- " + window.rotuloExibivel(r.nome_exame_no_momento || r.legacy_exame_id) + ": " + r.value_original_text +
+              (r.unit_original ? " " + r.unit_original : "") + " — " + quando + "\n";
+            return;
+          }
+          if (r.exam_code || r.custom_exam_id || r.value_original_text) {
+            var nome = window.Laboratorio ? window.Laboratorio.identidadeTexto(r) : (r.exam_code || "exame");
+            t += "- " + nome + ": " + r.value_original_text + (r.unit_original ? " " + r.unit_original : "") +
+              (r.reference_status === "informed" ? " (referência do laudo: " + (r.report_reference_text || ((r.report_reference_min == null ? "" : r.report_reference_min) + " a " + (r.report_reference_max == null ? "" : r.report_reference_max))) + ")" : " (sem referência informada)") +
+              " — " + quando + (c.revision > 1 ? " · revisão " + c.revision : "") + "\n";
+            return;
+          }
           t += "- " + window.rotuloExibivel(r.nome_exame_no_momento || r.exame_id) + ": " + r.valor +
             (r.unidade_no_momento ? " " + r.unidade_no_momento : "") +
             " — " + quando + "\n";

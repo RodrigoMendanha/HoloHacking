@@ -95,7 +95,20 @@
     metodologia_faixas:     { tabela: "methodology_ranges", campos: {}, inverso: {} },
     metodologia_regras:     { tabela: "methodology_rules", campos: {}, inverso: {} },
     metodologia_registros:  { tabela: "methodology_homologation_records", campos: {}, inverso: {} },
-    metodologia_aprovacoes: { tabela: "methodology_package_approvals", campos: {}, inverso: {} }
+    metodologia_aprovacoes: { tabela: "methodology_package_approvals", campos: {}, inverso: {} },
+    /* V1, Etapa 5: laboratorio e Leitura Integrada (nomes iguais ao banco) */
+    lab_catalogo:           { tabela: "lab_exam_catalog", campos: {}, inverso: {} },
+    lab_customizados:       { tabela: "lab_custom_exams", campos: {}, inverso: {} },
+    lab_coletas:            { tabela: "lab_collections", campos: {}, inverso: {} },
+    lab_resultados:         { tabela: "lab_results", campos: {}, inverso: {} },
+    lab_componentes:        { tabela: "lab_result_components", campos: {}, inverso: {} },
+    lab_referencias:        { tabela: "lab_method_references", campos: {}, inverso: {} },
+    lab_conversoes:         { tabela: "lab_unit_conversion_rules", campos: {}, inverso: {} },
+    li_pacotes:             { tabela: "integrated_reading_rule_packages", campos: {}, inverso: {} },
+    li_dominios:            { tabela: "integrated_reading_domains", campos: {}, inverso: {} },
+    li_vinculos:            { tabela: "integrated_reading_exam_domain_links", campos: {}, inverso: {} },
+    li_regras:              { tabela: "integrated_reading_rules", campos: {}, inverso: {} },
+    li_leituras:            { tabela: "integrated_readings", campos: {}, inverso: {} }
   };
 
   /* ---------- proxy que traduz campos na ida e na volta ------------------- */

@@ -149,7 +149,15 @@
     });
     c.exames = em(F.coletas, sel.lab_collection_ids).map(function (k) {
       return { tipo_conteudo: "DADO_MEDIDO", id: k.id, coletado_em: k.coletado_em, data_coleta_desconhecida: k.data_coleta_desconhecida, laboratorio: k.laboratorio,
-        resultados: (k.resultados || []).map(function (r) { return { exame_id: r.exame_id, nome: r.nome_exame_no_momento, valor: r.valor, unidade: r.unidade_no_momento }; }) };
+        state: k.state || null, revision: k.revision || 1,
+        resultados: (k.resultados || []).map(function (r) {
+          if (r.exam_code || r.custom_exam_id || r.value_original_text) {
+            /* Etapa 5: snapshot do valor ORIGINAL e da referencia DO LAUDO usados; nenhuma classificacao */
+            return { exame_id: r.exam_code || null, custom_exam_id: r.custom_exam_id || null, nome: window.Laboratorio ? window.Laboratorio.nomeExame(r) : (r.exam_code || "exame"), variante: r.variant || null, material: r.material || null, metodo: r.method || null,
+              valor: r.value_original_text, unidade: r.unit_original || null, referencia_laudo: r.reference_status === "informed" ? { texto: r.report_reference_text || null, min: r.report_reference_min, max: r.report_reference_max, unidade: r.report_reference_unit || null } : null };
+          }
+          return { exame_id: r.exame_id, nome: r.nome_exame_no_momento, valor: r.valor, unidade: r.unidade_no_momento };
+        }) };
     });
     c.ferramentas = em(F.ferramentas, sel.tool_application_ids).map(function (a) {
       return { tipo_conteudo: "RELATO_DO_PACIENTE", id: a.id, ferramenta_id: a.ferramenta_id, versao_ferramenta: a.versao_ferramenta, concluida_em: a.concluida_em, status: a.status,

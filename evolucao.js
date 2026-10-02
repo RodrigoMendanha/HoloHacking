@@ -441,18 +441,32 @@
 
   /** Exames por coleta: delta so entre o MESMO exame_id na MESMA unidade. */
   function compararExames(coletasA, coletasB) {
+    /* Etapa 5: resultado V1 tem identidade exam_code (ou custom) + variante + material;
+       a compatibilidade e o delta vem do LabMotor (unidade igual ou conversao aprovada —
+       nenhuma aprovada; tipo de valor numerico; referencias diferentes ficam visiveis).
+       Resultado legado (exame_id) segue a regra antiga: mesmo exame_id, mesma unidade. */
+    function chave(r) { return r.exam_code || r.custom_exam_id ? "v1|" + (window.LabMotor ? window.LabMotor.identidade(r) : r.exam_code) : "leg|" + r.exame_id; }
     function mapa(coletas) {
       var out = {};
-      coletas.forEach(function (c) { (c.resultados || []).forEach(function (r) { out[r.exame_id] = { r: r, coleta: c }; }); });
+      coletas.filter(function (c) { return c.state !== "rascunho" && !c.superseded_at; }).forEach(function (c) { (c.resultados || []).forEach(function (r) { out[chave(r)] = { r: Object.assign({}, r, { clinical_date: c.coletado_em }), coleta: c }; }); });
       return out;
     }
     var ma = mapa(coletasA), mb = mapa(coletasB), chaves = {};
     Object.keys(ma).concat(Object.keys(mb)).forEach(function (k) { chaves[k] = true; });
     return Object.keys(chaves).sort().map(function (k) {
-      var x = ma[k], y = mb[k], out = { exame_id: k, nome: (y || x).r.nome_exame_no_momento || k, antes: x ? x.r : null, depois: y ? y.r : null,
-        dataA: x ? x.coleta.coletado_em : "", dataB: y ? y.coleta.coletado_em : "", delta: null, motivo: "" };
-      if (!x || !y) out.motivo = !x ? "sem resultado no ponto anterior" : "sem resultado no ponto atual";
-      else if (norm(x.r.unidade_no_momento) !== norm(y.r.unidade_no_momento)) out.motivo = "unidades diferentes (" + (x.r.unidade_no_momento || "?") + " × " + (y.r.unidade_no_momento || "?") + "): sem delta";
+      var x = ma[k], y = mb[k], r0 = (y || x).r;
+      var nome = r0.exam_code || r0.custom_exam_id ? (window.Laboratorio ? window.Laboratorio.identidadeTexto(r0) : r0.exam_code) : (r0.nome_exame_no_momento || r0.exame_id);
+      var out = { exame_id: r0.exam_code || r0.exame_id || k, nome: nome, antes: x ? x.r : null, depois: y ? y.r : null,
+        dataA: x ? x.coleta.coletado_em : "", dataB: y ? y.coleta.coletado_em : "", delta: null, motivo: "", referencias_diferentes: false };
+      if (!x || !y) { out.motivo = !x ? "sem resultado no ponto anterior" : "sem resultado no ponto atual"; return out; }
+      if (k.indexOf("v1|") === 0 && window.LabMotor) {
+        var c = window.LabMotor.comparar(x.r, y.r, { conversoes: [] });
+        out.referencias_diferentes = c.referencias_diferentes;
+        if (!c.comparavel) out.motivo = c.motivos.map(function (m) { return window.LabMotor.MOTIVO[m] || m; }).join("; ") + ": sem delta";
+        else { out.delta = c.delta; out.unidade = c.unidade; out.direcao = c.direcao; }
+        return out;
+      }
+      if (norm(x.r.unidade_no_momento) !== norm(y.r.unidade_no_momento)) out.motivo = "unidades diferentes (" + (x.r.unidade_no_momento || "?") + " × " + (y.r.unidade_no_momento || "?") + "): sem delta";
       else { var va = num(x.r.valor), vb = num(y.r.valor); if (va === null || vb === null) out.motivo = "valor não numérico: sem delta"; else { out.delta = vb - va; out.unidade = y.r.unidade_no_momento; } }
       return out;
     });
