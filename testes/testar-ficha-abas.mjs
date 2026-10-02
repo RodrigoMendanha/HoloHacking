@@ -332,7 +332,8 @@ const juntos = await p.evaluate(() => ({
   atalho: document.querySelector('.ex-atalho')?.textContent || '',
 }));
 conferir(juntos.exames > 0, 'os valores do exame continuam inteiros: ' + juntos.exames + ' linhas');
-conferir(juntos.cartoes.length === 2,
+// Etapa 5 da V1: documento + Exames laboratoriais (V1) + painel legado rotulado "fora da saida oficial"
+conferir(juntos.cartoes.length === 3 && /Exames laboratoriais/.test(juntos.cartoes[1]) && /Painel legado/.test(juntos.cartoes[2]),
   'e moram junto com o documento de onde saem: ' + juntos.cartoes.join(' · '));
 conferir(/Hemograma/.test(juntos.atalho),
   'o exame guardado vira atalho para abrir ao lado: ' + juntos.atalho);

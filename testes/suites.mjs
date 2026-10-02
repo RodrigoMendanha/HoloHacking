@@ -100,5 +100,8 @@ export const SUITES = [
   'testar-v1-etapa4-barreira.mjs',
   'testar-v1-etapa4-2-pacote-v1.mjs',
   'testar-v1-dupla-aprovacao.mjs',
+  'testar-v1-etapa5-motor.mjs',
+  'testar-v1-etapa5-banco.mjs',
+  'testar-v1-etapa5-ui.mjs',
   'testar-conferir-producao.mjs',
 ];

@@ -23,6 +23,11 @@
  *                em vez de inventar um historico que nao existe.
  *   REGISTRAR    "Registrar exames" abre a aba certa, com o paciente da ficha.
  *   NAVEGACAO    "Ver HOLOSCAN completo" leva para a secao, sem zerar a tela.
+ *
+ * Etapa 5 da V1: tudo acima e o confronto LEGADO, que so aparece em
+ * ?homologacao=1 (rotulado). A saida oficial da aba e a Leitura Integrada V1
+ * (pacote LI-V1 sem regra homologada => "sem dados suficientes"); este teste
+ * cobre as duas superficies e a barreira entre elas.
  */
 import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
@@ -65,8 +70,50 @@ const pid = await p.evaluate(async () => {
   return window.pacienteAtivoId();
 });
 
-/* -------------------------------------------------------- sem exame ------ */
+/* ================================================================ Etapa 5
+   A saida OFICIAL da aba e a Leitura Integrada V1 (pacote LI-V1, sem regra
+   homologada => "sem dados suficientes"). O confronto legado (nota <= 3 x um
+   exame fora da faixa cadastrada) continua existindo SO em ?homologacao=1,
+   rotulado LEGADO. As assercoes originais do legado foram mantidas e passam
+   a rodar nesse modo; as assercoes novas cobrem a barreira oficial. */
 
+const irParaOficial = async () => { await p.goto('http://127.0.0.1:5500/', { waitUntil: 'networkidle2' }); await p.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados()); };
+const irParaHomologacao = async () => { await p.goto('http://127.0.0.1:5500/?homologacao=1', { waitUntil: 'networkidle2' }); await p.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados()); };
+
+/* ------------------------------------------- sem exame (saida oficial) --- */
+
+await abrirFichaDe(pid);
+await aba('holoscan');
+
+const oficialVazio = await p.evaluate(() => ({
+  botao: document.querySelector('#aba-holoscan-laboratorial .fic-consultas-topo button')?.textContent,
+  titulo: document.querySelector('#aba-holoscan-laboratorial .dash-titulo')?.textContent,
+  status: document.querySelector('#aba-holoscan-laboratorial #li-status')?.textContent || '',
+  semConta: document.querySelector('#aba-holoscan-laboratorial .dash-vazio')?.textContent || '',
+  confItens: document.querySelectorAll('#aba-holoscan-laboratorial .conf-item').length,
+  ultima: [...document.querySelectorAll('#aba-holoscan-laboratorial .dash-titulo')].some(t => t.textContent === 'Última coleta'),
+}));
+conferir(oficialVazio.botao === 'Registrar exames', 'oficial: o CTA é "Registrar exames": ' + oficialVazio.botao);
+conferir(oficialVazio.titulo === 'Leitura Integrada (V1)', 'oficial: a aba mostra a Leitura Integrada V1: ' + oficialVazio.titulo);
+conferir(/LI-V1/.test(oficialVazio.status) && /sem dados suficientes/.test(oficialVazio.status),
+  'oficial: pacote LI-V1 sem regra homologada => só "sem dados suficientes": ' + oficialVazio.status.slice(0, 60));
+conferir(/Sem conta ativa/.test(oficialVazio.semConta), 'oficial: sem conta, avisa que não há aplicação nem coleta no servidor para selecionar');
+conferir(oficialVazio.confItens === 0 && !oficialVazio.ultima, 'oficial: nenhum confronto legado por sistema e nenhum bloco "Última coleta"');
+
+const registrar = await p.evaluate(async () => {
+  document.querySelector('#aba-holoscan-laboratorial [data-ir="aba:documentos"]').click();
+  await new Promise(r => setTimeout(r, 250));
+  return {
+    abaAtiva: document.querySelector('[data-aba="documentos"]').classList.contains('ativa'),
+    fichaVisivel: !document.getElementById('vista-ficha').classList.contains('hidden'),
+  };
+});
+conferir(registrar.abaAtiva && registrar.fichaVisivel,
+  '"Registrar exames" abre a aba Documentos desta mesma ficha, sem zerar a tela');
+
+/* ------------------------------------- sem exame (legado, ?homologacao=1) */
+
+await irParaHomologacao();
 await abrirFichaDe(pid);
 await aba('holoscan');
 
@@ -88,16 +135,8 @@ conferir(/existir um mapa/.test(vazio.avisoSemMapa),
   'sem HOLOSCAN, avisa que o confronto depende do mapa — sem bloquear o registro: ' + vazio.avisoSemMapa);
 conferir(!vazio.temUltima, 'sem exame, nenhum bloco "Última coleta" aparece');
 
-const registrar = await p.evaluate(async () => {
-  document.querySelector('#aba-holoscan-laboratorial [data-ir="aba:documentos"]').click();
-  await new Promise(r => setTimeout(r, 250));
-  return {
-    abaAtiva: document.querySelector('[data-aba="documentos"]').classList.contains('ativa'),
-    fichaVisivel: !document.getElementById('vista-ficha').classList.contains('hidden'),
-  };
-});
-conferir(registrar.abaAtiva && registrar.fichaVisivel,
-  '"Registrar exames" abre a aba Documentos desta mesma ficha, sem zerar a tela');
+conferir(/LEGADO \(modo de homologação\)/.test(await p.evaluate(() => document.querySelector('#aba-holoscan-laboratorial .q-erro')?.textContent || '')),
+  'em ?homologacao=1 o confronto antigo vem rotulado LEGADO (modo de homologação)');
 
 /* -------------------------------------- exames sem HOLOSCAN (ainda) ----- */
 
@@ -188,6 +227,25 @@ conferir(/não há coleta por data persistida/.test(cheio.historico),
 
 conferir(cheio.continuidade.join(' · ').includes('HOLOSCAN') && cheio.continuidade.join(' · ').includes('Leitura Integrada'),
   'a relação HOLOSCAN → mapa / Leitura Integrada → integração com exames aparece: ' + cheio.continuidade.join(' · '));
+
+/* ------------------------------ a mesma receita, na saida oficial: barreira */
+
+await irParaOficial();
+await abrirFichaDe(pid);
+await aba('holoscan');
+
+const oficialCheio = await p.evaluate(() => {
+  const caixa = document.getElementById('aba-holoscan-laboratorial');
+  return {
+    texto: caixa.innerText.replace(/\s+/g, ' '),
+    confItens: caixa.querySelectorAll('.conf-item, .fic-sis').length,
+    continuidade: [...caixa.querySelectorAll('.fic-continuidade .fic-rot')].map(s => s.textContent),
+  };
+});
+conferir(oficialCheio.confItens === 0 && !/Convergente|Divergente/.test(oficialCheio.texto) && /sem dados suficientes/.test(oficialCheio.texto),
+  'oficial: com HOLOSCAN + exames fora da faixa, NÃO há Convergente/Divergente — só "sem dados suficientes" (barreira da Etapa 5)');
+conferir(oficialCheio.continuidade.join(' · ').includes('HOLOSCAN') && oficialCheio.continuidade.join(' · ').includes('Leitura Integrada'),
+  'oficial: a relação HOLOSCAN → mapa / Leitura Integrada → integração com exames continua: ' + oficialCheio.continuidade.join(' · '));
 
 /* --------------------------------- "Ver Leitura Integrada completa" nao zera */
 

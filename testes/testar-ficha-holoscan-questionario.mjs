@@ -79,7 +79,8 @@ const vazio = await p.evaluate(() => {
     titulo: v?.querySelector('strong')?.textContent,
     texto: v?.querySelector('span')?.textContent,
     botao: document.querySelector('#aba-holoscan .fic-consultas-topo button')?.textContent,
-    temUltima: !!document.querySelector('#aba-holoscan .dash-titulo'),
+    // Etapa 5: a aba tambem traz o bloco "Leitura Integrada (V1)" (.dash-titulo); o que nao pode existir e "Ultima aplicacao"
+    temUltima: [...document.querySelectorAll('#aba-holoscan .dash-titulo')].some(t => /Última aplicação/.test(t.textContent)),
     continuidade: document.querySelector('#aba-holoscan .fic-chip')?.textContent,
   };
 });
@@ -212,7 +213,7 @@ await abrirFichaDe(ids.primeira);
 await aba('holoscan');
 const outraPessoa = await p.evaluate(() => ({
   vazio: !!document.querySelector('#aba-holoscan .lista-vazia'),
-  ultima: !!document.querySelector('#aba-holoscan .dash-titulo'),
+  ultima: [...document.querySelectorAll('#aba-holoscan .dash-titulo')].some(t => /Última aplicação/.test(t.textContent)),
 }));
 conferir(outraPessoa.vazio && !outraPessoa.ultima,
   'a ficha de quem nunca aplicou continua vazia — as duas não se misturam');

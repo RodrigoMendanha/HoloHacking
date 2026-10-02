@@ -43,8 +43,11 @@ ok(base.abas.join(',') === 'Visão geral,Atendimentos,Anamnese,HOLOSCAN,Ferramen
    'as nove abas (Anamnese e Conduta na Etapa 2): ' + base.abas.join(' · '));
 /* Exames e documentos eram duas abas, e a separacao estava errada: os valores
    saem do PDF. Agora e um lugar so, em dois passos. */
-ok(base.cartoes.join(' / ') === 'O que o paciente trouxe / Os valores do exame',
-   'o papel e os numeros no mesmo lugar: ' + base.cartoes.join(' · '));
+/* Etapa 5 da V1: o cartao "Os valores do exame" virou "Exames laboratoriais"
+   (catalogo de 45, coleta por id, valor original) e o painel antigo ficou como
+   "Painel legado (valores locais) — fora da saida oficial". */
+ok(base.cartoes.join(' / ') === 'O que o paciente trouxe / Exames laboratoriais / Painel legado (valores locais) — fora da saída oficial',
+   'o papel e os numeros no mesmo lugar (Etapa 5: V1 + painel legado rotulado): ' + base.cartoes.join(' · '));
 ok(base.exames === 24, base.exames + ' exames no formulario');
 ok(base.blocos.length === 5, 'agrupados nos ' + base.blocos.length + ' sistemas');
 

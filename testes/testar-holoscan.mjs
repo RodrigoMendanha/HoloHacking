@@ -57,19 +57,25 @@ await p.evaluate(async (respostas) => {
 }, caso.respostas);
 
 /* ==================================================================== */
-console.log('\n  E — SEM NENHUM EXAME, DADOS INSUFICIENTES\n');
+console.log('\n  E — SEM NENHUM EXAME, SEM DADOS SUFICIENTES (Leitura Integrada V1)\n');
 /* ==================================================================== */
 
-const semExame = await p.evaluate(() => {
+/* Etapa 5 da V1: #holo-confronto e a Leitura Integrada do pacote LI-V1 (sem
+   regra homologada => "sem dados suficientes", com motivo). O confronto
+   legado por sistema (.conf-selo) so existe em ?homologacao=1 (secao F2). */
+const semExame = await p.evaluate(async () => {
+  document.querySelector('.nav-item[data-secao="confronto"]').click();
+  await new Promise(r => setTimeout(r, 400));
   const caixa = document.getElementById('holo-confronto');
   return {
     texto: caixa ? caixa.innerText.replace(/\s+/g, ' ') : '',
     selos: [...(caixa ? caixa.querySelectorAll('.conf-selo') : [])].map(e => e.textContent),
+    pacote: caixa?.querySelector('#li-status')?.textContent || '',
   };
 });
-ok(semExame.selos.length === 5 && semExame.selos.every(s => /Dados insuficientes/i.test(s)),
-   'os cinco sistemas aparecem como Dados insuficientes: ' + semExame.selos.join(', '));
-ok(!/convergente|divergente/i.test(semExame.texto.replace(/dados insuficientes/gi, '')),
+ok(semExame.selos.length === 0 && /sem dados suficientes/i.test(semExame.pacote) && /LI-V1/.test(semExame.pacote),
+   'sem regra homologada, a Leitura Integrada so pode ser "sem dados suficientes" (nenhum selo por sistema): ' + semExame.pacote.slice(0, 60));
+ok(!/convergente|divergente/i.test(semExame.texto.replace(/sem dados suficientes/gi, '')),
    'nenhuma palavra de conclusão aparece sem exame nenhum lançado');
 
 /* ==================================================================== */
@@ -119,22 +125,55 @@ ok(JSON.stringify(antes.triada) === JSON.stringify(depois.triada),
    'a Tríade continua idêntica');
 
 /* ==================================================================== */
-console.log('\n  F — DIVERGÊNCIA NÃO CORRIGE A NOTA EXIBIDA\n');
+console.log('\n  F — EXAMES FORA DA FAIXA NAO VIRAM "DIVERGENTE" NA SAIDA OFICIAL, NEM CORRIGEM A NOTA\n');
 /* ==================================================================== */
 
-const divergencia = await p.evaluate(() => {
+/* Etapa 5 da V1: "um exame fora da faixa" nao basta para convergir/divergir.
+   Na saida oficial, com os 24 exames lancados, a Leitura Integrada continua
+   "sem dados suficientes" e o Indice e o do motor. */
+const divergencia = await p.evaluate(async () => {
+  document.querySelector('.nav-item[data-secao="confronto"]').click();
+  await new Promise(r => setTimeout(r, 400));
+  const caixa = document.getElementById('holo-confronto');
+  return {
+    texto: caixa.innerText.replace(/\s+/g, ' '),
+    selos: caixa.querySelectorAll('.conf-selo, .conf-item').length,
+    notaNaTela: document.getElementById('holo-score-total').textContent,
+  };
+});
+ok(divergencia.selos === 0 && !/divergente|convergente/i.test(divergencia.texto) && /sem dados suficientes/i.test(divergencia.texto),
+   'com 24 exames lançados, a saída oficial segue "sem dados suficientes" — exame fora da faixa não vira Divergente');
+ok(divergencia.notaNaTela === String(depois.indice),
+   'o Índice na tela continua o do motor, exame nenhum o corrige: ' + divergencia.notaNaTela);
+
+/* ==================================================================== */
+console.log('\n  F2 — O CONFRONTO LEGADO SO EXISTE EM ?homologacao=1, ROTULADO LEGADO\n');
+/* ==================================================================== */
+
+const p2 = await nav.newPage();
+await p2.setViewport({ width: 1500, height: 1400 });
+p2.on('pageerror', e => ruim.push(e.message));
+await p2.goto('http://127.0.0.1:5500/?homologacao=1', { waitUntil: 'networkidle2' });
+await p2.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados());
+const legado = await p2.evaluate(async () => {
+  document.querySelector('.nav-item[data-secao="confronto"]').click();
+  await new Promise(r => setTimeout(r, 400));
   const caixa = document.getElementById('holo-confronto');
   const bloco = [...caixa.querySelectorAll('.holo-dominante-sistema')]
     .find(b => /Detox/.test(b.querySelector('h5').textContent));
   return {
-    selo: bloco.querySelector('.conf-selo').textContent,
+    banner: caixa.querySelector('.q-erro')?.textContent || '',
+    selo: bloco?.querySelector('.conf-selo')?.textContent || '',
     notaNaTela: document.getElementById('holo-score-total').textContent,
   };
 });
-ok(/Divergente/i.test(divergencia.selo),
-   'o sistema Detox (relato ok, GGT alterado) aparece como Divergente: ' + divergencia.selo);
-ok(divergencia.notaNaTela === String(depois.indice),
-   'o Índice na tela continua o do motor, a divergência não o corrige: ' + divergencia.notaNaTela);
+await p2.close();
+ok(/LEGADO \(modo de homologação\)/.test(legado.banner) && /não é saída oficial/.test(legado.banner),
+   'em ?homologacao=1 o confronto antigo aparece rotulado LEGADO e "não é saída oficial"');
+ok(/Divergente/i.test(legado.selo),
+   'ali o Detox (relato ok, GGT alterado) ainda aparece como Divergente — comportamento legado preservado para revisão: ' + legado.selo);
+ok(legado.notaNaTela === String(depois.indice),
+   'e mesmo lá o Índice na tela continua o do motor: ' + legado.notaNaTela);
 
 /* ==================================================================== */
 console.log('\n  G — NENHUMA FRASE BANIDA EM NENHUMA SUPERFÍCIE DO HOLOSCAN\n');
