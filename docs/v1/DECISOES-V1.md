@@ -216,6 +216,74 @@ na seção **Decisões pendentes**, sem resposta.
     aprovação é automática (só a RPC escreve) e nenhuma pode ser atribuída a "Liderança do método
     HOLOSCAN". Migration 20261001210000 (NÃO aplicada).
 
+### Etapa 5 — Laboratório, coletas, motor laboratorial e infraestrutura da Leitura Integrada (02/10/2026)
+
+Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o legado
+(`docs/v1/laboratorio/INVENTARIO-LABORATORIO-AS-IS.md`). Nenhuma regra clínica foi inventada.
+
+68. **Catálogo-base de 45 exames (LAB-001..LAB-045)**, versão `catalogo-lab-v1.0`, global e somente
+    leitura pela aplicação, com categorias e aliases explícitos (TGO↔AST, TGP↔ALT, Gama GT↔GGT,
+    Paratormônio↔PTH, 25 OH vitamina D↔Vitamina D 25-OH). Busca por nome/alias exato ou prefixo —
+    **sem** fuzzy matching. Não é painel obrigatório. HOMA-IR, VHS, cortisol e Candida **não** entram.
+    (`docs/v1/laboratorio/CATALOGO-45-V1.md`)
+69. **PCR ≠ PCR-us e Magnésio ≠ Magnésio eritrocitário**: mesmo `exam_code`, `variant` explícita;
+    material nunca inventado. Comparação entre variantes diferentes não é automática.
+70. **Legado fora dos 45** (Candida albicans IgG, VHS, HOMA-IR, Cortisol matinal) → `additional_legacy`:
+    preservado, visível no histórico, sem regra, faixa, leitura ou interpretação.
+71. **Exame customizado por profissional** (`lab_custom_exams`): dado do dono, não vira global, não
+    ganha regra, referência nem vínculo, não conta nos 45.
+72. **Hemograma completo = 1 item** (LAB-001) com componentes em `lab_result_components`; nenhuma
+    lista clínica fixa de componentes foi inventada.
+73. **Coleta é identificada por `id`, nunca por paciente + data.** Duas coletas na mesma data
+    coexistem. "Nova coleta" sempre insere; "Editar esta coleta" exige id e só vale para `rascunho`.
+    `encounter_id` é opcional e explícito (checkbox); nunca deduzido por data. `clinical_date`
+    (`coletado_em` + `clinical_time`) é separada de `created_at`/`updated_at`.
+74. **Estados da coleta**: `rascunho` (fora da saída oficial) → `salvo` (só após confirmação do
+    servidor) → `revisado` (ação humana identificada). Coleta consolidada é imutável (trigger);
+    correção = nova revisão com quem/quando/motivo e versão anterior preservada (`supersedes_id`).
+    Nenhum hard-delete de coleta consolidada.
+75. **Nova coleta começa vazia**; "usar estrutura da coleta anterior" copia só a estrutura
+    (exame/variante/material/método), nunca valores, referências, observações ou datas.
+76. **Valor original sempre preservado** (`value_original_text` not null). `numeric_value` só quando
+    inequivocamente numérico. Censurado ("< 0,10") → `qualifier` + `censor_limit`, `numeric_value`
+    nulo (CHECK). Qualitativo preservado textualmente; nunca `Negativo = 0`.
+77. **Referência do laudo é a única referência da V1** (`report_reference_*`, `reference_source =
+    laudo`), digitada pela profissional. **Ausência de referência não significa "dentro"**
+    (`not_classifiable / missing_reference`). Referência metodológica (`lab_method_references`),
+    conversões (`lab_unit_conversion_rules`) e cálculos derivados (`lab_derived_calculations`) são
+    infraestrutura **vazia**, sem botão e sem aprovação.
+78. **"Ideal" legado removido da saída oficial**: preservado só em `legacy_ideal_min/max`
+    (provenance). Não aparece como referência, não alimenta motor, Leitura Integrada, HOLOS AI nem
+    relatório.
+79. **Motor laboratorial** (`motor-lab-1.0.0`): `below | within | above | not_classifiable` +
+    `reason_codes` + trace. Unidade diferente sem conversão **aprovada** = não classificável.
+    Variante/material/método incompatíveis = não classificável. **Nenhum score laboratorial global**,
+    nota, índice ou percentual de exames bons.
+80. **Comparação entre resultados** só com mesma identidade (exame, variante, material, método
+    relevante) e unidade igual ou conversão aprovada; delta e "aumentou/reduziu/permaneceu";
+    **nunca "melhorou/piorou"**; referências diferentes ficam visíveis; a seleção é da profissional,
+    por `clinical_date`, nunca por `updated_at`.
+81. **Laboratório é independente do motor HOLOSCAN**: exames nunca alteram sistemas, Índice, Tríada,
+    respostas, pesos ou faixas (testes explícitos de barreira).
+82. **Leitura Integrada = infraestrutura genérica dirigida por pacote de regras**
+    (`integrated_reading_rule_packages/domains/exam_domain_links/rules`). O pacote real `LI-V1@1` nasce
+    em `rascunho` **sem** domínios, vínculos, suficiência, janela temporal, regra de mistos ou textos;
+    logo o único estado real é `sem_dados_suficientes`, com motivos. Convergente/divergente só existem
+    em fixtures `TEST_FIXTURE_ONLY` (A–F), fora da migration e da UI. O servidor recusa
+    convergente/divergente sem vínculo aprovado em pacote aprovado.
+83. **Seleção explícita** de 1 aplicação HOLOSCAN consolidada + N coletas (por id, com data clínica);
+    nunca "a última coleta". Leitura salva (`integrated_readings`) é snapshot congelado e imutável;
+    correção = nova revisão.
+84. **Confronto legado bloqueado da saída oficial** (`confrontar()`, `window.Holoscan`, `nota ≤ 3`,
+    "um exame fora = convergente"): só em `?homologacao=1`, rotulado LEGADO. HOLOS AI não recebe
+    inferência laboratorial (só dado factual de coletas salvas/revisadas).
+85. **Migração determinística do legado** (migration 20261001220000, NÃO aplicada): 20 EXA-* mapeados
+    com variante preservada, 4 → `additional_legacy`, Insulina de jejum → `requires_manual_mapping`;
+    coletas antigas → `source = legacy_panel`, `state = salvo`. Nenhum resultado perdido.
+    (`docs/v1/laboratorio/MIGRACAO-LEGADO.md`)
+86. **Homologação da Leitura Integrada e das referências metodológicas é decisão humana pendente**
+    (`docs/v1/laboratorio/HOMOLOGACAO-LEITURA-INTEGRADA-PENDENTE.md`); nenhuma aprovação registrada.
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`
@@ -255,8 +323,10 @@ na seção **Decisões pendentes**, sem resposta.
   **DECIDIDAS na Etapa 4.2** (itens 52–66). Pendente só a **publicação técnica**: validar a
   cadeia 130000→210000 no banco real, registrar a Aprovação 1 (Daniel) e a Aprovação 2 (Rodrigo)
   sobre o mesmo pacote, versão e hash, e então homologar o HOLOS-V1@2 (item 67).
-- **Leitura Integrada** — vínculo exame↔domínio, suficiência, janela temporal,
-  unidades/referências, resultados mistos, versionamento da regra. (Mestre §24)
+- **Leitura Integrada** — a Etapa 5 entregou a **infraestrutura** (itens 82–84); continuam pendentes
+  as decisões humanas: domínios, vínculo exame↔domínio, suficiência, janela temporal, referências
+  metodológicas, conversões, cálculos derivados, resultados mistos, regras de convergência/divergência
+  e textos (`docs/v1/laboratorio/HOMOLOGACAO-LEITURA-INTEGRADA-PENDENTE.md`). (Mestre §24)
 - **Regras de sugestão de ferramentas** — nenhuma das 23 REC nem SEL-001 é aprovada; a Etapa 4.2
   decidiu que nenhuma sugestão automática é oficial na V1 (item 65). (Mestre §29)
 - **Conteúdo mínimo para "Concluir" uma ferramenta** — a guarda técnica da Rodada 08
@@ -264,5 +334,6 @@ na seção **Decisões pendentes**, sem resposta.
   guarda de aplicação vazia, pendente de decisão metodológica.
 - **Réguas manuais dos 5 sistemas** — LEGADO / EM REVISÃO; fora da jornada normal,
   visíveis só em modo de homologação (`?homologacao=1`); não sincronizadas.
-- **Catálogo laboratorial de 45 exames** — o banco atual tem 24 (12 iguais, 8 com outro
-  nome/formato, 25 ausentes, 4 fora da lista). (Mestre §21)
+- ~~**Catálogo laboratorial de 45 exames**~~ — **ENTREGUE na Etapa 5** (itens 68–72). Pendente só o
+  mapeamento manual dos itens legado marcados `requires_manual_mapping` (Insulina de jejum) e a
+  validação da migration 20261001220000 no banco real. (Mestre §21)

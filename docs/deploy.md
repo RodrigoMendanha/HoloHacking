@@ -123,7 +123,7 @@ O Caddy não precisa mudar se o nome e a porta forem os mesmos.
 
 ### 3.4 Conferir na própria VPS
 
-Num comando só, os 38 arquivos contra o §3.5 (tem de sair `OK: 38 de 38`):
+Num comando só, os 53 arquivos contra o §3.5 (tem de sair `OK: 53 de 53`):
 
 ```sh
 sh scripts/conferir-producao.sh                            # o domínio público
@@ -157,13 +157,13 @@ Cache-Control. Nas próximas atualizações não precisa.
 
 ### 3.5 Hashes esperados (sha256 dos arquivos servidos pela `main` saneada)
 
-Todos os 49 arquivos que o `Dockerfile` copia (`index.html style.css favicon.svg
-*.js`). Atualizados na Etapa 4.2 da V1 (branch `claude/v1-etapa4-2-metodologia-final`, inclui `metodologia-decisoes-v1.js` e `questionario.js`; antes, Etapa 4:
+Todos os 53 arquivos que o `Dockerfile` copia (`index.html style.css favicon.svg
+*.js`). Atualizados na Etapa 5 da V1 (branch `claude/v1-etapa5-laboratorio`, inclui `laboratorio-catalogo.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js` e `laboratorio.js`; antes, Etapa 4.2: `metodologia-decisoes-v1.js` e `questionario.js`; Etapa 4:
 inclui `metodologia.js`, `atendimento.js`, `anamnese.js`, `conduta.js`, `timeline.js`, `relatorios.js`, `metodologia-inventario.js`, `metodologia-pacote.js`, `metodologia-motor.js` e `metodologia-homologacao.js`), conferidos contra a imagem do `docker build` da branch (o nginx ainda põe o
 `50x.html` dele, que não é nosso):
 
 ```
-3fa435ae1948475873d293cee99030b7e5a5e6f059766be86931270bea8a1d3e  index.html
+2dca4406d8a47a83465c38f28c4ab65f64a387ce72d65c6f57fc96c324606994  index.html
 9edb50a1fe964f29d755df4c696f3865a8b42f27145878bebf504148a38b39ca  style.css
 cd6ef22455f446156c4109649b2d0fc1fe803f0c6697e1029fa71e50ba44cf84  favicon.svg
 fca789a5d4169bc1d4b5b0d1d2e934e9f1317384b435ea44e486966fe5eaa8d7  agenda.js
@@ -172,26 +172,30 @@ b1ea48449d74ba8427c7a59947ae73d55a4d88896ea1fcf4f9823dc4087bd049  aplicacoes.js
 5c6e38522475bd43331181e7f511c41dee9e47f1ccd6c5aebc0ff4c197d034d5  app.js
 d3efacba60b26bc2da2311a273881948882570773e4016f59ce2a0845661746c  armazenamento.js
 77f0a880c8784e9e45ad608e4c62dc9791f9a750d75225d85edd9e15a150ce69  arquivo-store.js
-cfd8116a5c80f86c58cdb2fc2eb69775782fafeac4d0b5c2fdf1068605c834ae  arquivos.js
+d40530d439eed926cab1a90838fc06c4ee89efb700db4e4ffafc3f7ef9205c83  arquivos.js
 cbb3209dee942992cf56d60882d03b84c2fdad0358057b1cee5dbd877df38e6f  atendimento.js
 410b78815fa33df41eeadd22c8f3dbfb5b5bfeecaf89784fb2d35a590474cdb7  caso-marina.js
 e66cd4b4cd1163cce5680b8d2b56b820c44c1cf430ed413d8de2fe7766112a14  concorrencia.js
 3b0a3b2f9a14aa7ca801e986427046b65097859675c0605ef9bb2ffd467951fe  conduta.js
 63204f8891ceceb557fcd57c8d5d708acdaa0a128f3e55d75b40fbc0f471a641  consultas.js
 25ffbc8bf45aec67e9214f403c5a1ffd297f183eaa664f53cebdb7d92e9c50f9  corpo-bancos.js
-2275d62980c6d5534bed3506257b1a36751fca1476c5bbf2bb7df4132a39a956  dados-router.js
+237616288f56bf076031ff144f4ae9e2ffd387a9d76536b5b1bd4490423cb472  dados-router.js
 a77e7bf6acab37680d25eb5451442539bda71a84c6e921940a6065b9b9a3b806  dados.js
 53db625e8fb01b77c3bff3eb8ecffa10af663d13cfce2fb6c99120e5d0a99dc7  dashboard.js
 a29fad23f5ea2543661b0cd1429670340afbc0ec6654928a6a92fa9d117bf890  demo.js
 d7920a0868425c28a2b3192214010fee62bf1153a0c9c9478e8bc9481940cfcc  documentos.js
-7f32dfd8e05f7f00014b733ce519c0b73d5d223235dc6187cb4aeb14a1ec772e  evolucao.js
+8248f38c2f57e78f60698ef7698a8f102b46af6f41c8d19c9e314003041ef29b  evolucao.js
 11e08342911df7f528993946a7e07746a9c26f66657eb0d139e746ade32e161f  excluir-paciente.js
 66e3f1a501b0a1fc98db4c4d1801148e01cfde71ad1b79ba0d8302f296c5e52b  ferramentas.js
 638a42d91204fd2dec1fd3e6f231631210f6ca0bfe593cc29158ee0759ce3d5b  ficha.js
 ace6c65cf3f034c43125a348d7c8a834f217b31912916a9f16450f5454bbb178  formulario.js
-a89bb8938005013575b8f93d37228a3356decc23093a3fcd475e5925eac58a32  holos-ai.js
+9dff80070d47f83602f81ad5b9ff8a7f694f57052c6c24b9ee1873768a3b5b90  holos-ai.js
 b6c7e8b1341a10bf45c2f895218e5529176b9c36aa035be6a2aa1ed0fb41cfac  holoscan.js
 b2705ac28dc9f6175ec5586ef02e86b00f2fe1265dbb23a34e3bb2cebb8718c3  importar-v1.js
+d68215f0b81b8b8e5929ea43b29f7f51046b78336b96ec9e5814d4eea2444ae0  laboratorio-catalogo.js
+2a00eaa31d7c6efd0d4fee43f281582e8019ac555b53ea2f6e61a5c4bcfd95a4  laboratorio-motor.js
+490b23f3b57a6bd97662378a850028554643435d481caa79854683104e137104  laboratorio.js
+dd8d94f279fa36e77a26ed8e6f9f2bbcddbadfaba592c3706010747de7dcbe55  leitura-integrada-motor.js
 d0098b6c672f2d283cabb347205c676e3ac117fd960e8274ba3a64d13a984f2e  login.js
 51f9b31c0cf3ab7c0b530d07f37a84b205e9e314103ce1397e9a9ff04b3130ba  metodologia-decisoes-v1.js
 c532ac3e3f69adc9ba0a2568bc3a8626956990a7eac0b11f4756fe02ec977a91  metodologia-homologacao.js
@@ -203,13 +207,13 @@ ea9ec168a0d44ffea65a7ee4b5fa9071eb0bdae8aedcf246a7118c13b0ca555a  metodologia-pa
 0aa32a8554ffecbe0e7198a13ed65aa2ea062478eaf632f45d1fa90978ef0db1  panorama.js
 2beaabe619d8dd09438a7bfbbc4677e52cd015cea5483086b6cee46865cd13a3  perfil.js
 8ac728c67627b0bc4d7f70b0fb98fa75a493822c74c9a3385d7e3e52bb4a7cb3  questionario.js
-03690803167dd95e8a999729dca908f39e8f454eeb6d23172c9cd8aa8903ce9c  relatorios.js
+1414c83eac5031c65849721597de651c67b1464e38d85ec6ff54fdb4f055a459  relatorios.js
 8849e59a1d3fe76723aa1e59cc75213fc64172259c5bccd6d9b1151f21a9fb63  render-resultado.js
 23520f5f414deb288f083d0a08389a1c96d1ec918c50fb95d44c3b8b36758e8c  restaurar-backup.js
 2848d87ee9677b5327939694c6461d4f2eee0b11ec5cf44462d52c3a07f0964a  resultado-corpo.js
-3ca13489a5484c666a012e09c08980b35cc701aa4bb81b482b58670dd83e1f36  sincronizacao.js
+4da93a366a070e76df41d0ee1fdb27d085b617d734308abd7739c83a3c4efca8  sincronizacao.js
 482687b6663c97cfc92151da80a62ff0fdfa8f82fc3ff24a399ab583d3ff0d6d  supabase-client.js
-ea61ca3d6e30f84763cd53788059181f985404bac25c8968b8b8e3963f12bb03  timeline.js
+82be6ed473fd55740ee1625a0e63b90a751a27116e3e0675983f74c77571de74  timeline.js
 078361d4aace416d6e43c2ff741ae6f4ec4ec5c07630d7395f6213070c265022  utils.js
 f99c4197f8ac91ec9e5ec2f6970c12ad8ec0e3d8dc4513da856289799c095b68  validar-backup.js
 ```
