@@ -27,6 +27,9 @@ const titulo = (t) => console.log('\n  ' + t + '\n');
 const srv = criarServidor();
 const UA = srv.criarConta('a@holo.test', 'x');
 const UB = srv.criarConta('b@holo.test', 'x');
+// Etapa 5.3: identidade real — UA = Daniel (Aprovacao 1), UB = Rodrigo (Aprovacao 2); cadastro por gestao tecnica
+srv.gestaoTecnica('methodology_approvers', 'insert', { user_id: UA, scope: 'holoscan', approval_stage: 1, display_name: 'Daniel' });
+srv.gestaoTecnica('methodology_approvers', 'insert', { user_id: UB, scope: 'holoscan', approval_stage: 2, display_name: 'Rodrigo' });
 const q = (uid, tabela, acao, extra) => srv.tratar({ op: 'query', uid, q: Object.assign({ tabela, acao, filtros: [], ordem: [], range: null, colunas: '*', single: null, opcoes: {}, retornar: true }, extra) });
 const insert = (uid, t, dados) => q(uid, t, 'insert', { dados });
 const select = (uid, t, filtros) => q(uid, t, 'select', { filtros: filtros || [] });
@@ -68,7 +71,7 @@ const REG = { responsible: 'Responsável humano (teste)', justification: 'fixtur
 function aprovarDuplo(uid, id) {
   const h = rpc(uid, 'metodologia_hash_conteudo', { p_package_id: id }).data;
   const a = rpc(uid, 'registrar_aprovacao_metodologica', { p_package_id: id, p_etapa: 1, p_responsavel: 'Daniel', p_justificativa: 'fixture conferido (teste)', p_content_hash: h });
-  const b = rpc(uid, 'registrar_aprovacao_metodologica', { p_package_id: id, p_etapa: 2, p_responsavel: 'Rodrigo', p_justificativa: 'revisao final do fixture (teste)', p_content_hash: h });
+  const b = rpc(UB, 'registrar_aprovacao_metodologica', { p_package_id: id, p_etapa: 2, p_responsavel: 'Rodrigo', p_justificativa: 'revisao final do fixture (teste)', p_content_hash: h });
   return a.error || b.error || null;
 }
 
