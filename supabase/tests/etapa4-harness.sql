@@ -63,7 +63,9 @@ begin
   -- 1. aprovar pelo RPC; depois imutavel
   -- dupla aprovacao (migration 210000): Aprovacao 1 Daniel, Aprovacao 2 Rodrigo, sobre o hash atual
   v := public.registrar_aprovacao_metodologica(pk, 1, 'Daniel', 'fixture conferido (teste)', public.metodologia_hash_conteudo(pk));
+  perform pg_temp.como_rodrigo();   -- Etapa 5.3: a Aprovacao 2 e de outra identidade autenticada (aprovadores-harness-setup.sql)
   v := public.registrar_aprovacao_metodologica(pk, 2, 'Rodrigo', 'revisao final do fixture (teste)', public.metodologia_hash_conteudo(pk));
+  perform set_config('request.jwt.claims', json_build_object('sub', uid, 'role', 'authenticated')::text, true);
   v := public.aprovar_pacote_metodologico(pk, jsonb_build_object('decided_at', '2026-10-01'));
   select status, content_hash into t, h from public.methodology_packages where id = pk;
   insert into _log values ('01 ' || case when t = 'aprovado' and length(h) = 64 and (v->>'status') = 'aprovado' then 'ok' else 'FALHOU' end || ': fixture aprovado pela RPC com hash sha256');
