@@ -31,14 +31,14 @@ begin
     (pc, 'text', 'global', '{"convergente": "f", "divergente": "f", "sem_dados_suficientes": "f"}', 'aprovado');
   insert into public.integrated_reading_package_dependencies (package_id, kind, ref_id, status) values (pc, 'reference', rf, 'aprovado'), (pc, 'conversion', cv, 'aprovado'), (pc, 'derived', dv, 'aprovado');
   insert into _li52 values ('pc', pc::text), ('rf', rf::text), ('cv', cv::text), ('dv', dv::text), ('d1', d1::text);
-  insert into _log52 values ('G00 ' || case when (select status from public.integrated_reading_rule_packages where code = 'LI-V1') = 'rascunho' and (select count(*) from public.integrated_reading_package_approvals) = 0 then 'ok' else 'FALHOU' end || ': LI-V1@1 em rascunho; nenhuma aprovacao nasce da migration');
+  insert into _log52 values ('G00 ' || case when (select status from public.integrated_reading_rule_packages where code = 'LI-V1' and version = 1) = 'rascunho' and (select count(*) from public.integrated_reading_package_approvals) = 0 then 'ok' else 'FALHOU' end || ': LI-V1@1 em rascunho; nenhuma aprovacao nasce da migration');
 end $$;
 
 -- ---------- aplicacao (authenticated) ----------
 set local role authenticated;
 select pg_temp.como_daniel();
 do $$
-declare pk uuid := (select v::uuid from _li52 where k = 'pk'); pc uuid := (select v::uuid from _li52 where k = 'pc'); li uuid := (select id from public.integrated_reading_rule_packages where code = 'LI-V1');
+declare pk uuid := (select v::uuid from _li52 where k = 'pk'); pc uuid := (select v::uuid from _li52 where k = 'pc'); li uuid := (select id from public.integrated_reading_rule_packages where code = 'LI-V1' and version = 1);
   h text; hc text; r jsonb; v jsonb; t text;
 begin
   h := public.li_hash_conteudo(pk); hc := public.li_hash_conteudo(pc);
@@ -174,7 +174,7 @@ begin
   exception when others then perform pg_temp.como_daniel(); insert into _log52 values ('G34 ok: snapshot imutavel'); end;
 end $$;
 reset role;
-do $$ declare pc uuid := (select v::uuid from _li52 where k = 'pc'); li uuid := (select id from public.integrated_reading_rule_packages where code = 'LI-V1');
+do $$ declare pc uuid := (select v::uuid from _li52 where k = 'pc'); li uuid := (select id from public.integrated_reading_rule_packages where code = 'LI-V1' and version = 1);
 begin
   begin insert into public.integrated_reading_rules (package_id, rule_type, target, payload, status) values (pc, 'text', 'x', '{}', 'rascunho'); insert into _log52 values ('G35 FALHOU: filha inserida em pacote aprovado');
   exception when others then perform pg_temp.como_daniel(); insert into _log52 values ('G35 ok: pacote aprovado e imutavel (filhas): ' || left(sqlerrm, 40)); end;

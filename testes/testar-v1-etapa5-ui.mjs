@@ -185,25 +185,31 @@ ok(await A.evaluate(() => window.cmbParaExibir().length === 0 && window.Metodolo
 
 titulo('LEITURA INTEGRADA: SELECAO EXPLICITA, SEM DADOS SUFICIENTES, SALVAR, CONFRONTO LEGADO FORA DA SAIDA OFICIAL');
 const liTela = await A.evaluate(async (pid) => { window.abrirFichaDe(pid); await new Promise(r => setTimeout(r, 300)); document.querySelector('[data-aba="holoscan"]').click(); await new Promise(r => setTimeout(r, 500)); return document.getElementById('aba-holoscan-laboratorial').innerText; }, PA);
-ok(/LI-V1 v1 · rascunho/.test(liTela) && /sem dados suficientes/.test(liTela) && !/Convergentes|Divergentes|Convergente\b|Divergente\b/.test(liTela), 'aba HOLOSCAN da ficha: Leitura Integrada V1 (pacote LI-V1 em rascunho), sem contagem de convergentes/divergentes');
+// Etapa 6.0 (mudanca legitima de contrato, documentada em docs/v1/ETAPA6-LEITURA-INTEGRADA.md): o pacote em uso passa a ser
+// LI-V1 v2 (em_revisao, 7 dominios / 47 vinculos, ainda NAO homologado); a leitura e por dominio; a aplicacao HOLOSCAN desta
+// tela foi gravada pelo caminho legado (sem methodology_package_id), logo a fonte HOLOSCAN e incompativel -> sem dados
+// suficientes em D01-D04, e D05-D07 sao informacao laboratorial sem confronto. O "um exame fora = convergente" continua impossivel.
+ok(/LI-V1 v2 · em_revisao/.test(liTela) && /ainda não homologado/.test(liTela) && /sem dados suficientes/.test(liTela) && !/Convergentes|Divergentes/.test(liTela), 'aba HOLOSCAN da ficha: Leitura Integrada V1 (pacote LI-V1 v2 em_revisao, nao homologado), sem contagem de convergentes/divergentes');
 const selLI = await A.evaluate(() => { const r = document.getElementById('aba-holoscan-laboratorial'); return { cta: !!r.querySelector('[data-ir="aba:documentos"]'), conf: r.querySelectorAll('.conf-item').length, apps: r.querySelectorAll('#li-app option').length - 1, cols: r.querySelectorAll('[data-li-coleta]').length }; });
 ok(selLI.cta && selLI.conf === 0 && selLI.apps === 1 && selLI.cols === 4, 'selecao explicita: 1 aplicacao HOLOSCAN para escolher e 4 coletas (a versao substituida nao aparece); nenhum confronto legado (.conf-item): ' + JSON.stringify(selLI));
 const liCalc = await A.evaluate(async () => {
   const r = document.getElementById('aba-holoscan-laboratorial');
-  const sel = r.querySelector('#li-app'); sel.value = sel.options[sel.options.length - 1].value; sel.dispatchEvent(new Event('change'));
+  const sel = r.querySelector('#li-app'); sel.value = sel.options[sel.options.length - 1].value; sel.dispatchEvent(new Event('change')); await new Promise(x => setTimeout(x, 200));
   r.querySelectorAll('[data-li-coleta]').forEach(cb => { cb.checked = true; cb.dispatchEvent(new Event('change')); });
-  r.querySelector('[data-li-acao="calcular"]').click(); await new Promise(x => setTimeout(x, 300));
-  return { estado: r.querySelector('.li-estado').textContent, motivos: r.querySelector('#li-resultado').innerText, trace: r.querySelector('#li-resultado pre').textContent };
+  r.querySelector('[data-li-acao="calcular"]').click(); for (let i = 0; i < 40 && !r.querySelector('#li-resultado'); i++) await new Promise(x => setTimeout(x, 100));
+  const doms = [...r.querySelectorAll('[data-li-dominio]')].map(d => d.dataset.liDominio);
+  return { doms, estados: [...r.querySelectorAll('.li-estado')].map(e => e.textContent), texto: r.querySelector('#li-resultado').innerText, trace: r.querySelector('#li-resultado pre').textContent, semConfronto: r.querySelectorAll('.li-dominio-sem-confronto').length };
 });
-ok(liCalc.estado === 'sem dados suficientes' && /sem_regra_homologada/.test(liCalc.motivos) && /sem_associacao_aprovada/.test(liCalc.motivos), 'HOLOSCAN + 4 coletas (uma com exame acima da referencia): estado sem dados suficientes, motivos sem_regra_homologada / sem_associacao_aprovada — nenhum "um exame fora = convergente"');
-ok(/"rule_package_id"/.test(liCalc.trace) && /"holoscan_application_id"/.test(liCalc.trace) && /"collection_ids"/.test(liCalc.trace) && /"engine_version"/.test(liCalc.trace), 'trace explicavel na tela');
-await A.evaluate(async () => { const r = document.getElementById('aba-holoscan-laboratorial'); r.querySelector('#li-responsavel').value = 'Profissional X'; r.querySelector('#li-nota').value = 'nota'; r.querySelector('[data-li-acao="salvar"]').click(); for (let i = 0; i < 40 && !document.querySelector('#aba-holoscan-laboratorial .dash-pendentes'); i++) await new Promise(x => setTimeout(x, 100)); });
+ok(liCalc.doms.join(',') === 'LI-D01,LI-D02,LI-D03,LI-D04,LI-D05,LI-D06,LI-D07' && liCalc.estados.length === 4 && liCalc.estados.every(e => e === 'Sem dados suficientes') && liCalc.semConfronto === 3, 'HOLOSCAN + 4 coletas: 7 dominios na tela; D01-D04 sem dados suficientes (fonte HOLOSCAN sem pacote V1); D05-D07 sem confronto — nenhum "um exame fora = convergente"');
+ok(/incompatible_holoscan_version/.test(liCalc.texto) && /não foi calculada com o pacote metodológico homologado/.test(liCalc.texto) && /não possui confronto automático com um sistema HOLOSCAN/.test(liCalc.texto) && !/missing_domain_holoscan_mapping/.test(liCalc.texto), 'motivos traduzidos para humano; D05-D07 com texto neutro (nunca missing_domain_holoscan_mapping)');
+ok(/"temporal_rule_code": "LI-TEMP-01"/.test(liCalc.trace) && /"application_id"/.test(liCalc.trace) && /"selected_collection_ids"/.test(liCalc.trace) && /"engine_version"/.test(liCalc.trace), 'snapshot explicavel na tela (LI-TEMP-01, aplicacao, coletas, motor)');
+await A.evaluate(async () => { const r = document.getElementById('aba-holoscan-laboratorial'); r.querySelector('#li-responsavel').value = 'Profissional X'; r.querySelector('#li-nota').value = 'nota'; r.querySelector('[data-li-salvar="LI-D01"]').click(); for (let i = 0; i < 40 && !document.querySelector('#aba-holoscan-laboratorial .dash-pendentes'); i++) await new Promise(x => setTimeout(x, 100)); })
 const lr = srv.linhas('integrated_readings');
-ok(lr.length === 1 && lr[0].state === 'sem_dados_suficientes' && lr[0].selected_collection_ids.length === 4 && lr[0].holoscan_application_id && lr[0].responsible === 'Profissional X' && lr[0].rule_version === 1 && /^[0-9a-f]{64}$/.test(lr[0].content_hash), 'leitura salva congela HOLOSCAN, 4 coletas, pacote/versao, responsavel, hash');
-ok(/Leituras salvas/.test(await texto('#aba-holoscan-laboratorial')) && /sem dados suficientes · rev 1/.test(await texto('#aba-holoscan-laboratorial')), 'a leitura salva aparece na lista');
+ok(lr.length === 1 && lr[0].state === 'sem_dados_suficientes' && lr[0].domain_code === 'LI-D01' && lr[0].selected_collection_ids.length === 4 && lr[0].holoscan_application_id && lr[0].responsible === 'Profissional X' && lr[0].rule_version === 2 && /^[0-9a-f]{64}$/.test(lr[0].content_hash) && lr[0].snapshot.temporal_rule_code === 'LI-TEMP-01', 'leitura de LI-D01 salva congela HOLOSCAN, 4 coletas, pacote v2, dominio, snapshot (LI-TEMP-01), responsavel, hash');
+ok(/Leituras salvas/.test(await texto('#aba-holoscan-laboratorial')) && /LI-D01 · Sem dados suficientes/.test(await texto('#aba-holoscan-laboratorial')), 'a leitura salva aparece na lista');
 const secao = await A.evaluate(async () => { document.querySelector('.nav-item[data-secao="confronto"]').click(); await new Promise(r => setTimeout(r, 400)); return document.getElementById('holo-confronto').innerText; });
 ok(/sem dados suficientes/.test(secao) && !/faixa cadastrada|Convergente\b|Divergente\b|LEGADO/.test(secao), 'secao Leitura Integrada: V1 (sem dados suficientes), sem o confronto legado nem "faixa cadastrada"');
-ok(!srv.linhas('integrated_reading_exam_domain_links').length && !srv.linhas('integrated_reading_domains').length, 'nenhum vinculo exame → dominio foi criado por nenhum caminho da tela');
+ok(srv.linhas('integrated_reading_exam_domain_links').length === 47 && srv.linhas('integrated_reading_domains').length === 7, 'nenhum vinculo exame → dominio foi criado pela tela: continuam exatamente os 47 vinculos / 7 dominios da migration (LI-V1@2)');
 
 titulo('EVOLUCAO: COMPARACAO COMPATIVEL E INCOMPATIVEL; RELATORIO: SNAPSHOT');
 await abrirDocs();

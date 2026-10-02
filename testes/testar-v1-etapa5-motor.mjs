@@ -6,8 +6,8 @@
  *  Motor lab (TEST_FIXTURE_ONLY): below / within / above / missing reference / incompatible unit / incompatible
  *  variant / incompatible material / qualitative without rule / censored / conversao FICTICIA aprovada / comparacao
  *  compativel e incompativel; valor original nunca destruido; nenhum score.
- *  Leitura Integrada (TEST_FIXTURE_ONLY): A convergente, B divergente, C sem associacao, D mistos sem regra,
- *  E fora da janela temporal, F unidade incompativel; pacote REAL => sem_dados_suficientes; trace completo.
+ *  Leitura Integrada (TEST_FIXTURE_ONLY, contrato 2.0.0 da Etapa 6): A convergente, B divergente, C sem vinculo, D mistos ->
+ *  indeterminate, D2 sem regra de mistos, E fora da janela, F unidade incompativel; pacote REAL LI-V1@1 => sem dados; snapshot.
  */
 import './guarda-falhas.mjs';
 import { readFileSync } from 'node:fs';
@@ -56,7 +56,7 @@ ok(cl({ value_original_text: '80', unit_original: 'mmol/L' }).reason_codes[0] ==
 ok(cl({ value_original_text: '80', variant: 'ultrassensivel' }, Object.assign({ variant: null }, ref)).reason_codes[0] === 'incompatible_variant', 'referencia sem variante x resultado PCR-us -> incompatible_variant');
 ok(cl({ value_original_text: '5', material: 'sangue total' }, Object.assign({ material: 'soro' }, ref)).reason_codes[0] === 'incompatible_material', 'material diferente -> incompatible_material');
 ok(cl({ value_original_text: 'Negativo' }).reason_codes[0] === 'qualitative_without_rule', 'qualitativo sem regra -> qualitative_without_rule');
-ok(cl({ value_original_text: '< 0,10' }).reason_codes[0] === 'censored_value', 'censurado sem regra -> censored_value');
+ok(cl({ value_original_text: '< 0,10' }).classification === 'below' && cl({ value_original_text: '< 0,10' }).trace.value.numeric_value === null && cl({ value_original_text: '< 80' }).reason_codes[0] === 'censored_value_ambiguous', 'censurado (Etapa 6, DECISAO 15): "< 0,10" contra [70,99] prova below (numeric_value continua nulo); "< 80" nao prova um unico estado -> censored_value_ambiguous (antes: sempre censored_value)');
 ok(cl({ value_original_text: '80' }, { source: 'metodologica', status: 'rascunho', min: 70, max: 99, unit: 'mg/dL' }).reason_codes[0] === 'reference_not_approved', 'referencia metodologica em rascunho nao e usada');
 ok(cl({ value_original_text: '2' }, { source: 'laudo', operator: 'lt', max: 5, unit: 'mg/dL' }).classification === 'within' && cl({ value_original_text: '6' }, { source: 'laudo', operator: 'lt', max: 5, unit: 'mg/dL' }).classification === 'above', 'referencia "< 5": 2 within, 6 above');
 const fakeConv = [{ id: 'fx', status: 'aprovado', exam_code: 'LAB-002', from_unit: 'mmol/L', to_unit: 'mg/dL', factor: 18, rule_version: 'TEST_FIXTURE_ONLY' }];
@@ -81,38 +81,49 @@ ok(M.comparar(a, Object.assign({}, b, { value_original_text: '< 5' })).motivos[0
 ok(!/melhor|pior|normaliz|agrav|respondeu/i.test(JSON.stringify([c1, M.comparar(b, a)])), 'nenhum "melhorou/piorou/normalizou/agravou/respondeu ao tratamento"');
 ok(M.comparar(Object.assign({}, a, { unit_original: 'mmol/L', value_original_text: '5' }), b, { conversoes: fakeConv }).comparavel && M.comparar(Object.assign({}, a, { unit_original: 'mmol/L', value_original_text: '5' }), b, { conversoes: fakeConv }).delta === 9, 'conversao FICTICIA aprovada permite comparar (90 -> 99)');
 
-titulo('LEITURA INTEGRADA — PACOTE REAL (sem regras) e FIXTURES (TEST_FIXTURE_ONLY)');
+titulo('LEITURA INTEGRADA — PACOTE REAL LI-V1@1 (sem regras) e FIXTURES (TEST_FIXTURE_ONLY) — contrato do motor 2.0.0 (Etapa 6)');
+/* Etapa 6.0: mudanca legitima de contrato (docs/v1/ETAPA6-LEITURA-INTEGRADA.md). O motor 1.0.0 usava fixtures de
+   infraestrutura (min_results, max_days, policy majority, holoscan_max_nota) que as DECISOES 16-21 proibiram. As mesmas
+   situacoes A-G sao provadas aqui com o contrato decidido (unanimidade, LI-TEMP-01, faixa -> attention_*). As fixtures
+   continuam TEST_FIXTURE_ONLY e nunca chegam a migration nem a UI. */
 const REAL = { id: 'li-real', code: 'LI-V1', version: 1, status: 'rascunho', domains: [], links: [], rules: [] };
-const holo = { id: 'h1', applied_at: '2026-03-01', system_results: { metabolico: { avaliavel: true, nota: 2.5, faixa: 'baixa' } } };
+const HP = { code: 'HOLOS-V1', version: 2, status: 'aprovado' };
+const holo = (faixa) => ({ application: { id: 'h1', clinical_date: '2026-03-01', methodology_package: HP }, system_results: { metabolico: faixa === null ? { avaliavel: false } : { avaliavel: true, nota: 2.5, faixa: faixa || 'baixa' } } });
 const cols = [{ id: 'c1', clinical_date: '2026-03-05' }];
 const res = [{ id: 'r1', collection_id: 'c1', exam_code: 'LAB-002', unit_original: 'mg/dL', value_original_text: '115' }, { id: 'r2', collection_id: 'c1', exam_code: 'LAB-005', unit_original: 'mg/dL', value_original_text: '200' }];
 const cls = { r1: { classification: 'above', reason_codes: [] }, r2: { classification: 'above', reason_codes: [] } };
-const real = L.calcular({ rule_package: REAL, holoscan_application: holo, collections: cols, results: res, classifications: cls });
-ok(real.estado_geral === 'sem_dados_suficientes' && real.reason_codes.includes('sem_regra_homologada') && real.reason_codes.includes('sem_associacao_aprovada') && Object.keys(real.domains).length === 0, 'pacote REAL: sem dados suficientes (sem_regra_homologada, sem_associacao_aprovada) mesmo com HOLOSCAN baixo e exames acima: "um exame fora" nao confirma nada');
-ok(!L.pacoteTemRegraReal(REAL) && L.calcular({ rule_package: null }).reason_codes[0] === 'fonte_ausente', 'pacote sem vinculo nao tem regra real; sem pacote = fonte_ausente');
+const real = L.calcular({ rule_package: REAL, holoscan: holo(), collections: cols, results: res, classifications: cls });
+ok(real.estado_geral === 'sem_dados_suficientes' && Object.keys(real.domains).length === 0 && real.cross_source_enabled.length === 0, 'pacote REAL LI-V1@1 (sem dominio): sem dados suficientes mesmo com HOLOSCAN baixo e exames acima: "um exame fora" nao confirma nada');
+ok(!L.pacoteTemRegraReal(REAL) && L.calcular({ rule_package: null }).estado_geral === 'sem_dados_suficientes', 'pacote sem vinculo nao tem regra real; sem pacote = sem dados suficientes');
+const ACIMA = { above: 'attention_present', within: 'attention_not_detected', below: 'indeterminate' };
 const FX = (over) => Object.assign({ id: 'TEST_FIXTURE_ONLY', code: 'TEST_FIXTURE_ONLY', version: 1, status: 'aprovado',
-  domains: [{ id: 'd1', code: 'FX-DOM', name: 'Dominio ficticio', holoscan_system: 'metabolico', status: 'aprovado' }],
-  links: [{ id: 'l1', domain_id: 'd1', exam_code: 'LAB-002', direction: 'above', status: 'aprovado' }, { id: 'l2', domain_id: 'd1', exam_code: 'LAB-005', direction: 'above', status: 'aprovado' }],
-  rules: [{ rule_type: 'sufficiency', target: 'd1', payload: { min_results: 1 }, status: 'aprovado' }, { rule_type: 'temporal', target: 'd1', payload: { max_days: 30 }, status: 'aprovado' },
-    { rule_type: 'mixed', target: 'd1', payload: { policy: 'majority' }, status: 'aprovado' }, { rule_type: 'convergence', target: 'd1', payload: { holoscan_max_nota: 3 }, status: 'aprovado' },
+  domains: [{ id: 'd1', code: 'FX-DOM', name: 'fixture', holoscan_mapping_mode: 'mapped', holoscan_system: 'metabolico', status: 'aprovado' }],
+  links: [{ id: 'l1', domain_id: 'd1', exam_code: 'LAB-002', direction: 'above', cross_source_role: 'directional', direction_rules: ACIMA, status: 'aprovado' }, { id: 'l2', domain_id: 'd1', exam_code: 'LAB-005', direction: 'above', cross_source_role: 'directional', direction_rules: ACIMA, status: 'aprovado' }],
+  rules: [{ rule_type: 'sufficiency', target: 'FX-DOM', payload: { mode: 'rule_based', version: 1, min_classifiable_results: 2, required_exam_codes: ['LAB-002', 'LAB-005'], required_exam_groups: [], optional_directional_exam_codes: [] }, status: 'aprovado' },
+    { rule_type: 'temporal', target: 'global', payload: { code: 'FX-TEMP', version: 1, max_days: 30, inclusive: true }, status: 'aprovado' },
+    { rule_type: 'mixed', target: 'FX-DOM', payload: { mode: 'unanimity', version: 1, mixture_reason: 'mixed_results_indeterminate' }, status: 'aprovado' },
+    { rule_type: 'holoscan_direction', target: 'global', payload: { version: 1, package_code: 'HOLOS-V1', min_package_version: 2, required_package_status: 'aprovado', faixa_map: { baixa: 'attention_present', intermediaria: 'indeterminate', alta: 'attention_not_detected' }, not_evaluable: 'indeterminate' }, status: 'aprovado' },
+    { rule_type: 'convergence', target: 'global', payload: { version: 1, convergente: [['attention_present', 'attention_present'], ['attention_not_detected', 'attention_not_detected']], divergente: [['attention_present', 'attention_not_detected'], ['attention_not_detected', 'attention_present']] }, status: 'aprovado' },
     { rule_type: 'text', target: 'global', payload: { convergente: 'texto ficticio A', divergente: 'texto ficticio B', sem_dados_suficientes: 'texto ficticio C' }, status: 'aprovado' }] }, over || {});
-const A = L.calcular({ rule_package: FX(), holoscan_application: holo, collections: cols, results: res, classifications: cls });
-ok(A.estado_geral === 'convergente' && A.domains['FX-DOM'].state === 'convergente' && A.domains['FX-DOM'].text === 'texto ficticio A' && A.domains['FX-DOM'].trace.included_items.length === 2, 'Fixture A: regras ficticias suficientes + HOLOSCAN baixo + exames acima -> convergente');
-const B = L.calcular({ rule_package: FX(), holoscan_application: { id: 'h2', applied_at: '2026-03-01', system_results: { metabolico: { avaliavel: true, nota: 8, faixa: 'alta' } } }, collections: cols, results: res, classifications: cls });
-ok(B.estado_geral === 'divergente' && B.domains['FX-DOM'].text === 'texto ficticio B', 'Fixture B: HOLOSCAN alto + exames acima -> divergente');
-const Cc = L.calcular({ rule_package: FX({ links: [] }), holoscan_application: holo, collections: cols, results: res, classifications: cls });
-ok(Cc.estado_geral === 'sem_dados_suficientes' && Cc.domains['FX-DOM'].reason_codes[0] === 'sem_associacao_aprovada', 'Fixture C: dominio sem vinculo -> sem dados suficientes (sem_associacao_aprovada)');
-const D = L.calcular({ rule_package: FX({ rules: FX().rules.filter(r => r.rule_type !== 'mixed') }), holoscan_application: holo, collections: cols, results: res, classifications: { r1: { classification: 'above', reason_codes: [] }, r2: { classification: 'within', reason_codes: [] } } });
-ok(D.estado_geral === 'sem_dados_suficientes' && D.domains['FX-DOM'].reason_codes[0] === 'dados_mistos_sem_regra', 'Fixture D: um acima e um dentro sem regra de mistos -> sem dados suficientes (dados_mistos_sem_regra)');
-const E = L.calcular({ rule_package: FX(), holoscan_application: holo, collections: [{ id: 'c1', clinical_date: '2025-06-01' }], results: res, classifications: cls });
-ok(E.estado_geral === 'sem_dados_suficientes' && E.domains['FX-DOM'].reason_codes[0] === 'incompatibilidade_temporal' && E.domains['FX-DOM'].trace.excluded_items.length === 2, 'Fixture E: coleta fora da janela de 30 dias -> sem dados suficientes (incompatibilidade_temporal), itens excluidos no trace');
-const F = L.calcular({ rule_package: FX(), holoscan_application: holo, collections: cols, results: res, classifications: { r1: { classification: 'not_classifiable', reason_codes: ['incompatible_unit'] }, r2: { classification: 'not_classifiable', reason_codes: ['incompatible_unit'] } } });
-ok(F.estado_geral === 'sem_dados_suficientes' && F.domains['FX-DOM'].reason_codes[0] === 'unidade_incompativel', 'Fixture F: unidades incompativeis -> sem dados suficientes (unidade_incompativel)');
-const G = L.calcular({ rule_package: FX(), holoscan_application: { id: 'h3', applied_at: '2026-03-01', system_results: { metabolico: { avaliavel: false } } }, collections: cols, results: res, classifications: cls });
-ok(G.domains['FX-DOM'].reason_codes[0] === 'holoscan_nao_avaliavel' && L.calcular({ rule_package: FX(), holoscan_application: null, collections: cols, results: res, classifications: cls }).domains['FX-DOM'].reason_codes[0] === 'fonte_ausente', 'HOLOSCAN nao avaliavel / ausente -> motivo explicito');
-const t = A.domains['FX-DOM'].trace;
-ok(['domain_id', 'holoscan_application_id', 'collection_ids', 'result_ids', 'reference_ids', 'rule_package_id', 'rule_version', 'temporal_rule', 'included_items', 'excluded_items', 'excluded_reasons', 'sufficiency', 'state', 'reason_codes', 'engine_version'].every(k => k in t) && t.engine_version === L.VERSAO, 'trace completo por dominio');
-ok(!/TEST_FIXTURE_ONLY|FX-DOM|texto ficticio/.test(sql) && !/FX-DOM|holoscan_max_nota|max_days/.test(readFileSync(RAIZ + 'laboratorio.js', 'utf8')), 'nenhuma fixture da Leitura Integrada chegou a migration nem a UI');
+const A = L.calcular({ rule_package: FX(), holoscan: holo(), collections: cols, results: res, classifications: cls });
+ok(A.estado_geral === 'convergente' && A.domains['FX-DOM'].state === 'convergente' && A.domains['FX-DOM'].text.profissional === 'texto ficticio A' && A.domains['FX-DOM'].items.filter(i => i.included).length === 2, 'Fixture A: regras ficticias suficientes + HOLOSCAN baixa + exames acima -> convergente');
+const B = L.calcular({ rule_package: FX(), holoscan: holo('alta'), collections: cols, results: res, classifications: cls });
+ok(B.estado_geral === 'divergente' && B.domains['FX-DOM'].text.profissional === 'texto ficticio B', 'Fixture B: HOLOSCAN alta + exames acima -> divergente');
+const Cc = L.calcular({ rule_package: FX({ links: [] }), holoscan: holo(), collections: cols, results: res, classifications: cls });
+ok(Cc.estado_geral === 'sem_dados_suficientes' && Cc.domains['FX-DOM'].reason_codes.includes('missing_required_exam'), 'Fixture C: dominio sem vinculo -> sem dados suficientes (missing_required_exam / cobertura)');
+const D = L.calcular({ rule_package: FX(), holoscan: holo(), collections: cols, results: res, classifications: { r1: { classification: 'above', reason_codes: [] }, r2: { classification: 'within', reason_codes: [] } } });
+ok(D.estado_geral === 'sem_dados_suficientes' && D.domains['FX-DOM'].laboratory_direction === 'indeterminate' && D.domains['FX-DOM'].reason_codes.includes('mixed_results_indeterminate') && !D.domains['FX-DOM'].reason_codes.includes('mixed_without_rule'), 'Fixture D: um acima e um dentro -> direcao indeterminada -> sem dados suficientes (mixed_results_indeterminate; nunca divergente)');
+const D2 = L.calcular({ rule_package: FX({ rules: FX().rules.filter(r => r.rule_type !== 'mixed') }), holoscan: holo(), collections: cols, results: res, classifications: { r1: { classification: 'above', reason_codes: [] }, r2: { classification: 'within', reason_codes: [] } } });
+ok(D2.domains['FX-DOM'].reason_codes.includes('mixed_without_rule') && D2.estado_geral === 'sem_dados_suficientes', 'Fixture D2: SEM regra de mistos homologada -> mixed_without_rule (reservado a conjunto sem regra)');
+const E = L.calcular({ rule_package: FX(), holoscan: holo(), collections: [{ id: 'c1', clinical_date: '2025-06-01' }], results: res, classifications: cls });
+ok(E.estado_geral === 'sem_dados_suficientes' && E.domains['FX-DOM'].reason_codes.includes('outside_time_window') && E.domains['FX-DOM'].items.filter(i => !i.included).length === 2, 'Fixture E: coleta fora da janela de 30 dias -> sem dados suficientes (outside_time_window), itens excluidos no trace');
+const F = L.calcular({ rule_package: FX(), holoscan: holo(), collections: cols, results: res, classifications: { r1: { classification: 'not_classifiable', reason_codes: ['incompatible_unit'] }, r2: { classification: 'not_classifiable', reason_codes: ['incompatible_unit'] } } });
+ok(F.estado_geral === 'sem_dados_suficientes' && F.domains['FX-DOM'].reason_codes.includes('incompatible_unit'), 'Fixture F: unidades incompativeis -> sem dados suficientes (incompatible_unit)');
+const G = L.calcular({ rule_package: FX(), holoscan: holo(null), collections: cols, results: res, classifications: cls });
+ok(G.domains['FX-DOM'].reason_codes[0] === 'holoscan_not_evaluable' && L.calcular({ rule_package: FX(), holoscan: null, collections: cols, results: res, classifications: cls }).domains['FX-DOM'].reason_codes[0] === 'missing_holoscan_source', 'HOLOSCAN nao avaliavel / ausente -> motivo explicito');
+const t = A.domains['FX-DOM'];
+ok(['domain_code', 'holoscan_mapping_mode', 'cross_source_mode', 'lab_domain_availability', 'temporal', 'items', 'sufficiency', 'mixed', 'holoscan', 'laboratory_direction', 'holoscan_direction', 'state', 'reason_codes', 'snapshot', 'engine_version'].every(k => k in t) && t.engine_version === L.VERSAO, 'trace/snapshot completo por dominio');
+ok(!/TEST_FIXTURE_ONLY|FX-DOM|texto ficticio/.test(sql) && !/FX-DOM|holoscan_max_nota|max_days:\s*\d/.test(readFileSync(RAIZ + 'laboratorio.js', 'utf8')), 'nenhuma fixture da Leitura Integrada chegou a migration nem a UI');
 ok(!/confrontar|lerExames|limiteBaixo|<=\s*3/.test(readFileSync(RAIZ + 'leitura-integrada-motor.js', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')), 'o motor da Leitura Integrada nao chama o confronto legado');
 
 console.log('\n  RESULTADO: ' + (falhou ? 'VERMELHO' : 'VERDE'));

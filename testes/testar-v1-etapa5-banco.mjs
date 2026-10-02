@@ -130,14 +130,20 @@ const arq = insert(UA, 'patients', { nome: 'E5 Arquivado', status: 'inativo' }).
 ok(salvar(UA, { patient_id: arq, clinical_date: D, state: 'salvo' }, [R()]).error, 'paciente arquivado nao recebe coleta');
 
 titulo('LEITURA INTEGRADA: BARREIRA, SNAPSHOT IMUTAVEL, REVISAO, NAO ALTERA HOLOSCAN');
-const pk = select(UA, 'integrated_reading_rule_packages').data[0];
-ok(pk && pk.code === 'LI-V1' && pk.status === 'rascunho' && select(UA, 'integrated_reading_domains').data.length === 0 && select(UA, 'integrated_reading_exam_domain_links').data.length === 0 && select(UA, 'integrated_reading_rules').data.length === 0, 'pacote real LI-V1 em rascunho, sem dominio, vinculo ou regra');
+// Etapa 6.0 (mudanca legitima de contrato, documentada em docs/v1/ETAPA6-LEITURA-INTEGRADA.md): LI-V1@1 segue em rascunho e vazio
+// (historico); LI-V1@2 nasce em_revisao com o conteudo decidido (7 dominios, 47 vinculos). Este bloco continua provando a
+// barreira sobre o pacote REAL sem regra (v1) e que a aplicacao nao cria dominio/vinculo.
+const pk = select(UA, 'integrated_reading_rule_packages').data.find(x => x.code === 'LI-V1' && x.version === 1);
+const pk2 = select(UA, 'integrated_reading_rule_packages').data.find(x => x.code === 'LI-V1' && x.version === 2);
+const filhasDe = (t, id) => select(UA, t).data.filter(x => x.package_id === id);
+ok(pk && pk.status === 'rascunho' && filhasDe('integrated_reading_domains', pk.id).length === 0 && filhasDe('integrated_reading_exam_domain_links', pk.id).length === 0 && filhasDe('integrated_reading_rules', pk.id).length === 0, 'pacote real LI-V1@1 (historico) em rascunho, sem dominio, vinculo ou regra');
+ok(pk2 && pk2.status === 'em_revisao' && filhasDe('integrated_reading_domains', pk2.id).length === 7 && filhasDe('integrated_reading_exam_domain_links', pk2.id).length === 47 && srv.linhas('integrated_reading_package_approvals').length === 0, 'LI-V1@2 (Etapa 6) em_revisao com 7 dominios e 47 vinculos; 0 aprovacoes');
 ok(insert(UA, 'integrated_reading_domains', { package_id: pk.id, code: 'X', name: 'x' }).error && insert(UA, 'integrated_reading_exam_domain_links', { package_id: pk.id, domain_id: pk.id, exam_code: 'LAB-002' }).error, 'a aplicacao nao cria dominio nem vinculo');
 const hid = rpc(UA, 'salvar_holoscan_completo', { payload: { application: { patient_id: PA, quando: D, versao_estrutura: 2, indice: 50, indice_maximo: 100, avaliavel: true, nota_media: 5, triada: {}, triada_com_dado: {}, cobertura: {} }, answers: [], scores: [{ sistema: 'metabolico', nome: 'M', nota: 5, carga: 5, faixa: 'medio', obtido: 1, maximo: 2, respondidos: 1, total_marcadores: 2, avaliavel: true }] } }).data;
 const antesH = JSON.stringify([linha('holoscan_applications', hid), srv.linhas('holoscan_system_scores').filter(x => x.application_id === hid)]);
 const L = globalThis.LeituraIntegradaMotor;
-const calc = L.calcular({ rule_package: Object.assign({}, pk, { domains: [], links: [], rules: [] }), holoscan_application: { id: hid, applied_at: D, system_results: {} }, collections: [{ id: C2, clinical_date: D }], results: resultadosDe(C2), classifications: {} });
-ok(calc.estado_geral === 'sem_dados_suficientes' && calc.reason_codes.includes('sem_regra_homologada'), 'motor com o pacote real do servidor: sem dados suficientes');
+const calc = L.calcular({ rule_package: Object.assign({}, pk, { domains: [], links: [], rules: [] }), holoscan: { application: { id: hid, clinical_date: D, methodology_package: null }, system_results: {} }, collections: [{ id: C2, clinical_date: D }], results: resultadosDe(C2), classifications: {} });
+ok(calc.estado_geral === 'sem_dados_suficientes' && Object.keys(calc.domains).length === 0, 'motor com o pacote real LI-V1@1 (sem dominio): sem dados suficientes');
 const base = { patient_id: PA, responsible: 'Prof', rule_package_id: pk.id, engine_version: L.VERSAO, holoscan_application_id: hid, selected_collection_ids: [C2], selected_result_ids: resultadosDe(C2).map(x => x.id), reason_codes: calc.reason_codes, trace: calc.trace };
 ok(/sem vinculo/.test(rpc(UA, 'salvar_leitura_integrada', { payload: Object.assign({}, base, { state: 'convergente' }) }).error.message) && rpc(UA, 'salvar_leitura_integrada', { payload: Object.assign({}, base, { state: 'divergente' }) }).error, 'convergente e divergente recusados pelo servidor: pacote sem vinculo aprovado');
 const li = rpc(UA, 'salvar_leitura_integrada', { payload: Object.assign({}, base, { state: calc.estado_geral }) });

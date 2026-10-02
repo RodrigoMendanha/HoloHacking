@@ -106,5 +106,8 @@ export const SUITES = [
   'testar-v1-etapa5-2-governanca-li.mjs',
   'testar-v1-etapa5-2-governanca-li-ui.mjs',
   'testar-v1-etapa5-3-seguranca-aprovadores.mjs',
+  'testar-v1-etapa6-li-motor.mjs',
+  'testar-v1-etapa6-li-banco.mjs',
+  'testar-v1-etapa6-li-ui.mjs',
   'testar-conferir-producao.mjs',
 ];

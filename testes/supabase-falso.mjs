@@ -26,6 +26,7 @@
 import { randomUUID, createHash } from 'node:crypto';
 import '../metodologia-pacote.js';   // o MESMO validador de publicacao do navegador (Etapa 4)
 import '../laboratorio-catalogo.js';  // os MESMOS 45 exames-base da migration 20261001220000 (Etapa 5)
+import '../leitura-integrada-pacote-v1.js';   // o MESMO conteudo LI-V1@2 da migration 20261002120000 (Etapa 6)
 
 const COLUNAS = {
   patients: ['id', 'nutritionist_id', 'nome', 'nascimento', 'telefone', 'email', 'sexo', 'inicio', 'queixa', 'status', 'created_at', 'updated_at'],
@@ -69,13 +70,13 @@ const COLUNAS = {
   lab_unit_conversion_rules: ['id', 'exam_code', 'from_unit', 'to_unit', 'factor', 'source', 'rule_version', 'status', 'responsible', 'approval_provenance', 'created_at'],
   lab_derived_calculations: ['id', 'code', 'formula', 'formula_version', 'inputs', 'required_units', 'criteria', 'source', 'status', 'responsible', 'approval_provenance', 'created_at'],
   integrated_reading_rule_packages: ['id', 'code', 'version', 'status', 'notes', 'content_hash', 'responsible', 'approval_provenance', 'created_at'],
-  integrated_reading_domains: ['id', 'package_id', 'code', 'name', 'holoscan_system', 'status', 'created_at'],
-  integrated_reading_exam_domain_links: ['id', 'package_id', 'domain_id', 'exam_code', 'variant', 'material', 'direction', 'reference_id', 'status', 'created_at'],
+  integrated_reading_domains: ['id', 'package_id', 'code', 'name', 'holoscan_system', 'status', 'created_at', 'definition', 'holoscan_mapping_mode', 'position'],
+  integrated_reading_exam_domain_links: ['id', 'package_id', 'domain_id', 'exam_code', 'variant', 'material', 'direction', 'reference_id', 'status', 'created_at', 'cross_source_role', 'direction_rules', 'variants_declared', 'version', 'source', 'justification'],
   integrated_reading_rules: ['id', 'package_id', 'rule_type', 'target', 'payload', 'status', 'created_at'],
   integrated_reading_package_dependencies: ['id', 'package_id', 'kind', 'ref_id', 'status', 'created_at'],
   integrated_reading_package_approvals: ['id', 'package_id', 'package_version', 'content_hash', 'step', 'role', 'responsible', 'justification', 'approved_by', 'approved_at', 'invalidated_at', 'invalidated_reason', 'created_at', 'approver_id'],
   integrated_reading_package_snapshots: ['id', 'package_id', 'package_version', 'content_hash', 'snapshot', 'approval_1', 'approval_2', 'homologated_by', 'homologated_at'],
-  integrated_readings: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'responsible', 'clinical_context', 'holoscan_application_id', 'selected_collection_ids', 'selected_result_ids', 'references_snapshot', 'sources_snapshot', 'rule_package_id', 'rule_version', 'engine_version', 'state', 'reason_codes', 'trace', 'professional_note', 'revision', 'supersedes_id', 'superseded_at', 'content_hash', 'created_by', 'created_at'],
+  integrated_readings: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'responsible', 'clinical_context', 'holoscan_application_id', 'selected_collection_ids', 'selected_result_ids', 'references_snapshot', 'sources_snapshot', 'rule_package_id', 'rule_version', 'engine_version', 'state', 'reason_codes', 'trace', 'professional_note', 'revision', 'supersedes_id', 'superseded_at', 'content_hash', 'created_by', 'created_at', 'domain_code', 'holoscan_direction', 'laboratory_direction', 'snapshot'],
   tool_applications: ['id', 'nutritionist_id', 'patient_id', 'consultation_id', 'encounter_id', 'ferramenta_id', 'versao_ferramenta', 'origem_legada', 'status', 'iniciada_em', 'concluida_em', 'atualizada_em', 'respostas', 'resultado', 'leitura', 'prioridade', 'proximo_passo', 'created_at', 'updated_at'],
   documents: ['id', 'nutritionist_id', 'patient_id', 'nome', 'tipo', 'data_documento', 'mime_type', 'tamanho_bytes', 'storage_path', 'origem_local', 'created_at', 'updated_at'],
   professional_assets: ['id', 'nutritionist_id', 'tipo', 'nome', 'mime_type', 'tamanho_bytes', 'storage_path', 'created_at', 'updated_at'],
@@ -151,6 +152,17 @@ export function criarServidor() {
   // V1 Etapa 5: catalogo-base (45) e pacote LI-V1 sao configuracao global semeada pela migration
   if (globalThis.LabCatalogo) globalThis.LabCatalogo.linhasSeed().forEach(e => s.tabelas.lab_exam_catalog.push({ code: e.code, position: e.position, canonical_name: e.canonical_name, category: e.category, aliases: e.aliases, composite: e.composite, status: 'ativo', catalog_version: globalThis.LabCatalogo.VERSAO, created_at: agora() }));
   s.tabelas.integrated_reading_rule_packages.push({ id: randomUUID(), code: 'LI-V1', version: 1, status: 'rascunho', notes: 'Infraestrutura da Etapa 5: sem dominio, vinculo ou regra aprovados.', content_hash: null, responsible: null, approval_provenance: null, created_at: agora() });
+  /* Etapa 6.0 (migration 20261002120000): LI-V1@2 em_revisao com o conteudo decidido — IDENTICO a leitura-integrada-pacote-v1.js.
+     Nenhuma aprovacao, nenhum snapshot: a homologacao e ato humano (Daniel -> Rodrigo). */
+  (function seedLIV2() {
+    const PK = globalThis.LeituraIntegradaPacoteV1; if (!PK) return;
+    const pk = PK.pacote(); const pid = randomUUID();
+    s.tabelas.integrated_reading_rule_packages.push({ id: pid, code: pk.code, version: pk.version, status: pk.status, notes: 'Etapa 6.0: conteudo metodologico decidido nas Etapas 5.4-5.13. Candidato em revisao: 0 aprovacoes, nao homologado.', content_hash: null, responsible: null, approval_provenance: null, created_at: agora() });
+    const domIds = {};
+    pk.domains.forEach(d => { const id = randomUUID(); domIds[d.code] = id; s.tabelas.integrated_reading_domains.push({ id, package_id: pid, code: d.code, name: d.name, definition: d.definition, holoscan_mapping_mode: d.holoscan_mapping_mode, holoscan_system: d.holoscan_system, position: d.position, status: 'aprovado', created_at: agora() }); });
+    pk.links.forEach(l => s.tabelas.integrated_reading_exam_domain_links.push({ id: randomUUID(), package_id: pid, domain_id: domIds[l.domain], exam_code: l.exam_code, variant: null, material: null, direction: l.direction, reference_id: null, cross_source_role: l.cross_source_role, direction_rules: l.direction_rules, variants_declared: l.variants_declared, version: l.version, source: l.source, justification: l.justification, status: 'aprovado', created_at: agora() }));
+    pk.rules.forEach(r => s.tabelas.integrated_reading_rules.push({ id: randomUUID(), package_id: pid, rule_type: r.rule_type, target: r.target, payload: JSON.parse(JSON.stringify(r.payload)), status: 'aprovado', created_at: agora() }));
+  })();
   s.labRpc = null;
   s.criarConta = (email, senha, id) => {
     s.contas[email] = { senha, id: id || randomUUID() };
@@ -417,6 +429,8 @@ export function criarServidor() {
     }
     if (tabela === 'integrated_readings') {
       if (!['convergente', 'divergente', 'sem_dados_suficientes'].includes(linha.state)) return erro('violates check constraint "ir_state"', '23514');
+      const DIR = ['attention_present', 'attention_not_detected', 'indeterminate'];
+      if ((linha.holoscan_direction != null && !DIR.includes(linha.holoscan_direction)) || (linha.laboratory_direction != null && !DIR.includes(linha.laboratory_direction))) return erro('violates check constraint "ir_direcoes"', '23514');
       if (!linha.responsible || !String(linha.responsible).trim()) return erro('violates check constraint "ir_responsavel"', '23514');
     }
     return null;
@@ -568,13 +582,14 @@ export function criarServidor() {
     const pk = s.tabelas.integrated_reading_rule_packages.find(x => x.id === pid); if (!pk) return null;
     const doms = s.tabelas.integrated_reading_domains.filter(d => d.package_id === pid).slice().sort((a, b) => cmp(a.code, b.code));
     const codigo = (did) => (s.tabelas.integrated_reading_domains.find(d => d.id === did) || {}).code || '';
-    const links = s.tabelas.integrated_reading_exam_domain_links.filter(l => l.package_id === pid).map(l => ({ domain: codigo(l.domain_id), exam_code: l.exam_code, variant: l.variant || null, material: l.material || null, direction: l.direction, status: l.status, reference: l.reference_id ? liEntidade('reference', l.reference_id) : null }))
+    const links = s.tabelas.integrated_reading_exam_domain_links.filter(l => l.package_id === pid).map(l => ({ domain: codigo(l.domain_id), exam_code: l.exam_code, variant: l.variant || null, material: l.material || null, direction: l.direction, status: l.status, cross_source_role: l.cross_source_role || 'contextual', direction_rules: l.direction_rules || null, variants_declared: l.variants_declared || null, version: l.version || 1, source: l.source || null, justification: l.justification || null, reference: l.reference_id ? liEntidade('reference', l.reference_id) : null }))
       .sort((a, b) => cmp([a.domain, a.exam_code, a.variant || '', a.material || '', a.direction].join('|'), [b.domain, b.exam_code, b.variant || '', b.material || '', b.direction].join('|')));
     const rules = s.tabelas.integrated_reading_rules.filter(r => r.package_id === pid).map(r => ({ rule_type: r.rule_type, target: r.target, payload: r.payload, status: r.status })).sort((a, b) => cmp(a.rule_type + '|' + a.target, b.rule_type + '|' + b.target));
     const deps = s.tabelas.integrated_reading_package_dependencies.filter(k => k.package_id === pid).map(k => ({ kind: k.kind, status: k.status, content: liEntidade(k.kind, k.ref_id), _o: k.kind + '|' + k.ref_id })).sort((a, b) => cmp(a._o, b._o)).map(k => { delete k._o; return k; });
-    return canon({ package: { code: pk.code, version: pk.version }, domains: doms.map(d => ({ code: d.code, name: d.name, holoscan_system: d.holoscan_system || null, status: d.status })), links, rules, dependencies: deps });
+    return canon({ package: { code: pk.code, version: pk.version }, domains: doms.map(d => ({ code: d.code, name: d.name, definition: d.definition || null, holoscan_mapping_mode: d.holoscan_mapping_mode || 'none', holoscan_system: d.holoscan_system || null, status: d.status })), links, rules, dependencies: deps });
   }
-  const liHash = (pid) => createHash('sha256').update(JSON.stringify(liConteudo(pid)), 'utf8').digest('hex');
+  // mesmo texto que public.li_conteudo_canonico::text (ordem de chaves do jsonb) -> mesmo hash do servidor real
+  const liHash = (pid) => createHash('sha256').update(globalThis.LeituraIntegradaPacoteV1 ? globalThis.LeituraIntegradaPacoteV1.jsonbTexto(liConteudo(pid)) : JSON.stringify(liConteudo(pid)), 'utf8').digest('hex');
   function liValidar(pid) {
     const b = [];
     if (!s.tabelas.integrated_reading_rule_packages.some(x => x.id === pid)) return { publicavel: false, total_bloqueios: 1, bloqueios: ['pacote_inexistente'] };
@@ -582,13 +597,20 @@ export function criarServidor() {
     const regras = (tipo) => s.tabelas.integrated_reading_rules.filter(r => r.package_id === pid && r.rule_type === tipo && r.status === 'aprovado');
     if (!doms.length) b.push('sem_dominio_aprovado');
     doms.forEach(d => {
-      if (!s.tabelas.integrated_reading_exam_domain_links.some(l => l.domain_id === d.id && l.status === 'aprovado')) b.push('dominio_sem_vinculo_aprovado:' + d.code);
+      const links = s.tabelas.integrated_reading_exam_domain_links.filter(l => l.domain_id === d.id);
+      if (!links.some(l => l.status === 'aprovado')) b.push('dominio_sem_vinculo_aprovado:' + d.code);
       if (!regras('convergence').some(r => ['global', d.id, d.code].includes(r.target))) b.push('dominio_sem_regra_convergencia:' + d.code);
+      if ((d.holoscan_mapping_mode || 'none') === 'mapped') {
+        if (!links.some(l => l.status === 'aprovado' && l.cross_source_role === 'directional')) b.push('dominio_mapeado_sem_vinculo_directional:' + d.code);
+        if (!regras('sufficiency').some(r => [d.id, d.code].includes(r.target))) b.push('dominio_mapeado_sem_regra_suficiencia:' + d.code);
+        if (!regras('mixed').some(r => [d.id, d.code].includes(r.target))) b.push('dominio_mapeado_sem_regra_mistos:' + d.code);
+      } else if (links.some(l => l.cross_source_role === 'directional')) b.push('dominio_sem_confronto_com_vinculo_directional:' + d.code);
     });
     if (!regras('temporal').length) b.push('sem_regra_temporal');
     if (!regras('sufficiency').length) b.push('sem_regra_suficiencia');
     if (!regras('mixed').length) b.push('sem_regra_resultados_mistos');
     if (!regras('convergence').length) b.push('sem_regra_convergencia_divergencia');
+    if (doms.some(d => (d.holoscan_mapping_mode || 'none') === 'mapped') && !regras('holoscan_direction').length) b.push('sem_regra_direcao_holoscan');
     if (!regras('text').some(r => r.payload && 'convergente' in r.payload && 'divergente' in r.payload && 'sem_dados_suficientes' in r.payload)) b.push('sem_texto_oficial_dos_tres_estados');
     const n = LI_FILHAS.reduce((acc, t) => acc + s.tabelas[t].filter(x => x.package_id === pid && ['rascunho', 'em_revisao'].includes(x.status)).length, 0);
     if (n) b.push('elementos_nao_aprovados:' + n);
@@ -638,7 +660,15 @@ export function criarServidor() {
     if (LI_FILHAS.includes(tabela)) {
       const pids = acao === 'insert' ? [dados.package_id] : alvo.map(l => l.package_id);
       for (const pid of pids) if (protegido(pid)) return erro('conteudo de pacote ' + pkgDe({ package_id: pid }).status + ' da leitura integrada e imutavel: crie uma nova versao', 'P0001');
-      if (acao === 'insert') { const l = novaLinha(tabela, Object.assign({ status: 'rascunho' }, dados), null); tab.push(l); liInvalidar(dados.package_id, 'conteudo metodologico alterado depois da aprovacao (' + tabela + ' insert)'); return { data: [copia(l)], error: null }; }
+      if (acao === 'insert') {
+        const base = tabela === 'integrated_reading_domains' ? { status: 'rascunho', holoscan_mapping_mode: dados.holoscan_system ? 'mapped' : 'none', definition: null, position: null } : tabela === 'integrated_reading_exam_domain_links' ? { status: 'rascunho', cross_source_role: 'contextual', direction_rules: null, variants_declared: null, version: 1, source: null, justification: null } : { status: 'rascunho' };
+        const l = novaLinha(tabela, Object.assign(base, dados), null);
+        if (tabela === 'integrated_reading_domains' && !['mapped', 'none'].includes(l.holoscan_mapping_mode)) return erro('violates check constraint "ird_mapping_mode"', '23514');
+        if (tabela === 'integrated_reading_domains' && ((l.holoscan_mapping_mode === 'mapped') !== !!l.holoscan_system)) return erro('violates check constraint "ird_mapping_coerente"', '23514');
+        if (tabela === 'integrated_reading_exam_domain_links' && !['directional', 'contextual'].includes(l.cross_source_role)) return erro('violates check constraint "irl_role"', '23514');
+        if (tabela === 'integrated_reading_exam_domain_links' && ((l.cross_source_role === 'directional') !== !!l.direction_rules)) return erro('violates check constraint "irl_directional_rules"', '23514');
+        if (tabela === 'integrated_reading_rules' && !['sufficiency', 'temporal', 'mixed', 'convergence', 'text', 'holoscan_direction', 'reason_semantics'].includes(l.rule_type)) return erro('violates check constraint "irr_type"', '23514');
+        tab.push(l); liInvalidar(dados.package_id, 'conteudo metodologico alterado depois da aprovacao (' + tabela + ' insert)'); return { data: [copia(l)], error: null }; }
       if (acao === 'update') alvo.forEach(l => Object.assign(l, dados));
       if (acao === 'delete') s.tabelas[tabela] = tab.filter(l => !alvo.includes(l));
       pids.forEach(pid => liInvalidar(pid, 'conteudo metodologico alterado depois da aprovacao (' + tabela + ' ' + acao + ')'));
@@ -1237,21 +1267,36 @@ export function criarServidor() {
       const temVinculo = s.tabelas.integrated_reading_exam_domain_links.some(l => l.package_id === pkg.id && l.status === 'aprovado' && s.tabelas.integrated_reading_domains.some(d => d.id === l.domain_id && d.status === 'aprovado'));
       if (p.state !== 'sem_dados_suficientes' && !temVinculo) return erro('pacote ' + pkg.code + ' sem vinculo exame→dominio aprovado: a unica leitura possivel e sem_dados_suficientes', 'P0001');
       if (p.state !== 'sem_dados_suficientes' && pkg.status !== 'aprovado') return erro('pacote ' + pkg.code + ' nao aprovado: nenhuma leitura convergente/divergente e oficial', 'P0001');
+      const DIR = ['attention_present', 'attention_not_detected', 'indeterminate'];
+      const dcode = p.domain_code || null, hd = p.holoscan_direction || null, ld = p.laboratory_direction || null;
+      if ((hd && !DIR.includes(hd))) return erro('direcao HOLOSCAN invalida', 'P0001');
+      if ((ld && !DIR.includes(ld))) return erro('direcao laboratorial invalida', 'P0001');
+      if (dcode) {
+        const dom = s.tabelas.integrated_reading_domains.find(d => d.package_id === pkg.id && d.code === dcode);
+        if (!dom) return erro('dominio ' + dcode + ' nao pertence ao pacote ' + pkg.code, 'P0002');
+        if ((dom.holoscan_mapping_mode || 'none') === 'none') return erro('dominio ' + dcode + ' nao possui confronto HOLOSCAN na V1: nao ha leitura cross-source a salvar (informacao laboratorial apenas)', 'P0001', 'dominio_sem_confronto');
+      }
+      if (p.state !== 'sem_dados_suficientes') {
+        if (!dcode) return erro('leitura convergente/divergente e por dominio: informe domain_code', 'P0001');
+        if (!hd || !ld || hd === 'indeterminate' || ld === 'indeterminate') return erro('convergente/divergente exigem direcao HOLOSCAN e laboratorial deterministicas', 'P0001', 'direcao_indeterminada');
+        if ((p.state === 'convergente' && hd !== ld) || (p.state === 'divergente' && hd === ld)) return erro('estado ' + p.state + ' incoerente com as direcoes ' + hd + ' x ' + ld, 'P0001', 'estado_incoerente');
+      }
       if (p.holoscan_application_id && !s.tabelas.holoscan_applications.some(a => a.id === p.holoscan_application_id && a.patient_id === p.patient_id && a.nutritionist_id === uid)) return erro('aplicacao HOLOSCAN nao e deste paciente', 'P0001');
       for (const cid of (p.selected_collection_ids || [])) if (!s.tabelas.lab_collections.some(c => c.id === cid && c.patient_id === p.patient_id && c.nutritionist_id === uid)) return erro('coleta ' + cid + ' nao e deste paciente', 'P0001');
       for (const rid of (p.selected_result_ids || [])) { const r = s.tabelas.lab_results.find(x => x.id === rid); const c = r && s.tabelas.lab_collections.find(x => x.id === r.collection_id); if (!c || c.patient_id !== p.patient_id || c.nutritionist_id !== uid) return erro('resultado ' + rid + ' nao e deste paciente', 'P0001'); }
       let rev = 1;
       if (p.supersedes_id) { const ant = s.tabelas.integrated_readings.find(i => i.id === p.supersedes_id && i.nutritionist_id === uid && i.patient_id === p.patient_id && !i.superseded_at); if (!ant) return erro('leitura anterior nao encontrada ou ja revisada', 'P0001'); rev = ant.revision + 1; }
-      const conteudo = { patient_id: p.patient_id, holoscan_application_id: p.holoscan_application_id || null, collections: p.selected_collection_ids || [], results: p.selected_result_ids || [], references: p.references_snapshot || [], sources: p.sources_snapshot || {}, rule_package: pkg.code + '@' + pkg.version, engine: p.engine_version, state: p.state, reason_codes: p.reason_codes || [], trace: p.trace || {}, note: p.professional_note || null };
+      const conteudo = { patient_id: p.patient_id, domain_code: dcode, holoscan_application_id: p.holoscan_application_id || null, collections: p.selected_collection_ids || [], results: p.selected_result_ids || [], references: p.references_snapshot || [], sources: p.sources_snapshot || {}, rule_package: pkg.code + '@' + pkg.version, engine: p.engine_version, state: p.state, holoscan_direction: hd, laboratory_direction: ld, reason_codes: p.reason_codes || [], trace: p.trace || {}, snapshot: p.snapshot || {}, note: p.professional_note || null };
       const h = createHash('sha256').update(JSON.stringify(conteudo), 'utf8').digest('hex');
       const arq = erroArquivado('integrated_readings', { patient_id: p.patient_id }); if (arq) return arq;
       const linha = novaLinha('integrated_readings', { nutritionist_id: uid, patient_id: p.patient_id, encounter_id: p.encounter_id || null, responsible: String(p.responsible).trim(), clinical_context: p.clinical_context || null, holoscan_application_id: p.holoscan_application_id || null,
         selected_collection_ids: p.selected_collection_ids || [], selected_result_ids: p.selected_result_ids || [], references_snapshot: p.references_snapshot || [], sources_snapshot: p.sources_snapshot || {}, rule_package_id: pkg.id, rule_version: pkg.version, engine_version: p.engine_version || '?',
-        state: p.state, reason_codes: p.reason_codes || [], trace: p.trace || {}, professional_note: p.professional_note || null, revision: rev, supersedes_id: p.supersedes_id || null, content_hash: h, created_by: uid }, uid);
+        state: p.state, reason_codes: p.reason_codes || [], trace: p.trace || {}, professional_note: p.professional_note || null, revision: rev, supersedes_id: p.supersedes_id || null, content_hash: h, created_by: uid,
+        domain_code: dcode, holoscan_direction: hd, laboratory_direction: ld, snapshot: p.snapshot || {} }, uid);
       const e = checarLinha('integrated_readings', linha, uid); if (e) return e;
       s.tabelas.integrated_readings.push(linha);
       if (p.supersedes_id) { const ant = s.tabelas.integrated_readings.find(i => i.id === p.supersedes_id); ant.superseded_at = carimbo(); }
-      return { data: { id: linha.id, state: p.state, revision: rev, content_hash: h }, error: null };
+      return { data: { id: linha.id, state: p.state, domain_code: dcode, revision: rev, content_hash: h }, error: null };
     }
     // ---------- V1 Etapa 5.2: governanca da Leitura Integrada ----------
     if (nome === 'meus_papeis_aprovacao') {
