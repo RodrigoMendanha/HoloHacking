@@ -96,9 +96,9 @@ pendente está em `laboratorio/HOMOLOGACAO-LEITURA-INTEGRADA-PENDENTE.md`. A met
   `revisar_coleta_laboratorial`, `marcar_coleta_revisada`, `salvar_leitura_integrada`, `lab_gravar_resultados`;
   `emitir_relatorio` com os campos V1 (rascunho recusado).
 - migração determinística do legado por `lab_mapear_legado()` + trigger `lab_preencher_legado`
-  (`laboratorio/MIGRACAO-LEGADO.md`): 20 EXA-* mapeados (PCR-us → LAB-016 `ultrassensivel`;
-  Mg eritrocitário → LAB-021 `eritrocitario`, material nulo), 4 → `additional_legacy`,
-  Insulina de jejum → `requires_manual_mapping`; nenhum resultado perdido; gravações futuras do painel
+  (`laboratorio/MIGRACAO-LEGADO.md`): 24 EXA-* = 19 mapeados (PCR-us → LAB-016 `ultrassensivel`;
+  Mg eritrocitário → LAB-021 `eritrocitario`, material nulo) + 1 `requires_manual_mapping` (Insulina de jejum,
+  `exam_code` nulo) + 4 `additional_legacy` (contagem corrigida na Etapa 5.1; antes dizia "20 mapeados"); nenhum resultado perdido; gravações futuras do painel
   legado passam pela mesma regra.
 
 ## CADEIA LOCAL (PostgreSQL 16 local, `scripts/validar-cadeia-local.sh`)

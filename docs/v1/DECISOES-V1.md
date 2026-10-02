@@ -277,8 +277,8 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
 84. **Confronto legado bloqueado da saída oficial** (`confrontar()`, `window.Holoscan`, `nota ≤ 3`,
     "um exame fora = convergente"): só em `?homologacao=1`, rotulado LEGADO. HOLOS AI não recebe
     inferência laboratorial (só dado factual de coletas salvas/revisadas).
-85. **Migração determinística do legado** (migration 20261001220000, NÃO aplicada): 20 EXA-* mapeados
-    com variante preservada, 4 → `additional_legacy`, Insulina de jejum → `requires_manual_mapping`;
+85. **Migração determinística do legado** (migration 20261001220000, NÃO aplicada): 24 EXA-* = 19 mapeados
+    com variante preservada + 1 `requires_manual_mapping` (Insulina de jejum) + 4 `additional_legacy`;
     coletas antigas → `source = legacy_panel`, `state = salvo`. Nenhum resultado perdido.
     (`docs/v1/laboratorio/MIGRACAO-LEGADO.md`)
 86. **Homologação da Leitura Integrada e das referências metodológicas é decisão humana pendente**
