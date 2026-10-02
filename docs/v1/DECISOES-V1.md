@@ -332,6 +332,26 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     `legacy_sistema` só como contexto (NÃO HOMOLOGADOS PARA VÍNCULO); 12 exames marcados sensíveis; Insulina
     basal × "Insulina de jejum" continua pendente (bloco 29).
 
+### Etapa 5.5 — DECISÃO 02 registrada (vínculos exame → domínio) e blocos 3–6 abertos (02/10/2026)
+
+92. **Vínculos exame → domínio (DECISÃO 02, Daniel, 02/10/2026)**: 45 exames decididos — 42 com domínio
+    (47 pares exame → domínio), 3 sem domínio na V1 (LAB-027 Alumínio, LAB-033 Ácido úrico, LAB-044 CK: ficam
+    no prontuário, fora da LI), 5 multi-domínio (LAB-025 B12, LAB-026 Ácido fólico, LAB-028 Ferro sérico,
+    LAB-029 Ferritina → D01+D06; LAB-034 PTH → D06+D07). Direção `above/below/any` registrada por exame e
+    significa só "qual lado de uma referência aplicável poderá participar da regra" — não diagnóstico,
+    gravidade, melhora, piora, causalidade nem convergência; a direção sozinha não produz estado. PCR
+    (sem variante / ultrassensível, D01) e Magnésio (sem variante / eritrocitário, D06) são vínculos
+    distintos, sem fundir referência, material ou método. Insulina basal (D02) não resolve a identidade
+    legado "Insulina de jejum" (bloco 29). Hemograma vinculado no composto (componentes sem domínio).
+    0 vínculos herdados do legado; 0 categorias usadas automaticamente. Fonte: decisão autoral V1 apoiada em
+    revisão clínica/documental; FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR (nenhuma citação fabricada).
+    **Status: decisão humana aprovada; não implementada, não registrada no banco, não homologada**
+    (`docs/v1/laboratorio/DECISAO-02-VINCULOS-EXAME-DOMINIO-LI.md`).
+93. **Blocos 3–6 abertos** sem decisão: `DECISAO-03-ELEGIBILIDADE-HOLOSCAN-LI.md` (9 opções),
+    `DECISAO-04-ELEGIBILIDADE-COLETAS-LI.md` (coleta × resultado), `DECISAO-05-JANELA-TEMPORAL-LI.md`
+    (6 arquiteturas, nenhum valor sugerido), `DECISAO-06-MULTIPLAS-COLETAS-LI.md` (7 opções; proibido
+    `updated_at`; data relevante = `coletado_em`).
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`

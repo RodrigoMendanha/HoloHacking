@@ -2,7 +2,7 @@
 
 Etapa 5.1 · 02/10/2026 · branch `claude/v1-etapa5-1-decisoes-leitura-integrada` (a partir de `43daba2`) · para a liderança do método e os responsáveis clínicos.
 
-> **NENHUMA DECISÃO CLÍNICA FOI TOMADA NESTE DOCUMENTO.** Os campos DECISÃO, JUSTIFICATIVA, RESPONSÁVEL e DATA estão em branco nos blocos 2–29; o bloco 1 foi decidido por Daniel em 02/10/2026 (Etapa 5.4, `DECISAO-01-DOMINIOS-LI.md`), sem registro no banco e sem homologação. **Etapa 5.2:** o bloco 30 (governança) foi **fechado tecnicamente** — a Leitura Integrada reutiliza a dupla aprovação Daniel → Rodrigo do HOLOSCAN (`GOVERNANCA-HOMOLOGACAO-LI-V1.md`); nenhuma aprovação real foi registrada. **Etapa 5.3:** a identidade dos aprovadores passou a ser a conta autenticada autorizada (`docs/v1/metodologia/APROVADORES-AUTORIZADOS.md`), não o nome digitado. Nenhuma opção está recomendada. Nenhum valor numérico de corte, janela ou referência é proposto.
+> **NENHUMA DECISÃO CLÍNICA FOI TOMADA NESTE DOCUMENTO.** Os campos DECISÃO, JUSTIFICATIVA, RESPONSÁVEL e DATA estão em branco nos blocos 3–29; os blocos 1 (Etapa 5.4) e 2 (Etapa 5.5) foram decididos por Daniel em 02/10/2026 (`DECISAO-01-DOMINIOS-LI.md`, `DECISAO-02-VINCULOS-EXAME-DOMINIO-LI.md`), sem registro no banco, sem homologação e sem implementação. **Etapa 5.2:** o bloco 30 (governança) foi **fechado tecnicamente** — a Leitura Integrada reutiliza a dupla aprovação Daniel → Rodrigo do HOLOSCAN (`GOVERNANCA-HOMOLOGACAO-LI-V1.md`); nenhuma aprovação real foi registrada. **Etapa 5.3:** a identidade dos aprovadores passou a ser a conta autenticada autorizada (`docs/v1/metodologia/APROVADORES-AUTORIZADOS.md`), não o nome digitado. Nenhuma opção está recomendada. Nenhum valor numérico de corte, janela ou referência é proposto.
 >
 > **Autoridade.** Documento Mestre (§§21–24) = destino da V1. Etapa 5 (`ETAPA5-LABORATORIO.md`) = infraestrutura técnica, já entregue. AS-IS (`INVENTARIO-LABORATORIO-AS-IS.md`) = evidência histórica. **Nenhuma regra do confronto legado é proposta oficial só porque existia**: onde aparece, está marcada **LEGADO / INCOMPATÍVEL COMO REGRA OFICIAL SEM HOMOLOGAÇÃO**.
 >
@@ -38,7 +38,7 @@ Etapa 5.1 · 02/10/2026 · branch `claude/v1-etapa5-1-decisoes-leitura-integrada
 | 25 | Comparabilidade longitudinal da LI | Evolução da própria LI |
 | 26, 27, 28, 29 | Derivados, customizados, legado fora dos 45, Insulina | cobertura de itens específicos |
 
-O bloco **30** (quem aprova e como) foi fechado tecnicamente na Etapa 5.2; o bloco **1** (domínios) foi **decidido por Daniel na Etapa 5.4**; o **primeiro bloco que exige decisão humana** passa a ser o **2** (vínculos exame → domínio).
+O bloco **30** (quem aprova e como) foi fechado tecnicamente na Etapa 5.2; os blocos **1** (domínios, Etapa 5.4) e **2** (vínculos, Etapa 5.5) foram **decididos por Daniel**; o **primeiro bloco que exige decisão humana** passa a ser o **3** (aplicação HOLOSCAN elegível), com os blocos 3–6 preparados em `DECISAO-03…06`.
 
 ---
 
@@ -107,7 +107,7 @@ DATA: ______
 
 ## BLOCO 2 — Relação exame/variante/material → domínio
 
-> **Etapa 5.4:** matriz de decisão dos 45 exames em `DECISAO-02-VINCULOS-EXAME-DOMINIO-LI.md` (0 decididos, 45 pendentes; categoria e legado só como contexto, NÃO HOMOLOGADOS PARA VÍNCULO). **PENDENTE.**
+> **DECIDIDO — Etapa 5.5 (Daniel, 02/10/2026):** 45 exames decididos em `DECISAO-02-VINCULOS-EXAME-DOMINIO-LI.md`: 42 com domínio (47 pares), 3 sem domínio na V1 (LAB-027 Alumínio, LAB-033 Ácido úrico, LAB-044 CK), 5 multi-domínio (B12, Ácido fólico, Ferro, Ferritina, PTH); direção `above/below/any` registrada (só "lado da referência", nunca estado); PCR e Magnésio com variantes como vínculos distintos; Insulina de jejum (EXA-006) pendente; 0 vínculos herdados do legado; FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR. Não implementado, não registrado no banco, não homologado.
 
 **O que decidir.** Para cada domínio do bloco 1: quais exames (LAB-xxx), com qual variante e material, pertencem ao domínio, e com qual **direção** relevante (`above`, `below`, `any`).
 
@@ -138,6 +138,8 @@ DATA: ______
 
 ## BLOCO 3 — Qual aplicação HOLOSCAN é elegível
 
+> **Etapa 5.5:** material detalhado para decisão em `DECISAO-03-ELEGIBILIDADE-HOLOSCAN-LI.md` (opções e consequências, sem recomendação). **PENDENTE.**
+
 **O que decidir.** Qual aplicação HOLOSCAN entra na leitura: a escolhida explicitamente pela profissional (hoje), a mais recente consolidada, a mais próxima da coleta, só aplicações do pacote metodológico aprovado, só aplicações `avaliavel`, cobertura mínima.
 
 **Por quê.** A leitura compara laboratório com **uma** aplicação; qual aplicação muda o resultado.
@@ -166,6 +168,8 @@ DATA: ______
 ---
 
 ## BLOCO 4 — Quais coletas são elegíveis
+
+> **Etapa 5.5:** material detalhado para decisão em `DECISAO-04-ELEGIBILIDADE-COLETAS-LI.md` (opções e consequências, sem recomendação). **PENDENTE.**
 
 **O que decidir.** Quais coletas podem entrar: só `salvo`/`revisado` (hoje), só `revisado`, só coletas com laudo anexo, coletas do painel legado (`source = legacy_panel`), coletas migradas (`legacy_migrated`), coletas com `requires_manual_mapping`.
 
@@ -196,6 +200,8 @@ DATA: ______
 
 ## BLOCO 5 — Janela temporal entre aplicação e coleta
 
+> **Etapa 5.5:** material detalhado para decisão em `DECISAO-05-JANELA-TEMPORAL-LI.md` (opções e consequências, sem recomendação). **PENDENTE.**
+
 **O que decidir.** Diferença máxima, em dias, entre `holoscan_applications.quando` e `lab_collections.coletado_em` para que um resultado conte; se é global ou por domínio; se é simétrica (coleta antes ou depois da aplicação).
 
 **Por quê.** Mestre §24 exige temporalidade. Sem regra `temporal` aprovada, o motor **não** aplica janela (inclui tudo que foi selecionado) — mas sem regra de suficiência/convergência o estado é `sem_dados_suficientes` de qualquer forma.
@@ -224,6 +230,8 @@ DATA: ______
 ---
 
 ## BLOCO 6 — Política para múltiplas coletas na janela
+
+> **Etapa 5.5:** material detalhado para decisão em `DECISAO-06-MULTIPLAS-COLETAS-LI.md` (opções e consequências, sem recomendação). **PENDENTE.**
 
 **O que decidir.** Quando mais de uma coleta selecionada está na janela com o mesmo exame: usar a mais próxima da aplicação, a mais recente, todas (cada resultado conta), ou exigir escolha humana.
 
