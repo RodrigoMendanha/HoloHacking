@@ -2,7 +2,7 @@
 
 Etapa 5.1 · 02/10/2026 · branch `claude/v1-etapa5-1-decisoes-leitura-integrada` (a partir de `43daba2`) · para a liderança do método e os responsáveis clínicos.
 
-> **NENHUMA DECISÃO CLÍNICA FOI TOMADA NESTE DOCUMENTO.** Os campos DECISÃO, JUSTIFICATIVA, RESPONSÁVEL e DATA estão em branco nos blocos 3–29; os blocos 1 (Etapa 5.4) e 2 (Etapa 5.5) foram decididos por Daniel em 02/10/2026 (`DECISAO-01-DOMINIOS-LI.md`, `DECISAO-02-VINCULOS-EXAME-DOMINIO-LI.md`), sem registro no banco, sem homologação e sem implementação. **Etapa 5.2:** o bloco 30 (governança) foi **fechado tecnicamente** — a Leitura Integrada reutiliza a dupla aprovação Daniel → Rodrigo do HOLOSCAN (`GOVERNANCA-HOMOLOGACAO-LI-V1.md`); nenhuma aprovação real foi registrada. **Etapa 5.3:** a identidade dos aprovadores passou a ser a conta autenticada autorizada (`docs/v1/metodologia/APROVADORES-AUTORIZADOS.md`), não o nome digitado. Nenhuma opção está recomendada. Nenhum valor numérico de corte, janela ou referência é proposto.
+> **NENHUMA DECISÃO CLÍNICA FOI TOMADA NESTE DOCUMENTO.** Os campos DECISÃO, JUSTIFICATIVA, RESPONSÁVEL e DATA estão em branco nos blocos 7–29 (e no valor do bloco 5); os blocos 1, 2, 3, 4 e 6 foram decididos e o 5 parcialmente decidido por Daniel em 02/10/2026 (`DECISAO-01…06`), sem registro no banco, sem homologação e sem implementação. **Etapa 5.2:** o bloco 30 (governança) foi **fechado tecnicamente** — a Leitura Integrada reutiliza a dupla aprovação Daniel → Rodrigo do HOLOSCAN (`GOVERNANCA-HOMOLOGACAO-LI-V1.md`); nenhuma aprovação real foi registrada. **Etapa 5.3:** a identidade dos aprovadores passou a ser a conta autenticada autorizada (`docs/v1/metodologia/APROVADORES-AUTORIZADOS.md`), não o nome digitado. Nenhuma opção está recomendada. Nenhum valor numérico de corte, janela ou referência é proposto.
 >
 > **Autoridade.** Documento Mestre (§§21–24) = destino da V1. Etapa 5 (`ETAPA5-LABORATORIO.md`) = infraestrutura técnica, já entregue. AS-IS (`INVENTARIO-LABORATORIO-AS-IS.md`) = evidência histórica. **Nenhuma regra do confronto legado é proposta oficial só porque existia**: onde aparece, está marcada **LEGADO / INCOMPATÍVEL COMO REGRA OFICIAL SEM HOMOLOGAÇÃO**.
 >
@@ -38,7 +38,7 @@ Etapa 5.1 · 02/10/2026 · branch `claude/v1-etapa5-1-decisoes-leitura-integrada
 | 25 | Comparabilidade longitudinal da LI | Evolução da própria LI |
 | 26, 27, 28, 29 | Derivados, customizados, legado fora dos 45, Insulina | cobertura de itens específicos |
 
-O bloco **30** (quem aprova e como) foi fechado tecnicamente na Etapa 5.2; os blocos **1** (domínios, Etapa 5.4) e **2** (vínculos, Etapa 5.5) foram **decididos por Daniel**; o **primeiro bloco que exige decisão humana** passa a ser o **3** (aplicação HOLOSCAN elegível), com os blocos 3–6 preparados em `DECISAO-03…06`.
+O bloco **30** (quem aprova e como) foi fechado tecnicamente na Etapa 5.2; os blocos **1, 2, 3, 4 e 6** foram **decididos por Daniel** (Etapas 5.4–5.6) e o **5** está **parcialmente decidido** (arquitetura sim, valor em dias não); o **primeiro bloco que exige decisão humana** passa a ser o **5** (valor da janela), seguido dos blocos **7–13**, preparados em `DECISAO-07…13`.
 
 ---
 
@@ -138,7 +138,7 @@ DATA: ______
 
 ## BLOCO 3 — Qual aplicação HOLOSCAN é elegível
 
-> **Etapa 5.5:** material detalhado para decisão em `DECISAO-03-ELEGIBILIDADE-HOLOSCAN-LI.md` (opções e consequências, sem recomendação). **PENDENTE.**
+> **DECIDIDO — Etapa 5.6 (Daniel, 02/10/2026):** 12 regras em `DECISAO-03-ELEGIBILIDADE-HOLOSCAN-LI.md` (uma aplicação, seleção explícita, mesmo paciente, consolidada, sem rascunho/prévia, pacote HOLOSCAN homologado e compatibilidade de versão declarada pelo pacote LI, parcial contribui só onde avaliável, históricas sob regra temporal). Não implementado, não homologado.
 
 **O que decidir.** Qual aplicação HOLOSCAN entra na leitura: a escolhida explicitamente pela profissional (hoje), a mais recente consolidada, a mais próxima da coleta, só aplicações do pacote metodológico aprovado, só aplicações `avaliavel`, cobertura mínima.
 
@@ -169,7 +169,7 @@ DATA: ______
 
 ## BLOCO 4 — Quais coletas são elegíveis
 
-> **Etapa 5.5:** material detalhado para decisão em `DECISAO-04-ELEGIBILIDADE-COLETAS-LI.md` (opções e consequências, sem recomendação). **PENDENTE.**
+> **DECIDIDO — Etapa 5.6 (Daniel, 02/10/2026):** 18 regras em `DECISAO-04-ELEGIBILIDADE-COLETAS-LI.md` (coleta: mesma paciente, consolidada, data clínica, sem rascunho/substituída, laboratório e atendimento opcionais, IDs independentes; resultado: elegibilidade por resultado, referência/unidade/variante afetam só o resultado, copiado e extraído exigem conferência humana, custom e additional_legacy não entram sem vínculo homologado). Não implementado, não homologado.
 
 **O que decidir.** Quais coletas podem entrar: só `salvo`/`revisado` (hoje), só `revisado`, só coletas com laudo anexo, coletas do painel legado (`source = legacy_panel`), coletas migradas (`legacy_migrated`), coletas com `requires_manual_mapping`.
 
@@ -200,7 +200,7 @@ DATA: ______
 
 ## BLOCO 5 — Janela temporal entre aplicação e coleta
 
-> **Etapa 5.5:** material detalhado para decisão em `DECISAO-05-JANELA-TEMPORAL-LI.md` (opções e consequências, sem recomendação). **PENDENTE.**
+> **PARCIALMENTE DECIDIDO — Etapa 5.6 (Daniel, 02/10/2026):** arquitetura em `DECISAO-05-JANELA-TEMPORAL-LI.md` (compatibilidade temporal obrigatória, datas clínicas, nunca `updated_at`, janela explícita/versionada/no pacote/rastreável, fora da janela ou sem data = sem dados suficientes). **Valor em dias NÃO decidido** (não assumir 7/30/60/90).
 
 **O que decidir.** Diferença máxima, em dias, entre `holoscan_applications.quando` e `lab_collections.coletado_em` para que um resultado conte; se é global ou por domínio; se é simétrica (coleta antes ou depois da aplicação).
 
@@ -231,7 +231,7 @@ DATA: ______
 
 ## BLOCO 6 — Política para múltiplas coletas na janela
 
-> **Etapa 5.5:** material detalhado para decisão em `DECISAO-06-MULTIPLAS-COLETAS-LI.md` (opções e consequências, sem recomendação). **PENDENTE.**
+> **DECIDIDO — Etapa 5.6 (Daniel, 02/10/2026):** 12 regras em `DECISAO-06-MULTIPLAS-COLETAS-LI.md` (1..N coletas elegíveis por seleção explícita, sugestão por proximidade da data clínica, sem escolha silenciosa, `updated_at` nunca, empate sem desempate automático, snapshot de application_id + collection_ids + result_ids, exame duplicado exige seleção humana do result_id senão sem dados suficientes, leitura salva não é reescrita). Não implementado, não homologado.
 
 **O que decidir.** Quando mais de uma coleta selecionada está na janela com o mesmo exame: usar a mais próxima da aplicação, a mais recente, todas (cada resultado conta), ou exigir escolha humana.
 
@@ -262,6 +262,8 @@ DATA: ______
 
 ## BLOCO 7 — Referência laboratorial elegível (do laudo)
 
+> **Etapa 5.6:** material detalhado para decisão em `DECISAO-07-REFERENCIA-LABORATORIAL-DO-LAUDO-LI.md` (levantamento e opções, sem recomendação). **PENDENTE.**
+
 **O que decidir.** Se a referência **do laudo** (digitada pela profissional por resultado) é elegível para classificar um resultado dentro da Leitura Integrada; se exige mínimo e máximo, se aceita operador único (`<`, `≥`), se exige unidade igual à do valor, se aceita população informada.
 
 **Por quê.** É a única referência existente; sem referência elegível não há `below/within/above`.
@@ -290,6 +292,8 @@ DATA: ______
 ---
 
 ## BLOCO 8 — Referência metodológica elegível
+
+> **Etapa 5.6:** material detalhado para decisão em `DECISAO-08-REFERENCIA-METODOLOGICA-LI.md` (levantamento e opções, sem recomendação). **PENDENTE.**
 
 **O que decidir.** Se a V1 terá referências metodológicas próprias (por exame/variante/material/método/população/sexo/idade/contexto), com fonte, versão e vigência; quem as aprova; e a prioridade entre metodológica e do laudo quando ambas existem.
 
@@ -320,6 +324,8 @@ DATA: ______
 
 ## BLOCO 9 — Política quando não há referência
 
+> **Etapa 5.6:** material detalhado para decisão em `DECISAO-09-AUSENCIA-DE-REFERENCIA-LI.md` (levantamento e opções, sem recomendação). **PENDENTE.**
+
 **O que decidir.** O que acontece com um resultado sem referência do laudo e sem referência metodológica aprovada: excluído da leitura (hoje), conta como "não classificável" visível, bloqueia o domínio, ou gera pedido de complementação à profissional.
 
 **O que existe.** Motor: `not_classifiable / missing_reference`; LI exclui o resultado (`sem_referencia_utilizavel`) e segue com os demais. **Ausência nunca é "dentro".**
@@ -346,6 +352,8 @@ DATA: ______
 ---
 
 ## BLOCO 10 — Conversões de unidade permitidas
+
+> **Etapa 5.6:** material detalhado para decisão em `DECISAO-10-CONVERSOES-DE-UNIDADE-LI.md` (levantamento e opções, sem recomendação). **PENDENTE.**
 
 **O que decidir.** Quais conversões (de → para, fator, por exame quando o fator depende do analito), com fonte e versão, são aprovadas; quem aprova.
 
@@ -374,6 +382,8 @@ DATA: ______
 
 ## BLOCO 11 — Compatibilidade de variante
 
+> **Etapa 5.6:** material detalhado para decisão em `DECISAO-11-COMPATIBILIDADE-DE-VARIANTE-LI.md` (levantamento e opções, sem recomendação). **PENDENTE.**
+
 **O que decidir.** Se variantes do mesmo exame (PCR × PCR ultrassensível; Magnésio × Magnésio eritrocitário; outras que surjam) são equivalentes para fins de vínculo, classificação e comparação longitudinal, ou identidades distintas.
 
 **O que existe.** `variant` explícita por resultado; identidade única por (exame, variante, material); motor: referência que declara variante diferente → `incompatible_variant`; vínculo pode fixar variante (`variant` não nulo) ou aceitar qualquer (nulo). Comparação longitudinal exige mesma variante.
@@ -401,6 +411,8 @@ DATA: ______
 
 ## BLOCO 12 — Compatibilidade de material
 
+> **Etapa 5.6:** material detalhado para decisão em `DECISAO-12-COMPATIBILIDADE-DE-MATERIAL-LI.md` (levantamento e opções, sem recomendação). **PENDENTE.**
+
 **O que decidir.** Se materiais diferentes (soro, plasma, sangue total, eritrócitos, urina…) do mesmo exame são compatíveis para vínculo, classificação e comparação; se material ausente (`null`) é compatível com material informado.
 
 **O que existe.** `material` explícito, nunca inventado; motor: referência que declara material diferente → `incompatible_material`; chave presente com valor nulo na referência exige material nulo no resultado. Migração do Mg eritrocitário: material **nulo** (não inventado).
@@ -427,6 +439,8 @@ DATA: ______
 ---
 
 ## BLOCO 13 — Compatibilidade de método
+
+> **Etapa 5.6:** material detalhado para decisão em `DECISAO-13-COMPATIBILIDADE-DE-METODO-LI.md` (levantamento e opções, sem recomendação). **PENDENTE.**
 
 **O que decidir.** Para quais exames o método analítico é relevante (resultados de métodos diferentes não são comparáveis nem classificáveis pela mesma referência) e como isso é declarado.
 

@@ -2,7 +2,7 @@
 
 Etapa 5.5 · 02/10/2026 · material para decisão de **Daniel** (responsável primário) · detalha o bloco 6 de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md` · depende das DECISÕES 01 (7 domínios) e 02 (vínculos).
 
-> **NADA DECIDIDO.** Opções apresentadas sem recomendação; nenhum valor sugerido; campos DECISÃO em branco. Nenhuma alteração em migration, banco, servidor falso, motor ou UI.
+> **DECIDIDO — Etapa 5.6 (02/10/2026, Daniel).** Decisão metodológica humana registrada abaixo. **Ainda não é**: implementação, migration clínica, Aprovação 1 no banco, Aprovação 2, homologação ou deploy. Nada alterado em motor, UI, servidor falso, banco ou pacote LI real.
 
 ## Pergunta
 
@@ -44,14 +44,41 @@ Qualquer escolha por `updated_at`/`created_at`; escolha implícita não registra
 
 Denominadores dos blocos 16–19.
 
+
+## Fundamento no Documento Mestre (registro, sem alterar o sentido)
+
+- a profissional seleciona, ou aceita uma seleção explicável;
+- aplicação e coletas entram com IDs e datas clínicas visíveis;
+- a janela temporal é versionada;
+- não há escolha silenciosa da "última modificada";
+- a leitura salva congela fontes e resultado;
+- nova coleta não reescreve leitura já emitida;
+- o histórico laboratorial usa a data da coleta, não a data de atualização;
+- somente registros consolidados entram em histórico, comparações e relatórios oficiais.
+
 ## Campo DECISÃO
 
-DECISÃO (opção: ______ · regra de empate: ______): ______
+**DECISÃO (Bloco 6 — múltiplas coletas):**
+1. A profissional pode selecionar explicitamente **1..N coletas temporalmente elegíveis**.
+2. O sistema pode **sugerir** coletas por proximidade da **data clínica**.
+3. O sistema **não escolhe silenciosamente**.
+4. `updated_at` **nunca** participa da escolha.
+5. Empate de proximidade temporal: **não existe desempate automático**.
+6. As coletas empatadas são apresentadas para decisão profissional.
+7. A Leitura Integrada salva congela `application_id`, `collection_ids` **e** `result_ids` efetivamente utilizados.
+8. Não basta congelar apenas `collection_ids`.
+9. Se o mesmo exame/variante aparecer em mais de uma coleta selecionada: enquanto não existir regra homologada para múltiplos resultados daquele exame, o sistema **exige seleção humana do `result_id` aplicável**.
+10. Se a seleção necessária não for feita: aquele elemento/domínio fica `sem_dados_suficientes`.
+11. Futuramente uma regra homologada pode permitir múltiplos resultados, seleção determinística ou comparação temporal — **não inferido agora**.
+12. Uma leitura já salva **não é reescrita** por nova coleta futura.
 
-JUSTIFICATIVA: ______
+Consequência técnica: `integrated_readings` já congela `holoscan_application_id`, `selected_collection_ids` e `selected_result_ids` e é imutável; a UI precisa de sugestão por proximidade e de seleção de `result_id` por exame quando houver duplicidade (extensão na implementação em lote); o motor passa a excluir, com motivo, o exame duplicado sem `result_id` escolhido.
+**JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 3–6 e no Documento Mestre (fundamento acima). Não atribuída ao legado.
 
-FONTE: ______ (ou FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR)
+**FONTE:** Documento Mestre (princípios acima) + decisão autoral V1. FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR onde aplicável.
 
-RESPONSÁVEL: ______
+**RESPONSÁVEL:** Daniel (responsável primário). Revisão final de Rodrigo e registro no banco ficam para a homologação do pacote completo.
 
-DATA: ______
+**DATA:** 02/10/2026.
+
+**Status:** DECIDIDO — não implementado, não registrado no banco, não homologado.

@@ -2,7 +2,7 @@
 
 Etapa 5.5 · 02/10/2026 · material para decisão de **Daniel** (responsável primário) · detalha o bloco 4 de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md` · depende das DECISÕES 01 (7 domínios) e 02 (vínculos).
 
-> **NADA DECIDIDO.** Opções apresentadas sem recomendação; nenhum valor sugerido; campos DECISÃO em branco. Nenhuma alteração em migration, banco, servidor falso, motor ou UI.
+> **DECIDIDO — Etapa 5.6 (02/10/2026, Daniel).** Decisão metodológica humana registrada abaixo. **Ainda não é**: implementação, migration clínica, Aprovação 1 no banco, Aprovação 2, homologação ou deploy. Nada alterado em motor, UI, servidor falso, banco ou pacote LI real.
 
 ## Pergunta
 
@@ -55,14 +55,51 @@ Rascunho; coleta substituída; seleção por `updated_at`; inventar data; tratar
 
 Base factual da leitura; blocos 5, 6, 16–19.
 
+
+## Fundamento no Documento Mestre (registro, sem alterar o sentido)
+
+- a profissional seleciona, ou aceita uma seleção explicável;
+- aplicação e coletas entram com IDs e datas clínicas visíveis;
+- a janela temporal é versionada;
+- não há escolha silenciosa da "última modificada";
+- a leitura salva congela fontes e resultado;
+- nova coleta não reescreve leitura já emitida;
+- o histórico laboratorial usa a data da coleta, não a data de atualização;
+- somente registros consolidados entram em histórico, comparações e relatórios oficiais.
+
 ## Campo DECISÃO
 
-DECISÃO: ______
+**DECISÃO (Bloco 4):**
 
-JUSTIFICATIVA: ______
+*Elegibilidade da COLETA:*
+1. mesma paciente;
+2. coleta consolidada/salva oficialmente;
+3. data clínica conhecida;
+4. rascunho não entra;
+5. coleta substituída (`superseded`) não entra em novas Leituras Integradas;
+6. laboratório informado **não** é obrigatório;
+7. `encounter_id` **não** é obrigatório;
+8. atendimento relacionado continua opcional;
+9. duas coletas na mesma data continuam independentes pelos seus IDs.
 
-FONTE: ______ (ou FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR)
+*Elegibilidade do RESULTADO:*
+10. elegibilidade da coleta **não** significa automaticamente elegibilidade de todos os resultados;
+11. resultado sem referência aplicável permanece na coleta, mas pode ficar não classificável;
+12. unidade incompatível bloqueia a classificação **daquele resultado**, não invalida a coleta inteira;
+13. variante/material/método incompatível afeta **aquele resultado/vínculo**;
+14. conteúdo copiado de coleta anterior só pode participar depois de **conferência humana**;
+15. extração assistida de laudo precisa de **revisão humana** antes de participar;
+16. exame customizado **não** participa automaticamente;
+17. `additional_legacy` **não** participa automaticamente;
+18. qualquer item fora do catálogo-base precisa de vínculo metodológico **explícito e homologado** antes de entrar na LI.
 
-RESPONSÁVEL: ______
+Consequência técnica: o modelo atual já distingue `rascunho/salvo/revisado`, `superseded_at`, `data_coleta_desconhecida`, `extracted_draft`; "conteúdo copiado conferido" exige marca por resultado (extensão pequena a declarar na implementação).
+**JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 3–6 e no Documento Mestre (fundamento acima). Não atribuída ao legado.
 
-DATA: ______
+**FONTE:** Documento Mestre (princípios acima) + decisão autoral V1. FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR onde aplicável.
+
+**RESPONSÁVEL:** Daniel (responsável primário). Revisão final de Rodrigo e registro no banco ficam para a homologação do pacote completo.
+
+**DATA:** 02/10/2026.
+
+**Status:** DECIDIDO — não implementado, não registrado no banco, não homologado.

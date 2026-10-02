@@ -2,7 +2,7 @@
 
 Etapa 5.5 · 02/10/2026 · material para decisão de **Daniel** (responsável primário) · detalha o bloco 5 de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md` · depende das DECISÕES 01 (7 domínios) e 02 (vínculos).
 
-> **NADA DECIDIDO.** Opções apresentadas sem recomendação; nenhum valor sugerido; campos DECISÃO em branco. Nenhuma alteração em migration, banco, servidor falso, motor ou UI.
+> **PARCIALMENTE DECIDIDO — Etapa 5.6 (02/10/2026, Daniel).** Decisão metodológica humana registrada abaixo. **Ainda não é**: implementação, migration clínica, Aprovação 1 no banco, Aprovação 2, homologação ou deploy. Nada alterado em motor, UI, servidor falso, banco ou pacote LI real.
 
 ## Pergunta
 
@@ -45,14 +45,39 @@ Janela deduzida de `created_at`/`updated_at`; (F) como regra oficial; valor herd
 
 Avaliabilidade de qualquer domínio; bloco 6.
 
+
+## Fundamento no Documento Mestre (registro, sem alterar o sentido)
+
+- a profissional seleciona, ou aceita uma seleção explicável;
+- aplicação e coletas entram com IDs e datas clínicas visíveis;
+- a janela temporal é versionada;
+- não há escolha silenciosa da "última modificada";
+- a leitura salva congela fontes e resultado;
+- nova coleta não reescreve leitura já emitida;
+- o histórico laboratorial usa a data da coleta, não a data de atualização;
+- somente registros consolidados entram em histórico, comparações e relatórios oficiais.
+
 ## Campo DECISÃO
 
-DECISÃO (arquitetura: ______ · valores: ______ · escopo: ______ · simetria: ______): ______
+**DECISÃO (Bloco 5 — apenas a ARQUITETURA; o valor em dias NÃO foi decidido):**
+1. A Leitura Integrada **exige** compatibilidade temporal.
+2. A regra temporal usa **datas clínicas** (`holoscan_applications.quando`, `lab_collections.coletado_em`).
+3. A regra **não** usa `updated_at`, `created_at` técnico nem "última modificação silenciosa".
+4. A janela temporal é **explícita, versionada, parte do pacote LI e rastreável na leitura salva** (trace).
+5. Ausência de data clínica necessária: `sem_dados_suficientes`.
+6. Fora da janela homologada: `sem_dados_suficientes`.
+7. O **valor exato da janela em dias ainda não foi decidido**.
+8. Não assumir 7, 30, 60 ou 90 dias. 9. Não inventar valor.
 
-JUSTIFICATIVA: ______
+Arquiteturas (A)–(E) continuam em aberto quanto ao **formato do valor** (global simétrica, anterior ≠ posterior, por domínio, por exame, exceção com revisão humana); a arquitetura (F) "sem janela" fica **excluída** pela regra 1.
+**Pendência:** **DEFINIR O VALOR/REGRA TEMPORAL EXATA** (formato e dias). Enquanto pendente, nenhum domínio é avaliável.
 
-FONTE: ______ (ou FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR)
+**JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 3–6 e no Documento Mestre (fundamento acima). Não atribuída ao legado.
 
-RESPONSÁVEL: ______
+**FONTE:** Documento Mestre (princípios acima) + decisão autoral V1. FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR onde aplicável.
 
-DATA: ______
+**RESPONSÁVEL:** Daniel (responsável primário). Revisão final de Rodrigo e registro no banco ficam para a homologação do pacote completo.
+
+**DATA:** 02/10/2026.
+
+**Status:** PARCIALMENTE DECIDIDO — não implementado, não registrado no banco, não homologado.

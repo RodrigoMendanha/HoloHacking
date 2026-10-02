@@ -10,17 +10,17 @@ Significados fixos: CONVERGENTE ≠ diagnóstico; DIVERGENTE não invalida relat
 |---|---|---|---|---|
 | 1 | Domínios oficiais | **DECIDIDO (Daniel, 02/10/2026, Etapa 5.4)**: arquitetura A, 7 domínios LI-D01…LI-D07, 11 regras; não registrado no banco, não homologado, não implementado | 5 sistemas HOLOSCAN usados como domínio (não herdados) | — (`DECISAO-01-DOMINIOS-LI.md`) |
 | 2 | Exame/variante/material → domínio | **DECIDIDO (Daniel, 02/10/2026, Etapa 5.5)**: 42 exames com domínio (47 pares), 3 sem, 5 multi; direções registradas; variantes PCR/Mg distintas; 0 herdados; não implementado, não homologado | `exames.csv.sistema` — NÃO HOMOLOGADO PARA VÍNCULO, não herdado | — (`DECISAO-02-VINCULOS-EXAME-DOMINIO-LI.md`); material/método por vínculo na implementação |
-| 3 | Aplicação HOLOSCAN elegível (`DECISAO-03-ELEGIBILIDADE-HOLOSCAN-LI.md`, 9 opções) | seleção explícita; pacote HOLOS-V1@2 ainda não aprovado | pontuação local sem id | critérios (avaliável, pacote aprovado, cobertura) |
-| 4 | Coletas e resultados elegíveis (`DECISAO-04-ELEGIBILIDADE-COLETAS-LI.md`) | salvo/revisado, não substituídas, qualquer `source` | valores atuais locais | restringir ou confirmar |
-| 5 | Janela temporal (`DECISAO-05-JANELA-TEMPORAL-LI.md`, 6 arquiteturas) | sem regra (motor aceita tudo) | sem janela | `max_days` ___, escopo, simetria |
-| 6 | Múltiplas coletas na janela (`DECISAO-06-MULTIPLAS-COLETAS-LI.md`, 7 opções) | cada resultado conta | última por `updated_at` | deduplicação por exame |
-| 7 | Referência do laudo | única usada; limites inclusivos | não existia | elegibilidade e exigências |
-| 8 | Referência metodológica | tabela vazia, sem botão | "ideal" do CSV sem fonte | existir ou não; prioridade |
-| 9 | Sem referência | excluído, nunca "dentro" | ideal sempre presente | excluir, bloquear domínio, pedir complemento |
-| 10 | Conversões de unidade | tabela vazia; unidade ≠ → incompatível | unidade fixa do CSV | lista aprovada ou nenhuma |
-| 11 | Compatibilidade de variante | identidade distinta | PCR-us item próprio | distinta, qualquer, equivalências |
-| 12 | Compatibilidade de material | parte da identidade; nulo só com nulo | inexistente | idem |
-| 13 | Compatibilidade de método | só com `method_relevant` | inexistente | lista de exames sensíveis a método |
+| 3 | Aplicação HOLOSCAN elegível | **DECIDIDO (Daniel, 02/10/2026, Etapa 5.6)**: 1 aplicação, seleção explícita, mesmo paciente, consolidada, sem rascunho/prévia, pacote HOLOSCAN homologado + compatibilidade de versão declarada pelo pacote LI, parcial só onde avaliável, históricas sob regra temporal; não implementado | pontuação local sem id | — (`DECISAO-03-ELEGIBILIDADE-HOLOSCAN-LI.md`) |
+| 4 | Coletas e resultados elegíveis | **DECIDIDO (Daniel, 02/10/2026, Etapa 5.6)**: coleta consolidada, mesma paciente, data clínica, sem rascunho/substituída, laboratório e atendimento opcionais; resultado elegível por resultado (referência/unidade/variante só o afetam), copiado/extraído exigem conferência humana, custom e additional_legacy não entram sem vínculo homologado; não implementado | valores atuais locais | — (`DECISAO-04-ELEGIBILIDADE-COLETAS-LI.md`) |
+| 5 | Janela temporal | **PARCIALMENTE DECIDIDO (Daniel, 02/10/2026, Etapa 5.6)**: compatibilidade temporal obrigatória, datas clínicas, nunca `updated_at`, janela explícita/versionada/no pacote/rastreável, fora da janela ou sem data = sem dados | sem janela | **valor/regra exata em dias** (não assumir 7/30/60/90) — `DECISAO-05-JANELA-TEMPORAL-LI.md` |
+| 6 | Múltiplas coletas na janela | **DECIDIDO (Daniel, 02/10/2026, Etapa 5.6)**: 1..N por seleção explícita, sugestão por proximidade da data clínica, sem escolha silenciosa, `updated_at` nunca, empate sem desempate automático, snapshot application_id + collection_ids + result_ids, exame duplicado exige seleção humana do result_id; não implementado | última por `updated_at` (proibido) | — (`DECISAO-06-MULTIPLAS-COLETAS-LI.md`) |
+| 7 | Referência do laudo (`DECISAO-07-REFERENCIA-LABORATORIAL-DO-LAUDO-LI.md`) | única usada; limites inclusivos | não existia | elegibilidade e exigências |
+| 8 | Referência metodológica (`DECISAO-08-REFERENCIA-METODOLOGICA-LI.md`) | tabela vazia, sem botão | "ideal" do CSV sem fonte | existir ou não; prioridade |
+| 9 | Sem referência (`DECISAO-09-AUSENCIA-DE-REFERENCIA-LI.md`) | excluído, nunca "dentro" | ideal sempre presente | excluir, bloquear domínio, pedir complemento |
+| 10 | Conversões de unidade (`DECISAO-10-CONVERSOES-DE-UNIDADE-LI.md`) | tabela vazia; unidade ≠ → incompatível | unidade fixa do CSV | lista aprovada ou nenhuma |
+| 11 | Compatibilidade de variante (`DECISAO-11-COMPATIBILIDADE-DE-VARIANTE-LI.md`) | identidade distinta | PCR-us item próprio | distinta, qualquer, equivalências |
+| 12 | Compatibilidade de material (`DECISAO-12-COMPATIBILIDADE-DE-MATERIAL-LI.md`) | parte da identidade; nulo só com nulo | inexistente | idem |
+| 13 | Compatibilidade de método (`DECISAO-13-COMPATIBILIDADE-DE-METODO-LI.md`) | só com `method_relevant` | inexistente | lista de exames sensíveis a método |
 | 14 | Qualitativos | não classificáveis, excluídos | não registráveis | tabela por exame ou exclusão |
 | 15 | Censurados | não classificáveis, excluídos | digitados como número | classificação por intervalo ou exclusão |
 | 16 | Suficiência mínima | sem regra | 1 exame bastava | arquitetura (absoluto/por domínio/fração) + valor ___ |
@@ -39,6 +39,6 @@ Significados fixos: CONVERGENTE ≠ diagnóstico; DIVERGENTE não invalida relat
 | 29 | Insulina de jejum ↔ basal | `exam_code` nulo, `requires_manual_mapping` | EXA-006 → metabolico | alias seguro, variante, pendente, custom — **não automático** |
 | 30 | Homologação do pacote LI | **FECHADO TECNICAMENTE (Etapa 5.2)**: Daniel → Rodrigo, hash canônico, invalidação, `homologar_pacote_li` com completude, snapshot; 0 aprovações registradas | sem processo | — (conteúdo dos blocos 1–29 continua aberto) |
 
-**Primeiro bloco que exige decisão humana:** 3 (aplicação HOLOSCAN elegível) — o 30 (governança) foi fechado tecnicamente na Etapa 5.2; os blocos 1 (domínios) e 2 (vínculos) foram decididos por Daniel nas Etapas 5.4 e 5.5; blocos 3–6 preparados; nenhuma aprovação real registrada.
+**Primeiro bloco que exige decisão humana:** 5 (valor da janela temporal), depois 7–13 — o 30 foi fechado tecnicamente (5.2); os blocos 1, 2, 3, 4 e 6 foram decididos e o 5 parcialmente decidido por Daniel (5.4–5.6); blocos 7–13 preparados; nenhuma aprovação real registrada.
 
 **Contagens da Etapa 5 (Anexo A do pacote):** harness 114 → 116 = L42/L43 acrescentados em `8a3524c`; EXA: 24 = 19 mapeados + 1 manual (EXA-006) + 4 `additional_legacy`.

@@ -352,6 +352,34 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     (6 arquiteturas, nenhum valor sugerido), `DECISAO-06-MULTIPLAS-COLETAS-LI.md` (7 opções; proibido
     `updated_at`; data relevante = `coletado_em`).
 
+### Etapa 5.6 — DECISÕES 03, 04 e 06 registradas; DECISÃO 05 parcial; blocos 7–13 abertos (02/10/2026)
+
+94. **Aplicação HOLOSCAN elegível (DECISÃO 03, Daniel)**: uma aplicação por leitura; seleção explícita; mesmo
+    paciente; consolidada/salva oficialmente; rascunho e prévia não entram; produzida sob pacote HOLOSCAN
+    homologado, com versão declarada compatível pelo pacote LI (sem compatibilidade declarada → sem dados
+    suficientes); aplicação parcial contribui só nos domínios avaliáveis; históricas aceitas se explícitas,
+    consolidadas, compatíveis e dentro da regra temporal; "revisado" não é requisito adicional.
+95. **Coletas e resultados elegíveis (DECISÃO 04, Daniel)**: coleta — mesma paciente, consolidada, data clínica
+    conhecida, sem rascunho nem substituída, laboratório e atendimento opcionais, IDs independentes; resultado —
+    elegibilidade por resultado; sem referência → não classificável; unidade/variante/material/método
+    incompatível afeta só aquele resultado/vínculo; conteúdo copiado e extração assistida exigem conferência
+    humana; customizado, additional_legacy e qualquer item fora do catálogo não entram sem vínculo homologado.
+96. **Janela temporal — arquitetura (DECISÃO 05, PARCIAL, Daniel)**: compatibilidade temporal obrigatória; datas
+    clínicas; nunca `updated_at`/`created_at`; janela explícita, versionada, parte do pacote LI e rastreável na
+    leitura salva; sem data ou fora da janela → sem dados suficientes. **Valor em dias NÃO decidido** (não
+    assumir 7/30/60/90; não inventar).
+97. **Múltiplas coletas (DECISÃO 06, Daniel)**: 1..N coletas elegíveis por seleção explícita; sugestão por
+    proximidade da data clínica; nenhuma escolha silenciosa; `updated_at` nunca; empate sem desempate automático
+    (apresentar à profissional); leitura salva congela application_id + collection_ids + result_ids; exame/
+    variante em mais de uma coleta exige seleção humana do result_id, senão sem dados suficientes; regra futura
+    para múltiplos resultados não inferida; leitura salva não é reescrita por coleta futura.
+    Fundamento registrado: princípios do Documento Mestre (seleção explicável, IDs e datas visíveis, janela
+    versionada, sem "última modificada", snapshot congelado, histórico por data de coleta, só consolidados).
+    **Status das decisões 94–97: humanas, aprovadas; não implementadas, não registradas no banco, não homologadas.**
+98. **Blocos 7–13 abertos** sem decisão: `DECISAO-07…13` (referência do laudo, referência metodológica, ausência
+    de referência, conversões, compatibilidade de variante/material/método); 0 referências, 0 conversões,
+    nenhuma equivalência inferida; casos obrigatórios e sensíveis destacados.
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`

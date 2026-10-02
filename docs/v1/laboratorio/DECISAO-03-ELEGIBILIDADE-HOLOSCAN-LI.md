@@ -2,7 +2,7 @@
 
 Etapa 5.5 · 02/10/2026 · material para decisão de **Daniel** (responsável primário) · detalha o bloco 3 de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md` · depende das DECISÕES 01 (7 domínios) e 02 (vínculos).
 
-> **NADA DECIDIDO.** Opções apresentadas sem recomendação; nenhum valor sugerido; campos DECISÃO em branco. Nenhuma alteração em migration, banco, servidor falso, motor ou UI.
+> **DECIDIDO — Etapa 5.6 (02/10/2026, Daniel).** Decisão metodológica humana registrada abaixo. **Ainda não é**: implementação, migration clínica, Aprovação 1 no banco, Aprovação 2, homologação ou deploy. Nada alterado em motor, UI, servidor falso, banco ou pacote LI real.
 
 ## Pergunta
 
@@ -43,14 +43,41 @@ Escolha automática por `updated_at`; aplicação não consolidada (local, não 
 
 Montagem do par HOLOSCAN × laboratório; blocos 5, 6, 20.
 
+
+## Fundamento no Documento Mestre (registro, sem alterar o sentido)
+
+- a profissional seleciona, ou aceita uma seleção explicável;
+- aplicação e coletas entram com IDs e datas clínicas visíveis;
+- a janela temporal é versionada;
+- não há escolha silenciosa da "última modificada";
+- a leitura salva congela fontes e resultado;
+- nova coleta não reescreve leitura já emitida;
+- o histórico laboratorial usa a data da coleta, não a data de atualização;
+- somente registros consolidados entram em histórico, comparações e relatórios oficiais.
+
 ## Campo DECISÃO
 
-DECISÃO: ______
+**DECISÃO (Bloco 3 — aplicação HOLOSCAN elegível):**
+1. A Leitura Integrada usa **uma** aplicação HOLOSCAN por leitura.
+2. A aplicação precisa ser **explicitamente selecionada** pela profissional.
+3. Precisa pertencer ao **mesmo paciente**.
+4. Precisa estar **consolidada/salva oficialmente** no servidor.
+5. **Rascunho e Prévia não entram.**
+6. A aplicação precisa ter sido produzida sob **pacote metodológico HOLOSCAN homologado**.
+7. A **versão** do pacote HOLOSCAN precisa estar **explicitamente declarada como compatível** pelo pacote da Leitura Integrada.
+8. Ausência de compatibilidade declarada: estado = `sem_dados_suficientes`.
+9. Aplicação **parcial** pode ser selecionada, mas só contribui nos domínios em que a entrada HOLOSCAN necessária for avaliável.
+10. Se a entrada HOLOSCAN necessária para um domínio não for avaliável: aquele domínio = `sem_dados_suficientes`.
+11. Aplicações **históricas** podem ser usadas desde que sejam explicitamente selecionadas, estejam consolidadas, sejam metodologicamente compatíveis e cumpram a regra temporal aplicável (bloco 5).
+12. "Revisado" pode entrar, mas **não é requisito adicional obrigatório** se o registro já estiver consolidado segundo a política oficial de dados.
 
-JUSTIFICATIVA: ______
+Consequência técnica (para a implementação em lote): o pacote LI precisa de um campo/regra de **compatibilidade declarada** com versão(ões) do pacote HOLOSCAN (não existe hoje — extensão pequena); o motor já devolve `holoscan_nao_avaliavel` por domínio.
+**JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 3–6 e no Documento Mestre (fundamento acima). Não atribuída ao legado.
 
-FONTE: ______ (ou FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR)
+**FONTE:** Documento Mestre (princípios acima) + decisão autoral V1. FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR onde aplicável.
 
-RESPONSÁVEL: ______
+**RESPONSÁVEL:** Daniel (responsável primário). Revisão final de Rodrigo e registro no banco ficam para a homologação do pacote completo.
 
-DATA: ______
+**DATA:** 02/10/2026.
+
+**Status:** DECIDIDO — não implementado, não registrado no banco, não homologado.
