@@ -4233,3 +4233,15 @@ tr.mh-conflito td{background:rgba(201,138,122,.08)}
 .mh-filtro{font:inherit;padding:5px 8px;border:1px solid var(--linha,rgba(0,0,0,.15));border-radius:6px;background:transparent;color:var(--texto);margin:6px 0;width:100%;max-width:420px}
 .mh-pre{font-size:.72rem;white-space:pre-wrap;word-break:break-word;margin:0;color:var(--texto)}
 .mh-rodape{margin-top:14px}
+
+/* Leitura Integrada V1 (Etapa 6) — leitura por dominio */
+.li-dominio{border:1px solid var(--borda,#ddd);border-radius:10px;padding:10px 12px;margin:10px 0}
+.li-dominio-sem-confronto{background:rgba(127,127,127,.06)}
+.li-dom-titulo{margin:0 0 6px;font-size:1rem}
+.li-neutro{opacity:.85}
+.li-dir{font-weight:600}
+.li-dir-indeterminate{opacity:.7}
+.li-regra{font-size:.85rem;opacity:.8}
+.li-duplicados{border:1px dashed var(--borda,#c9a);border-radius:8px;padding:8px 10px;margin:8px 0}
+.li-duplicados label,.li-coletas label{display:block;margin:2px 0}
+.li-salvar{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}

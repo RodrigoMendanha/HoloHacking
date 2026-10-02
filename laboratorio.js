@@ -17,9 +17,12 @@
    - estados rascunho | salvo | revisado; "Salvo" so depois do servidor;
      coleta consolidada se corrige por REVISAO (nova versao);
    - exames nunca tocam HOLOSCAN; nenhum score laboratorial;
-   - Leitura Integrada: selecao EXPLICITA de 1 aplicacao HOLOSCAN e N coletas;
-     pacote real LI-V1 sem regra => sempre sem_dados_suficientes, com motivo;
-     o confronto legado (nota <= 3 + um exame fora) nao e chamado.
+   - Leitura Integrada (Etapa 6): selecao EXPLICITA de 1 aplicacao HOLOSCAN e N coletas;
+     leitura POR DOMINIO com o pacote LI-V1@2 (7 dominios, 47 vinculos, LI-TEMP-01,
+     suficiencia/mistos por dominio); D05/D06/D07 sem confronto HOLOSCAN (informacao
+     laboratorial); duplicidade exige escolha explicita; snapshot congelado por dominio;
+     o servidor so grava convergente/divergente com pacote homologado; o confronto
+     legado (nota <= 3 + um exame fora) nao e chamado.
    =========================================================================== */
 (function () {
   "use strict";
@@ -37,14 +40,14 @@
   function uuid() { if (window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID(); return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) { var r = Math.random() * 16 | 0; return (c === "x" ? r : (r & 3 | 8)).toString(16); }); }
 
   /* ---------- dados (servidor e fonte; sem sessao nao ha coleta V1) -------- */
-  var dados = { pid: null, coletas: [], resultados: {}, componentes: {}, customizados: [], documentos: [], pacoteLI: null, leituras: [], aplicacoes: [], erro: null };
-  function limpar(pid) { dados = { pid: pid, coletas: [], resultados: {}, componentes: {}, customizados: [], documentos: [], pacoteLI: null, leituras: [], aplicacoes: [], erro: null }; }
+  var dados = { pid: null, coletas: [], resultados: {}, componentes: {}, customizados: [], documentos: [], pacoteLI: null, pacotesLI: [], leituras: [], aplicacoes: [], erro: null };
+  function limpar(pid) { dados = { pid: pid, coletas: [], resultados: {}, componentes: {}, customizados: [], documentos: [], pacoteLI: null, pacotesLI: [], leituras: [], aplicacoes: [], erro: null }; }
   function q(tabela, cols) { return Promise.resolve(sb().from(tabela).select(cols)); }
   function carregar(pid) {
     if (!pid || pid === SEM_PACIENTE || !UUID_RE.test(pid) || !temSupa()) { limpar(pid); return Promise.resolve(dados); }
     /* monta num objeto LOCAL e so troca `dados` no fim: duas cargas concorrentes nunca
        escrevem no mesmo objeto (nem duplicam resultados) */
-    var d = { pid: pid, coletas: [], resultados: {}, componentes: {}, customizados: [], documentos: [], pacoteLI: null, leituras: [], aplicacoes: [], erro: null };
+    var d = { pid: pid, coletas: [], resultados: {}, componentes: {}, customizados: [], documentos: [], pacoteLI: null, pacotesLI: [], leituras: [], aplicacoes: [], erro: null };
     var publicar = function () { if (dados.pid === pid || !dados.pid) dados = d; return dados; };
     return Promise.all([
       Promise.resolve(sb().from("lab_collections").select("*").eq("patient_id", pid)),
@@ -61,15 +64,17 @@
       d.customizados = rs[1].data || []; d.documentos = rs[2].data || [];
       d.leituras = (rs[4].data || []).slice().sort(function (a, b) { return String(b.created_at).localeCompare(String(a.created_at)); });
       d.aplicacoes = (rs[5].data || []).slice().sort(function (a, b) { return String(b.quando).localeCompare(String(a.quando)) || String(b.created_at).localeCompare(String(a.created_at)); });
-      var pk = (rs[3].data || [])[0];
+      var pks = (rs[3].data || []).slice().sort(function (a, b) { return a.version - b.version; });
       var ids = d.coletas.map(function (c) { return c.id; });
       var pRes = ids.length ? Promise.resolve(sb().from("lab_results").select("*").in("collection_id", ids)) : Promise.resolve({ data: [] });
-      var pPk = pk ? Promise.all([Promise.resolve(sb().from("integrated_reading_domains").select("*").eq("package_id", pk.id)), Promise.resolve(sb().from("integrated_reading_exam_domain_links").select("*").eq("package_id", pk.id)), Promise.resolve(sb().from("integrated_reading_rules").select("*").eq("package_id", pk.id))]) : Promise.resolve(null);
+      var pPk = pks.length ? Promise.all([Promise.resolve(sb().from("integrated_reading_domains").select("*")), Promise.resolve(sb().from("integrated_reading_exam_domain_links").select("*")), Promise.resolve(sb().from("integrated_reading_rules").select("*"))]) : Promise.resolve(null);
       return Promise.all([pRes, pPk]).then(function (x) {
         var res = x[0].data || [];
         res.forEach(function (r) { (d.resultados[r.collection_id] = d.resultados[r.collection_id] || []).push(r); });
         Object.keys(d.resultados).forEach(function (k) { d.resultados[k].sort(function (a, b) { return (a.position || 0) - (b.position || 0) || String(a.exam_code || a.legacy_exame_id || "").localeCompare(String(b.exam_code || b.legacy_exame_id || "")); }); });
-        d.pacoteLI = pk ? { id: pk.id, code: pk.code, version: pk.version, status: pk.status, domains: (x[1][0].data || []), links: (x[1][1].data || []), rules: (x[1][2].data || []) } : null;
+        var deste = function (lista, id) { return (lista || []).filter(function (l) { return l.package_id === id; }); };
+        d.pacotesLI = pks.map(function (pk) { return { id: pk.id, code: pk.code, version: pk.version, status: pk.status, domains: deste(x[1][0].data, pk.id), links: deste(x[1][1].data, pk.id), rules: deste(x[1][2].data, pk.id) }; });
+        d.pacoteLI = d.pacotesLI.length ? d.pacotesLI[d.pacotesLI.length - 1] : null;
         var rids = res.map(function (r) { return r.id; });
         return (rids.length ? Promise.resolve(sb().from("lab_result_components").select("*").in("result_id", rids)) : Promise.resolve({ data: [] })).then(function (k) {
           (k.data || []).forEach(function (c) { (d.componentes[c.result_id] = d.componentes[c.result_id] || []).push(c); });
@@ -344,51 +349,116 @@
   }
   function colherSeEditor() { if (editor) colher(); }
 
-  /* ---------- Leitura Integrada (selecao explicita; pacote real sem regra) ---- */
-  var li = { app: "", coletas: {}, resultado: null };
-  function pacoteReal() { return dados.pacoteLI || { id: null, code: "LI-V1", version: 1, status: "rascunho", domains: [], links: [], rules: [] }; }
+  /* ---------- Leitura Integrada V1 (Etapa 6): selecao explicita, leitura POR DOMINIO ----------
+     Pacote em uso: a versao mais alta de LI-V1 que nao esteja retirada (aprovado vigente tem
+     prioridade). Enquanto o pacote nao estiver aprovado, o servidor so grava sem_dados_suficientes.
+     O HOLOSCAN entra como fonte congelada: respostas da aplicacao + pacote metodologico que a
+     calculou (methodology_package_id) -> MotorMetodologico -> nota/faixa oficiais. Exames nunca
+     alteram nota, faixa, Indice ou Triada. D05/D06/D07: informacao laboratorial, sem confronto. */
+  var li = { app: "", coletas: {}, resultado: null, selecionados: {}, holoscan: null };
+  function pacoteReal() {
+    var ps = dados.pacotesLI || (dados.pacoteLI ? [dados.pacoteLI] : []);
+    var vivos = ps.filter(function (p) { return p.status !== "retirado"; });
+    var apr = vivos.filter(function (p) { return p.status === "aprovado"; }).sort(function (a, b) { return b.version - a.version; })[0];
+    var top = vivos.sort(function (a, b) { return b.version - a.version; })[0];
+    return apr || top || { id: null, code: "LI-V1", version: 1, status: "rascunho", domains: [], links: [], rules: [] };
+  }
+  /** Fonte HOLOSCAN congelada: aplicacao + respostas + pacote metodologico que a calculou. Nunca os limites legados 3/6. */
+  function fonteHoloscan(app) {
+    if (!app) return Promise.resolve(null);
+    var PM = window.PacoteMetodologico, MM = window.MotorMetodologico;
+    var pkgP = PM && app.methodology_package_id ? Promise.resolve(PM.porId(app.methodology_package_id) ? PM.porId(app.methodology_package_id) : PM.carregar().then(function () { return PM.porId(app.methodology_package_id); })) : Promise.resolve(null);
+    return Promise.all([pkgP, Promise.resolve(sb().from("holoscan_answers").select("marcador_id, valor").eq("application_id", app.id))]).then(function (x) {
+      var pkg = x[0], resp = {}; ((x[1] && x[1].data) || []).forEach(function (a) { resp[a.marcador_id] = Number(a.valor); });
+      var meta = pkg ? { id: pkg.id, code: pkg.code, version: pkg.version, status: pkg.status } : null, sr = null;
+      if (pkg && MM) { try { sr = MM.calcular({ responses: resp, methodology_package: pkg, mode: "homologacao", engine_version: MM.VERSAO, application_context: { applied_at: app.quando } }).system_results; } catch (e) { sr = null; } }
+      return { application: { id: app.id, clinical_date: app.quando, methodology_package: meta }, system_results: sr || {} };
+    }).catch(function () { return { application: { id: app.id, clinical_date: app.quando, methodology_package: null }, system_results: {} }; });
+  }
   function calcularLI() {
-    var L = window.LeituraIntegradaMotor; if (!L) return null;
+    var L = window.LeituraIntegradaMotor; if (!L) return Promise.resolve(null);
     var app = dados.aplicacoes.filter(function (a) { return a.id === li.app; })[0] || null;
     var cols = dados.coletas.filter(function (c) { return li.coletas[c.id]; });
     var res = []; cols.forEach(function (c) { (dados.resultados[c.id] || []).forEach(function (r) { res.push(Object.assign({}, r, { clinical_date: c.coletado_em })); }); });
     var cls = {}; res.forEach(function (r) { var c = classificar(r); if (c) cls[r.id] = c; });
-    li.resultado = L.calcular({ rule_package: pacoteReal(), holoscan_application: app ? { id: app.id, applied_at: app.quando, system_results: {} } : null, collections: cols.map(function (c) { return { id: c.id, clinical_date: c.coletado_em }; }), results: res, classifications: cls, engine_version: L.VERSAO });
-    return li.resultado;
+    return fonteHoloscan(app).then(function (h) {
+      li.holoscan = h;
+      li.resultado = L.calcular({ rule_package: pacoteReal(), patient_id: paciente(), holoscan: h, collections: cols.map(function (c) { return { id: c.id, clinical_date: c.coletado_em }; }), results: res, classifications: cls,
+        selected_result_ids: Object.keys(li.selecionados).filter(function (k) { return li.selecionados[k]; }) });
+      return li.resultado;
+    });
   }
-  function salvarLI(alvo) {
+  function salvarLI(alvo, codigo) {
     var pid = paciente(); if (!temSupa() || !li.resultado) return Promise.resolve(false);
-    var raizEl = alvo || document;   // a mesma leitura pode estar desenhada em mais de um lugar: le os campos DO alvo clicado
+    var dom = li.resultado.domains[codigo]; if (!dom || dom.cross_source_mode !== "enabled") return Promise.resolve(false);
+    var raizEl = alvo || document;
     var resp = raizEl.querySelector("#li-responsavel"), nota = raizEl.querySelector("#li-nota");
     if (!resp || !resp.value.trim()) { if (window.avisar) window.avisar("Informe quem é responsável pela leitura."); return Promise.resolve(false); }
     var pk = pacoteReal(), cols = Object.keys(li.coletas).filter(function (k) { return li.coletas[k]; });
-    var rids = []; cols.forEach(function (c) { (dados.resultados[c] || []).forEach(function (r) { rids.push(r.id); }); });
-    var refs = []; cols.forEach(function (c) { (dados.resultados[c] || []).forEach(function (r) { if (r.reference_status === "informed") refs.push({ result_id: r.id, source: "laudo", text: r.report_reference_text, min: r.report_reference_min, max: r.report_reference_max, unit: r.report_reference_unit || r.unit_original }); }); });
-    var p = { patient_id: pid, responsible: resp.value.trim(), rule_package_id: pk.id, engine_version: li.resultado.trace.engine_version, state: li.resultado.estado_geral, reason_codes: li.resultado.reason_codes, trace: li.resultado.trace,
-      holoscan_application_id: li.app || null, selected_collection_ids: cols, selected_result_ids: rids, references_snapshot: refs, sources_snapshot: { holoscan: li.app || null, collections: cols.map(function (c) { var x = dados.coletas.filter(function (y) { return y.id === c; })[0]; return { id: c, clinical_date: x && x.coletado_em, revision: x && x.revision }; }) }, professional_note: nota ? nota.value.trim() || null : null };
-    return Promise.resolve(sb().rpc("salvar_leitura_integrada", { payload: p })).then(function (r) { if (r.error) throw r.error; return carregar(pid).then(function () { desenharLI(true); if (window.avisar) window.avisar("Leitura integrada salva (estado: " + r.data.state + ")."); return true; }); })
+    var rids = dom.snapshot.selected_result_ids;
+    var refs = dom.snapshot.references;
+    var p = { patient_id: pid, responsible: resp.value.trim(), rule_package_id: pk.id, engine_version: li.resultado.engine_version, domain_code: codigo, state: dom.state, holoscan_direction: dom.holoscan_direction, laboratory_direction: dom.laboratory_direction,
+      reason_codes: dom.reason_codes, trace: dom.snapshot, snapshot: dom.snapshot, holoscan_application_id: li.app || null, selected_collection_ids: cols, selected_result_ids: rids, references_snapshot: refs,
+      sources_snapshot: { holoscan: li.app || null, holoscan_package: dom.snapshot.holoscan_package, collections: dom.snapshot.collection_clinical_dates }, professional_note: nota ? nota.value.trim() || null : null };
+    return Promise.resolve(sb().rpc("salvar_leitura_integrada", { payload: p })).then(function (r) { if (r.error) throw r.error; return carregar(pid).then(function () { desenharLI(true); if (window.avisar) window.avisar("Leitura integrada de " + codigo + " salva (estado: " + r.data.state.replace(/_/g, " ") + ")."); return true; }); })
       .catch(function (e) { if (window.avisar) window.avisar("Não foi possível salvar a leitura: " + (window.mensagemHumana ? window.mensagemHumana(e) : e.message)); return false; });
   }
   var alvosLI = [];
+  var ROTULO_ESTADO = { convergente: "Convergente", divergente: "Divergente", sem_dados_suficientes: "Sem dados suficientes" };
+  function htmlDominio(d, pk) {
+    var L = window.LeituraIntegradaMotor;
+    var dir = function (x) { return x ? '<span class="li-dir li-dir-' + escapar(x) + '">' + escapar(L.ROTULO_DIRECAO[x] || x) + "</span>" : "—"; };
+    var itens = d.items || [], usados = itens.filter(function (i) { return i.included && i.cross_source_role === "directional"; }), ctx = itens.filter(function (i) { return i.included && i.cross_source_role === "contextual"; }), excl = itens.filter(function (i) { return !i.included; });
+    var linhaItem = function (i) { return "<li>" + escapar(i.exam_code) + (i.variant ? " · " + escapar(i.variant) : "") + ": " + escapar(i.value_original_text === null ? "" : String(i.value_original_text)) + (i.unit_original ? " " + escapar(i.unit_original) : "") + " · " + escapar(window.LabMotor && i.classification ? window.LabMotor.ROTULO[i.classification] || i.classification : i.classification || "não classificável") + (i.direction ? " · direção " + escapar(L.ROTULO_DIRECAO[i.direction] || i.direction) : "") + (i.reference_source ? " · ref. " + escapar(i.reference_source) : "") + (typeof i.temporal_delta_days === "number" ? " · Δ " + (i.temporal_delta_days > 0 ? "+" : "") + i.temporal_delta_days + " d" : "") + "</li>"; };
+    var cab = '<h4 class="li-dom-titulo">' + escapar(d.domain_code) + " — " + escapar(d.domain_name) + "</h4>";
+    if (d.cross_source_mode !== "enabled") {
+      return '<div class="li-dominio li-dominio-sem-confronto" data-li-dominio="' + escapar(d.domain_code) + '">' + cab +
+        '<p class="li-neutro">' + escapar(d.text && d.text.profissional ? d.text.profissional : "Este domínio é apresentado como informação laboratorial na V1 e não possui confronto automático com um sistema HOLOSCAN.") + "</p>" +
+        "<p><b>Exames do domínio nas coletas selecionadas:</b> " + (ctx.length ? "<ul>" + ctx.map(linhaItem).join("") + "</ul>" : "nenhum classificável") + "</p>" +
+        (excl.length ? "<p><b>Não classificáveis / excluídos:</b><ul>" + excl.map(function (i) { return "<li>" + escapar(i.exam_code) + " — " + escapar(L.motivoHumano(pk, i.exclusion_reason)) + "</li>"; }).join("") + "</ul></p>" : "") + "</div>";
+    }
+    var h = d.holoscan || {};
+    return '<div class="li-dominio" data-li-dominio="' + escapar(d.domain_code) + '">' + cab +
+      '<p><b>Estado:</b> <span class="conf-selo li-estado ' + escapar(d.state) + '">' + escapar(ROTULO_ESTADO[d.state] || d.state) + "</span></p>" +
+      "<p>" + escapar(d.text && d.text.profissional ? d.text.profissional : "") + "</p>" +
+      "<p><b>Direção HOLOSCAN</b> (" + escapar(d.holoscan_system || "—") + (h.faixa ? ", faixa " + escapar(h.faixa) : "") + "): " + dir(d.holoscan_direction) + " · <b>Direção laboratorial:</b> " + dir(d.laboratory_direction) + "</p>" +
+      (d.reason_codes.length ? "<p><b>Motivos:</b><ul>" + d.reason_codes.map(function (m) { return "<li>" + escapar(L.motivoHumano(pk, m)) + " <code>" + escapar(m) + "</code></li>"; }).join("") + "</ul></p>" : "") +
+      "<p><b>Exames usados na direção laboratorial:</b> " + (usados.length ? "<ul>" + usados.map(linhaItem).join("") + "</ul>" : "nenhum") + "</p>" +
+      "<p><b>Exames contextuais (não formam direção):</b> " + (ctx.length ? "<ul>" + ctx.map(linhaItem).join("") + "</ul>" : "nenhum") + "</p>" +
+      (excl.length ? "<p><b>Excluídos e motivo:</b><ul>" + excl.map(function (i) { return "<li>" + escapar(i.exam_code) + (i.variant ? " · " + escapar(i.variant) : "") + " — " + escapar(L.motivoHumano(pk, i.exclusion_reason)) + "</li>"; }).join("") + "</ul></p>" : "") +
+      '<p class="li-regra"><b>Regras:</b> suficiência ' + escapar(d.sufficiency.mode || "—") + (d.sufficiency.min_classifiable_results !== null && d.sufficiency.min_classifiable_results !== undefined ? " (mín. " + d.sufficiency.min_classifiable_results + ", obrigatórios " + escapar((d.sufficiency.required_exam_codes || []).join(", ") || (d.sufficiency.required_exam_groups || []).map(function (g) { return g.code; }).join(", ") || "—") + ")" : "") + " · mistos " + escapar(d.mixed.mode || "—") + " · temporal " + escapar(d.temporal.rule_code || "—") + " v" + escapar(String(d.temporal.rule_version || "—")) + " · pacote " + escapar(pk.code + " v" + pk.version) + " · motor " + escapar(d.engine_version) + "</p>" +
+      '<details><summary>Snapshot (congelável)</summary><pre class="mh-pre">' + escapar(JSON.stringify(d.snapshot, null, 2)) + "</pre></details>" +
+      (temSupa() && pk.id ? '<button type="button" class="btn-fantasma" data-li-salvar="' + escapar(d.domain_code) + '">Salvar leitura de ' + escapar(d.domain_code) + " (congela fontes)</button>" : "") + "</div>";
+  }
   function htmlLI(compacto) {
     var L = window.LeituraIntegradaMotor, pk = pacoteReal();
     var aviso = window.Metodologia ? window.Metodologia.avisoHtml() : "";
     var regra = L && L.pacoteTemRegraReal(pk);
-    var cab = '<p class="dash-sub li-status" id="li-status"><b>Pacote de regras ' + escapar(pk.code + " v" + pk.version) + " · " + escapar(pk.status) + ".</b> " + (regra ? "" : "Nenhum domínio, vínculo exame → domínio, suficiência, janela temporal ou regra de resultados mistos foi homologado: a única leitura possível é <b>sem dados suficientes</b>. Nenhum exame fora da referência confirma ou contradiz o HOLOSCAN.") + "</p>";
+    var cab = '<p class="dash-sub li-status" id="li-status"><b>Pacote de regras ' + escapar(pk.code + " v" + pk.version) + " · " + escapar(pk.status) + ".</b> " +
+      (!regra ? "Nenhum domínio, vínculo exame → domínio, suficiência, janela temporal ou regra de resultados mistos foi homologado: a única leitura possível é <b>sem dados suficientes</b>." :
+        pk.status !== "aprovado" ? "Conteúdo metodológico decidido (7 domínios, 47 vínculos), <b>ainda não homologado</b>: o servidor só grava leituras <b>sem dados suficientes</b> até a dupla aprovação." : "") +
+      " Nenhum exame fora da referência confirma ou contradiz o HOLOSCAN; exames não alteram nota, faixa, Índice nem Tríada.</p>";
     if (!temSupa()) return aviso + cab + '<p class="dash-vazio">Sem conta ativa não há aplicação HOLOSCAN nem coleta no servidor para selecionar.</p>';
-    var sel = '<div class="li-selecao"><label class="evo-campo"><span>Aplicação HOLOSCAN consolidada</span><select id="li-app"><option value="">— escolher —</option>' + dados.aplicacoes.map(function (a) { return '<option value="' + escapar(a.id) + '"' + (li.app === a.id ? " selected" : "") + ">" + escapar(dataBR(a.quando)) + " · estrutura v" + escapar(String(a.versao_estrutura)) + (a.cobertura && typeof a.cobertura.respondidos === "number" ? " · cobertura " + a.cobertura.respondidos + "/" + a.cobertura.total : "") + " · id " + escapar(String(a.id).slice(0, 8)) + "</option>"; }).join("") + "</select></label>" +
-      '<div class="li-coletas"><span>Coletas (escolha explícita; nada é escolhido por data de edição)</span>' + (dados.coletas.filter(atual).length ? dados.coletas.filter(atual).map(function (c) { return '<label><input type="checkbox" data-li-coleta="' + escapar(c.id) + '"' + (li.coletas[c.id] ? " checked" : "") + "> " + escapar(rotuloColeta(c)) + " · " + (dados.resultados[c.id] || []).length + " resultado(s) · id " + escapar(String(c.id).slice(0, 8)) + "</label>"; }).join("") : '<p class="dash-vazio">Nenhuma coleta registrada.</p>') + "</div>" +
+    var sel = '<div class="li-selecao"><label class="evo-campo"><span>Aplicação HOLOSCAN consolidada</span><select id="li-app"><option value="">— escolher —</option>' + dados.aplicacoes.map(function (a) { return '<option value="' + escapar(a.id) + '"' + (li.app === a.id ? " selected" : "") + ">" + escapar(dataBR(a.quando)) + " · estrutura v" + escapar(String(a.versao_estrutura)) + (a.cobertura && typeof a.cobertura.respondidos === "number" ? " · cobertura " + a.cobertura.respondidos + "/" + a.cobertura.total : "") + (a.methodology_package_id ? "" : " · sem pacote metodológico V1") + " · id " + escapar(String(a.id).slice(0, 8)) + "</option>"; }).join("") + "</select></label>" +
+      '<div class="li-coletas"><span>Coletas (escolha explícita; ordenadas por proximidade da data clínica quando há aplicação; nada é escolhido por data de edição)</span>' + (dados.coletas.filter(atual).length ? ordenarPorProximidade(dados.coletas.filter(atual)).map(function (c) { return '<label><input type="checkbox" data-li-coleta="' + escapar(c.id) + '"' + (li.coletas[c.id] ? " checked" : "") + "> " + escapar(rotuloColeta(c)) + " · " + (dados.resultados[c.id] || []).length + " resultado(s)" + deltaTexto(c) + " · id " + escapar(String(c.id).slice(0, 8)) + "</label>"; }).join("") : '<p class="dash-vazio">Nenhuma coleta registrada.</p>') + "</div>" +
       '<button type="button" class="btn-fantasma" data-li-acao="calcular">Calcular leitura</button></div>';
     var r = li.resultado, saida = "";
     if (r) {
-      saida = '<div class="li-resultado" id="li-resultado"><p><b>Estado:</b> <span class="conf-selo li-estado ' + escapar(r.estado_geral) + '">' + escapar(r.estado_geral.replace(/_/g, " ")) + "</span></p>" +
-        '<p><b>Motivos:</b> ' + (r.reason_codes.length ? r.reason_codes.map(function (m) { return "<code>" + escapar(m) + "</code> " + escapar(L.MOTIVO[m] || ""); }).join("; ") : "—") + "</p>" +
-        '<details><summary>Trace</summary><pre class="mh-pre">' + escapar(JSON.stringify(r.trace, null, 2)) + "</pre></details>" +
-        '<div class="li-salvar"><input type="text" id="li-responsavel" placeholder="responsável pela leitura (nome)"><input type="text" id="li-nota" placeholder="nota profissional (opcional)"><button type="button" class="btn-fantasma" data-li-acao="salvar">Salvar leitura (congela fontes)</button></div></div>';
+      var dups = []; Object.keys(r.domains).forEach(function (k) { (r.domains[k].items || []).forEach(function (i) { if (i.exclusion_reason === "duplicate_result_unresolved") dups.push(i); }); });
+      var dupHtml = dups.length ? '<div class="li-duplicados"><p><b>Resultados duplicados nas coletas selecionadas — escolha explicitamente qual entra (nada é escolhido por data de edição):</b></p>' + dups.map(function (i) { return '<label><input type="checkbox" data-li-result="' + escapar(i.result_id) + '"' + (li.selecionados[i.result_id] ? " checked" : "") + "> " + escapar(i.exam_code) + (i.variant ? " · " + escapar(i.variant) : "") + " · " + escapar(String(i.value_original_text)) + (i.unit_original ? " " + escapar(i.unit_original) : "") + " · coleta " + escapar(String(i.collection_id).slice(0, 8)) + (typeof i.temporal_delta_days === "number" ? " · Δ " + (i.temporal_delta_days > 0 ? "+" : "") + i.temporal_delta_days + " d" : "") + "</label>"; }).join("") + "</div>" : "";
+      var hp = li.holoscan && li.holoscan.application ? li.holoscan.application : null;
+      var fonte = hp ? "<p><b>HOLOSCAN selecionado:</b> aplicação de " + escapar(dataBR(hp.clinical_date)) + " · pacote metodológico " + (hp.methodology_package ? escapar(hp.methodology_package.code + " v" + hp.methodology_package.version + " (" + hp.methodology_package.status + ")") : "<b>não registrado na aplicação</b>") + "</p>" : "<p><b>HOLOSCAN:</b> nenhuma aplicação selecionada.</p>";
+      saida = '<div class="li-resultado" id="li-resultado">' + fonte + dupHtml +
+        Object.keys(r.domains).map(function (k) { return htmlDominio(r.domains[k], pk); }).join("") +
+        '<div class="li-salvar"><input type="text" id="li-responsavel" placeholder="responsável pela leitura (nome)"><input type="text" id="li-nota" placeholder="observação profissional (separada do snapshot; opcional)"></div></div>';
     }
-    var salvas = dados.leituras.length ? '<div class="dash-bloco dash-bloco-compacto"><h3 class="dash-titulo">Leituras salvas</h3><ul class="dash-pendentes">' + dados.leituras.map(function (x) { return "<li>" + escapar(String(x.created_at).slice(0, 16)) + " · <b>" + escapar(x.state.replace(/_/g, " ")) + "</b> · rev " + x.revision + (x.superseded_at ? " (substituída)" : "") + " · " + escapar(x.responsible) + (x.professional_note ? " — " + escapar(x.professional_note) : "") + "</li>"; }).join("") + "</ul></div>" : "";
-    return aviso + cab + (compacto ? "" : "") + sel + saida + salvas;
+    var salvas = dados.leituras.length ? '<div class="dash-bloco dash-bloco-compacto"><h3 class="dash-titulo">Leituras salvas (snapshot congelado; nova coleta não as altera)</h3><ul class="dash-pendentes">' + dados.leituras.map(function (x) { return "<li>" + escapar(String(x.created_at).slice(0, 16)) + (x.domain_code ? " · " + escapar(x.domain_code) : "") + " · <b>" + escapar(ROTULO_ESTADO[x.state] || x.state) + "</b>" + (x.holoscan_direction ? " · HOLOSCAN " + escapar(L.ROTULO_DIRECAO[x.holoscan_direction] || x.holoscan_direction) + " × lab " + escapar(L.ROTULO_DIRECAO[x.laboratory_direction] || x.laboratory_direction || "—") : "") + " · rev " + x.revision + (x.superseded_at ? " (substituída)" : "") + " · " + escapar(x.responsible) + (x.professional_note ? " — " + escapar(x.professional_note) : "") + "</li>"; }).join("") + "</ul></div>" : "";
+    return aviso + cab + sel + saida + salvas;
   }
+  function appSelecionada() { return dados.aplicacoes.filter(function (a) { return a.id === li.app; })[0] || null; }
+  function deltaTexto(c) { var a = appSelecionada(), L = window.LeituraIntegradaMotor; if (!a || !L) return ""; var d = L.deltaDias(c.coletado_em, a.quando); return d === null ? " · sem data clínica" : " · Δ " + (d > 0 ? "+" : "") + d + " d"; }
+  /** Sugestao de ordem por proximidade da data clinica (DECISAO 06): so ordena; nunca escolhe; empate fica visivel. */
+  function ordenarPorProximidade(cs) { var a = appSelecionada(), L = window.LeituraIntegradaMotor; if (!a || !L) return cs; return cs.slice().sort(function (x, y) { var dx = L.deltaDias(x.coletado_em, a.quando), dy = L.deltaDias(y.coletado_em, a.quando); if (dx === null && dy === null) return 0; if (dx === null) return 1; if (dy === null) return -1; return Math.abs(dx) - Math.abs(dy) || ordemClinica(x, y); }); }
   /* Timeline, Evolucao, relatorios e HOLOS AI leem as coletas pela Sincronizacao: depois de
      gravar pela RPC, recarrega a copia dela (o servidor e a fonte). */
   function sincronizarCopias(pid) {
@@ -407,9 +477,11 @@
       if (!recarregado && id === "holo-confronto" && secao && !secao.classList.contains("ativa")) { alvo.innerHTML = '<p class="dash-vazio">Abra a Leitura Integrada para carregar.</p>'; return; }
       if (!recarregado) { carregar(pid).then(function () { return carregarAplicacoes(pid); }).then(function () { desenharLI(true); }); alvo.innerHTML = '<p class="dash-vazio">Carregando…</p>'; return; }
       alvo.innerHTML = htmlLI(id !== "holo-confronto");
-      var sel = alvo.querySelector("#li-app"); if (sel) sel.addEventListener("change", function () { li.app = sel.value; });
+      var sel = alvo.querySelector("#li-app"); if (sel) sel.addEventListener("change", function () { li.app = sel.value; li.resultado = null; desenharLI(true); });
       alvo.querySelectorAll("[data-li-coleta]").forEach(function (cb) { cb.addEventListener("change", function () { li.coletas[cb.dataset.liColeta] = cb.checked; }); });
-      alvo.querySelectorAll("[data-li-acao]").forEach(function (b) { b.addEventListener("click", function () { if (b.dataset.liAcao === "calcular") { calcularLI(); desenharLI(true); } if (b.dataset.liAcao === "salvar") salvarLI(alvo); }); });
+      alvo.querySelectorAll("[data-li-result]").forEach(function (cb) { cb.addEventListener("change", function () { li.selecionados[cb.dataset.liResult] = cb.checked; }); });
+      alvo.querySelectorAll("[data-li-acao]").forEach(function (b) { b.addEventListener("click", function () { if (b.dataset.liAcao === "calcular") calcularLI().then(function () { desenharLI(true); }); }); });
+      alvo.querySelectorAll("[data-li-salvar]").forEach(function (b) { b.addEventListener("click", function () { salvarLI(alvo, b.dataset.liSalvar); }); });
     });
   }
   /** Leitura Integrada: le as aplicacoes HOLOSCAN consolidadas do paciente (so aqui). */
@@ -434,7 +506,7 @@
 
   /* ---------- API --------------------------------------------------------- */
   window.Laboratorio = {
-    desenhar: desenharRecarregando, redesenhar: desenhar, carregar: carregar, dados: function () { return dados; }, esquecer: function () { limpar(null); editor = null; li = { app: "", coletas: {}, resultado: null }; },
+    desenhar: desenharRecarregando, redesenhar: desenhar, carregar: carregar, dados: function () { return dados; }, esquecer: function () { limpar(null); editor = null; li = { app: "", coletas: {}, resultado: null, selecionados: {}, holoscan: null }; },
     nomeExame: nomeExame, identidadeTexto: identidadeTexto, referenciaDoLaudo: referenciaDoLaudo, classificar: classificar, textoClassificacao: textoClassificacao, rotuloColeta: rotuloColeta, ordemClinica: ordemClinica,
     desenharLeituraIntegrada: desenharLeituraIntegrada, calcularLeituraIntegrada: calcularLI, pacoteReal: pacoteReal,
     /** Para a Evolucao: compara dois resultados V1 pelo LabMotor (compatibilidade verificada; delta so quando compativel). */
