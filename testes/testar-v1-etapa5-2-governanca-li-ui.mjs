@@ -29,7 +29,11 @@ await A.waitForFunction(() => window.HoloAuth && window.HoloAuth.sessaoAtiva() &
 await esperar(300);
 await A.evaluate(async () => { document.querySelector('.nav-item[data-secao="metodologia"]').click(); await new Promise(r => setTimeout(r, 400)); });
 await A.waitForFunction(() => document.querySelector('#mh-li-pacote'), { timeout: 10000 });
-const liv1 = srv.linhas('integrated_reading_rule_packages').find(p => p.code === 'LI-V1');
+// Etapa 6.0 (mudanca legitima de contrato, documentada em docs/v1/ETAPA6-LEITURA-INTEGRADA.md): a tela de homologacao passa a
+// selecionar a versao mais recente de LI-V1 — o candidato LI-V1@2 (em_revisao, 7 dominios / 47 vinculos, completude
+// publicavel, 0 aprovacoes). LI-V1@1 (rascunho, vazio) continua como historico.
+const liv1 = srv.linhas('integrated_reading_rule_packages').find(p => p.code === 'LI-V1' && p.version === 1);
+const liv2 = srv.linhas('integrated_reading_rule_packages').find(p => p.code === 'LI-V1' && p.version === 2);
 
 const t0 = await A.evaluate(() => ({
   texto: document.getElementById('mh-li').innerText.replace(/\s+/g, ' '),
@@ -41,8 +45,8 @@ const t0 = await A.evaluate(() => ({
   aprov: [...document.querySelectorAll('#mh-li-aprovacoes li')].map(l => l.textContent),
   holoscanSecao: !!document.querySelector('#metodologia-corpo .mh-topo'),
 }));
-ok(t0.texto.includes('Leitura Integrada — homologação metodológica') && t0.texto.includes(liv1.id) && /version: 1/.test(t0.texto) && /rascunho/.test(t0.texto), 'secao independente mostra package_id, version e status do LI-V1@1');
-ok(/Metodologia da Leitura Integrada ainda não definida/.test(t0.indefinida) && !t0.erroCss, 'avisa "Metodologia da Leitura Integrada ainda não definida" como informacao, nao como erro tecnico');
+ok(t0.texto.includes('Leitura Integrada — homologação metodológica') && t0.texto.includes(liv2.id) && /version: 2/.test(t0.texto) && /em_revisao/.test(t0.texto), 'secao independente mostra package_id, version e status do candidato LI-V1@2 (em_revisao)');
+ok(t0.indefinida === '' && !t0.erroCss, 'LI-V1@2 tem dominios aprovados: o aviso "Metodologia ainda nao definida" nao aparece; nenhum erro tecnico');
 ok(t0.hash === 'não conferido' && t0.homologarDisabled && /confira o hash/.test(t0.motivo), 'antes de conferir: hash nao conferido, Homologar bloqueado com motivo');
 ok(t0.aprov.length === 2 && /Daniel/.test(t0.aprov[0]) && /Rodrigo/.test(t0.aprov[1]) && t0.aprov.every(a => /pendente/.test(a)), 'Aprovacao 1 (Daniel) e Aprovacao 2 (Rodrigo) pendentes');
 ok(t0.holoscanSecao, 'a secao do pacote HOLOSCAN continua na mesma tela (dupla aprovacao do HOLOSCAN intacta)');
@@ -58,10 +62,10 @@ const t1 = await A.evaluate(() => ({
   papel: (document.querySelector('#mh-li [data-mh-papeis]') || {}).textContent || '',
   respPre: (document.querySelector('#mh-li-aprovar [data-mh-li-resp]') || {}).value, respRO: !!(document.querySelector('#mh-li-aprovar [data-mh-li-resp]') || {}).readOnly,
 }));
-const hServ = srv.tratar({ op: 'rpc', uid: srv.contas['a@holo.test'].id, nome: 'li_hash_conteudo', args: { p_package_id: liv1.id } }).data;
+const hServ = srv.tratar({ op: 'rpc', uid: srv.contas['a@holo.test'].id, nome: 'li_hash_conteudo', args: { p_package_id: liv2.id } }).data;
 ok(t1.hash === hServ, 'Conferir hash mostra o content_hash calculado no servidor: ' + t1.hash.slice(0, 12) + '…');
-ok(t1.bloqueios.includes('sem_dominio_aprovado') && t1.bloqueios.includes('sem_regra_temporal') && t1.bloqueios.includes('sem_regra_suficiencia') && t1.bloqueios.includes('sem_regra_convergencia_divergencia'), 'bloqueios metodologicos listados: ' + t1.bloqueios.join(', '));
-ok(t1.homologarDisabled && /Bloqueado/.test(t1.motivo) && /em_revisao/.test(t1.statusAviso), 'Homologar continua bloqueado; tela explica que aprovacao exige pacote em_revisao (gestao tecnica, nao botao)');
+ok(t1.bloqueios.length === 0 && hServ === '7c6d93a0f91c790ba052c8687822c4513ad27015a7dc86c506d437b52beb6d1a', 'LI-V1@2: 0 bloqueios metodologicos (completude publicavel); hash candidato 7c6d93a0… — o que falta e o ato humano');
+ok(t1.homologarDisabled && /Bloqueado/.test(t1.motivo) && /faltam Aprovações 1 e 2/.test(t1.motivo) && t1.statusAviso === '', 'Homologar continua bloqueado: faltam as Aprovacoes 1 e 2 vigentes (pacote ja em_revisao)');
 ok(t1.temForm, 'acoes Registrar Aprovacao disponiveis na tela (o servidor decide)');
 ok(/Daniel/.test(t1.papel) && /Aprovação 1/.test(t1.papel) && t1.respPre === 'Daniel' && t1.respRO, 'Etapa 5.3: a tela mostra o papel da conta (Daniel, Aprovacao 1) e preenche o responsavel a partir dele (somente leitura)');
 await A.evaluate(async () => {
@@ -71,9 +75,9 @@ await A.evaluate(async () => {
   for (let i = 0; i < 60 && !/recusada|registrada/.test((document.getElementById('mh-li-estado') || {}).textContent || ''); i++) await new Promise(r => setTimeout(r, 100));
 });
 const t2 = await A.evaluate(() => (document.getElementById('mh-li-estado') || {}).textContent || '');
-ok(/recusada/.test(t2) && srv.linhas('integrated_reading_package_approvals').length === 0,   // a tela humaniza a mensagem (mensagemHumana), como na secao do HOLOSCAN
- 'tentativa de Aprovacao 1 no LI-V1 (rascunho) e recusada pelo servidor e mostrada como recusa; nenhuma aprovacao criada: ' + t2.slice(0, 70));
-ok(srv.linhas('integrated_reading_rule_packages').find(p => p.code === 'LI-V1').status === 'rascunho', 'LI-V1@1 continua rascunho');
+const aprovs = srv.linhas('integrated_reading_package_approvals');
+ok(/registrada/.test(t2) && aprovs.length === 1 && aprovs[0].package_id === liv2.id && aprovs[0].step === 1 && aprovs[0].responsible === 'Daniel' && aprovs[0].content_hash === hServ && aprovs[0].approver_id, 'Aprovacao 1 pela tela (conta de teste no papel de Daniel) sobre LI-V1@2 e o hash conferido — fixture local, identidade real (approver_id): ' + t2.slice(0, 70));
+ok(srv.linhas('integrated_reading_rule_packages').find(p => p.id === liv2.id).status === 'em_revisao' && srv.linhas('integrated_reading_package_snapshots').length === 0 && liv1.status === 'rascunho', 'uma aprovacao nao homologa: LI-V1@2 continua em_revisao, sem snapshot; LI-V1@1 continua rascunho');
 ok(errosJS.length === 0, errosJS.length ? 'ERRO DE JS: ' + errosJS[0] : 'sem erro de JS');
 await nav.close();
 console.log('');
