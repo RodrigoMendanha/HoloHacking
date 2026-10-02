@@ -2,7 +2,7 @@
 
 Etapa 5.1 · 02/10/2026 · branch `claude/v1-etapa5-1-decisoes-leitura-integrada` (a partir de `43daba2`) · para a liderança do método e os responsáveis clínicos.
 
-> **NENHUMA DECISÃO CLÍNICA FOI TOMADA NESTE DOCUMENTO.** Os campos DECISÃO, JUSTIFICATIVA, RESPONSÁVEL e DATA estão em branco nos blocos 7–29 (e no valor do bloco 5); os blocos 1, 2, 3, 4 e 6 foram decididos e o 5 parcialmente decidido por Daniel em 02/10/2026 (`DECISAO-01…06`), sem registro no banco, sem homologação e sem implementação. **Etapa 5.2:** o bloco 30 (governança) foi **fechado tecnicamente** — a Leitura Integrada reutiliza a dupla aprovação Daniel → Rodrigo do HOLOSCAN (`GOVERNANCA-HOMOLOGACAO-LI-V1.md`); nenhuma aprovação real foi registrada. **Etapa 5.3:** a identidade dos aprovadores passou a ser a conta autenticada autorizada (`docs/v1/metodologia/APROVADORES-AUTORIZADOS.md`), não o nome digitado. Nenhuma opção está recomendada. Nenhum valor numérico de corte, janela ou referência é proposto.
+> **NENHUMA DECISÃO CLÍNICA FOI TOMADA NESTE DOCUMENTO.** Os campos DECISÃO, JUSTIFICATIVA, RESPONSÁVEL e DATA estão em branco nos blocos 14–29 (e no valor do bloco 5); os blocos 1–4 e 6–13 foram decididos e o 5 parcialmente decidido por Daniel em 02/10/2026 (`DECISAO-01…13`), sem registro no banco, sem homologação e sem implementação. **Etapa 5.2:** o bloco 30 (governança) foi **fechado tecnicamente** — a Leitura Integrada reutiliza a dupla aprovação Daniel → Rodrigo do HOLOSCAN (`GOVERNANCA-HOMOLOGACAO-LI-V1.md`); nenhuma aprovação real foi registrada. **Etapa 5.3:** a identidade dos aprovadores passou a ser a conta autenticada autorizada (`docs/v1/metodologia/APROVADORES-AUTORIZADOS.md`), não o nome digitado. Nenhuma opção está recomendada. Nenhum valor numérico de corte, janela ou referência é proposto.
 >
 > **Autoridade.** Documento Mestre (§§21–24) = destino da V1. Etapa 5 (`ETAPA5-LABORATORIO.md`) = infraestrutura técnica, já entregue. AS-IS (`INVENTARIO-LABORATORIO-AS-IS.md`) = evidência histórica. **Nenhuma regra do confronto legado é proposta oficial só porque existia**: onde aparece, está marcada **LEGADO / INCOMPATÍVEL COMO REGRA OFICIAL SEM HOMOLOGAÇÃO**.
 >
@@ -14,6 +14,10 @@ Etapa 5.1 · 02/10/2026 · branch `claude/v1-etapa5-1-decisoes-leitura-integrada
 - "Tecnicamente possível" significa: a infraestrutura da Etapa 5 (`leitura-integrada-motor.js`, tabelas `integrated_reading_*`, `lab_method_references`, `lab_unit_conversion_rules`, `lab_derived_calculations`) consegue representar a opção **sem código novo**, ou com extensão pequena e identificada. Não significa que a opção seja clinicamente adequada.
 - Uma decisão sem responsável humano nomeado não pode ser registrada. Nenhuma decisão pode ser atribuída a "Liderança do método HOLOSCAN" (regra da Etapa 4.2).
 - Enquanto qualquer bloco de 1 a 22 estiver aberto, a Leitura Integrada real continua **sem dados suficientes** para todo paciente, e nenhuma superfície oficial (ficha, Confronto, Evolução, relatório, HOLOS AI, Conduta) mostra convergente/divergente.
+
+## Regra transversal — três eixos de estado por resultado (Etapa 5.7, princípio oficial)
+
+Um resultado tem três eixos independentes: **classificação individual** (`classification_status`), **elegibilidade para LI** (`li_eligibility_status`) e **comparabilidade longitudinal** (`longitudinal_comparability_status`). Pode ser válido e classificável e, ao mesmo tempo, não elegível e não comparável. Problema de comparabilidade **nunca** vira "resultado inválido"; motivos separados por eixo. Nomenclatura conceitual; campos não implementados.
 
 ## Significado dos três estados (vale para todo o pacote)
 
@@ -38,7 +42,7 @@ Etapa 5.1 · 02/10/2026 · branch `claude/v1-etapa5-1-decisoes-leitura-integrada
 | 25 | Comparabilidade longitudinal da LI | Evolução da própria LI |
 | 26, 27, 28, 29 | Derivados, customizados, legado fora dos 45, Insulina | cobertura de itens específicos |
 
-O bloco **30** (quem aprova e como) foi fechado tecnicamente na Etapa 5.2; os blocos **1, 2, 3, 4 e 6** foram **decididos por Daniel** (Etapas 5.4–5.6) e o **5** está **parcialmente decidido** (arquitetura sim, valor em dias não); o **primeiro bloco que exige decisão humana** passa a ser o **5** (valor da janela), seguido dos blocos **7–13**, preparados em `DECISAO-07…13`.
+O bloco **30** (quem aprova e como) foi fechado tecnicamente na Etapa 5.2; os blocos **1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12 e 13** foram **decididos por Daniel** (Etapas 5.4–5.7; 8 e 10 quanto à arquitetura) e o **5** está **parcialmente decidido** (arquitetura sim, valor em dias não); o **primeiro bloco que exige decisão humana** passa a ser o **5** (valor da janela), seguido dos blocos **14–19**, preparados em `DECISAO-14…19`.
 
 ---
 
@@ -262,7 +266,7 @@ DATA: ______
 
 ## BLOCO 7 — Referência laboratorial elegível (do laudo)
 
-> **Etapa 5.6:** material detalhado para decisão em `DECISAO-07-REFERENCIA-LABORATORIAL-DO-LAUDO-LI.md` (levantamento e opções, sem recomendação). **PENDENTE.**
+> **DECIDIDO — Etapa 5.7 (Daniel, 02/10/2026):** referência primária = a do próprio laudo, por resultado; original sempre preservado; seleção determinística só quando provável; ambiguidade → `not_classifiable / ambiguous_reference`; qualitativos e marcadores H/L preservados sem classificação automática; laudo nunca sobrescrito por metodológica (`DECISAO-07-REFERENCIA-LABORATORIAL-DO-LAUDO-LI.md`). Não implementado, não homologado.
 
 **O que decidir.** Se a referência **do laudo** (digitada pela profissional por resultado) é elegível para classificar um resultado dentro da Leitura Integrada; se exige mínimo e máximo, se aceita operador único (`<`, `≥`), se exige unidade igual à do valor, se aceita população informada.
 
@@ -293,7 +297,7 @@ DATA: ______
 
 ## BLOCO 8 — Referência metodológica elegível
 
-> **Etapa 5.6:** material detalhado para decisão em `DECISAO-08-REFERENCIA-METODOLOGICA-LI.md` (levantamento e opções, sem recomendação). **PENDENTE.**
+> **DECIDIDO QUANTO À ARQUITETURA — Etapa 5.7 (Daniel, 02/10/2026):** entidade separada, com exame/variante/material/método/unidade/limite/fonte verificável/justificativa/população/condições/versão/responsável/aprovação; sem "faixa ideal universal"; UI mostra laudo × metodológica sem substituir; 0 referências; nenhuma criada (`DECISAO-08-REFERENCIA-METODOLOGICA-LI.md`). Não implementado, não homologado.
 
 **O que decidir.** Se a V1 terá referências metodológicas próprias (por exame/variante/material/método/população/sexo/idade/contexto), com fonte, versão e vigência; quem as aprova; e a prioridade entre metodológica e do laudo quando ambas existem.
 
@@ -324,7 +328,7 @@ DATA: ______
 
 ## BLOCO 9 — Política quando não há referência
 
-> **Etapa 5.6:** material detalhado para decisão em `DECISAO-09-AUSENCIA-DE-REFERENCIA-LI.md` (levantamento e opções, sem recomendação). **PENDENTE.**
+> **DECIDIDO — Etapa 5.7 (Daniel, 02/10/2026):** sem referência → salvo, visível, `not_classifiable / missing_applicable_reference`; nunca normal/dentro/fora; não conta para convergente/divergente; não invalida coleta, demais resultados nem domínio; suficiência futura decide (`DECISAO-09-AUSENCIA-DE-REFERENCIA-LI.md`). Não implementado, não homologado.
 
 **O que decidir.** O que acontece com um resultado sem referência do laudo e sem referência metodológica aprovada: excluído da leitura (hoje), conta como "não classificável" visível, bloqueia o domínio, ou gera pedido de complementação à profissional.
 
@@ -353,7 +357,7 @@ DATA: ______
 
 ## BLOCO 10 — Conversões de unidade permitidas
 
-> **Etapa 5.6:** material detalhado para decisão em `DECISAO-10-CONVERSOES-DE-UNIDADE-LI.md` (levantamento e opções, sem recomendação). **PENDENTE.**
+> **DECIDIDO QUANTO À ARQUITETURA — Etapa 5.7 (Daniel, 02/10/2026):** só com regra homologada (exame, variante/material quando pertinente, unit_from/to, fator ou fórmula, condições, fonte, versão, aprovação); original sempre preservado; 0 conversões; incompatível sem conversão → bloqueado; nada inferido (`DECISAO-10-CONVERSOES-DE-UNIDADE-LI.md`). Não implementado, não homologado.
 
 **O que decidir.** Quais conversões (de → para, fator, por exame quando o fator depende do analito), com fonte e versão, são aprovadas; quem aprova.
 
@@ -382,7 +386,7 @@ DATA: ______
 
 ## BLOCO 11 — Compatibilidade de variante
 
-> **Etapa 5.6:** material detalhado para decisão em `DECISAO-11-COMPATIBILIDADE-DE-VARIANTE-LI.md` (levantamento e opções, sem recomendação). **PENDENTE.**
+> **DECIDIDO — Etapa 5.7 (Daniel, 02/10/2026):** variantes diferentes incompatíveis até declaração explícita; PCR ≠ PCR-us; Mg ≠ Mg eritrocitário; T4 livre, T3 livre, Testosterona livre/total já são exam_codes distintos (não recriar como variante); hierarquia exam_code → variant → material → method (`DECISAO-11-COMPATIBILIDADE-DE-VARIANTE-LI.md`). Não implementado, não homologado.
 
 **O que decidir.** Se variantes do mesmo exame (PCR × PCR ultrassensível; Magnésio × Magnésio eritrocitário; outras que surjam) são equivalentes para fins de vínculo, classificação e comparação longitudinal, ou identidades distintas.
 
@@ -411,7 +415,7 @@ DATA: ______
 
 ## BLOCO 12 — Compatibilidade de material
 
-> **Etapa 5.6:** material detalhado para decisão em `DECISAO-12-COMPATIBILIDADE-DE-MATERIAL-LI.md` (levantamento e opções, sem recomendação). **PENDENTE.**
+> **DECIDIDO — Etapa 5.7 (Daniel, 02/10/2026):** material não é exigência universal; bloqueia só a operação que o exige; ausente bloqueia só quando a operação exige material conhecido; nunca inventado (`DECISAO-12-COMPATIBILIDADE-DE-MATERIAL-LI.md`). Não implementado, não homologado.
 
 **O que decidir.** Se materiais diferentes (soro, plasma, sangue total, eritrócitos, urina…) do mesmo exame são compatíveis para vínculo, classificação e comparação; se material ausente (`null`) é compatível com material informado.
 
@@ -440,7 +444,7 @@ DATA: ______
 
 ## BLOCO 13 — Compatibilidade de método
 
-> **Etapa 5.6:** material detalhado para decisão em `DECISAO-13-COMPATIBILIDADE-DE-METODO-LI.md` (levantamento e opções, sem recomendação). **PENDENTE.**
+> **DECIDIDO — Etapa 5.7 (Daniel, 02/10/2026):** classificação individual ≠ comparação longitudinal; método ausente não bloqueia universalmente; regra metodológica dependente de método exige método; métodos diferentes podem bloquear comparação numérica; sem equivalência sem regra; incompatibilidade ≠ piora/melhora (`DECISAO-13-COMPATIBILIDADE-DE-METODO-LI.md`). Não implementado, não homologado.
 
 **O que decidir.** Para quais exames o método analítico é relevante (resultados de métodos diferentes não são comparáveis nem classificáveis pela mesma referência) e como isso é declarado.
 
@@ -469,6 +473,8 @@ DATA: ______
 
 ## BLOCO 14 — Resultados qualitativos
 
+> **Etapa 5.7:** material detalhado para decisão em `DECISAO-14-RESULTADOS-QUALITATIVOS-LI.md` (opções e consequências, sem recomendação, sem corte). **PENDENTE.**
+
 **O que decidir.** Se e como resultados textuais ("Negativo", "Reagente", "Não detectado", "Positivo", títulos "1/80") entram na Leitura Integrada: excluídos, mapeados para `within/out` por tabela aprovada por exame, ou só exibidos.
 
 **O que existe.** `qualifier = text`, valor preservado; motor: `not_classifiable / qualitative_without_rule`; excluído da LI. Nunca `Negativo = 0`.
@@ -496,6 +502,8 @@ DATA: ______
 
 ## BLOCO 15 — Resultados censurados
 
+> **Etapa 5.7:** material detalhado para decisão em `DECISAO-15-RESULTADOS-CENSURADOS-LI.md` (opções e consequências, sem recomendação, sem corte). **PENDENTE.**
+
 **O que decidir.** Como entram valores "< 0,10", "> 2000", "abaixo do limite de quantificação": excluídos (hoje), classificados pela direção do censor contra a referência quando inequívoco (ex.: "< 0,10" com referência "< 3" ⇒ dentro), ou só exibidos.
 
 **O que existe.** `qualifier ∈ lt|lte|gt|gte`, `censor_limit`, `numeric_value` nulo (CHECK); motor: `not_classifiable / censored_value`.
@@ -522,6 +530,8 @@ DATA: ______
 ---
 
 ## BLOCO 16 — Suficiência mínima por domínio
+
+> **Etapa 5.7:** material detalhado para decisão em `DECISAO-16-SUFICIENCIA-MINIMA-POR-DOMINIO-LI.md` (opções e consequências, sem recomendação, sem corte). **PENDENTE.**
 
 **O que decidir.** A partir de quantos resultados classificáveis (ou de qual fração dos exames vinculados) um domínio é avaliável. **Valor em branco.**
 
@@ -554,6 +564,8 @@ DATA: ______
 
 ## BLOCO 17 — Número/conjunto mínimo de exames
 
+> **Etapa 5.7:** material detalhado para decisão em `DECISAO-17-NUMERO-CONJUNTO-MINIMO-DE-EXAMES-LI.md` (opções e consequências, sem recomendação, sem corte). **PENDENTE.**
+
 **O que decidir.** Se, além da contagem (bloco 16), há exames **obrigatórios** por domínio (sem os quais o domínio não é avaliável) e qual é esse conjunto.
 
 **O que existe.** Não existe "obrigatório" no vínculo (extensão pequena: flag `required` no link). Catálogo **não é painel obrigatório** (decisão 68 da Etapa 5).
@@ -581,6 +593,8 @@ DATA: ______
 
 ## BLOCO 18 — Tratamento de exames ausentes
 
+> **Etapa 5.7:** material detalhado para decisão em `DECISAO-18-TRATAMENTO-DE-EXAMES-AUSENTES-LI.md` (opções e consequências, sem recomendação, sem corte). **PENDENTE.**
+
 **O que decidir.** Como exames vinculados mas não coletados são tratados: ignorados na contagem (hoje), mostrados como "não coletado" no trace e na tela, ou considerados na fração do bloco 16(C).
 
 **O que existe.** Motor só olha resultados presentes; ausentes não aparecem (não há `excluded` para "não coletado"). Ausência **não** é alteração (Mestre, decisão 68).
@@ -605,6 +619,8 @@ DATA: ______
 ---
 
 ## BLOCO 19 — Tratamento de resultados mistos
+
+> **Etapa 5.7:** material detalhado para decisão em `DECISAO-19-TRATAMENTO-DE-RESULTADOS-MISTOS-LI.md` (opções e consequências, sem recomendação, sem corte). **PENDENTE.**
 
 **O que decidir.** Quando, no mesmo domínio, há resultados "fora" e "dentro": como se define "laboratório alterado". Política: qualquer fora; maioria; fração; só direção relevante; insuficiente (não decide).
 

@@ -2,7 +2,7 @@
 
 Etapa 5.6 · 02/10/2026 · material para decisão de **Daniel** (responsável primário) · detalha o bloco 7 de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md`.
 
-> **NADA DECIDIDO.** Opções apresentadas sem recomendação; nenhum valor, faixa, fator ou equivalência proposto; campos DECISÃO em branco. Nenhuma alteração em migration, banco, servidor falso, motor ou UI.
+> **DECIDIDO — Etapa 5.7 (02/10/2026, Daniel).** Decisão metodológica humana registrada abaixo. **Ainda não é**: implementação, migration clínica, alteração do banco real, Aprovação 1, Aprovação 2, homologação ou deploy. Nenhum campo, referência, conversão ou equivalência foi criado.
 
 ## Pergunta
 
@@ -30,14 +30,48 @@ Separar sempre: **referência laboratorial** (do laudo, por resultado, varia por
 
 Classificação de todo resultado pela referência do laudo; blocos 9, 16–21.
 
+
+## Regra transversal (princípio oficial da LI V1, Etapa 5.7)
+
+**Um resultado possui três eixos de estado independentes:**
+1. **Classificação individual** — pode ou não ser classificado contra uma referência aplicável (`classification_status`).
+2. **Elegibilidade para Leitura Integrada** — pode ou não participar de uma LI, considerando domínio, vínculo, temporalidade, versão, suficiência e demais regras (`li_eligibility_status`).
+3. **Comparabilidade longitudinal** — pode ou não ser comparado diretamente a outro resultado histórico (`longitudinal_comparability_status`).
+
+Um resultado pode ser válido e classificável individualmente e, ao mesmo tempo, não ser elegível para a LI nem comparável longitudinalmente. **Nunca transformar problema de comparabilidade em "resultado inválido".** Os motivos são registrados separadamente por eixo. A nomenclatura acima é **conceitual**: os campos **não** foram implementados nesta etapa.
+
+## Casos de regressão conceitual (obrigatórios para a implementação futura)
+
+| Caso | Situação | Resultado esperado |
+|---|---|---|
+| A | referência válida do próprio laudo; método não informado; a referência não exige método | **individualmente classificável** |
+| B | dois resultados do mesmo `exam_code` com métodos diferentes, cada um com referência válida própria | ambos classificáveis individualmente; **comparação numérica não automaticamente permitida** |
+| C | resultado sem referência aplicável | guardado, visível, **não classificável** (`missing_applicable_reference`); nunca "normal" |
+| D | PCR (`variant = null`) e PCR-us (`variant = ultrassensivel`) | **não** silenciosamente equivalentes |
+| E | Magnésio (`variant = null`) e Magnésio eritrocitário (`variant = eritrocitario`) | **não** silenciosamente equivalentes |
+| F | Testosterona livre (LAB-037) e total (LAB-038) | `exam_code`s distintos; **não** recriar como variante artificial |
+
 ## Campo DECISÃO
 
-DECISÃO: ______
+**DECISÃO (Bloco 7 — referência laboratorial do laudo):**
+1. A referência **primária** usada para classificar um resultado individual é a referência aplicável **declarada no próprio laudo**.
+2. A referência pertence ao **resultado/coleta**; não é regra global.
+3. **Preservar sempre** o conteúdo original do laudo. Contrato conceitual: `reference_raw_text` e, quando estruturável, `reference_lower`, `reference_upper`, `lower_inclusive`, `upper_inclusive`, `reference_unit`; condições de aplicabilidade **quando existirem no laudo** (sexo, idade, faixa etária, fase/ciclo, gestação, outras explicitamente declaradas). **Não inventar condição ausente.**
+4. O sistema só seleciona deterministicamente uma referência do laudo quando consegue **provar** qual regra se aplica aos dados conhecidos.
+5. Duas ou mais referências possivelmente aplicáveis sem informação suficiente para decidir: `classification_status = not_classifiable`, motivo `ambiguous_reference`.
+6. O sistema **não escolhe silenciosamente** entre alternativas ambíguas.
+7. Referências qualitativas são preservadas, mas **não geram classificação automática** sem regra qualitativa homologada (bloco 14).
+8. Marcadores originais do laboratório (H, L, ↑, ↓ ou equivalentes) são preservados como dado original e **não** se transformam sozinhos em classificação oficial da LI sem contrato aplicável.
+9. A referência original do laudo **nunca** é sobrescrita por referência metodológica.
 
-JUSTIFICATIVA: ______
+Consequência técnica (implementação futura): o modelo atual guarda `report_reference_text/min/max/operator/unit/population`; faltam `lower/upper_inclusive`, condições estruturadas e marcadores H/L — extensões a declarar; o motor precisa do motivo `ambiguous_reference`.
 
-FONTE: ______ (ou FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR)
+**JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 7–13 e no Documento Mestre (dado bruto preservado; nenhuma inferência sem regra homologada). Não atribuída ao legado.
 
-RESPONSÁVEL: ______
+**FONTE:** Documento Mestre + decisão autoral V1. FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR onde aplicável; nenhuma citação fabricada.
 
-DATA: ______
+**RESPONSÁVEL:** Daniel (responsável primário). Revisão final de Rodrigo e registro no banco ficam para a homologação do pacote completo.
+
+**DATA:** 02/10/2026.
+
+**Status:** DECIDIDO — não implementado, não registrado no banco, não homologado.

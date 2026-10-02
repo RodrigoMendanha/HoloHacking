@@ -380,6 +380,48 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     de referência, conversões, compatibilidade de variante/material/método); 0 referências, 0 conversões,
     nenhuma equivalência inferida; casos obrigatórios e sensíveis destacados.
 
+### Etapa 5.7 — DECISÕES 07–13 registradas; regra transversal; blocos 14–19 abertos (02/10/2026)
+
+99. **Regra transversal da LI V1 (Daniel)**: um resultado tem três eixos de estado independentes —
+    classificação individual (`classification_status`), elegibilidade para LI (`li_eligibility_status`) e
+    comparabilidade longitudinal (`longitudinal_comparability_status`). Pode ser válido e classificável e,
+    ao mesmo tempo, não elegível e não comparável; comparabilidade nunca vira "inválido"; motivos separados.
+    Nomenclatura conceitual, campos não implementados.
+100. **Referência do laudo (DECISÃO 07)**: referência primária = a declarada no próprio laudo, por resultado;
+    conteúdo original sempre preservado (`reference_raw_text` + estruturação quando possível + condições só
+    se declaradas); seleção determinística só quando provável; ambiguidade → `not_classifiable /
+    ambiguous_reference`; sem escolha silenciosa; qualitativos e marcadores H/L preservados sem classificação
+    automática; laudo nunca sobrescrito por referência metodológica.
+101. **Referência metodológica (DECISÃO 08, arquitetura)**: entidade separada; só com exame, variante/material/
+    método quando pertinentes, unidade, limite, fonte verificável, justificativa, população, condições,
+    versão, responsável e aprovação; sem "faixa ideal universal"; UI mostra REFERÊNCIA DO LAUDO e REFERÊNCIA
+    METODOLÓGICA sem substituir; 0 aprovadas, nenhuma criada.
+102. **Ausência de referência (DECISÃO 09)**: resultado salvo, visível, original preservado;
+    `not_classifiable / missing_applicable_reference`; nunca normal/dentro/alterado/fora; não conta para
+    convergente/divergente; não invalida coleta, demais resultados nem domínio; suficiência futura decide.
+103. **Conversões (DECISÃO 10, arquitetura)**: só regra homologada (exame, variante/material quando
+    pertinente, unit_from/to, fator ou fórmula, condições, fonte, versão, aprovação); original_value/unit
+    sempre preservados, convertido registrado com regra/versão; 0 conversões; incompatível sem conversão →
+    bloqueado; nada inferido por conversibilidade aparente.
+104. **Variante (DECISÃO 11)**: variantes diferentes incompatíveis até declaração explícita; nenhuma
+    equivalência por nome, alias, unidade, legado ou categoria; PCR ≠ PCR-us; Mg ≠ Mg eritrocitário;
+    T4 livre, T3 livre, Testosterona livre e total já são exam_codes distintos (não recriar como variante);
+    hierarquia exam_code → variant → material → method; 25-OH vitamina D distinta de outras formas.
+105. **Material (DECISÃO 12)**: não é exigência universal; bloqueia só a operação (vínculo, referência,
+    conversão, regra, comparação) que o exige; ausente bloqueia só quando a operação exige material
+    conhecido; nunca inventado.
+106. **Método (DECISÃO 13)**: classificação individual separada de comparação longitudinal; método ausente
+    não bloqueia universalmente (classificável pela referência do laudo se ela não exigir método); regra
+    metodológica dependente de método exige método compatível; comparação considera exam_code, variant,
+    material, unit, method e contexto de referência; métodos diferentes podem bloquear comparação numérica;
+    sem equivalência sem regra; incompatibilidade ≠ piora/melhora. Casos de regressão conceitual A–F
+    registrados. **Status 100–106: decisões humanas aprovadas; não implementadas, não registradas no banco,
+    não homologadas.** Bloco 5 continua PARCIALMENTE DECIDIDO (valor em dias pendente).
+107. **Blocos 14–19 abertos** sem decisão, com os nomes do pacote: `DECISAO-14` qualitativos, `-15`
+    censurados, `-16` suficiência mínima por domínio, `-17` número/conjunto mínimo, `-18` exames ausentes,
+    `-19` resultados mistos (misto sem regra → sem dados suficientes; um exame fora não converge; sem score
+    laboratorial); nenhum corte, peso ou lista sugerido.
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`
