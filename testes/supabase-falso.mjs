@@ -71,6 +71,9 @@ const COLUNAS = {
   integrated_reading_domains: ['id', 'package_id', 'code', 'name', 'holoscan_system', 'status', 'created_at'],
   integrated_reading_exam_domain_links: ['id', 'package_id', 'domain_id', 'exam_code', 'variant', 'material', 'direction', 'reference_id', 'status', 'created_at'],
   integrated_reading_rules: ['id', 'package_id', 'rule_type', 'target', 'payload', 'status', 'created_at'],
+  integrated_reading_package_dependencies: ['id', 'package_id', 'kind', 'ref_id', 'status', 'created_at'],
+  integrated_reading_package_approvals: ['id', 'package_id', 'package_version', 'content_hash', 'step', 'role', 'responsible', 'justification', 'approved_by', 'approved_at', 'invalidated_at', 'invalidated_reason', 'created_at'],
+  integrated_reading_package_snapshots: ['id', 'package_id', 'package_version', 'content_hash', 'snapshot', 'approval_1', 'approval_2', 'homologated_by', 'homologated_at'],
   integrated_readings: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'responsible', 'clinical_context', 'holoscan_application_id', 'selected_collection_ids', 'selected_result_ids', 'references_snapshot', 'sources_snapshot', 'rule_package_id', 'rule_version', 'engine_version', 'state', 'reason_codes', 'trace', 'professional_note', 'revision', 'supersedes_id', 'superseded_at', 'content_hash', 'created_by', 'created_at'],
   tool_applications: ['id', 'nutritionist_id', 'patient_id', 'consultation_id', 'encounter_id', 'ferramenta_id', 'versao_ferramenta', 'origem_legada', 'status', 'iniciada_em', 'concluida_em', 'atualizada_em', 'respostas', 'resultado', 'leitura', 'prioridade', 'proximo_passo', 'created_at', 'updated_at'],
   documents: ['id', 'nutritionist_id', 'patient_id', 'nome', 'tipo', 'data_documento', 'mime_type', 'tamanho_bytes', 'storage_path', 'origem_local', 'created_at', 'updated_at'],
@@ -82,7 +85,8 @@ const COLUNAS = {
 
 const METODOLOGIA = ['methodology_packages', 'methodology_questionnaire_editions', 'methodology_scales', 'methodology_systems', 'methodology_questions', 'methodology_associations', 'methodology_ranges', 'methodology_rules', 'methodology_homologation_records'];
 const FILHAS_PACOTE = METODOLOGIA.filter(t => t !== 'methodology_packages');
-const GLOBAIS_SO_LEITURA = ['lab_exam_catalog', 'lab_method_references', 'lab_unit_conversion_rules', 'lab_derived_calculations', 'integrated_reading_rule_packages', 'integrated_reading_domains', 'integrated_reading_exam_domain_links', 'integrated_reading_rules'];
+const GLOBAIS_SO_LEITURA = ['lab_exam_catalog', 'lab_method_references', 'lab_unit_conversion_rules', 'lab_derived_calculations', 'integrated_reading_rule_packages', 'integrated_reading_domains', 'integrated_reading_exam_domain_links', 'integrated_reading_rules',
+  'integrated_reading_package_dependencies', 'integrated_reading_package_approvals', 'integrated_reading_package_snapshots'];   // Etapa 5.2: aprovacoes so pela RPC
 const DONO_DIRETO = [...METODOLOGIA, 'methodology_package_approvals', 'lab_custom_exams', 'integrated_readings', 'patients', 'consultations', 'encounters', 'anamneses', 'conducts', 'agreements', 'report_emissions', 'schedule_blocks', 'holoscan_applications',
   'lab_collections', 'tool_applications', 'documents', 'professional_assets', 'ai_threads'];
 const FILHAS = {           // tabela -> [coluna, mae]
@@ -542,6 +546,106 @@ export function criarServidor() {
     }
     return null;
   };
+  /* ===================== V1 Etapa 5.2 — governanca da Leitura Integrada (espelha 20261002100000) =====================
+     Mesmo contrato da dupla aprovacao do HOLOSCAN: Daniel (1) -> Rodrigo (2), mesmo package_id/version/content_hash;
+     qualquer mudanca metodologica invalida (historico append-only, com motivo); 'aprovado' so por homologar_pacote_li,
+     que exige completude; snapshot imutavel. As tabelas da LI sao globais e so leitura para a aplicacao: as escritas de
+     "gestao tecnica" (como uma migration faria) entram por s.gestaoTecnica(), que aplica as mesmas protecoes e triggers. */
+  const LI_FILHAS = ['integrated_reading_domains', 'integrated_reading_exam_domain_links', 'integrated_reading_rules', 'integrated_reading_package_dependencies'];
+  const LI_REFERENCIADAS = { lab_method_references: 'reference', lab_unit_conversion_rules: 'conversion', lab_derived_calculations: 'derived' };
+  const canon = (v) => { if (Array.isArray(v)) return v.map(canon); if (v && typeof v === 'object') { const o = {}; Object.keys(v).sort().forEach(k => { o[k] = canon(v[k]); }); return o; } return v === undefined ? null : v; };
+  const semMeta = (o) => { if (!o) return null; const c = Object.assign({}, o); ['id', 'created_at', 'updated_at'].forEach(k => delete c[k]); return c; };
+  const liEntidade = (kind, id) => semMeta((kind === 'reference' ? s.tabelas.lab_method_references : kind === 'conversion' ? s.tabelas.lab_unit_conversion_rules : s.tabelas.lab_derived_calculations).find(x => x.id === id));
+  const cmp = (a, b) => a < b ? -1 : a > b ? 1 : 0;
+  function liConteudo(pid) {
+    const pk = s.tabelas.integrated_reading_rule_packages.find(x => x.id === pid); if (!pk) return null;
+    const doms = s.tabelas.integrated_reading_domains.filter(d => d.package_id === pid).slice().sort((a, b) => cmp(a.code, b.code));
+    const codigo = (did) => (s.tabelas.integrated_reading_domains.find(d => d.id === did) || {}).code || '';
+    const links = s.tabelas.integrated_reading_exam_domain_links.filter(l => l.package_id === pid).map(l => ({ domain: codigo(l.domain_id), exam_code: l.exam_code, variant: l.variant || null, material: l.material || null, direction: l.direction, status: l.status, reference: l.reference_id ? liEntidade('reference', l.reference_id) : null }))
+      .sort((a, b) => cmp([a.domain, a.exam_code, a.variant || '', a.material || '', a.direction].join('|'), [b.domain, b.exam_code, b.variant || '', b.material || '', b.direction].join('|')));
+    const rules = s.tabelas.integrated_reading_rules.filter(r => r.package_id === pid).map(r => ({ rule_type: r.rule_type, target: r.target, payload: r.payload, status: r.status })).sort((a, b) => cmp(a.rule_type + '|' + a.target, b.rule_type + '|' + b.target));
+    const deps = s.tabelas.integrated_reading_package_dependencies.filter(k => k.package_id === pid).map(k => ({ kind: k.kind, status: k.status, content: liEntidade(k.kind, k.ref_id), _o: k.kind + '|' + k.ref_id })).sort((a, b) => cmp(a._o, b._o)).map(k => { delete k._o; return k; });
+    return canon({ package: { code: pk.code, version: pk.version }, domains: doms.map(d => ({ code: d.code, name: d.name, holoscan_system: d.holoscan_system || null, status: d.status })), links, rules, dependencies: deps });
+  }
+  const liHash = (pid) => createHash('sha256').update(JSON.stringify(liConteudo(pid)), 'utf8').digest('hex');
+  function liValidar(pid) {
+    const b = [];
+    if (!s.tabelas.integrated_reading_rule_packages.some(x => x.id === pid)) return { publicavel: false, total_bloqueios: 1, bloqueios: ['pacote_inexistente'] };
+    const doms = s.tabelas.integrated_reading_domains.filter(d => d.package_id === pid && d.status === 'aprovado').sort((a, c) => cmp(a.code, c.code));
+    const regras = (tipo) => s.tabelas.integrated_reading_rules.filter(r => r.package_id === pid && r.rule_type === tipo && r.status === 'aprovado');
+    if (!doms.length) b.push('sem_dominio_aprovado');
+    doms.forEach(d => {
+      if (!s.tabelas.integrated_reading_exam_domain_links.some(l => l.domain_id === d.id && l.status === 'aprovado')) b.push('dominio_sem_vinculo_aprovado:' + d.code);
+      if (!regras('convergence').some(r => ['global', d.id, d.code].includes(r.target))) b.push('dominio_sem_regra_convergencia:' + d.code);
+    });
+    if (!regras('temporal').length) b.push('sem_regra_temporal');
+    if (!regras('sufficiency').length) b.push('sem_regra_suficiencia');
+    if (!regras('mixed').length) b.push('sem_regra_resultados_mistos');
+    if (!regras('convergence').length) b.push('sem_regra_convergencia_divergencia');
+    if (!regras('text').some(r => r.payload && 'convergente' in r.payload && 'divergente' in r.payload && 'sem_dados_suficientes' in r.payload)) b.push('sem_texto_oficial_dos_tres_estados');
+    const n = LI_FILHAS.reduce((acc, t) => acc + s.tabelas[t].filter(x => x.package_id === pid && ['rascunho', 'em_revisao'].includes(x.status)).length, 0);
+    if (n) b.push('elementos_nao_aprovados:' + n);
+    const nr = s.tabelas.integrated_reading_exam_domain_links.filter(l => l.package_id === pid && l.reference_id && (s.tabelas.lab_method_references.find(r => r.id === l.reference_id) || {}).status !== 'aprovado').length;
+    if (nr) b.push('vinculo_com_referencia_nao_aprovada:' + nr);
+    const nd = s.tabelas.integrated_reading_package_dependencies.filter(k => k.package_id === pid && (liEntidade(k.kind, k.ref_id) || {}).status !== 'aprovado').length;
+    if (nd) b.push('dependencia_nao_aprovada_ou_inexistente:' + nd);
+    return { publicavel: b.length === 0, total_bloqueios: b.length, bloqueios: b };
+  }
+  function liInvalidar(pid, motivo) { s.tabelas.integrated_reading_package_approvals.forEach(a => { if (a.package_id === pid && !a.invalidated_at) { a.invalidated_at = carimbo(); a.invalidated_reason = motivo; } }); }
+  const liVigentes = (pid) => s.tabelas.integrated_reading_package_approvals.filter(a => a.package_id === pid && !a.invalidated_at);
+  s.liHomologar = null;
+  /** Gestao tecnica (como uma migration): insert/update/delete nas tabelas globais da LI e nas entidades referenciadas,
+      com as mesmas protecoes e triggers do SQL. Nao e caminho da aplicacao. */
+  s.gestaoTecnica = (tabela, acao, dados, filtros) => {
+    const tab = s.tabelas[tabela]; if (!tab) return erro('tabela desconhecida ' + tabela, '42P01');
+    const alvo = acao === 'insert' ? [] : filtrar(tab, filtros || []);
+    const pkgDe = (l) => s.tabelas.integrated_reading_rule_packages.find(x => x.id === l.package_id);
+    const protegido = (pid) => { const pk = s.tabelas.integrated_reading_rule_packages.find(x => x.id === pid); return pk && ['aprovado', 'retirado'].includes(pk.status) && s.liHomologar !== pid; };
+    if (tabela === 'integrated_reading_package_approvals' || tabela === 'integrated_reading_package_snapshots') {
+      if (acao === 'delete') return erro(tabela === 'integrated_reading_package_approvals' ? 'aprovacao da leitura integrada e historico: nao e apagada' : 'snapshot homologado da leitura integrada e imutavel', 'P0001');
+      if (acao === 'update') return erro(tabela === 'integrated_reading_package_approvals' ? 'aprovacao da leitura integrada e imutavel: so pode ser invalidada (uma vez)' : 'snapshot homologado da leitura integrada e imutavel', 'P0001');
+      return erro('aprovacao so pela RPC registrar_aprovacao_li', '42501');
+    }
+    if (tabela === 'integrated_reading_rule_packages') {
+      if (acao === 'insert') { const l = novaLinha(tabela, Object.assign({ version: 1, status: 'rascunho' }, dados), null); tab.push(l); return { data: [copia(l)], error: null }; }
+      for (const l of alvo) {
+        const novo = Object.assign({}, l, dados);
+        if (acao === 'delete') return erro('pacote referenciado: on delete restrict', '23503');
+        if (novo.status === 'aprovado' && l.status !== 'aprovado' && s.liHomologar !== l.id) return erro('aprovacao nao e edicao administrativa: use homologar_pacote_li (completude + Aprovacao 1 e 2 vigentes)', 'P0001');
+        if (l.status === 'aprovado' && s.liHomologar !== l.id) {
+          const so = Object.keys(dados).every(k => k === 'status');
+          if (!(novo.status === 'retirado' && so)) return erro('pacote da leitura integrada aprovado e imutavel: alteracao exige NOVA VERSAO (so pode ser retirado)', 'P0001');
+        }
+        if (l.status === 'retirado') return erro('pacote retirado e historico: nao muda', 'P0001');
+      }
+      alvo.forEach(l => { const mudou = ('version' in dados && dados.version !== l.version) || ('code' in dados && dados.code !== l.code); Object.assign(l, dados); if (mudou) liInvalidar(l.id, 'pacote alterado depois da aprovacao (code/version)'); });
+      return { data: alvo.map(copia), error: null };
+    }
+    if (LI_FILHAS.includes(tabela)) {
+      const pids = acao === 'insert' ? [dados.package_id] : alvo.map(l => l.package_id);
+      for (const pid of pids) if (protegido(pid)) return erro('conteudo de pacote ' + pkgDe({ package_id: pid }).status + ' da leitura integrada e imutavel: crie uma nova versao', 'P0001');
+      if (acao === 'insert') { const l = novaLinha(tabela, Object.assign({ status: 'rascunho' }, dados), null); tab.push(l); liInvalidar(dados.package_id, 'conteudo metodologico alterado depois da aprovacao (' + tabela + ' insert)'); return { data: [copia(l)], error: null }; }
+      if (acao === 'update') alvo.forEach(l => Object.assign(l, dados));
+      if (acao === 'delete') s.tabelas[tabela] = tab.filter(l => !alvo.includes(l));
+      pids.forEach(pid => liInvalidar(pid, 'conteudo metodologico alterado depois da aprovacao (' + tabela + ' ' + acao + ')'));
+      return { data: alvo.map(copia), error: null };
+    }
+    if (tabela in LI_REFERENCIADAS) {
+      if (acao === 'insert') { const l = novaLinha(tabela, Object.assign({ status: 'rascunho' }, dados), null); tab.push(l); return { data: [copia(l)], error: null }; }
+      const kind = LI_REFERENCIADAS[tabela];
+      const pids = new Set();
+      alvo.forEach(l => {
+        s.tabelas.integrated_reading_package_dependencies.filter(k => k.kind === kind && k.ref_id === l.id).forEach(k => pids.add(k.package_id));
+        if (kind === 'reference') s.tabelas.integrated_reading_exam_domain_links.filter(x => x.reference_id === l.id).forEach(x => pids.add(x.package_id));
+      });
+      if (acao === 'update') alvo.forEach(l => Object.assign(l, dados));
+      if (acao === 'delete') s.tabelas[tabela] = tab.filter(l => !alvo.includes(l));
+      pids.forEach(pid => liInvalidar(pid, 'entidade referenciada alterada depois da aprovacao (' + tabela + ' ' + acao + ')'));
+      return { data: alvo.map(copia), error: null };
+    }
+    return erro('gestaoTecnica nao cobre ' + tabela, 'P0001');
+  };
+
   function consultar(uid, q) {
     const t = q.tabela;
     if (t === 'methodology_package_approvals' && q.acao !== 'select') return erro('permission denied for table methodology_package_approvals', '42501');
@@ -1128,6 +1232,60 @@ export function criarServidor() {
       s.tabelas.integrated_readings.push(linha);
       if (p.supersedes_id) { const ant = s.tabelas.integrated_readings.find(i => i.id === p.supersedes_id); ant.superseded_at = carimbo(); }
       return { data: { id: linha.id, state: p.state, revision: rev, content_hash: h }, error: null };
+    }
+    // ---------- V1 Etapa 5.2: governanca da Leitura Integrada ----------
+    if (nome === 'li_conteudo_canonico' || nome === 'li_hash_conteudo' || nome === 'li_validar_completude') {
+      const id = args && args.p_package_id;
+      if (!uid) return erro('nao autenticado', 'P0001');
+      if (!s.tabelas.integrated_reading_rule_packages.some(x => x.id === id)) return nome === 'li_validar_completude' ? { data: liValidar(id), error: null } : { data: null, error: null };
+      return { data: nome === 'li_hash_conteudo' ? liHash(id) : nome === 'li_conteudo_canonico' ? liConteudo(id) : liValidar(id), error: null };
+    }
+    if (nome === 'registrar_aprovacao_li') {
+      if (!uid) return erro('nao autenticado', 'P0001');
+      const id = args && args.p_package_id, etapa = args && args.p_etapa, resp = String((args && args.p_responsavel) || '').trim(), just = String((args && args.p_justificativa) || '').trim();
+      const pk = s.tabelas.integrated_reading_rule_packages.find(x => x.id === id);
+      if (!pk) return erro('pacote ' + id + ' nao encontrado', 'P0002');
+      if (pk.status !== 'em_revisao') return erro('so um pacote em_revisao recebe aprovacao (status atual: ' + pk.status + ')', 'P0001');
+      if (/lideran/i.test(resp)) return erro('aprovacao nao pode ser atribuida a "Liderança do método HOLOSCAN": informe a pessoa', 'P0001');
+      if (etapa !== 1 && etapa !== 2) return erro('etapa de aprovacao invalida: ' + etapa, 'P0001');
+      if (etapa === 1 && resp !== 'Daniel') return erro('Aprovacao 1 e do responsavel primario (Daniel)', 'P0001');
+      if (etapa === 2 && resp !== 'Rodrigo') return erro('Aprovacao 2 e da revisao final (Rodrigo)', 'P0001');
+      if (!just) return erro('aprovacao exige justificativa', 'P0001');
+      if (args.p_version !== pk.version) return erro('a versao conferida (' + args.p_version + ') nao e a versao atual do pacote (' + pk.version + ')', 'P0001');
+      const h = liHash(id);
+      if (args.p_content_hash !== h) return erro('o pacote mudou: o hash conferido (' + String(args.p_content_hash || 'nenhum').slice(0, 12) + ') nao e o do conteudo atual (' + h.slice(0, 12) + ')', 'P0001');
+      liVigentes(id).filter(a => a.package_version !== pk.version || a.content_hash !== h).forEach(a => { a.invalidated_at = carimbo(); a.invalidated_reason = 'versao ou conteudo diferentes do atual'; });
+      const v1 = liVigentes(id).find(a => a.step === 1), v2 = liVigentes(id).find(a => a.step === 2);
+      if (etapa === 1 && v1) return erro('Aprovacao 1 ja registrada para este conteudo', 'P0001');
+      if (etapa === 2 && !v1) return erro('Aprovacao 2 exige uma Aprovacao 1 (Daniel) vigente sobre o mesmo package_id, version e content_hash', 'P0001');
+      if (etapa === 2 && v2) return erro('Aprovacao 2 ja registrada para este conteudo', 'P0001');
+      const linha = { id: randomUUID(), package_id: id, package_version: pk.version, content_hash: h, step: etapa, role: etapa === 1 ? 'responsavel_primario' : 'revisao_final', responsible: etapa === 1 ? 'Daniel' : 'Rodrigo',
+        justification: just, approved_by: uid, approved_at: carimbo(), invalidated_at: null, invalidated_reason: null, created_at: carimbo() };
+      s.tabelas.integrated_reading_package_approvals.push(linha);
+      return { data: { id: linha.id, package_id: id, package_version: pk.version, content_hash: h, etapa, responsavel: linha.responsible, status_pacote: pk.status, completude: liValidar(id) }, error: null };
+    }
+    if (nome === 'homologar_pacote_li') {
+      if (!uid) return erro('nao autenticado', 'P0001');
+      const id = args && args.p_package_id, resp = String((args && args.p_responsavel) || '').trim();
+      const pk = s.tabelas.integrated_reading_rule_packages.find(x => x.id === id);
+      if (!pk) return erro('pacote ' + id + ' nao encontrado', 'P0002');
+      if (pk.status !== 'em_revisao') return erro('so um pacote em_revisao pode ser homologado (status atual: ' + pk.status + ')', 'P0001');
+      if (/lideran/i.test(resp) || !['Daniel', 'Rodrigo'].includes(resp)) return erro('homologacao e ato de Daniel ou Rodrigo (nunca da "Liderança do método HOLOSCAN")', 'P0001');
+      if (args.p_version !== pk.version) return erro('a versao conferida (' + args.p_version + ') nao e a versao atual (' + pk.version + ')', 'P0001');
+      const h = liHash(id);
+      if (args.p_content_hash !== h) return erro('o pacote mudou: o hash conferido (' + String(args.p_content_hash || 'nenhum').slice(0, 12) + ') nao e o do conteudo atual (' + h.slice(0, 12) + ')', 'P0001');
+      const v = liValidar(id);
+      if (!v.publicavel) return erro('metodologia da leitura integrada incompleta: ' + v.total_bloqueios + ' bloqueio(s) — ' + JSON.stringify(v.bloqueios).slice(0, 400), 'P0001');
+      const a1 = liVigentes(id).find(a => a.step === 1), a2 = liVigentes(id).find(a => a.step === 2);
+      if (!a1 || !a2 || a1.package_version !== pk.version || a2.package_version !== pk.version || a1.content_hash !== h || a2.content_hash !== h || a2.approved_at < a1.approved_at)
+        return erro('homologacao exige Aprovacao 1 (Daniel) e Aprovacao 2 (Rodrigo) vigentes sobre o mesmo package_id, version e content_hash', 'P0001');
+      const snap = { id: randomUUID(), package_id: id, package_version: pk.version, content_hash: h, snapshot: liConteudo(id), approval_1: a1.id, approval_2: a2.id, homologated_by: uid, homologated_at: carimbo() };
+      s.tabelas.integrated_reading_package_snapshots.push(snap);
+      s.liHomologar = id;
+      Object.assign(pk, { status: 'aprovado', content_hash: h, responsible: 'Daniel (Aprovação 1 — responsável primário) / Rodrigo (Aprovação 2 — revisão final)',
+        approval_provenance: { aprovacao_1: { id: a1.id, responsavel: a1.responsible, papel: a1.role, em: a1.approved_at, justificativa: a1.justification }, aprovacao_2: { id: a2.id, responsavel: a2.responsible, papel: a2.role, em: a2.approved_at, justificativa: a2.justification }, homologado_por: resp, homologado_em: agora(), content_hash: h, completude: v } });
+      s.liHomologar = null;
+      return { data: { id, status: 'aprovado', content_hash: h, aprovacao_1: a1.id, aprovacao_2: a2.id, snapshot_id: snap.id, completude: v }, error: null };
     }
     if (nome === 'retirar_pacote_metodologico') {
       const id = args && args.p_package_id;

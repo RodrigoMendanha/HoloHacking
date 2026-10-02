@@ -151,6 +151,117 @@
       ((p.registros || []).length ? '<ul class="mh-lista">' + p.registros.map(function (r) { return "<li>" + escapar(r.decided_at) + " · <b>" + escapar(r.topic) + " / " + escapar(r.element) + "</b> · " + escapar(r.decision) + " · " + escapar(r.responsible) + (r.justification ? " — " + escapar(r.justification) : "") + "</li>"; }).join("") + "</ul>" : '<p class="dash-vazio">Nenhuma decisão registrada. Nenhum responsável é preenchido pelo sistema.</p>') + "</div>";
   }
 
+  /* ================= V1 Etapa 5.2 — Leitura Integrada: homologacao metodologica =================
+     Secao independente do pacote HOLOSCAN. Mesma governanca humana: Aprovacao 1 (Daniel) -> Aprovacao 2
+     (Rodrigo) sobre o mesmo package_id, version e content_hash; depois a acao final explicita HOMOLOGAR,
+     que o servidor so aceita com a metodologia completa (li_validar_completude sem bloqueio). Nada aqui
+     cria aprovacao sem clique; o pacote real LI-V1@1 esta em rascunho e incompleto: Homologar fica bloqueado. */
+  var li = { pacotes: null, aprovacoes: [], sel: null, hash: {}, completude: {}, carregando: false, erro: null };
+  var LI_APROVADORES = { 1: { responsavel: "Daniel", papel: "responsável primário" }, 2: { responsavel: "Rodrigo", papel: "revisão final" } };
+  function liSb() { return window.supabaseClient || null; }
+  function liRpc(nome, args) {
+    var sb = liSb(); if (!sb) return Promise.reject(new Error("sem sessao"));
+    return Promise.resolve(sb.rpc(nome, args)).then(function (r) { if (r.error) throw r.error; return r.data; });
+  }
+  function liCarregar() {
+    var sb = liSb(); if (!sb || li.carregando) return Promise.resolve();
+    li.carregando = true;
+    return Promise.all([Promise.resolve(sb.from("integrated_reading_rule_packages").select("*")), Promise.resolve(sb.from("integrated_reading_package_approvals").select("*")),
+      Promise.resolve(sb.from("integrated_reading_domains").select("id, package_id, status")), Promise.resolve(sb.from("integrated_reading_exam_domain_links").select("id, package_id, status")), Promise.resolve(sb.from("integrated_reading_rules").select("id, package_id, rule_type, status"))])
+      .then(function (rs) {
+        li.carregando = false;
+        var e = rs.filter(function (r) { return r && r.error; })[0];
+        if (e) { li.erro = e.error; li.pacotes = []; return; }
+        li.erro = null;
+        li.pacotes = (rs[0].data || []).slice().sort(function (a, b) { return String(a.code).localeCompare(String(b.code)) || (b.version - a.version); });
+        li.aprovacoes = rs[1].data || []; li.dominios = rs[2].data || []; li.vinculos = rs[3].data || []; li.regras = rs[4].data || [];
+        if (!li.sel || !li.pacotes.some(function (p) { return p.id === li.sel; })) { var real = li.pacotes.filter(function (p) { return p.code === "LI-V1"; })[0] || li.pacotes[0]; li.sel = real ? real.id : null; }
+      }).catch(function (e) { li.carregando = false; li.erro = e; li.pacotes = []; });
+  }
+  function liPacote() { return (li.pacotes || []).filter(function (p) { return p.id === li.sel; })[0] || null; }
+  function liEstado(p) {
+    var todas = li.aprovacoes.filter(function (a) { return a.package_id === p.id; }), vig = todas.filter(function (a) { return !a.invalidated_at; });
+    var h = li.hash[p.id] || null;
+    var a1 = vig.filter(function (a) { return a.step === 1; })[0] || null, a2 = vig.filter(function (a) { return a.step === 2; })[0] || null;
+    var vale = function (a) { return !!a && a.package_version === p.version && (!h || a.content_hash === h); };
+    var ok1 = vale(a1), ok2 = ok1 && vale(a2) && a2.content_hash === a1.content_hash;
+    var c = li.completude[p.id] || null;
+    return { a1: a1, a2: a2, ok1: ok1, ok2: ok2, invalidadas: todas.filter(function (a) { return !!a.invalidated_at; }).length, hash: h, completude: c,
+      proxima: p.status !== "em_revisao" ? null : !ok1 ? 1 : !ok2 ? 2 : "homologar",
+      homologavel: p.status === "em_revisao" && ok1 && ok2 && !!c && c.publicavel };
+  }
+  function htmlLI() {
+    var html = '<div class="dash-bloco" id="mh-li"><h3 class="dash-titulo">Leitura Integrada — homologação metodológica</h3>' +
+      '<p class="dash-sub">Mesma governança do HOLOSCAN: Aprovação 1 (Daniel, responsável primário) → Aprovação 2 (Rodrigo, revisão final), sobre o mesmo pacote, versão e hash de conteúdo; depois a ação explícita <b>Homologar</b>, que o servidor só aceita com a metodologia completa. Qualquer mudança em domínio, vínculo, regra, referência, conversão, cálculo derivado ou versão invalida as aprovações (histórico mantido). Nenhuma aprovação é criada automaticamente.</p>';
+    if (!liSb()) return html + '<p class="dash-vazio" id="mh-li-vazio">Sem conta ativa não há pacote da Leitura Integrada para consultar.</p></div>';
+    if (li.pacotes === null) return html + '<p class="dash-vazio" id="mh-li-vazio">Carregando…</p></div>';
+    if (li.erro) return html + '<p class="dash-vazio" id="mh-li-vazio">Não foi possível ler o pacote da Leitura Integrada no servidor.</p></div>';
+    var p = liPacote();
+    if (!p) return html + '<p class="dash-vazio" id="mh-li-vazio">Nenhum pacote da Leitura Integrada no servidor.</p></div>';
+    var e = liEstado(p);
+    var nd = (li.dominios || []).filter(function (d) { return d.package_id === p.id; }), nv = (li.vinculos || []).filter(function (v) { return v.package_id === p.id; }), nr = (li.regras || []).filter(function (r) { return r.package_id === p.id; });
+    var contar = function (l) { return l.length + (l.length ? " (" + l.filter(function (x) { return x.status === "aprovado"; }).length + " aprovado(s))" : ""); };
+    html += '<label class="evo-campo"><span>Pacote</span><select data-mh-li-pacote>' + li.pacotes.map(function (x) { return '<option value="' + escapar(x.id) + '"' + (x.id === p.id ? " selected" : "") + ">" + escapar(x.code + " v" + x.version + " · " + x.status) + "</option>"; }).join("") + "</select></label>" +
+      '<ul class="mh-lista" id="mh-li-pacote"><li>package_id: <code>' + escapar(p.id) + "</code></li><li>version: <b>" + escapar(String(p.version)) + "</b> · status: " + tag(p.status) + "</li>" +
+      "<li>domínios: " + contar(nd) + " · vínculos exame → domínio: " + contar(nv) + " · regras: " + contar(nr) + "</li>" +
+      "<li>content_hash (servidor): " + (e.hash ? "<code id=\"mh-li-hash\">" + escapar(e.hash) + "</code>" : '<span id="mh-li-hash">não conferido</span>') + (p.content_hash ? " · homologado: <code>" + escapar(String(p.content_hash).slice(0, 12)) + "…</code>" : "") + "</li></ul>";
+    if (!nd.filter(function (d) { return d.status === "aprovado"; }).length) html += '<p class="dash-sub mh-li-aviso" id="mh-li-indefinida"><b>Metodologia da Leitura Integrada ainda não definida.</b> Domínios, vínculos exame → domínio, janela temporal, suficiência, resultados mistos, convergência/divergência e textos são decisões humanas pendentes (<code>docs/v1/laboratorio/PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md</code>). Até lá, toda leitura real é "sem dados suficientes".</p>';
+    if (e.completude) html += '<div id="mh-li-bloqueios"><p class="dash-sub">Bloqueios metodológicos (validador de completude): <b>' + escapar(String(e.completude.total_bloqueios)) + "</b></p>" + (e.completude.total_bloqueios ? '<ul class="mh-lista">' + (e.completude.bloqueios || []).map(function (b) { return "<li><code>" + escapar(b) + "</code></li>"; }).join("") + "</ul>" : '<p class="dash-sub">Nenhum bloqueio: o conteúdo atual é tecnicamente completo (isto não é homologação).</p>') + "</div>";
+    var linha = function (n, a, valida) {
+      return '<li data-mh-li-aprovacao="' + n + '">Aprovação ' + n + " — " + escapar(LI_APROVADORES[n].responsavel) + " (" + escapar(LI_APROVADORES[n].papel) + "): " +
+        (a ? (valida ? "<b>registrada</b>" : "<b>registrada, mas não vale para o conteúdo atual</b>") + " em " + escapar(String(a.approved_at || "").slice(0, 16)) + " · versão " + escapar(String(a.package_version)) + " · hash " + escapar(String(a.content_hash).slice(0, 12)) + "…" : "<b>pendente</b>") + "</li>";
+    };
+    html += '<ul class="mh-lista" id="mh-li-aprovacoes">' + linha(1, e.a1, e.ok1) + linha(2, e.a2, e.ok2) + "</ul>" +
+      (e.invalidadas ? '<p class="dash-sub">' + e.invalidadas + " aprovação(ões) invalidada(s) por mudança no pacote (histórico mantido).</p>" : "");
+    html += '<p class="rel-acoes"><button type="button" class="btn-fantasma" data-mh-li-acao="conferir-hash">Conferir hash</button></p>';
+    if (p.status !== "em_revisao") html += '<p class="dash-sub" id="mh-li-status-aviso">Aprovações só são registradas em pacote <code>em_revisao</code>; este está em <code>' + escapar(p.status) + "</code> (a passagem a em_revisao é gestão técnica versionada, não um botão).</p>";
+    if (e.hash && (p.status === "em_revisao" || p.status === "rascunho") && e.proxima !== "homologar") {
+      var etapa = e.proxima || (!e.ok1 ? 1 : 2);
+      html += '<div class="mh-aprovar" id="mh-li-aprovar" data-mh-li-etapa="' + etapa + '"><label class="evo-campo"><span>Responsável (Aprovação ' + etapa + ")</span>" +
+        '<input type="text" data-mh-li-resp autocomplete="off" value=""></label>' +
+        '<label class="evo-campo"><span>Justificativa</span><textarea data-mh-li-just rows="2"></textarea></label>' +
+        '<label><input type="checkbox" data-mh-li-conferi> Conferi o pacote ' + escapar(p.code + " v" + p.version) + " com o hash " + escapar(e.hash.slice(0, 12)) + "…</label> " +
+        '<button type="button" class="btn-fantasma" data-mh-li-acao="registrar-aprovacao">Registrar Aprovação ' + etapa + "</button></div>";
+    }
+    var motivo = !e.hash ? "confira o hash primeiro" : p.status !== "em_revisao" ? "pacote não está em_revisao" : !e.ok1 || !e.ok2 ? "faltam Aprovações 1 e 2 vigentes" : !e.completude ? "confira o hash (traz os bloqueios)" : !e.completude.publicavel ? e.completude.total_bloqueios + " bloqueio(s) metodológico(s)" : "";
+    html += '<p><button type="button" class="btn-fantasma" id="mh-li-homologar" data-mh-li-acao="homologar"' + (e.homologavel ? "" : ' disabled title="' + escapar("Bloqueado: " + motivo) + '"') + ">Homologar</button>" + (e.homologavel ? "" : ' <span class="dash-sub" id="mh-li-homologar-motivo">Bloqueado: ' + escapar(motivo) + "</span>") + "</p>";
+    html += '<span class="rel-estado" id="mh-li-estado"></span></div>';
+    return html;
+  }
+  function liAvisar(txt) { desenhar(); var e = document.getElementById("mh-li-estado"); if (e) e.textContent = txt; }
+  function ligarLI(el) {
+    var sel = el.querySelector("[data-mh-li-pacote]"); if (sel) sel.addEventListener("change", function () { li.sel = sel.value; desenhar(); });
+    el.querySelectorAll("[data-mh-li-acao]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var p = liPacote(); if (!p) return;
+        var estado = document.getElementById("mh-li-estado");
+        if (b.dataset.mhLiAcao === "conferir-hash") {
+          Promise.all([liRpc("li_hash_conteudo", { p_package_id: p.id }), liRpc("li_validar_completude", { p_package_id: p.id })])
+            .then(function (r) { li.hash[p.id] = r[0]; li.completude[p.id] = r[1]; return liCarregar(); }).then(function () { desenhar(); })
+            .catch(function (e) { if (estado) estado.textContent = "Não foi possível conferir: " + (window.mensagemHumana ? window.mensagemHumana(e) : e.message); });
+        }
+        if (b.dataset.mhLiAcao === "registrar-aprovacao") {
+          var caixa = el.querySelector("#mh-li-aprovar"), etapa = Number(caixa.dataset.mhLiEtapa);
+          var resp = caixa.querySelector("[data-mh-li-resp]").value, just = caixa.querySelector("[data-mh-li-just]").value;
+          if (!caixa.querySelector("[data-mh-li-conferi]").checked) { if (estado) estado.textContent = "Marque que conferiu o pacote e o hash."; return; }
+          if (estado) estado.textContent = "Registrando Aprovação " + etapa + "…";
+          liRpc("registrar_aprovacao_li", { p_package_id: p.id, p_version: p.version, p_content_hash: li.hash[p.id], p_etapa: etapa, p_responsavel: resp, p_justificativa: just })
+            .then(function () { return liCarregar(); }).then(function () { liAvisar("Aprovação " + etapa + " registrada."); })
+            .catch(function (e) { delete li.hash[p.id]; liCarregar().then(function () { liAvisar("Aprovação recusada: " + (window.mensagemHumana ? window.mensagemHumana(e) : e.message)); }); });
+        }
+        if (b.dataset.mhLiAcao === "homologar") {
+          if (b.disabled) return;
+          var quem = window.prompt ? window.prompt("Quem executa a homologação (Daniel ou Rodrigo)?", "") : "";
+          if (!quem) { if (estado) estado.textContent = "Homologação não executada: informe quem executa."; return; }
+          if (estado) estado.textContent = "Homologando…";
+          liRpc("homologar_pacote_li", { p_package_id: p.id, p_version: p.version, p_content_hash: li.hash[p.id], p_responsavel: quem })
+            .then(function () { return liCarregar(); }).then(function () { liAvisar("Pacote da Leitura Integrada homologado (aprovado)."); })
+            .catch(function (e) { delete li.hash[p.id]; liCarregar().then(function () { liAvisar("Homologação recusada: " + (window.mensagemHumana ? window.mensagemHumana(e) : e.message)); }); });
+        }
+      });
+    });
+  }
+
   function desenhar() {
     var el = alvo(); if (!el) return;
     var M = window.Metodologia;
@@ -173,8 +284,11 @@
     if (!p) html += '<div class="dash-vazio">Sem inventário carregado.</div>';
     else html += { resumo: htmlResumo, itens: htmlItens, associacoes: htmlAssociacoes, faixas: htmlFaixas, regras: htmlRegras, conflitos: htmlConflitos }[aba](p);
     html += '<p class="dash-sub mh-rodape">Não existe "aprovar tudo". Aprovação = RPC <code>aprovar_pacote_metodologico</code> com validador sem erros e registro de homologação com responsável humano.</p>';
+    html += htmlLI();
     el.innerHTML = html;
     ligar(el);
+    ligarLI(el);
+    if (li.pacotes === null && liSb() && !li.carregando) liCarregar().then(function () { var s2 = document.getElementById("secao-metodologia"); if (s2 && s2.classList.contains("ativa")) desenhar(); });
   }
   /** Redesenha e so depois escreve o aviso (o redesenho troca o #mh-estado). */
   function avisar(txt) { desenhar(); var e = document.getElementById("mh-estado"); if (e) e.textContent = txt; }
@@ -225,7 +339,7 @@
     if (nav && M && M.modoHomologacao()) nav.classList.remove("hidden");
     var botao = document.querySelector('.nav-item[data-secao="metodologia"]');
     if (botao) botao.addEventListener("click", function () { setTimeout(desenhar, 50); });
-    if (window.HoloAuth && window.HoloAuth.aoMudarEstado) window.HoloAuth.aoMudarEstado(function () { if (P()) P().carregar().then(function () { var s = document.getElementById("secao-metodologia"); if (s && s.classList.contains("ativa")) desenhar(); }); });
+    if (window.HoloAuth && window.HoloAuth.aoMudarEstado) window.HoloAuth.aoMudarEstado(function () { li = { pacotes: null, aprovacoes: [], sel: null, hash: {}, completude: {}, carregando: false, erro: null }; if (P()) P().carregar().then(function () { var s = document.getElementById("secao-metodologia"); if (s && s.classList.contains("ativa")) desenhar(); }); });
   });
   window.MetodologiaHomologacao = { desenhar: desenhar, selecionar: function (id) { pacoteSel = id; }, aba: function (a) { aba = a; } };
 })();

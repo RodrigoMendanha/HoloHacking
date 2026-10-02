@@ -108,7 +108,10 @@
     li_dominios:            { tabela: "integrated_reading_domains", campos: {}, inverso: {} },
     li_vinculos:            { tabela: "integrated_reading_exam_domain_links", campos: {}, inverso: {} },
     li_regras:              { tabela: "integrated_reading_rules", campos: {}, inverso: {} },
-    li_leituras:            { tabela: "integrated_readings", campos: {}, inverso: {} }
+    li_leituras:            { tabela: "integrated_readings", campos: {}, inverso: {} },
+    li_dependencias:        { tabela: "integrated_reading_package_dependencies", campos: {}, inverso: {} },
+    li_aprovacoes:          { tabela: "integrated_reading_package_approvals", campos: {}, inverso: {} },
+    li_snapshots:           { tabela: "integrated_reading_package_snapshots", campos: {}, inverso: {} }
   };
 
   /* ---------- proxy que traduz campos na ida e na volta ------------------- */

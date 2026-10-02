@@ -158,7 +158,7 @@ Cache-Control. Nas próximas atualizações não precisa.
 ### 3.5 Hashes esperados (sha256 dos arquivos servidos pela `main` saneada)
 
 Todos os 53 arquivos que o `Dockerfile` copia (`index.html style.css favicon.svg
-*.js`). Atualizados na Etapa 5 da V1 (branch `claude/v1-etapa5-laboratorio`, inclui `laboratorio-catalogo.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js` e `laboratorio.js`; antes, Etapa 4.2: `metodologia-decisoes-v1.js` e `questionario.js`; Etapa 4:
+*.js`). Atualizados na Etapa 5.2 da V1 (branch `claude/v1-etapa5-2-governanca-li`: `metodologia-homologacao.js` e `dados-router.js`; Etapa 5: inclui `laboratorio-catalogo.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js` e `laboratorio.js`; antes, Etapa 4.2: `metodologia-decisoes-v1.js` e `questionario.js`; Etapa 4:
 inclui `metodologia.js`, `atendimento.js`, `anamnese.js`, `conduta.js`, `timeline.js`, `relatorios.js`, `metodologia-inventario.js`, `metodologia-pacote.js`, `metodologia-motor.js` e `metodologia-homologacao.js`), conferidos contra a imagem do `docker build` da branch (o nginx ainda põe o
 `50x.html` dele, que não é nosso):
 
@@ -179,7 +179,7 @@ e66cd4b4cd1163cce5680b8d2b56b820c44c1cf430ed413d8de2fe7766112a14  concorrencia.j
 3b0a3b2f9a14aa7ca801e986427046b65097859675c0605ef9bb2ffd467951fe  conduta.js
 63204f8891ceceb557fcd57c8d5d708acdaa0a128f3e55d75b40fbc0f471a641  consultas.js
 25ffbc8bf45aec67e9214f403c5a1ffd297f183eaa664f53cebdb7d92e9c50f9  corpo-bancos.js
-237616288f56bf076031ff144f4ae9e2ffd387a9d76536b5b1bd4490423cb472  dados-router.js
+3f8801e0d65d0413b00b2cfd370bf9bc1b071a062da56a31389e71a2655791d9  dados-router.js
 a77e7bf6acab37680d25eb5451442539bda71a84c6e921940a6065b9b9a3b806  dados.js
 53db625e8fb01b77c3bff3eb8ecffa10af663d13cfce2fb6c99120e5d0a99dc7  dashboard.js
 a29fad23f5ea2543661b0cd1429670340afbc0ec6654928a6a92fa9d117bf890  demo.js
@@ -198,7 +198,7 @@ d68215f0b81b8b8e5929ea43b29f7f51046b78336b96ec9e5814d4eea2444ae0  laboratorio-ca
 dd8d94f279fa36e77a26ed8e6f9f2bbcddbadfaba592c3706010747de7dcbe55  leitura-integrada-motor.js
 d0098b6c672f2d283cabb347205c676e3ac117fd960e8274ba3a64d13a984f2e  login.js
 51f9b31c0cf3ab7c0b530d07f37a84b205e9e314103ce1397e9a9ff04b3130ba  metodologia-decisoes-v1.js
-c532ac3e3f69adc9ba0a2568bc3a8626956990a7eac0b11f4756fe02ec977a91  metodologia-homologacao.js
+aba51ff1a3d88447eeade15a59b5dcfc63109f1142e893f4b9445cadddfe1c98  metodologia-homologacao.js
 aa6a886c1ad2b8000ccbbe4321faf7be4159c12be0109a8d19f09718405d4439  metodologia-inventario.js
 ae87ad9c758f4ccf14cbb0404db8538b8705f4069049c4b002140ef1ec109bd8  metodologia-motor.js
 ea9ec168a0d44ffea65a7ee4b5fa9071eb0bdae8aedcf246a7118c13b0ca555a  metodologia-pacote.js
