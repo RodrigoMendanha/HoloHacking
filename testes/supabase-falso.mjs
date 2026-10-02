@@ -53,7 +53,7 @@ const COLUNAS = {
   methodology_package_approvals: ['id', 'nutritionist_id', 'package_id', 'package_version', 'content_hash', 'step', 'role', 'responsible', 'justification', 'approved_by', 'approved_at', 'invalidated_at', 'invalidated_reason', 'created_at', 'approver_id'],
   methodology_approvers: ['id', 'user_id', 'scope', 'approval_stage', 'display_name', 'active', 'notes', 'created_at', 'created_by'],
   schedule_blocks: ['id', 'nutritionist_id', 'data', 'inicio', 'fim', 'dia_todo', 'motivo', 'created_at', 'updated_at'],
-  holoscan_applications: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'quando', 'versao_estrutura', 'versao_bancos', 'indice', 'indice_maximo', 'avaliavel', 'nota_media', 'triada', 'triada_com_dado', 'cobertura', 'combinacoes', 'aprofundamentos', 'interpretacao_texto', 'interpretacao_em', 'interpretacao_versao', 'created_at', 'updated_at', 'methodology_package_id'],
+  holoscan_applications: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'quando', 'versao_estrutura', 'versao_bancos', 'indice', 'indice_maximo', 'avaliavel', 'nota_media', 'triada', 'triada_com_dado', 'cobertura', 'combinacoes', 'aprofundamentos', 'interpretacao_texto', 'interpretacao_em', 'interpretacao_versao', 'created_at', 'updated_at', 'methodology_package_id', 'methodology_package_version'],
   holoscan_answers: ['id', 'application_id', 'marcador_id', 'valor', 'created_at'],
   holoscan_system_scores: ['id', 'application_id', 'sistema', 'nome', 'nota', 'carga', 'faixa', 'obtido', 'maximo', 'respondidos', 'total_marcadores', 'avaliavel', 'created_at'],
   // V1 Etapa 5 (migration 20261001220000): coletas/resultados evoluidos + laboratorio + Leitura Integrada
@@ -412,7 +412,8 @@ export function criarServidor() {
       if (linha.qualifier && !['eq', 'lt', 'lte', 'gt', 'gte', 'text'].includes(linha.qualifier)) return erro('violates check constraint "lab_results_qualifier"', '23514');
       if (linha.numeric_value != null && linha.qualifier !== 'eq') return erro('violates check constraint "lab_results_numerico_so_exato"', '23514');
       if (!linha.value_original_text || !String(linha.value_original_text).trim()) return erro('null value in column "value_original_text" violates not-null constraint', '23502');
-      if (linha.reference_status === 'informed' && linha.report_reference_text == null && linha.report_reference_min == null && linha.report_reference_max == null) return erro('violates check constraint "lab_results_referencia_informada"', '23514');
+      if (linha.reference_status && !['informed', 'missing', 'ambiguous'].includes(linha.reference_status)) return erro('violates check constraint "lab_results_reference_status"', '23514');
+      if (['informed', 'ambiguous'].includes(linha.reference_status) && linha.report_reference_text == null && linha.report_reference_min == null && linha.report_reference_max == null) return erro('violates check constraint "lab_results_referencia_informada"', '23514');
       if ((linha.reference_status || 'missing') === 'missing' && (linha.report_reference_text != null || linha.report_reference_min != null || linha.report_reference_max != null)) return erro('violates check constraint "lab_results_referencia_informada"', '23514');
       const ident = (x) => [x.collection_id, x.exam_code || '', x.custom_exam_id || '', x.variant || '', x.material || ''].join('|');
       if ((linha.exam_code || linha.custom_exam_id) && s.tabelas.lab_results.some(x => x.id !== linha.id && ident(x) === ident(linha))) return erro('duplicate key value violates unique constraint "lab_results_identidade_catalogo"', '23505');
@@ -829,7 +830,7 @@ export function criarServidor() {
         }
         // trigger proteger_snapshot_holoscan (+ encounter_id, V1 Etapa 1 ajuste final)
         if (t === 'holoscan_applications') {
-          const IMUTAVEIS = ['nutritionist_id', 'patient_id', 'encounter_id', 'methodology_package_id', 'quando', 'versao_estrutura', 'versao_bancos',
+          const IMUTAVEIS = ['nutritionist_id', 'patient_id', 'encounter_id', 'methodology_package_id', 'methodology_package_version', 'quando', 'versao_estrutura', 'versao_bancos',
             'indice', 'indice_maximo', 'avaliavel', 'nota_media', 'triada', 'triada_com_dado', 'cobertura', 'combinacoes', 'aprofundamentos'];
           const mudou = IMUTAVEIS.find(c => c in q.dados && JSON.stringify(q.dados[c] === undefined ? null : q.dados[c]) !== JSON.stringify(l[c] === undefined ? null : l[c]));
           if (mudou) return erro('campos historicos do snapshot HOLOSCAN sao imutaveis (inclusive o atendimento, encounter_id); somente interpretacao_texto, interpretacao_em e interpretacao_versao podem ser alterados', 'P0001');
@@ -891,6 +892,10 @@ export function criarServidor() {
     if (nome === 'salvar_holoscan_completo') {
       if (!p || !p.application || !p.answers || !p.scores) return erro('payload incompleto', 'P0001');
       const a = p.application;
+      // Etapa 6.0.1: proveniencia metodologica so declarada e validada; nunca inferida; imutavel depois
+      const mpId = a.methodology_package_id || null, mpVer = a.methodology_package_version == null ? null : Number(a.methodology_package_version);
+      if ((mpId === null) !== (mpVer === null)) return erro('proveniencia metodologica incompleta: informe methodology_package_id E methodology_package_version, ou nenhum', 'P0001');
+      if (mpId) { const mp = s.tabelas.methodology_packages.find(x => x.id === mpId); if (!mp) return erro('pacote metodologico ' + mpId + ' nao existe', 'P0002'); if (mp.version !== mpVer) return erro('versao declarada (' + mpVer + ') nao e a versao do pacote (' + mp.version + ')', 'P0001'); }
       // rodada 08: eixo sem dado grava null, como a RPC real
       const triadaNorm = {};
       Object.keys(a.triada || {}).forEach(k => {
@@ -904,7 +909,8 @@ export function criarServidor() {
         cobertura: a.cobertura, combinacoes: a.combinacoes || [], aprofundamentos: a.aprofundamentos || [],
         interpretacao_texto: a.interpretacao_texto || null,
         interpretacao_em: a.interpretacao_em || null,
-        interpretacao_versao: a.interpretacao_versao || null
+        interpretacao_versao: a.interpretacao_versao || null,
+        methodology_package_id: mpId, methodology_package_version: mpVer
       }, uid);
       const e = checarLinha('holoscan_applications', app, uid);
       if (e) return e;
@@ -1187,7 +1193,7 @@ export function criarServidor() {
           if (cust && !s.tabelas.lab_custom_exams.some(c => c.id === cust && c.nutritionist_id === uid)) return erro('exame customizado nao e deste profissional', 'P0001');
           if (!r.value_original_text || !String(r.value_original_text).trim()) return erro('resultado ' + pos + ' sem valor original', 'P0001');
           const q = r.qualifier || 'text', nv = q === 'eq' && r.numeric_value != null ? Number(r.numeric_value) : null;
-          const refst = (r.report_reference_text != null || r.report_reference_min != null || r.report_reference_max != null) ? 'informed' : 'missing';
+          const refst = (r.report_reference_text != null || r.report_reference_min != null || r.report_reference_max != null) ? (r.reference_ambiguous === true ? 'ambiguous' : 'informed') : 'missing';   // Etapa 6.0.1
           const linha = novaLinha('lab_results', { collection_id: cid, exam_code: code, custom_exam_id: cust, variant: r.variant ? String(r.variant).trim() || null : null, value_original_text: String(r.value_original_text).trim(), numeric_value: nv, qualifier: q,
             censor_limit: r.censor_limit != null ? Number(r.censor_limit) : null, unit_original: r.unit_original ? String(r.unit_original).trim() || null : null, method: r.method || null, material: r.material || null,
             report_reference_text: r.report_reference_text ?? null, report_reference_min: r.report_reference_min != null ? Number(r.report_reference_min) : null, report_reference_max: r.report_reference_max != null ? Number(r.report_reference_max) : null,

@@ -64,7 +64,7 @@ const t1 = await A.evaluate(() => ({
 }));
 const hServ = srv.tratar({ op: 'rpc', uid: srv.contas['a@holo.test'].id, nome: 'li_hash_conteudo', args: { p_package_id: liv2.id } }).data;
 ok(t1.hash === hServ, 'Conferir hash mostra o content_hash calculado no servidor: ' + t1.hash.slice(0, 12) + '…');
-ok(t1.bloqueios.length === 0 && hServ === '7c6d93a0f91c790ba052c8687822c4513ad27015a7dc86c506d437b52beb6d1a', 'LI-V1@2: 0 bloqueios metodologicos (completude publicavel); hash candidato 7c6d93a0… — o que falta e o ato humano');
+ok(t1.bloqueios.length === 0 && hServ === 'fa99ec80507e277307a9b0d2a09a8f0abc1519e55bede08d8715697412137be9', 'LI-V1@2: 0 bloqueios metodologicos (completude publicavel); hash candidato fa99ec80… — o que falta e o ato humano');
 ok(t1.homologarDisabled && /Bloqueado/.test(t1.motivo) && /faltam Aprovações 1 e 2/.test(t1.motivo) && t1.statusAviso === '', 'Homologar continua bloqueado: faltam as Aprovacoes 1 e 2 vigentes (pacote ja em_revisao)');
 ok(t1.temForm, 'acoes Registrar Aprovacao disponiveis na tela (o servidor decide)');
 ok(/Daniel/.test(t1.papel) && /Aprovação 1/.test(t1.papel) && t1.respPre === 'Daniel' && t1.respRO, 'Etapa 5.3: a tela mostra o papel da conta (Daniel, Aprovacao 1) e preenche o responsavel a partir dele (somente leitura)');

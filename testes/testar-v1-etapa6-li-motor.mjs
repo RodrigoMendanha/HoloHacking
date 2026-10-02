@@ -53,7 +53,9 @@ ok(suf('LI-D02').min_classifiable_results === 2 && suf('LI-D02').required_exam_c
 ok(suf('LI-D03').required_exam_codes.join() === 'LAB-005,LAB-009' && suf('LI-D04').required_exam_codes.join() === 'LAB-013,LAB-015' && suf('LI-D03').min_classifiable_results === 2 && suf('LI-D04').min_classifiable_results === 2, 'suficiencia D03 (TG+HDL) e D04 (ALT+GGT): ambos obrigatorios, min 2');
 ok(['LI-D05', 'LI-D06', 'LI-D07'].every(d => suf(d).mode === 'not_applicable' && suf(d).min_classifiable_results === null && suf(d).required_exam_codes.length === 0 && regra('mixed', d).payload.mode === 'not_applicable'), 'D05/D06/D07: cross_source_sufficiency_mode e mixed not_applicable (min null, nao 0)');
 ok(['LI-D01', 'LI-D02', 'LI-D03', 'LI-D04'].every(d => regra('mixed', d).payload.mode === 'unanimity' && regra('mixed', d).payload.mixture === I && regra('mixed', d).payload.mixture_reason === 'mixed_results_indeterminate'), 'mistos D01-D04: unanimidade; mistura -> indeterminate com mixed_results_indeterminate (nunca mixed_without_rule)');
-ok(regra('reason_semantics', 'global').payload.codes.mixed_results_indeterminate && regra('reason_semantics', 'global').payload.codes.mixed_without_rule && regra('reason_semantics', 'global').payload.official_state_for_all === 'sem_dados_suficientes', 'semantica: mixed_results_indeterminate e mixed_without_rule distintos; estado oficial continua sem_dados_suficientes');
+ok(regra('reason_semantics', 'global').payload.codes.mixed_results_indeterminate && regra('reason_semantics', 'global').payload.codes.mixed_without_rule && regra('reason_semantics', 'global').payload.codes.directional_result_indeterminate && regra('reason_semantics', 'global').payload.official_state_for_all === 'sem_dados_suficientes', 'semantica: mixed_results_indeterminate, directional_result_indeterminate e mixed_without_rule distintos; estado oficial continua sem_dados_suficientes');
+ok(['LI-D01', 'LI-D02', 'LI-D03', 'LI-D04'].every(d => regra('mixed', d).payload.version === 2 && regra('mixed', d).payload.indeterminate_participant_reason === 'directional_result_indeterminate' && regra('mixed', d).payload.indeterminate_optional_ignored === true), 'regra de mistos v2 (6.0.1): participante indeterminate -> directional_result_indeterminate; opcional ignorado');
+ok(h1 === 'fa99ec80507e277307a9b0d2a09a8f0abc1519e55bede08d8715697412137be9', 'content_hash candidato recalculado apos a mudanca do conteudo canonico: ' + h1.slice(0, 12) + '… (o anterior 7c6d93a0… nao e reutilizado)');
 const txt = regra('text', 'global').payload;
 ok(!/confirma|prova|diagnostica|saudável|doente|cura|melhora|piora/i.test(JSON.stringify(txt)) && /não possui confronto automático/.test(txt.sem_confronto_holoscan), 'textos oficiais sem linguagem diagnostica; texto neutro para dominio sem confronto');
 
@@ -105,7 +107,9 @@ ok(d01([within('LAB-016'), within('LAB-018')], HB).laboratory_direction === N, '
 const m1 = d01([above('LAB-016'), within('LAB-018')], HB), m2 = d01([within('LAB-016'), above('LAB-018')], HB);
 ok(m1.laboratory_direction === I && m1.state === 'sem_dados_suficientes' && m1.reason_codes.includes('mixed_results_indeterminate') && !m1.reason_codes.includes('mixed_without_rule') && m2.laboratory_direction === I && m2.state === 'sem_dados_suficientes', 'present/not e not/present -> indeterminate -> SEM DADOS com mixed_results_indeterminate (nunca divergente, nunca mixed_without_rule)');
 const fibInd = d01([above('LAB-016'), below('LAB-018')], HB);
-ok(fibInd.laboratory_direction === P && fibInd.state === 'convergente' && fibInd.sufficiency.satisfied && fibInd.mixed.considered.find(x => x.exam_code === 'LAB-018').direction === I, 'PCR valida + fibrinogenio below (indeterminate opcional): nao bloqueia, nao vota; direcao fica na PCR');
+ok(fibInd.laboratory_direction === P && fibInd.state === 'convergente' && fibInd.sufficiency.satisfied && fibInd.mixed.considered.find(x => x.exam_code === 'LAB-018').direction === I && !fibInd.reason_codes.includes('directional_result_indeterminate'), 'excecao D01 preservada (6.0.1): PCR deterministica + fibrinogenio opcional indeterminate -> direcao da PCR valida; sem directional_result_indeterminate');
+const pcrInd = d01([below('LAB-016'), above('LAB-018')], HB);
+ok(pcrInd.laboratory_direction === I && pcrInd.reason_codes.includes('directional_result_indeterminate') && pcrInd.state === 'sem_dados_suficientes', 'PCR (obrigatoria) below -> indeterminate participante -> directional_result_indeterminate mesmo com fibrinogenio present');
 const semPCR = d01([above('LAB-018')], HB);
 ok(semPCR.state === 'sem_dados_suficientes' && semPCR.reason_codes.includes('missing_required_exam') && !semPCR.sufficiency.satisfied && semPCR.sufficiency.required_missing.join() === 'LAB-016', 'PCR ausente -> SEM DADOS (missing_required_exam); fibrinogenio sozinho nao basta');
 const pcrSemRef = d01([R('LAB-016', 30, null), above('LAB-018')], HB);
@@ -125,7 +129,8 @@ ok(d02([above('LAB-002'), above('LAB-003'), above('LAB-004')]).laboratory_direct
 ok(d02([within('LAB-002'), within('LAB-003'), within('LAB-004')]).laboratory_direction === N && d02([within('LAB-002'), within('LAB-004')]).state === 'divergente', 'todos not_detected -> not_detected (divergente com metabolico baixa)');
 const mistD02 = d02([above('LAB-002'), within('LAB-004')]);
 ok(mistD02.laboratory_direction === I && mistD02.state === 'sem_dados_suficientes' && mistD02.reason_codes.includes('mixed_results_indeterminate'), 'mistura present/not em D02 -> indeterminate -> SEM DADOS (mixed_results_indeterminate)');
-ok(d02([below('LAB-002'), above('LAB-003')]).laboratory_direction === P && d02([above('LAB-002'), below('LAB-004')]).laboratory_direction === I, 'glicemia below (fora, direcao any) -> present; HbA1c below -> indeterminate participante -> direcao indeterminada (conservador)');
+const hbInd = d02([above('LAB-002'), below('LAB-004')]);
+ok(d02([below('LAB-002'), above('LAB-003')]).laboratory_direction === P && hbInd.laboratory_direction === I && hbInd.state === 'sem_dados_suficientes' && hbInd.reason_codes.includes('directional_result_indeterminate') && !hbInd.reason_codes.includes('mixed_results_indeterminate'), 'Etapa 6.0.1 — D02: glicemia below (any) -> present; HbA1c below -> participante indeterminate -> direcao indeterminada com directional_result_indeterminate (nao e mistura)');
 
 titulo('D03 — LIPIDICO (TG + HDL obrigatorios)');
 const d03 = (rs) => calc(rs, HM).domains['LI-D03'];
@@ -134,7 +139,8 @@ ok(d03([within('LAB-005'), within('LAB-009')]).laboratory_direction === N && d03
 ok(d03([above('LAB-005'), within('LAB-009')]).laboratory_direction === I && d03([within('LAB-005'), below('LAB-009')]).laboratory_direction === I && d03([above('LAB-005'), within('LAB-009')]).state === 'sem_dados_suficientes', 'TG present + HDL not (e vice-versa) -> indeterminate -> SEM DADOS, nunca divergente');
 ok(d03([below('LAB-009')]).reason_codes.includes('missing_required_exam') && d03([above('LAB-005')]).reason_codes.includes('missing_required_exam') && !d03([above('LAB-005')]).sufficiency.satisfied, 'ausencia de TG ou de HDL -> missing_required_exam');
 ok(d03([above('LAB-005'), above('LAB-006'), above('LAB-007'), above('LAB-008')]).state === 'sem_dados_suficientes' && d03([above('LAB-005'), above('LAB-006'), above('LAB-007'), above('LAB-008')]).lab_domain_availability.contextual_classifiable === 3, 'colesterol total/LDL/LDL-ox (contextuais) nao substituem o HDL');
-ok(d03([above('LAB-009'), above('LAB-005')]).laboratory_direction === I, 'HDL acima (direcao contraria ao vinculo below) -> indeterminate participante -> direcao indeterminada');
+const hdlInd = d03([above('LAB-009'), above('LAB-005')]);
+ok(hdlInd.laboratory_direction === I && hdlInd.reason_codes.includes('directional_result_indeterminate') && !hdlInd.reason_codes.includes('mixed_results_indeterminate') && hdlInd.state === 'sem_dados_suficientes', 'Etapa 6.0.1 — D03: HDL acima (contrario ao vinculo below) + TG acima -> directional_result_indeterminate (sem mistura present/not)');
 
 titulo('D04 — HEPATICO (ALT + GGT obrigatorios)');
 const HD = holo({ detox_linfatico: 'baixa' }), d04 = (rs) => calc(rs, HD).domains['LI-D04'];
@@ -142,6 +148,10 @@ ok(d04([above('LAB-013'), above('LAB-015')]).laboratory_direction === P && d04([
 ok(d04([within('LAB-013'), within('LAB-015')]).laboratory_direction === N && d04([within('LAB-013'), within('LAB-015')]).state === 'divergente', 'ALT + GGT not/not -> not_detected');
 ok(d04([above('LAB-013'), within('LAB-015')]).laboratory_direction === I && d04([within('LAB-013'), above('LAB-015')]).laboratory_direction === I && d04([above('LAB-013'), within('LAB-015')]).reason_codes.includes('mixed_results_indeterminate'), 'present/not e not/present -> indeterminate');
 ok(d04([above('LAB-015')]).reason_codes.includes('missing_required_exam') && d04([above('LAB-013')]).reason_codes.includes('missing_required_exam'), 'ausencia de ALT ou de GGT -> missing_required_exam');
+const ggtInd = d04([above('LAB-013'), below('LAB-015')]);
+ok(ggtInd.laboratory_direction === I && ggtInd.reason_codes.includes('directional_result_indeterminate') && !ggtInd.reason_codes.includes('mixed_results_indeterminate') && ggtInd.state === 'sem_dados_suficientes', 'Etapa 6.0.1 — D04: ALT acima + GGT abaixo (indeterminate) -> directional_result_indeterminate; nunca convergente/divergente');
+const ggtMist = d04([above('LAB-013'), within('LAB-015')]);
+ok(ggtMist.reason_codes.includes('mixed_results_indeterminate') && !ggtMist.reason_codes.includes('directional_result_indeterminate'), 'mistura real (present + not_detected) continua mixed_results_indeterminate');
 ok(d04([above('LAB-012'), above('LAB-014'), above('LAB-013')]).state === 'sem_dados_suficientes', 'AST e bilirrubina (contextuais) nao substituem GGT');
 
 titulo('D05 / D06 / D07 — SEM CONFRONTO HOLOSCAN NA V1 (informacao laboratorial; nunca SEM DADOS por falta de mapeamento)');
@@ -157,7 +167,8 @@ ok(todos.domains['LI-D05'].text.profissional.includes('não possui confronto aut
 titulo('CLASSIFICACAO (LabMotor) ENTRA NA LI: REFERENCIA, UNIDADE, QUALITATIVO, CENSURADO, VARIANTE/MATERIAL/METODO');
 const motivo = (r, extraRef) => { const rs = [r]; const cls = classificar(rs); if (extraRef) Object.assign(cls[r.id] = M.classificar(r, extraRef, { conversoes: [] })); return L.calcular({ rule_package: pacote(), holoscan: HB, collections: [{ id: 'c1', clinical_date: '2026-03-10' }], results: rs, classifications: cls }).domains['LI-D01']; };
 ok(motivo(R('LAB-016', 30, null)).items[0].exclusion_reason === 'missing_reference', 'missing reference');
-ok(motivo(R('LAB-016', 30, W), { source: 'laudo', min: 10, max: 20, operator: 'range', unit: 'u', ambiguous: true }).items[0].exclusion_reason === 'ambiguous_reference', 'ambiguous reference');
+const amb = motivo(R('LAB-016', 30, W, { reference_status: 'ambiguous', report_reference_text: '10 a 20 ou 5 a 15 (laudo ambiguo)' }), { source: 'laudo', min: 10, max: 20, operator: 'range', unit: 'u', ambiguous: true });
+ok(amb.items[0].exclusion_reason === 'ambiguous_reference' && amb.items[0].classification === 'not_classifiable' && amb.snapshot.items[0].exclusion_reason === 'ambiguous_reference' && amb.snapshot.items[0].reference_status === 'ambiguous' && amb.snapshot.items[0].reference_text === '10 a 20 ou 5 a 15 (laudo ambiguo)' && amb.snapshot.excluded[0].reason === 'ambiguous_reference' && amb.reason_codes.includes('ambiguous_reference'), 'ambiguous reference: nao classificavel, reason code, exclusao e referencia original preservados no snapshot (nenhuma classificacao fabricada)');
 ok(motivo(R('LAB-016', 30, W, { unit_original: 'mg/L', report_reference_unit: 'mg/dL' })).items[0].exclusion_reason === 'incompatible_unit', 'incompatible unit (sem conversao homologada)');
 ok(motivo(R('LAB-016', 'Negativo', W)).items[0].exclusion_reason === 'qualitative_rule_missing', 'qualitativo sem regra -> qualitative_rule_missing');
 const cDet = motivo(R('LAB-016', '< 5', W)), cAmb = motivo(R('LAB-016', '< 15', W)), cAlto = motivo(R('LAB-016', '> 25', W));

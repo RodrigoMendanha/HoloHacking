@@ -96,3 +96,39 @@ begin
   insert into _log6 values ('E30 ' || case when (select count(*) from public.integrated_reading_package_approvals where package_id = pk and invalidated_at is null) = 0 and (select count(*) from public.integrated_reading_package_approvals where package_id = pk) = 1 then 'ok' else 'FALHOU' end || ': mudanca de conteudo invalida a aprovacao (historico mantido)');
 end $$;
 select passo from _log6 order by passo;
+-- ---------- Etapa 6.0.1 (migration 20261002130000): hash recalculado; referencia ambigua; proveniencia HOLOSCAN ----------
+reset role;
+do $$ declare pk uuid := (select v::uuid from _li6 where k = 'pk2');
+begin
+  -- h2 foi capturado em E13, ANTES da mutacao de conteudo de E30 (que legitimamente muda o hash)
+  insert into _log6 values ('E31 ' || case when (select v from _li6 where k = 'h2') = 'fa99ec80507e277307a9b0d2a09a8f0abc1519e55bede08d8715697412137be9' then 'ok' else 'FALHOU' end || ': hash SQL de LI-V1@2 (seed intacto) == hash do pacote JS (6.0.1): ' || left((select v from _li6 where k = 'h2'), 12));
+  insert into _log6 values ('E32 ' || case when (select count(*) from public.integrated_reading_rules where package_id = pk and rule_type = 'mixed' and payload->>'indeterminate_participant_reason' = 'directional_result_indeterminate' and (payload->>'version')::int = 2) = 4 then 'ok' else 'FALHOU' end || ': regra de mistos v2 com directional_result_indeterminate em D01-D04');
+end $$;
+set local role authenticated;
+select pg_temp.como_daniel();
+do $$
+declare uid uuid := auth.uid(); pa uuid; c jsonb; cid uuid; hid uuid; mp uuid; x record;
+begin
+  select id into pa from public.patients where nutritionist_id = uid and nome = 'E6 TESTE';
+  c := public.salvar_coleta_laboratorial(jsonb_build_object('collection', jsonb_build_object('patient_id', pa, 'clinical_date', date '2026-03-12', 'state', 'salvo'),
+    'results', jsonb_build_array(jsonb_build_object('exam_code','LAB-016','value_original_text','30','numeric_value',30,'qualifier','eq','unit_original','mg/L','report_reference_text','10 a 20 ou 5 a 15','report_reference_min',10,'report_reference_max',20,'reference_ambiguous',true))));
+  cid := (c->>'id')::uuid;
+  select reference_status, report_reference_text, report_reference_min into x from public.lab_results where collection_id = cid;
+  insert into _log6 values ('E33 ' || case when x.reference_status = 'ambiguous' and x.report_reference_text = '10 a 20 ou 5 a 15' and x.report_reference_min = 10 then 'ok' else 'FALHOU' end || ': referencia ambigua persistida com o texto/limites originais');
+  begin insert into public.lab_results (collection_id, exam_code, value_original_text, qualifier, reference_status) values (cid, 'LAB-018', '1', 'eq', 'ambiguous'); insert into _log6 values ('E34 FALHOU: ambiguous sem referencia aceito');
+  exception when others then insert into _log6 values ('E34 ok: ambiguous exige referencia informada'); end;
+  select id into mp from public.methodology_packages where nutritionist_id = uid order by created_at limit 1;
+  if mp is null then insert into public.methodology_packages (nutritionist_id, code, version, status, origin, justification) values (uid, 'TEST_FIXTURE_ONLY-HP6', 1, 'rascunho', 'fixture', 'fixture') returning id into mp; end if;
+  hid := public.salvar_holoscan_completo(jsonb_build_object('application', jsonb_build_object('patient_id', pa, 'quando', date '2026-03-10', 'versao_estrutura', 2, 'indice', 50, 'indice_maximo', 100, 'avaliavel', true, 'nota_media', 5, 'triada', '{}'::jsonb, 'triada_com_dado', '{}'::jsonb, 'cobertura', '{}'::jsonb,
+    'methodology_package_id', mp, 'methodology_package_version', (select version from public.methodology_packages where id = mp)), 'answers', '[]'::jsonb, 'scores', '[]'::jsonb));
+  insert into _log6 values ('E35 ' || case when (select methodology_package_id = mp and methodology_package_version = (select version from public.methodology_packages where id = mp) from public.holoscan_applications where id = hid) then 'ok' else 'FALHOU' end || ': nova aplicacao HOLOSCAN recebe proveniencia declarada e validada');
+  begin perform public.salvar_holoscan_completo(jsonb_build_object('application', jsonb_build_object('patient_id', pa, 'quando', date '2026-03-10', 'versao_estrutura', 2, 'indice', 50, 'indice_maximo', 100, 'avaliavel', true, 'nota_media', 5, 'triada', '{}'::jsonb, 'triada_com_dado', '{}'::jsonb, 'cobertura', '{}'::jsonb, 'methodology_package_id', mp, 'methodology_package_version', 99), 'answers', '[]'::jsonb, 'scores', '[]'::jsonb));
+    insert into _log6 values ('E36 FALHOU: versao incoerente aceita');
+  exception when others then insert into _log6 values ('E36 ok: versao declarada incoerente recusada'); end;
+  select id into hid from public.holoscan_applications where patient_id = pa and methodology_package_id is null limit 1;
+  begin update public.holoscan_applications set methodology_package_id = mp, methodology_package_version = 1 where id = hid; insert into _log6 values ('E37 FALHOU: backfill de proveniencia aceito');
+  exception when others then insert into _log6 values ('E37 ok: aplicacao historica sem proveniencia nao recebe backfill: ' || left(sqlerrm, 40)); end;
+  insert into _log6 values ('E38 ' || case when (select methodology_package_id is null from public.holoscan_applications where id = hid) then 'ok' else 'FALHOU' end || ': aplicacao historica continua sem vinculo');
+end $$;
+reset role;
+select passo from _log6 where passo >= 'E31' order by passo;

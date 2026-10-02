@@ -117,5 +117,30 @@ ok(JSON.stringify([srv.linhas('holoscan_applications').find(a => a.id === hid), 
 ok(select(UB, 'integrated_readings').data.length === 0 && select(UB, 'integrated_reading_rule_packages').data.length === pks.length + 1, 'outra conta nao le leituras alheias; o pacote global e visivel a todos (somente leitura)');
 ok(srv.linhas('integrated_reading_package_approvals').length === 2 && srv.linhas('integrated_reading_package_approvals').every(a => a.approver_id), 'as duas aprovacoes do fixture tem identidade real (approver_id) — nenhuma por string de nome');
 
+titulo('ETAPA 6.0.1 — REFERENCIA AMBIGUA PERSISTIDA; PROVENIENCIA HOLOSCAN (sem backfill); HASH JS == FAKE');
+const CA = coleta('2026-03-12', [R('LAB-016', 30, { reference_ambiguous: true, report_reference_text: '10 a 20 ou 5 a 15 (laudo ambiguo)' }), R('LAB-018', 30)]);
+const ra = resultadosDe(CA).find(x => x.exam_code === 'LAB-016');
+ok(ra.reference_status === 'ambiguous' && ra.report_reference_text === '10 a 20 ou 5 a 15 (laudo ambiguo)' && ra.report_reference_min === 10, 'resultado gravado com reference_status ambiguous e a referencia original preservada');
+const classAmb = (rs) => Object.fromEntries(rs.map(r => [r.id, M.classificar(r, ['informed', 'ambiguous'].includes(r.reference_status) ? { source: 'laudo', ambiguous: r.reference_status === 'ambiguous', min: r.report_reference_min, max: r.report_reference_max, operator: r.report_reference_operator || 'range', unit: r.report_reference_unit || r.unit_original } : null, { conversoes: [] })]));
+const rsA = resultadosDe(CA);
+const domA = L.calcular({ rule_package: pacoteServidor(v2a), patient_id: PA, holoscan: holo('baixa'), collections: [{ id: CA, clinical_date: '2026-03-12' }], results: rsA, classifications: classAmb(rsA) }).domains['LI-D01'];
+ok(domA.state === 'sem_dados_suficientes' && domA.reason_codes.includes('ambiguous_reference') && domA.reason_codes.includes('missing_required_exam') && domA.items.find(i => i.exam_code === 'LAB-016').exclusion_reason === 'ambiguous_reference', 'motor: PCR com referencia ambigua -> excluida (ambiguous_reference) -> missing_required_exam -> SEM DADOS');
+const salvaAmb = salvar(UA, domA, { selected_collection_ids: [CA] });
+ok(!salvaAmb.error, 'leitura salva');
+const relidaAmb = select(UA, 'integrated_readings').data.find(x => x.id === salvaAmb.data.id);   // reload pela API de leitura
+ok(relidaAmb && relidaAmb.reason_codes.includes('ambiguous_reference') && relidaAmb.snapshot.excluded.some(e => e.exam_code === 'LAB-016' && e.reason === 'ambiguous_reference') && relidaAmb.snapshot.items.find(i => i.exam_code === 'LAB-016').reference_text === '10 a 20 ou 5 a 15 (laudo ambiguo)' && relidaAmb.snapshot.items.find(i => i.exam_code === 'LAB-016').classification === 'not_classifiable', 'apos reload: motivo ambiguous_reference, exclusao, referencia original e nao classificabilidade continuam na leitura salva');
+// proveniencia HOLOSCAN
+const mp = insert(UA, 'methodology_packages', { code: 'TEST_FIXTURE_ONLY-HP', version: 2, status: 'rascunho', origin: 'fixture', justification: 'fixture' }).data[0];
+const appBase = { patient_id: PA, quando: D, versao_estrutura: 2, indice: 50, indice_maximo: 100, avaliavel: true, nota_media: 5, triada: {}, triada_com_dado: {}, cobertura: {} };
+const novaApp = rpc(UA, 'salvar_holoscan_completo', { payload: { application: Object.assign({ methodology_package_id: mp.id, methodology_package_version: 2 }, appBase), answers: [], scores: [] } });
+ok(!novaApp.error && srv.linhas('holoscan_applications').find(a => a.id === novaApp.data).methodology_package_id === mp.id && srv.linhas('holoscan_applications').find(a => a.id === novaApp.data).methodology_package_version === 2, 'nova aplicacao HOLOSCAN recebe methodology_package_id + methodology_package_version declarados e validados');
+ok(rpc(UA, 'salvar_holoscan_completo', { payload: { application: Object.assign({ methodology_package_id: mp.id, methodology_package_version: 9 }, appBase), answers: [], scores: [] } }).error && rpc(UA, 'salvar_holoscan_completo', { payload: { application: Object.assign({ methodology_package_id: mp.id }, appBase), answers: [], scores: [] } }).error, 'versao incoerente ou proveniencia incompleta: recusadas');
+const hist = srv.linhas('holoscan_applications').find(a => a.id === hid);
+ok(hist.methodology_package_id === null && (hist.methodology_package_version === null || hist.methodology_package_version === undefined), 'aplicacao historica (sem proveniencia) continua sem vinculo');
+ok(update(UA, 'holoscan_applications', { methodology_package_id: mp.id, methodology_package_version: 2 }, eq('id', hid)).error && srv.linhas('holoscan_applications').find(a => a.id === hid).methodology_package_id === null, 'backfill recusado: proveniencia nao pode ser preenchida depois (imutavel)');
+const semProv = calc(pacoteServidor(v2a), [C1], { application: { id: hid, clinical_date: D, methodology_package: null }, system_results: { acido_inflamatorio: { avaliavel: true, faixa: 'baixa', nota: 1 } } }).domains['LI-D01'];
+ok(semProv.reason_codes[0] === 'incompatible_holoscan_version' && semProv.state === 'sem_dados_suficientes', 'LI com aplicacao sem proveniencia: incompatible_holoscan_version (nada inferido por faixa/estrutura)');
+ok(rpc(UA, 'li_hash_conteudo', { p_package_id: v2.id }).data === 'fa99ec80507e277307a9b0d2a09a8f0abc1519e55bede08d8715697412137be9' && PK.hashConteudo() === 'fa99ec80507e277307a9b0d2a09a8f0abc1519e55bede08d8715697412137be9', 'hash JS == fake == ' + 'fa99ec80507e…' + ' (SQL local provado no harness etapa6 E13b)');
+
 console.log('\n  RESULTADO: ' + (falhou ? 'VERMELHO' : 'VERDE'));
 process.exit(falhou ? 1 : 0);
