@@ -119,7 +119,7 @@
         (a ? (valida ? "<b>registrada</b>" : "<b>registrada, mas não vale para o conteúdo atual</b>") + " em " + escapar(String(a.approved_at || "").slice(0, 16)) + " · versão " + escapar(String(a.package_version)) + " · hash " + escapar(String(a.content_hash).slice(0, 12)) + "…" : "pendente") + "</li>";
     };
     var html = '<div class="dash-bloco" id="mh-aprovacoes"><h3 class="dash-titulo">Homologação — dupla aprovação</h3>' +
-      '<p class="dash-sub">Ordem obrigatória: Aprovação 1 (Daniel), depois Aprovação 2 (Rodrigo), sobre o mesmo pacote, versão e hash de conteúdo. Se o pacote mudar entre as duas, o ciclo recomeça. Nenhuma aprovação é criada automaticamente.</p>' +
+      '<p class="dash-sub">Ordem obrigatória: Aprovação 1 (Daniel), depois Aprovação 2 (Rodrigo), sobre o mesmo pacote, versão e hash de conteúdo. Se o pacote mudar entre as duas, o ciclo recomeça. Nenhuma aprovação é criada automaticamente. A identidade é a da conta autenticada (não o nome digitado).</p>' + htmlPapeis("holoscan") +
       '<ul class="mh-lista">' + linha(1, e.aprovacao1, e.valida1) + linha(2, e.aprovacao2, e.valida2) + "</ul>" +
       (e.invalidadas ? '<p class="dash-sub">' + e.invalidadas + " aprovação(ões) invalidada(s) por mudança no pacote (histórico mantido).</p>" : "");
     if (p.status !== "em_revisao") return html + '<p class="dash-sub">Aprovações só são registradas em pacote <code>em_revisao</code>.</p></div>';
@@ -127,7 +127,7 @@
     html += '<p class="dash-sub">Hash do conteúdo atual (servidor): <code id="mh-hash-servidor">' + escapar(h) + "</code> · versão " + escapar(String(p.version)) + "</p>";
     if (e.proxima === 1 || e.proxima === 2) {
       html += '<div class="mh-aprovar" data-mh-etapa="' + e.proxima + '"><label class="evo-campo"><span>Responsável (Aprovação ' + e.proxima + ")</span>" +
-        '<input type="text" data-mh-resp autocomplete="off" value=""></label>' +
+        campoResponsavel("holoscan", e.proxima, "data-mh-resp") + "</label>" +
         '<label class="evo-campo"><span>Justificativa</span><textarea data-mh-just rows="2"></textarea></label>' +
         '<label><input type="checkbox" data-mh-conferi> Conferi o pacote ' + escapar(p.code + " v" + p.version) + " com o hash " + escapar(h.slice(0, 12)) + "…</label> " +
         '<button type="button" class="btn-fantasma" data-mh-acao="registrar-aprovacao">Registrar Aprovação ' + e.proxima + "</button></div>";
@@ -157,6 +157,24 @@
      que o servidor so aceita com a metodologia completa (li_validar_completude sem bloqueio). Nada aqui
      cria aprovacao sem clique; o pacote real LI-V1@1 esta em rascunho e incompleto: Homologar fica bloqueado. */
   var li = { pacotes: null, aprovacoes: [], sel: null, hash: {}, completude: {}, carregando: false, erro: null };
+  /* Etapa 5.3: papeis de aprovacao da CONTA autenticada (methodology_approvers, so leitura dos proprios papeis).
+     O nome e display; a autorizacao e pelo auth.uid() no servidor. */
+  var papeis = null;
+  function papelDe(scope, stage) { return (papeis || []).filter(function (r) { return r.scope === scope && r.approval_stage === stage; })[0] || null; }
+  function carregarPapeis() {
+    var sb = liSb(); if (!sb) { papeis = []; return Promise.resolve(papeis); }
+    return Promise.resolve(sb.rpc("meus_papeis_aprovacao")).then(function (r) { papeis = (r && !r.error && Array.isArray(r.data)) ? r.data : []; return papeis; }).catch(function () { papeis = []; return papeis; });
+  }
+  function htmlPapeis(scope) {
+    if (papeis === null) return "";
+    var meus = papeis.filter(function (r) { return r.scope === scope; });
+    return '<p class="dash-sub mh-papeis" data-mh-papeis="' + escapar(scope) + '">Sua conta: ' + (meus.length ? meus.map(function (r) { return "<b>" + escapar(r.display_name) + "</b> (Aprovação " + r.approval_stage + ")"; }).join(", ") : "<b>sem papel de aprovação</b> neste escopo (cadastro de aprovadores é gestão técnica; o servidor recusa aprovação de conta não autorizada)") + "</p>";
+  }
+  function campoResponsavel(scope, etapa, attr) {
+    var r = papelDe(scope, etapa);
+    return '<input type="text" ' + attr + ' autocomplete="off" value="' + (r ? escapar(r.display_name) : "") + '"' + (r ? " readonly" : "") + ">" +
+      (r ? "" : '<small class="dash-sub">Sua conta não está autorizada para a Aprovação ' + etapa + "; o servidor recusará.</small>");
+  }
   var LI_APROVADORES = { 1: { responsavel: "Daniel", papel: "responsável primário" }, 2: { responsavel: "Rodrigo", papel: "revisão final" } };
   function liSb() { return window.supabaseClient || null; }
   function liRpc(nome, args) {
@@ -166,10 +184,11 @@
   function liCarregar() {
     var sb = liSb(); if (!sb || li.carregando) return Promise.resolve();
     li.carregando = true;
-    return Promise.all([Promise.resolve(sb.from("integrated_reading_rule_packages").select("*")), Promise.resolve(sb.from("integrated_reading_package_approvals").select("*")),
+    return Promise.all([carregarPapeis(), Promise.resolve(sb.from("integrated_reading_rule_packages").select("*")), Promise.resolve(sb.from("integrated_reading_package_approvals").select("*")),
       Promise.resolve(sb.from("integrated_reading_domains").select("id, package_id, status")), Promise.resolve(sb.from("integrated_reading_exam_domain_links").select("id, package_id, status")), Promise.resolve(sb.from("integrated_reading_rules").select("id, package_id, rule_type, status"))])
       .then(function (rs) {
         li.carregando = false;
+        rs.shift();
         var e = rs.filter(function (r) { return r && r.error; })[0];
         if (e) { li.erro = e.error; li.pacotes = []; return; }
         li.erro = null;
@@ -201,6 +220,7 @@
     var e = liEstado(p);
     var nd = (li.dominios || []).filter(function (d) { return d.package_id === p.id; }), nv = (li.vinculos || []).filter(function (v) { return v.package_id === p.id; }), nr = (li.regras || []).filter(function (r) { return r.package_id === p.id; });
     var contar = function (l) { return l.length + (l.length ? " (" + l.filter(function (x) { return x.status === "aprovado"; }).length + " aprovado(s))" : ""); };
+    html += htmlPapeis("integrated_reading");
     html += '<label class="evo-campo"><span>Pacote</span><select data-mh-li-pacote>' + li.pacotes.map(function (x) { return '<option value="' + escapar(x.id) + '"' + (x.id === p.id ? " selected" : "") + ">" + escapar(x.code + " v" + x.version + " · " + x.status) + "</option>"; }).join("") + "</select></label>" +
       '<ul class="mh-lista" id="mh-li-pacote"><li>package_id: <code>' + escapar(p.id) + "</code></li><li>version: <b>" + escapar(String(p.version)) + "</b> · status: " + tag(p.status) + "</li>" +
       "<li>domínios: " + contar(nd) + " · vínculos exame → domínio: " + contar(nv) + " · regras: " + contar(nr) + "</li>" +
@@ -218,7 +238,7 @@
     if (e.hash && (p.status === "em_revisao" || p.status === "rascunho") && e.proxima !== "homologar") {
       var etapa = e.proxima || (!e.ok1 ? 1 : 2);
       html += '<div class="mh-aprovar" id="mh-li-aprovar" data-mh-li-etapa="' + etapa + '"><label class="evo-campo"><span>Responsável (Aprovação ' + etapa + ")</span>" +
-        '<input type="text" data-mh-li-resp autocomplete="off" value=""></label>' +
+        campoResponsavel("integrated_reading", etapa, "data-mh-li-resp") + "</label>" +
         '<label class="evo-campo"><span>Justificativa</span><textarea data-mh-li-just rows="2"></textarea></label>' +
         '<label><input type="checkbox" data-mh-li-conferi> Conferi o pacote ' + escapar(p.code + " v" + p.version) + " com o hash " + escapar(e.hash.slice(0, 12)) + "…</label> " +
         '<button type="button" class="btn-fantasma" data-mh-li-acao="registrar-aprovacao">Registrar Aprovação ' + etapa + "</button></div>";
@@ -251,8 +271,9 @@
         }
         if (b.dataset.mhLiAcao === "homologar") {
           if (b.disabled) return;
-          var quem = window.prompt ? window.prompt("Quem executa a homologação (Daniel ou Rodrigo)?", "") : "";
-          if (!quem) { if (estado) estado.textContent = "Homologação não executada: informe quem executa."; return; }
+          var meu = (papeis || []).filter(function (r) { return r.scope === "integrated_reading"; })[0];
+          var quem = meu ? meu.display_name : "";
+          if (!quem) { if (estado) estado.textContent = "Homologação não executada: sua conta não é aprovador autorizado da Leitura Integrada."; return; }
           if (estado) estado.textContent = "Homologando…";
           liRpc("homologar_pacote_li", { p_package_id: p.id, p_version: p.version, p_content_hash: li.hash[p.id], p_responsavel: quem })
             .then(function () { return liCarregar(); }).then(function () { liAvisar("Pacote da Leitura Integrada homologado (aprovado)."); })
@@ -339,7 +360,7 @@
     if (nav && M && M.modoHomologacao()) nav.classList.remove("hidden");
     var botao = document.querySelector('.nav-item[data-secao="metodologia"]');
     if (botao) botao.addEventListener("click", function () { setTimeout(desenhar, 50); });
-    if (window.HoloAuth && window.HoloAuth.aoMudarEstado) window.HoloAuth.aoMudarEstado(function () { li = { pacotes: null, aprovacoes: [], sel: null, hash: {}, completude: {}, carregando: false, erro: null }; if (P()) P().carregar().then(function () { var s = document.getElementById("secao-metodologia"); if (s && s.classList.contains("ativa")) desenhar(); }); });
+    if (window.HoloAuth && window.HoloAuth.aoMudarEstado) window.HoloAuth.aoMudarEstado(function () { papeis = null; li = { pacotes: null, aprovacoes: [], sel: null, hash: {}, completude: {}, carregando: false, erro: null }; if (P()) P().carregar().then(function () { var s = document.getElementById("secao-metodologia"); if (s && s.classList.contains("ativa")) desenhar(); }); });
   });
   window.MetodologiaHomologacao = { desenhar: desenhar, selecionar: function (id) { pacoteSel = id; }, aba: function (a) { aba = a; } };
 })();

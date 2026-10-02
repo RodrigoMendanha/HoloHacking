@@ -96,6 +96,7 @@
     metodologia_regras:     { tabela: "methodology_rules", campos: {}, inverso: {} },
     metodologia_registros:  { tabela: "methodology_homologation_records", campos: {}, inverso: {} },
     metodologia_aprovacoes: { tabela: "methodology_package_approvals", campos: {}, inverso: {} },
+    metodologia_aprovadores: { tabela: "methodology_approvers", campos: {}, inverso: {} },
     /* V1, Etapa 5: laboratorio e Leitura Integrada (nomes iguais ao banco) */
     lab_catalogo:           { tabela: "lab_exam_catalog", campos: {}, inverso: {} },
     lab_customizados:       { tabela: "lab_custom_exams", campos: {}, inverso: {} },
