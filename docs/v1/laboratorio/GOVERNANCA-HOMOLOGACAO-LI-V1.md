@@ -14,6 +14,7 @@ Etapa 5.2 · 02/10/2026 · migration `20261002100000_governanca_leitura_integrad
 - Ordem obrigatória Daniel → Rodrigo. Rodrigo não aprova sem uma Aprovação 1 **vigente** (não invalidada) do mesmo `package_id`, `version` e `content_hash`.
 - Toda aprovação referencia exatamente `package_id` + `package_version` + `content_hash` (o hash que a pessoa conferiu na tela tem de ser o do conteúdo atual do servidor; a versão também).
 - Responsável diferente, "Liderança do método HOLOSCAN", hash divergente, versão divergente, justificativa vazia, pacote fora de `em_revisao`: **recusados**.
+- **Identidade real (Etapa 5.3, migration `20261002110000`)**: o chamador (`auth.uid()`) tem de ser o aprovador **ativo** do escopo `integrated_reading` e da etapa em `methodology_approvers` (cadastro só por gestão técnica; nasce vazia). O nome é display e tem de bater com o papel; a aprovação grava `approved_by` + `approver_id`. Aprovação 2 não pode ser do mesmo uid da Aprovação 1. `homologar_pacote_li` só por aprovador ativo da LI. Detalhe: `docs/v1/metodologia/APROVADORES-AUTORIZADOS.md`.
 - Só a RPC escreve na tabela de aprovações (sem GRANT de INSERT/UPDATE/DELETE para a aplicação); aprovação é **append-only**: nunca é apagada nem editada — só pode ser **invalidada uma vez**, com motivo.
 
 ## 2. O que entra no `content_hash`
@@ -52,13 +53,15 @@ Auditadas `methodology_package_approvals`, `metodologia_hash_conteudo`, `registr
 
 ## 7. Segurança
 
-Tabelas globais com RLS `select` para `authenticated` e **nenhum** GRANT de escrita; RPCs `SECURITY DEFINER` com `set search_path = ''`, `EXECUTE` só para `authenticated`; funções de trigger sem `EXECUTE` para roles de aplicação; nenhum admin genérico; `approved_by`/`homologated_by` = `auth.uid()` de quem clicou; o nome do responsável é o ato humano declarado (como no HOLOSCAN).
+Tabelas globais com RLS `select` para `authenticated` e **nenhum** GRANT de escrita; RPCs `SECURITY DEFINER` com `set search_path = ''`, `EXECUTE` só para `authenticated`; funções de trigger sem `EXECUTE` para roles de aplicação; nenhum admin genérico; `approved_by`/`homologated_by` = `auth.uid()` de quem clicou **e autorizado em `methodology_approvers`** (Etapa 5.3); o nome do responsável é display conferido contra o papel.
 
 ## 8. Tela
 
 `?homologacao=1` → Metodologia → seção **"Leitura Integrada — homologação metodológica"** (independente da seção do HOLOSCAN): `package_id`, `version`, `status`, contagens de domínios/vínculos/regras, `content_hash` do servidor (após **Conferir hash**, que também traz os bloqueios), Aprovação 1 e 2 (registrada / pendente / "não vale para o conteúdo atual"), invalidadas, ações **Conferir hash**, **Registrar Aprovação N** (responsável, justificativa, "conferi o hash"), **Homologar** (desabilitado com motivo enquanto houver bloqueio, faltar aprovação ou o pacote não estiver `em_revisao`). Aviso **"Metodologia da Leitura Integrada ainda não definida."** quando não há domínio aprovado — informação, não erro técnico.
 
 ## 9. Pendências
+
+- Cadastro real de Daniel e Rodrigo (uids) em `methodology_approvers`, nos dois escopos: gestão técnica, fora do repositório.
 
 - Validação da cadeia 130000 → 20261002100000 no banco real (sem conexão autorizada nesta sessão). Nenhuma migration aplicada.
 - Decisões clínicas 1–29 do pacote de decisão humana: **abertas**. Quando decididas, entram por migration versionada (domínios, vínculos, regras, dependências), o pacote passa a `em_revisao`, e só então Daniel → Rodrigo → Homologar.

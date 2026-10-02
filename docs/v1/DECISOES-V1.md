@@ -298,6 +298,22 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     Migration 20261002100000 (NÃO aplicada). **Nenhuma aprovação registrada; LI-V1@1 em rascunho; blocos
     clínicos 1–29 abertos** (`docs/v1/laboratorio/GOVERNANCA-HOMOLOGACAO-LI-V1.md`).
 
+### Etapa 5.3 — Identidade real na dupla aprovação; material do Bloco 1 (02/10/2026)
+
+88. **Aprovação é da conta autenticada autorizada, não do nome digitado.** Auditoria: as RPCs da 4.2 e da 5.2
+    validavam só a string "Daniel"/"Rodrigo" (vulnerabilidade B nos dois escopos). Correção (migration
+    20261002110000, NÃO aplicada): `methodology_approvers` (user_id, scope holoscan|integrated_reading,
+    approval_stage 1|2, display_name, active), escrita só por gestão técnica, nasce vazia, um papel por
+    pessoa e escopo; `registrar_aprovacao_metodologica`, `registrar_aprovacao_li` e `homologar_pacote_li`
+    exigem o aprovador autenticado do escopo+etapa; Aprovação 2 não pode ser do mesmo uid da Aprovação 1;
+    `approver_id` + `approved_by` no histórico; aprovador lê o pacote HOLOSCAN em_revisao alheio (só
+    leitura). Daniel → Rodrigo, hash, invalidação, histórico e ação final inalterados. Nenhum uid, e-mail
+    ou senha no repositório; nenhuma aprovação real (`docs/v1/metodologia/APROVADORES-AUTORIZADOS.md`).
+89. **Bloco 1 (domínios da Leitura Integrada) aberto para decisão humana** em
+    `docs/v1/laboratorio/DECISAO-01-DOMINIOS-LI.md`: NÃO HÁ DEFINIÇÃO HOMOLOGADA RECUPERADA; o legado (5
+    sistemas como dimensão) é evidência, não proposta; 5 arquiteturas apresentadas sem recomendação; nenhum
+    domínio criado; LI-V1@1 intocado.
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`
