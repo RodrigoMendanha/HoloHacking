@@ -2,7 +2,7 @@
 
 Etapa 5.1 · 02/10/2026 · branch `claude/v1-etapa5-1-decisoes-leitura-integrada` (a partir de `43daba2`) · para a liderança do método e os responsáveis clínicos.
 
-> **NENHUMA DECISÃO FOI TOMADA NESTE DOCUMENTO.** Os campos DECISÃO, JUSTIFICATIVA, RESPONSÁVEL e DATA estão em branco em todos os 30 blocos. Nenhuma opção está recomendada. Nenhum valor numérico de corte, janela ou referência é proposto.
+> **NENHUMA DECISÃO CLÍNICA FOI TOMADA NESTE DOCUMENTO.** Os campos DECISÃO, JUSTIFICATIVA, RESPONSÁVEL e DATA estão em branco nos blocos 1–29. **Etapa 5.2:** o bloco 30 (governança) foi **fechado tecnicamente** — a Leitura Integrada reutiliza a dupla aprovação Daniel → Rodrigo do HOLOSCAN (`GOVERNANCA-HOMOLOGACAO-LI-V1.md`); nenhuma aprovação real foi registrada. Nenhuma opção está recomendada. Nenhum valor numérico de corte, janela ou referência é proposto.
 >
 > **Autoridade.** Documento Mestre (§§21–24) = destino da V1. Etapa 5 (`ETAPA5-LABORATORIO.md`) = infraestrutura técnica, já entregue. AS-IS (`INVENTARIO-LABORATORIO-AS-IS.md`) = evidência histórica. **Nenhuma regra do confronto legado é proposta oficial só porque existia**: onde aparece, está marcada **LEGADO / INCOMPATÍVEL COMO REGRA OFICIAL SEM HOMOLOGAÇÃO**.
 >
@@ -38,7 +38,7 @@ Etapa 5.1 · 02/10/2026 · branch `claude/v1-etapa5-1-decisoes-leitura-integrada
 | 25 | Comparabilidade longitudinal da LI | Evolução da própria LI |
 | 26, 27, 28, 29 | Derivados, customizados, legado fora dos 45, Insulina | cobertura de itens específicos |
 
-O **primeiro bloco que exige decisão humana** é o **30** (quem aprova e como), porque sem ele nenhum dos outros pode ser registrado; o primeiro bloco **metodológico** é o **1**.
+O bloco **30** (quem aprova e como) foi fechado tecnicamente na Etapa 5.2; o **primeiro bloco que exige decisão humana** passa a ser o **1** (domínios).
 
 ---
 
@@ -881,10 +881,12 @@ DATA: ______
 
 **Bloqueado enquanto aberto.** O registro de todas as outras decisões.
 
-DECISÃO: ______ (autoridade: ______ · reutiliza Daniel → Rodrigo: ______ · hash: ______ · invalidação: ______)
-JUSTIFICATIVA: ______
-RESPONSÁVEL: ______
-DATA: ______
+**FECHADO TECNICAMENTE — Etapa 5.2 (02/10/2026).**
+DECISÃO: a Leitura Integrada reutiliza a governança humana do Pacote Metodológico HOLOSCAN. Aprovação 1 = Daniel (responsável primário); Aprovação 2 = Rodrigo (revisão final); ordem obrigatória; as duas sobre o mesmo `package_id`, `version` e `content_hash` (hash canônico de pacote, domínios, vínculos com referência resolvida, todas as regras, dependências resolvidas — referências/conversões/derivados só elegíveis quando referenciados pelo pacote). Qualquer mudança metodológica invalida as aprovações vigentes (histórico append-only com motivo); voltar ao hash antigo não reativa. As duas aprovações não homologam: `homologar_pacote_li` é a ação final explícita, que exige validador de completude sem bloqueio, hash/versão atuais e as duas aprovações vigentes, e grava snapshot imutável. Implementação por estruturas próprias que espelham o contrato da 4.2 (opção B; justificativa em `GOVERNANCA-HOMOLOGACAO-LI-V1.md`). Migration `20261002100000`, não aplicada.
+JUSTIFICATIVA: ordem de serviço da Etapa 5.2 (mesma governança já adotada para o HOLOSCAN na Etapa 4.2, decisão 67).
+RESPONSÁVEL: definido pela ordem da Etapa 5.2 (governança); **nenhuma aprovação real registrada**.
+DATA: 02/10/2026.
+**O que continua aberto:** todo o conteúdo (blocos 1–29). Até ser decidido e levado ao pacote por migration versionada, `LI-V1@1` permanece em `rascunho`, incompleto, e **Homologar** fica bloqueado.
 
 ---
 

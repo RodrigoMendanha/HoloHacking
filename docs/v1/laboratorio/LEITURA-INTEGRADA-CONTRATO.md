@@ -1,6 +1,6 @@
 # LEITURA INTEGRADA — CONTRATO DA INFRAESTRUTURA V1
 
-Etapa 5 · `leitura-integrada-motor.js` (`motor-leitura-integrada-1.0.0`) · migration `20261001220000` · UI em `laboratorio.js` (`#holo-confronto` e aba HOLOSCAN da ficha).
+Etapa 5 · `leitura-integrada-motor.js` (`motor-leitura-integrada-1.0.0`) · migration `20261001220000` · UI em `laboratorio.js` (`#holo-confronto` e aba HOLOSCAN da ficha) · **Etapa 5.2**: governança e dupla aprovação em `20261002100000` (`GOVERNANCA-HOMOLOGACAO-LI-V1.md`).
 
 > **IMPLEMENTA A INFRAESTRUTURA. NÃO INVENTA A METODOLOGIA.** O pacote real `LI-V1` nasce em `rascunho`, **sem** domínio, **sem** vínculo exame → domínio, **sem** suficiência, **sem** janela temporal, **sem** regra de resultados mistos, **sem** textos. Logo o único estado real possível é `sem_dados_suficientes`.
 
@@ -11,6 +11,9 @@ Etapa 5 · `leitura-integrada-motor.js` (`motor-leitura-integrada-1.0.0`) · mig
 | `integrated_reading_rule_packages` | `code`, `version`, `status`, `content_hash`, `responsible`, `approval_provenance` | `LI-V1@1`, `rascunho` |
 | `integrated_reading_domains` | `package_id`, `code`, `name`, `holoscan_system` (opcional, **não** é mapeamento automático), `status` | **0 linhas** |
 | `integrated_reading_exam_domain_links` | `domain_id`, `exam_code`, `variant`, `material`, `direction` (`any/above/below`), `reference_id`, `status` | **0 linhas** |
+| `integrated_reading_package_dependencies` (5.2) | `package_id`, `kind` (`reference/conversion/derived`), `ref_id`, `status` — o que o pacote USA; só o referenciado aqui (ou em `links.reference_id`) entra no hash e é elegível | **0 linhas** |
+| `integrated_reading_package_approvals` (5.2) | append-only: `package_id`, `package_version`, `content_hash`, `step` (1 Daniel / 2 Rodrigo), `role`, `responsible`, `justification`, `approved_by/at`, `invalidated_at/reason` | **0 linhas** |
+| `integrated_reading_package_snapshots` (5.2) | conteúdo canônico congelado na homologação | **0 linhas** |
 | `integrated_reading_rules` | `rule_type` ∈ `sufficiency` (`min_results`), `temporal` (`max_days`), `mixed` (`policy`), `convergence` (`holoscan_max_nota` ou `holoscan_faixa`), `text` (`convergente/divergente/sem_dados_suficientes`), `status` | **0 linhas** |
 
 Domínio ≠ sistema HOLOSCAN: nenhum domínio é criado, e nenhum exame é mapeado a Fúngico/Metabólico/Ácido Inflamatório etc. Isso é decisão metodológica (`HOMOLOGACAO-LEITURA-INTEGRADA-PENDENTE.md`).
@@ -38,6 +41,10 @@ Congela: `patient_id`, `nutritionist_id`, `responsible`, `clinical_context`, `en
 - Barreira no servidor: com `LI-V1` sem vínculo aprovado (e sem `status = aprovado`), só `sem_dados_suficientes` é aceito; `convergente/divergente` são recusados.
 - Imutável (trigger): correção = nova revisão (`supersedes_id`), anterior preservada. Nova coleta futura ou nova regra futura **não** alteram leitura salva.
 - Não toca `holoscan_applications`, `holoscan_system_scores`, Índice, Tríada, respostas, `methodology_package_id` nem contrato do motor (testes de banco e UI).
+
+## Governança do pacote (Etapa 5.2)
+
+Mesma governança humana do HOLOSCAN: **Aprovação 1 Daniel → Aprovação 2 Rodrigo**, sobre o mesmo `package_id`, `version` e `content_hash` (`li_hash_conteudo`, canônico: pacote, domínios, vínculos com referência resolvida, todas as regras, dependências resolvidas). Qualquer mudança metodológica invalida as aprovações (histórico com motivo); voltar ao hash antigo não reativa. As duas aprovações não homologam: `homologar_pacote_li` é a ação final, que exige `li_validar_completude` sem bloqueio, hash/versão atuais e as duas aprovações vigentes, e grava snapshot imutável. `aprovado` só por essa RPC; aprovado/retirado imutáveis. Detalhes: `GOVERNANCA-HOMOLOGACAO-LI-V1.md`. **Nada registrado; LI-V1@1 em rascunho.**
 
 ## Fronteiras
 

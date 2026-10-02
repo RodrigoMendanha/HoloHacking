@@ -284,6 +284,20 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
 86. **Homologação da Leitura Integrada e das referências metodológicas é decisão humana pendente**
     (`docs/v1/laboratorio/HOMOLOGACAO-LEITURA-INTEGRADA-PENDENTE.md`); nenhuma aprovação registrada.
 
+### Etapa 5.2 — Governança e dupla aprovação da Leitura Integrada (02/10/2026)
+
+87. **A Leitura Integrada reutiliza a governança humana do HOLOSCAN (decisão 67).** Aprovação 1 = Daniel
+    (responsável primário); Aprovação 2 = Rodrigo (revisão final); ordem obrigatória; as duas sobre o mesmo
+    `package_id`, `version` e `content_hash`. Hash canônico cobre pacote, domínios, vínculos (com referência
+    resolvida), todas as regras e dependências resolvidas (referências, conversões, derivados — elegíveis só
+    quando referenciados pelo pacote). Mudança metodológica invalida (histórico append-only com motivo);
+    voltar ao hash antigo não reativa. As duas aprovações não homologam: `homologar_pacote_li` é a ação
+    final, exige validador de completude sem bloqueio, hash/versão atuais e as duas aprovações vigentes, e
+    grava snapshot imutável. `aprovado` só por essa RPC; aprovado/retirado imutáveis. Estruturas próprias
+    espelhando o contrato da 4.2 (opção B: a tabela do HOLOSCAN é por profissional, o pacote LI é global).
+    Migration 20261002100000 (NÃO aplicada). **Nenhuma aprovação registrada; LI-V1@1 em rascunho; blocos
+    clínicos 1–29 abertos** (`docs/v1/laboratorio/GOVERNANCA-HOMOLOGACAO-LI-V1.md`).
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`
@@ -326,7 +340,8 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
 - **Leitura Integrada** — a Etapa 5 entregou a **infraestrutura** (itens 82–84); continuam pendentes
   as decisões humanas: domínios, vínculo exame↔domínio, suficiência, janela temporal, referências
   metodológicas, conversões, cálculos derivados, resultados mistos, regras de convergência/divergência
-  e textos (`docs/v1/laboratorio/HOMOLOGACAO-LEITURA-INTEGRADA-PENDENTE.md`). (Mestre §24)
+  e textos (`docs/v1/laboratorio/HOMOLOGACAO-LEITURA-INTEGRADA-PENDENTE.md`); a governança (quem aprova) foi
+  fechada tecnicamente na Etapa 5.2 (item 87). (Mestre §24)
 - **Regras de sugestão de ferramentas** — nenhuma das 23 REC nem SEL-001 é aprovada; a Etapa 4.2
   decidiu que nenhuma sugestão automática é oficial na V1 (item 65). (Mestre §29)
 - **Conteúdo mínimo para "Concluir" uma ferramenta** — a guarda técnica da Rodada 08

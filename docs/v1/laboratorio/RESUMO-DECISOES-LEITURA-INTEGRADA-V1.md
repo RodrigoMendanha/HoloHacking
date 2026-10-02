@@ -2,7 +2,7 @@
 
 Etapa 5.1 · 02/10/2026 · resumo de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md`. **Nenhuma decisão tomada; nenhuma opção recomendada; nenhum valor proposto.** "Hoje" = estado técnico da Etapa 5. "Legado" = confronto antigo (`nota ≤ 3` × um exame fora da faixa do CSV), **LEGADO / INCOMPATÍVEL COMO REGRA OFICIAL SEM HOMOLOGAÇÃO**, visível só em `?homologacao=1`.
 
-Enquanto os blocos 1–22 estiverem abertos, toda Leitura Integrada real é **sem dados suficientes**. Enquanto o bloco 30 estiver aberto, nenhuma decisão pode ser registrada no sistema.
+Enquanto os blocos 1–22 estiverem abertos, toda Leitura Integrada real é **sem dados suficientes**. O bloco 30 (governança) está fechado tecnicamente: quando houver conteúdo decidido, ele entra por migration, o pacote passa a `em_revisao` e segue Daniel → Rodrigo → Homologar.
 
 Significados fixos: CONVERGENTE ≠ diagnóstico; DIVERGENTE não invalida relato nem exame; SEM DADOS SUFICIENTES é obrigatório quando falta fonte, regra, referência, compatibilidade, suficiência ou tratamento aprovado de mistos.
 
@@ -37,8 +37,8 @@ Significados fixos: CONVERGENTE ≠ diagnóstico; DIVERGENTE não invalida relat
 | 27 | Customizados | fora da LI | inexistente | fora, promoção ao catálogo |
 | 28 | Candida IgG, VHS, HOMA-IR, Cortisol | `additional_legacy` | vínculos a 4 sistemas | manter, catálogo, custom |
 | 29 | Insulina de jejum ↔ basal | `exam_code` nulo, `requires_manual_mapping` | EXA-006 → metabolico | alias seguro, variante, pendente, custom — **não automático** |
-| 30 | Homologação do pacote LI | tabela aceita `aprovado`, sem RPC/hash/invalidação/botão | sem processo | quem aprova; reutilizar Daniel → Rodrigo; hash; invalidação |
+| 30 | Homologação do pacote LI | **FECHADO TECNICAMENTE (Etapa 5.2)**: Daniel → Rodrigo, hash canônico, invalidação, `homologar_pacote_li` com completude, snapshot; 0 aprovações registradas | sem processo | — (conteúdo dos blocos 1–29 continua aberto) |
 
-**Primeiro bloco que exige decisão humana:** 30 (governança); primeiro metodológico: 1.
+**Primeiro bloco que exige decisão humana:** 1 (domínios) — o 30 (governança) foi fechado tecnicamente na Etapa 5.2 (`GOVERNANCA-HOMOLOGACAO-LI-V1.md`), sem nenhuma aprovação real.
 
 **Contagens da Etapa 5 (Anexo A do pacote):** harness 114 → 116 = L42/L43 acrescentados em `8a3524c`; EXA: 24 = 19 mapeados + 1 manual (EXA-006) + 4 `additional_legacy`.
