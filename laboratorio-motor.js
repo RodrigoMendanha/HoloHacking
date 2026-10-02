@@ -16,7 +16,7 @@
 (function () {
   "use strict";
   var raiz = typeof window !== "undefined" ? window : globalThis;
-  var VERSAO = "motor-lab-1.0.0";
+  var VERSAO = "motor-lab-1.1.0";   // 1.1.0 (Etapa 6): censurado deterministico (DECISAO 15) e referencia ambigua (DECISAO 07)
 
   function vazio(v) { return v === null || v === undefined || String(v).trim() === ""; }
   function normU(u) { return String(u || "").replace(/\s+/g, "").replace(/µ/g, "u").toLowerCase(); }
@@ -84,10 +84,11 @@
     if (v.kind === "empty") return out("not_classifiable", ["empty_value"]);
     if (v.kind === "qualitative") return out("not_classifiable", ["qualitative_without_rule"]);
     if (!ref) return out("not_classifiable", ["missing_reference"]);
+    if (ref.ambiguous === true) return out("not_classifiable", ["ambiguous_reference"]);   // DECISAO 07: referencia do laudo ambigua nunca e classificada
     if (ref.source === "metodologica" && ref.status !== "aprovado") return out("not_classifiable", ["reference_not_approved"]);
     var inc = compativel(ref, res); if (inc.length) return out("not_classifiable", inc);
-    if (v.kind === "censored") return out("not_classifiable", ["censored_value"]);
-    var valor = v.numeric_value, unidade = res.unit_original;
+    var valor = v.kind === "censored" ? v.censor_limit : v.numeric_value, unidade = res.unit_original;
+    if (v.kind === "censored" && valor === null) return out("not_classifiable", ["censored_value_ambiguous"]);
     if (!vazio(ref.unit) && !vazio(unidade) && normU(ref.unit) !== normU(unidade)) {
       var c = converter(valor, unidade, ref.unit, opcoes.conversoes, res.exam_code);
       if (!c.ok) return out("not_classifiable", ["incompatible_unit"]);
@@ -96,7 +97,18 @@
     } else if (vazio(ref.unit) !== vazio(unidade)) return out("not_classifiable", ["incompatible_unit"]);
     var op = ref.operator || "range", min = typeof ref.min === "number" ? ref.min : null, max = typeof ref.max === "number" ? ref.max : null;
     if (op === "range" && (min === null || max === null)) { if (min === null && max === null) return out("not_classifiable", ["missing_reference"]); op = min === null ? "lte" : "gte"; }
-    trace.steps.push({ step: "compare", value: valor, operator: op, min: min, max: max });
+    trace.steps.push({ step: "compare", value: valor, operator: op, min: min, max: max, censored: v.kind === "censored" ? v.qualifier : null });
+    /* DECISAO 15: valor censurado so classifica quando o intervalo PROVA um unico estado; numeric_value continua nulo.
+       "< L": todo valor possivel e < L -> below se L <= min; within se (max e L <= max e nao ha min); senao ambiguo.
+       "> L": todo valor possivel e > L -> above se L >= max; within se (min e L >= min e nao ha max); senao ambiguo. */
+    if (v.kind === "censored") {
+      var q = v.qualifier, abaixo = q === "lt" || q === "lte", acima = q === "gt" || q === "gte";
+      if (abaixo && min !== null && valor <= min && (op === "range" || op === "gt" || op === "gte")) return out("below", []);
+      if (acima && max !== null && valor >= max && (op === "range" || op === "lt" || op === "lte")) return out("above", []);
+      if (abaixo && (op === "lt" || op === "lte") && max !== null && valor <= max) return out("within", []);
+      if (acima && (op === "gt" || op === "gte") && min !== null && valor >= min) return out("within", []);
+      return out("not_classifiable", ["censored_value_ambiguous"]);
+    }
     if (op === "range") return out(valor < min ? "below" : valor > max ? "above" : "within", []);
     if (op === "lt") return out(valor < max ? "within" : "above", []);
     if (op === "lte") return out(valor <= max ? "within" : "above", []);
@@ -138,5 +150,5 @@
     ROTULO: { below: "abaixo da referência informada", within: "dentro da referência informada", above: "acima da referência informada", not_classifiable: "não classificável" },
     MOTIVO: { empty_value: "sem valor", qualitative_without_rule: "resultado qualitativo sem regra homologada", missing_reference: "sem referência do laudo", reference_not_approved: "referência metodológica não aprovada",
       incompatible_unit: "unidade incompatível (sem conversão aprovada)", incompatible_variant: "variante incompatível", incompatible_material: "material incompatível", incompatible_method: "método incompatível",
-      censored_value: "valor censurado (limite do método) sem regra", unknown_operator: "operador de referência desconhecido", missing_result: "sem resultado", different_exam: "exames diferentes", non_numeric_value: "valor não numérico" } };
+      censored_value_ambiguous: "valor censurado (limite do método) cujo intervalo não prova um único estado", ambiguous_reference: "referência do laudo ambígua", unknown_operator: "operador de referência desconhecido", missing_result: "sem resultado", different_exam: "exames diferentes", non_numeric_value: "valor não numérico" } };
 })();
