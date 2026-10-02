@@ -49,7 +49,8 @@ const COLUNAS = {
   methodology_rules: ['id', 'nutritionist_id', 'package_id', 'rule_type', 'target', 'payload', 'status', 'source', 'notes', 'created_at', 'updated_at'],
   methodology_homologation_records: ['id', 'nutritionist_id', 'package_id', 'topic', 'element', 'version', 'decision', 'responsible', 'decided_at', 'source', 'justification', 'evidence', 'created_by', 'created_at'],
   // dupla aprovacao (migration 20261001210000): so a RPC escreve
-  methodology_package_approvals: ['id', 'nutritionist_id', 'package_id', 'package_version', 'content_hash', 'step', 'role', 'responsible', 'justification', 'approved_by', 'approved_at', 'invalidated_at', 'invalidated_reason', 'created_at'],
+  methodology_package_approvals: ['id', 'nutritionist_id', 'package_id', 'package_version', 'content_hash', 'step', 'role', 'responsible', 'justification', 'approved_by', 'approved_at', 'invalidated_at', 'invalidated_reason', 'created_at', 'approver_id'],
+  methodology_approvers: ['id', 'user_id', 'scope', 'approval_stage', 'display_name', 'active', 'notes', 'created_at', 'created_by'],
   schedule_blocks: ['id', 'nutritionist_id', 'data', 'inicio', 'fim', 'dia_todo', 'motivo', 'created_at', 'updated_at'],
   holoscan_applications: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'quando', 'versao_estrutura', 'versao_bancos', 'indice', 'indice_maximo', 'avaliavel', 'nota_media', 'triada', 'triada_com_dado', 'cobertura', 'combinacoes', 'aprofundamentos', 'interpretacao_texto', 'interpretacao_em', 'interpretacao_versao', 'created_at', 'updated_at', 'methodology_package_id'],
   holoscan_answers: ['id', 'application_id', 'marcador_id', 'valor', 'created_at'],
@@ -72,7 +73,7 @@ const COLUNAS = {
   integrated_reading_exam_domain_links: ['id', 'package_id', 'domain_id', 'exam_code', 'variant', 'material', 'direction', 'reference_id', 'status', 'created_at'],
   integrated_reading_rules: ['id', 'package_id', 'rule_type', 'target', 'payload', 'status', 'created_at'],
   integrated_reading_package_dependencies: ['id', 'package_id', 'kind', 'ref_id', 'status', 'created_at'],
-  integrated_reading_package_approvals: ['id', 'package_id', 'package_version', 'content_hash', 'step', 'role', 'responsible', 'justification', 'approved_by', 'approved_at', 'invalidated_at', 'invalidated_reason', 'created_at'],
+  integrated_reading_package_approvals: ['id', 'package_id', 'package_version', 'content_hash', 'step', 'role', 'responsible', 'justification', 'approved_by', 'approved_at', 'invalidated_at', 'invalidated_reason', 'created_at', 'approver_id'],
   integrated_reading_package_snapshots: ['id', 'package_id', 'package_version', 'content_hash', 'snapshot', 'approval_1', 'approval_2', 'homologated_by', 'homologated_at'],
   integrated_readings: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'responsible', 'clinical_context', 'holoscan_application_id', 'selected_collection_ids', 'selected_result_ids', 'references_snapshot', 'sources_snapshot', 'rule_package_id', 'rule_version', 'engine_version', 'state', 'reason_codes', 'trace', 'professional_note', 'revision', 'supersedes_id', 'superseded_at', 'content_hash', 'created_by', 'created_at'],
   tool_applications: ['id', 'nutritionist_id', 'patient_id', 'consultation_id', 'encounter_id', 'ferramenta_id', 'versao_ferramenta', 'origem_legada', 'status', 'iniciada_em', 'concluida_em', 'atualizada_em', 'respostas', 'resultado', 'leitura', 'prioridade', 'proximo_passo', 'created_at', 'updated_at'],
@@ -182,13 +183,19 @@ export function criarServidor() {
   }
 
   function pacoteDe(id) { return s.tabelas.methodology_packages.find(p => p.id === id); }
+  /* Etapa 5.3: identidade real da dupla aprovacao — quem (auth user) e aprovador de qual escopo e etapa (methodology_approvers,
+     configurada so por gestao tecnica: s.gestaoTecnica). O nome e display; a autorizacao e pelo uid. */
+  const aprovador = (uid, scope, stage) => s.tabelas.methodology_approvers.find(a => a.user_id === uid && a.scope === scope && a.approval_stage === stage && a.active) || null;
+  const ehAprovador = (uid, scope) => s.tabelas.methodology_approvers.some(a => a.user_id === uid && a.scope === scope && a.active);
   function visiveis(tabela, uid) {
     return s.tabelas[tabela].filter(l => {
       if (dono(tabela, l) === uid) return true;
       // RLS da Etapa 4: pacote aprovado/retirado (e suas filhas) e legivel por qualquer autenticado
       if (GLOBAIS_SO_LEITURA.includes(tabela)) return true;
-      if (tabela === 'methodology_packages') return ['aprovado', 'retirado'].includes(l.status);
-      if (FILHAS_PACOTE.includes(tabela) || tabela === 'methodology_package_approvals') { const p = pacoteDe(l.package_id); return !!p && ['aprovado', 'retirado'].includes(p.status); }
+      if (tabela === 'methodology_approvers') return l.user_id === uid;   // Etapa 5.3: cada conta le so os proprios papeis
+      // Etapa 5.3: aprovador autorizado do HOLOSCAN le o pacote em_revisao de outro profissional (para conferir o hash)
+      if (tabela === 'methodology_packages') return ['aprovado', 'retirado'].includes(l.status) || (l.status === 'em_revisao' && ehAprovador(uid, 'holoscan'));
+      if (FILHAS_PACOTE.includes(tabela) || tabela === 'methodology_package_approvals') { const p = pacoteDe(l.package_id); return !!p && (['aprovado', 'retirado'].includes(p.status) || (p.status === 'em_revisao' && ehAprovador(uid, 'holoscan'))); }
       return false;
     });
   }
@@ -601,6 +608,13 @@ export function criarServidor() {
     const alvo = acao === 'insert' ? [] : filtrar(tab, filtros || []);
     const pkgDe = (l) => s.tabelas.integrated_reading_rule_packages.find(x => x.id === l.package_id);
     const protegido = (pid) => { const pk = s.tabelas.integrated_reading_rule_packages.find(x => x.id === pid); return pk && ['aprovado', 'retirado'].includes(pk.status) && s.liHomologar !== pid; };
+    if (tabela === 'methodology_approvers') {
+      if (acao !== 'insert') { alvo.forEach(l => Object.assign(l, dados)); return { data: alvo.map(copia), error: null }; }
+      if (!['holoscan', 'integrated_reading'].includes(dados.scope) || ![1, 2].includes(dados.approval_stage)) return erro('violates check constraint "approvers_scope/stage"', '23514');
+      if (!((dados.approval_stage === 1 && dados.display_name === 'Daniel') || (dados.approval_stage === 2 && dados.display_name === 'Rodrigo'))) return erro('violates check constraint "approvers_nome_por_etapa"', '23514');
+      if (tab.some(a => a.scope === dados.scope && a.user_id === dados.user_id)) return erro('duplicate key value violates unique constraint "approvers_um_papel_por_escopo"', '23505');
+      const l = novaLinha(tabela, Object.assign({ active: true }, dados), null); tab.push(l); return { data: [copia(l)], error: null };
+    }
     if (tabela === 'integrated_reading_package_approvals' || tabela === 'integrated_reading_package_snapshots') {
       if (acao === 'delete') return erro(tabela === 'integrated_reading_package_approvals' ? 'aprovacao da leitura integrada e historico: nao e apagada' : 'snapshot homologado da leitura integrada e imutavel', 'P0001');
       if (acao === 'update') return erro(tabela === 'integrated_reading_package_approvals' ? 'aprovacao da leitura integrada e imutavel: so pode ser invalidada (uma vez)' : 'snapshot homologado da leitura integrada e imutavel', 'P0001');
@@ -649,6 +663,7 @@ export function criarServidor() {
   function consultar(uid, q) {
     const t = q.tabela;
     if (t === 'methodology_package_approvals' && q.acao !== 'select') return erro('permission denied for table methodology_package_approvals', '42501');
+    if (t === 'methodology_approvers' && q.acao !== 'select') return erro('permission denied for table methodology_approvers', '42501');
     if ((GLOBAIS_SO_LEITURA.includes(t) || t === 'integrated_readings') && q.acao !== 'select' && uid) return erro('permission denied for table ' + t, '42501');
     if (uid && (t in s.tabelas)) { const pe = protegerLab(q, uid); if (pe) return pe; }
     const filhaConteudo = FILHAS_PACOTE.includes(t) && t !== 'methodology_homologation_records' && ['insert', 'upsert', 'update', 'delete'].includes(q.acao);
@@ -1077,13 +1092,17 @@ export function criarServidor() {
     }
     if (nome === 'registrar_aprovacao_metodologica') {
       const id = args && args.p_package_id, etapa = args && args.p_etapa, resp = String((args && args.p_responsavel) || '').trim(), just = String((args && args.p_justificativa) || '').trim();
-      const pk = s.tabelas.methodology_packages.find(x => x.id === id && x.nutritionist_id === uid);
-      if (!pk) return erro('pacote ' + id + ' nao encontrado', 'P0002');
-      if (pk.status !== 'em_revisao') return erro('so um pacote em_revisao recebe aprovacao (status atual: ' + pk.status + ')', 'P0001');
+      if (!uid) return erro('nao autenticado', 'P0001');
+      if (etapa !== 1 && etapa !== 2) return erro('etapa de aprovacao invalida: ' + etapa, 'P0001');
       if (/lideran/i.test(resp)) return erro('aprovacao nao pode ser atribuida a "Liderança do método HOLOSCAN": informe a pessoa', 'P0001');
       if (etapa === 1 && resp !== 'Daniel') return erro('Aprovacao 1 e do responsavel primario pela homologacao (Daniel)', 'P0001');
       if (etapa === 2 && resp !== 'Rodrigo') return erro('Aprovacao 2 e do segundo responsavel / revisao final (Rodrigo)', 'P0001');
-      if (etapa !== 1 && etapa !== 2) return erro('etapa de aprovacao invalida: ' + etapa, 'P0001');
+      // Etapa 5.3: identidade real — o usuario autenticado tem de ser o aprovador ativo deste escopo e etapa
+      const ap = aprovador(uid, 'holoscan', etapa);
+      if (!ap || ap.display_name !== resp) return erro('o usuario autenticado nao e o aprovador autorizado para a Aprovacao ' + etapa + ' do HOLOSCAN (' + resp + ')', 'P0001');
+      const pk = s.tabelas.methodology_packages.find(x => x.id === id);
+      if (!pk) return erro('pacote ' + id + ' nao encontrado', 'P0002');
+      if (pk.status !== 'em_revisao') return erro('so um pacote em_revisao recebe aprovacao (status atual: ' + pk.status + ')', 'P0001');
       if (!just) return erro('aprovacao exige justificativa', 'P0001');
       const h = hashServidor(id);
       if (args.p_content_hash !== h) return erro('o pacote mudou: o hash conferido (' + String(args.p_content_hash || 'nenhum').slice(0, 12) + ') nao e o do conteudo atual (' + h.slice(0, 12) + ')', 'P0001');
@@ -1093,11 +1112,12 @@ export function criarServidor() {
       const v1 = vigentes(id).find(a => a.step === 1), v2 = vigentes(id).find(a => a.step === 2);
       if (etapa === 1 && v1) return erro('Aprovacao 1 ja registrada para este conteudo', 'P0001');
       if (etapa === 2 && !v1) return erro('Aprovacao 2 exige uma Aprovacao 1 (Daniel) valida sobre o mesmo package_id, version e content_hash', 'P0001');
+      if (etapa === 2 && v1.approved_by === uid) return erro('Aprovacao 2 tem de ser de outra pessoa (quatro olhos): o mesmo usuario registrou a Aprovacao 1', 'P0001');
       if (etapa === 2 && v2) return erro('Aprovacao 2 ja registrada para este conteudo', 'P0001');
-      const linha = { id: randomUUID(), nutritionist_id: uid, package_id: id, package_version: pk.version, content_hash: h, step: etapa, role: etapa === 1 ? 'responsavel_primario' : 'revisao_final',
-        responsible: etapa === 1 ? 'Daniel' : 'Rodrigo', justification: just, approved_by: uid, approved_at: carimbo(), invalidated_at: null, invalidated_reason: null, created_at: carimbo() };
+      const linha = { id: randomUUID(), nutritionist_id: pk.nutritionist_id, package_id: id, package_version: pk.version, content_hash: h, step: etapa, role: etapa === 1 ? 'responsavel_primario' : 'revisao_final',
+        responsible: ap.display_name, justification: just, approved_by: uid, approver_id: ap.id, approved_at: carimbo(), invalidated_at: null, invalidated_reason: null, created_at: carimbo() };
       s.tabelas.methodology_package_approvals.push(linha);
-      return { data: { id: linha.id, package_id: id, package_version: pk.version, content_hash: h, etapa, responsavel: linha.responsible, status_pacote: pk.status }, error: null };
+      return { data: { id: linha.id, package_id: id, package_version: pk.version, content_hash: h, etapa, responsavel: linha.responsible, approved_by: uid, approver_id: ap.id, status_pacote: pk.status }, error: null };
     }
     if (nome === 'aprovar_pacote_metodologico') {
       const id = args && args.p_package_id, reg = (args && args.p_registro) || {};
@@ -1234,6 +1254,10 @@ export function criarServidor() {
       return { data: { id: linha.id, state: p.state, revision: rev, content_hash: h }, error: null };
     }
     // ---------- V1 Etapa 5.2: governanca da Leitura Integrada ----------
+    if (nome === 'meus_papeis_aprovacao') {
+      if (!uid) return erro('nao autenticado', 'P0001');
+      return { data: s.tabelas.methodology_approvers.filter(a => a.user_id === uid && a.active).sort((a, b) => cmp(a.scope + a.approval_stage, b.scope + b.approval_stage)).map(a => ({ scope: a.scope, approval_stage: a.approval_stage, display_name: a.display_name })), error: null };
+    }
     if (nome === 'li_conteudo_canonico' || nome === 'li_hash_conteudo' || nome === 'li_validar_completude') {
       const id = args && args.p_package_id;
       if (!uid) return erro('nao autenticado', 'P0001');
@@ -1250,6 +1274,8 @@ export function criarServidor() {
       if (etapa !== 1 && etapa !== 2) return erro('etapa de aprovacao invalida: ' + etapa, 'P0001');
       if (etapa === 1 && resp !== 'Daniel') return erro('Aprovacao 1 e do responsavel primario (Daniel)', 'P0001');
       if (etapa === 2 && resp !== 'Rodrigo') return erro('Aprovacao 2 e da revisao final (Rodrigo)', 'P0001');
+      const ap = aprovador(uid, 'integrated_reading', etapa);   // Etapa 5.3: identidade real
+      if (!ap || ap.display_name !== resp) return erro('o usuario autenticado nao e o aprovador autorizado para a Aprovacao ' + etapa + ' da Leitura Integrada (' + resp + ')', 'P0001');
       if (!just) return erro('aprovacao exige justificativa', 'P0001');
       if (args.p_version !== pk.version) return erro('a versao conferida (' + args.p_version + ') nao e a versao atual do pacote (' + pk.version + ')', 'P0001');
       const h = liHash(id);
@@ -1258,11 +1284,12 @@ export function criarServidor() {
       const v1 = liVigentes(id).find(a => a.step === 1), v2 = liVigentes(id).find(a => a.step === 2);
       if (etapa === 1 && v1) return erro('Aprovacao 1 ja registrada para este conteudo', 'P0001');
       if (etapa === 2 && !v1) return erro('Aprovacao 2 exige uma Aprovacao 1 (Daniel) vigente sobre o mesmo package_id, version e content_hash', 'P0001');
+      if (etapa === 2 && v1.approved_by === uid) return erro('Aprovacao 2 tem de ser de outra pessoa (quatro olhos): o mesmo usuario registrou a Aprovacao 1', 'P0001');
       if (etapa === 2 && v2) return erro('Aprovacao 2 ja registrada para este conteudo', 'P0001');
-      const linha = { id: randomUUID(), package_id: id, package_version: pk.version, content_hash: h, step: etapa, role: etapa === 1 ? 'responsavel_primario' : 'revisao_final', responsible: etapa === 1 ? 'Daniel' : 'Rodrigo',
-        justification: just, approved_by: uid, approved_at: carimbo(), invalidated_at: null, invalidated_reason: null, created_at: carimbo() };
+      const linha = { id: randomUUID(), package_id: id, package_version: pk.version, content_hash: h, step: etapa, role: etapa === 1 ? 'responsavel_primario' : 'revisao_final', responsible: ap.display_name,
+        justification: just, approved_by: uid, approver_id: ap.id, approved_at: carimbo(), invalidated_at: null, invalidated_reason: null, created_at: carimbo() };
       s.tabelas.integrated_reading_package_approvals.push(linha);
-      return { data: { id: linha.id, package_id: id, package_version: pk.version, content_hash: h, etapa, responsavel: linha.responsible, status_pacote: pk.status, completude: liValidar(id) }, error: null };
+      return { data: { id: linha.id, package_id: id, package_version: pk.version, content_hash: h, etapa, responsavel: linha.responsible, approved_by: uid, approver_id: ap.id, status_pacote: pk.status, completude: liValidar(id) }, error: null };
     }
     if (nome === 'homologar_pacote_li') {
       if (!uid) return erro('nao autenticado', 'P0001');
@@ -1271,6 +1298,8 @@ export function criarServidor() {
       if (!pk) return erro('pacote ' + id + ' nao encontrado', 'P0002');
       if (pk.status !== 'em_revisao') return erro('so um pacote em_revisao pode ser homologado (status atual: ' + pk.status + ')', 'P0001');
       if (/lideran/i.test(resp) || !['Daniel', 'Rodrigo'].includes(resp)) return erro('homologacao e ato de Daniel ou Rodrigo (nunca da "Liderança do método HOLOSCAN")', 'P0001');
+      const apH = s.tabelas.methodology_approvers.find(a => a.user_id === uid && a.scope === 'integrated_reading' && a.active);   // Etapa 5.3
+      if (!apH || apH.display_name !== resp) return erro('o usuario autenticado nao e aprovador autorizado da Leitura Integrada (' + resp + ')', 'P0001');
       if (args.p_version !== pk.version) return erro('a versao conferida (' + args.p_version + ') nao e a versao atual (' + pk.version + ')', 'P0001');
       const h = liHash(id);
       if (args.p_content_hash !== h) return erro('o pacote mudou: o hash conferido (' + String(args.p_content_hash || 'nenhum').slice(0, 12) + ') nao e o do conteudo atual (' + h.slice(0, 12) + ')', 'P0001');

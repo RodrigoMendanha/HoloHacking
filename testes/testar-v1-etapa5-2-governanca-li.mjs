@@ -19,6 +19,10 @@ const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  F
 const titulo = (t) => console.log('\n  ' + t + '\n');
 const srv = criarServidor();
 const UA = srv.criarConta('a@holo.test', 'x');
+const UB = srv.criarConta('b@holo.test', 'x');
+// Etapa 5.3: identidade real — UA = Daniel, UB = Rodrigo (cadastro por gestao tecnica)
+srv.gestaoTecnica('methodology_approvers', 'insert', { user_id: UA, scope: 'integrated_reading', approval_stage: 1, display_name: 'Daniel' });
+srv.gestaoTecnica('methodology_approvers', 'insert', { user_id: UB, scope: 'integrated_reading', approval_stage: 2, display_name: 'Rodrigo' });
 const q = (uid, tabela, acao, extra) => srv.tratar({ op: 'query', uid, q: Object.assign({ tabela, acao, filtros: [], ordem: [], range: null, colunas: '*', single: null, opcoes: {}, retornar: true }, extra) });
 const insert = (uid, t, dados) => q(uid, t, 'insert', { dados });
 const update = (uid, t, dados, filtros) => q(uid, t, 'update', { dados, filtros });
@@ -27,8 +31,8 @@ const eq = (col, val) => [{ op: 'eq', col, val }];
 const G = srv.gestaoTecnica;
 const hash = (id) => rpc(UA, 'li_hash_conteudo', { p_package_id: id }).data;
 const completude = (id) => rpc(UA, 'li_validar_completude', { p_package_id: id }).data;
-const aprovar = (id, version, h, etapa, resp, just) => rpc(UA, 'registrar_aprovacao_li', { p_package_id: id, p_version: version, p_content_hash: h, p_etapa: etapa, p_responsavel: resp, p_justificativa: just === undefined ? 'conferido (teste)' : just });
-const homologar = (id, version, h, resp) => rpc(UA, 'homologar_pacote_li', { p_package_id: id, p_version: version, p_content_hash: h, p_responsavel: resp || 'Rodrigo' });
+const aprovar = (id, version, h, etapa, resp, just) => rpc(etapa === 2 ? UB : UA, 'registrar_aprovacao_li', { p_package_id: id, p_version: version, p_content_hash: h, p_etapa: etapa, p_responsavel: resp, p_justificativa: just === undefined ? 'conferido (teste)' : just });
+const homologar = (id, version, h, resp) => rpc((resp || 'Rodrigo') === 'Rodrigo' ? UB : UA, 'homologar_pacote_li', { p_package_id: id, p_version: version, p_content_hash: h, p_responsavel: resp || 'Rodrigo' });
 const aprovs = (id) => srv.linhas('integrated_reading_package_approvals').filter(a => a.package_id === id);
 const vigentes = (id) => aprovs(id).filter(a => !a.invalidated_at);
 const status = (id) => srv.linhas('integrated_reading_rule_packages').find(x => x.id === id).status;

@@ -24,7 +24,11 @@ const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  F
 const titulo = (t) => console.log('\n  ' + t + '\n');
 const esperar = (ms) => new Promise(r => setTimeout(r, ms));
 const srv = criarServidor();
-srv.criarConta('a@holo.test', 'senha-a-123');
+const UA = srv.criarConta('a@holo.test', 'senha-a-123');
+const UB = srv.criarConta('b@holo.test', 'senha-b-123');
+// Etapa 5.3: identidade real — a@ = Daniel (Aprovacao 1), b@ = Rodrigo (Aprovacao 2); cadastro por gestao tecnica
+srv.gestaoTecnica('methodology_approvers', 'insert', { user_id: UA, scope: 'holoscan', approval_stage: 1, display_name: 'Daniel' });
+srv.gestaoTecnica('methodology_approvers', 'insert', { user_id: UB, scope: 'holoscan', approval_stage: 2, display_name: 'Rodrigo' });
 const nav = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const errosJS = [];
 const ctxNav = await nav.createBrowserContext();
@@ -96,11 +100,23 @@ const aprovarTela = (resp, conferi) => A.evaluate(async (resp, conferi) => {
   return { vazio, estado: document.getElementById('mh-estado').textContent };
 }, resp, conferi);
 const sc = await aprovarTela('Daniel', false);
-ok(sc.vazio && /Marque/.test(sc.estado) && srv.linhas('methodology_package_approvals').length === 0, 'campo de responsavel vem vazio; sem marcar "conferi" nada e registrado');
+ok(!sc.vazio && /Marque/.test(sc.estado) && srv.linhas('methodology_package_approvals').length === 0, 'campo de responsavel vem preenchido com o papel da conta (Etapa 5.3: Daniel, somente leitura); sem marcar "conferi" nada e registrado');
 const ap1 = await aprovarTela('Daniel', true);
 ok(/Aprovação 1 registrada/.test(ap1.estado) && srv.linhas('methodology_package_approvals').filter(a => a.package_id === pk2.id && a.step === 1 && a.responsible === 'Daniel').length === 1, 'Aprovacao 1 registrada pela tela por Daniel' + (/registrada/.test(ap1.estado) ? '' : ' [' + ap1.estado + ']'));
 const apL = await aprovarTela('Liderança do método HOLOSCAN', true);
 ok(/recusada/.test(apL.estado) && srv.linhas('methodology_package_approvals').filter(a => a.package_id === pk2.id).length === 1, 'Aprovacao 2 atribuida a "Liderança do método HOLOSCAN": recusada');
+const apImp = await aprovarTela('Rodrigo', true);
+ok(/recusada/.test(apImp.estado) && srv.linhas('methodology_package_approvals').filter(a => a.package_id === pk2.id).length === 1, 'Etapa 5.3: a conta de Daniel digitando "Rodrigo" nao registra a Aprovacao 2 (identidade = auth.uid(), nao o nome)');
+// Aprovacao 2 e de OUTRA identidade autenticada: sai da conta a@ e entra como b@ (Rodrigo)
+await A.evaluate(() => window.HoloAuth.sair());
+await A.waitForSelector('#login-email', { visible: true });
+await A.evaluate(() => { document.getElementById('login-email').value = ''; document.getElementById('login-senha').value = ''; });
+await A.type('#login-email', 'b@holo.test'); await A.type('#login-senha', 'senha-b-123'); await A.click('#btn-entrar');
+await A.waitForFunction(() => window.HoloAuth && window.HoloAuth.sessaoAtiva() && window.pacientesCarregados && window.pacientesCarregados(), { timeout: 15000 });
+await esperar(400);
+await A.evaluate(async (id) => { document.querySelector('.nav-item[data-secao="metodologia"]').click(); await new Promise(r => setTimeout(r, 400)); window.MetodologiaHomologacao.selecionar(id); window.MetodologiaHomologacao.desenhar(); await new Promise(r => setTimeout(r, 300)); }, pk2.id);
+const telaB = await texto('#mh-aprovacoes');
+ok(/Rodrigo/.test(telaB) && /Aprovação 1 — Daniel[\s\S]*registrada/.test(telaB), 'Rodrigo (conta b@, aprovador) ve o pacote em_revisao de outro profissional e a Aprovacao 1 ja registrada');
 const ap2 = await aprovarTela('Rodrigo', true);
 const vig2 = srv.linhas('methodology_package_approvals').filter(a => a.package_id === pk2.id && !a.invalidated_at);
 ok(/Aprovação 2 registrada/.test(ap2.estado) && vig2.length === 2 && vig2[0].content_hash === vig2[1].content_hash && vig2.every(a => a.package_version === 2), 'Aprovacao 2 registrada por Rodrigo sobre o mesmo pacote, versao e hash');

@@ -13,7 +13,8 @@ let falhou = false;
 const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
 const esperar = (ms) => new Promise(r => setTimeout(r, ms));
 const srv = criarServidor();
-srv.criarConta('a@holo.test', 'senha-a-123');
+const UA = srv.criarConta('a@holo.test', 'senha-a-123');
+srv.gestaoTecnica('methodology_approvers', 'insert', { user_id: UA, scope: 'integrated_reading', approval_stage: 1, display_name: 'Daniel' });   // Etapa 5.3
 const nav = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const errosJS = [];
 const ctx = await nav.createBrowserContext();
@@ -54,12 +55,15 @@ const t1 = await A.evaluate(() => ({
   motivo: (document.getElementById('mh-li-homologar-motivo') || {}).textContent || '',
   statusAviso: (document.getElementById('mh-li-status-aviso') || {}).textContent || '',
   temForm: !!document.getElementById('mh-li-aprovar'),
+  papel: (document.querySelector('#mh-li [data-mh-papeis]') || {}).textContent || '',
+  respPre: (document.querySelector('#mh-li-aprovar [data-mh-li-resp]') || {}).value, respRO: !!(document.querySelector('#mh-li-aprovar [data-mh-li-resp]') || {}).readOnly,
 }));
 const hServ = srv.tratar({ op: 'rpc', uid: srv.contas['a@holo.test'].id, nome: 'li_hash_conteudo', args: { p_package_id: liv1.id } }).data;
 ok(t1.hash === hServ, 'Conferir hash mostra o content_hash calculado no servidor: ' + t1.hash.slice(0, 12) + '…');
 ok(t1.bloqueios.includes('sem_dominio_aprovado') && t1.bloqueios.includes('sem_regra_temporal') && t1.bloqueios.includes('sem_regra_suficiencia') && t1.bloqueios.includes('sem_regra_convergencia_divergencia'), 'bloqueios metodologicos listados: ' + t1.bloqueios.join(', '));
 ok(t1.homologarDisabled && /Bloqueado/.test(t1.motivo) && /em_revisao/.test(t1.statusAviso), 'Homologar continua bloqueado; tela explica que aprovacao exige pacote em_revisao (gestao tecnica, nao botao)');
 ok(t1.temForm, 'acoes Registrar Aprovacao disponiveis na tela (o servidor decide)');
+ok(/Daniel/.test(t1.papel) && /Aprovação 1/.test(t1.papel) && t1.respPre === 'Daniel' && t1.respRO, 'Etapa 5.3: a tela mostra o papel da conta (Daniel, Aprovacao 1) e preenche o responsavel a partir dele (somente leitura)');
 await A.evaluate(async () => {
   const caixa = document.getElementById('mh-li-aprovar');
   caixa.querySelector('[data-mh-li-resp]').value = 'Daniel'; caixa.querySelector('[data-mh-li-just]').value = 'teste de tela'; caixa.querySelector('[data-mh-li-conferi]').checked = true;

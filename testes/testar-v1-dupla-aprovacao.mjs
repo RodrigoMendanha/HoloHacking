@@ -21,6 +21,10 @@ const titulo = (t) => console.log('\n  ' + t + '\n');
 const srv = criarServidor();
 const UA = srv.criarConta('a@holo.test', 'x');
 const UB = srv.criarConta('b@holo.test', 'x');
+const UC = srv.criarConta('c@holo.test', 'x');   // conta autenticada SEM papel de aprovacao
+// Etapa 5.3: identidade real — aprovadores configurados por gestao tecnica (nunca pela aplicacao); UA = Daniel, UB = Rodrigo
+srv.gestaoTecnica('methodology_approvers', 'insert', { user_id: UA, scope: 'holoscan', approval_stage: 1, display_name: 'Daniel' });
+srv.gestaoTecnica('methodology_approvers', 'insert', { user_id: UB, scope: 'holoscan', approval_stage: 2, display_name: 'Rodrigo' });
 const q = (uid, tabela, acao, extra) => srv.tratar({ op: 'query', uid, q: Object.assign({ tabela, acao, filtros: [], ordem: [], range: null, colunas: '*', single: null, opcoes: {}, retornar: true }, extra) });
 const insert = (uid, t, dados) => q(uid, t, 'insert', { dados });
 const update = (uid, t, dados, filtros) => q(uid, t, 'update', { dados, filtros });
@@ -28,7 +32,7 @@ const del = (uid, t, filtros) => q(uid, t, 'delete', { filtros });
 const rpc = (uid, nome, args) => srv.tratar({ op: 'rpc', uid, nome, args });
 const eq = (col, val) => [{ op: 'eq', col, val }];
 const P = globalThis.PacoteMetodologico, D = globalThis.MetodologiaDecisoesV1;
-const aprovar = (id, etapa, resp, h, just) => rpc(UA, 'registrar_aprovacao_metodologica', { p_package_id: id, p_etapa: etapa, p_responsavel: resp, p_justificativa: just === undefined ? 'conferido (teste)' : just, p_content_hash: h });
+const aprovar = (id, etapa, resp, h, just) => rpc(etapa === 2 ? UB : UA, 'registrar_aprovacao_metodologica', { p_package_id: id, p_etapa: etapa, p_responsavel: resp, p_justificativa: just === undefined ? 'conferido (teste)' : just, p_content_hash: h });
 const hash = (id) => rpc(UA, 'metodologia_hash_conteudo', { p_package_id: id }).data;
 const aprovs = (id) => srv.linhas('methodology_package_approvals').filter(a => a.package_id === id);
 const status = (id) => srv.linhas('methodology_packages').find(x => x.id === id).status;
@@ -66,10 +70,11 @@ ok(/o pacote mudou/.test(aprovar(pk.id, 1, 'Daniel', '0'.repeat(64)).error.messa
 ok(/Aprovacao 1 \(Daniel\) e Aprovacao 2 \(Rodrigo\)/.test(rpc(UA, 'aprovar_pacote_metodologico', { p_package_id: pk.id, p_registro: { responsible: 'Alguem', justification: 'x' } }).error.message) && status(pk.id) === 'em_revisao', 'homologar sem aprovacoes: recusado (o responsavel do chamador nao substitui as aprovacoes)');
 r = aprovar(pk.id, 1, 'Daniel', h, 'responsavel primario: conteudo conferido (teste)');
 const a1 = aprovs(pk.id)[0];
-ok(!r.error && a1.step === 1 && a1.responsible === 'Daniel' && a1.role === 'responsavel_primario' && a1.package_version === 2 && a1.content_hash === h && a1.approved_by === UA && status(pk.id) === 'em_revisao', 'Aprovacao 1 (Daniel, responsavel primario) registrada com package_id, version e hash; pacote continua em_revisao');
+ok(!r.error && a1.step === 1 && a1.responsible === 'Daniel' && a1.role === 'responsavel_primario' && a1.package_version === 2 && a1.content_hash === h && a1.approved_by === UA && a1.approver_id && status(pk.id) === 'em_revisao', 'Aprovacao 1 (Daniel, responsavel primario) registrada com package_id, version e hash; pacote continua em_revisao');
 ok(/ja registrada/.test(aprovar(pk.id, 1, 'Daniel', h).error.message), 'Aprovacao 1 repetida: recusada');
 ok(rpc(UA, 'aprovar_pacote_metodologico', { p_package_id: pk.id, p_registro: {} }).error && status(pk.id) === 'em_revisao', 'so com a Aprovacao 1: nao homologa');
-ok(rpc(UB, 'registrar_aprovacao_metodologica', { p_package_id: pk.id, p_etapa: 2, p_responsavel: 'Rodrigo', p_justificativa: 'x', p_content_hash: h }).error && aprovs(pk.id).length === 1, 'outra conta nao aprova pacote alheio');
+ok(/aprovador autorizado/.test(rpc(UC, 'registrar_aprovacao_metodologica', { p_package_id: pk.id, p_etapa: 2, p_responsavel: 'Rodrigo', p_justificativa: 'x', p_content_hash: h }).error.message) && aprovs(pk.id).length === 1, 'conta sem papel nao se passa por Rodrigo (Etapa 5.3: identidade real; antes, a 4.2 so exigia o dono do pacote)');
+ok(/aprovador autorizado/.test(rpc(UA, 'registrar_aprovacao_metodologica', { p_package_id: pk.id, p_etapa: 2, p_responsavel: 'Rodrigo', p_justificativa: 'x', p_content_hash: h }).error.message), 'Daniel (dono do pacote) nao registra a Aprovacao 2 digitando Rodrigo');
 
 titulo('PACOTE MUDOU ENTRE AS APROVACOES');
 const faixa = srv.linhas('methodology_ranges').find(f => f.package_id === pk.id && f.destination_id === 'fungico' && f.label === 'baixa');
