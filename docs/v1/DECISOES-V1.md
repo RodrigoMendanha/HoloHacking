@@ -547,6 +547,26 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     (8, 10, 14, 24, 26, 27, 28, 29) — não bloqueiam. **Bloco 30** = governança já estruturada; pendência apenas
     operacional (migration não aplicada, tabela de aprovadores vazia, auth.uid reais não cadastrados).
 
+### Etapa 5.11 — DECISÃO 05 fechada (LI-TEMP-01 v1); matriz domínio LI → HOLOSCAN preparada sem decidir (02/10/2026)
+
+132. **Janela temporal (DECISÃO 05, DECIDIDO)**: regra **LI-TEMP-01 v1** — `abs(collection.clinical_date −
+    application_clinical_date) <= 30` dias corridos, limites inclusivos, global, simétrica, 0 exceções por
+    domínio/exame/variante na V1 inicial; regra **operacional autoral e versionada** (não validade fisiológica
+    universal); justificativa: determinismo, proximidade, contexto "últimos 30 dias" predominante no HOLOSCAN
+    aprovado, explicabilidade, versionamento futuro; âncoras `application_clinical_date` e
+    `collection.clinical_date`; nunca created_at/updated_at/saved_at/reviewed_at/last_modified/upload/edição;
+    casos 0, ±30 compatible, ±31 incompatible; fora da janela → `outside_time_window` (nada apagado ou
+    invalidado), sem data → `missing_clinical_date` sem fallback; múltiplas coletas conforme DECISÃO 06;
+    snapshot congela ids, datas clínicas, `temporal_delta_days` com sinal (só rastreabilidade/ordenação/
+    explicabilidade), `temporal_status`, `temporal_rule_code`, `temporal_rule_version`; exceções futuras só
+    explícitas, versionadas, justificadas, aprovadas, com novo content_hash e análise de comparabilidade.
+133. **Bloqueadores metodológicos restantes**: 16, 17, 19, 20/21 (Bloco 5 removido do grupo A do pacote final).
+134. **Matriz de decisão domínio LI → HOLOSCAN** (`docs/v1/laboratorio/MATRIZ-DECISAO-DOMINIOS-LI-HOLOSCAN-V1.md`):
+    7 linhas LI-D01…D07 com todos os campos decisórios PENDENTE; universo dos 5 sistemas do pacote HOLOSCAN
+    aprovado (códigos, IDs primários e contextuais, avaliabilidade ≥ 0,80, escala 0–10, faixas 10/3 e 20/3)
+    exibido só como contexto; arquiteturas A–E e opções de múltiplos sistemas documentadas sem recomendação;
+    casos de regressão A–H com EXPECTED = PENDENTE; **nenhuma inferência automática** de relação domínio → sistema.
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`

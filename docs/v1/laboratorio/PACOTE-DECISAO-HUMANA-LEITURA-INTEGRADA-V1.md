@@ -208,7 +208,7 @@ DATA: ______
 
 ## BLOCO 5 — Janela temporal entre aplicação e coleta
 
-> **PARCIALMENTE DECIDIDO — Etapa 5.6 (Daniel, 02/10/2026):** arquitetura em `DECISAO-05-JANELA-TEMPORAL-LI.md` (compatibilidade temporal obrigatória, datas clínicas, nunca `updated_at`, janela explícita/versionada/no pacote/rastreável, fora da janela ou sem data = sem dados suficientes). **Valor em dias NÃO decidido** (não assumir 7/30/60/90).
+> **DECIDIDO — Etapa 5.11 (Daniel, 02/10/2026):** regra **LI-TEMP-01 v1**: ±30 dias corridos, limites inclusivos, global, simétrica, 0 exceções (`abs(collection.clinical_date − application_clinical_date) <= 30`); regra operacional autoral e versionada da V1 (não é validade fisiológica universal); datas clínicas apenas; fora da janela → `outside_time_window`, sem data → `missing_clinical_date`, domínio → SEM DADOS SUFICIENTES; delta com sinal no snapshot; DECISÃO 06 preservada; exceções futuras só explícitas, versionadas, aprovadas e com novo content_hash (`DECISAO-05-JANELA-TEMPORAL-LI.md`). Não implementado, não homologado.
 
 **O que decidir.** Diferença máxima, em dias, entre `holoscan_applications.quando` e `lab_collections.coletado_em` para que um resultado conte; se é global ou por domínio; se é simétrica (coleta antes ou depois da aplicação).
 
@@ -228,12 +228,12 @@ DATA: ______
 
 **Consequência.** Cada resultado fora da janela sai da contagem de suficiência; se todos saem, `sem_dados_suficientes`. O valor numérico **fica em branco** aqui.
 
-**Bloqueado enquanto aberto.** Avaliabilidade de qualquer domínio.
+**Bloqueado enquanto aberto.** Nada (decidido na Etapa 5.11); a avaliabilidade dos domínios depende agora dos blocos 16, 17, 19, 20/21.
 
-DECISÃO: ______ (dias: ______ · escopo: ______ · simetria: ______)
-JUSTIFICATIVA: ______
-RESPONSÁVEL: ______
-DATA: ______
+DECISÃO: LI-TEMP-01 v1 (dias: ±30 corridos, inclusivos · escopo: global · simetria: simétrica · exceções: 0) — ver `DECISAO-05-JANELA-TEMPORAL-LI.md`.
+JUSTIFICATIVA: regra operacional autoral V1 (determinística, proximidade, contexto 'últimos 30 dias' do HOLOSCAN, explicabilidade, versionável).
+RESPONSÁVEL: Daniel.
+DATA: 02/10/2026.
 
 ---
 
@@ -967,7 +967,7 @@ Significado dos status: **DECIDIDO** = decisão completa registrada; **ARQUITETU
 | 2 | Relação exame/variante/material → domínio | **DECIDIDO** | Daniel | 02/10/2026 (5.5) | variante/material/método por vínculo declarados na implementação (regras já decididas) | não |
 | 3 | Qual aplicação HOLOSCAN é elegível | **DECIDIDO** | Daniel | 02/10/2026 (5.6) | — | não |
 | 4 | Quais coletas são elegíveis | **DECIDIDO** | Daniel | 02/10/2026 (5.6) | — | não |
-| 5 | Janela temporal entre aplicação e coleta | **PARCIALMENTE DECIDIDO** | Daniel | 02/10/2026 (5.6) | **valor/regra temporal exata** (formato e dias) | **sim** |
+| 5 | Janela temporal entre aplicação e coleta | **DECIDIDO** | Daniel | 02/10/2026 (5.6 arquitetura; 5.11 regra LI-TEMP-01 v1) | — | não |
 | 6 | Política para múltiplas coletas na janela | **DECIDIDO** | Daniel | 02/10/2026 (5.6) | — | não |
 | 7 | Referência laboratorial elegível (do laudo) | **DECIDIDO** | Daniel | 02/10/2026 (5.7) | — | não |
 | 8 | Referência metodológica elegível | **ARQUITETURA DECIDIDA** | Daniel | 02/10/2026 (5.7) | conteúdo (quais referências, limites, fontes) — opcional: 0 referências é estado válido | não |
@@ -993,7 +993,7 @@ Significado dos status: **DECIDIDO** = decisão completa registrada; **ARQUITETU
 | 28 | Legado fora dos 45 | **DECIDIDO** | Daniel | 02/10/2026 (5.10) | — | não |
 | 29 | Insulina de jejum (EXA-006) ↔ Insulina basal (LAB-003) | **DECIDIDO** | Daniel | 02/10/2026 (5.10) | mapeamento manual do histórico (ato operacional posterior, não bloqueia) | não |
 
-**Resumo:** 21 DECIDIDOS (1–4, 6, 7, 9, 11–15, 18, 22–29; 23/24 com estrutura + textos-base), 7 com arquitetura decidida e parâmetros pendentes (8, 10, 16, 17, 19, 20, 21; 8 e 10 não bloqueiam), 1 parcialmente decidido (5). **Bloqueiam a implementação: 5, 16, 17, 19, 20, 21** — consolidados em `PACOTE-FINAL-PENDENCIAS-EXECUTAVEIS-LI-V1.md`.
+**Resumo (atualizado na Etapa 5.11):** 22 DECIDIDOS (1–7, 9, 11–15, 18, 22–29; 23/24 com estrutura + textos-base), 7 com arquitetura decidida e parâmetros pendentes (8, 10, 16, 17, 19, 20, 21; 8 e 10 não bloqueiam), 0 parciais. **Bloqueiam a implementação: 16, 17, 19, 20, 21** — consolidados em `PACOTE-FINAL-PENDENCIAS-EXECUTAVEIS-LI-V1.md`.
 
 ## Anexo A — Contagens da Etapa 5 (resolução documental)
 

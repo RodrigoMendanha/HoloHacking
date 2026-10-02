@@ -2,7 +2,7 @@
 
 Etapa 5.5 · 02/10/2026 · material para decisão de **Daniel** (responsável primário) · detalha o bloco 5 de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md` · depende das DECISÕES 01 (7 domínios) e 02 (vínculos).
 
-> **PARCIALMENTE DECIDIDO — Etapa 5.6 (02/10/2026, Daniel).** Decisão metodológica humana registrada abaixo. **Ainda não é**: implementação, migration clínica, Aprovação 1 no banco, Aprovação 2, homologação ou deploy. Nada alterado em motor, UI, servidor falso, banco ou pacote LI real.
+> **DECIDIDO — Etapa 5.11 (02/10/2026, Daniel).** Arquitetura registrada na Etapa 5.6; valor e regra oficial registrados abaixo (LI-TEMP-01 v1, ±30 dias corridos, inclusivos, global, simétrica). **Ainda não é**: implementação, migration clínica, alteração do banco real, Aprovação 1, Aprovação 2, homologação ou deploy.
 
 ## Pergunta
 
@@ -59,25 +59,75 @@ Avaliabilidade de qualquer domínio; bloco 6.
 
 ## Campo DECISÃO
 
-**DECISÃO (Bloco 5 — apenas a ARQUITETURA; o valor em dias NÃO foi decidido):**
-1. A Leitura Integrada **exige** compatibilidade temporal.
-2. A regra temporal usa **datas clínicas** (`holoscan_applications.quando`, `lab_collections.coletado_em`).
-3. A regra **não** usa `updated_at`, `created_at` técnico nem "última modificação silenciosa".
-4. A janela temporal é **explícita, versionada, parte do pacote LI e rastreável na leitura salva** (trace).
-5. Ausência de data clínica necessária: `sem_dados_suficientes`.
-6. Fora da janela homologada: `sem_dados_suficientes`.
-7. O **valor exato da janela em dias ainda não foi decidido**.
-8. Não assumir 7, 30, 60 ou 90 dias. 9. Não inventar valor.
+**DECISÃO (Bloco 5 — janela temporal): DECIDIDO.** Arquitetura (Etapa 5.6) mantida integralmente: compatibilidade temporal obrigatória; datas clínicas; nunca `updated_at`/`created_at`; janela explícita, versionada, parte do pacote LI e rastreável; ausência de data ou fora da janela = `sem_dados_suficientes`; "sem janela" excluída.
 
-Arquiteturas (A)–(E) continuam em aberto quanto ao **formato do valor** (global simétrica, anterior ≠ posterior, por domínio, por exame, exceção com revisão humana); a arquitetura (F) "sem janela" fica **excluída** pela regra 1.
-**Pendência:** **DEFINIR O VALOR/REGRA TEMPORAL EXATA** (formato e dias). Enquanto pendente, nenhum domínio é avaliável.
+### Regra oficial
 
-**JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 3–6 e no Documento Mestre (fundamento acima). Não atribuída ao legado.
+| Campo | Valor |
+|---|---|
+| código conceitual | **LI-TEMP-01** |
+| versão inicial | **1** |
+| janela | **±30 dias corridos** |
+| limites | **INCLUSIVOS** |
+| regra conceitual | `abs(collection.clinical_date − holoscan.application_clinical_date) <= 30 dias` |
+| tipo | **GLOBAL** · **SIMÉTRICA** |
+| exceções na V1 inicial | **0** por domínio · **0** por exame · **0** por variante |
 
-**FONTE:** Documento Mestre (princípios acima) + decisão autoral V1. FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR onde aplicável.
+### Natureza da regra
+
+A janela de ±30 dias é uma **REGRA OPERACIONAL AUTORAL E VERSIONADA DA V1**. **Não** deve ser descrita como: validade fisiológica universal; tempo biológico universal dos exames; prazo clínico universal; evidência de que todos os analitos representam exatamente os mesmos 30 dias.
+
+Justificativa metodológica da V1: necessidade de uma regra temporal determinística; proximidade entre aplicação e coleta; predominância do contexto "últimos 30 dias" na edição aprovada do HOLOSCAN (50 dos 84 itens em `ultimos_30_dias`); simplicidade e explicabilidade da V1; possibilidade de versionamento futuro.
+
+### Datas
+
+| Fonte | Âncora |
+|---|---|
+| HOLOSCAN | `application_clinical_date` |
+| laboratório | `collection.clinical_date` |
+
+**Nunca** usar para compatibilidade: `created_at`, `updated_at`, `saved_at`, `reviewed_at`, `last_modified`, data de upload, data de edição.
+
+### Casos
+
+| Diferença (dias) | Estado |
+|---|---|
+| 0 | compatible |
+| +30 | compatible |
+| −30 | compatible |
+| +31 | incompatible |
+| −31 | incompatible |
+
+### Fora da janela
+
+Não apagar. Não invalidar o exame. Não invalidar a aplicação HOLOSCAN. Apenas: resultado/coleta **não elegível temporalmente** para aquela Leitura Integrada. Reason code: `outside_time_window`. Estado do domínio, quando a fonte temporalmente elegível for necessária: **SEM DADOS SUFICIENTES**.
+
+### Data ausente
+
+Se faltar data clínica necessária: reason code `missing_clinical_date`. Sem fallback para `created_at`, `updated_at`, data de cadastro ou data de upload.
+
+### Múltiplas coletas na janela
+
+O sistema pode ordenar por proximidade temporal; **não** escolhe silenciosamente; a profissional seleciona explicitamente; empates não têm desempate automático. **DECISÃO 06 preservada.**
+
+### Snapshot
+
+A leitura salva congela: `application_id`; `application_clinical_date`; `collection_ids`; `collection_clinical_dates`; `result_ids`; `temporal_delta_days` por coleta; `temporal_status`; `temporal_rule_code = LI-TEMP-01`; `temporal_rule_version = 1`.
+
+### Delta temporal
+
+Preservar o delta **com sinal** (`temporal_delta_days = collection.clinical_date − application_clinical_date`). Exemplo conceitual: aplicação = 02/10/2026, coleta = 20/09/2026 → `temporal_delta_days = −12`. O sinal **não** serve para inferência clínica; serve somente para rastreabilidade, ordenação e explicabilidade.
+
+### Exceções futuras
+
+A V1 inicial possui **0 exceções**. No futuro, uma exceção por domínio, exame, variante, material ou método só pode existir se: explicitamente definida; versionada; justificada; aprovada; incorporada a novo `content_hash`; analisada quanto à comparabilidade (DECISÃO 25).
+
+**JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada no fundamento do Documento Mestre registrado acima e na edição aprovada do HOLOSCAN (contexto temporal predominante). Não atribuída ao legado. Não é afirmação fisiológica.
+
+**FONTE:** Documento Mestre + pacote HOLOSCAN-V1 aprovado (contexto temporal, Etapa 4.2) + decisão autoral V1. FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR onde aplicável; nenhuma citação fabricada.
 
 **RESPONSÁVEL:** Daniel (responsável primário). Revisão final de Rodrigo e registro no banco ficam para a homologação do pacote completo.
 
 **DATA:** 02/10/2026.
 
-**Status:** PARCIALMENTE DECIDIDO — não implementado, não registrado no banco, não homologado.
+**Status:** DECIDIDO — não implementado, não registrado no banco, não homologado.
