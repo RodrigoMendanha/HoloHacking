@@ -9,7 +9,8 @@
      DECISAO 02  47 vinculos exame -> dominio (direcao above/below/any)
      DECISAO 05  LI-TEMP-01 v1: ±30 dias corridos, inclusivos, global, simetrico
      DECISAO 16/17  suficiencia cross-source por dominio (so vinculos directional)
-     DECISAO 19  resultados mistos: unanimidade; mistura -> indeterminate
+     DECISAO 19  resultados mistos: unanimidade; mistura -> indeterminate;
+                 participante indeterminate -> directional_result_indeterminate (6.0.1)
      DECISAO 20/21  dominio -> sistema HOLOSCAN; faixa -> attention_*;
                  cross_source_role directional/contextual (DECISAO 20-21)
      DECISAO 22/23/24  reason codes e textos-base
@@ -94,7 +95,7 @@
   /* ---------- regras (payload integral entra no hash) ---------------------- */
   function suf(min, req, groups, opt) { return { mode: "rule_based", version: 1, min_classifiable_results: min, required_exam_codes: req, required_exam_groups: groups, optional_directional_exam_codes: opt, counts_only: "directional", contextual_counts: false, no_global_percentage: true }; }
   var NA_SUF = { mode: "not_applicable", version: 1, min_classifiable_results: null, required_exam_codes: [], required_exam_groups: [], optional_directional_exam_codes: [], counts_only: "directional", contextual_counts: false, no_global_percentage: true, note: "domínio laboratorial oficial sem confronto HOLOSCAN na V1 (holoscan_mapping_mode = none): não é suficiente, não é insuficiente, não é missing_domain_holoscan_mapping" };
-  var UNANIM = { mode: "unanimity", version: 1, all_present: P, all_not_detected: N, mixture: I, mixture_reason: "mixed_results_indeterminate", indeterminate_optional_ignored: true, indeterminate_required_blocks: true, forbidden: ["majority", "mean", "weight", "lab_score", "one_altered_wins", "one_normal_wins", "altered_count", "altered_percentage"] };
+  var UNANIM = { mode: "unanimity", version: 2, all_present: P, all_not_detected: N, mixture: I, mixture_reason: "mixed_results_indeterminate", indeterminate_optional_ignored: true, indeterminate_participant_blocks: true, indeterminate_participant_reason: "directional_result_indeterminate", forbidden: ["majority", "mean", "weight", "lab_score", "one_altered_wins", "one_normal_wins", "altered_count", "altered_percentage"] };
   var NA_MIX = { mode: "not_applicable", version: 1 };
   var REGRAS = [
     { rule_type: "temporal", target: "global", payload: { code: "LI-TEMP-01", version: 1, max_days: 30, inclusive: true, symmetric: true, scope: "global", exceptions: [], anchors: { holoscan: "application_clinical_date", laboratory: "collection.clinical_date" },
@@ -137,7 +138,8 @@
       outside_time_window: "A coleta está fora da janela temporal da leitura (LI-TEMP-01: ±30 dias corridos da aplicação HOLOSCAN).",
       missing_clinical_date: "Falta a data clínica necessária (coleta ou aplicação HOLOSCAN); nenhuma data técnica substitui a data clínica.",
       mixed_without_rule: "Este conjunto de resultados não possui regra metodológica homologada de agregação (cenário futuro; não ocorre nos domínios D01–D04 da V1).",
-      mixed_results_indeterminate: "Há regra homologada para o conjunto, mas os resultados directional apontam direções diferentes (ou nenhuma direção utilizável): a direção laboratorial é indeterminada.",
+      mixed_results_indeterminate: "Há regra homologada para o conjunto, mas os resultados directional apontam direções diferentes (presente e não detectado): a direção laboratorial é indeterminada.",
+      directional_result_indeterminate: "Após a suficiência estrutural, um resultado directional participante ficou com direção indeterminada (sem exceção específica): a direção laboratorial é indeterminada.",
       missing_domain_sufficiency_rule: "O domínio não possui regra de suficiência homologada.",
       missing_temporal_rule: "O pacote não possui regra temporal homologada.",
       duplicate_result_unresolved: "Há mais de um resultado do mesmo exame nas coletas selecionadas e nenhum foi escolhido explicitamente.",

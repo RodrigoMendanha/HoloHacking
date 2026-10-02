@@ -27,7 +27,7 @@
 (function () {
   "use strict";
   var raiz = typeof window !== "undefined" ? window : globalThis;
-  var VERSAO = "motor-leitura-integrada-2.0.0";
+  var VERSAO = "motor-leitura-integrada-2.0.1";
   var ESTADOS = ["convergente", "divergente", "sem_dados_suficientes"];
   var DIRECOES = ["attention_present", "attention_not_detected", "indeterminate"];
   var P = "attention_present", N = "attention_not_detected", I = "indeterminate";
@@ -83,6 +83,7 @@
       var l = links.filter(function (x) { return x.exam_code === r.exam_code; })[0];
       if (!l) return;
       var it = { result_id: r.id, collection_id: r.collection_id, exam_code: r.exam_code, variant: r.variant || null, material: r.material || null, method: r.method || null, value_original_text: r.value_original_text !== undefined ? r.value_original_text : null, unit_original: r.unit_original || null,
+        reference_status: r.reference_status || null, reference_text: r.report_reference_text !== undefined ? r.report_reference_text : null, reference_min: r.report_reference_min !== undefined ? r.report_reference_min : null, reference_max: r.report_reference_max !== undefined ? r.report_reference_max : null,
         cross_source_role: l.cross_source_role || "contextual", link_direction: l.direction || "any", classification: null, classification_reasons: [], reference_source: null, direction: null, temporal_status: null, temporal_delta_days: null, included: false, exclusion_reason: null };
       var variante = normT(r.variant);
       if (variante && !(l.variants_declared || []).map(normT).some(function (v) { return v === variante; })) { it.exclusion_reason = "incompatible_variant"; itens.push(it); return; }
@@ -148,13 +149,14 @@
           var eOpcional = opc.indexOf(i.exam_code) >= 0;
           mixed.considered.push({ result_id: i.result_id, exam_code: i.exam_code, direction: i.direction, role: eOpcional ? "optional" : "participant" });
           if (i.direction === P || i.direction === N) uteis.push(i.direction);
-          else if (!eOpcional && mp.indeterminate_required_blocks !== false) bloqueio = true;   // participante indeterminate -> direcao indeterminada (conservador); opcional indeterminate nao conta nem bloqueia
+          else if (!eOpcional && mp.indeterminate_participant_blocks !== false && mp.indeterminate_required_blocks !== false) bloqueio = true;   // participante indeterminate -> directional_result_indeterminate; opcional (ex.: fibrinogenio em D01) nao conta nem bloqueia
         });
         // 9. laboratory_direction
-        if (bloqueio || !uteis.length) { mixed.laboratory_direction = I; mixed.reason = mp.mixture_reason || "mixed_results_indeterminate"; }
-        else if (uteis.every(function (u) { return u === P; })) mixed.laboratory_direction = mp.all_present || P;
-        else if (uteis.every(function (u) { return u === N; })) mixed.laboratory_direction = mp.all_not_detected || N;
-        else { mixed.laboratory_direction = mp.mixture || I; mixed.reason = mp.mixture_reason || "mixed_results_indeterminate"; }
+        var temP = uteis.indexOf(P) >= 0, temN = uteis.indexOf(N) >= 0;
+        if (temP && temN) { mixed.laboratory_direction = mp.mixture || I; mixed.reason = mp.mixture_reason || "mixed_results_indeterminate"; }   // mistura real present + not_detected
+        else if (bloqueio || !uteis.length) { mixed.laboratory_direction = I; mixed.reason = mp.indeterminate_participant_reason || "directional_result_indeterminate"; }   // participante indeterminate, sem excecao
+        else if (temP) mixed.laboratory_direction = mp.all_present || P;
+        else mixed.laboratory_direction = mp.all_not_detected || N;
         if (mixed.laboratory_direction === I) reasons.push(mixed.reason);
       }
     }
@@ -186,7 +188,7 @@
       holoscan_package: holo && holo.application ? holo.application.methodology_package || null : null, holoscan_system_result: dom.holoscan ? { avaliavel: dom.holoscan.avaliavel, faixa: dom.holoscan.faixa, nota: dom.holoscan.nota } : null,
       selected_collection_ids: (ent.collections || []).map(function (c) { return c.id; }), collection_clinical_dates: dom.temporal.collections.map(function (c) { return { id: c.id, clinical_date: c.clinical_date, temporal_delta_days: c.temporal_delta_days, temporal_status: c.temporal_status }; }),
       selected_result_ids: dom.items.filter(function (i) { return i.included; }).map(function (i) { return i.result_id; }),
-      items: dom.items.map(function (i) { return { result_id: i.result_id, collection_id: i.collection_id, exam_code: i.exam_code, variant: i.variant, material: i.material, method: i.method, value_original_text: i.value_original_text, unit_original: i.unit_original, cross_source_role: i.cross_source_role, classification: i.classification, classification_reasons: i.classification_reasons, reference_source: i.reference_source, direction: i.direction, temporal_delta_days: i.temporal_delta_days, temporal_status: i.temporal_status, included: i.included, exclusion_reason: i.exclusion_reason }; }),
+      items: dom.items.map(function (i) { return { result_id: i.result_id, collection_id: i.collection_id, exam_code: i.exam_code, variant: i.variant, material: i.material, method: i.method, value_original_text: i.value_original_text, unit_original: i.unit_original, cross_source_role: i.cross_source_role, classification: i.classification, classification_reasons: i.classification_reasons, reference_source: i.reference_source, reference_status: i.reference_status, reference_text: i.reference_text, reference_min: i.reference_min, reference_max: i.reference_max, direction: i.direction, temporal_delta_days: i.temporal_delta_days, temporal_status: i.temporal_status, included: i.included, exclusion_reason: i.exclusion_reason }; }),
       references: refs, excluded: dom.items.filter(function (i) { return !i.included; }).map(function (i) { return { result_id: i.result_id, exam_code: i.exam_code, reason: i.exclusion_reason }; }),
       temporal_rule_code: dom.temporal.rule_code, temporal_rule_version: dom.temporal.rule_version, li_package: { id: p.id || null, code: p.code, version: p.version, status: p.status },
       sufficiency_rule: dom.sufficiency ? { mode: dom.sufficiency.mode, version: dom.sufficiency.rule_version, min_classifiable_results: dom.sufficiency.min_classifiable_results, required_exam_codes: dom.sufficiency.required_exam_codes, required_exam_groups: dom.sufficiency.required_exam_groups, optional_directional_exam_codes: dom.sufficiency.optional_directional_exam_codes } : null,
