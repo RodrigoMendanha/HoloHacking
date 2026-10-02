@@ -615,6 +615,40 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     Aprovação 1, Aprovação 2, Homologar, content_hash final, testes de implementação, deploy. Nada implementado;
     nada homologado; matriz 20/21 e contagens (45/42/3/47/5; 7/3/5/4/4/12/12) inalteradas.
 
+### Etapa 6.0 — implementação executável da Leitura Integrada V1, local (02/10/2026)
+
+143. **Correção semântica de reason code**: mistura `present + not_detected` em conjunto COM regra homologada
+    (D01–D04, unanimidade) → `laboratory_direction = indeterminate` com `mixed_results_indeterminate`;
+    `mixed_without_rule` reservado a conjunto futuro sem regra homologada. Nenhum estado oficial novo (continua
+    SEM DADOS SUFICIENTES). Docs 19, 22, pacote, resumo e pacote final corrigidos.
+144. **Migration 20261002120000 (não aplicada)**: extensão mínima do schema (modo de mapeamento e definição do
+    domínio; `cross_source_role`, `direction_rules`, `variants_declared`, versão/fonte/justificativa do vínculo;
+    tipos de regra `holoscan_direction` e `reason_semantics`; leitura com domínio, direções e snapshot);
+    `li_conteudo_canonico`/`li_validar_completude`/`salvar_leitura_integrada` estendidos; seed **LI-V1@2
+    em_revisao** com 7 domínios, 47 vínculos (9 directional + 38 contextual) e 18 regras; LI-V1@1 preservado;
+    0 aprovações. Provas de contagem na própria migration.
+145. **Pacote executável** (`leitura-integrada-pacote-v1.js`): mesmo conteúdo da migration; texto canônico no
+    formato `jsonb::text`; **content_hash candidato `7c6d93a0f91c790ba052c8687822c4513ad27015a7dc86c506d437b52beb6d1a`**,
+    idêntico em PostgreSQL local, servidor falso e JS. Não homologado.
+146. **Motor 2.0.0** (`leitura-integrada-motor.js`): 11 passos na ordem decidida; HOLOSCAN como fonte congelada
+    (HOLOS-V1 ≥ 2 aprovado; faixa → attention_*; não avaliável → indeterminate); LI-TEMP-01 com delta com sinal;
+    duplicidade sem escolha silenciosa (`duplicate_result_unresolved`); suficiência só com directional; unanimidade;
+    estado por domínio; D05–D07 `not_applicable` (estado nulo, nunca `missing_domain_holoscan_mapping`);
+    snapshot congelável. `laboratorio-motor.js` 1.1.0: censurado determinístico (DECISÃO 15) e referência ambígua.
+    Nota conservadora: participante obrigatório com direção `indeterminate` → direção laboratorial indeterminada;
+    opcional (fibrinogênio) `indeterminate` não conta nem bloqueia.
+147. **Persistência por domínio e snapshot imutável**: leitura salva com `domain_code`, direções e snapshot
+    (fontes, datas, deltas, valores/unidades originais, classificações, referências, excluídos, regras/versões,
+    pacotes, estado, motivos); observação profissional separada; convergente/divergente só com pacote aprovado e
+    direções determinísticas coerentes; domínio sem confronto não recebe leitura cross-source.
+148. **UI mínima**: leitura por domínio; fonte HOLOSCAN pela aplicação + pacote metodológico registrado (nunca
+    limites legados 3/6); D05–D07 com texto neutro de interface; motivos humanizados; duplicidade com escolha
+    explícita; salvar por domínio; sem linguagem diagnóstica; confronto legado fora da saída oficial.
+149. **Servidor falso e testes**: fake espelha o contrato (seed LI-V1@2, mesmo hash); suítes novas etapa6-li-motor
+    (88), etapa6-li-banco (30), etapa6-li-ui (12); suítes legadas ajustadas por mudança legítima de contrato
+    (documentado em `docs/v1/ETAPA6-LEITURA-INTEGRADA.md`); harness SQL `etapa6` (E01–E30) na cadeia local:
+    207 checks ok. **Banco real não validado; nada aplicado; nada homologado; nada deployado.**
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`
@@ -654,11 +688,11 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
   **DECIDIDAS na Etapa 4.2** (itens 52–66). Pendente só a **publicação técnica**: validar a
   cadeia 130000→210000 no banco real, registrar a Aprovação 1 (Daniel) e a Aprovação 2 (Rodrigo)
   sobre o mesmo pacote, versão e hash, e então homologar o HOLOS-V1@2 (item 67).
-- **Leitura Integrada** — a Etapa 5 entregou a **infraestrutura** (itens 82–84); as decisões humanas dos blocos
-  1–29 foram registradas nas Etapas 5.4–5.13 (itens 88–142): **0 bloqueadores metodológicos**. Pendente só o
-  operacional/técnico (grupo B de `docs/v1/laboratorio/PACOTE-FINAL-PENDENCIAS-EXECUTAVEIS-LI-V1.md`): implementação
-  em lote, migrations, cadeia real, approvers reais, Aprovação 1, Aprovação 2, Homologar, deploy; a governança
-  (quem aprova) foi fechada tecnicamente na Etapa 5.2 (item 87). (Mestre §24)
+- **Leitura Integrada** — infraestrutura (Etapa 5), decisões 1–29 (Etapas 5.4–5.13) e **implementação local**
+  (Etapa 6.0, itens 143–149) concluídas. Pendente só o gate técnico/operacional (grupo B de
+  `docs/v1/laboratorio/PACOTE-FINAL-PENDENCIAS-EXECUTAVEIS-LI-V1.md`): validar a cadeia no banco real, aplicar as
+  migrations, cadastrar os `auth.uid` reais, Aprovação 1 (Daniel), Aprovação 2 (Rodrigo), Homologar LI-V1@2
+  (hash `7c6d93a0…`), registrar o pacote V1 nas aplicações HOLOSCAN, deploy. (Mestre §24)
 - **Regras de sugestão de ferramentas** — nenhuma das 23 REC nem SEL-001 é aprovada; a Etapa 4.2
   decidiu que nenhuma sugestão automática é oficial na V1 (item 65). (Mestre §29)
 - **Conteúdo mínimo para "Concluir" uma ferramenta** — a guarda técnica da Rodada 08

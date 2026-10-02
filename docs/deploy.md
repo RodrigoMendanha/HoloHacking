@@ -123,7 +123,7 @@ O Caddy não precisa mudar se o nome e a porta forem os mesmos.
 
 ### 3.4 Conferir na própria VPS
 
-Num comando só, os 53 arquivos contra o §3.5 (tem de sair `OK: 53 de 53`):
+Num comando só, os 54 arquivos contra o §3.5 (tem de sair `OK: 54 de 54`):
 
 ```sh
 sh scripts/conferir-producao.sh                            # o domínio público
@@ -135,9 +135,9 @@ Os comandos abaixo são a mesma conferência, arquivo por arquivo.
 ```sh
 curl -sI http://127.0.0.1:<PORTA>/app.js | grep -i cache-control   # Cache-Control: no-cache
 curl -s  http://127.0.0.1:<PORTA>/app.js | sha256sum               # 5c6e38522475...
-curl -s  http://127.0.0.1:<PORTA>/arquivos.js | sha256sum          # cfd8116a5c80...
-curl -s  http://127.0.0.1:<PORTA>/index.html | sha256sum           # 6900d69b61a8...
-curl -s  https://holohacking.com.br/sincronizacao.js | sha256sum   # 3ca13489a548...
+curl -s  http://127.0.0.1:<PORTA>/arquivos.js | sha256sum          # d40530d439ee...
+curl -s  http://127.0.0.1:<PORTA>/index.html | sha256sum           # 2dca4406d8a4...
+curl -s  https://holohacking.com.br/sincronizacao.js | sha256sum   # 4da93a366a07...
 ```
 
 Se o `app.js` der `dfca9ef7fd1f...`, o deploy pegou um commit das rodadas
@@ -157,14 +157,14 @@ Cache-Control. Nas próximas atualizações não precisa.
 
 ### 3.5 Hashes esperados (sha256 dos arquivos servidos pela `main` saneada)
 
-Todos os 53 arquivos que o `Dockerfile` copia (`index.html style.css favicon.svg
-*.js`). Atualizados na Etapa 5.3 da V1 (branch `claude/v1-etapa5-3-seguranca-e-dominios`: `metodologia-homologacao.js` e `dados-router.js`; Etapa 5: inclui `laboratorio-catalogo.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js` e `laboratorio.js`; antes, Etapa 4.2: `metodologia-decisoes-v1.js` e `questionario.js`; Etapa 4:
+Todos os 54 arquivos que o `Dockerfile` copia (`index.html style.css favicon.svg
+*.js`). Atualizados na Etapa 6.0 da V1 (branch `claude/v1-etapa6-implementacao-li-local`: `laboratorio.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js`, `style.css` e o novo `leitura-integrada-pacote-v1.js`; antes, Etapa 5.3: `metodologia-homologacao.js` e `dados-router.js`; Etapa 5: inclui `laboratorio-catalogo.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js` e `laboratorio.js`; antes, Etapa 4.2: `metodologia-decisoes-v1.js` e `questionario.js`; Etapa 4:
 inclui `metodologia.js`, `atendimento.js`, `anamnese.js`, `conduta.js`, `timeline.js`, `relatorios.js`, `metodologia-inventario.js`, `metodologia-pacote.js`, `metodologia-motor.js` e `metodologia-homologacao.js`), conferidos contra a imagem do `docker build` da branch (o nginx ainda põe o
 `50x.html` dele, que não é nosso):
 
 ```
 2dca4406d8a47a83465c38f28c4ab65f64a387ce72d65c6f57fc96c324606994  index.html
-9edb50a1fe964f29d755df4c696f3865a8b42f27145878bebf504148a38b39ca  style.css
+fe7a3775ee7662583567110da4e52360bb9efaefc2c8f52e3978f597b6fe4a61  style.css
 cd6ef22455f446156c4109649b2d0fc1fe803f0c6697e1029fa71e50ba44cf84  favicon.svg
 fca789a5d4169bc1d4b5b0d1d2e934e9f1317384b435ea44e486966fe5eaa8d7  agenda.js
 cd0daa04a10e165dd536874170bf3c005d9bdb4041b15deb766c2b30596dfef4  anamnese.js
@@ -193,9 +193,10 @@ ace6c65cf3f034c43125a348d7c8a834f217b31912916a9f16450f5454bbb178  formulario.js
 b6c7e8b1341a10bf45c2f895218e5529176b9c36aa035be6a2aa1ed0fb41cfac  holoscan.js
 b2705ac28dc9f6175ec5586ef02e86b00f2fe1265dbb23a34e3bb2cebb8718c3  importar-v1.js
 d68215f0b81b8b8e5929ea43b29f7f51046b78336b96ec9e5814d4eea2444ae0  laboratorio-catalogo.js
-2a00eaa31d7c6efd0d4fee43f281582e8019ac555b53ea2f6e61a5c4bcfd95a4  laboratorio-motor.js
-490b23f3b57a6bd97662378a850028554643435d481caa79854683104e137104  laboratorio.js
-dd8d94f279fa36e77a26ed8e6f9f2bbcddbadfaba592c3706010747de7dcbe55  leitura-integrada-motor.js
+8ad2d6789fdc62fe83f2c9cc85acbf03e481ed40f3dc72575b20bc8eb0b2acbc  laboratorio-motor.js
+ad612883e9e51104a1d2b0e2f090a7e430956b2faa1e8b40b341c85f505a1228  laboratorio.js
+275f1d568c0b2fb51ce65b02d8d14bdec0d59a5d6e4f0498b3a89825142eaa0d  leitura-integrada-motor.js
+2272fe669555490df731aa70241a7bde2689af222a3b443638a64e7767527afa  leitura-integrada-pacote-v1.js
 d0098b6c672f2d283cabb347205c676e3ac117fd960e8274ba3a64d13a984f2e  login.js
 51f9b31c0cf3ab7c0b530d07f37a84b205e9e314103ce1397e9a9ff04b3130ba  metodologia-decisoes-v1.js
 dedb3c3ad7f4560aae349d47409bf3636c0909aa6038d55502b5d97fecc5afdb  metodologia-homologacao.js

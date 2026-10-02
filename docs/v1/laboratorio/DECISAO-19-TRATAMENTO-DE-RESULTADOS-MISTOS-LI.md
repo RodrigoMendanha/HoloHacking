@@ -54,7 +54,7 @@ Três eixos independentes por resultado: `classification_status` · `li_eligibil
 
 **Regra geral de agregação (unanimidade).** Se **todos** os resultados directional considerados pela regra do domínio apontarem `attention_present` → `laboratory_direction = attention_present`. Se **todos** apontarem `attention_not_detected` → `attention_not_detected`. Se existir **mistura** entre `attention_present` e `attention_not_detected` → `indeterminate`. **Não resolver por maioria.**
 
-**Indeterminate não é divergente.** Se `laboratory_direction = indeterminate`, o motor **não** pode produzir CONVERGENTE nem DIVERGENTE. Estado oficial: SEM DADOS SUFICIENTES, reason code `mixed_without_rule` ou reason code mais específico quando o `indeterminate` vier de regra específica já aprovada para o exame.
+**Indeterminate não é divergente.** Se `laboratory_direction = indeterminate`, o motor **não** pode produzir CONVERGENTE nem DIVERGENTE. Estado oficial: SEM DADOS SUFICIENTES, reason code **`mixed_results_indeterminate`** (há regra homologada para o conjunto, mas a regra resulta em direção laboratorial indeterminada) ou reason code mais específico quando o `indeterminate` vier de regra específica já aprovada para o exame. **Correção semântica (Etapa 6.0):** `mixed_without_rule` fica reservado ao cenário futuro em que realmente não exista regra homologada para determinado conjunto; **não** é usado nos mistos D01–D04, que têm regra (unanimidade). Nenhum estado oficial novo: o estado continua SEM DADOS SUFICIENTES.
 
 ### Regras por domínio
 

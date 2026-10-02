@@ -28,15 +28,17 @@ Não são metodologia indefinida. Podem impedir a publicação ou a homologaçã
 
 | # | Gate | Estado |
 |---|---|---|
-| B1 | aplicar as migrations 20261002100000 e 20261002110000 (e a futura migration em lote da LI) após gate técnico | não aplicadas |
+| B1 | aplicar as migrations 20261002100000, 20261002110000 e **20261002120000** (Etapa 6.0: conteúdo LI-V1@2) após gate técnico | escritas e validadas só em PostgreSQL local (BEGIN/ROLLBACK); **não aplicadas** |
 | B2 | validar a cadeia real do banco | VALIDAÇÃO REAL PENDENTE (sem conexão autorizada) |
 | B3 | cadastrar o `auth.uid` real de Daniel em `methodology_approvers` (scope `integrated_reading`, etapa 1) | tabela vazia |
 | B4 | cadastrar o `auth.uid` real de Rodrigo (etapa 2) | tabela vazia |
-| B5 | Aprovação 1 (Daniel) sobre pacote, versão e `content_hash` | 0 aprovações |
+| B5 | Aprovação 1 (Daniel) sobre LI-V1@2, versão 2 e `content_hash` `7c6d93a0f91c790ba052c8687822c4513ad27015a7dc86c506d437b52beb6d1a` | 0 aprovações |
 | B6 | Aprovação 2 (Rodrigo), identidade distinta (quatro olhos) | 0 aprovações |
-| B7 | Homologar (`homologar_pacote_li`) com completude válida e snapshot | não homologado |
-| B8 | `content_hash` final conferido após a migration em lote | inexistente (pacote rascunho) |
+| B7 | Homologar (`homologar_pacote_li`) com completude válida e snapshot | não homologado (completude de LI-V1@2: publicável, 0 bloqueios) |
+| B8 | `content_hash` final conferido | **candidato determinístico**: `7c6d93a0…6d1a` (SQL local == pacote JS == servidor falso) |
 | B9 | deploy | não feito |
+
+**Estado após a Etapa 6.0:** a metodologia foi **implementada localmente** (`docs/v1/ETAPA6-LEITURA-INTEGRADA.md`): migration, pacote executável, motor 2.0.0, persistência por domínio com snapshot, servidor falso, UI mínima e testes. Banco real não validado; nada homologado; nada deployado.
 
 **Bloco 30 — o que representa.** A governança técnica de dupla aprovação da LI **já foi estruturada** (Etapa 5.2: dependências, hash canônico, completude, aprovações append-only, invalidação, `homologar_pacote_li`, snapshots; Etapa 5.3: identidade real via `methodology_approvers`). O que permanece é **operacional** (B1–B9): migration não aplicada; tabela de aprovadores vazia; `auth.uid` reais não cadastrados. **Não é decisão metodológica dos Blocos 1–29** e não aparece no grupo A.
 
@@ -282,7 +284,7 @@ Só vínculos `directional` contam; contextual não conta, não substitui obriga
 
 ## 7. REGRA DE RESULTADOS MISTOS POR DOMÍNIO (Bloco 19) — DECIDIDA (Etapa 5.13)
 
-Regra geral: só directional elegíveis/classificáveis/suficientes/temporalmente compatíveis; **unanimidade** → `attention_present` ou `attention_not_detected`; **mistura** present/not_detected → `indeterminate`; `indeterminate` nunca produz CONVERGENTE/DIVERGENTE → SEM DADOS SUFICIENTES (`mixed_without_rule` ou código mais específico). Sem maioria, média, score, peso, "um vence", contagem ou percentual de alterados. Alternativas da Etapa 5.10 ficam registradas no histórico do git como não adotadas.
+Regra geral: só directional elegíveis/classificáveis/suficientes/temporalmente compatíveis; **unanimidade** → `attention_present` ou `attention_not_detected`; **mistura** present/not_detected → `indeterminate`; `indeterminate` nunca produz CONVERGENTE/DIVERGENTE → SEM DADOS SUFICIENTES (`mixed_results_indeterminate`; `mixed_without_rule` reservado a conjunto futuro sem regra homologada — correção semântica da Etapa 6.0). Sem maioria, média, score, peso, "um vence", contagem ou percentual de alterados. Alternativas da Etapa 5.10 ficam registradas no histórico do git como não adotadas.
 
 | Combinação (directional considerados) | Resultado |
 |---|---|
@@ -320,8 +322,8 @@ Nenhum item marcado. Marcar é ato humano após decisão registrada. (A→decidi
 - [ ] 10. (B) Vocabulário de reason_codes do motor unificado com a lista da DECISÃO 22 (sem colapsar motivos)
 - [ ] 11. (C) Tabela de tradução reason_code → texto ao paciente (Bloco 24) decidida
 - [ ] 12. (C) Fontes formais consolidadas onde o campo diz FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR (ou declaração explícita de decisão autoral sem bibliografia)
-- [ ] 13. (B) Migration em lote escrita (domínios, 47 vínculos + 2 variantes distintas, regras por domínio, janela, matriz HOLOSCAN) e validada na cadeia local (BEGIN…ROLLBACK)
-- [ ] 14. (B) Servidor falso e motor LI espelhando o conteúdo decidido; testes de regressão A–F (Etapa 5.7) e precedência (Etapa 5.9) passando
+- [ ] 13. (B→feito localmente, Etapa 6.0) Migration em lote escrita (`20261002120000`: 7 domínios, 47 vínculos com variantes declaradas, regras por domínio, LI-TEMP-01, matriz HOLOSCAN) e validada na cadeia local (BEGIN…ROLLBACK, 207 checks); marcar é ato humano
+- [ ] 14. (B→feito localmente, Etapa 6.0) Servidor falso e motor LI 2.0.0 espelhando o conteúdo decidido; suítes etapa6-li-motor/banco/ui e regressões A–G passando; marcar é ato humano
 - [ ] 15. (B) Cadeia validada no banco real (VALIDAÇÃO REAL PENDENTE) sem alterar produção
 - [ ] 16. (B) Pacote LI em `em_revisao` com hash conferido; Aprovação 1 (Daniel) e Aprovação 2 (Rodrigo) registradas com identidade real
 - [ ] 17. (B) Homologação explícita do pacote LI (`homologar_pacote_li`) e snapshot gerado; só então a LI deixa de ser `sem_dados_suficientes` por regra ausente
