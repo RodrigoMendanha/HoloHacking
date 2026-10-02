@@ -21,24 +21,24 @@ Significados fixos: CONVERGENTE ≠ diagnóstico; DIVERGENTE não invalida relat
 | 11 | Compatibilidade de variante | **DECIDIDO (Etapa 5.7)**: variantes incompatíveis até declaração explícita; PCR ≠ PCR-us; Mg ≠ eritrocitário; livre/total já são exam_codes | PCR-us item próprio | — (`DECISAO-11-COMPATIBILIDADE-DE-VARIANTE-LI.md`) |
 | 12 | Compatibilidade de material | **DECIDIDO (Etapa 5.7)**: não universal; bloqueia só a operação que exige; ausente bloqueia só quando exigido; nunca inventado | inexistente | — (`DECISAO-12-COMPATIBILIDADE-DE-MATERIAL-LI.md`) |
 | 13 | Compatibilidade de método | **DECIDIDO (Etapa 5.7)**: classificação individual ≠ comparação longitudinal; método ausente não bloqueia universalmente; regra dependente de método exige método; métodos diferentes podem bloquear comparação; sem equivalência sem regra | inexistente | — (`DECISAO-13-COMPATIBILIDADE-DE-METODO-LI.md`) |
-| 14 | Resultados qualitativos (`DECISAO-14-RESULTADOS-QUALITATIVOS-LI.md`) | não classificáveis, excluídos | não registráveis | tabela por exame ou exclusão |
-| 15 | Resultados censurados (`DECISAO-15-RESULTADOS-CENSURADOS-LI.md`) | não classificáveis, excluídos | digitados como número | classificação por intervalo ou exclusão |
-| 16 | Suficiência mínima por domínio (`DECISAO-16-SUFICIENCIA-MINIMA-POR-DOMINIO-LI.md`) | sem regra | 1 exame bastava | arquitetura (absoluto/por domínio/fração) + valor ___ |
-| 17 | Número/conjunto mínimo de exames (`DECISAO-17-NUMERO-CONJUNTO-MINIMO-DE-EXAMES-LI.md`) | sem obrigatórios | inexistente | flag `required` ou nenhum |
-| 18 | Tratamento de exames ausentes (`DECISAO-18-TRATAMENTO-DE-EXAMES-AUSENTES-LI.md`) | ignorados | ignorados | ignorar, listar, denominador |
-| 19 | Tratamento de resultados mistos (`DECISAO-19-TRATAMENTO-DE-RESULTADOS-MISTOS-LI.md`) | sem regra → sem dados | qualquer fora = alterado | `insufficient`, `majority`, fração, direção; empate |
-| 20 | CONVERGENTE | sem regra; motor: lab alterado == HOLOSCAN alterado | `nota ≤ 3` ∧ ≥1 fora; "ambos ok" também | critério HOLOSCAN alterado; "ambos não alterados" |
-| 21 | DIVERGENTE | estado único, dois sentidos | textos causais por sentido | único, sub-rótulo, dois estados |
-| 22 | SEM DADOS SUFICIENTES | 8 motivos, único estado real | só `sem_exame` | confirmar lista/rótulos |
-| 23 | Textos à profissional | nenhum aprovado | 4 textos fixos (neutros) + causais | textos neutros por estado/domínio |
-| 24 | Textos ao paciente | nenhum | nenhum | aparece ou não; texto |
-| 25 | Comparabilidade da LI | nenhuma comparação | nada era salvo | mesma versão, lado a lado, nunca melhorou/piorou |
+| 14 | Resultados qualitativos | **DECIDIDO (Etapa 5.8)**: texto preservado; nunca número; classificação só com regra qualitativa homologada; sem regra → `qualitative_rule_missing`; nenhuma regra criada | não registráveis | — (`DECISAO-14-RESULTADOS-QUALITATIVOS-LI.md`) |
+| 15 | Resultados censurados | **DECIDIDO (Etapa 5.8)**: nunca aproximado; `numeric_value` nulo; classificação só quando o intervalo prova um único estado, senão `censored_value_ambiguous`; sem delta; nunca em média/score | digitados como número | — (`DECISAO-15-RESULTADOS-CENSURADOS-LI.md`) |
+| 16 | Suficiência mínima por domínio | **ARQUITETURA DECIDIDA (Etapa 5.8)**: regra própria e versionada por domínio com cobertura, obrigatórios e critério declarados; sem corte universal; sem suficiência global | 1 exame bastava (não oficial) | **parâmetros por domínio** — `DECISAO-16-SUFICIENCIA-MINIMA-POR-DOMINIO-LI.md` |
+| 17 | Número/conjunto mínimo de exames | **ARQUITETURA DECIDIDA (Etapa 5.8)**: quantidade/conjunto/grupo/combinação; hemograma = 1; componentes não inflam; repetido = 1 posição; multi-domínio 1× por domínio; não classificável não conta; pesos não assumidos iguais | inexistente | **valores por domínio** — `DECISAO-17-NUMERO-CONJUNTO-MINIMO-DE-EXAMES-LI.md` |
+| 18 | Tratamento de exames ausentes | **DECIDIDO (Etapa 5.8)**: não medido = ausência de dado (nunca normal/alterado/zero); sem direção; reduz cobertura; não invalida domínio; 12 reason_codes separados | ignorados | — (`DECISAO-18-TRATAMENTO-DE-EXAMES-AUSENTES-LI.md`) |
+| 19 | Tratamento de resultados mistos | **ARQUITETURA CONSERVADORA DECIDIDA (Etapa 5.8)**: proibidos maioria automática, média, score global, "um vence"; regra própria por domínio; sem regra → `mixed_without_rule` / sem dados; um exame fora não converge | qualquer fora = alterado (não oficial) | **regras por domínio** — `DECISAO-19-TRATAMENTO-DE-RESULTADOS-MISTOS-LI.md` |
+| 20 | Regra formal de CONVERGENTE (`DECISAO-20-REGRA-FORMAL-DE-CONVERGENTE-LI.md`) | sem regra; motor: lab alterado == HOLOSCAN alterado | `nota ≤ 3` ∧ ≥1 fora; "ambos ok" também | critério HOLOSCAN alterado; "ambos não alterados" |
+| 21 | Regra formal de DIVERGENTE (`DECISAO-21-REGRA-FORMAL-DE-DIVERGENTE-LI.md`) | estado único, dois sentidos | textos causais por sentido | único, sub-rótulo, dois estados |
+| 22 | Regra formal de SEM DADOS SUFICIENTES (`DECISAO-22-REGRA-FORMAL-DE-SEM-DADOS-SUFICIENTES-LI.md`) | 8 motivos, único estado real | só `sem_exame` | confirmar lista/rótulos |
+| 23 | Textos exibidos à profissional (`DECISAO-23-TEXTOS-EXIBIDOS-A-PROFISSIONAL-LI.md`) | nenhum aprovado | 4 textos fixos (neutros) + causais | textos neutros por estado/domínio |
+| 24 | Textos exibidos ao paciente (`DECISAO-24-TEXTOS-EXIBIDOS-AO-PACIENTE-LI.md`) | nenhum | nenhum | aparece ou não; texto |
+| 25 | Comparabilidade longitudinal da própria LI (`DECISAO-25-COMPARABILIDADE-LONGITUDINAL-DA-PROPRIA-LEITURA-INTEGRADA.md`) | nenhuma comparação | nada era salvo | mesma versão, lado a lado, nunca melhorou/piorou |
 | 26 | Cálculos derivados | tabela vazia | HOMA-IR digitado | nenhum ou aprovados com fórmula/versão |
 | 27 | Customizados | fora da LI | inexistente | fora, promoção ao catálogo |
 | 28 | Candida IgG, VHS, HOMA-IR, Cortisol | `additional_legacy` | vínculos a 4 sistemas | manter, catálogo, custom |
 | 29 | Insulina de jejum ↔ basal | `exam_code` nulo, `requires_manual_mapping` | EXA-006 → metabolico | alias seguro, variante, pendente, custom — **não automático** |
 | 30 | Homologação do pacote LI | **FECHADO TECNICAMENTE (Etapa 5.2)**: Daniel → Rodrigo, hash canônico, invalidação, `homologar_pacote_li` com completude, snapshot; 0 aprovações registradas | sem processo | — (conteúdo dos blocos 1–29 continua aberto) |
 
-**Primeiro bloco que exige decisão humana:** 5 (valor da janela temporal), depois 14–19 — o 30 foi fechado tecnicamente (5.2); os blocos 1–4 e 6–13 foram decididos (8 e 10 quanto à arquitetura) e o 5 parcialmente decidido por Daniel (5.4–5.7); blocos 14–19 preparados; nenhuma aprovação real registrada. Regra transversal (5.7): três eixos de estado por resultado — classificação, elegibilidade para LI, comparabilidade longitudinal.
+**Primeiro bloco que exige decisão humana:** 5 (valor da janela), depois parâmetros de 16/17/19 e blocos 20–25 — o 30 foi fechado tecnicamente (5.2); 1–4, 6–15 e 18 decididos (8 e 10 quanto à arquitetura), 16/17/19 com arquitetura decidida, 5 parcial, por Daniel (5.4–5.8); blocos 20–25 preparados; nenhuma aprovação real registrada. Regra transversal (5.7): três eixos de estado por resultado — classificação, elegibilidade para LI, comparabilidade longitudinal.
 
 **Contagens da Etapa 5 (Anexo A do pacote):** harness 114 → 116 = L42/L43 acrescentados em `8a3524c`; EXA: 24 = 19 mapeados + 1 manual (EXA-006) + 4 `additional_legacy`.

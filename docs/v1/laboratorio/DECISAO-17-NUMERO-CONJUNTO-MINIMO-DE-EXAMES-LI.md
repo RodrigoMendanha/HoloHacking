@@ -2,7 +2,7 @@
 
 Etapa 5.7 · 02/10/2026 · material para decisão de **Daniel** (responsável primário) · detalha o bloco 17 de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md` (nome e número do pacote). Depende das DECISÕES 02 e do bloco 16.
 
-> **NADA DECIDIDO.** Opções e consequências sem recomendação; nenhum corte, peso, lista obrigatória ou regra deduzida do legado; campos DECISÃO em branco. Nenhuma alteração em migration, banco, servidor falso, motor ou UI. Convergente/divergente **não** são tratados aqui (blocos 20–21); nenhuma relação domínio LI → sistema HOLOSCAN é criada (bloco 20 pendente).
+> **ARQUITETURA DECIDIDA / VALORES POR DOMÍNIO PENDENTES — Etapa 5.8 (02/10/2026, Daniel).** Decisão metodológica humana registrada abaixo. **Ainda não é**: implementação, migration clínica, alteração de banco, aprovação formal, homologação ou deploy. Nenhuma regra concreta, corte, peso ou lista foi criado.
 
 ## Pergunta (como no pacote)
 
@@ -40,14 +40,31 @@ Não existe "obrigatório" no vínculo (extensão pequena: flag `required`). O c
 
 Tratar ausência de obrigatório como alteração; gerar solicitação de exame (Conduta não gera pedido); listas herdadas do legado.
 
+
+## Regra transversal (aplicada a este bloco)
+
+Três eixos independentes por resultado: `classification_status` · `li_eligibility_status` · `longitudinal_comparability_status`. Exemplo: um resultado censurado pode ser **válido como dado bruto**, **não classificável individualmente** e, portanto, **não elegível** para determinada regra da LI — isso **não** o torna inválido. Motivos registrados separadamente por eixo. Nomenclatura conceitual; campos não implementados.
+
 ## Campo DECISÃO
 
-DECISÃO: ______
+**DECISÃO (Bloco 17 — número/conjunto mínimo, arquitetura):** a suficiência de um domínio poderá ser definida por (A) quantidade mínima de resultados classificáveis; (B) conjunto obrigatório de exames; (C) grupo obrigatório; (D) combinação de quantidade + conjunto/grupo. Contrato conceitual: `min_classifiable_results`, `required_exam_codes`, `required_exam_groups` — **campos não implementados**.
 
-JUSTIFICATIVA: ______
+**Regras de contagem:**
+1. Hemograma completo conta como **um** exame-base para cobertura.
+2. Componentes internos do hemograma **não** inflam a suficiência.
+3. Mesmo `exam_code` + `variant` medido várias vezes **não** cria várias posições de cobertura; depois da seleção explícita do `result_id` aplicável (DECISÃO 06), ocupa **uma** posição metodológica.
+4. Exame multi-domínio pode contribuir **uma vez em cada domínio** ao qual possui vínculo oficial (não duplica o exame no prontuário nem na contagem global dos 45).
+5. Exame não classificável **não** conta automaticamente como resultado classificável.
+6. **Não assumir** que todos os exames têm o mesmo peso de suficiência (pesos, se existirem, são decisão com fonte — nenhum criado).
 
-FONTE: ______ (ou FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR)
+**Pendência:** **PARÂMETROS CONCRETOS POR DOMÍNIO** (quantidades, conjuntos, grupos). Nenhum valor definido.
 
-RESPONSÁVEL: ______
+**JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 14–19 e no Documento Mestre (dado bruto preservado; misto sem regra = sem dados suficientes; nenhuma inferência sem regra homologada). Não atribuída ao legado.
 
-DATA: ______
+**FONTE:** Documento Mestre + decisão autoral V1. FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR onde aplicável; nenhuma citação fabricada.
+
+**RESPONSÁVEL:** Daniel (responsável primário). Revisão final de Rodrigo e registro no banco ficam para a homologação do pacote completo.
+
+**DATA:** 02/10/2026.
+
+**Status:** ARQUITETURA DECIDIDA / VALORES POR DOMÍNIO PENDENTES — não implementado, não registrado no banco, não homologado.

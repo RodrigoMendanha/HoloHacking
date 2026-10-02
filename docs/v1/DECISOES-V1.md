@@ -422,6 +422,41 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     `-19` resultados mistos (misto sem regra → sem dados suficientes; um exame fora não converge; sem score
     laboratorial); nenhum corte, peso ou lista sugerido.
 
+### Etapa 5.8 — DECISÕES 14–19 registradas; blocos 20–25 abertos (02/10/2026)
+
+108. **Qualitativos (DECISÃO 14)**: preservados textualmente; nunca convertidos em número; classificação só com
+    regra qualitativa específica, versionada e homologada (exame/variante/material/método) que declare termos
+    e classificação; sem regra → `not_classifiable / qualitative_rule_missing`; não contam para
+    convergente/divergente; nenhuma regra criada.
+109. **Censurados (DECISÃO 15)**: qualifier/censor_limit/texto preservados; nunca aproximados; `numeric_value`
+    nulo; classificação determinística só quando o intervalo possível prova um único estado contra a
+    referência (ex.: <5 vs 10–20 → below; <5 vs 0–10 → `censored_value_ambiguous`); sem delta; nunca em
+    média, score ou derivado.
+110. **Suficiência (DECISÃO 16, arquitetura)**: regra própria, explícita e versionada por domínio, declarando
+    vínculos aplicáveis, encontrados, elegíveis, classificáveis, excluídos (motivos), cobertura, obrigatórios
+    e critério; sem corte universal (não 50/70/80/100%, 1 ou 2 exames); sem suficiência global; sem regra →
+    sem dados suficientes. **Parâmetros por domínio pendentes.**
+111. **Conjunto mínimo (DECISÃO 17, arquitetura)**: quantidade, conjunto, grupo ou combinação
+    (`min_classifiable_results`, `required_exam_codes`, `required_exam_groups`, conceituais); hemograma conta
+    1; componentes não inflam; mesmo exame+variante repetido ocupa 1 posição após seleção do result_id;
+    multi-domínio contribui 1× por domínio; não classificável não conta como classificável; pesos não
+    assumidos iguais. **Valores por domínio pendentes.**
+112. **Exames ausentes (DECISÃO 18)**: não medido = ausência de dado (nunca normal/dentro/alterado/zero);
+    sem direção; não contribui para convergência/divergência; reduz cobertura; não invalida o domínio; sem
+    dados só se a regra mínima falhar ou faltar obrigatório; reason_codes separados (`missing_exam`,
+    `missing_reference`, `not_classifiable`, `not_eligible`, `outside_time_window`, `incompatible_unit/
+    variant/material/method`, `ambiguous_reference`, `qualitative_rule_missing`, `censored_value_ambiguous`).
+113. **Mistos (DECISÃO 19, arquitetura conservadora)**: proibidos maioria simples automática, média de exames
+    heterogêneos, score laboratorial global, "um alterado vence", "maioria normal vence", not_classifiable
+    como within; regra própria por domínio, versionada; sem regra → `mixed_without_rule` / sem dados
+    suficientes; um exame fora não produz convergente/divergente. **Regras por domínio pendentes.**
+    Regra transversal dos três eixos aplicada aos blocos 14–19. Bloco 5 continua PARCIALMENTE DECIDIDO.
+    **Status 108–113: decisões humanas aprovadas; não implementadas, não registradas no banco, não homologadas.**
+114. **Blocos 20–25 abertos** sem decisão, com os nomes do pacote: Regra formal de CONVERGENTE, Regra formal de
+    DIVERGENTE, Regra formal de SEM DADOS SUFICIENTES, Textos exibidos à profissional, Textos exibidos ao
+    paciente, Comparabilidade longitudinal da própria Leitura Integrada (`DECISAO-20…25`); nenhuma relação
+    domínio → sistema HOLOSCAN criada; nenhum texto oficial escrito; comparabilidade não assumida.
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`

@@ -2,7 +2,7 @@
 
 Etapa 5.7 · 02/10/2026 · material para decisão de **Daniel** (responsável primário) · detalha o bloco 19 de `PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md` (nome e número do pacote). Depende das DECISÕES 02 (direções), 09, 14, 15 e dos blocos 16–18.
 
-> **NADA DECIDIDO.** Opções e consequências sem recomendação; nenhum corte, peso, lista obrigatória ou regra deduzida do legado; campos DECISÃO em branco. Nenhuma alteração em migration, banco, servidor falso, motor ou UI. Convergente/divergente **não** são tratados aqui (blocos 20–21); nenhuma relação domínio LI → sistema HOLOSCAN é criada (bloco 20 pendente).
+> **ARQUITETURA CONSERVADORA DECIDIDA / REGRA ESPECÍFICA POR DOMÍNIO PENDENTE — Etapa 5.8 (02/10/2026, Daniel).** Decisão metodológica humana registrada abaixo. **Ainda não é**: implementação, migration clínica, alteração de banco, aprovação formal, homologação ou deploy. Nenhuma regra concreta, corte, peso ou lista foi criado.
 
 ## Pergunta (como no pacote)
 
@@ -39,14 +39,34 @@ Regra `mixed` (`payload.policy ∈ majority | insufficient`): **0 linhas**. Moto
 
 Herdar "qualquer fora"; política não versionada; score/índice laboratorial; direção virando gravidade.
 
+
+## Regra transversal (aplicada a este bloco)
+
+Três eixos independentes por resultado: `classification_status` · `li_eligibility_status` · `longitudinal_comparability_status`. Exemplo: um resultado censurado pode ser **válido como dado bruto**, **não classificável individualmente** e, portanto, **não elegível** para determinada regra da LI — isso **não** o torna inválido. Motivos registrados separadamente por eixo. Nomenclatura conceitual; campos não implementados.
+
 ## Campo DECISÃO
 
-DECISÃO: ______
+**DECISÃO (Bloco 19 — resultados mistos, arquitetura conservadora):**
 
-JUSTIFICATIVA: ______
+**Proibido:** maioria simples automática; média de exames heterogêneos; score laboratorial global; "um alterado vence os normais"; "a maioria normal vence o alterado"; normalizar `not_classifiable` como `within`.
 
-FONTE: ______ (ou FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR)
+- Resultado misto pode envolver combinações de `below`, `within`, `above`, `not_classifiable`.
+- A regra para interpretar mistura é **própria do domínio, versionada e homologada**.
+- Enquanto a regra do domínio não existir: `reason_code = mixed_without_rule`, estado = `sem_dados_suficientes`.
+- Um único exame fora da referência **não** produz automaticamente convergente ou divergente.
+- `not_classifiable` **não** conta como "normal" para resolver mistura.
+- **Não criar score laboratorial global.**
 
-RESPONSÁVEL: ______
+Consequência técnica: a política `majority` existente no motor **não** pode ser usada como default; cada domínio exigirá regra `mixed` própria com contrato declarado; o motivo passa a `mixed_without_rule`.
 
-DATA: ______
+**Pendência:** **REGRAS ESPECÍFICAS POR DOMÍNIO (D01…D07).** Nenhuma definida.
+
+**JUSTIFICATIVA:** decisão autoral V1 aprovada por Daniel em 02/10/2026, apoiada na revisão clínica/documental dos blocos 14–19 e no Documento Mestre (dado bruto preservado; misto sem regra = sem dados suficientes; nenhuma inferência sem regra homologada). Não atribuída ao legado.
+
+**FONTE:** Documento Mestre + decisão autoral V1. FONTE BIBLIOGRÁFICA FORMAL A CONSOLIDAR onde aplicável; nenhuma citação fabricada.
+
+**RESPONSÁVEL:** Daniel (responsável primário). Revisão final de Rodrigo e registro no banco ficam para a homologação do pacote completo.
+
+**DATA:** 02/10/2026.
+
+**Status:** ARQUITETURA CONSERVADORA DECIDIDA / REGRA ESPECÍFICA POR DOMÍNIO PENDENTE — não implementado, não registrado no banco, não homologado.

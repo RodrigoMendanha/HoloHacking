@@ -2,7 +2,7 @@
 
 Etapa 5.1 · 02/10/2026 · branch `claude/v1-etapa5-1-decisoes-leitura-integrada` (a partir de `43daba2`) · para a liderança do método e os responsáveis clínicos.
 
-> **NENHUMA DECISÃO CLÍNICA FOI TOMADA NESTE DOCUMENTO.** Os campos DECISÃO, JUSTIFICATIVA, RESPONSÁVEL e DATA estão em branco nos blocos 14–29 (e no valor do bloco 5); os blocos 1–4 e 6–13 foram decididos e o 5 parcialmente decidido por Daniel em 02/10/2026 (`DECISAO-01…13`), sem registro no banco, sem homologação e sem implementação. **Etapa 5.2:** o bloco 30 (governança) foi **fechado tecnicamente** — a Leitura Integrada reutiliza a dupla aprovação Daniel → Rodrigo do HOLOSCAN (`GOVERNANCA-HOMOLOGACAO-LI-V1.md`); nenhuma aprovação real foi registrada. **Etapa 5.3:** a identidade dos aprovadores passou a ser a conta autenticada autorizada (`docs/v1/metodologia/APROVADORES-AUTORIZADOS.md`), não o nome digitado. Nenhuma opção está recomendada. Nenhum valor numérico de corte, janela ou referência é proposto.
+> **NENHUMA DECISÃO CLÍNICA FOI TOMADA NESTE DOCUMENTO.** Os campos DECISÃO, JUSTIFICATIVA, RESPONSÁVEL e DATA estão em branco nos blocos 20–29 (e nos parâmetros pendentes de 5, 16, 17 e 19); os blocos 1–4, 6–15 e 18 foram decididos, 16/17/19 quanto à arquitetura, e o 5 parcialmente, por Daniel em 02/10/2026 (`DECISAO-01…19`), sem registro no banco, sem homologação e sem implementação. **Etapa 5.2:** o bloco 30 (governança) foi **fechado tecnicamente** — a Leitura Integrada reutiliza a dupla aprovação Daniel → Rodrigo do HOLOSCAN (`GOVERNANCA-HOMOLOGACAO-LI-V1.md`); nenhuma aprovação real foi registrada. **Etapa 5.3:** a identidade dos aprovadores passou a ser a conta autenticada autorizada (`docs/v1/metodologia/APROVADORES-AUTORIZADOS.md`), não o nome digitado. Nenhuma opção está recomendada. Nenhum valor numérico de corte, janela ou referência é proposto.
 >
 > **Autoridade.** Documento Mestre (§§21–24) = destino da V1. Etapa 5 (`ETAPA5-LABORATORIO.md`) = infraestrutura técnica, já entregue. AS-IS (`INVENTARIO-LABORATORIO-AS-IS.md`) = evidência histórica. **Nenhuma regra do confronto legado é proposta oficial só porque existia**: onde aparece, está marcada **LEGADO / INCOMPATÍVEL COMO REGRA OFICIAL SEM HOMOLOGAÇÃO**.
 >
@@ -42,7 +42,7 @@ Um resultado tem três eixos independentes: **classificação individual** (`cla
 | 25 | Comparabilidade longitudinal da LI | Evolução da própria LI |
 | 26, 27, 28, 29 | Derivados, customizados, legado fora dos 45, Insulina | cobertura de itens específicos |
 
-O bloco **30** (quem aprova e como) foi fechado tecnicamente na Etapa 5.2; os blocos **1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12 e 13** foram **decididos por Daniel** (Etapas 5.4–5.7; 8 e 10 quanto à arquitetura) e o **5** está **parcialmente decidido** (arquitetura sim, valor em dias não); o **primeiro bloco que exige decisão humana** passa a ser o **5** (valor da janela), seguido dos blocos **14–19**, preparados em `DECISAO-14…19`.
+O bloco **30** (quem aprova e como) foi fechado tecnicamente na Etapa 5.2; os blocos **1–4, 6–15 e 18** foram **decididos por Daniel** (Etapas 5.4–5.8; 8 e 10 quanto à arquitetura), **16, 17 e 19** têm arquitetura decidida com parâmetros/regras por domínio pendentes, e o **5** está **parcialmente decidido** (valor em dias não); o **primeiro bloco que exige decisão humana** passa a ser o **5** (valor da janela), seguido dos parâmetros de **16, 17 e 19** e dos blocos **20–25**, preparados em `DECISAO-20…25`.
 
 ---
 
@@ -473,7 +473,7 @@ DATA: ______
 
 ## BLOCO 14 — Resultados qualitativos
 
-> **Etapa 5.7:** material detalhado para decisão em `DECISAO-14-RESULTADOS-QUALITATIVOS-LI.md` (opções e consequências, sem recomendação, sem corte). **PENDENTE.**
+> **DECIDIDO — Etapa 5.8 (Daniel, 02/10/2026):** qualitativo preservado textualmente; nunca convertido em número; classificação só com regra qualitativa homologada por exame/variante/material/método; sem regra → `not_classifiable / qualitative_rule_missing`; não conta para convergente/divergente; nenhuma regra criada (`DECISAO-14-RESULTADOS-QUALITATIVOS-LI.md`). Não implementado, não homologado.
 
 **O que decidir.** Se e como resultados textuais ("Negativo", "Reagente", "Não detectado", "Positivo", títulos "1/80") entram na Leitura Integrada: excluídos, mapeados para `within/out` por tabela aprovada por exame, ou só exibidos.
 
@@ -502,7 +502,7 @@ DATA: ______
 
 ## BLOCO 15 — Resultados censurados
 
-> **Etapa 5.7:** material detalhado para decisão em `DECISAO-15-RESULTADOS-CENSURADOS-LI.md` (opções e consequências, sem recomendação, sem corte). **PENDENTE.**
+> **DECIDIDO — Etapa 5.8 (Daniel, 02/10/2026):** qualifier/censor_limit/texto preservados; nunca aproximado; `numeric_value` nulo; classificação só quando o intervalo possível prova um único estado (ex.: <5 vs 10–20 → below), senão `censored_value_ambiguous`; sem delta; nunca em média/score/derivado (`DECISAO-15-RESULTADOS-CENSURADOS-LI.md`). Não implementado, não homologado.
 
 **O que decidir.** Como entram valores "< 0,10", "> 2000", "abaixo do limite de quantificação": excluídos (hoje), classificados pela direção do censor contra a referência quando inequívoco (ex.: "< 0,10" com referência "< 3" ⇒ dentro), ou só exibidos.
 
@@ -531,7 +531,7 @@ DATA: ______
 
 ## BLOCO 16 — Suficiência mínima por domínio
 
-> **Etapa 5.7:** material detalhado para decisão em `DECISAO-16-SUFICIENCIA-MINIMA-POR-DOMINIO-LI.md` (opções e consequências, sem recomendação, sem corte). **PENDENTE.**
+> **ARQUITETURA DECIDIDA / PARÂMETROS POR DOMÍNIO PENDENTES — Etapa 5.8 (Daniel, 02/10/2026):** regra própria, explícita e versionada por domínio, declarando vínculos aplicáveis, encontrados, elegíveis, classificáveis, excluídos (com motivos), cobertura, obrigatórios e critério; sem corte universal (não 50/70/80/100%, 1 ou 2 exames); sem suficiência global; sem regra → sem dados suficientes (`DECISAO-16-SUFICIENCIA-MINIMA-POR-DOMINIO-LI.md`). Não implementado, não homologado.
 
 **O que decidir.** A partir de quantos resultados classificáveis (ou de qual fração dos exames vinculados) um domínio é avaliável. **Valor em branco.**
 
@@ -564,7 +564,7 @@ DATA: ______
 
 ## BLOCO 17 — Número/conjunto mínimo de exames
 
-> **Etapa 5.7:** material detalhado para decisão em `DECISAO-17-NUMERO-CONJUNTO-MINIMO-DE-EXAMES-LI.md` (opções e consequências, sem recomendação, sem corte). **PENDENTE.**
+> **ARQUITETURA DECIDIDA / VALORES POR DOMÍNIO PENDENTES — Etapa 5.8 (Daniel, 02/10/2026):** suficiência por quantidade, conjunto, grupo ou combinação (`min_classifiable_results`, `required_exam_codes`, `required_exam_groups`, conceituais); hemograma = 1; componentes não inflam; mesmo exame+variante repetido = 1 posição após seleção do result_id; multi-domínio conta 1× em cada domínio; não classificável não conta como classificável; pesos não assumidos iguais (`DECISAO-17-NUMERO-CONJUNTO-MINIMO-DE-EXAMES-LI.md`). Não implementado, não homologado.
 
 **O que decidir.** Se, além da contagem (bloco 16), há exames **obrigatórios** por domínio (sem os quais o domínio não é avaliável) e qual é esse conjunto.
 
@@ -593,7 +593,7 @@ DATA: ______
 
 ## BLOCO 18 — Tratamento de exames ausentes
 
-> **Etapa 5.7:** material detalhado para decisão em `DECISAO-18-TRATAMENTO-DE-EXAMES-AUSENTES-LI.md` (opções e consequências, sem recomendação, sem corte). **PENDENTE.**
+> **DECIDIDO — Etapa 5.8 (Daniel, 02/10/2026):** exame não medido = ausência de dado (nunca normal/dentro/alterado/zero); sem direção; não contribui para convergência/divergência; reduz cobertura; não invalida o domínio; sem dados só se a regra mínima falhar ou faltar obrigatório; 12 reason_codes separados, nunca "faltando" (`DECISAO-18-TRATAMENTO-DE-EXAMES-AUSENTES-LI.md`). Não implementado, não homologado.
 
 **O que decidir.** Como exames vinculados mas não coletados são tratados: ignorados na contagem (hoje), mostrados como "não coletado" no trace e na tela, ou considerados na fração do bloco 16(C).
 
@@ -620,7 +620,7 @@ DATA: ______
 
 ## BLOCO 19 — Tratamento de resultados mistos
 
-> **Etapa 5.7:** material detalhado para decisão em `DECISAO-19-TRATAMENTO-DE-RESULTADOS-MISTOS-LI.md` (opções e consequências, sem recomendação, sem corte). **PENDENTE.**
+> **ARQUITETURA CONSERVADORA DECIDIDA / REGRAS POR DOMÍNIO PENDENTES — Etapa 5.8 (Daniel, 02/10/2026):** proibidos maioria simples automática, média heterogênea, score global, "um alterado vence", "maioria normal vence", not_classifiable como within; regra própria por domínio, versionada; sem regra → `mixed_without_rule` / sem dados suficientes; um exame fora não converge (`DECISAO-19-TRATAMENTO-DE-RESULTADOS-MISTOS-LI.md`). Não implementado, não homologado.
 
 **O que decidir.** Quando, no mesmo domínio, há resultados "fora" e "dentro": como se define "laboratório alterado". Política: qualquer fora; maioria; fração; só direção relevante; insuficiente (não decide).
 
@@ -651,6 +651,8 @@ DATA: ______
 
 ## BLOCO 20 — Regra formal de CONVERGENTE
 
+> **Etapa 5.8:** material detalhado para decisão em `DECISAO-20-REGRA-FORMAL-DE-CONVERGENTE-LI.md` (levantamento, opções e consequências, sem recomendação). **PENDENTE.**
+
 **O que decidir.** Definição formal de "HOLOSCAN alterado" para um domínio (nota ≤ X, faixa específica, Índice, outro) e a condição de convergência: `laboratório alterado ∧ HOLOSCAN alterado`; e se `laboratório não alterado ∧ HOLOSCAN não alterado` também é convergente (como no legado) ou um estado próprio.
 
 **O que existe.** Regra tipo `convergence`, `payload.holoscan_max_nota` (nota ≤ X) **ou** `payload.holoscan_faixa` (faixa igual a), por domínio ligado a `holoscan_system`: **0 linhas**. Motor: `convergente` quando `labAlterado == holoAlterado` (**inclui** o caso "ambos não alterados"), `divergente` caso contrário; sem regra → `sem_regra_homologada`; sistema sem nota → `holoscan_nao_avaliavel`. Notas e faixas do HOLOSCAN vêm do HOLOS-V1@2 (faixas decididas na Etapa 4.2, ainda `em_revisao`).
@@ -677,6 +679,8 @@ DATA: ______
 ---
 
 ## BLOCO 21 — Regra formal de DIVERGENTE
+
+> **Etapa 5.8:** material detalhado para decisão em `DECISAO-21-REGRA-FORMAL-DE-DIVERGENTE-LI.md` (levantamento, opções e consequências, sem recomendação). **PENDENTE.**
 
 **O que decidir.** Se divergente é simplesmente `labAlterado ≠ holoAlterado` (hoje) ou se os dois sentidos são tratados de forma diferente: (i) HOLOSCAN alterado + laboratório não alterado; (ii) HOLOSCAN não alterado + laboratório alterado. E se há exigência adicional (por exemplo suficiência maior) para declarar divergência.
 
@@ -705,6 +709,8 @@ DATA: ______
 
 ## BLOCO 22 — Regra formal de SEM DADOS SUFICIENTES
 
+> **Etapa 5.8:** material detalhado para decisão em `DECISAO-22-REGRA-FORMAL-DE-SEM-DADOS-SUFICIENTES-LI.md` (levantamento, opções e consequências, sem recomendação). **PENDENTE.**
+
 **O que decidir.** Confirmar a lista fechada de motivos que forçam `sem_dados_suficientes` e se algum motivo deve ser exibido de forma diferente (ex.: "sem regra homologada" vs "fora da janela").
 
 **O que existe.** Motivos do motor: `sem_regra_homologada`, `sem_associacao_aprovada`, `sem_referencia_utilizavel`, `fonte_ausente`, `incompatibilidade_temporal`, `dados_mistos_sem_regra`, `holoscan_nao_avaliavel`, `unidade_incompativel`. Hoje é o **único estado real**. Servidor recusa salvar `convergente/divergente` sem vínculo aprovado em pacote aprovado.
@@ -729,6 +735,8 @@ DATA: ______
 ---
 
 ## BLOCO 23 — Textos exibidos à profissional
+
+> **Etapa 5.8:** material detalhado para decisão em `DECISAO-23-TEXTOS-EXIBIDOS-A-PROFISSIONAL-LI.md` (levantamento, opções e consequências, sem recomendação). **PENDENTE.**
 
 **O que decidir.** Texto oficial, por estado (e por domínio, se for o caso), mostrado na ficha, no Confronto e no relatório clínico; obrigatoriamente neutro (sem causa, sem diagnóstico, sem conduta).
 
@@ -755,6 +763,8 @@ DATA: ______
 
 ## BLOCO 24 — Textos exibidos ao paciente
 
+> **Etapa 5.8:** material detalhado para decisão em `DECISAO-24-TEXTOS-EXIBIDOS-AO-PACIENTE-LI.md` (levantamento, opções e consequências, sem recomendação). **PENDENTE.**
+
 **O que decidir.** Se a Leitura Integrada aparece em algum material voltado ao paciente (relatório entregue, resumo) e, se sim, com qual texto — ou se é restrita à profissional na V1.
 
 **O que existe.** Nenhuma superfície voltada ao paciente mostra a LI; o relatório clínico (Etapa 3) é da profissional e inclui a LI só se salva e selecionada, e hoje só `sem_dados_suficientes`.
@@ -777,6 +787,8 @@ DATA: ______
 ---
 
 ## BLOCO 25 — Comparabilidade longitudinal da própria Leitura Integrada
+
+> **Etapa 5.8:** material detalhado para decisão em `DECISAO-25-COMPARABILIDADE-LONGITUDINAL-DA-PROPRIA-LEITURA-INTEGRADA.md` (levantamento, opções e consequências, sem recomendação). **PENDENTE.**
 
 **O que decidir.** Se duas leituras salvas do mesmo paciente podem ser comparadas (mesma versão de pacote, mesmos domínios, mesma aplicação ou aplicações distintas) e o que é exibido ("mudou de estado", nunca "melhorou").
 
