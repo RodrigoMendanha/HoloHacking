@@ -1,0 +1,23 @@
+#!/bin/sh
+# ETAPA 6.2 — prova LOCAL do artefato EXATO supabase/ETAPA6-2-APLICACAO-REAL.sql num PostgreSQL descartavel.
+# Uso: PGHOST=/caminho/socket PGPORT=55432 sh scripts/testar-aplicacao-real-local.sh   (precisa do banco "base": stub + migrations ate 20260929192605)
+# Cria o template base_fp (base + supabase/tests/fingerprint-real-seed.sql = fingerprint real 16/14/7/49/12/64 + 5/4/20/3/22/3),
+# e roda: aplicacao integral + POST-FLIGHT; 2a execucao (guarda); fingerprint divergente; falha no meio; falha no historico; pos-flight falhando.
+set -u
+cd "$(dirname "$0")/.."
+A=supabase/ETAPA6-2-APLICACAO-REAL.sql
+P="psql -U postgres -X -At -v ON_ERROR_STOP=1"
+FP="select (select count(*) from supabase_migrations.schema_migrations)||'/'||(select count(*) from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind='r')||'/'||(select count(*) from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public')||'/'||(select count(*) from pg_policy p join pg_class c on c.oid=p.polrelid join pg_namespace n on n.oid=c.relnamespace where n.nspname='public')||'/'||(select count(*) from pg_trigger t join pg_class c on c.oid=t.tgrelid join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and not t.tgisinternal)||'/'||(select count(*) from pg_constraint k join pg_namespace n on n.oid=k.connamespace where n.nspname='public')||' dados '||(select count(*) from patients)||'/'||(select count(*) from holoscan_applications)||'/'||(select count(*) from holoscan_system_scores)||'/'||(select count(*) from lab_collections)||'/'||(select count(*) from lab_results)||'/'||(select count(*) from auth.users)||' identidade_col='||(select count(*) from information_schema.columns where table_name='lab_results' and column_name='exam_code')"
+fresh() { psql -U postgres -d postgres -qc "drop database if exists $1" -c "create database $1 template base_fp" >/dev/null; }
+psql -U postgres -d postgres -qc "drop database if exists base_fp" -c "create database base_fp template base" >/dev/null
+$P -d base_fp -q -f supabase/tests/fingerprint-real-seed.sql || { echo "SEED FALHOU"; exit 1; }
+echo "T0 fingerprint do template: $($P -d base_fp -c "$FP")"
+echo "T0 PREFLIGHT externo: $($P -d base_fp -f supabase/ETAPA6-2-PREFLIGHT.sql | grep -o '"pode_aplicar" : [a-z]*')"
+fresh t_ok; $P -d t_ok -f $A > /tmp/t_ok.out 2> /tmp/t_ok.err; r=$?; echo "T1 aplicacao integral (arquivo exato): exit=$r $(grep -c 'ETAPA 6.2: guarda ok' /tmp/t_ok.err) guarda, $(grep -c 'verificacao pos-aplicacao ok' /tmp/t_ok.err) pos, ultimo=$(grep -E '^(BEGIN|COMMIT|ROLLBACK)$' /tmp/t_ok.out | tail -1); depois: $($P -d t_ok -c "$FP")"
+echo "T1 POSTFLIGHT externo: $($P -d t_ok -f supabase/ETAPA6-2-POSTFLIGHT.sql)"
+$P -d t_ok -f $A > /tmp/t_2.out 2> /tmp/t_2.err; r=$?; echo "T2 segunda execucao: exit=$r (esperado <>0) msg=$(grep -o 'ABORTADA NA GUARDA[^|]*' /tmp/t_2.err | head -1 | cut -c1-120) depois: $($P -d t_ok -c "$FP")"
+fresh t_div; $P -d t_div -qc "update public.patients set status = 'inativo' where false; delete from public.lab_results where exame_id = 'EXA-099';" ; $P -d t_div -f $A > /tmp/t_div.out 2> /tmp/t_div.err; r=$?; echo "T3 fingerprint divergente (lab_results=21): exit=$r (esperado <>0) msg=$(grep -o 'ABORTADA NA GUARDA[^|]*' /tmp/t_div.err | head -1 | cut -c1-110) depois: $($P -d t_div -c "$FP")"
+fresh t_mid; awk '{print} /^-- MIGRATION: 20261001200000_/{print "select 1/0;  -- FALHA INJETADA (teste C)"}' $A > /tmp/t_mid.sql; $P -d t_mid -f /tmp/t_mid.sql > /tmp/t_mid.out 2> /tmp/t_mid.err; r=$?; echo "T4 falha injetada no meio (apos 7 migrations): exit=$r (esperado <>0) erro=$(grep -o 'division by zero' /tmp/t_mid.err | head -1) depois: $($P -d t_mid -c "$FP")"
+fresh t_hist; sed "s/^insert into supabase_migrations.schema_migrations (version, name, statements) values ('20261002130000'/insert into supabase_migrations.schema_migrations (version, name, statements) values ('20260929192605'/" $A > /tmp/t_hist.sql; $P -d t_hist -f /tmp/t_hist.sql > /tmp/t_hist.out 2> /tmp/t_hist.err; r=$?; echo "T5 falha no INSERT do historico (versao duplicada): exit=$r (esperado <>0) erro=$(grep -o 'duplicate key[^"]*"[^"]*"' /tmp/t_hist.err | head -1) depois: $($P -d t_hist -c "$FP")"
+fresh t_pos; sed 's/"n_tabelas":44,"n_funcoes":62/"n_tabelas":45,"n_funcoes":62/' $A > /tmp/t_pos.sql; $P -d t_pos -f /tmp/t_pos.sql > /tmp/t_pos.out 2> /tmp/t_pos.err; r=$?; echo "T6 pos-flight falhando (esperado 45 tabelas): exit=$r (esperado <>0) msg=$(grep -o 'ABORTADA NA VERIFICACAO POS-APLICACAO[^|]*' /tmp/t_pos.err | head -1 | cut -c1-110) depois: $($P -d t_pos -c "$FP")"
+for d in t_ok t_div t_mid t_hist t_pos; do psql -U postgres -d postgres -qc "drop database if exists $d" >/dev/null; done
