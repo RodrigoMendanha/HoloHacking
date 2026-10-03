@@ -56,3 +56,39 @@ Template `base_fp` = banco `base` (stub + migrations até 20260929192605) + `sup
 - Nunca editar o artefato à mão (regenerar pelo script e recalcular SHA-256).
 - Nunca executar `supabase db push` (histórico das 15 migrations antigas desalinhado).
 - Não cadastrar aprovadores, aprovar, homologar ou fazer deploy nesta etapa.
+
+---
+
+## 7. EXECUÇÃO REAL — ETAPA 6.2 CONCLUÍDA (2026-10-03)
+
+Executada manualmente por Daniel no SQL Editor do projeto `sllhyymeeyoozokgbnuv`, fora do agente, com o artefato `ETAPA6-2-APLICACAO-REAL.sql` (SHA-256 `2ebab82fd25fc2b26eeae0b5029ac218a8d7b763fb526fa8faf0c1c2425be4a7`).
+
+1. **Recuperação disponível antes:** backup existente no Dashboard do projeto confirmado antes da aplicação.
+2. **PRE-FLIGHT aprovado:** `pode_aplicar = true` (fingerprint 16 / 20260929192605 / 14 / 7 / 49 / 12 / 64; dados 5 / 4 / 20 / 3 / 22 / 3).
+3. **Aplicação real commitada:** guarda ok → 14 migrations → 14 linhas de histórico → verificação pós ok → `COMMIT`.
+4. **POST-FLIGHT aprovado** (fingerprint final real):
+
+| Item | Valor real |
+|---|---|
+| hist_n / hist_ultima / versões novas | 30 / 20261002130000 / 14 |
+| tabelas / funções / policies / triggers / constraints / índices | 44 / 62 / 129 / 89 / 317 / 139 |
+| lab_results_identidade | 0 violações; constraint validada |
+| lab_results legados preenchidos / com mapeamento manual | 22 / 3 |
+| catálogo laboratorial | 45 |
+| pacotes LI | LI-V1@1 rascunho; LI-V1@2 em_revisao |
+| li_hash_v2 | `fa99ec80507e277307a9b0d2a09a8f0abc1519e55bede08d8715697412137be9` (confirmado) |
+| approvers / aprovações LI / aprovações metodológicas | 0 / 0 / 0 |
+| leituras integradas / methodology_packages / encounters | 0 / 0 / 0 |
+| aplicações HOLOSCAN / com proveniência | 4 / 0 |
+| `holoscan_system_scores.nota` nullable | YES |
+| triggers de paciente arquivado | `O,O` (habilitados) |
+| patients / holoscan_applications / holoscan_system_scores / lab_collections / lab_results / auth_users | 5 / 4 / 20 / 3 / 22 / 3 |
+| sessões em transação | 0 |
+
+Observação: `lab_results_mapeamento_manual = 3` no real (local deu 2 com dados sintéticos): reflete os exames legados reais sem mapeamento provado / EXA-006; não é verificação da guarda pós e não altera nada — esses resultados ficam marcados para mapeamento humano, sem inferência.
+
+5. **`created_by` NULL nas 14 linhas novas:** decisão humana consciente (não falsificar metadado; as 16 linhas antigas intocadas).
+6. **Não realizado:** nenhum aprovador cadastrado, nenhuma aprovação, nenhuma homologação, nenhum deploy.
+7. **Aplicações históricas** (4) permanecem sem proveniência metodológica (sem backfill; política `POLITICA-COMPATIBILIDADE-APLICACOES-HISTORICAS-HOLOSCAN-LI.md`).
+
+**ETAPA 6.2 = CONCLUÍDA NO BANCO REAL.** Próximo gate: `docs/v1/ETAPA6-3-PLANO-GOVERNANCA-E-DEPLOY.md`.

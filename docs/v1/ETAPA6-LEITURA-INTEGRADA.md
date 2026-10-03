@@ -133,3 +133,12 @@ Igualdade provada em três lugares: JS (`hashConteudo()` do pacote), SQL local (
 - Docker: `docs/deploy.md` §3.5 regenerado (54 arquivos; `app.js`, `laboratorio.js`, `leitura-integrada-motor.js`, `leitura-integrada-pacote-v1.js` mudaram); build na HEAD final da etapa com `version.json.commit == HEAD` e 54/54 hashes conferidos (registro no relatório final). Nenhum deploy.
 
 VALIDAÇÃO REAL PENDENTE. Próximo gate: o listado acima (validação real da cadeia, migrations, approvers, aprovações, homologação, deploy).
+
+
+---
+
+## Estado após as Etapas 6.1 e 6.2 (2026-10-03)
+
+- **6.1 (gate do banco real): APROVADA.** Dry-run V3 no projeto real, 50/50 checks, hash LI-V1@2 confirmado, zero persistência (`ETAPA6-1-VALIDACAO-BANCO-REAL.md`). Bloqueador real encontrado e corrigido: `lab_results_identidade` (NOT VALID → preenchimento → VALIDATE).
+- **6.2 (aplicação real): CONCLUÍDA.** As 14 migrations `20260930130000` → `20261002130000` aplicadas em uma transação; POST-FLIGHT 30 / 44 / 62 / 129 / 89 / 317; LI-V1@2 `em_revisao` com hash `fa99ec80…`; 0 aprovadores, 0 aprovações, 0 homologações; 4 aplicações HOLOSCAN históricas sem proveniência (`ETAPA6-2-APLICACAO-REAL.md` §7).
+- Próximo gate: governança (aprovadores reais, pacote HOLOS, aprovações, homologações) e deploy — `ETAPA6-3-PLANO-GOVERNANCA-E-DEPLOY.md`.
