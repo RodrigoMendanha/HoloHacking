@@ -1,5 +1,7 @@
 # GOVERNANÇA E DUPLA APROVAÇÃO DA LEITURA INTEGRADA — V1
 
+> **SUPERADO NA ETAPA 6.3-B (2026-10-03): governança de APROVADOR ÚNICO (Daniel).** A dupla aprovação descrita abaixo foi o contrato até a 6.3-A e permanece aqui como histórico. Hoje: só a Aprovação de Daniel; etapa 2 descontinuada; Rodrigo com papéis desativados (data + motivo, nunca apagados); `reviewed_by`/`approval_2` nulos (nenhuma segunda revisão simulada); regime `aprovador_unico` registrado. Ver `docs/v1/metodologia/DECISAO-GOVERNANCA-APROVADOR-UNICO-V1.md` e a migration `20261003100000`.
+
 Etapa 5.2 · 02/10/2026 · migration `20261002100000_governanca_leitura_integrada.sql` (**NÃO aplicada**) · tela `?homologacao=1` → Metodologia → "Leitura Integrada — homologação metodológica" · servidor falso espelhado · harness `supabase/tests/etapa5-2-harness.sql` (G00–G39).
 
 > **Fecha tecnicamente o bloco 30 do pacote de decisão humana** (`PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md`): a Leitura Integrada reutiliza a **mesma governança humana** do Pacote Metodológico HOLOSCAN. **Nenhuma aprovação real foi registrada. Nada foi homologado. Os blocos clínicos 1–29 continuam abertos.** O pacote real `LI-V1@1` segue em `rascunho`, com 0 domínios, 0 vínculos, 0 regras.

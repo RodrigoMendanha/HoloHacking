@@ -669,6 +669,13 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     ou estrutura. Nenhum backfill no banco real.
 153. **content_hash candidato recalculado**: anterior `7c6d93a0…` → **novo `fa99ec80507e277307a9b0d2a09a8f0abc1519e55bede08d8715697412137be9`**;
     igual em JS, PostgreSQL local (harness E13/E31) e servidor falso. O anterior não é reutilizado.
+154. **Governança da V1: aprovador único (Daniel)** (Etapa 6.3-B, `docs/v1/metodologia/DECISAO-GOVERNANCA-APROVADOR-UNICO-V1.md`,
+    migration `20261003100000`). A dupla aprovação (Daniel → Rodrigo) foi substituída por aprovador único. **A perda do controle de quatro
+    olhos é uma decisão consciente.** Nenhuma segunda revisão é simulada: `reviewed_by`/`reviewed_at` nulos no regime `aprovador_unico`
+    (registrado em `governance_regime`, no registro de homologação e na proveniência/snapshot da LI, com `approval_2` nulo). Os papéis
+    de Rodrigo são desativados com data e motivo, nunca apagados. Homologar o HOLOSCAN exige ser dono do pacote e aprovador ativo
+    `holoscan`/1. A Aprovação 1 já registrada de Daniel no HOLOS-V1@2 é preservada. Os artefatos da Etapa 6.1 ficam congelados como evidência
+    histórica. Nenhuma regra clínica/metodológica muda; os hashes HOLOS `7af1dae6…` e LI `fa99ec80…` também não.
 
 ## Decisões pendentes (não decididas aqui)
 

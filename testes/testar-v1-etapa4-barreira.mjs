@@ -13,7 +13,9 @@
  *  Modo oficial recusa pacote rascunho; nenhum fallback.
  *  Etapa 4.2: o CANDIDATO V1 (decisoes fechadas) e gravado pela tela como nova versao em_revisao
  *  (linhagem, hash, nenhum registro), confere REF-01..03 e continua fora da saida oficial.
- *  Dupla aprovacao pela tela: Aprovacao 1 Daniel, "Liderança" recusada, Aprovacao 2 Rodrigo; nada homologado.
+ *  Aprovador unico pela tela (migration 20261003100000): "Liderança" e "Rodrigo" recusados, Aprovacao de Daniel; so "Homologar"
+ *  e oferecido (sem segunda revisao); nada homologado. Rodrigo (papel desativado) nao ve nem aprova o pacote alheio.
+ *  (Contrato anterior, ate a 6.3-A: Aprovacao 2 por Rodrigo na conta b@ — descontinuada; mudanca legitima documentada.)
  */
 import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
@@ -26,9 +28,9 @@ const esperar = (ms) => new Promise(r => setTimeout(r, ms));
 const srv = criarServidor();
 const UA = srv.criarConta('a@holo.test', 'senha-a-123');
 const UB = srv.criarConta('b@holo.test', 'senha-b-123');
-// Etapa 5.3: identidade real — a@ = Daniel (Aprovacao 1), b@ = Rodrigo (Aprovacao 2); cadastro por gestao tecnica
+// identidade real — a@ = Daniel (aprovador unico); b@ = Rodrigo com o papel de etapa 2 DESATIVADO; cadastro por gestao tecnica
 srv.gestaoTecnica('methodology_approvers', 'insert', { user_id: UA, scope: 'holoscan', approval_stage: 1, display_name: 'Daniel' });
-srv.gestaoTecnica('methodology_approvers', 'insert', { user_id: UB, scope: 'holoscan', approval_stage: 2, display_name: 'Rodrigo' });
+srv.gestaoTecnica('methodology_approvers', 'insert', { user_id: UB, scope: 'holoscan', approval_stage: 2, display_name: 'Rodrigo', active: false, deactivated_at: '2026-10-03T00:00:00Z', deactivation_reason: 'etapa 2 descontinuada (aprovador unico)' });
 const nav = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const errosJS = [];
 const ctxNav = await nav.createBrowserContext();
@@ -87,9 +89,9 @@ const b2 = await A.evaluate(() => { const M = window.Metodologia, P = window.Pac
 ok(b2.status === 'em_homologacao' && b2.ativo === null && /nenhum Pacote Metodológico aprovado \(2 em rascunho/.test(b2.motivo) && b2.of === 'oficial_bloqueado' && b2.val === 0, 'candidato em_revisao (0 erros no validador) nao vira oficial: barreira em homologacao, modo oficial recusa');
 ok(b2.idx === '66.7' && b2.eh === true, 'modo homologacao com o candidato lido do servidor: REF-03 -> Indice 66.7, e a saida continua marcada como homologacao');
 
-titulo('DUPLA APROVACAO PELA TELA (NADA AUTOMATICO, NADA HOMOLOGADO AQUI)');
+titulo('APROVADOR UNICO PELA TELA (NADA AUTOMATICO, NADA HOMOLOGADO AQUI)');
 const telaAp = await texto('#mh-aprovacoes');
-ok(/Aprovação 1 — Daniel[\s\S]*pendente[\s\S]*Aprovação 2 — Rodrigo[\s\S]*pendente/.test(telaAp) && !(await A.evaluate(() => !!document.querySelector('[data-mh-acao="registrar-aprovacao"]'))), 'tela: Aprovacao 1 (Daniel) e 2 (Rodrigo) pendentes; sem hash conferido nao ha botao de aprovar');
+ok(/aprovador único/.test(telaAp) && /Aprovação — Daniel[\s\S]*pendente/.test(telaAp) && !/Aprovação 2|Rodrigo|dupla aprovação/.test(telaAp) && !(await A.evaluate(() => !!document.querySelector('[data-mh-acao="registrar-aprovacao"]'))), 'tela: so a Aprovacao de Daniel (pendente), sem Aprovacao 2/Rodrigo; sem hash conferido nao ha botao de aprovar');
 const aprovarTela = (resp, conferi) => A.evaluate(async (resp, conferi) => {
   if (!document.getElementById('mh-hash-servidor')) { document.querySelector('[data-mh-acao="conferir-hash"]').click(); for (let i = 0; i < 40 && !document.getElementById('mh-hash-servidor'); i++) await new Promise(r => setTimeout(r, 50)); }
   const cx = document.querySelector('.mh-aprovar'); const vazio = cx.querySelector('[data-mh-resp]').value === '';
@@ -100,14 +102,17 @@ const aprovarTela = (resp, conferi) => A.evaluate(async (resp, conferi) => {
   return { vazio, estado: document.getElementById('mh-estado').textContent };
 }, resp, conferi);
 const sc = await aprovarTela('Daniel', false);
-ok(!sc.vazio && /Marque/.test(sc.estado) && srv.linhas('methodology_package_approvals').length === 0, 'campo de responsavel vem preenchido com o papel da conta (Etapa 5.3: Daniel, somente leitura); sem marcar "conferi" nada e registrado');
-const ap1 = await aprovarTela('Daniel', true);
-ok(/Aprovação 1 registrada/.test(ap1.estado) && srv.linhas('methodology_package_approvals').filter(a => a.package_id === pk2.id && a.step === 1 && a.responsible === 'Daniel').length === 1, 'Aprovacao 1 registrada pela tela por Daniel' + (/registrada/.test(ap1.estado) ? '' : ' [' + ap1.estado + ']'));
+ok(!sc.vazio && /Marque/.test(sc.estado) && srv.linhas('methodology_package_approvals').length === 0, 'campo de responsavel vem preenchido com o papel da conta (Daniel, somente leitura); sem marcar "conferi" nada e registrado');
 const apL = await aprovarTela('Liderança do método HOLOSCAN', true);
-ok(/recusada/.test(apL.estado) && srv.linhas('methodology_package_approvals').filter(a => a.package_id === pk2.id).length === 1, 'Aprovacao 2 atribuida a "Liderança do método HOLOSCAN": recusada');
+ok(/recusada/.test(apL.estado) && srv.linhas('methodology_package_approvals').filter(a => a.package_id === pk2.id).length === 0, 'Aprovacao atribuida a "Liderança do método HOLOSCAN": recusada');
 const apImp = await aprovarTela('Rodrigo', true);
-ok(/recusada/.test(apImp.estado) && srv.linhas('methodology_package_approvals').filter(a => a.package_id === pk2.id).length === 1, 'Etapa 5.3: a conta de Daniel digitando "Rodrigo" nao registra a Aprovacao 2 (identidade = auth.uid(), nao o nome)');
-// Aprovacao 2 e de OUTRA identidade autenticada: sai da conta a@ e entra como b@ (Rodrigo)
+ok(/recusada/.test(apImp.estado) && srv.linhas('methodology_package_approvals').filter(a => a.package_id === pk2.id).length === 0, 'a conta de Daniel digitando "Rodrigo" nao registra nada (a aprovacao e so do aprovador unico Daniel)');
+const ap1 = await aprovarTela('Daniel', true);
+ok(/Aprovação registrada/.test(ap1.estado) && srv.linhas('methodology_package_approvals').filter(a => a.package_id === pk2.id && a.step === 1 && a.responsible === 'Daniel').length === 1, 'Aprovacao registrada pela tela por Daniel' + (/registrada/.test(ap1.estado) ? '' : ' [' + ap1.estado + ']'));
+const telaAp2 = await texto('#mh-aprovacoes');
+const fim = await A.evaluate(() => ({ botao: !!document.querySelector('[data-mh-acao="homologar"]'), form: !!document.querySelector('.mh-aprovar'), status: window.Metodologia.status() }));
+ok(fim.botao && !fim.form && /Aprovação — Daniel[\s\S]*registrada/.test(telaAp2) && !/Aprovação 2|Rodrigo/.test(telaAp2) && fim.status === 'em_homologacao' && srv.linhas('methodology_packages').find(x => x.id === pk2.id).status === 'em_revisao', 'com a Aprovacao de Daniel a tela oferece so "Homologar" (nenhuma segunda revisao), mas nada muda sem esse clique (pacote em_revisao; barreira em homologacao)');
+// Rodrigo (conta b@, papel desativado): nao ve o pacote em_revisao alheio e nao aprova
 await A.evaluate(() => window.HoloAuth.sair());
 await A.waitForSelector('#login-email', { visible: true });
 await A.evaluate(() => { document.getElementById('login-email').value = ''; document.getElementById('login-senha').value = ''; });
@@ -116,12 +121,8 @@ await A.waitForFunction(() => window.HoloAuth && window.HoloAuth.sessaoAtiva() &
 await esperar(400);
 await A.evaluate(async (id) => { document.querySelector('.nav-item[data-secao="metodologia"]').click(); await new Promise(r => setTimeout(r, 400)); window.MetodologiaHomologacao.selecionar(id); window.MetodologiaHomologacao.desenhar(); await new Promise(r => setTimeout(r, 300)); }, pk2.id);
 const telaB = await texto('#mh-aprovacoes');
-ok(/Rodrigo/.test(telaB) && /Aprovação 1 — Daniel[\s\S]*registrada/.test(telaB), 'Rodrigo (conta b@, aprovador) ve o pacote em_revisao de outro profissional e a Aprovacao 1 ja registrada');
-const ap2 = await aprovarTela('Rodrigo', true);
-const vig2 = srv.linhas('methodology_package_approvals').filter(a => a.package_id === pk2.id && !a.invalidated_at);
-ok(/Aprovação 2 registrada/.test(ap2.estado) && vig2.length === 2 && vig2[0].content_hash === vig2[1].content_hash && vig2.every(a => a.package_version === 2), 'Aprovacao 2 registrada por Rodrigo sobre o mesmo pacote, versao e hash');
-const fim = await A.evaluate(() => ({ botao: !!document.querySelector('[data-mh-acao="homologar"]'), status: window.Metodologia.status() }));
-ok(fim.botao && fim.status === 'em_homologacao' && srv.linhas('methodology_packages').find(x => x.id === pk2.id).status === 'em_revisao', 'com as duas aprovacoes a tela oferece "Homologar", mas nada muda sem esse clique (pacote em_revisao; barreira em homologacao)');
+const fimB = await A.evaluate(() => ({ botao: !!document.querySelector('[data-mh-acao="homologar"]'), form: !!document.querySelector('.mh-aprovar') }));
+ok(!/Aprovação — Daniel[\s\S]*registrada/.test(telaB) && !fimB.botao && !fimB.form && srv.linhas('methodology_package_approvals').filter(a => a.package_id === pk2.id).length === 1, 'Rodrigo (conta b@, papel desativado) nao ve o pacote em_revisao alheio, nao tem aprovar nem homologar');
 
 titulo('CONTEXTOS OFICIAIS NAO RECEBEM O RASCUNHO NEM O LEGADO');
 // paciente com HOLOSCAN aplicado (coleta experimental consolidada)

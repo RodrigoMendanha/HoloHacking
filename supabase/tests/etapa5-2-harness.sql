@@ -2,6 +2,8 @@
 -- do scripts/validar-cadeia-local.sh (BEGIN ... ROLLBACK), depois de etapa5-harness.sql.
 -- Pacotes/dominios/regras/referencias aqui sao TEST_FIXTURE_ONLY num banco local descartavel: nada e metodologia,
 -- nada persiste. O pacote real LI-V1@1 nao e tocado.
+-- Contrato de APROVADOR UNICO (migration 20261003100000): so a Aprovacao de Daniel; etapa 2 descontinuada (recusada);
+-- Rodrigo com papel desativado nao aprova nem homologa. Antes (ate a 6.3-A) este harness percorria Daniel -> Rodrigo.
 create temp table _log52 (passo text) on commit drop;
 grant insert, select on _log52 to authenticated;
 create temp table _li52 (k text primary key, v text) on commit drop;
@@ -49,8 +51,8 @@ begin
   insert into _log52 values ('G03 ' || case when (public.li_validar_completude(pc)->>'publicavel')::boolean then 'ok' else 'FALHOU' end || ': fixture completa passa no validador (sem inventar conteudo real): ' || left((public.li_validar_completude(pc)->'bloqueios')::text, 60));
   begin perform public.registrar_aprovacao_li(li, 1, public.li_hash_conteudo(li), 1, 'Daniel', 'x'); insert into _log52 values ('G04 FALHOU: aprovacao em LI-V1 (rascunho) aceita');
   exception when others then perform pg_temp.como_daniel(); insert into _log52 values ('G04 ok: LI-V1 em rascunho nao recebe aprovacao: ' || left(sqlerrm, 40)); end;
-  begin perform pg_temp.como_rodrigo(); perform public.registrar_aprovacao_li(pk, 1, h, 2, 'Rodrigo', 'x'); perform pg_temp.como_daniel(); insert into _log52 values ('G05 FALHOU: Rodrigo antes de Daniel aceito');
-  exception when others then perform pg_temp.como_daniel(); insert into _log52 values ('G05 ok: Rodrigo antes de Daniel recusado'); end;
+  begin perform pg_temp.como_rodrigo(); perform public.registrar_aprovacao_li(pk, 1, h, 2, 'Rodrigo', 'x'); perform pg_temp.como_daniel(); insert into _log52 values ('G05 FALHOU: Aprovacao 2 (descontinuada) aceita');
+  exception when others then perform pg_temp.como_daniel(); insert into _log52 values ('G05 ok: Aprovacao 2 (Rodrigo) descontinuada: recusada'); end;
   begin perform public.registrar_aprovacao_li(pk, 1, h, 1, 'Rodrigo', 'x'); insert into _log52 values ('G06 FALHOU: Aprovacao 1 por Rodrigo aceita');
   exception when others then perform pg_temp.como_daniel(); insert into _log52 values ('G06 ok: responsavel errado recusado'); end;
   begin perform public.registrar_aprovacao_li(pk, 1, h, 1, 'Liderança do método HOLOSCAN', 'x'); insert into _log52 values ('G07 FALHOU: Lideranca aceita');
@@ -69,17 +71,18 @@ begin
   insert into _log52 values ('G12 ' || case when t = 'em_revisao' and r->>'content_hash' = h and (r->'completude'->>'publicavel')::boolean = false then 'ok' else 'FALHOU' end || ': Daniel valido passa; pacote continua em_revisao; resposta traz os bloqueios');
   begin perform public.registrar_aprovacao_li(pk, 1, h, 1, 'Daniel', 'de novo'); insert into _log52 values ('G13 FALHOU: Aprovacao 1 duplicada');
   exception when others then perform pg_temp.como_daniel(); insert into _log52 values ('G13 ok: Aprovacao 1 repetida recusada'); end;
-  begin perform pg_temp.como_rodrigo(); perform public.homologar_pacote_li(pk, 1, h, 'Rodrigo'); perform pg_temp.como_daniel(); insert into _log52 values ('G14 FALHOU: homologado so com a Aprovacao 1');
-  exception when others then perform pg_temp.como_daniel(); insert into _log52 values ('G14 ok: so com Aprovacao 1 nao homologa'); end;
-  perform pg_temp.como_rodrigo(); r := public.registrar_aprovacao_li(pk, 1, h, 2, 'Rodrigo', 'revisado (fixture)'); perform pg_temp.como_daniel();
-  insert into _log52 values ('G15 ' || case when (select count(*) from public.integrated_reading_package_approvals where package_id = pk and invalidated_at is null) = 2 and (select status from public.integrated_reading_rule_packages where id = pk) = 'em_revisao' then 'ok' else 'FALHOU' end || ': Rodrigo valido passa depois de Daniel; duas aprovacoes NAO homologam sozinhas');
-  begin perform pg_temp.como_rodrigo(); perform public.homologar_pacote_li(pk, 1, h, 'Rodrigo'); perform pg_temp.como_daniel(); insert into _log52 values ('G16 FALHOU: pacote incompleto homologado');
-  exception when others then perform pg_temp.como_daniel(); insert into _log52 values ('G16 ok: pacote incompleto nao homologa mesmo com as duas aprovacoes: ' || left(sqlerrm, 60)); end;
+  begin perform pg_temp.como_rodrigo(); perform public.homologar_pacote_li(pk, 1, h, 'Rodrigo'); perform pg_temp.como_daniel(); insert into _log52 values ('G14 FALHOU: Rodrigo (papel desativado) homologou');
+  exception when others then perform pg_temp.como_daniel(); insert into _log52 values ('G14 ok: Rodrigo (papel desativado) nao homologa'); end;
+  begin perform pg_temp.como_rodrigo(); perform public.registrar_aprovacao_li(pk, 1, h, 2, 'Rodrigo', 'revisado (fixture)'); perform pg_temp.como_daniel(); insert into _log52 values ('G15 FALHOU: segunda revisao aceita');
+  exception when others then perform pg_temp.como_daniel();
+    insert into _log52 values ('G15 ' || case when (select count(*) from public.integrated_reading_package_approvals where package_id = pk and invalidated_at is null) = 1 and (select status from public.integrated_reading_rule_packages where id = pk) = 'em_revisao' then 'ok' else 'FALHOU' end || ': segunda revisao recusada; a Aprovacao (Daniel) sozinha NAO homologa (homologar e ato explicito)'); end;
+  begin perform public.homologar_pacote_li(pk, 1, h, 'Daniel'); insert into _log52 values ('G16 FALHOU: pacote incompleto homologado');
+  exception when others then perform pg_temp.como_daniel(); insert into _log52 values ('G16 ok: pacote incompleto nao homologa mesmo com a Aprovacao vigente: ' || left(sqlerrm, 60)); end;
   begin update public.integrated_reading_rule_packages set status = 'aprovado' where id = pk; insert into _log52 values ('G17 FALHOU: status aprovado por UPDATE da aplicacao');
   exception when others then perform pg_temp.como_daniel(); insert into _log52 values ('G17 ok: aplicacao nao altera status (sem GRANT): ' || left(sqlerrm, 30)); end;
-  -- fixture completa: Daniel -> Rodrigo
-  perform public.registrar_aprovacao_li(pc, 1, hc, 1, 'Daniel', 'fixture'); perform pg_temp.como_rodrigo(); perform public.registrar_aprovacao_li(pc, 1, hc, 2, 'Rodrigo', 'fixture'); perform pg_temp.como_daniel();
-  insert into _log52 values ('G18 ' || case when (select count(*) from public.integrated_reading_package_approvals where package_id = pc and invalidated_at is null) = 2 then 'ok' else 'FALHOU' end || ': fixture completa com Aprovacoes 1 e 2 vigentes');
+  -- fixture completa: Aprovacao (Daniel)
+  perform public.registrar_aprovacao_li(pc, 1, hc, 1, 'Daniel', 'fixture');
+  insert into _log52 values ('G18 ' || case when (select count(*) from public.integrated_reading_package_approvals where package_id = pc and invalidated_at is null) = 1 then 'ok' else 'FALHOU' end || ': fixture completa com a Aprovacao (Daniel) vigente');
 end $$;
 
 -- ---------- gestao tecnica: alteracoes invalidam; voltar ao hash antigo nao ressuscita ----------
@@ -92,9 +95,9 @@ begin
   insert into public.integrated_reading_domains (package_id, code, name, status) values (pk, 'TEST_FIXTURE_ONLY_X', 'x', 'rascunho') returning id into d;
   h2 := public.li_hash_conteudo(pk);
   insert into _log52 values ('G20 ' || case when h2 <> h and (select count(*) from public.integrated_reading_package_approvals where package_id = pk and invalidated_at is null) = 0
-    and (select count(*) from public.integrated_reading_package_approvals where package_id = pk and invalidated_at is not null and invalidated_reason like '%integrated_reading_domains insert%') = 2 then 'ok' else 'FALHOU' end || ': mudanca de dominio muda o hash e invalida as duas aprovacoes (historico com motivo)');
+    and (select count(*) from public.integrated_reading_package_approvals where package_id = pk and invalidated_at is not null and invalidated_reason like '%integrated_reading_domains insert%') = 1 then 'ok' else 'FALHOU' end || ': mudanca de dominio muda o hash e invalida a aprovacao (historico com motivo)');
   delete from public.integrated_reading_domains where id = d;
-  insert into _log52 values ('G21 ' || case when public.li_hash_conteudo(pk) = h and (select count(*) from public.integrated_reading_package_approvals where package_id = pk and invalidated_at is null) = 0 and (select count(*) from public.integrated_reading_package_approvals where package_id = pk) = 2 then 'ok' else 'FALHOU' end || ': voltar ao hash antigo NAO ressuscita aprovacao; historico preservado (2 linhas)');
+  insert into _log52 values ('G21 ' || case when public.li_hash_conteudo(pk) = h and (select count(*) from public.integrated_reading_package_approvals where package_id = pk and invalidated_at is null) = 0 and (select count(*) from public.integrated_reading_package_approvals where package_id = pk) = 1 then 'ok' else 'FALHOU' end || ': voltar ao hash antigo NAO ressuscita aprovacao; historico preservado (2 linhas)');
   begin delete from public.integrated_reading_package_approvals where package_id = pk; insert into _log52 values ('G22 FALHOU: aprovacao apagada');
   exception when others then perform pg_temp.como_daniel(); insert into _log52 values ('G22 ok: aprovacao e append-only (delete recusado)'); end;
   begin update public.integrated_reading_package_approvals set justification = 'x' where package_id = pk; insert into _log52 values ('G23 FALHOU: aprovacao editada');
@@ -106,7 +109,7 @@ begin
 end $$;
 set local role authenticated;
 do $$ declare pc uuid := (select v::uuid from _li52 where k = 'pc'); hc text := (select v from _li52 where k = 'hc');
-begin perform public.registrar_aprovacao_li(pc, 1, hc, 1, 'Daniel', 'fixture'); perform pg_temp.como_rodrigo(); perform public.registrar_aprovacao_li(pc, 1, hc, 2, 'Rodrigo', 'fixture'); perform pg_temp.como_daniel(); end $$;
+begin perform public.registrar_aprovacao_li(pc, 1, hc, 1, 'Daniel', 'fixture'); end $$;
 reset role;
 do $$ declare pc uuid := (select v::uuid from _li52 where k = 'pc'); hc text := (select v from _li52 where k = 'hc');
 begin
@@ -116,7 +119,7 @@ begin
 end $$;
 set local role authenticated;
 do $$ declare pc uuid := (select v::uuid from _li52 where k = 'pc'); hc text := (select v from _li52 where k = 'hc');
-begin perform public.registrar_aprovacao_li(pc, 1, hc, 1, 'Daniel', 'fixture'); perform pg_temp.como_rodrigo(); perform public.registrar_aprovacao_li(pc, 1, hc, 2, 'Rodrigo', 'fixture'); perform pg_temp.como_daniel(); end $$;
+begin perform public.registrar_aprovacao_li(pc, 1, hc, 1, 'Daniel', 'fixture'); end $$;
 reset role;
 do $$ declare pc uuid := (select v::uuid from _li52 where k = 'pc'); hc text := (select v from _li52 where k = 'hc');
 begin
@@ -126,7 +129,7 @@ begin
 end $$;
 set local role authenticated;
 do $$ declare pc uuid := (select v::uuid from _li52 where k = 'pc'); hc text := (select v from _li52 where k = 'hc');
-begin perform public.registrar_aprovacao_li(pc, 1, hc, 1, 'Daniel', 'fixture'); perform pg_temp.como_rodrigo(); perform public.registrar_aprovacao_li(pc, 1, hc, 2, 'Rodrigo', 'fixture'); perform pg_temp.como_daniel(); end $$;
+begin perform public.registrar_aprovacao_li(pc, 1, hc, 1, 'Daniel', 'fixture'); end $$;
 reset role;
 do $$ declare pc uuid := (select v::uuid from _li52 where k = 'pc'); hc text := (select v from _li52 where k = 'hc');
 begin
@@ -136,7 +139,7 @@ begin
 end $$;
 set local role authenticated;
 do $$ declare pc uuid := (select v::uuid from _li52 where k = 'pc'); hc text := (select v from _li52 where k = 'hc');
-begin perform public.registrar_aprovacao_li(pc, 1, hc, 1, 'Daniel', 'fixture'); perform pg_temp.como_rodrigo(); perform public.registrar_aprovacao_li(pc, 1, hc, 2, 'Rodrigo', 'fixture'); perform pg_temp.como_daniel(); end $$;
+begin perform public.registrar_aprovacao_li(pc, 1, hc, 1, 'Daniel', 'fixture'); end $$;
 reset role;
 do $$ declare pc uuid := (select v::uuid from _li52 where k = 'pc'); hc text := (select v from _li52 where k = 'hc');
 begin
@@ -146,7 +149,7 @@ begin
 end $$;
 set local role authenticated;
 do $$ declare pc uuid := (select v::uuid from _li52 where k = 'pc'); hc text := (select v from _li52 where k = 'hc');
-begin perform public.registrar_aprovacao_li(pc, 1, hc, 1, 'Daniel', 'fixture'); perform pg_temp.como_rodrigo(); perform public.registrar_aprovacao_li(pc, 1, hc, 2, 'Rodrigo', 'fixture'); perform pg_temp.como_daniel(); end $$;
+begin perform public.registrar_aprovacao_li(pc, 1, hc, 1, 'Daniel', 'fixture'); end $$;
 reset role;
 do $$ declare pc uuid := (select v::uuid from _li52 where k = 'pc'); hc text := (select v from _li52 where k = 'hc');
 begin
@@ -159,17 +162,22 @@ end $$;
 set local role authenticated;
 do $$ declare pc uuid := (select v::uuid from _li52 where k = 'pc'); hc text := (select v from _li52 where k = 'hc'); r jsonb; n int;
 begin
-  perform public.registrar_aprovacao_li(pc, 2, hc, 1, 'Daniel', 'fixture final'); perform pg_temp.como_rodrigo(); perform public.registrar_aprovacao_li(pc, 2, hc, 2, 'Rodrigo', 'fixture final'); perform pg_temp.como_daniel();
+  perform public.registrar_aprovacao_li(pc, 2, hc, 1, 'Daniel', 'fixture final');
   begin perform public.homologar_pacote_li(pc, 2, hc, 'Liderança do método HOLOSCAN'); insert into _log52 values ('G30 FALHOU: homologacao pela Lideranca aceita');
   exception when others then perform pg_temp.como_daniel(); insert into _log52 values ('G30 ok: homologacao pela "Liderança" recusada'); end;
-  begin perform public.homologar_pacote_li(pc, 2, repeat('a', 64), 'Rodrigo'); insert into _log52 values ('G31 FALHOU: homologacao com hash divergente aceita');
+  begin perform pg_temp.como_rodrigo(); perform public.homologar_pacote_li(pc, 2, hc, 'Rodrigo'); perform pg_temp.como_daniel(); insert into _log52 values ('G30b FALHOU: Rodrigo (papel desativado) homologou');
+  exception when others then perform pg_temp.como_daniel(); insert into _log52 values ('G30b ok: Rodrigo (papel desativado) nao homologa'); end;
+  begin perform pg_temp.como_rodrigo(); perform public.homologar_pacote_li(pc, 2, hc, 'Daniel'); perform pg_temp.como_daniel(); insert into _log52 values ('G30c FALHOU: conta sem papel ativo homologou como Daniel');
+  exception when others then perform pg_temp.como_daniel(); insert into _log52 values ('G30c ok: informar "Daniel" sem ser o aprovador ativo nao homologa'); end;
+  begin perform public.homologar_pacote_li(pc, 2, repeat('a', 64), 'Daniel'); insert into _log52 values ('G31 FALHOU: homologacao com hash divergente aceita');
   exception when others then perform pg_temp.como_daniel(); insert into _log52 values ('G31 ok: homologacao com hash divergente recusada'); end;
-  begin perform pg_temp.como_rodrigo(); perform public.homologar_pacote_li(pc, 1, hc, 'Rodrigo'); perform pg_temp.como_daniel(); insert into _log52 values ('G32 FALHOU: homologacao com versao divergente aceita');
+  begin perform public.homologar_pacote_li(pc, 1, hc, 'Daniel'); insert into _log52 values ('G32 FALHOU: homologacao com versao divergente aceita');
   exception when others then perform pg_temp.como_daniel(); insert into _log52 values ('G32 ok: homologacao com versao divergente recusada'); end;
-  perform pg_temp.como_rodrigo(); r := public.homologar_pacote_li(pc, 2, hc, 'Rodrigo'); perform pg_temp.como_daniel();
+  r := public.homologar_pacote_li(pc, 2, hc, 'Daniel');
   select count(*) into n from public.integrated_reading_package_snapshots where package_id = pc and content_hash = hc;
   insert into _log52 values ('G33 ' || case when r->>'status' = 'aprovado' and (select status from public.integrated_reading_rule_packages where id = pc) = 'aprovado' and (select content_hash from public.integrated_reading_rule_packages where id = pc) = hc
-    and (select approval_provenance->>'homologado_por' from public.integrated_reading_rule_packages where id = pc) = 'Rodrigo' and (select responsible from public.integrated_reading_rule_packages where id = pc) like 'Daniel%Rodrigo%' and n = 1 then 'ok' else 'FALHOU' end || ': homologacao explicita: aprovado + snapshot imutavel + provenance nomeia Daniel e Rodrigo');
+    and (select approval_provenance->>'homologado_por' = 'Daniel' and approval_provenance->>'regime' = 'aprovador_unico' and not (approval_provenance ? 'aprovacao_2') and responsible like 'Daniel%' and responsible not like '%Rodrigo%' from public.integrated_reading_rule_packages where id = pc)
+    and (select approval_2 is null and governance_regime = 'aprovador_unico' from public.integrated_reading_package_snapshots where package_id = pc) and n = 1 then 'ok' else 'FALHOU' end || ': homologacao explicita: aprovado + snapshot imutavel (approval_2 nulo, regime aprovador_unico) + provenance so com Daniel');
   begin update public.integrated_reading_package_snapshots set snapshot = '{}' where package_id = pc; insert into _log52 values ('G34 FALHOU: snapshot alterado');
   exception when others then perform pg_temp.como_daniel(); insert into _log52 values ('G34 ok: snapshot imutavel'); end;
 end $$;
@@ -183,7 +191,7 @@ begin
   insert into _log52 values ('G37 ' || case when (select status from public.integrated_reading_rule_packages where id = li) = 'rascunho' and (select count(*) from public.integrated_reading_package_approvals where package_id = li) = 0
     and (select count(*) from public.integrated_reading_domains where package_id = li) = 0 and (select count(*) from public.integrated_reading_exam_domain_links where package_id = li) = 0 and (select count(*) from public.integrated_reading_rules where package_id = li) = 0 then 'ok' else 'FALHOU' end || ': LI-V1@1 intocado: rascunho, 0 dominios, 0 vinculos, 0 regras, 0 aprovacoes');
   insert into _log52 values ('G38 ' || case when (select count(*) from public.methodology_package_approvals)::text = (select v from _li52 where k = 'holo_aprov_antes') then 'ok' else 'FALHOU' end || ': governanca LI nao toca as aprovacoes do HOLOSCAN');
-  insert into _log52 values ('G39 ' || case when (select count(*) from public.integrated_reading_package_approvals where invalidated_at is not null) >= 12 and (select count(*) from public.integrated_reading_package_approvals where invalidated_at is not null and invalidated_reason is null) = 0 then 'ok' else 'FALHOU' end || ': historico append-only: toda invalidacao tem motivo (' || (select count(*) from public.integrated_reading_package_approvals where invalidated_at is not null) || ' invalidadas)');
+  insert into _log52 values ('G39 ' || case when (select count(*) from public.integrated_reading_package_approvals where invalidated_at is not null) >= 7 and (select count(*) from public.integrated_reading_package_approvals where invalidated_at is not null and invalidated_reason is null) = 0 then 'ok' else 'FALHOU' end || ': historico append-only: toda invalidacao tem motivo (' || (select count(*) from public.integrated_reading_package_approvals where invalidated_at is not null) || ' invalidadas)');
 end $$;
 reset role;
 select string_agg(passo, ' | ' order by passo) from _log52;

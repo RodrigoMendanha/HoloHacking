@@ -1,5 +1,7 @@
 # HOLOHACKING V1 — ETAPA 6.3 — PLANO DO GATE DE GOVERNANÇA E DEPLOY (PREPARAÇÃO; NADA EXECUTADO)
 
+> **SUPERADO NA ETAPA 6.3-B (2026-10-03): governança de APROVADOR ÚNICO (Daniel).** A dupla aprovação descrita abaixo foi o contrato até a 6.3-A e permanece aqui como histórico. Hoje: só a Aprovação de Daniel; etapa 2 descontinuada; Rodrigo com papéis desativados (data + motivo, nunca apagados); `reviewed_by`/`approval_2` nulos (nenhuma segunda revisão simulada); regime `aprovador_unico` registrado. Ver `docs/v1/metodologia/DECISAO-GOVERNANCA-APROVADOR-UNICO-V1.md` e a migration `20261003100000`.
+
 Estado real de partida (POST-FLIGHT 6.2, 2026-10-03): 30 migrations; 44/62/129/89/317; LI-V1@2 `em_revisao` hash `fa99ec80…`; `methodology_approvers` 0; aprovações 0; `methodology_packages` 0 (**não existe HOLOS-V1 no banco**); 4 aplicações HOLOSCAN históricas sem proveniência; front em produção = `main` (antigo).
 
 ## 1. Fatos auditados que definem a ordem

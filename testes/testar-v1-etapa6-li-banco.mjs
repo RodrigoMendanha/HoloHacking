@@ -3,7 +3,8 @@
  * a migration foi provada em PostgreSQL local — supabase/tests/etapa6-harness.sql)
  *
  *  - LI-V1@2 em_revisao com 7 dominios / 47 vinculos; hash do servidor == hash do pacote JS == hash do SQL local
- *  - completude publicavel; governanca intocada (0 aprovacoes; Daniel -> Rodrigo so por RPC com identidade real)
+ *  - completude publicavel; governanca intocada (0 aprovacoes; aprovador unico Daniel so por RPC com identidade real —
+ *    migration 20261003100000; antes da 6.3-B: Daniel -> Rodrigo; mudanca legitima de contrato documentada)
  *  - leitura POR DOMINIO: convergente/divergente so com pacote aprovado e direcoes deterministicas coerentes
  *  - D05/D06/D07 nao recebem leitura cross-source (nao e erro de mapeamento)
  *  - snapshot imutavel: nova coleta e mudanca do pacote candidato nao alteram a leitura salva
@@ -21,7 +22,7 @@ const titulo = (t) => console.log('\n  ' + t + '\n');
 const srv = criarServidor();
 const UA = srv.criarConta('a@holo.test', 'x'), UB = srv.criarConta('b@holo.test', 'x');
 srv.gestaoTecnica('methodology_approvers', 'insert', { user_id: UA, scope: 'integrated_reading', approval_stage: 1, display_name: 'Daniel' });
-srv.gestaoTecnica('methodology_approvers', 'insert', { user_id: UB, scope: 'integrated_reading', approval_stage: 2, display_name: 'Rodrigo' });
+srv.gestaoTecnica('methodology_approvers', 'insert', { user_id: UB, scope: 'integrated_reading', approval_stage: 2, display_name: 'Rodrigo', active: false, deactivated_at: '2026-10-03T00:00:00Z', deactivation_reason: 'etapa 2 descontinuada (aprovador unico)' });
 const q = (uid, tabela, acao, extra) => srv.tratar({ op: 'query', uid, q: Object.assign({ tabela, acao, filtros: [], ordem: [], range: null, colunas: '*', single: null, opcoes: {}, retornar: true }, extra) });
 const insert = (uid, t, dados) => q(uid, t, 'insert', { dados });
 const select = (uid, t) => q(uid, t, 'select');
@@ -78,11 +79,12 @@ ok(update(UA, 'integrated_readings', { snapshot: {} }, eq('id', lr.id)).error &&
 
 titulo('HOMOLOGACAO LOCAL DO CANDIDATO (fixture de teste: NAO e aprovacao real) -> CONVERGENTE/DIVERGENTE OFICIAIS');
 const hv2 = rpc(UA, 'li_hash_conteudo', { p_package_id: v2.id }).data;
-ok(!rpc(UA, 'registrar_aprovacao_li', { p_package_id: v2.id, p_version: 2, p_content_hash: hv2, p_etapa: 1, p_responsavel: 'Daniel', p_justificativa: 'teste local' }).error, 'Aprovacao 1 (conta de teste no papel de Daniel) sobre o hash atual');
-ok(rpc(UA, 'registrar_aprovacao_li', { p_package_id: v2.id, p_version: 2, p_content_hash: hv2, p_etapa: 2, p_responsavel: 'Rodrigo', p_justificativa: 'teste local' }).error, 'a mesma conta nao faz a Aprovacao 2 (quatro olhos)');
-ok(!rpc(UB, 'registrar_aprovacao_li', { p_package_id: v2.id, p_version: 2, p_content_hash: hv2, p_etapa: 2, p_responsavel: 'Rodrigo', p_justificativa: 'teste local' }).error, 'Aprovacao 2 (conta de teste no papel de Rodrigo)');
-const hom = rpc(UB, 'homologar_pacote_li', { p_package_id: v2.id, p_version: 2, p_content_hash: hv2, p_responsavel: 'Rodrigo' });
-ok(!hom.error && hom.data.status === 'aprovado' && srv.linhas('integrated_reading_package_snapshots').length === 1, 'homologacao explicita com as duas aprovacoes (fixture local): LI-V1@2 aprovado + snapshot');
+ok(!rpc(UA, 'registrar_aprovacao_li', { p_package_id: v2.id, p_version: 2, p_content_hash: hv2, p_etapa: 1, p_responsavel: 'Daniel', p_justificativa: 'teste local' }).error, 'Aprovacao (conta de teste no papel de Daniel, aprovador unico) sobre o hash atual');
+ok(rpc(UA, 'registrar_aprovacao_li', { p_package_id: v2.id, p_version: 2, p_content_hash: hv2, p_etapa: 2, p_responsavel: 'Rodrigo', p_justificativa: 'teste local' }).error, 'etapa 2 recusada (descontinuada; nenhuma segunda revisao)');
+ok(rpc(UB, 'registrar_aprovacao_li', { p_package_id: v2.id, p_version: 2, p_content_hash: hv2, p_etapa: 2, p_responsavel: 'Rodrigo', p_justificativa: 'teste local' }).error && rpc(UB, 'homologar_pacote_li', { p_package_id: v2.id, p_version: 2, p_content_hash: hv2, p_responsavel: 'Rodrigo' }).error, 'conta no papel desativado de Rodrigo nao aprova nem homologa');
+const hom = rpc(UA, 'homologar_pacote_li', { p_package_id: v2.id, p_version: 2, p_content_hash: hv2, p_responsavel: 'Daniel' });
+const snapH = srv.linhas('integrated_reading_package_snapshots');
+ok(!hom.error && hom.data.status === 'aprovado' && snapH.length === 1 && snapH[0].approval_2 === null && snapH[0].governance_regime === 'aprovador_unico', 'homologacao explicita pelo aprovador unico (fixture local): LI-V1@2 aprovado + snapshot (approval_2 nulo, regime aprovador_unico)');
 const v2a = select(UA, 'integrated_reading_rule_packages').data.find(p => p.id === v2.id);
 const conv = calc(pacoteServidor(v2a), [C1], holo('baixa')).domains['LI-D01'];
 r = salvar(UA, conv);
@@ -115,7 +117,7 @@ ok(G('integrated_reading_rules', 'update', { payload: {} }, eq('package_id', v2.
 titulo('NAO INTERFERENCIA E ISOLAMENTO');
 ok(JSON.stringify([srv.linhas('holoscan_applications').find(a => a.id === hid), srv.linhas('holoscan_system_scores').filter(x => x.application_id === hid)]) === antesH, 'calcular e salvar leituras nao alterou holoscan_applications nem holoscan_system_scores (nota/faixa/Indice/Triada identicos)');
 ok(select(UB, 'integrated_readings').data.length === 0 && select(UB, 'integrated_reading_rule_packages').data.length === pks.length + 1, 'outra conta nao le leituras alheias; o pacote global e visivel a todos (somente leitura)');
-ok(srv.linhas('integrated_reading_package_approvals').length === 2 && srv.linhas('integrated_reading_package_approvals').every(a => a.approver_id), 'as duas aprovacoes do fixture tem identidade real (approver_id) — nenhuma por string de nome');
+ok(srv.linhas('integrated_reading_package_approvals').length === 1 && srv.linhas('integrated_reading_package_approvals').every(a => a.approver_id && a.step === 1), 'a unica aprovacao do fixture (aprovador unico) tem identidade real (approver_id) — nenhuma por string de nome; nenhuma de etapa 2');
 
 titulo('ETAPA 6.0.1 — REFERENCIA AMBIGUA PERSISTIDA; PROVENIENCIA HOLOSCAN (sem backfill); HASH JS == FAKE');
 const CA = coleta('2026-03-12', [R('LAB-016', 30, { reference_ambiguous: true, report_reference_text: '10 a 20 ou 5 a 15 (laudo ambiguo)' }), R('LAB-018', 30)]);

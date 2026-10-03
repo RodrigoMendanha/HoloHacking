@@ -1,5 +1,11 @@
 # HOLOHACKING V1 — ETAPA 6.3 — ROTEIRO DE EXECUÇÃO HUMANA DA GOVERNANÇA (PREVIEW + SQL EDITOR)
 
+> **ATUALIZADO NA ETAPA 6.3-B (2026-10-03) — aprovador único (Daniel).** Antes dos passos D/E restantes: aplicar `supabase/ETAPA6-3-B-APLICACAO-APROVADOR-UNICO.sql` (com `ETAPA6-3-B-PREFLIGHT.sql` → `pode_aplicar = true` antes e `ETAPA6-3-B-POSTFLIGHT.sql` → `aplicacao_ok = true` depois; **só com autorização explícita**). Depois disso, a sequência passa a ser:
+> - **HOLOS-V1@2:** a Aprovação 1 de Daniel já registrada (hash `7af1dae6…`) é preservada e vale como a aprovação única → Daniel (dono do pacote e aprovador ativo) clica **Homologar**. Não existe passo de Rodrigo.
+> - **LI-V1@2:** Daniel registra a Aprovação (versão 2, hash `fa99ec80…`) → Daniel clica **Homologar**.
+> - Verificação: `supabase/ETAPA6-3-VERIFICACAO.sql`, cujo `gate_6_3_ok` passou a exigir: 2 papéis ativos (Daniel nos dois escopos), Rodrigo desativado com motivo ×2, `1:Daniel` em cada pacote, regime `aprovador_unico`, `reviewed_by` nulo, snapshot LI com `approval_2` nulo e 0 aprovações de etapa 2.
+> As menções a "Rodrigo / Aprovação 2 / quatro olhos" abaixo são históricas. Decisão: `docs/v1/metodologia/DECISAO-GOVERNANCA-APROVADOR-UNICO-V1.md`.
+
 Plano de origem: `ETAPA6-3-PLANO-GOVERNANCA-E-DEPLOY.md`. Estado de partida: banco pós-6.2 (30 / 44 / 62 / 129 / 89 / 317), LI-V1@2 `em_revisao` (`fa99ec80…`), nenhum pacote HOLOS, 0 aprovadores, 0 aprovações, 4 aplicações HOLOSCAN históricas sem proveniência. **Nenhum uid/e-mail neste repositório nem no chat.**
 
 ## 0. Até o deploy final (vale desde já)

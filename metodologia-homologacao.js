@@ -110,29 +110,30 @@
       refs.map(function (r) { var dif = M && r.payload && r.payload.formato === "v1" ? M.conferirExemplo(p, r.payload) : null; return "<li><b>" + escapar(r.target) + "</b> — " + escapar((r.payload && r.payload.descricao) || "") + " · " + (dif === null ? "sem conferência" : dif.length ? "<b>DIVERGE</b>: " + escapar(dif.join("; ")) : "confere (motor = esperado)") + "</li>"; }).join("") + "</ul></div>";
   }
   function EIXOS() { return P().EIXOS; }
-  /** Dupla aprovacao: so para pacote GRAVADO. Nenhum campo vem preenchido; nada e registrado sem clique. */
+  /** Aprovador unico (Daniel): so para pacote GRAVADO. Nenhum campo vem preenchido; nada e registrado sem clique.
+      Nao ha segunda revisao (decisao consciente: docs/v1/metodologia/DECISAO-GOVERNANCA-APROVADOR-UNICO-V1.md). */
   function htmlAprovacoes(p) {
     if (!p.id || p._inventario || p._candidato || !P().estadoAprovacao) return "";
     var h = hashes[p.id] || null, e = P().estadoAprovacao(p, h), A = P().APROVADORES;
-    var linha = function (n, a, valida) {
-      return "<li>Aprovação " + n + " — " + escapar(A[n].responsavel) + " (" + escapar(A[n].papel) + "): " +
+    var linha = function (a, valida) {
+      return '<li data-mh-aprovacao="1">Aprovação — ' + escapar(A[1].responsavel) + " (" + escapar(A[1].papel) + "): " +
         (a ? (valida ? "<b>registrada</b>" : "<b>registrada, mas não vale para o conteúdo atual</b>") + " em " + escapar(String(a.approved_at || "").slice(0, 16)) + " · versão " + escapar(String(a.package_version)) + " · hash " + escapar(String(a.content_hash).slice(0, 12)) + "…" : "pendente") + "</li>";
     };
-    var html = '<div class="dash-bloco" id="mh-aprovacoes"><h3 class="dash-titulo">Homologação — dupla aprovação</h3>' +
-      '<p class="dash-sub">Ordem obrigatória: Aprovação 1 (Daniel), depois Aprovação 2 (Rodrigo), sobre o mesmo pacote, versão e hash de conteúdo. Se o pacote mudar entre as duas, o ciclo recomeça. Nenhuma aprovação é criada automaticamente. A identidade é a da conta autenticada (não o nome digitado).</p>' + htmlPapeis("holoscan") +
-      '<ul class="mh-lista">' + linha(1, e.aprovacao1, e.valida1) + linha(2, e.aprovacao2, e.valida2) + "</ul>" +
+    var html = '<div class="dash-bloco" id="mh-aprovacoes"><h3 class="dash-titulo">Homologação — aprovador único</h3>' +
+      '<p class="dash-sub">Governança da V1: um aprovador, Daniel (responsável metodológico). Primeiro a Aprovação sobre o pacote, a versão e o hash de conteúdo; depois a ação explícita <b>Homologar</b>, pelo dono do pacote que é o aprovador ativo. Não há segunda revisão. Se o pacote mudar, a aprovação deixa de valer. Nenhuma aprovação é criada automaticamente. A identidade é a da conta autenticada (não o nome digitado).</p>' + htmlPapeis("holoscan") +
+      '<ul class="mh-lista">' + linha(e.aprovacao1, e.valida1) + "</ul>" +
       (e.invalidadas ? '<p class="dash-sub">' + e.invalidadas + " aprovação(ões) invalidada(s) por mudança no pacote (histórico mantido).</p>" : "");
     if (p.status !== "em_revisao") return html + '<p class="dash-sub">Aprovações só são registradas em pacote <code>em_revisao</code>.</p></div>';
     if (!h) return html + '<p><button type="button" class="btn-fantasma" data-mh-acao="conferir-hash">Conferir o hash do conteúdo no servidor</button></p></div>';
     html += '<p class="dash-sub">Hash do conteúdo atual (servidor): <code id="mh-hash-servidor">' + escapar(h) + "</code> · versão " + escapar(String(p.version)) + "</p>";
-    if (e.proxima === 1 || e.proxima === 2) {
-      html += '<div class="mh-aprovar" data-mh-etapa="' + e.proxima + '"><label class="evo-campo"><span>Responsável (Aprovação ' + e.proxima + ")</span>" +
-        campoResponsavel("holoscan", e.proxima, "data-mh-resp") + "</label>" +
+    if (e.proxima === 1) {
+      html += '<div class="mh-aprovar" data-mh-etapa="1"><label class="evo-campo"><span>Responsável (Aprovação)</span>' +
+        campoResponsavel("holoscan", 1, "data-mh-resp") + "</label>" +
         '<label class="evo-campo"><span>Justificativa</span><textarea data-mh-just rows="2"></textarea></label>' +
         '<label><input type="checkbox" data-mh-conferi> Conferi o pacote ' + escapar(p.code + " v" + p.version) + " com o hash " + escapar(h.slice(0, 12)) + "…</label> " +
-        '<button type="button" class="btn-fantasma" data-mh-acao="registrar-aprovacao">Registrar Aprovação ' + e.proxima + "</button></div>";
+        '<button type="button" class="btn-fantasma" data-mh-acao="registrar-aprovacao">Registrar Aprovação</button></div>';
     } else if (e.proxima === "homologar") {
-      html += '<p><button type="button" class="btn-fantasma" data-mh-acao="homologar">Homologar pacote (Aprovações 1 e 2 válidas)</button></p>';
+      html += '<p><button type="button" class="btn-fantasma" data-mh-acao="homologar">Homologar pacote (Aprovação de Daniel válida)</button></p>';
     }
     return html + "</div>";
   }
@@ -152,8 +153,8 @@
   }
 
   /* ================= V1 Etapa 5.2 — Leitura Integrada: homologacao metodologica =================
-     Secao independente do pacote HOLOSCAN. Mesma governanca humana: Aprovacao 1 (Daniel) -> Aprovacao 2
-     (Rodrigo) sobre o mesmo package_id, version e content_hash; depois a acao final explicita HOMOLOGAR,
+     Secao independente do pacote HOLOSCAN. Mesma governanca humana (aprovador unico, Daniel): Aprovacao
+     sobre o mesmo package_id, version e content_hash; depois a acao final explicita HOMOLOGAR,
      que o servidor so aceita com a metodologia completa (li_validar_completude sem bloqueio). Nada aqui
      cria aprovacao sem clique; o pacote real LI-V1@1 esta em rascunho e incompleto: Homologar fica bloqueado. */
   var li = { pacotes: null, aprovacoes: [], sel: null, hash: {}, completude: {}, carregando: false, erro: null };
@@ -168,14 +169,14 @@
   function htmlPapeis(scope) {
     if (papeis === null) return "";
     var meus = papeis.filter(function (r) { return r.scope === scope; });
-    return '<p class="dash-sub mh-papeis" data-mh-papeis="' + escapar(scope) + '">Sua conta: ' + (meus.length ? meus.map(function (r) { return "<b>" + escapar(r.display_name) + "</b> (Aprovação " + r.approval_stage + ")"; }).join(", ") : "<b>sem papel de aprovação</b> neste escopo (cadastro de aprovadores é gestão técnica; o servidor recusa aprovação de conta não autorizada)") + "</p>";
+    return '<p class="dash-sub mh-papeis" data-mh-papeis="' + escapar(scope) + '">Sua conta: ' + (meus.length ? meus.map(function (r) { return "<b>" + escapar(r.display_name) + "</b> (aprovador único)"; }).join(", ") : "<b>sem papel de aprovação</b> neste escopo (cadastro de aprovadores é gestão técnica; o servidor recusa aprovação de conta não autorizada)") + "</p>";
   }
   function campoResponsavel(scope, etapa, attr) {
     var r = papelDe(scope, etapa);
     return '<input type="text" ' + attr + ' autocomplete="off" value="' + (r ? escapar(r.display_name) : "") + '"' + (r ? " readonly" : "") + ">" +
-      (r ? "" : '<small class="dash-sub">Sua conta não está autorizada para a Aprovação ' + etapa + "; o servidor recusará.</small>");
+      (r ? "" : '<small class="dash-sub">Sua conta não é o aprovador ativo; o servidor recusará.</small>');
   }
-  var LI_APROVADORES = { 1: { responsavel: "Daniel", papel: "responsável primário" }, 2: { responsavel: "Rodrigo", papel: "revisão final" } };
+  var LI_APROVADORES = { 1: { responsavel: "Daniel", papel: "aprovador único — responsável metodológico" } };
   function liSb() { return window.supabaseClient || null; }
   function liRpc(nome, args) {
     var sb = liSb(); if (!sb) return Promise.reject(new Error("sem sessao"));
@@ -201,17 +202,16 @@
   function liEstado(p) {
     var todas = li.aprovacoes.filter(function (a) { return a.package_id === p.id; }), vig = todas.filter(function (a) { return !a.invalidated_at; });
     var h = li.hash[p.id] || null;
-    var a1 = vig.filter(function (a) { return a.step === 1; })[0] || null, a2 = vig.filter(function (a) { return a.step === 2; })[0] || null;
-    var vale = function (a) { return !!a && a.package_version === p.version && (!h || a.content_hash === h); };
-    var ok1 = vale(a1), ok2 = ok1 && vale(a2) && a2.content_hash === a1.content_hash;
+    var a1 = vig.filter(function (a) { return a.step === 1; })[0] || null;
+    var ok1 = !!a1 && a1.package_version === p.version && (!h || a1.content_hash === h);
     var c = li.completude[p.id] || null;
-    return { a1: a1, a2: a2, ok1: ok1, ok2: ok2, invalidadas: todas.filter(function (a) { return !!a.invalidated_at; }).length, hash: h, completude: c,
-      proxima: p.status !== "em_revisao" ? null : !ok1 ? 1 : !ok2 ? 2 : "homologar",
-      homologavel: p.status === "em_revisao" && ok1 && ok2 && !!c && c.publicavel };
+    return { a1: a1, ok1: ok1, invalidadas: todas.filter(function (a) { return !!a.invalidated_at; }).length, hash: h, completude: c,
+      proxima: p.status !== "em_revisao" ? null : !ok1 ? 1 : "homologar",
+      homologavel: p.status === "em_revisao" && ok1 && !!c && c.publicavel };
   }
   function htmlLI() {
     var html = '<div class="dash-bloco" id="mh-li"><h3 class="dash-titulo">Leitura Integrada — homologação metodológica</h3>' +
-      '<p class="dash-sub">Mesma governança do HOLOSCAN: Aprovação 1 (Daniel, responsável primário) → Aprovação 2 (Rodrigo, revisão final), sobre o mesmo pacote, versão e hash de conteúdo; depois a ação explícita <b>Homologar</b>, que o servidor só aceita com a metodologia completa. Qualquer mudança em domínio, vínculo, regra, referência, conversão, cálculo derivado ou versão invalida as aprovações (histórico mantido). Nenhuma aprovação é criada automaticamente.</p>';
+      '<p class="dash-sub">Mesma governança do HOLOSCAN: aprovador único, Daniel (responsável metodológico). Aprovação sobre o mesmo pacote, versão e hash de conteúdo; depois a ação explícita <b>Homologar</b>, que o servidor só aceita com a metodologia completa. Não há segunda revisão. Qualquer mudança em domínio, vínculo, regra, referência, conversão, cálculo derivado ou versão invalida a aprovação (histórico mantido). Nenhuma aprovação é criada automaticamente.</p>';
     if (!liSb()) return html + '<p class="dash-vazio" id="mh-li-vazio">Sem conta ativa não há pacote da Leitura Integrada para consultar.</p></div>';
     if (li.pacotes === null) return html + '<p class="dash-vazio" id="mh-li-vazio">Carregando…</p></div>';
     if (li.erro) return html + '<p class="dash-vazio" id="mh-li-vazio">Não foi possível ler o pacote da Leitura Integrada no servidor.</p></div>';
@@ -227,23 +227,22 @@
       "<li>content_hash (servidor): " + (e.hash ? "<code id=\"mh-li-hash\">" + escapar(e.hash) + "</code>" : '<span id="mh-li-hash">não conferido</span>') + (p.content_hash ? " · homologado: <code>" + escapar(String(p.content_hash).slice(0, 12)) + "…</code>" : "") + "</li></ul>";
     if (!nd.filter(function (d) { return d.status === "aprovado"; }).length) html += '<p class="dash-sub mh-li-aviso" id="mh-li-indefinida"><b>Metodologia da Leitura Integrada ainda não definida.</b> Domínios, vínculos exame → domínio, janela temporal, suficiência, resultados mistos, convergência/divergência e textos são decisões humanas pendentes (<code>docs/v1/laboratorio/PACOTE-DECISAO-HUMANA-LEITURA-INTEGRADA-V1.md</code>). Até lá, toda leitura real é "sem dados suficientes".</p>';
     if (e.completude) html += '<div id="mh-li-bloqueios"><p class="dash-sub">Bloqueios metodológicos (validador de completude): <b>' + escapar(String(e.completude.total_bloqueios)) + "</b></p>" + (e.completude.total_bloqueios ? '<ul class="mh-lista">' + (e.completude.bloqueios || []).map(function (b) { return "<li><code>" + escapar(b) + "</code></li>"; }).join("") + "</ul>" : '<p class="dash-sub">Nenhum bloqueio: o conteúdo atual é tecnicamente completo (isto não é homologação).</p>') + "</div>";
-    var linha = function (n, a, valida) {
-      return '<li data-mh-li-aprovacao="' + n + '">Aprovação ' + n + " — " + escapar(LI_APROVADORES[n].responsavel) + " (" + escapar(LI_APROVADORES[n].papel) + "): " +
+    var linha = function (a, valida) {
+      return '<li data-mh-li-aprovacao="1">Aprovação — ' + escapar(LI_APROVADORES[1].responsavel) + " (" + escapar(LI_APROVADORES[1].papel) + "): " +
         (a ? (valida ? "<b>registrada</b>" : "<b>registrada, mas não vale para o conteúdo atual</b>") + " em " + escapar(String(a.approved_at || "").slice(0, 16)) + " · versão " + escapar(String(a.package_version)) + " · hash " + escapar(String(a.content_hash).slice(0, 12)) + "…" : "<b>pendente</b>") + "</li>";
     };
-    html += '<ul class="mh-lista" id="mh-li-aprovacoes">' + linha(1, e.a1, e.ok1) + linha(2, e.a2, e.ok2) + "</ul>" +
+    html += '<ul class="mh-lista" id="mh-li-aprovacoes">' + linha(e.a1, e.ok1) + "</ul>" +
       (e.invalidadas ? '<p class="dash-sub">' + e.invalidadas + " aprovação(ões) invalidada(s) por mudança no pacote (histórico mantido).</p>" : "");
     html += '<p class="rel-acoes"><button type="button" class="btn-fantasma" data-mh-li-acao="conferir-hash">Conferir hash</button></p>';
     if (p.status !== "em_revisao") html += '<p class="dash-sub" id="mh-li-status-aviso">Aprovações só são registradas em pacote <code>em_revisao</code>; este está em <code>' + escapar(p.status) + "</code> (a passagem a em_revisao é gestão técnica versionada, não um botão).</p>";
     if (e.hash && (p.status === "em_revisao" || p.status === "rascunho") && e.proxima !== "homologar") {
-      var etapa = e.proxima || (!e.ok1 ? 1 : 2);
-      html += '<div class="mh-aprovar" id="mh-li-aprovar" data-mh-li-etapa="' + etapa + '"><label class="evo-campo"><span>Responsável (Aprovação ' + etapa + ")</span>" +
-        campoResponsavel("integrated_reading", etapa, "data-mh-li-resp") + "</label>" +
+      html += '<div class="mh-aprovar" id="mh-li-aprovar" data-mh-li-etapa="1"><label class="evo-campo"><span>Responsável (Aprovação)</span>' +
+        campoResponsavel("integrated_reading", 1, "data-mh-li-resp") + "</label>" +
         '<label class="evo-campo"><span>Justificativa</span><textarea data-mh-li-just rows="2"></textarea></label>' +
         '<label><input type="checkbox" data-mh-li-conferi> Conferi o pacote ' + escapar(p.code + " v" + p.version) + " com o hash " + escapar(e.hash.slice(0, 12)) + "…</label> " +
-        '<button type="button" class="btn-fantasma" data-mh-li-acao="registrar-aprovacao">Registrar Aprovação ' + etapa + "</button></div>";
+        '<button type="button" class="btn-fantasma" data-mh-li-acao="registrar-aprovacao">Registrar Aprovação</button></div>';
     }
-    var motivo = !e.hash ? "confira o hash primeiro" : p.status !== "em_revisao" ? "pacote não está em_revisao" : !e.ok1 || !e.ok2 ? "faltam Aprovações 1 e 2 vigentes" : !e.completude ? "confira o hash (traz os bloqueios)" : !e.completude.publicavel ? e.completude.total_bloqueios + " bloqueio(s) metodológico(s)" : "";
+    var motivo = !e.hash ? "confira o hash primeiro" : p.status !== "em_revisao" ? "pacote não está em_revisao" : !e.ok1 ? "falta a Aprovação (Daniel) vigente" : !e.completude ? "confira o hash (traz os bloqueios)" : !e.completude.publicavel ? e.completude.total_bloqueios + " bloqueio(s) metodológico(s)" : "";
     html += '<p><button type="button" class="btn-fantasma" id="mh-li-homologar" data-mh-li-acao="homologar"' + (e.homologavel ? "" : ' disabled title="' + escapar("Bloqueado: " + motivo) + '"') + ">Homologar</button>" + (e.homologavel ? "" : ' <span class="dash-sub" id="mh-li-homologar-motivo">Bloqueado: ' + escapar(motivo) + "</span>") + "</p>";
     html += '<span class="rel-estado" id="mh-li-estado"></span></div>';
     return html;
@@ -264,14 +263,14 @@
           var caixa = el.querySelector("#mh-li-aprovar"), etapa = Number(caixa.dataset.mhLiEtapa);
           var resp = caixa.querySelector("[data-mh-li-resp]").value, just = caixa.querySelector("[data-mh-li-just]").value;
           if (!caixa.querySelector("[data-mh-li-conferi]").checked) { if (estado) estado.textContent = "Marque que conferiu o pacote e o hash."; return; }
-          if (estado) estado.textContent = "Registrando Aprovação " + etapa + "…";
+          if (estado) estado.textContent = "Registrando Aprovação…";
           liRpc("registrar_aprovacao_li", { p_package_id: p.id, p_version: p.version, p_content_hash: li.hash[p.id], p_etapa: etapa, p_responsavel: resp, p_justificativa: just })
-            .then(function () { return liCarregar(); }).then(function () { liAvisar("Aprovação " + etapa + " registrada."); })
+            .then(function () { return liCarregar(); }).then(function () { liAvisar("Aprovação registrada."); })
             .catch(function (e) { delete li.hash[p.id]; liCarregar().then(function () { liAvisar("Aprovação recusada: " + (window.mensagemHumana ? window.mensagemHumana(e) : e.message)); }); });
         }
         if (b.dataset.mhLiAcao === "homologar") {
           if (b.disabled) return;
-          var meu = (papeis || []).filter(function (r) { return r.scope === "integrated_reading"; })[0];
+          var meu = (papeis || []).filter(function (r) { return r.scope === "integrated_reading" && r.approval_stage === 1; })[0];
           var quem = meu ? meu.display_name : "";
           if (!quem) { if (estado) estado.textContent = "Homologação não executada: sua conta não é aprovador autorizado da Leitura Integrada."; return; }
           if (estado) estado.textContent = "Homologando…";
@@ -331,8 +330,8 @@
           var caixa = el.querySelector(".mh-aprovar"), etapa = Number(caixa.dataset.mhEtapa);
           var resp = caixa.querySelector("[data-mh-resp]").value, just = caixa.querySelector("[data-mh-just]").value;
           if (!caixa.querySelector("[data-mh-conferi]").checked) { if (estado) estado.textContent = "Marque que conferiu o pacote e o hash."; return; }
-          if (estado) estado.textContent = "Registrando Aprovação " + etapa + "…";
-          P().registrarAprovacao(p.id, etapa, resp, just, hashes[p.id]).then(function () { avisar("Aprovação " + etapa + " registrada."); })
+          if (estado) estado.textContent = "Registrando Aprovação…";
+          P().registrarAprovacao(p.id, etapa, resp, just, hashes[p.id]).then(function () { avisar("Aprovação registrada."); })
             .catch(function (e) { delete hashes[p.id]; avisar("Aprovação recusada: " + (window.mensagemHumana ? window.mensagemHumana(e) : e.message)); });
         }
         if (b.dataset.mhAcao === "homologar") {

@@ -1,5 +1,7 @@
 # APROVADORES AUTORIZADOS — IDENTIDADE REAL NA DUPLA APROVAÇÃO
 
+> **SUPERADO NA ETAPA 6.3-B (2026-10-03): governança de APROVADOR ÚNICO (Daniel).** A dupla aprovação descrita abaixo foi o contrato até a 6.3-A e permanece aqui como histórico. Hoje: só a Aprovação de Daniel; etapa 2 descontinuada; Rodrigo com papéis desativados (data + motivo, nunca apagados); `reviewed_by`/`approval_2` nulos (nenhuma segunda revisão simulada); regime `aprovador_unico` registrado. Ver `docs/v1/metodologia/DECISAO-GOVERNANCA-APROVADOR-UNICO-V1.md` e a migration `20261003100000`.
+
 Etapa 5.3 · 02/10/2026 · migration `20261002110000_aprovadores_metodologicos.sql` (**NÃO aplicada**) · harness `supabase/tests/etapa5-3-harness.sql` (S01–S21) · teste `testes/testar-v1-etapa5-3-seguranca-aprovadores.mjs`.
 
 ## 1. Auditoria (antes da correção)

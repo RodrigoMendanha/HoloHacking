@@ -4,6 +4,8 @@
 # Cria o template base_fp (base + supabase/tests/fingerprint-real-seed.sql = fingerprint real 16/14/7/49/12/64 + 5/4/20/3/22/3),
 # e roda: aplicacao integral + POST-FLIGHT; 2a execucao (guarda); fingerprint divergente; falha no meio; falha no historico; pos-flight falhando.
 set -u
+# SEGURANCA: so PostgreSQL LOCAL (socket unix ou localhost). Nunca o banco real, mesmo que o ambiente traga PGHOST remoto.
+case "${PGHOST:-}" in /*|localhost|127.0.0.1) ;; *) echo "RECUSADO: PGHOST nao e local (defina PGHOST=/caminho/do/socket)"; exit 2;; esac
 cd "$(dirname "$0")/.."
 A=supabase/ETAPA6-2-APLICACAO-REAL.sql
 P="psql -U postgres -X -At -v ON_ERROR_STOP=1"

@@ -1,4 +1,8 @@
 -- ============================================================================
+-- HISTORICO — EXECUTADO no banco real em 2026-10-03 (4 papeis cadastrados). SUPERADO pela Etapa 6.3-B
+-- (migration 20261003100000 / supabase/ETAPA6-3-B-APLICACAO-APROVADOR-UNICO.sql): governanca de APROVADOR UNICO (Daniel);
+-- os papeis de etapa 2 (Rodrigo) passam a historico desativado. NAO executar de novo (a guarda tambem recusa: tabela nao vazia).
+-- ============================================================================
 -- HOLOHACKING V1 — ETAPA 6.3-A — CADASTRO DOS APROVADORES REAIS (gestao tecnica; SQL Editor como postgres)
 -- MODELO PARAMETRIZADO: NAO contem uid real. Antes de executar, substituir LOCALMENTE (nunca commitar o arquivo preenchido):
 --   __UID_DANIEL__   -> auth.users.id da conta de Daniel  (aprovacao 1 / responsavel primario)

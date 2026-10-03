@@ -1,7 +1,9 @@
 -- Setup dos APROVADORES de teste (migration 20261002110000): roda DENTRO da transacao do
 -- scripts/validar-cadeia-local.sh, antes dos harnesses que registram aprovacoes (dupla-aprovacao, etapa5-2, etapa5-3).
--- Gestao tecnica num banco local descartavel: uidA (profissional dos pacientes) = Daniel; uidB (conta nova) = Rodrigo;
--- uidC = conta autenticada SEM papel. Nada aqui e configuracao real; nada persiste.
+-- Gestao tecnica num banco local descartavel: uidA (profissional dos pacientes) = Daniel (aprovador unico, etapa 1);
+-- uidB (conta nova) = Rodrigo com os papeis de etapa 2 DESATIVADOS (como no banco real depois da migration
+-- 20261003100000: historico preservado, sem poder de aprovar); uidC = conta autenticada SEM papel.
+-- Nada aqui e configuracao real; nada persiste.
 create temp table _aprov (k text primary key, v text) on commit drop;
 grant select on _aprov to authenticated;
 reset role;
@@ -11,8 +13,10 @@ begin
   select nutritionist_id into a from public.patients where status = 'ativo' order by created_at limit 1;
   insert into auth.users (id, email) values (b, 'rodrigo-teste@local.invalid'), (c, 'sem-papel-teste@local.invalid');
   insert into public.methodology_approvers (user_id, scope, approval_stage, display_name, notes) values
-    (a, 'holoscan', 1, 'Daniel', 'TEST_FIXTURE_ONLY'), (b, 'holoscan', 2, 'Rodrigo', 'TEST_FIXTURE_ONLY'),
-    (a, 'integrated_reading', 1, 'Daniel', 'TEST_FIXTURE_ONLY'), (b, 'integrated_reading', 2, 'Rodrigo', 'TEST_FIXTURE_ONLY');
+    (a, 'holoscan', 1, 'Daniel', 'TEST_FIXTURE_ONLY'), (a, 'integrated_reading', 1, 'Daniel', 'TEST_FIXTURE_ONLY');
+  insert into public.methodology_approvers (user_id, scope, approval_stage, display_name, notes, active, deactivated_at, deactivation_reason) values
+    (b, 'holoscan', 2, 'Rodrigo', 'TEST_FIXTURE_ONLY', false, now(), 'teste: etapa 2 descontinuada (aprovador unico)'),
+    (b, 'integrated_reading', 2, 'Rodrigo', 'TEST_FIXTURE_ONLY', false, now(), 'teste: etapa 2 descontinuada (aprovador unico)');
   insert into _aprov values ('daniel', a::text), ('rodrigo', b::text), ('ninguem', c::text);
 end $$;
 -- troca de identidade dentro dos harnesses (claims locais a transacao)

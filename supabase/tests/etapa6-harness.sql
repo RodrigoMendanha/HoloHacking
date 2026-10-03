@@ -80,11 +80,13 @@ begin
   exception when others then insert into _log6 values ('E25 ok: direcoes da leitura sao imutaveis'); end;
   -- HOLOSCAN intocado
   insert into _log6 values ('E26 ' || case when (select indice = 50 and nota_media = 5 from public.holoscan_applications where id = hid) then 'ok' else 'FALHOU' end || ': salvar leitura nao altera holoscan_applications');
-  -- governanca: aprovacao exige hash atual; ninguem homologa sem as duas; conteudo imutavel apos aprovacao
+  -- governanca (aprovador unico, migration 20261003100000): aprovacao exige hash atual; so o aprovador ativo homologa, sobre o hash atual
   r2 := public.registrar_aprovacao_li(pk, 2, (select v from _li6 where k = 'h2'), 1, 'Daniel', 'conferido (harness local — NAO e aprovacao real)');
   insert into _log6 values ('E27 ' || case when (r2->>'etapa')::int = 1 and (r2->'completude'->>'publicavel')::boolean then 'ok' else 'FALHOU' end || ': Aprovacao 1 (fixture local) registrada sobre o hash atual; completude publicavel');
-  begin perform public.homologar_pacote_li(pk, 2, (select v from _li6 where k = 'h2'), 'Daniel'); insert into _log6 values ('E28 FALHOU: homologou com uma aprovacao');
-  exception when others then insert into _log6 values ('E28 ok: homologacao exige Aprovacao 1 e 2 vigentes'); end;
+  begin perform public.homologar_pacote_li(pk, 2, repeat('0', 64), 'Daniel'); insert into _log6 values ('E28 FALHOU: homologou com hash divergente');
+  exception when others then insert into _log6 values ('E28 ok: homologacao exige o hash atual (divergente recusado)'); end;
+  begin perform pg_temp.como_rodrigo(); perform public.homologar_pacote_li(pk, 2, (select v from _li6 where k = 'h2'), 'Rodrigo'); perform pg_temp.como_daniel(); insert into _log6 values ('E28b FALHOU: aprovador de etapa 2 desativado homologou');
+  exception when others then perform pg_temp.como_daniel(); insert into _log6 values ('E28b ok: Rodrigo (etapa 2 desativada) nao homologa: ' || left(sqlerrm, 40)); end;
   insert into _log6 values ('E29 ' || case when (select status from public.integrated_reading_rule_packages where id = pk) = 'em_revisao' then 'ok' else 'FALHOU' end || ': LI-V1@2 continua em_revisao no fim do harness (nada homologado)');
 end $$;
 reset role;
