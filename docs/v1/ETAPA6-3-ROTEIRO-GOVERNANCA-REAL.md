@@ -28,8 +28,10 @@ Antes de tudo, no SQL Editor: rodar `supabase/ETAPA6-3-VERIFICACAO.sql` e **guar
 
 **B — Daniel entra no preview** (URL do commit HEAD; conferir SHA + console `OK`). Login com a conta de Daniel. Abrir `<URL>/?homologacao=1`.
 
-**C — Gravar HOLOS-V1@2 (Daniel).** No seletor: "Candidato V1 — decisões fechadas (não gravado) — em_revisao" → botão **"Gravar candidato V1 (em_revisao, sem aprovar)"** (uma vez só).
-Conferir no SQL Editor (`ETAPA6-3-VERIFICACAO.sql`): `holos_pacotes = HOLOS-V1@2:em_revisao`, `holos_v2_perguntas = 84`, `holos_v2_sistemas = 5`, `holos_v2_faixas = 15`, `holos_v2_publicavel = true`, **`holos_v2_hash = 7af1dae64c1e020cdeb436ea35f87f67b232210a36bddc6bef3e01940881b402`**. **Qualquer divergência: PARAR** (não aprovar; reportar o JSON).
+**C — Gravar HOLOS-V1@2 (Daniel).** No topo do bloco HOLOS há o seletor **"Pacote"**, que abre por padrão em *"Inventário recuperado (não gravado) — rascunho"* (o legado com conflitos; **não gravar**). Trocar o seletor para **"Candidato V1 — decisões fechadas (não gravado) — em_revisao"**. Só então aparece, ao lado de Exportar JSON/CSV, o botão **"Gravar candidato V1 (em_revisao, sem aprovar)"** — clicar **uma vez só**.
+Antes de clicar, na aba "Resumo e pendências" do candidato: Código HOLOS-V1, Versão 2, Status em_revisao "(candidato, não gravado)", validador "Nenhum erro estrutural", Contagem Perguntas 84 e Faixas 15. O "Hash" exibido nesse momento (`3593d782…`) é o hash JS de conferência local, **não** o do servidor.
+Nunca clicar em "Gravar inventário como RASCUNHO".
+Depois de gravar, o seletor passa a mostrar "HOLOS-V1 v2 · em_revisao"; o botão "Conferir hash" mostra o hash do servidor. Conferir no SQL Editor (`ETAPA6-3-VERIFICACAO.sql`): `holos_pacotes = HOLOS-V1@2:em_revisao`, `holos_v2_perguntas = 84`, `holos_v2_sistemas = 5`, `holos_v2_faixas = 15`, `holos_v2_publicavel = true`, **`holos_v2_hash = 7af1dae64c1e020cdeb436ea35f87f67b232210a36bddc6bef3e01940881b402`**. **Qualquer divergência: PARAR** (não aprovar; reportar o JSON).
 
 **D — HOLOS: aprovações e homologação.**
 5. Daniel (mesma sessão): no pacote HOLOS-V1@2 → Responsável "Daniel", justificativa → **"Registrar Aprovação 1"** (a tela envia o hash do servidor).
