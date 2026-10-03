@@ -151,8 +151,12 @@ alter table public.lab_collections add constraint lab_collections_document_fk fo
 alter table public.lab_collections add constraint lab_collections_id_nutritionist_unique unique (id, nutritionist_id);
 create unique index lab_collections_operation_unica on public.lab_collections (nutritionist_id, operation_id) where operation_id is not null;
 create index lab_collections_supersedes_idx on public.lab_collections (supersedes_id) where supersedes_id is not null;
--- coletas que ja existem vieram do painel legado (valores locais): preservadas como tal (o default acima ja as marca; o state fica 'salvo')
+-- coletas que ja existem vieram do painel legado (valores locais): preservadas como tal (o default acima ja as marca; o state fica 'salvo').
+-- Normalizacao de migration: o bloqueio de paciente arquivado (150000) vale para escrita clinica da aplicacao, nao para
+-- esta normalizacao estrutural; o trigger e suspenso SO em volta deste UPDATE e religado em seguida (tudo na mesma transacao).
+alter table public.lab_collections disable trigger lab_collections_paciente_arquivado;
 update public.lab_collections set source = 'legacy_panel', state = 'salvo' where source <> 'legacy_panel' or state <> 'salvo';
+alter table public.lab_collections enable trigger lab_collections_paciente_arquivado;
 
 -- ============================================================================
 -- 4. RESULTADOS — valor original, variante, metodo, material, referencia do laudo
@@ -207,7 +211,9 @@ alter table public.lab_results add constraint lab_results_reference_status check
 alter table public.lab_results add constraint lab_results_reference_source check (reference_source in ('laudo','metodologica'));
 alter table public.lab_results add constraint lab_results_origin check (origin in ('manual','legacy_migrated','additional_legacy','extracted_draft'));
 alter table public.lab_results add constraint lab_results_um_exame check (num_nonnulls(exam_code, custom_exam_id) <= 1);
-alter table public.lab_results add constraint lab_results_identidade check (exam_code is not null or custom_exam_id is not null or origin in ('additional_legacy','legacy_migrated') or requires_manual_mapping);
+-- NOT VALID aqui: as linhas legadas existentes ainda estao com exam_code/custom_exam_id nulos e origin 'manual' (default) e so
+-- ganham identidade no preenchimento deterministico abaixo; a regra e VALIDADA (VALIDATE CONSTRAINT) logo depois dele, sem mudar.
+alter table public.lab_results add constraint lab_results_identidade check (exam_code is not null or custom_exam_id is not null or origin in ('additional_legacy','legacy_migrated') or requires_manual_mapping) not valid;
 alter table public.lab_results add constraint lab_results_referencia_coerente check (report_reference_min is null or report_reference_max is null or report_reference_min <= report_reference_max);
 -- referencia informada = ao menos texto ou limite; ausente = nada (e NAO significa "dentro")
 alter table public.lab_results add constraint lab_results_referencia_informada check (
@@ -265,7 +271,18 @@ begin
 end $$;
 create trigger lab_results_preencher_legado before insert or update on public.lab_results for each row execute function public.lab_preencher_legado();
 
+-- o bloqueio de paciente arquivado (150000) e suspenso SO em volta desta normalizacao e religado em seguida (mesma transacao)
+alter table public.lab_results disable trigger lab_results_paciente_arquivado;
 update public.lab_results set valor = valor where exame_id is not null and value_original_text is null;   -- dispara o preenchimento deterministico
+alter table public.lab_results enable trigger lab_results_paciente_arquivado;
+-- agora toda linha (legada ou nova) tem identidade: catalogo, customizado, additional_legacy/legacy_migrated ou marcada para mapeamento manual
+alter table public.lab_results validate constraint lab_results_identidade;
+do $$
+declare n integer;
+begin
+  select count(*) into n from public.lab_results where not (exam_code is not null or custom_exam_id is not null or origin in ('additional_legacy','legacy_migrated') or requires_manual_mapping);
+  if n <> 0 then raise exception 'lab_results_identidade: % linha(s) legada(s) sem identidade apos o preenchimento deterministico', n; end if;
+end $$;
 alter table public.lab_results alter column value_original_text set not null;
 alter table public.lab_results add constraint lab_results_valor_original_nao_vazio check (length(btrim(value_original_text)) > 0);
 

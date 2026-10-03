@@ -62,3 +62,24 @@ COMMIT; `db push`; apply_migration; INSERT/UPDATE/DELETE persistente; backfill; 
 ## 6. Bloqueador e próximo passo
 - **Bloqueador:** o único canal ao banco real disponível ao agente (conector SQL do Supabase) não transporta uma transação do tamanho da cadeia pendente (timeout em ≈25 KB de DDL). Sem conexão direta (`psql`) com credencial em ambiente seguro, o dry-run real não pode ser executado pelo agente.
 - **Próximo passo (humano, ambiente seguro, sem colar segredo em chat):** `PGHOST/PGPORT/PGUSER/PGDATABASE/PGPASSWORD` via ambiente → `sh scripts/validar-cadeia-real-dry-run.sh` → esperado: JSON com 50 `ok: true`, nenhuma persistência (`ROLLBACK` sempre; `ON_ERROR_STOP`). Só depois: Etapa 6.2 (aplicar migrations), cadastro dos `auth.uid` reais, aprovações, homologação, deploy.
+
+---
+
+## 7. Correção de compatibilidade com dados reais (primeiro bloqueador real) — 2026-10-03
+
+O dry-run manual (SQL Editor, `BLOCO1-V2`) chegou ao banco real e falhou em `20261001220000_etapa5_laboratorio.sql` com **SQLSTATE 23514**: `check constraint "lab_results_identidade" of relation "lab_results" is violated by some row`. Nada persistiu (transação única com ROLLBACK/abort).
+
+**Causa raiz:** a migration adicionava `lab_results_identidade` (exam_code ou custom_exam_id ou origin legado ou requires_manual_mapping) *antes* de criar `lab_mapear_legado()`, o trigger `lab_results_preencher_legado` e o UPDATE determinístico que dá identidade às linhas legadas. As linhas reais já existentes (exame_id + valor) nascem com `exam_code = null`, `custom_exam_id = null`, `origin = 'manual'` (default) e `requires_manual_mapping = false`, violando a regra no instante do ADD CONSTRAINT. Localmente não aparecia porque o banco local não tinha `lab_results` legados.
+
+**Correção (só compatibilidade de migration; regra final idêntica):**
+1. `lab_results_identidade` passa a ser criada `NOT VALID` (mesma expressão).
+2. Função de mapeamento, trigger e UPDATE determinístico seguem como estavam.
+3. Logo após o UPDATE: `ALTER TABLE public.lab_results VALIDATE CONSTRAINT lab_results_identidade;` + bloco `DO` que falha a migration se restar alguma linha sem identidade.
+4. **Segundo risco encontrado na auditoria:** os dois UPDATEs de normalização da mesma migration (lab_collections → `legacy_panel/salvo`; lab_results → preenchimento legado) disparam os triggers `*_paciente_arquivado` (migration 150000). Um paciente **arquivado** com coletas/resultados legados faria a migration falhar. O trigger específico é suspenso **só em volta de cada UPDATE** e religado em seguida, na mesma transação; a regra clínica continua valendo depois (teste L12).
+5. Nenhum mapeamento inventado; nenhum dado alterado fora do que a migration já fazia; nenhum backfill fora da migration.
+
+**Auditoria das 14 migrations (ADD CONSTRAINT / SET NOT NULL / UNIQUE em tabelas já populadas antes da normalização):** único caso real era `lab_results_identidade`. Demais constraints em tabelas populadas são satisfeitas por linhas legadas (defaults `missing`/`laudo`/`manual`/`salvo`/`legacy_panel`, colunas novas nulas, regras `faixa_coerente`/`sistema_valido` iguais às originais, `130000` já NOT VALID, `6.0.1` `reference_status` inclui `missing`). `value_original_text SET NOT NULL` vem depois do preenchimento e cobre toda linha com `exame_id` (NOT NULL original).
+
+**Regressão com dados legados representativos (local):** `supabase/tests/legado-seed-pre-etapa5.sql` (entra antes das migrations no `validar-cadeia-local.sh`): 1 profissional sintético, 2 pacientes (1 arquivado), 1 consulta, 1 aplicação HOLOSCAN com score legado (nota 10 / avaliável=false), 3 coletas, **7 resultados legados** (EXA-002 mapeável com variante, EXA-009 mapeável, EXA-006 manual, EXA-001 additional_legacy, EXA-099 sem mapeamento provado, repetição em outra coleta, resultado de paciente arquivado), 1 ferramenta, 1 documento. `supabase/tests/legado-harness.sql`: L01–L12 ok (identidade satisfeita e validada; mapeamentos esperados; arquivado migrou; triggers religados; score legado preservado; bloqueio clínico continua). Cadeia completa local: **215 ok + 12 L-checks ok, 0 FALHOU**.
+
+**V3:** `supabase/ETAPA6-1-DRY-RUN-BLOCO1-V3.sql` (435.007 bytes, 5.204 linhas) — BEGIN, timeouts, 14 migrations (com a correção), checagens 6.1, ROLLBACK; 0 COMMIT. Testada integralmente num banco local **com os dados legados commitados** (`base_legado`): como script (50/50) e como uma única mensagem Query (500 statements, 0 erros, 50/50); estado inicial restaurado (14 tabelas, 7 lab_results, colunas novas ausentes). `content_hash` LI-V1@2 continua `fa99ec80507e277307a9b0d2a09a8f0abc1519e55bede08d8715697412137be9` (conteúdo metodológico intocado). SHA-256 da V3: `1a50e219ee63dbcf7b03db3455f8fb3f9a878c3f36ff7c1f410f00321dca4aef`.

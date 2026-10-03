@@ -1,5 +1,6 @@
 #!/bin/sh
-# Valida a cadeia de migrations 130000..20261002130000 + harness Etapa 4, 4.2, 5, 5.2, 5.3, 6 e 6.0.1 num PostgreSQL LOCAL descartavel.
+# Valida a cadeia de migrations 130000..20261002130000 + harness Etapa 4, 4.2, 5, 5.2, 5.3, 6, 6.0.1 e regressao de dados LEGADOS num PostgreSQL LOCAL descartavel.
+# Antes das migrations entra supabase/tests/legado-seed-pre-etapa5.sql (dados legados sinteticos, como em producao); no fim, legado-harness.sql.
 # Uso: PGHOST=/caminho/socket PGPORT=55432 sh scripts/validar-cadeia-local.sh
 # Pre-requisito: banco "base" com supabase/tests/stub-supabase-local.sql e as migrations anteriores a 20260930130000.
 # Tudo roda em BEGIN ... ROLLBACK: nada persiste. Nao substitui a validacao no banco real.
@@ -7,6 +8,7 @@ set -e
 cd "$(dirname "$0")/.."
 {
   echo "begin;"
+  cat supabase/tests/legado-seed-pre-etapa5.sql
   for f in supabase/migrations/2026093013*.sql supabase/migrations/2026093014*.sql supabase/migrations/2026093015*.sql \
            supabase/migrations/2026093016*.sql supabase/migrations/2026093017*.sql supabase/migrations/2026093018*.sql \
            supabase/migrations/2026093019*.sql supabase/migrations/2026100120*.sql supabase/migrations/2026100121*.sql supabase/migrations/2026100122*.sql supabase/migrations/2026100210*.sql supabase/migrations/2026100211*.sql supabase/migrations/2026100212*.sql supabase/migrations/2026100213*.sql; do
@@ -21,5 +23,6 @@ cd "$(dirname "$0")/.."
   cat supabase/tests/etapa5-2-harness.sql
   cat supabase/tests/etapa5-3-harness.sql
   cat supabase/tests/etapa6-harness.sql
+  cat supabase/tests/legado-harness.sql
   echo "rollback;"
 } | psql -U postgres -d base -v ON_ERROR_STOP=1 -At | tr '|' '\n' | sed 's/^ //'
