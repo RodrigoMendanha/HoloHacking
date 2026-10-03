@@ -127,28 +127,23 @@ begin
   if n <> 1 then raise exception 'CHECAGEM rodada 08: sistema sem dado nao gravou nota null'; end if;
   raise notice 'ok ausencia de dado = null';
 
-  -- 6. rodada 08, onda 2: "nova" numa data ocupada e data futura sao recusadas
-  pegou := false;
-  begin
-    perform public.salvar_coleta_exames(jsonb_build_object(
-      'collection', jsonb_build_object('patient_id', v_pid, 'coletado_em', '1990-01-02',
-                                       'data_coleta_desconhecida', false, 'modo', 'nova'),
-      'results', jsonb_build_array(resultado)));
-    perform public.salvar_coleta_exames(jsonb_build_object(
-      'collection', jsonb_build_object('patient_id', v_pid, 'coletado_em', '1990-01-02',
-                                       'data_coleta_desconhecida', false, 'modo', 'nova'),
-      'results', jsonb_build_array(resultado)));
-  exception when unique_violation then pegou := true;
-  end;
-  if not pegou then raise exception 'CHECAGEM rodada 08: "nova" em data ocupada nao foi recusada'; end if;
-  pegou := false;
-  begin
-    insert into public.lab_collections (nutritionist_id, patient_id, coletado_em, data_coleta_desconhecida)
-    values (v_uid, v_pid, current_date + 5, false);
-  exception when sqlstate '22008' then pegou := true;
-  end;
-  if not pegou then raise exception 'CHECAGEM rodada 08: coleta com data futura foi aceita'; end if;
-  raise notice 'ok identidade da coleta e data futura';
+  -- 6. contrato V1 (Etapa 0, docs/v1/ETAPA0-RECONCILIACAO-FINAL.md): a coleta e identificada por id. Salvar
+  --    "nova" numa data ja ocupada CRIA OUTRA coleta (nao substitui, nao recusa). A recusa de data futura
+  --    (rodada 08) saiu do contrato e aguarda decisao em supabase/migrations-pendentes/; aqui so se confere
+  --    que nenhuma coleta e sobrescrita. (Antes da Etapa 0 esta checagem exigia a recusa — contrato superado.)
+  v_col := public.salvar_coleta_exames(jsonb_build_object(
+    'collection', jsonb_build_object('patient_id', v_pid, 'coletado_em', '1990-01-02',
+                                     'data_coleta_desconhecida', false, 'modo', 'nova'),
+    'results', jsonb_build_array(resultado)));
+  v_col2 := public.salvar_coleta_exames(jsonb_build_object(
+    'collection', jsonb_build_object('patient_id', v_pid, 'coletado_em', '1990-01-02',
+                                     'data_coleta_desconhecida', false, 'modo', 'nova'),
+    'results', jsonb_build_array(resultado)));
+  select count(*) into n from public.lab_collections where patient_id = v_pid and coletado_em = date '1990-01-02';
+  if v_col = v_col2 or n <> 2 then raise exception 'CHECAGEM V1: "nova" na mesma data tem de criar outra coleta (% coletas)', n; end if;
+  select count(*) into n from public.lab_results where collection_id in (v_col, v_col2);
+  if n <> 2 then raise exception 'CHECAGEM V1: cada coleta guarda os proprios resultados (% resultados)', n; end if;
+  raise notice 'ok identidade da coleta por id (mesma data = outra coleta)';
 
   -- 7. rodada 08, onda 4: paciente arquivado nao recebe escrita clinica
   update public.patients set status = 'inativo' where id = v_pid;
