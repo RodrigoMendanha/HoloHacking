@@ -35,7 +35,7 @@ Voltar a ter quatro olhos exige **nova decisão e nova migration**: reativar eta
 - Testes JS: `testar-v1-aprovador-unico.mjs` (substitui `testar-v1-dupla-aprovacao.mjs`), `testar-v1-etapa4-banco`, `-etapa4-barreira`, `-etapa5-2-governanca-li(-ui)`, `-etapa5-3-seguranca-aprovadores` e `-etapa6-li-banco`. É uma mudança legítima de contrato, documentada no topo de cada arquivo; nenhuma proteção foi removida.
 - Artefato real: `scripts/testar-aplicacao-aprovador-unico-local.sh` (T0–T6) sobre o estado real reproduzido localmente com identidades fictícias (`supabase/tests/etapa6-3-b-estado-real-local.sql`).
 
-## 5. Aplicação real (PENDENTE — exige autorização explícita)
+## 5. Aplicação real — APLICADA em 2026-10-03 (SQL Editor, autorizada)
 
 | Arquivo | SHA-256 |
 |---|---|
@@ -44,3 +44,24 @@ Voltar a ter quatro olhos exige **nova decisão e nova migration**: reativar eta
 | `supabase/ETAPA6-3-B-POSTFLIGHT.sql` | `e261dbf926f284d7dbae3deec6e78714c121fbcc79bb16a16f4bb04ab46556ae` |
 
 PRE-FLIGHT no banco real (somente leitura, 2026-10-03): `pode_aplicar = true`, `divergencias = {}`. As impressões digitais (md5 das linhas inteiras), que o POST-FLIGHT tem de devolver iguais, foram: apps `d5a62c16…`, scores `1c66f0d5…`, Aprovação 1 `d7b2d4cb…`, pacote HOLOS `f39b6ff4…`, Daniel `571c918d…`, identidade de Rodrigo `0e16aaa0…`, exames `e63dac4f…` e pacotes LI `3f1070b9…`.
+
+**Resultado (2026-10-03):** o artefato foi aplicado manualmente no SQL Editor. Uma tentativa anterior pelo conector MCP estourou o limite de 60 s do conector e não persistiu nada: rollback integral, confirmado por leitura.
+
+POST-FLIGHT: `aplicacao_ok = true`, divergências `{}`. Conferência final só de leitura:
+- histórico 31, última `20261003100000` (`governanca_aprovador_unico`, 1 statement, `created_by` nulo);
+- 44 tabelas, 62 funções, 129 policies, 89 triggers, 323 constraints;
+- as 7 constraints novas ou refeitas estão validadas, com md5 da definição igual ao local (`142450bd…`);
+- colunas novas presentes e `approval_2` nullable;
+- as 4 RPCs executáveis por `authenticated` e não por `anon`.
+
+As 8 impressões digitais são idênticas antes e depois: apps `d5a62c16…`, scores `1c66f0d5…`, Aprovação 1 `d7b2d4cb…`, pacote HOLOS `f39b6ff4…`, Daniel `571c918d…`, identidade de Rodrigo `0e16aaa0…`, exames `e63dac4f…`, pacotes LI `3f1070b9…`.
+
+**Quebras de linha:** a colagem no SQL Editor converteu o fim de linha para CRLF. Há 262 `\r` no texto do histórico e 31–37 em cada função. Sem os `\r`, o texto do histórico tem md5 `7e5541a8…`, idêntico ao do arquivo da migration, e os corpos das 4 funções são idênticos aos aplicados localmente a partir do artefato. Nenhum literal atravessa linha, então o comportamento não muda.
+
+Estado depois da aplicação:
+- Daniel ativo nos dois escopos;
+- Rodrigo inativo nos dois escopos, com data e motivo; as linhas não foram apagadas e a identidade foi preservada;
+- HOLOS-V1@2 `em_revisao`, hash `7af1dae6…`, regime nulo, `reviewed_by`/`reviewed_at`/`approved_by` nulos;
+- 1 aprovação, a A1 de Daniel, intacta; 0 de etapa 2; 0 registros de homologação;
+- LI-V1@2 `em_revisao`, `fa99ec80…`, 0 aprovações, 0 snapshots;
+- 4 aplicações sem proveniência e 20 scores, intactos.
