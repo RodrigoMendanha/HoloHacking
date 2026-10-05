@@ -213,6 +213,10 @@
     var ferramentas = {};
     if (window.Aplicacoes) {
       window.Aplicacoes.preenchidas(id).forEach(function (fid) {
+        /* Etapa 6.5 (B): registro clinico estruturado (Mapa da Rotina, Gatilhos & Respostas, Conexao &
+           Pertencimento) nao alimenta contexto de calculo nenhum — nem a intensidade percebida. */
+        var cat = (window.CATALOGO_FERRAMENTAS || []).filter(function (f) { return f.id === fid; })[0];
+        if (cat && cat.registro) return;
         var app = window.Aplicacoes.ultima(fid, id);
         if (!app || !app.respostas) return;
         var numericos = {};

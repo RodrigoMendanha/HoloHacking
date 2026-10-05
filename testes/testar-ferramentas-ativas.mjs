@@ -1,5 +1,9 @@
 /**
- * Verifica que somente as 6 ferramentas ativas (+1 derivada) podem originar
+ * Etapa 6.5 (B), mudanca de contrato DOCUMENTADA: Mapa da Rotina (Corpo 03), Gatilhos & Respostas (Mente 03) e
+ * Conexao & Pertencimento (Espirito 04) voltam como REGISTROS CLINICOS ESTRUTURADOS (sem sintese/score). Eram 4 ativas
+ * de catalogo; agora 7. As outras 20 legadas continuam recusadas.
+ *
+ * Verifica que somente as ferramentas ativas (+1 derivada) podem originar
  * nova aplicacao. Ferramentas legadas continuam legiveis no historico mas nao
  * podem ser abertas como nova aplicacao.
  */
@@ -21,11 +25,11 @@ const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  F
 
 const ativas = await p.evaluate(() => window.FERRAMENTAS_ATIVAS);
 ok(Array.isArray(ativas), 'FERRAMENTAS_ATIVAS e um array');
-ok(ativas.length === 4, '4 ferramentas de catalogo ativas: ' + ativas.length);
+ok(ativas.length === 7, '7 ferramentas de catalogo ativas: ' + ativas.length);
 
-const esperadas = ['linha_momentum', 'mapa_crencas', 'roda_vida', 'carta_futuro'];
+const esperadas = ['linha_momentum', 'mapa_crencas', 'roda_vida', 'carta_futuro', 'mapa_rotina', 'gatilhos_respostas', 'conexao_pertencimento'];
 const temTodas = esperadas.every(id => ativas.indexOf(id) >= 0);
-ok(temTodas, 'lista contem exatamente as 4 esperadas');
+ok(temTodas, 'lista contem exatamente as 7 esperadas');
 
 /* ======================== galeria so tem cards para ferramentas ativas */
 
@@ -33,7 +37,7 @@ const cards = await p.evaluate(() => {
   return [...document.querySelectorAll('[data-ferramenta]')]
     .map(el => el.dataset.ferramenta);
 });
-ok(cards.length === 4, 'galeria tem 4 cards data-ferramenta: ' + cards.length);
+ok(cards.length === 7, 'galeria tem 7 cards data-ferramenta: ' + cards.length);
 const todasNoCards = cards.every(id => esperadas.indexOf(id) >= 0);
 ok(todasNoCards, 'todos os cards pertencem a lista de ativas: ' + cards.join(', '));
 
@@ -51,28 +55,28 @@ ok(temOq3 && temPqq && temMapa, 'ancoras OQ3, PQQ, Mapa do Proposito presentes')
 /* ======================== abrirFerramentaPorId recusa legadas */
 
 const recusaLegada = await p.evaluate(() => {
-  const legadas = ['mapa_rotina', 'energia_vital', 'leitura_sinais',
+  const legadas = ['energia_vital', 'leitura_sinais',
     'diario_corporal', 'ritmo_sono', 'inventario_habitos',
     'hidratacao_movimento', 'check_comprometimento',
-    'diario_emocoes', 'historia_alimentar', 'gatilhos_respostas',
+    'diario_emocoes', 'historia_alimentar',
     'roda_valores', 'reenquadramento', 'ancoras_motivacao',
     'autocompaixao', 'autoestima',
-    'ritual_mesa', 'inventario_gratidao', 'conexao_pertencimento',
+    'ritual_mesa', 'inventario_gratidao',
     'circulo_sentido', 'praticas_contemplativas', 'legado', 'alinhamento'];
   return legadas.every(id => window.abrirFerramentaPorId(id) === false);
 });
-ok(recusaLegada, 'abrirFerramentaPorId recusa todas as 23 ferramentas legadas');
+ok(recusaLegada, 'abrirFerramentaPorId recusa todas as 20 ferramentas legadas');
 
 /* ======================== abrirFerramentaPorId aceita ativas */
 
 const aceitaAtivas = await p.evaluate(() => {
-  return ['linha_momentum', 'mapa_crencas', 'roda_vida', 'carta_futuro']
+  return ['linha_momentum', 'mapa_crencas', 'roda_vida', 'carta_futuro', 'mapa_rotina', 'gatilhos_respostas', 'conexao_pertencimento']
     .every(id => {
       const r = window.abrirFerramentaPorId(id);
       return r === true;
     });
 });
-ok(aceitaAtivas, 'abrirFerramentaPorId aceita as 4 ferramentas ativas do catalogo');
+ok(aceitaAtivas, 'abrirFerramentaPorId aceita as 7 ferramentas ativas do catalogo');
 
 /* ======================== ficha: texto nao diz "30 ferramentas" */
 

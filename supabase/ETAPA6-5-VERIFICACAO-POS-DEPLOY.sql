@@ -1,8 +1,10 @@
 -- ============================================================================
 -- HOLOHACKING V1 — ETAPA 6.5 — VERIFICACAO POS-DEPLOY (SOMENTE LEITURA; nao mostra uid, e-mail nem dado clinico)
--- Substitui ETAPA6-4-VERIFICACAO-POS-DEPLOY.sql depois da migration 20261005100000 (correcao P0: aplicacao HOLOSCAN so oficial).
+-- Substitui ETAPA6-4-VERIFICACAO-POS-DEPLOY.sql depois das migrations 20261005100000 (A: correcao P0, aplicacao HOLOSCAN so oficial)
+-- e 20261005110000 (B: registros clinicos estruturados — Mapa da Rotina, Gatilhos & Respostas, Conexao & Pertencimento).
 -- Rodar: (a) depois da aplicacao da 6.5 e do deploy do front, antes de qualquer uso; (b) depois da PRIMEIRA aplicacao HOLOSCAN nova.
--- "deploy_ok"       = governanca intacta + historicas intactas (sem backfill) + toda aplicacao nova e OFICIAL.
+-- "deploy_ok"       = governanca intacta + historicas intactas (sem backfill) + toda aplicacao nova e OFICIAL
+--                     + registros clinicos protegidos (constraint, 2 triggers) e nenhum com resultado automatico.
 -- "primeira_app_ok" = existe ao menos 1 aplicacao nova e TODAS sao oficiais: HOLOS-V1@2 aprovado, hash homologado, motor/contrato,
 --                     calculation_mode = oficial, combinacoes/aprofundamentos vazios, 5 notas, total_marcadores so dos vinculos primarios.
 -- Referencias: 4 historicas sem proveniencia, historicas_fingerprint 205812d8e238e293fe8b58205ffa5631 (coluna a coluna; nao depende das
@@ -37,20 +39,26 @@ with h as (select id, content_hash from public.methodology_packages where code =
     (select (n.calculation_mode = 'oficial' and n.methodology_package_id = (select id from h)) from novas n order by created_at desc limit 1) as ultima_nova_oficial,
     (select count(*) from public.holoscan_applications a join public.methodology_packages p on p.id = a.methodology_package_id where p.status <> 'aprovado') as apps_com_pacote_nao_aprovado,
     (select count(*) from public.integrated_readings) as leituras,
-    (select count(*) from public.integrated_readings r where r.rule_package_id is distinct from (select id from l) or r.rule_version is distinct from 2) as leituras_fora_li_v2
+    (select count(*) from public.integrated_readings r where r.rule_package_id is distinct from (select id from l) or r.rule_version is distinct from 2) as leituras_fora_li_v2,
+    (select pg_get_constraintdef(oid) like '%conexao_pertencimento%' from pg_constraint where conname = 'tool_applications_ferramenta_valida') as ferramentas_aceitas,
+    (select count(*) from pg_trigger where tgrelid = 'public.tool_applications'::regclass and tgname in ('tool_applications_validar_registro', 'tool_applications_registro_concluido')) as triggers_registro,
+    (select count(*) from public.tool_applications where ferramenta_id in ('mapa_rotina', 'gatilhos_respostas', 'conexao_pertencimento')) as registros_clinicos,
+    (select count(*) from public.tool_applications where ferramenta_id in ('mapa_rotina', 'gatilhos_respostas', 'conexao_pertencimento') and resultado is not null) as registros_com_resultado
 )
 select json_build_object(
-  'deploy_ok', (hist_n = 32 and hist_ultima = '20261005100000' and holos = 'HOLOS-V1@2:aprovado:aprovador_unico' and holos_hash = '7af1dae64c1e020cdeb436ea35f87f67b232210a36bddc6bef3e01940881b402'
+  'deploy_ok', (hist_n = 33 and hist_ultima = '20261005110000' and holos = 'HOLOS-V1@2:aprovado:aprovador_unico' and holos_hash = '7af1dae64c1e020cdeb436ea35f87f67b232210a36bddc6bef3e01940881b402'
                 and li = 'LI-V1@1:rascunho,LI-V1@2:aprovado' and li_hash = 'fa99ec80507e277307a9b0d2a09a8f0abc1519e55bede08d8715697412137be9' and li_snapshots = 1
                 and policies_insert_holoscan = 0
                 and historicas = 4 and historicas_sem_proveniencia = 4 and historicas_fingerprint = '205812d8e238e293fe8b58205ffa5631'
                 and novas_oficiais = novas and novas_com_contagem_divergente = 0 and novas_com_faixa_legada = 0
-                and apps_com_pacote_nao_aprovado = 0 and leituras_fora_li_v2 = 0),
+                and apps_com_pacote_nao_aprovado = 0 and leituras_fora_li_v2 = 0
+                and ferramentas_aceitas and triggers_registro = 2 and registros_com_resultado = 0),
   'primeira_app_ok', (novas >= 1 and novas_oficiais = novas and novas_com_contagem_divergente = 0 and novas_com_faixa_legada = 0 and coalesce(ultima_nova_oficial, false)),
   'hist_n', hist_n, 'hist_ultima', hist_ultima, 'holos', holos, 'holos_hash', holos_hash, 'li', li, 'li_hash', li_hash, 'li_snapshots', li_snapshots, 'papeis', papeis,
   'policies_insert_holoscan', policies_insert_holoscan,
   'historicas', historicas, 'historicas_sem_proveniencia', historicas_sem_proveniencia, 'historicas_fingerprint', historicas_fingerprint,
   'novas', novas, 'novas_oficiais', novas_oficiais, 'novas_com_contagem_divergente', novas_com_contagem_divergente, 'novas_com_faixa_legada', novas_com_faixa_legada,
   'ultima_nova_oficial', ultima_nova_oficial, 'apps_com_pacote_nao_aprovado', apps_com_pacote_nao_aprovado,
-  'leituras', leituras, 'leituras_fora_li_v2', leituras_fora_li_v2
+  'leituras', leituras, 'leituras_fora_li_v2', leituras_fora_li_v2,
+  'ferramentas_aceitas', ferramentas_aceitas, 'triggers_registro', triggers_registro, 'registros_clinicos', registros_clinicos, 'registros_com_resultado', registros_com_resultado
 ) as pos_deploy from v;

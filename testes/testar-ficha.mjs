@@ -91,8 +91,9 @@ await p.evaluate(async () => {
 const conduzido = await verFicha();
 ok(!conduzido.alertas.some(a=>/nenhuma ferramenta/i.test(a)), 'o alerta some depois da conduta');
 ok(conduzido.chips.length === 1, 'lista a ferramenta aplicada: ' + conduzido.chips.join(', '));
-ok(conduzido.formularios.some(l=>/1 de 7 aplicadas/.test(l)),
-   'conta 1 de 7 ferramentas (so ativas)');
+// Etapa 6.5 (B): +3 registros clinicos estruturados (Mapa da Rotina, Gatilhos & Respostas, Conexao & Pertencimento) -> 10 ativas
+ok(conduzido.formularios.some(l=>/1 de 10 aplicadas/.test(l)),
+   'conta 1 de 10 ferramentas (so ativas)');
 
 // --- exame que diverge vira alerta -------------------------------------------
 await p.evaluate(async () => {

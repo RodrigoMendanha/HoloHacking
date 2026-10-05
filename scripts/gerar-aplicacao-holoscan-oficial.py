@@ -1,18 +1,23 @@
 #!/usr/bin/env python3
-"""Gera supabase/ETAPA6-5-APLICACAO-HOLOSCAN-OFICIAL.sql (+ PREFLIGHT e POSTFLIGHT): UMA transacao = guarda do estado real atual
+"""Gera supabase/ETAPA6-5-APLICACAO-P0-E-REGISTROS.sql (+ PREFLIGHT e POSTFLIGHT): UMA transacao = guarda do estado real atual
 (pos 6.3-E: HOLOS-V1@2 e LI-V1@2 aprovados, 4 aplicacoes historicas sem proveniencia, 0 aplicacoes novas) + migration 20261005100000
-(correcao P0: aplicacao HOLOSCAN so oficial) + 1 linha de historico + verificacao pos-aplicacao (aplicacoes historicas, scores,
-respostas, pacotes e aprovacoes identicos ao que a guarda capturou) + COMMIT.
-Fonte: supabase/migrations/20261005100000_holoscan_oficial_v1.sql em HEAD, sem nenhuma transformacao textual."""
+(A: correcao P0, aplicacao HOLOSCAN so oficial) + migration 20261005110000 (B: tres registros clinicos estruturados) + 2 linhas de
+historico + verificacao pos-aplicacao (aplicacoes historicas, scores, respostas, pacotes, aprovacoes, LI, exames e aplicacoes de
+ferramenta identicos ao que a guarda capturou) + COMMIT.
+Fontes: supabase/migrations/20261005100000_*.sql e 20261005110000_*.sql em HEAD, sem nenhuma transformacao textual."""
 import re, hashlib, glob, sys
-V = '20261005100000'
+VS = ['20261005100000', '20261005110000']
+V = VS[-1]
 HASH_HOLOS = '7af1dae64c1e020cdeb436ea35f87f67b232210a36bddc6bef3e01940881b402'
 HASH_LI = 'fa99ec80507e277307a9b0d2a09a8f0abc1519e55bede08d8715697412137be9'
 FP_HIST = '205812d8e238e293fe8b58205ffa5631'
-fs = glob.glob(f'supabase/migrations/{V}_*.sql'); assert len(fs) == 1
-MIG = fs[0]; mig = open(MIG, encoding='utf-8').read()
-assert not re.search(r'^\s*(begin|commit|rollback)\s*;\s*$', mig, re.I | re.M)
-nome = MIG.split('/')[-1][:-4].split('_', 1)[1]
+MIGS = []
+for v in VS:
+    fs = glob.glob(f'supabase/migrations/{v}_*.sql'); assert len(fs) == 1
+    t = open(fs[0], encoding='utf-8').read()
+    assert not re.search(r'^\s*(begin|commit|rollback)\s*;\s*$', t, re.I | re.M)
+    MIGS.append((v, fs[0], fs[0].split('/')[-1][:-4].split('_', 1)[1], t))
+REG = "('mapa_rotina', 'gatilhos_respostas', 'conexao_pertencimento')"
 
 # medidas da guarda/verificacao (nenhuma devolve uid, e-mail ou dado clinico; pacientes NAO entram: o uso real os muda)
 MEDIDAS = """    'hist_n', (select count(*) from supabase_migrations.schema_migrations),
@@ -35,7 +40,8 @@ MEDIDAS = """    'hist_n', (select count(*) from supabase_migrations.schema_migr
     'holoscan_system_scores', (select count(*) from public.holoscan_system_scores),
     'lab_collections', (select count(*) from public.lab_collections),
     'lab_results', (select count(*) from public.lab_results),
-    'leituras', (select count(*) from public.integrated_readings)"""
+    'leituras', (select count(*) from public.integrated_readings),
+    'registros_clinicos', (select count(*) from public.tool_applications where ferramenta_id in %s)""" % REG
 
 # impressoes digitais (md5 de linhas inteiras / colunas explicitas). As aplicacoes usam a LISTA de colunas anterior a migration:
 # to_jsonb(a) mudaria so porque as colunas novas (nulas) aparecem, sem nenhum dado alterado.
@@ -51,16 +57,18 @@ DIGITAIS = """    ('apps', (select md5(coalesce(string_agg(concat_ws('|', %s), '
     ('li_pacotes', (select md5(coalesce(string_agg(to_jsonb(r)::text, ';' order by r.id), '')) from public.integrated_reading_rule_packages r)),
     ('li_aprovacao', (select md5(coalesce(string_agg(to_jsonb(x)::text, ';' order by x.id), '')) from public.integrated_reading_package_approvals x)),
     ('li_snapshot', (select md5(coalesce(string_agg(to_jsonb(x)::text, ';' order by x.id), '')) from public.integrated_reading_package_snapshots x)),
-    ('exames', (select md5(coalesce(string_agg(to_jsonb(r)::text, ';' order by r.id), '')) from public.lab_results r))""" % COLS_APP
+    ('exames', (select md5(coalesce(string_agg(to_jsonb(r)::text, ';' order by r.id), '')) from public.lab_results r)),
+    ('ferramentas', (select md5(coalesce(string_agg(to_jsonb(t)::text, ';' order by t.id), '')) from public.tool_applications t))""" % COLS_APP
 N_DIG = DIGITAIS.count("    ('")
 
 ESP_GUARDA = ('{"hist_n":31,"hist_ultima":"20261003100000","n_tabelas":44,"n_funcoes":62,"n_policies":129,"n_triggers":89,"n_constraints":323,'
   '"holos":"HOLOS-V1@2:aprovado:aprovador_unico","holos_hash":"%(H)s","holos_content_hash_homologado":"%(H)s","holos_vigencia":"2026-10-03..",'
   '"li":"LI-V1@1:rascunho,LI-V1@2:aprovado","li_hash":"%(L)s","holoscan_applications":4,"apps_com_proveniencia":0,"apps_novas":0,'
-  '"historicas_fingerprint":"%(F)s","holoscan_system_scores":20,"lab_collections":3,"lab_results":22,"leituras":0}') % {'H': HASH_HOLOS, 'L': HASH_LI, 'F': FP_HIST}
-ESP_POS = (ESP_GUARDA.replace('"hist_n":31,"hist_ultima":"20261003100000"', '"hist_n":32,"hist_ultima":"%s"' % V)
-  .replace('"n_funcoes":62', '"n_funcoes":63').replace('"n_policies":129', '"n_policies":126')
-  .replace('"n_triggers":89', '"n_triggers":90').replace('"n_constraints":323', '"n_constraints":326'))
+  '"historicas_fingerprint":"%(F)s","holoscan_system_scores":20,"lab_collections":3,"lab_results":22,"leituras":0,"registros_clinicos":0}') % {'H': HASH_HOLOS, 'L': HASH_LI, 'F': FP_HIST}
+# A: +1 funcao, -3 policies (insert direto), +1 trigger, +3 constraints. B: +5 funcoes, +2 triggers, constraint trocada (mesmo numero).
+ESP_POS = (ESP_GUARDA.replace('"hist_n":31,"hist_ultima":"20261003100000"', '"hist_n":33,"hist_ultima":"%s"' % V)
+  .replace('"n_funcoes":62', '"n_funcoes":68').replace('"n_policies":129', '"n_policies":126')
+  .replace('"n_triggers":89', '"n_triggers":92').replace('"n_constraints":323', '"n_constraints":326'))
 assert ESP_POS != ESP_GUARDA
 
 EXTRA_POS = """,
@@ -73,24 +81,31 @@ EXTRA_POS = """,
        and p.prosrc like '%%proveniencia_obrigatoria%%' and p.prosrc like '%%contagem_divergente%%' and p.prosrc like '%%faixa_fora_do_pacote%%' and p.prosrc like '%%metodologia_hash_conteudo%%'),
     'rpc_sem_anon', (select not has_function_privilege('anon', 'public.salvar_holoscan_completo(jsonb)', 'execute')),
     'rpc_authenticated', (select has_function_privilege('authenticated', 'public.salvar_holoscan_completo(jsonb)', 'execute')),
-    'faixa_aceita_v1', (select pg_get_constraintdef(oid) like '%%intermediaria%%' and pg_get_constraintdef(oid) like '%%medio%%' from pg_constraint where conname = 'holoscan_system_scores_faixa_valida')"""
-ESP_EXTRA_POS = '{"colunas_novas":4,"colunas_novas_preenchidas":0,"indice_aceita_nulo":"YES","policies_insert_holoscan":0,"trigger_exigir_oficial":1,"rpc_exige_oficial":1,"rpc_sem_anon":true,"rpc_authenticated":true,"faixa_aceita_v1":true}'
+    'faixa_aceita_v1', (select pg_get_constraintdef(oid) like '%%intermediaria%%' and pg_get_constraintdef(oid) like '%%medio%%' from pg_constraint where conname = 'holoscan_system_scores_faixa_valida'),
+    'ferramentas_aceitas', (select pg_get_constraintdef(oid) like '%%mapa_rotina%%' and pg_get_constraintdef(oid) like '%%gatilhos_respostas%%' and pg_get_constraintdef(oid) like '%%conexao_pertencimento%%' and pg_get_constraintdef(oid) like '%%carta_futuro%%' from pg_constraint where conname = 'tool_applications_ferramenta_valida'),
+    'triggers_registro', (select count(*) from pg_trigger where tgrelid = 'public.tool_applications'::regclass and tgname in ('tool_applications_validar_registro', 'tool_applications_registro_concluido')),
+    'funcoes_registro_sem_anon', (select bool_and(not has_function_privilege('anon', p.oid, 'execute')) from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and (p.proname like 'registro_clinico%%' or p.proname = 'validar_registro_clinico'))"""
+ESP_EXTRA_POS = '{"colunas_novas":4,"colunas_novas_preenchidas":0,"indice_aceita_nulo":"YES","policies_insert_holoscan":0,"trigger_exigir_oficial":1,"rpc_exige_oficial":1,"rpc_sem_anon":true,"rpc_authenticated":true,"faixa_aceita_v1":true,"ferramentas_aceitas":true,"triggers_registro":2,"funcoes_registro_sem_anon":true}'
 EXTRA_PRE = """,
-    'versao_ja_registrada', (select count(*) from supabase_migrations.schema_migrations where version = '%s'),
+    'versao_ja_registrada', (select count(*) from supabase_migrations.schema_migrations where version in ('%s', '%s')),
     'colunas_novas', (select count(*) from information_schema.columns where table_schema = 'public' and table_name = 'holoscan_applications' and column_name in ('methodology_content_hash', 'engine_version', 'engine_contract_version', 'calculation_mode')),
-    'policies_insert_holoscan', (select count(*) from pg_policy where polrelid in ('public.holoscan_applications'::regclass, 'public.holoscan_system_scores'::regclass, 'public.holoscan_answers'::regclass) and polcmd = 'a')""" % V
+    'policies_insert_holoscan', (select count(*) from pg_policy where polrelid in ('public.holoscan_applications'::regclass, 'public.holoscan_system_scores'::regclass, 'public.holoscan_answers'::regclass) and polcmd = 'a')""" % tuple(VS)
 ESP_EXTRA_PRE = '{"versao_ja_registrada":0,"colunas_novas":0,"policies_insert_holoscan":3}'
 
 out = []
 out.append("""-- ============================================================================
--- HOLOHACKING V1 — ETAPA 6.5 — CORRECAO P0: APLICACAO HOLOSCAN SO OFICIAL (migration %(V)s)
+-- HOLOHACKING V1 — ETAPA 6.5 — (A) CORRECAO P0: HOLOSCAN SO OFICIAL + (B) TRES REGISTROS CLINICOS ESTRUTURADOS
+-- migrations %(VA)s (A) e %(V)s (B), nesta ordem
 -- Projeto alvo: Holohacking (sllhyymeeyoozokgbnuv). Executar INTEIRO, de uma vez, no SQL Editor (nada selecionado; Ctrl+End = COMMIT;).
 -- Achado: o front calculava pelo motor LEGADO e gravava com o carimbo HOLOS-V1@2. A partir daqui o servidor so aceita aplicacao
 -- OFICIAL (pacote aprovado e vigente, hash homologado, motor/contrato, contagens pelos vinculos primarios, sem combinacoes).
--- UMA transacao: guarda do estado real atual -> migration %(V)s -> 1 linha em supabase_migrations.schema_migrations
+-- (B) Mapa da Rotina, Gatilhos & Respostas e Conexao & Pertencimento passam a ser aceitos em tool_applications, com formato
+-- validado no servidor, sem resultado automatico e imutaveis depois de concluidos. Sem score, classificacao ou efeito em HOLOSCAN/LI.
+-- UMA transacao: guarda do estado real atual -> migration A -> migration B -> 2 linhas em supabase_migrations.schema_migrations
 -- -> verificacao pos-aplicacao -> COMMIT. Qualquer falha aborta tudo: nada persiste.
 -- Antes: backup/snapshot e supabase/ETAPA6-5-PREFLIGHT.sql com pode_aplicar = true. Depois: supabase/ETAPA6-5-POSTFLIGHT.sql.
--- NAO toca as 4 aplicacoes historicas (sem backfill), seus scores e respostas, HOLOS-V1@2, LI-V1@2, aprovacoes, snapshots, exames.
+-- NAO toca as 4 aplicacoes historicas (sem backfill), seus scores e respostas, HOLOS-V1@2, LI-V1@2, aprovacoes, snapshots, exames
+-- nem as aplicacoes ja existentes das outras 6 ferramentas.
 -- Nenhum uid, e-mail ou dado clinico e impresso.
 -- ============================================================================
 BEGIN;
@@ -105,8 +120,8 @@ create temp table _etapa65_digitais (k text primary key, antes text not null) on
 do $guarda$
 declare f jsonb; esperado jsonb := '%(EG)s'::jsonb; k text; dif text := '';
 begin
-  if exists (select 1 from supabase_migrations.schema_migrations where version = '%(V)s') then
-    raise exception 'ETAPA 6.5 ABORTADA NA GUARDA: a versao %(V)s ja esta registrada (segunda execucao?)' using errcode = 'P0001', hint = 'etapa6_5_guarda';
+  if exists (select 1 from supabase_migrations.schema_migrations where version in ('%(VA)s', '%(V)s')) then
+    raise exception 'ETAPA 6.5 ABORTADA NA GUARDA: a versao %(VA)s ou %(V)s ja esta registrada (segunda execucao?)' using errcode = 'P0001', hint = 'etapa6_5_guarda';
   end if;
   if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'holoscan_applications' and column_name = 'calculation_mode') then
     raise exception 'ETAPA 6.5 ABORTADA NA GUARDA: holoscan_applications.calculation_mode ja existe' using errcode = 'P0001', hint = 'etapa6_5_guarda';
@@ -121,19 +136,21 @@ begin
   insert into _etapa65_digitais (k, antes) values
 %(D)s;
   raise notice 'ETAPA 6.5: guarda ok (31 migrations; HOLOS-V1@2 e LI-V1@2 aprovados; 4 aplicacoes historicas sem proveniencia; 0 aplicacoes novas)';
-end $guarda$;
-
+end $guarda$;""" % {'V': V, 'VA': VS[0], 'EG': ESP_GUARDA, 'M': MEDIDAS, 'D': DIGITAIS})
+for (v, arq, nome, mig) in MIGS:
+    out.append("""
 -- ---------------------------------------------------------------------------
--- MIGRATION: %(F)s
--- ---------------------------------------------------------------------------""" % {'V': V, 'EG': ESP_GUARDA, 'M': MEDIDAS, 'D': DIGITAIS, 'F': MIG.split('/')[-1]})
-out.append(mig.rstrip('\n'))
-tag = '$hist_%s$' % V; assert tag not in mig
-out.append("""
+-- MIGRATION: %s
+-- ---------------------------------------------------------------------------""" % arq.split('/')[-1])
+    out.append(mig.rstrip('\n'))
+for (v, arq, nome, mig) in MIGS:
+    tag = '$hist_%s$' % v; assert tag not in mig
+    out.append("""
 -- ---------------------------------------------------------------------------
--- HISTORICO: 1 linha nova em supabase_migrations.schema_migrations, no mesmo formato das anteriores
+-- HISTORICO %s: 1 linha nova em supabase_migrations.schema_migrations, no mesmo formato das anteriores
 -- (statements = array de 1 elemento com o SQL do arquivo; created_by, idempotency_key e rollback = null). As 31 linhas existentes nao sao tocadas.
--- ---------------------------------------------------------------------------""")
-out.append("insert into supabase_migrations.schema_migrations (version, name, statements) values ('%s', '%s', array[%s%s%s]);" % (V, nome, tag, mig, tag))
+-- ---------------------------------------------------------------------------""" % v)
+    out.append("insert into supabase_migrations.schema_migrations (version, name, statements) values ('%s', '%s', array[%s%s%s]);" % (v, nome, tag, mig, tag))
 out.append("""
 -- ---------------------------------------------------------------------------
 -- VERIFICACAO POS-APLICACAO (dentro da transacao): qualquer divergencia -> RAISE -> nada persiste
@@ -148,20 +165,20 @@ begin
   for k in select jsonb_object_keys(esperado) loop
     if f->>k is distinct from esperado->>k then dif := dif || k || '=' || coalesce(f->>k, 'null') || ' (esperado ' || (esperado->>k) || '); '; end if;
   end loop;
-  -- impressoes digitais: aplicacoes (colunas anteriores), scores, respostas, pacotes, aprovacoes, registro, snapshot LI e exames identicos ao capturado
+  -- impressoes digitais: aplicacoes (colunas anteriores), scores, respostas, pacotes, aprovacoes, registro, snapshot LI, exames e aplicacoes de ferramenta identicos ao capturado
   for dg in select g.k, g.antes, d.depois from _etapa65_digitais g join (values
 %(D)s) as d(k, depois) on d.k = g.k loop
     if dg.antes is distinct from dg.depois then dif := dif || 'digital ' || dg.k || ' mudou; '; end if;
   end loop;
   if (select count(*) from _etapa65_digitais) <> %(N)d then dif := dif || 'digitais incompletas; '; end if;
   if dif <> '' then raise exception 'ETAPA 6.5 ABORTADA NA VERIFICACAO POS-APLICACAO: %%', dif using errcode = 'P0001', hint = 'etapa6_5_pos'; end if;
-  raise notice 'ETAPA 6.5: verificacao pos-aplicacao ok (32 migrations; RPC exige aplicacao oficial; sem insert direto; 4 aplicacoes historicas intactas)';
+  raise notice 'ETAPA 6.5: verificacao pos-aplicacao ok (33 migrations; RPC exige aplicacao oficial; sem insert direto; 4 aplicacoes historicas intactas; registros clinicos aceitos e validados; ferramentas existentes intactas)';
 end $pos$;
 
 -- ULTIMA INSTRUCAO: confirma tudo de uma vez. (Nao ha ROLLBACK no caminho de sucesso; toda falha acima ja aborta a transacao.)
 COMMIT;""" % {'EP': ESP_POS, 'M': MEDIDAS, 'X': EXTRA_POS, 'EX': ESP_EXTRA_POS, 'D': DIGITAIS, 'N': N_DIG})
 txt = '\n'.join(out) + '\n'
-dest = sys.argv[1] if len(sys.argv) > 1 else 'supabase/ETAPA6-5-APLICACAO-HOLOSCAN-OFICIAL.sql'
+dest = sys.argv[1] if len(sys.argv) > 1 else 'supabase/ETAPA6-5-APLICACAO-P0-E-REGISTROS.sql'
 open(dest, 'w', encoding='utf-8').write(txt)
 print(dest, len(txt.encode()), 'bytes', txt.count('\n'), 'linhas', 'sha256', hashlib.sha256(txt.encode()).hexdigest())
 
@@ -169,7 +186,7 @@ def flight(titulo, esperado, extra, chave):
     return """-- ============================================================================
 -- HOLOHACKING V1 — ETAPA 6.5 — %s (SOMENTE LEITURA; nao mostra uid, e-mail nem dado clinico)
 -- Gerado por scripts/gerar-aplicacao-holoscan-oficial.py. "%s" = true so quando TODAS as medidas batem com o esperado.
--- Guarde tambem "digitais": o POST-FLIGHT tem de devolver os MESMOS valores (aplicacoes, scores, respostas, pacotes, aprovacoes, LI, exames).
+-- Guarde tambem "digitais": o POST-FLIGHT tem de devolver os MESMOS valores (aplicacoes, scores, respostas, pacotes, aprovacoes, LI, exames, ferramentas).
 -- ============================================================================
 with m as (select jsonb_build_object(
 %s%s

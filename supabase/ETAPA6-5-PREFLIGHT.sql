@@ -1,7 +1,7 @@
 -- ============================================================================
 -- HOLOHACKING V1 — ETAPA 6.5 — PRE-FLIGHT (rodar ANTES da aplicacao) (SOMENTE LEITURA; nao mostra uid, e-mail nem dado clinico)
 -- Gerado por scripts/gerar-aplicacao-holoscan-oficial.py. "pode_aplicar" = true so quando TODAS as medidas batem com o esperado.
--- Guarde tambem "digitais": o POST-FLIGHT tem de devolver os MESMOS valores (aplicacoes, scores, respostas, pacotes, aprovacoes, LI, exames).
+-- Guarde tambem "digitais": o POST-FLIGHT tem de devolver os MESMOS valores (aplicacoes, scores, respostas, pacotes, aprovacoes, LI, exames, ferramentas).
 -- ============================================================================
 with m as (select jsonb_build_object(
     'hist_n', (select count(*) from supabase_migrations.schema_migrations),
@@ -25,11 +25,12 @@ with m as (select jsonb_build_object(
     'lab_collections', (select count(*) from public.lab_collections),
     'lab_results', (select count(*) from public.lab_results),
     'leituras', (select count(*) from public.integrated_readings),
-    'versao_ja_registrada', (select count(*) from supabase_migrations.schema_migrations where version = '20261005100000'),
+    'registros_clinicos', (select count(*) from public.tool_applications where ferramenta_id in ('mapa_rotina', 'gatilhos_respostas', 'conexao_pertencimento')),
+    'versao_ja_registrada', (select count(*) from supabase_migrations.schema_migrations where version in ('20261005100000', '20261005110000')),
     'colunas_novas', (select count(*) from information_schema.columns where table_schema = 'public' and table_name = 'holoscan_applications' and column_name in ('methodology_content_hash', 'engine_version', 'engine_contract_version', 'calculation_mode')),
     'policies_insert_holoscan', (select count(*) from pg_policy where polrelid in ('public.holoscan_applications'::regclass, 'public.holoscan_system_scores'::regclass, 'public.holoscan_answers'::regclass) and polcmd = 'a')
   ) as f),
-e as (select '{"hist_n":31,"hist_ultima":"20261003100000","n_tabelas":44,"n_funcoes":62,"n_policies":129,"n_triggers":89,"n_constraints":323,"holos":"HOLOS-V1@2:aprovado:aprovador_unico","holos_hash":"7af1dae64c1e020cdeb436ea35f87f67b232210a36bddc6bef3e01940881b402","holos_content_hash_homologado":"7af1dae64c1e020cdeb436ea35f87f67b232210a36bddc6bef3e01940881b402","holos_vigencia":"2026-10-03..","li":"LI-V1@1:rascunho,LI-V1@2:aprovado","li_hash":"fa99ec80507e277307a9b0d2a09a8f0abc1519e55bede08d8715697412137be9","holoscan_applications":4,"apps_com_proveniencia":0,"apps_novas":0,"historicas_fingerprint":"205812d8e238e293fe8b58205ffa5631","holoscan_system_scores":20,"lab_collections":3,"lab_results":22,"leituras":0,"versao_ja_registrada":0,"colunas_novas":0,"policies_insert_holoscan":3}'::jsonb as e),
+e as (select '{"hist_n":31,"hist_ultima":"20261003100000","n_tabelas":44,"n_funcoes":62,"n_policies":129,"n_triggers":89,"n_constraints":323,"holos":"HOLOS-V1@2:aprovado:aprovador_unico","holos_hash":"7af1dae64c1e020cdeb436ea35f87f67b232210a36bddc6bef3e01940881b402","holos_content_hash_homologado":"7af1dae64c1e020cdeb436ea35f87f67b232210a36bddc6bef3e01940881b402","holos_vigencia":"2026-10-03..","li":"LI-V1@1:rascunho,LI-V1@2:aprovado","li_hash":"fa99ec80507e277307a9b0d2a09a8f0abc1519e55bede08d8715697412137be9","holoscan_applications":4,"apps_com_proveniencia":0,"apps_novas":0,"historicas_fingerprint":"205812d8e238e293fe8b58205ffa5631","holoscan_system_scores":20,"lab_collections":3,"lab_results":22,"leituras":0,"registros_clinicos":0,"versao_ja_registrada":0,"colunas_novas":0,"policies_insert_holoscan":3}'::jsonb as e),
 d as (select jsonb_object_agg(k, antes) as dig from (values
     ('apps', (select md5(coalesce(string_agg(concat_ws('|', a.id, a.nutritionist_id, a.patient_id, a.encounter_id, a.quando, a.versao_estrutura, a.versao_bancos, a.indice, a.indice_maximo, a.avaliavel, a.nota_media, a.triada, a.triada_com_dado, a.cobertura, a.combinacoes, a.aprofundamentos, a.interpretacao_texto, a.interpretacao_em, a.interpretacao_versao, a.methodology_package_id, a.methodology_package_version, a.created_at, a.updated_at), ';' order by a.id), '')) from public.holoscan_applications a)),
     ('scores', (select md5(coalesce(string_agg(to_jsonb(s)::text, ';' order by s.id), '')) from public.holoscan_system_scores s)),
@@ -40,7 +41,8 @@ d as (select jsonb_object_agg(k, antes) as dig from (values
     ('li_pacotes', (select md5(coalesce(string_agg(to_jsonb(r)::text, ';' order by r.id), '')) from public.integrated_reading_rule_packages r)),
     ('li_aprovacao', (select md5(coalesce(string_agg(to_jsonb(x)::text, ';' order by x.id), '')) from public.integrated_reading_package_approvals x)),
     ('li_snapshot', (select md5(coalesce(string_agg(to_jsonb(x)::text, ';' order by x.id), '')) from public.integrated_reading_package_snapshots x)),
-    ('exames', (select md5(coalesce(string_agg(to_jsonb(r)::text, ';' order by r.id), '')) from public.lab_results r))) as x(k, antes))
+    ('exames', (select md5(coalesce(string_agg(to_jsonb(r)::text, ';' order by r.id), '')) from public.lab_results r)),
+    ('ferramentas', (select md5(coalesce(string_agg(to_jsonb(t)::text, ';' order by t.id), '')) from public.tool_applications t))) as x(k, antes))
 select jsonb_pretty(jsonb_build_object(
   'pode_aplicar', (select bool_and((m.f->>k) is not distinct from (e.e->>k)) from m, e, jsonb_object_keys(e.e) k),
   'divergencias', (select coalesce(jsonb_object_agg(k, jsonb_build_object('atual', m.f->k, 'esperado', e.e->k)), '{}'::jsonb) from m, e, jsonb_object_keys(e.e) k where (m.f->>k) is distinct from (e.e->>k)),

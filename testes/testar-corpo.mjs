@@ -98,7 +98,9 @@ ok(cat.quantas === 9, 'as nove do catálogo (a 01 é o OQ³, que tem tela própr
 ok(cat.papeis.join(',') === 'estrutural,implementacao,investigacao,monitoramento',
    'os quatro papéis da especificação: ' + cat.papeis.join(' · '));
 ok(cat.comObjetivo === 9, 'todas dizem para quê servem e quando usar: ' + cat.comObjetivo);
-ok(cat.comResultado === 9, 'todas produzem alguma síntese: ' + cat.comResultado);
+// Etapa 6.5 (B), mudanca DOCUMENTADA: o Mapa da Rotina voltou como REGISTRO CLINICO ESTRUTURADO — sem sintese
+// automatica (registro: true, sem `resultado`). As outras 8 continuam com a sintese de antes.
+ok(cat.comResultado === 8, 'todas produzem alguma síntese, menos o Mapa da Rotina (registro, sem síntese): ' + cat.comResultado);
 ok(cat.semPadrao, 'e nenhum campo nasce com valor de fábrica');
 ok(cat.comPrazo.join(',') === 'hidratacao_movimento=7',
    'só a ferramenta que o §13.9 manda reaplicar semanalmente tem prazo; ' +
@@ -565,7 +567,8 @@ ok(/confiança média/.test(compromisso.texto), 'as notas aparecem como foram da
 /* ============= rotina: mede e mostra, sem classificar =================== */
 
 await voltar();
-if (await abrirFerr('mapa_rotina')) {
+const rotinaRegistro = await p.evaluate(() => !!((window.CATALOGO_FERRAMENTAS || []).find(f => f.id === 'mapa_rotina') || {}).registro);
+if (!rotinaRegistro && await abrirFerr('mapa_rotina')) {
 const rotina = await p.evaluate(async () => {
   const texto = (id, v) => {
     const el = document.getElementById(id);
@@ -626,7 +629,7 @@ ok(!/carregada|vulner/i.test(rotina.texto),
 ok(rotina.res.sem_limiar === true && !/Fome 8 ou mais|Estresse 8 ou mais/.test(rotina.texto),
    'nenhum limiar sobrou na rotina');
 
-} else { pular('mapa_rotina', 'fora da galeria desde a revisao de Corpo/Mente/Espirito'); }
+} else { pular('mapa_rotina', 'sintese antiga: desde a Etapa 6.5 o Mapa da Rotina e registro sem sintese (testes em testar-v1-registros-clinicos*.mjs)'); }
 
 /* ============= diário: horários reais, sem agrupamento ================== */
 

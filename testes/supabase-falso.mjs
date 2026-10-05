@@ -26,7 +26,8 @@
 import { randomUUID, createHash } from 'node:crypto';
 import '../metodologia-pacote.js';   // o MESMO validador de publicacao do navegador (Etapa 4)
 import '../laboratorio-catalogo.js';  // os MESMOS 45 exames-base da migration 20261001220000 (Etapa 5)
-import '../leitura-integrada-pacote-v1.js';   // o MESMO conteudo LI-V1@2 da migration 20261002120000 (Etapa 6)
+import '../leitura-integrada-pacote-v1.js';
+import { IDS_REGISTRO, erroRegistro, erroConcluido } from './registro-formato.mjs';   // Etapa 6.5 B: o formato lido da migration 20261005110000   // o MESMO conteudo LI-V1@2 da migration 20261002120000 (Etapa 6)
 
 const COLUNAS = {
   patients: ['id', 'nutritionist_id', 'nome', 'nascimento', 'telefone', 'email', 'sexo', 'inicio', 'queixa', 'status', 'created_at', 'updated_at'],
@@ -131,7 +132,7 @@ const UNICAS = {           // uniques alem da PK, como nas migrations
 };
 // dono(): lab_result_components e filha de lab_results (que e filha de lab_collections)
 
-const FERRAMENTAS = ['oq3', 'pqq', 'linha_momentum', 'mapa_crencas', 'roda_vida', 'carta_futuro'];
+const FERRAMENTAS = ['oq3', 'pqq', 'linha_momentum', 'mapa_crencas', 'roda_vida', 'carta_futuro'].concat(IDS_REGISTRO);
 
 const erro = (message, code) => ({ data: null, error: { message, code: code || 'XX000' } });
 const agora = () => new Date().toISOString();
@@ -271,6 +272,10 @@ export function criarServidor() {
           x.patient_id === linha.patient_id && x.nutritionist_id === uid);
         if (!c) return erro('violates foreign key constraint "tool_applications_consultation_fk"', '23503');
       }
+      // trigger validar_registro_clinico (Etapa 6.5 B): so os 3 registros clinicos estruturados
+      const er = erroRegistro(linha, (oid) => s.tabelas.tool_applications.some(x => x.id === oid && x.id !== linha.id &&
+        x.patient_id === linha.patient_id && x.nutritionist_id === uid && x.ferramenta_id === linha.ferramenta_id));
+      if (er) return { data: null, error: { message: er[0], code: 'P0001', hint: er[1] } };
     }
     if (tabela === 'encounters') {
       if (!linha.occurred_at) return erro('null value in column "occurred_at" violates not-null constraint', '23502');
@@ -822,6 +827,11 @@ export function criarServidor() {
           const p = s.tabelas.methodology_packages.find(x => x.id === l.package_id);
           if (p && ['aprovado', 'retirado'].includes(p.status) && s.aprovacaoRpc !== p.id) return erro('conteudo de pacote ' + p.status + ' e imutavel: crie uma nova versao do pacote', 'P0001');
           if (('package_id' in q.dados && q.dados.package_id !== l.package_id) || ('nutritionist_id' in q.dados && q.dados.nutritionist_id !== l.nutritionist_id)) return erro('elemento nao muda de pacote nem de profissional', 'P0001');
+        }
+        // trigger registro_clinico_concluido_imutavel (Etapa 6.5 B)
+        if (t === 'tool_applications') {
+          const ec = erroConcluido(l, teste);
+          if (ec) return { data: null, error: { message: ec[0], code: 'P0001', hint: ec[1] } };
         }
         const e = checarLinha(t, teste, uid); if (e) return e;
         // trigger proteger_revisao_consolidada (V1 Etapa 2)

@@ -1,12 +1,16 @@
 -- ============================================================================
--- HOLOHACKING V1 — ETAPA 6.5 — CORRECAO P0: APLICACAO HOLOSCAN SO OFICIAL (migration 20261005100000)
+-- HOLOHACKING V1 — ETAPA 6.5 — (A) CORRECAO P0: HOLOSCAN SO OFICIAL + (B) TRES REGISTROS CLINICOS ESTRUTURADOS
+-- migrations 20261005100000 (A) e 20261005110000 (B), nesta ordem
 -- Projeto alvo: Holohacking (sllhyymeeyoozokgbnuv). Executar INTEIRO, de uma vez, no SQL Editor (nada selecionado; Ctrl+End = COMMIT;).
 -- Achado: o front calculava pelo motor LEGADO e gravava com o carimbo HOLOS-V1@2. A partir daqui o servidor so aceita aplicacao
 -- OFICIAL (pacote aprovado e vigente, hash homologado, motor/contrato, contagens pelos vinculos primarios, sem combinacoes).
--- UMA transacao: guarda do estado real atual -> migration 20261005100000 -> 1 linha em supabase_migrations.schema_migrations
+-- (B) Mapa da Rotina, Gatilhos & Respostas e Conexao & Pertencimento passam a ser aceitos em tool_applications, com formato
+-- validado no servidor, sem resultado automatico e imutaveis depois de concluidos. Sem score, classificacao ou efeito em HOLOSCAN/LI.
+-- UMA transacao: guarda do estado real atual -> migration A -> migration B -> 2 linhas em supabase_migrations.schema_migrations
 -- -> verificacao pos-aplicacao -> COMMIT. Qualquer falha aborta tudo: nada persiste.
 -- Antes: backup/snapshot e supabase/ETAPA6-5-PREFLIGHT.sql com pode_aplicar = true. Depois: supabase/ETAPA6-5-POSTFLIGHT.sql.
--- NAO toca as 4 aplicacoes historicas (sem backfill), seus scores e respostas, HOLOS-V1@2, LI-V1@2, aprovacoes, snapshots, exames.
+-- NAO toca as 4 aplicacoes historicas (sem backfill), seus scores e respostas, HOLOS-V1@2, LI-V1@2, aprovacoes, snapshots, exames
+-- nem as aplicacoes ja existentes das outras 6 ferramentas.
 -- Nenhum uid, e-mail ou dado clinico e impresso.
 -- ============================================================================
 BEGIN;
@@ -19,10 +23,10 @@ set local idle_in_transaction_session_timeout = '60s';
 -- ---------------------------------------------------------------------------
 create temp table _etapa65_digitais (k text primary key, antes text not null) on commit drop;
 do $guarda$
-declare f jsonb; esperado jsonb := '{"hist_n":31,"hist_ultima":"20261003100000","n_tabelas":44,"n_funcoes":62,"n_policies":129,"n_triggers":89,"n_constraints":323,"holos":"HOLOS-V1@2:aprovado:aprovador_unico","holos_hash":"7af1dae64c1e020cdeb436ea35f87f67b232210a36bddc6bef3e01940881b402","holos_content_hash_homologado":"7af1dae64c1e020cdeb436ea35f87f67b232210a36bddc6bef3e01940881b402","holos_vigencia":"2026-10-03..","li":"LI-V1@1:rascunho,LI-V1@2:aprovado","li_hash":"fa99ec80507e277307a9b0d2a09a8f0abc1519e55bede08d8715697412137be9","holoscan_applications":4,"apps_com_proveniencia":0,"apps_novas":0,"historicas_fingerprint":"205812d8e238e293fe8b58205ffa5631","holoscan_system_scores":20,"lab_collections":3,"lab_results":22,"leituras":0}'::jsonb; k text; dif text := '';
+declare f jsonb; esperado jsonb := '{"hist_n":31,"hist_ultima":"20261003100000","n_tabelas":44,"n_funcoes":62,"n_policies":129,"n_triggers":89,"n_constraints":323,"holos":"HOLOS-V1@2:aprovado:aprovador_unico","holos_hash":"7af1dae64c1e020cdeb436ea35f87f67b232210a36bddc6bef3e01940881b402","holos_content_hash_homologado":"7af1dae64c1e020cdeb436ea35f87f67b232210a36bddc6bef3e01940881b402","holos_vigencia":"2026-10-03..","li":"LI-V1@1:rascunho,LI-V1@2:aprovado","li_hash":"fa99ec80507e277307a9b0d2a09a8f0abc1519e55bede08d8715697412137be9","holoscan_applications":4,"apps_com_proveniencia":0,"apps_novas":0,"historicas_fingerprint":"205812d8e238e293fe8b58205ffa5631","holoscan_system_scores":20,"lab_collections":3,"lab_results":22,"leituras":0,"registros_clinicos":0}'::jsonb; k text; dif text := '';
 begin
-  if exists (select 1 from supabase_migrations.schema_migrations where version = '20261005100000') then
-    raise exception 'ETAPA 6.5 ABORTADA NA GUARDA: a versao 20261005100000 ja esta registrada (segunda execucao?)' using errcode = 'P0001', hint = 'etapa6_5_guarda';
+  if exists (select 1 from supabase_migrations.schema_migrations where version in ('20261005100000', '20261005110000')) then
+    raise exception 'ETAPA 6.5 ABORTADA NA GUARDA: a versao 20261005100000 ou 20261005110000 ja esta registrada (segunda execucao?)' using errcode = 'P0001', hint = 'etapa6_5_guarda';
   end if;
   if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'holoscan_applications' and column_name = 'calculation_mode') then
     raise exception 'ETAPA 6.5 ABORTADA NA GUARDA: holoscan_applications.calculation_mode ja existe' using errcode = 'P0001', hint = 'etapa6_5_guarda';
@@ -48,7 +52,8 @@ begin
     'holoscan_system_scores', (select count(*) from public.holoscan_system_scores),
     'lab_collections', (select count(*) from public.lab_collections),
     'lab_results', (select count(*) from public.lab_results),
-    'leituras', (select count(*) from public.integrated_readings)
+    'leituras', (select count(*) from public.integrated_readings),
+    'registros_clinicos', (select count(*) from public.tool_applications where ferramenta_id in ('mapa_rotina', 'gatilhos_respostas', 'conexao_pertencimento'))
   ) into f;
   for k in select jsonb_object_keys(esperado) loop
     if f->>k is distinct from esperado->>k then dif := dif || k || '=' || coalesce(f->>k, 'null') || ' (esperado ' || (esperado->>k) || '); '; end if;
@@ -64,7 +69,8 @@ begin
     ('li_pacotes', (select md5(coalesce(string_agg(to_jsonb(r)::text, ';' order by r.id), '')) from public.integrated_reading_rule_packages r)),
     ('li_aprovacao', (select md5(coalesce(string_agg(to_jsonb(x)::text, ';' order by x.id), '')) from public.integrated_reading_package_approvals x)),
     ('li_snapshot', (select md5(coalesce(string_agg(to_jsonb(x)::text, ';' order by x.id), '')) from public.integrated_reading_package_snapshots x)),
-    ('exames', (select md5(coalesce(string_agg(to_jsonb(r)::text, ';' order by r.id), '')) from public.lab_results r));
+    ('exames', (select md5(coalesce(string_agg(to_jsonb(r)::text, ';' order by r.id), '')) from public.lab_results r)),
+    ('ferramentas', (select md5(coalesce(string_agg(to_jsonb(t)::text, ';' order by t.id), '')) from public.tool_applications t));
   raise notice 'ETAPA 6.5: guarda ok (31 migrations; HOLOS-V1@2 e LI-V1@2 aprovados; 4 aplicacoes historicas sem proveniencia; 0 aplicacoes novas)';
 end $guarda$;
 
@@ -391,7 +397,287 @@ begin
 end $$;
 
 -- ---------------------------------------------------------------------------
--- HISTORICO: 1 linha nova em supabase_migrations.schema_migrations, no mesmo formato das anteriores
+-- MIGRATION: 20261005110000_ferramentas_registro_v1.sql
+-- ---------------------------------------------------------------------------
+-- ============================================================================
+-- HOLOHACKING V1 — ETAPA 6.5 (B): TRES REGISTROS CLINICOS ESTRUTURADOS
+-- ============================================================================
+-- Ferramentas novas: mapa_rotina (CORPO 03), gatilhos_respostas (MENTE 03),
+-- conexao_pertencimento (ESPIRITO 04).
+--
+-- Natureza: REGISTRO CLINICO ESTRUTURADO. Sem score, faixa, diagnostico,
+-- classificacao, interpretacao ou recomendacao automatica; nenhum efeito em
+-- HOLOSCAN, Indice, Triada, Leitura Integrada ou exames. Nada aqui toca
+-- methodology_*, holoscan_*, lab_* nem integrated_reading_*.
+--
+-- Modelo: as tres reutilizam public.tool_applications (mesmo ciclo
+-- rascunho -> concluida -> revisada, mesma RLS por nutritionist_id, FK
+-- paciente+nutricionista, bloqueio de paciente arquivado, vinculo ao
+-- atendimento, identidade imutavel, sincronizacao e relatorios). O conteudo
+-- fica em respostas (jsonb), mas NAO como campo generico livre: o trigger
+-- abaixo aceita so as chaves, tipos, tamanhos e opcoes do catalogo
+-- (ferramentas.js / REGISTRO_OPCOES — o teste compara as duas listas).
+--
+-- O que muda:
+--   1. tool_applications_ferramenta_valida passa a aceitar os 3 ids novos.
+--   2. BEFORE INSERT/UPDATE (so para os 3 ids): respostas validadas por
+--      lista branca; resultado sempre NULL (sem sintese automatica).
+--   3. BEFORE UPDATE (so para os 3 ids): aplicacao concluida/revisada nao muda
+--      mais respostas, resultado nem concluida_em, e nao volta a rascunho.
+--      Leitura profissional, prioridade e proximo passo continuam editaveis
+--      (e o que a torna "revisada"). Corrigir = nova aplicacao.
+--
+-- O que NAO muda: as 12 aplicacoes existentes das outras 6 ferramentas (o
+-- trigger as ignora pelo ferramenta_id), as policies, os outros triggers,
+-- HOLOS-V1@2, LI-V1@2 e as 4 aplicacoes historicas do HOLOSCAN.
+-- ============================================================================
+
+-- 1. ids aceitos ---------------------------------------------------------------
+alter table public.tool_applications drop constraint if exists tool_applications_ferramenta_valida;
+alter table public.tool_applications add constraint tool_applications_ferramenta_valida
+  check (ferramenta_id in (
+    'oq3', 'pqq', 'linha_momentum', 'mapa_crencas', 'roda_vida', 'carta_futuro',
+    'mapa_rotina', 'gatilhos_respostas', 'conexao_pertencimento'
+  ));
+
+-- 2. o formato de cada registro --------------------------------------------------
+-- Tipos: texto (ate 1000), textarea (ate 8000), hora (HH:MM), data (AAAA-MM-DD),
+-- nota (inteiro 0-10, percepcao do paciente), dias (lista de dias), op:<lista>.
+create or replace function public.registro_clinico_formato(p_ferramenta text)
+returns jsonb
+language sql
+immutable
+set search_path = public
+as $$
+  select case p_ferramenta
+    when 'mapa_rotina' then jsonb_build_object(
+      'campos', jsonb_build_object(
+        'acorda','hora', 'dorme','hora', 'sono','textarea', 'trabalho','textarea', 'deslocamentos','textarea',
+        'familia','textarea', 'domesticas','textarea', 'estudos','textarea', 'compromissos','textarea',
+        'dificuldade','textarea', 'disponiveis','textarea', 'espacos','textarea', 'observacoes','textarea'),
+      'lista', 'eventos',
+      'item', jsonb_build_object(
+        'inicio','hora', 'fim','hora', 'categoria','op:rotina_categorias', 'titulo','texto', 'descricao','texto',
+        'percepcao','op:percepcao', 'dias','dias', 'observacao','texto'))
+    when 'gatilhos_respostas' then jsonb_build_object(
+      'campos', jsonb_build_object(
+        'data','data', 'horario','hora', 'contexto','textarea', 'gatilho','textarea', 'pensamento','textarea',
+        'emocao','texto', 'intensidade','nota', 'resposta','textarea', 'consequencia_imediata','textarea',
+        'consequencia_posterior','textarea', 'necessidade','textarea', 'observacao_nutri','textarea',
+        'alternativa','textarea'))
+    when 'conexao_pertencimento' then jsonb_build_object(
+      'campos', jsonb_build_object(
+        'contar','textarea', 'apoia_mudanca','textarea', 'dificulta_mudanca','textarea', 'pertence','textarea',
+        'sozinha','textarea', 'fortalecem','textarea', 'dificultam','textarea', 'referencias','textarea',
+        'espacos_seguros','textarea', 'percepcao_apoio','textarea', 'conexao_consigo','textarea',
+        'espiritualidade','textarea', 'comunidade_religiosa','textarea', 'pratica_espiritual','textarea',
+        'algo_maior','textarea', 'observacoes','textarea'),
+      'lista', 'vinculos',
+      'item', jsonb_build_object(
+        'rotulo','texto', 'natureza','op:vinculo_natureza', 'tipo','op:vinculo_tipo', 'relacao','texto',
+        'papel','op:vinculo_papel', 'proximidade','op:vinculo_proximidade', 'momento','op:vinculo_momento',
+        'contexto','texto', 'observacao','texto'))
+    else null
+  end;
+$$;
+
+-- Opcoes DESCRITIVAS, escolhidas por quem registra (iguais a REGISTRO_OPCOES em ferramentas.js).
+create or replace function public.registro_clinico_opcoes()
+returns jsonb
+language sql
+immutable
+set search_path = public
+as $$
+  select '{
+    "rotina_categorias": ["sono", "refeição", "trabalho", "deslocamento", "exercício", "pausa", "estudo", "cuidado familiar", "compromisso", "fome", "energia", "estresse", "outro"],
+    "percepcao": ["baixa", "média", "alta"],
+    "dias": ["seg", "ter", "qua", "qui", "sex", "sáb", "dom"],
+    "vinculo_natureza": ["pessoa", "grupo", "ambiente", "comunidade", "outro"],
+    "vinculo_tipo": ["família", "amizade", "parceiro(a)", "trabalho", "comunidade", "outro"],
+    "vinculo_papel": ["apoia", "dificulta", "neutro", "variável"],
+    "vinculo_proximidade": ["próxima", "intermediária", "distante"],
+    "vinculo_momento": ["presente no momento", "não presente no momento"]
+  }'::jsonb;
+$$;
+
+-- Um valor contra o seu tipo. Devolve NULL se esta certo, ou o motivo.
+create or replace function public.registro_clinico_valor_invalido(p_tipo text, p_valor jsonb)
+returns text
+language plpgsql
+immutable
+set search_path = public
+as $$
+declare
+  t text := jsonb_typeof(p_valor);
+  s text;
+  ops jsonb;
+  d jsonb;
+begin
+  if p_valor is null or t = 'null' then return null; end if;
+  if p_tipo = 'dias' then
+    if t <> 'array' then return 'dias deve ser lista'; end if;
+    if jsonb_array_length(p_valor) > 7 then return 'dias: mais de 7'; end if;
+    ops := public.registro_clinico_opcoes() -> 'dias';
+    for d in select value from jsonb_array_elements(p_valor) loop
+      if jsonb_typeof(d) <> 'string' or not (ops @> jsonb_build_array(d)) then return 'dia invalido'; end if;
+    end loop;
+    if (select count(distinct value) from jsonb_array_elements(p_valor)) <> jsonb_array_length(p_valor) then
+      return 'dia repetido';
+    end if;
+    return null;
+  end if;
+  if p_tipo = 'nota' then
+    if t = 'number' then s := p_valor #>> '{}';
+    elsif t = 'string' then s := p_valor #>> '{}';
+    else return 'intensidade deve ser numero'; end if;
+    if s !~ '^(10|[0-9])$' then return 'intensidade fora de 0 a 10'; end if;
+    return null;
+  end if;
+  if t <> 'string' then return 'valor deve ser texto'; end if;
+  s := p_valor #>> '{}';
+  if p_tipo = 'texto' then
+    if length(s) > 1000 then return 'texto longo demais'; end if;
+  elsif p_tipo = 'textarea' then
+    if length(s) > 8000 then return 'texto longo demais'; end if;
+  elsif p_tipo = 'hora' then
+    if s !~ '^([01][0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$' then return 'horario invalido'; end if;
+  elsif p_tipo = 'data' then
+    if s !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' then return 'data invalida'; end if;
+    begin perform s::date; exception when others then return 'data invalida'; end;
+  elsif p_tipo like 'op:%' then
+    ops := public.registro_clinico_opcoes() -> substr(p_tipo, 4);
+    if ops is null or not (ops @> jsonb_build_array(p_valor)) then return 'opcao fora da lista'; end if;
+  else
+    return 'tipo desconhecido';
+  end if;
+  return null;
+end;
+$$;
+
+create or replace function public.validar_registro_clinico()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+declare
+  fmt jsonb := public.registro_clinico_formato(new.ferramenta_id);
+  r jsonb := new.respostas;
+  k text;
+  v jsonb;
+  item jsonb;
+  ik text;
+  motivo text;
+  n int;
+begin
+  if fmt is null then return new; end if;   -- as outras ferramentas nao mudam
+
+  if new.resultado is not null and jsonb_typeof(new.resultado) <> 'null' then
+    raise exception 'registro clinico estruturado nao tem resultado automatico (resultado deve ser nulo)'
+      using errcode = 'P0001', hint = 'registro_resultado';
+  end if;
+  if r is null or jsonb_typeof(r) <> 'object' then
+    raise exception 'respostas do registro devem ser um objeto' using errcode = 'P0001', hint = 'registro_formato';
+  end if;
+  if length(r::text) > 200000 then
+    raise exception 'registro grande demais' using errcode = 'P0001', hint = 'registro_formato';
+  end if;
+
+  for k, v in select key, value from jsonb_each(r) loop
+    if k = 'origem_id' then
+      if jsonb_typeof(v) = 'null' then continue; end if;
+      if jsonb_typeof(v) <> 'string' or (v #>> '{}') !~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$' then
+        raise exception 'origem_id invalido' using errcode = 'P0001', hint = 'registro_formato';
+      end if;
+      select count(*) into n from public.tool_applications t
+       where t.id = (v #>> '{}')::uuid and t.patient_id = new.patient_id
+         and t.nutritionist_id = new.nutritionist_id and t.ferramenta_id = new.ferramenta_id
+         and t.id is distinct from new.id;
+      if n = 0 then
+        raise exception 'origem_id nao e uma aplicacao desta ferramenta para este paciente'
+          using errcode = 'P0001', hint = 'registro_formato';
+      end if;
+    elsif fmt ? 'lista' and k = (fmt ->> 'lista') then
+      if jsonb_typeof(v) = 'null' then continue; end if;
+      if jsonb_typeof(v) <> 'array' then
+        raise exception 'campo % deve ser lista', k using errcode = 'P0001', hint = 'registro_formato';
+      end if;
+      if jsonb_array_length(v) > 100 then
+        raise exception 'campo % com mais de 100 itens', k using errcode = 'P0001', hint = 'registro_formato';
+      end if;
+      for item in select value from jsonb_array_elements(v) loop
+        if jsonb_typeof(item) <> 'object' then
+          raise exception 'item de % deve ser objeto', k using errcode = 'P0001', hint = 'registro_formato';
+        end if;
+        for ik in select key from jsonb_each(item) loop
+          if not ((fmt -> 'item') ? ik) then
+            raise exception 'campo % nao existe nos itens de %', ik, k using errcode = 'P0001', hint = 'registro_formato';
+          end if;
+          motivo := public.registro_clinico_valor_invalido(fmt -> 'item' ->> ik, item -> ik);
+          if motivo is not null then
+            raise exception '%.%: %', k, ik, motivo using errcode = 'P0001', hint = 'registro_formato';
+          end if;
+        end loop;
+      end loop;
+    elsif (fmt -> 'campos') ? k then
+      motivo := public.registro_clinico_valor_invalido(fmt -> 'campos' ->> k, v);
+      if motivo is not null then
+        raise exception '%: %', k, motivo using errcode = 'P0001', hint = 'registro_formato';
+      end if;
+    else
+      raise exception 'campo % nao existe neste registro', k using errcode = 'P0001', hint = 'registro_formato';
+    end if;
+  end loop;
+  return new;
+end;
+$$;
+
+revoke all on function public.validar_registro_clinico() from public, anon, authenticated;
+
+drop trigger if exists tool_applications_validar_registro on public.tool_applications;
+create trigger tool_applications_validar_registro
+  before insert or update on public.tool_applications
+  for each row execute function public.validar_registro_clinico();
+
+-- 3. concluido nao se reescreve ------------------------------------------------------
+create or replace function public.registro_clinico_concluido_imutavel()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if public.registro_clinico_formato(old.ferramenta_id) is null then return new; end if;
+  if old.status in ('concluida', 'revisada') then
+    if new.status not in ('concluida', 'revisada')
+    or new.respostas is distinct from old.respostas
+    or new.resultado is distinct from old.resultado
+    or new.concluida_em is distinct from old.concluida_em
+    or new.encounter_id is distinct from old.encounter_id then
+      raise exception 'registro concluido nao e reescrito: para corrigir, crie uma nova aplicacao (a anterior fica no historico)'
+        using errcode = 'P0001', hint = 'registro_concluido';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+revoke all on function public.registro_clinico_concluido_imutavel() from public, anon, authenticated;
+
+drop trigger if exists tool_applications_registro_concluido on public.tool_applications;
+create trigger tool_applications_registro_concluido
+  before update on public.tool_applications
+  for each row execute function public.registro_clinico_concluido_imutavel();
+
+-- As funcoes de formato sao so leitura de constantes; o trigger (que roda com os privilegios de quem grava)
+-- precisa delas. Nada para anon.
+revoke all on function public.registro_clinico_formato(text) from public, anon;
+revoke all on function public.registro_clinico_opcoes() from public, anon;
+revoke all on function public.registro_clinico_valor_invalido(text, jsonb) from public, anon;
+grant execute on function public.registro_clinico_formato(text) to authenticated;
+grant execute on function public.registro_clinico_opcoes() to authenticated;
+grant execute on function public.registro_clinico_valor_invalido(text, jsonb) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- HISTORICO 20261005100000: 1 linha nova em supabase_migrations.schema_migrations, no mesmo formato das anteriores
 -- (statements = array de 1 elemento com o SQL do arquivo; created_by, idempotency_key e rollback = null). As 31 linhas existentes nao sao tocadas.
 -- ---------------------------------------------------------------------------
 insert into supabase_migrations.schema_migrations (version, name, statements) values ('20261005100000', 'holoscan_oficial_v1', array[$hist_20261005100000$-- ============================================================================
@@ -715,10 +1001,292 @@ end $$;
 $hist_20261005100000$]);
 
 -- ---------------------------------------------------------------------------
+-- HISTORICO 20261005110000: 1 linha nova em supabase_migrations.schema_migrations, no mesmo formato das anteriores
+-- (statements = array de 1 elemento com o SQL do arquivo; created_by, idempotency_key e rollback = null). As 31 linhas existentes nao sao tocadas.
+-- ---------------------------------------------------------------------------
+insert into supabase_migrations.schema_migrations (version, name, statements) values ('20261005110000', 'ferramentas_registro_v1', array[$hist_20261005110000$-- ============================================================================
+-- HOLOHACKING V1 — ETAPA 6.5 (B): TRES REGISTROS CLINICOS ESTRUTURADOS
+-- ============================================================================
+-- Ferramentas novas: mapa_rotina (CORPO 03), gatilhos_respostas (MENTE 03),
+-- conexao_pertencimento (ESPIRITO 04).
+--
+-- Natureza: REGISTRO CLINICO ESTRUTURADO. Sem score, faixa, diagnostico,
+-- classificacao, interpretacao ou recomendacao automatica; nenhum efeito em
+-- HOLOSCAN, Indice, Triada, Leitura Integrada ou exames. Nada aqui toca
+-- methodology_*, holoscan_*, lab_* nem integrated_reading_*.
+--
+-- Modelo: as tres reutilizam public.tool_applications (mesmo ciclo
+-- rascunho -> concluida -> revisada, mesma RLS por nutritionist_id, FK
+-- paciente+nutricionista, bloqueio de paciente arquivado, vinculo ao
+-- atendimento, identidade imutavel, sincronizacao e relatorios). O conteudo
+-- fica em respostas (jsonb), mas NAO como campo generico livre: o trigger
+-- abaixo aceita so as chaves, tipos, tamanhos e opcoes do catalogo
+-- (ferramentas.js / REGISTRO_OPCOES — o teste compara as duas listas).
+--
+-- O que muda:
+--   1. tool_applications_ferramenta_valida passa a aceitar os 3 ids novos.
+--   2. BEFORE INSERT/UPDATE (so para os 3 ids): respostas validadas por
+--      lista branca; resultado sempre NULL (sem sintese automatica).
+--   3. BEFORE UPDATE (so para os 3 ids): aplicacao concluida/revisada nao muda
+--      mais respostas, resultado nem concluida_em, e nao volta a rascunho.
+--      Leitura profissional, prioridade e proximo passo continuam editaveis
+--      (e o que a torna "revisada"). Corrigir = nova aplicacao.
+--
+-- O que NAO muda: as 12 aplicacoes existentes das outras 6 ferramentas (o
+-- trigger as ignora pelo ferramenta_id), as policies, os outros triggers,
+-- HOLOS-V1@2, LI-V1@2 e as 4 aplicacoes historicas do HOLOSCAN.
+-- ============================================================================
+
+-- 1. ids aceitos ---------------------------------------------------------------
+alter table public.tool_applications drop constraint if exists tool_applications_ferramenta_valida;
+alter table public.tool_applications add constraint tool_applications_ferramenta_valida
+  check (ferramenta_id in (
+    'oq3', 'pqq', 'linha_momentum', 'mapa_crencas', 'roda_vida', 'carta_futuro',
+    'mapa_rotina', 'gatilhos_respostas', 'conexao_pertencimento'
+  ));
+
+-- 2. o formato de cada registro --------------------------------------------------
+-- Tipos: texto (ate 1000), textarea (ate 8000), hora (HH:MM), data (AAAA-MM-DD),
+-- nota (inteiro 0-10, percepcao do paciente), dias (lista de dias), op:<lista>.
+create or replace function public.registro_clinico_formato(p_ferramenta text)
+returns jsonb
+language sql
+immutable
+set search_path = public
+as $$
+  select case p_ferramenta
+    when 'mapa_rotina' then jsonb_build_object(
+      'campos', jsonb_build_object(
+        'acorda','hora', 'dorme','hora', 'sono','textarea', 'trabalho','textarea', 'deslocamentos','textarea',
+        'familia','textarea', 'domesticas','textarea', 'estudos','textarea', 'compromissos','textarea',
+        'dificuldade','textarea', 'disponiveis','textarea', 'espacos','textarea', 'observacoes','textarea'),
+      'lista', 'eventos',
+      'item', jsonb_build_object(
+        'inicio','hora', 'fim','hora', 'categoria','op:rotina_categorias', 'titulo','texto', 'descricao','texto',
+        'percepcao','op:percepcao', 'dias','dias', 'observacao','texto'))
+    when 'gatilhos_respostas' then jsonb_build_object(
+      'campos', jsonb_build_object(
+        'data','data', 'horario','hora', 'contexto','textarea', 'gatilho','textarea', 'pensamento','textarea',
+        'emocao','texto', 'intensidade','nota', 'resposta','textarea', 'consequencia_imediata','textarea',
+        'consequencia_posterior','textarea', 'necessidade','textarea', 'observacao_nutri','textarea',
+        'alternativa','textarea'))
+    when 'conexao_pertencimento' then jsonb_build_object(
+      'campos', jsonb_build_object(
+        'contar','textarea', 'apoia_mudanca','textarea', 'dificulta_mudanca','textarea', 'pertence','textarea',
+        'sozinha','textarea', 'fortalecem','textarea', 'dificultam','textarea', 'referencias','textarea',
+        'espacos_seguros','textarea', 'percepcao_apoio','textarea', 'conexao_consigo','textarea',
+        'espiritualidade','textarea', 'comunidade_religiosa','textarea', 'pratica_espiritual','textarea',
+        'algo_maior','textarea', 'observacoes','textarea'),
+      'lista', 'vinculos',
+      'item', jsonb_build_object(
+        'rotulo','texto', 'natureza','op:vinculo_natureza', 'tipo','op:vinculo_tipo', 'relacao','texto',
+        'papel','op:vinculo_papel', 'proximidade','op:vinculo_proximidade', 'momento','op:vinculo_momento',
+        'contexto','texto', 'observacao','texto'))
+    else null
+  end;
+$$;
+
+-- Opcoes DESCRITIVAS, escolhidas por quem registra (iguais a REGISTRO_OPCOES em ferramentas.js).
+create or replace function public.registro_clinico_opcoes()
+returns jsonb
+language sql
+immutable
+set search_path = public
+as $$
+  select '{
+    "rotina_categorias": ["sono", "refeição", "trabalho", "deslocamento", "exercício", "pausa", "estudo", "cuidado familiar", "compromisso", "fome", "energia", "estresse", "outro"],
+    "percepcao": ["baixa", "média", "alta"],
+    "dias": ["seg", "ter", "qua", "qui", "sex", "sáb", "dom"],
+    "vinculo_natureza": ["pessoa", "grupo", "ambiente", "comunidade", "outro"],
+    "vinculo_tipo": ["família", "amizade", "parceiro(a)", "trabalho", "comunidade", "outro"],
+    "vinculo_papel": ["apoia", "dificulta", "neutro", "variável"],
+    "vinculo_proximidade": ["próxima", "intermediária", "distante"],
+    "vinculo_momento": ["presente no momento", "não presente no momento"]
+  }'::jsonb;
+$$;
+
+-- Um valor contra o seu tipo. Devolve NULL se esta certo, ou o motivo.
+create or replace function public.registro_clinico_valor_invalido(p_tipo text, p_valor jsonb)
+returns text
+language plpgsql
+immutable
+set search_path = public
+as $$
+declare
+  t text := jsonb_typeof(p_valor);
+  s text;
+  ops jsonb;
+  d jsonb;
+begin
+  if p_valor is null or t = 'null' then return null; end if;
+  if p_tipo = 'dias' then
+    if t <> 'array' then return 'dias deve ser lista'; end if;
+    if jsonb_array_length(p_valor) > 7 then return 'dias: mais de 7'; end if;
+    ops := public.registro_clinico_opcoes() -> 'dias';
+    for d in select value from jsonb_array_elements(p_valor) loop
+      if jsonb_typeof(d) <> 'string' or not (ops @> jsonb_build_array(d)) then return 'dia invalido'; end if;
+    end loop;
+    if (select count(distinct value) from jsonb_array_elements(p_valor)) <> jsonb_array_length(p_valor) then
+      return 'dia repetido';
+    end if;
+    return null;
+  end if;
+  if p_tipo = 'nota' then
+    if t = 'number' then s := p_valor #>> '{}';
+    elsif t = 'string' then s := p_valor #>> '{}';
+    else return 'intensidade deve ser numero'; end if;
+    if s !~ '^(10|[0-9])$' then return 'intensidade fora de 0 a 10'; end if;
+    return null;
+  end if;
+  if t <> 'string' then return 'valor deve ser texto'; end if;
+  s := p_valor #>> '{}';
+  if p_tipo = 'texto' then
+    if length(s) > 1000 then return 'texto longo demais'; end if;
+  elsif p_tipo = 'textarea' then
+    if length(s) > 8000 then return 'texto longo demais'; end if;
+  elsif p_tipo = 'hora' then
+    if s !~ '^([01][0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$' then return 'horario invalido'; end if;
+  elsif p_tipo = 'data' then
+    if s !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' then return 'data invalida'; end if;
+    begin perform s::date; exception when others then return 'data invalida'; end;
+  elsif p_tipo like 'op:%' then
+    ops := public.registro_clinico_opcoes() -> substr(p_tipo, 4);
+    if ops is null or not (ops @> jsonb_build_array(p_valor)) then return 'opcao fora da lista'; end if;
+  else
+    return 'tipo desconhecido';
+  end if;
+  return null;
+end;
+$$;
+
+create or replace function public.validar_registro_clinico()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+declare
+  fmt jsonb := public.registro_clinico_formato(new.ferramenta_id);
+  r jsonb := new.respostas;
+  k text;
+  v jsonb;
+  item jsonb;
+  ik text;
+  motivo text;
+  n int;
+begin
+  if fmt is null then return new; end if;   -- as outras ferramentas nao mudam
+
+  if new.resultado is not null and jsonb_typeof(new.resultado) <> 'null' then
+    raise exception 'registro clinico estruturado nao tem resultado automatico (resultado deve ser nulo)'
+      using errcode = 'P0001', hint = 'registro_resultado';
+  end if;
+  if r is null or jsonb_typeof(r) <> 'object' then
+    raise exception 'respostas do registro devem ser um objeto' using errcode = 'P0001', hint = 'registro_formato';
+  end if;
+  if length(r::text) > 200000 then
+    raise exception 'registro grande demais' using errcode = 'P0001', hint = 'registro_formato';
+  end if;
+
+  for k, v in select key, value from jsonb_each(r) loop
+    if k = 'origem_id' then
+      if jsonb_typeof(v) = 'null' then continue; end if;
+      if jsonb_typeof(v) <> 'string' or (v #>> '{}') !~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$' then
+        raise exception 'origem_id invalido' using errcode = 'P0001', hint = 'registro_formato';
+      end if;
+      select count(*) into n from public.tool_applications t
+       where t.id = (v #>> '{}')::uuid and t.patient_id = new.patient_id
+         and t.nutritionist_id = new.nutritionist_id and t.ferramenta_id = new.ferramenta_id
+         and t.id is distinct from new.id;
+      if n = 0 then
+        raise exception 'origem_id nao e uma aplicacao desta ferramenta para este paciente'
+          using errcode = 'P0001', hint = 'registro_formato';
+      end if;
+    elsif fmt ? 'lista' and k = (fmt ->> 'lista') then
+      if jsonb_typeof(v) = 'null' then continue; end if;
+      if jsonb_typeof(v) <> 'array' then
+        raise exception 'campo % deve ser lista', k using errcode = 'P0001', hint = 'registro_formato';
+      end if;
+      if jsonb_array_length(v) > 100 then
+        raise exception 'campo % com mais de 100 itens', k using errcode = 'P0001', hint = 'registro_formato';
+      end if;
+      for item in select value from jsonb_array_elements(v) loop
+        if jsonb_typeof(item) <> 'object' then
+          raise exception 'item de % deve ser objeto', k using errcode = 'P0001', hint = 'registro_formato';
+        end if;
+        for ik in select key from jsonb_each(item) loop
+          if not ((fmt -> 'item') ? ik) then
+            raise exception 'campo % nao existe nos itens de %', ik, k using errcode = 'P0001', hint = 'registro_formato';
+          end if;
+          motivo := public.registro_clinico_valor_invalido(fmt -> 'item' ->> ik, item -> ik);
+          if motivo is not null then
+            raise exception '%.%: %', k, ik, motivo using errcode = 'P0001', hint = 'registro_formato';
+          end if;
+        end loop;
+      end loop;
+    elsif (fmt -> 'campos') ? k then
+      motivo := public.registro_clinico_valor_invalido(fmt -> 'campos' ->> k, v);
+      if motivo is not null then
+        raise exception '%: %', k, motivo using errcode = 'P0001', hint = 'registro_formato';
+      end if;
+    else
+      raise exception 'campo % nao existe neste registro', k using errcode = 'P0001', hint = 'registro_formato';
+    end if;
+  end loop;
+  return new;
+end;
+$$;
+
+revoke all on function public.validar_registro_clinico() from public, anon, authenticated;
+
+drop trigger if exists tool_applications_validar_registro on public.tool_applications;
+create trigger tool_applications_validar_registro
+  before insert or update on public.tool_applications
+  for each row execute function public.validar_registro_clinico();
+
+-- 3. concluido nao se reescreve ------------------------------------------------------
+create or replace function public.registro_clinico_concluido_imutavel()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if public.registro_clinico_formato(old.ferramenta_id) is null then return new; end if;
+  if old.status in ('concluida', 'revisada') then
+    if new.status not in ('concluida', 'revisada')
+    or new.respostas is distinct from old.respostas
+    or new.resultado is distinct from old.resultado
+    or new.concluida_em is distinct from old.concluida_em
+    or new.encounter_id is distinct from old.encounter_id then
+      raise exception 'registro concluido nao e reescrito: para corrigir, crie uma nova aplicacao (a anterior fica no historico)'
+        using errcode = 'P0001', hint = 'registro_concluido';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+revoke all on function public.registro_clinico_concluido_imutavel() from public, anon, authenticated;
+
+drop trigger if exists tool_applications_registro_concluido on public.tool_applications;
+create trigger tool_applications_registro_concluido
+  before update on public.tool_applications
+  for each row execute function public.registro_clinico_concluido_imutavel();
+
+-- As funcoes de formato sao so leitura de constantes; o trigger (que roda com os privilegios de quem grava)
+-- precisa delas. Nada para anon.
+revoke all on function public.registro_clinico_formato(text) from public, anon;
+revoke all on function public.registro_clinico_opcoes() from public, anon;
+revoke all on function public.registro_clinico_valor_invalido(text, jsonb) from public, anon;
+grant execute on function public.registro_clinico_formato(text) to authenticated;
+grant execute on function public.registro_clinico_opcoes() to authenticated;
+grant execute on function public.registro_clinico_valor_invalido(text, jsonb) to authenticated;
+$hist_20261005110000$]);
+
+-- ---------------------------------------------------------------------------
 -- VERIFICACAO POS-APLICACAO (dentro da transacao): qualquer divergencia -> RAISE -> nada persiste
 -- ---------------------------------------------------------------------------
 do $pos$
-declare f jsonb; esperado jsonb := '{"hist_n":32,"hist_ultima":"20261005100000","n_tabelas":44,"n_funcoes":63,"n_policies":126,"n_triggers":90,"n_constraints":326,"holos":"HOLOS-V1@2:aprovado:aprovador_unico","holos_hash":"7af1dae64c1e020cdeb436ea35f87f67b232210a36bddc6bef3e01940881b402","holos_content_hash_homologado":"7af1dae64c1e020cdeb436ea35f87f67b232210a36bddc6bef3e01940881b402","holos_vigencia":"2026-10-03..","li":"LI-V1@1:rascunho,LI-V1@2:aprovado","li_hash":"fa99ec80507e277307a9b0d2a09a8f0abc1519e55bede08d8715697412137be9","holoscan_applications":4,"apps_com_proveniencia":0,"apps_novas":0,"historicas_fingerprint":"205812d8e238e293fe8b58205ffa5631","holoscan_system_scores":20,"lab_collections":3,"lab_results":22,"leituras":0}'::jsonb; k text; dif text := ''; dg record;
+declare f jsonb; esperado jsonb := '{"hist_n":33,"hist_ultima":"20261005110000","n_tabelas":44,"n_funcoes":68,"n_policies":126,"n_triggers":92,"n_constraints":326,"holos":"HOLOS-V1@2:aprovado:aprovador_unico","holos_hash":"7af1dae64c1e020cdeb436ea35f87f67b232210a36bddc6bef3e01940881b402","holos_content_hash_homologado":"7af1dae64c1e020cdeb436ea35f87f67b232210a36bddc6bef3e01940881b402","holos_vigencia":"2026-10-03..","li":"LI-V1@1:rascunho,LI-V1@2:aprovado","li_hash":"fa99ec80507e277307a9b0d2a09a8f0abc1519e55bede08d8715697412137be9","holoscan_applications":4,"apps_com_proveniencia":0,"apps_novas":0,"historicas_fingerprint":"205812d8e238e293fe8b58205ffa5631","holoscan_system_scores":20,"lab_collections":3,"lab_results":22,"leituras":0,"registros_clinicos":0}'::jsonb; k text; dif text := ''; dg record;
 begin
   select jsonb_build_object(
     'hist_n', (select count(*) from supabase_migrations.schema_migrations),
@@ -742,6 +1310,7 @@ begin
     'lab_collections', (select count(*) from public.lab_collections),
     'lab_results', (select count(*) from public.lab_results),
     'leituras', (select count(*) from public.integrated_readings),
+    'registros_clinicos', (select count(*) from public.tool_applications where ferramenta_id in ('mapa_rotina', 'gatilhos_respostas', 'conexao_pertencimento')),
     'colunas_novas', (select count(*) from information_schema.columns where table_schema = 'public' and table_name = 'holoscan_applications' and column_name in ('methodology_content_hash', 'engine_version', 'engine_contract_version', 'calculation_mode')),
     'colunas_novas_preenchidas', (select count(*) from public.holoscan_applications where methodology_content_hash is not null or engine_version is not null or engine_contract_version is not null or calculation_mode is not null),
     'indice_aceita_nulo', (select is_nullable from information_schema.columns where table_schema = 'public' and table_name = 'holoscan_applications' and column_name = 'indice'),
@@ -751,13 +1320,16 @@ begin
        and p.prosrc like '%%proveniencia_obrigatoria%%' and p.prosrc like '%%contagem_divergente%%' and p.prosrc like '%%faixa_fora_do_pacote%%' and p.prosrc like '%%metodologia_hash_conteudo%%'),
     'rpc_sem_anon', (select not has_function_privilege('anon', 'public.salvar_holoscan_completo(jsonb)', 'execute')),
     'rpc_authenticated', (select has_function_privilege('authenticated', 'public.salvar_holoscan_completo(jsonb)', 'execute')),
-    'faixa_aceita_v1', (select pg_get_constraintdef(oid) like '%%intermediaria%%' and pg_get_constraintdef(oid) like '%%medio%%' from pg_constraint where conname = 'holoscan_system_scores_faixa_valida')
+    'faixa_aceita_v1', (select pg_get_constraintdef(oid) like '%%intermediaria%%' and pg_get_constraintdef(oid) like '%%medio%%' from pg_constraint where conname = 'holoscan_system_scores_faixa_valida'),
+    'ferramentas_aceitas', (select pg_get_constraintdef(oid) like '%%mapa_rotina%%' and pg_get_constraintdef(oid) like '%%gatilhos_respostas%%' and pg_get_constraintdef(oid) like '%%conexao_pertencimento%%' and pg_get_constraintdef(oid) like '%%carta_futuro%%' from pg_constraint where conname = 'tool_applications_ferramenta_valida'),
+    'triggers_registro', (select count(*) from pg_trigger where tgrelid = 'public.tool_applications'::regclass and tgname in ('tool_applications_validar_registro', 'tool_applications_registro_concluido')),
+    'funcoes_registro_sem_anon', (select bool_and(not has_function_privilege('anon', p.oid, 'execute')) from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and (p.proname like 'registro_clinico%%' or p.proname = 'validar_registro_clinico'))
   ) into f;
-  esperado := esperado || '{"colunas_novas":4,"colunas_novas_preenchidas":0,"indice_aceita_nulo":"YES","policies_insert_holoscan":0,"trigger_exigir_oficial":1,"rpc_exige_oficial":1,"rpc_sem_anon":true,"rpc_authenticated":true,"faixa_aceita_v1":true}'::jsonb;
+  esperado := esperado || '{"colunas_novas":4,"colunas_novas_preenchidas":0,"indice_aceita_nulo":"YES","policies_insert_holoscan":0,"trigger_exigir_oficial":1,"rpc_exige_oficial":1,"rpc_sem_anon":true,"rpc_authenticated":true,"faixa_aceita_v1":true,"ferramentas_aceitas":true,"triggers_registro":2,"funcoes_registro_sem_anon":true}'::jsonb;
   for k in select jsonb_object_keys(esperado) loop
     if f->>k is distinct from esperado->>k then dif := dif || k || '=' || coalesce(f->>k, 'null') || ' (esperado ' || (esperado->>k) || '); '; end if;
   end loop;
-  -- impressoes digitais: aplicacoes (colunas anteriores), scores, respostas, pacotes, aprovacoes, registro, snapshot LI e exames identicos ao capturado
+  -- impressoes digitais: aplicacoes (colunas anteriores), scores, respostas, pacotes, aprovacoes, registro, snapshot LI, exames e aplicacoes de ferramenta identicos ao capturado
   for dg in select g.k, g.antes, d.depois from _etapa65_digitais g join (values
     ('apps', (select md5(coalesce(string_agg(concat_ws('|', a.id, a.nutritionist_id, a.patient_id, a.encounter_id, a.quando, a.versao_estrutura, a.versao_bancos, a.indice, a.indice_maximo, a.avaliavel, a.nota_media, a.triada, a.triada_com_dado, a.cobertura, a.combinacoes, a.aprofundamentos, a.interpretacao_texto, a.interpretacao_em, a.interpretacao_versao, a.methodology_package_id, a.methodology_package_version, a.created_at, a.updated_at), ';' order by a.id), '')) from public.holoscan_applications a)),
     ('scores', (select md5(coalesce(string_agg(to_jsonb(s)::text, ';' order by s.id), '')) from public.holoscan_system_scores s)),
@@ -768,12 +1340,13 @@ begin
     ('li_pacotes', (select md5(coalesce(string_agg(to_jsonb(r)::text, ';' order by r.id), '')) from public.integrated_reading_rule_packages r)),
     ('li_aprovacao', (select md5(coalesce(string_agg(to_jsonb(x)::text, ';' order by x.id), '')) from public.integrated_reading_package_approvals x)),
     ('li_snapshot', (select md5(coalesce(string_agg(to_jsonb(x)::text, ';' order by x.id), '')) from public.integrated_reading_package_snapshots x)),
-    ('exames', (select md5(coalesce(string_agg(to_jsonb(r)::text, ';' order by r.id), '')) from public.lab_results r))) as d(k, depois) on d.k = g.k loop
+    ('exames', (select md5(coalesce(string_agg(to_jsonb(r)::text, ';' order by r.id), '')) from public.lab_results r)),
+    ('ferramentas', (select md5(coalesce(string_agg(to_jsonb(t)::text, ';' order by t.id), '')) from public.tool_applications t))) as d(k, depois) on d.k = g.k loop
     if dg.antes is distinct from dg.depois then dif := dif || 'digital ' || dg.k || ' mudou; '; end if;
   end loop;
-  if (select count(*) from _etapa65_digitais) <> 10 then dif := dif || 'digitais incompletas; '; end if;
+  if (select count(*) from _etapa65_digitais) <> 11 then dif := dif || 'digitais incompletas; '; end if;
   if dif <> '' then raise exception 'ETAPA 6.5 ABORTADA NA VERIFICACAO POS-APLICACAO: %', dif using errcode = 'P0001', hint = 'etapa6_5_pos'; end if;
-  raise notice 'ETAPA 6.5: verificacao pos-aplicacao ok (32 migrations; RPC exige aplicacao oficial; sem insert direto; 4 aplicacoes historicas intactas)';
+  raise notice 'ETAPA 6.5: verificacao pos-aplicacao ok (33 migrations; RPC exige aplicacao oficial; sem insert direto; 4 aplicacoes historicas intactas; registros clinicos aceitos e validados; ferramentas existentes intactas)';
 end $pos$;
 
 -- ULTIMA INSTRUCAO: confirma tudo de uma vez. (Nao ha ROLLBACK no caminho de sucesso; toda falha acima ja aborta a transacao.)

@@ -4245,3 +4245,75 @@ tr.mh-conflito td{background:rgba(201,138,122,.08)}
 .li-duplicados{border:1px dashed var(--borda,#c9a);border-radius:8px;padding:8px 10px;margin:8px 0}
 .li-duplicados label,.li-coletas label{display:block;margin:2px 0}
 .li-salvar{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+
+/* =========================================================================
+   REGISTROS CLÍNICOS ESTRUTURADOS (Etapa 6.5) — Mapa da Rotina, Gatilhos &
+   Respostas, Conexão & Pertencimento. Só apresentação do que foi registrado:
+   nenhuma cor aqui significa avaliação (o papel do vínculo também muda o
+   traço da linha, não só a cor).
+   ========================================================================= */
+.grupo-dias{display:flex;flex-wrap:wrap;gap:6px}
+.btn-dia{padding:8px 12px;min-width:3rem}
+.btn-opcao:focus-visible,.ferr-hist-item:focus-visible{outline:2px solid var(--dourado);outline-offset:2px}
+.ferr-hist-previa{font-size:.8rem;color:var(--texto);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ferr-hist-previa + .ferr-hist-leitura{grid-column:1/-1}
+.ferr-origem{font-style:italic}
+.rv-visual{margin:8px 0 24px}
+.rv-texto{white-space:pre-wrap;overflow-wrap:anywhere}
+.rv-vazio{color:var(--texto-suave);font-size:.85rem;font-style:italic}
+.rv-percebida{font-size:.78rem;color:var(--texto-suave)}
+.rv-percebida::before{content:"◦ "}
+.rv-dias,.rv-obs{font-size:.78rem;color:var(--texto-suave);margin:2px 0 0}
+.rv-alternar{display:flex;gap:6px;margin-bottom:12px}
+.rv-linha{list-style:none;margin:0;padding:0 0 0 4px;border-left:2px solid var(--linha)}
+.rv-linha > li{display:grid;grid-template-columns:6.5rem 1fr;gap:12px;padding:8px 0 8px 14px;position:relative}
+.rv-linha > li::before{content:"";position:absolute;left:-7px;top:14px;width:10px;height:10px;border-radius:50%;
+  background:var(--sup-card);border:2px solid var(--dourado)}
+.rv-ancora b{font-weight:500;color:var(--realce)}
+.rv-hora{font-variant-numeric:tabular-nums;font-size:.85rem;color:var(--texto)}
+.rv-evento-corpo b{display:block;font-weight:500;color:var(--texto)}
+.rv-evento-corpo p{margin:2px 0 0}
+.rv-cat{display:inline-block;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;
+  border:1px solid var(--borda-suave);border-radius:999px;padding:2px 8px;margin-bottom:4px;color:var(--texto-suave)}
+.rv-semana{display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:8px}
+.rv-semana-dia{border:1px solid var(--borda-suave);border-radius:10px;padding:8px 10px;background:var(--sup-card)}
+.rv-semana-dia h6{margin:0 0 6px;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--texto-suave)}
+.rv-semana-lista{list-style:none;margin:0;padding:0}
+.rv-semana-lista .rv-evento{display:block;padding:4px 0;border-top:1px solid var(--borda-suave)}
+.rv-semana-lista .rv-hora{display:block;font-size:.75rem}
+.rv-sem-dia{border-style:dashed}
+.rv-fluxo .rv-contexto{margin:0 0 10px}
+.rv-passos{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:22px}
+.rv-passo{border:1px solid var(--borda-suave);border-radius:12px;padding:10px 12px;background:var(--sup-card);position:relative}
+.rv-passo + .rv-passo::before{content:"→";position:absolute;left:-18px;top:50%;transform:translateY(-50%);color:var(--dourado)}
+.rv-passo h6{margin:0 0 6px;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--realce)}
+.rv-passo p{margin:0 0 4px;font-size:.85rem}
+.rv-alternativa{margin-top:12px;border-left:3px solid var(--dourado);padding-left:10px}
+.rv-rede{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+.rv-rede-grafico{max-width:440px}
+.rv-rede-svg{width:100%;height:auto;display:block}
+.rv-rede-svg text{font-size:12px;fill:var(--texto)}
+.rv-rede-linha{stroke:var(--tinta-suave);stroke-width:2}
+.rv-papel-1{stroke:var(--movimento-desce)}
+.rv-papel-0{stroke:var(--realce)}
+.rv-inativo{opacity:.45}
+.rv-no circle{fill:var(--sup-card);stroke:var(--dourado);stroke-width:2}
+.rv-centro circle{fill:var(--dourado)}
+.rv-legenda{list-style:none;display:flex;flex-wrap:wrap;gap:12px;padding:0;margin:8px 0 4px;font-size:.78rem}
+.rv-legenda li{display:flex;align-items:center;gap:6px}
+.rv-tabela-rolagem{overflow-x:auto;max-width:100%}
+.rv-tabela{border-collapse:collapse;width:100%;font-size:.8rem}
+.rv-tabela caption{text-align:left;font-weight:500;padding-bottom:6px}
+.rv-tabela th,.rv-tabela td{border-bottom:1px solid var(--borda-suave);padding:6px 8px;text-align:left;vertical-align:top;overflow-wrap:break-word}
+.rv-resumo-grupo h5{margin:16px 0 6px;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--realce)}
+.rv-resumo dl{margin:0;display:grid;grid-template-columns:minmax(8rem,16rem) 1fr;gap:6px 14px}
+.rv-resumo dt{color:var(--texto-suave);font-size:.82rem}
+.rv-resumo dd{margin:0}
+@media (max-width:900px){
+  .rv-passos{grid-template-columns:1fr;gap:20px}
+  .rv-passo + .rv-passo::before{content:"↓";left:50%;top:-18px;transform:translateX(-50%)}
+}
+@media (max-width:640px){
+  .rv-linha > li{grid-template-columns:1fr;gap:2px}
+  .rv-resumo dl{grid-template-columns:1fr}
+}

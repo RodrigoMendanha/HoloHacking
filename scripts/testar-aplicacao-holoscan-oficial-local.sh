@@ -1,17 +1,18 @@
 #!/bin/sh
-# ETAPA 6.5 — prova LOCAL do artefato supabase/ETAPA6-5-APLICACAO-HOLOSCAN-OFICIAL.sql num PostgreSQL descartavel.
+# ETAPA 6.5 — prova LOCAL do artefato UNICO supabase/ETAPA6-5-APLICACAO-P0-E-REGISTROS.sql (A: P0 HOLOSCAN oficial; B: registros clinicos) num PostgreSQL descartavel.
 # Uso: PGHOST=/caminho/socket PGPORT=55432 sh scripts/testar-aplicacao-holoscan-oficial-local.sh
 #      Precisa do template t_ref (= base_63b + ETAPA6-3-B-APLICACAO-APROVADOR-UNICO.sql: estado real pos-6.3-B com identidades
 #      ficticias; ver scripts/testar-aplicacao-aprovador-unico-local.sh). Monta base_65 = t_ref + o que o banco real recebeu depois
 #      (6.3-C Daniel homologa HOLOS-V1@2; 6.3-D/E Aprovacao e homologacao da LI-V1@2 por Daniel) e roda:
 #      T0 pre-flight; T1 aplicacao integral + post-flight + digitais; T2 segunda execucao; T3 estado divergente (aplicacao nova);
-#      T4 falha injetada no meio; T5 pos-verificacao falhando; T6 RPC depois da aplicacao (oficial aceita; legado recusado).
+#      T4 falha injetada no meio; T5 pos-verificacao falhando; T6 RPC depois da aplicacao (oficial aceita; legado recusado);
+#      T7 registros clinicos depois da aplicacao (validos aceitos; formato/resultado recusados; concluido imutavel; ferramentas antigas iguais).
 # Os dados locais sao ficticios: a impressao digital das historicas e a data de vigencia do HOLOS sao as LOCAIS (substituidas so na
 # COPIA de teste do artefato; o arquivo versionado continua com os valores reais 205812d8... e 2026-10-03).
 set -u
 case "${PGHOST:-}" in /*|localhost|127.0.0.1) ;; *) echo "RECUSADO: PGHOST nao e local (defina PGHOST=/caminho/do/socket)"; exit 2;; esac
 cd "$(dirname "$0")/.."
-A=supabase/ETAPA6-5-APLICACAO-HOLOSCAN-OFICIAL.sql
+A=supabase/ETAPA6-5-APLICACAO-P0-E-REGISTROS.sql
 P="psql -U postgres -X -At -v ON_ERROR_STOP=1"
 O=${TMPDIR:-/tmp}/e65; mkdir -p $O
 FP="select (select count(*) from supabase_migrations.schema_migrations)||' mig, '||(select count(*) from pg_constraint k join pg_namespace n on n.oid=k.connamespace where n.nspname='public')||' constraints, '||(select count(*) from pg_policy where polrelid='public.holoscan_applications'::regclass and polcmd='a')||' policy insert apps, apps='||(select count(*) from holoscan_applications)"
@@ -29,6 +30,12 @@ reset role;
 select set_config('request.jwt.claims', '', true);
 -- as aplicacoes ficticias foram criadas hoje; no banco real elas sao anteriores a 2026-10-03 (historicas)
 update holoscan_applications set created_at = timestamptz '2026-09-30 12:00:00+00';
+-- como no banco real: 12 aplicacoes das 6 ferramentas antigas (ficticias), em varios estados; a digital "ferramentas" prova que nada muda
+insert into tool_applications (nutritionist_id, patient_id, ferramenta_id, versao_ferramenta, status, respostas, resultado, leitura)
+select p.nutritionist_id, p.id, f, '1', case when g % 4 = 0 then 'revisada' when g % 4 = 1 then 'rascunho' else 'concluida' end,
+       jsonb_build_object('campo_ficticio', 'texto ' || g), case when f = 'linha_momentum' then '{"x":1}'::jsonb end, case when g % 4 = 0 then 'leitura ficticia' end
+  from generate_series(1, 12) g, lateral (select (array['oq3','pqq','linha_momentum','mapa_crencas','roda_vida','carta_futuro'])[1 + g % 6] f) x,
+       lateral (select id, nutritionist_id from patients where status <> 'inativo' order by id limit 1) p;
 commit;
 SQL
 FPL=$($P -d base_65 -c "select md5(coalesce(string_agg(id::text || '|' || quando || '|' || indice || '|' || nota_media || '|' || avaliavel || '|' || coalesce(methodology_package_id::text, '-') || '|' || coalesce(encounter_id::text, '-') || '|' || updated_at, ';' order by id), '')) from public.holoscan_applications where created_at < '2026-10-03'")
@@ -44,8 +51,8 @@ fresh t65_ok; $P -d t65_ok -f $O/a.sql > $O/ok.out 2> $O/ok.err; r=$?
 echo "T1 aplicacao integral: exit=$r guarda=$(grep -c 'ETAPA 6.5: guarda ok' $O/ok.err) pos=$(grep -c 'verificacao pos-aplicacao ok' $O/ok.err) ultimo=$(grep -E '^(BEGIN|COMMIT|ROLLBACK)$' $O/ok.out | tail -1); depois: $($P -d t65_ok -c "$FP")"
 echo "T1 POSTFLIGHT: $($P -d t65_ok -f $O/posf.sql | grep -E '"(aplicacao_ok|divergencias)"' | tr -d ' ' | tr '\n' ' ')"
 $P -d t65_ok -f $O/posf.sql | sed -n '/"digitais"/,/}/p' | grep -v digitais | tr -d ' ,' | sort > $O/dig_depois
-echo "T1 digitais pre-flight == post-flight (aplicacoes, scores, respostas, pacotes, aprovacoes, registro, LI, exames): $(cmp -s $O/dig_antes $O/dig_depois && echo IGUAIS || echo DIFERENTES) ($(wc -l < $O/dig_antes) linhas)"
-echo "T1 historico: $($P -d t65_ok -c "select version||' '||name||' created_by='||coalesce(created_by,'null')||' stmts='||array_length(statements,1) from supabase_migrations.schema_migrations where version='20261005100000'")"
+echo "T1 digitais pre-flight == post-flight (aplicacoes, scores, respostas, pacotes, aprovacoes, registro, LI, exames, ferramentas): $(cmp -s $O/dig_antes $O/dig_depois && echo IGUAIS || echo DIFERENTES) ($(wc -l < $O/dig_antes) linhas)"
+echo "T1 historico: $($P -d t65_ok -c "select version||' '||name||' created_by='||coalesce(created_by,'null')||' stmts='||array_length(statements,1) from supabase_migrations.schema_migrations where version in ('20261005100000','20261005110000')" | tr '\n' ';')"
 echo "T1 historicas: $($P -d t65_ok -c "select count(*)||' aplicacoes, sem proveniencia='||count(*) filter (where methodology_package_id is null)||', colunas novas preenchidas='||count(*) filter (where calculation_mode is not null or methodology_content_hash is not null) from holoscan_applications")"
 $P -d t65_ok -f $O/a.sql > $O/2.out 2> $O/2.err; r=$?; echo "T2 segunda execucao: exit=$r (esperado <>0) msg=$(grep -o 'ABORTADA NA GUARDA[^.]*' $O/2.err | head -1 | cut -c1-90) depois: $($P -d t65_ok -c "$FP")"
 fresh t65_div; $P -d t65_div -qc "update holoscan_applications set created_at = now() where id = (select id from holoscan_applications order by id limit 1)" >/dev/null 2>&1
@@ -79,6 +86,28 @@ select 'resultado legado com carimbo V1@2 (sem modo oficial): ' || pg_temp.tenta
 select 'secundarias contadas no metabolico: ' || pg_temp.tenta((select jsonb_set(p, '{scores}', (select jsonb_agg(case when e->>'sistema' = 'metabolico' then e || '{"respondidos":19,"total_marcadores":19}' else e end) from jsonb_array_elements(p->'scores') e)) from _ok));
 reset role;
 select 'aplicacoes oficiais gravadas: ' || count(*) from holoscan_applications where calculation_mode = 'oficial';
+rollback;
+SQL
+echo "T7 registros clinicos depois da aplicacao (transacao descartada):"
+$P -d t65_ok <<'SQL' 2>&1 | sed 's/^/   /'
+begin;
+create temp table _u (k text primary key, v uuid);
+insert into _u select 'daniel', user_id from methodology_approvers where approval_stage = 1 limit 1;
+create temp table _antes as select md5(coalesce(string_agg(to_jsonb(t)::text, ';' order by t.id), '')) d, count(*) n from tool_applications t;
+create function pg_temp.tenta(q text) returns text language plpgsql as $f$ declare h text; begin execute q; return 'ACEITO'; exception when others then get stacked diagnostics h = pg_exception_hint; return 'recusado: ' || coalesce(nullif(h, ''), left(sqlerrm, 60)); end $f$;
+create temp table _p as select (select id from patients where nutritionist_id = (select v from _u where k = 'daniel') and status <> 'inativo' limit 1) pa;
+grant select on _u, _p to authenticated;
+select set_config('request.jwt.claims', json_build_object('sub', (select v from _u where k = 'daniel'), 'role', 'authenticated')::text, true) is not null as como_daniel;
+set local role authenticated;
+select 'mapa_rotina valido: ' || pg_temp.tenta(format('insert into tool_applications (patient_id, ferramenta_id, versao_ferramenta, status, respostas) values (%L, %L, %L, %L, %L)', (select pa from _p), 'mapa_rotina', '1', 'concluida', '{"acorda":"06:30","eventos":[{"inicio":"07:00","categoria":"refeição","dias":["seg"]}]}'));
+select 'gatilhos valido: ' || pg_temp.tenta(format('insert into tool_applications (patient_id, ferramenta_id, versao_ferramenta, respostas) values (%L, %L, %L, %L)', (select pa from _p), 'gatilhos_respostas', '1', '{"gatilho":"x","intensidade":"7"}'));
+select 'conexao valido: ' || pg_temp.tenta(format('insert into tool_applications (patient_id, ferramenta_id, versao_ferramenta, respostas) values (%L, %L, %L, %L)', (select pa from _p), 'conexao_pertencimento', '1', '{"vinculos":[{"rotulo":"Irmã","papel":"apoia"}]}'));
+select 'chave estranha: ' || pg_temp.tenta(format('insert into tool_applications (patient_id, ferramenta_id, versao_ferramenta, respostas) values (%L, %L, %L, %L)', (select pa from _p), 'mapa_rotina', '1', '{"escore":3}'));
+select 'classificacao de vinculo: ' || pg_temp.tenta(format('insert into tool_applications (patient_id, ferramenta_id, versao_ferramenta, respostas) values (%L, %L, %L, %L)', (select pa from _p), 'conexao_pertencimento', '1', '{"vinculos":[{"rotulo":"x","papel":"tóxica"}]}'));
+select 'resultado automatico: ' || pg_temp.tenta(format('insert into tool_applications (patient_id, ferramenta_id, versao_ferramenta, respostas, resultado) values (%L, %L, %L, %L, %L)', (select pa from _p), 'gatilhos_respostas', '1', '{}', '{"nivel":"alto"}'));
+select 'reescrever concluido: ' || pg_temp.tenta(format('update tool_applications set respostas = %L where ferramenta_id = %L', '{}', 'mapa_rotina'));
+reset role;
+select 'ferramentas antigas: ' || case when (select md5(coalesce(string_agg(to_jsonb(t)::text, ';' order by t.id), '')) from tool_applications t where ferramenta_id not in ('mapa_rotina','gatilhos_respostas','conexao_pertencimento')) = (select d from _antes) then 'identicas (' || (select n from _antes) || ' linhas)' else 'MUDARAM' end;
 rollback;
 SQL
 for d in t65_ok t65_div t65_mid t65_pos; do psql -U postgres -d postgres -qc "drop database if exists $d" >/dev/null; done

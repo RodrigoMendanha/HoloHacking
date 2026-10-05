@@ -65,8 +65,9 @@ ok(!!doc.querySelector('.marca-hero'), 'logo no dashboard');
 // A revisao clinica de Corpo/Mente/Espirito reduziu as galerias para 2+2+3
 // ferramentas; OQ3/PQQ/Mapa do Proposito usam [data-vista] (tela propria),
 // entao sobram 1+1+2 = 4 cards [data-ferramenta] (generico) na tela.
+// Etapa 6.5 (B): + Mapa da Rotina, Gatilhos & Respostas e Conexao & Pertencimento (registros clinicos) = 7.
 const cards = doc.querySelectorAll('[data-ferramenta]');
-ok(cards.length === 4, cards.length + ' ferramentas do catalogo na tela');
+ok(cards.length === 7, cards.length + ' ferramentas do catalogo na tela');
 ok(doc.body.innerHTML.indexOf('Em breve') === -1, 'nenhuma "Em breve" sobrou');
 
 // abrir uma — gatilhos_respostas foi retirada da galeria de Mente nessa

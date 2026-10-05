@@ -23,8 +23,26 @@
    Ferramentas do catalogo fora desta lista continuam legiveis no historico
    mas nao podem originar nova aplicacao. */
 window.FERRAMENTAS_ATIVAS = [
-  "linha_momentum", "mapa_crencas", "roda_vida", "carta_futuro"
+  "linha_momentum", "mapa_crencas", "roda_vida", "carta_futuro",
+  /* Etapa 6.5: registros clinicos estruturados (sem score/interpretacao automatica) */
+  "mapa_rotina", "gatilhos_respostas", "conexao_pertencimento"
 ];
+
+/* Correcao/Etapa 6.5 — tres REGISTROS CLINICOS ESTRUTURADOS (Mapa da Rotina, Gatilhos & Respostas,
+   Conexao & Pertencimento). Sem score, faixa, diagnostico, classificacao, interpretacao ou recomendacao
+   automatica; nenhum efeito em HOLOSCAN, Indice, Triada ou Leitura Integrada. As opcoes abaixo sao
+   DESCRITIVAS e escolhidas por quem registra; o servidor aceita exatamente estas (migration 20261005110000). */
+window.REGISTRO_OPCOES = {
+  rotina_categorias: ["sono", "refeição", "trabalho", "deslocamento", "exercício", "pausa", "estudo",
+                      "cuidado familiar", "compromisso", "fome", "energia", "estresse", "outro"],
+  percepcao: ["baixa", "média", "alta"],
+  dias: ["seg", "ter", "qua", "qui", "sex", "sáb", "dom"],
+  vinculo_natureza: ["pessoa", "grupo", "ambiente", "comunidade", "outro"],
+  vinculo_tipo: ["família", "amizade", "parceiro(a)", "trabalho", "comunidade", "outro"],
+  vinculo_papel: ["apoia", "dificulta", "neutro", "variável"],
+  vinculo_proximidade: ["próxima", "intermediária", "distante"],
+  vinculo_momento: ["presente no momento", "não presente no momento"]
+};
 
 window.CATALOGO_FERRAMENTAS = [
 
@@ -53,34 +71,55 @@ window.CATALOGO_FERRAMENTAS = [
      ---------------------------------------------------------------------- */
 
   {
-    id: "mapa_rotina", modulo: "corpo", numero: "02",
+    /* Etapa 6.5 — CORPO 03: REALIDADE. Registro do dia/semana como acontecem. Sem sintese automatica:
+       "espaco possivel para mudanca" e o que profissional/paciente identificaram, nunca recomendacao. */
+    id: "mapa_rotina", modulo: "corpo", numero: "03",
     papel: "estrutural",
+    registro: true, imutavel_concluida: true, visualizacao: "timeline",
     titulo: "Mapa da Rotina",
-    chamada: "as 24 horas do dia real",
-    descricao: "As 24 horas reais do paciente, evento a evento: onde a saude acontece, onde quebra e onde cabe mudança.",
-    objetivo: "Enxergar o dia como ele e, e nao como ele deveria ser.",
-    quando_usar: "Na primeira consulta, e sempre que a rotina mudar de forma relevante.",
+    chamada: "como a vida realmente acontece",
+    descricao: "Realidade: como o dia e a semana do paciente acontecem de verdade, e onde uma mudança pode caber.",
+    objetivo: "Ver a rotina real para que a conduta caiba nela. O OQ³ dá a direção, o Momentum a capacidade, o Mapa da Rotina a realidade.",
+    quando_usar: "Na primeira consulta e sempre que a rotina mudar de forma relevante. Cada mapa novo fica no histórico; o anterior não é sobrescrito.",
     duracao: 15,
-    resultado: "rotina",
+    grupos: [
+      { titulo: "O dia", campos: [
+        { id: "acorda", rotulo: "Horário em que acorda", tipo: "hora" },
+        { id: "dorme", rotulo: "Horário em que dorme", tipo: "hora" },
+        { id: "sono", rotulo: "Sono — qualidade e percepção, como o paciente descreve", tipo: "textarea" },
+        { id: "trabalho", rotulo: "Trabalho e horários de trabalho", tipo: "textarea" },
+        { id: "deslocamentos", rotulo: "Deslocamentos", tipo: "textarea" }
+      ] },
+      { titulo: "Responsabilidades e compromissos", campos: [
+        { id: "familia", rotulo: "Responsabilidades familiares", tipo: "textarea" },
+        { id: "domesticas", rotulo: "Responsabilidades domésticas", tipo: "textarea" },
+        { id: "estudos", rotulo: "Estudos", tipo: "textarea" },
+        { id: "compromissos", rotulo: "Compromissos recorrentes", tipo: "textarea" }
+      ] },
+      { titulo: "Momentos", campos: [
+        { id: "dificuldade", rotulo: "Momentos de maior dificuldade", tipo: "textarea" },
+        { id: "disponiveis", rotulo: "Momentos disponíveis", tipo: "textarea" },
+        { id: "espacos", rotulo: "Espaços percebidos como possíveis para mudança", tipo: "textarea",
+          dica: "o que profissional e paciente identificaram juntos — registro, não recomendação do sistema" }
+      ] }
+    ],
     lista: {
-      id: "eventos", rotulo: "Eventos do dia", minimo: 1,
+      id: "eventos", rotulo: "Linha do dia — eventos", minimo: 0,
       titulo_item: "Evento",
       campos: [
-        { id: "inicio", rotulo: "Comeca", tipo: "hora" },
-        { id: "fim", rotulo: "Termina", tipo: "hora" },
-        { id: "tipo", rotulo: "Tipo", tipo: "opcoes", opcoes_de: "rotina_eventos" },
-        { id: "titulo", rotulo: "O que e", tipo: "texto", dica: "ex: cafe da manha em pe, na cozinha" },
-        { id: "onde", rotulo: "Onde", tipo: "texto" },
-        { id: "fome", rotulo: "Fome", tipo: "nota" },
-        { id: "energia", rotulo: "Energia", tipo: "nota" },
-        { id: "estresse", rotulo: "Estresse", tipo: "nota" },
-        { id: "observacao", rotulo: "Observacao", tipo: "texto" }
+        { id: "inicio", rotulo: "Início", tipo: "hora" },
+        { id: "fim", rotulo: "Fim (opcional)", tipo: "hora" },
+        { id: "categoria", rotulo: "Categoria", tipo: "opcoes", opcoes: window.REGISTRO_OPCOES.rotina_categorias },
+        { id: "titulo", rotulo: "Título", tipo: "texto", dica: "ex.: café da manhã, almoço no trabalho, academia" },
+        { id: "descricao", rotulo: "Descrição", tipo: "texto" },
+        { id: "percepcao", rotulo: "Percepção do paciente (fome, energia ou estresse)", tipo: "opcoes", opcoes: window.REGISTRO_OPCOES.percepcao,
+          dica: "como o paciente percebe — não é escore clínico" },
+        { id: "dias", rotulo: "Dias da semana (se repete)", tipo: "dias" },
+        { id: "observacao", rotulo: "Observação", tipo: "texto" }
       ]
     },
     campos: [
-      { id: "barreira", rotulo: "Principal barreira pratica", tipo: "textarea" },
-      { id: "comecar", rotulo: "Melhor ponto para comecar", tipo: "texto",
-        dica: "um so — o que tem mais chance de pegar" }
+      { id: "observacoes", rotulo: "Observações livres", tipo: "textarea" }
     ]
   },
 
@@ -389,20 +428,39 @@ window.CATALOGO_FERRAMENTAS = [
   },
 
   {
-    id: "gatilhos_respostas", modulo: "mente", numero: "05",
+    /* Etapa 6.5 — MENTE 03: COMPORTAMENTO. Um EPISODIO por aplicacao (gatilho -> pensamento -> emocao ->
+       resposta -> consequencia). Sem score; a "resposta alternativa" e registrada por profissional/paciente,
+       nunca sugerida pelo sistema. */
+    id: "gatilhos_respostas", modulo: "mente", numero: "03",
+    registro: true, imutavel_concluida: true, visualizacao: "fluxo",
     titulo: "Gatilhos & Respostas",
-    chamada: "o que dispara o automatico",
-    descricao: "Mapeamento das situações que disparam comportamentos automaticos.",
-    campos: [
-      { id: "gatilho1", rotulo: "Gatilho 1", tipo: "texto" },
-      { id: "resposta1", rotulo: "O que ele faz hoje", tipo: "texto" },
-      { id: "escolha1", rotulo: "O que poderia fazer", tipo: "texto" },
-      { id: "gatilho2", rotulo: "Gatilho 2", tipo: "texto" },
-      { id: "resposta2", rotulo: "O que ele faz hoje", tipo: "texto" },
-      { id: "escolha2", rotulo: "O que poderia fazer", tipo: "texto" },
-      { id: "gatilho3", rotulo: "Gatilho 3", tipo: "texto" },
-      { id: "resposta3", rotulo: "O que ele faz hoje", tipo: "texto" },
-      { id: "escolha3", rotulo: "O que poderia fazer", tipo: "texto" }
+    chamada: "como isso aparece na vida real",
+    descricao: "Comportamento observado: cada episódio registra gatilho, pensamento, emoção, resposta e consequência.",
+    objetivo: "Registrar como o padrão aparece na vida real. O PQQ dá o significado, as Crenças a interpretação, Gatilhos & Respostas o comportamento.",
+    quando_usar: "Sempre que houver um episódio para registrar. Cada episódio é uma aplicação própria e fica no histórico.",
+    duracao: 10,
+    grupos: [
+      { titulo: "Quando e onde", campos: [
+        { id: "data", rotulo: "Data do episódio", tipo: "data" },
+        { id: "horario", rotulo: "Horário (opcional)", tipo: "hora" },
+        { id: "contexto", rotulo: "Contexto", tipo: "textarea" }
+      ] },
+      { titulo: "O ciclo", campos: [
+        { id: "gatilho", rotulo: "Gatilho", tipo: "textarea" },
+        { id: "pensamento", rotulo: "Pensamento percebido", tipo: "textarea" },
+        { id: "emocao", rotulo: "Emoção", tipo: "texto" },
+        { id: "intensidade", rotulo: "Intensidade percebida da emoção (opcional, 0 a 10)", tipo: "nota",
+          dica: "percepção do paciente — não é escore clínico" },
+        { id: "resposta", rotulo: "Resposta / comportamento", tipo: "textarea" },
+        { id: "consequencia_imediata", rotulo: "Consequência imediata", tipo: "textarea" },
+        { id: "consequencia_posterior", rotulo: "Consequência posterior", tipo: "textarea" }
+      ] },
+      { titulo: "Registro da consulta", campos: [
+        { id: "necessidade", rotulo: "Necessidade percebida", tipo: "textarea" },
+        { id: "observacao_nutri", rotulo: "Observação da nutricionista", tipo: "textarea" },
+        { id: "alternativa", rotulo: "Resposta alternativa possível (opcional)", tipo: "textarea",
+          dica: "escrita pela profissional ou pelo paciente — não é prescrição do sistema" }
+      ] }
     ]
   },
 
@@ -533,15 +591,56 @@ window.CATALOGO_FERRAMENTAS = [
   },
 
   {
-    id: "conexao_pertencimento", modulo: "espirito", numero: "06",
+    /* Etapa 6.5 — ESPIRITO 04: PERTENCIMENTO E CONEXAO. Rede descrita por quem registra: nenhum vinculo e
+       classificado pelo sistema (nada de "toxico", "rede fraca", "isolamento"). Espiritualidade e opcional
+       e nao presumida; nenhuma estrutura familiar e presumida. */
+    id: "conexao_pertencimento", modulo: "espirito", numero: "04",
+    registro: true, imutavel_concluida: true, visualizacao: "rede",
     titulo: "Conexão & Pertencimento",
-    chamada: "quem sustenta a jornada",
-    descricao: "Mapeamento das relações que sustentam a jornada.",
+    chamada: "quem e o que sustenta essa pessoa",
+    descricao: "Quem e o que sustenta essa pessoa na vida: pessoas, grupos, ambientes e comunidades, como ela os descreve.",
+    objetivo: "Registrar a rede de apoio e pertencimento como a pessoa a percebe — sem classificar nenhum vínculo.",
+    quando_usar: "Quando fizer sentido conversar sobre apoio e pertencimento. Cada registro novo fica no histórico.",
+    duracao: 15,
+    grupos: [
+      { titulo: "Apoio e pertencimento", campos: [
+        { id: "contar", rotulo: "Com quem pode contar", tipo: "textarea" },
+        { id: "apoia_mudanca", rotulo: "Quem apoia a mudança", tipo: "textarea" },
+        { id: "dificulta_mudanca", rotulo: "Quem pode dificultar a mudança", tipo: "textarea" },
+        { id: "pertence", rotulo: "Onde se sente pertencente", tipo: "textarea" },
+        { id: "sozinha", rotulo: "Onde se sente só", tipo: "textarea" },
+        { id: "fortalecem", rotulo: "Relações que fortalecem (como a pessoa descreve)", tipo: "textarea" },
+        { id: "dificultam", rotulo: "Relações que dificultam (como a pessoa descreve)", tipo: "textarea" },
+        { id: "referencias", rotulo: "Pessoas de referência", tipo: "textarea" },
+        { id: "espacos_seguros", rotulo: "Espaços seguros", tipo: "textarea" },
+        { id: "percepcao_apoio", rotulo: "Percepção de apoio, nas palavras da pessoa", tipo: "textarea" },
+        { id: "conexao_consigo", rotulo: "Conexão consigo", tipo: "textarea" }
+      ] },
+      { titulo: "Espiritualidade — opcional, só se fizer sentido para a pessoa", campos: [
+        { id: "espiritualidade", rotulo: "Espiritualidade (se pertinente)", tipo: "textarea" },
+        { id: "comunidade_religiosa", rotulo: "Comunidade religiosa ou espiritual (se pertinente)", tipo: "textarea" },
+        { id: "pratica_espiritual", rotulo: "Prática espiritual (se pertinente)", tipo: "textarea" },
+        { id: "algo_maior", rotulo: "Conexão com algo maior (se isso fizer sentido para a pessoa)", tipo: "textarea" }
+      ] }
+    ],
+    lista: {
+      id: "vinculos", rotulo: "Vínculos — pessoas, grupos, ambientes e comunidades", minimo: 0,
+      titulo_item: "Vínculo",
+      campos: [
+        { id: "rotulo", rotulo: "Nome ou rótulo", tipo: "texto", dica: "pode ser só um apelido ou a função (ex.: irmã, grupo de corrida)" },
+        { id: "natureza", rotulo: "Natureza", tipo: "opcoes", opcoes: window.REGISTRO_OPCOES.vinculo_natureza },
+        { id: "tipo", rotulo: "Tipo", tipo: "opcoes", opcoes: window.REGISTRO_OPCOES.vinculo_tipo },
+        { id: "relacao", rotulo: "Relação (descrição livre)", tipo: "texto" },
+        { id: "papel", rotulo: "Papel percebido na mudança", tipo: "opcoes", opcoes: window.REGISTRO_OPCOES.vinculo_papel,
+          dica: "como a pessoa percebe — o sistema não classifica" },
+        { id: "proximidade", rotulo: "Proximidade percebida (opcional)", tipo: "opcoes", opcoes: window.REGISTRO_OPCOES.vinculo_proximidade },
+        { id: "momento", rotulo: "No momento", tipo: "opcoes", opcoes: window.REGISTRO_OPCOES.vinculo_momento },
+        { id: "contexto", rotulo: "Data ou contexto", tipo: "texto" },
+        { id: "observacao", rotulo: "Observação", tipo: "texto" }
+      ]
+    },
     campos: [
-      { id: "sustentam", rotulo: "Quem sustenta", tipo: "textarea" },
-      { id: "drenam", rotulo: "Quem drena", tipo: "textarea" },
-      { id: "pertence", rotulo: "Onde ele se sente pertencendo", tipo: "texto" },
-      { id: "sozinho", rotulo: "Ele esta fazendo isso sozinho?", tipo: "opcoes", opcoes: ["Sozinho", "Com alguém", "Com uma rede"] }
+      { id: "observacoes", rotulo: "Observações livres", tipo: "textarea" }
     ]
   },
 

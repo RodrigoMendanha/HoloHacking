@@ -112,6 +112,19 @@
       }
       ctrl += "</div>";
 
+    } else if (campo.tipo === "dias") {
+      /* Etapa 6.5 — varios dias marcaveis (nao exclusivo). Valor: lista ou null. */
+      var marcados = Array.isArray(valor) ? valor : [];
+      var dias = (window.REGISTRO_OPCOES && window.REGISTRO_OPCOES.dias) || [];
+      ctrl = '<div class="grupo-dias" role="group" data-campo="' + nome + '">';
+      for (i = 0; i < dias.length; i++) {
+        var on = marcados.indexOf(dias[i]) >= 0;
+        ctrl += '<button type="button" class="btn-opcao btn-dia' + (on ? " marcado" : "") +
+                '" aria-pressed="' + (on ? "true" : "false") + '" data-valor="' + escapar(dias[i]) + '">' +
+                escapar(dias[i]) + "</button>";
+      }
+      ctrl += "</div>";
+
     } else if (campo.tipo === "data") {
       ctrl = '<input type="date" id="' + nome + '" value="' + escapar(vazio ? "" : valor) + '">';
 
@@ -237,10 +250,58 @@
 
   /* ---------- desenhar a ferramenta inteira -------------------------------- */
 
+  /* Etapa 6.5 — registro clinico estruturado (Mapa da Rotina, Gatilhos & Respostas, Conexao &
+     Pertencimento). Concluido, fica SO PARA LEITURA: a correcao e uma nova aplicacao ("Nova a partir
+     desta" copia o registro para um rascunho novo), e o servidor recusa alterar respostas de
+     aplicacao concluida/revisada. Sem sintese automatica: resultado e sempre null. */
+  function bloqueada(f, app) {
+    return !!(f.imutavel_concluida && app && app.id && app.status !== "rascunho");
+  }
+
+  function visualHTML(f, r) {
+    if (!f.registro || !window.RegistroVisual) return "";
+    var v = window.RegistroVisual.desenhar(f, r);
+    return v ? '<section class="rv-visual" aria-label="Visualização do registro">' + v + "</section>" : "";
+  }
+
+  function origemHTML(f, r) {
+    var oid = r && r.origem_id;
+    if (!oid || !window.Aplicacoes) return "";
+    var o = window.Aplicacoes.historico(f.id).filter(function (a) { return a.id === oid; })[0];
+    return '<p class="form-sub ferr-origem">Criada a partir da aplicação de <b>' +
+      (o ? dataBR(o.concluida_em || o.iniciada_em) : "outra data") + "</b>; aquela continua no histórico, sem alteração.</p>";
+  }
+
+  function desenharRegistroFechado(f, alvo, app) {
+    var r = app.respostas || {};
+    var res = window.RegistroVisual ? window.RegistroVisual.resumo(f, r) : "";
+    alvo.innerHTML =
+      cabecalho(f, app) +
+      '<div class="form-ferramenta form-registro-fechado">' +
+        faixaPaciente(app) +
+        '<p class="form-sub ferr-de-quando">Registro concluído em <b>' + dataBR(app.concluida_em || app.iniciada_em) +
+          "</b>. Ele não é editado depois de concluído: para corrigir ou atualizar, use <b>Nova a partir desta</b> — " +
+          "esta aplicação continua no histórico como está.</p>" +
+        origemHTML(f, r) +
+        visualHTML(f, r) +
+        (res || (f.visualizacao === "fluxo" || f.visualizacao === "timeline" || f.visualizacao === "rede"
+          ? "" : '<p class="rv-vazio">Nada registrado nesta aplicação.</p>')) +
+        '<div class="acoes-form">' +
+          '<button class="btn-verde" type="button" data-acao="copiar">Nova a partir desta</button>' +
+          '<button class="perf-botao" type="button" data-acao="nova">Nova aplicação</button>' +
+          '<span class="aviso-salvo" data-papel="aviso"></span>' +
+        "</div>" +
+      "</div>" +
+      leituraHTML(f, app) +
+      historicoHTML(f, app);
+    ligar(f, alvo);
+  }
+
   function desenhar(f, alvo, app) {
     if (window.limpaSuja) window.limpaSuja("ferramenta");
+    if (bloqueada(f, app)) return desenharRegistroFechado(f, alvo, app);
     var r = (app && app.respostas) || {};
-    var resultado = window.ResultadoCorpo
+    var resultado = !f.registro && window.ResultadoCorpo
       ? window.ResultadoCorpo.derivar(f, r) : null;
 
     var corpo =
@@ -264,6 +325,7 @@
       '<div class="form-ferramenta">' +
         faixaPaciente(app) +
         deQuando +
+        (f.registro ? origemHTML(f, r) : "") +
         corpo +
         '<div class="acoes-form">' +
           '<button class="btn-verde" type="button" data-acao="concluir">' +
@@ -274,7 +336,8 @@
           '<span class="aviso-salvo" data-papel="aviso"></span>' +
         "</div>" +
       "</div>" +
-      '<div class="ferr-sintese" data-papel="sintese">' + sinteseHTML(f, resultado) + "</div>" +
+      '<div class="ferr-sintese" data-papel="sintese">' +
+        (f.registro ? visualHTML(f, r) : sinteseHTML(f, resultado)) + "</div>" +
       leituraHTML(f, app) +
       historicoHTML(f, app);
 
@@ -330,6 +393,8 @@
           '<span class="ferr-hist-estado">' +
             escapar(window.Aplicacoes.rotulo(a.status === "rascunho" ? "em_preenchimento" : a.status)) +
           "</span>" +
+          (f.registro && window.RegistroVisual
+            ? '<span class="ferr-hist-previa">' + escapar(window.RegistroVisual.previa(f, a)) + "</span>" : "") +
           (a.leitura ? '<span class="ferr-hist-leitura">' + escapar(a.leitura) + "</span>" : "") +
           "</button>";
       }).join("") + "</div></section>";
@@ -343,6 +408,12 @@
     if (campo.tipo === "escala" || campo.tipo === "opcoes") {
       var m = alvo.querySelector('[data-campo="' + nome + '"] .marcado');
       return m ? m.dataset.valor : null;
+    }
+    if (campo.tipo === "dias") {
+      var ms = alvo.querySelectorAll('[data-campo="' + nome + '"] .marcado');
+      var lista = [];
+      ms.forEach(function (x) { lista.push(x.dataset.valor); });
+      return lista.length ? lista : null;
     }
     if (campo.tipo === "nota") {
       var caixa = alvo.querySelector('[data-campo="' + nome + '"]');
@@ -384,6 +455,10 @@
     }
 
     (f.campos || []).forEach(function (c) { dados[c.id] = valorDe(alvo, c); });
+    if (f.registro && aberta && aberta.alvo === alvo && aberta.app && aberta.app.respostas &&
+        aberta.app.respostas.origem_id) {
+      dados.origem_id = aberta.app.respostas.origem_id;
+    }
     return dados;
   }
 
@@ -429,7 +504,13 @@
 
   function redesenharSintese(f, alvo) {
     var caixa = alvo.querySelector('[data-papel="sintese"]');
-    if (!caixa || !window.ResultadoCorpo) return;
+    if (!caixa) return;
+    if (f.registro) {
+      if (!alvo.querySelector(".form-ferramenta .campos, .form-ferramenta .ferr-lista")) return;
+      caixa.innerHTML = visualHTML(f, colher(f, alvo));
+      return;
+    }
+    if (!window.ResultadoCorpo) return;
     var r = window.ResultadoCorpo.derivar(f, colher(f, alvo));
     caixa.innerHTML = sinteseHTML(f, r);
   }
@@ -445,9 +526,14 @@
       if (!aberta || aberta.alvo !== alvo) return;
       if (ev.target.closest(".form-ferramenta") && window.marcaSuja) window.marcaSuja("ferramenta");
     });
+    /* registro: a visualizacao acompanha o que esta sendo preenchido */
+    alvo.addEventListener("change", function (ev) {
+      if (!aberta || aberta.alvo !== alvo || !aberta.f.registro) return;
+      if (ev.target.closest(".form-ferramenta")) redesenharSintese(aberta.f, alvo);
+    });
     alvo.addEventListener("click", function (ev) {
       if (!aberta || aberta.alvo !== alvo) return;
-      if (ev.target.closest(".form-ferramenta .grupo-escala button, .form-ferramenta .grupo-opcoes button, " +
+      if (ev.target.closest(".form-ferramenta .grupo-escala button, .form-ferramenta .grupo-opcoes button, .form-ferramenta .grupo-dias button, " +
                             "[data-limpar], [data-mais-item], [data-tirar-item]") && window.marcaSuja) {
         window.marcaSuja("ferramenta");
       }
@@ -516,6 +602,18 @@
       });
     });
 
+    // dias: cada botao liga/desliga sozinho (varios dias por evento)
+    alvo.querySelectorAll(".grupo-dias").forEach(function (grupo) {
+      grupo.addEventListener("click", function (ev) {
+        var b = ev.target.closest("button");
+        if (!b) return;
+        var on = !b.classList.contains("marcado");
+        b.classList.toggle("marcado", on);
+        b.setAttribute("aria-pressed", on ? "true" : "false");
+        redesenharSintese(f, alvo);
+      });
+    });
+
     // a regua: mover e o que a torna uma resposta
     alvo.querySelectorAll('.grupo-nota input[type="range"]').forEach(function (reg) {
       reg.addEventListener("input", function () {
@@ -560,6 +658,7 @@
     var guardar = function (concluir) {
       var app = aberta && aberta.app;
       if (!app || !window.Aplicacoes) return Promise.resolve(false);
+      if (bloqueada(f, app)) return Promise.resolve(false);   // registro concluido: so leitura
       var dados = colher(f, alvo);
       /* so a ferramenta que declara exige_resposta recusa concluir vazia;
          nas outras, concluir sem responder e decisao do metodo (grava null) */
@@ -568,7 +667,7 @@
           "uma aplicação vazia não entra no histórico.");
         return Promise.resolve(false);
       }
-      var resultado = window.ResultadoCorpo
+      var resultado = !f.registro && window.ResultadoCorpo
         ? window.ResultadoCorpo.derivar(f, dados) : null;
       var p = concluir
         ? window.Aplicacoes.concluir(app, dados, resultado)
@@ -589,10 +688,28 @@
     };
     salvarAberta = function () { return guardar(false); };
 
-    alvo.querySelector('[data-acao="concluir"]').addEventListener("click", function () {
+    var botaoConcluir = alvo.querySelector('[data-acao="concluir"]');
+    if (botaoConcluir) botaoConcluir.addEventListener("click", function () {
       var btn = this;
       if (window.travarBotao && !window.travarBotao(btn, "Salvando…")) return;
       Promise.resolve(guardar(true)).finally(function () { if (window.destravarBotao) window.destravarBotao(btn); });
+    });
+
+    /* "Nova a partir desta": copia o registro concluido para um rascunho NOVO (nada e gravado ate
+       salvar). A original nao muda; a copia guarda de onde veio em respostas.origem_id. */
+    var botaoCopiar = alvo.querySelector('[data-acao="copiar"]');
+    if (botaoCopiar) botaoCopiar.addEventListener("click", function () {
+      var origem = aberta && aberta.app;
+      if (!origem || !origem.id) return;
+      Promise.resolve(window.Aplicacoes.nova(f)).then(function (nova) {
+        var copia = JSON.parse(JSON.stringify(origem.respostas || {}));
+        copia.origem_id = origem.id;
+        nova.respostas = copia;
+        aberta = { f: f, alvo: alvo, app: nova };
+        desenhar(f, alvo, nova);
+        if (window.marcaSuja) window.marcaSuja("ferramenta");
+        avisar(alvo, "aviso", "Cópia em rascunho — ela entra no histórico quando for salva. A original continua como está.");
+      }, function (e) { avisarFixo(alvo, "aviso", mensagemDeFalha(e)); });
     });
     var botaoRascunho = alvo.querySelector('[data-acao="rascunho"]');
     if (botaoRascunho) botaoRascunho.addEventListener("click", function () {
