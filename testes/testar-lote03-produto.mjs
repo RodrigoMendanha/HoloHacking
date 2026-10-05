@@ -362,7 +362,8 @@ const preservacao = await p.evaluate(() => {
   return { catalogo: catalogo.length, ativas: ativas.length, perguntas, sistemas };
 });
 conferir(preservacao.catalogo === 27, '27 ferramentas no catálogo: ' + preservacao.catalogo);
-conferir(preservacao.ativas === 4, '4 IDs em FERRAMENTAS_ATIVAS: ' + preservacao.ativas);
+// Etapa 6.5 (B): +3 registros clinicos estruturados (mapa_rotina, gatilhos_respostas, conexao_pertencimento) -> 7
+conferir(preservacao.ativas === 7, '7 IDs em FERRAMENTAS_ATIVAS: ' + preservacao.ativas);
 conferir(preservacao.perguntas === 84, '84 perguntas no HOLOSCAN: ' + preservacao.perguntas);
 conferir(preservacao.sistemas === 5, '5 sistemas no mapa: ' + preservacao.sistemas);
 

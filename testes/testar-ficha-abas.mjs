@@ -276,7 +276,8 @@ conferir(!forms.cartoes[2].temVer || /não aplicado/.test(forms.cartoes[2].txt),
   'quem não foi respondido não finge que foi');
 conferir(/Índice 88/.test(forms.cartoes[0].txt),
   'o cartão do HOLOSCAN diz qual mapa saiu dele');
-conferir(/1 de 7 aplicadas/.test(forms.ferramentas),
+// Etapa 6.5 (B): + Mapa da Rotina, Gatilhos & Respostas e Conexao & Pertencimento (registros clinicos) -> 10 ativas
+conferir(/1 de 10 aplicadas/.test(forms.ferramentas),
   'e as ferramentas ficam à parte — são conduta, não formulário: ' +
   forms.ferramentas.slice(0, 60));
 
