@@ -689,6 +689,17 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     faixa do pacote, Índice só com todos avaliáveis); recálculo das notas no servidor fica para etapa própria (Edge Function com o mesmo
     motor, nunca um segundo motor em SQL). Sem INSERT direto nas tabelas do HOLOSCAN. Selo pela proveniência: oficial V1, ou "Aplicação
     histórica sem pacote metodológico V1". As 4 aplicações históricas, HOLOS-V1@2 e LI-V1@2 não mudam; sem backfill.
+156. **Mapa da Rotina, Gatilhos & Respostas e Conexão & Pertencimento como REGISTROS CLÍNICOS ESTRUTURADOS** (Etapa 6.5 B,
+    `docs/v1/ETAPA6-5-B-REGISTROS-CLINICOS.md`, migration `20261005110000`). Catálogo final: Corpo 03, Mente 03, Espírito 04 (10 ativas).
+    Sem score, faixa, diagnóstico, classificação, interpretação ou recomendação automática; sem síntese (`resultado` sempre nulo, exigido
+    pelo servidor); nenhum efeito em HOLOSCAN, Índice, Tríada, faixas, Leitura Integrada ou exames (Panorama e HOLOS AI não os leem).
+    Modelo: `tool_applications` reutilizada (mesmo ciclo rascunho → concluída → revisada, RLS, arquivado, atendimento), com o formato de
+    cada registro validado no servidor por lista branca (chaves, tipos, tamanhos, opções). Opções descritivas escolhidas por quem registra:
+    categorias da rotina, percepção baixa/média/alta, dias, natureza/tipo/papel/proximidade/momento do vínculo. Intensidade da emoção 0–10
+    rotulada "percepção do paciente — não é escore clínico". Espiritualidade em grupo opcional, sem presumir religião, Deus, "algo maior"
+    ou família tradicional. Gatilhos: um episódio por aplicação. Histórico: aplicação concluída/revisada é **imutável** (respostas,
+    resultado, data e atendimento); a leitura profissional continua (revisada); correção = "Nova a partir desta" (cópia em rascunho novo,
+    com `origem_id`) ou "Nova aplicação". Decisões técnicas recomendadas e adotadas, sujeitas à revisão do responsável.
 
 ## Decisões pendentes (não decididas aqui)
 
@@ -717,9 +728,8 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
   completa de paciente (Rodada 08) trata atendimentos fica para decisão.
 - **Anamnese obrigatória** — formulário estruturado previsto no Mestre §9, ausente no AS-IS.
 - **Conduta obrigatória** — entidade clínica prevista no Mestre §30, ausente no AS-IS.
-- **Catálogo final das 10 ferramentas** — 3 de Corpo, 3 de Mente, 4 de Espírito
-  (Mestre §25-28); hoje 7 ativas, e Mapa da Rotina, Gatilhos & Respostas e Conexão &
-  Pertencimento não existem.
+- ~~**Catálogo final das 10 ferramentas**~~ — **IMPLEMENTADO localmente na Etapa 6.5 B** (item 156): Mapa da Rotina,
+  Gatilhos & Respostas e Conexão & Pertencimento como registros clínicos estruturados. Pendente: aplicação no banco real e deploy.
 - **Quatro estados administrativos do paciente** — cadastrado, em acompanhamento,
   acompanhamento encerrado, arquivado (Mestre §33); hoje só ativo/inativo.
 - **HOLOS AI obrigatória no lançamento inicial?** (Mestre §41.4)

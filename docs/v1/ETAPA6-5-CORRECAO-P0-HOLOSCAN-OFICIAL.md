@@ -2,6 +2,8 @@
 
 **Estado:** implementado e provado localmente. **Não aplicado no banco real e sem deploy.** Cada um desses passos exige autorização própria.
 
+> **Atualização (Etapa 6.5 B):** a aplicação real passou a ser **uma rodada só** com a correção P0 (A) e os três registros clínicos estruturados (B, `ETAPA6-5-B-REGISTROS-CLINICOS.md`). O artefato agora é `supabase/ETAPA6-5-APLICACAO-P0-E-REGISTROS.sql`, com as migrations `20261005100000` e `20261005110000` numa transação.
+
 ## 1. O problema (auditoria de produção, pós-deploy 6.4)
 
 - "Gerar o mapa" calculava pelo **motor legado** (`holoscan.js`), e "Salvar" gravava a aplicação com `methodology_package_id` do **HOLOS-V1@2**. O resultado era legado e o carimbo era oficial.
@@ -84,12 +86,12 @@
 
 1. **Backup/snapshot** do Supabase.
 2. **`supabase/ETAPA6-5-PREFLIGHT.sql`** (só leitura): tem de dar `pode_aplicar = true`. Guarde as `digitais`.
-3. **`supabase/ETAPA6-5-APLICACAO-HOLOSCAN-OFICIAL.sql`** no SQL Editor, inteiro: uma transação, com guarda, migration, histórico, verificação e COMMIT.
+3. **`supabase/ETAPA6-5-APLICACAO-P0-E-REGISTROS.sql`** no SQL Editor, inteiro: uma transação, com guarda, migrations A e B, 2 linhas de histórico, verificação e COMMIT.
 4. **`supabase/ETAPA6-5-POSTFLIGHT.sql`**: tem de dar `aplicacao_ok = true`, com as **digitais iguais** às do pre-flight.
-5. **Deploy do front** na VPS (como na 6.4), com `conferir-producao.sh` dando **55 de 55**.
+5. **Deploy do front** na VPS (como na 6.4), com `conferir-producao.sh` dando **56 de 56**.
    - A ordem importa: **migration antes do front**.
    - Entre os passos 3 e 5, o front antigo fica sem conseguir salvar HOLOSCAN: o servidor recusa resultado sem modo oficial. Isso é intencional.
-6. **`supabase/ETAPA6-5-VERIFICACAO-POS-DEPLOY.sql`**: tem de dar `deploy_ok = true` e `primeira_app_ok = false`.
+6. **`supabase/ETAPA6-5-VERIFICACAO-POS-DEPLOY.sql`**: tem de dar `deploy_ok = true` e `primeira_app_ok = false` (33 migrations; registros clínicos protegidos).
 7. **Primeira aplicação HOLOSCAN real** e nova verificação: `primeira_app_ok = true`.
 
 ## 5. Efeitos visíveis para a nutricionista
