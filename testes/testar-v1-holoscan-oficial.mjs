@@ -130,8 +130,9 @@ p = clone(pl); delete p.application.calculation_mode; ok(recusa(p) === 'modo_nao
 p = clone(pl); p.application.methodology_package_version = 1; ok(recusa(p) === 'proveniencia_incoerente', 'versao divergente recusada');
 p = clone(pl); p.application.methodology_content_hash = 'x'; ok(recusa(p) === 'hash_divergente', 'hash divergente recusado');
 p = clone(pl); p.application.quando = '2025-12-31'; ok(recusa(p) === 'pacote_nao_vigente', '5: pacote nao vigente na data clinica recusado');
-const rasc = semearHolosAprovado(srv, UA, { version: 3, aprovar: false });
-p = clone(pl); p.application.methodology_package_id = rasc.id; p.application.methodology_package_version = 3; ok(recusa(p) === 'pacote_nao_aprovado', '4: pacote nao aprovado (em_revisao) recusado');
+// fixture de teste NAO aprovada (nao e versao metodologica: TEST_FIXTURE_ONLY, so no banco falso)
+const rasc = semearHolosAprovado(srv, UA, { code: 'TEST_FIXTURE_ONLY-NAO-APROVADO', version: 1, aprovar: false });
+p = clone(pl); p.application.methodology_package_id = rasc.id; p.application.methodology_package_version = 1; ok(recusa(p) === 'pacote_nao_aprovado', '4: pacote nao aprovado (em_revisao) recusado');
 p = clone(pl); const sm = p.scores.find(s => s.sistema === 'metabolico'); sm.total_marcadores = 19; sm.respondidos = 19; ok(recusa(p) === 'contagem_divergente', 'metabolico com as 5 secundarias contadas (19) recusado');
 p = clone(pl); p.application.combinacoes = [{ id: 'CMB-001' }]; ok(recusa(p) === 'saida_nao_homologada', 'combinacoes na aplicacao oficial recusadas');
 p = clone(pl); p.scores[0].faixa = 'medio'; ok(recusa(p) === 'faixa_fora_do_pacote', 'faixa legada (medio) recusada');

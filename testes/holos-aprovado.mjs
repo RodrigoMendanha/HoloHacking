@@ -4,6 +4,7 @@
  * aprovador unico Daniel). Nada e aprovado "por fora": o pacote passa pelo validador e pelas mesmas RPCs.
  *
  * Uso: const pk = semearHolosAprovado(srv, UA, { effective_from: '2026-01-01' });
+ * opts.code: so para fixtures de teste (ex.: 'TEST_FIXTURE_ONLY-...'); o padrao e o HOLOS-V1 (versao 2, a homologada).
  * Correcao P0 (pos-deploy 6.4): com o HOLOSCAN calculado SO pelo motor oficial, todo teste que aplica o
  * questionario precisa de um pacote aprovado e vigente — como em producao.
  */
@@ -26,7 +27,7 @@ export function semearHolosAprovado(srv, uid, opts) {
     srv.gestaoTecnica('methodology_approvers', 'insert', { user_id: uid, scope: 'holoscan', approval_stage: 1, display_name: 'Daniel' });
   }
   const c = candidatoV1();
-  const pk = q('methodology_packages', 'insert', { dados: { code: c.code, version, status: 'em_revisao', origin: c.origin, justification: c.justification, notes: c.notes, lineage: c.lineage, content_hash: c.content_hash } }).data[0];
+  const pk = q('methodology_packages', 'insert', { dados: { code: opts.code || c.code, version, status: 'em_revisao', origin: c.origin, justification: c.justification, notes: c.notes, lineage: c.lineage, content_hash: c.content_hash } }).data[0];
   const ed = q('methodology_questionnaire_editions', 'insert', { dados: Object.assign({}, c.edicao, { package_id: pk.id }) }).data[0];
   const ins = (t, l) => { if (l.length) { const r = q(t, 'insert', { dados: l.map(x => Object.assign({}, x, { package_id: pk.id })) }); if (r.error) throw new Error(t + ': ' + r.error.message); } };
   ins('methodology_scales', c.escalas); ins('methodology_systems', c.sistemas); ins('methodology_questions', c.perguntas.map(x => Object.assign({}, x, { edition_id: ed.id })));

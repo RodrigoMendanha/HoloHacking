@@ -1,6 +1,7 @@
 -- Harness CORRECAO P0 (migration 20261005100000 — aplicacao HOLOSCAN so oficial): roda DENTRO da transacao do
 -- scripts/validar-cadeia-local.sh (BEGIN ... ROLLBACK), DEPOIS da migration (e de holoscan-oficial-pre.sql, antes dela).
--- Dados ficticios; nada persiste. O pacote usado e o HOLOS-V1 aprovado e vigente que a cadeia local deixa (84 perguntas,
+-- Dados ficticios; nada persiste. O pacote usado e o fixture LOCAL aprovado e vigente que a cadeia de testes deixa (mesmo conteudo do
+-- HOLOS-V1@2 homologado; o numero de versao do fixture local nao e versao metodologica — nenhuma v3 existe no banco real) (84 perguntas,
 -- 84 vinculos primarios, 11 secondary_contextual) — o mesmo conteudo do HOLOS-V1@2 real.
 reset role;
 
