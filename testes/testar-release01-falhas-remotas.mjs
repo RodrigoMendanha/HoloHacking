@@ -18,6 +18,9 @@ import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 import { criarServidor, ligarPagina } from './supabase-falso.mjs';
+import { semearHolosAprovado } from './holos-aprovado.mjs';
+/** Correcao P0: o Indice oficial e guardado exato e exibido com 1 casa (meia unidade para cima). */
+const umaCasa = (v) => (Math.floor(Math.abs(Number(v)) * 10 + 0.5 + 1e-9) / 10).toFixed(1);
 
 let falhou = false;
 const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
@@ -29,6 +32,9 @@ const MSG = 'Os dados foram salvos neste dispositivo, mas não foi possível sin
 
 const srv = criarServidor();
 const UID = srv.criarConta('a@holo.test', 'senha-a-123');
+/* Correcao P0 (pos-deploy 6.4): o HOLOSCAN so e calculado pelo motor OFICIAL, sobre o pacote aprovado e vigente —
+   como em producao, o servidor tem o HOLOS-V1 aprovado (fixture pelo caminho real: aprovacao + homologacao de Daniel). */
+semearHolosAprovado(srv, UID);
 
 const nav = await puppeteer.launch({
   executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
@@ -177,12 +183,12 @@ ok(t2.indexOf(MSG) >= 0, 'aviso claro de nao sincronizado: ' + t2);
 ok(!/HOLOSCAN salvo/.test(t2), 'e nenhuma mensagem de sucesso');
 ok(remotas(P).length === 1, 'o servidor continua com uma so aplicacao');
 h = await historico(A, P);
-ok(h.length === 2 && h.some(e => e.id === null && String(e.indice) === i2),
+ok(h.length === 2 && h.some(e => e.id === null && umaCasa(e.indice) === i2),
    'o calculo novo continua neste navegador, sem id remoto (Indice ' + i2 + ')');
 
 await recarregar(A);
 h = await historico(A, P);
-ok(h.length === 2 && h.some(e => e.id === null && String(e.indice) === i2),
+ok(h.length === 2 && h.some(e => e.id === null && umaCasa(e.indice) === i2),
    'recarregar (com hidratacao do servidor) nao apaga o calculo nao sincronizado');
 const telaAposFalha = await A.evaluate(() => {
   document.querySelector('.nav-item[data-secao="holoscan"]').click();
@@ -206,7 +212,7 @@ titulo('C. SALVAR DE NOVO COM O SERVIDOR DE VOLTA → SINCRONIZA');
 srv.falhar.length = 0;
 const t3 = await salvar(A);
 ok(/HOLOSCAN salvo na ficha/.test(t3) && t3.indexOf(MSG) < 0, 'agora sim, sucesso: ' + t3);
-ok(remotas(P).length === 2 && remotas(P).some(a => String(a.indice) === i2),
+ok(remotas(P).length === 2 && remotas(P).some(a => umaCasa(a.indice) === i2),
    'o servidor recebeu o calculo que tinha falhado');
 h = await historico(A, P);
 ok(h.length === 2 && h.every(e => !!e.id), 'as duas entradas locais tem id remoto — sem duplicar');

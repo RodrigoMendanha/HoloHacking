@@ -21,8 +21,10 @@
      modoHomologacao()         ?homologacao=1 — contexto de revisao tecnica
      saidaOficialPermitida()   (Etapa 0) alias de podeExibirOficial
 
-   Hoje NAO existe pacote aprovado: status() e "em_homologacao", pacote() e
-   null, toda saida oficial e negada e o selo unico continua na tela.
+   Com pacote aprovado e vigente (HOLOS-V1@2 desde 2026-10-03), status() e
+   "aprovado" e pacote() o descreve; a aplicacao HOLOSCAN e rotulada pela sua
+   PROVENIENCIA (seloAplicacao: oficial V1 / historica sem pacote V1) e o
+   selo "em homologacao" fica so para o que nao foi homologado.
    Numeros do modo HOMOLOGACAO (MotorMetodologico com pacote rascunho) nunca
    passam por aqui como oficiais: `ehSaidaHomologacao(r)` os reconhece pelo
    `mode` e eles sao recusados em dashboard, Evolucao, relatorio e HOLOS AI.
@@ -116,18 +118,61 @@
     return r;
   }
 
+  /* Correcao P0 (pos-deploy 6.4): o aviso generico so e verdadeiro enquanto
+     NAO ha pacote aprovado e vigente. Com o HOLOS-V1@2 aprovado, o selo
+     "em homologacao" fica para o que de fato nao foi homologado (comparacao
+     entre aplicacoes, agregados da carteira, confronto legado, modo
+     ?homologacao=1) e a aplicacao HOLOSCAN e rotulada pela SUA proveniencia:
+     oficial V1 (com pacote) ou historica sem pacote V1. */
+  var AVISO_RECURSO = "Recurso não homologado no Pacote Metodológico da V1: serve à revisão do método, não é saída oficial.";
+  var TXT_HISTORICA = "Aplicação histórica sem pacote metodológico V1";
+  var AVISO_HISTORICA = "Aplicação histórica sem pacote metodológico V1: calculada antes do pacote oficial, pelo motor anterior. " +
+    "Os números são exibidos como foram gravados, sem recálculo e sem backfill; não é saída oficial V1.";
+  var AVISO_LEGADO = "Calculado no modo de homologação (motor anterior): serve à revisão do método, não é saída oficial e não é salvo.";
+
   function rotulo() { return ROTULO; }
-  function aviso() { return AVISO; }
+  function aviso() { return podeCalcularOficial() ? AVISO_RECURSO : AVISO; }
+  function esc(t) { return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
   function selo(extra) {
-    return '<span class="selo-homologacao" title="' + AVISO + '">' + ROTULO + (extra ? " · " + extra : "") + "</span>";
+    return '<span class="selo-homologacao" title="' + esc(aviso()) + '">' + ROTULO + (extra ? " · " + extra : "") + "</span>";
   }
-  function avisoHtml() { return '<p class="aviso-homologacao">' + selo() + " " + AVISO + "</p>"; }
+  function avisoHtml() { return '<p class="aviso-homologacao">' + selo() + " " + esc(aviso()) + "</p>"; }
+
+  /** "oficial_v1" | "historica_sem_pacote" | "homologacao" | "nenhuma" */
+  function naturezaAplicacao(app) {
+    if (!app || typeof app !== "object") return "nenhuma";
+    if (app.homologacao_legado || ehSaidaHomologacao(app)) return "homologacao";
+    if (app.oficial === true || app.methodology_package_id) return "oficial_v1";
+    return "historica_sem_pacote";
+  }
+  /** Selo de UMA aplicacao HOLOSCAN, pela proveniencia dela (nunca pelo estado de hoje). */
+  function seloAplicacao(app) {
+    var n = naturezaAplicacao(app);
+    if (n === "oficial_v1") {
+      var cod = app.methodology_package_code || "HOLOS-V1", ver = app.methodology_package_version;
+      return '<span class="selo-oficial" title="Saída oficial: calculada pelo motor oficial com o pacote metodológico aprovado e vigente.">' +
+        esc(cod + (ver !== null && ver !== undefined ? " v" + ver : "")) + " · oficial</span>";
+    }
+    if (n === "historica_sem_pacote") return '<span class="selo-historica" title="' + esc(AVISO_HISTORICA) + '">' + TXT_HISTORICA + "</span>";
+    if (n === "homologacao") return '<span class="selo-homologacao" title="' + esc(AVISO_LEGADO) + '">' + ROTULO + "</span>";
+    return "";
+  }
+  /** Aviso (paragrafo) de UMA aplicacao. Oficial V1 nao leva aviso de homologacao. */
+  function avisoAplicacaoHtml(app) {
+    var n = naturezaAplicacao(app);
+    if (n === "oficial_v1") return '<p class="aviso-oficial">' + seloAplicacao(app) + "</p>";
+    if (n === "historica_sem_pacote") return '<p class="aviso-historica">' + seloAplicacao(app) + " " + esc(AVISO_HISTORICA.replace(TXT_HISTORICA + ": ", "")) + "</p>";
+    if (n === "homologacao") return '<p class="aviso-homologacao">' + seloAplicacao(app) + " " + esc(AVISO_LEGADO) + "</p>";
+    return "";
+  }
 
   raiz.Metodologia = {
     status: status, pacote: pacote, obterPacoteAtivo: obterPacoteAtivo,
     podeCalcularOficial: podeCalcularOficial, podeExibirOficial: podeExibirOficial, motivosBloqueio: motivosBloqueio,
     saidaOficialPermitida: saidaOficialPermitida, regraDisponivel: regraDisponivel, coberturaMinima: coberturaMinima,
     modoHomologacao: modoHomologacao, ehSaidaHomologacao: ehSaidaHomologacao, aceitarSaida: aceitarSaida,
-    rotulo: rotulo, aviso: aviso, selo: selo, avisoHtml: avisoHtml, SAIDAS: SAIDAS.slice()
+    rotulo: rotulo, aviso: aviso, selo: selo, avisoHtml: avisoHtml, SAIDAS: SAIDAS.slice(),
+    naturezaAplicacao: naturezaAplicacao, seloAplicacao: seloAplicacao, avisoAplicacaoHtml: avisoAplicacaoHtml,
+    TEXTO_HISTORICA: TXT_HISTORICA
   };
 })();

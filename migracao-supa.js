@@ -198,128 +198,22 @@
 
   /* ---- holoscan -------------------------------------------------------- */
 
+  /* Correcao P0 (pos-deploy 6.4): HOLOSCAN guardado so no navegador NAO sobe
+     mais para o servidor. Toda aplicacao nova no servidor e OFICIAL: calculada
+     pelo MotorMetodologico sobre o pacote aprovado e vigente, vinculada a um
+     atendimento, com proveniencia (o servidor recusa o resto). As entradas
+     locais antigas foram calculadas pelo motor legado, sem atendimento: ficam
+     neste aparelho, como estao — nunca viram aplicacao oficial em silencio. */
   function migrarHoloscan() {
-    var tudo;
-    try { tudo = JSON.parse(localStorage.getItem("holohacking.pontuacao")) || {}; }
-    catch (e) { return Promise.resolve(0); }
-
-    var pidsLocais = Object.keys(tudo).filter(function (pid) { return UUID_RE.test(pid); });
-    if (!pidsLocais.length) return Promise.resolve(0);
-
-    return lerEmLote("holoscan_applications", "id, patient_id, quando", "patient_id", pidsLocais,
-                     ["patient_id", "quando", "id"])
-      .then(function (existRes) {
-        /* erro nao e "nao existe nada": sem saber o que o servidor tem, nao se
-           insere nada — senao cada falha de leitura duplicaria o historico. */
-        if (!existRes.ok) { erros++; log("holoscan: leitura falhou, passo adiado"); return 0; }
-        var existentes = {};
-        existRes.linhas.forEach(function (e) {
-          existentes[e.patient_id + "|" + e.quando] = true;
-        });
-
-        var qDados, apDados;
-        try { qDados = JSON.parse(localStorage.getItem("holohacking.questionario")) || {}; }
-        catch (e) { qDados = {}; }
-        /* Rodada 08: salvar o HOLOSCAN (mesmo sem sessao) move as respostas do
-           rascunho para respostas_aplicadas. A aplicacao local ainda nao
-           enviada leva as respostas de la. */
-        try { apDados = JSON.parse(localStorage.getItem("holohacking.respostas_aplicadas")) || {}; }
-        catch (e) { apDados = {}; }
-
-        var pendentes = [];
-
-        Object.keys(tudo).forEach(function (pid) {
-          if (!UUID_RE.test(pid)) return;
-          var lista = Array.isArray(tudo[pid]) ? tudo[pid] : [tudo[pid]];
-
-          lista.forEach(function (ent, idx) {
-            if (ent._supa_id) return;
-            if (!ent.quando) return;
-            if (existentes[pid + "|" + ent.quando]) return;
-
-            var scores = (ent.sistemas || []).map(function (s) {
-              return {
-                sistema: s.sistema, nome: s.nome,
-                nota: s.nota, carga: s.carga, faixa: s.faixa,
-                obtido: s.obtido, maximo: s.maximo,
-                respondidos: s.respondidos,
-                total_marcadores: s.total_marcadores,
-                avaliavel: s.avaliavel
-              };
-            });
-            if (!scores.length) return;
-
-            var isUltima = idx === lista.length - 1;
-            var answers = [];
-            var ap = apDados[pid];
-            var daAplicada = ap && !ap.app && ap.quando === ent.quando && ap.respostas;
-            var q = daAplicada ? ap.respostas : (isUltima ? qDados[pid] : null);
-            if (q && Object.keys(q).length) {
-              answers = Object.keys(q).map(function (mid) {
-                return { marcador_id: mid, valor: q[mid] };
-              });
-            }
-
-            pendentes.push({
-              pid: pid, idx: idx, quando: ent.quando,
-              payload: {
-                application: {
-                  patient_id: pid,
-                  quando: ent.quando,
-                  versao_estrutura: ent.versao_estrutura || 1,
-                  versao_bancos: ent.versao_bancos || null,
-                  indice: ent.indice,
-                  indice_maximo: ent.indice_maximo || 100,
-                  avaliavel: ent.avaliavel !== false,
-                  nota_media: typeof ent.nota_media === "number" ? ent.nota_media : 0,
-                  triada: ent.triada || {},
-                  triada_com_dado: ent.triada_com_dado || {},
-                  cobertura: ent.cobertura || {},
-                  combinacoes: ent.combinacoes || [],
-                  aprofundamentos: ent.aprofundamentos || [],
-                  interpretacao_texto: (ent.interpretacao && ent.interpretacao.texto) || null,
-                  interpretacao_em: (ent.interpretacao && ent.interpretacao.quando_escrita) || null,
-                  interpretacao_versao: (ent.interpretacao && ent.interpretacao.versao) || null
-                },
-                answers: answers,
-                scores: scores
-              }
-            });
-          });
-        });
-
-        if (!pendentes.length) return 0;
-
-        var chain = Promise.resolve();
-        var migrados = 0;
-
-        pendentes.forEach(function (p) {
-          chain = chain.then(function () {
-            return window.supabaseClient
-              .rpc("salvar_holoscan_completo", { payload: p.payload })
-              .then(function (r) {
-                if (r.error) {
-                  erros++;
-                  log("holoscan " + p.pid + "/" + p.quando + ": " + r.error.message);
-                  return;
-                }
-                try {
-                  var hist = JSON.parse(localStorage.getItem("holohacking.pontuacao") || "{}");
-                  var arr = hist[p.pid];
-                  if (arr && arr[p.idx] && arr[p.idx].quando === p.quando && !arr[p.idx]._supa_id) {
-                    arr[p.idx]._supa_id = r.data;
-                    arr[p.idx]._supa_criado_em = new Date().toISOString();
-                    localStorage.setItem("holohacking.pontuacao", JSON.stringify(hist));
-                  }
-                } catch (e) { /* nao critico */ }
-                migrados++;
-              })
-              .catch(function (e) { erros++; log("holoscan: " + (e && e.message || e)); });
-          });
-        });
-
-        return chain.then(function () { return migrados; });
+    try {
+      var locais = JSON.parse(localStorage.getItem("holohacking.pontuacao")) || {};
+      var n = 0;
+      Object.keys(locais).forEach(function (pid) {
+        (Array.isArray(locais[pid]) ? locais[pid] : [locais[pid]]).forEach(function (e) { if (e && !e._supa_id) n++; });
       });
+      if (n) log("holoscan: " + n + " mapa(s) só deste aparelho não são enviados (sem proveniência oficial); ficam aqui");
+    } catch (e) { /* nada a enviar */ }
+    return Promise.resolve(0);
   }
 
   /* ---- exames ----------------------------------------------------------- */

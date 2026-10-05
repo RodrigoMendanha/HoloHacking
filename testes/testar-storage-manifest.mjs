@@ -288,9 +288,10 @@ ok(ordem.manifesto < ordem.dados,
    reparar — e foi exatamente o que ele fez quando login.js entrou, e de novo
    na Fase 1 do Supabase (CDN do supabase-js + supabase-client.js +
    dados-router.js, as tres antes de dados.js/app.js consumirem `sb`), e
-   na Etapa 10 (migracao-supa.js, o migrador localStorage→Supabase). */
-ok(ordem.total === 51,
-   'o index tem 51 tags de script: 22 de antes do P0 + concorrencia.js + metodologia.js (Etapa 0 da V1) + atendimento.js (Etapa 1) + anamnese.js + conduta.js (Etapa 2) + timeline.js + relatorios.js (Etapa 3) + metodologia-inventario.js + metodologia-pacote.js + metodologia-motor.js + metodologia-homologacao.js (Etapa 4) + metodologia-decisoes-v1.js (Etapa 4.2) + laboratorio-catalogo.js + laboratorio-motor.js + leitura-integrada-motor.js + laboratorio.js (Etapa 5) + ' +
+   na Etapa 10 (migracao-supa.js, o migrador localStorage→Supabase), e na
+   correcao P0 pos-deploy 6.4 (holoscan-oficial.js: o questionario no motor oficial). */
+ok(ordem.total === 52,
+   'o index tem 52 tags de script: 22 de antes do P0 + concorrencia.js + metodologia.js (Etapa 0 da V1) + holoscan-oficial.js (correcao P0 pos-deploy 6.4) + atendimento.js (Etapa 1) + anamnese.js + conduta.js (Etapa 2) + timeline.js + relatorios.js (Etapa 3) + metodologia-inventario.js + metodologia-pacote.js + metodologia-motor.js + metodologia-homologacao.js (Etapa 4) + metodologia-decisoes-v1.js (Etapa 4.2) + laboratorio-catalogo.js + laboratorio-motor.js + leitura-integrada-motor.js + laboratorio.js (Etapa 5) + ' +
    'armazenamento.js + validar-backup.js + restaurar-backup.js + ' +
    'importar-v1.js + excluir-paciente.js + login.js + CDN supabase-js + ' +
    'supabase-client.js + dados-router.js + migracao-supa.js + holos-ai.js + ' +

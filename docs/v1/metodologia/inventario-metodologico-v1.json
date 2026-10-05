@@ -63,7 +63,7 @@
     },
     "questionario": {
       "arquivo": "questionario.js",
-      "sha256": "8ac728c67627b0bc4d7f70b0fb98fa75a493822c74c9a3385d7e3e52bb4a7cb3"
+      "sha256": "b4b5245306683c4ac4eadc62652af24dbeaca61f366baab9acafcea9a4be3c1e"
     },
     "antigo_sintomas": {
       "arquivo": "Holos AI/motor/bancos/sintomas.csv",

@@ -99,10 +99,10 @@
        comparabilidade (Mestre §19) que ainda nao existe; ate la, cada linha
        mostra o seu Indice com o selo "em homologacao", lado a lado. */
     var M = window.Metodologia;
-    var variacao = M ? '<span class="con-var homologacao">' + M.selo() + "</span>" : "";
+    var variacao = M ? '<span class="con-var homologacao">' + M.seloAplicacao(c) + "</span>" : "";
 
     var baixos = c.maisBaixos.map(function (s) {
-      return escapar(s.nome) + " " + (Math.round(s.nota * 10) / 10);
+      return escapar(s.nome) + " " + window.HoloAusencia.notaTexto(s);
     }).join(" · ");
 
     return '<li class="con-linha">' +
@@ -113,7 +113,8 @@
         '<span class="con-detalhe">' + escapar(ordinal(c.numero)) +
           (baixos ? " &middot; mais baixos: " + baixos : "") + "</span>" +
       "</span>" +
-      '<span class="con-indice">' + Math.round(c.indice) +
+      '<span class="con-indice">' + escapar(c.oficial ? window.HoloAusencia.indiceTexto(c)
+        : (typeof c.indice === "number" ? String(Math.round(c.indice)) : "—")) +
         '<i>Índice</i></span>' +
       variacao +
       '<button type="button" class="dash-ir" data-paciente="' +

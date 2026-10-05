@@ -676,6 +676,19 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     de Rodrigo são desativados com data e motivo, nunca apagados. Homologar o HOLOSCAN exige ser dono do pacote e aprovador ativo
     `holoscan`/1. A Aprovação 1 já registrada de Daniel no HOLOS-V1@2 é preservada. Os artefatos da Etapa 6.1 ficam congelados como evidência
     histórica. Nenhuma regra clínica/metodológica muda; os hashes HOLOS `7af1dae6…` e LI `fa99ec80…` também não.
+155. **HOLOSCAN só oficial: a tela e o dado salvo saem do MESMO motor** (Etapa 6.5, correção P0 pós-deploy 6.4,
+    `docs/v1/ETAPA6-5-CORRECAO-P0-HOLOSCAN-OFICIAL.md`, migration `20261005100000`). Achado: "Gerar o mapa" usava o motor legado
+    (`holoscan.js`: pesos 1–3, os 11 vínculos `secondary_contextual` pontuando, Índice renormalizado) e "Salvar" gravava com o carimbo
+    HOLOS-V1@2. Agora o mapa é calculado pelo `MotorMetodologico` em modo oficial sobre o pacote aprovado e vigente (`holoscan-oficial.js`),
+    sem Panorama/exames/ferramentas, e o payload sai do mesmo objeto, com as respostas do cálculo. Sem pacote carregado não há mapa
+    (mensagem + "Tentar novamente"); o motor legado só responde em `?homologacao=1` ou sem Supabase (modo local), com selo, nunca salvo.
+    Decisões do responsável (05/10): (1) sem pacote, bloquear e oferecer "Tentar novamente"; (2) aprofundamentos e combinações gravados
+    vazios; (3) Índice nulo quando algum sistema não é avaliável (sem Índice parcial); (4) `nota_media` = Índice/10, nula com ele;
+    (5) servidor com nível 1 (proveniência: pacote aprovado, vigente, versão, hash homologado e recalculado, modo e contrato do motor,
+    atendimento) e nível 2 (contagens: respostas no pacote e na escala, uma nota por sistema, respondidos/total só pelos vínculos primários,
+    faixa do pacote, Índice só com todos avaliáveis); recálculo das notas no servidor fica para etapa própria (Edge Function com o mesmo
+    motor, nunca um segundo motor em SQL). Sem INSERT direto nas tabelas do HOLOSCAN. Selo pela proveniência: oficial V1, ou "Aplicação
+    histórica sem pacote metodológico V1". As 4 aplicações históricas, HOLOS-V1@2 e LI-V1@2 não mudam; sem backfill.
 
 ## Decisões pendentes (não decididas aqui)
 

@@ -13,6 +13,7 @@
  */
 import './guarda-falhas.mjs';
 import { criarServidor } from './supabase-falso.mjs';
+import { semearHistorica, semearHolosAprovado, payloadOficial } from './holos-aprovado.mjs';
 import '../laboratorio-motor.js';
 import '../leitura-integrada-motor.js';
 
@@ -51,7 +52,8 @@ ok(G('integrated_reading_domains', 'insert', { package_id: v2.id, code: 'X', nam
 
 titulo('PACIENTE, HOLOSCAN (fonte congelada) E COLETAS (TEST_FIXTURE_ONLY)');
 const PA = insert(UA, 'patients', { nome: 'Paciente E6' }).data[0].id;
-const hid = rpc(UA, 'salvar_holoscan_completo', { payload: { application: { patient_id: PA, quando: D, versao_estrutura: 2, indice: 50, indice_maximo: 100, avaliavel: true, nota_media: 5, triada: {}, triada_com_dado: {}, cobertura: {} }, answers: [], scores: [{ sistema: 'acido_inflamatorio', nome: 'A', nota: 5, carga: 5, faixa: 'medio', obtido: 1, maximo: 2, respondidos: 1, total_marcadores: 2, avaliavel: true }] } }).data;
+/* Correcao P0 (pos-deploy 6.4): a RPC so grava aplicacao OFICIAL; esta e a aplicacao HISTORICA (pre-existente, sem pacote, motor legado). */
+const hid = semearHistorica(srv, UA, { application: { patient_id: PA, quando: D }, scores: [{ sistema: 'acido_inflamatorio', nome: 'A', nota: 5, carga: 5, faixa: 'medio', obtido: 1, maximo: 2, respondidos: 1, total_marcadores: 2, avaliavel: true }] });
 const antesH = JSON.stringify([srv.linhas('holoscan_applications').find(a => a.id === hid), srv.linhas('holoscan_system_scores').filter(x => x.application_id === hid)]);
 const R = (code, valor, extra) => Object.assign({ exam_code: code, value_original_text: String(valor), numeric_value: Number(valor), qualifier: 'eq', unit_original: 'mg/L', report_reference_text: '10 a 20', report_reference_min: 10, report_reference_max: 20 }, extra || {});
 const coleta = (data, results) => rpc(UA, 'salvar_coleta_laboratorial', { payload: { collection: { patient_id: PA, clinical_date: data, state: 'salvo' }, results } }).data.id;
@@ -134,8 +136,12 @@ ok(relidaAmb && relidaAmb.reason_codes.includes('ambiguous_reference') && relida
 // proveniencia HOLOSCAN
 const mp = insert(UA, 'methodology_packages', { code: 'TEST_FIXTURE_ONLY-HP', version: 2, status: 'rascunho', origin: 'fixture', justification: 'fixture' }).data[0];
 const appBase = { patient_id: PA, quando: D, versao_estrutura: 2, indice: 50, indice_maximo: 100, avaliavel: true, nota_media: 5, triada: {}, triada_com_dado: {}, cobertura: {} };
-const novaApp = rpc(UA, 'salvar_holoscan_completo', { payload: { application: Object.assign({ methodology_package_id: mp.id, methodology_package_version: 2 }, appBase), answers: [], scores: [] } });
-ok(!novaApp.error && srv.linhas('holoscan_applications').find(a => a.id === novaApp.data).methodology_package_id === mp.id && srv.linhas('holoscan_applications').find(a => a.id === novaApp.data).methodology_package_version === 2, 'nova aplicacao HOLOSCAN recebe methodology_package_id + methodology_package_version declarados e validados');
+/* Correcao P0: so pacote APROVADO e vigente produz aplicacao; o rascunho e recusado. A nova aplicacao usa o HOLOS-V1 aprovado. */
+ok(rpc(UA, 'salvar_holoscan_completo', { payload: { application: Object.assign({ methodology_package_id: mp.id, methodology_package_version: 2 }, appBase), answers: [], scores: [] } }).error, 'pacote em rascunho nao produz aplicacao (recusado)');
+const HP = semearHolosAprovado(srv, UA, { effective_from: '2026-01-01' });
+const enN = insert(UA, 'encounters', { patient_id: PA, occurred_at: new Date().toISOString() }).data[0].id;
+const novaApp = rpc(UA, 'salvar_holoscan_completo', { payload: payloadOficial(srv, HP.id, { patient_id: PA, encounter_id: enN, quando: D }) });
+ok(!novaApp.error && srv.linhas('holoscan_applications').find(a => a.id === novaApp.data).methodology_package_id === HP.id && srv.linhas('holoscan_applications').find(a => a.id === novaApp.data).methodology_package_version === 2 && srv.linhas('holoscan_applications').find(a => a.id === novaApp.data).calculation_mode === 'oficial', 'nova aplicacao HOLOSCAN recebe methodology_package_id + methodology_package_version declarados e validados (oficial)' + (novaApp.error ? ': ' + novaApp.error.message : ''));
 ok(rpc(UA, 'salvar_holoscan_completo', { payload: { application: Object.assign({ methodology_package_id: mp.id, methodology_package_version: 9 }, appBase), answers: [], scores: [] } }).error && rpc(UA, 'salvar_holoscan_completo', { payload: { application: Object.assign({ methodology_package_id: mp.id }, appBase), answers: [], scores: [] } }).error, 'versao incoerente ou proveniencia incompleta: recusadas');
 const hist = srv.linhas('holoscan_applications').find(a => a.id === hid);
 ok(hist.methodology_package_id === null && (hist.methodology_package_version === null || hist.methodology_package_version === undefined), 'aplicacao historica (sem proveniencia) continua sem vinculo');

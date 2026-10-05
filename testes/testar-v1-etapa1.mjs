@@ -27,6 +27,7 @@
 import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { criarServidor, ligarPagina } from './supabase-falso.mjs';
+import { semearHolosAprovado } from './holos-aprovado.mjs';
 
 let falhou = false;
 const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
@@ -34,7 +35,10 @@ const titulo = (t) => console.log('\n  ' + t + '\n');
 const esperar = (ms) => new Promise(r => setTimeout(r, ms));
 
 const srv = criarServidor();
-srv.criarConta('a@holo.test', 'senha-a-123');
+const UID_A = srv.criarConta('a@holo.test', 'senha-a-123');
+/* Correcao P0 (pos-deploy 6.4): o HOLOSCAN so e calculado/gravado como aplicacao OFICIAL, sobre o pacote aprovado e vigente —
+   como em producao, o servidor tem o HOLOS-V1 aprovado (fixture pelo caminho real). */
+semearHolosAprovado(srv, UID_A);
 const nav = await puppeteer.launch({
   executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
   headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
@@ -341,15 +345,17 @@ ok(escondida.some && escondida.volta, 'a grade esconde a cancelada por padrao e 
 ok(encounters().length === n17, 'cancelar nao criou atendimento');
 
 const cFutura = await marcar(PA, diaISO(5), '11:00');
-await A.evaluate(async (cid, novaData) => {
+/* a grade abre na semana da consulta ORIGINAL (diaISO(5)); antes abria na da data nova (diaISO(7)), o que so funcionava quando as
+   duas caiam na mesma semana (o teste falhava em segundas-feiras, inclusive no commit d4c2da4 — bug do teste, nao do app) */
+await A.evaluate(async (cid, novaData, dataOriginal) => {
   document.querySelector('.nav-item[data-secao="agenda"]').click(); await new Promise(r => setTimeout(r, 300));
-  document.getElementById('cal-data').value = novaData; document.getElementById('cal-data').dispatchEvent(new Event('change', { bubbles: true }));
+  document.getElementById('cal-data').value = dataOriginal; document.getElementById('cal-data').dispatchEvent(new Event('change', { bubbles: true }));
   await new Promise(r => setTimeout(r, 300));
   document.querySelector('[data-abrir="consulta"][data-id="' + cid + '"]').click(); await new Promise(r => setTimeout(r, 300));
   document.getElementById('cf-data').value = novaData;
   document.getElementById('cf-hora').value = '16:00';
   document.querySelector('[data-reagendar="consulta"]').click(); await new Promise(r => setTimeout(r, 300));
-}, cFutura, diaISO(7));
+}, cFutura, diaISO(7), diaISO(5));
 await confirmarModal();
 const orig = srv.linhas('consultations').find(c => c.id === cFutura);
 const nova = srv.linhas('consultations').find(c => c.rescheduled_from_id === cFutura);

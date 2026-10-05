@@ -121,7 +121,7 @@
     return '<div class="evo-aplicacoes"><h5 class="evo-sub">Aplicações</h5><ol class="evo-lista">' +
       h.map(function (p, i) {
         return "<li><span>" + (i + 1) + "ª &middot; " + escapar(dataBonita(p.quando)) + "</span>" +
-          "<b>Índice " + escapar(p.indice) + "</b></li>";
+          "<b>Índice " + escapar(window.HoloAusencia.indiceTexto(p)) + "</b></li>";
       }).join("") + "</ol></div>";
   }
 
@@ -170,10 +170,10 @@
       '<div class="evo-numeros">' +
       '<div class="evo-indice">' +
       '<span class="evo-um"><i>' + escapar(dataBonita(antes.quando)) + "</i><b>" +
-        escapar(antes.indice) + "</b></span>" +
+        escapar(window.HoloAusencia.indiceTexto(antes)) + "</b></span>" +
       '<span class="evo-seta">&middot;</span>' +
       '<span class="evo-um agora"><i>' + escapar(dataBonita(depois.quando)) + "</i><b>" +
-        escapar(depois.indice) + "</b></span></div>" +
+        escapar(window.HoloAusencia.indiceTexto(depois)) + "</b></span></div>" +
       '<p class="evo-frase">' +
         (sem ? "<b>" + sem + " semanas</b> entre as duas aplicações. " : "") +
         "Índice HOLOS de cada uma, sem diferença calculada.</p>" +

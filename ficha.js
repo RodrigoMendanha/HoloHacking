@@ -308,10 +308,10 @@
 
     var p = d.pontuacao;
     html += '<div class="fic-mapa"><span class="fic-rot fic-rot-mapa">Mapa HOLOS</span>' +
-      (window.Metodologia ? window.Metodologia.avisoHtml() : "") +
+      (window.Metodologia ? window.Metodologia.avisoAplicacaoHtml(p) : "") +
       '<div class="fic-indice">' +
       '<span class="fic-rot">Índice HOLOS</span>' +
-      "<b>" + p.indice + '</b><span class="fic-de">de ' + p.indice_maximo + "</span>" +
+      "<b>" + escapar(window.HoloAusencia.indiceTexto(p)) + '</b><span class="fic-de">de ' + p.indice_maximo + "</span>" +
       (p.quando ? '<span class="fic-quando">' + escapar(dataBR(p.quando)) + "</span>" : "") +
       "</div>";
 
@@ -329,7 +329,7 @@
     var piores = p.sistemas.filter(A.suficiente).sort(A.porNota).slice(0, 2);
     html += '<div class="fic-piores"><span class="fic-rot">Mais baixos</span>' +
       (piores.length ? piores.map(function (s) {
-        return '<span class="fic-sis">' + escapar(s.nome) + " <b>" + A.fmt(s.nota) + "</b></span>";
+        return '<span class="fic-sis">' + escapar(s.nome) + " <b>" + A.notaTexto(s) + "</b></span>";
       }).join("") : '<span class="fic-sis">dados insuficientes</span>') + "</div></div>";
 
     /* Os cinco sistemas, do mais carregado ao mais equilibrado. Antes só os
@@ -344,7 +344,7 @@
           return '<div class="fic-barra' + (sem ? " sem-dado" : insuf ? " insuficiente" : "") + '">' +
             '<span class="fic-barra-nome">' + escapar(s.nome) + "</span>" +
             '<span class="fic-barra-trilho"><i style="width:' + largura + '%"></i></span>' +
-            '<span class="fic-barra-n">' + A.fmt(s.nota) + "</span>" +
+            '<span class="fic-barra-n">' + A.notaTexto(s) + "</span>" +
             '<span class="fic-barra-faixa">' +
               escapar(sem ? "sem dado" : insuf ? "dados insuficientes" : (window.rotuloExibivel(s.faixa) || "")) +
               (cob ? " · " + cob : "") + "</span></div>";
@@ -398,8 +398,17 @@
       itens.push(apps.length + (apps.length === 1 ? " aplicação HOLOSCAN" : " aplicações HOLOSCAN"));
 
     if (apps.length >= 2) {
-      var delta = apps[apps.length - 1].indice - apps[0].indice;
-      itens.push("Índice HOLOS " + (delta > 0 ? "subiu " + delta : delta < 0 ? "caiu " + Math.abs(delta) : "sem mudança"));
+      /* Correcao P0: so ha "subiu/caiu" entre duas aplicacoes historicas (o
+         comportamento anterior). Com aplicacao oficial V1 na conta, ou Indice
+         ausente, nao ha regra de comparabilidade aplicada aqui: sem delta. */
+      var ia = apps[0], ib = apps[apps.length - 1], Mt = window.Metodologia;
+      var historicas = Mt && Mt.naturezaAplicacao(ia) === "historica_sem_pacote" && Mt.naturezaAplicacao(ib) === "historica_sem_pacote";
+      if (historicas && typeof ia.indice === "number" && typeof ib.indice === "number") {
+        var delta = ib.indice - ia.indice;
+        itens.push("Índice HOLOS " + (delta > 0 ? "subiu " + delta : delta < 0 ? "caiu " + Math.abs(delta) : "sem mudança"));
+      } else {
+        itens.push("Índice HOLOS sem comparação automática entre estas aplicações");
+      }
     }
 
     /* d.ferramentas e a lista de IDS de ferramenta preenchida (Panorama), sem
@@ -588,7 +597,7 @@
     return '<li class="dash-pendente' + (destaque ? " abrir" : "") + '">' +
       '<span class="pac-avatar">' + escapar((p.quando || "").slice(8, 10) || "?") + "</span>" +
       '<span class="dash-quem"><b>' + escapar(dataBR(p.quando)) + "</b>" +
-        '<span class="dash-porque">Índice ' + escapar(p.indice) + " de " + escapar(p.indice_maximo) +
+        '<span class="dash-porque">Índice ' + escapar(window.HoloAusencia.indiceTexto(p)) + " de " + escapar(p.indice_maximo) +
           (acaoExtra ? " &middot; " + escapar(acaoExtra) : "") + "</span></span>" +
       (destaque
         // so a ultima tem detalhe guardado (respostas) para reabrir de verdade
@@ -639,7 +648,7 @@
         : (d.respondidas === 0 ? "não iniciado" : d.respondidas + " de " + d.totalPerguntas + " respondidas");
       if (cob && d.respondidas > 0) estado += " · nova aplicação em andamento: " + d.respondidas + " respondidas";
       var sistemas = d.pontuacao.sistemas.map(function (s) {
-        return '<span class="fic-sis">' + escapar(s.nome) + " <b>" + window.HoloAusencia.fmt(s.nota) + "</b></span>";
+        return '<span class="fic-sis">' + escapar(s.nome) + " <b>" + window.HoloAusencia.notaTexto(s) + "</b></span>";
       }).join("");
       html += '<div class="dash-bloco dash-bloco-compacto">' +
         '<h3 class="dash-titulo">Mapa HOLOS — última aplicação</h3>' +
@@ -821,7 +830,7 @@
         comeco: d.respondidas > 0,
         extra: d.pontuacao
           ? "Mapa gerado em " + escapar(dataBR(d.pontuacao.quando)) +
-            " &middot; Índice " + escapar(d.pontuacao.indice)
+            " &middot; Índice " + escapar(window.HoloAusencia.indiceTexto(d.pontuacao))
           : (d.respondidas > 0 ? "Respondido e ainda sem mapa gerado." : ""),
         ver: d.respondidas > 0 ? "questionario" : null,
         abrir: "holoscan"
@@ -966,12 +975,12 @@
        que a produziram. Sem mapa gerado, diz isso em vez de mostrar nada. */
     if (d.pontuacao) {
       html += '<div class="fic-res"><div class="fic-res-topo">' +
-        "<b>Índice HOLOS " + d.pontuacao.indice + "</b>" +
+        "<b>Índice HOLOS " + escapar(window.HoloAusencia.indiceTexto(d.pontuacao)) + "</b>" +
         "<span>de " + d.pontuacao.indice_maximo + " &middot; mapa de " +
         dataBR(d.pontuacao.quando) + "</span></div>" +
         '<div class="fic-res-grade">' + d.pontuacao.sistemas.map(function (s) {
           return '<div class="fic-res-sis"><span>' + escapar(s.nome) + "</span><b>" +
-            window.HoloAusencia.fmt(s.nota) + "</b></div>";
+            window.HoloAusencia.notaTexto(s) + "</b></div>";
         }).join("") + "</div></div>";
     } else if (respondidas.length > 0) {
       html += '<div class="dash-vazio">Respondido, e o mapa ainda não foi gerado. ' +

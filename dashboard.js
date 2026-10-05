@@ -299,10 +299,10 @@
     if (c.comMapa === 0) return "";
     var M = window.Metodologia;
     return '<div class="dash-bloco dash-homologacao">' +
-      '<h3 class="dash-titulo">O terreno da sua carteira ' + (M ? M.selo() : "") + "</h3>" +
+      '<h3 class="dash-titulo">O terreno da sua carteira ' + (M ? M.selo("agregação não homologada") : "") + "</h3>" +
       '<p class="dash-vazio">Indicadores agregados da carteira (terreno que se repete, ' +
-      "Índice HOLOS médio) ficam desligados até o Pacote Metodológico da V1 ser aprovado: " +
-      "as notas de hoje vêm de perguntas, pesos e faixas em homologação.</p></div>";
+      "Índice HOLOS médio) ficam desligados: o Pacote Metodológico da V1 não tem regra homologada " +
+      "para agregar aplicações, e as aplicações históricas não têm pacote metodológico V1.</p></div>";
   }
 
   /* ---------- onboarding contextual --------------------------------------- */

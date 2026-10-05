@@ -209,8 +209,7 @@
     if (window.Laboratorio && !modoHomologacao()) {
       /* Etapa 5 da V1: Leitura Integrada oficial (pacote LI-V1) na aba HOLOSCAN da ficha. */
       alvo.innerHTML = '<div class="fic-consultas-topo">' +
-        '<button type="button" class="btn-verde" data-ir="aba:documentos">Registrar exames</button>' +
-        (window.Metodologia ? window.Metodologia.selo("Leitura Integrada") : "") + "</div>" +
+        '<button type="button" class="btn-verde" data-ir="aba:documentos">Registrar exames</button>' + "</div>" +
         '<div class="dash-bloco dash-bloco-compacto"><h3 class="dash-titulo">Leitura Integrada (V1)</h3><div id="aba-holoscan-laboratorial-li"></div>' +
         '<button type="button" class="fic-ir-min" data-ir="confronto">Abrir a Leitura Integrada completa</button></div>' +
         '<div class="fic-continuidade"><span class="fic-rot">HOLOSCAN &rarr; mapa de investigação</span>' +
@@ -1283,8 +1282,8 @@
       // cabecalho ja mostra quando o relatorio foi gerado — sao datas
       // diferentes, e a antiga faltava aqui).
       (p.quando ? '<p class="rel-meta">Aplicado em ' + escapar(dataBR(p.quando)) + "</p>" : "") +
-      // Etapa 0 da V1: notas, faixas, Indice e Triade vem de bancos em rascunho
-      (window.Metodologia ? window.Metodologia.avisoHtml() : "");
+      // Correcao P0: o aviso diz a proveniencia desta aplicacao (oficial V1 / historica sem pacote V1)
+      (window.Metodologia ? window.Metodologia.avisoAplicacaoHtml(p) : "");
 
     var A = window.HoloAusencia;
     var ordenados = p.sistemas.slice().sort(A.porLeitura);
@@ -1295,12 +1294,13 @@
       // nao inventa numero quando o campo nao existe.
       var temContagem = typeof s.respondidos === "number" && typeof s.total_marcadores === "number";
       var partes = [
-        semDado ? "nenhuma pergunta respondida" : (temContagem ? s.respondidos + " de " + s.total_marcadores + " respondidas" : ""),
+        semDado ? (temContagem && s.respondidos > 0 ? s.respondidos + " de " + s.total_marcadores + " respondidas · abaixo da cobertura mínima do pacote: sem nota" : "nenhuma pergunta respondida")
+          : (temContagem ? s.respondidos + " de " + s.total_marcadores + " respondidas" : ""),
         insuf ? "dados insuficientes" : "",
         s.faixa && !insuf ? "faixa " + escapar(window.rotuloExibivel(s.faixa)) : ""
       ].filter(Boolean);
       html += '<p class="rel-prioridade"><b>' + escapar(s.nome) + "</b> — " +
-        A.fmt(s.nota) +
+        A.notaTexto(s) +
         (partes.length ? " &middot; " + partes.join(" &middot; ") : "") +
         "</p>";
     });
@@ -1343,7 +1343,7 @@
     ordenados.forEach(function (s) {
       html += '<div class="rel-sistema"><div class="rel-sistema-topo">' +
         "<b>" + escapar(s.nome) + "</b>" +
-        '<span class="rel-nota">' + A.fmt(s.nota) + "</span>" +
+        '<span class="rel-nota">' + A.notaTexto(s) + "</span>" +
         '<span class="rel-faixa">' + escapar(A.semNota(s) ? "sem dado"
           : !A.suficiente(s) ? "dados insuficientes" : (window.rotuloExibivel(s.faixa) || "")) + "</span></div>" +
         '<p class="rel-passos">Área do mapa. Investigar com mais profundidade na consulta.</p>' +
@@ -1353,7 +1353,7 @@
       "não categorias de doença.</p></div>";
 
     html += '<div class="rel-bloco rel-indice"><h4>Índice HOLOS (informação secundária)</h4>' +
-      "<p><b>" + p.indice + "</b> de " + p.indice_maximo + "</p>" +
+      "<p><b>" + escapar(window.HoloAusencia.indiceTexto(p)) + "</b> de " + p.indice_maximo + "</p>" +
       '<p class="rel-fronteira">O Índice HOLOS resume as respostas deste mapa e não ' +
       "representa percentual de saúde.</p></div>";
 

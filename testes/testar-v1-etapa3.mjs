@@ -20,6 +20,7 @@
 import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { criarServidor, ligarPagina } from './supabase-falso.mjs';
+import { semearHistorica } from './holos-aprovado.mjs';
 
 let falhou = false;
 const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
@@ -108,7 +109,8 @@ const G1 = srv.linhas('agreements').find(g => g.conduct_id === CD1 && g.descript
 const CD2 = rpc('salvar_conduta', { encounter_id: E2, status: 'salvo', objective: 'Manter o sono', previous_conduct_id: CD1, previous_decision: 'continuar',
   agreements: [{ description: 'Jantar cedo', status: 'encerrado', origin_agreement_id: G1 }, { description: 'Alongar à noite', status: 'acordado' }] }).data;
 rpc('salvar_conduta', { encounter_id: E2, status: 'rascunho', objective: 'RASCUNHO NAO ENTRA' }); // rascunho de correcao sobre CD2? nao: nova conduta rascunho e recusada por unique; ignoramos erro
-const holo = (eid, quando, indice) => srv.tratar({ op: 'rpc', uid: UA, nome: 'salvar_holoscan_completo', args: { payload: { application: { patient_id: PA, encounter_id: eid, quando, versao_estrutura: 2, indice, indice_maximo: 100, avaliavel: true, nota_media: 5, triada: {}, triada_com_dado: {}, cobertura: { respondidos: 10 + indice, total: 60 } }, answers: [], scores: [] } } }).data;
+/* Correcao P0 (pos-deploy 6.4): estes HOLOSCAN de maio/junho sao HISTORICOS (pre-existentes, sem pacote): a RPC so grava aplicacao oficial. */
+const holo = (eid, quando, indice) => semearHistorica(srv, UA, { application: { patient_id: PA, encounter_id: eid, quando, indice, cobertura: { respondidos: 10 + indice, total: 60 } } });
 const H1 = holo(E1, '2026-05-01', 50), H2 = holo(E2, '2026-06-01', 60);
 const T1 = insert('tool_applications', { patient_id: PA, encounter_id: E1, ferramenta_id: 'oq3', versao_ferramenta: 1, status: 'concluida', respostas: { quer: 'RESPOSTA_INTIMA' }, resultado: { total: 10 }, concluida_em: '2026-05-01T13:00:00.000Z', leitura: 'leitura E1' }).data[0].id;
 const T2 = insert('tool_applications', { patient_id: PA, encounter_id: E2, ferramenta_id: 'oq3', versao_ferramenta: 2, status: 'concluida', respostas: { quer: 'x' }, resultado: { total: 12 }, concluida_em: '2026-06-01T13:00:00.000Z', leitura: 'leitura E2' }).data[0].id;

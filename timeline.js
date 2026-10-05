@@ -96,7 +96,7 @@
       /* O Indice aparece como ja aparece na ficha (selo "em homologacao" no
          bloco do mapa); nenhuma comparacao entre aplicacoes e feita aqui. */
       lista.push(ev({ tipo: "mapa", selo: "HOLOSCAN", titulo: (i + 1) + "ª aplicação do HOLOSCAN",
-        detalhe: "Índice " + escapar(p.indice) + " de " + escapar(p.indice_maximo) + (cob ? " · " + cob : "") + (p._supa_id ? "" : " · só neste dispositivo"),
+        detalhe: "Índice " + escapar(window.HoloAusencia.indiceTexto(p)) + " de " + escapar(p.indice_maximo) + (cob ? " · " + cob : "") + (p._supa_id ? "" : " · só neste dispositivo"),
         quando: p.quando, registrado_em: p._supa_criado_em || p.calculado_em || null, ref: { tabela: "holoscan_applications", id: p._supa_id || null }, acao: "aba:holoscan" }));
     });
 

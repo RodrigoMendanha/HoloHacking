@@ -23,6 +23,9 @@ import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { criarServidor, ligarPagina } from './supabase-falso.mjs';
+import { semearHolosAprovado } from './holos-aprovado.mjs';
+/** Correcao P0: o Indice oficial e guardado exato (ex.: 56.047...) e exibido com 1 casa, meia unidade para cima. */
+const umaCasa = (v) => (Math.floor(Math.abs(Number(v)) * 10 + 0.5 + 1e-9) / 10).toFixed(1);
 
 let falhou = false;
 const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
@@ -40,6 +43,9 @@ const dataBR = (iso) => iso.split('-').reverse().join('/');
 
 const srv = criarServidor();
 const UID_A = srv.criarConta('a@holo.test', 'senha-a-123');
+/* Correcao P0 (pos-deploy 6.4): o HOLOSCAN so e calculado pelo motor OFICIAL, sobre o pacote aprovado e vigente —
+   como em producao, o servidor tem o HOLOS-V1 aprovado (fixture pelo caminho real: aprovacao + homologacao de Daniel). */
+semearHolosAprovado(srv, UID_A);
 
 const nav = await puppeteer.launch({
   executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
@@ -275,7 +281,7 @@ let eb = await estadoLocal(B.p, P);
 ok(eb.estado.holoscan === 'ok' && eb.estado.exames === 'ok', 'leitura remota ok: ' + JSON.stringify(eb.estado));
 ok(eb.historico.length === 1 && eb.historico[0]._supa_id === apps1[0].id,
    'HOLOSCAN de A aparece em B, com o ID remoto');
-ok(String(eb.historico[0].indice) === holo1.indice,
+ok(umaCasa(eb.historico[0].indice) === holo1.indice,   // Correcao P0: Indice oficial exato no dado, 1 casa na tela ("40.0")
    'mesmo Indice HOLOS: ' + eb.historico[0].indice + ' (A calculou ' + holo1.indice + ')');
 ok((eb.historico[0].sistemas || []).length === 5 &&
    eb.historico[0].sistemas.map(s => s.sistema).join(',') ===
@@ -445,7 +451,7 @@ ok(!eb.historico.some(e => e._supa_id === '00000000-0000-4000-8000-000000000000'
    'B: entrada local com ID que o servidor nao tem foi descartada');
 ok(eb.historico.some(e => e.quando === '2026-01-10' && !e._supa_id),
    'B: entrada so-local (nunca salva) de outro dia foi preservada');
-ok(String(eb.historico[eb.historico.length - 1].indice) === holo2.indice,
+ok(umaCasa(eb.historico[eb.historico.length - 1].indice) === holo2.indice,
    'B: a ultima e a aplicacao mais nova de A (Indice ' + holo2.indice + ')');
 ok(Object.keys(holo2.respostas).every(k => eb.aplicadas[k] === holo2.respostas[k]) &&
    Object.keys(eb.questionario).length === 0,

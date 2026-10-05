@@ -3,8 +3,10 @@
  *
  * Supabase falso (supabase-falso.mjs), app real.
  *
- *   1  Dados criados SEM sessao (HOLOSCAN, exames, ferramenta) sobem na
- *      primeira entrada da conta A; a marca e por uid
+ *   1  Dados criados SEM sessao (exames, ferramenta) sobem na primeira entrada da conta A; a marca e por uid.
+ *      Correcao P0 (pos-deploy 6.4, mudanca de contrato documentada): o HOLOSCAN calculado sem sessao (modo local, motor
+ *      legado com selo de homologacao, sem pacote nem atendimento) NAO sobe — fica so neste aparelho; toda aplicacao no
+ *      servidor e oficial (motor oficial, pacote aprovado, atendimento).
  *   2  Idempotencia: rodar a migracao de novo nao duplica nada
  *   3  Conta B no MESMO navegador migra os proprios dados (a marca de A nao
  *      bloqueia), nao ve nada de A, e A continua inteira quando volta
@@ -17,6 +19,7 @@ import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 import { criarServidor, ligarPagina } from './supabase-falso.mjs';
+import { semearHolosAprovado } from './holos-aprovado.mjs';
 
 let falhou = false;
 const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
@@ -28,6 +31,9 @@ const srv = criarServidor();
 const UID_A = srv.criarConta('a@holo.test', 'senha-a-123');
 const UID_B = srv.criarConta('b@holo.test', 'senha-b-123');
 const UID_C = srv.criarConta('c@holo.test', 'senha-c-123');
+/* Correcao P0 (pos-deploy 6.4): o HOLOSCAN so e calculado pelo motor OFICIAL, sobre o pacote aprovado e vigente —
+   como em producao, o servidor tem o HOLOS-V1 aprovado (fixture pelo caminho real: aprovacao + homologacao de Daniel). */
+semearHolosAprovado(srv, UID_A);
 
 const nav = await puppeteer.launch({
   executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
@@ -145,7 +151,7 @@ await entrar(M.p, 'a@holo.test', 'senha-a-123');
 let n = contar(PA);
 ok(n.pacientes === 1 && srv.linhas('patients').find(x => x.id === PA).nutritionist_id === UID_A,
    'o paciente subiu, sob a conta A');
-ok(n.holoscan === 1 && n.respostas === 84, 'o HOLOSCAN subiu com as 84 respostas');
+ok(n.holoscan === 0 && n.respostas === 0, 'P0: sem sessao nao ha pacote oficial carregado, logo nao ha mapa HOLOSCAN — e nenhuma aplicacao sem proveniencia chega ao servidor');
 ok(n.coletas === 1 && srv.linhas('lab_collections').find(x => x.patient_id === PA).data_coleta_desconhecida === true,
    'os exames subiram como coleta de DATA DESCONHECIDA (nunca "hoje")');
 ok(n.ferramentas === 1 && srv.linhas('tool_applications').some(t => t.id === regA.app),
@@ -157,7 +163,7 @@ const aposMigrar = await M.p.evaluate((pid) => {
   const h = (JSON.parse(localStorage.getItem('holohacking.pontuacao')) || {})[pid] || [];
   return { n: h.length, comId: h.filter(e => e._supa_id).length };
 }, PA);
-ok(aposMigrar.n === 1 && aposMigrar.comId === 1, 'a entrada local ganhou o id remoto e nao duplicou na hidratacao');
+ok(aposMigrar.n === 0 && aposMigrar.comId === 0, 'P0: nenhum mapa local (sem pacote oficial nao se gera mapa) e nada duplicou na hidratacao');
 
 /* ==================================================================== */
 titulo('2. IDEMPOTENCIA');
@@ -195,7 +201,7 @@ await entrar(M.p, 'b@holo.test', 'senha-b-123');
 n = contar(PB);
 ok(n.pacientes === 1 && srv.linhas('patients').find(x => x.id === PB).nutritionist_id === UID_B,
    'B migrou os proprios dados: a marca de A nao bloqueou');
-ok(n.holoscan === 1 && n.ferramentas === 1 && n.coletas === 1, 'HOLOSCAN, ferramenta e exames de B subiram');
+ok(n.holoscan === 0 && n.ferramentas === 1 && n.coletas === 1, 'ferramenta e exames de B subiram; o HOLOSCAN sem sessao ficou no aparelho (P0)');
 ok(srv.linhas('patients').filter(x => x.nutritionist_id === UID_B).length === 1,
    'nada de A foi parar na conta B');
 const vistoB = await M.p.evaluate((pa) => ({
@@ -223,7 +229,7 @@ const vistoA = await M.p.evaluate((pa, pb) => ({
   vePB: !!(JSON.parse(localStorage.getItem('holohacking.pontuacao')) || {})[pb]
 }), PA, PB);
 ok(vistoA.lista.length === 1 && vistoA.lista[0] === PA, 'A volta e ve o proprio paciente, so ele');
-ok(vistoA.hist === 1 && vistoA.ex && vistoA.apps === 1, 'com HOLOSCAN, exames e ferramenta intactos');
+ok(vistoA.hist === 0 && vistoA.ex && vistoA.apps === 1, 'com exames e ferramenta intactos (P0: sem mapa HOLOSCAN sem sessao)');
 ok(!vistoA.vePB, 'e sem nada de B');
 
 /* ==================================================================== */
@@ -234,7 +240,7 @@ titulo('4. SESSAO QUE TERMINOU SEM LOGOUT');
 await M.p.evaluate(() => localStorage.removeItem('sb-falso-auth-token'));
 await recarregar(M.p);
 const orfas = await M.p.evaluate((pa) => ({
-  pont: !!(JSON.parse(localStorage.getItem('holohacking.pontuacao') || '{}'))[pa],
+  pont: !!(JSON.parse(localStorage.getItem('holohacking.exames') || '{}'))[pa],   // P0: a caixa de A no disco e a de exames (nao ha mapa sem sessao)
   dono: localStorage.getItem('holohacking.dono_local')
 }), PA);
 ok(orfas.pont && orfas.dono === UID_A, 'cenario montado: caixas de A no disco, dono = A, sem sessao');
@@ -245,7 +251,7 @@ const herdou = await M.p.evaluate((pa) => ({
   dono: localStorage.getItem('holohacking.dono_local')
 }), PA);
 const stashA = await M.p.evaluate((uid) =>
-  !!localStorage.getItem('holohacking._stash.' + uid + '.holohacking.pontuacao'), UID_A);
+  !!localStorage.getItem('holohacking._stash.' + uid + '.holohacking.exames'), UID_A);
 ok(!herdou.pont && !herdou.ex, 'B nao herda as caixas de A');
 ok(stashA && herdou.dono === UID_B, 'as caixas de A foram para o stash de A; o dono agora e B');
 ok(srv.linhas('patients').filter(x => x.nutritionist_id === UID_B).length === 1,

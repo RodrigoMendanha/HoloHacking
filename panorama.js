@@ -308,7 +308,7 @@
           .slice(0, 2)
           .map(function (s) {
             return { sistema: s.sistema, nome: NOME_SISTEMA[s.sistema] || s.sistema,
-                     nota: s.nota };
+                     nota: s.nota, nota_exibicao: s.nota_exibicao || null };
           });
 
         saida.push({
@@ -317,8 +317,12 @@
           numero: i + 1,
           total: h.length,
           indice: pont.indice,
+          indice_exibicao: pont.indice_exibicao || null,
+          oficial: !!(pont.oficial === true || pont.methodology_package_id),
+          methodology_package_id: pont.methodology_package_id || null,
           // so ha variacao a partir da segunda: a primeira nao tem com o que comparar
-          variacao: i > 0 ? pont.indice - h[i - 1].indice : null,
+          variacao: i > 0 && typeof pont.indice === "number" && typeof h[i - 1].indice === "number"
+            ? pont.indice - h[i - 1].indice : null,
           maisBaixos: maisBaixos
         });
       });

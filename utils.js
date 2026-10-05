@@ -89,8 +89,29 @@
     return out;
   }
 
+  /* Arredondamento de EXIBICAO: meia unidade para longe do zero, como o
+     MotorMetodologico faz na fracao exata. toFixed() erra quando o numero
+     guardado (binario) fica um fio abaixo do ...5 decimal (ex.: 5.65). */
+  function arredondar(v, casas) {
+    var c = casas === undefined ? 1 : casas, k = Math.pow(10, c), n = Number(v);
+    var r = Math.floor(Math.abs(n) * k + 0.5 + 1e-9) / k;
+    return (n < 0 && r !== 0 ? -r : r).toFixed(c);
+  }
   function fmt(v, casas) {
-    return vazioNum(v) ? "—" : Number(v).toFixed(casas === undefined ? 1 : casas);
+    return vazioNum(v) ? "—" : arredondar(v, casas);
+  }
+  /** Nota de um sistema na tela: a exibicao do motor oficial quando existe. */
+  function notaTexto(s) {
+    if (semNota(s)) return "—";
+    return typeof s.nota_exibicao === "string" && s.nota_exibicao ? s.nota_exibicao : fmt(s.nota);
+  }
+  /** Indice HOLOS na tela. Aplicacao oficial V1: 1 casa, ou "—" quando nao
+      avaliavel (sem Indice parcial). Historica: o numero como foi gravado. */
+  function indiceTexto(p) {
+    if (!p || vazioNum(p.indice)) return "—";
+    if (typeof p.indice_exibicao === "string" && p.indice_exibicao) return p.indice_exibicao;
+    if (p.oficial === true || p.methodology_package_id) return arredondar(p.indice, 1);
+    return String(p.indice);
   }
 
   function porNota(a, b) {
@@ -122,7 +143,8 @@
   window.HoloAusencia = {
     coberturaMinima: coberturaMinima,
     normalizar: normalizar, semNota: semNota, suficiente: suficiente,
-    cobertura: cobertura, fmt: fmt, porNota: porNota, porLeitura: porLeitura, notas: notas
+    cobertura: cobertura, fmt: fmt, porNota: porNota, porLeitura: porLeitura, notas: notas,
+    notaTexto: notaTexto, indiceTexto: indiceTexto, arredondar: arredondar
   };
 })();
 
@@ -204,6 +226,7 @@
   "use strict";
   var MAPA = {
     "medio": "médio",
+    "intermediaria": "intermediária",
     "Acido urico": "Ácido úrico",
     "Triglicerideos": "Triglicerídeos",
     "PCR ultrassensivel": "PCR ultrassensível",

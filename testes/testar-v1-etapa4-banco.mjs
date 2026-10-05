@@ -18,6 +18,7 @@
 import './guarda-falhas.mjs';
 import { readFileSync } from 'node:fs';
 import { criarServidor } from './supabase-falso.mjs';
+import { semearHistorica, payloadOficial } from './holos-aprovado.mjs';
 import '../metodologia-motor.js';
 import '../metodologia.js';
 
@@ -130,13 +131,19 @@ ok(!r.error && linha('methodology_packages', fx.id), 'sem DELETE de pacote (0 li
 
 titulo('10. REGISTROS HISTORICOS MANTEM VERSAO');
 const pa = insert(UA, 'patients', { nome: 'A', status: 'ativo' }).data[0].id;
-const app = srv.tratar({ op: 'rpc', uid: UA, nome: 'salvar_holoscan_completo', args: { payload: { application: { patient_id: pa, quando: '2026-05-01', versao_estrutura: 2, indice: 50, indice_maximo: 100, avaliavel: true, nota_media: 5, triada: {}, triada_com_dado: {}, cobertura: {} }, answers: [], scores: [] } } }).data;
+/* Correcao P0 (pos-deploy 6.4, mudanca de contrato documentada): a RPC so grava aplicacao OFICIAL e nao ha mais INSERT direto.
+   A aplicacao sem pacote aqui e HISTORICA (pre-existente). */
+const app = semearHistorica(srv, UA, { application: { patient_id: pa, quando: '2026-05-01' } });
 r = update(UA, 'holoscan_applications', { methodology_package_id: fx.id }, eq('id', app));
 ok(r.error && /imutaveis/.test(r.error.message) && !linha('holoscan_applications', app).methodology_package_id, '10: methodology_package_id faz parte do snapshot historico: nao muda depois de gravado');
 r = insert(UA, 'holoscan_applications', { patient_id: pa, quando: '2026-06-01', versao_estrutura: 2, indice: 50, indice_maximo: 100, avaliavel: true, nota_media: 5, triada: {}, triada_com_dado: {}, cobertura: {}, methodology_package_id: fx.id });
-ok(!r.error && r.data[0].methodology_package_id === fx.id, '10: aplicacao gravada com a versao do pacote usada');
-r = insert(UA, 'holoscan_applications', { patient_id: pa, quando: '2026-06-02', versao_estrutura: 2, indice: 50, indice_maximo: 100, avaliavel: true, nota_media: 5, triada: {}, triada_com_dado: {}, cobertura: {}, methodology_package_id: '00000000-0000-4000-8000-000000000000' });
-ok(r.error && r.error.code === '23503', '10: referencia a pacote inexistente e recusada');
+ok(r.error && r.error.code === '42501', '10 (P0): insert direto de aplicacao (mesmo com pacote) recusado: so a RPC oficial grava, com a versao do pacote usada');
+const enx = insert(UA, 'encounters', { patient_id: pa, occurred_at: new Date().toISOString() }).data[0].id;
+const fxRow = linha('methodology_packages', fx.id);
+r = rpc(UA, 'salvar_holoscan_completo', { payload: payloadOficial(srv, fx.id, { patient_id: pa, encounter_id: enx, quando: fxRow.effective_from }) });
+ok(!r.error && linha('holoscan_applications', r.data).methodology_package_id === fx.id && linha('holoscan_applications', r.data).calculation_mode === 'oficial', '10: aplicacao OFICIAL gravada pela RPC com a versao do pacote usada' + (r.error ? ': ' + r.error.message : ''));
+r = rpc(UA, 'salvar_holoscan_completo', { payload: (() => { const p = payloadOficial(srv, fx.id, { patient_id: pa, encounter_id: 'qualquer', quando: '2026-06-02' }); p.application.methodology_package_id = '00000000-0000-4000-8000-000000000000'; return p; })() });
+ok(r.error && r.error.hint === 'pacote_inexistente', '10: referencia a pacote inexistente e recusada');
 
 titulo('2. PACOTE RETIRADO PERMANECE RECUPERAVEL');
 r = rpc(UA, 'retirar_pacote_metodologico', { p_package_id: fx.id, p_motivo: 'substituido pela v2', p_responsible: 'Responsável humano (teste)' });

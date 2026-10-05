@@ -152,8 +152,11 @@ conferir(con.linhas[0].nome === 'Marina Alves' && /2ª/.test(con.linhas[0].detal
 conferir(con.linhas[2].nome === 'Carla Souza',
   'a mais antiga vem por ultimo: ' + con.linhas[2].nome);
 /* Etapa 0 da V1: sem variacao calculada entre aplicacoes (comparabilidade
-   nao homologada, Mestre §19); cada linha leva o selo "em homologação". */
-conferir(con.linhas.every(l => l.variacao !== null && /Em homologação/.test(l.variacao) && !/[+-]\d/.test(l.variacao)),
+   nao homologada, Mestre §19). Correcao P0 (pos-deploy 6.4, mudanca de contrato
+   documentada): o selo de cada linha diz a PROVENIENCIA da aplicacao — estas,
+   sem pacote metodologico, levam "Aplicação histórica sem pacote metodológico V1"
+   (antes: "Em homologação" para tudo, falso depois da aprovacao do HOLOS-V1@2). */
+conferir(con.linhas.every(l => l.variacao !== null && /Aplicação histórica sem pacote metodológico V1/.test(l.variacao) && !/[+-]\d/.test(l.variacao)),
   'nenhuma linha inventa "o quanto andou"; todas levam o selo: ' + con.linhas[0].variacao);
 conferir(con.linhas.every(l => /mais baixos:/.test(l.detalhe)),
   'cada linha diz quais sistemas pesaram');

@@ -16,6 +16,7 @@
 import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { criarServidor, ligarPagina } from './supabase-falso.mjs';
+import { semearHistorica } from './holos-aprovado.mjs';
 
 let falhou = false;
 const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
@@ -23,7 +24,7 @@ const titulo = (t) => console.log('\n  ' + t + '\n');
 const esperar = (ms) => new Promise(r => setTimeout(r, ms));
 
 const srv = criarServidor();
-srv.criarConta('a@holo.test', 'senha-a-123');
+const UID_A = srv.criarConta('a@holo.test', 'senha-a-123');
 const nav = await puppeteer.launch({
   executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
   headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
@@ -61,6 +62,16 @@ const P = await A.evaluate(async () => {
 await esperar(300);
 const hoje = await A.evaluate(() => window.hojeISO());
 
+/* Correcao P0 (pos-deploy 6.4): a RPC so grava aplicacao OFICIAL (pacote aprovado, 84 respostas, 5 sistemas). Estas duas
+   aplicacoes (2 respostas, 1 sistema, motor legado) sao HISTORICAS: ja estao no servidor, como o banco real as tem. */
+const appH = (quando, indice, fisico) => ({
+  application: { patient_id: P, quando, versao_estrutura: 1, versao_bancos: 'v', indice, indice_maximo: 100, avaliavel: true, nota_media: 5,
+                 triada: { fisico, mental: 6, espiritual: 7 }, triada_com_dado: { fisico: true, mental: true, espiritual: true }, cobertura: {} },
+  answers: [{ marcador_id: 'M1', valor: 2 }, { marcador_id: 'M2', valor: 1 }],
+  scores: [{ sistema: 'fungico', nome: 'Sistema Fúngico', nota: indice / 10, carga: 1, faixa: 'baixo', obtido: 1, maximo: 3, respondidos: 2, total_marcadores: 2, avaliavel: true }]
+});
+semearHistorica(srv, UID_A, appH('2026-06-01', 40, 3));
+semearHistorica(srv, UID_A, appH('2026-09-01', 60, 5));
 /* dados no SERVIDOR, gravados pelos caminhos reais (RPC e tabelas sob RLS) */
 await A.evaluate(async (pid, hoje) => {
   const sb = window.supabaseClient;
@@ -72,8 +83,7 @@ await A.evaluate(async (pid, hoje) => {
     scores: [{ sistema: 'fungico', nome: 'Sistema Fúngico', nota: indice / 10, carga: 1, faixa: 'baixo', obtido: 1,
                maximo: 3, respondidos: 2, total_marcadores: 2, avaliavel: true }]
   });
-  await sb.rpc('salvar_holoscan_completo', { payload: app('2026-06-01', 40, 3) });
-  await sb.rpc('salvar_holoscan_completo', { payload: app('2026-09-01', 60, 5) });
+  void app;   // as 2 aplicacoes HOLOSCAN (historicas) ja estao no servidor: semeadas antes (ver abaixo do comentario P0)
   await sb.rpc('salvar_coleta_exames', { payload: {
     collection: { patient_id: pid, coletado_em: '2026-08-20', data_coleta_desconhecida: false },
     results: [{ exame_id: 'EXA-001', valor: 95, unidade_no_momento: 'mg/dL', ideal_min_no_momento: 70,

@@ -31,8 +31,9 @@
    voltar depois nao perde nada — 15 minutos de consulta nao podem ir embora
    por um clique errado.
 
-   Ao calcular, quem pontua e o motor: HOLOSCAN.calcular() devolve indice,
-   notas, Triada e combinacoes. Esta tela nao decide nada.
+   Ao calcular, quem pontua e o motor OFICIAL (MotorMetodologico, modo
+   oficial, pacote HOLOS-V1 aprovado e vigente) via HoloscanOficial. Esta tela
+   nao decide nada e nao tem fallback para o motor legado.
    =========================================================================== */
 
 (function () {
@@ -270,40 +271,65 @@
         }
       } else if (acao.dataset.acao === "calcular") {
         calcular();
+      } else if (acao.dataset.acao === "tentar-novamente") {
+        tentarNovamente();
       }
     });
   }
 
-  /* ---------- calcular: daqui em diante quem manda e o motor ------------- */
+  /* ---------- calcular: daqui em diante quem manda e o motor OFICIAL ------
+
+     Correcao P0 (pos-deploy 6.4): o mapa sai do MotorMetodologico em modo
+     oficial sobre o HOLOS-V1@2 aprovado e vigente (HoloscanOficial), nunca do
+     motor legado. Exames, ferramentas e Panorama nao entram no calculo. Sem
+     pacote oficial carregado nao ha mapa: aparece o motivo e o botao "Tentar
+     novamente" (recarrega o pacote; as respostas continuam guardadas). O
+     motor legado so responde no modo de homologacao (?homologacao=1), com
+     selo, e esse resultado nunca e salvo. */
+  function modoHomologacao() {
+    return !!(window.Metodologia && window.Metodologia.modoHomologacao && window.Metodologia.modoHomologacao());
+  }
+  /* Sem cliente Supabase (modo local de desenvolvimento: a biblioteca nao carregou, nao ha conta nem servidor)
+     nao existe pacote aprovado para carregar NEM aplicacao oficial para gravar: o motor legado responde, com
+     o selo de homologacao, e nada disso vai para o servidor. Em producao (com Supabase) so o motor oficial. */
+  function semServidor() { return !window.supabaseClient; }
 
   function calcular() {
     var dadas = respostasValidas();
-    var respostas = Object.keys(dadas).map(function (id) {
-      return { marcador_id: id, intensidade: dadas[id] };
-    });
-    if (respostas.length === 0) {
+    var ids = Object.keys(dadas);
+    if (ids.length === 0) {
       mostrarAviso("Responda ao menos uma pergunta para gerar o mapa.");
       return;
     }
-    if (perguntas && respostas.length < perguntas.length) {
-      var faltam = perguntas.length - respostas.length;
+    if (perguntas && ids.length < perguntas.length) {
+      var faltam = perguntas.length - ids.length;
       if (!confirm("Faltam " + faltam + " de " + perguntas.length +
           " perguntas. Gerar o mapa mesmo assim?")) return;
     }
 
-    /* O que o paciente tem alem do questionario: exames lancados e o que as
-       ferramentas mediram. Nao muda nota nenhuma — serve para as combinacoes
-       poderem cruzar relato com exame, que e a leitura sistemica do metodo. */
-    var contexto = {};
-    try {
-      if (window.Panorama && window.Panorama.contexto) contexto = window.Panorama.contexto();
-    } catch (e) { /* sem contexto o mapa sai igual, so com menos cruzamento */ }
-
+    var O = window.HoloscanOficial;
     var r;
-    try {
-      r = window.HOLOSCAN.calcular(respostas, contexto);
-    } catch (e) {
-      mostrarAviso("O motor recusou as respostas: " + e.message);
+    if (O && O.disponivel()) {
+      try {
+        r = O.calcular(dadas, { patient_id: pacienteAtual() === SEM_PACIENTE ? null : pacienteAtual() });
+      } catch (e) {
+        if (e && e.codigo === "sem_pacote_oficial") { mostrarSemPacote(e); return; }
+        mostrarAviso("O motor oficial recusou as respostas: " + (e && e.message ? e.message : e));
+        return;
+      }
+    } else if ((modoHomologacao() || semServidor()) && window.HOLOSCAN && window.HOLOSCAN.calcular) {
+      /* so revisao tecnica (?homologacao=1) ou modo local sem servidor: motor legado, sem contexto,
+         marcado como homologacao (nunca salvo como aplicacao oficial) */
+      try {
+        r = window.HOLOSCAN.calcular(ids.map(function (id) { return { marcador_id: id, intensidade: dadas[id] }; }), {});
+      } catch (e) {
+        mostrarAviso("O motor recusou as respostas: " + e.message);
+        return;
+      }
+      r.homologacao_legado = true;
+      r.combinacoes = [];
+    } else {
+      mostrarSemPacote(O ? { motivos: O.motivos() } : null);
       return;
     }
 
@@ -315,6 +341,30 @@
     window.aplicarPontuacao(r);
     var radar = document.querySelector("#secao-holoscan #radar-svg");
     if (radar) radar.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  function mostrarSemPacote(e) {
+    var alvo = document.getElementById("q-resultado");
+    if (!alvo) return;
+    var msg = window.HoloscanOficial ? window.HoloscanOficial.MSG_SEM_PACOTE
+      : "Não foi possível carregar o pacote metodológico oficial vigente. O mapa não pode ser gerado nem salvo.";
+    var motivos = e && e.motivos && e.motivos.length ? e.motivos : [];
+    alvo.innerHTML = '<div class="q-erro q-sem-pacote" id="q-sem-pacote"><p>' + escapar(msg) + "</p>" +
+      (motivos.length ? '<p class="q-motivos">' + motivos.map(escapar).join("; ") + "</p>" : "") +
+      "<p>Suas respostas continuam guardadas neste aparelho. Verifique a conexão e tente novamente.</p>" +
+      '<button type="button" class="btn-verde" data-acao="tentar-novamente">Tentar novamente</button></div>';
+  }
+
+  function tentarNovamente() {
+    var O = window.HoloscanOficial;
+    var alvo = document.getElementById("q-resultado");
+    if (alvo) alvo.innerHTML = '<p class="q-aviso">Carregando o pacote metodológico oficial…</p>';
+    if (!O) { mostrarSemPacote(null); return Promise.resolve(false); }
+    return O.recarregar().then(function (ok) {
+      if (ok) { if (alvo) alvo.innerHTML = ""; calcular(); }
+      else mostrarSemPacote({ motivos: O.motivos() });
+      return ok;
+    });
   }
 
   function mostrarAviso(txt) {

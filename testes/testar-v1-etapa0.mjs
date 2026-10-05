@@ -33,6 +33,7 @@ import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { readFileSync, readdirSync } from 'node:fs';
 import { criarServidor, ligarPagina } from './supabase-falso.mjs';
+import { semearHolosAprovado } from './holos-aprovado.mjs';
 
 let falhou = false;
 const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
@@ -66,7 +67,7 @@ ok(!/aprovado/.test(ler('motor/bancos/sintomas.csv')) && !/aprovado/.test(ler('m
 // navegador + conta
 /* ==================================================================== */
 const srv = criarServidor();
-srv.criarConta('e0@holo.test', 'senha-e0-123');
+const UID_E0 = srv.criarConta('e0@holo.test', 'senha-e0-123');
 const nav = await puppeteer.launch({
   executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
   headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
@@ -142,7 +143,7 @@ const parcial = await p.evaluate(async (pid) => {
   const n = window.HoloAusencia.normalizar(r);
   const mee = n.sistemas.find(s => s.sistema === 'mental_emocional_espiritual');
   const fis = r.sistemas.find(s => s.sistema === 'fungico');
-  // mesmo caso pela tela: responde no questionario e gera o mapa
+  // mesmo caso pela tela: responde no questionario e tenta gerar o mapa — SEM pacote aprovado (correcao P0)
   document.querySelector('.nav-item[data-secao="holoscan"]').click();
   document.getElementById('btn-abrir-questionario').click();
   await new Promise(x => setTimeout(x, 200));
@@ -150,24 +151,35 @@ const parcial = await p.evaluate(async (pid) => {
   itens.slice(0, 30).forEach((it, i) => it.querySelectorAll('.q-btn')[i === 0 ? 0 : 2].click());
   document.querySelector('[data-acao="calcular"]').click();
   await new Promise(x => setTimeout(x, 400));
-  const prio = document.getElementById('holo-prioridades').innerText;
-  const tri = document.getElementById('holo-triada').innerText;
-  const indice = document.getElementById('holo-interpretacao').innerText;
   return {
     meeNota: mee.nota, meeAval: mee.avaliavel, triMental: n.triada.mental, triFis: typeof n.triada.fisico,
     cobertura: r.cobertura, zeroConta: fis.respondidos,
-    prio, tri, indice,
+    semPacote: (document.getElementById('q-sem-pacote') || {}).innerText || '', mapa: window.ultimaPontuacao(pid),
   };
 }, A);
 ok(parcial.meeAval === false && parcial.meeNota === null && parcial.triMental === null && parcial.triFis === 'number',
-   '2: sistema sem resposta -> nota null, avaliavel false; eixo sem resposta -> null');
+   '2: (motor legado, so modulo) sistema sem resposta -> nota null, avaliavel false; eixo sem resposta -> null');
 ok(parcial.zeroConta > 0 && parcial.cobertura.respondidos === 30 && parcial.cobertura.total === 84 && parcial.cobertura.percentual === 36,
    '3/4: resposta 0 conta como respondida; cobertura bruta 30 de 84 (36%) guardada');
-ok(/em homologação/i.test(parcial.prio) && /em homologação/i.test(parcial.tri) && /em homologação/i.test(parcial.indice),
-   '5: prioridades, Triade e Indice levam o selo "em homologacao" na tela');
-ok(!/dados insuficientes/i.test(parcial.prio), '5: nenhum rotulo "dados insuficientes" (corte removido, nada no lugar)');
+/* Correcao P0 (pos-deploy 6.4, mudanca de contrato documentada): antes, sem pacote aprovado, a tela calculava pelo motor
+   legado com o selo "em homologacao" e SALVAVA. Agora, com conta e sem pacote aprovado e vigente, nao ha mapa: mensagem clara
+   + "Tentar novamente"; nada e calculado pelo legado nem salvo. Com o HOLOS-V1 aprovado, o mapa e o OFICIAL. */
+ok(/pacote metodológico oficial vigente/.test(parcial.semPacote) && /Tentar novamente/i.test(parcial.semPacote) && !parcial.mapa,
+   '5 (P0): sem pacote aprovado nao ha mapa — mensagem clara e "Tentar novamente"; nenhum mapa legado');
+semearHolosAprovado(srv, UID_E0);
+const oficial = await p.evaluate(async (pid) => {
+  document.querySelector('[data-acao="tentar-novamente"]').click();
+  await new Promise(x => setTimeout(x, 800));
+  return { prio: document.getElementById('holo-prioridades').innerText, tri: document.getElementById('holo-triada').innerText,
+    indice: document.getElementById('holo-interpretacao').innerText, total: document.getElementById('holo-score-total').textContent, u: window.ultimaPontuacao(pid) };
+}, A);
+ok(oficial.u && oficial.u.oficial === true && oficial.u.cobertura.respondidos === 30 && oficial.u.indice === null && oficial.total === '—',
+   '4 (P0): com o pacote aprovado, "Tentar novamente" gera o mapa OFICIAL: 30/84, sistemas abaixo de 80% sem nota, Indice "—" (sem Indice parcial)');
+ok(!/em homologação/i.test(oficial.prio + oficial.tri + oficial.indice) && /oficial/.test(oficial.indice),
+   '5 (P0): aplicacao oficial V1 sem o selo "em homologacao"; selo "oficial"');
+ok(/abaixo da cobertura mínima do pacote/.test(oficial.prio), '5 (P0): sistema abaixo da cobertura minima do pacote dito como tal (nao "nenhuma pergunta respondida")');
 
-// salvar: o servidor recebe respostas, cobertura e scores — e as CMB gravadas
+// salvar: o servidor recebe respostas, cobertura e scores — e nenhuma CMB
 await p.evaluate(async () => {
     /* V1 Etapa 1: a aplicacao oficial pertence a um atendimento escolhido */
     if (!window.AtendimentoAtual.atual()) await window.AtendimentoAtual.iniciar({ patient_id: window.pacienteAtivoId(), occurred_at: new Date().toISOString() });
@@ -197,7 +209,9 @@ const rec = await p.evaluate(() => ({
   aviso: (document.getElementById('holo-leitura') || {}).innerText || '',
 }));
 ok(rec.total === 23 && rec.aprovadas === 0 && rec.apresentaveis === 0, '23 regras REC, 0 aprovadas, 0 apresentaveis');
-ok(/desativadas/.test(rec.aviso) && !/Sugestões herdadas/.test(rec.aviso), 'a tela diz que as sugestoes estao desativadas e nao lista nenhuma');
+/* Correcao P0: o mapa oficial com 30/84 respostas nao tem sistema avaliavel (cobertura minima 80% do pacote): nao ha leitura do
+   terreno nem "Por onde começar" — a tela nao lista sugestao nenhuma de qualquer forma. */
+ok(!/Sugestões herdadas/.test(rec.aviso) && (/desativadas/.test(rec.aviso) || rec.aviso.trim() === ''), 'a tela nao lista nenhuma sugestao herdada (desativadas; sem sistema avaliavel nao ha leitura)');
 
 /* ==================================================================== */
 titulo('10 — REGUAS MANUAIS FORA DA JORNADA NORMAL');

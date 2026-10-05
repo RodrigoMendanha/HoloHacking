@@ -62,7 +62,7 @@
   var COLS_APP = "id, patient_id, encounter_id, quando, versao_estrutura, versao_bancos, indice, " +
     "indice_maximo, avaliavel, nota_media, triada, triada_com_dado, cobertura, " +
     "combinacoes, aprofundamentos, interpretacao_texto, interpretacao_em, " +
-    "interpretacao_versao, created_at";
+    "interpretacao_versao, created_at, methodology_package_id, methodology_package_version";
   var COLS_SCORE = "application_id, sistema, nome, nota, carga, faixa, obtido, " +
     "maximo, respondidos, total_marcadores, avaliavel";
   var COLS_ANSWER = "application_id, marcador_id, valor";
@@ -234,8 +234,12 @@
       }),
       _supa_id: app.id,
       _supa_criado_em: app.created_at || "",
-      _supa_encounter_id: app.encounter_id || null   // V1 Etapa 3: o atendimento (Evolucao por atendimento)
+      _supa_encounter_id: app.encounter_id || null,  // V1 Etapa 3: o atendimento (Evolucao por atendimento)
+      /* proveniencia metodologica (Etapa 6.0.1 / correcao P0): aplicacao oficial V1 x historica sem pacote */
+      methodology_package_id: app.methodology_package_id || null,
+      methodology_package_version: app.methodology_package_version === undefined ? null : app.methodology_package_version
     };
+    if (e.methodology_package_id) e.oficial = true;
     if (app.interpretacao_texto) {
       e.interpretacao = {
         texto: app.interpretacao_texto,

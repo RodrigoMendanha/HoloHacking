@@ -53,7 +53,7 @@ const COLUNAS = {
   methodology_package_approvals: ['id', 'nutritionist_id', 'package_id', 'package_version', 'content_hash', 'step', 'role', 'responsible', 'justification', 'approved_by', 'approved_at', 'invalidated_at', 'invalidated_reason', 'created_at', 'approver_id'],
   methodology_approvers: ['id', 'user_id', 'scope', 'approval_stage', 'display_name', 'active', 'notes', 'created_at', 'created_by', 'deactivated_at', 'deactivation_reason'],
   schedule_blocks: ['id', 'nutritionist_id', 'data', 'inicio', 'fim', 'dia_todo', 'motivo', 'created_at', 'updated_at'],
-  holoscan_applications: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'quando', 'versao_estrutura', 'versao_bancos', 'indice', 'indice_maximo', 'avaliavel', 'nota_media', 'triada', 'triada_com_dado', 'cobertura', 'combinacoes', 'aprofundamentos', 'interpretacao_texto', 'interpretacao_em', 'interpretacao_versao', 'created_at', 'updated_at', 'methodology_package_id', 'methodology_package_version'],
+  holoscan_applications: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'quando', 'versao_estrutura', 'versao_bancos', 'indice', 'indice_maximo', 'avaliavel', 'nota_media', 'triada', 'triada_com_dado', 'cobertura', 'combinacoes', 'aprofundamentos', 'interpretacao_texto', 'interpretacao_em', 'interpretacao_versao', 'created_at', 'updated_at', 'methodology_package_id', 'methodology_package_version', 'methodology_content_hash', 'engine_version', 'engine_contract_version', 'calculation_mode'],
   holoscan_answers: ['id', 'application_id', 'marcador_id', 'valor', 'created_at'],
   holoscan_system_scores: ['id', 'application_id', 'sistema', 'nome', 'nota', 'carga', 'faixa', 'obtido', 'maximo', 'respondidos', 'total_marcadores', 'avaliavel', 'created_at'],
   // V1 Etapa 5 (migration 20261001220000): coletas/resultados evoluidos + laboratorio + Leitura Integrada
@@ -751,6 +751,10 @@ export function criarServidor() {
         if (p && ['aprovado', 'retirado'].includes(p.status) && s.aprovacaoRpc !== p.id) return erro('conteudo de pacote ' + p.status + ' e imutavel: crie uma nova versao do pacote', 'P0001');
       }
     }
+    /* Correcao P0 (migration 20261005100000): sem policy de INSERT nas tabelas do HOLOSCAN — o unico caminho e a RPC. */
+    if ((q.acao === 'insert' || q.acao === 'upsert') && ['holoscan_applications', 'holoscan_system_scores', 'holoscan_answers'].includes(t)) {
+      return erro('new row violates row-level security policy for table "' + t + '"', '42501');
+    }
     if (q.acao === 'insert' || q.acao === 'upsert') {
       const lista = Array.isArray(q.dados) ? q.dados : [q.dados];
       const novas = [];
@@ -842,6 +846,7 @@ export function criarServidor() {
         // trigger proteger_snapshot_holoscan (+ encounter_id, V1 Etapa 1 ajuste final)
         if (t === 'holoscan_applications') {
           const IMUTAVEIS = ['nutritionist_id', 'patient_id', 'encounter_id', 'methodology_package_id', 'methodology_package_version', 'quando', 'versao_estrutura', 'versao_bancos',
+            'methodology_content_hash', 'engine_version', 'engine_contract_version', 'calculation_mode',
             'indice', 'indice_maximo', 'avaliavel', 'nota_media', 'triada', 'triada_com_dado', 'cobertura', 'combinacoes', 'aprofundamentos'];
           const mudou = IMUTAVEIS.find(c => c in q.dados && JSON.stringify(q.dados[c] === undefined ? null : q.dados[c]) !== JSON.stringify(l[c] === undefined ? null : l[c]));
           if (mudou) return erro('campos historicos do snapshot HOLOSCAN sao imutaveis (inclusive o atendimento, encounter_id); somente interpretacao_texto, interpretacao_em e interpretacao_versao podem ser alterados', 'P0001');
@@ -903,10 +908,47 @@ export function criarServidor() {
     if (nome === 'salvar_holoscan_completo') {
       if (!p || !p.application || !p.answers || !p.scores) return erro('payload incompleto', 'P0001');
       const a = p.application;
-      // Etapa 6.0.1: proveniencia metodologica so declarada e validada; nunca inferida; imutavel depois
+      /* Correcao P0 (migration 20261005100000): so aplicacao OFICIAL. Nivel 1 (proveniencia) e nivel 2
+         (conferencia estrutural, so contagem) como a RPC real; o recalculo do hash do conteudo
+         (metodologia_hash_conteudo) fica provado no harness SQL — aqui confere-se o hash homologado. */
       const mpId = a.methodology_package_id || null, mpVer = a.methodology_package_version == null ? null : Number(a.methodology_package_version);
-      if ((mpId === null) !== (mpVer === null)) return erro('proveniencia metodologica incompleta: informe methodology_package_id E methodology_package_version, ou nenhum', 'P0001');
-      if (mpId) { const mp = s.tabelas.methodology_packages.find(x => x.id === mpId); if (!mp) return erro('pacote metodologico ' + mpId + ' nao existe', 'P0002'); if (mp.version !== mpVer) return erro('versao declarada (' + mpVer + ') nao e a versao do pacote (' + mp.version + ')', 'P0001'); }
+      const recusa = (m, hint) => ({ data: null, error: { message: m, code: 'P0001', hint, details: null } });
+      if (!mpId || mpVer === null) return recusa('proveniencia metodologica obrigatoria: aplicacao HOLOSCAN nova exige o pacote metodologico oficial (id e versao)', 'proveniencia_obrigatoria');
+      if (a.calculation_mode !== 'oficial') return recusa('resultado oficial obrigatorio: calculation_mode deve ser oficial', 'modo_nao_oficial');
+      if (a.engine_contract_version !== 'holoscan-motor-contrato-v1' || !a.engine_version) return recusa('resultado oficial obrigatorio: motor ou contrato do motor desconhecido', 'motor_desconhecido');
+      if (!a.encounter_id) return recusa('aplicacao oficial exige atendimento (encounter_id)', 'sem_atendimento');
+      const mp = s.tabelas.methodology_packages.find(x => x.id === mpId);
+      if (!mp) return { data: null, error: { message: 'pacote metodologico ' + mpId + ' nao existe', code: 'P0002', hint: 'pacote_inexistente' } };
+      if (mp.version !== mpVer) return recusa('versao declarada (' + mpVer + ') nao e a versao do pacote (' + mp.version + ')', 'proveniencia_incoerente');
+      if (mp.status !== 'aprovado') return recusa('pacote metodologico nao aprovado (status ' + mp.status + '): nao produz aplicacao oficial', 'pacote_nao_aprovado');
+      if (!a.quando || !mp.effective_from || mp.effective_from > a.quando || (mp.effective_to && mp.effective_to < a.quando)) return recusa('pacote metodologico nao vigente em ' + a.quando, 'pacote_nao_vigente');
+      if (!a.methodology_content_hash || !mp.content_hash || a.methodology_content_hash !== mp.content_hash) return recusa('hash do pacote metodologico divergente do homologado', 'hash_divergente');
+      const perg = s.tabelas.methodology_questions.filter(x => x.package_id === mpId);
+      const esc = s.tabelas.methodology_scales.filter(x => x.package_id === mpId);
+      const sist = s.tabelas.methodology_systems.filter(x => x.package_id === mpId).map(x => x.code);
+      const prim = s.tabelas.methodology_associations.filter(x => x.package_id === mpId && x.destination_type === 'system' && x.role === 'primaria');
+      if (!p.answers.length) return recusa('resultado oficial sem respostas', 'sem_respostas');
+      if (new Set(p.answers.map(r => r.marcador_id)).size !== p.answers.length) return recusa('resposta duplicada para a mesma pergunta', 'resposta_duplicada');
+      for (const r of p.answers) {
+        const q = perg.find(x => x.stable_id === r.marcador_id), e = q && esc.find(x => x.code === q.scale_code);
+        if (!e || typeof r.valor !== 'number' || !Number.isInteger(r.valor) || r.valor < e.min_value || r.valor > e.max_value) return recusa('resposta fora do pacote metodologico ou fora da escala do item', 'resposta_invalida');
+      }
+      if (!a.cobertura || a.cobertura.respondidos !== p.answers.length || a.cobertura.total !== perg.length) return recusa('contagem de cobertura divergente das respostas enviadas', 'contagem_divergente');
+      if (p.scores.length !== sist.length || new Set(p.scores.map(x => x.sistema).filter(c => sist.includes(c))).size !== sist.length) return recusa('as notas devem cobrir exatamente os sistemas do pacote metodologico', 'sistemas_divergentes');
+      const respondidas = new Set(p.answers.map(r => r.marcador_id));
+      for (const sc of p.scores) {
+        const meus = prim.filter(x => x.destination_id === sc.sistema);
+        if (sc.respondidos !== meus.filter(x => respondidas.has(x.question_stable_id)).length || sc.total_marcadores !== meus.length) return recusa('contagem do sistema ' + sc.sistema + ' divergente dos vinculos primarios do pacote (vinculo secundario nao pontua)', 'contagem_divergente');
+        if (typeof sc.avaliavel !== 'boolean') return recusa('sistema sem indicacao de avaliabilidade', 'nota_incoerente');
+        if (sc.avaliavel) {
+          if (typeof sc.nota !== 'number' || sc.nota < 0 || sc.nota > 10 || !sc.faixa) return recusa('sistema ' + sc.sistema + ' avaliavel sem nota 0..10 ou sem faixa', 'nota_incoerente');
+          if (!s.tabelas.methodology_ranges.some(f => f.package_id === mpId && f.destination_type === 'system' && f.destination_id === sc.sistema && f.label === sc.faixa)) return recusa('faixa ' + sc.faixa + ' do sistema ' + sc.sistema + ' nao e uma faixa do pacote metodologico', 'faixa_fora_do_pacote');
+        } else if (sc.nota !== null && sc.nota !== undefined || sc.faixa !== null && sc.faixa !== undefined) return recusa('sistema ' + sc.sistema + ' nao avaliavel nao tem nota nem faixa (ausencia nao e zero)', 'nota_incoerente');
+      }
+      const todos = p.scores.every(x => x.avaliavel);
+      if ((a.indice === null || a.indice === undefined) === todos) return recusa('o Indice HOLOS existe se, e somente se, os sistemas forem todos avaliaveis (sem Indice parcial)', 'indice_incoerente');
+      if ((a.indice === null || a.indice === undefined) !== (a.nota_media === null || a.nota_media === undefined)) return recusa('nota_media acompanha o Indice (nula quando o Indice e nulo)', 'indice_incoerente');
+      if ((a.combinacoes || []).length || (a.aprofundamentos || []).length) return recusa('combinacoes e aprofundamentos nao fazem parte do pacote homologado: a aplicacao oficial os grava vazios', 'saida_nao_homologada');
       // rodada 08: eixo sem dado grava null, como a RPC real
       const triadaNorm = {};
       Object.keys(a.triada || {}).forEach(k => {
@@ -921,7 +963,9 @@ export function criarServidor() {
         interpretacao_texto: a.interpretacao_texto || null,
         interpretacao_em: a.interpretacao_em || null,
         interpretacao_versao: a.interpretacao_versao || null,
-        methodology_package_id: mpId, methodology_package_version: mpVer
+        methodology_package_id: mpId, methodology_package_version: mpVer,
+        methodology_content_hash: a.methodology_content_hash, engine_version: a.engine_version,
+        engine_contract_version: a.engine_contract_version, calculation_mode: 'oficial'
       }, uid);
       const e = checarLinha('holoscan_applications', app, uid);
       if (e) return e;

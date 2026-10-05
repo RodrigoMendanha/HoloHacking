@@ -11,13 +11,17 @@
 import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { criarServidor, ligarPagina } from './supabase-falso.mjs';
+import { semearHolosAprovado } from './holos-aprovado.mjs';
 
 let falhou = false;
 const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
 const titulo = (t) => console.log('\n  ' + t + '\n');
 const esperar = (ms) => new Promise(r => setTimeout(r, ms));
 const srv = criarServidor();
-srv.criarConta('a@holo.test', 'senha-a-123');
+const UID_A = srv.criarConta('a@holo.test', 'senha-a-123');
+/* Correcao P0 (pos-deploy 6.4): o HOLOSCAN so e calculado/gravado como aplicacao OFICIAL, sobre o pacote aprovado e vigente —
+   como em producao, o servidor tem o HOLOS-V1 aprovado (fixture pelo caminho real). */
+semearHolosAprovado(srv, UID_A);
 const nav = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const errosJS = [];
 const ctx = await nav.createBrowserContext();
@@ -201,7 +205,9 @@ const liCalc = await A.evaluate(async () => {
   return { doms, estados: [...r.querySelectorAll('.li-estado')].map(e => e.textContent), texto: r.querySelector('#li-resultado').innerText, trace: r.querySelector('#li-resultado pre').textContent, semConfronto: r.querySelectorAll('.li-dominio-sem-confronto').length };
 });
 ok(liCalc.doms.join(',') === 'LI-D01,LI-D02,LI-D03,LI-D04,LI-D05,LI-D06,LI-D07' && liCalc.estados.length === 4 && liCalc.estados.every(e => e === 'Sem dados suficientes') && liCalc.semConfronto === 3, 'HOLOSCAN + 4 coletas: 7 dominios na tela; D01-D04 sem dados suficientes (fonte HOLOSCAN sem pacote V1); D05-D07 sem confronto — nenhum "um exame fora = convergente"');
-ok(/incompatible_holoscan_version/.test(liCalc.texto) && /não foi calculada com o pacote metodológico homologado/.test(liCalc.texto) && /não possui confronto automático com um sistema HOLOSCAN/.test(liCalc.texto) && !/missing_domain_holoscan_mapping/.test(liCalc.texto), 'motivos traduzidos para humano; D05-D07 com texto neutro (nunca missing_domain_holoscan_mapping)');
+/* Correcao P0 (pos-deploy 6.4, mudanca de contrato documentada): o HOLOSCAN salvo pela tela agora e OFICIAL (HOLOS-V1 aprovado,
+   com proveniencia) — deixa de ser "incompatible_holoscan_version" (isso fica para as aplicacoes historicas sem pacote V1). */
+ok(!/incompatible_holoscan_version/.test(liCalc.texto) && /não possui confronto automático com um sistema HOLOSCAN/.test(liCalc.texto) && !/missing_domain_holoscan_mapping/.test(liCalc.texto), 'motivos traduzidos para humano; aplicacao oficial nao e "versao incompativel"; D05-D07 com texto neutro (nunca missing_domain_holoscan_mapping)');
 ok(/"temporal_rule_code": "LI-TEMP-01"/.test(liCalc.trace) && /"application_id"/.test(liCalc.trace) && /"selected_collection_ids"/.test(liCalc.trace) && /"engine_version"/.test(liCalc.trace), 'snapshot explicavel na tela (LI-TEMP-01, aplicacao, coletas, motor)');
 await A.evaluate(async () => { const r = document.getElementById('aba-holoscan-laboratorial'); r.querySelector('#li-responsavel').value = 'Profissional X'; r.querySelector('#li-nota').value = 'nota'; r.querySelector('[data-li-salvar="LI-D01"]').click(); for (let i = 0; i < 40 && !document.querySelector('#aba-holoscan-laboratorial .dash-pendentes'); i++) await new Promise(x => setTimeout(x, 100)); })
 const lr = srv.linhas('integrated_readings');

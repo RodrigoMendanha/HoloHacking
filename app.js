@@ -2349,7 +2349,7 @@
     // uma segunda copia da regra. O "x 2" so vale enquanto os pesos forem 0,20
     // e o maximo 100; se o Rodrigo mudar um peso, a tela mentiria calada.
     // com a Pontuacao pronta, o indice e o dela; sem ela, pede ao motor
-    const total = pronta ? pronta.indice : indiceDoMotor(scores);
+    const total = pronta ? window.HoloAusencia.indiceTexto(pronta) : indiceDoMotor(scores);
 
     /* Paciente sem mapa nenhum mostrava "0 de 100" — que numa escala onde 100
        e o melhor se le como o pior resultado possivel. Quem acabou de ser
@@ -2370,9 +2370,10 @@
           ? "Aplique o questionário ou pontue os cinco sistemas à mão para gerar a leitura."
           : "Aplique o questionário para gerar a leitura.")
       : "O Índice HOLOS resume as respostas deste mapa e não representa percentual de saúde.";
-    /* Etapa 0 da V1: o Indice usa pesos (0,20) que o Mestre nao adota como
-       decisao final (§16). A frase ganha o selo "em homologacao". */
-    $("#holo-interpretacao").innerHTML = escapar(msg) + (semMapa || !M ? "" : " " + M.selo());
+    /* Correcao P0: o selo diz a proveniencia DESTE mapa (oficial V1, historica
+       sem pacote V1 ou homologacao), nao "em homologacao" para tudo. Pontuacao
+       manual pelas reguas (sem Pontuacao) continua com o selo de homologacao. */
+    $("#holo-interpretacao").innerHTML = escapar(msg) + (semMapa || !M ? "" : " " + (pronta ? M.seloAplicacao(pronta) : M.selo()));
     lerTerreno(scores, pronta);
   }
 
@@ -2801,7 +2802,8 @@
     const legivel = (i) => !pronta || window.HoloAusencia.suficiente(
       (pronta.sistemas || []).find(x => x.sistema === ORDEM_MOTOR[i]));
     const ordem = sistemas
-      .map((s, i) => ({ chave: s, nota: scores[i], dado: terreno()[s], ok: legivel(i) }))
+      .map((s, i) => ({ chave: s, nota: scores[i], dado: terreno()[s], ok: legivel(i),
+                        texto: pronta ? window.HoloAusencia.notaTexto((pronta.sistemas || []).find(x => x.sistema === ORDEM_MOTOR[i])) : scores[i].toFixed(1) }))
       .filter(x => x.ok)
       .sort((a, b) => a.nota - b.nota);
     /* Empate entre sistemas continua sendo resolvido pela ordem do array —
@@ -2817,7 +2819,7 @@
          quem le precisa saber que aquilo ainda nao passou pelo autor. */
       html += '<div class="leitura-sistema">'
             + '<div class="leitura-cabeca"><b>' + c.dado.nome + '</b>'
-            + '<span class="leitura-nota">' + c.nota.toFixed(1) + '</span></div>'
+            + '<span class="leitura-nota">' + c.texto + '</span></div>'
             + (c.dado.definicao
                 ? '<p class="leitura-definicao">' + c.dado.definicao
                   + (c.dado.rascunho ? '<i>definição em revisão</i>' : "") + '</p>'
@@ -3000,7 +3002,7 @@
     /* calculado_em: o instante do calculo. E o que permite a sincronizacao
        (sincronizacao.js) saber se esta entrada, ainda sem identidade remota,
        e mais nova do que a aplicacao do mesmo dia que o servidor ja tem. */
-    const nova = Object.assign({}, window.HoloAusencia.normalizar(r), { quando: hoje, versao_estrutura: 2,
+    const nova = Object.assign({}, window.HoloAusencia.normalizar(r), { quando: hoje, versao_estrutura: r.versao_estrutura || 2,
                                          calculado_em: new Date().toISOString() });
     delete nova._supa_id;
     delete nova._supa_criado_em;
@@ -3155,19 +3157,20 @@
       el.disabled = true;                       // virou resultado, nao entrada
       el.closest(".holo-card").classList.add("calculado");
       el.closest(".holo-card").classList.toggle("sem-dado", !!vazio);
-      $("#val-" + s).textContent = vazio ? "—" : notas[i].toFixed(1);
+      $("#val-" + s).textContent = vazio ? "—"
+        : window.HoloAusencia.notaTexto(r.sistemas.find(x => x.sistema === ORDEM_MOTOR[i]));
     });
 
     updateRadar(notas, r);                      // desenha com o decimal, nao com o arredondado
     desenharPrioridades(r);
     desenharDominantes(r);
-    desenharTriada(r.triada, r.triada_com_dado);
+    desenharTriada(r.triada, r.triada_com_dado, r.triada_exibicao);
     desenharFrequencias(r.frequencias);
     desenharTerritorios(r.territorios);
     if(window.desenharHoloscan) window.desenharHoloscan("holo-confronto");
     if(window.redesenharEvolucao) window.redesenharEvolucao();
 
-    $("#holo-score-total").textContent = r.indice;
+    $("#holo-score-total").textContent = window.HoloAusencia.indiceTexto(r);
 
     const faltando = r.sistemas.filter(s => !s.avaliavel).map(s => s.nome);
     /* `cobertura` pode faltar num snapshot guardado antes de o motor ter esse
@@ -3189,14 +3192,17 @@
           + "questionário.</span>")
       + (temPercentual && cob.percentual < 100
           ? ' &middot; <b class="holo-parcial">questionário incompleto ('
-            + cob.percentual + '%)</b>'
+            + (cob.percentual_exibicao || (cob.percentual + "%")) + ')</b>'
           : "")
       + (window.Metodologia && window.Metodologia.modoHomologacao()
           ? ' &middot; <button type="button" class="btn-relink" id="btn-repontuar">pontuar à mão</button>'
           : "")
       + (faltando.length
-          ? '<span class="holo-sem-dado">Sem resposta nenhuma em: ' + faltando.join(", ")
-            + '. Estes sistemas ficaram fora do Índice.</span>'
+          ? (r.oficial
+              ? '<span class="holo-sem-dado">Dados insuficientes (abaixo da cobertura mínima do pacote) em: '
+                + faltando.join(", ") + '. Sem os cinco sistemas avaliáveis o Índice HOLOS não é calculado.</span>'
+              : '<span class="holo-sem-dado">Sem resposta nenhuma em: ' + faltando.join(", ")
+                + '. Estes sistemas ficaram fora do Índice.</span>')
           : "");
 
     const rel = $("#btn-repontuar");
@@ -3282,8 +3288,12 @@
       // s.respondidos/total_marcadores podem faltar num snapshot bem antigo,
       // salvo antes desses campos existirem no motor — nao inventa numero.
       const temContagem = typeof s.respondidos === "number" && typeof s.total_marcadores === "number";
+      /* Correcao P0: no resultado oficial, "sem nota" com respostas = abaixo da cobertura minima do
+         pacote (nao "nenhuma pergunta respondida"). */
       const cobertura = semDado
-        ? "nenhuma pergunta respondida"
+        ? (temContagem && s.respondidos > 0
+            ? s.respondidos + " de " + s.total_marcadores + " respondidas · abaixo da cobertura mínima do pacote: sem nota"
+            : "nenhuma pergunta respondida")
         : temContagem ? s.respondidos + " de " + s.total_marcadores + " respondidas" : "";
       const conta = [cobertura,
         insuficiente ? '<b class="dados-insuficientes">dados insuficientes</b>' : "",
@@ -3296,14 +3306,14 @@
            + '<span class="prio-nome">' + s.nome
              + '<i>Área do mapa. Investigar com mais profundidade na consulta.</i></span>'
            + '<span class="prio-conta">' + conta + '</span>'
-           + '<span class="prio-nota">' + (semDado ? "—" : s.nota.toFixed(1)) + '</span>'
+           + '<span class="prio-nota">' + (semDado ? "—" : window.HoloAusencia.notaTexto(s)) + '</span>'
            + '</li>';
     }).join("");
     /* Etapa 0 da V1: toda nota/faixa/ordem desta lista vem de bancos em
        rascunho (perguntas, pesos, faixas). O selo diz isso uma vez, aqui no
        topo do mapa (window.Metodologia). */
     const M = window.Metodologia;
-    caixa.innerHTML = (M ? M.avisoHtml() : "") + '<ul class="prio-lista">' + linhas + '</ul>';
+    caixa.innerHTML = (M ? M.avisoAplicacaoHtml(r) : "") + '<ul class="prio-lista">' + linhas + '</ul>';
   }
 
   function desenharDominantes(r){
@@ -3324,7 +3334,7 @@
     caixa.classList.remove("hidden");
   }
 
-  function desenharTriada(triada, comDado){
+  function desenharTriada(triada, comDado, exibicao){
     const caixa = $("#holo-triada");
     if(!caixa) return;
     if(!triada){ caixa.classList.add("hidden"); caixa.innerHTML = ""; return; }
@@ -3380,7 +3390,7 @@
 
     caixa.innerHTML =
       '<h4 class="leitura-titulo">Tríade HOLOS '
-      + (window.Metodologia ? window.Metodologia.selo() : "") + '</h4>'
+      + (window.Metodologia ? window.Metodologia.seloAplicacao(pontuacaoNaTela) : "") + '</h4>'
       + '<div class="triada-corpo">'
       +   '<svg viewBox="0 0 ' + L + ' ' + L + '" width="' + L + '" height="' + L + '" '
       +   'class="triada-grafico" aria-hidden="true">' + svg + "</svg>"
@@ -3389,7 +3399,7 @@
             '<div class="triada-eixo' + (i === menor ? " menor" : "")
               + (temDado(i) ? "" : " sem-dado") + '">'
             + '<span class="triada-nota">'
-            + (temDado(i) ? valores[i].toFixed(1) : "—") + "</span>"
+            + (temDado(i) ? (exibicao && exibicao[e[0]] ? exibicao[e[0]] : window.HoloAusencia.fmt(valores[i])) : "—") + "</span>"
             + "<b>" + e[1] + "</b><span class=\"triada-sub\">"
             + (temDado(i) ? e[2] : "sem resposta") + "</span></div>").join("")
       /* A frase dizia: "Dimensao mais baixa: X. E por onde a conduta comeca."
@@ -3544,69 +3554,36 @@
     if (temSupa && pontuacaoNaTela) {
       const r = pontuacaoNaTela;
       const hoje = hojeISO();
+      const O = window.HoloscanOficial;
 
-      var respostasRaw = [];
-      try {
-        var qDados = JSON.parse(localStorage.getItem("holohacking.questionario")) || {};
-        var qPac = qDados[p.id] || {};
-        respostasRaw = Object.keys(qPac).map(function(mid) {
-          return { marcador_id: mid, valor: qPac[mid] };
-        });
-      } catch(e) { /* sem respostas brutas, segue com array vazio */ }
-
-      var notasSoma = 0, notasN = 0;
-      r.sistemas.forEach(function(s) {
-        if (s.avaliavel) { notasSoma += s.nota; notasN++; }
-      });
-      var notaMedia = notasN > 0 ? notasSoma / notasN : 0;
+      /* Correcao P0 (pos-deploy 6.4): so se grava resultado OFICIAL, calculado
+         pelo MotorMetodologico sobre o pacote aprovado e vigente. Nunca
+         resultado do motor legado com carimbo V1@2; nunca aplicacao nova sem
+         proveniencia; sem fallback silencioso. */
+      if (r.homologacao_legado) {
+        toast("Este mapa foi calculado no modo de homologação (motor legado) e não é salvo como aplicação oficial.");
+        return;
+      }
+      const pacoteVigente = O ? O.pacote(hoje) : null;
+      if (!O || !pacoteVigente) {
+        toast(O ? O.MSG_SEM_PACOTE : "Não foi possível carregar o pacote metodológico oficial vigente. A aplicação não pode ser salva.");
+        return;
+      }
+      if (r.oficial !== true || r.methodology_package_id !== pacoteVigente.id ||
+          r.methodology_package_version !== pacoteVigente.version ||
+          (r.methodology_content_hash || null) !== (pacoteVigente.content_hash || null)) {
+        toast("Este mapa não foi calculado com o pacote metodológico oficial vigente. Gere o mapa de novo pelo questionário para salvar.");
+        return;
+      }
 
       var interp = window.interpretacaoDe ? window.interpretacaoDe(hoje, p.id) : null;
-
-      /* Etapa 6.0.1: proveniencia metodologica DECLARADA. So quando existe um pacote aprovado e vigente
-         (Metodologia.pacote()); caso contrario fica nula e permanece nula para sempre (sem backfill, sem
-         inferencia por data/faixa/respostas) — docs/v1/laboratorio/POLITICA-COMPATIBILIDADE-APLICACOES-HISTORICAS-HOLOSCAN-LI.md */
-      var pacoteOficial = window.Metodologia && window.Metodologia.pacote ? window.Metodologia.pacote() : null;
-      var payload = {
-        application: {
-          patient_id: p.id,
-          encounter_id: atendimento.id,
-          methodology_package_id: pacoteOficial ? pacoteOficial.id : null,
-          methodology_package_version: pacoteOficial ? pacoteOficial.version : null,
-          quando: hoje,
-          versao_estrutura: r.versao_estrutura || 2,
-          versao_bancos: r.versao_bancos || null,
-          indice: r.indice,
-          indice_maximo: r.indice_maximo || 100,
-          avaliavel: r.avaliavel,
-          nota_media: typeof r.nota_media === "number" ? r.nota_media : notaMedia,
-          triada: r.triada || {},
-          triada_com_dado: r.triada_com_dado || {},
-          cobertura: r.cobertura || {},
-          combinacoes: (r.combinacoes || []).map(function(c) {
-            return { id: c.id, leitura: c.leitura, tipo: c.tipo,
-                     investigar: c.investigar, prioridade: c.prioridade };
-          }),
-          aprofundamentos: r.aprofundamentos || [],
-          interpretacao_texto: interp ? interp.texto : null,
-          interpretacao_em: interp ? interp.quando_escrita : null,
-          interpretacao_versao: interp ? interp.versao : null
-        },
-        answers: respostasRaw,
-        scores: r.sistemas.map(function(s) {
-          return {
-            sistema: s.sistema,
-            nome: s.nome,
-            nota: s.nota,
-            carga: s.carga,
-            faixa: s.faixa,
-            obtido: s.obtido,
-            maximo: s.maximo,
-            respondidos: s.respondidos,
-            total_marcadores: s.total_marcadores,
-            avaliavel: s.avaliavel
-          };
-        })
-      };
+      /* tela e dado salvo: o MESMO objeto. As respostas sao as do calculo (snapshot), nao o que estiver no navegador agora. */
+      var payload = O.payload(r, {
+        patient_id: p.id, encounter_id: atendimento.id, quando: hoje,
+        interpretacao_texto: interp ? interp.texto : null,
+        interpretacao_em: interp ? interp.quando_escrita : null,
+        interpretacao_versao: interp ? interp.versao : null
+      });
 
       /* O calculo ja esta guardado neste navegador (guardarPontuacao, no
          momento do calculo). Aqui se espera o servidor: so ha mensagem de
@@ -3622,7 +3599,12 @@
 
       if (rpcErr) {
         console.error("RPC holoscan:", rpcErr);
-        toast(MSG_NAO_SINCRONIZADO);
+        /* recusa metodologica do servidor (pacote/versao/hash/contagens) nao e
+           problema de conexao: diz o que houve, e nada foi gravado */
+        const txtErr = String((rpcErr && (rpcErr.message || rpcErr.hint)) || "");
+        toast(/proveniencia|pacote metodologico|hash|nao vigente|nao aprovado|resultado oficial|contagem|vinculo/i.test(txtErr)
+          ? "O servidor recusou a aplicação: " + txtErr + ". Nada foi gravado; gere o mapa de novo."
+          : MSG_NAO_SINCRONIZADO);
         return;
       }
       r._supa_id = appId;
@@ -3664,7 +3646,7 @@
       } catch(e) { console.error("encerrar aplicacao:", e); }
 
       renderPacientes();
-      toast("HOLOSCAN salvo na ficha de " + p.nome.split(" ")[0] + ". Score: " + total);
+      toast("HOLOSCAN salvo na ficha de " + p.nome.split(" ")[0] + ". Índice HOLOS: " + window.HoloAusencia.indiceTexto(r));
       return;
     }
 

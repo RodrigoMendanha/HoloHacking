@@ -18,6 +18,7 @@
 import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { criarServidor, ligarPagina } from './supabase-falso.mjs';
+import { semearHolosAprovado } from './holos-aprovado.mjs';
 
 let falhou = false;
 const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
@@ -25,7 +26,10 @@ const titulo = (t) => console.log('\n  ' + t + '\n');
 const esperar = (ms) => new Promise(r => setTimeout(r, ms));
 
 const srv = criarServidor();
-srv.criarConta('r08@holo.test', 'senha-r08-123');
+const UID_R08 = srv.criarConta('r08@holo.test', 'senha-r08-123');
+/* Correcao P0 (pos-deploy 6.4): o HOLOSCAN so e calculado pelo motor OFICIAL, sobre o pacote aprovado e vigente —
+   como em producao, o servidor tem o HOLOS-V1 aprovado (fixture pelo caminho real: aprovacao + homologacao de Daniel). */
+semearHolosAprovado(srv, UID_R08);
 
 const nav = await puppeteer.launch({
   executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
@@ -89,9 +93,11 @@ const aplicado = await p.evaluate(async () => {
            triada: document.getElementById('holo-triada').innerText };
 });
 const mee = (r) => r.sistemas.find(s => s.sistema === 'mental_emocional_espiritual');
-ok(aplicado.cru.triada.mental === null && aplicado.cru.triada.espiritual === null &&
-   typeof aplicado.cru.triada.fisico === 'number',
-   'caixa local: Triade ' + JSON.stringify(aplicado.cru.triada) + ' (mental/espiritual null)');
+/* Correcao P0 (pos-deploy 6.4, mudanca de contrato documentada): o mapa e o OFICIAL (HOLOS-V1). O eixo fisico com 30 de 49
+   respostas fica abaixo da cobertura minima do pacote (80%) e tambem e null — ausencia, nunca 10 nem zero. */
+ok(aplicado.cru.oficial === true && aplicado.cru.triada.mental === null && aplicado.cru.triada.espiritual === null &&
+   aplicado.cru.triada.fisico === null && aplicado.cru.indice === null,
+   'caixa local (oficial): Triade ' + JSON.stringify(aplicado.cru.triada) + ' (todos null: abaixo de 80%); Indice null');
 ok(mee(aplicado.cru).nota === null && mee(aplicado.cru).carga === null && mee(aplicado.cru).avaliavel === false,
    'caixa local: mental_emocional_espiritual sem nota (null), avaliavel false');
 ok(!/10\.0/.test(aplicado.triada) && /—/.test(aplicado.triada), 'tela da Triade: "—" nos eixos sem resposta, nenhum 10.0');
@@ -100,9 +106,11 @@ titulo('6 — COBERTURA PARCIAL VISIVEL (sem corte de 50%: Etapa 0 da V1)');
 /* Etapa 0 da V1: o corte COBERTURA_MINIMA = 0,5 da Rodada 08 foi removido
    (Mestre §18: nenhum minimo presumido). A cobertura bruta continua visivel
    ("1 de 16 respondidas"); o rotulo "dados insuficientes" nao existe mais. */
-ok(/1 de 16 respondidas/.test(aplicado.prioridades) && !/dados insuficientes/i.test(aplicado.prioridades),
-   'prioridades: Detox "1 de 16 respondidas", SEM o rotulo "dados insuficientes" (corte de 50% removido)');
-ok(/em homologação/i.test(aplicado.prioridades), 'prioridades: o selo "Em homologação" aparece no mapa');
+/* Correcao P0: a cobertura minima agora e a do PACOTE aprovado (80%), e o total do sistema conta so os vinculos primarios
+   (Detox: 15, nao 16 — o 16o era o vinculo secundario que o motor legado pontuava). */
+ok(/1 de 15 respondidas · abaixo da cobertura mínima do pacote/.test(aplicado.prioridades) && !/1 de 16/.test(aplicado.prioridades),
+   'prioridades: Detox "1 de 15 respondidas · abaixo da cobertura mínima do pacote" (so primarios; secundario fora)');
+ok(!/em homologação/i.test(aplicado.prioridades) && /oficial/.test(aplicado.prioridades), 'prioridades: aplicacao oficial V1 — selo "oficial", sem "Em homologação"');
 ok(/nenhuma pergunta respondida/.test(aplicado.prioridades), 'prioridades: MEE "nenhuma pergunta respondida"');
 const ordemPrio = await p.evaluate(() => [...document.querySelectorAll('#holo-prioridades .prio-linha')].map(l => l.className));
 ok(ordemPrio.length === 5 && !ordemPrio.some(c => /insuficiente/.test(c)) && /sem-dado/.test(ordemPrio[4]),
@@ -143,7 +151,7 @@ ok(/Mental\s*—/.test(ficha.triada) && /Espiritual\s*—/.test(ficha.triada) &&
 const barraMee = ficha.barras.find(b => /Mental/i.test(b)) || '';
 ok(/—/.test(barraMee) && /sem dado/.test(barraMee) && !/10\.0/.test(barraMee), 'ficha, barra MEE: ' + barraMee);
 const barraDetox = ficha.barras.find(b => /Detox/i.test(b)) || '';
-ok(!/dados insuficientes/.test(barraDetox) && /1\/16/.test(barraDetox), 'ficha, barra Detox (cobertura 1/16 visivel, sem corte): ' + barraDetox);
+ok(/sem dado/.test(barraDetox) && /1\/15/.test(barraDetox), 'ficha, barra Detox (oficial: 1/15 abaixo da cobertura minima, sem nota): ' + barraDetox);
 
 /* ------------------------------------------------------------------ */
 titulo('4 — A EXPORTACAO NAO INVENTA 10');

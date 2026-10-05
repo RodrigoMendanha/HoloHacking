@@ -20,6 +20,7 @@
  */
 import './guarda-falhas.mjs';
 import { criarServidor } from './supabase-falso.mjs';
+import { semearHistorica } from './holos-aprovado.mjs';
 
 let falhou = false;
 const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
@@ -52,7 +53,8 @@ const anRasc = rpc(UA, 'salvar_anamnese', { encounter_id: ea2, content: CONTEUDO
 const cd1 = rpc(UA, 'salvar_conduta', { encounter_id: ea, objective: 'Dormir melhor', status: 'salvo', agreements: [{ description: 'Jantar cedo', status: 'acordado' }] }).data;
 const g1 = srv.linhas('agreements').find(g => g.conduct_id === cd1).id;
 const cdRasc = rpc(UA, 'salvar_conduta', { encounter_id: ea2, objective: 'retorno', status: 'rascunho' }).data;
-const hid = srv.tratar({ op: 'rpc', uid: UA, nome: 'salvar_holoscan_completo', args: { payload: { application: { patient_id: pa, encounter_id: ea, quando: '2026-05-01', versao_estrutura: 2, indice: 50, indice_maximo: 100, avaliavel: true, nota_media: 5, triada: {}, triada_com_dado: {}, cobertura: { respondidos: 10, total: 60 } }, answers: [], scores: [] } } }).data;
+/* Correcao P0 (pos-deploy 6.4): a RPC so grava aplicacao OFICIAL; este HOLOSCAN de 2026-05-01 e HISTORICO (pre-existente, sem pacote). */
+const hid = semearHistorica(srv, UA, { application: { patient_id: pa, encounter_id: ea, quando: '2026-05-01', cobertura: { respondidos: 10, total: 60 } } });
 const tool1 = insert(UA, 'tool_applications', { patient_id: pa, encounter_id: ea, ferramenta_id: 'oq3', versao_ferramenta: 1, status: 'concluida', respostas: { quer: 'RESPOSTA_INTIMA' }, concluida_em: '2026-05-01T13:00:00.000Z', leitura: 'leitura profissional' }).data[0].id;
 const toolRasc = insert(UA, 'tool_applications', { patient_id: pa, encounter_id: ea2, ferramenta_id: 'pqq', versao_ferramenta: 1, status: 'rascunho', respostas: {} }).data[0].id;
 ok(an1 && anb && cd1 && g1 && hid && tool1, 'cenario: A com 2 atendimentos, anamnese salva + rascunho, conduta + acordo, HOLOSCAN, ferramenta; B com anamnese');

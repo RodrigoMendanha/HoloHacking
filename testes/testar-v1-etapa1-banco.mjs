@@ -24,6 +24,7 @@
  */
 import './guarda-falhas.mjs';
 import { criarServidor } from './supabase-falso.mjs';
+import { semearHolosAprovado, payloadOficial } from './holos-aprovado.mjs';
 
 let falhou = false;
 const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
@@ -31,6 +32,9 @@ const titulo = (t) => console.log('\n  ' + t + '\n');
 
 const srv = criarServidor();
 const UA = srv.criarConta('a@holo.test', 'x');
+/* Correcao P0 (pos-deploy 6.4): salvar_holoscan_completo so aceita aplicacao OFICIAL (pacote aprovado e vigente, hash, contagens
+   pelos vinculos primarios) — os HOLOSCAN destes testes usam o payload oficial sobre o HOLOS-V1 aprovado (fixture). */
+const PK = semearHolosAprovado(srv, UA);
 const UB = srv.criarConta('b@holo.test', 'x');
 
 const q = (uid, tabela, acao, extra) => srv.tratar({ op: 'query', uid, q: Object.assign(
@@ -106,17 +110,13 @@ ok(r.error && /arquivado/.test(r.error.message), '10: paciente inativo nao receb
 update(UA, 'patients', { status: 'ativo' }, eq('id', pb));
 
 titulo('11-13. REGISTROS CLINICOS DE B NAO ACEITAM ENCOUNTER DE A');
-r = srv.tratar({ op: 'rpc', uid: UA, nome: 'salvar_holoscan_completo', args: { payload: { application: {
-  patient_id: pb, encounter_id: ea, quando: hoje, versao_estrutura: 2, indice: 50, indice_maximo: 100, avaliavel: true,
-  nota_media: 5, triada: {}, triada_com_dado: {}, cobertura: {} }, answers: [], scores: [] } } });
+r = srv.tratar({ op: 'rpc', uid: UA, nome: 'salvar_holoscan_completo', args: { payload: payloadOficial(srv, PK.id, { patient_id: pb, encounter_id: ea, quando: hoje }) } });
 ok(r.error && r.error.code === '23503', '11: holoscan de B com encounter de A e recusado');
 r = insert(UA, 'tool_applications', { patient_id: pb, encounter_id: ea, ferramenta_id: 'oq3', versao_ferramenta: '1', status: 'rascunho' });
 ok(r.error && r.error.code === '23503', '12: tool_application de B com encounter de A e recusada');
 r = insert(UA, 'lab_collections', { patient_id: pb, encounter_id: ea, coletado_em: null, data_coleta_desconhecida: true });
 ok(r.error && r.error.code === '23503', '13: lab_collection de B com encounter de A e recusada');
-r = srv.tratar({ op: 'rpc', uid: UA, nome: 'salvar_holoscan_completo', args: { payload: { application: {
-  patient_id: pa, encounter_id: ea, quando: hoje, versao_estrutura: 2, indice: 50, indice_maximo: 100, avaliavel: true,
-  nota_media: 5, triada: {}, triada_com_dado: {}, cobertura: {} }, answers: [], scores: [] } } });
+r = srv.tratar({ op: 'rpc', uid: UA, nome: 'salvar_holoscan_completo', args: { payload: payloadOficial(srv, PK.id, { patient_id: pa, encounter_id: ea, quando: hoje }) } });
 const ta = insert(UA, 'tool_applications', { patient_id: pa, encounter_id: ea, ferramenta_id: 'oq3', versao_ferramenta: '1', status: 'rascunho' });
 const la = insert(UA, 'lab_collections', { patient_id: pa, encounter_id: ea, coletado_em: null, data_coleta_desconhecida: true });
 ok(!r.error && srv.linhas('holoscan_applications').find(a => a.id === r.data).encounter_id === ea && !ta.error && !la.error,
@@ -124,9 +124,7 @@ ok(!r.error && srv.linhas('holoscan_applications').find(a => a.id === r.data).en
 
 titulo('AJUSTE FINAL. encounter_id DO HOLOSCAN E IMUTAVEL');
 const eb = insert(UA, 'encounters', { patient_id: pa, occurred_at: new Date().toISOString() }).data[0].id;
-r = srv.tratar({ op: 'rpc', uid: UA, nome: 'salvar_holoscan_completo', args: { payload: { application: {
-  patient_id: pa, encounter_id: ea, quando: hoje, versao_estrutura: 2, indice: 40, indice_maximo: 100, avaliavel: true,
-  nota_media: 4, triada: {}, triada_com_dado: {}, cobertura: {} }, answers: [], scores: [] } } });
+r = srv.tratar({ op: 'rpc', uid: UA, nome: 'salvar_holoscan_completo', args: { payload: payloadOficial(srv, PK.id, { patient_id: pa, encounter_id: ea, quando: hoje }) } });
 const hidA = r.data;
 ok(!r.error && srv.linhas('holoscan_applications').find(a => a.id === hidA).encounter_id === ea, 'HOLOSCAN salvo ligado ao atendimento A (paciente com A e B)');
 r = update(UA, 'holoscan_applications', { encounter_id: eb }, eq('id', hidA));

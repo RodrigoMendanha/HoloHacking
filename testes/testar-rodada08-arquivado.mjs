@@ -13,6 +13,7 @@
 import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { criarServidor, ligarPagina } from './supabase-falso.mjs';
+import { semearHolosAprovado, payloadOficial } from './holos-aprovado.mjs';
 
 let falhou = false;
 const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
@@ -21,7 +22,10 @@ const esperar = (ms) => new Promise(r => setTimeout(r, ms));
 const MSG = 'Paciente arquivado — reative antes de registrar novas informações.';
 
 const srv = criarServidor();
-srv.criarConta('a@holo.test', 'senha-a-123');
+const UID_A = srv.criarConta('a@holo.test', 'senha-a-123');
+/* Correcao P0 (pos-deploy 6.4): o HOLOSCAN so e gravado como aplicacao OFICIAL; o servidor tem o HOLOS-V1 aprovado (fixture) e a
+   tentativa direta usa um payload oficial valido — e mesmo assim e recusada por ser paciente arquivado. */
+const PKH = semearHolosAprovado(srv, UID_A);
 const nav = await puppeteer.launch({
   executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
   headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
@@ -144,7 +148,8 @@ ok(JSON.stringify(contar()) === JSON.stringify(antes), 'nada chegou ao servidor:
 titulo('3. O SERVIDOR BARRA MESMO SEM A TELA');
 /* ==================================================================== */
 
-const direto = await A.evaluate(async (pid) => {
+const PAYLOAD_H = payloadOficial(srv, PKH.id, { patient_id: P, encounter_id: '00000000-0000-4000-8000-0000000000e1', quando: '2026-03-20' });
+const direto = await A.evaluate(async (pid, payloadH) => {
   const sb = window.supabaseClient;
   const res = [{ exame_id: 'EXA-001', valor: 1, unidade_no_momento: 'x', ideal_min_no_momento: 0,
                  ideal_max_no_momento: 2, nome_exame_no_momento: 'x', sistema_no_momento: 'metabolico' }];
@@ -152,16 +157,13 @@ const direto = await A.evaluate(async (pid) => {
   return {
     rpc_coleta: m(await sb.rpc('salvar_coleta_exames', { payload: {
       collection: { patient_id: pid, coletado_em: '2026-03-20', data_coleta_desconhecida: false }, results: res } })),
-    rpc_holoscan: m(await sb.rpc('salvar_holoscan_completo', { payload: {
-      application: { patient_id: pid, quando: '2026-03-20', versao_estrutura: 1, versao_bancos: 'x', indice: 1,
-                     indice_maximo: 10, avaliavel: true, nota_media: 1, triada: {}, triada_com_dado: {}, cobertura: {} },
-      answers: [], scores: [] } })),
+    rpc_holoscan: m(await sb.rpc('salvar_holoscan_completo', { payload: payloadH })),
     consultations: m(await sb.from('consultations').insert([{ patient_id: pid, data: '2030-01-01', hora: '09:00', tipo: 'retorno' }])),
     tool_applications: m(await sb.from('tool_applications').insert([{ patient_id: pid, ferramenta_id: 'mapa_crencas', versao_ferramenta: 'x' }])),
     documents: m(await sb.from('documents').insert([{ patient_id: pid, nome: 'x', storage_path: 'x/y.pdf' }])),
     lab_collections: m(await sb.from('lab_collections').insert([{ patient_id: pid, coletado_em: null, data_coleta_desconhecida: true }]))
   };
-}, P);
+}, P, PAYLOAD_H);
 Object.entries(direto).forEach(([k, v]) =>
   ok(/paciente arquivado/.test(v), k + ' recusado: ' + v));
 ok(JSON.stringify(contar()) === JSON.stringify(antes), 'e nenhuma linha foi criada');

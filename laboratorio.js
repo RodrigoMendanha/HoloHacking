@@ -435,7 +435,9 @@
   }
   function htmlLI(compacto) {
     var L = window.LeituraIntegradaMotor, pk = pacoteReal();
-    var aviso = window.Metodologia ? window.Metodologia.avisoHtml() : "";
+    /* Correcao P0: sem aviso generico "em homologacao" aqui — o estado do pacote LI aparece no
+       cabecalho (li-status) e cada aplicacao HOLOSCAN historica aparece como "sem pacote metodologico V1". */
+    var aviso = "";
     var regra = L && L.pacoteTemRegraReal(pk);
     var cab = '<p class="dash-sub li-status" id="li-status"><b>Pacote de regras ' + escapar(pk.code + " v" + pk.version) + " · " + escapar(pk.status) + ".</b> " +
       (!regra ? "Nenhum domínio, vínculo exame → domínio, suficiência, janela temporal ou regra de resultados mistos foi homologado: a única leitura possível é <b>sem dados suficientes</b>." :

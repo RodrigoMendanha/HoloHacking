@@ -8,6 +8,7 @@
 import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { criarServidor, ligarPagina } from './supabase-falso.mjs';
+import { semearHistorica } from './holos-aprovado.mjs';
 
 let falhou = false;
 const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
@@ -18,7 +19,8 @@ const UA = srv.criarConta('a@holo.test', 'senha-a-123');
 const PA = srv.tratar({ op: 'query', uid: UA, q: { tabela: 'patients', acao: 'insert', dados: { nome: 'Paciente E6 UI' }, filtros: [], ordem: [], range: null, colunas: '*', single: null, opcoes: {}, retornar: true } }).data[0].id;
 const rpc = (nome, args) => srv.tratar({ op: 'rpc', uid: UA, nome, args });
 const D = '2026-03-10';
-rpc('salvar_holoscan_completo', { payload: { application: { patient_id: PA, quando: D, versao_estrutura: 2, indice: 50, indice_maximo: 100, avaliavel: true, nota_media: 5, triada: {}, triada_com_dado: {}, cobertura: { respondidos: 84, total: 84 } }, answers: [], scores: [] } });
+/* Correcao P0 (pos-deploy 6.4): aplicacao HISTORICA (pre-existente, sem pacote V1) — a RPC so grava aplicacao oficial. */
+semearHistorica(srv, UA, { application: { patient_id: PA, quando: D, cobertura: { respondidos: 84, total: 84 } } });
 const R = (code, valor, extra) => Object.assign({ exam_code: code, value_original_text: String(valor), numeric_value: Number(valor), qualifier: 'eq', unit_original: 'mg/L', report_reference_text: '10 a 20', report_reference_min: 10, report_reference_max: 20 }, extra || {});
 const coleta = (data, results) => rpc('salvar_coleta_laboratorial', { payload: { collection: { patient_id: PA, clinical_date: data, state: 'salvo' }, results } }).data.id;
 coleta(D, [R('LAB-016', 30), R('LAB-018', 30), R('LAB-010', 30), R('LAB-030', 30), R('LAB-002', 'Negativo', { numeric_value: null, qualifier: 'text' })]);
