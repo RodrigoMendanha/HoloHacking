@@ -196,6 +196,10 @@ async function salvarHolo() {
     const obs = new MutationObserver(() => { if (t.textContent) vistos.push(t.textContent); });
     obs.observe(t, { childList: true, characterData: true, subtree: true });
     document.getElementById('btn-salvar-holoscan').click();
+    await new Promise(r => setTimeout(r, 300));
+    /* correcao (auditoria HOLOSCAN): aplicacao parcial (30 de 84) pede confirmacao antes de salvar */
+    if (!document.getElementById('modal-confirmar-acao').classList.contains('hidden') &&
+        document.getElementById('modal-confirmar-titulo').textContent === 'Questionário incompleto') document.getElementById('modal-confirmar-ok').click();
     await new Promise(r => setTimeout(r, 900));
     obs.disconnect();
     return vistos.concat([t.textContent]).join(' | ');

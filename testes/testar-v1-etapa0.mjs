@@ -183,7 +183,10 @@ ok(/abaixo da cobertura mínima do pacote/.test(oficial.prio), '5 (P0): sistema 
 await p.evaluate(async () => {
     /* V1 Etapa 1: a aplicacao oficial pertence a um atendimento escolhido */
     if (!window.AtendimentoAtual.atual()) await window.AtendimentoAtual.iniciar({ patient_id: window.pacienteAtivoId(), occurred_at: new Date().toISOString() });
-  document.getElementById('btn-salvar-holoscan').click(); await new Promise(r => setTimeout(r, 800)); });
+  document.getElementById('btn-salvar-holoscan').click(); await new Promise(r => setTimeout(r, 300));
+  /* correcao (auditoria HOLOSCAN): aplicacao parcial pede confirmacao ("Questionário incompleto") antes de salvar */
+  if (!document.getElementById('modal-confirmar-acao').classList.contains('hidden')) document.getElementById('modal-confirmar-ok').click();
+  await new Promise(r => setTimeout(r, 800)); });
 const apps = srv.linhas('holoscan_applications').filter(a => a.patient_id === A);
 const answers = srv.linhas('holoscan_answers').filter(a => apps[0] && a.application_id === apps[0].id);
 ok(apps.length === 1 && answers.length === 30 && apps[0].cobertura && apps[0].cobertura.respondidos === 30,
