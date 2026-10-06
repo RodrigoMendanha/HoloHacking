@@ -780,6 +780,17 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     HOLOSCAN na direção (hoje "indeterminada" → domínio sem confronto) e a regra de unanimidade dos resultados mistos (ex.:
     glicemia e HbA1c altas com insulina normal → direção laboratorial indeterminada). A nota no snapshot como fração exata
     ("35/6") é a representação racional do motor (E4.2), não erro; relatórios devem formatar ao exibir.
+164. **Ferramentas Corpo/Mente/Espírito: correções da auditoria de produção** (Cowork, 06/10). Nenhuma ferramenta conclui
+    aplicação vazia (antes só a que declarava `exige_resposta`; 9 de 10 gravavam "concluída" sem resposta) — campos de controle
+    (`origem_id`, `versao_ferramenta`) e caixas desmarcadas não contam; "Registrar leitura" vazia é recusada. OQ3/PQQ: "Limpar"
+    numa aplicação salva começa uma NOVA (modal do app), em vez de esvaziar e deixar o "Salvar" sobrescrever a salva; OQ3 recusa
+    data de consulta no futuro. Editar uma aplicação REVISADA mantém "revisada" (antes voltava a "concluída" sem aviso) e avisa
+    que a leitura continua. Régua não respondida sem marcador e com "não respondido" (antes parecia 5). O cabeçalho de cada
+    ferramenta diz o atendimento ao qual ela fica ligada (o vínculo já era gravado se houvesse atendimento selecionado; continua
+    opcional — exigir atendimento, como no HOLOSCAN, fica PENDENTE de decisão). Ficha e dashboard redesenham depois de salvar
+    (pendência "mapa sem conduta" não fica velha). Cartão do Espírito na apresentação do dashboard. Acentos (Linha do Momentum,
+    Mapa de Crenças, Roda, Carta). "Marcar como revisada" da coleta: o nome digitado é gravado em `revision_note` ("revisado por
+    …") — não se perde. PENDENTE: padronizar editável × travado depois de concluir entre as ferramentas de registro e as demais.
 
 ## Decisões pendentes (não decididas aqui)
 

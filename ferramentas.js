@@ -359,27 +359,27 @@ window.CATALOGO_FERRAMENTAS = [
     papel: "estrutural",
     titulo: "Linha do Momentum",
     chamada: "o quanto de mudança cabe agora",
-    descricao: "Momentum e a capacidade atual da pessoa de mobilizar recursos fisicos, mentais e praticos para sustentar mudança. Nao e forca de vontade, motivacao, obediencia nem comprometimento moral.",
+    descricao: "Momentum é a capacidade atual da pessoa de mobilizar recursos físicos, mentais e práticos para sustentar mudança. Não é força de vontade, motivação, obediência nem comprometimento moral.",
     objetivo: "Definir a intensidade de plano que cabe na vida dela agora.",
     quando_usar: "Antes de montar conduta, e sempre que a vida mudar de fase.",
     duracao: 10,
     resultado: "momentum",
     reaplicar_dias: null,        // sem prazo definido no metodo
     grupos: [
-      { id: "dimensoes", titulo: "As seis dimensoes", origem: "momentum_dimensoes" }
+      { id: "dimensoes", titulo: "As seis dimensões", origem: "momentum_dimensoes" }
     ],
     campos: [
       { id: "sustenta", rotulo: "O que sustenta esta pessoa agora", tipo: "textarea" },
       { id: "limita", rotulo: "O que limita", tipo: "textarea" },
-      { id: "nao_pedir", rotulo: "O que NAO e hora de pedir", tipo: "textarea",
-        dica: "tao importante quanto o que pedir" },
+      { id: "nao_pedir", rotulo: "O que NÃO é hora de pedir", tipo: "textarea",
+        dica: "tão importante quanto o que pedir" },
       /* O sistema NAO sugere estado (§14.6): quem decide e quem atende, e a
          justificativa fica junto para que a decisao seja auditavel depois. */
       { id: "estado_confirmado", rotulo: "Estado de Momentum", tipo: "opcoes",
         opcoes_de: "momentum_estados",
-        dica: "o sistema nao sugere — a leitura e sua" },
+        dica: "o sistema não sugere — a leitura é sua" },
       { id: "justificativa_estado", rotulo: "Por que este estado", tipo: "textarea",
-        dica: "o que nas seis dimensoes sustenta esta leitura" }
+        dica: "o que nas seis dimensões sustenta esta leitura" }
     ]
   },
 
@@ -429,7 +429,7 @@ window.CATALOGO_FERRAMENTAS = [
       { id: "crencas", rotulo: "Crenças que ele carrega", tipo: "textarea", dica: "uma por linha — 'carboidrato engorda', 'eu não tenho força de vontade'" },
       { id: "origem", rotulo: "De onde vieram", tipo: "textarea", dica: "familia, dieta antiga, algo que alguém disse" },
       { id: "mais_atrapalha", rotulo: "Qual mais atrapalha hoje", tipo: "texto" },
-      { id: "alternativa", rotulo: "Crenca alternativa possível", tipo: "texto", dica: "não a oposta — a que ele conseguiria acreditar" }
+      { id: "alternativa", rotulo: "Crença alternativa possível", tipo: "texto", dica: "não a oposta — a que ele conseguiria acreditar" }
     ]
   },
 
@@ -603,7 +603,7 @@ window.CATALOGO_FERRAMENTAS = [
       { id: "lazer", rotulo: "Lazer", tipo: "nota" },
       { id: "desenvolvimento", rotulo: "Desenvolvimento pessoal", tipo: "nota" },
       { id: "proposito", rotulo: "Propósito", tipo: "nota" },
-      { id: "puxa", rotulo: "Qual área esta puxando as outras para baixo", tipo: "texto" }
+      { id: "puxa", rotulo: "Qual área está puxando as outras para baixo", tipo: "texto" }
     ]
   },
 
@@ -624,7 +624,7 @@ window.CATALOGO_FERRAMENTAS = [
     id: "carta_futuro", modulo: "espirito", numero: "03",
     titulo: "Carta ao Futuro Eu",
     chamada: "escrever para quem ele quer ser",
-    descricao: "Escrita guiada para conectar o paciente a pessoa que deseja se tornar.",
+    descricao: "Escrita guiada para conectar o paciente à pessoa que deseja se tornar.",
     campos: [
       { id: "para_quando", rotulo: "Para quando", tipo: "data", dica: "a data em que ele vai reler" },
       { id: "carta", rotulo: "A carta", tipo: "textarea", grande: true, dica: "escrita por ele, na primeira pessoa, para quem ele sera" }

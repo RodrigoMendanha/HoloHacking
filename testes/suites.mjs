@@ -117,5 +117,6 @@ export const SUITES = [
   'testar-auditoria-pacientes-atendimentos.mjs',
   'testar-auditoria-agenda.mjs',
   'testar-auditoria-holoscan.mjs',
+  'testar-auditoria-ferramentas.mjs',
   'testar-conferir-producao.mjs',
 ];

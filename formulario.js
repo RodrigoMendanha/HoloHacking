@@ -237,8 +237,17 @@
     var consulta = app && app.consulta_id
       ? " Vinculado à consulta de hoje."
       : "";
+    /* auditoria Ferramentas: dizer a qual atendimento a aplicacao fica ligada.
+       Ja salva: o atendimento gravado; nova: o atendimento ativo, se houver. */
+    var A = window.AtendimentoAtual, at = null;
+    if (A) {
+      if (app && app.encounter_id && A.porId) at = A.porId(app.encounter_id);
+      else if (!(app && app.id) && A.atual) at = A.atual();
+    }
+    var vinculo = at ? " Atendimento: <b>" + escapar(A.rotuloQuando(at)) + "</b>."
+      : (app && app.id ? " Sem atendimento vinculado." : " Sem atendimento selecionado — a aplicação fica sem vínculo com atendimento.");
     return '<p class="form-sub">Preenchendo para <b class="form-paciente">' +
-           escapar(nome) + "</b>." + consulta + "</p>";
+           escapar(nome) + "</b>." + consulta + vinculo + "</p>";
   }
 
   /* ---------- a síntese ---------------------------------------------------- */
@@ -499,10 +508,18 @@
     if (v === null || v === undefined) return false;
     if (typeof v === "string") return v.trim() !== "";
     if (typeof v === "number") return !isNaN(v);
-    if (typeof v === "boolean") return true;
+    if (typeof v === "boolean") return v === true;   // caixa desmarcada nao e resposta
     if (Array.isArray(v)) return v.some(temResposta);
     if (typeof v === "object") return Object.keys(v).some(function (k) { return temResposta(v[k]); });
     return false;
+  }
+
+  /* Conteudo de verdade da aplicacao: as respostas, sem os campos de controle. */
+  function temConteudo(dados) {
+    if (!dados || typeof dados !== "object") return false;
+    return Object.keys(dados).some(function (k) {
+      return k !== "origem_id" && k !== "versao_ferramenta" && temResposta(dados[k]);
+    });
   }
 
   var salvarAberta = null;
@@ -665,25 +682,34 @@
       if (!app || !window.Aplicacoes) return Promise.resolve(false);
       if (bloqueada(f, app)) return Promise.resolve(false);   // registro concluido: so leitura
       var dados = colher(f, alvo);
-      /* so a ferramenta que declara exige_resposta recusa concluir vazia;
-         nas outras, concluir sem responder e decisao do metodo (grava null) */
-      if (concluir && f.exige_resposta && !temResposta(dados)) {
+      /* Correcao (auditoria Ferramentas): TODAS recusam concluir vazia — antes so
+         a que declarava exige_resposta, e 9 de 10 gravavam aplicacao "concluida"
+         sem nenhuma resposta. */
+      if (concluir && !temConteudo(dados)) {
         avisarFixo(alvo, "aviso", "Preencha ao menos um campo antes de concluir — " +
           "uma aplicação vazia não entra no histórico.");
         return Promise.resolve(false);
       }
       var resultado = !f.registro && window.ResultadoCorpo
         ? window.ResultadoCorpo.derivar(f, dados) : null;
-      var p = concluir
+      /* editar uma aplicacao ja REVISADA nao a rebaixa para "concluida" sem aviso
+         (auditoria): grava as respostas e mantem o status; a leitura continua. */
+      var eraRevisada = app.status === "revisada";
+      var p = concluir && !eraRevisada
         ? window.Aplicacoes.concluir(app, dados, resultado)
         : window.Aplicacoes.salvarRespostas(app, dados, resultado);
       return Promise.resolve(p).then(function () {
         if (window.limpaSuja) window.limpaSuja("ferramenta");
         marcarCard(f.id);
+        /* a ficha e o dashboard leem as ferramentas aplicadas (pendencia "mapa sem
+           conduta"): redesenha para nao ficar com a pendencia antiga (auditoria) */
+        if (typeof window.redesenharFicha === "function") { try { window.redesenharFicha(); } catch (e) { /* ficha fechada */ } }
+        if (typeof window.redesenharDashboard === "function") { try { window.redesenharDashboard(); } catch (e) { /* idem */ } }
         if (concluir) desenhar(f, alvo, app);
         else redesenharSintese(f, alvo);
         // depois do redesenho: escrever antes apagaria junto com o elemento
-        avisar(alvo, "aviso", concluir ? "Aplicação concluída." : "Rascunho salvo.");
+        avisar(alvo, "aviso", eraRevisada ? "Alterações salvas. A leitura profissional registrada continua — revise-a se a mudança a afetar."
+          : concluir ? "Aplicação concluída." : "Rascunho salvo.");
         return true;
       }, function (e) {
         console.error("[formulario] gravar aplicacao:", e && e.message ? e.message : e);
@@ -742,6 +768,11 @@
         var app = aberta && aberta.app;
         if (!app || !window.Aplicacoes) return;
         var marcada = alvo.querySelector('[data-campo="leit-prioridade"] .marcado');
+        /* leitura profissional vazia nao e leitura (auditoria): nada e gravado */
+        if (!alvo.querySelector("#leit-texto").value.trim() && !marcada && !alvo.querySelector("#leit-passo").value.trim()) {
+          avisarFixo(alvo, "aviso-leitura", "Escreva a leitura, marque a prioridade ou o próximo passo antes de registrar.");
+          return;
+        }
         Promise.resolve(window.Aplicacoes.revisar(
           app,
           alvo.querySelector("#leit-texto").value.trim(),

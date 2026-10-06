@@ -2058,6 +2058,8 @@
       return v !== null && v !== undefined && String(v).trim() !== "";
     });
     if(!algo){ toast("Preencha ao menos um campo do OQ3 antes de salvar."); return false; }
+    // data da consulta no futuro nao e consulta que aconteceu (auditoria Ferramentas)
+    if(respostas.data_consulta && respostas.data_consulta > hojeISO()){ toast("A data da consulta não pode estar no futuro."); $("#oq3-data").focus(); return false; }
     try {
       if(!aplicacaoOQ3) aplicacaoOQ3 = await window.Aplicacoes.abrir(FERR_OQ3);
       // resultado fica null: o OQ3 nao deriva sintese nenhuma.
@@ -2318,14 +2320,31 @@
   /* ---------- limpar ---------- */
   const camposOQ3 = ["#oq3-data","#oq3-quer","#oq3-precisa","#oq3-consegue","#oq3-alavancas"];
   const camposPQQ = ["#pqq-objetivo","#pqq-1","#pqq-2","#pqq-3","#pqq-4","#pqq-5","#pqq-verdadeiro"];
+  /* Correcao (auditoria Ferramentas): "Limpar" esvaziava os campos da aplicacao
+     ABERTA e o "Salvar" seguinte sobrescrevia a aplicacao ja salva (o "quer" e a
+     data sumiam). Agora, com uma aplicacao salva aberta, Limpar comeca uma NOVA
+     (a salva continua no historico), com confirmacao no modal do app. */
   $$("[data-limpar]").forEach(btn => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
       const alvo = btn.dataset.limpar;
+      const app = alvo === "oq3" ? aplicacaoOQ3 : aplicacaoPQQ;
+      const salva = !!(app && app.id && app.status && app.status !== "rascunho");
+      if(salva){
+        const resp = window.abrirModalConfirmar ? await window.abrirModalConfirmar({
+          titulo: "Começar uma nova aplicação",
+          corpo: "<p>A aplicação aberta já está salva e continua no histórico. Limpar começa uma <b>nova aplicação</b> em branco.</p>",
+          botaoConfirmar: "Começar nova", classeConfirmar: "btn-verde"
+        }) : "confirmar";
+        if(resp !== "confirmar") return;
+        $(alvo === "oq3" ? "#btn-nova-oq3" : "#btn-nova-pqq").click();
+        return;
+      }
       (alvo === "oq3" ? camposOQ3 : camposPQQ).forEach(s => $(s).value = "");
       if(window.limpaSuja) window.limpaSuja(alvo);
-      toast("Formulario limpo.");
+      toast("Formulário limpo.");
     });
   });
+  if($("#oq3-data")) $("#oq3-data").max = hojeISO();
   camposOQ3.forEach(s => $(s).addEventListener("input", () => { if(window.marcaSuja) window.marcaSuja("oq3"); }));
   camposPQQ.forEach(s => $(s).addEventListener("input", () => { if(window.marcaSuja) window.marcaSuja("pqq"); }));
 

@@ -204,21 +204,22 @@ ok(reguaVirgem.respondido === '0' && reguaVirgem.mostra === '—',
    'a régua abre como NÃO respondida, mostrando traço e não 5: "' + reguaVirgem.mostra + '"');
 ok(!reguaVirgem.temLimpar, 'e não oferece limpar o que ninguém respondeu');
 
+/* Correcao (auditoria Ferramentas): concluir SEM nenhuma resposta e recusado em
+   todas as ferramentas (antes gravava uma aplicacao "concluida" com tudo null). */
 const vazia = await p.evaluate(async () => {
   document.querySelector('[data-acao="concluir"]').click();
   await new Promise(r => setTimeout(r, 450));
   const app = window.Aplicacoes.ultima('linha_momentum');
-  const dims = window.CorpoBancos.MOMENTUM.dimensoes.map(d => app.respostas[d.id]);
-  return { dims, resultado: app.resultado };
+  return { gravou: !!(app && app.status === 'concluida'), aviso: (document.querySelector('[data-papel="aviso"]') || {}).textContent || '' };
 });
-ok(vazia.dims.every(v => v === null),
-   'concluir sem responder grava null nas seis dimensões, não 5: ' + JSON.stringify(vazia.dims));
-ok(vazia.resultado === null, 'e não inventa síntese sobre nada');
+ok(!vazia.gravou && /Preencha ao menos um campo/.test(vazia.aviso),
+   'concluir sem responder é recusado: nada vira aplicação concluída (' + vazia.aviso.slice(0, 60) + ')');
 
 /* ============ Momentum: sem confirmação profissional, não há estado ====== */
 
 const semEstado = await p.evaluate(async () => {
-  document.querySelector('[data-acao="nova"]').click();
+  // a tentativa vazia nao gravou nada: a aplicacao em aberto ainda e a mesma (sem "Nova aplicacao")
+  const nova = document.querySelector('[data-acao="nova"]'); if (nova) nova.click();
   await new Promise(r => setTimeout(r, 450));
   const v = { energia: 4, carga: 7, controle: 3, suporte: 5, espaco: 3, estabilidade: 4 };
   Object.keys(v).forEach(k => {
