@@ -57,9 +57,12 @@ const respirar = () => new Promise((r) => setTimeout(r, 120));
 ok(doc.title.includes('HoloHacking'), 'titulo da aba: ' + doc.title);
 ok(doc.querySelector('.sidebar-marca .nome')?.textContent.includes('HoloHacking'),
    'marca na sidebar');
-ok(doc.querySelectorAll('#logo-simbolo path').length > 10,
-   'logo com ' + doc.querySelectorAll('#logo-simbolo path').length + ' tracos');
-ok(!!doc.querySelector('.marca-hero'), 'logo no dashboard');
+// A marca e a pinha dourada em PNG: login, sidebar e dashboard usam a mesma imagem.
+const logos = [...doc.querySelectorAll('img.logo-marca')];
+ok(logos.length >= 3 && logos.every(i => i.getAttribute('src') === '/logo-holohacking.png'),
+   'logo (pinha) em ' + logos.length + ' lugares, todos /logo-holohacking.png');
+ok(!doc.querySelector('#logo-simbolo'), 'simbolo SVG antigo removido');
+ok(!!doc.querySelector('img.marca-hero'), 'logo no dashboard');
 
 // ------------------------------------------------------------ ferramentas
 // A revisao clinica de Corpo/Mente/Espirito reduziu as galerias para 2+2+3

@@ -14,7 +14,7 @@ Cada afirmação está marcada:
 ## 1. O que está confirmado
 
 - **[confirmado]** O app é estático e não tem build. O `Dockerfile` usa
-  `nginx:stable-alpine` e copia só `index.html style.css favicon.svg *.js` da
+  `nginx:stable-alpine` e copia só `index.html style.css favicon.svg logo-holohacking.png *.js` da
   raiz. As pastas `supabase/`, `testes/`, `docs/` e `node_modules/` não entram
   na imagem.
 - **[confirmado]** Desde o commit `8e040b6`, o nginx da imagem responde
@@ -89,7 +89,7 @@ cd <DIR>                                   # clone do repo na VPS
 git fetch origin
 git checkout main && git pull --ff-only
 git log --oneline -1                       # anote o commit
-sha256sum index.html style.css favicon.svg *.js   # tem de bater com o §3.5
+sha256sum index.html style.css favicon.svg logo-holohacking.png *.js   # tem de bater com o §3.5
 ```
 
 ### 3.3 Construir e trocar o container
@@ -157,15 +157,16 @@ Cache-Control. Nas próximas atualizações não precisa.
 
 ### 3.5 Hashes esperados (sha256 dos arquivos servidos pela `main` saneada)
 
-Todos os 56 arquivos que o `Dockerfile` copia (`index.html style.css favicon.svg
-*.js`). Atualizados na correcao pos-6.5 (leitura oficial do HOLOSCAN so com textos do pacote; rotulo neutro; textos e acentos: `app.js`, `formulario.js`, `ferramentas.js`, `index.html`); antes, Etapa 6.5 B da V1 (registros clinicos com IDs novos `*_v1`: novo `ferramentas-registro.js`; `ferramentas.js`, `formulario.js`, `panorama.js`, `migracao-supa.js`, `style.css`, `index.html`); antes, Etapa 6.5 (correcao P0: novo `holoscan-oficial.js`; `questionario.js`, `app.js`, `metodologia.js`, `utils.js`, `migracao-supa.js`, `sincronizacao.js`, `ficha.js`, `arquivos.js`, `consultas.js`, `dashboard.js`, `evolucao.js`, `timeline.js`, `panorama.js`, `laboratorio.js`, `metodologia-inventario.js`, `index.html`); antes, Etapa 6.0 da V1 (branch `claude/v1-etapa6-implementacao-li-local`: `laboratorio.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js`, `style.css` e o novo `leitura-integrada-pacote-v1.js`; antes, Etapa 5.3: `metodologia-homologacao.js` e `dados-router.js`; Etapa 5: inclui `laboratorio-catalogo.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js` e `laboratorio.js`; antes, Etapa 4.2: `metodologia-decisoes-v1.js` e `questionario.js`; Etapa 4:
+Todos os 57 arquivos que o `Dockerfile` copia (`index.html style.css favicon.svg
+logo-holohacking.png *.js`). Atualizados na troca do logo (pinha dourada: novo `logo-holohacking.png`; `favicon.svg`, `index.html`, `style.css`, `demo.js`); antes, na correcao pos-6.5 (leitura oficial do HOLOSCAN so com textos do pacote; rotulo neutro; textos e acentos: `app.js`, `formulario.js`, `ferramentas.js`, `index.html`); antes, Etapa 6.5 B da V1 (registros clinicos com IDs novos `*_v1`: novo `ferramentas-registro.js`; `ferramentas.js`, `formulario.js`, `panorama.js`, `migracao-supa.js`, `style.css`, `index.html`); antes, Etapa 6.5 (correcao P0: novo `holoscan-oficial.js`; `questionario.js`, `app.js`, `metodologia.js`, `utils.js`, `migracao-supa.js`, `sincronizacao.js`, `ficha.js`, `arquivos.js`, `consultas.js`, `dashboard.js`, `evolucao.js`, `timeline.js`, `panorama.js`, `laboratorio.js`, `metodologia-inventario.js`, `index.html`); antes, Etapa 6.0 da V1 (branch `claude/v1-etapa6-implementacao-li-local`: `laboratorio.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js`, `style.css` e o novo `leitura-integrada-pacote-v1.js`; antes, Etapa 5.3: `metodologia-homologacao.js` e `dados-router.js`; Etapa 5: inclui `laboratorio-catalogo.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js` e `laboratorio.js`; antes, Etapa 4.2: `metodologia-decisoes-v1.js` e `questionario.js`; Etapa 4:
 inclui `metodologia.js`, `atendimento.js`, `anamnese.js`, `conduta.js`, `timeline.js`, `relatorios.js`, `metodologia-inventario.js`, `metodologia-pacote.js`, `metodologia-motor.js` e `metodologia-homologacao.js`), conferidos contra a imagem do `docker build` da branch (o nginx ainda põe o
 `50x.html` dele, que não é nosso):
 
 ```
-d8b0cd17a20cbcf9a302c7b38377e2ee3581ae93cf7cb52c25fb6da723702812  index.html
-1d03246c533616264f60ab21d2fc04a505f0ae77685e4804b97346de20797804  style.css
-cd6ef22455f446156c4109649b2d0fc1fe803f0c6697e1029fa71e50ba44cf84  favicon.svg
+c1e314d2cb52c565a08ac5486d8c7902d24c8cc7b2a076adde04dfcdad2935bb  index.html
+1d4f8a4bbcbf41169e47fc5e2742da8d7601bfa5e3580191402279e4d87e1e63  style.css
+ccab4b8d1492eab5ef40def11944fbc8612ff8d4bf26b36548f5641caaa54044  favicon.svg
+ebb3b78b5a3777a2c5df2ff03ff1c532a82e1668bccadc885ebe679e8321a0b3  logo-holohacking.png
 fca789a5d4169bc1d4b5b0d1d2e934e9f1317384b435ea44e486966fe5eaa8d7  agenda.js
 cd0daa04a10e165dd536874170bf3c005d9bdb4041b15deb766c2b30596dfef4  anamnese.js
 b1ea48449d74ba8427c7a59947ae73d55a4d88896ea1fcf4f9823dc4087bd049  aplicacoes.js
@@ -182,7 +183,7 @@ a1e8f35dc05c895ed94ae07b7aeacbeaf9620f42cc0ab6570835af234c1bb11f  consultas.js
 8f715a12540bc58c932997419f2272bab1e53d66e101929818e81b3d7524c6b6  dados-router.js
 a77e7bf6acab37680d25eb5451442539bda71a84c6e921940a6065b9b9a3b806  dados.js
 779fc2c40a4b26d20234851322241db739a2baf3489006b7682196a0cbefd089  dashboard.js
-a29fad23f5ea2543661b0cd1429670340afbc0ec6654928a6a92fa9d117bf890  demo.js
+e3754c8ad67864812ed43e829414048c2de729ed4bafbc90ac2c6c282f6ad561  demo.js
 d7920a0868425c28a2b3192214010fee62bf1153a0c9c9478e8bc9481940cfcc  documentos.js
 df872b5cbec1bfa67b617b9413943c2171a7a31663767b9ef77e49ca15a924d3  evolucao.js
 11e08342911df7f528993946a7e07746a9c26f66657eb0d139e746ade32e161f  excluir-paciente.js
@@ -222,7 +223,7 @@ f99c4197f8ac91ec9e5ec2f6970c12ad8ec0e3d8dc4513da856289799c095b68  validar-backup
 ```
 
 Para refazer a lista no commit implantado: `sha256sum index.html style.css
-favicon.svg *.js`.
+favicon.svg logo-holohacking.png *.js`.
 
 ---
 

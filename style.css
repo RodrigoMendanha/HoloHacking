@@ -103,7 +103,8 @@ input,textarea,select{font-family:inherit}
   padding:4px 8px 24px;margin-bottom:18px;
   border-bottom:1px solid rgba(201,163,90,.18);
 }
-.sidebar-marca svg{flex-shrink:0}
+.sidebar-marca svg,.sidebar-marca .logo-marca{flex-shrink:0}
+.logo-marca{display:inline-block;object-fit:contain}
 .sidebar-marca .nome{
   font-family:var(--fonte-display);font-weight:600;
   color:var(--creme);font-size:1.02rem;line-height:1.15;letter-spacing:.03em;
@@ -4079,7 +4080,7 @@ body.escuro .cal-hoje-titulo{color:var(--dourado)}
 @media (max-width:480px){
   .sidebar{padding:10px 12px 8px}
   .sidebar-marca{flex-direction:row;align-items:center;gap:10px;padding-bottom:8px;margin-bottom:8px}
-  .sidebar-marca svg{width:30px;height:28px}
+  .sidebar-marca svg,.sidebar-marca .logo-marca{width:30px;height:30px}
   .sidebar-marca .nome em{display:none}
   .sidebar nav{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;gap:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px}
   .sidebar nav::-webkit-scrollbar{display:none}

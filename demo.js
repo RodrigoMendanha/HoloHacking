@@ -240,8 +240,7 @@
         painel.innerHTML =
           '<div class="cena-capa">' +
           '<span class="apresenta">Holos Company apresenta</span>' +
-          '<svg width="104" height="97" viewBox="0 0 64 60" style="color:var(--dourado)">' +
-          '<use href="#logo-simbolo"/></svg>' +
+          '<img class="logo-marca" src="/logo-holohacking.png" alt="" aria-hidden="true" width="104" height="104">' +
           "<h1>HoloHacking</h1>" +
           "<p>Plataforma clínica da Nutrição Holística</p></div>";
       },
@@ -414,8 +413,7 @@
         painel.innerHTML =
           '<div class="cena-capa">' +
           '<p class="f-frase">Quando você enxerga o que está por trás,<br>tudo muda.</p>' +
-          '<svg width="92" height="86" viewBox="0 0 64 60" style="color:var(--dourado)">' +
-          '<use href="#logo-simbolo"/></svg>' +
+          '<img class="logo-marca" src="/logo-holohacking.png" alt="" aria-hidden="true" width="92" height="92">' +
           "<h1>HoloHacking</h1><p>Plataforma clínica da Nutrição Holística</p></div>";
       },
       quadro: function (p) { painel.firstChild.style.opacity = suave(p, 0, .3); } }
