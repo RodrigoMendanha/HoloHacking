@@ -109,3 +109,18 @@
 - **POST-FLIGHT.** `aplicacao_ok = true`, divergências `{}`. As 11 digitais (apps, scores, respostas, holos_pacote, holos_aprovacao, holos_registro, li_pacotes, li_aprovacao, li_snapshot, exames, ferramentas) ficaram **idênticas** antes e depois.
 - **Histórico.** 33 migrations (`20261005100000`, `20261005110000`). O SQL gravado é idêntico ao do repositório, por md5, sem os `\r` do editor.
 - **Sem escrita de teste.** Nenhuma aplicação HOLOSCAN, nenhum registro das 3 ferramentas, nenhuma leitura. Sem deploy do front: `main` continua em `d4c2da4`.
+
+## 7. Deploy do front (06/10/2026) — Etapa 6.5-B
+
+- **main.** `d4c2da4 → 441b494`, fast-forward. Produção = `441b49448169c68c58b2cc38e9a3f3d759414274`.
+- **VPS.**
+  - Imagem `holohacking-web:441b494`. Container `holohacking-web` em `127.0.0.1:8080`.
+  - Rollback preservado: `holohacking-web-d4c2da4`.
+  - Roteiro usado: `scripts/deploy-etapa6-5b.sh`.
+- **version.json, local e público.** `{"version":"0.2.0","commit":"441b494","builtAt":"2026-10-06T12:06:43Z"}`.
+- **Conferência de arquivos.** 56 de 56 no temporário (8082), na 8080 e em `https://holohacking.com.br`.
+- **Verificação pós-deploy (só leitura).** `deploy_ok = true`, `primeira_app_ok = false`, `ids_antigos_proibidos = true`. 0 aplicações novas, 0 leituras, 0 registros das 3 ferramentas.
+- **Smoke no navegador (sem gravar).**
+  - `Metodologia.pacote()` = `HOLOS-V1@2:aprovado`, com motor oficial disponível.
+  - 7 ferramentas ativas, inclusive as 3 `*_v1`; cards com nome clínico, sem "_v1".
+- **Achado pré-existente, não regressão.** Um 401 em `GET profiles` na carga da página, no mesmo instante em que as outras requisições da sessão deram 200. Os arquivos envolvidos (`perfil.js`, `login.js`, `supabase-client.js`) não mudaram desde `d4c2da4`, e houve 401 semelhante em 05/10 com o front antigo. Corrida de autenticação na abertura; tratar em etapa própria.
