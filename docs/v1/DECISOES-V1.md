@@ -791,6 +791,15 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     (pendência "mapa sem conduta" não fica velha). Cartão do Espírito na apresentação do dashboard. Acentos (Linha do Momentum,
     Mapa de Crenças, Roda, Carta). "Marcar como revisada" da coleta: o nome digitado é gravado em `revision_note` ("revisado por
     …") — não se perde. PENDENTE: padronizar editável × travado depois de concluir entre as ferramentas de registro e as demais.
+165. **Perfil: correções da auditoria de produção** (Cowork, 06/10). Nome completo obrigatório (assina os documentos) e
+    e-mail validado, ambos checados ANTES de alterar o perfil em memória. Texto das imagens da aba Marca: com conta, "salvas na
+    sua conta" (sobem ao servidor), mantido o aviso de que não é assinatura ICP-Brasil. Aviso "sem registro/sem assinatura" só
+    com o que de fato falta. Cor digitada inválida: campo marcado e aviso (a cor salva não muda). Prévia de assinatura/carimbo em
+    fundo branco. Fuso: avisa que muda data e hora dos registros clínicos (e saiu a menção ao "retorno de 4 semanas", que não
+    existe desde a Etapa 0). Texto da cópia local corrigido: ao sair, a cópia de trabalho fica guardada neste navegador
+    separada por conta (stash, para devolver rascunhos não sincronizados) — "sair limpa essa cópia" era falso. PENDENTE de
+    decisão (privacidade × rascunho): apagar o stash ao sair (protege computador compartilhado, perde rascunho não sincronizado)
+    ou manter (comportamento atual, coberto por testar-troca-conta e testar-rodada08-sessao).
 
 ## Decisões pendentes (não decididas aqui)
 

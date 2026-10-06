@@ -4420,3 +4420,8 @@ tr.mh-conflito td{background:rgba(201,138,122,.08)}
 .grupo-nota[data-respondido="0"] input[type="range"]::-moz-range-thumb{opacity:0}
 .grupo-nota[data-respondido="0"] input[type="range"]{opacity:.55;background-image:repeating-linear-gradient(90deg,var(--borda-suave) 0 6px,transparent 6px 12px)}
 .grupo-nota[data-respondido="0"]::after{content:"não respondido";font-size:.72rem;color:var(--texto-suave);white-space:nowrap}
+
+/* Perfil (auditoria): assinatura e carimbo sao tinta escura — a previa precisa de
+   fundo claro, como o papel; cor digitada invalida fica marcada. */
+#perf-assinatura-alvo,#perf-carimbo-alvo{background:#fff}
+.perf-cor input.perf-invalido{border-color:#b4553c;box-shadow:0 0 0 2px rgba(180,85,60,.15)}

@@ -118,5 +118,6 @@ export const SUITES = [
   'testar-auditoria-agenda.mjs',
   'testar-auditoria-holoscan.mjs',
   'testar-auditoria-ferramentas.mjs',
+  'testar-auditoria-perfil.mjs',
   'testar-conferir-producao.mjs',
 ];

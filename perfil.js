@@ -466,9 +466,14 @@
           '<span class="perf-marca" aria-hidden="true"></span>' +
           escapar(i.rotulo) + "</li>";
       }).join("") + "</ul>" +
-      (c.pct === 100 ? "" :
-        '<p class="perf-porque">O que falta aqui é o que some do papel: sem registro ' +
-        "profissional e sem assinatura, o documento impresso não identifica quem o emitiu.</p>") +
+      /* so diz o que de fato falta (auditoria: o aviso ficava mesmo com registro e assinatura) */
+      (function () {
+        var falta = [];
+        if (!String(perfil.registro || "").trim()) falta.push("registro profissional");
+        if (!perfil.assinatura_id) falta.push("assinatura");
+        return falta.length ? '<p class="perf-porque">O que falta aqui é o que some do papel: sem ' + falta.join(" e sem ") +
+          ", o documento impresso não identifica bem quem o emitiu.</p>" : "";
+      })() +
       "</div>";
   }
 
@@ -579,8 +584,9 @@
           return '<option value="' + f.id + '"' +
             (f.id === perfil.fuso ? " selected" : "") + ">" + escapar(f.nome) + "</option>";
         }).join("") + "</select>" +
-        '<p class="perf-ajuda">Usado para as datas de aplicação e para o cálculo do ' +
-        "retorno de 4 semanas na Agenda.</p>" +
+        '<p class="perf-ajuda">Define a data e a hora dos <b>registros clínicos</b> (atendimentos, ' +
+        "aplicações) e da Agenda. Mudar o fuso muda como os horários são registrados e mostrados " +
+        "daqui em diante.</p>" +
       "</div>");
 
     alvo.innerHTML = foto + profissionais + contato +
@@ -672,8 +678,12 @@
       /* O app de referencia diz "bucket privado". Aqui nao ha bucket: ha o
          IndexedDB desta maquina. Dizer a mesma frase seria mentir sobre onde
          a assinatura da pessoa esta. */
-      '<p class="perf-nota">As imagens ficam guardadas <b>neste navegador</b>, como os ' +
-      "exames dos pacientes, e só são usadas para montar os documentos que você imprime. " +
+      /* Correcao (auditoria Perfil): com conta, as imagens sobem para o servidor
+         (professional_assets + armazenamento da conta) — "neste navegador" era falso. */
+      '<p class="perf-nota">' + (window.HoloAuth && window.HoloAuth.sessaoAtiva && window.HoloAuth.sessaoAtiva()
+        ? "As imagens ficam salvas <b>na sua conta</b>, no servidor do HoloHacking, protegidas pelo seu login, "
+        : "Modo local, sem conta: as imagens ficam guardadas <b>neste navegador</b> ") +
+      "e só são usadas para montar os documentos que você imprime. " +
       "Não constituem assinatura digital ICP-Brasil e podem ser removidas a qualquer momento.</p>";
 
     alvo.innerHTML =
@@ -888,7 +898,9 @@
       ? '<p class="perf-onde">Os dados clínicos que você registra ficam <b>na sua conta</b>, ' +
           "no servidor do HoloHacking, protegidos pelo seu login — só a sua conta os lê.</p>" +
         '<p class="perf-ajuda">Este navegador guarda uma cópia de trabalho para a tela abrir ' +
-          "rápido; sair da conta limpa essa cópia. Para levar os dados de um paciente, use " +
+          "rápido. Ao sair da conta, essa cópia sai da tela e fica guardada neste navegador, separada " +
+          "por conta, só para devolver rascunhos que ainda não subiram quando você voltar; em computador " +
+          "compartilhado, use uma janela anônima. Para levar os dados de um paciente, use " +
           "<b>Exportar</b> na ficha dele.</p>"
       : '<p class="perf-onde">Modo local, sem conta: o que você registrou está <b>' + escapar(onde) +
           "</b> e em nenhum outro lugar.</p>" +
@@ -1274,10 +1286,23 @@
       if (ev.target.closest("#btn-salvar-perfil")) {
         var btnPerfil = ev.target.closest("#btn-salvar-perfil");
         if (window.travarBotao && !window.travarBotao(btnPerfil, "Salvando…")) return;
+        /* Correcao (auditoria Perfil): o nome assina os relatorios impressos — nao pode
+           ficar vazio; e-mail validado como no cadastro de paciente. Valida ANTES de
+           mexer no perfil em memoria (nada muda se for recusado). */
+        var vNome = ((document.getElementById("pf-nome") || {}).value || "").trim();
+        var vEmail = ((document.getElementById("pf-email") || {}).value || "").trim();
+        var invalido = !vNome ? ["Informe o nome completo: ele assina os documentos impressos.", "pf-nome"]
+          : vEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(vEmail) ? ["E-mail inválido. Verifique e tente novamente.", "pf-email"] : null;
+        if (invalido) {
+          aviso(invalido[0], true);
+          var foco = document.getElementById(invalido[1]); if (foco) foco.focus();
+          if (window.destravarBotao) window.destravarBotao(btnPerfil);
+          return;
+        }
         lerFormulario();
+        aviso("");
         salvar("Perfil salvo.").then(function () { desenharCompletude(); painelMarca(); })
           .finally(function () { if (window.destravarBotao) window.destravarBotao(btnPerfil); });
-        aviso("");
         return;
       }
       if (ev.target.closest("#btn-salvar-marca")) {
@@ -1315,6 +1340,11 @@
             perfil[c] = v;
             document.getElementById("pf-" + c).value = v;
             atualizarPrevia();
+            alvo.classList.remove("perf-invalido");
+          } else {
+            /* auditoria: "azul" nao salvava e nada explicava */
+            alvo.classList.add("perf-invalido");
+            aviso("Cor inválida: use o formato #RRGGBB (ex.: #0b3325) ou o seletor ao lado. A cor salva continua " + perfil[c] + ".", true);
           }
         }
       });
