@@ -699,7 +699,15 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     rotulada "percepção do paciente — não é escore clínico". Espiritualidade em grupo opcional, sem presumir religião, Deus, "algo maior"
     ou família tradicional. Gatilhos: um episódio por aplicação. Histórico: aplicação concluída/revisada é **imutável** (respostas,
     resultado, data e atendimento); a leitura profissional continua (revisada); correção = "Nova a partir desta" (cópia em rascunho novo,
-    com `origem_id`) ou "Nova aplicação". Decisões técnicas recomendadas e adotadas, sujeitas à revisão do responsável.
+    com `origem_id`) ou "Nova aplicação". As 5 decisões técnicas (percepção baixa/média/alta, intensidade 0–10 como
+    percepção, imutabilidade com "Nova a partir desta", um episódio por aplicação, atributos descritivos dos vínculos) foram
+    **aprovadas pelo responsável em 06/10**.
+157. **IDs novos para os registros clínicos; os antigos ficam congelados no schema antigo** (Etapa 6.5 B, 06/10). Novos:
+    `mapa_rotina_v1`, `gatilhos_respostas_v1`, `conexao_pertencimento_v1`, com `versao_ferramenta = 1` exigido pelo servidor.
+    Antigos (`mapa_rotina`, `gatilhos_respostas`, `conexao_pertencimento`): legado, inativos, proibidos no servidor, nunca abrem
+    o formulário novo, nunca são reinterpretados nem convertidos. Um ID nunca aponta para dois schemas. A tela mostra só o nome
+    clínico, sem `_v1`. Teste permanente: `testes/testar-v1-registros-legado.mjs`. Exclusão de aplicação concluída/revisada:
+    risco registrado; mudança de contrato das 9 ferramentas fica para etapa própria (possível estado "anulada").
 
 ## Decisões pendentes (não decididas aqui)
 

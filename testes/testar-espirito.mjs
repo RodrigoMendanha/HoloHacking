@@ -72,7 +72,8 @@ console.log('\n  O CATÁLOGO DO ESPÍRITO\n');
 /* ==================================================================== */
 
 const cat = await p.evaluate(() => {
-  const c = window.CATALOGO_FERRAMENTAS.filter(f => f.modulo === 'espirito');
+  // Etapa 6.5 (B): o registro clinico Conexao & Pertencimento (conexao_pertencimento_v1) tem teste proprio; aqui ficam as 9 de sempre.
+  const c = window.CATALOGO_FERRAMENTAS.filter(f => f.modulo === 'espirito' && !f.registro);
   return {
     quantas: c.length,
     ids: c.map(f => f.id),

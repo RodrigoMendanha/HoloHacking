@@ -53,7 +53,7 @@ begin
     'lab_collections', (select count(*) from public.lab_collections),
     'lab_results', (select count(*) from public.lab_results),
     'leituras', (select count(*) from public.integrated_readings),
-    'registros_clinicos', (select count(*) from public.tool_applications where ferramenta_id in ('mapa_rotina', 'gatilhos_respostas', 'conexao_pertencimento'))
+    'registros_clinicos', (select count(*) from public.tool_applications where ferramenta_id in ('mapa_rotina_v1', 'gatilhos_respostas_v1', 'conexao_pertencimento_v1'))
   ) into f;
   for k in select jsonb_object_keys(esperado) loop
     if f->>k is distinct from esperado->>k then dif := dif || k || '=' || coalesce(f->>k, 'null') || ' (esperado ' || (esperado->>k) || '); '; end if;
@@ -402,8 +402,14 @@ end $$;
 -- ============================================================================
 -- HOLOHACKING V1 — ETAPA 6.5 (B): TRES REGISTROS CLINICOS ESTRUTURADOS
 -- ============================================================================
--- Ferramentas novas: mapa_rotina (CORPO 03), gatilhos_respostas (MENTE 03),
--- conexao_pertencimento (ESPIRITO 04).
+-- Ferramentas novas: mapa_rotina_v1 (CORPO 03), gatilhos_respostas_v1 (MENTE 03),
+-- conexao_pertencimento_v1 (ESPIRITO 04).
+--
+-- IDs NOVOS de proposito: mapa_rotina, gatilhos_respostas e conexao_pertencimento
+-- ja existiram no catalogo com OUTRO formato (inativos). Eles ficam congelados
+-- no schema antigo e continuam PROIBIDOS aqui (fora da constraint e sem formato):
+-- um ID nunca aponta para dois schemas e nenhum payload antigo e reinterpretado
+-- nem convertido para os IDs novos. versao_ferramenta dos novos = '1'.
 --
 -- Natureza: REGISTRO CLINICO ESTRUTURADO. Sem score, faixa, diagnostico,
 -- classificacao, interpretacao ou recomendacao automatica; nenhum efeito em
@@ -419,7 +425,8 @@ end $$;
 -- (ferramentas.js / REGISTRO_OPCOES — o teste compara as duas listas).
 --
 -- O que muda:
---   1. tool_applications_ferramenta_valida passa a aceitar os 3 ids novos.
+--   1. tool_applications_ferramenta_valida passa a aceitar os 3 ids novos
+--      (e so eles; os 3 antigos continuam de fora).
 --   2. BEFORE INSERT/UPDATE (so para os 3 ids): respostas validadas por
 --      lista branca; resultado sempre NULL (sem sintese automatica).
 --   3. BEFORE UPDATE (so para os 3 ids): aplicacao concluida/revisada nao muda
@@ -437,7 +444,7 @@ alter table public.tool_applications drop constraint if exists tool_applications
 alter table public.tool_applications add constraint tool_applications_ferramenta_valida
   check (ferramenta_id in (
     'oq3', 'pqq', 'linha_momentum', 'mapa_crencas', 'roda_vida', 'carta_futuro',
-    'mapa_rotina', 'gatilhos_respostas', 'conexao_pertencimento'
+    'mapa_rotina_v1', 'gatilhos_respostas_v1', 'conexao_pertencimento_v1'
   ));
 
 -- 2. o formato de cada registro --------------------------------------------------
@@ -450,7 +457,7 @@ immutable
 set search_path = public
 as $$
   select case p_ferramenta
-    when 'mapa_rotina' then jsonb_build_object(
+    when 'mapa_rotina_v1' then jsonb_build_object(
       'campos', jsonb_build_object(
         'acorda','hora', 'dorme','hora', 'sono','textarea', 'trabalho','textarea', 'deslocamentos','textarea',
         'familia','textarea', 'domesticas','textarea', 'estudos','textarea', 'compromissos','textarea',
@@ -459,13 +466,13 @@ as $$
       'item', jsonb_build_object(
         'inicio','hora', 'fim','hora', 'categoria','op:rotina_categorias', 'titulo','texto', 'descricao','texto',
         'percepcao','op:percepcao', 'dias','dias', 'observacao','texto'))
-    when 'gatilhos_respostas' then jsonb_build_object(
+    when 'gatilhos_respostas_v1' then jsonb_build_object(
       'campos', jsonb_build_object(
         'data','data', 'horario','hora', 'contexto','textarea', 'gatilho','textarea', 'pensamento','textarea',
         'emocao','texto', 'intensidade','nota', 'resposta','textarea', 'consequencia_imediata','textarea',
         'consequencia_posterior','textarea', 'necessidade','textarea', 'observacao_nutri','textarea',
         'alternativa','textarea'))
-    when 'conexao_pertencimento' then jsonb_build_object(
+    when 'conexao_pertencimento_v1' then jsonb_build_object(
       'campos', jsonb_build_object(
         'contar','textarea', 'apoia_mudanca','textarea', 'dificulta_mudanca','textarea', 'pertence','textarea',
         'sozinha','textarea', 'fortalecem','textarea', 'dificultam','textarea', 'referencias','textarea',
@@ -570,6 +577,10 @@ declare
   n int;
 begin
   if fmt is null then return new; end if;   -- as outras ferramentas nao mudam
+
+  if new.versao_ferramenta is distinct from '1' then
+    raise exception 'versao_ferramenta do registro clinico deve ser 1' using errcode = 'P0001', hint = 'registro_versao';
+  end if;
 
   if new.resultado is not null and jsonb_typeof(new.resultado) <> 'null' then
     raise exception 'registro clinico estruturado nao tem resultado automatico (resultado deve ser nulo)'
@@ -1007,8 +1018,14 @@ $hist_20261005100000$]);
 insert into supabase_migrations.schema_migrations (version, name, statements) values ('20261005110000', 'ferramentas_registro_v1', array[$hist_20261005110000$-- ============================================================================
 -- HOLOHACKING V1 — ETAPA 6.5 (B): TRES REGISTROS CLINICOS ESTRUTURADOS
 -- ============================================================================
--- Ferramentas novas: mapa_rotina (CORPO 03), gatilhos_respostas (MENTE 03),
--- conexao_pertencimento (ESPIRITO 04).
+-- Ferramentas novas: mapa_rotina_v1 (CORPO 03), gatilhos_respostas_v1 (MENTE 03),
+-- conexao_pertencimento_v1 (ESPIRITO 04).
+--
+-- IDs NOVOS de proposito: mapa_rotina, gatilhos_respostas e conexao_pertencimento
+-- ja existiram no catalogo com OUTRO formato (inativos). Eles ficam congelados
+-- no schema antigo e continuam PROIBIDOS aqui (fora da constraint e sem formato):
+-- um ID nunca aponta para dois schemas e nenhum payload antigo e reinterpretado
+-- nem convertido para os IDs novos. versao_ferramenta dos novos = '1'.
 --
 -- Natureza: REGISTRO CLINICO ESTRUTURADO. Sem score, faixa, diagnostico,
 -- classificacao, interpretacao ou recomendacao automatica; nenhum efeito em
@@ -1024,7 +1041,8 @@ insert into supabase_migrations.schema_migrations (version, name, statements) va
 -- (ferramentas.js / REGISTRO_OPCOES — o teste compara as duas listas).
 --
 -- O que muda:
---   1. tool_applications_ferramenta_valida passa a aceitar os 3 ids novos.
+--   1. tool_applications_ferramenta_valida passa a aceitar os 3 ids novos
+--      (e so eles; os 3 antigos continuam de fora).
 --   2. BEFORE INSERT/UPDATE (so para os 3 ids): respostas validadas por
 --      lista branca; resultado sempre NULL (sem sintese automatica).
 --   3. BEFORE UPDATE (so para os 3 ids): aplicacao concluida/revisada nao muda
@@ -1042,7 +1060,7 @@ alter table public.tool_applications drop constraint if exists tool_applications
 alter table public.tool_applications add constraint tool_applications_ferramenta_valida
   check (ferramenta_id in (
     'oq3', 'pqq', 'linha_momentum', 'mapa_crencas', 'roda_vida', 'carta_futuro',
-    'mapa_rotina', 'gatilhos_respostas', 'conexao_pertencimento'
+    'mapa_rotina_v1', 'gatilhos_respostas_v1', 'conexao_pertencimento_v1'
   ));
 
 -- 2. o formato de cada registro --------------------------------------------------
@@ -1055,7 +1073,7 @@ immutable
 set search_path = public
 as $$
   select case p_ferramenta
-    when 'mapa_rotina' then jsonb_build_object(
+    when 'mapa_rotina_v1' then jsonb_build_object(
       'campos', jsonb_build_object(
         'acorda','hora', 'dorme','hora', 'sono','textarea', 'trabalho','textarea', 'deslocamentos','textarea',
         'familia','textarea', 'domesticas','textarea', 'estudos','textarea', 'compromissos','textarea',
@@ -1064,13 +1082,13 @@ as $$
       'item', jsonb_build_object(
         'inicio','hora', 'fim','hora', 'categoria','op:rotina_categorias', 'titulo','texto', 'descricao','texto',
         'percepcao','op:percepcao', 'dias','dias', 'observacao','texto'))
-    when 'gatilhos_respostas' then jsonb_build_object(
+    when 'gatilhos_respostas_v1' then jsonb_build_object(
       'campos', jsonb_build_object(
         'data','data', 'horario','hora', 'contexto','textarea', 'gatilho','textarea', 'pensamento','textarea',
         'emocao','texto', 'intensidade','nota', 'resposta','textarea', 'consequencia_imediata','textarea',
         'consequencia_posterior','textarea', 'necessidade','textarea', 'observacao_nutri','textarea',
         'alternativa','textarea'))
-    when 'conexao_pertencimento' then jsonb_build_object(
+    when 'conexao_pertencimento_v1' then jsonb_build_object(
       'campos', jsonb_build_object(
         'contar','textarea', 'apoia_mudanca','textarea', 'dificulta_mudanca','textarea', 'pertence','textarea',
         'sozinha','textarea', 'fortalecem','textarea', 'dificultam','textarea', 'referencias','textarea',
@@ -1175,6 +1193,10 @@ declare
   n int;
 begin
   if fmt is null then return new; end if;   -- as outras ferramentas nao mudam
+
+  if new.versao_ferramenta is distinct from '1' then
+    raise exception 'versao_ferramenta do registro clinico deve ser 1' using errcode = 'P0001', hint = 'registro_versao';
+  end if;
 
   if new.resultado is not null and jsonb_typeof(new.resultado) <> 'null' then
     raise exception 'registro clinico estruturado nao tem resultado automatico (resultado deve ser nulo)'
@@ -1310,7 +1332,7 @@ begin
     'lab_collections', (select count(*) from public.lab_collections),
     'lab_results', (select count(*) from public.lab_results),
     'leituras', (select count(*) from public.integrated_readings),
-    'registros_clinicos', (select count(*) from public.tool_applications where ferramenta_id in ('mapa_rotina', 'gatilhos_respostas', 'conexao_pertencimento')),
+    'registros_clinicos', (select count(*) from public.tool_applications where ferramenta_id in ('mapa_rotina_v1', 'gatilhos_respostas_v1', 'conexao_pertencimento_v1')),
     'colunas_novas', (select count(*) from information_schema.columns where table_schema = 'public' and table_name = 'holoscan_applications' and column_name in ('methodology_content_hash', 'engine_version', 'engine_contract_version', 'calculation_mode')),
     'colunas_novas_preenchidas', (select count(*) from public.holoscan_applications where methodology_content_hash is not null or engine_version is not null or engine_contract_version is not null or calculation_mode is not null),
     'indice_aceita_nulo', (select is_nullable from information_schema.columns where table_schema = 'public' and table_name = 'holoscan_applications' and column_name = 'indice'),
@@ -1321,11 +1343,12 @@ begin
     'rpc_sem_anon', (select not has_function_privilege('anon', 'public.salvar_holoscan_completo(jsonb)', 'execute')),
     'rpc_authenticated', (select has_function_privilege('authenticated', 'public.salvar_holoscan_completo(jsonb)', 'execute')),
     'faixa_aceita_v1', (select pg_get_constraintdef(oid) like '%%intermediaria%%' and pg_get_constraintdef(oid) like '%%medio%%' from pg_constraint where conname = 'holoscan_system_scores_faixa_valida'),
-    'ferramentas_aceitas', (select pg_get_constraintdef(oid) like '%%mapa_rotina%%' and pg_get_constraintdef(oid) like '%%gatilhos_respostas%%' and pg_get_constraintdef(oid) like '%%conexao_pertencimento%%' and pg_get_constraintdef(oid) like '%%carta_futuro%%' from pg_constraint where conname = 'tool_applications_ferramenta_valida'),
+    'ferramentas_aceitas', (select pg_get_constraintdef(oid) like '%%mapa_rotina_v1%%' and pg_get_constraintdef(oid) like '%%gatilhos_respostas_v1%%' and pg_get_constraintdef(oid) like '%%conexao_pertencimento_v1%%' and pg_get_constraintdef(oid) like '%%carta_futuro%%' from pg_constraint where conname = 'tool_applications_ferramenta_valida'),
+    'ids_antigos_proibidos', (select pg_get_constraintdef(oid) not like '%%''mapa_rotina''%%' and pg_get_constraintdef(oid) not like '%%''gatilhos_respostas''%%' and pg_get_constraintdef(oid) not like '%%''conexao_pertencimento''%%' from pg_constraint where conname = 'tool_applications_ferramenta_valida'),
     'triggers_registro', (select count(*) from pg_trigger where tgrelid = 'public.tool_applications'::regclass and tgname in ('tool_applications_validar_registro', 'tool_applications_registro_concluido')),
     'funcoes_registro_sem_anon', (select bool_and(not has_function_privilege('anon', p.oid, 'execute')) from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and (p.proname like 'registro_clinico%%' or p.proname = 'validar_registro_clinico'))
   ) into f;
-  esperado := esperado || '{"colunas_novas":4,"colunas_novas_preenchidas":0,"indice_aceita_nulo":"YES","policies_insert_holoscan":0,"trigger_exigir_oficial":1,"rpc_exige_oficial":1,"rpc_sem_anon":true,"rpc_authenticated":true,"faixa_aceita_v1":true,"ferramentas_aceitas":true,"triggers_registro":2,"funcoes_registro_sem_anon":true}'::jsonb;
+  esperado := esperado || '{"colunas_novas":4,"colunas_novas_preenchidas":0,"indice_aceita_nulo":"YES","policies_insert_holoscan":0,"trigger_exigir_oficial":1,"rpc_exige_oficial":1,"rpc_sem_anon":true,"rpc_authenticated":true,"faixa_aceita_v1":true,"ferramentas_aceitas":true,"ids_antigos_proibidos":true,"triggers_registro":2,"funcoes_registro_sem_anon":true}'::jsonb;
   for k in select jsonb_object_keys(esperado) loop
     if f->>k is distinct from esperado->>k then dif := dif || k || '=' || coalesce(f->>k, 'null') || ' (esperado ' || (esperado->>k) || '); '; end if;
   end loop;

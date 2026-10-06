@@ -1,8 +1,14 @@
 -- ============================================================================
 -- HOLOHACKING V1 — ETAPA 6.5 (B): TRES REGISTROS CLINICOS ESTRUTURADOS
 -- ============================================================================
--- Ferramentas novas: mapa_rotina (CORPO 03), gatilhos_respostas (MENTE 03),
--- conexao_pertencimento (ESPIRITO 04).
+-- Ferramentas novas: mapa_rotina_v1 (CORPO 03), gatilhos_respostas_v1 (MENTE 03),
+-- conexao_pertencimento_v1 (ESPIRITO 04).
+--
+-- IDs NOVOS de proposito: mapa_rotina, gatilhos_respostas e conexao_pertencimento
+-- ja existiram no catalogo com OUTRO formato (inativos). Eles ficam congelados
+-- no schema antigo e continuam PROIBIDOS aqui (fora da constraint e sem formato):
+-- um ID nunca aponta para dois schemas e nenhum payload antigo e reinterpretado
+-- nem convertido para os IDs novos. versao_ferramenta dos novos = '1'.
 --
 -- Natureza: REGISTRO CLINICO ESTRUTURADO. Sem score, faixa, diagnostico,
 -- classificacao, interpretacao ou recomendacao automatica; nenhum efeito em
@@ -18,7 +24,8 @@
 -- (ferramentas.js / REGISTRO_OPCOES — o teste compara as duas listas).
 --
 -- O que muda:
---   1. tool_applications_ferramenta_valida passa a aceitar os 3 ids novos.
+--   1. tool_applications_ferramenta_valida passa a aceitar os 3 ids novos
+--      (e so eles; os 3 antigos continuam de fora).
 --   2. BEFORE INSERT/UPDATE (so para os 3 ids): respostas validadas por
 --      lista branca; resultado sempre NULL (sem sintese automatica).
 --   3. BEFORE UPDATE (so para os 3 ids): aplicacao concluida/revisada nao muda
@@ -36,7 +43,7 @@ alter table public.tool_applications drop constraint if exists tool_applications
 alter table public.tool_applications add constraint tool_applications_ferramenta_valida
   check (ferramenta_id in (
     'oq3', 'pqq', 'linha_momentum', 'mapa_crencas', 'roda_vida', 'carta_futuro',
-    'mapa_rotina', 'gatilhos_respostas', 'conexao_pertencimento'
+    'mapa_rotina_v1', 'gatilhos_respostas_v1', 'conexao_pertencimento_v1'
   ));
 
 -- 2. o formato de cada registro --------------------------------------------------
@@ -49,7 +56,7 @@ immutable
 set search_path = public
 as $$
   select case p_ferramenta
-    when 'mapa_rotina' then jsonb_build_object(
+    when 'mapa_rotina_v1' then jsonb_build_object(
       'campos', jsonb_build_object(
         'acorda','hora', 'dorme','hora', 'sono','textarea', 'trabalho','textarea', 'deslocamentos','textarea',
         'familia','textarea', 'domesticas','textarea', 'estudos','textarea', 'compromissos','textarea',
@@ -58,13 +65,13 @@ as $$
       'item', jsonb_build_object(
         'inicio','hora', 'fim','hora', 'categoria','op:rotina_categorias', 'titulo','texto', 'descricao','texto',
         'percepcao','op:percepcao', 'dias','dias', 'observacao','texto'))
-    when 'gatilhos_respostas' then jsonb_build_object(
+    when 'gatilhos_respostas_v1' then jsonb_build_object(
       'campos', jsonb_build_object(
         'data','data', 'horario','hora', 'contexto','textarea', 'gatilho','textarea', 'pensamento','textarea',
         'emocao','texto', 'intensidade','nota', 'resposta','textarea', 'consequencia_imediata','textarea',
         'consequencia_posterior','textarea', 'necessidade','textarea', 'observacao_nutri','textarea',
         'alternativa','textarea'))
-    when 'conexao_pertencimento' then jsonb_build_object(
+    when 'conexao_pertencimento_v1' then jsonb_build_object(
       'campos', jsonb_build_object(
         'contar','textarea', 'apoia_mudanca','textarea', 'dificulta_mudanca','textarea', 'pertence','textarea',
         'sozinha','textarea', 'fortalecem','textarea', 'dificultam','textarea', 'referencias','textarea',
@@ -169,6 +176,10 @@ declare
   n int;
 begin
   if fmt is null then return new; end if;   -- as outras ferramentas nao mudam
+
+  if new.versao_ferramenta is distinct from '1' then
+    raise exception 'versao_ferramenta do registro clinico deve ser 1' using errcode = 'P0001', hint = 'registro_versao';
+  end if;
 
   if new.resultado is not null and jsonb_typeof(new.resultado) <> 'null' then
     raise exception 'registro clinico estruturado nao tem resultado automatico (resultado deve ser nulo)'

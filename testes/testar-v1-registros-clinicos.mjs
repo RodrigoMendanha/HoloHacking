@@ -29,7 +29,7 @@ const titulo = (t) => console.log('\n  ' + t + '\n');
 const RAIZ = new URL('..', import.meta.url);
 const ler = (f) => readFileSync(new URL(f, RAIZ), 'utf8');
 
-const IDS = ['mapa_rotina', 'gatilhos_respostas', 'conexao_pertencimento'];
+const IDS = ['mapa_rotina_v1', 'gatilhos_respostas_v1', 'conexao_pertencimento_v1'];
 const cat = (id) => window.CATALOGO_FERRAMENTAS.find(f => f.id === id);
 
 titulo('1. CATALOGO = SERVIDOR');
@@ -48,8 +48,8 @@ for (const id of IDS) {
     ok(f.lista.campos.filter(c => c.tipo === 'opcoes').every(c => Object.values(window.REGISTRO_OPCOES).includes(c.opcoes)), id + ': toda opcao vem de REGISTRO_OPCOES (nenhuma lista solta)');
   } else ok(s.lista === null, id + ': sem lista, como no servidor');
 }
-ok(cat('mapa_rotina').modulo === 'corpo' && cat('mapa_rotina').numero === '03' && cat('gatilhos_respostas').modulo === 'mente' && cat('gatilhos_respostas').numero === '03'
-  && cat('conexao_pertencimento').modulo === 'espirito' && cat('conexao_pertencimento').numero === '04', 'posicao: Corpo 03, Mente 03, Espirito 04');
+ok(cat('mapa_rotina_v1').modulo === 'corpo' && cat('mapa_rotina_v1').numero === '03' && cat('gatilhos_respostas_v1').modulo === 'mente' && cat('gatilhos_respostas_v1').numero === '03'
+  && cat('conexao_pertencimento_v1').modulo === 'espirito' && cat('conexao_pertencimento_v1').numero === '04', 'posicao: Corpo 03, Mente 03, Espirito 04');
 ok(IDS.every(id => window.FERRAMENTAS_ATIVAS.includes(id)), 'as 3 estao em FERRAMENTAS_ATIVAS');
 const html = ler('index.html');
 ok(IDS.every(id => (html.match(new RegExp('data-ferramenta="' + id + '"', 'g')) || []).length === 1), 'um card de cada na galeria do modulo certo');
@@ -61,13 +61,13 @@ ok(!window.ResultadoCorpo || IDS.every(id => window.ResultadoCorpo.derivar(cat(i
 const rotulos = IDS.map(id => JSON.stringify(cat(id))).join(' ');
 ok(!/escore|score|pontua|faixa|diagn[oó]stic|classifica[cç][aã]o autom|t[oó]xic|saud[aá]vel|rede forte|rede fraca|isolamento|depend[eê]ncia|boa conex|m[aá] conex/i.test(rotulos.replace(/não é escore clínico|nao e escore/gi, '')),
   'nenhum rotulo, dica ou opcao fala em escore, faixa, diagnostico, classificacao ou rotulo de relacao');
-ok(/não é escore clínico/.test(JSON.stringify(cat('mapa_rotina'))) && /não é escore clínico/.test(JSON.stringify(cat('gatilhos_respostas'))), 'percepcao e intensidade dizem que sao do paciente, nao escore clinico');
-ok(/não recomendação/.test(JSON.stringify(cat('mapa_rotina'))) && /não é prescrição/.test(JSON.stringify(cat('gatilhos_respostas'))), '"espacos para mudanca" e "alternativa" se declaram registro, nao recomendacao/prescricao');
+ok(/não é escore clínico/.test(JSON.stringify(cat('mapa_rotina_v1'))) && /não é escore clínico/.test(JSON.stringify(cat('gatilhos_respostas_v1'))), 'percepcao e intensidade dizem que sao do paciente, nao escore clinico');
+ok(/não recomendação/.test(JSON.stringify(cat('mapa_rotina_v1'))) && /não é prescrição/.test(JSON.stringify(cat('gatilhos_respostas_v1'))), '"espacos para mudanca" e "alternativa" se declaram registro, nao recomendacao/prescricao');
 const recs = (window.CorpoBancos && window.CorpoBancos.regrasApresentaveis) ? window.CorpoBancos.regrasApresentaveis() : [];
 ok(!recs.some(r => IDS.includes(r.recommended_tool_id)), 'nenhuma regra de recomendacao apresentavel aponta para os 3 (' + recs.length + ' regras confirmadas)');
 
 titulo('3. ESPIRITUALIDADE OPCIONAL E INCLUSIVA');
-const cp = cat('conexao_pertencimento');
+const cp = cat('conexao_pertencimento_v1');
 const gEsp = cp.grupos.find(g => /Espiritualidade/.test(g.titulo));
 ok(gEsp && /opcional/i.test(gEsp.titulo) && /só se fizer sentido/.test(gEsp.titulo), 'grupo de espiritualidade titulado como opcional, "só se fizer sentido"');
 ok(!/\bDeus\b|igreja|cristã|fé em|religioso obrigat/i.test(JSON.stringify(cp)), 'nenhum rotulo presume religiao, Deus ou igreja');
@@ -89,50 +89,50 @@ const upd = (uid, id, dados) => q(uid, 'tool_applications', 'update', { dados, f
 const hint = (r) => r.error ? (r.error.hint || r.error.message) : 'ACEITO';
 
 const VAL = {
-  mapa_rotina: { acorda: '06:30', dorme: '23:00', eventos: [{ inicio: '07:00', fim: '07:20', categoria: 'refeição', titulo: 'café', percepcao: 'baixa', dias: ['seg', 'ter'] }, { inicio: '12:00', categoria: 'estresse', titulo: 'reunião', dias: null }], espacos: 'pausa antes do almoço' },
-  gatilhos_respostas: { data: '2026-10-01', horario: '21:30', contexto: 'em casa', gatilho: 'discussão', pensamento: 'não aguento', emocao: 'raiva', intensidade: '7', resposta: 'come doce', consequencia_imediata: 'alívio', consequencia_posterior: 'culpa', alternativa: 'ligar para a irmã' },
-  conexao_pertencimento: { contar: 'irmã', vinculos: [{ rotulo: 'Irmã', natureza: 'pessoa', tipo: 'família', papel: 'apoia', proximidade: 'próxima', momento: 'presente no momento' }, { rotulo: 'Grupo', natureza: 'grupo', tipo: 'comunidade', papel: 'variável' }] }
+  mapa_rotina_v1: { acorda: '06:30', dorme: '23:00', eventos: [{ inicio: '07:00', fim: '07:20', categoria: 'refeição', titulo: 'café', percepcao: 'baixa', dias: ['seg', 'ter'] }, { inicio: '12:00', categoria: 'estresse', titulo: 'reunião', dias: null }], espacos: 'pausa antes do almoço' },
+  gatilhos_respostas_v1: { data: '2026-10-01', horario: '21:30', contexto: 'em casa', gatilho: 'discussão', pensamento: 'não aguento', emocao: 'raiva', intensidade: '7', resposta: 'come doce', consequencia_imediata: 'alívio', consequencia_posterior: 'culpa', alternativa: 'ligar para a irmã' },
+  conexao_pertencimento_v1: { contar: 'irmã', vinculos: [{ rotulo: 'Irmã', natureza: 'pessoa', tipo: 'família', papel: 'apoia', proximidade: 'próxima', momento: 'presente no momento' }, { rotulo: 'Grupo', natureza: 'grupo', tipo: 'comunidade', papel: 'variável' }] }
 };
 const ids = {};
 for (const id of IDS) {
   const r = ins(UA, PA, id, VAL[id]);
   ids[id] = r.data && r.data[0] && r.data[0].id;
   ok(!r.error && JSON.stringify(r.data[0].respostas) === JSON.stringify(VAL[id]) && r.data[0].resultado == null && r.data[0].nutritionist_id === UA, id + ': criado no paciente certo, respostas exatas, sem resultado');
-  ok(hint(upd(UA, ids[id], { respostas: Object.assign({}, VAL[id], { observacoes: 'editado no rascunho' }) })) === 'ACEITO' || id === 'gatilhos_respostas', id + ': rascunho editavel');
+  ok(hint(upd(UA, ids[id], { respostas: Object.assign({}, VAL[id], { observacoes: 'editado no rascunho' }) })) === 'ACEITO' || id === 'gatilhos_respostas_v1', id + ': rascunho editavel');
 }
-ok(hint(upd(UA, ids.gatilhos_respostas, { respostas: Object.assign({}, VAL.gatilhos_respostas, { observacao_nutri: 'editado no rascunho' }) })) === 'ACEITO', 'gatilhos_respostas: rascunho editavel');
+ok(hint(upd(UA, ids.gatilhos_respostas_v1, { respostas: Object.assign({}, VAL.gatilhos_respostas_v1, { observacao_nutri: 'editado no rascunho' }) })) === 'ACEITO', 'gatilhos_respostas_v1: rascunho editavel');
 const recusas = [
-  ins(UA, PA, 'mapa_rotina', { escore: 3 }), ins(UA, PA, 'mapa_rotina', { eventos: [{ categoria: 'jejum' }] }), ins(UA, PA, 'mapa_rotina', { acorda: '25:00' }),
-  ins(UA, PA, 'mapa_rotina', { eventos: [{ dias: ['seg', 'seg'] }] }), ins(UA, PA, 'mapa_rotina', { eventos: Array.from({ length: 101 }, (_, i) => ({ titulo: 'e' + i })) }),
-  ins(UA, PA, 'gatilhos_respostas', { intensidade: '11' }), ins(UA, PA, 'gatilhos_respostas', { data: '2026-02-31' }), ins(UA, PA, 'gatilhos_respostas', { contexto: 'a'.repeat(8001) }),
-  ins(UA, PA, 'conexao_pertencimento', { vinculos: [{ rotulo: 'x', papel: 'tóxica' }] }), ins(UA, PA, 'conexao_pertencimento', { rede: 'fraca' })
+  ins(UA, PA, 'mapa_rotina_v1', { escore: 3 }), ins(UA, PA, 'mapa_rotina_v1', { eventos: [{ categoria: 'jejum' }] }), ins(UA, PA, 'mapa_rotina_v1', { acorda: '25:00' }),
+  ins(UA, PA, 'mapa_rotina_v1', { eventos: [{ dias: ['seg', 'seg'] }] }), ins(UA, PA, 'mapa_rotina_v1', { eventos: Array.from({ length: 101 }, (_, i) => ({ titulo: 'e' + i })) }),
+  ins(UA, PA, 'gatilhos_respostas_v1', { intensidade: '11' }), ins(UA, PA, 'gatilhos_respostas_v1', { data: '2026-02-31' }), ins(UA, PA, 'gatilhos_respostas_v1', { contexto: 'a'.repeat(8001) }),
+  ins(UA, PA, 'conexao_pertencimento_v1', { vinculos: [{ rotulo: 'x', papel: 'tóxica' }] }), ins(UA, PA, 'conexao_pertencimento_v1', { rede: 'fraca' })
 ].map(hint);
 ok(recusas.every(h => h === 'registro_formato'), 'chave estranha, opcao fora da lista (inclusive "tóxica"), horario, dia repetido, 101 itens, intensidade 11, data impossivel, texto longo e "rede fraca" recusados: ' + [...new Set(recusas)].join(','));
-ok(hint(ins(UA, PA, 'gatilhos_respostas', {}, { resultado: { classificacao: 'compulsiva' } })) === 'registro_resultado', 'resultado automatico recusado pelo servidor');
+ok(hint(ins(UA, PA, 'gatilhos_respostas_v1', {}, { resultado: { classificacao: 'compulsiva' } })) === 'registro_resultado', 'resultado automatico recusado pelo servidor');
 const xss = '<img src=x onerror=alert(1)>';
-const rx = ins(UA, PA, 'gatilhos_respostas', { gatilho: xss });
+const rx = ins(UA, PA, 'gatilhos_respostas_v1', { gatilho: xss });
 ok(!rx.error && rx.data[0].respostas.gatilho === xss, 'texto com marcacao guardado literalmente (escapar e trabalho da tela)');
 // concluir -> imutavel
 for (const id of IDS) upd(UA, ids[id], { status: 'concluida', concluida_em: new Date().toISOString() });
-const imut = IDS.map(id => hint(upd(UA, ids[id], { respostas: {} }))).concat([hint(upd(UA, ids.mapa_rotina, { status: 'rascunho' })), hint(upd(UA, ids.mapa_rotina, { resultado: { x: 1 } }))]);
+const imut = IDS.map(id => hint(upd(UA, ids[id], { respostas: {} }))).concat([hint(upd(UA, ids.mapa_rotina_v1, { status: 'rascunho' })), hint(upd(UA, ids.mapa_rotina_v1, { resultado: { x: 1 } }))]);
 ok(imut.every(h => h === 'registro_concluido'), 'concluido: respostas, status e resultado nao mudam (' + [...new Set(imut)].join(',') + ')');
-ok(hint(upd(UA, ids.gatilhos_respostas, { leitura: 'nota da profissional', prioridade: 'alta', proximo_passo: 'retomar', status: 'revisada' })) === 'ACEITO'
-  && srv.linhas('tool_applications').find(x => x.id === ids.gatilhos_respostas).status === 'revisada', 'leitura profissional continua: vira revisada');
+ok(hint(upd(UA, ids.gatilhos_respostas_v1, { leitura: 'nota da profissional', prioridade: 'alta', proximo_passo: 'retomar', status: 'revisada' })) === 'ACEITO'
+  && srv.linhas('tool_applications').find(x => x.id === ids.gatilhos_respostas_v1).status === 'revisada', 'leitura profissional continua: vira revisada');
 // nova a partir desta
-const copia = ins(UA, PA, 'mapa_rotina', Object.assign({}, VAL.mapa_rotina, { origem_id: ids.mapa_rotina }));
-ok(!copia.error && copia.data[0].id !== ids.mapa_rotina, '"nova a partir desta": copia aceita com origem_id; e um registro NOVO');
-ok(['registro_formato', 'registro_formato', 'registro_formato'].join() === [hint(ins(UA, PA2, 'mapa_rotina', { origem_id: ids.mapa_rotina })), hint(ins(UA, PA, 'gatilhos_respostas', { origem_id: ids.mapa_rotina })), hint(ins(UA, PA, 'mapa_rotina', { origem_id: '00000000-0000-4000-8000-000000000000' }))].join(),
+const copia = ins(UA, PA, 'mapa_rotina_v1', Object.assign({}, VAL.mapa_rotina_v1, { origem_id: ids.mapa_rotina_v1 }));
+ok(!copia.error && copia.data[0].id !== ids.mapa_rotina_v1, '"nova a partir desta": copia aceita com origem_id; e um registro NOVO');
+ok(['registro_formato', 'registro_formato', 'registro_formato'].join() === [hint(ins(UA, PA2, 'mapa_rotina_v1', { origem_id: ids.mapa_rotina_v1 })), hint(ins(UA, PA, 'gatilhos_respostas_v1', { origem_id: ids.mapa_rotina_v1 })), hint(ins(UA, PA, 'mapa_rotina_v1', { origem_id: '00000000-0000-4000-8000-000000000000' }))].join(),
   'origem de outro paciente, de outra ferramenta ou inexistente recusada');
-ok(JSON.stringify(srv.linhas('tool_applications').find(x => x.id === ids.mapa_rotina).respostas) === JSON.stringify(Object.assign({}, VAL.mapa_rotina, { observacoes: 'editado no rascunho' })), 'a original ficou como estava (historico preservado)');
+ok(JSON.stringify(srv.linhas('tool_applications').find(x => x.id === ids.mapa_rotina_v1).respostas) === JSON.stringify(Object.assign({}, VAL.mapa_rotina_v1, { observacoes: 'editado no rascunho' })), 'a original ficou como estava (historico preservado)');
 // outra conta
 const vistoB = q(UB, 'tool_applications', 'select', {}).data || [];
 ok(!vistoB.some(x => x.patient_id === PA), 'outra nutricionista nao ve os registros');
-const rB = upd(UB, ids.conexao_pertencimento, { leitura: 'invasao' });
-ok((!rB.data || rB.data.length === 0) && srv.linhas('tool_applications').find(x => x.id === ids.conexao_pertencimento).leitura == null, 'outra nutricionista nao altera');
-ok(hint(ins(UB, PA, 'mapa_rotina', {})) !== 'ACEITO' && hint(ins(UA, PB, 'mapa_rotina', {})) !== 'ACEITO', 'ninguem cria registro em paciente alheio');
+const rB = upd(UB, ids.conexao_pertencimento_v1, { leitura: 'invasao' });
+ok((!rB.data || rB.data.length === 0) && srv.linhas('tool_applications').find(x => x.id === ids.conexao_pertencimento_v1).leitura == null, 'outra nutricionista nao altera');
+ok(hint(ins(UB, PA, 'mapa_rotina_v1', {})) !== 'ACEITO' && hint(ins(UA, PB, 'mapa_rotina_v1', {})) !== 'ACEITO', 'ninguem cria registro em paciente alheio');
 // arquivado
 q(UA, 'patients', 'update', { dados: { status: 'inativo' }, filtros: [{ op: 'eq', col: 'id', val: PA2 }] });
-ok(/arquivado/.test(hint(ins(UA, PA2, 'conexao_pertencimento', {}))), 'paciente arquivado: registro novo recusado');
+ok(/arquivado/.test(hint(ins(UA, PA2, 'conexao_pertencimento_v1', {}))), 'paciente arquivado: registro novo recusado');
 // outras ferramentas: comportamento antigo
 const oq = ins(UA, PA, 'oq3', { qualquer: 'coisa' }, { status: 'concluida', resultado: { x: 1 } });
 ok(!oq.error && hint(upd(UA, oq.data[0].id, { respostas: { outra: 'chave' } })) === 'ACEITO', 'OQ³ (e as outras 5) sem regra nova: concluida continua editavel, com resultado');
@@ -141,41 +141,41 @@ titulo('5. VISUALIZACAO ESCAPADA, SEM CLASSIFICAR');
 const RV = window.RegistroVisual;
 const sujo = '"><script>alert(1)</script><img src=x onerror=alert(2)>';
 const telas = {
-  mapa_rotina: RV.desenhar(cat('mapa_rotina'), { acorda: sujo, eventos: [{ inicio: '07:00', categoria: 'fome', titulo: sujo, descricao: sujo, percepcao: 'alta', dias: ['seg', sujo], observacao: sujo }] }),
-  gatilhos_respostas: RV.desenhar(cat('gatilhos_respostas'), Object.fromEntries(Object.keys(FORMATO.gatilhos_respostas.campos).map(k => [k, sujo]))),
-  conexao_pertencimento: RV.desenhar(cat('conexao_pertencimento'), { vinculos: [{ rotulo: sujo, natureza: sujo, tipo: sujo, relacao: sujo, papel: sujo, proximidade: sujo, momento: sujo, contexto: sujo, observacao: sujo }] })
+  mapa_rotina_v1: RV.desenhar(cat('mapa_rotina_v1'), { acorda: sujo, eventos: [{ inicio: '07:00', categoria: 'fome', titulo: sujo, descricao: sujo, percepcao: 'alta', dias: ['seg', sujo], observacao: sujo }] }),
+  gatilhos_respostas_v1: RV.desenhar(cat('gatilhos_respostas_v1'), Object.fromEntries(Object.keys(FORMATO.gatilhos_respostas_v1.campos).map(k => [k, sujo]))),
+  conexao_pertencimento_v1: RV.desenhar(cat('conexao_pertencimento_v1'), { vinculos: [{ rotulo: sujo, natureza: sujo, tipo: sujo, relacao: sujo, papel: sujo, proximidade: sujo, momento: sujo, contexto: sujo, observacao: sujo }] })
 };
 const resumos = IDS.map(id => RV.resumo(cat(id), Object.fromEntries(Object.keys(FORMATO[id].campos).map(k => [k, sujo]))));
 const tudo = Object.values(telas).join('') + resumos.join('');
 // previa e TEXTO puro (sem HTML): quem desenha o historico escapa (formulario.js: escapar(RegistroVisual.previa(...)))
-ok(/escapar\(window\.RegistroVisual\.previa\(/.test(ler('formulario.js')) && RV.previa(cat('gatilhos_respostas'), { respostas: { gatilho: sujo } }).indexOf('<') >= 0,
+ok(/escapar\(window\.RegistroVisual\.previa\(/.test(ler('formulario.js')) && RV.previa(cat('gatilhos_respostas_v1'), { respostas: { gatilho: sujo } }).indexOf('<') >= 0,
   'previa do historico e texto puro e o formulario a escapa ao desenhar');
-ok(!/<script|<img|onerror=alert\(\d\)"?>|"><script/.test(tudo.replace(/&lt;script|&lt;img/g, '')) && /&lt;script&gt;/.test(telas.mapa_rotina) && /&lt;script&gt;/.test(telas.conexao_pertencimento),
+ok(!/<script|<img|onerror=alert\(\d\)"?>|"><script/.test(tudo.replace(/&lt;script|&lt;img/g, '')) && /&lt;script&gt;/.test(telas.mapa_rotina_v1) && /&lt;script&gt;/.test(telas.conexao_pertencimento_v1),
   'HTML e SVG das 3 visualizacoes e o resumo: todo texto escapado');
 ok(!/class="[^"]*&lt;|class="[^"]*<|style="/.test(tudo), 'nenhum valor do registro vira classe ou estilo');
 const limpo = (t) => t.replace(/<[^>]+>/g, ' ');
 const normais = {
-  mapa_rotina: RV.desenhar(cat('mapa_rotina'), VAL.mapa_rotina),
-  gatilhos_respostas: RV.desenhar(cat('gatilhos_respostas'), VAL.gatilhos_respostas),
-  conexao_pertencimento: RV.desenhar(cat('conexao_pertencimento'), VAL.conexao_pertencimento)
+  mapa_rotina_v1: RV.desenhar(cat('mapa_rotina_v1'), VAL.mapa_rotina_v1),
+  gatilhos_respostas_v1: RV.desenhar(cat('gatilhos_respostas_v1'), VAL.gatilhos_respostas_v1),
+  conexao_pertencimento_v1: RV.desenhar(cat('conexao_pertencimento_v1'), VAL.conexao_pertencimento_v1)
 };
 const visivel = limpo(Object.values(normais).join(' ')).replace(/não é classificação da rede nem das relações|não é sugestão do sistema/gi, '');
 ok(!/escore|score|pontua|faixa|n[ií]vel|diagn[oó]stic|classifica|t[oó]xic|saud[aá]vel|forte|fraca|isolamento|depend[eê]ncia|boa conex|m[aá] conex|recomend|sugerimos|voc[eê] deve/i.test(visivel),
   'o que e desenhado nao classifica, nao pontua e nao recomenda (so as ressalvas explicitas)');
-ok(/Percepção do paciente: baixa/.test(limpo(normais.mapa_rotina)) && /Intensidade percebida pelo paciente: 7 de 10/.test(limpo(normais.gatilhos_respostas)), 'intensidade aparece como percepcao do paciente, nunca como escore');
-ok(/Gatilho[\s\S]*Pensamento[\s\S]*Emoção[\s\S]*Resposta[\s\S]*Consequência/.test(limpo(normais.gatilhos_respostas)), 'fluxo na ordem Gatilho → Pensamento → Emoção → Resposta → Consequência');
-ok(/não é sugestão do sistema/.test(normais.gatilhos_respostas), 'alternativa marcada como registro de quem atende/paciente');
-ok(/Acorda[\s\S]*café[\s\S]*reunião[\s\S]*Dorme/.test(limpo(normais.mapa_rotina)) && /data-rv-painel="semana"/.test(normais.mapa_rotina) && /Sem dia definido/.test(normais.mapa_rotina), 'linha do dia em ordem (acorda → eventos → dorme) e visao semanal com "sem dia definido"');
-ok(/<svg[^>]+role="img"[^>]+aria-label=/.test(normais.conexao_pertencimento) && /<table class="rv-tabela">/.test(normais.conexao_pertencimento) && /Paciente/.test(normais.conexao_pertencimento),
+ok(/Percepção do paciente: baixa/.test(limpo(normais.mapa_rotina_v1)) && /Intensidade percebida pelo paciente: 7 de 10/.test(limpo(normais.gatilhos_respostas_v1)), 'intensidade aparece como percepcao do paciente, nunca como escore');
+ok(/Gatilho[\s\S]*Pensamento[\s\S]*Emoção[\s\S]*Resposta[\s\S]*Consequência/.test(limpo(normais.gatilhos_respostas_v1)), 'fluxo na ordem Gatilho → Pensamento → Emoção → Resposta → Consequência');
+ok(/não é sugestão do sistema/.test(normais.gatilhos_respostas_v1), 'alternativa marcada como registro de quem atende/paciente');
+ok(/Acorda[\s\S]*café[\s\S]*reunião[\s\S]*Dorme/.test(limpo(normais.mapa_rotina_v1)) && /data-rv-painel="semana"/.test(normais.mapa_rotina_v1) && /Sem dia definido/.test(normais.mapa_rotina_v1), 'linha do dia em ordem (acorda → eventos → dorme) e visao semanal com "sem dia definido"');
+ok(/<svg[^>]+role="img"[^>]+aria-label=/.test(normais.conexao_pertencimento_v1) && /<table class="rv-tabela">/.test(normais.conexao_pertencimento_v1) && /Paciente/.test(normais.conexao_pertencimento_v1),
   'rede com paciente no centro, SVG com aria-label e tabela com os mesmos dados (alternativa acessivel)');
-ok(/como foram registrados/.test(normais.conexao_pertencimento), 'legenda: papel e proximidade "como foram registrados"');
-ok(RV.previa(cat('gatilhos_respostas'), { respostas: VAL.gatilhos_respostas }) === '01/10/2026 · discussão' && RV.previa(cat('mapa_rotina'), { respostas: VAL.mapa_rotina }) === '2 eventos' && RV.previa(cat('conexao_pertencimento'), { respostas: VAL.conexao_pertencimento }) === '2 vínculos',
+ok(/como foram registrados/.test(normais.conexao_pertencimento_v1), 'legenda: papel e proximidade "como foram registrados"');
+ok(RV.previa(cat('gatilhos_respostas_v1'), { respostas: VAL.gatilhos_respostas_v1 }) === '01/10/2026 · discussão' && RV.previa(cat('mapa_rotina_v1'), { respostas: VAL.mapa_rotina_v1 }) === '2 eventos' && RV.previa(cat('conexao_pertencimento_v1'), { respostas: VAL.conexao_pertencimento_v1 }) === '2 vínculos',
   'historico: previa por episodio (data · gatilho), eventos e vinculos');
 
 titulo('6. NAO INTERFERENCIA (ESTATICA)');
 const motores = ['holoscan-oficial.js', 'metodologia-motor.js', 'holoscan.js', 'leitura-integrada-motor.js', 'laboratorio-motor.js', 'questionario.js'];
-ok(motores.every(f => !/Aplicacoes|tool_applications|mapa_rotina|gatilhos_respostas|conexao_pertencimento|RegistroVisual|REGISTRO_OPCOES/.test(ler(f))), 'motores (HOLOSCAN oficial e legado, LI, laboratorio, questionario) nao leem ferramentas: ' + motores.join(', '));
-ok(!/mapa_rotina|gatilhos_respostas|conexao_pertencimento/.test(ler('holos-ai.js')), 'HOLOS AI nao recebe os registros (nenhuma interpretacao automatica)');
+ok(motores.every(f => !/Aplicacoes|tool_applications|mapa_rotina_v1|gatilhos_respostas_v1|conexao_pertencimento_v1|RegistroVisual|REGISTRO_OPCOES/.test(ler(f))), 'motores (HOLOSCAN oficial e legado, LI, laboratorio, questionario) nao leem ferramentas: ' + motores.join(', '));
+ok(!/mapa_rotina_v1|gatilhos_respostas_v1|conexao_pertencimento_v1/.test(ler('holos-ai.js')), 'HOLOS AI nao recebe os registros (nenhuma interpretacao automatica)');
 ok(/cat && cat\.registro\) return;/.test(ler('panorama.js')), 'Panorama.contexto ignora registros (nem a intensidade percebida entra em contexto de calculo)');
 const sql = ler('supabase/migrations/20261005110000_ferramentas_registro_v1.sql').replace(/--.*$/gm, '');
 ok(!/holoscan_|methodology_|integrated_reading|lab_/.test(sql), 'a migration nao toca HOLOSCAN, pacotes, Leitura Integrada nem laboratorio');

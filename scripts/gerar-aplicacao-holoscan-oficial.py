@@ -17,7 +17,7 @@ for v in VS:
     t = open(fs[0], encoding='utf-8').read()
     assert not re.search(r'^\s*(begin|commit|rollback)\s*;\s*$', t, re.I | re.M)
     MIGS.append((v, fs[0], fs[0].split('/')[-1][:-4].split('_', 1)[1], t))
-REG = "('mapa_rotina', 'gatilhos_respostas', 'conexao_pertencimento')"
+REG = "('mapa_rotina_v1', 'gatilhos_respostas_v1', 'conexao_pertencimento_v1')"
 
 # medidas da guarda/verificacao (nenhuma devolve uid, e-mail ou dado clinico; pacientes NAO entram: o uso real os muda)
 MEDIDAS = """    'hist_n', (select count(*) from supabase_migrations.schema_migrations),
@@ -82,10 +82,11 @@ EXTRA_POS = """,
     'rpc_sem_anon', (select not has_function_privilege('anon', 'public.salvar_holoscan_completo(jsonb)', 'execute')),
     'rpc_authenticated', (select has_function_privilege('authenticated', 'public.salvar_holoscan_completo(jsonb)', 'execute')),
     'faixa_aceita_v1', (select pg_get_constraintdef(oid) like '%%intermediaria%%' and pg_get_constraintdef(oid) like '%%medio%%' from pg_constraint where conname = 'holoscan_system_scores_faixa_valida'),
-    'ferramentas_aceitas', (select pg_get_constraintdef(oid) like '%%mapa_rotina%%' and pg_get_constraintdef(oid) like '%%gatilhos_respostas%%' and pg_get_constraintdef(oid) like '%%conexao_pertencimento%%' and pg_get_constraintdef(oid) like '%%carta_futuro%%' from pg_constraint where conname = 'tool_applications_ferramenta_valida'),
+    'ferramentas_aceitas', (select pg_get_constraintdef(oid) like '%%mapa_rotina_v1%%' and pg_get_constraintdef(oid) like '%%gatilhos_respostas_v1%%' and pg_get_constraintdef(oid) like '%%conexao_pertencimento_v1%%' and pg_get_constraintdef(oid) like '%%carta_futuro%%' from pg_constraint where conname = 'tool_applications_ferramenta_valida'),
+    'ids_antigos_proibidos', (select pg_get_constraintdef(oid) not like '%%''mapa_rotina''%%' and pg_get_constraintdef(oid) not like '%%''gatilhos_respostas''%%' and pg_get_constraintdef(oid) not like '%%''conexao_pertencimento''%%' from pg_constraint where conname = 'tool_applications_ferramenta_valida'),
     'triggers_registro', (select count(*) from pg_trigger where tgrelid = 'public.tool_applications'::regclass and tgname in ('tool_applications_validar_registro', 'tool_applications_registro_concluido')),
     'funcoes_registro_sem_anon', (select bool_and(not has_function_privilege('anon', p.oid, 'execute')) from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and (p.proname like 'registro_clinico%%' or p.proname = 'validar_registro_clinico'))"""
-ESP_EXTRA_POS = '{"colunas_novas":4,"colunas_novas_preenchidas":0,"indice_aceita_nulo":"YES","policies_insert_holoscan":0,"trigger_exigir_oficial":1,"rpc_exige_oficial":1,"rpc_sem_anon":true,"rpc_authenticated":true,"faixa_aceita_v1":true,"ferramentas_aceitas":true,"triggers_registro":2,"funcoes_registro_sem_anon":true}'
+ESP_EXTRA_POS = '{"colunas_novas":4,"colunas_novas_preenchidas":0,"indice_aceita_nulo":"YES","policies_insert_holoscan":0,"trigger_exigir_oficial":1,"rpc_exige_oficial":1,"rpc_sem_anon":true,"rpc_authenticated":true,"faixa_aceita_v1":true,"ferramentas_aceitas":true,"ids_antigos_proibidos":true,"triggers_registro":2,"funcoes_registro_sem_anon":true}'
 EXTRA_PRE = """,
     'versao_ja_registrada', (select count(*) from supabase_migrations.schema_migrations where version in ('%s', '%s')),
     'colunas_novas', (select count(*) from information_schema.columns where table_schema = 'public' and table_name = 'holoscan_applications' and column_name in ('methodology_content_hash', 'engine_version', 'engine_contract_version', 'calculation_mode')),

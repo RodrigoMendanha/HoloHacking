@@ -81,7 +81,9 @@ await p.evaluate(async () => {
 /* ================================================ o catálogo do Corpo ==== */
 
 const cat = await p.evaluate(() => {
-  const c = window.CATALOGO_FERRAMENTAS.filter(f => f.modulo === 'corpo');
+  // Etapa 6.5 (B): o registro clinico Mapa da Rotina (mapa_rotina_v1) tem teste proprio; aqui ficam as 9 de sempre,
+  // inclusive a mapa_rotina ANTIGA, restaurada como legado com o schema e a sintese de antes.
+  const c = window.CATALOGO_FERRAMENTAS.filter(f => f.modulo === 'corpo' && !f.registro);
   return {
     quantas: c.length,
     papeis: [...new Set(c.map(f => f.papel))].sort(),
@@ -98,9 +100,7 @@ ok(cat.quantas === 9, 'as nove do catálogo (a 01 é o OQ³, que tem tela própr
 ok(cat.papeis.join(',') === 'estrutural,implementacao,investigacao,monitoramento',
    'os quatro papéis da especificação: ' + cat.papeis.join(' · '));
 ok(cat.comObjetivo === 9, 'todas dizem para quê servem e quando usar: ' + cat.comObjetivo);
-// Etapa 6.5 (B), mudanca DOCUMENTADA: o Mapa da Rotina voltou como REGISTRO CLINICO ESTRUTURADO — sem sintese
-// automatica (registro: true, sem `resultado`). As outras 8 continuam com a sintese de antes.
-ok(cat.comResultado === 8, 'todas produzem alguma síntese, menos o Mapa da Rotina (registro, sem síntese): ' + cat.comResultado);
+ok(cat.comResultado === 9, 'todas produzem alguma síntese: ' + cat.comResultado);
 ok(cat.semPadrao, 'e nenhum campo nasce com valor de fábrica');
 ok(cat.comPrazo.join(',') === 'hidratacao_movimento=7',
    'só a ferramenta que o §13.9 manda reaplicar semanalmente tem prazo; ' +
@@ -629,7 +629,7 @@ ok(!/carregada|vulner/i.test(rotina.texto),
 ok(rotina.res.sem_limiar === true && !/Fome 8 ou mais|Estresse 8 ou mais/.test(rotina.texto),
    'nenhum limiar sobrou na rotina');
 
-} else { pular('mapa_rotina', 'sintese antiga: desde a Etapa 6.5 o Mapa da Rotina e registro sem sintese (testes em testar-v1-registros-clinicos*.mjs)'); }
+} else { pular('mapa_rotina', 'legado (schema antigo, sem card) desde a revisao de Corpo/Mente/Espirito; o registro novo e mapa_rotina_v1 (testar-v1-registros-clinicos*.mjs)'); }
 
 /* ============= diário: horários reais, sem agrupamento ================== */
 

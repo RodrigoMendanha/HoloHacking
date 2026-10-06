@@ -65,6 +65,7 @@ export function valorInvalido(tipo, v) {
 export function erroRegistro(linha, existe) {
   const fmt = FORMATO[linha.ferramenta_id];
   if (!fmt) return null;
+  if (String(linha.versao_ferramenta) !== '1') return ['versao_ferramenta do registro clinico deve ser 1', 'registro_versao'];
   if (linha.resultado !== null && linha.resultado !== undefined) return ['registro clinico estruturado nao tem resultado automatico (resultado deve ser nulo)', 'registro_resultado'];
   const r = linha.respostas;
   if (!r || typeof r !== 'object' || Array.isArray(r)) return ['respostas do registro devem ser um objeto', 'registro_formato'];

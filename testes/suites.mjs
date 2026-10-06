@@ -113,5 +113,6 @@ export const SUITES = [
   'testar-v1-holoscan-oficial-ui.mjs',
   'testar-v1-registros-clinicos.mjs',
   'testar-v1-registros-clinicos-ui.mjs',
+  'testar-v1-registros-legado.mjs',
   'testar-conferir-producao.mjs',
 ];

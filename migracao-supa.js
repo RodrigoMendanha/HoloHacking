@@ -43,7 +43,10 @@
   var PREFIXO_MARCA = "holohacking.migrado_supa.";
   var CHAVE_DONO = "holohacking.dono_local";
 
-  var FERRAMENTAS_REMOTAS = ["oq3", "pqq", "linha_momentum", "mapa_crencas", "roda_vida", "carta_futuro"];
+  /* Etapa 6.5: + os 3 registros clinicos com IDs NOVOS (o servidor valida o formato). Os IDs antigos mapa_rotina,
+     gatilhos_respostas e conexao_pertencimento NAO entram: sao legado de outro schema e ficam so neste navegador. */
+  var FERRAMENTAS_REMOTAS = ["oq3", "pqq", "linha_momentum", "mapa_crencas", "roda_vida", "carta_futuro",
+                             "mapa_rotina_v1", "gatilhos_respostas_v1", "conexao_pertencimento_v1"];
   var STATUS_APLICACAO = ["rascunho", "concluida", "revisada"];
 
   var erros = 0;       // da rodada atual

@@ -25,7 +25,7 @@ with m as (select jsonb_build_object(
     'lab_collections', (select count(*) from public.lab_collections),
     'lab_results', (select count(*) from public.lab_results),
     'leituras', (select count(*) from public.integrated_readings),
-    'registros_clinicos', (select count(*) from public.tool_applications where ferramenta_id in ('mapa_rotina', 'gatilhos_respostas', 'conexao_pertencimento')),
+    'registros_clinicos', (select count(*) from public.tool_applications where ferramenta_id in ('mapa_rotina_v1', 'gatilhos_respostas_v1', 'conexao_pertencimento_v1')),
     'versao_ja_registrada', (select count(*) from supabase_migrations.schema_migrations where version in ('20261005100000', '20261005110000')),
     'colunas_novas', (select count(*) from information_schema.columns where table_schema = 'public' and table_name = 'holoscan_applications' and column_name in ('methodology_content_hash', 'engine_version', 'engine_contract_version', 'calculation_mode')),
     'policies_insert_holoscan', (select count(*) from pg_policy where polrelid in ('public.holoscan_applications'::regclass, 'public.holoscan_system_scores'::regclass, 'public.holoscan_answers'::regclass) and polcmd = 'a')

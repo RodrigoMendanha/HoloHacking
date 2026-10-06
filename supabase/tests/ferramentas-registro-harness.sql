@@ -33,11 +33,11 @@ begin
 
   -- F01..F03 as tres, validas, aceitas; resultado nulo
   insert into public.tool_applications (patient_id, encounter_id, ferramenta_id, versao_ferramenta, status, respostas)
-    values (pa, en, 'mapa_rotina', '1', 'rascunho', rotina) returning id into a1;
+    values (pa, en, 'mapa_rotina_v1', '1', 'rascunho', rotina) returning id into a1;
   insert into public.tool_applications (patient_id, ferramenta_id, versao_ferramenta, status, respostas)
-    values (pa, 'gatilhos_respostas', '1', 'rascunho', episodio) returning id into a2;
+    values (pa, 'gatilhos_respostas_v1', '1', 'rascunho', episodio) returning id into a2;
   insert into public.tool_applications (patient_id, ferramenta_id, versao_ferramenta, status, respostas)
-    values (pa, 'conexao_pertencimento', '1', 'rascunho', rede) returning id into a3;
+    values (pa, 'conexao_pertencimento_v1', '1', 'rascunho', rede) returning id into a3;
   insert into _fr values ('a1', a1::text), ('a2', a2::text), ('a3', a3::text);
   select count(*) into n from public.tool_applications where id in (a1, a2, a3) and resultado is null and nutritionist_id = uid;
   insert into _logfr values ('F01 ' || case when n = 3 then 'ok' else 'FALHOU' end || ': Mapa da Rotina, Gatilhos & Respostas e Conexao & Pertencimento validos aceitos, sem resultado');
@@ -47,34 +47,34 @@ begin
 
   -- F03 cada recusa de formato
   t := concat_ws(',',
-    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina', 'rascunho', '{"escore":3}', 'null')),
-    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina', 'rascunho', '{"eventos":[{"categoria":"jejum"}]}', 'null')),
-    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina', 'rascunho', '{"acorda":"25:00"}', 'null')),
-    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina', 'rascunho', '{"eventos":[{"dias":["seg","seg"]}]}', 'null')),
-    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina', 'rascunho', '{"eventos":[{"dias":["segunda"]}]}', 'null')),
-    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina', 'rascunho', '{"eventos":[{"nivel":"alto"}]}', 'null')),
-    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina', 'rascunho', '{"eventos":["texto"]}', 'null')),
-    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina', 'rascunho', '{"eventos":{"a":1}}', 'null')),
-    pg_temp.fr_tenta(format(ins, pa, 'gatilhos_respostas', 'rascunho', '{"intensidade":"11"}', 'null')),
-    pg_temp.fr_tenta(format(ins, pa, 'gatilhos_respostas', 'rascunho', '{"intensidade":"7.5"}', 'null')),
-    pg_temp.fr_tenta(format(ins, pa, 'gatilhos_respostas', 'rascunho', '{"data":"2026-02-31"}', 'null')),
-    pg_temp.fr_tenta(format(ins, pa, 'gatilhos_respostas', 'rascunho', '{"gatilho":{"x":1}}', 'null')),
-    pg_temp.fr_tenta(format(ins, pa, 'gatilhos_respostas', 'rascunho', '{"classificacao":"compulsao"}', 'null')),
-    pg_temp.fr_tenta(format(ins, pa, 'conexao_pertencimento', 'rascunho', '{"vinculos":[{"rotulo":"x","papel":"tóxica"}]}', 'null')),
-    pg_temp.fr_tenta(format(ins, pa, 'conexao_pertencimento', 'rascunho', '{"rede":"fraca"}', 'null')),
-    pg_temp.fr_tenta(format(ins, pa, 'conexao_pertencimento', 'rascunho', '{}', '''{"isolamento":true}''::jsonb')));
+    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina_v1', 'rascunho', '{"escore":3}', 'null')),
+    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina_v1', 'rascunho', '{"eventos":[{"categoria":"jejum"}]}', 'null')),
+    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina_v1', 'rascunho', '{"acorda":"25:00"}', 'null')),
+    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina_v1', 'rascunho', '{"eventos":[{"dias":["seg","seg"]}]}', 'null')),
+    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina_v1', 'rascunho', '{"eventos":[{"dias":["segunda"]}]}', 'null')),
+    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina_v1', 'rascunho', '{"eventos":[{"nivel":"alto"}]}', 'null')),
+    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina_v1', 'rascunho', '{"eventos":["texto"]}', 'null')),
+    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina_v1', 'rascunho', '{"eventos":{"a":1}}', 'null')),
+    pg_temp.fr_tenta(format(ins, pa, 'gatilhos_respostas_v1', 'rascunho', '{"intensidade":"11"}', 'null')),
+    pg_temp.fr_tenta(format(ins, pa, 'gatilhos_respostas_v1', 'rascunho', '{"intensidade":"7.5"}', 'null')),
+    pg_temp.fr_tenta(format(ins, pa, 'gatilhos_respostas_v1', 'rascunho', '{"data":"2026-02-31"}', 'null')),
+    pg_temp.fr_tenta(format(ins, pa, 'gatilhos_respostas_v1', 'rascunho', '{"gatilho":{"x":1}}', 'null')),
+    pg_temp.fr_tenta(format(ins, pa, 'gatilhos_respostas_v1', 'rascunho', '{"classificacao":"compulsao"}', 'null')),
+    pg_temp.fr_tenta(format(ins, pa, 'conexao_pertencimento_v1', 'rascunho', '{"vinculos":[{"rotulo":"x","papel":"tóxica"}]}', 'null')),
+    pg_temp.fr_tenta(format(ins, pa, 'conexao_pertencimento_v1', 'rascunho', '{"rede":"fraca"}', 'null')),
+    pg_temp.fr_tenta(format(ins, pa, 'conexao_pertencimento_v1', 'rascunho', '{}', '''{"isolamento":true}''::jsonb')));
   insert into _logfr values ('F03 ' || case when t = 'registro_formato,registro_formato,registro_formato,registro_formato,registro_formato,registro_formato,registro_formato,registro_formato,registro_formato,registro_formato,registro_formato,registro_formato,registro_formato,registro_formato,registro_formato,registro_resultado'
     then 'ok' else 'FALHOU' end || ': chave desconhecida, opcao fora da lista, horario, dia repetido/invalido, item estranho, intensidade fora de 0-10, data impossivel, objeto no lugar de texto, classificacao e resultado automatico recusados (' || t || ')');
 
   -- F04 limites: 101 itens e texto acima de 8000 recusados; 100 itens aceitos
   t := concat_ws(',',
-    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina', 'rascunho', jsonb_build_object('eventos', (select jsonb_agg(jsonb_build_object('titulo', 'e' || g)) from generate_series(1, 101) g))::text, 'null')),
-    pg_temp.fr_tenta(format(ins, pa, 'gatilhos_respostas', 'rascunho', jsonb_build_object('contexto', repeat('a', 8001))::text, 'null')),
-    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina', 'rascunho', jsonb_build_object('eventos', (select jsonb_agg(jsonb_build_object('titulo', 'e' || g)) from generate_series(1, 100) g))::text, 'null')));
+    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina_v1', 'rascunho', jsonb_build_object('eventos', (select jsonb_agg(jsonb_build_object('titulo', 'e' || g)) from generate_series(1, 101) g))::text, 'null')),
+    pg_temp.fr_tenta(format(ins, pa, 'gatilhos_respostas_v1', 'rascunho', jsonb_build_object('contexto', repeat('a', 8001))::text, 'null')),
+    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina_v1', 'rascunho', jsonb_build_object('eventos', (select jsonb_agg(jsonb_build_object('titulo', 'e' || g)) from generate_series(1, 100) g))::text, 'null')));
   insert into _logfr values ('F04 ' || case when t = 'registro_formato,registro_formato,ACEITO' then 'ok' else 'FALHOU' end || ': 101 itens e texto acima do limite recusados; 100 itens aceitos (' || t || ')');
 
   -- F05 texto com marcacao e guardado como texto (escapar e trabalho da tela)
-  t := pg_temp.fr_tenta(format(ins, pa, 'gatilhos_respostas', 'rascunho', '{"gatilho":"<img src=x onerror=alert(1)>"}', 'null'));
+  t := pg_temp.fr_tenta(format(ins, pa, 'gatilhos_respostas_v1', 'rascunho', '{"gatilho":"<img src=x onerror=alert(1)>"}', 'null'));
   insert into _logfr values ('F05 ' || case when t = 'ACEITO' and exists (select 1 from public.tool_applications where patient_id = pa and respostas->>'gatilho' = '<img src=x onerror=alert(1)>') then 'ok' else 'FALHOU' end
     || ': texto com marcacao guardado literalmente, sem interpretacao (' || t || ')');
 
@@ -98,22 +98,22 @@ begin
 
   -- F08 nova a partir desta: origem_id da mesma ferramenta e paciente aceito; de outro paciente ou inexistente recusado
   t := concat_ws(',',
-    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina', 'rascunho', (rotina || jsonb_build_object('origem_id', a1))::text, 'null')),
-    pg_temp.fr_tenta(format(ins, pb, 'mapa_rotina', 'rascunho', jsonb_build_object('origem_id', a1)::text, 'null')),
-    pg_temp.fr_tenta(format(ins, pa, 'gatilhos_respostas', 'rascunho', jsonb_build_object('origem_id', a1)::text, 'null')),
-    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina', 'rascunho', jsonb_build_object('origem_id', gen_random_uuid())::text, 'null')),
-    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina', 'rascunho', '{"origem_id":"nao-e-uuid"}', 'null')));
+    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina_v1', 'rascunho', (rotina || jsonb_build_object('origem_id', a1))::text, 'null')),
+    pg_temp.fr_tenta(format(ins, pb, 'mapa_rotina_v1', 'rascunho', jsonb_build_object('origem_id', a1)::text, 'null')),
+    pg_temp.fr_tenta(format(ins, pa, 'gatilhos_respostas_v1', 'rascunho', jsonb_build_object('origem_id', a1)::text, 'null')),
+    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina_v1', 'rascunho', jsonb_build_object('origem_id', gen_random_uuid())::text, 'null')),
+    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina_v1', 'rascunho', '{"origem_id":"nao-e-uuid"}', 'null')));
   insert into _logfr values ('F08 ' || case when t = 'ACEITO,registro_formato,registro_formato,registro_formato,registro_formato'
     and (select respostas from public.tool_applications where id = a1) = rotina then 'ok' else 'FALHOU' end
     || ': copia guarda a origem; origem de outro paciente/ferramenta/inexistente recusada; original intacta (' || t || ')');
 
   -- F09 rascunho continua editavel
-  t := pg_temp.fr_tenta(format('update public.tool_applications set respostas = %L::jsonb where patient_id = %L and ferramenta_id = ''gatilhos_respostas'' and status = ''rascunho''', '{"gatilho":"fila do mercado"}', pa));
+  t := pg_temp.fr_tenta(format('update public.tool_applications set respostas = %L::jsonb where patient_id = %L and ferramenta_id = ''gatilhos_respostas_v1'' and status = ''rascunho''', '{"gatilho":"fila do mercado"}', pa));
   insert into _logfr values ('F09 ' || case when t = 'ACEITO' then 'ok' else 'FALHOU' end || ': rascunho continua editavel (' || t || ')');
 
   -- F10 paciente arquivado: nada novo
   update public.patients set status = 'inativo' where id = pb;
-  t := pg_temp.fr_tenta(format(ins, pb, 'conexao_pertencimento', 'rascunho', '{}', 'null'));
+  t := pg_temp.fr_tenta(format(ins, pb, 'conexao_pertencimento_v1', 'rascunho', '{}', 'null'));
   insert into _logfr values ('F10 ' || case when t = 'paciente_arquivado' then 'ok' else 'FALHOU' end || ': paciente arquivado recusa registro novo (' || t || ')');
 
   -- F11 id desconhecido continua recusado
@@ -128,7 +128,7 @@ declare n int; a1 uuid := (select v::uuid from _fr where k = 'a1'); pa uuid := (
 begin
   select count(*) into n from public.tool_applications where id = a1;
   update public.tool_applications set leitura = 'invasao' where id = a1;
-  t := pg_temp.fr_tenta(format('insert into public.tool_applications (patient_id, ferramenta_id, versao_ferramenta, respostas) values (%L, ''mapa_rotina'', ''1'', ''{}'')', pa));
+  t := pg_temp.fr_tenta(format('insert into public.tool_applications (patient_id, ferramenta_id, versao_ferramenta, respostas) values (%L, ''mapa_rotina_v1'', ''1'', ''{}'')', pa));
   insert into _logfr values ('F12 ' || case when n = 0 and t <> 'ACEITO' then 'ok' else 'FALHOU' end || ': outra nutricionista nao ve, nao altera e nao cria no paciente alheio (' || left(t, 40) || ')');
 end $$;
 reset role;
@@ -150,8 +150,8 @@ declare ids text := (select v from _fr where k = 'n_tools');
 begin
   insert into _logfr values ('F14 ' || case when
     (select md5(coalesce(string_agg(to_jsonb(t)::text, ';' order by t.id), '')) from public.tool_applications t
-       where t.ferramenta_id not in ('mapa_rotina', 'gatilhos_respostas', 'conexao_pertencimento')) = (select v from _fr where k = 'tools')
-    and (select count(*)::text from public.tool_applications where ferramenta_id not in ('mapa_rotina', 'gatilhos_respostas', 'conexao_pertencimento')) = ids
+       where t.ferramenta_id not in ('mapa_rotina_v1', 'gatilhos_respostas_v1', 'conexao_pertencimento_v1')) = (select v from _fr where k = 'tools')
+    and (select count(*)::text from public.tool_applications where ferramenta_id not in ('mapa_rotina_v1', 'gatilhos_respostas_v1', 'conexao_pertencimento_v1')) = ids
     and (select md5(coalesce(string_agg(to_jsonb(a)::text, ';' order by a.id), '')) from public.holoscan_applications a) = (select v from _fr where k = 'holoscan')
     and (select md5(coalesce(string_agg(to_jsonb(s)::text, ';' order by s.id), '')) from public.holoscan_system_scores s) = (select v from _fr where k = 'scores')
     and (select md5(coalesce(string_agg(to_jsonb(r)::text, ';' order by r.id), '')) from public.holoscan_answers r) = (select v from _fr where k = 'answers')
@@ -171,6 +171,29 @@ begin
     values (pa, 'oq3', '1', 'concluida', '{"qualquer":"coisa"}', '{"x":1}', now()) returning id into a;
   t := pg_temp.fr_tenta(format('update public.tool_applications set respostas = %L::jsonb where id = %L', '{"outra":"chave"}', a));
   insert into _logfr values ('F15 ' || case when t = 'ACEITO' then 'ok' else 'FALHOU' end || ': OQ3 (e as outras 5) sem mudanca de comportamento (' || t || ')');
+end $$;
+reset role;
+
+-- F17 IDs ANTIGOS (schema antigo) continuam proibidos, com payload antigo completo OU parcial; F18 versao_ferramenta = 1
+set local role authenticated;
+select pg_temp.como_daniel();
+do $$
+declare pa uuid := (select v::uuid from _fr where k = 'pa'); t text;
+  ins text := 'insert into public.tool_applications (patient_id, ferramenta_id, versao_ferramenta, status, respostas) values (%L, %L, %L, ''concluida'', %L::jsonb)';
+begin
+  t := concat_ws(',',
+    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina', '0', '{"eventos":[{"inicio":"07:00","tipo":"Refeição","fome":"6"}],"barreira":"x"}')),
+    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina', '1', '{"eventos":[{"inicio":"07:00","titulo":"café"}]}')),
+    pg_temp.fr_tenta(format(ins, pa, 'gatilhos_respostas', '0', '{"gatilho1":"briga","resposta1":"doce"}')),
+    pg_temp.fr_tenta(format(ins, pa, 'conexao_pertencimento', '0', '{"sustentam":"irmã","pertence":"igreja"}')),
+    pg_temp.fr_tenta(format(ins, pa, 'conexao_pertencimento', '1', '{"pertence":"igreja"}')));
+  insert into _logfr values ('F17 ' || case when t !~ 'ACEITO' and (select count(*) from regexp_matches(t, 'ferramenta_valida', 'g')) = 5 then 'ok' else 'FALHOU' end
+    || ': IDs antigos (mapa_rotina, gatilhos_respostas, conexao_pertencimento) recusados pela constraint, com payload antigo completo e parcial');
+  t := concat_ws(',',
+    pg_temp.fr_tenta(format(ins, pa, 'mapa_rotina_v1', '0', '{}')),
+    pg_temp.fr_tenta(format(ins, pa, 'gatilhos_respostas_v1', '2', '{}')),
+    pg_temp.fr_tenta(format(ins, pa, 'conexao_pertencimento_v1', '1', '{}')));
+  insert into _logfr values ('F18 ' || case when t = 'registro_versao,registro_versao,ACEITO' then 'ok' else 'FALHOU' end || ': IDs novos so com versao_ferramenta = 1 (' || t || ')');
 end $$;
 reset role;
 

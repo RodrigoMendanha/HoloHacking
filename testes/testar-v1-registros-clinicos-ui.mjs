@@ -133,7 +133,7 @@ const fotoAntes = { holo: foto('holoscan_applications'), scores: foto('holoscan_
 ok(srv.linhas('holoscan_applications').filter(x => x.patient_id === PA).length === 1, 'aplicacao HOLOSCAN oficial salva (referencia para a comparacao)');
 
 titulo('1. MAPA DA ROTINA — CORPO 03');
-ok(await abrirFerr(A, PA, 'mapa_rotina'), 'card "Mapa da Rotina" abre o formulario');
+ok(await abrirFerr(A, PA, 'mapa_rotina_v1'), 'card "Mapa da Rotina" abre o formulario');
 let v = await vista(A);
 ok(/Corpo - Ferramenta 03/i.test(v.texto) && /Mapa da Rotina/.test(v.texto) && !v.fechado && v.campos > 5, 'cabecalho Corpo 03 e formulario vazio (estado inicial)');
 ok(/Nenhum evento registrado/.test(v.texto), 'estado vazio da linha do tempo');
@@ -146,13 +146,13 @@ await preencher(A, { 'campo-eventos-1-inicio': '07:00', 'campo-eventos-1-titulo'
 const pressed = await A.evaluate(() => [...document.querySelectorAll('[data-campo="campo-eventos-0-dias"] button')].map(b => b.getAttribute('aria-pressed')).join(''));
 ok(pressed === 'truefalsetruefalsefalsefalsefalse', 'dias: varios marcaveis, com aria-pressed (seg + qua)');
 await acao(A, 'rascunho');
-let rr = regs(PA, 'mapa_rotina');
+let rr = regs(PA, 'mapa_rotina_v1');
 ok(rr.length === 1 && rr[0].status === 'rascunho' && rr[0].respostas.eventos.length === 2 && JSON.stringify(rr[0].respostas.eventos[0].dias) === '["seg","qua"]' && rr[0].resultado === null && rr[0].nutritionist_id === UA,
   'rascunho salvo no SERVIDOR, no paciente certo: 2 eventos, dias ["seg","qua"], sem resultado');
 v = await vista(A);
 ok(/Acorda[\s\S]*Café[\s\S]*Almoço[\s\S]*Dorme/.test(v.texto), 'a linha do dia ordena por horario (07:00 antes de 12:00) entre acorda e dorme');
 const avisoConcluir = await acao(A, 'concluir');
-rr = regs(PA, 'mapa_rotina');
+rr = regs(PA, 'mapa_rotina_v1');
 ok(rr[0].status === 'concluida' && /concluída/i.test(avisoConcluir), 'concluir: status concluida');
 v = await vista(A);
 ok(v.fechado && v.campos === 0 && v.botoes.includes('copiar') && v.botoes.includes('nova') && !v.botoes.includes('concluir') && !v.botoes.includes('rascunho'),
@@ -167,8 +167,8 @@ const semana = await A.evaluate(async () => {
 ok(semana.visivel && semana.pressed === 'true' && /Almoço/.test(semana.seg) && /Café/.test(semana.semDia), 'visao semanal: almoço na segunda, café em "Sem dia definido"');
 // leitura profissional
 await A.evaluate(async () => { const v = document.querySelector('.vista-ferramenta:not(.hidden)'); v.querySelector('#leit-texto').value = 'rotina apertada no almoço'; v.querySelector('[data-acao="revisar"]').click(); await new Promise(r => setTimeout(r, 600)); });
-const respostasOriginais = JSON.stringify(regs(PA, 'mapa_rotina')[0].respostas);
-ok(regs(PA, 'mapa_rotina')[0].status === 'revisada' && regs(PA, 'mapa_rotina')[0].leitura === 'rotina apertada no almoço', 'leitura profissional registrada: revisada');
+const respostasOriginais = JSON.stringify(regs(PA, 'mapa_rotina_v1')[0].respostas);
+ok(regs(PA, 'mapa_rotina_v1')[0].status === 'revisada' && regs(PA, 'mapa_rotina_v1')[0].leitura === 'rotina apertada no almoço', 'leitura profissional registrada: revisada');
 // nova a partir desta
 await acao(A, 'copiar', 400);
 v = await vista(A);
@@ -176,7 +176,7 @@ const copiaCampos = await A.evaluate(() => ({ acorda: document.getElementById('c
 ok(!v.fechado && copiaCampos.acorda === '06:30' && /Criada a partir da aplicação de/.test(v.texto), '"Nova a partir desta": rascunho NOVO com os dados copiados e a origem indicada');
 await preencher(A, { 'campo-acorda': '07:15' });
 await acao(A, 'concluir');
-rr = regs(PA, 'mapa_rotina');
+rr = regs(PA, 'mapa_rotina_v1');
 const orig = rr.find(x => x.leitura), nova = rr.find(x => !x.leitura);
 ok(rr.length === 2 && nova && nova.respostas.origem_id === orig.id && nova.respostas.acorda === '07:15' && JSON.stringify(orig.respostas) === respostasOriginais && orig.status === 'revisada',
   'a correcao virou outra aplicacao (origem_id); a original continua identica e revisada');
@@ -186,12 +186,12 @@ const ver = await A.evaluate(async () => { document.querySelector('.vista-ferram
 ok(/Registro concluído/.test(ver) && /06:30/.test(ver), 'abrir do historico mostra a aplicacao antiga, so leitura');
 
 titulo('2. GATILHOS & RESPOSTAS — MENTE 03 (um episodio por aplicacao)');
-ok(await abrirFerr(A, PA, 'gatilhos_respostas'), 'card "Gatilhos & Respostas" abre');
+ok(await abrirFerr(A, PA, 'gatilhos_respostas_v1'), 'card "Gatilhos & Respostas" abre');
 await preencher(A, { 'campo-data': '2026-10-01', 'campo-horario': '21:30', 'campo-contexto': 'em casa', 'campo-gatilho': 'discussão ' + XSS, 'campo-pensamento': 'não aguento',
   'campo-emocao': 'raiva', 'campo-intensidade': '7', 'campo-resposta': 'come doce', 'campo-consequencia_imediata': 'alívio', 'campo-consequencia_posterior': 'culpa',
   'campo-necessidade': 'descanso', 'campo-alternativa': 'ligar para a irmã' });
 await acao(A, 'concluir');
-let rg = regs(PA, 'gatilhos_respostas');
+let rg = regs(PA, 'gatilhos_respostas_v1');
 ok(rg.length === 1 && rg[0].status === 'concluida' && rg[0].respostas.intensidade === '7' && rg[0].resultado === null, 'episodio concluido; intensidade 7 guardada como percepcao; sem resultado');
 v = await vista(A);
 const passos = await A.evaluate(() => [...document.querySelectorAll('.vista-ferramenta:not(.hidden) .rv-passo h6')].map(h => h.textContent).join('>'));
@@ -202,12 +202,12 @@ v = await vista(A);
 ok(!v.fechado && await A.evaluate(() => document.getElementById('campo-gatilho').value === ''), '"Nova aplicação": episodio novo em branco');
 await preencher(A, { 'campo-gatilho': 'fila do mercado', 'campo-resposta': 'belisca' });
 await acao(A, 'concluir');
-rg = regs(PA, 'gatilhos_respostas');
+rg = regs(PA, 'gatilhos_respostas_v1');
 v = await vista(A);
 ok(rg.length === 2 && v.hist.length === 1 && /discussão/.test(v.hist[0]) && /01\/10\/2026/.test(v.hist[0]), 'dois episodios; o anterior listado no historico com data e gatilho');
 
 titulo('3. CONEXAO & PERTENCIMENTO — ESPIRITO 04');
-ok(await abrirFerr(A, PA, 'conexao_pertencimento'), 'card "Conexão & Pertencimento" abre');
+ok(await abrirFerr(A, PA, 'conexao_pertencimento_v1'), 'card "Conexão & Pertencimento" abre');
 v = await vista(A);
 ok(/Espiritualidade — opcional, só se fizer sentido para a pessoa/.test(v.texto), 'espiritualidade explicitamente opcional');
 await preencher(A, { 'campo-contar': 'irmã e uma amiga', 'campo-vinculos-0-rotulo': 'Irmã ' + XSS, 'campo-vinculos-0-relacao': 'mora perto' });
@@ -216,7 +216,7 @@ await A.evaluate(async () => { document.querySelector('.vista-ferramenta:not(.hi
 await preencher(A, { 'campo-vinculos-1-rotulo': 'Grupo de corrida' });
 await opcao(A, 'vinculos-1-papel', 'variável'); await opcao(A, 'vinculos-1-momento', 'não presente no momento');
 await acao(A, 'concluir');
-const rc = regs(PA, 'conexao_pertencimento');
+const rc = regs(PA, 'conexao_pertencimento_v1');
 ok(rc.length === 1 && rc[0].status === 'concluida' && rc[0].respostas.vinculos.length === 2 && rc[0].respostas.espiritualidade === null, 'concluido com 2 vinculos; espiritualidade em branco = null (nao presumida)');
 v = await vista(A);
 const rede = await A.evaluate(() => { const v = document.querySelector('.vista-ferramenta:not(.hidden)'); const s = v.querySelector('.rv-rede-svg');
@@ -226,29 +226,29 @@ ok(!v.xss && v.imgs === 0 && !/Espiritualidade/.test(v.texto.split('Leitura prof
 ok(!/t[oó]xic|saud[aá]vel|rede forte|rede fraca|isolamento|depend[eê]ncia|boa conex|m[aá] conex/i.test(v.texto), 'nenhuma classificacao da rede ou das relacoes');
 
 titulo('4. TROCA DE PACIENTE, ARQUIVADO, RECARREGAR, OUTRO DISPOSITIVO, SAIR/ENTRAR, OUTRA CONTA');
-ok(await abrirFerr(A, PA2, 'conexao_pertencimento'), 'outro paciente: a ferramenta abre');
+ok(await abrirFerr(A, PA2, 'conexao_pertencimento_v1'), 'outro paciente: a ferramenta abre');
 v = await vista(A);
 ok(!v.fechado && !/Irmã/.test(v.texto) && /Nenhum vínculo registrado/.test(v.texto), 'troca de paciente: nada do paciente anterior aparece');
-const status2 = await A.evaluate(() => document.querySelector('[data-ferramenta="conexao_pertencimento"] .ferr-status').textContent);
+const status2 = await A.evaluate(() => document.querySelector('[data-ferramenta="conexao_pertencimento_v1"] .ferr-status').textContent);
 ok(/Dispon/.test(status2), 'card do outro paciente: Disponível');
-await abrirFerr(A, PARQ, 'mapa_rotina');
+await abrirFerr(A, PARQ, 'mapa_rotina_v1');
 await preencher(A, { 'campo-acorda': '06:00' });
 const avArq = await acao(A, 'concluir');
 ok(regs(PARQ).length === 0 && /arquivado/i.test(avArq), 'paciente arquivado: nada gravado, mensagem clara (' + avArq.slice(0, 50) + ')');
 await A.reload({ waitUntil: 'networkidle2' });
 await A.waitForFunction(() => window.HoloAuth && window.HoloAuth.sessaoAtiva() && window.pacientesCarregados && window.pacientesCarregados(), { timeout: 15000 });
-await abrirFerr(A, PA, 'gatilhos_respostas');
+await abrirFerr(A, PA, 'gatilhos_respostas_v1');
 v = await vista(A);
 ok(v.fechado && /fila do mercado/.test(v.texto) && v.hist.length === 1, 'recarregar: o ultimo episodio e o historico vem do servidor');
 const A2 = await abrirPagina('a@holo.test', 'senha-a-123');
-await abrirFerr(A2, PA, 'conexao_pertencimento');
+await abrirFerr(A2, PA, 'conexao_pertencimento_v1');
 v = await vista(A2);
 ok(v.fechado && /Grupo de corrida/.test(v.texto) && /irmã e uma amiga/.test(v.texto), 'outro dispositivo (contexto novo, mesma conta): o mesmo registro');
 ok(await A2.evaluate(() => !Object.keys(localStorage).some(k => /tool_applications/.test(k)) || true), 'servidor e a fonte (localStorage so cache)');
 await A2.evaluate(() => window.HoloAuth.sair());
 await esperar(500);
 await entrar(A2, 'a@holo.test', 'senha-a-123');
-await abrirFerr(A2, PA, 'mapa_rotina');
+await abrirFerr(A2, PA, 'mapa_rotina_v1');
 v = await vista(A2);
 ok(v.fechado && /07:15/.test(v.texto) && v.hist.length === 1, 'sair e entrar de novo: os registros continuam');
 const B = await abrirPagina('b@holo.test', 'senha-b-123');
@@ -257,15 +257,15 @@ ok(q(UB, 'tool_applications', 'select', {}).data.length === 0 && vistoB > 0, 'ou
 
 titulo('5. CELULAR E ACESSIBILIDADE');
 await A.setViewport({ width: 390, height: 900, isMobile: true });
-await abrirFerr(A, PA, 'gatilhos_respostas');
+await abrirFerr(A, PA, 'gatilhos_respostas_v1');
 const movel = await A.evaluate(() => { const p = document.querySelector('.vista-ferramenta:not(.hidden) .rv-passos'); const cols = getComputedStyle(p).gridTemplateColumns.split(' ').length;
   return { cols, larg: document.documentElement.scrollWidth }; });
 ok(movel.cols === 1 && movel.larg <= 391, 'celular (390 px): fluxo empilhado em cartoes, sem rolagem horizontal (' + movel.larg + ' px)');
-await abrirFerr(A, PA, 'conexao_pertencimento');
+await abrirFerr(A, PA, 'conexao_pertencimento_v1');
 const movelRede = await A.evaluate(() => document.documentElement.scrollWidth);
 ok(movelRede <= 391, 'celular: rede + tabela sem rolagem horizontal da pagina (' + movelRede + ' px)');
 await A.setViewport({ width: 1366, height: 1000 });
-await abrirFerr(A, PA2, 'mapa_rotina');
+await abrirFerr(A, PA2, 'mapa_rotina_v1');
 const a11y = await A.evaluate(() => { const v = document.querySelector('.vista-ferramenta:not(.hidden) .form-ferramenta');
   const sem = [...v.querySelectorAll('input, textarea')].filter(el => el.type !== 'range' && !v.querySelector('label[for="' + el.id + '"]')).map(el => el.id);
   const foco = [...v.querySelectorAll('button')].every(b => b.tabIndex >= 0);

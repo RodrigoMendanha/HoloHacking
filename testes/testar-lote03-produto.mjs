@@ -361,7 +361,8 @@ const preservacao = await p.evaluate(() => {
   const sistemas = pont ? pont.sistemas.length : 0;
   return { catalogo: catalogo.length, ativas: ativas.length, perguntas, sistemas };
 });
-conferir(preservacao.catalogo === 27, '27 ferramentas no catálogo: ' + preservacao.catalogo);
+// Etapa 6.5 (B): 27 de antes (inclusive as 3 antigas, legado) + 3 registros clinicos com IDs novos (*_v1) = 30
+conferir(preservacao.catalogo === 30, '30 ferramentas no catálogo: ' + preservacao.catalogo);
 // Etapa 6.5 (B): +3 registros clinicos estruturados (mapa_rotina, gatilhos_respostas, conexao_pertencimento) -> 7
 conferir(preservacao.ativas === 7, '7 IDs em FERRAMENTAS_ATIVAS: ' + preservacao.ativas);
 conferir(preservacao.perguntas === 84, '84 perguntas no HOLOSCAN: ' + preservacao.perguntas);

@@ -24,8 +24,9 @@
    mas nao podem originar nova aplicacao. */
 window.FERRAMENTAS_ATIVAS = [
   "linha_momentum", "mapa_crencas", "roda_vida", "carta_futuro",
-  /* Etapa 6.5: registros clinicos estruturados (sem score/interpretacao automatica) */
-  "mapa_rotina", "gatilhos_respostas", "conexao_pertencimento"
+  /* Etapa 6.5: registros clinicos estruturados (sem score/interpretacao automatica). IDs NOVOS: os antigos
+     mapa_rotina, gatilhos_respostas e conexao_pertencimento ficam congelados no schema antigo (legado: true). */
+  "mapa_rotina_v1", "gatilhos_respostas_v1", "conexao_pertencimento_v1"
 ];
 
 /* Correcao/Etapa 6.5 — tres REGISTROS CLINICOS ESTRUTURADOS (Mapa da Rotina, Gatilhos & Respostas,
@@ -71,9 +72,43 @@ window.CATALOGO_FERRAMENTAS = [
      ---------------------------------------------------------------------- */
 
   {
+    /* LEGADO (congelado na Etapa 6.5): schema antigo, inativo, proibido no servidor. Nunca abre o formulario
+       novo, nunca e convertido para mapa_rotina_v1. So para leitura de historico local antigo. */
+    id: "mapa_rotina", legado: true, modulo: "corpo", numero: "02",
+    papel: "estrutural",
+    titulo: "Mapa da Rotina",
+    chamada: "as 24 horas do dia real",
+    descricao: "As 24 horas reais do paciente, evento a evento: onde a saude acontece, onde quebra e onde cabe mudança.",
+    objetivo: "Enxergar o dia como ele e, e nao como ele deveria ser.",
+    quando_usar: "Na primeira consulta, e sempre que a rotina mudar de forma relevante.",
+    duracao: 15,
+    resultado: "rotina",
+    lista: {
+      id: "eventos", rotulo: "Eventos do dia", minimo: 1,
+      titulo_item: "Evento",
+      campos: [
+        { id: "inicio", rotulo: "Comeca", tipo: "hora" },
+        { id: "fim", rotulo: "Termina", tipo: "hora" },
+        { id: "tipo", rotulo: "Tipo", tipo: "opcoes", opcoes_de: "rotina_eventos" },
+        { id: "titulo", rotulo: "O que e", tipo: "texto", dica: "ex: cafe da manha em pe, na cozinha" },
+        { id: "onde", rotulo: "Onde", tipo: "texto" },
+        { id: "fome", rotulo: "Fome", tipo: "nota" },
+        { id: "energia", rotulo: "Energia", tipo: "nota" },
+        { id: "estresse", rotulo: "Estresse", tipo: "nota" },
+        { id: "observacao", rotulo: "Observacao", tipo: "texto" }
+      ]
+    },
+    campos: [
+      { id: "barreira", rotulo: "Principal barreira pratica", tipo: "textarea" },
+      { id: "comecar", rotulo: "Melhor ponto para comecar", tipo: "texto",
+        dica: "um so — o que tem mais chance de pegar" }
+    ]
+  },
+
+  {
     /* Etapa 6.5 — CORPO 03: REALIDADE. Registro do dia/semana como acontecem. Sem sintese automatica:
        "espaco possivel para mudanca" e o que profissional/paciente identificaram, nunca recomendacao. */
-    id: "mapa_rotina", modulo: "corpo", numero: "03",
+    id: "mapa_rotina_v1", modulo: "corpo", numero: "03",
     papel: "estrutural",
     registro: true, imutavel_concluida: true, visualizacao: "timeline",
     titulo: "Mapa da Rotina",
@@ -428,10 +463,30 @@ window.CATALOGO_FERRAMENTAS = [
   },
 
   {
+    /* LEGADO (congelado na Etapa 6.5): schema antigo, inativo, proibido no servidor. Nunca abre o formulario
+       novo, nunca e convertido para gatilhos_respostas_v1. So para leitura de historico local antigo. */
+    id: "gatilhos_respostas", legado: true, modulo: "mente", numero: "05",
+    titulo: "Gatilhos & Respostas",
+    chamada: "o que dispara o automatico",
+    descricao: "Mapeamento das situações que disparam comportamentos automaticos.",
+    campos: [
+      { id: "gatilho1", rotulo: "Gatilho 1", tipo: "texto" },
+      { id: "resposta1", rotulo: "O que ele faz hoje", tipo: "texto" },
+      { id: "escolha1", rotulo: "O que poderia fazer", tipo: "texto" },
+      { id: "gatilho2", rotulo: "Gatilho 2", tipo: "texto" },
+      { id: "resposta2", rotulo: "O que ele faz hoje", tipo: "texto" },
+      { id: "escolha2", rotulo: "O que poderia fazer", tipo: "texto" },
+      { id: "gatilho3", rotulo: "Gatilho 3", tipo: "texto" },
+      { id: "resposta3", rotulo: "O que ele faz hoje", tipo: "texto" },
+      { id: "escolha3", rotulo: "O que poderia fazer", tipo: "texto" }
+    ]
+  },
+
+  {
     /* Etapa 6.5 — MENTE 03: COMPORTAMENTO. Um EPISODIO por aplicacao (gatilho -> pensamento -> emocao ->
        resposta -> consequencia). Sem score; a "resposta alternativa" e registrada por profissional/paciente,
        nunca sugerida pelo sistema. */
-    id: "gatilhos_respostas", modulo: "mente", numero: "03",
+    id: "gatilhos_respostas_v1", modulo: "mente", numero: "03",
     registro: true, imutavel_concluida: true, visualizacao: "fluxo",
     titulo: "Gatilhos & Respostas",
     chamada: "como isso aparece na vida real",
@@ -591,10 +646,25 @@ window.CATALOGO_FERRAMENTAS = [
   },
 
   {
+    /* LEGADO (congelado na Etapa 6.5): schema antigo, inativo, proibido no servidor. Nunca abre o formulario
+       novo, nunca e convertido para conexao_pertencimento_v1. So para leitura de historico local antigo. */
+    id: "conexao_pertencimento", legado: true, modulo: "espirito", numero: "06",
+    titulo: "Conexão & Pertencimento",
+    chamada: "quem sustenta a jornada",
+    descricao: "Mapeamento das relações que sustentam a jornada.",
+    campos: [
+      { id: "sustentam", rotulo: "Quem sustenta", tipo: "textarea" },
+      { id: "drenam", rotulo: "Quem drena", tipo: "textarea" },
+      { id: "pertence", rotulo: "Onde ele se sente pertencendo", tipo: "texto" },
+      { id: "sozinho", rotulo: "Ele esta fazendo isso sozinho?", tipo: "opcoes", opcoes: ["Sozinho", "Com alguém", "Com uma rede"] }
+    ]
+  },
+
+  {
     /* Etapa 6.5 — ESPIRITO 04: PERTENCIMENTO E CONEXAO. Rede descrita por quem registra: nenhum vinculo e
        classificado pelo sistema (nada de "toxico", "rede fraca", "isolamento"). Espiritualidade e opcional
        e nao presumida; nenhuma estrutura familiar e presumida. */
-    id: "conexao_pertencimento", modulo: "espirito", numero: "04",
+    id: "conexao_pertencimento_v1", modulo: "espirito", numero: "04",
     registro: true, imutavel_concluida: true, visualizacao: "rede",
     titulo: "Conexão & Pertencimento",
     chamada: "quem e o que sustenta essa pessoa",

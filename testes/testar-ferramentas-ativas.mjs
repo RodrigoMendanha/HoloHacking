@@ -1,7 +1,7 @@
 /**
  * Etapa 6.5 (B), mudanca de contrato DOCUMENTADA: Mapa da Rotina (Corpo 03), Gatilhos & Respostas (Mente 03) e
- * Conexao & Pertencimento (Espirito 04) voltam como REGISTROS CLINICOS ESTRUTURADOS (sem sintese/score). Eram 4 ativas
- * de catalogo; agora 7. As outras 20 legadas continuam recusadas.
+ * Conexao & Pertencimento (Espirito 04) entram como REGISTROS CLINICOS ESTRUTURADOS com IDs NOVOS (*_v1). Eram 4 ativas
+ * de catalogo; agora 7. As 23 legadas continuam recusadas — inclusive os 3 IDs antigos, congelados no schema antigo.
  *
  * Verifica que somente as ferramentas ativas (+1 derivada) podem originar
  * nova aplicacao. Ferramentas legadas continuam legiveis no historico mas nao
@@ -27,7 +27,7 @@ const ativas = await p.evaluate(() => window.FERRAMENTAS_ATIVAS);
 ok(Array.isArray(ativas), 'FERRAMENTAS_ATIVAS e um array');
 ok(ativas.length === 7, '7 ferramentas de catalogo ativas: ' + ativas.length);
 
-const esperadas = ['linha_momentum', 'mapa_crencas', 'roda_vida', 'carta_futuro', 'mapa_rotina', 'gatilhos_respostas', 'conexao_pertencimento'];
+const esperadas = ['linha_momentum', 'mapa_crencas', 'roda_vida', 'carta_futuro', 'mapa_rotina_v1', 'gatilhos_respostas_v1', 'conexao_pertencimento_v1'];
 const temTodas = esperadas.every(id => ativas.indexOf(id) >= 0);
 ok(temTodas, 'lista contem exatamente as 7 esperadas');
 
@@ -55,22 +55,22 @@ ok(temOq3 && temPqq && temMapa, 'ancoras OQ3, PQQ, Mapa do Proposito presentes')
 /* ======================== abrirFerramentaPorId recusa legadas */
 
 const recusaLegada = await p.evaluate(() => {
-  const legadas = ['energia_vital', 'leitura_sinais',
+  const legadas = ['mapa_rotina', 'energia_vital', 'leitura_sinais',
     'diario_corporal', 'ritmo_sono', 'inventario_habitos',
     'hidratacao_movimento', 'check_comprometimento',
-    'diario_emocoes', 'historia_alimentar',
+    'diario_emocoes', 'historia_alimentar', 'gatilhos_respostas',
     'roda_valores', 'reenquadramento', 'ancoras_motivacao',
     'autocompaixao', 'autoestima',
-    'ritual_mesa', 'inventario_gratidao',
+    'ritual_mesa', 'inventario_gratidao', 'conexao_pertencimento',
     'circulo_sentido', 'praticas_contemplativas', 'legado', 'alinhamento'];
   return legadas.every(id => window.abrirFerramentaPorId(id) === false);
 });
-ok(recusaLegada, 'abrirFerramentaPorId recusa todas as 20 ferramentas legadas');
+ok(recusaLegada, 'abrirFerramentaPorId recusa todas as 23 ferramentas legadas (inclusive os IDs antigos mapa_rotina, gatilhos_respostas, conexao_pertencimento)');
 
 /* ======================== abrirFerramentaPorId aceita ativas */
 
 const aceitaAtivas = await p.evaluate(() => {
-  return ['linha_momentum', 'mapa_crencas', 'roda_vida', 'carta_futuro', 'mapa_rotina', 'gatilhos_respostas', 'conexao_pertencimento']
+  return ['linha_momentum', 'mapa_crencas', 'roda_vida', 'carta_futuro', 'mapa_rotina_v1', 'gatilhos_respostas_v1', 'conexao_pertencimento_v1']
     .every(id => {
       const r = window.abrirFerramentaPorId(id);
       return r === true;
@@ -108,7 +108,7 @@ ok(!/de 30/i.test(fichaTexto), 'contador nao usa "de 30"');
 const catalogoTamanho = await p.evaluate(() =>
   (window.CATALOGO_FERRAMENTAS || []).length
 );
-ok(catalogoTamanho === 27, 'CATALOGO_FERRAMENTAS preservado com 27 ferramentas: ' + catalogoTamanho);
+ok(catalogoTamanho === 30, 'CATALOGO_FERRAMENTAS preservado: 27 de antes + 3 registros com IDs novos = ' + catalogoTamanho);
 
 await nav.close();
 console.log(ruim.length ? '\n  ERRO: ' + ruim[0] : '\n  sem erro de JS');
