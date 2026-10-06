@@ -4,8 +4,8 @@
 #   sh deploy-etapa6-5b.sh swap       -> passos 9-11 (troca 8080, valida local e publico). So depois de conferir o 1o.
 # Para sozinho em qualquer divergencia. Nunca apaga container. Nao usa credencial.
 set -eu
-ESPERADO=b18ffd5edd19ee10b06a59a83b89ab3c509f45ec
-CURTO=b18ffd5
+ESPERADO=a719715078b182c124a14673d2d230a615ab770d
+CURTO=a719715
 DIR=/opt/holohacking
 IMG=holohacking-web:$CURTO
 PROD=holohacking-web
@@ -42,12 +42,12 @@ if [ "${1:-}" != "swap" ]; then
   docker run -d --name "$TEMP" -p 127.0.0.1:8082:80 "$IMG" >/dev/null
   sleep 2
   curl -s http://127.0.0.1:8082/version.json; echo
-  for p in / /index.html /app.js /ferramentas-registro.js /metodologia.js /formulario.js /holoscan-oficial.js /style.css /favicon.svg /version.json; do
+  for p in / /index.html /app.js /ferramentas-registro.js /metodologia.js /formulario.js /holoscan-oficial.js /style.css /favicon.svg /logo-holohacking.png /version.json; do
     c=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:8082$p"); echo "$c $p"; [ "$c" = 200 ] || pare "$p devolveu $c no temporario"
   done
   curl -sI http://127.0.0.1:8082/app.js | grep -iE 'cache-control|x-content-type|referrer-policy|content-type'
-  echo; echo "=== conferir-producao no temporario (esperado 56 de 56) ==="
-  sh scripts/conferir-producao.sh http://127.0.0.1:8082 || pare "conferir-producao no temporario nao deu 56/56 — NAO fazer swap"
+  echo; echo "=== conferir-producao no temporario (esperado 57 de 57) ==="
+  sh scripts/conferir-producao.sh http://127.0.0.1:8082 || pare "conferir-producao no temporario nao deu 57/57 — NAO fazer swap"
   echo; echo "=== PASSO 8 — referencias do index (nenhum 404) ==="
   for s in $(curl -s http://127.0.0.1:8082/ | grep -o 'src="/[^"]*\.js"' | sed 's/src="//;s/"//'); do
     c=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:8082$s"); [ "$c" = 200 ] || pare "$s -> $c"
@@ -69,13 +69,13 @@ echo "rollback preservado: $ROLLBACK ($(docker inspect "$ROLLBACK" --format '{{.
 echo; echo "=== PASSO 10 — validacao local 8080 ==="
 V=$(curl -s http://127.0.0.1:8080/version.json); echo "$V"
 echo "$V" | grep -q "\"commit\":\"$CURTO\"" || pare "8080 nao serve $CURTO — fazer ROLLBACK (ver abaixo)"
-sh scripts/conferir-producao.sh http://127.0.0.1:8080 || pare "8080 nao deu 56/56 — fazer ROLLBACK"
+sh scripts/conferir-producao.sh http://127.0.0.1:8080 || pare "8080 nao deu 57/57 — fazer ROLLBACK"
 
 echo; echo "=== PASSO 11 — validacao publica ==="
 curl -s https://holohacking.com.br/version.json; echo
 for p in / /app.js /ferramentas-registro.js /style.css; do echo "$(curl -s -o /dev/null -w '%{http_code}' "https://holohacking.com.br$p") $p"; done
 curl -sI https://holohacking.com.br/app.js | grep -iE 'cache-control|x-content-type|referrer-policy|content-type'
-sh scripts/conferir-producao.sh || pare "publico nao deu 56/56 — fazer ROLLBACK"
+sh scripts/conferir-producao.sh || pare "publico nao deu 57/57 — fazer ROLLBACK"
 docker rm -f "$TEMP" >/dev/null 2>&1 || true
 echo; echo ">>> 6.5-B NO AR: $CURTO. Rollback disponivel em $ROLLBACK."
 echo "ROLLBACK (so se precisar): docker stop $PROD && docker rename $PROD $PROD-$CURTO-falhou && docker rename $ROLLBACK $PROD && docker start $PROD"
