@@ -231,6 +231,8 @@ const editado = await p.evaluate(async () => {
 });
 
 conferir(editado.titulo === 'Editar consulta', 'clicar numa consulta abre para editar');
+/* correcao (auditoria Agenda): mudar a HORA no "Salvar" e reagendar — a
+   original fica cancelada no historico; a grade continua com tres vigentes */
 conferir(editado.quantas === 3,
   'editar não cria outra — a semana continua com as três: ' + editado.quantas);
 conferir(editado.top === 182 && editado.alt === 26,
@@ -243,6 +245,9 @@ conferir(editado.nota === 'Levar o exame de sangue', 'e a observação foi grava
 const choque = await p.evaluate(async (ids) => {
   document.querySelector('[data-novo="consulta"]').click();
   await new Promise(r => setTimeout(r, 250));
+  /* correcao (auditoria Agenda): a consulta nova comeca SEM paciente escolhido */
+  const sel = document.getElementById('cf-paciente');
+  sel.value = [...sel.options].find(o => o.value).value;
   document.getElementById('cf-data').value = ids.qua;
   document.getElementById('cf-hora').value = '15:00';   // dentro do 14:30+90
   document.querySelector('[data-salvar="consulta"]').click();
@@ -259,9 +264,9 @@ const choque = await p.evaluate(async (ids) => {
   };
 }, ids);
 
-conferir(choque.titulo === 'Conflito de horário' && /Já há consulta às 14:30/.test(choque.corpo) && choque.antes === 3,
+conferir(choque.titulo === 'Conflito de horário' && /Já há consulta às 14:30/.test(choque.corpo) && choque.antes === 4,   // 3 + a original reagendada (cancelada)
   'marcar em cima de outra avisa ANTES de gravar: ' + choque.corpo.slice(0, 60));
-conferir(choque.quantas === 4,
+conferir(choque.quantas === 5,
   'mas não impede — às vezes é remarcação: ' + choque.quantas + ' consultas');
 
 /* ------------------------------------------------------- os períodos ----- */
@@ -345,9 +350,10 @@ const desmarcado = await p.evaluate(async () => {
            cancelada: !!(carla && carla.cancelled_at), motivo: carla && carla.cancellation_reason, comHistorico };
 });
 conferir(desmarcado.semApagar && desmarcado.modal, 'não há mais "apagar": desmarcar pede confirmação com motivo');
-conferir(desmarcado.naTela === 0 && desmarcado.noDisco === 4 && desmarcado.cancelada && desmarcado.motivo === 'paciente pediu',
+conferir(desmarcado.naTela === 0 && desmarcado.noDisco === 5 && desmarcado.cancelada && desmarcado.motivo === 'paciente pediu',
   'desmarcar some da grade mas fica no disco, cancelada e com motivo: ' + desmarcado.noDisco + ' no disco');
-conferir(desmarcado.comHistorico === 1, '"Ver canceladas" mostra a consulta cancelada no histórico');
+// as duas da Carla canceladas: a original (reagendada) e a desmarcada
+conferir(desmarcado.comHistorico === 2, '"Ver canceladas" mostra as consultas canceladas no histórico: ' + desmarcado.comHistorico);
 
 /* ------------------------------------------------- a migração do antigo -- */
 

@@ -728,6 +728,33 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     quando não há paciente ativo, aviso só nesse caso, e "(arquivado)" no nome de quem está arquivado. A sincronização redesenha
     o dashboard quando os dados chegam. Nenhuma regra clínica nem dado mudou. Fica com a nutricionista: os dois cadastros de
     teste com o mesmo nome (um arquivado) — renomear ou remover pela própria tela.
+160. **Pacientes e Atendimentos: correções da auditoria de produção** (Cowork, 06/10). (a) HOLOSCAN calculado e guardado
+    só no navegador — salvar exige atendimento selecionado e, sem ele, nada vai ao servidor — passa a ser dito: selo
+    "não salvo no servidor" ao lado do selo oficial (mapa e lista de aplicações) e pendência "HOLOSCAN não salvo no servidor"
+    (dashboard e lista de pacientes). Não há reenvio automático: o vínculo com o atendimento é escolha explícita. Uma aplicação
+    com exatamente as mesmas respostas de outra já salva no mesmo dia não é gravada de novo. "Voltaram para reavaliar" conta
+    aplicações em pelo menos dois dias distintos. (b) Atendimentos: "Abrir ficha" vai para a ficha; "Abrir atendimento"
+    seleciona o atendimento na aba Conduta; listas com layout; consulta de hoje já passada vai para "anteriores", que dizem se há
+    atendimento registrado e oferecem registrá-lo; aplicações do mesmo dia em ordem decrescente. (c) Arquivado: botão principal
+    "Reativar", menu só Reativar/Remover, botões de registro da ficha desabilitados de verdade, botão "Reativar paciente" na
+    ficha; ao carregar, o foco é o primeiro paciente ativo; contadores (menu lateral, cabeçalho, "Novos", "Sem contato") só de
+    ativos. (d) "Último contato" = o mais recente entre atendimentos registrados e HOLOSCAN ("Sem atendimento ainda"). (e)
+    Cadastro recusa nascimento futuro e telefone sem 8–15 dígitos; "Novo paciente" na aba Revisão volta para a Lista; campo Sexo
+    no visual dos demais; "Registrar exames"/"Novo documento" rolam até o ponto certo da aba Documentos; "Gerar o mapa" vazio
+    avisa em toast; Esc fecha a confirmação de excluir; a barra de contexto some na seção Pacientes; ir para Pacientes sem
+    abrir ficha mostra a lista. Fica PENDENTE de decisão: se aplicação parcial antiga (ex.: 30 de 84 respostas, motor anterior)
+    conta como aplicação — o motor oficial já exige cobertura mínima; as históricas não são alteradas (sem backfill). Dados de
+    teste duplicados ou sobrando no banco não foram tocados.
+161. **Agenda: correções da auditoria de produção** (Cowork, 06/10). Abrir a ficha a partir de outra tela (Agenda,
+    Atendimentos: "Abrir/Iniciar atendimento", "Abrir ficha") navega para Pacientes antes (`levarPara`). O atendimento é o que
+    ACONTECEU: com a consulta de origem ainda no futuro, a data/hora sugerida é agora, e data/hora no futuro são recusadas.
+    Consulta com atendimento registrado não pode ser desmarcada nem reagendada. Bloqueio por cima de consulta pergunta antes
+    ("Conflito de horário"), como a consulta por cima de bloqueio. Eventos simultâneos dividem a largura da coluna. Nova
+    consulta: só pacientes ativos, começa em "Selecione o paciente" (a ficha continua abrindo já com a pessoa), paciente
+    travado na edição, hora sugerida nunca no passado (próxima hora cheia hoje). Mudar dia/hora e clicar "Salvar" REAGENDA
+    (a original fica cancelada e ligada à nova); "Reagendar" só habilita com mudança. Item do quadro "Hoje" abre a consulta.
+    Abrir a Agenda pelo menu volta para hoje. Hora sem segundos (normalização na leitura, item 159). Dados de teste no banco
+    (consultas canceladas, atendimentos abertos, bloqueio de teste) não foram tocados.
 
 ## Decisões pendentes (não decididas aqui)
 

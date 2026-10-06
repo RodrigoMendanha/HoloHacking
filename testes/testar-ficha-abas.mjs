@@ -116,7 +116,8 @@ const topo = await p.evaluate(() => ({
   contato: document.getElementById('ficha-contato').innerHTML,
   sobre: document.getElementById('ficha-sobre').textContent,
   detalhesFechados: document.getElementById('ficha-detalhes').classList.contains('hidden'),
-  acoes: [...document.querySelectorAll('.fic-acoes-topo button')].map(b => b.textContent.trim()),
+  // "Reativar paciente" so aparece para arquivado (escondido aqui: paciente ativo)
+  acoes: [...document.querySelectorAll('.fic-acoes-topo button:not(.hidden)')].map(b => b.textContent.trim()),
 }));
 
 conferir(topo.nome === 'Marina Alves' && topo.status === 'Ativo',

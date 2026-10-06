@@ -70,12 +70,14 @@
     /* Quantos voltaram: quem tem mais de uma aplicacao. E o unico numero
        desta tela que fala de metodo e nao de volume — reavaliar em 4 semanas
        e a promessa, e este e o numero que diz se ela esta sendo cumprida. */
-    var contagem = {};
+    /* Correcao (auditoria Pacientes/Atendimentos): refazer no MESMO dia nao
+       e reavaliar. Conta quem tem aplicacoes em pelo menos DOIS dias. */
+    var dias = {};
     lista.forEach(function (c) {
-      contagem[c.paciente.id] = (contagem[c.paciente.id] || 0) + 1;
+      (dias[c.paciente.id] = dias[c.paciente.id] || {})[c.quando || ""] = true;
     });
-    var voltaram = Object.keys(contagem).filter(function (k) {
-      return contagem[k] > 1;
+    var voltaram = Object.keys(dias).filter(function (k) {
+      return Object.keys(dias[k]).length > 1;
     }).length;
 
     var tiles = [
@@ -134,16 +136,26 @@
     return "Paciente";
   }
 
-  function linhaConsulta(c) {
+  /* Consulta anterior: diz se ha atendimento registrado para ela; se nao
+     ha, oferece registrar (a consulta marcada nao vira atendimento sozinha). */
+  function linhaConsulta(c, anterior) {
     var nome = nomeDoPaciente(c.paciente_id);
-    return '<li class="cons-linha">' +
+    var A = window.AtendimentoAtual;
+    var at = anterior && A && A.porAgendamento ? A.porAgendamento(c.id) : null;
+    var arquivado = window.pacienteArquivado && window.pacienteArquivado(c.paciente_id);
+    var situacao = !anterior ? "" : at ? " &middot; atendimento registrado" : " &middot; sem atendimento registrado";
+    var registrar = anterior && !at && !arquivado && A
+      ? '<button type="button" class="dash-ir" data-registrar-consulta="' + escapar(c.id) + '">Registrar atendimento</button>' : "";
+    return '<li class="con-linha cons-linha">' +
       '<span class="con-dia">' + escapar(dataBR(c.data)) +
         (c.hora ? " &middot; " + escapar(String(c.hora).slice(0, 5)) : "") + "</span>" +
       '<span class="pac-avatar">' + escapar(inicial(nome)) + "</span>" +
       '<span class="con-quem"><b>' + escapar(nome) + "</b>" +
         '<span class="con-detalhe">' + escapar(c.tipo || "Consulta") +
           (c.duracao ? " &middot; " + escapar(c.duracao) + " min" : "") +
-          (c.nota ? " &middot; " + escapar(c.nota) : "") + "</span></span>" +
+          (c.nota ? " &middot; " + escapar(c.nota) : "") + situacao +
+          (arquivado ? " &middot; arquivado" : "") + "</span></span>" +
+      registrar +
       '<button type="button" class="dash-ir" data-paciente="' + escapar(c.paciente_id) +
         '">Abrir ficha <span aria-hidden="true">&rarr;</span></button>' +
       "</li>";
@@ -152,16 +164,23 @@
   function blocoAgenda() {
     var todas = window.Agenda && window.Agenda.daCarteira ? window.Agenda.daCarteira() : null;
     if (!todas) return "";
+    /* "Proxima" e data E hora: a consulta de hoje que ja passou vai para
+       as anteriores. */
     var hoje = hojeISO();
-    var proximas = todas.filter(function (c) { return c.data >= hoje; });
-    var anteriores = todas.filter(function (c) { return c.data < hoje; }).reverse();
+    var agora = new Date();
+    var agoraHM = String(agora.getHours()).padStart(2, "0") + ":" + String(agora.getMinutes()).padStart(2, "0");
+    var futura = function (c) {
+      return c.data > hoje || (c.data === hoje && (!c.hora || String(c.hora).slice(0, 5) >= agoraHM));
+    };
+    var proximas = todas.filter(futura);
+    var anteriores = todas.filter(function (c) { return !futura(c); }).reverse();
     var html = '<div class="dash-bloco" id="consultas-agenda"><h3 class="dash-titulo">Agenda &mdash; próximas consultas marcadas</h3>';
     html += proximas.length
-      ? '<ul class="con-lista">' + proximas.map(linhaConsulta).join("") + "</ul>"
+      ? '<ul class="con-lista">' + proximas.map(function (c) { return linhaConsulta(c, false); }).join("") + "</ul>"
       : '<p class="dash-vazio">Nenhuma consulta marcada daqui para a frente.</p>';
     html += '<h3 class="dash-titulo">Agenda &mdash; consultas marcadas anteriores (não são atendimentos)</h3>';
     html += anteriores.length
-      ? '<ul class="con-lista">' + anteriores.map(linhaConsulta).join("") + "</ul>"
+      ? '<ul class="con-lista">' + anteriores.map(function (c) { return linhaConsulta(c, true); }).join("") + "</ul>"
       : '<p class="dash-vazio">Nenhuma consulta anterior registrada na agenda.</p>';
     return html + "</div>";
   }
@@ -172,15 +191,18 @@
     var A = window.AtendimentoAtual;
     var w = A.paraParede(e.occurred_at, e.timezone || A.fuso());
     var nome = nomeDoPaciente(e.patient_id);
-    return '<li class="at-linha">' +
+    var Cd = window.Conduta;
+    var temConduta = Cd && Cd.vigente ? !!Cd.vigente(e.id) : false;
+    return '<li class="con-linha at-linha">' +
       '<span class="con-dia">' + escapar(dataBR(w.data)) + " &middot; " + escapar(w.hora) + "</span>" +
       '<span class="pac-avatar">' + escapar(inicial(nome)) + "</span>" +
       '<span class="con-quem"><b>' + escapar(nome) + "</b>" +
         '<span class="con-detalhe">' + (e.type ? escapar(e.type) + " &middot; " : "") +
           (e.consultation_id ? "com agendamento" : "sem agendamento") +
-          (e.status ? " &middot; " + escapar(e.status) : "") + "</span></span>" +
+          (e.status ? " &middot; " + escapar(e.status) : "") +
+          (Cd ? (temConduta ? " &middot; com conduta" : " &middot; sem conduta") : "") + "</span></span>" +
       '<button type="button" class="dash-ir" data-atendimento="' + escapar(e.id) + '" data-paciente-at="' + escapar(e.patient_id) +
-        '">Abrir ficha <span aria-hidden="true">&rarr;</span></button>' +
+        '">Abrir atendimento <span aria-hidden="true">&rarr;</span></button>' +
       "</li>";
   }
 
@@ -262,19 +284,32 @@
   }
 
   function ligar() {
+    /* Correcao (auditoria): os botoes trocavam o paciente e a tela ficava em
+       Atendimentos. Agora vao para a ficha; "Abrir atendimento" seleciona
+       o atendimento e abre a aba Conduta dele. */
     alvo.querySelectorAll("[data-atendimento]").forEach(function (b) {
       b.addEventListener("click", function () {
         var pid = b.dataset.pacienteAt;
-        if (window.definirPacienteAtivo) window.definirPacienteAtivo(pid);
-        if (window.AtendimentoAtual) window.AtendimentoAtual.selecionarPorId(b.dataset.atendimento);
+        if (window.irParaSecao) window.irParaSecao("pacientes");
         if (window.abrirFichaDe) window.abrirFichaDe(pid);
+        if (window.AtendimentoAtual) window.AtendimentoAtual.selecionarPorId(b.dataset.atendimento);
+        var aba = document.querySelector('[data-aba="conduta"]');
+        if (aba) aba.click();
       });
     });
     alvo.querySelectorAll("[data-paciente]").forEach(function (b) {
       b.addEventListener("click", function () {
         var pid = b.dataset.paciente;
-        if (window.definirPacienteAtivo) window.definirPacienteAtivo(pid);
+        if (window.irParaSecao) window.irParaSecao("pacientes");
         if (window.abrirFichaDe) window.abrirFichaDe(pid);
+      });
+    });
+    alvo.querySelectorAll("[data-registrar-consulta]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var c = window.Agenda && window.Agenda.porId ? window.Agenda.porId(b.dataset.registrarConsulta) : null;
+        if (!c || !window.AtendimentoAtual) return;
+        if (window.definirPacienteAtivo) window.definirPacienteAtivo(c.paciente_id);
+        window.AtendimentoAtual.abrirDialogo({ patient_id: c.paciente_id, consulta: c });
       });
     });
     alvo.querySelectorAll("[data-secao-destino]").forEach(function (b) {

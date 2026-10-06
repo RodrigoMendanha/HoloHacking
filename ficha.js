@@ -1079,8 +1079,7 @@
         if (ir.dataset.ir === "nova-consulta") {
           var secaoAgenda = document.querySelector('.nav-item[data-secao="agenda"]');
           if (secaoAgenda) secaoAgenda.click();
-          var novo = document.querySelector('[data-novo="consulta"]');
-          if (novo) novo.click();
+          if (window.Agenda && window.Agenda.novaConsultaPara) window.Agenda.novaConsultaPara(window.pacienteAtivoId ? window.pacienteAtivoId() : null);
           return;
         }
         var b = document.querySelector('.nav-item[data-secao="' + ir.dataset.ir + '"]');

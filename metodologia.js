@@ -150,8 +150,12 @@
     var n = naturezaAplicacao(app);
     if (n === "oficial_v1") {
       var cod = app.methodology_package_code || "HOLOS-V1", ver = app.methodology_package_version;
+      /* calculada, mas ainda nao gravada no servidor (so neste navegador) */
+      var P = raiz.Panorama;
+      var naoSalvo = P && P.naoSalva && P.naoSalva(app)
+        ? ' <span class="selo-nao-salvo" title="' + esc(P.MSG_NAO_SALVO) + '">não salvo no servidor</span>' : "";
       return '<span class="selo-oficial" title="Saída oficial: calculada pelo motor oficial com o pacote metodológico aprovado e vigente.">' +
-        esc(cod + (ver !== null && ver !== undefined ? " v" + ver : "")) + " · oficial</span>";
+        esc(cod + (ver !== null && ver !== undefined ? " v" + ver : "")) + " · oficial</span>" + naoSalvo;
     }
     if (n === "historica_sem_pacote") return '<span class="selo-historica" title="' + esc(AVISO_HISTORICA) + '">' + TXT_HISTORICA + "</span>";
     if (n === "homologacao") return '<span class="selo-homologacao" title="' + esc(AVISO_LEGADO) + '">' + ROTULO + "</span>";

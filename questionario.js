@@ -367,9 +367,16 @@
     });
   }
 
+  /* O aviso ficava num ponto da tela que podia estar fora de vista: com 0
+     respostas, "Gerar o mapa" parecia nao fazer nada. Agora tambem vira
+     toast e a tela rola ate ele. */
   function mostrarAviso(txt) {
     var alvo = document.getElementById("q-resultado");
-    if (alvo) alvo.innerHTML = '<p class="q-erro">' + escapar(txt) + "</p>";
+    if (alvo) {
+      alvo.innerHTML = '<p class="q-erro">' + escapar(txt) + "</p>";
+      if (alvo.scrollIntoView) alvo.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    if (window.avisar) window.avisar(txt);
   }
 
   /* ---------- abrir e fechar --------------------------------------------- */

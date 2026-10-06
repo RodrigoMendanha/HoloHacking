@@ -114,8 +114,29 @@
 
      `grau` ordena: quanto menor, mais cedo aparece na lista do dashboard.   */
 
+  /* Correcao (auditoria Pacientes/Atendimentos): um HOLOSCAN oficial
+     calculado e guardado neste navegador, mas que nunca foi ao servidor
+     (salvar exige um atendimento selecionado), aparecia como "oficial" sem
+     nenhum aviso. Com sessao ativa, ele e marcado e vira pendencia. */
+  var MSG_NAO_SALVO = "HOLOSCAN calculado, mas ainda não salvo no servidor: está só neste navegador. " +
+    "Abra o HOLOSCAN do paciente, selecione o atendimento e clique em Salvar.";
+
+  function comSessao() {
+    return !!(window.supabaseClient && window.HoloAuth && window.HoloAuth.sessaoAtiva && window.HoloAuth.sessaoAtiva());
+  }
+
+  function naoSalva(pont) {
+    return !!pont && comSessao() && !pont.homologacao_legado &&
+      (pont.oficial === true || !!pont.methodology_package_id) && !pont._supa_id;
+  }
+
   function alertas(d) {
     var saida = [];
+
+    if ((d.historico || []).some(naoSalva)) {
+      saida.push({ peso: 0, grau: "aviso", curto: "HOLOSCAN não salvo no servidor",
+                   texto: MSG_NAO_SALVO, acao: "holoscan", botao: "Salvar HOLOSCAN" });
+    }
 
     if (!d.pontuacao && d.respondidas === 0) {
       saida.push({ peso: 3, grau: "abrir", curto: "sem HOLOSCAN",
@@ -256,7 +277,20 @@
 
   function situacao(p) {
     var d = doPaciente(p.id);
+    /* Correcao (auditoria): "ultimo contato" olhava so a data do ultimo
+       HOLOSCAN. Agora e o mais recente entre os ATENDIMENTOS registrados
+       (data clinica, no fuso de quem atende) e as aplicacoes do HOLOSCAN.
+       Consulta marcada nao e contato: so o atendimento registrado conta. */
     var ultimo = d.pontuacao && d.pontuacao.quando ? d.pontuacao.quando : null;
+    var A = window.AtendimentoAtual;
+    if (A && A.doPaciente && A.paraParede) {
+      var hojeD = window.hojeISO ? window.hojeISO() : null;
+      A.doPaciente(p.id).forEach(function (e) {
+        var w = A.paraParede(e.occurred_at, e.timezone || (A.fuso ? A.fuso() : undefined));
+        var dia = w && w.data;
+        if (dia && (!hojeD || dia <= hojeD) && (!ultimo || dia > ultimo)) ultimo = dia;
+      });
+    }
     var cadastro = (p.created_at || "").slice(0, 10);
 
     /* O silencio conta do ultimo atendimento; quem nunca teve conta do
@@ -324,6 +358,9 @@
           indice_exibicao: pont.indice_exibicao || null,
           oficial: !!(pont.oficial === true || pont.methodology_package_id),
           methodology_package_id: pont.methodology_package_id || null,
+          methodology_package_code: pont.methodology_package_code || null,
+          methodology_package_version: pont.methodology_package_version,
+          _supa_id: pont._supa_id || null,
           // so ha variacao a partir da segunda: a primeira nao tem com o que comparar
           variacao: i > 0 && typeof pont.indice === "number" && typeof h[i - 1].indice === "number"
             ? pont.indice - h[i - 1].indice : null,
@@ -332,9 +369,12 @@
       });
     });
 
+    /* Mais recente primeiro, tambem dentro do mesmo dia (a 2a antes da 1a),
+       como o resto da tela. */
     saida.sort(function (a, b) {
       return (b.quando || "").localeCompare(a.quando || "") ||
-             a.paciente.nome.localeCompare(b.paciente.nome);
+             a.paciente.nome.localeCompare(b.paciente.nome) ||
+             b.numero - a.numero;
     });
     return saida;
   }
@@ -433,6 +473,8 @@
     doPaciente: doPaciente,
     contexto: contexto,
     alertas: alertas,
+    naoSalva: naoSalva,
+    MSG_NAO_SALVO: MSG_NAO_SALVO,
     carteira: carteira,
     consultas: consultas,
     agenda: agenda,

@@ -60,7 +60,8 @@ conferir(vazia.titulo === 'Nenhum paciente cadastrado ainda', 'título do estado
 conferir(vazia.texto === 'Cadastre o primeiro paciente para iniciar a jornada clínica.',
   'texto do estado vazio: ' + vazia.texto);
 conferir(vazia.semBotaoDuplicado, 'sem CTA duplicado — o botão do cabeçalho já é o convite');
-conferir(vazia.total === '0 pacientes', 'contador no cabeçalho: ' + vazia.total);
+// contagem unica: so pacientes ativos (arquivados ditos a parte)
+conferir(vazia.total === '0 pacientes ativos', 'contador no cabeçalho: ' + vazia.total);
 conferir(vazia.buscaEscondida && vazia.chipsEscondidos,
   'busca e filtros somem sem carteira — sem tabela vazia sem contexto');
 
@@ -162,7 +163,7 @@ const cartao = await p.evaluate(() => {
 conferir(/Último contato há 3 meses/.test(cartao.ana.meta[0]),
   'o silêncio vem em meses, não em dias: ' + cartao.ana.meta[0]);
 conferir(cartao.ana.atraso, 'e acende quando passa de 90 dias');
-conferir(/Sem consulta ainda/.test(cartao.carol.meta[0]),
+conferir(/Sem atendimento ainda/.test(cartao.carol.meta[0]),
   'quem nunca foi atendida não ganha uma data inventada: ' + cartao.carol.meta[0]);
 conferir(cartao.carol.atraso,
   'mas cadastrada há 142 dias e nunca vista também acende');

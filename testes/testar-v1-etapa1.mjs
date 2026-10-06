@@ -130,9 +130,11 @@ const dialogo = await A.evaluate(() => ({
 }));
 ok(dialogo.aberto && dialogo.titulo === 'Iniciar atendimento' && /Paciente Um/.test(dialogo.corpo) && /Agendamento de origem/.test(dialogo.corpo),
    '1: o dialogo mostra paciente e agendamento de origem antes de criar');
-ok(dialogo.data === diaISO(0) && dialogo.hora === '23:55' && encounters().length === 0,
-   '1: data/hora efetiva pre-preenchida com o agendamento; ainda nada criado');
-await A.evaluate(() => { document.getElementById('at-hora').value = '10:15'; });
+/* correcao (auditoria Agenda): o atendimento e o que ACONTECEU — com o agendamento (23:55) ainda no futuro, a sugestao e
+   AGORA (nunca a hora futura da consulta); data/hora no futuro sao recusadas. 00:00 abaixo: nunca no futuro. */
+ok(dialogo.data === diaISO(0) && dialogo.hora !== '23:55' && encounters().length === 0,
+   '1: data/hora efetiva sugerida = agora (o agendamento ainda esta no futuro); ainda nada criado: ' + dialogo.hora);
+await A.evaluate(() => { document.getElementById('at-hora').value = '00:00'; });
 await confirmarModal();
 const e1 = encounters(PA);
 ok(e1.length === 1 && e1[0].consultation_id === cHoje && e1[0].patient_id === PA,
@@ -144,10 +146,10 @@ const depois = await A.evaluate(() => ({
   ativo: window.AtendimentoAtual.atual() && window.AtendimentoAtual.atual().id,
   cab: document.getElementById('fic-at-valor').textContent,
 }));
-ok(depois.ficha && depois.pid === PA && depois.ativo === e1[0].id && /10:15/.test(depois.cab) && /com agendamento/.test(depois.cab),
+ok(depois.ficha && depois.pid === PA && depois.ativo === e1[0].id && /00:00/.test(depois.cab) && /com agendamento/.test(depois.cab),
    'a ficha abre com o atendimento selecionado e o cabecalho mostra data, hora e origem: ' + depois.cab);
 const paredeEsperada = await A.evaluate((iso) => window.AtendimentoAtual.paraParede(iso, 'America/Sao_Paulo'), e1[0].occurred_at);
-ok(paredeEsperada.data === diaISO(0) && paredeEsperada.hora === '10:15', 'occurred_at guardado como instante, lido de volta como 10:15 no fuso');
+ok(paredeEsperada.data === diaISO(0) && paredeEsperada.hora === '00:00', 'occurred_at guardado como instante, lido de volta como 00:00 no fuso');
 
 const deNovo = await A.evaluate(async (cid) => {
   document.querySelector('.nav-item[data-secao="agenda"]').click();
@@ -354,6 +356,8 @@ await A.evaluate(async (cid, novaData, dataOriginal) => {
   document.querySelector('[data-abrir="consulta"][data-id="' + cid + '"]').click(); await new Promise(r => setTimeout(r, 300));
   document.getElementById('cf-data').value = novaData;
   document.getElementById('cf-hora').value = '16:00';
+  // Reagendar so habilita quando dia/hora mudam (correcao auditoria Agenda): o evento de digitacao avisa a tela
+  document.getElementById('cf-hora').dispatchEvent(new Event('input', { bubbles: true }));
   document.querySelector('[data-reagendar="consulta"]').click(); await new Promise(r => setTimeout(r, 300));
 }, cFutura, diaISO(7), diaISO(5));
 await confirmarModal();

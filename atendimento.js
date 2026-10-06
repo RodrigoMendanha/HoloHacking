@@ -301,10 +301,18 @@
     var c = opcoes.consulta || null;
     var tz = fuso();
     var agora = paraParede(new Date().toISOString(), tz);
+    /* Correcao (auditoria Agenda): o atendimento e o que ACONTECEU. Se a
+       consulta de origem ainda esta no futuro, a sugestao e agora; data/hora
+       no futuro sao recusadas ao confirmar. Consulta ja passada continua
+       sugerindo o horario dela (registrar depois e o caso comum). */
     var data = c && c.data ? c.data : agora.data;
     var hora = c && c.hora ? String(c.hora).slice(0, 5) : agora.hora;
+    var instC = c ? paraInstante(data, hora, tz) : null;
+    if (c && (!instC || new Date(instC).getTime() > Date.now())) { data = agora.data; hora = agora.hora; }
+    var noFuturo = function (inst) { return !!inst && new Date(inst).getTime() > Date.now() + 60000; };
 
     if (!window.abrirModalConfirmar) {
+      if (noFuturo(paraInstante(data, hora, tz))) return Promise.resolve(null);
       return iniciar({ patient_id: pid, consultation_id: c ? c.id : null,
         occurred_at: paraInstante(data, hora, tz), timezone: tz, type: c ? c.tipo : null, operation_id: novoId() });
     }
@@ -315,7 +323,7 @@
          : '<p><b>Sem agendamento</b> &mdash; atendimento registrado diretamente na ficha.</p>') +
       '<div class="perf-grade">' +
         '<div class="perf-campo"><label for="at-data">Data clínica</label>' +
-          '<input type="date" id="at-data" value="' + escapar(data) + '"></div>' +
+          '<input type="date" id="at-data" value="' + escapar(data) + '" max="' + escapar(agora.data) + '"></div>' +
         '<div class="perf-campo"><label for="at-hora">Hora</label>' +
           '<input type="time" id="at-hora" value="' + escapar(hora) + '" step="300"></div>' +
       "</div>" +
@@ -333,6 +341,10 @@
       var horaEsc = h && h.value ? h.value : hora;
       var quando = paraInstante(dataEsc, horaEsc, tz);
       if (!quando) { if (window.avisar) window.avisar("Informe a data e a hora do atendimento."); return null; }
+      if (noFuturo(quando)) {
+        if (window.avisar) window.avisar("O atendimento não pode ter data e hora no futuro: registre quando ele acontecer. Nada foi gravado.");
+        return null;
+      }
       return iniciar({ patient_id: pid, consultation_id: c ? c.id : null, occurred_at: quando,
                        timezone: tz, type: c ? c.tipo : null, operation_id: operacao })
         .then(function (e) {

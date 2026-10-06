@@ -194,6 +194,11 @@
     if(_modalResolver){ _modalResolver(resultado); _modalResolver = null; }
   }
   $("#modal-confirmar-fechar").addEventListener("click", () => fecharModalConfirmar(null));
+  /* Esc fecha mesmo com o foco fora da caixa (o keydown abaixo so pegava
+     com o foco dentro dela). */
+  document.addEventListener("keydown", e => {
+    if(e.key === "Escape" && !$("#modal-confirmar-acao").classList.contains("hidden")) fecharModalConfirmar(null);
+  });
   $("#modal-confirmar-acao").addEventListener("click", e => {
     if(e.target.id === "modal-confirmar-acao") fecharModalConfirmar(null);
   });
@@ -268,7 +273,10 @@
     $("#caminho-atual").textContent = nomesSecao[secao] || secao;
     fecharFerramentas();
     const ficha = document.getElementById("vista-ficha");
-    if(ficha && secao !== "pacientes"){
+    /* #vista-ficha tambem e .vista-ferramenta: fecharFerramentas() a esconde.
+       Indo para Pacientes sem abrir uma ficha em seguida, a tela ficava em
+       branco; agora volta a lista (abrirFicha() mostra a ficha se for o caso). */
+    if(ficha && (secao !== "pacientes" || ficha.classList.contains("hidden"))){
       ficha.classList.add("hidden");
       document.getElementById("vista-lista-pacientes").classList.remove("hidden");
     }
@@ -307,8 +315,9 @@
        modulo, e a barra sumia ali (auditoria de producao, item 4). */
     var secPac = document.getElementById("secao-pacientes");
     var pacientesNaTela = secPac ? secPac.classList.contains("ativa") : secao === "pacientes";
-    var fichaVisivel = secao === "pacientes" && pacientesNaTela &&
-        !document.getElementById("vista-ficha").classList.contains("hidden");
+    /* Na secao Pacientes (lista ou ficha) a barra nao aparece: na lista ela
+       ficava por cima, com "Voltar a ficha" e as abas de outra pessoa. */
+    var fichaVisivel = secao === "pacientes" && pacientesNaTela;
     if (p && !fichaVisivel) {
       document.getElementById("bpctx-avatar").textContent =
         (p.nome || "P").charAt(0).toUpperCase();
@@ -422,6 +431,13 @@
     if(destino.indexOf("aba:") === 0){
       const aba = document.querySelector('[data-aba="' + destino.slice(4) + '"]');
       if(aba) aba.click();
+      /* A aba abre bem abaixo da parte visivel: sem rolar, o botao parecia
+         nao fazer nada. data-rolar leva ao ponto certo dentro dela. */
+      setTimeout(() => {
+        const alvo = (c.dataset.rolar && document.getElementById(c.dataset.rolar)) ||
+          document.getElementById("aba-" + destino.slice(4));
+        if(alvo && alvo.scrollIntoView) alvo.scrollIntoView({ behavior:"smooth", block:"start" });
+      }, 60);
       return;
     }
     irPara(destino);
@@ -510,7 +526,10 @@
       p.holoscan = holoMap[p.id] || vazioHolo();
     });
     estado.pacientes = pacientes;
-    if(pacientes.length > 0 && !estado.ativo) estado.ativo = pacientes[0].id;
+    /* Ao carregar, o paciente em foco e o primeiro ATIVO: um arquivado voltava
+       selecionado na barra de contexto a cada recarga. */
+    const primeiroAtivo = pacientes.find(p => p.status !== "inativo");
+    if(primeiroAtivo && !estado.ativo) estado.ativo = primeiroAtivo.id;
     renderPacientes();
     atualizarSeletores();
     carregarFormularios();
@@ -635,8 +654,8 @@
   const FILTROS = [
     { id:"todos",      rotulo:"Todos",              cabe: () => true },
     { id:"ativos",     rotulo:"Ativos",             cabe: s => !s.inativo },
-    { id:"novos",      rotulo:"Novos (30d)",        cabe: s => s.novo },
-    { id:"silencio",   rotulo:"Sem contato (90d+)", cabe: s => s.semContato },
+    { id:"novos",      rotulo:"Novos (30d)",        cabe: s => s.novo && !s.inativo },
+    { id:"silencio",   rotulo:"Sem contato (90d+)", cabe: s => s.semContato && !s.inativo },
     { id:"arquivados", rotulo:"Arquivados",         cabe: s => s.inativo },
     { id:"vazias",     rotulo:"Ficha vazia",        cabe: s => s.vazia }
   ];
@@ -685,7 +704,7 @@
     const atraso = s.semContato ? " atraso" : "";
     itens.push('<span class="pac-dado' + atraso + '">' + ico(ICONES.relogio) + " "
       + (s.nuncaAtendido
-          ? "Sem consulta ainda"
+          ? "Sem atendimento ainda"
           : "Último contato " + haQuantoTempo(s.diasDeSilencio)) + "</span>");
     if(p.created_at){
       itens.push('<span class="pac-dado">' + ico(ICONES.agenda) + " Cadastrado "
@@ -696,7 +715,7 @@
       const prox = window.Agenda.proxima(p.id);
       if(prox){
         itens.push('<span class="pac-dado">' + ico(ICONES.agenda) + " Próximo atendimento "
-          + dataBR(prox.data) + (prox.hora ? " às " + prox.hora : "") + "</span>");
+          + dataBR(prox.data) + (prox.hora ? " às " + String(prox.hora).slice(0, 5) : "") + "</span>");
       }
     }
     if(p.telefone){
@@ -714,6 +733,8 @@
      Panorama.alertas() — o mesmo que o dashboard usa para decidir quem
      precisa de atencao. Sem pendencia nenhuma, resta abrir a ficha. */
   function proximoPasso(s){
+    /* Arquivado nao recebe registro novo: o passo dele e reativar. */
+    if(s.inativo) return { rotulo: "Reativar", destino: "status" };
     let av = [];
     try { av = window.Panorama.alertas(s.dados); } catch(e){ av = []; }
     if(av.length){
@@ -750,9 +771,14 @@
       + "</div>";
   }
 
+  /* "Abrir ficha" saiu do menu: a seta do cartao ja abre a ficha. Arquivado
+     so tem Reativar e Remover — nada de agendar, aplicar ou preencher. */
   function menuDoPaciente(p, s){
-    const itens = [
-      { acao:"ficha",        texto:"Abrir ficha" },
+    const itens = s.inativo ? [
+      { acao:"status",       texto:"Reativar paciente" },
+      { separa:true },
+      { acao:"remover",      texto:"Remover paciente", perigo:true }
+    ] : [
       { acao:"nova-consulta",texto:"Agendar consulta" },
       { acao:"holoscan",    texto: s.dados.pontuacao ? "Reaplicar HOLOSCAN" : "Aplicar HOLOSCAN" },
       { acao:"questionario", texto:"Abrir questionário" },
@@ -829,9 +855,14 @@
     const termo = semAcento($("#busca-pacientes").value.trim());
     const lista = $("#lista-pacientes");
     const semCarteira = estado.pacientes.length === 0;
-    $("#nav-total-pac").textContent = estado.pacientes.length;
-    $("#pac-total-cabeca").innerHTML = "<b>" + estado.pacientes.length + "</b> "
-      + (estado.pacientes.length === 1 ? "paciente" : "pacientes");
+    /* Um padrao so de contagem: pacientes ATIVOS (como o dashboard e o filtro
+       Ativos). Os arquivados sao ditos a parte. */
+    const nAtivos = estado.pacientes.filter(x => x.status !== "inativo").length;
+    const nArq = estado.pacientes.length - nAtivos;
+    $("#nav-total-pac").textContent = nAtivos;
+    $("#pac-total-cabeca").innerHTML = "<b>" + nAtivos + "</b> "
+      + (nAtivos === 1 ? "paciente ativo" : "pacientes ativos")
+      + (nArq ? " &middot; " + nArq + (nArq === 1 ? " arquivado" : " arquivados") : "");
 
     // Sem ninguem na carteira, busca/ordenar/filtros/selecao nao tem sobre o
     // que operar — mostrar esses controles vazios so criaria uma tabela sem
@@ -956,8 +987,12 @@
     selo.classList.toggle("arquivado", inativo);
     selo.classList.toggle("ativo", !inativo);
 
+    /* Arquivado: os botoes de registro ficam DESABILITADOS (antes so pareciam
+       apagados e continuavam abrindo agenda/HOLOSCAN), e aparece Reativar. */
     const acoes = document.querySelectorAll(".fic-acoes-topo button[data-atalho], .fic-acoes-topo button[data-ir]");
-    acoes.forEach(b => b.classList.toggle("bloqueado", inativo));
+    acoes.forEach(b => { b.classList.toggle("bloqueado", inativo); b.disabled = inativo; });
+    const reativar = document.getElementById("btn-reativar-paciente");
+    if(reativar) reativar.classList.toggle("hidden", !inativo);
     let aviso = document.getElementById("fic-aviso-arquivado");
     if(inativo && !aviso){
       aviso = document.createElement("div");
@@ -1231,9 +1266,14 @@
   function levarPara(destino, id){
     if(id) definirAtivo(id);
 
-    if(destino === "ficha" || !destino){ abrirFicha(id); return; }
+    /* Correcao (auditoria Agenda): abrir a ficha de outra tela (Agenda,
+       Atendimentos) selecionava a pessoa e a tela ficava onde estava. A
+       navegacao vai antes; abrirFicha() continua sem navegar sozinha porque
+       tambem e chamada em redesenhos com a pessoa em outro modulo. */
+    if(destino === "ficha" || !destino){ irPara("pacientes"); abrirFicha(id); return; }
 
     if(destino.indexOf("aba:") === 0){
+      irPara("pacientes");
       abrirFicha(id);
       const aba = document.querySelector('[data-aba="' + destino.slice(4) + '"]');
       if(aba) aba.click();
@@ -1249,8 +1289,7 @@
 
     if(destino === "nova-consulta"){
       irPara("agenda");
-      const novo = document.querySelector('[data-novo="consulta"]');
-      if(novo) novo.click();
+      if(window.Agenda && window.Agenda.novaConsultaPara) window.Agenda.novaConsultaPara(id || estado.ativo);
       return;
     }
 
@@ -1480,7 +1519,7 @@
     }
     removidos.forEach(id => {
       estado.pacientes = estado.pacientes.filter(x => x.id !== id);
-      if(estado.ativo === id) definirAtivo(estado.pacientes[0] ? estado.pacientes[0].id : null);
+      if(estado.ativo === id){ const pa = estado.pacientes.find(x => x.status !== "inativo"); definirAtivo(pa ? pa.id : null); }
       selecionados.delete(id);
     });
     if(removidos.length) renderPacientes();
@@ -1572,6 +1611,7 @@
     }
 
     const passo = e.target.closest("[data-passo]");
+    if(passo && passo.dataset.passo === "status"){ e.stopPropagation(); mudarStatus([passo.dataset.id], "ativo"); return; }
     if(passo){ e.stopPropagation(); levarPara(passo.dataset.passo, passo.dataset.id); return; }
 
     const seta = e.target.closest("[data-ficha]");
@@ -1656,13 +1696,16 @@
     else if(destino === "mente") abrirFerramenta("vista-pqq");
     else if(destino === "espirito") abrirFerramenta("vista-mapa");
     else if(destino === "agenda"){
-      const novo = document.querySelector('[data-novo="consulta"]');
-      if(novo) novo.click();
+      // da ficha: a consulta nova ja vem com esta pessoa
+      if(window.Agenda && window.Agenda.novaConsultaPara) window.Agenda.novaConsultaPara(estado.ativo);
     }
   }));
 
   const camposNovo = ["#np-nome","#np-nascimento","#np-telefone","#np-email","#np-sexo","#np-inicio","#np-queixa"];
   $("#btn-abrir-novo").addEventListener("click", () => {
+    /* o formulario mora no painel da Lista: na aba Revisao ele abria escondido */
+    if(abaPac !== "lista") trocarAbaPaciente("lista");
+    $("#np-nascimento").max = hojeISO();
     editandoPacienteId = null;
     $("#titulo-form-paciente").textContent = "Cadastrar paciente";
     $("#btn-salvar-paciente").textContent = "Salvar paciente";
@@ -1706,6 +1749,15 @@
      invisivel. Agora ele mostra a vista da lista (com o formulario) e, ao
      salvar ou cancelar, volta para a ficha de onde veio. */
   let voltarParaFicha = null;
+  /* Reativar direto da ficha (antes so pela lista). */
+  $("#btn-reativar-paciente").addEventListener("click", async () => {
+    const id = estado.ativo;
+    if(!id) return;
+    await mudarStatus([id], "ativo");
+    const p = estado.pacientes.find(x => x.id === id);
+    if(p && p.status !== "inativo") abrirFicha(id);
+  });
+
   $("#btn-editar-paciente").addEventListener("click", () => {
     const p = pacienteAtivo();
     if(!p) return;
@@ -1736,6 +1788,17 @@
     if(!campos.nome){ toast("Informe o nome do paciente."); $("#np-nome").focus(); return; }
     if(campos.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(campos.email)){
       toast("E-mail inválido. Verifique e tente novamente."); $("#np-email").focus(); return;
+    }
+    /* Correcao (auditoria): nascimento no futuro e telefone sem numero eram
+       aceitos. Telefone: so digitos, espaco, + ( ) - . e de 8 a 15 digitos. */
+    if(campos.nascimento && campos.nascimento > hojeISO()){
+      toast("A data de nascimento não pode estar no futuro."); $("#np-nascimento").focus(); return;
+    }
+    if(campos.telefone){
+      const digitos = String(campos.telefone).replace(/\D/g, "");
+      if(!/^[\d\s+().-]+$/.test(campos.telefone) || digitos.length < 8 || digitos.length > 15){
+        toast("Telefone inválido. Use só números (com DDD), por exemplo +55 11 99999-9999."); $("#np-telefone").focus(); return;
+      }
     }
 
     const btn = $("#btn-salvar-paciente");
@@ -3640,6 +3703,17 @@
         return;
       }
 
+      /* Correcao (auditoria): duas aplicacoes identicas salvas no mesmo dia
+         (mesmas respostas) eram duplicata. Se ja ha uma aplicacao salva hoje
+         com exatamente as mesmas respostas, nao grava de novo. */
+      const assin = o => JSON.stringify(Object.keys(o || {}).sort().map(k => [k, o[k]]));
+      const jaSalvaIgual = (lerHistorico()[p.id] || []).some(x => x._supa_id && x.quando === hoje &&
+        x.respostas && assin(x.respostas) === assin(r.respostas));
+      if (jaSalvaIgual) {
+        toast("Já existe uma aplicação salva hoje com exatamente estas respostas. Nada foi gravado de novo.");
+        return;
+      }
+
       var interp = window.interpretacaoDe ? window.interpretacaoDe(hoje, p.id) : null;
       /* tela e dado salvo: o MESMO objeto. As respostas sao as do calculo (snapshot), nao o que estiver no navegador agora. */
       var payload = O.payload(r, {
@@ -3709,6 +3783,8 @@
         if (window.QuestionarioHolo) window.QuestionarioHolo.encerrarAplicacao(p.id, appId, hoje);
       } catch(e) { console.error("encerrar aplicacao:", e); }
 
+      // o servidor confirmou: o aviso "nao salvo no servidor" sai da tela ja
+      document.querySelectorAll("#secao-holoscan .selo-nao-salvo").forEach(x => x.remove());
       renderPacientes();
       toast("HOLOSCAN salvo na ficha de " + p.nome.split(" ")[0] + ". Índice HOLOS: " + window.HoloAusencia.indiceTexto(r));
       return;

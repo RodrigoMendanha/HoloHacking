@@ -336,13 +336,50 @@
     return "top:" + topo + "px;height:" + alt + "px";
   }
 
+  /* Correcao (auditoria Agenda): eventos simultaneos (consulta x bloqueio,
+     consulta x consulta) eram desenhados um em cima do outro. Cada grupo de
+     eventos que se tocam divide a largura da coluna em faixas. */
+  function distribuir(itens) {
+    itens.sort(function (a, b) { return a.ini - b.ini || b.fim - a.fim; });
+    var grupo = [], fimGrupo = -1;
+    function fechar() {
+      var cols = [];
+      grupo.forEach(function (it) {
+        var k = 0;
+        while (cols[k] !== undefined && cols[k] > it.ini) k++;
+        cols[k] = it.fim; it.col = k;
+      });
+      grupo.forEach(function (it) { it.ncol = cols.length; });
+      grupo = []; fimGrupo = -1;
+    }
+    itens.forEach(function (it) {
+      if (grupo.length && it.ini >= fimGrupo) fechar();
+      grupo.push(it); fimGrupo = Math.max(fimGrupo, it.fim);
+    });
+    if (grupo.length) fechar();
+  }
+
+  function faixaHorizontal(it) {
+    if (!it || !(it.ncol > 1)) return "";
+    return ";left:calc(" + (it.col * 100 / it.ncol) + "% + 2px);right:auto;width:calc(" + (100 / it.ncol) + "% - 4px)";
+  }
+
   function eventosDoDia(dia) {
     var html = "";
+    var pos = {};
+    var itens = [];
+    bloqueiosDe(dia).filter(function (b) { return !b.dia_todo; }).forEach(function (b) {
+      var ini = minutos(b.inicio); itens.push(pos["b" + b.id] = { ini: ini, fim: ini + Math.max(minutos(b.fim) - ini, 30) });
+    });
+    consultasDe(dia).forEach(function (c) {
+      var ini = minutos(c.hora); itens.push(pos["c" + c.id] = { ini: ini, fim: ini + (Number(c.duracao) || 60) });
+    });
+    distribuir(itens);
 
     bloqueiosDe(dia).filter(function (b) { return !b.dia_todo; }).forEach(function (b) {
       var dur = minutos(b.fim) - minutos(b.inicio);
       html += '<button type="button" class="cal-evento bloqueio" ' +
-        'style="' + posicao(minutos(b.inicio), Math.max(dur, 30)) + '" ' +
+        'style="' + posicao(minutos(b.inicio), Math.max(dur, 30)) + faixaHorizontal(pos["b" + b.id]) + '" ' +
         'data-abrir="bloqueio" data-id="' + escapar(b.id) + '">' +
         "<b>" + escapar(b.motivo || "Bloqueado") + "</b>" +
         "<span>" + escapar(b.inicio + "–" + b.fim) + "</span>" +
@@ -351,7 +388,7 @@
 
     consultasDe(dia).forEach(function (c) {
       html += '<button type="button" class="cal-evento consulta' + (vigente(c) ? "" : " cancelada") + '" ' +
-        'style="' + posicao(minutos(c.hora), Number(c.duracao) || 60) + '" ' +
+        'style="' + posicao(minutos(c.hora), Number(c.duracao) || 60) + faixaHorizontal(pos["c" + c.id]) + '" ' +
         'data-abrir="consulta" data-id="' + escapar(c.id) + '">' +
         "<b>" + escapar(nomeDe(c.paciente_id)) + "</b>" +
         "<span>" + escapar(c.hora) + " &middot; " + escapar(c.tipo || "Consulta") + "</span>" +
@@ -453,9 +490,10 @@
     if (cs.length === 0 && bs.length === 0) return "";
 
     var itens = cs.map(function (c) {
-      return '<span class="cal-hoje-item consulta">' +
+      /* era um span com cara de botao: agora abre a consulta */
+      return '<button type="button" class="cal-hoje-item consulta" data-abrir="consulta" data-id="' + escapar(c.id) + '">' +
         '<b>' + escapar(c.hora) + '</b> ' + escapar(nomeDe(c.paciente_id)) +
-        ' <i>' + escapar(c.tipo || "") + '</i></span>';
+        ' <i>' + escapar(c.tipo || "") + '</i></button>';
     });
 
     return '<div class="cal-hoje-resumo">' +
@@ -506,6 +544,17 @@
 
     var cancelada = !!c.cancelled_at;
     var atendimentoDe = c.id && window.AtendimentoAtual ? window.AtendimentoAtual.porAgendamento(c.id) : null;
+    /* Correcao (auditoria Agenda): so pacientes ATIVOS; consulta nova comeca
+       sem paciente escolhido (a nao ser que venha da ficha de alguem); na
+       edicao o paciente fica travado (trocar de paciente e outra consulta). */
+    var ativos = pacientes.filter(function (p) { return p.status !== "inativo"; });
+    var atualP = c.paciente_id ? pacientes.filter(function (p) { return p.id === c.paciente_id; })[0] : null;
+    if (atualP && ativos.indexOf(atualP) < 0) ativos = [atualP].concat(ativos);
+    var opcoesPac = (c.id ? "" : '<option value=""' + (c.paciente_id ? "" : " selected") + ">Selecione o paciente</option>") +
+      ativos.map(function (p) {
+        return '<option value="' + escapar(p.id) + '"' + (p.id === c.paciente_id ? " selected" : "") + ">" +
+          escapar(p.nome) + (p.status === "inativo" ? " (arquivado)" : "") + "</option>";
+      }).join("");
     var avisoCancelada = cancelada
       ? '<p class="perf-ajuda cal-cancelada-aviso">Agendamento cancelado' +
         (c.cancellation_reason ? " &mdash; " + escapar(c.cancellation_reason) : "") +
@@ -522,12 +571,11 @@
         "<h3>" + (c.id ? (cancelada ? "Consulta cancelada" : "Editar consulta") : "Nova consulta") + "</h3>" +
         '<button type="button" class="perf-tirar" data-fechar="1">fechar</button>' +
       "</div>" + avisoCancelada + origem +
+      (atendimentoDe && !cancelada ? '<p class="perf-ajuda">Esta consulta já tem um atendimento registrado: ' +
+        "não pode ser desmarcada nem reagendada.</p>" : "") +
       '<div class="perf-grade">' +
         '<div class="perf-campo"><label for="cf-paciente">Paciente</label>' +
-          '<select id="cf-paciente">' + pacientes.map(function (p) {
-            return '<option value="' + escapar(p.id) + '"' +
-              (p.id === c.paciente_id ? " selected" : "") + ">" + escapar(p.nome) + "</option>";
-          }).join("") + "</select></div>" +
+          '<select id="cf-paciente"' + (c.id ? " disabled" : "") + ">" + opcoesPac + "</select></div>" +
         '<div class="perf-campo"><label for="cf-tipo">Tipo</label>' +
           '<select id="cf-tipo">' + TIPOS.map(function (t) {
             return "<option" + (t === c.tipo ? " selected" : "") + ">" + t + "</option>";
@@ -547,8 +595,8 @@
         '" placeholder="O que precisa lembrar sobre este atendimento"></div>' +
       '<p class="perf-aviso" id="cal-aviso"></p>' +
       '<div class="cal-form-acoes">' +
-        (c.id && !cancelada ? '<button type="button" class="perf-tirar forte" data-cancelar="consulta">Desmarcar</button>' : "") +
-        (c.id && !cancelada ? '<button type="button" class="perf-botao" data-reagendar="consulta">Reagendar</button>' : "") +
+        (c.id && !cancelada && !atendimentoDe ? '<button type="button" class="perf-tirar forte" data-cancelar="consulta">Desmarcar</button>' : "") +
+        (c.id && !cancelada && !atendimentoDe ? '<button type="button" class="perf-botao" data-reagendar="consulta" disabled title="Mude o dia ou a hora para reagendar">Reagendar</button>' : "") +
         (c.id && !cancelada && c.paciente_id
           ? (atendimentoDe
               ? '<button type="button" class="btn-dourado" data-abrir-atendimento-id="' + escapar(atendimentoDe.id) + '">Abrir atendimento</button>'
@@ -628,11 +676,21 @@
 
   /* ---------- abrir os formulários ----------------------------------------- */
 
+  /* Hora sugerida: 09:00, ou — se o dia e hoje e 09:00 ja passou — a
+     proxima hora cheia (antes todo salvamento rapido caia em "no passado"). */
+  function horaSugerida(dia) {
+    if (dia !== iso(hoje())) return "09:00";
+    var agora = new Date();
+    var prox = Math.min(agora.getHours() + 1, 23);
+    return prox * 60 > minutos("09:00") ? String(prox).padStart(2, "0") + ":00" : "09:00";
+  }
+
   function novaConsulta(dia, hora, pid) {
-    var pacientes = (window.pacientesTodos && window.pacientesTodos()) || [];
+    var ativo = pid && !(window.pacienteArquivado && window.pacienteArquivado(pid)) ? pid : "";
+    var diaC = dia || (deIso(iso(foco)) < hoje() ? iso(hoje()) : iso(foco));
     editando = { tipo: "consulta", dado: {
-      paciente_id: pid || (pacientes[0] ? pacientes[0].id : ""),
-      data: dia || iso(foco), hora: hora || "09:00",
+      paciente_id: ativo,
+      data: diaC, hora: hora || horaSugerida(diaC),
       duracao: 60, tipo: pid ? "Reavaliação HOLOSCAN" : "Retorno", nota: ""
     } };
     desenhar();
@@ -668,7 +726,19 @@
     var d = editando.dado;
     var pid = document.getElementById("cf-paciente");
     if (!pid) { if (btnSalvar) window.destravarBotao(btnSalvar); return; }
-    d.paciente_id = pid.value;
+    /* Correcao (auditoria Agenda): mudar dia/hora de uma consulta existente e
+       REAGENDAR (o original fica no historico, ligado ao novo) — "Salvar"
+       alterava no lugar, sem rastro. */
+    if (d.id) {
+      var nd = document.getElementById("cf-data").value, nh = document.getElementById("cf-hora").value;
+      if (nd !== d.data || String(nh).slice(0, 5) !== String(d.hora).slice(0, 5)) {
+        if (btnSalvar) window.destravarBotao(btnSalvar);
+        reagendarAtual();
+        return;
+      }
+    }
+    if (!d.id) d.paciente_id = pid.value;
+    if (!d.paciente_id) { avisar("Escolha o paciente da consulta."); if (btnSalvar) window.destravarBotao(btnSalvar); return; }
     if (window.pacienteArquivado && window.pacienteArquivado(d.paciente_id)) {
       avisar(window.MSG_ARQUIVADO);
       if (btnSalvar) window.destravarBotao(btnSalvar);
@@ -764,7 +834,30 @@
       }
     }
 
-    gravarBloqueio(d).then(function (r) {
+    /* Correcao (auditoria Agenda): a mesma checagem de conflito da consulta,
+       ao contrario — bloqueio por cima de consulta marcada pergunta antes. */
+    var bi = d.dia_todo ? 0 : minutos(d.inicio), bf = d.dia_todo ? 24 * 60 : minutos(d.fim);
+    var afetadas = vigentes().filter(function (c) {
+      if (c.data !== d.data) return false;
+      var c1 = minutos(c.hora), c2 = c1 + (Number(c.duracao) || 60);
+      return bi < c2 && c1 < bf;
+    });
+    var decidir = !afetadas.length || !window.abrirModalConfirmar
+      ? Promise.resolve("confirmar")
+      : window.abrirModalConfirmar({
+          titulo: "Conflito de horário",
+          corpo: "<p>O bloqueio cobre " + (afetadas.length === 1 ? "uma consulta marcada" : afetadas.length + " consultas marcadas") + ":</p>" +
+                 afetadas.map(function (c) { return "<p>" + escapar(String(c.hora).slice(0, 5) + " — " + nomeDe(c.paciente_id)) + "</p>"; }).join("") +
+                 "<p>As consultas não são desmarcadas. Deseja salvar o bloqueio mesmo assim?</p>",
+          botaoConfirmar: "Salvar mesmo assim",
+          classeConfirmar: "btn-verde"
+        });
+
+    decidir.then(function (resp) {
+      if (resp !== "confirmar") return null;
+      return gravarBloqueio(d);
+    }).then(function (r) {
+      if (r === null) return;
       if (r && r.error) {
         avisar(window.mensagemHumana ? window.mensagemHumana(r.error)
                                      : "Não foi possível salvar o bloqueio. Nada foi gravado; tente de novo.");
@@ -781,6 +874,12 @@
   function cancelarAtual() {
     var d = editando.dado;
     if (!d.id || d.cancelled_at) return;
+    /* Correcao (auditoria Agenda): desmarcar uma consulta com atendimento
+       registrado deixava o atendimento apontando para consulta cancelada. */
+    if (window.AtendimentoAtual && window.AtendimentoAtual.porAgendamento(d.id)) {
+      avisar("Esta consulta já tem um atendimento registrado e não pode ser desmarcada. Abra o atendimento para continuar.");
+      return;
+    }
     var pergunta = window.abrirModalConfirmar
       ? window.abrirModalConfirmar({
           titulo: "Desmarcar consulta",
@@ -819,6 +918,10 @@
   function reagendarAtual() {
     var d = editando.dado;
     if (!d.id || d.cancelled_at) return;
+    if (window.AtendimentoAtual && window.AtendimentoAtual.porAgendamento(d.id)) {
+      avisar("Esta consulta já tem um atendimento registrado e não pode ser reagendada.");
+      return;
+    }
     var novaData = document.getElementById("cf-data").value;
     var novaHora = document.getElementById("cf-hora").value;
     var duracao = Number(document.getElementById("cf-duracao").value) || d.duracao;
@@ -905,6 +1008,16 @@
     if (ligado) return;
     ligado = true;
 
+    /* Reagendar so fica ativo quando o dia ou a hora mudam */
+    alvo.addEventListener("input", function (ev) {
+      if (!ev.target || (ev.target.id !== "cf-data" && ev.target.id !== "cf-hora")) return;
+      var r = alvo.querySelector("[data-reagendar]");
+      if (!r || !editando || !editando.dado) return;
+      var d = editando.dado;
+      r.disabled = document.getElementById("cf-data").value === d.data &&
+        String(document.getElementById("cf-hora").value).slice(0, 5) === String(d.hora).slice(0, 5);
+    });
+
     alvo.addEventListener("click", function (ev) {
       var andarBtn = ev.target.closest("[data-andar]");
       if (andarBtn) { andar(Number(andarBtn.dataset.andar)); return; }
@@ -927,7 +1040,9 @@
         // um paciente ativo — o formulario nasce com ele, em vez de cair no
         // primeiro nome da lista e pedir para escolher de novo.
         if (novo.dataset.novo === "consulta") {
-          novaConsulta(null, null, window.pacienteAtivoId ? window.pacienteAtivoId() : null);
+          /* dentro da Agenda a consulta nova comeca sem paciente escolhido;
+             quem vem da ficha usa Agenda.novaConsultaPara(pid) */
+          novaConsulta(null, null, null);
         } else novoBloqueio();
         return;
       }
@@ -1095,7 +1210,13 @@
     });
   });
 
+  /* Ao ABRIR a Agenda (pelo menu), o periodo volta para hoje: guardar a
+     ultima data escolhida fazia a tela abrir noutra semana. */
   window.redesenharAgenda = function () {
-    if (alvo) carregar().then(desenhar);
+    if (!alvo) return;
+    if (!editando) foco = hoje();
+    carregar().then(desenhar);
   };
+  /** Nova consulta ja com um paciente (ficha, lista de pacientes). */
+  window.Agenda.novaConsultaPara = function (pid) { novaConsulta(null, null, pid || null); };
 })();

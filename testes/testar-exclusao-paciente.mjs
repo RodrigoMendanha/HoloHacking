@@ -682,7 +682,8 @@ const ui = await p.evaluate(async () => {
     chamaMotor: /Armazenamento\.excluirPaciente\(/.test(t),
     naoApagaDireto: !/sb\.from\("pacientes"\)\.delete\(\)/.test(t),
     mantemToast: /pacientes excluídos/.test(t),   // rodada 08: "excluídos", contando so os que sairam
-    mantemAtivo: /definirAtivo\(estado\.pacientes\[0\]/.test(t),
+    // correcao (auditoria Pacientes): o proximo em foco e o primeiro paciente ATIVO
+    mantemAtivo: /estado\.pacientes\.find\(x => x\.status !== "inativo"\); definirAtivo\(pa \? pa\.id/.test(t),
     semBackupUI: !/aplicarBackupV2|aplicarBackupV1|gerarBackupV2/.test(t)
   };
 });

@@ -601,7 +601,8 @@ mark{background:rgba(201,163,90,.32);color:inherit;border-radius:3px;padding:0 2
   color:var(--realce);font-weight:600;margin-bottom:6px;
 }
 .grupo .dica{font-size:.76rem;color:var(--texto-suave);font-weight:300;margin-bottom:8px}
-.grupo input,.grupo textarea{
+/* select entra junto: o campo "Sexo" vinha com o visual padrao do navegador */
+.grupo input,.grupo textarea,.grupo select{
   width:100%;padding:12px 15px;
   background:var(--input-fundo);border:1px solid var(--input-borda);
   border-radius:10px;font-size:.9rem;color:var(--texto);
@@ -610,7 +611,8 @@ mark{background:rgba(201,163,90,.32);color:inherit;border-radius:3px;padding:0 2
 }
 .grupo textarea{min-height:92px;resize:vertical}
 .grupo input::placeholder,.grupo textarea::placeholder{color:var(--texto-suave);opacity:.65}
-.grupo input:focus,.grupo textarea:focus{
+.grupo select{font-family:inherit;appearance:auto}
+.grupo input:focus,.grupo textarea:focus,.grupo select:focus{
   border-color:var(--dourado);box-shadow:0 0 0 3px rgba(201,163,90,.15);outline:none;
 }
 .linha-dupla{display:grid;grid-template-columns:1fr 1fr;gap:18px}
@@ -3936,6 +3938,8 @@ body.escuro .cal-hoje-titulo{color:var(--dourado)}
   padding:5px 10px;border-radius:6px;background:var(--sup-card);
   border:1px solid var(--borda-suave);
 }
+button.cal-hoje-item{font-family:inherit;cursor:pointer}
+button.cal-hoje-item:hover{border-color:var(--dourado)}
 .cal-hoje-item b{font-weight:600;color:var(--realce)}
 .cal-hoje-item i{font-style:normal;font-size:.74rem;color:var(--texto-suave)}
 
@@ -4107,6 +4111,14 @@ body.escuro .cal-hoje-titulo{color:var(--dourado)}
 .selo-homologacao{display:inline-block;padding:2px 8px;border:1px solid #b4553c;border-radius:999px;color:#b4553c;font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;vertical-align:middle}
 .aviso-homologacao{margin:6px 0 10px;font-size:.82rem;line-height:1.45;color:var(--texto-suave)}
 .aviso-homologacao .selo-homologacao{margin-right:6px}
+/* HOLOSCAN calculado e guardado so neste navegador, ainda nao gravado no servidor */
+.selo-nao-salvo{display:inline-block;padding:2px 8px;border:1px solid #b4553c;border-radius:999px;background:rgba(180,85,60,.08);color:#b4553c;font-size:.68rem;font-weight:700;letter-spacing:.04em;white-space:nowrap;vertical-align:middle;margin-left:6px}
+/* Atendimentos: listas de atendimentos e de consultas da agenda (antes sem layout) */
+.con-linha.at-linha,.con-linha.cons-linha{grid-template-columns:17ch auto 1fr auto auto}
+@media (max-width:820px){
+  .con-linha.at-linha,.con-linha.cons-linha{grid-template-columns:auto 1fr}
+  .con-linha.at-linha .dash-ir,.con-linha.cons-linha .dash-ir{grid-column:1/-1}
+}
 @media print{.aviso-homologacao{color:#444}}
 
 /* ---------- V1, Etapa 1: atendimento ativo no cabecalho da ficha ---------- */

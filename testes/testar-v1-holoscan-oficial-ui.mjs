@@ -25,6 +25,7 @@ const q = (tabela, acao, extra) => srv.tratar({ op: 'query', uid: UA, q: Object.
 const PA = q('patients', 'insert', { dados: { nome: 'Paciente Oficial Ficticio' } }).data[0].id;
 const PB = q('patients', 'insert', { dados: { nome: 'Paciente Sem Pacote Ficticio' } }).data[0].id;
 const PH = q('patients', 'insert', { dados: { nome: 'Paciente Historico Ficticio' } }).data[0].id;
+const PD = q('patients', 'insert', { dados: { nome: 'Paciente Sem Atendimento Ficticio' } }).data[0].id;
 // aplicacao HISTORICA (anterior ao pacote): entra como a migration deixou o banco real — sem proveniencia
 const agora = new Date().toISOString();
 const hid = '00000000-0000-4000-8000-0000000000a1';
@@ -156,6 +157,31 @@ const leitH = await A.evaluate((pid) => { window.definirPacienteAtivo(pid); cons
 ok(leitH.tem && !leitH.oficial && /Aplicação histórica sem pacote metodológico V1/.test(leitH.txt) && leitH.legado === 0,
   'mapa da historica em producao: numeros gravados, sem leitura interpretativa do motor legado (so em ?homologacao=1)');
 ok(srv.linhas('holoscan_applications').find(x => x.id === hid).methodology_package_id === null && srv.linhas('holoscan_applications').find(x => x.id === hid).indice === 54, 'historica intacta: sem proveniencia (sem backfill), Indice 54 como foi gravado');
+
+titulo('4. GERADO SEM ATENDIMENTO: NAO SALVO NO SERVIDOR, E A TELA DIZ ISSO (auditoria Pacientes/Atendimentos)');
+const appsAntes = srv.linhas('holoscan_applications').length;
+const gd = await responderEGerar(PD);
+const msgD = await salvar();
+const estD = await A.evaluate((pid) => {
+  const al = window.Panorama.alertas(window.Panorama.doPaciente(pid)).map(a => a.curto + '|' + a.botao);
+  return { interp: document.getElementById('holo-interpretacao').innerText, alertas: al };
+}, PD);
+ok(!gd.semPacote && /atendimento/i.test(msgD) && srv.linhas('holoscan_applications').filter(x => x.patient_id === PD).length === 0,
+   'sem atendimento selecionado, salvar e recusado e nada vai ao servidor: ' + msgD.slice(0, 90));
+ok(/não salvo no servidor/.test(estD.interp), 'o mapa mostra "não salvo no servidor" ao lado do selo oficial');
+ok(estD.alertas.some(a => /HOLOSCAN não salvo no servidor\|Salvar HOLOSCAN/.test(a)), 'e vira pendencia (dashboard e lista): ' + estD.alertas.join(' · '));
+await A.evaluate(async (pid) => { await window.AtendimentoAtual.iniciar({ patient_id: pid, occurred_at: new Date().toISOString() }); }, PD);
+const msgD2 = await salvar();
+const depD = await A.evaluate((pid) => ({ interp: document.getElementById('holo-interpretacao').innerText,
+  alertas: window.Panorama.alertas(window.Panorama.doPaciente(pid)).map(a => a.curto) }), PD);
+ok(srv.linhas('holoscan_applications').filter(x => x.patient_id === PD).length === 1 && /salvo/.test(msgD2) &&
+   !/não salvo no servidor/.test(depD.interp) && !depD.alertas.some(a => /não salvo/.test(a)),
+   'com o atendimento, salva no servidor; o aviso e a pendencia somem: ' + msgD2.slice(0, 60) + ' / ' + depD.alertas.join(',') + ' / ' + /não salvo/.test(depD.interp));
+await responderEGerar(PD);
+const msgD3 = await salvar();
+ok(srv.linhas('holoscan_applications').filter(x => x.patient_id === PD).length === 1 && /exatamente estas respostas/.test(msgD3),
+   'mesmas respostas no mesmo dia: nao grava duplicata (' + msgD3.slice(0, 80) + ')');
+ok(srv.linhas('holoscan_applications').length === appsAntes + 1, 'so uma aplicacao nova no servidor');
 
 ok(errosJS.length === 0, 'nenhum erro de JavaScript na pagina' + (errosJS.length ? ': ' + errosJS.join(' | ').slice(0, 200) : ''));
 await nav.close();
