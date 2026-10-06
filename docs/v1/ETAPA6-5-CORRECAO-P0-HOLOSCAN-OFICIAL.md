@@ -100,3 +100,12 @@
 - Sistemas abaixo da cobertura mínima aparecem como "X de N respondidas · abaixo da cobertura mínima do pacote: sem nota".
 - As faixas passam a ser **baixa / intermediária / alta**, as do pacote.
 - As 4 aplicações históricas continuam com os números de antes e o rótulo "Aplicação histórica sem pacote metodológico V1".
+
+## 6. Execução real (06/10/2026) — Etapa 6.5-A: banco atualizado
+
+- **Artefato.** `ETAPA6-5-APLICACAO-P0-E-REGISTROS.sql` (SHA-256 `76b777b7087f03c74871d94a2cc33239d2126bcb139f4897b09dcc6f93c2b020`, HEAD `84be16a`), executado pelo responsável no SQL Editor.
+- **1ª tentativa (11:45 UTC).** O texto colado chegou **cortado** (10.632 de 93.848 caracteres, só até a guarda). Não havia COMMIT, a transação foi desfeita e nada foi gravado, o que foi conferido. A 2ª execução (11:55 UTC) recebeu o arquivo inteiro.
+- **PRE-FLIGHT.** `pode_aplicar = true`, divergências `{}`.
+- **POST-FLIGHT.** `aplicacao_ok = true`, divergências `{}`. As 11 digitais (apps, scores, respostas, holos_pacote, holos_aprovacao, holos_registro, li_pacotes, li_aprovacao, li_snapshot, exames, ferramentas) ficaram **idênticas** antes e depois.
+- **Histórico.** 33 migrations (`20261005100000`, `20261005110000`). O SQL gravado é idêntico ao do repositório, por md5, sem os `\r` do editor.
+- **Sem escrita de teste.** Nenhuma aplicação HOLOSCAN, nenhum registro das 3 ferramentas, nenhuma leitura. Sem deploy do front: `main` continua em `d4c2da4`.
