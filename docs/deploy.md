@@ -158,19 +158,19 @@ Cache-Control. Nas próximas atualizações não precisa.
 ### 3.5 Hashes esperados (sha256 dos arquivos servidos pela `main` saneada)
 
 Todos os 57 arquivos que o `Dockerfile` copia (`index.html style.css favicon.svg
-logo-holohacking.png *.js`). Atualizados na troca do logo (pinha dourada: novo `logo-holohacking.png`; `favicon.svg`, `index.html`, `style.css`, `demo.js`); antes, na correcao pos-6.5 (leitura oficial do HOLOSCAN so com textos do pacote; rotulo neutro; textos e acentos: `app.js`, `formulario.js`, `ferramentas.js`, `index.html`); antes, Etapa 6.5 B da V1 (registros clinicos com IDs novos `*_v1`: novo `ferramentas-registro.js`; `ferramentas.js`, `formulario.js`, `panorama.js`, `migracao-supa.js`, `style.css`, `index.html`); antes, Etapa 6.5 (correcao P0: novo `holoscan-oficial.js`; `questionario.js`, `app.js`, `metodologia.js`, `utils.js`, `migracao-supa.js`, `sincronizacao.js`, `ficha.js`, `arquivos.js`, `consultas.js`, `dashboard.js`, `evolucao.js`, `timeline.js`, `panorama.js`, `laboratorio.js`, `metodologia-inventario.js`, `index.html`); antes, Etapa 6.0 da V1 (branch `claude/v1-etapa6-implementacao-li-local`: `laboratorio.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js`, `style.css` e o novo `leitura-integrada-pacote-v1.js`; antes, Etapa 5.3: `metodologia-homologacao.js` e `dados-router.js`; Etapa 5: inclui `laboratorio-catalogo.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js` e `laboratorio.js`; antes, Etapa 4.2: `metodologia-decisoes-v1.js` e `questionario.js`; Etapa 4:
+logo-holohacking.png *.js`). Atualizados na correcao do dashboard (`dashboard.js`, `agenda.js`, `app.js`, `panorama.js`, `sincronizacao.js`, `index.html`, `style.css`); antes, na troca do logo (pinha dourada: novo `logo-holohacking.png`; `favicon.svg`, `index.html`, `style.css`, `demo.js`); antes, na correcao pos-6.5 (leitura oficial do HOLOSCAN so com textos do pacote; rotulo neutro; textos e acentos: `app.js`, `formulario.js`, `ferramentas.js`, `index.html`); antes, Etapa 6.5 B da V1 (registros clinicos com IDs novos `*_v1`: novo `ferramentas-registro.js`; `ferramentas.js`, `formulario.js`, `panorama.js`, `migracao-supa.js`, `style.css`, `index.html`); antes, Etapa 6.5 (correcao P0: novo `holoscan-oficial.js`; `questionario.js`, `app.js`, `metodologia.js`, `utils.js`, `migracao-supa.js`, `sincronizacao.js`, `ficha.js`, `arquivos.js`, `consultas.js`, `dashboard.js`, `evolucao.js`, `timeline.js`, `panorama.js`, `laboratorio.js`, `metodologia-inventario.js`, `index.html`); antes, Etapa 6.0 da V1 (branch `claude/v1-etapa6-implementacao-li-local`: `laboratorio.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js`, `style.css` e o novo `leitura-integrada-pacote-v1.js`; antes, Etapa 5.3: `metodologia-homologacao.js` e `dados-router.js`; Etapa 5: inclui `laboratorio-catalogo.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js` e `laboratorio.js`; antes, Etapa 4.2: `metodologia-decisoes-v1.js` e `questionario.js`; Etapa 4:
 inclui `metodologia.js`, `atendimento.js`, `anamnese.js`, `conduta.js`, `timeline.js`, `relatorios.js`, `metodologia-inventario.js`, `metodologia-pacote.js`, `metodologia-motor.js` e `metodologia-homologacao.js`), conferidos contra a imagem do `docker build` da branch (o nginx ainda põe o
 `50x.html` dele, que não é nosso):
 
 ```
-c1e314d2cb52c565a08ac5486d8c7902d24c8cc7b2a076adde04dfcdad2935bb  index.html
-1d4f8a4bbcbf41169e47fc5e2742da8d7601bfa5e3580191402279e4d87e1e63  style.css
+0ada8effe56fa576a6fda988ef5858b7350e232cafe46baa273149ec65ec02c2  index.html
+8a4f33b86adeb082a0f6f064f641485de076a598ad3098708081fd7b67929138  style.css
 ccab4b8d1492eab5ef40def11944fbc8612ff8d4bf26b36548f5641caaa54044  favicon.svg
 ebb3b78b5a3777a2c5df2ff03ff1c532a82e1668bccadc885ebe679e8321a0b3  logo-holohacking.png
-fca789a5d4169bc1d4b5b0d1d2e934e9f1317384b435ea44e486966fe5eaa8d7  agenda.js
+5ec5e3298a2cf19b9f9aeaa10c1de1b058808b73d1b19ed113a8b1c506145ff5  agenda.js
 cd0daa04a10e165dd536874170bf3c005d9bdb4041b15deb766c2b30596dfef4  anamnese.js
 b1ea48449d74ba8427c7a59947ae73d55a4d88896ea1fcf4f9823dc4087bd049  aplicacoes.js
-308e68aae108b81e2e6346b0f6371e4e89eb7bd4d7aa14e5afd6a1612c640d52  app.js
+70170cd53d1646b25451bc015c61263c4f9af3c86d0c3944c60e7c8b7a7611f7  app.js
 d3efacba60b26bc2da2311a273881948882570773e4016f59ce2a0845661746c  armazenamento.js
 77f0a880c8784e9e45ad608e4c62dc9791f9a750d75225d85edd9e15a150ce69  arquivo-store.js
 f6813c86460d372986f13da153be4d2dcf39f06efabfa71eca6e30a28eedf97f  arquivos.js
@@ -182,7 +182,7 @@ a1e8f35dc05c895ed94ae07b7aeacbeaf9620f42cc0ab6570835af234c1bb11f  consultas.js
 25ffbc8bf45aec67e9214f403c5a1ffd297f183eaa664f53cebdb7d92e9c50f9  corpo-bancos.js
 8f715a12540bc58c932997419f2272bab1e53d66e101929818e81b3d7524c6b6  dados-router.js
 a77e7bf6acab37680d25eb5451442539bda71a84c6e921940a6065b9b9a3b806  dados.js
-779fc2c40a4b26d20234851322241db739a2baf3489006b7682196a0cbefd089  dashboard.js
+8b24cdc9b2d004159118d18e9ac7cd1e96671fa83c5e611e9671c40a2f687528  dashboard.js
 e3754c8ad67864812ed43e829414048c2de729ed4bafbc90ac2c6c282f6ad561  demo.js
 d7920a0868425c28a2b3192214010fee62bf1153a0c9c9478e8bc9481940cfcc  documentos.js
 df872b5cbec1bfa67b617b9413943c2171a7a31663767b9ef77e49ca15a924d3  evolucao.js
@@ -208,14 +208,14 @@ ae87ad9c758f4ccf14cbb0404db8538b8705f4069049c4b002140ef1ec109bd8  metodologia-mo
 f089a9413c9fb82209a9a027c78fe78b5eb0c8503dd66f290eea13bd88c1b862  metodologia-pacote.js
 0280bd82830b21e12aba95312d1a554ef89cc953eee07b0e72f1ec2b3b9bc658  metodologia.js
 1d5658c6163937094a3ff3611dec8fe089635e6b2027210fef99a45157eed59c  migracao-supa.js
-e912dc955c4d71f7f8ffb40a8775b0a4f003b86e9f75aa554f8704eb00327e34  panorama.js
+4ee753d78a96327ff6802b320bfe04ef5e79c3d50c629a6b735777ecd087f029  panorama.js
 2beaabe619d8dd09438a7bfbbc4677e52cd015cea5483086b6cee46865cd13a3  perfil.js
 b4b5245306683c4ac4eadc62652af24dbeaca61f366baab9acafcea9a4be3c1e  questionario.js
 1414c83eac5031c65849721597de651c67b1464e38d85ec6ff54fdb4f055a459  relatorios.js
 8849e59a1d3fe76723aa1e59cc75213fc64172259c5bccd6d9b1151f21a9fb63  render-resultado.js
 23520f5f414deb288f083d0a08389a1c96d1ec918c50fb95d44c3b8b36758e8c  restaurar-backup.js
 2848d87ee9677b5327939694c6461d4f2eee0b11ec5cf44462d52c3a07f0964a  resultado-corpo.js
-8b943856295fecc73fa84e8b5ce2b6041464d5043c524a01fe6b9d83834dc510  sincronizacao.js
+7cb19b3eb73ccc23ab92037091a30088bcaff1b6ede41dac3067e86385ce6c23  sincronizacao.js
 482687b6663c97cfc92151da80a62ff0fdfa8f82fc3ff24a399ab583d3ff0d6d  supabase-client.js
 8ead7f7e68af785c1c1b2455987cf1a69161913dea0c91f384ac5bd4fbc06de5  timeline.js
 fd0943f65bf19da2ff1f668e400f8f5867801ace88d1e9303b6cb8ad2f904e6e  utils.js

@@ -96,6 +96,8 @@ const cheio = await p.evaluate(() => {
       b.querySelector('.dash-barra-nome').textContent + '=' + b.querySelector('.dash-barra-n').textContent),
     homologacao: !!document.querySelector('.dash-homologacao .selo-homologacao'),
     recentes: [...document.querySelectorAll('#dash-lista-recentes .dash-pendente b')].map(b => b.textContent),
+    comMapa: window.Panorama.carteira().comMapa,
+    terreno: /terreno da sua carteira/i.test(document.getElementById('dash-trabalho').innerText),
   };
 });
 
@@ -116,11 +118,13 @@ ok(/12 de 84/.test(helena.porque) && helena.botao === 'Continuar',
 const sofia = cheio.pendentes.find(x => /Sofia/.test(x.nome));
 ok(sofia.botao === 'Aplicar agora', 'quem não tem mapa é chamada para aplicar');
 
-ok(cheio.tiles.join(' | ').includes('5 pacientes'), 'tiles: ' + cheio.tiles.join(' · '));
-ok(cheio.tiles.some(t => /3 com HOLOSCAN/.test(t)), 'conta quem tem mapa');
-/* Etapa 0 da V1: "terreno da carteira" e "Índice HOLOS médio" ficam
-   desligados até o Pacote Metodológico (Mestre §33) — o bloco diz isso. */
-ok(cheio.barras.length === 0 && cheio.homologacao, 'o terreno da carteira não desenha barras: bloco "em homologação"');
+/* Correcao do dashboard (pos-6.5): o bloco "N pacientes / N com HOLOSCAN"
+   saiu (repetia o cabecalho com outro numero) e "O terreno da sua carteira"
+   fica escondido ate haver regra homologada de agregacao. "Com HOLOSCAN"
+   continua contado em Panorama.carteira() (usado pelos Primeiros passos). */
+ok(cheio.tiles.some(t => /^5 Pacientes ativos/.test(t)), 'tiles: ' + cheio.tiles.join(' · '));
+ok(cheio.comMapa === 3 && !cheio.tiles.some(t => /com HOLOSCAN/.test(t)), 'conta quem tem mapa (3), sem tile repetido no dashboard');
+ok(cheio.barras.length === 0 && !cheio.homologacao && !cheio.terreno, 'o terreno da carteira não aparece (nem barras, nem aviso de recurso desligado)');
 ok(!cheio.tiles.some(t => /Índice HOLOS médio|reavaliaç(ão|ões) vencida/.test(t)), 'sem tile de Índice médio nem de reavaliações vencidas: ' + cheio.tiles.join(' · '));
 
 // --- o botao leva mesmo ao paciente certo --------------------------------
@@ -129,10 +133,51 @@ const ida = await p.evaluate(async () => {
   const nome = b.closest('.dash-pendente').querySelector('b').textContent;
   b.click();
   await new Promise(r => setTimeout(r, 400));
-  return { nome, ativo: window.pacienteAtivoNome(), secao: document.querySelector('.secao.ativa')?.id };
+  return { nome, botao: b.textContent.replace(/\s*→\s*$/, '').trim(), ativo: window.pacienteAtivoNome(),
+    secao: document.querySelector('.secao.ativa')?.id, aba: document.querySelector('[data-aba].ativa')?.dataset.aba, fichaVisivel: !document.getElementById('vista-ficha').classList.contains('hidden') };
 });
+
+// --- arquivado nao e pendencia; os numeros batem entre si -----------------
+const arq = await p.evaluate(async () => {
+  const sofia = window.pacientesTodos().find(x => x.nome === 'Sofia Martins');
+  sofia.status = 'inativo';                      // o mesmo campo que "Arquivar" grava
+  window.definirPacienteAtivo(sofia.id);         // e ela fica em foco, como no relato
+  document.querySelector('.nav-item[data-secao="dashboard"]').click();
+  window.redesenharDashboard();
+  const txt = s => (document.querySelector(s) || {}).innerText || '';
+  const nomes = s => [...document.querySelectorAll(s + ' .dash-pendente b')].map(b => b.textContent);
+  const tile = r => { const t = [...document.querySelectorAll('.dash-resumo .dash-tile')].find(x => x.querySelector('span').textContent === r); return t ? Number(t.querySelector('b').textContent) : null; };
+  const precisa = document.querySelector('#dash-precisa .dash-titulo em');
+  const ordem = [...document.querySelectorAll('#dash-trabalho .dash-titulo')].map(h => h.childNodes[0].textContent.trim());
+  // a jornada diz quem esta em foco e nao segue com arquivado
+  const foco = txt('#dash-jornada-foco');
+  document.querySelector('#dash-trabalho [data-jornada][data-destino="holoscan"]').click();
+  await new Promise(r => setTimeout(r, 200));
+  const secaoJornada = document.querySelector('.secao.ativa')?.id;
+  const opcao = [...document.querySelectorAll('#sel-holoscan option')].find(o => o.value === sofia.id)?.textContent;
+  const avisoComFoco = document.querySelector('#secao-holoscan .barra-paciente .aviso').hidden;
+  return { pend: nomes('#dash-lista-pendentes'), recentes: nomes('#dash-lista-recentes'),
+    tileAtivos: tile('Pacientes ativos'), tilePend: tile('Pendências'),
+    precisa: precisa ? Number(precisa.textContent) : 0, ordem, foco, secaoJornada, opcao, avisoComFoco };
+});
+ok(!arq.pend.includes('Sofia Martins'), 'arquivada nao aparece em "Precisa de você": ' + arq.pend.join(' · '));
+ok(!arq.recentes.includes('Sofia Martins'), 'nem em "Pacientes recentes": ' + arq.recentes.join(' · '));
+ok(arq.tileAtivos === 4, 'Pacientes ativos conta 4 (sem a arquivada): ' + arq.tileAtivos);
+ok(arq.tilePend === arq.precisa && arq.precisa === arq.pend.length,
+   'Pendências do topo = "Precisa de você": ' + arq.tilePend + ' = ' + arq.precisa);
+ok(arq.ordem.indexOf('Precisa de você') < arq.ordem.indexOf('Próximas consultas marcadas') &&
+   arq.ordem.indexOf('Próximas consultas marcadas') < arq.ordem.indexOf('Pacientes recentes') &&
+   arq.ordem.indexOf('Pacientes recentes') < arq.ordem.indexOf('Jornada clínica'),
+   'ordem: Precisa de você → Próximas → Recentes → Jornada: ' + arq.ordem.join(' → '));
+ok(/Sofia Martins/.test(arq.foco) && /arquivad/.test(arq.foco), 'a jornada diz quem está em foco (e que está arquivada): ' + arq.foco);
+ok(arq.secaoJornada === 'secao-pacientes', 'com arquivada em foco, a jornada pede outro paciente em vez de abrir o HOLOSCAN: ' + arq.secaoJornada);
+ok(arq.avisoComFoco === true, 'HOLOSCAN: com paciente escolhido, o aviso "Selecione um paciente" some');
+ok(/\(arquivado\)/.test(arq.opcao || ''), 'no seletor, a arquivada aparece como "(arquivado)": ' + arq.opcao);
 ok(ida.ativo === ida.nome, 'clicar na linha troca o paciente ativo: ' + ida.ativo);
-ok(ida.secao === 'secao-holoscan', 'e leva para a tela certa: ' + ida.secao);
+/* a primeira da lista e "mapa sem conduta": o botao "Abrir conduta" leva a
+   ficha, na aba Conduta (antes "Ver por onde começar" abria o HOLOSCAN) */
+ok(ida.botao === 'Abrir conduta' && ida.secao === 'secao-pacientes' && ida.aba === 'conduta',
+   'e leva para a tela certa: ' + ida.botao + ' → ' + ida.secao + ' / aba ' + ida.aba);
 
 // --- a ficha tem que contar a mesma historia ------------------------------
 const mesma = await p.evaluate(() => {
@@ -141,6 +186,27 @@ const mesma = await p.evaluate(() => {
   return { doPanorama: window.Panorama.alertas(d).map(a => a.texto) };
 });
 ok(mesma.doPanorama.length > 0, 'ficha e dashboard leem a mesma regra: ' + mesma.doPanorama[0]);
+
+// --- consultas: hora sem segundos, todas as futuras, por data e hora ------
+const ag = await p.evaluate(async () => {
+  const id = n => window.pacientesTodos().find(x => x.nome === n).id;
+  const dia = k => { const d = new Date(); d.setDate(d.getDate() + k); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+  // o banco devolve time como "HH:MM:SS"
+  const ins = (n, k, h) => window.DadosLocais.from('consultas').insert({ paciente_id: id(n), data: dia(k), hora: h, duracao: 60, tipo: 'Retorno', nota: '' });
+  await ins('Beatriz Lima', 0, '14:00:00');
+  await ins('Carla Souza', 3, '11:00:00');
+  await ins('Beatriz Lima', 3, '09:00:00');
+  await ins('Helena Rocha', 1, '16:00:00');
+  await window.Agenda.recarregar();
+  document.querySelector('.nav-item[data-secao="dashboard"]').click();
+  window.redesenharDashboard();
+  const linhas = s => [...document.querySelectorAll(s + ' .dash-pendente')].map(l => l.querySelector('b').textContent + ' ' + l.querySelector('.dash-porque').textContent);
+  return { hoje: linhas('#dash-lista-hoje'), prox: linhas('#dash-lista-atendimentos'),
+    tudo: document.getElementById('dash-trabalho').innerText };
+});
+ok(ag.hoje.length === 1 && /14:00/.test(ag.hoje[0]) && !/\d\d:\d\d:\d\d/.test(ag.tudo), 'hora sem segundos: ' + ag.hoje[0]);
+ok(ag.prox.length === 3 && /^Helena/.test(ag.prox[0]) && /^Beatriz.*09:00/.test(ag.prox[1]) && /^Carla.*11:00/.test(ag.prox[2]),
+   'próximas: todas as consultas futuras (a Beatriz tem duas), por data e hora: ' + ag.prox.join(' | '));
 
 await nav.close();
 console.log(ruim.length ? '\n  ERRO: ' + ruim[0] : '\n  sem erro de JS');

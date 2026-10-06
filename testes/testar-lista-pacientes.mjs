@@ -178,7 +178,9 @@ conferir(cartao.ana.sexo === 'Feminino', 'o sexo aparece quando informado');
 conferir(cartao.ana.status === 'Ativo', 'nasce ativo');
 conferir(cartao.carol.passo === 'Aplicar agora',
   'quem não tem mapa: ' + cartao.carol.passo);
-conferir(cartao.helena.passo === 'Ver por onde começar',
+/* Correcao do dashboard (pos-6.5): "mapa sem conduta" leva a Conduta da
+   ficha (era "Ver por onde começar", que abria o HOLOSCAN). */
+conferir(cartao.helena.passo === 'Abrir conduta',
   'quem tem mapa e nenhuma conduta: ' + cartao.helena.passo);
 
 /* -------------------------------------------------------- a busca -------- */

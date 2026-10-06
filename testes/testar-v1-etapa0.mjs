@@ -336,10 +336,13 @@ const dash = await p.evaluate(async (pidA, pidB) => {
 ok(!dash.erro, 'dashboard desenhou sem erro' + (dash.erro ? ': ' + dash.erro : ''));
 ok(dash.dias === null && dash.derivadas.every(d => d === null) && !dash.alertas.some(a => /reavalia/.test(a)),
    '19: sem DIAS_REAVALIACAO, sem data derivada, sem alerta "reavaliacao vencida" (A tem 60 dias)');
-ok(dash.comMapa === 1 && dash.tilesTxt.some(t => /^1\s*com HOLOSCAN/.test(t)),
-   '20: "com HOLOSCAN" conta so a aplicacao consolidada (A), nao a previa de B: ' + dash.tilesTxt.join(' · '));
-ok(dash.indiceMedio === null && dash.terreno === 0 && dash.barras === 0 && dash.homolog,
-   '20: Indice medio e terreno da carteira desligados; bloco "em homologacao" no lugar');
+/* Correcao do dashboard (pos-6.5): o tile "com HOLOSCAN" e o bloco "terreno
+   da carteira" sairam da tela (repeticao / aviso de recurso desligado). A
+   regra continua provada no dado: comMapa conta so a consolidada. */
+ok(dash.comMapa === 1 && !dash.tilesTxt.some(t => /com HOLOSCAN/.test(t)),
+   '20: "com HOLOSCAN" conta so a aplicacao consolidada (A), nao a previa de B (comMapa=' + dash.comMapa + '); sem tile repetido no dashboard');
+ok(dash.indiceMedio === null && dash.terreno === 0 && dash.barras === 0 && !dash.homolog,
+   '20: Indice medio e terreno da carteira desligados e fora da tela (sem barras, sem bloco de aviso)');
 
 /* ==================================================================== */
 titulo('18 — TROCA DE PACIENTE SEM VAZAMENTO');

@@ -714,6 +714,20 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     "padrão emocional", "direção terapêutica" (eixos), definições em rascunho. Aplicações HISTÓRICAS em produção: números gravados,
     sem leitura interpretativa legada; a leitura legada só aparece em `?homologacao=1` ou em modo local (mesma regra do motor legado
     na correção P0). Cartões dos sistemas: rótulo neutro "Nota 0 a 10" no lugar de "Score 0 ruim · 10 bom". Nenhum dado mudou.
+159. **Dashboard conta os mesmos pacientes em todas as seções** (auditoria do dashboard com Cowork, 06/10). Paciente
+    ARQUIVADO não entra em "Precisa de você", "Pacientes recentes", "Atendimentos sem conduta" nem em "Rascunhos"; o tile
+    "Pendências" do topo é o mesmo número de "Precisa de você" (pacientes ativos com alerta + atendimentos sem conduta salva, que
+    passaram para dentro desse bloco). Consultas marcadas continuam aparecendo (compromisso real), com a etiqueta "arquivado".
+    "Próximas consultas" lista todas as consultas futuras por data e hora (até 5), não só a próxima de cada paciente. Hora sem
+    segundos em toda a tela (a agenda normaliza "HH:MM:SS" do banco na leitura). Saíram o bloco "N pacientes / N com HOLOSCAN"
+    (repetia o cabeçalho com outro número) e o aviso "O terreno da sua carteira" (recurso desligado). Ordem: cabeçalho → Hoje →
+    Precisa de você → Rascunhos → Próximas → Recentes → Jornada → Primeiros passos. Botões: "mapa sem conduta" agora é "Abrir
+    conduta" (aba Conduta da ficha, também na lista de pacientes); "Abrir conduta" de um atendimento seleciona esse atendimento; a
+    Jornada diz qual paciente está em foco, não segue com paciente arquivado e INTEGRAR abre as Ferramentas do paciente (antes ia
+    ao Corpo). Cards HOLOSCAN/Corpo/Mente só na apresentação de conta nova. Seletor do HOLOSCAN: opção "Selecione um paciente"
+    quando não há paciente ativo, aviso só nesse caso, e "(arquivado)" no nome de quem está arquivado. A sincronização redesenha
+    o dashboard quando os dados chegam. Nenhuma regra clínica nem dado mudou. Fica com a nutricionista: os dois cadastros de
+    teste com o mesmo nome (um arquivado) — renomear ou remover pela própria tela.
 
 ## Decisões pendentes (não decididas aqui)
 

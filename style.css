@@ -1734,6 +1734,14 @@ body.escuro .btn-tema .icone-lua{display:none}
   padding:2px 9px;line-height:1.4;
 }
 .dash-sub{font-size:.85rem;font-weight:300;color:var(--texto-suave);margin:0 0 16px;max-width:46rem}
+/* "Precisa de voce" junta duas listas: pacientes com alerta e atendimentos
+   sem conduta salva. O subtitulo separa a segunda sem virar outro bloco. */
+.dash-subtitulo{
+  font-family:var(--fonte-corpo);font-size:.72rem;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--texto-suave);margin:18px 0 8px;
+  display:flex;align-items:baseline;gap:8px;
+}
+.dash-subtitulo em{font-style:normal;color:var(--dourado);letter-spacing:0}
 .dash-vazio{
   font-size:.9rem;font-weight:300;color:var(--texto-suave);
   border-left:2px solid var(--borda-suave);padding:10px 0 10px 14px;margin:12px 0 0;

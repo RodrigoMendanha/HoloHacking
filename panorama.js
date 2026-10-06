@@ -134,7 +134,7 @@
       saida.push({ peso: 1, grau: "aviso", curto: "mapa sem conduta",
                    texto: "O mapa foi feito e nenhuma ferramenta foi aplicada. " +
                           "Sem conduta, a avaliação não vira jornada.",
-                   acao: "holoscan", botao: "Ver por onde começar" });
+                   acao: "aba:conduta", botao: "Abrir conduta" });
     }
 
     /* Etapa 0 da V1 — dois alertas sairam daqui, de proposito:

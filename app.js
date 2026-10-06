@@ -561,11 +561,22 @@
     return Object.keys(obj).some(k => k !== "id" && k !== "paciente_id" && k !== "created_at" && k !== "score_holos" && obj[k]);
   }
 
+  /* Sem paciente ativo, o seletor dizia o nome do primeiro da lista (o
+     navegador marca a primeira opcao) e o aviso "Selecione um paciente"
+     ficava ao lado mesmo com alguem escolhido. Agora: opcao vazia explicita
+     quando ninguem esta ativo, aviso so nesse caso, e "arquivado" no nome
+     de quem esta arquivado (dois nomes iguais deixam de parecer o mesmo). */
   function atualizarSeletores(){
+    const ativoExiste = estado.pacientes.some(p => p.id === estado.ativo);
     const opcoes = estado.pacientes.length
-      ? estado.pacientes.map(p => '<option value="'+p.id+'"'+(p.id===estado.ativo?' selected':'')+'>'+escapar(p.nome)+'</option>').join("")
+      ? (ativoExiste ? '' : '<option value="" selected>Selecione um paciente</option>')
+        + estado.pacientes.map(p => '<option value="'+p.id+'"'+(p.id===estado.ativo?' selected':'')+'>'+escapar(p.nome)+(p.status==="inativo"?' (arquivado)':'')+'</option>').join("")
       : '<option value="">Nenhum paciente cadastrado</option>';
-    $$(".seletor-paciente").forEach(s => { s.innerHTML = opcoes; });
+    $$(".seletor-paciente").forEach(s => {
+      s.innerHTML = opcoes;
+      const aviso = s.parentElement && s.parentElement.querySelector(".aviso");
+      if(aviso) aviso.hidden = ativoExiste;
+    });
   }
 
   function definirAtivo(id){

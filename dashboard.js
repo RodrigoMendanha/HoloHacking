@@ -50,26 +50,62 @@
     return "Nutricionista";
   }
 
+  /* ---------- quem conta ---------------------------------------------------
+     Paciente ARQUIVADO (status "inativo") nao e pendencia, nao e "recente" e
+     nao entra em "sem conduta": nao se registra nada novo para ele. Todas as
+     secoes leem a mesma lista de ativos, para os numeros baterem entre si.
+     Consultas marcadas continuam aparecendo (sao compromissos reais), com a
+     etiqueta "arquivado" quando for o caso. */
+
+  function ativo(p) { return !!p && p.status !== "inativo"; }
+
+  function todos() { return (window.pacientesTodos && window.pacientesTodos()) || []; }
+
+  function pacientePorId(pid) { return todos().filter(function (x) { return x.id === pid; })[0] || null; }
+
+  function nomeDe(pid) { var p = pacientePorId(pid); return p ? p.nome : "Paciente"; }
+
+  /* "14:00:00" (como vem do banco) vira "14:00". */
+  function horaCurta(h) { return h ? String(h).slice(0, 5) : ""; }
+
+  function pendentesAtivos(c) {
+    return c ? c.pendentes.filter(function (l) { return ativo(l.paciente); }) : [];
+  }
+
+  /* V1, Etapa 2: pendencia OPERACIONAL objetiva — atendimento registrado sem
+     conduta consolidada (rascunho nao conta), so de pacientes ativos. Nao e
+     julgamento clinico. */
+  function semConduta() {
+    var A = window.AtendimentoAtual, Cd = window.Conduta;
+    if (!A || !Cd) return [];
+    return A.todos().filter(function (e) { return !Cd.vigente(e.id) && ativo(pacientePorId(e.patient_id)); })
+      .sort(function (a, b) { return String(b.occurred_at).localeCompare(String(a.occurred_at)); });
+  }
+
+  /* As consultas vigentes de hoje em diante, todas (nao so a proxima de cada
+     paciente), por data e hora — Agenda.daCarteira() ja vem nessa ordem. */
+  function consultasFuturas() {
+    var Ag = window.Agenda;
+    if (!Ag || !Ag.daCarteira) return [];
+    var hj = hojeISO();
+    return Ag.daCarteira().filter(function (x) { return x.data >= hj; }).map(function (x) {
+      return { id: x.id, data: x.data, hora: x.hora, tipo: x.tipo, paciente: pacientePorId(x.paciente_id) };
+    }).filter(function (l) { return !!l.paciente; });
+  }
+
+  function etiquetaArquivado(p) { return ativo(p) ? "" : " &middot; arquivado"; }
+
   /* ---------- os blocos --------------------------------------------------- */
 
-  function blocoCabecalho(c, agenda) {
-    var nPac = c ? c.linhas.filter(function (l) { return l.paciente.status !== "inativo"; }).length : 0;
-    var nPend = c ? c.pendentes.length : 0;
+  function blocoCabecalho(c, futuras) {
+    var nPac = c ? c.linhas.filter(function (l) { return ativo(l.paciente); }).length : 0;
+    /* Pendencias = o que aparece em "Precisa de voce": pacientes ativos com
+       alerta + atendimentos sem conduta salva. O mesmo numero nos dois lugares. */
+    var nPend = pendentesAtivos(c).length + semConduta().length;
 
-    var consultasHoje = 0;
-    var proxLabel = "&mdash;";
-    if (agenda && agenda.linhas) {
-      var hj = hojeISO();
-      consultasHoje = agenda.linhas.filter(function (l) {
-        return l.marcada === hj;
-      }).length;
-      var proximas = agenda.linhas.filter(function (l) {
-        return l.marcada && l.faltam !== null && l.faltam >= 0;
-      });
-      if (proximas.length > 0) {
-        proxLabel = escapar(dataBR(proximas[0].marcada));
-      }
-    }
+    var hj = hojeISO();
+    var consultasHoje = futuras.filter(function (l) { return l.data === hj; }).length;
+    var proxLabel = futuras.length ? escapar(dataBR(futuras[0].data)) : "&mdash;";
 
     var nome = nomeProfissional();
 
@@ -95,41 +131,35 @@
       "</div>";
   }
 
-  function blocoConsultasHoje(agenda) {
-    var hj = hojeISO();
-    var hoje = ((agenda && agenda.linhas) || []).filter(function (l) {
-      return l.marcada === hj;
-    });
+  function linhaConsulta(l, quando) {
+    return '<li class="dash-pendente">' +
+      '<span class="pac-avatar">' + escapar(inicial(l.paciente.nome)) + "</span>" +
+      '<span class="dash-quem">' +
+        "<b>" + escapar(l.paciente.nome) + "</b>" +
+        '<span class="dash-porque">' + escapar(quando) + (l.tipo ? " &middot; " + escapar(l.tipo) : "") +
+          etiquetaArquivado(l.paciente) + "</span>" +
+      "</span>" +
+      '<button type="button" class="dash-ir" data-paciente="' + escapar(l.paciente.id) +
+        '" data-destino="ficha">Ver <span aria-hidden="true">&rarr;</span></button>' +
+      "</li>";
+  }
 
+  function blocoConsultasHoje(futuras) {
+    var hj = hojeISO();
+    var hoje = futuras.filter(function (l) { return l.data === hj; });
     if (hoje.length === 0) return "";
 
-    hoje.sort(function (a, b) {
-      return (a.hora || "").localeCompare(b.hora || "");
-    });
-
     var corpo = '<ul class="dash-pendentes" id="dash-lista-hoje">' + hoje.map(function (l) {
-      var quando = l.hora || "sem horário";
-      var tipo = l.tipo ? " &middot; " + escapar(l.tipo) : "";
-      return '<li class="dash-pendente">' +
-        '<span class="pac-avatar">' + escapar(inicial(l.paciente.nome)) + "</span>" +
-        '<span class="dash-quem">' +
-          "<b>" + escapar(l.paciente.nome) + "</b>" +
-          '<span class="dash-porque">' + escapar(quando) + tipo + "</span>" +
-        "</span>" +
-        '<button type="button" class="dash-ir" data-paciente="' + escapar(l.paciente.id) +
-          '" data-destino="ficha">Ver <span aria-hidden="true">&rarr;</span></button>' +
-        "</li>";
+      return linhaConsulta(l, horaCurta(l.hora) || "sem horário");
     }).join("") + "</ul>";
 
     return '<div class="dash-bloco dash-bloco-compacto dash-bloco-hoje">' +
       '<h3 class="dash-titulo">Hoje <em>' + hoje.length + "</em></h3>" + corpo + "</div>";
   }
 
-  function blocoProximosAtendimentos(agenda) {
+  function blocoProximosAtendimentos(futuras) {
     var hj = hojeISO();
-    var proximas = ((agenda && agenda.linhas) || []).filter(function (l) {
-      return l.marcada && l.marcada > hj && l.faltam !== null && l.faltam >= 0;
-    }).slice(0, 3);
+    var proximas = futuras.filter(function (l) { return l.data > hj; }).slice(0, 5);
 
     var corpo;
     if (proximas.length === 0) {
@@ -137,16 +167,7 @@
         '<button type="button" class="perf-botao" data-destino="nova-consulta">Agendar consulta</button>';
     } else {
       corpo = '<ul class="dash-pendentes" id="dash-lista-atendimentos">' + proximas.map(function (l) {
-        var quando = dataBR(l.marcada) + (l.hora ? " às " + l.hora : "");
-        return '<li class="dash-pendente">' +
-          '<span class="pac-avatar">' + escapar(inicial(l.paciente.nome)) + "</span>" +
-          '<span class="dash-quem">' +
-            "<b>" + escapar(l.paciente.nome) + "</b>" +
-            '<span class="dash-porque">' + escapar(quando) + "</span>" +
-          "</span>" +
-          '<button type="button" class="dash-ir" data-paciente="' + escapar(l.paciente.id) +
-            '" data-destino="ficha">Ver <span aria-hidden="true">&rarr;</span></button>' +
-          "</li>";
+        return linhaConsulta(l, dataBR(l.data) + (l.hora ? " às " + horaCurta(l.hora) : ""));
       }).join("") + "</ul>";
     }
 
@@ -155,8 +176,7 @@
   }
 
   function blocoPacientesRecentes() {
-    var recentes = ((window.pacientesTodos && window.pacientesTodos()) || [])
-      .slice()
+    var recentes = todos().filter(ativo)
       .sort(function (a, b) { return (b.created_at || "").localeCompare(a.created_at || ""); })
       .slice(0, 3);
 
@@ -179,13 +199,24 @@
       '<h3 class="dash-titulo">Pacientes recentes</h3>' + corpo + "</div>";
   }
 
+  /* A jornada age sobre o paciente em foco — e diz qual e. Sem paciente em
+     foco (ou com um arquivado), os botoes pedem para escolher antes.
+     INTEGRAR leva as Ferramentas do paciente (aba da ficha), nao ao Corpo. */
   function blocoJornadaClinica() {
     var etapas = [
       { mov: "MAPEAR",      nome: "HOLOSCAN",          texto: "Mapear prioridades de investigação.",                destino: "holoscan" },
       { mov: "CONFRONTAR",  nome: "Leitura Integrada", texto: "Confrontar o mapa com dados laboratoriais.",         destino: "confronto" },
-      { mov: "INTEGRAR",    nome: "Ferramentas",       texto: "Integrar ferramentas e condutas ao caso.",           destino: "corpo" },
+      { mov: "INTEGRAR",    nome: "Ferramentas",       texto: "Integrar ferramentas e condutas ao caso.",           destino: "aba:ferramentas" },
       { mov: "ACOMPANHAR",  nome: "Evolução",          texto: "Acompanhar mudanças entre aplicações.",              destino: "evolucao" }
     ];
+
+    var pid = window.pacienteAtivoId ? window.pacienteAtivoId() : null;
+    var foco = pid ? pacientePorId(pid) : null;
+    var linhaFoco = !foco
+      ? "Nenhum paciente em foco: escolha um paciente para seguir a jornada."
+      : !ativo(foco)
+        ? "Paciente em foco: <b>" + escapar(foco.nome) + "</b> &middot; arquivado. Escolha um paciente ativo para seguir a jornada."
+        : "Paciente em foco: <b>" + escapar(foco.nome) + "</b>";
 
     var passos = etapas.map(function (e, i) {
       var seta = i > 0 ? '<div class="dash-jornada-seta" aria-hidden="true">&darr;</div>' : "";
@@ -193,32 +224,31 @@
         '<span class="dash-mov">' + escapar(e.mov) + "</span>" +
         '<span class="dash-quem"><b>' + escapar(e.nome) + "</b>" +
           '<span class="dash-porque">' + escapar(e.texto) + "</span></span>" +
-        '<button type="button" class="dash-ir" data-destino="' + e.destino + '">Abrir <span aria-hidden="true">&rarr;</span></button>' +
+        '<button type="button" class="dash-ir" data-jornada="1" data-destino="' + e.destino + '">Abrir <span aria-hidden="true">&rarr;</span></button>' +
       "</div>";
     }).join("");
 
     return '<div class="dash-bloco dash-bloco-compacto">' +
       '<h3 class="dash-titulo">Jornada clínica</h3>' +
+      '<p class="dash-sub" id="dash-jornada-foco">' + linhaFoco + "</p>" +
       '<div class="dash-jornada">' + passos + "</div></div>";
   }
 
-  /* V1, Etapa 2: pendencia OPERACIONAL objetiva — atendimento registrado sem
-     conduta consolidada (rascunho nao conta). Nao e julgamento clinico; nada
-     de rascunho, previa ou anamnese nao consolidada alimenta numero algum. */
-  function blocoAtendimentosSemConduta() {
+  /* Os atendimentos sem conduta salva entram em "Precisa de voce" (lista
+     propria, id dash-sem-conduta). "Abrir" leva ao atendimento, na aba
+     Conduta — nao so a ficha. */
+  function listaSemConduta() {
     var A = window.AtendimentoAtual, Cd = window.Conduta;
-    if (!A || !Cd) return "";
-    var pend = A.todos().filter(function (e) { return !Cd.vigente(e.id); })
-      .sort(function (a, b) { return String(b.occurred_at).localeCompare(String(a.occurred_at)); });
+    var pend = semConduta();
     if (!pend.length) return "";
-    var nomeDe = function (pid) { var p = (window.pacientesTodos() || []).filter(function (x) { return x.id === pid; })[0]; return p ? p.nome : "Paciente"; };
-    return '<div class="dash-bloco dash-bloco-compacto" id="dash-sem-conduta">' +
-      '<h3 class="dash-titulo">Atendimentos sem conduta salva <em>' + pend.length + "</em></h3>" +
+    return '<div id="dash-sem-conduta">' +
+      '<h4 class="dash-subtitulo">Atendimentos sem conduta salva <em>' + pend.length + "</em></h4>" +
       '<ul class="dash-pendentes">' + pend.slice(0, 5).map(function (e) {
         return '<li class="dash-pendente"><span class="pac-avatar">' + escapar(inicial(nomeDe(e.patient_id))) + "</span>" +
           '<span class="dash-quem"><b>' + escapar(nomeDe(e.patient_id)) + "</b><span class=\"dash-porque\">" + escapar(A.rotuloQuando(e)) +
           (Cd.rascunhoDe(e.id) ? " · conduta em rascunho" : " · sem conduta") + "</span></span>" +
-          '<button type="button" class="dash-ir" data-paciente="' + escapar(e.patient_id) + '" data-destino="ficha">Abrir <span aria-hidden="true">&rarr;</span></button></li>';
+          '<button type="button" class="dash-ir" data-paciente="' + escapar(e.patient_id) + '" data-atendimento="' + escapar(e.id) +
+          '" data-destino="atendimento-conduta">Abrir conduta <span aria-hidden="true">&rarr;</span></button></li>';
       }).join("") + "</ul></div>";
   }
 
@@ -227,11 +257,11 @@
      de Indice medio ou metodologia nao homologada. */
   function blocoRascunhosPendentes() {
     var An = window.Anamnese, Cd = window.Conduta, R = window.Relatorios;
-    var nAn = An ? An.doPaciente ? (window.pacientesTodos() || []).reduce(function (n, p) { return n + An.doPaciente(p.id).filter(function (a) { return a.status === "rascunho"; }).length; }, 0) : 0 : 0;
-    var nCd = Cd ? (window.pacientesTodos() || []).reduce(function (n, p) { return n + Cd.doPaciente(p.id).filter(function (c) { return c.status === "rascunho"; }).length; }, 0) : 0;
-    var rel = R && R.todosRascunhos ? R.todosRascunhos() : [];
+    var ativos = todos().filter(ativo);
+    var nAn = An ? An.doPaciente ? ativos.reduce(function (n, p) { return n + An.doPaciente(p.id).filter(function (a) { return a.status === "rascunho"; }).length; }, 0) : 0 : 0;
+    var nCd = Cd ? ativos.reduce(function (n, p) { return n + Cd.doPaciente(p.id).filter(function (c) { return c.status === "rascunho"; }).length; }, 0) : 0;
+    var rel = (R && R.todosRascunhos ? R.todosRascunhos() : []).filter(function (r) { return ativo(pacientePorId(r.patient_id)); });
     if (!nAn && !nCd && !rel.length) return "";
-    var nomeDe = function (pid) { var p = (window.pacientesTodos() || []).filter(function (x) { return x.id === pid; })[0]; return p ? p.nome : "Paciente"; };
     return '<div class="dash-bloco dash-bloco-compacto" id="dash-rascunhos">' +
       '<h3 class="dash-titulo">Rascunhos pendentes <em>' + (nAn + nCd + rel.length) + "</em></h3>" +
       '<p class="dash-sub">' + [nAn ? nAn + (nAn === 1 ? " anamnese em rascunho" : " anamneses em rascunho") : "",
@@ -244,66 +274,53 @@
       }).join("") + "</ul>" : "") + "</div>";
   }
 
+  /* "Precisa de voce": pacientes ATIVOS com alerta (panorama.js) e os
+     atendimentos sem conduta salva. Arquivado nao entra: a ficha dele nao
+     aceita registro novo, entao nao ha o que fazer por ele aqui. */
   function blocoPendencias(c) {
-    if (c.pendentes.length === 0) {
+    var pend = pendentesAtivos(c);
+    var semC = listaSemConduta();
+    var total = pend.length + semConduta().length;
+    if (total === 0) {
       return '<div class="dash-bloco">' +
         '<h3 class="dash-titulo">Precisa de você</h3>' +
         '<p class="dash-vazio">Nada pendente. Todas as fichas estão em dia.</p>' +
         "</div>";
     }
 
-    var html = '<div class="dash-bloco">' +
-      '<h3 class="dash-titulo">Precisa de você <em>' + c.pendentes.length + "</em></h3>" +
-      '<ul class="dash-pendentes" id="dash-lista-pendentes">';
+    var html = '<div class="dash-bloco" id="dash-precisa">' +
+      '<h3 class="dash-titulo">Precisa de você <em>' + total + "</em></h3>";
 
-    c.pendentes.forEach(function (l) {
-      var primeiro = l.alertas[0];
-      var restantes = l.alertas.slice(1).map(function (a) { return a.curto; });
-      html += '<li class="dash-pendente ' + primeiro.grau + '">' +
-        '<span class="pac-avatar">' + escapar(inicial(l.paciente.nome)) + "</span>" +
-        '<span class="dash-quem">' +
-          "<b>" + escapar(l.paciente.nome) + "</b>" +
-          '<span class="dash-porque">' + escapar(primeiro.curto) +
-            (restantes.length ? " &middot; " + escapar(restantes.join(" · ")) : "") +
+    if (pend.length) {
+      html += '<ul class="dash-pendentes" id="dash-lista-pendentes">';
+      pend.forEach(function (l) {
+        var primeiro = l.alertas[0];
+        var restantes = l.alertas.slice(1).map(function (a) { return a.curto; });
+        html += '<li class="dash-pendente ' + primeiro.grau + '">' +
+          '<span class="pac-avatar">' + escapar(inicial(l.paciente.nome)) + "</span>" +
+          '<span class="dash-quem">' +
+            "<b>" + escapar(l.paciente.nome) + "</b>" +
+            '<span class="dash-porque">' + escapar(primeiro.curto) +
+              (restantes.length ? " &middot; " + escapar(restantes.join(" · ")) : "") +
+            "</span>" +
           "</span>" +
-        "</span>" +
-        '<button type="button" class="dash-ir" data-paciente="' + escapar(l.paciente.id) +
-          '" data-destino="' + escapar(primeiro.acao) + '">' +
-          escapar(primeiro.botao) + ' <span aria-hidden="true">&rarr;</span></button>' +
-        "</li>";
-    });
+          '<button type="button" class="dash-ir" data-paciente="' + escapar(l.paciente.id) +
+            '" data-destino="' + escapar(primeiro.acao) + '">' +
+            escapar(primeiro.botao) + ' <span aria-hidden="true">&rarr;</span></button>' +
+          "</li>";
+      });
+      html += "</ul>";
+    }
 
-    return html + "</ul></div>";
+    return html + semC + "</div>";
   }
 
-  /* Etapa 0 da V1: os tiles "reavaliacoes vencidas" (regra de 28 dias) e
-     "Indice HOLOS medio" (media de notas em rascunho, com mapas nao
-     consolidados) sairam. "com HOLOSCAN" conta so aplicacoes consolidadas
-     (panorama.js, consolidada()). Nenhum numero substituto (Mestre §33). */
-  function blocoNumeros(c) {
-    var tiles = [
-      { n: c.total, r: c.total === 1 ? "paciente" : "pacientes" },
-      { n: c.comMapa, r: "com HOLOSCAN" }
-    ];
-
-    return '<div class="dash-numeros">' + tiles.map(function (t) {
-      return '<div class="dash-tile"><b>' + escapar(t.n) + "</b><span>" +
-        escapar(t.r) + "</span></div>";
-    }).join("") + "</div>";
-  }
-
-  /* "O terreno da sua carteira" esta DESLIGADO ate existir Pacote
-     Metodologico aprovado: era uma estatistica sobre notas em rascunho.
-     O bloco diz isso em vez de desenhar barras. */
-  function blocoTerreno(c) {
-    if (c.comMapa === 0) return "";
-    var M = window.Metodologia;
-    return '<div class="dash-bloco dash-homologacao">' +
-      '<h3 class="dash-titulo">O terreno da sua carteira ' + (M ? M.selo("agregação não homologada") : "") + "</h3>" +
-      '<p class="dash-vazio">Indicadores agregados da carteira (terreno que se repete, ' +
-      "Índice HOLOS médio) ficam desligados: o Pacote Metodológico da V1 não tem regra homologada " +
-      "para agregar aplicações, e as aplicações históricas não têm pacote metodológico V1.</p></div>";
-  }
+  /* Etapa 0 da V1: os tiles "reavaliacoes vencidas" e "Indice HOLOS medio"
+     sairam. Correcao do dashboard (pos-6.5): o bloco "N pacientes / N com
+     HOLOSCAN" tambem saiu — repetia o cabecalho com outro numero (contava os
+     arquivados). "O terreno da sua carteira" so ocupava espaco com o aviso
+     de recurso desligado: fica escondido ate existir regra homologada de
+     agregacao no Pacote Metodologico. */
 
   /* ---------- onboarding contextual --------------------------------------- */
 
@@ -381,17 +398,17 @@
     try { c = window.Panorama.carteira(); }
     catch (e) { alvo.innerHTML = ""; return; }
 
-    var agenda = null;
-    try { if (window.Panorama.agenda) agenda = window.Panorama.agenda(); }
-    catch (e) { agenda = null; }
+    var futuras = [];
+    try { futuras = consultasFuturas(); }
+    catch (e) { futuras = []; }
 
     var metodo = document.getElementById("dash-metodo");
 
     if (c.total === 0) {
       if (metodo) metodo.classList.remove("hidden");
-      alvo.innerHTML = blocoCabecalho(c, agenda) +
-        blocoProximosAtendimentos(agenda) +
+      alvo.innerHTML = blocoCabecalho(c, futuras) +
         blocoOnboarding(c) +
+        blocoProximosAtendimentos(futuras) +
         blocoPacientesRecentes() +
         blocoJornadaClinica();
       ligar();
@@ -400,19 +417,17 @@
 
     if (metodo) metodo.classList.add("hidden");
 
-    var hojeBloco = blocoConsultasHoje(agenda);
-
-    alvo.innerHTML = blocoCabecalho(c, agenda) +
-      hojeBloco +
-      blocoProximosAtendimentos(agenda) +
-      blocoOnboarding(c) +
+    /* Ordem: o que tenho hoje, quem precisa de mim, o que vem depois, quem
+       chegou, e a jornada. "Primeiros passos" vai para o fim: com carteira
+       ja em uso, ele nao pode empurrar as pendencias para baixo. */
+    alvo.innerHTML = blocoCabecalho(c, futuras) +
+      blocoConsultasHoje(futuras) +
       blocoPendencias(c) +
-      blocoAtendimentosSemConduta() +
       blocoRascunhosPendentes() +
+      blocoProximosAtendimentos(futuras) +
       blocoPacientesRecentes() +
-      blocoNumeros(c) +
-      blocoTerreno(c) +
-      blocoJornadaClinica();
+      blocoJornadaClinica() +
+      blocoOnboarding(c);
 
     ligar();
   }
@@ -437,6 +452,25 @@
           return;
         }
 
+        /* Jornada: precisa de um paciente ativo em foco para os destinos que
+           dependem dele (a ficha). Arquivado nao segue a jornada. */
+        if (b.dataset.jornada) {
+          var foco = window.pacienteAtivoId ? window.pacienteAtivoId() : null;
+          if (foco && !ativo(pacientePorId(foco))) {
+            if (window.avisar) window.avisar("O paciente em foco está arquivado. Escolha um paciente ativo para seguir a jornada.");
+            if (window.irParaSecao) window.irParaSecao("pacientes");
+            return;
+          }
+          if (destino.indexOf("aba:") === 0) {
+            if (!foco) {
+              if (window.avisar) window.avisar("Escolha um paciente para abrir as ferramentas dele.");
+              if (window.irParaSecao) window.irParaSecao("pacientes");
+              return;
+            }
+            pid = foco;
+          }
+        }
+
         /* Rodada 08: "Evolução → Abrir" leva ao comparativo de verdade (antes x
            agora, Indice, sistemas, Triade, aplicacoes e datas), que mora no
            HOLOSCAN — e so existe a partir da segunda aplicacao. */
@@ -459,6 +493,17 @@
           return;
         }
 
+        /* "Abrir conduta" de um atendimento: a ficha do paciente, com ESSE
+           atendimento selecionado, na aba Conduta. */
+        if (destino === "atendimento-conduta") {
+          if (window.irParaSecao) window.irParaSecao("pacientes");
+          if (pid && window.abrirFichaDe) window.abrirFichaDe(pid);
+          if (window.AtendimentoAtual && b.dataset.atendimento) window.AtendimentoAtual.selecionarPorId(b.dataset.atendimento);
+          var abaC = document.querySelector('[data-aba="conduta"]');
+          if (abaC) abaC.click();
+          return;
+        }
+
         if (destino === "ficha") {
           if (window.irParaSecao) window.irParaSecao("pacientes");
           if (pid && window.abrirFichaDe) window.abrirFichaDe(pid);
@@ -468,6 +513,7 @@
         if (pid && window.definirPacienteAtivo) window.definirPacienteAtivo(pid);
 
         if (destino.indexOf("aba:") === 0) {
+          if (window.irParaSecao) window.irParaSecao("pacientes");
           if (window.abrirFichaDe) window.abrirFichaDe(pid);
           var aba = document.querySelector('[data-aba="' + destino.slice(4) + '"]');
           if (aba) aba.click();

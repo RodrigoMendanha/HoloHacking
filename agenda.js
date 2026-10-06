@@ -120,9 +120,19 @@
       Promise.resolve(b.from("bloqueios").select("*").order("data", { ascending: true }))
     ]).then(function (r) {
       /* erro nao e vazio: se a leitura falhou, fica o que ja se tinha */
-      if (!r[0] || !r[0].error) consultas = (r[0] && r[0].data) || [];
-      if (!r[1] || !r[1].error) bloqueios = (r[1] && r[1].data) || [];
+      if (!r[0] || !r[0].error) consultas = ((r[0] && r[0].data) || []).map(horasCurtas);
+      if (!r[1] || !r[1].error) bloqueios = ((r[1] && r[1].data) || []).map(horasCurtas);
     });
+  }
+
+  /* O banco devolve a coluna time como "14:00:00"; a tela inteira (agenda,
+     dashboard, ficha) fala "14:00". Normaliza uma vez, na leitura. */
+  function horasCurtas(c) {
+    if (!c) return c;
+    ["hora", "inicio", "fim"].forEach(function (k) {
+      if (typeof c[k] === "string" && /^\d{2}:\d{2}:\d{2}/.test(c[k])) c[k] = c[k].slice(0, 5);
+    });
+    return c;
   }
 
   /* A versão anterior guardava {pid: {data, nota}} numa caixa do localStorage:

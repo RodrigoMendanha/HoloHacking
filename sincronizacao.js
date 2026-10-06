@@ -823,6 +823,11 @@
       recarregarRelatorios
     ]).then(function (r) {
       if (gen === geracao) estado = { holoscan: r[0].estado, exames: r[1].estado };
+      /* Os dados chegaram com o dashboard possivelmente ja aberto: sem isto,
+         os numeros ficavam os da carga anterior ate trocar de tela. */
+      if (gen === geracao && typeof window.redesenharDashboard === "function") {
+        try { window.redesenharDashboard(); } catch (e) { console.error("[sincronizacao] dashboard:", e); }
+      }
       return { holoscan: r[0].estado, exames: r[1].estado };
     });
     return emCurso;

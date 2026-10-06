@@ -266,6 +266,16 @@ const E3 = await iniciarAtendimento(PB, '2026-05-02T12:00:00.000Z');
 await A.evaluate(async (e3) => { await window.Conduta.salvar({ encounter_id: e3, status: 'rascunho', objective: 'so rascunho' }).catch(() => {}); }, E3);
 const dash2 = await A.evaluate(async () => { document.querySelector('.nav-item[data-secao="pacientes"]').click(); document.querySelector('.nav-item[data-secao="dashboard"]').click(); await new Promise(r => setTimeout(r, 400)); return (document.getElementById('dash-sem-conduta') || {}).innerText || ''; });
 ok(/Paciente Dois/.test(dash2) && /conduta em rascunho/.test(dash2), 'dashboard: atendimento com conduta so em RASCUNHO conta como "sem conduta salva" (rascunho nao e conduta)');
+/* Correcao do dashboard (pos-6.5): "Abrir conduta" leva ao ATENDIMENTO (selecionado), na aba Conduta — nao so a ficha. */
+const irConduta = await A.evaluate(async (e3) => {
+  const bt = document.querySelector('#dash-sem-conduta [data-atendimento="' + e3 + '"]');
+  if (!bt) return { achou: false };
+  bt.click(); await new Promise(r => setTimeout(r, 400));
+  return { achou: true, botao: bt.textContent.trim(), atual: (window.AtendimentoAtual.atual() || {}).id,
+    aba: document.querySelector('[data-aba].ativa')?.dataset.aba, secao: document.querySelector('.secao.ativa')?.id };
+}, E3);
+ok(irConduta.achou && irConduta.atual === E3 && irConduta.aba === 'conduta' && irConduta.secao === 'secao-pacientes',
+   'dashboard: "Abrir conduta" seleciona o atendimento sem conduta e abre a aba Conduta: ' + JSON.stringify(irConduta));
 const gerarContexto = (eid) => A.evaluate(async (pid, eid) => {
   window.abrirFichaDe(pid); await new Promise(r => setTimeout(r, 200));
   window.AtendimentoAtual.selecionarPorId(eid);
