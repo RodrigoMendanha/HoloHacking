@@ -4357,3 +4357,59 @@ tr.mh-conflito td{background:rgba(201,138,122,.08)}
   .rv-linha > li{grid-template-columns:1fr;gap:2px}
   .rv-resumo dl{grid-template-columns:1fr}
 }
+
+/* ===== Exames laboratoriais V1 (laboratorio.js) — auditoria: o formulario de
+   "Nova coleta" e a Leitura Integrada estavam sem estilo (campos do navegador,
+   catalogo como texto corrido, codigos tecnicos a mostra). ===== */
+.lab-editor{border:1px solid var(--borda-suave);border-radius:12px;background:var(--sup-card);padding:18px 20px;margin:14px 0}
+.lab-editor input[type="text"],.lab-editor input[type="date"],.lab-editor input[type="time"],.lab-editor input[type="search"],.lab-editor select,
+.li-selecao select,.li-salvar input{
+  font:inherit;font-size:.86rem;color:var(--texto);background:var(--input-fundo);
+  border:1px solid var(--input-borda);border-radius:8px;padding:7px 10px;min-width:0
+}
+.lab-editor input:focus,.lab-editor select:focus,.li-selecao select:focus,.li-salvar input:focus{border-color:var(--dourado);outline:none;box-shadow:0 0 0 3px rgba(201,163,90,.15)}
+.lab-cabecalho{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:flex-end}
+.lab-cabecalho .ex-data{flex-direction:column;align-items:flex-start;gap:4px;font-size:.74rem;letter-spacing:.04em}
+.lab-notas,.lab-motivo{flex:1 1 260px}
+.lab-notas input,.lab-motivo input{width:100%}
+.lab-estrutura{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0}
+.lab-busca{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:16px 0 10px}
+.lab-busca input[type="search"]{flex:1 1 280px}
+.lab-catalogo{display:flex;flex-wrap:wrap;gap:6px;max-height:220px;overflow:auto;padding:8px;border:1px solid var(--borda-suave);border-radius:10px}
+.lab-exame{font:inherit;font-size:.8rem;border:1px solid var(--borda-suave);background:var(--sup-card);color:var(--texto);border-radius:999px;padding:5px 11px;cursor:pointer}
+.lab-exame:hover{border-color:var(--dourado)}
+.lab-exame small{color:var(--texto-suave)}
+.lab-custom-novo{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.lab-custom-novo input{flex:1 1 260px}
+.lab-linhas{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.lab-linha{border:1px solid var(--borda-suave);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.lab-linha-cabeca,.lab-linha-valor,.lab-linha-ref{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:.82rem;color:var(--texto-suave)}
+.lab-linha-cabeca b{color:var(--texto);font-size:.92rem;margin-right:6px}
+.lab-curto{width:9rem}
+.lab-medio{width:15rem}
+.lab-valor{width:18rem;font-weight:500}
+.lab-interp{font-size:.76rem;color:var(--texto-suave)}
+.lab-ambigua{display:inline-flex;gap:6px;align-items:center;font-size:.78rem}
+.lab-componentes{display:flex;flex-direction:column;gap:6px}
+.lab-comp{display:flex;flex-wrap:wrap;gap:6px}
+.lab-rodape{margin-top:16px}
+.lab-coleta{padding:10px 0;border-bottom:1px solid var(--borda-suave);list-style:none}
+.lab-legado,.lab-versoes{color:var(--texto-suave)}
+.arq-legado-det{margin-top:18px}
+.arq-legado-det>summary{cursor:pointer;font-size:.82rem;color:var(--texto-suave);padding:8px 0}
+.btn-link{font:inherit;background:none;border:none;padding:0;color:var(--dourado);text-decoration:underline;cursor:pointer}
+/* Leitura Integrada */
+.li-selecao{display:flex;flex-direction:column;gap:12px;margin:14px 0}
+.li-coletas{display:flex;flex-direction:column;gap:6px;font-size:.84rem}
+.li-coletas>span{font-size:.74rem;letter-spacing:.04em;color:var(--texto-suave)}
+.li-coletas label{display:flex;gap:8px;align-items:center}
+.li-dom-titulo{display:flex;gap:8px;align-items:baseline;margin:0 0 4px}
+.li-dom-cod{font-size:.7rem;color:var(--texto-suave);font-weight:400}
+.li-tipo{display:inline-block;font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--dourado);color:var(--dourado);border-radius:999px;padding:2px 9px;margin-bottom:6px}
+.li-tipo.info{border-color:var(--borda-suave);color:var(--texto-suave)}
+.li-porque{font-size:.84rem;color:var(--texto-suave)}
+.li-tecnico{margin-top:8px;font-size:.78rem;color:var(--texto-suave)}
+.li-tecnico>summary{cursor:pointer}
+.li-salvar{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.li-salvar input{flex:1 1 240px}
+@media (max-width:640px){ .lab-curto,.lab-medio,.lab-valor{width:100%} }

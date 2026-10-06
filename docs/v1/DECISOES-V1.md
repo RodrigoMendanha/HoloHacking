@@ -766,6 +766,20 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     inteiro do paciente nas mensagens. "Onde olhar primeiro": nome do sistema sem quebra e aviso legível. Botões para seguir
     para Leitura Integrada e Conduta. NÃO mudou (conteúdo metodológico do HOLOS-V1@2, fora do escopo): textos iguais dos
     cinco sistemas ("Área do mapa…") e da faixa, redação das perguntas de antibiótico e PCR com a escala de frequência.
+163. **Leitura Integrada e exames: correções da auditoria de produção** (Cowork, 06/10). Só apresentação — nenhuma regra do
+    LI-V1@2, nenhum estado calculado e nenhum dado congelado (snapshot/hash) mudam. Domínio "Sem dados suficientes" diz o porquê
+    quando é falta de direção (HOLOSCAN sem direção definida na faixa intermediária; exames sem direção comum). Nomes clínicos no
+    lugar de códigos (exames, sistema, faixa com acento, domínio); regras, códigos e snapshot recolhidos em "Ver detalhes técnicos";
+    cada domínio marcado "Confronto HOLOSCAN × exames" ou "Informação laboratorial (sem confronto)". Seletores sem id/estrutura;
+    aplicação incompleta aparece desabilitada; "registrada em" só quando há duas aplicações na mesma data. "Calcular leitura" só
+    com aplicação e coleta escolhidas. Leituras salvas com data/hora local e nome do domínio; a leitura salva grava o
+    `encounter_id` do atendimento ativo (o RPC já aceitava); responsável vem do Perfil e não esvazia. Referência "até X" / "≥ X"
+    e decimal com vírgula. "Marcar como revisada" e "Remover bloqueio" usam o modal do app (sem `prompt`/`confirm` nativos).
+    Formulário de coleta e Leitura Integrada com CSS. Painel legado de exames recolhido. Texto da ficha sem "sem regra homologada
+    ainda"; "Documentos" vira link. PENDENTE de decisão metodológica (não alterado): tratamento da faixa intermediária do
+    HOLOSCAN na direção (hoje "indeterminada" → domínio sem confronto) e a regra de unanimidade dos resultados mistos (ex.:
+    glicemia e HbA1c altas com insulina normal → direção laboratorial indeterminada). A nota no snapshot como fração exata
+    ("35/6") é a representação racional do motor (E4.2), não erro; relatórios devem formatar ao exibir.
 
 ## Decisões pendentes (não decididas aqui)
 

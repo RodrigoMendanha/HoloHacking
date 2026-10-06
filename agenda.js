@@ -990,8 +990,13 @@
     var d = editando.dado;
     if (!d.id) return;
     if (tipo === "consulta") { cancelarAtual(); return; }
-    if (!confirm("Remover este bloqueio?")) return;
-    apagar("bloqueios", d.id).then(function (r) {
+    /* modal do app no lugar do confirm() nativo (que travava a pagina) */
+    var perguntar = window.abrirModalConfirmar
+      ? window.abrirModalConfirmar({ titulo: "Remover bloqueio", corpo: "<p>Remover este bloqueio da agenda? Esta ação não pode ser desfeita.</p>",
+          botaoConfirmar: "Remover", classeConfirmar: "btn-perigo" })
+      : Promise.resolve(confirm("Remover este bloqueio?") ? "confirmar" : null);
+    perguntar.then(function (resp) { if (resp !== "confirmar") return null; return apagar("bloqueios", d.id); }).then(function (r) {
+      if (r === null) return;
       if (r && r.error) {
         avisar(window.mensagemHumana ? window.mensagemHumana(r.error)
                                      : "Não foi possível remover agora. Nada mudou; tente de novo.");

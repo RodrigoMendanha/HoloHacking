@@ -599,7 +599,8 @@
     $$(".seletor-paciente").forEach(s => {
       s.innerHTML = opcoes;
       const aviso = s.parentElement && s.parentElement.querySelector(".aviso");
-      if(aviso) aviso.hidden = ativoExiste;
+      // so o aviso "Selecione um paciente…" depende disso; os outros sao informativos
+      if(aviso && /^Selecione/.test(aviso.textContent.trim())) aviso.hidden = ativoExiste;
     });
   }
 
@@ -3896,6 +3897,11 @@
         window.AtendimentoAtual.abrirDialogo({ patient_id: estado.ativo }).then(desenharAtendimentoHoloscan);
       });
     }
+    const irDocs = document.getElementById("conf-ir-documentos");
+    if(irDocs) irDocs.addEventListener("click", () => {
+      if(!estado.ativo){ toast("Escolha um paciente."); return; }
+      levarPara("aba:documentos", estado.ativo);
+    });
     $$("[data-ir-holo]").forEach(b => b.addEventListener("click", () => {
       if(b.dataset.irHolo === "confronto") irPara("confronto");
       else levarPara("aba:conduta", estado.ativo);

@@ -46,18 +46,22 @@ const tela = await A.evaluate(async (pid) => {
   document.querySelector('.nav-item[data-secao="confronto"]').click();
   for (let i = 0; i < 50 && !document.querySelector('#holo-confronto #li-app'); i++) await new Promise(r => setTimeout(r, 100));
   const r = document.getElementById('holo-confronto');
+  // auditoria: "Calcular leitura" so habilita com aplicacao e coleta escolhidas; rotulos sem id tecnico
+  window.__calc0 = r.querySelector('[data-li-acao="calcular"]').disabled;
+  window.__opcoes = [...r.querySelectorAll('#li-app option, .li-coletas label')].map(o => o.textContent).join(' | ');
   const sel = r.querySelector('#li-app'); sel.value = sel.options[sel.options.length - 1].value; sel.dispatchEvent(new Event('change')); await new Promise(x => setTimeout(x, 300));
   r.querySelectorAll('[data-li-coleta]').forEach(cb => { cb.checked = true; cb.dispatchEvent(new Event('change')); });
   r.querySelector('[data-li-acao="calcular"]').click();
   for (let i = 0; i < 50 && !r.querySelector('#li-resultado'); i++) await new Promise(x => setTimeout(x, 100));
-  return { texto: r.innerText, doms: [...r.querySelectorAll('[data-li-dominio]')].map(d => d.dataset.liDominio), estados: r.querySelectorAll('.li-estado').length, neutros: r.querySelectorAll('.li-dominio-sem-confronto').length, dup: r.querySelectorAll('[data-li-result]').length, salvar: [...r.querySelectorAll('[data-li-salvar]')].map(b => b.dataset.liSalvar), coletas: r.querySelectorAll('[data-li-coleta]').length };
+  return { texto: r.innerText, tc: r.textContent, tecnicoFechado: [...r.querySelectorAll('details.li-tecnico')].every(d => !d.open) && r.querySelectorAll('details.li-tecnico').length === 4, doms: [...r.querySelectorAll('[data-li-dominio]')].map(d => d.dataset.liDominio), estados: r.querySelectorAll('.li-estado').length, neutros: r.querySelectorAll('.li-dominio-sem-confronto').length, dup: r.querySelectorAll('[data-li-result]').length, salvar: [...r.querySelectorAll('[data-li-salvar]')].map(b => b.dataset.liSalvar), coletas: r.querySelectorAll('[data-li-coleta]').length };
 }, PA);
 ok(tela.doms.join(',') === 'LI-D01,LI-D02,LI-D03,LI-D04,LI-D05,LI-D06,LI-D07' && tela.estados === 4 && tela.neutros === 3 && tela.coletas === 2, '7 dominios na tela: 4 com estado (D01-D04), 3 neutros (D05-D07); 2 coletas da mesma data selecionaveis');
 ok(/LI-V1 v2 · em_revisao/.test(tela.texto) && /ainda não homologado/.test(tela.texto), 'cabecalho: pacote LI-V1 v2 em_revisao, ainda nao homologado');
 ok(/não possui confronto automático com um sistema HOLOSCAN/.test(tela.texto) && !/missing_domain_holoscan_mapping/.test(tela.texto), 'D05-D07: texto neutro de interface; nunca missing_domain_holoscan_mapping');
-ok(tela.dup === 2 && /Resultados duplicados nas coletas selecionadas/.test(tela.texto) && /duplicate_result_unresolved/.test(tela.texto), 'duplicidade (PCR em duas coletas da mesma data): a tela pede escolha explicita (2 opcoes); nada escolhido por data de edicao');
+/* auditoria Leitura Integrada: codigos e regras ficam em "Ver detalhes tecnicos" (recolhido) — continuam no DOM (textContent), fora do texto visivel */
+ok(tela.dup === 2 && /Resultados duplicados nas coletas selecionadas/.test(tela.texto) && /duplicate_result_unresolved/.test(tela.tc) && !/duplicate_result_unresolved/.test(tela.texto) && tela.tecnicoFechado, 'duplicidade (PCR em duas coletas da mesma data): a tela pede escolha explicita (2 opcoes); nada escolhido por data de edicao');
 ok(/Há mais de um resultado do mesmo exame/.test(tela.texto) && /não foi calculada com o pacote metodológico homologado/.test(tela.texto) && /Resultado qualitativo sem regra homologada/.test(tela.texto), 'reason codes traduzidos para humano (duplicidade, versao HOLOSCAN, qualitativo sem regra)');
-ok(/Exames contextuais \(não formam direção\)/.test(tela.texto) && /Excluídos e motivo/.test(tela.texto) && /Direção HOLOSCAN/.test(tela.texto) && /Direção laboratorial/.test(tela.texto) && /suficiência rule_based/.test(tela.texto) && /temporal LI-TEMP-01 v1/.test(tela.texto), 'cada dominio mostra exames usados, contextuais, excluidos com motivo, direcoes, regra/versionamento');
+ok(/Exames contextuais \(não formam direção\)/.test(tela.texto) && /Excluídos e motivo/.test(tela.texto) && /Direção HOLOSCAN/.test(tela.texto) && /Direção laboratorial/.test(tela.texto) && /suficiência rule_based/.test(tela.tc) && /temporal LI-TEMP-01 v1/.test(tela.tc), 'cada dominio mostra exames usados, contextuais, excluidos com motivo, direcoes, regra/versionamento');
 ok(tela.salvar.join(',') === 'LI-D01,LI-D02,LI-D03,LI-D04', 'salvar por dominio so nos dominios com confronto (D01-D04)');
 const semNegacoes = tela.texto.replace(/Nenhum exame fora da referência confirma ou contradiz o HOLOSCAN/g, '').replace(/não representa diagnóstico/g, '');
 ok(!/\bconfirma\b|\bprova\b|diagnostica|normal global|saudável|\bdoente\b|\bcura\b|melhora|piora/i.test(semNegacoes), 'nenhuma conclusao diagnostica automatica na tela (fora das negacoes explicitas)');
@@ -75,7 +79,27 @@ const depois = await A.evaluate(async () => {
 });
 ok(!/duplicate_result_unresolved/.test(depois.txt) && /resultado duplicado não escolhido/.test(depois.txt), 'depois da escolha: duplicidade resolvida; o outro resultado aparece como nao escolhido');
 const lr = srv.linhas('integrated_readings');
-ok(lr.length === 1 && lr[0].domain_code === 'LI-D01' && lr[0].state === 'sem_dados_suficientes' && lr[0].rule_version === 2 && lr[0].snapshot.selected_result_ids.length === 2 && /LI-D01 · Sem dados suficientes/.test(depois.salvas), 'leitura de D01 salva (sem dados: HOLOSCAN sem pacote V1) com snapshot dos 2 resultados escolhidos; listada na tela');
+ok(lr.length === 1 && lr[0].domain_code === 'LI-D01' && lr[0].state === 'sem_dados_suficientes' && lr[0].rule_version === 2 && lr[0].snapshot.selected_result_ids.length === 2 && /Hematológico e Inflamatório · Sem dados suficientes/.test(depois.salvas), 'leitura de D01 salva (sem dados: HOLOSCAN sem pacote V1) com snapshot dos 2 resultados escolhidos; listada na tela');
+titulo('AUDITORIA LEITURA INTEGRADA: APRESENTACAO E VINCULO');
+const aud = await A.evaluate(() => ({ calc0: window.__calc0, opcoes: window.__opcoes }));
+ok(aud.calc0 === true, '"Calcular leitura" desabilitado sem aplicação e coleta escolhidas');
+ok(!/ id [0-9a-f]{8}|estrutura v/.test(aud.opcoes) && /84 de 84 respostas/.test(aud.opcoes), 'seletores sem id técnico nem "estrutura vN": ' + aud.opcoes.slice(0, 120));
+const vis = await A.evaluate(() => document.getElementById('holo-confronto').innerText);
+ok(!/LAB-0\d\d/.test(vis) && !/acido_inflamatorio|faixa intermediaria\b/.test(vis), 'texto visível com nomes clínicos (sem LAB-0xx nem códigos de sistema)');
+ok(/\d{2}\/\d{2}\/\d{4} \d{2}:\d{2} · Hematológico/.test(vis), 'leituras salvas com data/hora local dd/mm/aaaa hh:mm');
+const vinc = await A.evaluate(async (pid) => {
+  const e = await window.AtendimentoAtual.iniciar({ patient_id: pid, occurred_at: new Date(Date.now() - 3600000).toISOString() });
+  const r = document.getElementById('holo-confronto');
+  r.querySelector('[data-li-acao="calcular"]').click(); await new Promise(x => setTimeout(x, 600));
+  const resp = r.querySelector('#li-responsavel').value;
+  r.querySelector('#li-responsavel').value = 'Profissional X';
+  r.querySelector('[data-li-salvar="LI-D02"]').click(); await new Promise(x => setTimeout(x, 800));
+  return { e: e.id, respPreenchido: resp };
+}, PA);
+const lr2 = srv.linhas('integrated_readings').find(x => x.domain_code === 'LI-D02');
+ok(lr2 && lr2.encounter_id === vinc.e, 'a leitura salva fica ligada ao atendimento ativo (encounter_id)');
+ok(vinc.respPreenchido === 'Profissional X', 'o responsável continua preenchido depois de salvar (não esvazia)');
+
 ok(errosJS.length === 0, 'nenhum erro JS na pagina' + (errosJS.length ? ': ' + errosJS.join(' | ') : ''));
 
 await nav.close();

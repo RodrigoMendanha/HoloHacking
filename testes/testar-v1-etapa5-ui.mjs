@@ -56,7 +56,8 @@ const salvarEEsperar = async (sel) => {
 titulo('CATALOGO NA TELA: 45, CATEGORIAS, BUSCA, ALIASES; NOVA COLETA VAZIA');
 await abrirDocs();
 ok(await A.evaluate(() => !!document.querySelector('#lab-corpo [data-lab-acao="nova"]') && /45 exames/.test(document.getElementById('lab-corpo').innerText) && /não alteram/.test(document.getElementById('lab-corpo').innerText)), 'painel V1 de exames na aba Documentos, com o aviso de 45 exames nao obrigatorios e de que nao alteram o HOLOSCAN');
-ok(/Painel legado \(valores locais\) — fora da saída oficial/.test(await texto('#aba-documentos')), 'o painel antigo esta rotulado como LEGADO, fora da saida oficial');
+// auditoria Leitura Integrada: o painel legado fica recolhido (details), com o rotulo no resumo
+ok(/Painel legado de exames \(valores locais\) — fora da saída oficial/.test(await texto('#aba-documentos')), 'o painel antigo esta rotulado como LEGADO, fora da saida oficial');
 await clicar('#lab-corpo [data-lab-acao="nova"]');
 const e0 = await A.evaluate(() => ({ modo: document.getElementById('lab-modo').innerText, data: document.getElementById('lab-data').value, linhas: document.querySelectorAll('.lab-linha').length, n: document.querySelectorAll('#lab-catalogo [data-lab-add]').length, cats: document.querySelectorAll('#lab-categoria option').length - 1, legenda: document.querySelector('.lab-busca .dash-sub').innerText }));
 ok(/Nova coleta/.test(e0.modo) && e0.data === '' && e0.linhas === 0, 'nova coleta comeca VAZIA (sem data, sem exames)');
@@ -155,6 +156,8 @@ const tl = await A.evaluate(async (pid) => { window.abrirFichaDe(pid); await new
 ok(/Revisão da coleta de exames \(versão 2\)/.test(tl) && /Coleta de exames/.test(tl) && /substituída/.test(tl) && !/rascunho/i.test(tl), 'timeline: coleta, revisao (nao "coleta nova") e versao substituida; rascunho nao entra');
 await abrirDocs();
 await clicar(`#lab-corpo [data-lab-acao="marcar-revisada"][data-id="${rev.id}"]`);
+/* auditoria: o prompt() nativo virou o modal do app (campo #lab-revisor) */
+await A.evaluate(async () => { const i = document.getElementById('lab-revisor'); if (i) { i.value = 'Profissional X'; document.getElementById('modal-confirmar-ok').click(); } await new Promise(r => setTimeout(r, 300)); });
 await esperar(300);
 ok(srv.linhas('lab_collections').find(c => c.id === rev.id).state === 'revisado' && /revisado por Profissional X/.test(srv.linhas('lab_collections').find(c => c.id === rev.id).revision_note), '"Marcar como revisada": acao humana identificada (prompt pelo nome)');
 
@@ -212,7 +215,7 @@ ok(/"temporal_rule_code": "LI-TEMP-01"/.test(liCalc.trace) && /"application_id"/
 await A.evaluate(async () => { const r = document.getElementById('aba-holoscan-laboratorial'); r.querySelector('#li-responsavel').value = 'Profissional X'; r.querySelector('#li-nota').value = 'nota'; r.querySelector('[data-li-salvar="LI-D01"]').click(); for (let i = 0; i < 40 && !document.querySelector('#aba-holoscan-laboratorial .dash-pendentes'); i++) await new Promise(x => setTimeout(x, 100)); })
 const lr = srv.linhas('integrated_readings');
 ok(lr.length === 1 && lr[0].state === 'sem_dados_suficientes' && lr[0].domain_code === 'LI-D01' && lr[0].selected_collection_ids.length === 4 && lr[0].holoscan_application_id && lr[0].responsible === 'Profissional X' && lr[0].rule_version === 2 && /^[0-9a-f]{64}$/.test(lr[0].content_hash) && lr[0].snapshot.temporal_rule_code === 'LI-TEMP-01', 'leitura de LI-D01 salva congela HOLOSCAN, 4 coletas, pacote v2, dominio, snapshot (LI-TEMP-01), responsavel, hash');
-ok(/Leituras salvas/.test(await texto('#aba-holoscan-laboratorial')) && /LI-D01 · Sem dados suficientes/.test(await texto('#aba-holoscan-laboratorial')), 'a leitura salva aparece na lista');
+ok(/Leituras salvas/.test(await texto('#aba-holoscan-laboratorial')) && /Hematológico e Inflamatório · Sem dados suficientes/.test(await texto('#aba-holoscan-laboratorial')), 'a leitura salva aparece na lista');
 const secao = await A.evaluate(async () => { document.querySelector('.nav-item[data-secao="confronto"]').click(); await new Promise(r => setTimeout(r, 400)); return document.getElementById('holo-confronto').innerText; });
 ok(/sem dados suficientes/.test(secao) && !/faixa cadastrada|Convergente\b|Divergente\b|LEGADO/.test(secao), 'secao Leitura Integrada: V1 (sem dados suficientes), sem o confronto legado nem "faixa cadastrada"');
 ok(srv.linhas('integrated_reading_exam_domain_links').length === 47 && srv.linhas('integrated_reading_domains').length === 7, 'nenhum vinculo exame → dominio foi criado pela tela: continuam exatamente os 47 vinculos / 7 dominios da migration (LI-V1@2)');

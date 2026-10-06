@@ -213,7 +213,7 @@
         '<div class="dash-bloco dash-bloco-compacto"><h3 class="dash-titulo">Leitura Integrada (V1)</h3><div id="aba-holoscan-laboratorial-li"></div>' +
         '<button type="button" class="fic-ir-min" data-ir="confronto">Abrir a Leitura Integrada completa</button></div>' +
         '<div class="fic-continuidade"><span class="fic-rot">HOLOSCAN &rarr; mapa de investigação</span>' +
-        '<span class="fic-rot">Leitura Integrada &rarr; integração com exames (sem regra homologada ainda)</span></div>';
+        '<span class="fic-rot">Leitura Integrada &rarr; confronto por domínio com os exames (pacote LI-V1)</span></div>';
       window.Laboratorio.desenharLeituraIntegrada("aba-holoscan-laboratorial-li");
       ligarHoloscanAba();
       return;
@@ -1014,6 +1014,9 @@
       /* Etapa 5 da V1: o painel abaixo e LEGADO (24 itens de exames.csv, faixa
          "ideal" nao homologada, confronto antigo). Fica isolado, rotulado e
          fora da saida oficial ate ser desligado; a entrada oficial e #lab-corpo. */
+      /* auditoria Leitura Integrada: o painel legado ficava aberto ao lado do novo, e era facil
+         lancar exame no painel errado (que nao alimenta a Leitura Integrada). Fica recolhido. */
+      '<details class="arq-legado-det"><summary>Painel legado de exames (valores locais) — fora da saída oficial; use "Exames laboratoriais" acima</summary>' +
       '<section class="arq-cartao arq-legado" aria-label="Painel legado de exames">' +
         '<h4 class="arq-titulo">Painel legado (valores locais) — fora da saída oficial</h4>' +
         '<p class="arq-sub"><b>Legado.</b> Lista fixa de 24 itens com "faixa cadastrada" de rascunho, sem fonte homologada. ' +
@@ -1024,7 +1027,7 @@
         "&mdash; ele confronta o que o paciente relatou com o que o sangue mostra.</p>" +
         '<div id="ex-atalhos"></div>' +
         '<div id="ex-corpo"></div>' +
-      "</section>" +
+      "</section></details>" +
 
       '<div class="fic-continuidade">' +
         '<span class="fic-rot">Consulta &rarr; HOLOSCAN &rarr; Leitura Integrada &rarr; Documentos</span>' +
