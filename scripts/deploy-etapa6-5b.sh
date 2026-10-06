@@ -1,15 +1,15 @@
 #!/bin/sh
-# HOLOHACKING — ETAPA 6.5-B — deploy do front na VPS (passos 4 a 11). Rodar NA VPS:
+# HOLOHACKING — deploy do front na VPS (passos 4 a 11). Versao atual: correcao da leitura oficial do HOLOSCAN (b18ffd5). Rodar NA VPS:
 #   sh deploy-etapa6-5b.sh            -> passos 4-8 (estado, codigo, build, container temporario 8082). NAO troca producao.
 #   sh deploy-etapa6-5b.sh swap       -> passos 9-11 (troca 8080, valida local e publico). So depois de conferir o 1o.
 # Para sozinho em qualquer divergencia. Nunca apaga container. Nao usa credencial.
 set -eu
-ESPERADO=441b49448169c68c58b2cc38e9a3f3d759414274
-CURTO=441b494
+ESPERADO=b18ffd5edd19ee10b06a59a83b89ab3c509f45ec
+CURTO=b18ffd5
 DIR=/opt/holohacking
 IMG=holohacking-web:$CURTO
 PROD=holohacking-web
-ROLLBACK=holohacking-web-d4c2da4
+ROLLBACK=holohacking-web-441b494
 TEMP=holohacking-web-teste-$CURTO
 pare() { echo; echo "### PARE: $*"; exit 1; }
 cd "$DIR"
