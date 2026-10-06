@@ -100,6 +100,14 @@ ok(tela.indice === esperado.indice_exib && tela.indice !== String(legado), 'Indi
 ok(tela.sistemas.every(([k, t]) => t === esperado.sistemas[k].exib), '5 notas na tela = motor oficial: ' + tela.sistemas.map(x => x[1]).join(' / '));
 ok(JSON.stringify(tela.triada) === JSON.stringify(esperado.triada), 'Triada na tela = motor oficial: ' + tela.triada.join(' / '));
 ok(!/Em homologação/.test(tela.interp + tela.prio) && /oficial/.test(tela.interp), 'aplicacao nova V1: selo "oficial", sem "Em homologação" no mapa');
+// Correcao pos-6.5 (auditoria de producao): a leitura do resultado OFICIAL so tem textos do pacote homologado
+const leitura = await A.evaluate(() => { const el = document.getElementById('holo-leitura'); const P = window.Metodologia.obterPacoteAtivo();
+  return { txt: el ? el.innerText : '', legado: el ? el.querySelectorAll('.leitura-eixos, .leitura-eixo, .leitura-combinadas, .leitura-encaminhar, .leitura-aprofundar').length + [...el.querySelectorAll('h4')].filter(h => /terreno|dire[cç][aã]o terap/i.test(h.textContent)).length + [...el.querySelectorAll('em')].filter(e => /padr[aã]o emocional/i.test(e.textContent)).length : -1, publicos: (P.sistemas || []).filter(x => x.public_text).length, publicoOk: (P.sistemas || []).every(x => !x.public_text || (el && el.innerText.indexOf(x.public_text) >= 0)),
+    rotulos: [...document.querySelectorAll('.regua-pontas')].map(x => x.textContent) }; });
+ok(leitura.legado === 0, 'leitura oficial sem os blocos do motor legado (terreno, padrao emocional, direcao terapeutica, eixos, combinacoes, aprofundamentos)');
+ok(leitura.publicos === 5 && leitura.publicoOk && /A pontuação deste eixo ficou na faixa/.test(leitura.txt) && /a interpretação clínica é da nutricionista/.test(leitura.txt),
+  'leitura oficial mostra o texto publico de cada sistema e a mensagem neutra da faixa, ambos do pacote');
+ok(leitura.rotulos.length === 5 && leitura.rotulos.every(t => t === '0 a 10'), 'cartoes dos sistemas com rotulo neutro "Nota 0 a 10" (sem "ruim/bom")');
 // 2. o rascunho muda entre Gerar e Salvar: o que se salva continua sendo o calculado
 const mudado = await A.evaluate((pid) => { const t = JSON.parse(localStorage.getItem('holohacking.questionario')); const k = Object.keys(t[pid])[0]; t[pid][k] = (t[pid][k] + 1) % 4; localStorage.setItem('holohacking.questionario', JSON.stringify(t)); return k; }, PA);
 const n0 = srv.linhas('holoscan_applications').length;
@@ -142,6 +150,11 @@ await A.evaluate(async (pid) => {
 }, PH);
 const fic = await A.evaluate(() => (document.querySelector('.fic-mapa') || {}).innerText || document.body.innerText);
 ok(/Aplicação histórica sem pacote metodológico V1/.test(fic) && !/ainda não foram aprovados/.test(fic), 'ficha da historica: "Aplicação histórica sem pacote metodológico V1"; nao diz que o pacote atual nao foi aprovado');
+const leitH = await A.evaluate((pid) => { window.definirPacienteAtivo(pid); const h = window.historicoPontuacao ? window.historicoPontuacao(pid) : [];
+  const u = h[h.length - 1]; if (u && window.desenharPontuacao) window.desenharPontuacao(u, true);
+  const el = document.getElementById('holo-leitura'); return { tem: !!u, oficial: u && u.oficial === true, txt: el ? el.innerText : '', legado: el ? el.querySelectorAll('.leitura-eixos, .leitura-sistema').length : -1 }; }, PH);
+ok(leitH.tem && !leitH.oficial && /Aplicação histórica sem pacote metodológico V1/.test(leitH.txt) && leitH.legado === 0,
+  'mapa da historica em producao: numeros gravados, sem leitura interpretativa do motor legado (so em ?homologacao=1)');
 ok(srv.linhas('holoscan_applications').find(x => x.id === hid).methodology_package_id === null && srv.linhas('holoscan_applications').find(x => x.id === hid).indice === 54, 'historica intacta: sem proveniencia (sem backfill), Indice 54 como foi gravado');
 
 ok(errosJS.length === 0, 'nenhum erro de JavaScript na pagina' + (errosJS.length ? ': ' + errosJS.join(' | ').slice(0, 200) : ''));

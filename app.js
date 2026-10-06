@@ -1253,8 +1253,8 @@
     const consultas = window.Agenda && window.Agenda.todas
       ? ids.flatMap(id => (window.Agenda.todas(id) || []).filter(c => c.data >= hojeISO()))
       : [];
-    let corpo = "<p>O paciente ficará oculto da listagem principal e não será possível "
-      + "registrar novos atendimentos enquanto estiver arquivado.</p>";
+    let corpo = "<p>O paciente sai da listagem de ativos (continua em <b>Todos</b>, com a etiqueta ARQUIVADO) e não será possível "
+      + "registrar novas informações enquanto estiver arquivado. Nada é apagado.</p>";
     if(consultas.length > 0){
       corpo += '<p style="margin-top:10px;color:var(--movimento-desce)">'
         + "⚠ Há <b>" + consultas.length + "</b> " + (consultas.length === 1 ? "consulta futura agendada" : "consultas futuras agendadas")
@@ -2768,6 +2768,35 @@
   }
   window.cmbParaExibir = cmbParaExibir;
 
+  /* A leitura do resultado oficial, so com textos do pacote (escapados). */
+  function leituraOficial(r){
+    const esc = window.escapar;
+    const M = window.Metodologia;
+    const P = M && M.obterPacoteAtivo ? M.obterPacoteAtivo() : null;
+    const doPacote = P && r.methodology_package_id && P.id === r.methodology_package_id ? P : null;
+    const sistemasP = doPacote ? (doPacote.sistemas || []) : [];
+    const pos = (code) => { const x = sistemasP.find(y => y.code === code); return x ? (x.position || 0) : 99; };
+    const A = window.HoloAusencia;
+    const linhas = r.sistemas.slice().sort((a, b) => pos(a.sistema) - pos(b.sistema)).map(s => {
+      const sp = sistemasP.find(y => y.code === s.sistema);
+      const fx = doPacote && s.faixa ? (doPacote.faixas || []).find(f => f.destination_type === "system" && f.destination_id === s.sistema && f.label === s.faixa) : null;
+      const semNota = !s.avaliavel || s.nota === null || s.nota === undefined;
+      return '<div class="leitura-sistema leitura-oficial">'
+        + '<div class="leitura-cabeca"><b>' + esc(sp ? sp.name : s.nome) + '</b>'
+        + '<span class="leitura-nota">' + (semNota ? "—" : esc(A.notaTexto(s))) + (s.faixa && !semNota ? " · faixa " + esc(window.rotuloExibivel(s.faixa)) : "") + '</span></div>'
+        + (sp && sp.public_text ? '<p class="leitura-definicao">' + esc(sp.public_text) + '</p>' : "")
+        + (semNota ? '<p class="leitura-faixa">Sem nota: abaixo da cobertura mínima do pacote.</p>'
+                   : (fx && fx.message_nutri ? '<p class="leitura-faixa">' + esc(fx.message_nutri) + '</p>' : ""))
+        + '</div>';
+    }).join("");
+    return '<h4 class="leitura-titulo">Leitura do resultado</h4>'
+      + '<p class="leitura-aviso">Textos oficiais do pacote ' + esc((r.methodology_package_code || "HOLOS-V1") + " v" + (r.methodology_package_version || "")) + '. '
+      + 'Esta versão não traz padrão emocional, direção terapêutica nem conduta automática: a interpretação clínica é da nutricionista.</p>'
+      + '<div class="leitura-sistemas">' + linhas + '</div>'
+      + '<h4 class="leitura-titulo">Por onde começar</h4>'
+      + '<p class="leitura-aviso">As sugestões de ferramenta herdadas do app anterior estão desativadas até serem validadas pelo método. A escolha da conduta é da nutricionista.</p>';
+  }
+
   function lerTerreno(scores, pronta){
     const caixa = $("#holo-leitura");
     if(!caixa) return;
@@ -2794,6 +2823,25 @@
        regua que ninguem tocou. Esse ramo NAO mudou. */
     const calculado = pronta ? pronta.avaliavel : !scores.every(s => s === 0);
     if(!calculado){ caixa.innerHTML = ""; return; }
+
+    /* Correcao pos-6.5 (auditoria de producao): resultado OFICIAL mostra SO o que o pacote homologado
+       diz — nome do sistema, nota, faixa, o texto publico oficial do sistema e a mensagem neutra da
+       faixa (HOLOS-V1@2, Decisoes 9 e 13). O "padrao emocional", a "direcao terapeutica" e as
+       definicoes vinham do motor LEGADO (sistemas.csv / eixos.csv), nao estao no pacote e o proprio
+       validador os trata como texto causal legado: nao aparecem ao lado de um resultado oficial.
+       Historicas e modo de homologacao continuam com a leitura de antes, como estavam. */
+    if(pronta && pronta.oficial){ caixa.innerHTML = leituraOficial(pronta); return; }
+    /* Aplicacao historica (sem pacote V1) em producao: os numeros continuam como foram gravados, mas a
+       leitura interpretativa do motor legado nao foi validada — so aparece em modo de homologacao
+       (?homologacao=1) ou em modo local, a mesma regra do motor legado na correcao P0. */
+    const Mh = window.Metodologia;
+    const legadoPermitido = !window.supabaseClient || (Mh && Mh.modoHomologacao && Mh.modoHomologacao());
+    if(pronta && !legadoPermitido){
+      caixa.innerHTML = '<h4 class="leitura-titulo">Leitura do resultado</h4>'
+        + '<p class="leitura-aviso">Aplicação histórica sem pacote metodológico V1: os números são os gravados na época. '
+        + 'Não há leitura automática homologada para ela; a interpretação clínica é da nutricionista.</p>';
+      return;
+    }
 
     // as duas notas mais baixas: e por onde a conduta comeca
     /* Com a Pontuacao do motor, so disputa "critico" quem tem nota com

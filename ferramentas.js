@@ -592,13 +592,13 @@ window.CATALOGO_FERRAMENTAS = [
   {
     id: "roda_vida", modulo: "espirito", numero: "02",
     titulo: "Roda Holística da Vida",
-    chamada: "o equilibrio entre as áreas",
-    descricao: "Visão panorâmica das áreas da vida e do equilibrio entre elas.",
+    chamada: "o equilíbrio entre as áreas",
+    descricao: "Visão panorâmica das áreas da vida e do equilíbrio entre elas.",
     campos: [
       { id: "saude", rotulo: "Saúde", tipo: "nota" },
-      { id: "relacoes", rotulo: "Relacoes", tipo: "nota" },
+      { id: "relacoes", rotulo: "Relações", tipo: "nota" },
       { id: "trabalho", rotulo: "Trabalho", tipo: "nota" },
-      { id: "financas", rotulo: "Financas", tipo: "nota" },
+      { id: "financas", rotulo: "Finanças", tipo: "nota" },
       { id: "espiritualidade", rotulo: "Espiritualidade", tipo: "nota" },
       { id: "lazer", rotulo: "Lazer", tipo: "nota" },
       { id: "desenvolvimento", rotulo: "Desenvolvimento pessoal", tipo: "nota" },

@@ -708,6 +708,12 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     o formulário novo, nunca são reinterpretados nem convertidos. Um ID nunca aponta para dois schemas. A tela mostra só o nome
     clínico, sem `_v1`. Teste permanente: `testes/testar-v1-registros-legado.mjs`. Exclusão de aplicação concluída/revisada:
     risco registrado; mudança de contrato das 9 ferramentas fica para etapa própria (possível estado "anulada").
+158. **Leitura do HOLOSCAN só com o pacote homologado** (correção pós-6.5, auditoria de produção com Cowork, 06/10). Resultado
+    OFICIAL: nome, nota, faixa, o texto público do sistema e a mensagem neutra da faixa, todos do HOLOS-V1@2 (Decisões 9 e 13), mais
+    o aviso de que a interpretação clínica é da nutricionista. Sai da tela oficial o que vinha do motor legado e não está no pacote:
+    "padrão emocional", "direção terapêutica" (eixos), definições em rascunho. Aplicações HISTÓRICAS em produção: números gravados,
+    sem leitura interpretativa legada; a leitura legada só aparece em `?homologacao=1` ou em modo local (mesma regra do motor legado
+    na correção P0). Cartões dos sistemas: rótulo neutro "Nota 0 a 10" no lugar de "Score 0 ruim · 10 bom". Nenhum dado mudou.
 
 ## Decisões pendentes (não decididas aqui)
 

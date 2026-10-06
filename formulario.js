@@ -350,27 +350,32 @@
     if (!app) return "";
     var b = bancos();
     var prioridades = b ? (b.SINAIS_PRIORIDADE || []).map(function (p) { return p.nome; }) : [];
+    /* paciente arquivado: o servidor ja recusa a escrita; a tela nao oferece o que vai ser recusado */
+    var arq = false;
+    try { arq = !!(window.pacienteArquivado && window.pacienteArquivado()); } catch (e) {}
+    var off = arq ? " disabled" : "";
 
     return '<section class="ferr-leitura">' +
+      (arq ? '<p class="perf-ajuda">Paciente arquivado — reative para registrar a leitura profissional.</p>' : "") +
       '<h4 class="ferr-grupo-titulo">Leitura profissional</h4>' +
       '<p class="perf-ajuda">O que o sistema mostra acima é observação. ' +
       "A interpretação é sua, e é ela que fecha a aplicação.</p>" +
       '<div class="grupo"><label for="leit-texto">O que chamou atenção</label>' +
-        '<textarea id="leit-texto" rows="3">' + escapar(app.leitura || "") + "</textarea></div>" +
+        '<textarea id="leit-texto" rows="3"' + off + '>' + escapar(app.leitura || "") + "</textarea></div>" +
       '<div class="perf-grade">' +
         '<div class="grupo"><label for="leit-prioridade">Prioridade</label>' +
           '<div class="grupo-opcoes" data-campo="leit-prioridade">' +
             prioridades.map(function (p) {
               return '<button type="button" class="btn-opcao' +
                 (app.prioridade === p ? " marcado" : "") +
-                '" data-valor="' + escapar(p) + '">' + escapar(p) + "</button>";
+                '" data-valor="' + escapar(p) + '"' + off + '>' + escapar(p) + "</button>";
             }).join("") + "</div></div>" +
         '<div class="grupo"><label for="leit-passo">Próximo passo</label>' +
           '<input type="text" id="leit-passo" value="' + escapar(app.proximo_passo || "") +
-          '" placeholder="ação, investigação, monitoramento ou encaminhamento"></div>' +
+          '" placeholder="ação, investigação, monitoramento ou encaminhamento"' + off + '></div>' +
       "</div>" +
       '<div class="acoes-form">' +
-        '<button class="perf-botao" type="button" data-acao="revisar">Registrar leitura</button>' +
+        '<button class="perf-botao" type="button" data-acao="revisar"' + off + '>Registrar leitura</button>' +
         '<span class="aviso-salvo" data-papel="aviso-leitura"></span>' +
       "</div></section>";
   }
@@ -743,6 +748,12 @@
           marcada ? marcada.dataset.valor : null,
           alvo.querySelector("#leit-passo").value.trim()
         )).then(function () {
+          /* o selo do cabecalho acompanha o estado (concluida -> revisada) sem redesenhar o formulario */
+          var selo = alvo.querySelector(".ferr-meta-item[class*='estado-']");
+          if (selo) {
+            selo.className = "ferr-meta-item estado-" + app.status;
+            selo.textContent = window.Aplicacoes.rotulo(app.status === "rascunho" ? "em_preenchimento" : app.status);
+          }
           avisar(alvo, "aviso-leitura", "Leitura registrada.");
           marcarCard(f.id);
         }, function (e) {

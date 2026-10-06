@@ -158,18 +158,18 @@ Cache-Control. Nas próximas atualizações não precisa.
 ### 3.5 Hashes esperados (sha256 dos arquivos servidos pela `main` saneada)
 
 Todos os 56 arquivos que o `Dockerfile` copia (`index.html style.css favicon.svg
-*.js`). Atualizados na Etapa 6.5 B da V1 (registros clinicos com IDs novos `*_v1`: novo `ferramentas-registro.js`; `ferramentas.js`, `formulario.js`, `panorama.js`, `migracao-supa.js`, `style.css`, `index.html`); antes, Etapa 6.5 (correcao P0: novo `holoscan-oficial.js`; `questionario.js`, `app.js`, `metodologia.js`, `utils.js`, `migracao-supa.js`, `sincronizacao.js`, `ficha.js`, `arquivos.js`, `consultas.js`, `dashboard.js`, `evolucao.js`, `timeline.js`, `panorama.js`, `laboratorio.js`, `metodologia-inventario.js`, `index.html`); antes, Etapa 6.0 da V1 (branch `claude/v1-etapa6-implementacao-li-local`: `laboratorio.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js`, `style.css` e o novo `leitura-integrada-pacote-v1.js`; antes, Etapa 5.3: `metodologia-homologacao.js` e `dados-router.js`; Etapa 5: inclui `laboratorio-catalogo.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js` e `laboratorio.js`; antes, Etapa 4.2: `metodologia-decisoes-v1.js` e `questionario.js`; Etapa 4:
+*.js`). Atualizados na correcao pos-6.5 (leitura oficial do HOLOSCAN so com textos do pacote; rotulo neutro; textos e acentos: `app.js`, `formulario.js`, `ferramentas.js`, `index.html`); antes, Etapa 6.5 B da V1 (registros clinicos com IDs novos `*_v1`: novo `ferramentas-registro.js`; `ferramentas.js`, `formulario.js`, `panorama.js`, `migracao-supa.js`, `style.css`, `index.html`); antes, Etapa 6.5 (correcao P0: novo `holoscan-oficial.js`; `questionario.js`, `app.js`, `metodologia.js`, `utils.js`, `migracao-supa.js`, `sincronizacao.js`, `ficha.js`, `arquivos.js`, `consultas.js`, `dashboard.js`, `evolucao.js`, `timeline.js`, `panorama.js`, `laboratorio.js`, `metodologia-inventario.js`, `index.html`); antes, Etapa 6.0 da V1 (branch `claude/v1-etapa6-implementacao-li-local`: `laboratorio.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js`, `style.css` e o novo `leitura-integrada-pacote-v1.js`; antes, Etapa 5.3: `metodologia-homologacao.js` e `dados-router.js`; Etapa 5: inclui `laboratorio-catalogo.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js` e `laboratorio.js`; antes, Etapa 4.2: `metodologia-decisoes-v1.js` e `questionario.js`; Etapa 4:
 inclui `metodologia.js`, `atendimento.js`, `anamnese.js`, `conduta.js`, `timeline.js`, `relatorios.js`, `metodologia-inventario.js`, `metodologia-pacote.js`, `metodologia-motor.js` e `metodologia-homologacao.js`), conferidos contra a imagem do `docker build` da branch (o nginx ainda põe o
 `50x.html` dele, que não é nosso):
 
 ```
-5d27c913593afe4c3637e0535b1f35a0e271d0cd48d9b0fcb61dd891a51aae69  index.html
+d8b0cd17a20cbcf9a302c7b38377e2ee3581ae93cf7cb52c25fb6da723702812  index.html
 1d03246c533616264f60ab21d2fc04a505f0ae77685e4804b97346de20797804  style.css
 cd6ef22455f446156c4109649b2d0fc1fe803f0c6697e1029fa71e50ba44cf84  favicon.svg
 fca789a5d4169bc1d4b5b0d1d2e934e9f1317384b435ea44e486966fe5eaa8d7  agenda.js
 cd0daa04a10e165dd536874170bf3c005d9bdb4041b15deb766c2b30596dfef4  anamnese.js
 b1ea48449d74ba8427c7a59947ae73d55a4d88896ea1fcf4f9823dc4087bd049  aplicacoes.js
-eab0a7570c39a6562b7756cf858d70abb857f5d2fe2b0263f0de83b86951b5a6  app.js
+da474abea4de9ec16906dbb64d49add8024b0b49ed50279d14878c825a25138b  app.js
 d3efacba60b26bc2da2311a273881948882570773e4016f59ce2a0845661746c  armazenamento.js
 77f0a880c8784e9e45ad608e4c62dc9791f9a750d75225d85edd9e15a150ce69  arquivo-store.js
 f6813c86460d372986f13da153be4d2dcf39f06efabfa71eca6e30a28eedf97f  arquivos.js
@@ -187,9 +187,9 @@ d7920a0868425c28a2b3192214010fee62bf1153a0c9c9478e8bc9481940cfcc  documentos.js
 df872b5cbec1bfa67b617b9413943c2171a7a31663767b9ef77e49ca15a924d3  evolucao.js
 11e08342911df7f528993946a7e07746a9c26f66657eb0d139e746ade32e161f  excluir-paciente.js
 26c0d88be292ba4f6b688c61c4ae41e68772233b2be5b5e0c24f3be717e2f4eb  ferramentas-registro.js
-cc7d90b607ac3f97e0e806d9bd2ac53e9f4de3f76ecde474fc2d7825605f2670  ferramentas.js
+7534e77c52767d59b98b6c45fca330968a82e7da289c12e193a2a0935f9da2c3  ferramentas.js
 b77b3aa6f99ad5c993a20737ff094c4fd829701c4ca3d68d8817beff7e68f01c  ficha.js
-2cdfbb599ba2b9c6d005eb62593803db9192494b29c624a4ebe0caa816010c27  formulario.js
+4ee3d27ad729f6540111238878837bbeac4194e267bc25306a3e35dc16670d4a  formulario.js
 9dff80070d47f83602f81ad5b9ff8a7f694f57052c6c24b9ee1873768a3b5b90  holos-ai.js
 a1fdc291ea46a92dfb48ec92c2c12b7f87be9fb2ed9a9f48cfd29a6721135878  holoscan-oficial.js
 b6c7e8b1341a10bf45c2f895218e5529176b9c36aa035be6a2aa1ed0fb41cfac  holoscan.js
