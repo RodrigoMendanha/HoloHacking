@@ -302,7 +302,12 @@
     var barra = document.getElementById("barra-paciente-ctx");
     if (!barra) return;
     var p = pacienteAtivo();
-    var fichaVisivel = secao === "pacientes" &&
+    /* a ficha so "esconde" a barra quando a secao Pacientes esta de fato na tela: abrirFicha() (re-render
+       da sincronizacao, retorno de outra aba) chamava isto com "pacientes" mesmo com a pessoa em outro
+       modulo, e a barra sumia ali (auditoria de producao, item 4). */
+    var secPac = document.getElementById("secao-pacientes");
+    var pacientesNaTela = secPac ? secPac.classList.contains("ativa") : secao === "pacientes";
+    var fichaVisivel = secao === "pacientes" && pacientesNaTela &&
         !document.getElementById("vista-ficha").classList.contains("hidden");
     if (p && !fichaVisivel) {
       document.getElementById("bpctx-avatar").textContent =
