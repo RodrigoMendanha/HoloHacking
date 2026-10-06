@@ -766,6 +766,14 @@ input[type="range"]::-moz-range-thumb{
   display:flex;justify-content:center;align-items:center;
 }
 .holo-radar-box svg{max-width:100%;height:auto}
+/* o atendimento ao qual o HOLOSCAN fica ligado, junto do Salvar */
+.holo-atendimento{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;margin-top:26px;font-size:.86rem}
+.holo-atendimento:empty{display:none}
+.holo-at-rot{font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;color:var(--realce);font-weight:600}
+.holo-atendimento b{font-weight:600;color:var(--texto)}
+.holo-atendimento .holo-at-sem{color:#b4553c;font-weight:500}
+.holo-atendimento select{padding:6px 10px;border:1px solid var(--input-borda);border-radius:8px;background:var(--input-fundo);color:var(--texto);font-family:inherit;font-size:.82rem}
+.holo-at-aviso{color:#b4553c;font-size:.84rem}
 .holo-score-box{
   text-align:center;padding:30px;
   border:1px solid var(--dourado);border-radius:var(--raio);
@@ -3412,6 +3420,17 @@ a.pac-link:hover{color:var(--dourado);text-decoration:underline;text-underline-o
   padding:10px 0;border-bottom:1px solid var(--borda-suave);
 }
 .terr-linha:last-child, .prio-linha:last-child{border-bottom:none}
+/* Onde olhar primeiro (auditoria HOLOSCAN): o nome do sistema quebrava quase
+   palavra por palavra porque a contagem ocupava a coluna do meio. Na lista de
+   prioridades a contagem desce para a linha de baixo; o nome ganha a largura. */
+.prio-linha{grid-template-columns:1fr 3rem;row-gap:2px}
+.prio-linha .prio-conta{grid-column:1/-1;grid-row:2;white-space:normal}
+.holo-resultado{grid-template-columns:minmax(260px,1fr) 1.25fr}
+@media (max-width:960px){ .holo-resultado{grid-template-columns:1fr} }
+/* o aviso dentro da caixa clara herdava a cor clara da secao escura */
+.holo-caixa-mapa .aviso-homologacao,.holo-caixa-mapa .aviso-oficial,.holo-caixa-mapa .aviso-historica,
+.holo-caixa-mapa .aviso-homologacao *, .holo-caixa-mapa p{color:var(--texto-suave)}
+.holo-caixa-mapa .selo-homologacao{color:#b4553c}
 .terr-nome, .prio-nome{display:flex;flex-direction:column;gap:1px;font-size:.9rem;color:var(--texto)}
 .terr-nome i, .prio-nome i{font-style:normal;font-size:.74rem;font-weight:300;color:var(--texto-suave)}
 .terr-conta, .prio-conta{font-size:.78rem;font-weight:300;color:var(--texto-suave);white-space:nowrap}

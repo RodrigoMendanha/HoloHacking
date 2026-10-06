@@ -111,6 +111,18 @@
     localStorage.setItem(CHAVE, JSON.stringify(t));
     if (window.Concorrencia) window.Concorrencia.avancarRevisao("questionario");
   }
+  /* Desmarcar: clicar de novo na resposta marcada deixa a pergunta em branco. */
+  function apagarUma(marcadorId) {
+    if (window.pacienteArquivado && window.pacienteArquivado()) {
+      if (window.avisar) window.avisar(window.MSG_ARQUIVADO);
+      return;
+    }
+    var t = tudo(), p = pacienteAtual();
+    if (!t[p]) return;
+    delete t[p][marcadorId];
+    localStorage.setItem(CHAVE, JSON.stringify(t));
+    if (window.Concorrencia) window.Concorrencia.avancarRevisao("questionario");
+  }
   function limpar() {
     var t = tudo();
     delete t[pacienteAtual()];
@@ -251,6 +263,13 @@
       var b = ev.target.closest(".q-btn");
       if (b) {
         var item = b.closest(".q-item");
+        if (b.classList.contains("marcado")) {
+          b.classList.remove("marcado");
+          b.setAttribute("aria-pressed", "false");
+          apagarUma(item.dataset.marcador);
+          atualizarProgresso();
+          return;
+        }
         item.querySelectorAll(".q-btn").forEach(function (x) {
           x.classList.remove("marcado");
           x.setAttribute("aria-pressed", "false");
@@ -264,11 +283,23 @@
       var acao = ev.target.closest("[data-acao]");
       if (!acao) return;
       if (acao.dataset.acao === "limpar") {
+        /* Correcao (auditoria HOLOSCAN): o confirm() nativo travava a pagina;
+           agora e o modal do app, e a tela e redesenhada depois de limpar. */
         var total = Object.keys(respostasValidas()).length;
-        if (total === 0 || confirm("Limpar todas as " + total + " respostas deste paciente?")) {
+        var decidir = total === 0 || !window.abrirModalConfirmar
+          ? Promise.resolve(total === 0 || confirm("Limpar todas as " + total + " respostas deste paciente?") ? "confirmar" : null)
+          : window.abrirModalConfirmar({
+              titulo: "Limpar respostas",
+              corpo: "<p>Apagar as " + total + " respostas deste questionário em andamento?</p>" +
+                     "<p>Aplicações já salvas não são afetadas.</p>",
+              botaoConfirmar: "Limpar", classeConfirmar: "btn-perigo"
+            });
+        decidir.then(function (resp) {
+          if (resp !== "confirmar") return;
           limpar();
           desenhar();
-        }
+          if (window.avisar) window.avisar("Respostas em andamento apagadas.");
+        });
       } else if (acao.dataset.acao === "calcular") {
         calcular();
       } else if (acao.dataset.acao === "tentar-novamente") {
@@ -301,11 +332,9 @@
       mostrarAviso("Responda ao menos uma pergunta para gerar o mapa.");
       return;
     }
-    if (perguntas && ids.length < perguntas.length) {
-      var faltam = perguntas.length - ids.length;
-      if (!confirm("Faltam " + faltam + " de " + perguntas.length +
-          " perguntas. Gerar o mapa mesmo assim?")) return;
-    }
+    /* Gerar com perguntas em branco nao pede mais confirmacao (era um
+       confirm() nativo): o mapa mostra a cobertura, e a confirmacao de
+       cobertura baixa acontece ao SALVAR (app.js). */
 
     var O = window.HoloscanOficial;
     var r;

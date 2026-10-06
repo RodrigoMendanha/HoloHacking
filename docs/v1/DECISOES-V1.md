@@ -755,6 +755,17 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     (a original fica cancelada e ligada à nova); "Reagendar" só habilita com mudança. Item do quadro "Hoje" abre a consulta.
     Abrir a Agenda pelo menu volta para hoje. Hora sem segundos (normalização na leitura, item 159). Dados de teste no banco
     (consultas canceladas, atendimentos abertos, bloqueio de teste) não foram tocados.
+162. **HOLOSCAN: correções da auditoria de produção** (Cowork, 06/10). A tela mostra, junto do "Salvar", a qual
+    atendimento a aplicação ficará ligada, com troca e "Novo atendimento" (atendimento com data no futuro é sinalizado).
+    Salvar um questionário incompleto pede confirmação mostrando a cobertura e se o Índice saiu (nenhum limite presumido,
+    Mestre §18); cancelar não grava. Aplicação calculada e não salva no servidor não entra nos números de Atendimentos
+    (continua listada com "não salvo no servidor", item 160). Um só "Limpar" (o do questionário), com o modal do app — o
+    `confirm()` nativo saiu também do "Gerar o mapa" com perguntas em branco (a confirmação passou para o Salvar). Clicar de
+    novo numa resposta marcada a desmarca. Seletor sem arquivados (exceto o paciente em foco) e "Carregando pacientes…"
+    durante a carga. Texto da seção 2 sem "Pontue cada sistema"; seções numeradas 1–6; acentos da leitura legada; nome
+    inteiro do paciente nas mensagens. "Onde olhar primeiro": nome do sistema sem quebra e aviso legível. Botões para seguir
+    para Leitura Integrada e Conduta. NÃO mudou (conteúdo metodológico do HOLOS-V1@2, fora do escopo): textos iguais dos
+    cinco sistemas ("Área do mapa…") e da faixa, redação das perguntas de antibiótico e PCR com a escala de frequência.
 
 ## Decisões pendentes (não decididas aqui)
 

@@ -158,19 +158,19 @@ Cache-Control. Nas próximas atualizações não precisa.
 ### 3.5 Hashes esperados (sha256 dos arquivos servidos pela `main` saneada)
 
 Todos os 57 arquivos que o `Dockerfile` copia (`index.html style.css favicon.svg
-logo-holohacking.png *.js`). Atualizados na correcao da Agenda (`agenda.js`, `atendimento.js`, `app.js`, `ficha.js`, `style.css`); antes, na correcao de Pacientes/Atendimentos (`app.js`, `consultas.js`, `panorama.js`, `metodologia.js`, `questionario.js`, `index.html`, `style.css`); antes, na correcao do dashboard (`dashboard.js`, `agenda.js`, `app.js`, `panorama.js`, `sincronizacao.js`, `index.html`, `style.css`); antes, na troca do logo (pinha dourada: novo `logo-holohacking.png`; `favicon.svg`, `index.html`, `style.css`, `demo.js`); antes, na correcao pos-6.5 (leitura oficial do HOLOSCAN so com textos do pacote; rotulo neutro; textos e acentos: `app.js`, `formulario.js`, `ferramentas.js`, `index.html`); antes, Etapa 6.5 B da V1 (registros clinicos com IDs novos `*_v1`: novo `ferramentas-registro.js`; `ferramentas.js`, `formulario.js`, `panorama.js`, `migracao-supa.js`, `style.css`, `index.html`); antes, Etapa 6.5 (correcao P0: novo `holoscan-oficial.js`; `questionario.js`, `app.js`, `metodologia.js`, `utils.js`, `migracao-supa.js`, `sincronizacao.js`, `ficha.js`, `arquivos.js`, `consultas.js`, `dashboard.js`, `evolucao.js`, `timeline.js`, `panorama.js`, `laboratorio.js`, `metodologia-inventario.js`, `index.html`); antes, Etapa 6.0 da V1 (branch `claude/v1-etapa6-implementacao-li-local`: `laboratorio.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js`, `style.css` e o novo `leitura-integrada-pacote-v1.js`; antes, Etapa 5.3: `metodologia-homologacao.js` e `dados-router.js`; Etapa 5: inclui `laboratorio-catalogo.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js` e `laboratorio.js`; antes, Etapa 4.2: `metodologia-decisoes-v1.js` e `questionario.js`; Etapa 4:
+logo-holohacking.png *.js`). Atualizados na correcao do HOLOSCAN (`app.js`, `questionario.js`, `consultas.js`, `metodologia-inventario.js`, `index.html`, `style.css`); antes, na correcao da Agenda (`agenda.js`, `atendimento.js`, `app.js`, `ficha.js`, `style.css`); antes, na correcao de Pacientes/Atendimentos (`app.js`, `consultas.js`, `panorama.js`, `metodologia.js`, `questionario.js`, `index.html`, `style.css`); antes, na correcao do dashboard (`dashboard.js`, `agenda.js`, `app.js`, `panorama.js`, `sincronizacao.js`, `index.html`, `style.css`); antes, na troca do logo (pinha dourada: novo `logo-holohacking.png`; `favicon.svg`, `index.html`, `style.css`, `demo.js`); antes, na correcao pos-6.5 (leitura oficial do HOLOSCAN so com textos do pacote; rotulo neutro; textos e acentos: `app.js`, `formulario.js`, `ferramentas.js`, `index.html`); antes, Etapa 6.5 B da V1 (registros clinicos com IDs novos `*_v1`: novo `ferramentas-registro.js`; `ferramentas.js`, `formulario.js`, `panorama.js`, `migracao-supa.js`, `style.css`, `index.html`); antes, Etapa 6.5 (correcao P0: novo `holoscan-oficial.js`; `questionario.js`, `app.js`, `metodologia.js`, `utils.js`, `migracao-supa.js`, `sincronizacao.js`, `ficha.js`, `arquivos.js`, `consultas.js`, `dashboard.js`, `evolucao.js`, `timeline.js`, `panorama.js`, `laboratorio.js`, `metodologia-inventario.js`, `index.html`); antes, Etapa 6.0 da V1 (branch `claude/v1-etapa6-implementacao-li-local`: `laboratorio.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js`, `style.css` e o novo `leitura-integrada-pacote-v1.js`; antes, Etapa 5.3: `metodologia-homologacao.js` e `dados-router.js`; Etapa 5: inclui `laboratorio-catalogo.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js` e `laboratorio.js`; antes, Etapa 4.2: `metodologia-decisoes-v1.js` e `questionario.js`; Etapa 4:
 inclui `metodologia.js`, `atendimento.js`, `anamnese.js`, `conduta.js`, `timeline.js`, `relatorios.js`, `metodologia-inventario.js`, `metodologia-pacote.js`, `metodologia-motor.js` e `metodologia-homologacao.js`), conferidos contra a imagem do `docker build` da branch (o nginx ainda põe o
 `50x.html` dele, que não é nosso):
 
 ```
-6156a23a429d3769b9d2a82e7e46bf4fd5738d423ffd45e03346ca6713c17ec4  index.html
-a331a9b11313b625075a6f0de891b10e20218b81cc184deb8d5d8fdc8524b089  style.css
+7c6ec340d30a72bf0fffb27d4ebf94986189dd932c0ce431ed986afb0e58bd5f  index.html
+ea53eba5a8172fa060732b524792fad07aa281c4ebc29fb3330402093a4fdb92  style.css
 ccab4b8d1492eab5ef40def11944fbc8612ff8d4bf26b36548f5641caaa54044  favicon.svg
 ebb3b78b5a3777a2c5df2ff03ff1c532a82e1668bccadc885ebe679e8321a0b3  logo-holohacking.png
 b4607b62b2584b769ee34eeafc1d5e6e94b54b6516502f71ecc48195ddcae234  agenda.js
 cd0daa04a10e165dd536874170bf3c005d9bdb4041b15deb766c2b30596dfef4  anamnese.js
 b1ea48449d74ba8427c7a59947ae73d55a4d88896ea1fcf4f9823dc4087bd049  aplicacoes.js
-442a92dce7cda7c08051bbc02ba875d331eb7466ffa56597edc103d1adf17f3a  app.js
+638fec6ac0b5e56d81da3ac440627002a8353a8c1e55c8fd5491b38a5301c213  app.js
 d3efacba60b26bc2da2311a273881948882570773e4016f59ce2a0845661746c  armazenamento.js
 77f0a880c8784e9e45ad608e4c62dc9791f9a750d75225d85edd9e15a150ce69  arquivo-store.js
 f6813c86460d372986f13da153be4d2dcf39f06efabfa71eca6e30a28eedf97f  arquivos.js
@@ -178,7 +178,7 @@ f6813c86460d372986f13da153be4d2dcf39f06efabfa71eca6e30a28eedf97f  arquivos.js
 410b78815fa33df41eeadd22c8f3dbfb5b5bfeecaf89784fb2d35a590474cdb7  caso-marina.js
 e66cd4b4cd1163cce5680b8d2b56b820c44c1cf430ed413d8de2fe7766112a14  concorrencia.js
 3b0a3b2f9a14aa7ca801e986427046b65097859675c0605ef9bb2ffd467951fe  conduta.js
-524237dfdc32e310d5cd00cfc520e66ed2b540378de865376de8cd1b73dbdbff  consultas.js
+0903c2502cb8a3a19fadc964a0946b7b59d2e45a55a9bdbfcf8f7d7a7e841bba  consultas.js
 25ffbc8bf45aec67e9214f403c5a1ffd297f183eaa664f53cebdb7d92e9c50f9  corpo-bancos.js
 8f715a12540bc58c932997419f2272bab1e53d66e101929818e81b3d7524c6b6  dados-router.js
 a77e7bf6acab37680d25eb5451442539bda71a84c6e921940a6065b9b9a3b806  dados.js
@@ -203,14 +203,14 @@ d68215f0b81b8b8e5929ea43b29f7f51046b78336b96ec9e5814d4eea2444ae0  laboratorio-ca
 d0098b6c672f2d283cabb347205c676e3ac117fd960e8274ba3a64d13a984f2e  login.js
 51f9b31c0cf3ab7c0b530d07f37a84b205e9e314103ce1397e9a9ff04b3130ba  metodologia-decisoes-v1.js
 0baf93b77cbd9dba9fabcc3f374f2272fbb086b56b183ffffefb6fe3cdb23c78  metodologia-homologacao.js
-59b9729c2c70fbea211e7b1149ddcc3d980e4b130422e994d9e53baf946c1634  metodologia-inventario.js
+64fd24c09eb5442b3637a2c675acc76ad41cfee5b412818fd862b00878c745df  metodologia-inventario.js
 ae87ad9c758f4ccf14cbb0404db8538b8705f4069049c4b002140ef1ec109bd8  metodologia-motor.js
 f089a9413c9fb82209a9a027c78fe78b5eb0c8503dd66f290eea13bd88c1b862  metodologia-pacote.js
 6125293ef79431419a3d416d9ccf1bab19ee77d6b7dde64a27c6a5399458708d  metodologia.js
 1d5658c6163937094a3ff3611dec8fe089635e6b2027210fef99a45157eed59c  migracao-supa.js
 21a551d2ce0438dcae75fd1135cd381fc7d17f781fcc3ec880ebf424121ff381  panorama.js
 2beaabe619d8dd09438a7bfbbc4677e52cd015cea5483086b6cee46865cd13a3  perfil.js
-804398b884c3a84aa89798d3e0a879128455a4badb0ec45d94c0341136e3b50d  questionario.js
+3e6b83515b8c77d7ff26313ad144a2451c24bbb7816109ea4c24429d8aa6e235  questionario.js
 1414c83eac5031c65849721597de651c67b1464e38d85ec6ff54fdb4f055a459  relatorios.js
 8849e59a1d3fe76723aa1e59cc75213fc64172259c5bccd6d9b1151f21a9fb63  render-resultado.js
 23520f5f414deb288f083d0a08389a1c96d1ec918c50fb95d44c3b8b36758e8c  restaurar-backup.js

@@ -116,5 +116,6 @@ export const SUITES = [
   'testar-v1-registros-legado.mjs',
   'testar-auditoria-pacientes-atendimentos.mjs',
   'testar-auditoria-agenda.mjs',
+  'testar-auditoria-holoscan.mjs',
   'testar-conferir-producao.mjs',
 ];

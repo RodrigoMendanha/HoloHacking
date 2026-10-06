@@ -58,6 +58,10 @@
   /* ---------- os numeros do topo ----------------------------------------- */
 
   function blocoNumeros(lista) {
+    /* aplicacao calculada mas nao salva no servidor nao conta (auditoria
+       HOLOSCAN: a tela dizia 6 aplicacoes e o banco tinha 5) */
+    var P = window.Panorama;
+    lista = lista.filter(function (c) { return !(P && P.naoSalva && P.naoSalva(c)); });
     var mesAtual = hojeISO().slice(0, 7);
     var neste = lista.filter(function (c) {
       return (c.quando || "").slice(0, 7) === mesAtual;

@@ -459,7 +459,7 @@
           <!-- ===== 2. CINCO SISTEMAS ===== -->
           <span class="eyebrow">2 &middot; Cinco Sistemas</span>
           <h3>Avaliação Integral do Terreno</h3>
-          <p>Pontue cada sistema de 0 (comprometido) a 10 (muito bom). O sistema cruzará tudo e gerará a leitura sistêmica.</p>
+          <p>As notas de cada sistema (0 = comprometido, 10 = muito bom) são calculadas a partir das respostas do questionário, pelo motor oficial do pacote metodológico.</p>
           <p class="holo-nota-neutra">Os cinco sistemas são categorias de organização do mapa, não categorias de doença.</p>
 
           <div class="holo-sistemas">
@@ -549,7 +549,7 @@
           <div class="holo-frequencias hidden" id="holo-frequencias"></div>
 
           <!-- ===== 5. COBERTURA DO QUESTIONÁRIO ===== -->
-          <span class="eyebrow">5 &middot; Cobertura do Questionário</span>
+          <span class="eyebrow">4 &middot; Cobertura do Questionário</span>
           <p class="holo-origem" id="holo-origem"></p>
           <!-- A cobertura do olhar: o que foi perguntado e o que ficou de
                fora, pelos territorios do metodo. Escondido enquanto
@@ -560,7 +560,7 @@
                Revisao clinica do HOLOSCAN: era o elemento hero da tela
                (5rem, dourado, primeiro bloco). Continua existindo — so
                deixou de ser o que a tela promove primeiro. -->
-          <span class="eyebrow">6 &middot; Índice HOLOS (informação secundária)</span>
+          <span class="eyebrow">5 &middot; Índice HOLOS (informação secundária)</span>
           <div class="holo-score-box holo-secundario">
             <div class="holo-score-numero" id="holo-score-total">0</div>
             <span class="holo-score-label">de 100</span>
@@ -570,7 +570,7 @@
           <!-- ===== 7. APROFUNDAMENTO =====
                Resultado oficial: so os textos do pacote homologado (leituraOficial em app.js).
                Historicas/homologacao: a leitura legada de lerTerreno(). -->
-          <span class="eyebrow">7 &middot; Aprofundamento</span>
+          <span class="eyebrow">6 &middot; Aprofundamento</span>
           <div class="holo-leitura" id="holo-leitura"></div>
 
           <!-- O HOLOSCAN era o item 8 daqui. Saiu para a secao propria
@@ -612,9 +612,12 @@
             </div>
           </div>
 
-          <div class="acoes-form" style="margin-top:28px;justify-content:center">
+          <!-- A qual atendimento a aplicacao fica ligada (desenhado por app.js). -->
+          <div class="holo-atendimento" id="holo-atendimento" role="group" aria-label="Atendimento do HOLOSCAN"></div>
+          <div class="acoes-form" style="margin-top:14px;justify-content:center">
             <button type="button" id="btn-salvar-holoscan" class="btn-verde">Salvar HOLOSCAN</button>
-            <button type="button" class="btn-fantasma" id="btn-limpar-holoscan">Limpar</button>
+            <button type="button" class="perf-botao" data-ir-holo="confronto">Leitura Integrada &rarr;</button>
+            <button type="button" class="perf-botao" data-ir-holo="conduta">Conduta &rarr;</button>
           </div>
         </div>
 

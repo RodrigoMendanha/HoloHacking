@@ -284,6 +284,7 @@
        paciente muda. Sem isto, guardar um exame na ficha e ir para Documentos
        mostrava a lista de antes: a tela estava certa na ultima vez que foi
        desenhada, e essa vez tinha sido antes do arquivo existir. */
+    if(secao === "holoscan" && typeof desenharAtendimentoHoloscan === "function") desenharAtendimentoHoloscan();
     const redesenhar = {
       dashboard: window.redesenharDashboard,
       consultas: window.redesenharConsultas,
@@ -587,9 +588,13 @@
      de quem esta arquivado (dois nomes iguais deixam de parecer o mesmo). */
   function atualizarSeletores(){
     const ativoExiste = estado.pacientes.some(p => p.id === estado.ativo);
-    const opcoes = estado.pacientes.length
+    /* arquivado so aparece se for o paciente em foco (auditoria HOLOSCAN) */
+    const lista = estado.pacientes.filter(p => p.status !== "inativo" || p.id === estado.ativo);
+    const opcoes = !estado.carregado && !estado.pacientes.length
+      ? '<option value="">Carregando pacientes…</option>'
+      : lista.length
       ? (ativoExiste ? '' : '<option value="" selected>Selecione um paciente</option>')
-        + estado.pacientes.map(p => '<option value="'+p.id+'"'+(p.id===estado.ativo?' selected':'')+'>'+escapar(p.nome)+(p.status==="inativo"?' (arquivado)':'')+'</option>').join("")
+        + lista.map(p => '<option value="'+p.id+'"'+(p.id===estado.ativo?' selected':'')+'>'+escapar(p.nome)+(p.status==="inativo"?' (arquivado)':'')+'</option>').join("")
       : '<option value="">Nenhum paciente cadastrado</option>';
     $$(".seletor-paciente").forEach(s => {
       s.innerHTML = opcoes;
@@ -1843,7 +1848,7 @@
         fecharFormularioPaciente();
         abrirFicha(editado);
         renderPacientes();
-        toast(campos.nome.split(" ")[0] + " atualizado com sucesso.");
+        toast(campos.nome + " atualizado com sucesso.");
       } else {
         /* nome igual ignorando acento, caixa e espacos: quase sempre e o
            mesmo paciente cadastrado duas vezes. Avisa e deixa decidir —
@@ -1876,7 +1881,7 @@
         definirAtivo(data.id);
         renderPacientes();
         abrirFicha(data.id);
-        toast(campos.nome.split(" ")[0] + " cadastrado com sucesso.");
+        toast(campos.nome + " cadastrado com sucesso.");
       }
     } finally {
       destravarBotao(btn);
@@ -2067,7 +2072,7 @@
     renderPacientes();
     notaDeQuandoOQ3();
     desenharHistoricoOQ3();
-    toast("OQ3 salvo na ficha de " + p.nome.split(" ")[0] + ".");
+    toast("OQ3 salvo na ficha de " + p.nome + ".");
     if(window.limpaSuja) window.limpaSuja("oq3");
     return true;
   }
@@ -2278,7 +2283,7 @@
     renderPacientes();
     notaDeQuandoPQQ();
     desenharHistoricoPQQ();
-    toast("PQQ salvo na ficha de " + p.nome.split(" ")[0] + ".");
+    toast("PQQ salvo na ficha de " + p.nome + ".");
     if(window.limpaSuja) window.limpaSuja("pqq");
     return true;
   }
@@ -2938,7 +2943,7 @@
     anotarEmpateDeSistemas(ordem);
     const criticos = ordem.slice(0, 2);
 
-    let html = '<h4 class="leitura-titulo">O terreno por tras do numero</h4>';
+    let html = '<h4 class="leitura-titulo">O terreno por trás do número</h4>';
     html += '<div class="leitura-sistemas">';
     for(const c of criticos){
       /* A definicao vem primeiro: antes de dizer o padrao emocional, a tela
@@ -3040,7 +3045,7 @@
       html += '</ol>';
     }
 
-    html += '<h4 class="leitura-titulo">Direcao terapeutica</h4><div class="leitura-eixos">';
+    html += '<h4 class="leitura-titulo">Direção terapêutica</h4><div class="leitura-eixos">';
     for(const [nome, itens] of eixos){
       html += '<div class="leitura-eixo"><b>' + nome + '</b><span>'
             + Array.from(itens).join(" &middot; ") + '</span></div>';
@@ -3703,6 +3708,23 @@
         return;
       }
 
+      /* Correcao (auditoria HOLOSCAN): questionario incompleto (ex.: 10 de 84)
+         era salvo como aplicacao sem nenhuma pergunta. Agora a nutricionista
+         confirma, vendo a cobertura e se o Indice saiu. Nenhum limite e
+         presumido aqui (Mestre §18): qualquer pergunta em branco pergunta. */
+      const cob = r.cobertura || {};
+      if (typeof cob.respondidos === "number" && typeof cob.total === "number" && cob.respondidos < cob.total && window.abrirModalConfirmar) {
+        const pct = cob.total ? Math.round(cob.respondidos / cob.total * 1000) / 10 : 0;
+        const resp = await window.abrirModalConfirmar({
+          titulo: "Questionário incompleto",
+          corpo: "<p>Foram respondidas <b>" + cob.respondidos + " de " + cob.total + "</b> perguntas (" + String(pct).replace(".", ",") + "%)" +
+                 (r.indice === null || r.indice === undefined || r.avaliavel === false ? " e o Índice HOLOS não pôde ser calculado" : "") + ".</p>" +
+                 "<p>Salvar assim registra uma aplicação incompleta no histórico do paciente. Deseja salvar mesmo assim?</p>",
+          botaoConfirmar: "Salvar mesmo assim", classeConfirmar: "btn-verde"
+        });
+        if (resp !== "confirmar") return;
+      }
+
       /* Correcao (auditoria): duas aplicacoes identicas salvas no mesmo dia
          (mesmas respostas) eram duplicata. Se ja ha uma aplicacao salva hoje
          com exatamente as mesmas respostas, nao grava de novo. */
@@ -3786,7 +3808,8 @@
       // o servidor confirmou: o aviso "nao salvo no servidor" sai da tela ja
       document.querySelectorAll("#secao-holoscan .selo-nao-salvo").forEach(x => x.remove());
       renderPacientes();
-      toast("HOLOSCAN salvo na ficha de " + p.nome.split(" ")[0] + ". Índice HOLOS: " + window.HoloAusencia.indiceTexto(r));
+      toast("HOLOSCAN salvo na ficha de " + p.nome + " (atendimento " + window.AtendimentoAtual.rotuloQuando(atendimento) + "). Índice HOLOS: " + window.HoloAusencia.indiceTexto(r));
+      desenharAtendimentoHoloscan();
       return;
     }
 
@@ -3813,12 +3836,15 @@
        (dados-router.js): fica so neste navegador. A mensagem nao pode dizer
        que salvou na ficha como se estivesse na conta. */
     toast(pontuacaoNaTela
-      ? "HOLOSCAN salvo na ficha de " + p.nome.split(" ")[0] + ". Score: " + total
+      ? "HOLOSCAN salvo na ficha de " + p.nome + ". Score: " + total
       : MSG_SO_NESTE_APARELHO);
     } finally { destravarBotao(btn); }
   });
 
-  $("#btn-limpar-holoscan").addEventListener("click", () => {
+  /* O "Limpar" do resultado saiu (auditoria HOLOSCAN): zerava so as reguas
+     da tela, com as respostas ainda marcadas. O unico Limpar e o do
+     questionario, com confirmacao no modal. */
+  if($("#btn-limpar-holoscan")) $("#btn-limpar-holoscan").addEventListener("click", () => {
     sistemas.forEach(s => {
       $("#holo-" + s).value = 0;
       $("#val-" + s).textContent = "0";
@@ -3826,6 +3852,61 @@
     updateRadar([0,0,0,0,0]);
     toast("HOLOSCAN limpo.");
   });
+
+  /* ---------- o atendimento do HOLOSCAN (auditoria HOLOSCAN) ---------------
+     A tela nao dizia a qual atendimento a aplicacao ficaria ligada: o salvar
+     usava o atendimento selecionado em qualquer tela. Agora ele aparece junto
+     do "Salvar", com troca e "Novo atendimento". */
+  function desenharAtendimentoHoloscan(){
+    const alvo = document.getElementById("holo-atendimento");
+    if(!alvo) return;
+    const A = window.AtendimentoAtual;
+    const p = pacienteAtivo();
+    if(!p || !A){ alvo.innerHTML = ""; return; }
+    if(p.status === "inativo"){
+      alvo.innerHTML = '<p class="holo-at-aviso">' + escapar(window.MSG_ARQUIVADO || "Paciente arquivado.") + "</p>";
+      return;
+    }
+    const atual = A.atual();
+    const agora = Date.now() + 60000;
+    const futuro = e => new Date(e.occurred_at).getTime() > agora;
+    const lista = A.doPaciente(p.id)
+      .filter(e => !futuro(e) || (atual && atual.id === e.id))
+      .sort((a, b) => String(b.occurred_at).localeCompare(String(a.occurred_at)));
+    const opcoes = '<option value="">' + (lista.length ? "Escolher outro atendimento…" : "Nenhum atendimento registrado") + "</option>"
+      + lista.map(e => '<option value="' + escapar(e.id) + '"' + (atual && atual.id === e.id ? " selected" : "") + ">"
+        + escapar(A.rotuloQuando(e)) + (futuro(e) ? " (data no futuro)" : "") + "</option>").join("");
+    alvo.innerHTML = '<span class="holo-at-rot">Atendimento</span>'
+      + (atual
+          ? '<b id="holo-at-valor">' + escapar(A.rotuloQuando(atual)) + (futuro(atual) ? " — data no futuro" : "") + "</b>"
+          : '<b id="holo-at-valor" class="holo-at-sem">nenhum selecionado — o HOLOSCAN só é salvo ligado a um atendimento</b>')
+      + '<select id="holo-at-sel" aria-label="Trocar o atendimento">' + opcoes + "</select>"
+      + '<button type="button" class="btn-fantasma" id="holo-at-novo">Novo atendimento</button>';
+  }
+  window.desenharAtendimentoHoloscan = desenharAtendimentoHoloscan;
+  {
+    const caixaAt = document.getElementById("holo-atendimento");
+    if(caixaAt){
+      caixaAt.addEventListener("change", e => {
+        if(e.target.id === "holo-at-sel" && e.target.value && window.AtendimentoAtual) window.AtendimentoAtual.selecionarPorId(e.target.value);
+        desenharAtendimentoHoloscan();
+      });
+      caixaAt.addEventListener("click", e => {
+        if(e.target.id !== "holo-at-novo" || !window.AtendimentoAtual) return;
+        window.AtendimentoAtual.abrirDialogo({ patient_id: estado.ativo }).then(desenharAtendimentoHoloscan);
+      });
+    }
+    $$("[data-ir-holo]").forEach(b => b.addEventListener("click", () => {
+      if(b.dataset.irHolo === "confronto") irPara("confronto");
+      else levarPara("aba:conduta", estado.ativo);
+    }));
+    document.addEventListener("DOMContentLoaded", () => {
+      if(window.AtendimentoAtual && window.AtendimentoAtual.aoMudar) window.AtendimentoAtual.aoMudar(desenharAtendimentoHoloscan);
+      const anteriorAt = window.aoTrocarPaciente;
+      window.aoTrocarPaciente = function(){ if(typeof anteriorAt === "function") anteriorAt(); desenharAtendimentoHoloscan(); };
+      desenharAtendimentoHoloscan();
+    });
+  }
 
   /* ---------- inicializacao ---------- */
   initRadar();
