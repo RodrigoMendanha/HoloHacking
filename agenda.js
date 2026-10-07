@@ -688,6 +688,11 @@
   function novaConsulta(dia, hora, pid) {
     var ativo = pid && !(window.pacienteArquivado && window.pacienteArquivado(pid)) ? pid : "";
     var diaC = dia || (deIso(iso(foco)) < hoje() ? iso(hoje()) : iso(foco));
+    /* depois das 23h nao ha "proxima hora cheia" hoje: sem dia escolhido, a
+       sugestao vai para amanha 09:00 (antes sugeria 23:00, ja no passado) */
+    if (!dia && !hora && diaC === iso(hoje()) && new Date().getHours() >= 23) {
+      var am = hoje(); am.setDate(am.getDate() + 1); diaC = iso(am);
+    }
     editando = { tipo: "consulta", dado: {
       paciente_id: ativo,
       data: diaC, hora: hora || horaSugerida(diaC),

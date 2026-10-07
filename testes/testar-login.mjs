@@ -365,9 +365,11 @@ const SECOES = ['secao-dashboard', 'secao-holoscan', 'secao-confronto', 'secao-p
                 'secao-consultas', 'secao-agenda', 'secao-documentos', 'secao-perfil',
                 'secao-corpo', 'secao-mente', 'secao-espirito',
                 // Etapa 4: secao interna Metodologia / Homologacao (consulta, so com ?homologacao=1)
-                'secao-metodologia'];
+                'secao-metodologia',
+                // 07/10: Ajuda; 08/10: Contas (liberar cadastros, so administradoras)
+                'secao-contas', 'secao-ajuda'];
 const MENU = ['dashboard', 'pacientes', 'consultas', 'agenda', 'documentos',
-              'holoscan', 'confronto', 'corpo', 'mente', 'espirito', 'metodologia', 'perfil'];
+              'holoscan', 'confronto', 'corpo', 'mente', 'espirito', 'metodologia', 'contas', 'perfil', 'ajuda'];
 const faltando = SECOES.filter(s => !app.secoes.includes(s));
 const sobrando = app.secoes.filter(s => !SECOES.includes(s));
 
