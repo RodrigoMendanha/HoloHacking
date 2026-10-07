@@ -1,15 +1,15 @@
 #!/bin/sh
-# HOLOHACKING — deploy do front na VPS (passos 4 a 11). Versao atual: correcoes da auditoria de producao (25c16f3). Rodar NA VPS:
+# HOLOHACKING — deploy do front na VPS (passos 4 a 11). Versao atual: resultado do HOLOSCAN, Leitura Integrada guiada e laudo -> coleta (5d57998). Rodar NA VPS:
 #   sh deploy-etapa6-5b.sh            -> passos 4-8 (estado, codigo, build, container temporario 8082). NAO troca producao.
 #   sh deploy-etapa6-5b.sh swap       -> passos 9-11 (troca 8080, valida local e publico). So depois de conferir o 1o.
 # Para sozinho em qualquer divergencia. Nunca apaga container. Nao usa credencial.
 set -eu
-ESPERADO=25c16f30e8a769ef75a28b2738ef67f0c35163ee
-CURTO=25c16f3
+ESPERADO=5d57998d3d0b1c6d78073099924a37475af9c6da
+CURTO=5d57998
 DIR=/opt/holohacking
 IMG=holohacking-web:$CURTO
 PROD=holohacking-web
-ROLLBACK=holohacking-web-441b494
+ROLLBACK=holohacking-web-25c16f3
 TEMP=holohacking-web-teste-$CURTO
 pare() { echo; echo "### PARE: $*"; exit 1; }
 cd "$DIR"
@@ -25,9 +25,11 @@ if [ "${1:-}" != "swap" ]; then
 
   echo; echo "=== PASSO 5 — codigo ==="
   [ -z "$(git status --porcelain)" ] || pare "working tree da VPS nao esta limpa"
+  # a versao e o commit exato (nao depende de a main ja apontar para ele)
   git fetch origin
-  git checkout main
-  git pull --ff-only origin main
+  git cat-file -e "$ESPERADO^{commit}" 2>/dev/null || git fetch origin claude/v1-etapa6-1-validacao-banco-real
+  git cat-file -e "$ESPERADO^{commit}" 2>/dev/null || pare "commit $ESPERADO nao encontrado no GitHub"
+  git checkout --detach "$ESPERADO"
   [ "$(git rev-parse HEAD)" = "$ESPERADO" ] || pare "HEAD da VPS $(git rev-parse HEAD) != $ESPERADO"
   [ -z "$(git status --porcelain)" ] || pare "working tree suja depois do pull"
   echo "HEAD = $ESPERADO (ok), working tree limpa"
