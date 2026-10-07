@@ -824,6 +824,19 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     (`document_id`), com a data dele e o laudo aberto ao lado. Nada é lido de dentro do arquivo nesta fase. Fase 2 (leitura
     automática por IA, sempre como rascunho com revisão humana) desenhada em `docs/v1/laboratorio/IMPORTACAO-EXAMES-IA.md`,
     PENDENTE: chave de API como segredo do Supabase e decisão sobre enviar laudos a um provedor de IA (LGPD/consentimento).
+169. **Teste real de ponta a ponta (07/10) e página de Ajuda.** Tudo o que o roteiro salvou foi conferido no banco. Correções de
+    tela: o atendimento ativo fica guardado na aba do navegador (sessionStorage, por paciente) e volta depois de recarregar;
+    com um atendimento antigo ativo, a aba Conduta e a Visão geral mostram onde está a conduta vigente da pessoa; a ficha conta
+    os resultados das coletas V1 (antes só o painel legado); HOLOSCAN salvo não aparece mais como "não iniciado"; o alerta
+    "mapa sem conduta" some quando há conduta registrada; busca de exames com sinônimos SÓ DE BUSCA ("glicose" → Glicemia de
+    jejum; não viram alias nem mudam o catálogo do servidor) e contador acompanhando a busca; "Próxima consulta" ignora a de
+    hoje que já passou ou já virou atendimento; "Ver" de uma consulta no Dashboard abre a consulta; o relatório desenha a
+    referência do laudo, que já estava no snapshot. Nova seção **Ajuda** (perguntas frequentes, passo a passo, glossário e
+    "reportar um erro" que monta um relato SEM dado de paciente e o copia; envio por e-mail só se houver endereço de suporte
+    configurado). PENDENTE: o texto "resultados ainda não oficiais / Pacote V1 não homologado" do relatório vem do servidor
+    (`emitir_relatorio`, migration 20261001220000) e precisa de uma migration nova; "Por onde investigar" lista sinais
+    espirituais dentro de sistemas físicos porque é assim que o pacote HOLOS-V1@2 associa os marcadores — conferir com o
+    método (Daniel), não é ajuste de tela.
 
 ## Decisões pendentes (não decididas aqui)
 

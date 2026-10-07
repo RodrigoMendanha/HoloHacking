@@ -188,7 +188,7 @@
   }
   function copiar(texto) {
     var est = document.getElementById("aj-estado");
-    var ok = function () { if (est) est.textContent = "Relato copiado. Cole no canal de suporte."; if (window.toast) window.toast("Relato copiado."); };
+    var ok = function () { if (est) est.textContent = "Relato copiado. Cole no canal de suporte."; if (window.avisar) window.avisar("Relato copiado."); };
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(texto).then(ok, function () { mostrarParaCopiar(texto); });
     } else mostrarParaCopiar(texto);

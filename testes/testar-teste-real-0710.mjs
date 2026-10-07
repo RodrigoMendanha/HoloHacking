@@ -67,10 +67,11 @@ const cd = await A.evaluate(async (pid, ev) => {
   const txtAviso = aviso ? aviso.innerText : '';
   document.querySelector('[data-aba="visao"]').click();
   await new Promise(r => setTimeout(r, 300));
-  return { aviso: txtAviso, visao: document.getElementById('aba-visao').innerText };
+  const v = document.getElementById('aba-visao');
+  return { aviso: txtAviso, visao: v.innerText || v.textContent, html: v.innerHTML.length };
 }, PA, EV);
 ok(/conduta vigente desta pessoa está no atendimento/.test(cd.aviso), 'com atendimento antigo ativo, a aba Conduta diz onde está a conduta vigente');
-ok(/Conduta vigente\s*rev\. 1/.test(cd.visao) && !/Conduta vigente\s*não registrada/.test(cd.visao), 'a Visão geral mostra a conduta vigente (não "não registrada")');
+ok(/Conduta vigente\s*rev\. 1/i.test(cd.visao) && !/Conduta vigente\s*não registrada/i.test(cd.visao), 'a Visão geral mostra a conduta vigente (não "não registrada")');
 
 /* ----- 3: busca de exames ----- */
 const busca = await A.evaluate(() => {
@@ -147,6 +148,7 @@ const aj = await A.evaluate(async () => {
   await new Promise(r => setTimeout(r, 600));
   return { ativa: sec.classList.contains('ativa'), grupos, perguntas, filtradas, estado: document.getElementById('aj-estado').innerText };
 });
+if (process.env.SHOT_DIR) { await A.evaluate(() => { const b = document.getElementById('aj-busca'); b.value = ''; b.dispatchEvent(new Event('input', { bubbles: true })); window.scrollTo(0, 0); }); await A.screenshot({ path: process.env.SHOT_DIR + '/ajuda.png' }); }
 ok(aj.ativa && aj.grupos >= 6 && aj.perguntas >= 20, 'a página de Ajuda abre pelo menu, com ' + aj.perguntas + ' perguntas em ' + aj.grupos + ' grupos');
 ok(aj.filtradas > 0 && aj.filtradas < aj.perguntas, 'a busca filtra as perguntas ("PDF": ' + aj.filtradas + ')');
 ok(/copiado|RELATO DE ERRO/.test(aj.estado) && !/Paciente Teste Real/.test(aj.estado), 'o relato de erro é montado (copiado ou exibido para copiar) e não leva nome de paciente');
