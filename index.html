@@ -86,7 +86,74 @@
            interromper quem estiver navegando pelos campos. -->
       <p class="login-mensagem" id="login-mensagem"
          role="status" aria-live="polite" hidden></p>
+
+      <p class="login-criar">Ainda não tem conta? <a href="/cadastro" id="link-criar-conta" class="login-link">Criar conta</a></p>
     </form>
+
+    <!-- CADASTRO (08/10): a nutricionista cria a propria conta. A conta nasce
+         PENDENTE e so entra no sistema depois da liberacao da equipe. -->
+    <div id="tela-cadastro" hidden>
+      <h2 class="login-titulo">Criar conta</h2>
+      <p class="login-subtela-desc">Preencha seus dados. Depois do cadastro, a equipe HoloHacking libera o seu acesso.</p>
+      <form id="form-cadastro" novalidate autocomplete="on">
+        <div class="login-grupo">
+          <label for="cad-nome">Nome completo</label>
+          <input type="text" id="cad-nome" name="nome" autocomplete="name" aria-describedby="erro-cad-nome" required>
+          <p class="login-erro" id="erro-cad-nome" hidden></p>
+        </div>
+        <div class="login-grupo">
+          <label for="cad-email">E-mail</label>
+          <input type="email" id="cad-email" name="email" autocomplete="email" inputmode="email"
+                 spellcheck="false" autocapitalize="none" aria-describedby="erro-cad-email" required>
+          <p class="login-erro" id="erro-cad-email" hidden></p>
+        </div>
+        <div class="login-grupo">
+          <label for="cad-telefone">Telefone (WhatsApp)</label>
+          <input type="tel" id="cad-telefone" name="telefone" autocomplete="tel" inputmode="tel"
+                 placeholder="(11) 98888-7777" aria-describedby="erro-cad-telefone" required>
+          <p class="login-erro" id="erro-cad-telefone" hidden></p>
+        </div>
+        <div class="login-grupo">
+          <label for="cad-senha">Senha</label>
+          <div class="login-senha-caixa">
+            <input type="password" id="cad-senha" name="senha" autocomplete="new-password"
+                   aria-describedby="erro-cad-senha cad-senha-dica" required>
+            <button type="button" id="btn-olho-cad" class="login-olho" aria-pressed="false"
+                    aria-label="Mostrar senha" aria-controls="cad-senha">
+              <svg class="olho-ver" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="olho-ocultar" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 6.2A9.9 9.9 0 0 1 12 6c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4"/><path d="M6.6 6.9A17 17 0 0 0 2 13s3.6 7 10 7a9.6 9.6 0 0 0 4.5-1.1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+            </button>
+          </div>
+          <p class="login-dica" id="cad-senha-dica">Mínimo de 8 caracteres.</p>
+          <p class="login-erro" id="erro-cad-senha" hidden></p>
+        </div>
+        <div class="login-grupo">
+          <label for="cad-senha2">Confirmar senha</label>
+          <input type="password" id="cad-senha2" name="senha2" autocomplete="new-password" aria-describedby="erro-cad-senha2" required>
+          <p class="login-erro" id="erro-cad-senha2" hidden></p>
+        </div>
+        <button type="submit" id="btn-cadastrar" class="login-botao">
+          <span class="login-girador" aria-hidden="true"></span>
+          <span class="login-botao-texto">Criar conta</span>
+        </button>
+        <p class="login-mensagem" id="cadastro-mensagem" role="status" aria-live="polite" hidden></p>
+      </form>
+      <p class="login-voltar-p">
+        <a href="#" id="link-cadastro-voltar" class="login-link">&larr; Já tenho conta: entrar</a>
+      </p>
+    </div>
+
+    <!-- CONTA AGUARDANDO LIBERACAO / NAO LIBERADA (08/10) -->
+    <div id="tela-status-conta" hidden>
+      <h2 class="login-titulo" id="status-conta-titulo">Seu cadastro está em análise</h2>
+      <p class="login-subtela-desc" id="status-conta-texto"></p>
+      <button type="button" id="btn-status-verificar" class="login-botao">
+        <span class="login-girador" aria-hidden="true"></span>
+        <span class="login-botao-texto">Verificar de novo</span>
+      </button>
+      <p class="login-mensagem" id="status-conta-mensagem" role="status" aria-live="polite" hidden></p>
+      <p class="login-voltar-p"><a href="#" id="link-status-sair" class="login-link">Sair desta conta</a></p>
+    </div>
 
     <!-- RECUPERAR SENHA -->
     <div id="tela-recuperar" hidden>
@@ -240,6 +307,10 @@
         <button class="nav-item hidden" data-secao="metodologia" id="nav-metodologia">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16M4 12h10M4 19h7"/><circle cx="18" cy="17" r="3"/></svg>
           Metodologia <span class="nav-tag">Homologação</span>
+        </button>
+        <button class="nav-item hidden" data-secao="contas" id="nav-contas">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c0-3 2.5-5.2 5.5-5.2s5.5 2.2 5.5 5.2"/><path d="M16 11l2 2 4-4"/></svg>
+          Contas <span class="nav-badge" id="nav-contas-num" hidden></span>
         </button>
         <button class="nav-item" data-secao="perfil">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.4 3.1-6 7-6s7 2.6 7 6"/></svg>
@@ -967,6 +1038,16 @@
         <div id="metodologia-corpo"></div>
       </section>
 
+      <!-- ============ CONTAS (08/10): liberar cadastros — so administradores (contas.js) ============ -->
+      <section class="secao" id="secao-contas">
+        <div class="secao-cabeca">
+          <span class="eyebrow">Configurações</span>
+          <h2>Cadastros de <em>nutricionistas</em></h2>
+          <p>Quem se cadastrou pelo app fica aguardando até você liberar o acesso.</p>
+        </div>
+        <div id="contas-corpo"></div>
+      </section>
+
       <!-- ============ AJUDA (07/10): perguntas frequentes, passo a passo,
            glossario e reportar um erro — desenhada por ajuda.js ============ -->
       <section class="secao" id="secao-ajuda">
@@ -1353,6 +1434,7 @@
 <script src="/documentos.js"></script>
 <script src="/perfil.js"></script>
 <script src="/ajuda.js"></script>
+<script src="/contas.js"></script>
 <script src="/caso-marina.js"></script>
 <script src="/demo.js"></script>
 <script src="/holos-ai.js"></script>

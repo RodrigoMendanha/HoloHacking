@@ -837,6 +837,16 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     (`emitir_relatorio`, migration 20261001220000) e precisa de uma migration nova; "Por onde investigar" lista sinais
     espirituais dentro de sistemas físicos porque é assim que o pacote HOLOS-V1@2 associa os marcadores — conferir com o
     método (Daniel), não é ajuste de tela.
+170. **Cadastro de nutricionistas com aprovação** (lançamento de 08/10; decisões da responsável: cadastro no próprio
+    HoloHacking, nome + e-mail + telefone + senha, conta só entra depois de liberada). `auth.signUp` com nome e telefone nos
+    metadados; o gatilho `lidar_novo_usuario` cria o perfil com `status = 'pendente'`. `profiles.status` (pendente | ativo |
+    recusado; as contas anteriores nascem ativas). `administradores` (sem acesso pela API) e funções `eh_administrador`,
+    `minha_conta_status`, `listar_contas`, `decidir_conta`. A própria nutri não muda o status (gatilho). Trava real: política
+    RESTRICTIVE em `patients` exige conta ativa — conta pendente não cria nem altera paciente, logo nada clínico. A tela abre
+    o app só para conta ativa; pendente vê "em análise", recusada vê "acesso não liberado". Se a função ainda não existir no
+    banco (SQL não aplicado), o app deixa todos entrarem como antes. Seção "Contas" só para administradoras. Aviso de
+    liberação à nutri é manual nesta versão (botão de WhatsApp). Recomendado: "Confirm email" desligado no painel até haver
+    SMTP próprio (limite de envio do e-mail padrão do Supabase).
 
 ## Decisões pendentes (não decididas aqui)
 

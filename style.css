@@ -3583,7 +3583,8 @@ body.login-aberto #app,
 }
 .login-grupo input[type="email"],
 .login-grupo input[type="password"],
-.login-grupo input[type="text"]{
+.login-grupo input[type="text"],
+.login-grupo input[type="tel"]{
   width:100%;padding:12px 15px;
   background:var(--input-fundo);border:1px solid var(--input-borda);
   border-radius:10px;font-size:.9rem;color:var(--texto);
@@ -4501,3 +4502,17 @@ tr.mh-conflito td{background:rgba(201,138,122,.08)}
 .aj-copia{width:100%;max-width:640px;font-family:monospace;font-size:.8rem}
 @media (max-width:640px){.aj-glossario{grid-template-columns:1fr}.aj-glossario dd{margin-bottom:8px}}
 .rel-ref{color:var(--texto-suave);font-size:.9em}
+
+/* ---------- Cadastro e Contas (08/10) ---------- */
+.login-criar{text-align:center;margin:16px 0 0;font-size:.88rem;color:var(--texto-suave)}
+.login-dica{font-size:.76rem;color:var(--texto-suave);margin:4px 0 0}
+.nav-badge{margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--dourado);color:#241b08;font-size:.68rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.nav-badge[hidden]{display:none}
+.ct-lista{list-style:none;margin:0;padding:0}
+.ct-linha{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--borda-suave)}
+.ct-quem{display:flex;flex-direction:column;gap:2px;min-width:220px}
+.ct-quem span{font-size:.84rem;color:var(--texto-suave)}
+.ct-quando{font-size:.76rem!important}
+.ct-acoes{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ct-acoes .btn-verde{width:auto;margin:0}
+.ct-acoes a.perf-botao{text-decoration:none}

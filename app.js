@@ -265,7 +265,7 @@
     agenda:"Agenda", documentos:"Documentos",
     holoscan:"HOLOSCAN", confronto:"Leitura Integrada",
     corpo:"Módulo Corpo", mente:"Módulo Mente",
-    espirito:"Módulo Espírito", perfil:"Perfil", ajuda:"Ajuda", metodologia:"Metodologia / Homologação"
+    espirito:"Módulo Espírito", perfil:"Perfil", ajuda:"Ajuda", contas:"Contas", metodologia:"Metodologia / Homologação"
   };
   function irPara(secao){
     $$(".nav-item").forEach(b => b.classList.toggle("ativo", b.dataset.secao === secao));

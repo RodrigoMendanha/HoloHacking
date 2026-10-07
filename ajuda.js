@@ -22,6 +22,10 @@
   /* ---------- perguntas frequentes ---------------------------------------- */
   var FAQ = [
     { grupo: "Primeiros passos", itens: [
+      ["Como crio minha conta?",
+       "Na tela de entrada, clique em <b>Criar conta</b> (ou use o link <b>holohacking.com.br/cadastro</b>). Preencha nome completo, e-mail, telefone com DDD e uma senha de pelo menos 8 caracteres. A conta fica <b>aguardando liberação</b> até a equipe HoloHacking liberar o acesso."],
+      ["Meu cadastro está “em análise”. E agora?",
+       "É só aguardar: a equipe confere os cadastros e avisa por WhatsApp ou e-mail quando o acesso for liberado. Depois disso, entre com o e-mail e a senha que você cadastrou. Na tela de análise, o botão <b>Verificar de novo</b> confere na hora."],
       ["Por onde eu começo?",
        "Complete o seu <b>Perfil</b> (nome completo, registro profissional e, se quiser, assinatura e marca): é isso que aparece nos relatórios. Depois cadastre o paciente em <b>Pacientes → Novo paciente</b>, agende a consulta na <b>Agenda</b> e, no dia, inicie o atendimento a partir da consulta."],
       ["Qual é o caminho de um atendimento completo?",

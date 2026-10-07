@@ -290,13 +290,13 @@ ok(ordem.manifesto < ordem.dados,
    dados-router.js, as tres antes de dados.js/app.js consumirem `sb`), e
    na Etapa 10 (migracao-supa.js, o migrador localStorage→Supabase), e na
    correcao P0 pos-deploy 6.4 (holoscan-oficial.js: o questionario no motor oficial). */
-// ajuste 07/10: + ajuda.js (pagina de Ajuda)
-ok(ordem.total === 54,
-   'o index tem 54 tags de script: 22 de antes do P0 + concorrencia.js + metodologia.js (Etapa 0 da V1) + holoscan-oficial.js (correcao P0 pos-deploy 6.4) + ferramentas-registro.js (Etapa 6.5 B) + atendimento.js (Etapa 1) + anamnese.js + conduta.js (Etapa 2) + timeline.js + relatorios.js (Etapa 3) + metodologia-inventario.js + metodologia-pacote.js + metodologia-motor.js + metodologia-homologacao.js (Etapa 4) + metodologia-decisoes-v1.js (Etapa 4.2) + laboratorio-catalogo.js + laboratorio-motor.js + leitura-integrada-motor.js + laboratorio.js (Etapa 5) + ' +
+// ajuste 07/10: + ajuda.js (pagina de Ajuda); 08/10: + contas.js (cadastro)
+ok(ordem.total === 55,
+   'o index tem 55 tags de script: 22 de antes do P0 + concorrencia.js + metodologia.js (Etapa 0 da V1) + holoscan-oficial.js (correcao P0 pos-deploy 6.4) + ferramentas-registro.js (Etapa 6.5 B) + atendimento.js (Etapa 1) + anamnese.js + conduta.js (Etapa 2) + timeline.js + relatorios.js (Etapa 3) + metodologia-inventario.js + metodologia-pacote.js + metodologia-motor.js + metodologia-homologacao.js (Etapa 4) + metodologia-decisoes-v1.js (Etapa 4.2) + laboratorio-catalogo.js + laboratorio-motor.js + leitura-integrada-motor.js + laboratorio.js (Etapa 5) + ' +
    'armazenamento.js + validar-backup.js + restaurar-backup.js + ' +
    'importar-v1.js + excluir-paciente.js + login.js + CDN supabase-js + ' +
    'supabase-client.js + dados-router.js + migracao-supa.js + holos-ai.js + ' +
-   'utils.js + sincronizacao.js (Release 01) + ajuda.js (Ajuda, 07/10) — ' + ordem.total);
+   'utils.js + sincronizacao.js (Release 01) + ajuda.js (Ajuda, 07/10) + contas.js (Cadastro, 08/10) — ' + ordem.total);
 /* A tela de entrada e a ultima a carregar: nada do app depende dela, e ela
    nao depende de nada do app. Se um dia depender, esta linha cai junto. */
 ok(ordem.login === ordem.total - 1,

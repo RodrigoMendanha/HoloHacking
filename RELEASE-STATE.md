@@ -296,8 +296,12 @@ Para quem vai testar, sem conhecimento técnico. Siga na ordem. Nunca escreva
 senha, e-mail de paciente ou nome de paciente em issue, commit ou mensagem de
 chat: para falar de um paciente de teste, diga "paciente de teste 1".
 
-O app **não tem tela de criar conta**. Uma conta nova só nasce no painel do
-Supabase, e quem cria é o Rodrigo.
+**Atualização 08/10:** o app agora tem **cadastro pelo próprio app**
+(holohacking.com.br/cadastro, ou "Criar conta" no login). A conta nasce
+**aguardando liberação** e só entra depois que uma administradora libera em
+**Configurações → Contas** (ver `docs/v1/CADASTRO-NUTRICIONISTAS.md`). O caminho
+manual abaixo continua valendo, mas a conta criada pelo painel também nasce
+pendente e precisa ser liberada em Contas.
 
 ### 11.1 Criar a segunda conta de nutricionista (Rodrigo)
 

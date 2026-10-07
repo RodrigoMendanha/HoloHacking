@@ -197,6 +197,51 @@
         });
     },
 
+    /* CADASTRO (08/10): a nutricionista cria a propria conta. Nome e telefone
+       vao nos metadados; o gatilho do banco (lidar_novo_usuario) cria o perfil
+       PENDENTE. A senha vai direto para o Supabase, como no login. */
+    cadastrar: function (d) {
+      if (!window.supabaseClient) {
+        return Promise.resolve({ ok: false, motivo: "SEM_CLIENTE", mensagem: "Autenticação não está configurada neste ambiente." });
+      }
+      return window.supabaseClient.auth.signUp({
+        email: d.email, password: d.senha,
+        options: { data: { nome: d.nome, telefone: d.telefone }, emailRedirectTo: recuperarSenhaUrl() }
+      }).then(function (r) {
+        if (r.error) {
+          var m = String(r.error.message || ""), c = String(r.error.code || "");
+          var txt = /already registered|already exists|user_already_exists/i.test(m + " " + c)
+              ? "Já existe uma conta com este e-mail. Entre com sua senha ou use \"Esqueci minha senha\"."
+            : /signups? not allowed|signup.*disabled/i.test(m) ? "O cadastro está fechado no momento. Fale com a equipe HoloHacking."
+            : /password/i.test(m) ? "Senha fraca: use pelo menos 8 caracteres, misturando letras e números."
+            : /rate limit|too many/i.test(m) ? "Muitos cadastros em pouco tempo. Aguarde alguns minutos e tente de novo."
+            : /invalid.*email|email.*invalid/i.test(m) ? "Este e-mail não foi aceito. Confira se está correto."
+            : mensagemDeErro(r.error);
+          return { ok: false, motivo: c || "ERRO_CADASTRO", mensagem: txt };
+        }
+        /* com "Confirm email" ligado no painel, o Supabase nao devolve sessao
+           (e devolve usuario sem identidades quando o e-mail ja existia) */
+        var u = r.data && r.data.user;
+        if (u && Array.isArray(u.identities) && u.identities.length === 0) {
+          return { ok: false, motivo: "JA_EXISTE", mensagem: "Já existe uma conta com este e-mail. Entre com sua senha ou use \"Esqueci minha senha\"." };
+        }
+        return { ok: true, sessao: r.data ? r.data.session : null, mensagem: "" };
+      });
+    },
+
+    /* Status da conta: "ativo" | "pendente" | "recusado", ou null se o servidor
+       nao respondeu. Se a funcao ainda nao existe no banco (SQL do cadastro nao
+       aplicado), todo mundo continua entrando como antes. */
+    statusConta: function () {
+      if (!window.supabaseClient) return Promise.resolve("ativo");
+      return Promise.resolve(window.supabaseClient.rpc("minha_conta_status")).then(function (r) {
+        if (r && !r.error) return r.data || "pendente";
+        var e = r ? r.error : null, txt = String((e && (e.message || "")) + " " + (e && e.code || ""));
+        if (/PGRST202|42883|could not find the function|does not exist/i.test(txt)) return "ativo";
+        return null;
+      }, function () { return null; });
+    },
+
     trocarSenha: function (novaSenha) {
       if (!window.supabaseClient) {
         return Promise.resolve({
@@ -268,6 +313,10 @@
   var telaNovaSenha, formNovaSenha, campoNovaSenha, campoConfirmarSenha,
       btnNovaSenha, novaSenhaMensagem, erroNovaSenha, erroConfirmarSenha,
       btnOlhoNova;
+
+  // Cadastro e status da conta (08/10)
+  var telaCadastro, formCadastro, cadNome, cadEmail, cadTelefone, cadSenha, cadSenha2, btnCadastrar, cadMensagem,
+      telaStatus, statusTitulo, statusTexto, statusMensagem, btnStatusVerificar;
 
   var enviando = false;
   var modoRecuperacao = false;
@@ -354,7 +403,54 @@
 
   /* ---------- alternar entre telas internas do cartao ---------------------- */
 
+  function esconderNovas() {
+    if (telaCadastro) telaCadastro.hidden = true;
+    if (telaStatus) telaStatus.hidden = true;
+  }
+
+  function esconderTudo() {
+    if (loginCabecalho) loginCabecalho.hidden = true;
+    form.hidden = true;
+    if (telaRecuperar) telaRecuperar.hidden = true;
+    if (telaNovaSenha) telaNovaSenha.hidden = true;
+    esconderNovas();
+    if (blocoDev) blocoDev.hidden = true;
+    var rodape = document.querySelector(".login-rodape");
+    if (rodape) rodape.hidden = true;
+  }
+
+  function mostrarCadastro() {
+    esconderTudo();
+    telaCadastro.hidden = false;
+    mensagemEm(cadMensagem, "", null);
+    if (cadEmail && campoEmail && !cadEmail.value) cadEmail.value = campoEmail.value.trim();
+    if (cadNome) cadNome.focus();
+  }
+
+  /* A conta entrou, mas ainda nao foi liberada (ou foi recusada). O app nao abre. */
+  function mostrarStatusConta(status) {
+    esconderTudo();
+    telaStatus.hidden = false;
+    var u = sessaoAtual && sessaoAtual.user;
+    var nome = (u && u.user_metadata && u.user_metadata.nome) || (u && u.email) || "";
+    if (status === "recusado") {
+      statusTitulo.textContent = "Acesso não liberado";
+      statusTexto.textContent = "O cadastro" + (nome ? " de " + nome : "") + " não foi liberado para usar o HoloHacking. Se você acha que é um engano, fale com a equipe HoloHacking.";
+      btnStatusVerificar.hidden = true;
+    } else if (status === null) {
+      statusTitulo.textContent = "Não foi possível verificar seu acesso";
+      statusTexto.textContent = "O servidor não respondeu. Confira sua internet e tente de novo.";
+      btnStatusVerificar.hidden = false;
+    } else {
+      statusTitulo.textContent = "Seu cadastro está em análise";
+      statusTexto.textContent = "Recebemos o cadastro" + (nome ? " de " + nome : "") + ". A equipe HoloHacking vai liberar o seu acesso e avisar você por WhatsApp ou e-mail. Depois disso, é só entrar com seu e-mail e senha.";
+      btnStatusVerificar.hidden = false;
+    }
+    mensagemEm(statusMensagem, "", null);
+  }
+
   function mostrarLogin() {
+    esconderNovas();
     if (loginCabecalho) loginCabecalho.hidden = false;
     form.hidden = false;
     if (telaRecuperar) telaRecuperar.hidden = true;
@@ -365,6 +461,7 @@
   }
 
   function mostrarRecuperar() {
+    esconderNovas();
     if (loginCabecalho) loginCabecalho.hidden = true;
     form.hidden = true;
     if (telaRecuperar) telaRecuperar.hidden = false;
@@ -380,6 +477,7 @@
   }
 
   function mostrarNovaSenha() {
+    esconderNovas();
     if (loginCabecalho) loginCabecalho.hidden = true;
     form.hidden = true;
     if (telaRecuperar) telaRecuperar.hidden = true;
@@ -397,7 +495,23 @@
 
   /* ---------- abrir/fechar o app --------------------------------------- */
 
+  /* Abrir o app passa pelo status da conta (08/10): pendente ou recusada fica
+     na tela de status. O app ja aberto nao e re-checado a cada renovacao de
+     token (um soluco de rede nao pode derrubar quem esta atendendo). */
+  var checando = null;
   function liberarApp() {
+    if (camada && camada.hidden) return;
+    if (!sessaoAtual) { abrirApp(); return; }
+    if (checando) return;
+    checando = window.AuthService.statusConta().then(function (st) {
+      checando = null;
+      if (!sessaoAtual) return;
+      if (st === "ativo") abrirApp();
+      else mostrarStatusConta(st);
+    });
+  }
+
+  function abrirApp() {
     modoRecuperacao = false;
     camada.hidden = true;
     document.body.classList.remove("login-aberto");
@@ -564,13 +678,64 @@
       });
   }
 
+  /* ---------- cadastro --------------------------------------------------- */
+
+  function digitos(v) { return String(v || "").replace(/\D/g, ""); }
+  function mascaraTelefone(v) {
+    var d = digitos(v).slice(0, 11);
+    if (d.length <= 2) return d ? "(" + d : "";
+    if (d.length <= 6) return "(" + d.slice(0, 2) + ") " + d.slice(2);
+    if (d.length <= 10) return "(" + d.slice(0, 2) + ") " + d.slice(2, 6) + "-" + d.slice(6);
+    return "(" + d.slice(0, 2) + ") " + d.slice(2, 7) + "-" + d.slice(7);
+  }
+
+  function aoEnviarCadastro(e) {
+    e.preventDefault();
+    if (enviando) return;
+    var pares = [[cadNome, "erro-cad-nome"], [cadEmail, "erro-cad-email"], [cadTelefone, "erro-cad-telefone"], [cadSenha, "erro-cad-senha"], [cadSenha2, "erro-cad-senha2"]];
+    pares.forEach(function (p) { p[0].removeAttribute("aria-invalid"); var el = document.getElementById(p[1]); el.textContent = ""; el.hidden = true; });
+    var nome = cadNome.value.trim().replace(/\s+/g, " "), email = cadEmail.value.trim(), tel = digitos(cadTelefone.value),
+        senha = cadSenha.value, senha2 = cadSenha2.value, primeiro = null;
+    var erro = function (campo, id, txt) { marcarErro(campo, document.getElementById(id), txt); primeiro = primeiro || campo; };
+    if (!nome) erro(cadNome, "erro-cad-nome", "Informe seu nome completo.");
+    else if (nome.split(" ").length < 2 || nome.length < 5) erro(cadNome, "erro-cad-nome", "Informe nome e sobrenome.");
+    if (!email) erro(cadEmail, "erro-cad-email", "Informe o e-mail.");
+    else if (!pareceEmail(email)) erro(cadEmail, "erro-cad-email", "Informe um e-mail válido.");
+    if (!tel) erro(cadTelefone, "erro-cad-telefone", "Informe o telefone com DDD.");
+    else if (tel.length < 10 || tel.length > 11) erro(cadTelefone, "erro-cad-telefone", "Telefone com DDD: 10 ou 11 dígitos.");
+    if (!senha) erro(cadSenha, "erro-cad-senha", "Crie uma senha.");
+    else if (senha.length < 8) erro(cadSenha, "erro-cad-senha", "A senha precisa de pelo menos 8 caracteres.");
+    if (!senha2) erro(cadSenha2, "erro-cad-senha2", "Repita a senha.");
+    else if (senha && senha2 !== senha) erro(cadSenha2, "erro-cad-senha2", "As senhas não coincidem.");
+    if (primeiro) { primeiro.focus(); return; }
+
+    enviando = true; btnCadastrar.disabled = true; btnCadastrar.setAttribute("aria-busy", "true"); camada.classList.add("enviando");
+    mensagemEm(cadMensagem, "", null);
+    window.AuthService.cadastrar({ nome: nome, email: email, telefone: tel, senha: senha })
+      .then(function (r) {
+        if (!r.ok) { mensagemEm(cadMensagem, r.mensagem, "aviso"); return; }
+        cadSenha.value = ""; cadSenha2.value = "";
+        if (!r.sessao) {
+          mensagemEm(cadMensagem, "Cadastro recebido! Confirme seu e-mail pelo link que enviamos. Depois disso, a equipe HoloHacking libera o seu acesso.", "ok");
+        }
+        /* com sessao, o SIGNED_IN abre a tela "em analise" sozinho */
+        try { if (window.history && /\/cadastro\/?$/.test(window.location.pathname)) window.history.replaceState(null, "", "/"); } catch (x) { /* nada */ }
+      })
+      .catch(function () { mensagemEm(cadMensagem, "Não foi possível falar com o servidor. Tente de novo.", "aviso"); })
+      .then(function () { enviando = false; btnCadastrar.disabled = false; btnCadastrar.setAttribute("aria-busy", "false"); camada.classList.remove("enviando"); });
+  }
+
+  function ehRotaCadastro() {
+    return /\/cadastro\/?$/.test(window.location.pathname) || window.location.hash === "#cadastro";
+  }
+
   /* A saida de desenvolvimento. So existe (visivel e funcional) em
      localhost/127.0.0.1 — ambienteLocal() decide os dois. Fora dali o clique
      nao faz nada, mesmo que o bloco seja reexibido via devtools. */
   function sairParaOApp(e) {
     if (e) e.preventDefault();
     if (!ambienteLocal()) return;
-    liberarApp();
+    abrirApp();
   }
 
   /* ---------- sessao: restaurar, reagir a mudanca ----------------------- */
@@ -584,6 +749,7 @@
       if (sessao) restaurarEstadoLocal(sessao.user.id);
       definirEstadoAuth(sessao ? "autenticado" : "nao_autenticado");
       if (sessao && !modoRecuperacao) liberarApp();
+      else if (!modoRecuperacao && ehRotaCadastro()) mostrarCadastro();
       else if (!modoRecuperacao) campoEmail.focus();
     });
   }
@@ -667,6 +833,49 @@
     erroNovaSenha = document.getElementById("erro-nova-senha");
     erroConfirmarSenha = document.getElementById("erro-confirmar-senha");
     btnOlhoNova = document.getElementById("btn-olho-nova");
+
+    // Cadastro e status da conta
+    telaCadastro = document.getElementById("tela-cadastro");
+    formCadastro = document.getElementById("form-cadastro");
+    cadNome = document.getElementById("cad-nome");
+    cadEmail = document.getElementById("cad-email");
+    cadTelefone = document.getElementById("cad-telefone");
+    cadSenha = document.getElementById("cad-senha");
+    cadSenha2 = document.getElementById("cad-senha2");
+    btnCadastrar = document.getElementById("btn-cadastrar");
+    cadMensagem = document.getElementById("cadastro-mensagem");
+    telaStatus = document.getElementById("tela-status-conta");
+    statusTitulo = document.getElementById("status-conta-titulo");
+    statusTexto = document.getElementById("status-conta-texto");
+    statusMensagem = document.getElementById("status-conta-mensagem");
+    btnStatusVerificar = document.getElementById("btn-status-verificar");
+    if (formCadastro) {
+      formCadastro.addEventListener("submit", aoEnviarCadastro);
+      cadTelefone.addEventListener("input", function () { cadTelefone.value = mascaraTelefone(cadTelefone.value); });
+      var olhoCad = document.getElementById("btn-olho-cad");
+      if (olhoCad) olhoCad.addEventListener("click", function () { alternarVisibilidade(cadSenha, olhoCad); });
+      document.getElementById("link-criar-conta").addEventListener("click", function (ev) {
+        ev.preventDefault();
+        try { window.history.pushState(null, "", "/cadastro"); } catch (x) { /* nada */ }
+        mostrarCadastro();
+      });
+      document.getElementById("link-cadastro-voltar").addEventListener("click", function (ev) {
+        ev.preventDefault();
+        try { if (ehRotaCadastro()) window.history.replaceState(null, "", "/"); } catch (x) { /* nada */ }
+        mostrarLogin();
+        if (campoEmail) campoEmail.focus();
+      });
+    }
+    if (telaStatus) {
+      btnStatusVerificar.addEventListener("click", function () {
+        mensagemEm(statusMensagem, "Verificando…", null);
+        window.AuthService.statusConta().then(function (st) {
+          if (st === "ativo") abrirApp();
+          else { mostrarStatusConta(st); mensagemEm(statusMensagem, st === "pendente" ? "Ainda aguardando liberação." : "", null); }
+        });
+      });
+      document.getElementById("link-status-sair").addEventListener("click", function (ev) { ev.preventDefault(); window.HoloAuth.sair(); });
+    }
 
     // Formulario de login
     form.addEventListener("submit", aoEnviar);

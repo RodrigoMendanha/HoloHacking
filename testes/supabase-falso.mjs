@@ -169,6 +169,26 @@ export function criarServidor() {
     s.contas[email] = { senha, id: id || randomUUID() };
     return s.contas[email].id;
   };
+  /* Cadastro pelo app (migration 20261008100000): auth.signUp cria a conta e o
+     gatilho lidar_novo_usuario cria o perfil PENDENTE com nome/telefone/e-mail.
+     Contas criadas por criarConta() (as dos testes antigos) nao tem perfil e
+     contam como ativas — como as contas reais anteriores ao cadastro. */
+  s.administradores = [];
+  s.tornarAdmin = (uid) => { if (!s.administradores.includes(uid)) s.administradores.push(uid); };
+  function statusConta(uid) {
+    const p = s.tabelas.profiles.find(x => x.id === uid);
+    return p && p.status ? p.status : 'ativo';
+  }
+  s.statusConta = statusConta;
+  function cadastrar(msg) {
+    if (s.contas[msg.email]) return erro('User already registered', 'user_already_exists');
+    if (!msg.password || msg.password.length < 6) return erro('Password should be at least 6 characters.', 'weak_password');
+    const id = s.criarConta(msg.email, msg.password);
+    const meta = msg.data || {};
+    s.tabelas.profiles.push({ id, nome: (meta.nome || '').trim() || msg.email, telefone: String(meta.telefone || '').replace(/\D/g, '') || null,
+      email_contato: msg.email, status: 'pendente', aprovado_em: null, aprovado_por: null, created_at: agora(), updated_at: agora() });
+    return { data: { id }, error: null };
+  }
 
   function carimbo() {
     // estritamente crescente: created_at desempata ordem de insercao
@@ -728,6 +748,14 @@ export function criarServidor() {
   }
   function consultarBase(uid, q) {
     const t = q.tabela;
+    /* trava real (politica RESTRICTIVE): conta nao ativa nao cria nem altera paciente */
+    if (t === 'patients' && uid && ['insert', 'upsert', 'update'].includes(q.acao) && statusConta(uid) !== 'ativo')
+      return erro('new row violates row-level security policy "patients_exige_conta_ativa_ins" for table "patients"', '42501');
+    /* a propria nutri nao muda o proprio status */
+    if (t === 'profiles' && uid && q.dados && ['insert', 'upsert', 'update'].includes(q.acao) &&
+        (Array.isArray(q.dados) ? q.dados : [q.dados]).some(d => 'status' in d || 'aprovado_em' in d || 'aprovado_por' in d))
+      return erro('o status da conta so e alterado pela equipe HoloHacking', '42501');
+    if (t === 'administradores') return erro('permission denied for table administradores', '42501');
     if (!(t in s.tabelas)) return erro('relation "public.' + t + '" does not exist', '42P01');
     if (!uid) return erro('permission denied for table ' + t, '42501');   // anon revogado
     if (deveFalhar(t, q.acao)) return erro('falha simulada em ' + t + '/' + q.acao, 'SIMULADA');
@@ -912,6 +940,22 @@ export function criarServidor() {
   }
 
   function rpc(uid, nome, args) {
+    if (nome === 'minha_conta_status') return uid ? { data: statusConta(uid), error: null } : erro('permission denied for function minha_conta_status', '42501');
+    if (nome === 'eh_administrador') return { data: !!uid && s.administradores.includes(uid), error: null };
+    if (nome === 'listar_contas' || nome === 'decidir_conta') {
+      if (!uid || !s.administradores.includes(uid)) return erro('apenas administradores', '42501');
+      if (nome === 'listar_contas') {
+        const st = args && 'p_status' in args ? args.p_status : 'pendente';
+        const email = (id) => Object.keys(s.contas).find(e => s.contas[e].id === id) || null;
+        return { data: s.tabelas.profiles.filter(p => p.status && (st === null || p.status === st))
+          .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))
+          .map(p => ({ id: p.id, nome: p.nome, telefone: p.telefone, email: email(p.id), status: p.status, criado_em: p.created_at, aprovado_em: p.aprovado_em })), error: null };
+      }
+      const p = s.tabelas.profiles.find(x => x.id === args.p_user);
+      if (!p) return erro('conta nao encontrada', 'P0002');
+      p.status = args.p_aprovar ? 'ativo' : 'recusado'; p.aprovado_em = agora(); p.aprovado_por = uid;
+      return { data: p.status, error: null };
+    }
     if (!uid) return erro('permission denied for function ' + nome, '42501');
     if (deveFalhar('rpc:' + nome, 'rpc') || deveFalhar(null, 'rpc')) return erro('falha simulada em rpc ' + nome, 'SIMULADA');
     const p = args && args.payload;
@@ -1578,6 +1622,7 @@ export function criarServidor() {
       if (!c || c.senha !== msg.password) return erro('Invalid login credentials', 'invalid_credentials');
       return { data: { id: c.id }, error: null };
     }
+    if (msg.op === 'signup') return cadastrar(msg);
     if (msg.op === 'query') return consultar(msg.uid, msg.q);
     if (msg.op === 'rpc') return rpc(msg.uid, msg.nome, msg.args);
     if (msg.op === 'storage') return storage(msg.uid, msg);
@@ -1659,6 +1704,17 @@ const BIBLIOTECA = `(function () {
           return chamar({ op: "login", email: c.email, password: c.password }).then(function (r) {
             if (r.error) return { data: { session: null, user: null }, error: { name: "AuthApiError", message: r.error.message } };
             var s = { access_token: "falso-" + r.data.id, user: { id: r.data.id, email: c.email } };
+            localStorage.setItem(CHAVE, JSON.stringify(s));
+            emitir("SIGNED_IN", s);
+            return { data: { session: s, user: s.user }, error: null };
+          });
+        },
+        signUp: function (c) {
+          var o = c.options || {};
+          return chamar({ op: "signup", email: c.email, password: c.password, data: o.data || {} }).then(function (r) {
+            if (r.error) return { data: { session: null, user: null }, error: { name: "AuthApiError", message: r.error.message, code: r.error.code } };
+            /* confirmacao de e-mail DESLIGADA (recomendado para o lancamento): ja nasce a sessao */
+            var s = { access_token: "falso-" + r.data.id, user: { id: r.data.id, email: c.email, user_metadata: o.data || {} } };
             localStorage.setItem(CHAVE, JSON.stringify(s));
             emitir("SIGNED_IN", s);
             return { data: { session: s, user: s.user }, error: null };

@@ -122,5 +122,6 @@ export const SUITES = [
   'testar-resultado-holoscan.mjs',
   'testar-li-guiada.mjs',
   'testar-teste-real-0710.mjs',
+  'testar-cadastro.mjs',
   'testar-conferir-producao.mjs',
 ];
