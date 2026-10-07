@@ -140,7 +140,35 @@
     return n;
   }
 
+  /* Duas entradas do historico sao a MESMA aplicacao? Com as respostas dos
+     dois lados, compara as respostas; sem elas (entrada que veio do
+     servidor nao traz respostas), compara as notas dos cinco sistemas, a
+     cobertura e o pacote. Serve so para nao deixar um calculo repetido
+     pendurado como "nao salvo no servidor" ao lado da aplicacao salva. */
+  function assinRespostas(o) {
+    return JSON.stringify(Object.keys(o || {}).sort().map(function (k) { return [k, o[k]]; }));
+  }
+  function mesmaAplicacao(a, b) {
+    if (!a || !b) return false;
+    if (a.methodology_package_id && b.methodology_package_id && a.methodology_package_id !== b.methodology_package_id) return false;
+    var ra = a.respostas && Object.keys(a.respostas).length, rb = b.respostas && Object.keys(b.respostas).length;
+    if (ra && rb) return assinRespostas(a.respostas) === assinRespostas(b.respostas);
+    if (!Array.isArray(a.sistemas) || !Array.isArray(b.sistemas) || a.sistemas.length !== b.sistemas.length) return false;
+    var nb = {};
+    b.sistemas.forEach(function (s) { nb[s.sistema] = s; });
+    var iguais = a.sistemas.every(function (s) {
+      var o = nb[s.sistema];
+      if (!o) return false;
+      if (semNota(s) || semNota(o)) return semNota(s) === semNota(o);
+      return Math.abs(Number(s.nota) - Number(o.nota)) < 0.005;
+    });
+    if (!iguais) return false;
+    var ca = a.cobertura && a.cobertura.respondidos, cb = b.cobertura && b.cobertura.respondidos;
+    return ca === undefined || cb === undefined || ca === cb;
+  }
+
   window.HoloAusencia = {
+    mesmaAplicacao: mesmaAplicacao,
     coberturaMinima: coberturaMinima,
     normalizar: normalizar, semNota: semNota, suficiente: suficiente,
     cobertura: cobertura, fmt: fmt, porNota: porNota, porLeitura: porLeitura, notas: notas,

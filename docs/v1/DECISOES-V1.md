@@ -800,6 +800,30 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     separada por conta (stash, para devolver rascunhos não sincronizados) — "sair limpa essa cópia" era falso. PENDENTE de
     decisão (privacidade × rascunho): apagar o stash ao sair (protege computador compartilhado, perde rascunho não sincronizado)
     ou manter (comportamento atual, coberto por testar-troca-conta e testar-rodada08-sessao).
+166. **HOLOSCAN: nota visível e selo "não salvo" coerente** (testes reais, 06/10). (a) A nota de cada sistema estava DENTRO da
+    régua manual, e a régua é escondida fora da homologação (item das réguas manuais): os cinco cartões não mostravam número
+    nenhum. A nota e a faixa do pacote ficam agora num bloco próprio do cartão; a régua continua só em `?homologacao=1`. Os
+    rótulos emocionais/espirituais da versão antiga ("Estagnação e desordem", "Bloqueio no plexo solar"…) saíram dos cartões:
+    não pertencem ao HOLOS-V1@2 (mesma regra do item 158). (b) Gerar o mapa de novo com as mesmas respostas de uma aplicação
+    já salva criava uma entrada local pendente ao lado da salva — o Salvar recusava a duplicata e o selo "não salvo no
+    servidor" ficava para sempre. Agora o cálculo repetido É a aplicação salva (local e na sincronização); o Salvar marca a
+    entrada pelo instante do cálculo (não mais "a de hoje"), então calcular num dia e salvar no outro não deixa órfão.
+167. **Resultado desta aplicação e "Por onde investigar"** (testes reais, 06/10; decisão da usuária: "resumo com o que existe").
+    Quadro no topo do resultado do HOLOSCAN que só REORGANIZA conteúdo aprovado: sistemas do mais baixo ao mais alto com nota
+    e faixa, Tríade e dimensão mais baixa, sistemas sem nota (cobertura < 80%), e "Por onde investigar" — os dois sistemas de
+    nota mais baixa com os sinais que mais pesaram (aritmética das respostas, já exibida no bloco 3). O bloco fixo "Por onde
+    começar" saiu (sugestões de ferramenta continuam desligadas, item 65). Campo "Sua interpretação" no próprio quadro,
+    gravado em `holoscan_applications.interpretacao_texto` (único campo editável do snapshot). Nenhum texto de conclusão
+    clínica é gerado. PENDENTE de decisão de método: textos de conclusão por sistema × faixa (15) e ferramentas sugeridas
+    por sistema — exigem nova versão do pacote (HOLOS-V1@3) com aprovação.
+168. **Leitura Integrada guiada e laudo → coleta** (testes reais, 06/10; decisão: "em 2 fases" e "guiar para lançar exame").
+    Sem coleta, a Leitura Integrada explica que compara o HOLOSCAN com valores de exame e oferece "Lançar exame" e "Lançar
+    valores de <laudo>" para os PDFs/imagens já enviados sem coleta. Só coleta CONSOLIDADA entra na lista (DECISAO-04:
+    rascunho e `extracted_draft` ficam fora; antes o rascunho aparecia). Na lista de documentos, cada laudo mostra "valores
+    lançados" / "sem valores lançados" e o botão "Lançar valores deste exame", que abre a coleta já ligada ao documento
+    (`document_id`), com a data dele e o laudo aberto ao lado. Nada é lido de dentro do arquivo nesta fase. Fase 2 (leitura
+    automática por IA, sempre como rascunho com revisão humana) desenhada em `docs/v1/laboratorio/IMPORTACAO-EXAMES-IA.md`,
+    PENDENTE: chave de API como segredo do Supabase e decisão sobre enviar laudos a um provedor de IA (LGPD/consentimento).
 
 ## Decisões pendentes (não decididas aqui)
 

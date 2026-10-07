@@ -452,6 +452,12 @@
           <div id="holoscan-manual">
           <div class="painel-escuro">
 
+          <!-- ===== RESULTADO DESTA APLICACAO (testes reais 06/10) =====
+               Resumo do que o pacote aprovado ja diz — notas, faixas, Triade,
+               cobertura — e por onde investigar, com o campo da interpretacao
+               profissional. Nenhum texto clinico novo (Decisoes 3, 156, 158). -->
+          <div class="holo-resumo hidden" id="holo-resumo"></div>
+
           <!-- ===== 1. MAPA DE PRIORIDADES =====
                Revisao clinica do HOLOSCAN: a tela deixou de dar protagonismo
                ao Indice (bloco 6, la embaixo, rebaixado) e passa a abrir pelo
@@ -470,72 +476,67 @@
           <span class="eyebrow">2 &middot; Cinco Sistemas</span>
           <h3>Avaliação Integral do Terreno</h3>
           <p>As notas de cada sistema (0 = comprometido, 10 = muito bom) são calculadas a partir das respostas do questionário, pelo motor oficial do pacote metodológico.</p>
-          <p class="holo-nota-neutra">Os cinco sistemas são categorias de organização do mapa, não categorias de doença.</p>
+          <p class="holo-nota-neutra">Os cinco sistemas são categorias de organização do mapa, não categorias de doença. Cada nota cai numa faixa do pacote: baixa, intermediária ou alta.</p>
 
           <div class="holo-sistemas">
             <div class="holo-card" data-sistema="fungico">
               <h5>Fúngico</h5>
               <p class="holo-desc">Doce, inchaço, saburra, coceira e névoa depois do carboidrato</p>
-              <div class="holo-pattern">
-                <span class="holo-emocional">Estagnação e desordem</span>
-                <span class="holo-espiritual">Perda de vitalidade</span>
-              </div>
               <div class="holo-range-wrap">
                 <label for="holo-fungico">Nota <i class="regua-pontas">0 a 10</i></label>
                 <input type="range" min="0" max="10" value="0" id="holo-fungico">
-                <span class="holo-valor" id="val-fungico">0</span>
+              </div>
+              <div class="holo-nota-card">
+                <span class="holo-valor" id="val-fungico">—</span>
+                <span class="holo-faixa-card" id="faixa-fungico"></span>
               </div>
             </div>
             <div class="holo-card" data-sistema="inflamatorio">
               <h5>Ácido-Inflamatório</h5>
               <p class="holo-desc">Dor, rigidez ao acordar, azia e pele em crise</p>
-              <div class="holo-pattern">
-                <span class="holo-emocional">Irritação, raiva</span>
-                <span class="holo-espiritual">Bloqueio no plexo solar</span>
-              </div>
               <div class="holo-range-wrap">
                 <label for="holo-inflamatorio">Nota <i class="regua-pontas">0 a 10</i></label>
                 <input type="range" min="0" max="10" value="0" id="holo-inflamatorio">
-                <span class="holo-valor" id="val-inflamatorio">0</span>
+              </div>
+              <div class="holo-nota-card">
+                <span class="holo-valor" id="val-inflamatorio">—</span>
+                <span class="holo-faixa-card" id="faixa-inflamatorio"></span>
               </div>
             </div>
             <div class="holo-card" data-sistema="metabolico">
               <h5>Metabólico</h5>
               <p class="holo-desc">Sono depois de comer, fome que volta rápido, gordura na barriga</p>
-              <div class="holo-pattern">
-                <span class="holo-emocional">Vazio, falta de propósito</span>
-                <span class="holo-espiritual">Dessintonização do corpo</span>
-              </div>
               <div class="holo-range-wrap">
                 <label for="holo-metabolico">Nota <i class="regua-pontas">0 a 10</i></label>
                 <input type="range" min="0" max="10" value="0" id="holo-metabolico">
-                <span class="holo-valor" id="val-metabolico">0</span>
+              </div>
+              <div class="holo-nota-card">
+                <span class="holo-valor" id="val-metabolico">—</span>
+                <span class="holo-faixa-card" id="faixa-metabolico"></span>
               </div>
             </div>
             <div class="holo-card" data-sistema="detox">
               <h5>Detox + Linfático</h5>
               <p class="holo-desc">Inchaço, intestino lento, sensibilidade a cheiro e a remédio</p>
-              <div class="holo-pattern">
-                <span class="holo-emocional">Mágoas acumuladas</span>
-                <span class="holo-espiritual">Bloqueio do fluxo</span>
-              </div>
               <div class="holo-range-wrap">
                 <label for="holo-detox">Nota <i class="regua-pontas">0 a 10</i></label>
                 <input type="range" min="0" max="10" value="0" id="holo-detox">
-                <span class="holo-valor" id="val-detox">0</span>
+              </div>
+              <div class="holo-nota-card">
+                <span class="holo-valor" id="val-detox">—</span>
+                <span class="holo-faixa-card" id="faixa-detox"></span>
               </div>
             </div>
             <div class="holo-card" data-sistema="mental">
               <h5>Mental-Emocional-Espiritual</h5>
               <p class="holo-desc">Sono, ansiedade, autocrítica e o comer para acalmar</p>
-              <div class="holo-pattern">
-                <span class="holo-emocional">Desconexão de si</span>
-                <span class="holo-espiritual">Queda de frequência</span>
-              </div>
               <div class="holo-range-wrap">
                 <label for="holo-mental">Nota <i class="regua-pontas">0 a 10</i></label>
                 <input type="range" min="0" max="10" value="0" id="holo-mental">
-                <span class="holo-valor" id="val-mental">0</span>
+              </div>
+              <div class="holo-nota-card">
+                <span class="holo-valor" id="val-mental">—</span>
+                <span class="holo-faixa-card" id="faixa-mental"></span>
               </div>
             </div>
           </div>

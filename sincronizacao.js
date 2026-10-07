@@ -271,6 +271,10 @@
       if (!l || l._supa_id) return false;       // com identidade: o servidor decide
       var mesmoDia = rem.filter(function (r) { return r.quando === l.quando; });
       if (!mesmoDia.length) return true;        // so existe aqui
+      /* o mesmo calculo de uma aplicacao que o servidor ja tem (mesmas
+         respostas ou mesmas notas) nao e pendencia: e ela */
+      var A = window.HoloAusencia;
+      if (A && A.mesmaAplicacao && mesmoDia.some(function (r) { return A.mesmaAplicacao(l, r); })) return false;
       if (!l.calculado_em) return false;        // legado sem carimbo: o do servidor e ele
       return mesmoDia.every(function (r) { return (r._supa_criado_em || "") < l.calculado_em; });
     });

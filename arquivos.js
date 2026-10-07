@@ -905,6 +905,11 @@
         }
         return;
       }
+      var lancar = ev.target.closest("[data-lancar]");
+      if (lancar) {
+        if (window.Laboratorio && window.Laboratorio.lancarExame) window.Laboratorio.lancarExame(lancar.dataset.lancar, paciente());
+        return;
+      }
       var abrir = ev.target.closest("[data-abrir]");
       if (abrir) {
         window.ArquivoStore.pegar(abrir.dataset.abrir).then(function (r) {
@@ -1057,6 +1062,22 @@
       }).join("") + "</div>";
   }
 
+  /* Laudo de exame (PDF ou imagem salvo no servidor): o arquivo sozinho nao
+     alimenta a Leitura Integrada — os valores entram numa coleta. O botao abre
+     a coleta ja ligada a este documento, com o laudo ao lado (testes reais 06/10). */
+  function seloLancamento(d) {
+    if (!d._supa_id || !/pdf|image/i.test(d.mime || "") || !window.Laboratorio) return "";
+    var cs = window.Laboratorio.coletasDoDocumento ? window.Laboratorio.coletasDoDocumento(d._supa_id, paciente()) : null;
+    var selo = cs === null ? "" : cs.length
+      ? '<span class="doc-lancado" title="Valores lançados numa coleta">valores lançados</span>'
+      : '<span class="doc-nao-lancado" title="O arquivo está guardado, mas os valores ainda não foram lançados numa coleta">sem valores lançados</span>';
+    return selo + '<button type="button" class="doc-lancar" data-lancar="' + escapar(d._supa_id) + '">' + (cs && cs.length ? "lançar outra coleta" : "Lançar valores deste exame") + "</button>";
+  }
+
+  document.addEventListener("laboratorio:carregado", function (ev) {
+    if (ev.detail && ev.detail.pid === paciente() && document.getElementById("doc-lista")) listarDocumentos();
+  });
+
   function listarDocumentos() {
     var alvo = document.getElementById("doc-lista");
     if (!alvo) return;
@@ -1087,6 +1108,7 @@
               (d.data ? escapar(d.data.split("-").reverse().join("/")) : "sem data") + "</span>" +
             (d.so_local ? '<span class="doc-tipo" title="O envio ao servidor falhou: este arquivo não aparece em outro computador.">só neste dispositivo</span>' : "") +
             '<button type="button" class="doc-abrir" data-abrir="' + escapar(d.id) + '">abrir</button>' +
+            seloLancamento(d) +
             '<button type="button" class="doc-tirar" data-tirar="' + escapar(d.id) + '" data-nome="' + escapar(d.nome || "") + '" ' +
             'aria-label="Remover">&times;</button></div>';
         }).join("") + "</div>";

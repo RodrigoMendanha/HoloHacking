@@ -119,5 +119,7 @@ export const SUITES = [
   'testar-auditoria-holoscan.mjs',
   'testar-auditoria-ferramentas.mjs',
   'testar-auditoria-perfil.mjs',
+  'testar-resultado-holoscan.mjs',
+  'testar-li-guiada.mjs',
   'testar-conferir-producao.mjs',
 ];

@@ -724,14 +724,6 @@ mark{background:rgba(201,163,90,.32);color:inherit;border-radius:3px;padding:0 2
   color:var(--dourado-claro);line-height:1.2;
 }
 .holo-card .holo-desc{font-size:.72rem;color:rgba(244,239,227,.65);font-weight:300;line-height:1.5}
-.holo-card .holo-pattern{display:flex;flex-direction:column;gap:4px;margin-top:auto}
-.holo-card .holo-emocional{
-  font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;
-  color:var(--dourado);font-weight:500;
-}
-.holo-card .holo-espiritual{
-  font-size:.56rem;color:rgba(244,239,227,.45);font-weight:300;font-style:italic;
-}
 .holo-range-wrap{margin-top:10px}
 .holo-range-wrap label{
   font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;
@@ -757,6 +749,11 @@ input[type="range"]::-moz-range-thumb{
   font-family:var(--fonte-display);font-size:1.5rem;font-weight:600;
   color:var(--dourado-claro);
 }
+/* a nota do sistema, fora da regua (a regua so existe na homologacao) */
+.holo-nota-card{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:2px}
+.holo-nota-card .holo-valor{font-size:2rem;line-height:1.1}
+.holo-faixa-card{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dourado);font-weight:600}
+.holo-faixa-card:empty{display:none}
 
 .holo-resultado{
   display:grid;grid-template-columns:1fr 1fr;gap:28px;
@@ -4425,3 +4422,58 @@ tr.mh-conflito td{background:rgba(201,138,122,.08)}
    fundo claro, como o papel; cor digitada invalida fica marcada. */
 #perf-assinatura-alvo,#perf-carimbo-alvo{background:#fff}
 .perf-cor input.perf-invalido{border-color:#b4553c;box-shadow:0 0 0 2px rgba(180,85,60,.15)}
+
+/* ---------- HOLOSCAN: resultado desta aplicacao (testes reais 06/10) ---------- */
+.holo-resumo{border:1px solid rgba(201,163,90,.35);border-radius:16px;padding:24px 26px;margin:0 0 34px;background:rgba(244,239,227,.04)}
+.holo-resumo .res-meta{font-size:.82rem;opacity:.8;margin:6px 0 16px}
+.holo-resumo .res-grade{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.holo-resumo .res-tit{display:block;font-family:var(--fonte-display);font-size:1.05rem;color:var(--dourado-claro);margin:0 0 10px;font-weight:600}
+.holo-resumo .res-lista{list-style:none;margin:0 0 12px;padding:0}
+.holo-resumo .res-sis{display:grid;grid-template-columns:1fr auto 9.5em;gap:12px;align-items:baseline;padding:7px 0;border-bottom:1px solid rgba(201,163,90,.14)}
+.holo-resumo .res-nome{font-size:.9rem}
+.holo-resumo .res-nota{font-family:var(--fonte-display);font-size:1.35rem;color:var(--dourado-claro);font-weight:600}
+.holo-resumo .res-faixa{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dourado)}
+.holo-resumo .res-sem{opacity:.6}
+.holo-resumo .res-linha{font-size:.84rem;line-height:1.55;margin:6px 0}
+.holo-resumo .res-aviso{color:#d9a27a}
+.holo-resumo .res-inv{margin:10px 0 4px;font-size:.9rem}
+.holo-resumo .res-inv ul{margin:6px 0 0 18px;font-size:.82rem;opacity:.85}
+.holo-resumo .res-nota-p{color:var(--dourado);font-size:.8rem;margin-left:6px}
+.holo-resumo .res-botoes{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.holo-resumo .res-interp{margin-top:22px;padding-top:18px;border-top:1px solid rgba(201,163,90,.2)}
+.holo-resumo .res-interp textarea{width:100%;margin:8px 0 10px;min-height:96px;background:rgba(244,239,227,.06);color:inherit;border:1px solid rgba(201,163,90,.35);border-radius:10px;padding:12px;font-family:inherit;font-size:.9rem;line-height:1.5}
+.holo-resumo .res-interp textarea::placeholder{color:rgba(244,239,227,.45)}
+.holo-resumo .res-interp .btn-verde{width:auto}
+.holo-resumo .res-interp-estado{display:block;font-size:.8rem;margin-top:8px;opacity:.85}
+@media (max-width:820px){.holo-resumo .res-grade{grid-template-columns:1fr}.holo-resumo{padding:18px 16px}}
+
+/* ---------- Documentos: laudo -> coleta, e o laudo ao lado (testes reais 06/10) ---------- */
+.doc-item:has(.doc-lancar){display:flex;flex-wrap:wrap;align-items:center}
+.doc-item:has(.doc-lancar) b{flex:1;min-width:14ch}
+.doc-lancar{
+  border:1px solid var(--dourado);background:rgba(201,163,90,.12);border-radius:999px;
+  padding:5px 12px;cursor:pointer;font-family:inherit;
+  font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--realce);
+}
+.doc-lancar:hover{background:rgba(201,163,90,.24)}
+.doc-lancado,.doc-nao-lancado{font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;border-radius:999px;padding:3px 9px}
+.doc-lancado{color:var(--movimento-sobe, #3f7a52);border:1px solid currentColor}
+.doc-nao-lancado{color:#b4553c;border:1px solid currentColor}
+.lab-visor{
+  position:fixed;top:0;right:0;bottom:0;width:40vw;z-index:950;
+  display:flex;flex-direction:column;background:var(--sup-card);color:var(--texto);
+  border-left:1px solid rgba(201,163,90,.4);box-shadow:-12px 0 30px rgba(0,0,0,.18);
+}
+.lab-visor-topo{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(201,163,90,.3);font-size:.86rem}
+.lab-visor-topo b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lab-visor-topo span{display:flex;gap:6px;flex-shrink:0}
+.lab-visor-corpo{flex:1;overflow:auto}
+.lab-visor-corpo iframe{width:100%;height:100%;border:0;display:block}
+.lab-visor-corpo img{max-width:100%;display:block;margin:0 auto}
+.lab-visor-corpo .dash-vazio{padding:20px}
+@media (min-width:1101px){body.com-visor-laudo .conteudo{margin-right:40vw;max-width:none}}
+@media (max-width:1100px){.lab-visor{top:auto;left:0;width:auto;height:48vh;border-left:0;border-top:1px solid rgba(201,163,90,.4)}body.com-visor-laudo .conteudo{padding-bottom:52vh}}
+.li-guia{border:1px dashed rgba(201,163,90,.45);border-radius:12px;padding:14px 16px;margin:8px 0}
+.li-guia p{margin:4px 0 8px}
+.li-guia-botoes{display:flex;flex-wrap:wrap;gap:8px}
+.li-guia-botoes .btn-verde{width:auto;margin:0}

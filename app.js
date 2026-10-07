@@ -2896,10 +2896,96 @@
     return '<h4 class="leitura-titulo">Leitura do resultado</h4>'
       + '<p class="leitura-aviso">Textos oficiais do pacote ' + esc((r.methodology_package_code || "HOLOS-V1") + " v" + (r.methodology_package_version || "")) + '. '
       + 'Esta versão não traz padrão emocional, direção terapêutica nem conduta automática: a interpretação clínica é da nutricionista.</p>'
-      + '<div class="leitura-sistemas">' + linhas + '</div>'
-      + '<h4 class="leitura-titulo">Por onde começar</h4>'
-      + '<p class="leitura-aviso">As sugestões de ferramenta herdadas do app anterior estão desativadas até serem validadas pelo método. A escolha da conduta é da nutricionista.</p>';
+      + '<div class="leitura-sistemas">' + linhas + '</div>';
   }
+
+  /* RESULTADO DESTA APLICACAO (testes reais 06/10): a tela tinha os numeros
+     espalhados em seis blocos e nenhum lugar dizia "o resultado e este".
+     Este quadro so REORGANIZA o que o pacote aprovado ja entrega — nota,
+     faixa, Triade, cobertura e os sinais que mais pesaram (aritmetica das
+     respostas). Nao escreve conclusao clinica: o pacote HOLOS-V1@2 nao tem
+     texto de conclusao aprovado, e inventar um seria regra clinica nova
+     (Decisoes 3, 156, 158). A interpretacao e da nutricionista, e o campo
+     dela fica aqui mesmo. "Por onde investigar" substitui o antigo "Por onde
+     comecar" (sugestoes de ferramenta continuam desligadas, Decisao 65). */
+  function desenharResumo(r){
+    const caixa = $("#holo-resumo");
+    if(!caixa) return;
+    if(!r || !Array.isArray(r.sistemas) || r.avaliavel === false && !r.sistemas.some(s => s.avaliavel)){
+      caixa.classList.add("hidden"); caixa.innerHTML = ""; return;
+    }
+    const esc = window.escapar, A = window.HoloAusencia;
+    const ord = r.sistemas.slice().sort(A.porLeitura);
+    const comNota = ord.filter(s => !A.semNota(s));
+    const semNota = ord.filter(s => A.semNota(s));
+    const cob = r.cobertura || {};
+    const quando = r.quando || hojeISO();          // calculo recem-feito ainda nao tem data
+    const dataTxt = quando.split("-").reverse().join("/");
+    const linhas = ord.map(s => {
+      const sem = A.semNota(s);
+      return '<li class="res-sis' + (sem ? ' res-sem' : '') + '"><span class="res-nome">' + esc(s.nome || s.sistema) + '</span>'
+        + '<span class="res-nota">' + (sem ? "—" : esc(A.notaTexto(s))) + '</span>'
+        + '<span class="res-faixa">' + (sem ? "sem dado suficiente" : s.faixa ? "faixa " + esc(window.rotuloExibivel(s.faixa)) : "") + '</span></li>';
+    }).join("");
+
+    // Triade: so diz qual dimensao ficou mais baixa, como o bloco da Triade
+    let triTxt = "";
+    if(r.triada){
+      const vals = EIXOS_TRIADA.filter(e => typeof r.triada[e[0]] === "number" && !(r.triada_com_dado && r.triada_com_dado[e[0]] === false));
+      if(vals.length){
+        const min = vals.reduce((a, b) => r.triada[b[0]] < r.triada[a[0]] ? b : a);
+        triTxt = '<p class="res-linha"><b>Tríade:</b> ' + vals.map(e => esc(e[1]) + " " + esc(A.fmt(r.triada[e[0]]))).join(" · ")
+          + (vals.length > 1 ? ' — dimensão mais baixa: <b>' + esc(min[1]) + '</b>.' : '') + '</p>';
+      }
+    }
+    const investigar = comNota.slice(0, 2).map(s => {
+      const dom = (s.dominantes || []).slice(0, 3).map(d => "<li>" + esc(d.rotulo || d.marcador_id) + "</li>").join("");
+      return '<div class="res-inv"><b>' + esc(s.nome || s.sistema) + '</b> <span class="res-nota-p">' + esc(A.notaTexto(s))
+        + (s.faixa ? ' · faixa ' + esc(window.rotuloExibivel(s.faixa)) : '') + '</span>'
+        + (dom ? '<ul>' + dom + '</ul>' : '') + '</div>';
+    }).join("");
+
+    const interp = window.interpretacaoDe ? window.interpretacaoDe(quando) : null;
+    caixa.innerHTML =
+      '<span class="eyebrow">Resultado desta aplicação</span>'
+      + '<p class="res-meta">' + "Aplicação de " + esc(dataTxt) + " · "
+      + (typeof cob.respondidos === "number" ? esc(cob.respondidos + " de " + cob.total) + " perguntas respondidas" : "")
+      + (window.Metodologia && window.Metodologia.seloAplicacao ? " " + window.Metodologia.seloAplicacao(r) : "") + '</p>'
+      + '<div class="res-grade"><div><h4 class="res-tit">Os cinco sistemas, do mais baixo ao mais alto</h4><ul class="res-lista">' + linhas + '</ul>'
+      + triTxt
+      + (semNota.length ? '<p class="res-linha res-aviso">Sem nota (menos de 80% das perguntas do sistema respondidas): ' + semNota.map(s => esc(s.nome || s.sistema)).join(", ") + '.</p>' : '')
+      + '</div><div><h4 class="res-tit">Por onde investigar</h4>'
+      + (investigar ? '<p class="res-linha">Os sistemas de nota mais baixa e os sinais que mais pesaram neles. É a aritmética das respostas — não é diagnóstico nem conduta.</p>' + investigar
+                    : '<p class="res-linha">Nenhum sistema com nota nesta aplicação.</p>')
+      + '<div class="res-botoes"><button type="button" class="btn-borda-ouro" data-res-ir="confronto">Leitura Integrada &rarr;</button>'
+      + '<button type="button" class="btn-borda-ouro" data-res-ir="conduta">Conduta &rarr;</button></div></div></div>'
+      + '<div class="res-interp"><label for="res-interp-texto" class="res-tit">Sua interpretação</label>'
+      + '<p class="res-linha">A leitura clínica desta aplicação é sua. Ela fica guardada junto do HOLOSCAN e vai para o relatório.</p>'
+      + '<textarea id="res-interp-texto" rows="4" placeholder="O que este mapa mostra para você, o que investigar, o que conversar com a pessoa…">' + esc(interp && interp.texto || "") + '</textarea>'
+      + '<button type="button" class="btn-verde" id="res-interp-salvar">Salvar interpretação</button>'
+      + '<span class="res-interp-estado" id="res-interp-estado"></span></div>';
+    caixa.classList.remove("hidden");
+
+    caixa.querySelectorAll("[data-res-ir]").forEach(b => b.addEventListener("click", () => {
+      if(b.dataset.resIr === "confronto") irPara("confronto");
+      else levarPara("aba:conduta", estado.ativo);
+    }));
+    const bSalvar = $("#res-interp-salvar");
+    bSalvar.addEventListener("click", async () => {
+      const txt = $("#res-interp-texto").value.trim();
+      const est = $("#res-interp-estado");
+      if(!txt){ toast("Escreva a interpretação antes de salvar."); return; }
+      const g = window.guardarInterpretacao ? window.guardarInterpretacao(txt, quando) : false;
+      if(!g){ toast("Não há aplicação guardada onde prender a interpretação."); return; }
+      const destino = await g.remoto;
+      const msg = destino === "sincronizado" ? "Interpretação salva no servidor."
+        : destino === "pendente" ? "Interpretação guardada neste aparelho; ela vai para o servidor junto com o HOLOSCAN quando você salvá-lo."
+        : destino === "local" ? "Interpretação guardada neste aparelho."
+        : MSG_NAO_SINCRONIZADO;
+      est.textContent = msg; toast(msg);
+    });
+  }
+  window.desenharResumoHoloscan = desenharResumo;
 
   function lerTerreno(scores, pronta){
     const caixa = $("#holo-leitura");
@@ -3159,6 +3245,20 @@
     delete nova._supa_id;
     delete nova._supa_criado_em;
     if(!tudo[id]) tudo[id] = [];
+    /* Gerar o mapa de novo com as MESMAS respostas de uma aplicacao ja salva
+       hoje nao e uma aplicacao nova: antes virava uma entrada pendente ao
+       lado da salva, e a tela passava a dizer "nao salvo no servidor" sobre
+       um HOLOSCAN que estava salvo (o Salvar recusava a duplicata e o aviso
+       ficava para sempre). Agora o calculo repetido e a propria salva. */
+    const jaSalva = tudo[id].find(x => x._supa_id && x.quando === hoje && window.HoloAusencia.mesmaAplicacao(x, nova));
+    if(jaSalva){
+      tudo[id] = tudo[id].filter(x => !(x.quando === hoje && !x._supa_id && window.HoloAusencia.mesmaAplicacao(x, nova)));
+      localStorage.setItem("holohacking.pontuacao", JSON.stringify(tudo));
+      r._supa_id = jaSalva._supa_id;
+      r.calculado_em = jaSalva.calculado_em || null;
+      return;
+    }
+    r.calculado_em = nova.calculado_em;   // e por ele que o Salvar acha esta entrada
     /* reaplicar no mesmo dia substitui, em vez de criar duas do mesmo dia —
        mas so substitui o que ainda NAO foi salvo no servidor. Uma aplicacao
        com _supa_id e um registro remoto proprio: dois HOLOSCAN salvos no
@@ -3309,13 +3409,19 @@
       el.disabled = true;                       // virou resultado, nao entrada
       el.closest(".holo-card").classList.add("calculado");
       el.closest(".holo-card").classList.toggle("sem-dado", !!vazio);
-      $("#val-" + s).textContent = vazio ? "—"
-        : window.HoloAusencia.notaTexto(r.sistemas.find(x => x.sistema === ORDEM_MOTOR[i]));
+      const sis = r.sistemas.find(x => x.sistema === ORDEM_MOTOR[i]);
+      $("#val-" + s).textContent = vazio ? "—" : window.HoloAusencia.notaTexto(sis);
+      // a nota mora fora da regua (que fica escondida fora da homologacao):
+      // antes ela sumia junto e o cartao nao mostrava numero nenhum
+      const fx = $("#faixa-" + s);
+      if(fx) fx.textContent = vazio ? "sem dado suficiente"
+        : (sis && sis.faixa ? "faixa " + window.rotuloExibivel(sis.faixa) : "");
     });
 
     updateRadar(notas, r);                      // desenha com o decimal, nao com o arredondado
     desenharPrioridades(r);
     desenharDominantes(r);
+    desenharResumo(r);
     desenharTriada(r.triada, r.triada_com_dado, r.triada_exibicao);
     desenharFrequencias(r.frequencias);
     desenharTerritorios(r.territorios);
@@ -3369,6 +3475,7 @@
       $("#holo-origem").textContent = "";
       desenharPrioridades(null);
       desenharDominantes(null);
+      desenharResumo(null);
       desenharTriada(null);   // pontuando a mao nao ha Triada: ela vem das respostas
       desenharFrequencias(null);
       desenharTerritorios(null);
@@ -3594,6 +3701,7 @@
     desenharTerritorios(null);
     desenharPrioridades(null);
     desenharDominantes(null);
+    desenharResumo(null);
     const origem = $("#holo-origem");
     if(origem) origem.innerHTML = "";
     const total = $("#holo-score-total");
@@ -3626,8 +3734,10 @@
       // paciente seguinte nao podia ser pontuado a mao.
       el.disabled = false;
       el.closest(".holo-card").classList.remove("calculado", "sem-dado");
-      $("#val-" + sistemas[i]).textContent = Number.isInteger(vals[i])
-        ? String(vals[i]) : vals[i].toFixed(1);
+      // fora da homologacao nao ha regua: paciente sem mapa mostra traco, nao 0
+      $("#val-" + sistemas[i]).textContent = !(window.Metodologia && window.Metodologia.modoHomologacao()) ? "—"
+        : Number.isInteger(vals[i]) ? String(vals[i]) : vals[i].toFixed(1);
+      const fx = $("#faixa-" + sistemas[i]); if(fx) fx.textContent = "";
     });
     updateRadar(vals);
   }
@@ -3748,11 +3858,18 @@
       /* Correcao (auditoria): duas aplicacoes identicas salvas no mesmo dia
          (mesmas respostas) eram duplicata. Se ja ha uma aplicacao salva hoje
          com exatamente as mesmas respostas, nao grava de novo. */
-      const assin = o => JSON.stringify(Object.keys(o || {}).sort().map(k => [k, o[k]]));
-      const jaSalvaIgual = (lerHistorico()[p.id] || []).some(x => x._supa_id && x.quando === hoje &&
-        x.respostas && assin(x.respostas) === assin(r.respostas));
+      const histHoje = lerHistorico();
+      const jaSalvaIgual = (histHoje[p.id] || []).find(x => x._supa_id && x.quando === hoje &&
+        window.HoloAusencia.mesmaAplicacao(x, r));
       if (jaSalvaIgual) {
-        toast("Já existe uma aplicação salva hoje com exatamente estas respostas. Nada foi gravado de novo.");
+        /* nada a gravar — e a tela tambem nao pode continuar dizendo "nao
+           salvo": o calculo na tela E a aplicacao salva */
+        r._supa_id = jaSalvaIgual._supa_id;
+        histHoje[p.id] = histHoje[p.id].filter(x => !(x.quando === hoje && !x._supa_id && window.HoloAusencia.mesmaAplicacao(x, r)));
+        localStorage.setItem("holohacking.pontuacao", JSON.stringify(histHoje));
+        document.querySelectorAll("#secao-holoscan .selo-nao-salvo").forEach(x => x.remove());
+        renderPacientes();
+        toast("Esta aplicação já estava salva no servidor (mesmas respostas). Nada foi gravado de novo.");
         return;
       }
 
@@ -3808,7 +3925,11 @@
         var hist = lerHistorico();
         var entradas = hist[p.id] || [];
         var alvoLocal = null;
-        for (var ie = entradas.length - 1; ie >= 0; ie--) {
+        /* primeiro a entrada que gerou o resultado na tela (pelo instante do
+           calculo): se o mapa foi gerado ontem e salvo hoje, "a de hoje" nao
+           existe e a entrada calculada ficava pendente para sempre */
+        if (r.calculado_em) alvoLocal = entradas.find(x => !x._supa_id && x.calculado_em === r.calculado_em) || null;
+        for (var ie = entradas.length - 1; !alvoLocal && ie >= 0; ie--) {
           if (entradas[ie].quando === hoje && !entradas[ie]._supa_id) { alvoLocal = entradas[ie]; break; }
         }
         if (alvoLocal) {

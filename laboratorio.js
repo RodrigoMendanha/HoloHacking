@@ -48,11 +48,16 @@
     /* monta num objeto LOCAL e so troca `dados` no fim: duas cargas concorrentes nunca
        escrevem no mesmo objeto (nem duplicam resultados) */
     var d = { pid: pid, coletas: [], resultados: {}, componentes: {}, customizados: [], documentos: [], pacoteLI: null, pacotesLI: [], leituras: [], aplicacoes: [], erro: null };
-    var publicar = function () { if (dados.pid === pid || !dados.pid) dados = d; return dados; };
+    var publicar = function () {
+      if (dados.pid === pid || !dados.pid) dados = d;
+      /* a lista de documentos mostra quais laudos ja tem valores lancados */
+      try { document.dispatchEvent(new CustomEvent("laboratorio:carregado", { detail: { pid: pid } })); } catch (e) { /* sem evento, sem selo */ }
+      return dados;
+    };
     return Promise.all([
       Promise.resolve(sb().from("lab_collections").select("*").eq("patient_id", pid)),
       Promise.resolve(sb().from("lab_custom_exams").select("*").eq("status", "ativo")),
-      Promise.resolve(sb().from("documents").select("id, nome, tipo, data_documento").eq("patient_id", pid)),
+      Promise.resolve(sb().from("documents").select("id, nome, tipo, data_documento, mime_type").eq("patient_id", pid)),
       Promise.resolve(sb().from("integrated_reading_rule_packages").select("*").eq("code", "LI-V1")),
       Promise.resolve(sb().from("integrated_readings").select("*").eq("patient_id", pid)),
       /* as aplicacoes HOLOSCAN so sao lidas quando a Leitura Integrada e desenhada (carregarAplicacoes):
@@ -147,14 +152,68 @@
     l.components = (dados.componentes[r.id] || []).map(function (k) { return { original_name: k.original_name, value_original_text: k.value_original_text, unit_original: k.unit_original || "", report_reference_text: k.report_reference_text || "" }; });
     return l;
   }
-  function abrirNova() { editor = { modo: "nova", coleta: null, linhas: [], estadoSalvo: temSupa() ? "" : "local", data: "", hora: "", laboratorio: "", notas: "", documento: "", vincular: false }; desenhar(); }
+  function abrirNova(doc) {
+    editor = { modo: "nova", coleta: null, linhas: [], estadoSalvo: temSupa() ? "" : "local", data: doc && doc.data_documento || "", hora: "", laboratorio: "", notas: "", documento: doc && doc.id || "", vincular: false };
+    desenhar();
+    if (doc && doc.id) abrirVisor(doc.id);
+  }
+  function fecharVisor() {
+    var v = document.getElementById("lab-visor"); if (v) { var u = v.dataset.url; v.remove(); if (u) setTimeout(function () { URL.revokeObjectURL(u); }, 1000); }
+    document.body.classList.remove("com-visor-laudo");
+  }
+  /* "Lancar valores deste exame" (testes reais 06/10): o laudo aparece AO LADO
+     do formulario enquanto se digita. Painel fixo fora de #lab-corpo, para nao
+     recarregar o PDF a cada redesenho do editor. So mostra o arquivo: nada e
+     lido de dentro dele (a leitura automatica e a fase 2, com revisao humana). */
+  function abrirVisor(docId) {
+    if (!docId || !window.ArquivoStore) return;
+    var v = document.getElementById("lab-visor");
+    if (v && v.dataset.doc === docId) return;
+    fecharVisor();
+    var d = dados.documentos.filter(function (x) { return x.id === docId; })[0] || {};
+    v = document.createElement("aside");
+    v.id = "lab-visor"; v.className = "lab-visor"; v.dataset.doc = docId;
+    v.setAttribute("aria-label", "Laudo ao lado");
+    v.innerHTML = '<div class="lab-visor-topo"><b>' + escapar(d.nome || "Laudo") + '</b><span><button type="button" class="btn-fantasma" data-visor="aba">Abrir em nova aba</button> <button type="button" class="btn-fantasma" data-visor="fechar">Fechar</button></span></div><div class="lab-visor-corpo"><p class="dash-vazio">Carregando o laudo…</p></div>';
+    document.body.appendChild(v);
+    document.body.classList.add("com-visor-laudo");
+    v.querySelector('[data-visor="fechar"]').addEventListener("click", fecharVisor);
+    v.querySelector('[data-visor="aba"]').addEventListener("click", function () { if (v.dataset.url) window.open(v.dataset.url, "_blank"); });
+    window.ArquivoStore.pegar("supa:" + docId).then(function (r) {
+      var corpo = v.querySelector(".lab-visor-corpo"); if (!corpo || !document.body.contains(v)) return;
+      if (!r || !r.arquivo) { corpo.innerHTML = '<p class="dash-vazio">Não foi possível abrir este arquivo.</p>'; return; }
+      var url = URL.createObjectURL(r.arquivo), mime = String(r.mime || r.arquivo.type || "").toLowerCase();
+      v.dataset.url = url;
+      if (/pdf/.test(mime)) corpo.innerHTML = '<iframe title="Laudo" src="' + url + '"></iframe>';
+      else if (/^image\/(png|jpe?g|webp|gif)/.test(mime)) corpo.innerHTML = '<img alt="Laudo" src="' + url + '">';
+      else corpo.innerHTML = '<p class="dash-vazio">Este tipo de arquivo não abre aqui. Use "Abrir em nova aba".</p>';
+    }).catch(function () { var corpo = v.querySelector(".lab-visor-corpo"); if (corpo) corpo.innerHTML = '<p class="dash-vazio">Não foi possível abrir este arquivo.</p>'; });
+  }
+  /** Entrada de outras telas: abre a ficha do paciente na aba Documentos com uma coleta
+      nova — ligada ao documento, quando ele e informado. */
+  var pendente = null;
+  function lancarExame(docId, pid) {
+    pendente = { doc: docId || "" };
+    var alvoPid = pid || paciente();
+    if (window.levarParaFicha && !(document.getElementById("lab-corpo") && document.getElementById("lab-corpo").offsetParent)) window.levarParaFicha("aba:documentos", alvoPid);
+    else desenhar();
+  }
+  function aplicarPendente() {
+    if (!pendente) return false;
+    var p = pendente; pendente = null;
+    var doc = p.doc ? dados.documentos.filter(function (x) { return x.id === p.doc; })[0] : null;
+    abrirNova(doc || null);
+    /* a aba acabou de abrir (com transicao): rola depois que ela assenta */
+    setTimeout(function () { var ed = document.getElementById("lab-editor"); if (ed && ed.scrollIntoView) ed.scrollIntoView({ block: "start", behavior: "smooth" }); }, 350);
+    return true;
+  }
   function abrirEditar(id) {
     var c = dados.coletas.filter(function (x) { return x.id === id; })[0]; if (!c) return;
     var consolidada = c.state !== "rascunho";
     editor = { modo: consolidada ? "revisar" : "editar", coleta: c, linhas: (dados.resultados[c.id] || []).filter(function (r) { return !r.exame_id; }).map(linhaDeResultado), estadoSalvo: "", data: c.coletado_em || "", hora: c.clinical_time ? String(c.clinical_time).slice(0, 5) : "", laboratorio: c.laboratorio || "", notas: c.observacao || "", documento: c.document_id || "", vincular: !!c.encounter_id, motivo: "" };
     desenhar();
   }
-  function fechar() { editor = null; desenhar(); }
+  function fechar() { editor = null; fecharVisor(); desenhar(); }
   /** "Usar estrutura da coleta anterior": copia SO quais exames/variantes/materiais/metodos; nunca valores, referencias, observacoes ou datas. */
   function usarEstrutura(id) {
     if (!editor) return;
@@ -234,7 +293,7 @@
       return Promise.all([carregar(pid), sincronizarCopias(pid)]).then(function () {
         if (pid !== paciente()) return true;
         if (state === "rascunho") { editor = null; abrirEditar(id); mostrarEstado("salvo"); }
-        else { editor = null; desenhar(); var el = document.getElementById("lab-aviso"); if (el) el.textContent = "Coleta " + (r.data.revision ? "revisada (versão " + r.data.revision + ")" : "salva") + " no servidor."; }
+        else { editor = null; fecharVisor(); desenhar(); var el = document.getElementById("lab-aviso"); if (el) el.textContent = "Coleta " + (r.data.revision ? "revisada (versão " + r.data.revision + ")" : "salva") + " no servidor."; }
         if (window.desenharHoloscanLaboratorial) window.desenharHoloscanLaboratorial();
         if (window.Timeline && window.Timeline.invalidar) window.Timeline.invalidar();
         return true;
@@ -347,6 +406,7 @@
     var alvo = document.getElementById("lab-corpo"); if (!alvo) return;
     var pid = paciente();
     if (dados.pid !== pid) { carregar(pid).then(desenhar); alvo.innerHTML = '<p class="dash-vazio">Carregando coletas…</p>'; return; }
+    if (pendente) { aplicarPendente(); return; }
     var html = '<div class="lab-topo"><p class="arq-sub">Catálogo-base de <b>45 exames</b> (nenhum obrigatório), exames customizados, variante, método, material, valor exatamente como no laudo e <b>referência do próprio laudo</b>. Exames <b>não alteram</b> o HOLOSCAN. Não existe nota ou score laboratorial.</p>' +
       (!temSupa() ? '<p class="dash-sub">Sem conta ativa: as coletas V1 ficam no servidor; entre na sua conta para registrar.</p>' : "") +
       (dados.erro ? '<p class="q-erro">Não foi possível ler as coletas do servidor agora.</p>' : "") +
@@ -376,6 +436,7 @@
     el.querySelectorAll("[data-lab-remover]").forEach(function (b) { b.addEventListener("click", function () { colher(); editor.linhas = editor.linhas.filter(function (l) { return l.chave !== b.dataset.labRemover; }); editor.estadoSalvo = temSupa() ? "nao_salvo" : "local"; desenhar(); }); });
     el.querySelectorAll("[data-lab-comp-add]").forEach(function (b) { b.addEventListener("click", function () { colher(); var l = editor.linhas.filter(function (x) { return x.chave === b.dataset.labCompAdd; })[0]; if (l) l.components.push({ original_name: "", value_original_text: "", unit_original: "", report_reference_text: "" }); desenhar(); }); });
     var busca = el.querySelector("#lab-busca"); if (busca) busca.addEventListener("input", function () { colher(); filtro.texto = busca.value; var c = document.getElementById("lab-catalogo"); if (c) { c.outerHTML = htmlBusca().split('<div class="lab-catalogo"')[1] ? '<div class="lab-catalogo"' + htmlBusca().split('<div class="lab-catalogo"')[1].split('<div class="lab-custom-novo">')[0] : c.outerHTML; ligarCatalogo(el); } });
+    var docSel = el.querySelector("#lab-documento"); if (docSel) docSel.addEventListener("change", function () { if (editor) editor.documento = docSel.value; if (docSel.value) abrirVisor(docSel.value); else fecharVisor(); });
     var catg = el.querySelector("#lab-categoria"); if (catg) catg.addEventListener("change", function () { colher(); filtro.categoria = catg.value; desenhar(); });
     el.querySelectorAll("#lab-linhas input").forEach(function (i) { i.addEventListener("input", function () { if (editor && editor.estadoSalvo !== "salvando") mostrarEstado(temSupa() ? "nao_salvo" : "local"); if (i.dataset.labCampo === "value_original_text") { var row = i.closest(".lab-linha"), v = motor().interpretarValor(i.value), s = row.querySelector(".lab-interp"); if (s) s.textContent = v.kind === "numeric" ? "numérico " + v.numeric_value : v.kind === "censored" ? "censurado (" + v.qualifier + (v.censor_limit !== null ? " " + v.censor_limit : "") + ")" : v.kind === "qualitative" ? "qualitativo" : ""; } }); });
   }
@@ -498,9 +559,14 @@
     /* aplicacao incompleta / nao avaliavel aparece desabilitada (nao entra na leitura) */
     var incompleta = function (a) { return a.avaliavel === false || (a.cobertura && typeof a.cobertura.respondidos === "number" && a.cobertura.respondidos < a.cobertura.total); };
     var mesmoDia = {}; dados.aplicacoes.forEach(function (a) { mesmoDia[a.quando] = (mesmoDia[a.quando] || 0) + 1; });
+    /* so coleta CONSOLIDADA entra (DECISAO-04): rascunho e extracao ainda nao conferida ficam fora */
+    var elegiveis = dados.coletas.filter(elegivelLI);
+    var rascunhos = dados.coletas.filter(function (c) { return atual(c) && !elegivelLI(c); }).length;
+    Object.keys(li.coletas).forEach(function (k) { if (!elegiveis.some(function (c) { return c.id === k; })) delete li.coletas[k]; });
     var podeCalcular = !!li.app && Object.keys(li.coletas).some(function (k) { return li.coletas[k]; });
     var sel = '<div class="li-selecao"><label class="evo-campo"><span>Aplicação HOLOSCAN</span><select id="li-app"><option value="">— escolher —</option>' + dados.aplicacoes.map(function (a) { var inc = incompleta(a); return '<option value="' + escapar(a.id) + '"' + (li.app === a.id ? " selected" : "") + (inc && li.app !== a.id ? " disabled" : "") + ">" + escapar(dataBR(a.quando)) + (a.created_at && mesmoDia[a.quando] > 1 ? " · registrada em " + escapar(quandoLocal(a.created_at)) : "") + (a.cobertura && typeof a.cobertura.respondidos === "number" ? " · " + a.cobertura.respondidos + " de " + a.cobertura.total + " respostas" : "") + (inc ? " · incompleta, não avaliável" : "") + (a.methodology_package_id ? "" : " · histórica, sem pacote V1") + "</option>"; }).join("") + "</select></label>" +
-      '<div class="li-coletas"><span>Coletas de exames (escolha quais entram; a ordem é pela proximidade da data do HOLOSCAN)</span>' + (dados.coletas.filter(atual).length ? ordenarPorProximidade(dados.coletas.filter(atual)).map(function (c) { return '<label><input type="checkbox" data-li-coleta="' + escapar(c.id) + '"' + (li.coletas[c.id] ? " checked" : "") + "> " + escapar(rotuloColeta(c)) + " · " + (dados.resultados[c.id] || []).length + " resultado(s)" + deltaTexto(c) + "</label>"; }).join("") : '<p class="dash-vazio">Nenhuma coleta registrada.</p>') + "</div>" +
+      '<div class="li-coletas"><span>Coletas de exames (escolha quais entram; a ordem é pela proximidade da data do HOLOSCAN)</span>' + (elegiveis.length ? ordenarPorProximidade(elegiveis).map(function (c) { return '<label><input type="checkbox" data-li-coleta="' + escapar(c.id) + '"' + (li.coletas[c.id] ? " checked" : "") + "> " + escapar(rotuloColeta(c)) + " · " + (dados.resultados[c.id] || []).length + " resultado(s)" + deltaTexto(c) + "</label>"; }).join("") : guiaSemColeta()) +
+      (rascunhos ? '<p class="dash-sub">' + rascunhos + (rascunhos === 1 ? " coleta em rascunho não aparece aqui" : " coletas em rascunho não aparecem aqui") + ': salve a coleta para ela entrar na leitura.</p>' : "") + "</div>" +
       '<button type="button" class="btn-fantasma" data-li-acao="calcular"' + (podeCalcular ? "" : ' disabled title="Escolha uma aplicação HOLOSCAN e ao menos uma coleta"') + ">Calcular leitura</button></div>";
     var r = li.resultado, saida = "";
     if (r) {
@@ -514,6 +580,18 @@
     }
     var salvas = dados.leituras.length ? '<div class="dash-bloco dash-bloco-compacto"><h3 class="dash-titulo">Leituras salvas (snapshot congelado; nova coleta não as altera)</h3><ul class="dash-pendentes">' + dados.leituras.map(function (x) { return "<li>" + escapar(quandoLocal(x.created_at)) + (x.domain_code ? " · " + escapar(nomeDominio(x.domain_code)) : "") + " · <b>" + escapar(ROTULO_ESTADO[x.state] || x.state) + "</b>" + (x.holoscan_direction ? " · HOLOSCAN " + escapar(L.ROTULO_DIRECAO[x.holoscan_direction] || x.holoscan_direction) + " × lab " + escapar(L.ROTULO_DIRECAO[x.laboratory_direction] || x.laboratory_direction || "—") : "") + " · rev " + x.revision + (x.superseded_at ? " (substituída)" : "") + " · " + escapar(x.responsible) + (x.professional_note ? " — " + escapar(x.professional_note) : "") + (x.snapshot && x.snapshot.excluded && x.snapshot.excluded.length ? " · excluídos: " + x.snapshot.excluded.map(function (e) { return escapar(nomeCodigo(e.exam_code) + " (" + (L.motivoHumano(pk, e.reason) || e.reason) + ")"); }).join(", ") : "") + "</li>"; }).join("") + "</ul></div>" : "";
     return aviso + cab + sel + saida + salvas;
+  }
+  function elegivelLI(c) { return atual(c) && c.state !== "rascunho" && c.source !== "extracted_draft"; }
+  /* Leitura Integrada sem exame (testes reais 06/10): sem coleta nao ha o que comparar.
+     Em vez de "Nenhuma coleta registrada" e um botao travado, a tela diz isso e leva
+     para o lancamento — com atalho para os laudos ja enviados que ainda nao tem coleta. */
+  function guiaSemColeta() {
+    var usados = {}; dados.coletas.forEach(function (c) { if (c.document_id) usados[c.document_id] = true; });
+    var semColeta = dados.documentos.filter(function (d) { return !usados[d.id] && /pdf|image/i.test(d.mime_type || "") ; });
+    return '<div class="li-guia"><p><b>Este paciente ainda não tem exame lançado.</b> A Leitura Integrada compara o HOLOSCAN com os valores dos exames de laboratório: sem uma coleta salva, não há o que comparar.</p>' +
+      '<p class="dash-sub">Enviar o PDF só guarda o arquivo. Os valores precisam ser lançados numa coleta (o laudo abre ao lado enquanto você digita).</p>' +
+      '<p class="li-guia-botoes"><button type="button" class="btn-verde" data-li-lancar="">Lançar exame</button>' +
+      semColeta.map(function (d) { return ' <button type="button" class="btn-fantasma" data-li-lancar="' + escapar(d.id) + '">Lançar valores de ' + escapar(d.nome) + "</button>"; }).join("") + "</p></div>";
   }
   function nomeDominio(cod) { var pk = pacoteReal(), d = (pk.domains || []).filter(function (x) { return x.code === cod || x.domain_code === cod; })[0]; return d ? (d.name || d.domain_name || cod) : cod; }
   function appSelecionada() { return dados.aplicacoes.filter(function (a) { return a.id === li.app; })[0] || null; }
@@ -543,6 +621,7 @@
       alvo.querySelectorAll("[data-li-coleta]").forEach(function (cb) { cb.addEventListener("change", function () { li.coletas[cb.dataset.liColeta] = cb.checked; atualizarCalcular(); }); });
       alvo.querySelectorAll("[data-li-result]").forEach(function (cb) { cb.addEventListener("change", function () { li.selecionados[cb.dataset.liResult] = cb.checked; }); });
       alvo.querySelectorAll("[data-li-acao]").forEach(function (b) { b.addEventListener("click", function () { if (b.dataset.liAcao === "calcular") calcularLI().then(function () { desenharLI(true); }); }); });
+      alvo.querySelectorAll("[data-li-lancar]").forEach(function (b) { b.addEventListener("click", function () { lancarExame(b.dataset.liLancar, pid); }); });
       alvo.querySelectorAll("[data-li-salvar]").forEach(function (b) { b.addEventListener("click", function () { salvarLI(alvo, b.dataset.liSalvar); }); });
     });
   }
@@ -571,6 +650,9 @@
     desenhar: desenharRecarregando, redesenhar: desenhar, carregar: carregar, dados: function () { return dados; }, esquecer: function () { limpar(null); editor = null; li = { app: "", coletas: {}, resultado: null, selecionados: {}, holoscan: null }; },
     nomeExame: nomeExame, identidadeTexto: identidadeTexto, referenciaDoLaudo: referenciaDoLaudo, classificar: classificar, textoClassificacao: textoClassificacao, rotuloColeta: rotuloColeta, ordemClinica: ordemClinica,
     desenharLeituraIntegrada: desenharLeituraIntegrada, calcularLeituraIntegrada: calcularLI, pacoteReal: pacoteReal,
+    lancarExame: lancarExame, fecharVisor: fecharVisor,
+    /** coletas atuais ligadas a um documento (para o selo na lista de documentos); null se ainda nao carregou */
+    coletasDoDocumento: function (docId, pid) { if (!dados.pid || dados.pid !== (pid || paciente())) return null; return dados.coletas.filter(function (c) { return atual(c) && c.document_id === docId; }); },
     /** Para a Evolucao: compara dois resultados V1 pelo LabMotor (compatibilidade verificada; delta so quando compativel). */
     comparar: function (a, b) { return motor().comparar(a, b, { conversoes: [] }); }
   };

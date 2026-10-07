@@ -179,7 +179,10 @@ ok(srv.linhas('holoscan_applications').filter(x => x.patient_id === PD).length =
    'com o atendimento, salva no servidor; o aviso e a pendencia somem: ' + msgD2.slice(0, 60) + ' / ' + depD.alertas.join(',') + ' / ' + /não salvo/.test(depD.interp));
 await responderEGerar(PD);
 const msgD3 = await salvar();
-ok(srv.linhas('holoscan_applications').filter(x => x.patient_id === PD).length === 1 && /exatamente estas respostas/.test(msgD3),
+// Ajuste (testes reais 06/10): gerar de novo com as mesmas respostas de uma
+// aplicacao ja salva hoje passou a SER a aplicacao salva (sem entrada pendente
+// e sem selo "nao salvo"), entao o Salvar diz que ja esta salvo.
+ok(srv.linhas('holoscan_applications').filter(x => x.patient_id === PD).length === 1 && /já está salvo|já estava salva/.test(msgD3),
    'mesmas respostas no mesmo dia: nao grava duplicata (' + msgD3.slice(0, 80) + ')');
 ok(srv.linhas('holoscan_applications').length === appsAntes + 1, 'so uma aplicacao nova no servidor');
 
