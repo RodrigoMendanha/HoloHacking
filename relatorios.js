@@ -182,6 +182,16 @@
   function bloco(titulo, corpo) { return corpo ? '<section class="rel-secao"><h4>' + escapar(titulo) + "</h4>" + corpo + "</section>" : ""; }
   function lista(itens) { return itens && itens.length ? '<ul class="rel-lista">' + itens.join("") + "</ul>" : ""; }
 
+  /* teste real 07/10: a referencia do laudo vai no snapshot, mas nao era desenhada */
+  function refLaudo(r2) {
+    if (!("referencia_laudo" in r2)) return "";
+    var f = r2.referencia_laudo;
+    if (!f) return ' <span class="rel-ref">(referência do laudo não informada)</span>';
+    var num = function (v) { return v === null || v === undefined || v === "" ? null : String(v).replace(".", ","); };
+    var t = f.texto || (num(f.min) && num(f.max) ? num(f.min) + " a " + num(f.max) : num(f.max) ? "até " + num(f.max) : num(f.min) ? "≥ " + num(f.min) : "");
+    return t ? ' <span class="rel-ref">(referência do laudo: ' + escapar(t) + (f.unidade && !f.texto ? " " + escapar(f.unidade) : "") + ")</span>" : "";
+  }
+
   function snapshotHtml(r) {
     var c = (r && r.content_snapshot) || {}, Cd = window.Conduta, An = window.Anamnese;
     var cab = '<header class="rel-cabecalho">' +
@@ -218,7 +228,7 @@
     })) : "");
     h += bloco("Exames", (c.exames || []).map(function (k) {
       return '<div class="rel-coleta"><p class="rel-meta">' + tag(k.tipo_conteudo) + " Coleta " + (k.data_coleta_desconhecida || !k.coletado_em ? "(data não informada)" : "de " + escapar(dataBR(k.coletado_em))) + (k.laboratorio ? " · " + escapar(k.laboratorio) : "") + "</p>" +
-        lista((k.resultados || []).map(function (r2) { return "<li>" + escapar(r2.nome || r2.exame_id) + ": <b>" + escapar(String(r2.valor)) + "</b> " + escapar(r2.unidade || "") + "</li>"; })) + "</div>";
+        lista((k.resultados || []).map(function (r2) { return "<li>" + escapar(r2.nome || r2.exame_id) + ": <b>" + escapar(String(r2.valor)) + "</b> " + escapar(r2.unidade || "") + refLaudo(r2) + "</li>"; })) + "</div>";
     }).join(""));
     h += bloco("Ferramentas", lista((c.ferramentas || []).map(function (a) {
       return "<li>" + tag(a.tipo_conteudo) + " <b>" + escapar(nomeFerramenta(a.ferramenta_id)) + "</b> · " + escapar(dataBR(a.concluida_em)) + " · versão " + escapar(a.versao_ferramenta || "?") +

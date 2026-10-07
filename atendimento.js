@@ -229,6 +229,28 @@
 
   /* ---------- selecionar / limpar ----------------------------------------- */
 
+  /* Teste real 07/10: o atendimento ativo vivia so em memoria. Recarregar a
+     pagina o perdia, e o proximo clique que selecionava um atendimento (ex.:
+     "Abrir conduta" de um atendimento antigo) trocava o contexto sem a
+     profissional perceber. Agora a escolha fica nesta aba do navegador
+     (sessionStorage, por paciente) e volta depois do recarregar — so se o
+     atendimento ainda existir na conta carregada. */
+  var CHAVE_ATIVO = "holohacking.atendimentoAtivo";
+  function lerEscolhas() { try { return JSON.parse(sessionStorage.getItem(CHAVE_ATIVO)) || {}; } catch (e) { return {}; } }
+  function lembrar(pid, id) {
+    try { var m = lerEscolhas(); if (id) m[pid] = id; else delete m[pid]; sessionStorage.setItem(CHAVE_ATIVO, JSON.stringify(m)); } catch (e) { /* sem storage: so memoria */ }
+  }
+  function restaurar() {
+    if (atual) return false;
+    var pid = window.pacienteAtivoId ? window.pacienteAtivoId() : null;
+    var id = pid ? lerEscolhas()[pid] : null;
+    var e = id ? porId(id) : null;
+    if (!e || e.patient_id !== pid) return false;
+    atual = Object.assign({}, e);
+    emitir();
+    return true;
+  }
+
   function selecionar(e) {
     if (!e) { limpar(); return; }
     var pid = window.pacienteAtivoId ? window.pacienteAtivoId() : null;
@@ -236,6 +258,7 @@
        pessoa, o paciente ativo passa a ser ela — a troca e explicita */
     if (pid && e.patient_id !== pid && window.definirPacienteAtivo) window.definirPacienteAtivo(e.patient_id);
     atual = Object.assign({}, e);
+    lembrar(e.patient_id, e.id);
     emitir();
   }
 
@@ -247,6 +270,7 @@
 
   function limpar() {
     if (!atual) return;
+    lembrar(atual.patient_id, null);
     atual = null;
     emitir();
   }
@@ -410,14 +434,14 @@
       var pid = window.pacienteAtivoId ? window.pacienteAtivoId() : null;
       /* trocar de paciente solta um atendimento que nao e dele */
       if (atual && atual.patient_id !== pid) { atual = null; avisar(); }
-      desenharCabecalho();
+      if (!restaurar()) desenharCabecalho();
     };
-    carregar().then(desenharCabecalho);
+    carregar().then(function () { if (!restaurar()) desenharCabecalho(); });
     if (window.HoloAuth && window.HoloAuth.aoMudarEstado) {
       window.HoloAuth.aoMudarEstado(function (estado) {
         if (estado === "pendente") return;
-        if (estado !== "autenticado") { atual = null; cache = []; }
-        carregar().then(desenharCabecalho);
+        if (estado !== "autenticado") { atual = null; cache = []; try { sessionStorage.removeItem(CHAVE_ATIVO); } catch (e) { /* nada */ } }
+        carregar().then(function () { if (!restaurar()) desenharCabecalho(); });
       });
     }
   });

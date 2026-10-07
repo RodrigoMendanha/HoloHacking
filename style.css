@@ -4477,3 +4477,27 @@ tr.mh-conflito td{background:rgba(201,138,122,.08)}
 .li-guia p{margin:4px 0 8px}
 .li-guia-botoes{display:flex;flex-wrap:wrap;gap:8px}
 .li-guia-botoes .btn-verde{width:auto;margin:0}
+
+/* ---------- Ajuda (07/10) ---------- */
+.aj-busca input{width:100%;max-width:560px;padding:12px 14px;border-radius:10px;border:1px solid var(--input-borda);background:var(--input-fundo);font-family:inherit;font-size:.95rem;margin:4px 0 24px}
+.aj-bloco{margin:0 0 34px}
+.aj-bloco>.eyebrow{display:block;margin-bottom:12px}
+.aj-grupo{margin:0 0 18px}
+.aj-grupo h4{font-family:var(--fonte-display);font-size:1.15rem;color:var(--titulo);margin:0 0 8px}
+.aj-item{border:1px solid var(--borda-suave);border-radius:10px;margin:0 0 8px;background:var(--sup-card)}
+.aj-item summary{cursor:pointer;padding:12px 16px;font-weight:500;color:var(--texto);list-style-position:inside}
+.aj-item[open] summary{border-bottom:1px solid var(--borda-suave)}
+.aj-resp{padding:12px 16px 14px;line-height:1.6;color:var(--texto);font-size:.92rem}
+.aj-passos{margin:0;padding-left:22px;line-height:1.9}
+.aj-glossario{display:grid;grid-template-columns:minmax(150px,220px) 1fr;gap:8px 18px;margin:0}
+.aj-glossario dt{font-weight:600;color:var(--titulo)}
+.aj-glossario dd{margin:0;color:var(--texto)}
+.aj-aviso{background:var(--citacao-clara-fundo);border-left:3px solid var(--dourado);padding:10px 14px;border-radius:6px;margin:0 0 14px}
+.aj-campo{display:block;margin:0 0 12px;font-size:.86rem;color:var(--texto-suave)}
+.aj-campo input,.aj-campo textarea{display:block;width:100%;max-width:640px;margin-top:4px;padding:10px 12px;border-radius:8px;border:1px solid var(--input-borda);background:var(--input-fundo);font-family:inherit;font-size:.92rem;color:var(--texto)}
+.aj-acoes{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:6px 0 10px}
+.aj-acoes .btn-verde{width:auto;margin:0}
+.aj-estado{font-size:.84rem;color:var(--texto-suave)}
+.aj-copia{width:100%;max-width:640px;font-family:monospace;font-size:.8rem}
+@media (max-width:640px){.aj-glossario{grid-template-columns:1fr}.aj-glossario dd{margin-bottom:8px}}
+.rel-ref{color:var(--texto-suave);font-size:.9em}

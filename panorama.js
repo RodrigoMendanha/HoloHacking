@@ -98,6 +98,23 @@
       return !conhecidas || conhecidas[mid];
     }).length;
 
+    /* Teste real 07/10: a ficha dizia "Exames: nenhum valor" com uma coleta V1
+       salva — so a caixa do painel legado era contada. Com a leitura do
+       servidor disponivel, conta os resultados das coletas atuais (V1 e legado). */
+    var nExames = Object.keys(exames).length;
+    var S = window.Sincronizacao;
+    var cols = S && S.coletas ? S.coletas(id) : null;
+    if (cols) {
+      var n = 0;
+      cols.forEach(function (c) {
+        if (c.superseded_at) return;
+        (c.resultados || []).forEach(function (r) { if (r.value_original_text || (r.valor !== null && r.valor !== undefined && r.valor !== "")) n++; });
+      });
+      nExames = Math.max(nExames, n);
+    }
+    var Cd = window.Conduta;
+    var temConduta = !!(Cd && Cd.doPaciente && Cd.doPaciente(id).some(function (c) { return Cd.consolidada(c); }));
+
     return {
       id: id,
       pontuacao: pont,
@@ -105,8 +122,9 @@
       respondidas: respondidas,
       totalPerguntas: totalDePerguntas(),
       ferramentas: preenchidas,
-      exames: Object.keys(exames).length,
-      valoresExames: exames
+      exames: nExames,
+      valoresExames: exames,
+      temConduta: temConduta
     };
   }
 
@@ -151,7 +169,8 @@
     }
 
     // o achado que ninguem via: mapeado e nunca conduzido
-    if (d.pontuacao && d.ferramentas.length === 0) {
+    /* "mapa sem conduta" so quando nao ha NEM ferramenta NEM conduta registrada */
+    if (d.pontuacao && d.ferramentas.length === 0 && !d.temConduta) {
       saida.push({ peso: 1, grau: "aviso", curto: "mapa sem conduta",
                    texto: "O mapa foi feito e nenhuma ferramenta foi aplicada. " +
                           "Sem conduta, a avaliação não vira jornada.",

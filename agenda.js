@@ -1149,12 +1149,24 @@
 
   /* ---------- o que o resto do app pode perguntar --------------------------- */
 
+  /* Teste real 07/10: "Proxima consulta" mostrava a de hoje as 10:00 depois
+     de ela acontecer. Ainda vem = data futura, ou hoje com horario por vir, e
+     sem atendimento ja iniciado a partir dela. */
+  function aindaVem(c) {
+    var deHoje = iso(hoje());
+    if (c.data < deHoje) return false;
+    if (window.AtendimentoAtual && window.AtendimentoAtual.porAgendamento && window.AtendimentoAtual.porAgendamento(c.id)) return false;
+    if (c.data > deHoje) return true;
+    var agora = new Date();
+    return minutos(c.hora) > agora.getHours() * 60 + agora.getMinutes();
+  }
+
   window.Agenda = {
+    aindaVem: aindaVem,
     /** A próxima consulta de alguém, daqui para a frente. */
     proxima: function (pid) {
-      var deHoje = iso(hoje());
       return vigentes().filter(function (c) {
-        return c.paciente_id === pid && c.data >= deHoje;
+        return c.paciente_id === pid && aindaVem(c);
       }).sort(function (a, b) {
         return a.data.localeCompare(b.data) || minutos(a.hora) - minutos(b.hora);
       })[0] || null;
@@ -1221,6 +1233,14 @@
     if (!alvo) return;
     if (!editando) foco = hoje();
     carregar().then(desenhar);
+  };
+  /** Abre UMA consulta na agenda (o "Ver" do Dashboard). */
+  window.Agenda.abrirConsulta = function (id) {
+    var c = consultas.filter(function (x) { return x.id === id; })[0];
+    if (!c) return false;
+    if (c.data) { var p = c.data.split("-"); foco = new Date(+p[0], +p[1] - 1, +p[2]); }
+    abrir("consulta", id);
+    return true;
   };
   /** Nova consulta ja com um paciente (ficha, lista de pacientes). */
   window.Agenda.novaConsultaPara = function (pid) { novaConsulta(null, null, pid || null); };

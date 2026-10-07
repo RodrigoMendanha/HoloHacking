@@ -106,13 +106,25 @@
   };
 
   function norm(t) { return String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim(); }
+  /* Teste real 07/10: no laudo o exame se chama "Glicose", e a busca nao achava
+     "Glicemia de jejum". Sinonimos SO DE BUSCA, com o nome que os laudos usam:
+     nao viram alias do catalogo (porNomeExato continua exato) e nao mudam o
+     catalogo do servidor — so ajudam a achar o exame. A escolha continua humana. */
+  var SINONIMOS_BUSCA = {
+    "LAB-002": ["glicose", "glicemia"], "LAB-003": ["insulina"], "LAB-004": ["glicada", "a1c"],
+    "LAB-005": ["triglicerides"], "LAB-007": ["ldl"], "LAB-009": ["hdl"], "LAB-016": ["proteina c", "pcr ultrassensivel", "pcr-us"],
+    "LAB-025": ["cobalamina", "b12"], "LAB-026": ["folato"], "LAB-028": ["ferro"], "LAB-030": ["tireoestimulante", "tirotropina"],
+    "LAB-031": ["tiroxina livre", "t4l"], "LAB-032": ["triiodotironina livre", "t3l"], "LAB-035": ["vitamina d", "25-hidroxi", "calcidiol"],
+    "LAB-001": ["hemacias", "leucocitos", "plaquetas", "hemoglobina", "eritrograma", "leucograma"], "LAB-045": ["calcio"], "LAB-044": ["cpk"]
+  };
   /** Busca por inclusao textual no nome canonico e nos aliases. Devolve TODOS os candidatos (a escolha e humana). */
   function buscar(texto, categoria) {
     var q = norm(texto);
     return EXAMES.filter(function (e) {
       if (categoria && e.category !== categoria) return false;
       if (!q) return true;
-      return norm(e.canonical_name).indexOf(q) >= 0 || e.aliases.some(function (a) { return norm(a).indexOf(q) >= 0; }) || norm(e.code) === q;
+      return norm(e.canonical_name).indexOf(q) >= 0 || e.aliases.some(function (a) { return norm(a).indexOf(q) >= 0; }) || norm(e.code) === q ||
+        (SINONIMOS_BUSCA[e.code] || []).some(function (a) { return a.indexOf(q) >= 0 || (q.length >= 4 && q.indexOf(a) >= 0); });
     });
   }
   /** Identidade exata por nome canonico ou alias (sem fuzzy). null se 0 ou mais de 1 candidato. */

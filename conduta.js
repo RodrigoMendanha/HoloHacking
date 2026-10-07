@@ -83,6 +83,15 @@
       .sort(function (a, b) { return (a.position || 0) - (b.position || 0) || String(a.created_at).localeCompare(String(b.created_at)); })
       .map(function (a) { return Object.assign({}, a); });
   }
+  /** A conduta vigente MAIS RECENTE do paciente, em qualquer atendimento
+      (pela data do atendimento). { conduta, atendimento } ou null. */
+  function vigenteDoPaciente(pid, excetoEid) {
+    var A = window.AtendimentoAtual; if (!A) return null;
+    var lista = A.doPaciente(pid).filter(function (e) { return e.id !== excetoEid; })
+      .sort(function (a, b) { return String(b.occurred_at).localeCompare(String(a.occurred_at)); });
+    for (var i = 0; i < lista.length; i++) { var v = vigente(lista[i].id); if (v) return { conduta: v, atendimento: lista[i] }; }
+    return null;
+  }
   /** A conduta vigente do atendimento ANTERIOR do paciente (retorno). */
   function anteriorDe(pid, eid) {
     var A = window.AtendimentoAtual; if (!A) return null;
@@ -321,6 +330,18 @@
     if (!mostrar && rascunho) { mostrar = rascunho; editavel = !arquivado; titulo = rascunho.id ? "Rascunho em edição" : (rascunho.corrigeDe ? "Correção (nova revisão, ainda não salva)" : "Nova conduta (ainda não salva)"); }
     if (!mostrar && vig) { mostrar = vig; titulo = "Revisão vigente (rev. " + vig.revision_number + ")"; }
 
+    /* Teste real 07/10: com um atendimento antigo ativo, a aba dizia so
+       "Iniciar conduta" — parecia que a conduta salva tinha sumido. Se a
+       conduta vigente da pessoa esta num atendimento MAIS RECENTE, a tela diz
+       onde ela esta e leva ate la. */
+    if (!vig && !rascunho && !vendo) {
+      var outra = vigenteDoPaciente(pid, e.id);
+      if (outra && String(outra.atendimento.occurred_at) > String(e.occurred_at)) {
+        html += '<div class="aviso-oficial" id="cd-vigente-outro"><p>A conduta vigente desta pessoa está no atendimento de <b>' + escapar(A.rotuloQuando(outra.atendimento)) +
+          "</b> (rev. " + outra.conduta.revision_number + (outra.conduta.objective ? " · " + escapar(outra.conduta.objective) : "") + "). " +
+          'Este atendimento (' + escapar(A.rotuloQuando(e)) + ') ainda não tem conduta.</p><button type="button" class="perf-botao" data-cd-ir="' + escapar(outra.atendimento.id) + '">Abrir o atendimento da conduta vigente</button></div>';
+      }
+    }
     html += '<div class="an-acoes">';
     if (vendo) html += '<button type="button" class="perf-botao" data-cd-acao="fechar-ver">Voltar</button>';
     else if (!rascunho && !vig && !arquivado) html += '<button type="button" class="btn-verde" data-cd-acao="nova">Iniciar conduta</button>';
@@ -424,6 +445,8 @@
     var alvo = document.getElementById("aba-conduta"); if (!alvo) return;
     alvo.addEventListener("click", function (ev) {
       var e = atendimentoAtivo(); if (!e) return;
+      var ir = ev.target.closest("[data-cd-ir]");
+      if (ir) { if (window.AtendimentoAtual) window.AtendimentoAtual.selecionarPorId(ir.dataset.cdIr); return; }
       var b = ev.target.closest("[data-cd-acao]");
       if (b) {
         var acao = b.dataset.cdAcao;
@@ -484,7 +507,7 @@
   window.Conduta = {
     MSG_SEM_ATENDIMENTO: MSG_SEM_ATENDIMENTO, CAMPOS: CAMPOS, ESTADOS_ACORDO: ESTADOS_ACORDO, DECISOES: DECISOES, rotulo: function (k) { return ROTULO[k] || k; },
     carregar: carregar, carregando: function () { return carregando; }, salvar: salvar, mudarAcordo: mudarAcordo,
-    doAtendimento: doAtendimento, vigente: vigente, rascunhoDe: rascunhoDe, doPaciente: doPaciente, acordosDe: acordosDe, anteriorDe: anteriorDe,
+    doAtendimento: doAtendimento, vigente: vigente, vigenteDoPaciente: vigenteDoPaciente, rascunhoDe: rascunhoDe, doPaciente: doPaciente, acordosDe: acordosDe, anteriorDe: anteriorDe,
     consolidada: consolidada, textoBruto: textoBruto, desenhar: desenhar, aoMudar: function (f) { if (typeof f === "function") ouvintes.push(f); },
     todosAcordos: function () { return acordos.map(function (a) { return Object.assign({}, a); }); },
     esquecer: function () { cache = []; acordos = []; locais = []; locaisAcordos = []; rascunho = null; vendo = null; }

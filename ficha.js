@@ -178,7 +178,11 @@
       var an = An.vigente(foco.id), anR = An.rascunhoDe(foco.id);
       linhas.push(["Anamnese" + (foco === ativo ? " (atendimento ativo)" : ""), an ? "rev. " + an.revision_number + " · " + an.status + " · " + An.contarItens(an.content) + " itens" : (anR ? "rascunho (não consolidada)" : "não registrada")]);
       var cd = Cd.vigente(foco.id), cdR = Cd.rascunhoDe(foco.id);
-      linhas.push(["Conduta vigente", cd ? "rev. " + cd.revision_number + " · " + cd.status + (cd.objective ? " · " + cd.objective : "") : (cdR ? "rascunho (não é conduta vigente)" : "não registrada")]);
+      /* teste real 07/10: a conduta vigente e a mais recente DA PESSOA; o
+         atendimento ativo pode ser um antigo, sem conduta propria */
+      var cdOutro = !cd && Cd.vigenteDoPaciente ? Cd.vigenteDoPaciente(pid, foco.id) : null;
+      if (!cd && cdOutro) cd = cdOutro.conduta;
+      linhas.push(["Conduta vigente", cd ? "rev. " + cd.revision_number + " · " + cd.status + (cd.objective ? " · " + cd.objective : "") + (cdOutro ? " · atendimento de " + A.rotuloQuando(cdOutro.atendimento) : "") : (cdR ? "rascunho (não é conduta vigente)" : "não registrada")]);
       if (cd && cd.return_plan) linhas.push(["Retorno previsto", cd.return_plan]);
       if (cd) {
         var ag = Cd.acordosDe(cd.id);
@@ -823,11 +827,14 @@
         nome: "HOLOSCAN &mdash; questionário integral",
         sub: "84 perguntas em três blocos: raízes físicas, padrões emocionais e " +
              "Terreno Espiritual. É dele que sai o Índice e os cinco sistemas.",
-        estado: d.respondidas === 0
-          ? "não iniciado"
-          : d.respondidas + " de " + d.totalPerguntas + " respondidas",
-        pronto: d.respondidas >= d.totalPerguntas,
-        comeco: d.respondidas > 0,
+        /* teste real 07/10: depois de salvo, o rascunho do questionario e
+           esvaziado (reaplicar comeca vazio) — o estado lia "nao iniciado"
+           logo acima de "Mapa gerado". Com mapa, o estado e o do mapa. */
+        estado: d.respondidas > 0
+          ? d.respondidas + " de " + d.totalPerguntas + " respondidas"
+          : d.pontuacao ? "aplicado em " + dataBR(d.pontuacao.quando) : "não iniciado",
+        pronto: d.respondidas >= d.totalPerguntas || (!!d.pontuacao && d.respondidas === 0),
+        comeco: d.respondidas > 0 || !!d.pontuacao,
         extra: d.pontuacao
           ? "Mapa gerado em " + escapar(dataBR(d.pontuacao.quando)) +
             " &middot; Índice " + escapar(window.HoloAusencia.indiceTexto(d.pontuacao))

@@ -105,7 +105,9 @@
 
     var hj = hojeISO();
     var consultasHoje = futuras.filter(function (l) { return l.data === hj; }).length;
-    var proxLabel = futuras.length ? escapar(dataBR(futuras[0].data)) : "&mdash;";
+    var Ag = window.Agenda;
+    var proxima = futuras.filter(function (l) { return !Ag || !Ag.aindaVem || Ag.aindaVem(l); })[0];
+    var proxLabel = proxima ? escapar(dataBR(proxima.data)) : "&mdash;";
 
     var nome = nomeProfissional();
 
@@ -140,7 +142,7 @@
           etiquetaArquivado(l.paciente) + "</span>" +
       "</span>" +
       '<button type="button" class="dash-ir" data-paciente="' + escapar(l.paciente.id) +
-        '" data-destino="ficha">Ver <span aria-hidden="true">&rarr;</span></button>' +
+        '" data-consulta="' + escapar(l.id) + '" data-destino="consulta">Ver <span aria-hidden="true">&rarr;</span></button>' +
       "</li>";
   }
 
@@ -501,6 +503,16 @@
           if (window.AtendimentoAtual && b.dataset.atendimento) window.AtendimentoAtual.selecionarPorId(b.dataset.atendimento);
           var abaC = document.querySelector('[data-aba="conduta"]');
           if (abaC) abaC.click();
+          return;
+        }
+
+        /* teste real 07/10: o "Ver" de uma consulta abria a ficha; abre a consulta */
+        if (destino === "consulta") {
+          if (window.irParaSecao) window.irParaSecao("agenda");
+          if (!(window.Agenda && window.Agenda.abrirConsulta && window.Agenda.abrirConsulta(b.dataset.consulta)) && pid && window.abrirFichaDe) {
+            if (window.irParaSecao) window.irParaSecao("pacientes");
+            window.abrirFichaDe(pid);
+          }
           return;
         }
 
