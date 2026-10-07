@@ -3252,10 +3252,17 @@
        ficava para sempre). Agora o calculo repetido e a propria salva. */
     const jaSalva = tudo[id].find(x => x._supa_id && x.quando === hoje && window.HoloAusencia.mesmaAplicacao(x, nova));
     if(jaSalva){
-      tudo[id] = tudo[id].filter(x => !(x.quando === hoje && !x._supa_id && window.HoloAusencia.mesmaAplicacao(x, nova)));
+      // a entrada salva fica com o calculo completo (respostas, hash, sinais),
+      // sem perder a identidade remota nem a interpretacao ja escrita
+      const completa = Object.assign({}, nova, { _supa_id: jaSalva._supa_id, _supa_criado_em: jaSalva._supa_criado_em,
+        calculado_em: jaSalva.calculado_em || nova.calculado_em });
+      if(jaSalva.interpretacao !== undefined) completa.interpretacao = jaSalva.interpretacao;
+      tudo[id] = tudo[id].filter(x => !(x.quando === hoje && !x._supa_id && window.HoloAusencia.mesmaAplicacao(x, nova)))
+        .map(x => x === jaSalva ? completa : x);
       localStorage.setItem("holohacking.pontuacao", JSON.stringify(tudo));
-      r._supa_id = jaSalva._supa_id;
-      r.calculado_em = jaSalva.calculado_em || null;
+      if (window.Concorrencia) window.Concorrencia.avancarRevisao("pontuacao");
+      r._supa_id = completa._supa_id;
+      r.calculado_em = completa.calculado_em;
       return;
     }
     r.calculado_em = nova.calculado_em;   // e por ele que o Salvar acha esta entrada

@@ -180,15 +180,18 @@ ok(await A.evaluate(() => window.AtendimentoAtual.atual().id) === e2.id, 'e ele 
 /* ==================================================================== */
 titulo('7, 8, 9 — HOLOSCAN');
 /* ==================================================================== */
-async function responderECalcular() {
-  await A.evaluate(async () => {
+/* Ajuste (testes reais 06/10): gerar de novo com as MESMAS respostas de uma
+   aplicacao ja salva passou a SER essa aplicacao ("ja esta salvo"), entao o
+   cenario 8 responde diferente (botao 1) para ser uma aplicacao nova. */
+async function responderECalcular(botao = 2) {
+  await A.evaluate(async (botao) => {
     document.querySelector('.nav-item[data-secao="holoscan"]').click();
     document.getElementById('btn-abrir-questionario').click();
     await new Promise(x => setTimeout(x, 200));
-    [...document.querySelectorAll('.q-item')].slice(0, 30).forEach((it) => it.querySelectorAll('.q-btn')[2].click());
+    [...document.querySelectorAll('.q-item')].slice(0, 30).forEach((it) => it.querySelectorAll('.q-btn')[botao].click());
     document.querySelector('[data-acao="calcular"]').click();
     await new Promise(x => setTimeout(x, 400));
-  });
+  }, botao);
 }
 async function salvarHolo() {
   return A.evaluate(async () => {
@@ -212,7 +215,7 @@ const holos = srv.linhas('holoscan_applications').filter(a => a.patient_id === P
 ok(holos.length === 1 && holos[0].encounter_id === e2.id, '7: o HOLOSCAN novo gravou encounter_id do atendimento selecionado');
 
 await A.evaluate(() => window.AtendimentoAtual.limpar());
-await responderECalcular();
+await responderECalcular(1);
 const recusa = await salvarHolo();
 ok(/Selecione ou inicie um atendimento para salvar\./.test(recusa) && srv.linhas('holoscan_applications').filter(a => a.patient_id === PA).length === 1,
    '8: sem atendimento ativo, salvar e recusado com a mensagem certa; nada foi ao servidor');
