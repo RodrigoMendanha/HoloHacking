@@ -115,6 +115,19 @@
     return l[0] || null;
   }
 
+  /** A ultima anamnese COMPLETA consolidada (primeira consulta V2 ou formato antigo) de outro atendimento:
+      e dela que se copia e e ela que o retorno mostra em "Ver anamnese completa anterior". */
+  function anteriorCompletaDe(pid, eid) {
+    var A = window.AtendimentoAtual, V2 = window.AnamneseV2;
+    var l = doPaciente(pid).filter(function (a) { return a.encounter_id !== eid && consolidada(a) && !a.superseded_at &&
+      !(V2 && V2.ehV2(a.content) && a.content.tipo === "retorno"); });
+    l.sort(function (a, b) {
+      var ea = A && A.porId(a.encounter_id), eb = A && A.porId(b.encounter_id);
+      return String((eb && eb.occurred_at) || b.created_at).localeCompare(String((ea && ea.occurred_at) || a.created_at));
+    });
+    return l[0] || null;
+  }
+
   /* ---------- gravar ------------------------------------------------------------ */
 
   function gravarLocal(payload) {
@@ -296,6 +309,7 @@
   }
 
   var vendo = null;   // id de uma revisao antiga aberta so para leitura
+  var v2Corrigindo = null;   // id da revisao V2 vigente sendo corrigida (antes do 1o salvamento automatico)
 
   function desenhar() {
     var alvo = document.getElementById("aba-anamnese");
@@ -319,6 +333,20 @@
     if (rasc && (!rascunho || rascunho.id !== rasc.id)) rascunho = { id: rasc.id, encounter_id: e.id, content: JSON.parse(JSON.stringify(rasc.content || conteudoVazio())), updated_at: rasc.updated_at };
     if (!rasc && rascunho && rascunho.id) rascunho = null;
 
+    /* ANAMNESE V2 (anamnese-v2.js): rascunho novo nasce V2; anamnese antiga (sem formulario_versao) segue no
+       formato antigo, sem conversao. O roteamento e so pelo marcador do conteudo gravado. */
+    var V2 = window.AnamneseV2;
+    var vendoLinha = vendo ? lista.filter(function (a) { return a.id === vendo; })[0] : null;
+    var modoV2 = null;
+    if (V2) {
+      if (vendoLinha) modoV2 = V2.ehV2(vendoLinha.content) ? { ro: true, base: vendoLinha } : null;
+      else if (rasc) modoV2 = V2.ehV2(rasc.content) ? { base: rasc } : null;
+      else if (rascunho) modoV2 = null;                                   // correcao de anamnese ANTIGA em memoria
+      else if (v2Corrigindo && vig && v2Corrigindo === vig.id) modoV2 = { base: vig, corrigir: true };
+      else if (vig) modoV2 = V2.ehV2(vig.content) ? { ro: true, base: vig } : null;
+      else modoV2 = { base: null };                                       // nova: sempre V2
+    }
+
     var html = '<div class="an-topo">' +
       '<div><span class="fic-rot">Anamnese</span><b>' + escapar(nome) + "</b> · atendimento de " + escapar(A.rotuloQuando(e)) +
         (e.consultation_id ? " (com agendamento)" : " (sem agendamento)") + "</div>" +
@@ -330,6 +358,32 @@
         (vig.reviewed_at ? ", conferida em " + escapar(window.dataBR ? window.dataBR(vig.reviewed_at.slice(0, 10)) : vig.reviewed_at) : "") + ".</p>";
     }
     html += revisoesHtml(lista);
+
+    if (modoV2) {
+      html += '<div class="an-acoes">';
+      if (vendo) html += '<button type="button" class="perf-botao" data-an-acao="fechar-ver">Voltar</button>';
+      else if (modoV2.ro && !arquivado) {
+        html += '<button type="button" class="perf-botao" data-an-acao="corrigir">Corrigir (nova revisão)</button>';
+        if (vig && vig.status === "salvo") html += '<button type="button" class="btn-dourado" data-an-acao="revisar">Marcar como revisada</button>';
+      }
+      html += "</div>";
+      if (modoV2.ro) html += '<p class="an-titulo"><b>' + escapar(vendo ? "Revisão " + vendoLinha.revision_number + " (histórico, somente leitura)" : "Revisão vigente (rev. " + vig.revision_number + ")") + "</b></p>";
+      if (arquivado && !modoV2.ro) html += '<p class="perf-ajuda">' + escapar(window.MSG_ARQUIVADO || "Paciente arquivado.") + "</p>";
+      html += '<div id="an2-corpo"></div>';
+      alvo.innerHTML = html;
+      var ant = anteriorCompletaDe(pid, e.id);
+      var antHtml = ant ? '<p class="perf-ajuda">Anamnese de ' + escapar(A.porId(ant.encounter_id) ? A.rotuloQuando(A.porId(ant.encounter_id)) : "atendimento anterior") + " · rev. " + ant.revision_number + " · " + escapar(ant.status) + " (somente leitura)</p>" +
+        (V2.ehV2(ant.content) ? V2.resumoHtml(ant.content) : "") +
+        '<div class="an-dominios">' + DOMINIOS.map(function (p) { var it = (((ant.content || {}).dominios || {})[p[0]] || {}).itens || []; return it.length ? dominioHtml(p[0], p[1], it, false) : ""; }).join("") + "</div>" : "";
+      var perfil = window.PerfilProfissional && window.PerfilProfissional.dados ? window.PerfilProfissional.dados() : {};
+      V2.desenhar(document.getElementById("an2-corpo"), {
+        encounter: e, base: modoV2.base, somenteLeitura: !!modoV2.ro || !!arquivado, recomecar: !!modoV2.corrigir && !V2.estado(),
+        anterior: ant, anteriorHtml: antHtml, sugerirRetorno: !!anteriorDe(pid, e.id) && !modoV2.base,
+        linha: modoV2.base || null, autoria: perfil && perfil.nome ? perfil.nome : null, consulta: A.rotuloQuando(e),
+        salvar: salvar, redesenhar: desenhar, recarregar: function () { carregar().then(desenhar); }
+      });
+      return;
+    }
 
     var mostrar = null, editavel = false, titulo = "";
     if (vendo) { mostrar = lista.filter(function (a) { return a.id === vendo; })[0]; titulo = mostrar ? "Revisão " + mostrar.revision_number + " (histórico, somente leitura)" : ""; }
@@ -434,6 +488,7 @@
         var acao = b.dataset.anAcao, e = atendimentoAtivo();
         if (!e) return;
         if (acao === "nova") { rascunho = { id: null, encounter_id: e.id, content: conteudoVazio() }; vendo = null; desenhar(); return; }
+        var V2a = window.AnamneseV2;
         if (acao === "copiar") {
           var fonte = b.dataset.anFonte;
           if (!window.abrirModalConfirmar) return;
@@ -443,17 +498,23 @@
             botaoConfirmar: "Copiar como prévia", classeConfirmar: "btn-verde" }).then(function (r) {
             if (r !== "confirmar") return;
             mostrarEstado("salvando");
-            criarAPartirDe(e.id, fonte).then(function () { rascunho = null; vendo = null; desenhar(); mostrarEstado("rascunho"); })
+            var linhaFonte = cache.filter(function (a) { return a.id === fonte; })[0];
+            /* anamnese V2 anterior: copia V2, campo a campo, como previo; anamnese ANTIGA: a copia antiga (RPC), sem conversao */
+            var copia = V2a && linhaFonte && V2a.ehV2(linhaFonte.content)
+              ? V2a.prepararCopia({ salvar: salvar, redesenhar: desenhar, recarregar: function () { carregar().then(desenhar); } }, e, linhaFonte)
+              : criarAPartirDe(e.id, fonte);
+            copia.then(function () { rascunho = null; vendo = null; desenhar(); mostrarEstado("rascunho"); })
               .catch(function (err) { mostrarEstado("falha"); if (window.avisar) window.avisar(window.mensagemHumana ? window.mensagemHumana(err) : "Não foi possível copiar a anamnese anterior."); });
           });
           return;
         }
         if (acao === "corrigir") {
           var vig = vigente(e.id); if (!vig) return;
+          if (V2a && V2a.ehV2(vig.content)) { if (V2a.esquecer) V2a.esquecer(); v2Corrigindo = vig.id; vendo = null; desenhar(); return; }
           rascunho = { id: null, corrigeDe: vig.id, encounter_id: e.id, content: JSON.parse(JSON.stringify(vig.content || conteudoVazio())) };
           vendo = null; desenhar(); return;
         }
-        if (acao === "descartar") { rascunho = null; vendo = null; desenhar(); return; }
+        if (acao === "descartar") { rascunho = null; vendo = null; v2Corrigindo = null; if (V2a) V2a.esquecer(); desenhar(); return; }
         if (acao === "rascunho") { gravar("rascunho"); return; }
         if (acao === "salvar") { gravar("salvo"); return; }
         if (acao === "revisar") {
@@ -497,12 +558,12 @@
     ligar();
     carregar();
     if (window.AtendimentoAtual && window.AtendimentoAtual.aoMudar) {
-      window.AtendimentoAtual.aoMudar(function () { rascunho = null; vendo = null; estadoSalvo = ""; if (document.getElementById("aba-anamnese")) desenhar(); });
+      window.AtendimentoAtual.aoMudar(function () { rascunho = null; vendo = null; v2Corrigindo = null; estadoSalvo = ""; if (window.AnamneseV2) { window.AnamneseV2.salvarAgora(); window.AnamneseV2.esquecer(); } if (document.getElementById("aba-anamnese")) desenhar(); });
     }
     var anterior = window.aoTrocarPaciente;
-    window.aoTrocarPaciente = function () { if (typeof anterior === "function") anterior(); rascunho = null; vendo = null; estadoSalvo = ""; };
+    window.aoTrocarPaciente = function () { if (typeof anterior === "function") anterior(); rascunho = null; vendo = null; v2Corrigindo = null; estadoSalvo = ""; if (window.AnamneseV2) { window.AnamneseV2.salvarAgora(); window.AnamneseV2.esquecer(); } };
     if (window.HoloAuth && window.HoloAuth.aoMudarEstado) {
-      window.HoloAuth.aoMudarEstado(function (estado) { if (estado === "pendente") return; if (estado !== "autenticado") { cache = []; rascunho = null; } carregar(); });
+      window.HoloAuth.aoMudarEstado(function (estado) { if (estado === "pendente") return; if (estado !== "autenticado") { cache = []; rascunho = null; v2Corrigindo = null; if (window.AnamneseV2) window.AnamneseV2.esquecer(); } carregar(); });
     }
   });
 
@@ -511,10 +572,12 @@
     DOMINIOS: DOMINIOS, ESTADOS: ESTADOS, ORIGENS: ORIGENS, rotulo: function (k) { return ROTULO[k] || k; },
     carregar: carregar, carregando: function () { return carregando; },
     salvar: salvar, criarAPartirDe: criarAPartirDe,
-    doAtendimento: doAtendimento, vigente: vigente, rascunhoDe: rascunhoDe, doPaciente: doPaciente, anteriorDe: anteriorDe,
+    doAtendimento: doAtendimento, vigente: vigente, rascunhoDe: rascunhoDe, doPaciente: doPaciente, anteriorDe: anteriorDe, anteriorCompletaDe: anteriorCompletaDe,
     consolidada: consolidada, contarItens: contarItens, textoBruto: textoBruto,
     desenhar: desenhar, aoMudar: function (f) { if (typeof f === "function") ouvintes.push(f); },
     rascunhoLocal: function () { lerFormulario(); return rascunho ? JSON.parse(JSON.stringify(rascunho)) : null; },
-    esquecer: function () { cache = []; locais = []; rascunho = null; vendo = null; }
+    esquecer: function () { cache = []; locais = []; rascunho = null; vendo = null; v2Corrigindo = null; if (window.AnamneseV2) window.AnamneseV2.esquecer(); },
+    /** resumo da anamnese vigente (so V2; a antiga nao e reinterpretada) */
+    resumoHtml: function (a) { return a && window.AnamneseV2 && window.AnamneseV2.ehV2(a.content) ? window.AnamneseV2.resumoHtml(a.content) : ""; }
   };
 })();

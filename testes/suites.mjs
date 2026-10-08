@@ -126,5 +126,7 @@ export const SUITES = [
   'testar-recuperar-senha.mjs',
   'testar-simulacao-0810.mjs',
   'testar-resultado-holos.mjs',
+  'testar-anamnese-v2-dominios.mjs',
+  'testar-anamnese-v2.mjs',
   'testar-conferir-producao.mjs',
 ];

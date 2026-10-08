@@ -880,6 +880,17 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     leitura própria, escrita só por RPC. Detalhes: `docs/v1/RESULTADO-HOLOS.md`. PENDENTE: aplicar no banco real
     (`supabase/RESULTADO-HOLOS.sql`) e deploy; o texto oficial do paciente por faixa (HOLOS-V1@2) inclui a frase "Revise
     os itens respondidos…", dirigida à profissional — ajuste só numa futura versão metodológica (decisão do Daniel).
+174. **Anamnese V2** (09/10, aprovada pela usuária). Formulário clínico rápido em dois fluxos — **Primeira consulta** (7
+    blocos; bloco íntimo "Campos emocionais e sentido pessoal" opcional e fechado dentro de Histórico e contexto) e
+    **Retorno** ("Desde a última consulta"; sugerido quando já há anamnese concluída; escolha sempre visível). "Criar a
+    partir da anamnese anterior" só na Primeira consulta (rascunho novo, itens prévios, anterior intacta); no Retorno, só
+    "Ver anamnese completa anterior" em leitura. **Sem migration**: mesma tabela/RPCs/estados/revisões; o conteúdo ganha
+    `formulario_versao: 2`, `tipo`, `formulario` e `meta`, e `dominios` é SEMPRE gerado pela função canônica
+    `gerarDominiosDaAnamneseV2` (nunca editado à parte) — Relatório, Evolução, HOLOS AI e o servidor seguem lendo só os
+    domínios, com a regra de conteúdo íntimo intacta. Salvamento automático só do rascunho (2,5 s, ao sair do campo e ao
+    trocar de bloco, uma chamada por vez, `expected_updated_at`; conflito não sobrescreve). Resumo automático sem IA (na
+    anamnese e na Visão geral). Anamnese antiga abre e edita no formato antigo, sem conversão. Detalhes:
+    `docs/v1/ANAMNESE-V2.md`.
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`

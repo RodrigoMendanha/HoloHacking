@@ -22,7 +22,7 @@ const titulo = (t) => console.log('\n  ' + t + '\n');
 const esperar = (ms) => new Promise(r => setTimeout(r, ms));
 
 const srv = criarServidor();
-srv.criarConta('a@holo.test', 'senha-a-123');
+const UA = srv.criarConta('a@holo.test', 'senha-a-123');
 const nav = await puppeteer.launch({
   executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
   headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
@@ -85,38 +85,32 @@ const E1 = await iniciarAtendimento(PA, '2026-05-01T12:00:00.000Z');
 await abrirAba(PA, 'anamnese');
 const cab = await texto('#aba-anamnese .an-topo');
 ok(/Paciente Um/.test(cab) && /atendimento de/.test(cab), 'a aba mostra paciente e atendimento ativo: ' + cab.replace(/\s+/g, ' ').slice(0, 80));
-await A.evaluate(async () => {
-  document.querySelector('#aba-anamnese [data-an-acao="nova"]').click(); await new Promise(r => setTimeout(r, 200));
-  document.querySelector('[data-an-adicionar="alergias_informadas"]').click(); await new Promise(r => setTimeout(r, 200));
-  const it = document.querySelector('.an-item[data-an-dom="alergias_informadas"]');
-  it.querySelector('[data-an-campo="campo"]').value = 'Amendoim';
-  it.querySelector('[data-an-campo="estado"]').value = 'desconhecido';
-  document.querySelector('[data-an-adicionar="condicoes_diagnosticos_informados"]').click(); await new Promise(r => setTimeout(r, 200));
-  const dx = document.querySelector('.an-item[data-an-dom="condicoes_diagnosticos_informados"]');
-  dx.querySelector('[data-an-campo="campo"]').value = 'Hipotireoidismo';
-  dx.querySelector('[data-an-campo="valor"]').value = 'relatado pela paciente';
-  document.querySelector('[data-an-adicionar="medidas"]').click(); await new Promise(r => setTimeout(r, 200));
-  const md = document.querySelector('.an-item[data-an-dom="medidas"]');
-  md.querySelector('[data-an-campo="campo"]').value = 'Peso';
-  md.querySelector('[data-an-campo="origem"]').value = 'dado_medido';
-  const cb = md.querySelector('[data-an-campo="tem_medida"]'); cb.checked = true; cb.dispatchEvent(new Event('change', { bubbles: true }));
-  await new Promise(r => setTimeout(r, 200));
-});
-ok(anamneses(PA).length === 0, 'editar na tela nao grava nada antes de salvar');
-// medida sem unidade -> recusa local, nada no servidor
+/* Anamnese V2 (09/10): toda anamnese NOVA nasce no formulario V2 (testar-anamnese-v2.mjs). Aqui o que se prova e que a
+   anamnese no FORMATO ANTIGO — como as que ja existem no banco — continua abrindo, editando, salvando, revisando e sendo
+   copiada exatamente como antes, sem conversao. O rascunho antigo entra pelo mesmo RPC que o criou na epoca. */
+const LEGADO = { dominios: {
+  alergias_informadas: { itens: [{ campo: 'Amendoim', valor: '', estado: 'desconhecido', origem: 'relato_paciente', medida: null, previo: false }] },
+  condicoes_diagnosticos_informados: { itens: [{ campo: 'Hipotireoidismo', valor: 'relatado pela paciente', estado: 'informado', origem: 'relato_paciente', medida: null, previo: false }] },
+  medidas: { itens: [{ campo: 'Peso', valor: '', estado: 'informado', origem: 'dado_medido', medida: { valor: 70, unidade: 'kg', data: null, metodo: null, responsavel: null }, previo: false }] } } };
+const semeado = srv.tratar({ op: 'rpc', uid: UA, nome: 'salvar_anamnese', args: { payload: { encounter_id: E1, content: LEGADO, status: 'rascunho' } } });
+ok(!semeado.error, 'rascunho no formato antigo existente no banco (fixture)');
+await A.evaluate(async () => { await window.Anamnese.carregar(); });
+await abrirAba(PA, 'anamnese');
+ok(await A.evaluate(() => !!document.querySelector('#aba-anamnese .an-item[data-an-dom="alergias_informadas"]') && !document.querySelector('#aba-anamnese .an2-form')),
+   'rascunho antigo abre no editor antigo (sem conversao para o formulario V2)');
+// medida sem unidade -> recusa local, o servidor continua com a versao anterior
 let toast = await A.evaluate(async () => {
-  const md = document.querySelector('.an-item[data-an-dom="medidas"]');
-  md.querySelector('[data-an-campo="m_valor"]').value = '70';
+  document.querySelector('.an-item[data-an-dom="medidas"] [data-an-campo="m_unidade"]').value = '';
   document.querySelector('#aba-anamnese [data-an-acao="rascunho"]').click(); await new Promise(r => setTimeout(r, 500));
   return document.getElementById('toast').textContent;
 });
-ok(/unidade/.test(toast) && anamneses(PA).length === 0, 'medida com valor e sem unidade e recusada antes de ir ao servidor: ' + toast);
+ok(/unidade/.test(toast) && anamneses(PA)[0].content.dominios.medidas.itens[0].medida.unidade === 'kg', 'medida com valor e sem unidade e recusada antes de ir ao servidor: ' + toast);
 await A.evaluate(async () => {
   document.querySelector('.an-item[data-an-dom="medidas"] [data-an-campo="m_unidade"]').value = 'kg';
   document.querySelector('#aba-anamnese [data-an-acao="rascunho"]').click(); await new Promise(r => setTimeout(r, 700));
 });
 let an = anamneses(PA);
-ok(an.length === 1 && an[0].status === 'rascunho' && an[0].encounter_id === E1, 'rascunho salvo no servidor, ligado ao atendimento');
+ok(an.length === 1 && an[0].status === 'rascunho' && an[0].encounter_id === E1 && !an[0].content.formulario_versao, 'rascunho salvo no servidor, ligado ao atendimento, ainda no formato antigo');
 const itensAlergia = an[0].content.dominios.alergias_informadas.itens;
 ok(itensAlergia[0].estado === 'desconhecido' && itensAlergia[0].valor === '' && !an[0].content.dominios.intolerancias_informadas,
    'campo vazio nao virou "negado": alergia ficou "desconhecido"; intolerancias nem existem (nada afirmado, nada negado)');
@@ -165,11 +159,15 @@ await abrirAba(PB, 'anamnese');
 ok(/Selecione ou inicie um atendimento/.test(await texto('#aba-anamnese')), 'trocar para Paciente Dois limpa o contexto: sem atendimento, sem anamnese de A');
 const E2 = await iniciarAtendimento(PA, '2026-06-01T12:00:00.000Z');
 await abrirAba(PA, 'anamnese');
+const sugerido = await A.evaluate(() => ({ retorno: (document.querySelector('[data-an2-tipo="retorno"]') || {}).getAttribute ? document.querySelector('[data-an2-tipo="retorno"]').getAttribute('aria-checked') : null,
+  copiarNoRetorno: !!document.querySelector('#aba-anamnese [data-an-acao="copiar"]') }));
+ok(sugerido.retorno === 'true' && !sugerido.copiarNoRetorno, 'atendimento novo com anamnese anterior: Retorno vem sugerido e, no Retorno, nao ha copia da anamnese inteira');
+await A.evaluate(async () => { document.querySelector('[data-an2-tipo="primeira"]').click(); await new Promise(r => setTimeout(r, 200)); });
 const copiaBtn = await A.evaluate(() => !!document.querySelector('#aba-anamnese [data-an-acao="copiar"]'));
 ok(copiaBtn && anamneses(PA).filter(a => a.encounter_id === E2).length === 0, 'no atendimento novo (retorno) ha a acao "Criar a partir da anamnese anterior" e nada foi copiado sozinho');
 await A.evaluate(async (e1) => { window.AtendimentoAtual.selecionarPorId(e1); await new Promise(r => setTimeout(r, 300)); }, E1);
 ok(/Revisão vigente: rev\. 2 · revisado/.test(await texto('#aba-anamnese')), 'voltar ao atendimento 1 carrega a anamnese dele (rev. 2 revisada)');
-await A.evaluate(async (e2) => { window.AtendimentoAtual.selecionarPorId(e2); await new Promise(r => setTimeout(r, 300)); }, E2);
+await A.evaluate(async (e2) => { window.AtendimentoAtual.selecionarPorId(e2); await new Promise(r => setTimeout(r, 300)); document.querySelector('[data-an2-tipo="primeira"]').click(); await new Promise(r => setTimeout(r, 200)); }, E2);
 
 /* ==================================================================== */
 titulo('COPIA EXPLICITA DA ANTERIOR; HOLOSCAN INTOCADO');
