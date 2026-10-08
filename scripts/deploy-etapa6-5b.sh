@@ -1,15 +1,15 @@
 #!/bin/sh
-# HOLOHACKING — deploy do front na VPS (passos 4 a 11). Versao atual: cadastro de nutricionistas + teste real 07/10 + Ajuda (c654dcb). Rodar NA VPS:
+# HOLOHACKING — deploy do front na VPS (passos 4 a 11). Versao atual: esqueci minha senha confiavel (05bc411). Rodar NA VPS:
 #   sh deploy-etapa6-5b.sh            -> passos 4-8 (estado, codigo, build, container temporario 8082). NAO troca producao.
 #   sh deploy-etapa6-5b.sh swap       -> passos 9-11 (troca 8080, valida local e publico). So depois de conferir o 1o.
 # Para sozinho em qualquer divergencia. Nunca apaga container. Nao usa credencial.
 set -eu
-ESPERADO=c654dcbe3792b027cdb3e25555c3c010b3b07ba4
-CURTO=c654dcb
+ESPERADO=05bc411e6f9d9ad423d515156a96cf53febf606b
+CURTO=05bc411
 DIR=/opt/holohacking
 IMG=holohacking-web:$CURTO
 PROD=holohacking-web
-ROLLBACK=holohacking-web-antes-c654dcb
+ROLLBACK=holohacking-web-antes-05bc411
 TEMP=holohacking-web-teste-$CURTO
 pare() { echo; echo "### PARE: $*"; exit 1; }
 cd "$DIR"
