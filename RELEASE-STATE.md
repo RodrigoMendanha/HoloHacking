@@ -262,6 +262,18 @@ senha, caminho de storage, URL nem binário.
 
 ## 10. Pendências conhecidas
 
+### 10.0 Lançamento para as nutricionistas (atualizado 08/10)
+
+| Item | Situação | Quem |
+|---|---|---|
+| Cadastro com aprovação | **Pronto e no ar** (c654dcb; SQL aplicado; testado de ponta a ponta) | — |
+| **Recuperação de senha — e-mail** | **PENDENTE.** O código foi corrigido (05bc411, aguardando deploy), mas o e-mail padrão do Supabase só entrega para a equipe do projeto. Falta SMTP próprio + texto em português: `docs/v1/EMAIL-RECUPERAR-SENHA.md`. Até lá, quem esquecer a senha é atendida pela equipe (painel do Supabase → Users → "Send password recovery" não resolve sem SMTP; redefinir senha manualmente). | responsável |
+| Termos de uso e privacidade (LGPD) | PENDENTE: texto | responsável/jurídico |
+| Canal de suporte do "Reportar um erro" | PENDENTE: e-mail ou WhatsApp | responsável |
+| Texto "resultados não oficiais" no relatório | PENDENTE: SQL pequeno | Claude prepara |
+| Backups do Supabase | Conferir o plano | responsável |
+
+
 1. ~~Data de coleta de exames~~ **resolvido na rodada 04:** o painel tem o
    campo "Data da coleta", obrigatório e sem data futura (ver §3). As coletas
    antigas sem data continuam "Data da coleta não informada".
