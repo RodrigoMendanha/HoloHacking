@@ -39,8 +39,8 @@ const base = await p.evaluate(() => {
   };
 });
 ok(base.visivel, 'a secao Arquivos abre');
-ok(base.abas.join(',') === 'Visão geral,Atendimentos,Anamnese,HOLOSCAN,Ferramentas,Documentos,Conduta,Evolução,Relatório,HOLOS AI',
-   'as nove abas (Anamnese e Conduta na Etapa 2): ' + base.abas.join(' · '));
+ok(base.abas.join(',') === 'Visão geral,Atendimentos,Anamnese,HOLOSCAN,Ferramentas,Resultado HOLOS,Documentos,Conduta,Evolução,Relatório,HOLOS AI',
+   'as abas (Anamnese e Conduta na Etapa 2; Resultado HOLOS em 09/10, entre Ferramentas e Conduta): ' + base.abas.join(' · '));
 /* Exames e documentos eram duas abas, e a separacao estava errada: os valores
    saem do PDF. Agora e um lugar so, em dois passos. */
 /* Etapa 5 da V1: o cartao "Os valores do exame" virou "Exames laboratoriais"

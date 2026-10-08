@@ -28,8 +28,13 @@
   var escapar = window.escapar;
   var EIXOS = [["corpo", "Corpo", "fisico"], ["mente", "Mente", "mental"], ["espirito", "Espírito", "espiritual"]];
   var NOMES_EXTRA = { oq3: { titulo: "OQ³", modulo: "corpo" }, pqq: { titulo: "PQQ — Escada dos Porquês", modulo: "mente" } };
-  var ORDEM_FERR = ["oq3", "linha_momentum", "mapa_rotina_v1", "pqq", "mapa_crencas", "gatilhos_respostas_v1", "roda_vida", "carta_futuro", "conexao_pertencimento_v1"];
-  var PERMITIDAS = ORDEM_FERR.slice();
+  /* ordem e lista vem do catalogo (ferramentas.js): OQ3/PQQ + as ferramentas ativas, por eixo */
+  function ordemFerr() {
+    var ativas = window.FERRAMENTAS_ATIVAS || [], cat = window.CATALOGO_FERRAMENTAS || [];
+    var mod = function (id) { var f = cat.filter(function (x) { return x.id === id; })[0]; return f ? f.modulo : (NOMES_EXTRA[id] || {}).modulo; };
+    var base = ["oq3", "pqq"].concat(ativas);
+    return ["corpo", "mente", "espirito"].reduce(function (acc, m) { return acc.concat(base.filter(function (id) { return mod(id) === m; })); }, []);
+  }
   var ROTULO_STATUS = { rascunho: "Rascunho", salvo: "Salvo", revisado: "Revisado" };
   var MSG_HINT = {
     holoscan_obrigatorio: "Escolha a aplicação HOLOSCAN que compõe o resultado.",
@@ -122,8 +127,8 @@
   function aplicacoesFerramentas(pid) {
     var A = window.Aplicacoes;
     var lista = A && A.doPaciente ? A.doPaciente(pid) : [];
-    return lista.filter(function (a) { return a.id && PERMITIDAS.indexOf(a.ferramenta_id) >= 0 && (a.status === "concluida" || a.status === "revisada"); })
-      .sort(function (a, b) { return ORDEM_FERR.indexOf(a.ferramenta_id) - ORDEM_FERR.indexOf(b.ferramenta_id) || String(b.concluida_em || "").localeCompare(String(a.concluida_em || "")); });
+    return lista.filter(function (a) { return a.id && ordemFerr().indexOf(a.ferramenta_id) >= 0 && (a.status === "concluida" || a.status === "revisada"); })
+      .sort(function (a, b) { var o = ordemFerr(); return o.indexOf(a.ferramenta_id) - o.indexOf(b.ferramenta_id) || String(b.concluida_em || "").localeCompare(String(a.concluida_em || "")); });
   }
 
   /* ---------- formulario (rascunho) ---------------------------------------- */
@@ -277,16 +282,17 @@
   function resumoFerr(t) {
     var r = t.respostas || {}, f = defFerr(t.ferramenta_id), linhas = [];
     var add = function (rot, v) { if (tem(v)) linhas.push("<li><b>" + e(rot) + ":</b> " + e(String(valorTxt(v)).slice(0, 140)) + "</li>"); };
-    switch (t.ferramenta_id) {
+    var visual = f.visualizacao;   // registros clinicos: timeline (rotina), fluxo (gatilhos), rede (conexao)
+    if (visual === "timeline") { add("Acorda", r.acorda); add("Dorme", r.dorme); if (Array.isArray(r.eventos)) add("Eventos do dia", r.eventos.length + " registrado(s)"); add("Espaços para mudança", r.espacos); }
+    else if (visual === "fluxo") { add("Gatilho", r.gatilho); add("Resposta", r.resposta); add("Necessidade", r.necessidade); }
+    else if (visual === "rede") { if (Array.isArray(r.vinculos)) add("Vínculos registrados", r.vinculos.length); add("Com quem pode contar", r.contar); }
+    else switch (t.ferramenta_id) {
       case "oq3": add("Quer", r.quer); add("Precisa", r.precisa); add("Consegue", r.consegue); break;
       case "linha_momentum": add("Estado registrado", r.estado_confirmado); add("O que sustenta", r.sustenta); add("O que limita", r.limita); break;
-      case "mapa_rotina_v1": add("Acorda", r.acorda); add("Dorme", r.dorme); if (Array.isArray(r.eventos)) add("Eventos do dia", r.eventos.length + " registrado(s)"); add("Espaços para mudança", r.espacos); break;
       case "pqq": add("Objetivo", r.objetivo); add("Verdadeiro motivo", r.verdadeiro); break;
       case "mapa_crencas": add("Crenças", r.crencas); add("Alternativa", r.alternativa); break;
-      case "gatilhos_respostas_v1": add("Gatilho", r.gatilho); add("Resposta", r.resposta); add("Necessidade", r.necessidade); break;
       case "roda_vida": add("Área que puxa para baixo (registrada)", r.puxa); break;
       case "carta_futuro": add("Para quando", r.para_quando); break;
-      case "conexao_pertencimento_v1": if (Array.isArray(r.vinculos)) add("Vínculos registrados", r.vinculos.length); add("Com quem pode contar", r.contar); break;
     }
     return '<li class="rh-conj-ferr"><b>' + e(f.titulo) + "</b>" + (linhas.length ? "<ul>" + linhas.join("") + "</ul>" : "") + "</li>";
   }
