@@ -123,5 +123,6 @@ export const SUITES = [
   'testar-li-guiada.mjs',
   'testar-teste-real-0710.mjs',
   'testar-cadastro.mjs',
+  'testar-recuperar-senha.mjs',
   'testar-conferir-producao.mjs',
 ];

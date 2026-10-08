@@ -847,6 +847,12 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     banco (SQL não aplicado), o app deixa todos entrarem como antes. Seção "Contas" só para administradoras. Aviso de
     liberação à nutri é manual nesta versão (botão de WhatsApp). Recomendado: "Confirm email" desligado no painel até haver
     SMTP próprio (limite de envio do e-mail padrão do Supabase).
+171. **"Esqueci minha senha" confiável** (08/10). Quem chega pelo link do e-mail (`type=recovery`) vê primeiro a tela de
+    nova senha; antes, a checagem de conta podia abrir o app direto, sem pedir a senha (o evento PASSWORD_RECOVERY chega
+    depois da sessão inicial). Senha nova com mínimo de 8, igual ao painel. Limite de envio e falha de e-mail aparecem
+    (antes a tela dizia "enviaremos" mesmo sem enviar); a mensagem continua neutra quanto à existência da conta. Link
+    expirado volta ao login com aviso. PENDENTE (painel): SMTP próprio — o e-mail padrão do Supabase só entrega à equipe
+    do projeto (`docs/v1/EMAIL-RECUPERAR-SENHA.md`).
 
 ## Decisões pendentes (não decididas aqui)
 

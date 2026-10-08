@@ -1623,6 +1623,18 @@ export function criarServidor() {
       return { data: { id: c.id }, error: null };
     }
     if (msg.op === 'signup') return cadastrar(msg);
+    if (msg.op === 'recuperar') {
+      if (s.limiteRecuperacao) return erro('email rate limit exceeded', 'over_email_send_rate_limit');
+      s.pedidosRecuperacao = (s.pedidosRecuperacao || 0) + 1;
+      return { data: {}, error: null };
+    }
+    if (msg.op === 'trocar_senha') {
+      const email = Object.keys(s.contas).find(e => s.contas[e].id === msg.uid);
+      if (!email) return erro('not authenticated', '42501');
+      if (!msg.password || msg.password.length < 8) return erro('Password should be at least 8 characters.', 'weak_password');
+      s.contas[email].senha = msg.password;
+      return { data: {}, error: null };
+    }
     if (msg.op === 'query') return consultar(msg.uid, msg.q);
     if (msg.op === 'rpc') return rpc(msg.uid, msg.nome, msg.args);
     if (msg.op === 'storage') return storage(msg.uid, msg);
@@ -1690,6 +1702,12 @@ const BIBLIOTECA = `(function () {
     function emitir(ev, s) {
       setTimeout(function () { ouvintes.slice().forEach(function (fn) { try { fn(ev, s); } catch (e) {} }); }, 0);
     }
+    var mRec = /access_token=falso-([^&]+)&.*type=recovery/.exec(location.hash || "");
+    if (mRec) {
+      var sRec = { access_token: "falso-" + mRec[1], user: { id: mRec[1], email: "" } };
+      localStorage.setItem(CHAVE, JSON.stringify(sRec));
+      setTimeout(function () { emitir("PASSWORD_RECOVERY", sRec); }, 400);
+    }
     return {
       auth: {
         getSession: function () { return Promise.resolve({ data: { session: sessao() }, error: null }); },
@@ -1725,8 +1743,18 @@ const BIBLIOTECA = `(function () {
           emitir("SIGNED_OUT", null);
           return Promise.resolve({ error: null });
         },
-        resetPasswordForEmail: function () { return Promise.resolve({ data: {}, error: null }); },
-        updateUser: function () { return Promise.resolve({ data: {}, error: null }); }
+        resetPasswordForEmail: function (email) {
+          return chamar({ op: "recuperar", email: email }).then(function (r) {
+            return r.error ? { data: null, error: { name: "AuthApiError", message: r.error.message, code: r.error.code } } : { data: {}, error: null };
+          });
+        },
+        updateUser: function (u) {
+          var s = sessao();
+          if (!u || !u.password) return Promise.resolve({ data: {}, error: null });
+          return chamar({ op: "trocar_senha", uid: s ? s.user.id : null, password: u.password }).then(function (r) {
+            return r.error ? { data: null, error: { name: "AuthApiError", message: r.error.message } } : { data: { user: s && s.user }, error: null };
+          });
+        }
       },
       from: function (t) { return new Builder(t); },
       rpc: function (nome, args) { return chamar({ op: "rpc", uid: uid(), nome: nome, args: args }); },

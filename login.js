@@ -57,7 +57,7 @@
     if (/email not confirmed/i.test(msg)) return "Esta conta ainda não confirmou o e-mail.";
     if (/too many requests|rate limit/i.test(msg)) return "Muitas tentativas seguidas. Aguarde um instante e tente de novo.";
     if (/new password should be different/i.test(msg)) return "A nova senha deve ser diferente da anterior.";
-    if (/password.*at least|password.*too short|at least 6/i.test(msg)) return "A senha deve ter pelo menos 6 caracteres.";
+    if (/password.*at least|password.*too short|at least \d|weak.*password/i.test(msg)) return "A senha deve ter pelo menos 8 caracteres.";
     if (/network|fetch|failed to fetch|load failed/i.test(msg)) return "Sem conexão com o servidor. Verifique sua internet.";
     return "Não foi possível entrar. Tente novamente.";
   }
@@ -183,7 +183,17 @@
       }
       return window.supabaseClient.auth
         .resetPasswordForEmail(email, { redirectTo: recuperarSenhaUrl() })
-        .then(function () {
+        .then(function (r) {
+          /* a resposta nunca diz se a conta existe (privacidade); mas limite de
+             envio e falha de servidor de e-mail precisam aparecer, senao a
+             pessoa espera um e-mail que nao vai chegar */
+          var m = r && r.error ? String(r.error.message || "") + " " + String(r.error.code || "") : "";
+          if (/rate limit|too many|over_email_send_rate_limit|429/i.test(m)) {
+            return { ok: false, motivo: "LIMITE", mensagem: "Muitos pedidos de recuperação em pouco tempo. Aguarde alguns minutos e tente de novo." };
+          }
+          if (/smtp|sending|send.*email|email.*send/i.test(m)) {
+            return { ok: false, motivo: "EMAIL", mensagem: "Não foi possível enviar o e-mail agora. Tente mais tarde ou fale com a equipe HoloHacking." };
+          }
           return {
             ok: true, motivo: null,
             mensagem: "Se houver uma conta associada a este e-mail, enviaremos as instruções."
@@ -501,11 +511,12 @@
   var checando = null;
   function liberarApp() {
     if (camada && camada.hidden) return;
+    if (modoRecuperacao) return;
     if (!sessaoAtual) { abrirApp(); return; }
     if (checando) return;
     checando = window.AuthService.statusConta().then(function (st) {
       checando = null;
-      if (!sessaoAtual) return;
+      if (!sessaoAtual || modoRecuperacao) return;   // chegou pelo link de "esqueci minha senha": primeiro a senha nova
       if (st === "ativo") abrirApp();
       else mostrarStatusConta(st);
     });
@@ -639,8 +650,8 @@
     if (!nova) {
       marcarErro(campoNovaSenha, erroNovaSenha, "Informe a nova senha.");
       primeiro = primeiro || campoNovaSenha;
-    } else if (nova.length < 6) {
-      marcarErro(campoNovaSenha, erroNovaSenha, "A senha deve ter pelo menos 6 caracteres.");
+    } else if (nova.length < 8) {
+      marcarErro(campoNovaSenha, erroNovaSenha, "A senha deve ter pelo menos 8 caracteres.");
       primeiro = primeiro || campoNovaSenha;
     }
     if (!confirmar) {
@@ -662,6 +673,7 @@
       .then(function (r) {
         if (r.ok) {
           mensagemEm(novaSenhaMensagem, "Senha alterada com sucesso. Entrando…", "ok");
+          try { if (chegouPeloLinkDeRecuperacao()) window.history.replaceState(null, "", "/"); } catch (x) { /* nada */ }
           setTimeout(function () {
             modoRecuperacao = false;
             liberarApp();
@@ -740,7 +752,25 @@
 
   /* ---------- sessao: restaurar, reagir a mudanca ----------------------- */
 
+  /* O link do e-mail de "Esqueci minha senha" volta com type=recovery no
+     endereco. O evento PASSWORD_RECOVERY do supabase-js pode chegar depois da
+     sessao inicial — e ai o app abria direto, sem pedir a senha nova. Lendo o
+     endereco no carregamento, a tela de nova senha vem primeiro, sempre. */
+  function chegouPeloLinkDeRecuperacao() {
+    var h = window.location.hash || "", q = window.location.search || "";
+    return /type=recovery/.test(h) || /type=recovery/.test(q);
+  }
+  function linkDeRecuperacaoInvalido() {
+    var h = window.location.hash || "", q = window.location.search || "";
+    return /error_code=otp_expired|error=access_denied/.test(h + q);
+  }
+
   function verificarSessaoInicial() {
+    if (chegouPeloLinkDeRecuperacao()) { modoRecuperacao = true; bloquearApp(); mostrarNovaSenha(); }
+    else if (linkDeRecuperacaoInvalido()) {
+      try { window.history.replaceState(null, "", "/"); } catch (x) { /* nada */ }
+      setTimeout(function () { mensagem("O link de recuperação expirou ou já foi usado. Peça um novo em \"Esqueci minha senha\".", "aviso"); }, 0);
+    }
     if (!window.supabaseClient) { definirEstadoAuth("nao_autenticado"); campoEmail.focus(); return; }
     window.supabaseClient.auth.getSession().then(function (r) {
       var sessao = r && r.data && r.data.session;

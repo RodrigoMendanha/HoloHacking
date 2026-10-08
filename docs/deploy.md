@@ -163,7 +163,7 @@ inclui `metodologia.js`, `atendimento.js`, `anamnese.js`, `conduta.js`, `timelin
 `50x.html` dele, que não é nosso):
 
 ```
-03560e04928d1c19c276a24cfbd45a7771304e490a234347cedd2fa38c86b55b  index.html
+7a2363c636da01da5e4cb4fd4e6be050119e22c365b3c6277e54f32a51bcd610  index.html
 e85a99bdca0fb2a6b1b9a87e82b4d48d7a6a7109ee1492d1de7cb680eecf644b  style.css
 ccab4b8d1492eab5ef40def11944fbc8612ff8d4bf26b36548f5641caaa54044  favicon.svg
 ebb3b78b5a3777a2c5df2ff03ff1c532a82e1668bccadc885ebe679e8321a0b3  logo-holohacking.png
@@ -202,7 +202,7 @@ b2705ac28dc9f6175ec5586ef02e86b00f2fe1265dbb23a34e3bb2cebb8718c3  importar-v1.js
 66ca581a8cdb088279a8977e022b71fb58ee3e0cb757805f532d5f1709d1684c  laboratorio.js
 07629098f6cfed3a18d60991bbbbfc6003b8073e7825996c15c2978277ef4827  leitura-integrada-motor.js
 994217cb6cc4208b15fe4d4a9197efd0518c400d68aa0b2f24a6b9a017d2e118  leitura-integrada-pacote-v1.js
-6ccb50cd3b8709179a7ea68f0802361fdb64e57aa8fd31b2181dd1b60e9e8410  login.js
+193e220d3d91d872cfb15ff516224be3ba3f54ab9851ed045dc2230e49320844  login.js
 51f9b31c0cf3ab7c0b530d07f37a84b205e9e314103ce1397e9a9ff04b3130ba  metodologia-decisoes-v1.js
 0baf93b77cbd9dba9fabcc3f374f2272fbb086b56b183ffffefb6fe3cdb23c78  metodologia-homologacao.js
 64fd24c09eb5442b3637a2c675acc76ad41cfee5b412818fd862b00878c745df  metodologia-inventario.js
