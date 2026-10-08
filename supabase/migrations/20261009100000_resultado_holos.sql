@@ -116,6 +116,36 @@ create policy holos_results_select_proprios on public.holos_results for select t
 revoke all on public.holos_results from public, anon, authenticated;
 grant select on public.holos_results to authenticated;
 
+-- sistemas do HOLOSCAN para o snapshot: notas/faixas SALVAS, textos oficiais do pacote, pontuou / contexto (so leitura)
+create or replace function public.resultado_holos_sistemas(p_app uuid, p_pk uuid)
+returns jsonb language sql stable set search_path = '' as $$
+select coalesce(jsonb_agg(jsonb_build_object(
+    'sistema', s.sistema, 'nome', s.nome, 'nota', s.nota, 'carga', s.carga, 'faixa', s.faixa, 'obtido', s.obtido, 'maximo', s.maximo,
+    'respondidos', s.respondidos, 'total_marcadores', s.total_marcadores, 'avaliavel', s.avaliavel,
+    'texto_publico', ms.public_text,
+    'mensagem_nutri', (select r.message_nutri from public.methodology_ranges r where r.package_id = p_pk and r.destination_type = 'system'
+                        and r.destination_id = s.sistema and r.label = s.faixa limit 1),
+    'mensagem_paciente', (select r.message_paciente from public.methodology_ranges r where r.package_id = p_pk and r.destination_type = 'system'
+                        and r.destination_id = s.sistema and r.label = s.faixa limit 1),
+    'pontuou', (select coalesce(jsonb_agg(jsonb_build_object('question_id', q.stable_id, 'enunciado', q.statement, 'valor', ans.valor,
+                  'resposta', q.response_labels->>(ans.valor::int), 'peso', ma.weight) order by q.position nulls last, q.stable_id), '[]'::jsonb)
+                from public.methodology_associations ma
+                join public.methodology_questions q on q.package_id = ma.package_id and q.stable_id = ma.question_stable_id
+                join public.holoscan_answers ans on ans.application_id = p_app and ans.marcador_id = ma.question_stable_id
+                where ma.package_id = p_pk and ma.destination_type = 'system' and ma.destination_id = s.sistema and ma.role = 'primaria'),
+    'contexto', (select coalesce(jsonb_agg(jsonb_build_object('question_id', q.stable_id, 'enunciado', q.statement, 'valor', ans.valor,
+                  'resposta', q.response_labels->>(ans.valor::int)) order by q.position nulls last, q.stable_id), '[]'::jsonb)
+                from public.methodology_associations ma
+                join public.methodology_questions q on q.package_id = ma.package_id and q.stable_id = ma.question_stable_id
+                join public.holoscan_answers ans on ans.application_id = p_app and ans.marcador_id = ma.question_stable_id
+                where ma.package_id = p_pk and ma.destination_type = 'system' and ma.destination_id = s.sistema and ma.role = 'secondary_contextual')
+  ) order by coalesce(ms.position, 99), s.sistema), '[]'::jsonb)
+  from public.holoscan_system_scores s
+  left join public.methodology_systems ms on ms.package_id = p_pk and ms.code = s.sistema
+  where s.application_id = p_app;
+$$;
+revoke all on function public.resultado_holos_sistemas(uuid, uuid) from public, anon, authenticated;
+
 -- ----------------------------------------------------------------------------
 -- MONTAGEM DO SNAPSHOT (so leitura). Recebe o uid do chamador; valida tudo; devolve
 -- {conteudo, fontes, pacote:{id,version,content_hash}}. Nada do conteudo clinico vem do payload.
@@ -192,31 +222,7 @@ begin
   if jsonb_typeof(v_vis) <> 'object' then raise exception 'visibilidade invalida' using errcode = '22023', hint = 'payload_invalido'; end if;
 
   -- HOLOSCAN: notas/faixas SALVAS (nada recalculado) + textos oficiais do pacote + respostas que pontuaram / contexto
-  select coalesce(jsonb_agg(jsonb_build_object(
-      'sistema', s.sistema, 'nome', s.nome, 'nota', s.nota, 'carga', s.carga, 'faixa', s.faixa, 'obtido', s.obtido, 'maximo', s.maximo,
-      'respondidos', s.respondidos, 'total_marcadores', s.total_marcadores, 'avaliavel', s.avaliavel,
-      'texto_publico', ms.public_text,
-      'mensagem_nutri', (select r.message_nutri from public.methodology_ranges r where r.package_id = pk.id and r.destination_type = 'system'
-                          and r.destination_id = s.sistema and r.label = s.faixa limit 1),
-      'mensagem_paciente', (select r.message_paciente from public.methodology_ranges r where r.package_id = pk.id and r.destination_type = 'system'
-                          and r.destination_id = s.sistema and r.label = s.faixa limit 1),
-      'pontuou', (select coalesce(jsonb_agg(jsonb_build_object('question_id', q.stable_id, 'enunciado', q.statement, 'valor', ans.valor,
-                    'resposta', q.response_labels->>(ans.valor::int), 'peso', ma.weight) order by q.position nulls last, q.stable_id), '[]'::jsonb)
-                  from public.methodology_associations ma
-                  join public.methodology_questions q on q.package_id = ma.package_id and q.stable_id = ma.question_stable_id
-                  join public.holoscan_answers ans on ans.application_id = app.id and ans.marcador_id = ma.question_stable_id
-                  where ma.package_id = pk.id and ma.destination_type = 'system' and ma.destination_id = s.sistema and ma.role = 'primaria'),
-      'contexto', (select coalesce(jsonb_agg(jsonb_build_object('question_id', q.stable_id, 'enunciado', q.statement, 'valor', ans.valor,
-                    'resposta', q.response_labels->>(ans.valor::int)) order by q.position nulls last, q.stable_id), '[]'::jsonb)
-                  from public.methodology_associations ma
-                  join public.methodology_questions q on q.package_id = ma.package_id and q.stable_id = ma.question_stable_id
-                  join public.holoscan_answers ans on ans.application_id = app.id and ans.marcador_id = ma.question_stable_id
-                  where ma.package_id = pk.id and ma.destination_type = 'system' and ma.destination_id = s.sistema and ma.role = 'secondary_contextual')
-    ) order by coalesce(ms.position, 99), s.sistema), '[]'::jsonb)
-    into v_sistemas
-    from public.holoscan_system_scores s
-    left join public.methodology_systems ms on ms.package_id = pk.id and ms.code = s.sistema
-    where s.application_id = app.id;
+  v_sistemas := public.resultado_holos_sistemas(app.id, pk.id);
 
   -- ferramentas: copia integral do registro no momento do salvamento (mudancas futuras nao alcancam o snapshot)
   select coalesce(jsonb_agg(jsonb_build_object(

@@ -878,7 +878,7 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     **imutáveis** — correção = "Nova versão a partir desta" (a anterior fica no histórico). Sem IA, sem exames, sem
     interpretação automática; HOLOS-V1@2 e LI-V1@2 intocados. Tabela `holos_results` (migration 20261009100000), RLS de
     leitura própria, escrita só por RPC. Detalhes: `docs/v1/RESULTADO-HOLOS.md`. PENDENTE: aplicar no banco real
-    (`supabase/RESULTADO-HOLOS.sql`) e deploy; o texto oficial do paciente por faixa (HOLOS-V1@2) inclui a frase "Revise
+    (`supabase/RESULTADO-HOLOS-PARTE1..5.sql`) e deploy; o texto oficial do paciente por faixa (HOLOS-V1@2) inclui a frase "Revise
     os itens respondidos…", dirigida à profissional — ajuste só numa futura versão metodológica (decisão do Daniel).
 174. **Anamnese V2** (09/10, aprovada pela usuária). Formulário clínico rápido em dois fluxos — **Primeira consulta** (7
     blocos; bloco íntimo "Campos emocionais e sentido pessoal" opcional e fechado dentro de Histórico e contexto) e

@@ -81,7 +81,7 @@ Esta versão **não** tem IA, exames, Leitura Integrada, interpretação automá
   - `salvar_resultado_holos(payload)`;
   - `revisar_resultado_holos(id)`;
   - `descartar_rascunho_resultado_holos(id)`.
-  - Internas: `montar_resultado_holos(uid, payload)` e `resultado_holos_campos(payload)`.
+  - Internas: `montar_resultado_holos(uid, payload)`, `resultado_holos_sistemas(aplicacao, pacote)` e `resultado_holos_campos(payload)`.
 
 ## Snapshot (montado pelo servidor)
 **O navegador envia só:** ids das fontes, os textos da nutricionista e as chaves de visibilidade.
@@ -116,11 +116,14 @@ Uma mudança posterior no OQ³ ou em qualquer ferramenta **não altera** um resu
 - **Banco real:** as condições do PRE foram conferidas só com leitura.
 
 ## Aplicação real (quando autorizada)
-1. Conferir o SHA-256 de `supabase/RESULTADO-HOLOS.sql`, informado no relatório da etapa.
-2. Colar o arquivo **inteiro** no SQL Editor e rodar. É uma transação:
-   - o PRE confere que a migration 20261008100000 está registrada e que as funções e colunas necessárias existem;
-   - o POS confere 1 política, 5 gatilhos, 8 funções e os privilégios;
-   - se algo falhar, nada é aplicado.
-3. Conferir a tabela final: `holos_results` existe, RLS ligada, 5 gatilhos, 0 resultados, migration registrada.
-4. Fazer o deploy do front pela VPS, com o roteiro apontando para o commit desta etapa.
-5. Teste real: gerar um resultado de um paciente de teste, salvar, abrir as duas visões, imprimir e criar uma nova versão.
+O SQL Editor do Supabase cortou o arquivo único (~34 KB) no meio de uma função. Por isso o artefato vai em **5 partes**, todas com menos de 10 KB: `supabase/RESULTADO-HOLOS-PARTE1.sql` a `PARTE5.sql`.
+1. Rodar cada parte **inteira**, na ordem 1 → 5, cada uma numa aba nova do SQL Editor. Cada parte é uma transação: se falhar, nada dela fica aplicado.
+   - **PARTE 1:** tabela, gatilhos e RLS. Se rodar de novo, ela recusa com "PARTE 1 ja aplicada".
+   - **PARTE 2:** funções auxiliares (sistemas do snapshot, campos aceitos).
+   - **PARTE 3:** montagem do snapshot e prévia.
+   - **PARTE 4:** salvar rascunho e salvar.
+   - **PARTE 5:** revisar, descartar, permissões, registro da migration e POS completo (1 política, 5 gatilhos, 9 funções, privilégios).
+   - As partes 2 a 5 podem ser rodadas de novo sem problema.
+2. Conferir a tabela final da PARTE 5: tabela true, RLS true, 5 gatilhos, 9 funções, 0 resultados, migration 1.
+3. Fazer o deploy do front pela VPS, com o roteiro apontando para o commit desta etapa.
+4. Teste real: gerar um resultado de um paciente de teste, salvar, abrir as duas visões, imprimir e criar uma nova versão.
