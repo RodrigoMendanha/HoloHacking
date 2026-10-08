@@ -247,7 +247,7 @@
     "</li>";
   }
 
-  /* simulacao 08/10: nome da ferramenta para a tela (antes aparecia o id interno, ex. conexao_pertencimento_v1) */
+  /* simulacao 08/10: nome da ferramenta para a tela (antes aparecia o id interno da ferramenta) */
   function nomeFerramenta(id) {
     var f = (window.CATALOGO_FERRAMENTAS || []).filter(function (x) { return x.id === id; })[0];
     return f ? f.titulo + (f.legado ? " (versão anterior)" : "") : id === "oq3" ? "OQ³" : id === "pqq" ? "PQQ" : String(id || "");

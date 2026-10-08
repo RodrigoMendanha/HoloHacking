@@ -135,7 +135,7 @@ const rel = await p.evaluate(() => {
     primeiro: r?.querySelector('.rel-sistema b')?.textContent,
     combinada: r?.querySelector('.rel-combinada')?.textContent.trim(),
     temTriada: !!r?.querySelector('.rel-triada'),
-    temHoloscan: /Holoscan/.test(r?.textContent || ''),
+    temHoloscan: /Leitura Integrada/.test(r?.textContent || ''),   // simulacao 08/10: secao B = leituras integradas salvas
     partes: [...r?.querySelectorAll('.rel-parte') || []].map(s => s.dataset.origem),
     textoNutri: r?.querySelector('.rel-sistema p')?.textContent.slice(0, 70),
   };

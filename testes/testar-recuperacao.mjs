@@ -133,7 +133,7 @@ const novaSenha = await p.evaluate(async () => {
 
 ok(novaSenha.existe, 'a tela de nova senha existe no HTML');
 ok(/informe/i.test(novaSenha.erroVazia), 'campo vazio mostra erro: "' + novaSenha.erroVazia + '"');
-ok(/6 caracteres/i.test(novaSenha.erroCurta), 'senha curta mostra erro: "' + novaSenha.erroCurta + '"');
+ok(/8 caracteres/i.test(novaSenha.erroCurta), 'senha curta mostra erro: "' + novaSenha.erroCurta + '"');
 ok(/coincidem/i.test(novaSenha.erroDiferente), 'senhas diferentes mostra erro: "' + novaSenha.erroDiferente + '"');
 
 /* ==================================================================== */

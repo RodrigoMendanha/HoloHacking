@@ -154,11 +154,13 @@ const TEXTOS_FIXOS = [
   'O relato e os dados laboratoriais não estão caminhando na mesma direção neste momento.',
   'Ainda não há dados laboratoriais suficientes para realizar a leitura integrada desta dimensão.',
 ];
-conferir(holoscanSecao.length >= 5, 'a seção B (HOLOSCAN) tem uma linha por sistema: ' + holoscanSecao.length);
+/* simulacao 08/10: a secao B mostra as LEITURAS INTEGRADAS SALVAS (servidor); sem conta nao ha leitura —
+   a secao diz isso, e o confronto legado (com os textos fixos abaixo) nao aparece mais */
+void TEXTOS_FIXOS;
+conferir(holoscanSecao.some(t => /Leituras integradas indisponíveis sem conexão|Nenhuma leitura integrada salva/.test(t)), 'a seção B (Leitura Integrada) diz que não há leitura salva disponível: ' + holoscanSecao.join(' | ').slice(0, 120));
 conferir(
-  holoscanSecao.filter(t => !/^A Leitura Integrada organiza/.test(t))
-    .every(t => TEXTOS_FIXOS.some(fixo => t.indexOf(fixo) >= 0)),
-  'nenhuma leitura causal do motor escapou — só os quatro textos fixos do Holoscan');
+  holoscanSecao.filter(t => !/^A Leitura Integrada organiza/.test(t) && !/Leituras integradas indisponíveis|Nenhuma leitura integrada salva/.test(t)).length === 0,
+  'nenhuma leitura causal do motor nem confronto legado na seção B');
 
 /* -------------------------------------------- interpretação separada ----- */
 

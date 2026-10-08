@@ -420,7 +420,9 @@ const contexto = await A.evaluate(async (pid, id) => {
 ok(/Atendimentos registrados/.test(contexto) && /10\/03\/2026 às 08:30 · sem agendamento · SELECIONADO/.test(contexto) && /com agendamento de origem/.test(contexto),
    '20: o contexto traz os atendimentos como fato (quando, origem, qual esta selecionado)');
 ok(/Agenda \(agendamentos\)/.test(contexto) && !/Realizada/.test(contexto), 'a agenda vai como agendamento, nunca como "realizada"');
-const vazou = contexto.match(/### Índice HOLOS|### Tríada|- Físico:|faixa \d|### Leitura Integrada|CMB-|\bREC-|\bSEL-|nota \d/);
+/* simulacao 08/10: notas/faixas da aplicacao calculada pelo HOLOS-V1 OFICIAL entram (ver testar-v1-etapa0 item 21);
+   o que nao e homologado (CMB, REC, SEL, Leitura Integrada no contexto) continua fora */
+const vazou = contexto.match(/### Leitura Integrada|CMB-|\bREC-|\bSEL-/);
 ok(!vazou, '20: nenhuma metodologia nao homologada voltou ao contexto' + (vazou ? ' — vazou: ' + vazou[0] + ' em "' + contexto.slice(Math.max(0, vazou.index - 60), vazou.index + 60).replace(/\n/g, ' ') + '"' : ''));
 
 /* ==================================================================== */
