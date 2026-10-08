@@ -1,5 +1,5 @@
 #!/bin/sh
-# Valida a cadeia de migrations 130000..20261005110000 + harness Etapa 4, 4.2, 5, 5.2, 5.3, 6, 6.0.1, aprovador unico, HOLOSCAN oficial (P0), registros clinicos estruturados (6.5 B) e regressao de dados LEGADOS num PostgreSQL LOCAL descartavel.
+# Valida a cadeia de migrations 130000..20261009100000 + harness Etapa 4, 4.2, 5, 5.2, 5.3, 6, 6.0.1, aprovador unico, HOLOSCAN oficial (P0), registros clinicos estruturados (6.5 B), cadastro com aprovacao, Resultado HOLOS e regressao de dados LEGADOS num PostgreSQL LOCAL descartavel.
 # Antes das migrations entra supabase/tests/legado-seed-pre-etapa5.sql (dados legados sinteticos, como em producao); no fim, legado-harness.sql.
 # Uso: PGHOST=/caminho/socket PGPORT=55432 sh scripts/validar-cadeia-local.sh
 # Pre-requisito: banco "base" com supabase/tests/stub-supabase-local.sql e as migrations anteriores a 20260930130000.
@@ -40,5 +40,15 @@ cd "$(dirname "$0")/.."
     grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
   done
   cat supabase/tests/ferramentas-registro-harness.sql
+  # Cadastro com aprovacao (20261008100000) e RESULTADO HOLOS (20261009100000): o PRE guarda as digitais de tudo que o
+  # Resultado HOLOS so pode LER (HOLOSCAN, ferramentas, Leitura Integrada, exames, pacotes).
+  for f in supabase/migrations/2026100810*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/resultado-holos-pre.sql
+  for f in supabase/migrations/2026100910*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/resultado-holos-harness.sql
   echo "rollback;"
 } | psql -U postgres -d base -v ON_ERROR_STOP=1 -At | tr '|' '\n' | sed 's/^ //'

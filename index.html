@@ -941,6 +941,13 @@
                 </div>
                 <div class="dash-jornada-seta" aria-hidden="true">&darr;</div>
                 <div class="dash-jornada-passo">
+                  <span class="dash-mov">CONSOLIDAR</span>
+                  <span class="dash-quem"><b>Resultado HOLOS</b>
+                    <span class="dash-porque">Reunir HOLOSCAN, ferramentas e a sua leitura antes da Conduta.</span></span>
+                  <button type="button" class="dash-ir" data-ir="aba:resultado-holos">Abrir <span aria-hidden="true">&rarr;</span></button>
+                </div>
+                <div class="dash-jornada-seta" aria-hidden="true">&darr;</div>
+                <div class="dash-jornada-passo">
                   <span class="dash-mov">ACOMPANHAR</span>
                   <span class="dash-quem"><b>Evolução</b>
                     <span class="dash-porque">Acompanhar mudanças entre aplicações.</span></span>
@@ -956,6 +963,7 @@
                 <button class="aba" data-aba="anamnese" role="tab" id="tab-anamnese" aria-controls="aba-anamnese" aria-selected="false">Anamnese</button>
                 <button class="aba" data-aba="holoscan" role="tab" id="tab-holoscan" aria-controls="aba-holoscan" aria-selected="false">HOLOSCAN</button>
                 <button class="aba" data-aba="ferramentas" role="tab" id="tab-ferramentas" aria-controls="aba-ferramentas" aria-selected="false">Ferramentas</button>
+                <button class="aba" data-aba="resultado-holos" role="tab" id="tab-resultado-holos" aria-controls="aba-resultado-holos" aria-selected="false">Resultado HOLOS</button>
                 <button class="aba" data-aba="documentos" role="tab" id="tab-documentos" aria-controls="aba-documentos" aria-selected="false">Documentos</button>
                 <button class="aba" data-aba="conduta" role="tab" id="tab-conduta" aria-controls="aba-conduta" aria-selected="false">Conduta</button>
                 <button class="aba" data-aba="evolucao" role="tab" id="tab-evolucao" aria-controls="aba-evolucao" aria-selected="false">Evolução</button>
@@ -970,6 +978,8 @@
               <div class="aba-painel hidden" id="aba-conduta" role="tabpanel" aria-labelledby="tab-conduta"></div>
               <div class="aba-painel hidden" id="aba-holoscan" role="tabpanel" aria-labelledby="tab-holoscan"></div>
               <div class="aba-painel hidden" id="aba-ferramentas" role="tabpanel" aria-labelledby="tab-ferramentas"></div>
+              <!-- Resultado HOLOS: visao integrada final (resultado-holos.js), depois do HOLOSCAN e das ferramentas, antes da Conduta -->
+              <div class="aba-painel hidden" id="aba-resultado-holos" role="tabpanel" aria-labelledby="tab-resultado-holos"></div>
               <div class="aba-painel hidden" id="aba-documentos" role="tabpanel" aria-labelledby="tab-documentos"></div>
               <!-- V1 Etapa 3: evolucao por atendimento (evolucao.js) e relatorios versionados (relatorios.js) -->
               <div class="aba-painel hidden" id="aba-evolucao" role="tabpanel" aria-labelledby="tab-evolucao"></div>
@@ -1431,6 +1441,7 @@
 <script src="/anamnese.js"></script>
 <script src="/conduta.js"></script>
 <script src="/relatorios.js"></script>
+<script src="/resultado-holos.js"></script>
 <script src="/metodologia-homologacao.js"></script>
 <script src="/documentos.js"></script>
 <script src="/perfil.js"></script>

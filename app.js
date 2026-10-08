@@ -2965,6 +2965,7 @@
       + (investigar ? '<p class="res-linha">Os sistemas de nota mais baixa e os sinais que mais pesaram neles. É a aritmética das respostas — não é diagnóstico nem conduta.</p>' + investigar
                     : '<p class="res-linha">Nenhum sistema com nota nesta aplicação.</p>')
       + '<div class="res-botoes"><button type="button" class="btn-borda-ouro" data-res-ir="confronto">Leitura Integrada &rarr;</button>'
+      + '<button type="button" class="btn-borda-ouro" data-res-ir="resultado-holos">Resultado HOLOS &rarr;</button>'
       + '<button type="button" class="btn-borda-ouro" data-res-ir="conduta">Conduta &rarr;</button></div></div></div>'
       + '<div class="res-interp"><label for="res-interp-texto" class="res-tit">Sua interpretação</label>'
       + '<p class="res-linha">A leitura clínica desta aplicação é sua. Ela fica guardada junto do HOLOSCAN e vai para o relatório.</p>'
@@ -2975,6 +2976,7 @@
 
     caixa.querySelectorAll("[data-res-ir]").forEach(b => b.addEventListener("click", () => {
       if(b.dataset.resIr === "confronto") irPara("confronto");
+      else if(b.dataset.resIr === "resultado-holos") levarPara("aba:resultado-holos", estado.ativo);
       else levarPara("aba:conduta", estado.ativo);
     }));
     const bSalvar = $("#res-interp-salvar");

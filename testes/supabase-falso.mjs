@@ -24,6 +24,7 @@
  */
 
 import { randomUUID, createHash } from 'node:crypto';
+import { criarResultadoHolos } from './resultado-holos-falso.mjs';   // Resultado HOLOS (migration 20261009100000)
 import '../metodologia-pacote.js';   // o MESMO validador de publicacao do navegador (Etapa 4)
 import '../laboratorio-catalogo.js';  // os MESMOS 45 exames-base da migration 20261001220000 (Etapa 5)
 import '../leitura-integrada-pacote-v1.js';
@@ -83,7 +84,11 @@ const COLUNAS = {
   professional_assets: ['id', 'nutritionist_id', 'tipo', 'nome', 'mime_type', 'tamanho_bytes', 'storage_path', 'created_at', 'updated_at'],
   profiles: null,          // nao estrito: o perfil nao e o assunto destes testes
   ai_threads: ['id', 'nutritionist_id', 'patient_id', 'titulo', 'created_at', 'updated_at'],
-  ai_messages: ['id', 'thread_id', 'role', 'content', 'metadata', 'created_at']
+  ai_messages: ['id', 'thread_id', 'role', 'content', 'metadata', 'created_at'],
+  /* Resultado HOLOS (migration 20261009100000): leitura so da propria; escrita SO pelas RPCs (resultado-holos-falso.mjs) */
+  holos_results: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'status', 'revision_number', 'supersedes_id', 'superseded_at', 'holoscan_application_id',
+    'selected_sources', 'leitura_profissional', 'pontos_acompanhar', 'questoes_aprofundar', 'content_snapshot', 'source_snapshot', 'content_hash', 'template_version',
+    'methodology_package_id', 'methodology_package_version', 'methodology_content_hash', 'operation_id', 'saved_at', 'reviewed_at', 'reviewed_by', 'created_at', 'updated_at']
 };
 
 const METODOLOGIA = ['methodology_packages', 'methodology_questionnaire_editions', 'methodology_scales', 'methodology_systems', 'methodology_questions', 'methodology_associations', 'methodology_ranges', 'methodology_rules', 'methodology_homologation_records'];
@@ -91,7 +96,7 @@ const FILHAS_PACOTE = METODOLOGIA.filter(t => t !== 'methodology_packages');
 const GLOBAIS_SO_LEITURA = ['lab_exam_catalog', 'lab_method_references', 'lab_unit_conversion_rules', 'lab_derived_calculations', 'integrated_reading_rule_packages', 'integrated_reading_domains', 'integrated_reading_exam_domain_links', 'integrated_reading_rules',
   'integrated_reading_package_dependencies', 'integrated_reading_package_approvals', 'integrated_reading_package_snapshots'];   // Etapa 5.2: aprovacoes so pela RPC
 const DONO_DIRETO = [...METODOLOGIA, 'methodology_package_approvals', 'lab_custom_exams', 'integrated_readings', 'patients', 'consultations', 'encounters', 'anamneses', 'conducts', 'agreements', 'report_emissions', 'schedule_blocks', 'holoscan_applications',
-  'lab_collections', 'tool_applications', 'documents', 'professional_assets', 'ai_threads'];
+  'lab_collections', 'tool_applications', 'documents', 'professional_assets', 'ai_threads', 'holos_results'];
 const FILHAS = {           // tabela -> [coluna, mae]
   holoscan_answers: ['application_id', 'holoscan_applications'],
   holoscan_system_scores: ['application_id', 'holoscan_applications'],
@@ -731,7 +736,7 @@ export function criarServidor() {
     const t = q.tabela;
     if (t === 'methodology_package_approvals' && q.acao !== 'select') return erro('permission denied for table methodology_package_approvals', '42501');
     if (t === 'methodology_approvers' && q.acao !== 'select') return erro('permission denied for table methodology_approvers', '42501');
-    if ((GLOBAIS_SO_LEITURA.includes(t) || t === 'integrated_readings') && q.acao !== 'select' && uid) return erro('permission denied for table ' + t, '42501');
+    if ((GLOBAIS_SO_LEITURA.includes(t) || t === 'integrated_readings' || t === 'holos_results') && q.acao !== 'select' && uid) return erro('permission denied for table ' + t, '42501');
     if (uid && (t in s.tabelas)) { const pe = protegerLab(q, uid); if (pe) return pe; }
     const filhaConteudo = FILHAS_PACOTE.includes(t) && t !== 'methodology_homologation_records' && ['insert', 'upsert', 'update', 'delete'].includes(q.acao);
     const pacoteMuda = t === 'methodology_packages' && q.acao === 'update' && q.dados && ('version' in q.dados || 'code' in q.dados);
@@ -939,6 +944,7 @@ export function criarServidor() {
     return erro('acao desconhecida ' + q.acao);
   }
 
+  const resultadoHolos = criarResultadoHolos(s, { statusConta: (u) => statusConta(u), carimbo: () => carimbo() });
   function rpc(uid, nome, args) {
     if (nome === 'minha_conta_status') return uid ? { data: statusConta(uid), error: null } : erro('permission denied for function minha_conta_status', '42501');
     if (nome === 'eh_administrador') return { data: !!uid && s.administradores.includes(uid), error: null };
@@ -959,6 +965,7 @@ export function criarServidor() {
     if (!uid) return erro('permission denied for function ' + nome, '42501');
     if (deveFalhar('rpc:' + nome, 'rpc') || deveFalhar(null, 'rpc')) return erro('falha simulada em rpc ' + nome, 'SIMULADA');
     const p = args && args.payload;
+    if (resultadoHolos.NOMES.includes(nome)) return resultadoHolos.rpc(uid, nome, args);
     if (nome === 'salvar_holoscan_completo') {
       if (!p || !p.application || !p.answers || !p.scores) return erro('payload incompleto', 'P0001');
       const a = p.application;

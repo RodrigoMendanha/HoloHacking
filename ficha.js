@@ -207,6 +207,8 @@
       linhas.map(function (l) { return '<div class="fic-det"><span>' + escapar(l[0]) + "</span><b>" + escapar(l[1]) + "</b></div>"; }).join("") +
       '<div class="fic-continuidade"><button type="button" class="fic-chip" data-ir="aba:anamnese">Anamnese</button>' +
       '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="holoscan">HOLOSCAN</button>' +
+      '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="aba:ferramentas">Ferramentas</button>' +
+      '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="aba:resultado-holos">Resultado HOLOS</button>' +
       '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="aba:conduta">Conduta</button>' +
       '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="aba:evolucao">Evolução</button>' +
       '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="aba:relatorio">Relatório</button></div>' +
@@ -1113,6 +1115,7 @@
     evolucao: function () { if (window.Evolucao) window.Evolucao.desenhar(); },
     holoscan: desenharHolo,
     ferramentas: desenharFormularios,
+    "resultado-holos": function () { if (window.ResultadoHolos) window.ResultadoHolos.desenhar(); },
     linha: desenharLinha,
     formularios: desenharFormularios
   };

@@ -870,6 +870,16 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     natureza/tipo/papel/proximidade (provado em teste); a lista agora diz que as opções são para tocar.
     Teste: `testes/testar-simulacao-0810.mjs`.
 
+173. **Resultado HOLOS** (09/10, aprovado pela usuária). Visão integrada final do paciente, na ficha entre Ferramentas e
+    Conduta: HOLOSCAN oficial **obrigatório** + ferramentas concluídas (seleção explícita, uma por ferramenta) + observações
+    da nutricionista. **Atendimento obrigatório** (o ativo ou escolhido). Cada ferramenta tem "Mostrar ao paciente",
+    **desligado por padrão**; o modelo reserva `ocultar` por item para o futuro. Snapshot montado pelo **servidor** (o
+    navegador manda só ids, textos e visibilidade), com sha256; depois de salvo, fontes, visibilidade e observações são
+    **imutáveis** — correção = "Nova versão a partir desta" (a anterior fica no histórico). Sem IA, sem exames, sem
+    interpretação automática; HOLOS-V1@2 e LI-V1@2 intocados. Tabela `holos_results` (migration 20261009100000), RLS de
+    leitura própria, escrita só por RPC. Detalhes: `docs/v1/RESULTADO-HOLOS.md`. PENDENTE: aplicar no banco real
+    (`supabase/RESULTADO-HOLOS.sql`) e deploy; o texto oficial do paciente por faixa (HOLOS-V1@2) inclui a frase "Revise
+    os itens respondidos…", dirigida à profissional — ajuste só numa futura versão metodológica (decisão do Daniel).
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`

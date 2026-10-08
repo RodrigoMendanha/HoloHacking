@@ -1623,7 +1623,7 @@
     });
     /* V1 Etapa 2/3: anamnese, conduta e evolucao tambem sao paineis da ficha
        (antes ficavam fora desta lista e nunca eram mostrados/escondidos). */
-    ["visao", "consultas", "anamnese", "conduta", "evolucao", "holoscan", "ferramentas", "documentos", "relatorio", "holos-ai"]
+    ["visao", "consultas", "anamnese", "conduta", "evolucao", "holoscan", "ferramentas", "resultado-holos", "documentos", "relatorio", "holos-ai"]
       .forEach(function (n) {
         var painel = document.getElementById("aba-" + n);
         if (painel) {
