@@ -107,7 +107,22 @@
     var t = "";
     t += linhaSe("Data da aplicação", dataBR(p.quando));
     t += linhaCobertura(p);
-    t += linhaSe("Resultados calculados", "não incluídos — perguntas, pesos, faixas e regras ainda não aprovados no Pacote Metodológico V1");
+    /* Simulacao 08/10: o texto dizia "pacote ainda nao aprovado" mesmo com a aplicacao
+       calculada pelo HOLOS-V1 oficial. Agora depende da PROVENIENCIA da aplicacao. */
+    var nat = window.Metodologia && window.Metodologia.naturezaAplicacao ? window.Metodologia.naturezaAplicacao(p) : "historica_sem_pacote";
+    if (nat === "oficial_v1" && Array.isArray(p.sistemas)) {
+      var A = window.HoloAusencia;
+      t += linhaSe("Metodologia", (p.methodology_package_code || "HOLOS-V1") + (p.methodology_package_version ? " v" + p.methodology_package_version : "") + " (oficial)");
+      t += "\n### Sistemas (nota 0–10; quanto mais baixa, mais sinais relatados)\n";
+      p.sistemas.forEach(function (x) {
+        var sem = A ? A.semNota(x) : (x.nota === null || x.nota === undefined);
+        t += "- " + (x.nome || x.sistema) + ": " + (sem ? "sem nota (cobertura abaixo do mínimo)" : (A ? A.notaTexto(x) : String(x.nota)) + (x.faixa ? " · faixa " + (window.rotuloExibivel ? window.rotuloExibivel(x.faixa) : x.faixa) : "")) + "\n";
+      });
+      if (A && A.indiceTexto) t += linhaSe("Índice HOLOS", A.indiceTexto(p) + (p.indice_maximo ? " de " + p.indice_maximo : ""));
+      if (p.triada) t += linhaSe("Tríade", ["fisico", "mental", "espiritual"].filter(function (k) { return typeof p.triada[k] === "number"; }).map(function (k) { return { fisico: "Físico", mental: "Mental", espiritual: "Espiritual" }[k] + " " + (A ? A.fmt(p.triada[k]) : p.triada[k]); }).join(" · "));
+    } else {
+      t += linhaSe("Resultados calculados", "não incluídos — aplicação " + (nat === "homologacao" ? "de homologação" : "histórica, sem o pacote metodológico oficial HOLOS-V1"));
+    }
     var interp = window.interpretacaoDe ? window.interpretacaoDe(p.quando, pid) : null;
     if (interp && interp.texto) {
       t += "\n### Interpretação profissional (texto da nutricionista)\n" + interp.texto + "\n";
@@ -390,8 +405,8 @@
       "Paciente: " + (p ? p.nome : "desconhecido") + "\n" +
       "Gerado em: " + new Date().toLocaleString("pt-BR") + "\n" +
       "Conteúdo: só registros salvos no servidor e texto da profissional. Notas, faixas, " +
-      "Índice, Tríada, prioridades, combinações, Leitura Integrada e sugestões automáticas " +
-      "NÃO estão incluídos: dependem do Pacote Metodológico V1, ainda não aprovado.\n" +
+      "Índice e Tríada entram só de aplicação calculada pelo pacote oficial HOLOS-V1. " +
+      "Já prioridades, combinações, Leitura Integrada e sugestões automáticas NÃO estão incluídos.\n" +
       "---\n";
   }
 

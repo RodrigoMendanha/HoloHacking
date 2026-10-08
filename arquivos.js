@@ -1000,11 +1000,12 @@
           "<span>ou clique para escolher &middot; PDF, foto ou texto</span></div>" +
         "</div>" +
         '<div class="doc-meta">' +
-          '<input type="text" id="doc-nome" placeholder="Nome (opcional — usa o do arquivo)">' +
-          '<select id="doc-tipo">' +
+          '<input type="text" id="doc-nome" placeholder="Nome (opcional — usa o do arquivo)" aria-label="Nome do documento">' +
+          '<select id="doc-tipo" aria-label="Tipo do documento">' +
           ["Exame laboratorial", "Laudo", "Receita", "Termo de consentimento", "Foto", "Outro"]
             .map(function (x) { return "<option>" + x + "</option>"; }).join("") +
-          '</select><input type="date" id="doc-data"></div>' +
+          '</select><input type="date" id="doc-data" aria-label="Data do documento" title="Data do documento (para exame: data da coleta ou do laudo)"></div>' +
+        '<div id="doc-pendente" class="doc-pendente hidden"></div>' +
         '<div id="doc-aviso"></div>' +
         '<p class="dash-sub" id="doc-total"></p>' +
         '<div id="doc-lista"></div>' +
@@ -1093,8 +1094,11 @@
         // cobre o "Adicionar documento" — um segundo botao igual dentro do
         // card vazio so duplicava (era a unica aba assim; Consultas/
         // HOLOSCAN/Confronto ja usavam um so).
-        alvo.innerHTML = '<div class="lista-vazia"><strong>Nenhum documento adicionado</strong>' +
-          "<span>Adicione arquivos e materiais relacionados à jornada deste paciente.</span></div>";
+        alvo.innerHTML = itens.falhaServidor
+          ? '<div class="lista-vazia"><strong>Não foi possível carregar os documentos do servidor</strong>' +
+            "<span>Verifique a conexão e abra a aba de novo. Nenhum documento foi apagado.</span></div>"
+          : '<div class="lista-vazia"><strong>Nenhum documento adicionado</strong>' +
+            "<span>Adicione arquivos e materiais relacionados à jornada deste paciente.</span></div>";
         desenharAtalhosDeExame(itens);
       } else {
         if (total) total.textContent = itens.length + (itens.length === 1 ? " documento" : " documentos");
@@ -1164,6 +1168,42 @@
       if (window.avisar) window.avisar(window.MSG_ARQUIVADO);
       return;
     }
+    /* Simulacao 08/10: o arquivo subia no instante em que era escolhido, antes de
+       nome, tipo e data — o laudo ficou "sem data". Agora escolher so PREPARA;
+       o envio acontece em "Guardar documento". */
+    escolhidos = Array.prototype.slice.call(lista);
+    desenharEscolhidos(false);
+  }
+
+  var escolhidos = [];
+  function desenharEscolhidos(pedirData) {
+    var caixa = document.getElementById("doc-pendente");
+    if (!caixa) return;
+    if (!escolhidos.length) { caixa.innerHTML = ""; caixa.classList.add("hidden"); return; }
+    var campoNome = document.getElementById("doc-nome");
+    caixa.classList.remove("hidden");
+    caixa.innerHTML = '<p><b>' + (escolhidos.length === 1 ? "Arquivo escolhido: " : escolhidos.length + " arquivos escolhidos: ") + "</b>" +
+      escolhidos.map(function (a) { return escapar(a.name); }).join(", ") + "</p>" +
+      '<p class="dash-sub">Confira o nome, o tipo e a data do documento (para exame, a data da coleta ou do laudo) e clique em Guardar. Nada foi enviado ainda.</p>' +
+      (pedirData ? '<p class="q-erro" id="doc-sem-data">Este documento está sem data. Informe a data acima ou clique em "Guardar sem data".</p>' : "") +
+      '<div class="acoes-form"><button type="button" class="btn-verde" id="doc-guardar"' + (pedirData ? ' data-sem-data="1"' : "") + ">" +
+      (pedirData ? "Guardar sem data" : "Guardar documento") + "</button>" +
+      '<button type="button" class="btn-fantasma" id="doc-cancelar">Cancelar</button></div>';
+    document.getElementById("doc-guardar").addEventListener("click", function (ev) { guardarEscolhidos(!!ev.currentTarget.dataset.semData); });
+    document.getElementById("doc-cancelar").addEventListener("click", function () {
+      escolhidos = []; if (campoNome) campoNome.value = ""; desenharEscolhidos(false);
+    });
+    var campoData = document.getElementById("doc-data");
+    if (pedirData && campoData) { campoData.focus(); campoData.addEventListener("change", function () { if (campoData.value) desenharEscolhidos(false); }, { once: true }); }
+  }
+
+  function guardarEscolhidos(semDataConfirmado) {
+    var lista = escolhidos;
+    if (!lista.length) return;
+    var tipoEscolhido = document.getElementById("doc-tipo").value;
+    if (!document.getElementById("doc-data").value && !semDataConfirmado && /Exame|Laudo/.test(tipoEscolhido)) { desenharEscolhidos(true); return; }
+    escolhidos = [];
+    desenharEscolhidos(false);
     var aviso = document.getElementById("doc-aviso");
     var nome = document.getElementById("doc-nome").value.trim();
     var meta = {
@@ -1199,7 +1239,10 @@
         (temSupa() ? " e sincronizado(s)." : ".") + "</p>";
       aviso.innerHTML = html;
       if (!erros.length && !soLocal.length) setTimeout(function () { aviso.innerHTML = ""; }, 3500);
+      document.getElementById("doc-data").value = "";
       listarDocumentos();
+      /* o laudo novo precisa aparecer na lista de laudos que podem ser ligados a uma coleta */
+      if (window.Laboratorio && window.Laboratorio.carregar && temSupa()) window.Laboratorio.carregar(paciente());
     });
   }
 
@@ -1388,16 +1431,15 @@
        B. HOLOSCAN — exames disponiveis e confronto por area. Aparece
        sempre, mesmo sem nenhum exame lancado (dados insuficientes e um
        estado a mostrar, nao motivo para a secao sumir). */
-    var ex = ler(CHAVE_EX);
-    var rExames = g.lerExames(ex, notasDoPaciente());
+    /* Simulacao 08/10: a secao B lia o confronto LEGADO (exames locais) e dizia
+       "Dados insuficientes" em tudo, mesmo com leituras V1 salvas. Agora mostra as
+       LEITURAS INTEGRADAS SALVAS (a mais recente de cada dominio, nao substituida),
+       com o texto do pacote LI-V1: profissional no registro "nutri", o texto
+       decidido para o paciente (DECISAO-24) no registro "paciente". Nada e calculado aqui. */
     html += '<section class="rel-parte" data-origem="automatico">' +
-      "<h3>B. Leitura Integrada (Holoscan) — o que os exames acrescentam " +
-      (window.Metodologia ? window.Metodologia.selo() : "") + "</h3><div class=\"rel-bloco\">";
-    rExames.confronto.forEach(function (c) {
-      html += "<p><b>" + NOME_SISTEMA[c.sistema] + "</b> — " +
-        escapar(window.Holoscan.rotulo(c)) + ". " + escapar(window.Holoscan.texto(c)) + "</p>";
-    });
-    html += '<p class="rel-fronteira">A Leitura Integrada organiza informações laboratoriais para ' +
+      "<h3>B. Leitura Integrada — o que os exames acrescentam</h3>" +
+      '<div class="rel-bloco" id="rel-li-corpo"><p class="rel-vazio">Carregando…</p></div>' +
+      '<div class="rel-bloco"><p class="rel-fronteira">A Leitura Integrada organiza informações laboratoriais para ' +
       "apoiar a interpretação profissional. Não realiza diagnóstico.</p></div></section>";
 
     /* ====================================================================
@@ -1468,12 +1510,61 @@
     if (identidade) html += '<p class="rel-emitiu">' + identidade + "</p>";
     if (contato) html += '<p class="rel-contato">' + contato + "</p>";
     html += "<p>Documento gerado pelo HoloHacking. " +
-      "Os marcadores e as faixas ainda estão em revisão pelo autor do método. " +
+      "Notas e faixas seguem o pacote metodológico indicado na aplicação do HOLOSCAN. " +
       "Queixa que sugira doença deve ser encaminhada ao médico.</p></footer></article>";
 
     alvo.innerHTML = html;
     pintarImagensDoPerfil(eu);
     preencherDocumentosRelatorio(paciente());
+    preencherLeituraRelatorio(paciente());
+  }
+
+  /* o pacote LI que gravou a leitura (servidor, via Laboratorio); sem ele, o que estiver em vigor */
+  function pacoteDaLeitura(x) {
+    var L = window.Laboratorio, d = L ? L.dados() : null;
+    var pk = d && (d.pacotesLI || []).filter(function (p) { return p.id === x.rule_package_id; })[0];
+    return pk || (L && L.pacoteReal ? L.pacoteReal() : { domains: [], rules: [] });
+  }
+  function textosLI(pk) {
+    var r = (pk.rules || []).filter(function (x) { return x.rule_type === "text"; })[0];
+    return r && r.payload ? r.payload : {};
+  }
+  function htmlLeiturasRelatorio(leituras) {
+    var rot = { convergente: "Convergente", divergente: "Divergente", sem_dados_suficientes: "Sem dados suficientes" };
+    var ultima = {};
+    leituras.filter(function (x) { return !x.superseded_at && x.domain_code; }).forEach(function (x) {
+      if (!ultima[x.domain_code] || String(x.created_at) > String(ultima[x.domain_code].created_at)) ultima[x.domain_code] = x;
+    });
+    var cods = Object.keys(ultima).sort(function (a, b) { return a.localeCompare(b); });
+    if (!cods.length) return '<p class="rel-vazio">Nenhuma leitura integrada salva para este paciente.' +
+      (registroAtual === "nutri" ? " Calcule e salve as leituras em HOLOSCAN → Leitura Integrada." : "") + "</p>";
+    return cods.map(function (c) {
+      var x = ultima[c], pk = pacoteDaLeitura(x), T = textosLI(pk);
+      var d = (pk.domains || []).filter(function (k) { return k.code === c || k.domain_code === c; })[0], nome = d ? (d.name || d.domain_name || c) : c;
+      if (registroAtual === "paciente") {
+        var tp = T.paciente || {};
+        var texto = x.state === "convergente" && x.holoscan_direction === "attention_not_detected" && tp.convergente_sem_sinal ? tp.convergente_sem_sinal : tp[x.state];
+        return '<p class="rel-prioridade"><b>' + escapar(nome) + "</b> — " + escapar(texto || "Converse com sua nutricionista sobre este domínio.") + "</p>";
+      }
+      return '<p class="rel-prioridade"><b>' + escapar(nome) + "</b> — " + escapar(rot[x.state] || x.state) + ". " + escapar(T[x.state] || "") +
+        ' <span class="rel-meta">(leitura de ' + escapar(dataBR(String(x.created_at || "").slice(0, 10))) + ")</span>" +
+        (x.professional_note ? "<br><i>Observação profissional:</i> " + escapar(x.professional_note) : "") + "</p>";
+    }).join("");
+  }
+  /* mesma ideia de preencherDocumentosRelatorio: as leituras vem do servidor (Laboratorio) */
+  function preencherLeituraRelatorio(pid) {
+    var L = window.Laboratorio;
+    var pintar = function () {
+      var alvo = document.getElementById("rel-li-corpo");
+      if (!alvo) return;
+      var d = L ? L.dados() : null;
+      if (!d || d.pid !== pid) { alvo.innerHTML = '<p class="rel-vazio">Leituras integradas indisponíveis sem conexão com o servidor.</p>'; return; }
+      alvo.innerHTML = htmlLeiturasRelatorio(d.leituras || []);
+    };
+    if (!L) { pintar(); return; }
+    var d0 = L.dados();
+    if (d0 && d0.pid === pid && !d0.erro) { pintar(); return; }
+    Promise.resolve(L.carregar(pid)).then(pintar, pintar);
   }
 
   /* Mesmo padrao de pintarImagensDoPerfil(): o HTML sincrono ja foi escrito
@@ -1487,7 +1578,9 @@
       var alvo = document.getElementById("rel-documentos-corpo");
       if (!alvo) return;
       if (!itens.length) {
-        alvo.innerHTML = '<p class="rel-vazio">Nenhum documento registrado até o momento.</p>';
+        alvo.innerHTML = itens.falhaServidor
+          ? '<p class="rel-vazio">Não foi possível carregar os documentos do servidor agora. Abra o relatório de novo em instantes.</p>'
+          : '<p class="rel-vazio">Nenhum documento registrado até o momento.</p>';
         return;
       }
       alvo.innerHTML = "<p>" + itens.length +

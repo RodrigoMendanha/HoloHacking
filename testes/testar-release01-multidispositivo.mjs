@@ -533,6 +533,8 @@ const aviso = await A.p.evaluate(async (pid) => {
 }, P);
 const input = await A.p.$('#doc-arquivo');
 await input.uploadFile(arquivo);
+// simulacao 08/10: escolher o arquivo so prepara; o envio e no botao Guardar (sem data: confirma)
+await A.p.evaluate(async () => { for (let i = 0; i < 2; i++) { const b = document.getElementById('doc-guardar'); if (!b) break; b.click(); await new Promise(r => setTimeout(r, 80)); } });
 await A.p.waitForFunction(() => /arquivo/.test((document.getElementById('doc-aviso') || {}).textContent || ''), { timeout: 8000 });
 const avisoTxt = await A.p.evaluate(() => document.getElementById('doc-aviso').textContent);
 ok(/somente neste dispositivo/.test(avisoTxt) && !/sincronizado\(s\)\./.test(avisoTxt),

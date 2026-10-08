@@ -384,10 +384,12 @@ ok(appA && Array.isArray(appA.combinacoes), 'a aplicacao salva continua guardand
 ok(!/CMB-|Leituras combinadas/.test(ctx.a), '8: nenhuma CMB no contexto assistivo de A');
 /* Ajuste final da Etapa 0 (Mestre §36.1): conteudo dependente de metodologia
    nao aprovada NAO entra no contexto — nem rotulado "em homologacao". */
-const proibido = /### Sistemas|### Tríada|- Físico:|### Índice HOLOS|faixa \d|## Leitura Integrada|Sinais dominantes|Leituras combinadas|Convergente|Divergente|Dados insuficientes|dados insuficientes|Prioridades/;
-ok(!proibido.test(ctx.a), '21: nenhuma nota, faixa, Indice, Triada, prioridade ou Leitura Integrada no contexto de A');
-ok(/## HOLOSCAN/.test(ctx.a) && /Cobertura bruta: 30 de 84/.test(ctx.a) && /Resultados calculados: não incluídos/.test(ctx.a),
-   '21: o contexto de A traz so dado bruto da aplicacao salva (data, cobertura) e o aviso');
+/* Simulacao 08/10: com o HOLOS-V1 oficial, notas/faixas/Indice/Triade da aplicacao OFICIAL entram
+   (rotuladas com o pacote); prioridades, combinacoes e Leitura Integrada continuam fora. */
+const proibido = /## Leitura Integrada|Sinais dominantes|Leituras combinadas|Convergente|Divergente|Dados insuficientes|dados insuficientes|Prioridades/;
+ok(!proibido.test(ctx.a), '21: nenhuma prioridade, combinacao ou Leitura Integrada no contexto de A');
+ok(/## HOLOSCAN/.test(ctx.a) && /Cobertura bruta: 30 de 84/.test(ctx.a) && /### Sistemas/.test(ctx.a) && /\(oficial\)/.test(ctx.a),
+   '21: o contexto de A traz a aplicacao salva (data, cobertura) e as notas do pacote oficial');
 ok(/NÃO estão incluídos/.test(ctx.a), '21: o cabecalho diz o que ficou de fora e por que');
 ok(!/## HOLOSCAN|Cobertura bruta/.test(ctx.b), '21: a previa de B (mapa nao salvo) NAO entra no contexto');
 ok(ctx.urls.every(u => !u), '21: botoes ChatGPT/Gemini sem URL (provedor nao integrado)');

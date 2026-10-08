@@ -27,7 +27,7 @@
 (function () {
   "use strict";
   var raiz = typeof window !== "undefined" ? window : globalThis;
-  var VERSAO = "motor-leitura-integrada-2.0.1";
+  var VERSAO = "motor-leitura-integrada-2.0.2";
   var ESTADOS = ["convergente", "divergente", "sem_dados_suficientes"];
   var DIRECOES = ["attention_present", "attention_not_detected", "indeterminate"];
   var P = "attention_present", N = "attention_not_detected", I = "indeterminate";
@@ -134,7 +134,10 @@
       sufic.satisfied = !sufic.required_missing.length && !sufic.groups_unmet.length && minimo !== null && dirInc.length >= minimo;
     }
     // motivos reais da causa (exclusoes dos directional) e duplicidade
-    itens.filter(function (i) { return i.cross_source_role === "directional" && !i.included && i.exclusion_reason && i.exclusion_reason !== "not_selected_duplicate"; }).forEach(function (i) { reasons.push(i.exclusion_reason); });
+    // simulacao 08/10: um exame excluido (ex.: coleta antiga fora da janela) que tem OUTRO resultado do mesmo
+    // exame incluido nao e causa de nada — o motivo dele so polui o dominio. Estado e suficiencia nao mudam.
+    var codIncluidos = {}; itens.forEach(function (i) { if (i.included) codIncluidos[i.exam_code] = true; });
+    itens.filter(function (i) { return i.cross_source_role === "directional" && !i.included && i.exclusion_reason && i.exclusion_reason !== "not_selected_duplicate" && !codIncluidos[i.exam_code]; }).forEach(function (i) { reasons.push(i.exclusion_reason); });
     if (!temp) reasons.push("missing_temporal_rule");
     if (!(ent.collections || []).length) reasons.push("missing_lab_source");
     // 8. mistos (unanimidade; mistura -> indeterminate; nunca maioria/media/peso/score)

@@ -247,13 +247,19 @@
     "</li>";
   }
 
+  /* simulacao 08/10: nome da ferramenta para a tela (antes aparecia o id interno, ex. conexao_pertencimento_v1) */
+  function nomeFerramenta(id) {
+    var f = (window.CATALOGO_FERRAMENTAS || []).filter(function (x) { return x.id === id; })[0];
+    return f ? f.titulo + (f.legado ? " (versão anterior)" : "") : id === "oq3" ? "OQ³" : id === "pqq" ? "PQQ" : String(id || "");
+  }
+
   function referenciasHtml(pid, refs, editavel) {
     var S = window.Sincronizacao, A = window.AtendimentoAtual;
     var holos = []; try { holos = (S && S.holoscanConsolidado ? S.holoscanConsolidado(pid) : []) || []; } catch (e) {}
     var historico = (window.Panorama && window.Panorama.doPaciente) ? (window.Panorama.doPaciente(pid).historico || []) : [];
     var holoIds = historico.filter(function (h) { return h._supa_id; }).map(function (h) { return { id: h._supa_id, rot: "HOLOSCAN de " + (window.dataBR ? window.dataBR(h.quando) : h.quando) }; });
     var ferr = (window.Aplicacoes && window.Aplicacoes.doPaciente ? window.Aplicacoes.doPaciente(pid) : []).filter(function (a) { return a.id && a.status !== "rascunho"; })
-      .map(function (a) { return { id: a.id, rot: a.ferramenta_id + " (" + String(a.concluida_em || a.iniciada_em || "").slice(0, 10) + ")" }; });
+      .map(function (a) { var d = String(a.concluida_em || a.iniciada_em || "").slice(0, 10); return { id: a.id, rot: nomeFerramenta(a.ferramenta_id) + " (" + (window.dataBR ? window.dataBR(d) : d) + ")" }; });
     var col = (S && S.coletas ? S.coletas(pid) : []) || [];
     var colIds = col.map(function (c) { return { id: c.id, rot: "coleta " + (c.coletado_em ? (window.dataBR ? window.dataBR(c.coletado_em) : c.coletado_em) : "sem data") }; });
     var enc = (A ? A.doPaciente(pid) : []).map(function (e) { return { id: e.id, rot: "atendimento " + A.rotuloQuando(e) }; });
@@ -367,9 +373,13 @@
           html += '<div class="perf-campo largo"><label for="cd-' + f[0] + '">' + escapar(f[1]) + "</label>" +
             '<textarea id="cd-' + f[0] + '" data-cd-campo="' + f[0] + '" rows="2">' + escapar(mostrar[f[0]] || "") + "</textarea></div>";
         });
-        var cat = window.CATALOGO_FERRAMENTAS || [];
+        /* simulacao 08/10: o catalogo guarda as versoes antigas (legado) ao lado das novas com o mesmo
+           titulo — a lista mostrava Mapa da Rotina, Gatilhos e Conexao duas vezes. So as ativas, mais
+           alguma antiga que ja esteja marcada nesta conduta (para nao perder a marcacao). */
+        var ativas = window.FERRAMENTAS_ATIVAS || null, marcadas = mostrar.related_tools || [];
+        var cat = (window.CATALOGO_FERRAMENTAS || []).filter(function (f) { return !ativas || ativas.indexOf(f.id) >= 0 || marcadas.indexOf(f.id) >= 0; });
         html += '<details class="an-dominio"><summary><b>Ferramentas relacionadas</b></summary>' + cat.map(function (f) {
-          return '<label class="an-check"><input type="checkbox" data-cd-tool="' + escapar(f.id) + '"' + ((mostrar.related_tools || []).indexOf(f.id) >= 0 ? " checked" : "") + "> " + escapar(f.titulo) + "</label>";
+          return '<label class="an-check"><input type="checkbox" data-cd-tool="' + escapar(f.id) + '"' + (marcadas.indexOf(f.id) >= 0 ? " checked" : "") + "> " + escapar(nomeFerramenta(f.id)) + "</label>";
         }).join("") + "</details>";
         html += referenciasHtml(pid, mostrar.references, true);
         html += '<div class="cd-acordos-bloco"><span class="fic-rot">Acordos</span><ul class="cd-acordos" id="cd-acordos">' +
@@ -379,7 +389,7 @@
       } else {
         if ((mostrar.priorities || []).length) html += "<p><b>Prioridades:</b> " + escapar(mostrar.priorities.join("; ")) + "</p>";
         CAMPOS.forEach(function (f) { if (mostrar[f[0]]) html += '<p class="cd-campo"><b>' + escapar(f[1]) + ":</b> " + escapar(mostrar[f[0]]) + "</p>"; });
-        if ((mostrar.related_tools || []).length) html += "<p><b>Ferramentas relacionadas:</b> " + escapar(mostrar.related_tools.join(", ")) + "</p>";
+        if ((mostrar.related_tools || []).length) html += "<p><b>Ferramentas relacionadas:</b> " + escapar(mostrar.related_tools.map(nomeFerramenta).join(", ")) + "</p>";
         html += referenciasHtml(pid, mostrar.references, false);
         var ag = acordosDe(mostrar.id);
         html += '<div class="cd-acordos-bloco"><span class="fic-rot">Acordos</span>' + (ag.length ? '<ul class="cd-acordos" id="cd-acordos">' + ag.map(function (g) { return acordoHtml(g, 0, false, consolidada(mostrar) && !mostrar.superseded_at && !arquivado); }).join("") + "</ul>" : '<p class="dash-vazio">Nenhum acordo registrado.</p>') + "</div>";

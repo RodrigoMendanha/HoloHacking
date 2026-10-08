@@ -53,6 +53,7 @@
     var listar = window.ArquivoStore.listarTudoHibrido || window.ArquivoStore.listarTudo;
     listar().then(function (todos) {
       var itens = todos.filter(function (d) { return d.paciente !== DONO_PERFIL; });
+      itens.falhaServidor = !!todos.falhaServidor;
       window.ArquivoStore.espaco().then(function (e) {
         pintar(itens, e);
       });
@@ -78,9 +79,11 @@
       "</div>";
 
     if (todos.length === 0) {
-      alvo.innerHTML = cabeca +
-        '<p class="dash-vazio">Nenhum documento guardado ainda. ' +
-        "Os arquivos entram pela ficha do paciente, na aba Documentos.</p>";
+      alvo.innerHTML = cabeca + (todos.falhaServidor
+        ? '<p class="dash-vazio">Não foi possível carregar os documentos do servidor agora. ' +
+          "Verifique a conexão e abra esta tela de novo. Nenhum documento foi apagado.</p>"
+        : '<p class="dash-vazio">Nenhum documento guardado ainda. ' +
+          "Os arquivos entram pela ficha do paciente, na aba Documentos.</p>");
       return;
     }
 

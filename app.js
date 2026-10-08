@@ -2378,7 +2378,14 @@
     preencher("#mapa-proposito", proposito ? "“" + proposito + "”" : "", "Aplique o PQQ no módulo Mente para revelar o propósito.");
   }
 
-  $("#btn-atualizar-mapa").addEventListener("click", () => { renderizarMapa(); toast("Mapa atualizado."); });
+  $("#btn-atualizar-mapa").addEventListener("click", () => {
+    renderizarMapa();
+    const p = pacienteAtivo();
+    /* simulacao 08/10: "Mapa atualizado." parecia um salvamento que nao acontecia */
+    toast(p && p.oq3 && p.pqq && (p.oq3.quer || p.oq3.precisa) && (p.pqq.objetivo || p.pqq.verdadeiro)
+      ? "Mapa montado com o OQ³ e o PQQ salvos. Ele não é salvo à parte: muda sozinho quando o OQ³ ou o PQQ mudam."
+      : "O Mapa se monta com o OQ³ (Corpo) e o PQQ (Mente) salvos.");
+  });
   $("#btn-imprimir").addEventListener("click", () => window.print());
 
   /* ============================================================

@@ -188,9 +188,11 @@ const ctx = await p.evaluate(async () => {
 });
 /* Etapa 0 (ajuste final, Mestre §36.1): notas, Triade e Indice NAO entram
    mais no contexto — nem como "—". So dado bruto consolidado. */
-ok(!/### Tríada|- Mental:|- Físico:|### Sistemas/.test(ctx), 'contexto: sem Triade nem notas de sistema (metodologia nao aprovada)');
-ok(/Cobertura bruta: 30 de 84/.test(ctx) && /Resultados calculados: não incluídos/.test(ctx),
-   'contexto: traz a cobertura bruta da aplicacao salva e o aviso do que ficou de fora');
+/* Simulacao 08/10: com o HOLOS-V1 oficial (aplicacao calculada pelo pacote aprovado), as notas
+   entram no contexto; sistema abaixo da cobertura minima aparece "sem nota" — nunca 10. */
+ok(/### Sistemas/.test(ctx) && /sem nota \(cobertura abaixo do mínimo\)/.test(ctx) && /HOLOS-V1.*\(oficial\)/.test(ctx), 'contexto: aplicacao oficial traz as notas; sistema sem cobertura sai "sem nota"');
+ok(/Cobertura bruta: 30 de 84/.test(ctx) && !/Resultados calculados: não incluídos/.test(ctx),
+   'contexto: traz a cobertura bruta da aplicacao salva');
 ok(!/: 10\.0/.test(ctx), 'contexto: nenhum "10.0" inventado');
 
 /* ------------------------------------------------------------------ */

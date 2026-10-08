@@ -187,8 +187,12 @@
         }).join("") + "</div></div>";
     }).join("");
 
+    /* simulacao 08/10: as opcoes de cada item (ex.: Natureza, Tipo, Papel, Proximidade do vinculo)
+       passavam despercebidas e a tabela saia so com o nome */
+    var comOpcoes = L.campos.filter(function (c) { return c.tipo === "opcoes"; }).map(function (c) { return c.rotulo.replace(/ \(.*\)$/, ""); });
     return '<section class="ferr-lista" data-lista="' + L.id + '">' +
       '<h4 class="ferr-grupo-titulo">' + escapar(L.rotulo) + "</h4>" +
+      (comOpcoes.length ? '<p class="perf-ajuda">Em cada ' + escapar((L.titulo_item || "item").toLowerCase()) + ", toque nas opções para marcar: " + escapar(comOpcoes.join(", ")) + ".</p>" : "") +
       '<div class="ferr-itens">' + linhas + "</div>" +
       '<button type="button" class="perf-botao" data-mais-item="1">+ Acrescentar ' +
         escapar((L.titulo_item || "item").toLowerCase()) + "</button></section>";
@@ -705,8 +709,13 @@
            conduta"): redesenha para nao ficar com a pendencia antiga (auditoria) */
         if (typeof window.redesenharFicha === "function") { try { window.redesenharFicha(); } catch (e) { /* ficha fechada */ } }
         if (typeof window.redesenharDashboard === "function") { try { window.redesenharDashboard(); } catch (e) { /* idem */ } }
-        if (concluir) desenhar(f, alvo, app);
-        else redesenharSintese(f, alvo);
+        if (concluir) {
+          /* simulacao 08/10: a leitura profissional digitada ANTES de concluir (ainda nao
+             registrada) sumia no redesenho. Ela volta para os campos, sem ser gravada sozinha. */
+          var rasc = leituraDigitada(alvo);
+          desenhar(f, alvo, app);
+          devolverLeitura(alvo, rasc);
+        } else redesenharSintese(f, alvo);
         // depois do redesenho: escrever antes apagaria junto com o elemento
         avisar(alvo, "aviso", eraRevisada ? "Alterações salvas. A leitura profissional registrada continua — revise-a se a mudança a afetar."
           : concluir ? "Aplicação concluída." : "Rascunho salvo.");
@@ -773,6 +782,8 @@
           avisarFixo(alvo, "aviso-leitura", "Escreva a leitura, marque a prioridade ou o próximo passo antes de registrar.");
           return;
         }
+        var btnLeit = this;
+        if (window.travarBotao && !window.travarBotao(btnLeit, "Registrando…")) return;
         Promise.resolve(window.Aplicacoes.revisar(
           app,
           alvo.querySelector("#leit-texto").value.trim(),
@@ -785,14 +796,34 @@
             selo.className = "ferr-meta-item estado-" + app.status;
             selo.textContent = window.Aplicacoes.rotulo(app.status === "rascunho" ? "em_preenchimento" : app.status);
           }
-          avisar(alvo, "aviso-leitura", "Leitura registrada.");
+          /* simulacao 08/10: o "Leitura registrada." sumia em 2,6 s e passava despercebido.
+             Agora fica na tela (com a hora) e tambem aparece no aviso geral. */
+          var el = alvo.querySelector('[data-papel="aviso-leitura"]');
+          var agora = new Date(), hh = String(agora.getHours()).padStart(2, "0") + ":" + String(agora.getMinutes()).padStart(2, "0");
+          if (el) { el.classList.remove("erro"); el.removeAttribute("role"); el.textContent = "✓ Leitura registrada às " + hh + "."; }
+          if (window.avisar) window.avisar("Leitura profissional registrada.");
           marcarCard(f.id);
         }, function (e) {
           console.error("[formulario] registrar leitura:", e && e.message ? e.message : e);
           avisarFixo(alvo, "aviso-leitura", mensagemDeFalha(e));
-        });
+        }).finally(function () { if (window.destravarBotao) window.destravarBotao(btnLeit); });
       });
     }
+  }
+
+  function leituraDigitada(alvo) {
+    var t = alvo.querySelector("#leit-texto"), pa = alvo.querySelector("#leit-passo"), m = alvo.querySelector('[data-campo="leit-prioridade"] .marcado');
+    return { texto: t ? t.value : "", passo: pa ? pa.value : "", prioridade: m ? m.dataset.valor : null };
+  }
+  function devolverLeitura(alvo, r) {
+    if (!r) return;
+    var t = alvo.querySelector("#leit-texto"), pa = alvo.querySelector("#leit-passo");
+    if (t && r.texto && !t.value) t.value = r.texto;
+    if (pa && r.passo && !pa.value) pa.value = r.passo;
+    if (r.prioridade && !alvo.querySelector('[data-campo="leit-prioridade"] .marcado')) {
+      alvo.querySelectorAll('[data-campo="leit-prioridade"] button').forEach(function (b) { if (b.dataset.valor === r.prioridade) b.classList.add("marcado"); });
+    }
+    if (r.texto || r.passo || r.prioridade) avisarFixo(alvo, "aviso-leitura", "A leitura acima ainda não foi registrada: clique em Registrar leitura.");
   }
 
   /* ---------- o selo do card ----------------------------------------------- */

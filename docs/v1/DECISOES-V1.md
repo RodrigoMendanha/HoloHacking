@@ -853,6 +853,22 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     (antes a tela dizia "enviaremos" mesmo sem enviar); a mensagem continua neutra quanto à existência da conta. Link
     expirado volta ao login com aviso. PENDENTE (painel): SMTP próprio — o e-mail padrão do Supabase só entrega à equipe
     do projeto (`docs/v1/EMAIL-RECUPERAR-SENHA.md`).
+172. **Correções da consulta simulada de 08/10** (jornada completa com paciente fictícia). (1) Relatório, seção B: mostra
+    as LEITURAS INTEGRADAS SALVAS (a mais recente de cada domínio), com o texto do pacote LI-V1 para a nutricionista e o
+    texto decidido para o paciente (DECISAO-24) na versão "Para o paciente" — antes lia o confronto legado e dizia "Dados
+    insuficientes" em tudo. (2) Lista de documentos: falha passageira do servidor tenta de novo uma vez; servidor fora
+    diz "não foi possível carregar" (nunca "nenhum documento"). (3) Documento: escolher o arquivo só PREPARA; o envio é no
+    botão "Guardar documento", depois de nome, tipo e data; exame/laudo sem data pede confirmação; o laudo novo entra na
+    lista de laudos que podem ser ligados a uma coleta. (4) HOLOS AI: notas, faixas, Índice e Tríade entram no contexto
+    quando a aplicação foi calculada pelo HOLOS-V1 oficial (aplicação histórica continua sem); some o "pacote ainda não
+    aprovado". (5) Mapa do Propósito: com OQ³ e PQQ, o card diz "montado" e conta como aplicado; "Atualizar mapa" não diz
+    mais que salvou (o Mapa é derivado e não se salva à parte). (6) "Registrar leitura": confirmação fica na tela com a
+    hora; leitura digitada antes de "Concluir aplicação" não some (volta ao campo, com aviso de que falta registrar).
+    (7) Conduta: ferramentas sem as versões antigas repetidas e com o nome (nunca o id interno). (8) Leitura Integrada
+    (motor 2.0.2): resultado antigo fora da janela de um exame que tem resultado recente incluído não vira motivo do
+    domínio — estado, suficiência e regras do LI-V1@2 não mudam. (9) Conexão & Pertencimento: o formulário já grava
+    natureza/tipo/papel/proximidade (provado em teste); a lista agora diz que as opções são para tocar.
+    Teste: `testes/testar-simulacao-0810.mjs`.
 
 ## Decisões pendentes (não decididas aqui)
 

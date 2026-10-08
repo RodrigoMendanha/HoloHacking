@@ -679,13 +679,25 @@
     }));
   }
 
+  /* Simulacao 08/10: uma falha passageira do servidor fazia o relatorio e o menu
+     Documentos dizerem "Nenhum documento" com o laudo guardado. Agora tenta de novo
+     uma vez e, se continuar sem resposta, a lista sai marcada (falhaServidor) para
+     a tela dizer isso em vez de "nenhum". */
+  function deNovoSeFalhou(fazer) {
+    return fazer().then(function (r) {
+      if (r) return r;
+      return new Promise(function (ok) { setTimeout(ok, 800); }).then(function () { invalidarListas(); return fazer(); });
+    });
+  }
+  function marcarFalha(lista) { var l = lista.slice(); l.falhaServidor = true; return l; }
+
   function listarHibrido(paciente) {
     if (!temSupa()) return listar(paciente);
-    return Promise.all([listar(paciente), listarSupa(paciente)])
+    return Promise.all([listar(paciente), deNovoSeFalhou(function () { return listarSupa(paciente); })])
       .then(function (par) {
         var local = par[0] || [];
         var supa = par[1];
-        if (!supa) return local;        // servidor fora: mostra o que ha aqui
+        if (!supa) return marcarFalha(local);        // servidor fora: mostra o que ha aqui, avisando
         var idsSupa = {}, chaves = {};
         supa.forEach(function (d) {
           idsSupa[d._supa_id] = true;
@@ -736,9 +748,9 @@
 
   function listarTudoHibrido() {
     if (!temSupa()) return listarTudo();
-    return Promise.all([listarTudo(), listarTudoSupa()]).then(function (par) {
+    return Promise.all([listarTudo(), deNovoSeFalhou(listarTudoSupa)]).then(function (par) {
       var local = par[0] || [], supa = par[1];
-      if (!supa) return local;
+      if (!supa) return marcarFalha(local);
       var chaves = {};
       supa.forEach(function (d) { chaves[d.paciente + "|" + d.nome + "|" + d.tamanho] = true; });
       var extras = local.filter(function (d) {

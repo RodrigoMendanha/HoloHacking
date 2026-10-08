@@ -78,6 +78,14 @@ ok(temporal('2026-02-08').temporal.collections[0].temporal_delta_days === -30 &&
 const t31 = temporal('2026-04-10');
 ok(t31.temporal.collections[0].temporal_delta_days === 31 && t31.temporal.collections[0].temporal_status === 'incompatible' && t31.state === 'sem_dados_suficientes' && t31.reason_codes.includes('outside_time_window') && t31.reason_codes.includes('missing_required_exam') && t31.items[0].exclusion_reason === 'outside_time_window', '+31 -> incompatible: outside_time_window; PCR excluida; SEM DADOS (nada apagado: item segue no trace)');
 ok(temporal('2026-02-07').temporal.collections[0].temporal_delta_days === -31 && temporal('2026-02-07').state === 'sem_dados_suficientes' && temporal('2026-02-07').reason_codes.includes('outside_time_window'), '-31 -> incompatible');
+/* simulacao 08/10: coleta antiga (fora da janela) + coleta recente com o MESMO exame: o resultado antigo
+   excluido nao poluiu os motivos do dominio (antes "fora da janela" aparecia em todos os dominios) */
+const duasColetas = calc([above('LAB-005', { collection_id: 'cOld' }), above('LAB-005', { collection_id: 'cNew' })], holo({ metabolico: 'baixa' }),
+  { collections: [{ id: 'cOld', clinical_date: '2025-12-10' }, { id: 'cNew', clinical_date: '2026-03-10' }] }).domains['LI-D03'];
+ok(duasColetas.state === 'sem_dados_suficientes' && !duasColetas.reason_codes.includes('outside_time_window') && duasColetas.reason_codes.includes('missing_required_exam') && duasColetas.items.some(i => i.exclusion_reason === 'outside_time_window'),
+   'exame com resultado recente incluido: o resultado antigo fora da janela segue no trace, mas nao vira motivo do dominio: ' + duasColetas.reason_codes.join(','));
+const soAntiga = calc([above('LAB-005', { collection_id: 'cOld' })], holo({ metabolico: 'baixa' }), { collections: [{ id: 'cOld', clinical_date: '2025-12-10' }] }).domains['LI-D03'];
+ok(soAntiga.reason_codes.includes('outside_time_window'), 'exame so na coleta antiga: "fora da janela" continua sendo motivo');
 const tnull = temporal(null);
 ok(tnull.temporal.collections[0].temporal_delta_days === null && tnull.temporal.collections[0].temporal_status === 'missing_clinical_date' && tnull.reason_codes.includes('missing_clinical_date') && tnull.state === 'sem_dados_suficientes', 'coleta sem data clinica -> missing_clinical_date (sem fallback para created_at/updated_at)');
 const semDataApp = calc([above('LAB-016')], holo({ acido_inflamatorio: 'baixa' }, { clinical_date: null })).domains['LI-D01'];

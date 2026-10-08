@@ -1458,6 +1458,8 @@ body.escuro .btn-tema .icone-lua{display:none}
   border:1px solid var(--input-borda);background:var(--input-fundo);color:var(--texto);
 }
 .doc-meta #doc-nome{flex:1;min-width:220px}
+.doc-pendente{border:1px solid var(--input-borda);border-radius:10px;padding:12px 14px;margin:-8px 0 16px;background:var(--input-fundo);color:var(--texto)}
+.doc-pendente .acoes-form{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 
 .doc-ok{
   font-size:.84rem;color:var(--dourado);font-weight:500;

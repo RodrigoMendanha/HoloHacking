@@ -249,7 +249,7 @@
       var alvo = document.getElementById("fic-visao-docs");
       if (!alvo) return;
       if (!itens.length) {
-        alvo.innerHTML = '<p class="dash-vazio">Nenhum documento.</p>' +
+        alvo.innerHTML = (itens.falhaServidor ? '<p class="dash-vazio">Não foi possível carregar os documentos do servidor agora.</p>' : '<p class="dash-vazio">Nenhum documento.</p>') +
           '<button type="button" class="dash-ir" data-ir="aba:documentos">Adicionar documento ' +
           '<span aria-hidden="true">&rarr;</span></button>';
         return;
@@ -889,7 +889,9 @@
       (function () {
         var temOQ3 = temConteudo(p.oq3);
         var temPQQ = temConteudo(p.pqq);
-        var estado = temOQ3 && temPQQ ? "pronto para montar"
+        /* simulacao 08/10: com as duas metades o Mapa JA esta montado (ele e derivado,
+           nao se salva a parte) — "pronto para montar" fazia parecer que faltava um passo */
+        var estado = temOQ3 && temPQQ ? "montado"
                    : temOQ3 ? "falta o PQQ"
                    : temPQQ ? "falta o OQ³"
                    : "não aplicado";
@@ -900,7 +902,7 @@
           pronto: temOQ3 && temPQQ,
           comeco: temOQ3 || temPQQ,
           extra: temOQ3 && temPQQ
-            ? "As duas metades estão preenchidas."
+            ? "Montado a partir do OQ³ e do PQQ salvos: muda sozinho quando um deles muda."
             : (temOQ3 || temPQQ ? "O Mapa se monta com o OQ³ e o PQQ juntos." : ""),
           abrir: "espirito"
         };
@@ -931,6 +933,8 @@
     var aplicadasAtivas = d.ferramentas.filter(function (id) {
       return ativas.indexOf(id) >= 0;
     });
+    /* o Mapa do Propósito nao tem aplicacao propria: conta como aplicado quando OQ³ e PQQ existem */
+    if (aplicadasAtivas.indexOf("mapa") < 0 && temConteudo(p.oq3) && temConteudo(p.pqq)) aplicadasAtivas.push("mapa");
 
     html += '<div class="fic-forms-rodape">' +
       '<div class="fic-form-topo"><span class="fic-form-quem">' +

@@ -30,6 +30,8 @@ ok(await p.$('#doc-solta') !== null, 'a area de arrastar existe');
 
 const campo = await p.$('#doc-arquivo');
 await campo.uploadFile('amostras/exame.pdf', 'amostras/laudo.png');
+// simulacao 08/10: escolher o arquivo so prepara; o envio e no botao Guardar (sem data: confirma)
+await p.evaluate(async () => { for (let i = 0; i < 2; i++) { const b = document.getElementById('doc-guardar'); if (!b) break; b.click(); await new Promise(r => setTimeout(r, 80)); } });
 await new Promise(r => setTimeout(r, 900));
 
 const dep = await p.evaluate(() => ({
