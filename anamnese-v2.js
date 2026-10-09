@@ -454,6 +454,7 @@
   function salvarRascunho() {
     clearTimeout(timer);
     if (!st || st.somente || !st.sujo || !ctxAtual) return Promise.resolve(null);
+    if (st.concluindo) return Promise.resolve(null);   // a conclusao grava tudo de uma vez
     if (st.salvando) { st.pendente = true; return Promise.resolve(null); }
     if (st.estado === "conflito") return Promise.resolve(null);
     var content = contentAtual();
@@ -462,7 +463,7 @@
     var payload = { id: st.id || st.corrigeDe || null, encounter_id: st.eid, content: content, status: "rascunho" };
     if (st.id && st.updated_at) payload.expected_updated_at = st.updated_at;
     if (st.copiadoDe) { payload.source_anamnesis_id = st.copiadoDe; payload.copied_from_previous = true; }
-    return ctxAtual.salvar(payload).then(function (linha) {
+    var voo = ctxAtual.salvar(payload).then(function (linha) {
       st.salvando = false;
       if (linha && linha.id) { st.id = linha.id; st.updated_at = linha.updated_at; st.corrigeDe = null; st.copiadoDe = null; }
       st.estado = "salvo"; st.salvoEm = Date.now(); pintarEstado();
@@ -474,28 +475,52 @@
       pintarEstado();
       return null;
     });
+    st.voo = voo;
+    return voo;
+  }
+  /* espera a gravacao automatica em andamento (e a que ela encadear) terminar */
+  function esperarGravacao() {
+    if (!st || !st.salvando || !st.voo) return Promise.resolve();
+    return st.voo.then(esperarGravacao, esperarGravacao);
   }
   function concluir() {
     clearTimeout(timer);
+    if (!st || st.concluindo) return Promise.resolve(null);
     var content = contentAtual();
     var probs = problemas(content);
     if (probs.length) { if (raiz.avisar) raiz.avisar(probs[0]); return Promise.resolve(null); }
     var n = 0; Object.keys(content.dominios).forEach(function (k) { n += content.dominios[k].itens.length; });
     if (!n) { if (raiz.avisar) raiz.avisar("Preencha ao menos um campo antes de concluir a anamnese."); return Promise.resolve(null); }
     if (st.estado === "conflito") { if (raiz.avisar) raiz.avisar("A anamnese mudou em outra sessão: recarregue antes de concluir."); return Promise.resolve(null); }
-    var payload = { id: st.id || st.corrigeDe || null, encounter_id: st.eid, content: content, status: "salvo" };
-    if (st.id && st.updated_at) payload.expected_updated_at = st.updated_at;
-    if (st.copiadoDe) { payload.source_anamnesis_id = st.copiadoDe; payload.copied_from_previous = true; }
+    // Concluir logo depois de digitar: a gravacao automatica (ao sair do campo) pode estar em andamento.
+    // Espera ela terminar para mandar o updated_at novo; enquanto isso, nenhuma outra gravacao comeca.
+    var ctx = ctxAtual, est = st;
+    st.concluindo = true;
     st.estado = "salvando"; pintarEstado();
-    return ctxAtual.salvar(payload).then(function (linha) {
-      st = null;
-      if (raiz.avisar) raiz.avisar("Anamnese concluída (rev. " + (linha && linha.revision_number) + ").");
-      ctxAtual.redesenhar();
-      return linha;
-    }, function (err) {
-      st.estado = /conflito/i.test((err && (err.message + " " + (err.hint || ""))) || "") ? "conflito" : "falha"; pintarEstado();
-      if (raiz.avisar) raiz.avisar(raiz.mensagemHumana ? raiz.mensagemHumana(err) : "Não foi possível concluir a anamnese.");
-      return null;
+    return esperarGravacao().then(function () {
+      if (st !== est) return null;
+      if (st.estado === "conflito") {
+        st.concluindo = false; pintarEstado();
+        if (raiz.avisar) raiz.avisar("A anamnese mudou em outra sessão: recarregue antes de concluir.");
+        return null;
+      }
+      var payload = { id: st.id || st.corrigeDe || null, encounter_id: st.eid, content: contentAtual(), status: "salvo" };
+      if (st.id && st.updated_at) payload.expected_updated_at = st.updated_at;
+      if (st.copiadoDe) { payload.source_anamnesis_id = st.copiadoDe; payload.copied_from_previous = true; }
+      st.estado = "salvando"; pintarEstado();
+      return ctx.salvar(payload).then(function (linha) {
+        st = null;
+        if (raiz.avisar) raiz.avisar("Anamnese concluída (rev. " + (linha && linha.revision_number) + ").");
+        ctx.redesenhar();
+        return linha;
+      }, function (err) {
+        if (st === est) {
+          st.concluindo = false;
+          st.estado = /conflito|alterada em outro lugar|outra sess/i.test((err && (err.message + " " + (err.hint || ""))) || "") ? "conflito" : "falha"; pintarEstado();
+        }
+        if (raiz.avisar) raiz.avisar(raiz.mensagemHumana ? raiz.mensagemHumana(err) : "Não foi possível concluir a anamnese.");
+        return null;
+      });
     });
   }
 
