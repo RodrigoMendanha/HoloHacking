@@ -1,15 +1,15 @@
 #!/bin/sh
-# HOLOHACKING — deploy do front na VPS (passos 4 a 11). Versao atual: conta pendente = somente Perfil + correcoes do Perfil (cd9e23f). SO depois de aplicar CONTA-PENDENTE-PARTE1..2.sql no banco (aplicado em 09/10). Rodar NA VPS:
+# HOLOHACKING — deploy do front na VPS (passos 4 a 11). Versao atual: conta pendente = somente Perfil + correcoes do Perfil (cd9e23f + checklist que rola ate o campo: dbac2db). SO depois de aplicar CONTA-PENDENTE-PARTE1..2.sql no banco (aplicado em 09/10). Rodar NA VPS:
 #   sh deploy-etapa6-5b.sh            -> passos 4-8 (estado, codigo, build, container temporario 8082). NAO troca producao.
 #   sh deploy-etapa6-5b.sh swap       -> passos 9-11 (troca 8080, valida local e publico). So depois de conferir o 1o.
 # Para sozinho em qualquer divergencia. Nunca apaga container. Nao usa credencial.
 set -eu
-ESPERADO=cd9e23f25bdf63b61fda7dce5ae6c4ca61a1c15b
-CURTO=cd9e23f
+ESPERADO=dbac2db77db52030e5011a0bac819cb72c245210
+CURTO=dbac2db
 DIR=/opt/holohacking
 IMG=holohacking-web:$CURTO
 PROD=holohacking-web
-ROLLBACK=holohacking-web-antes-cd9e23f
+ROLLBACK=holohacking-web-antes-dbac2db
 TEMP=holohacking-web-teste-$CURTO
 pare() { echo; echo "### PARE: $*"; exit 1; }
 cd "$DIR"
