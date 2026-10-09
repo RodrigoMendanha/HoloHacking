@@ -942,8 +942,8 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     preenche sem conta com rascunho no servidor e envia (resposta congelada); a ficha mostra o status e "Levar para a
     anamnese do atendimento" cria um rascunho V2 com origem `relato_paciente`, que a nutricionista revisa. Nada do
     relato vira diagnóstico, nota ou conduta. Detalhes: `docs/v1/RESULTADO-FINAL-HOLOS.md`,
-    `docs/v1/ANAMNESE-PRE-CONSULTA.md`, `docs/v1/FLUXO-CLINICO-V1.md`. PENDENTE: revisão da usuária, aplicar
-    `supabase/ANAMNESE-PRE-CONSULTA-PARTE1..5.sql` (nessa ordem) e deploy.
+    `docs/v1/ANAMNESE-PRE-CONSULTA.md`, `docs/v1/FLUXO-CLINICO-V1.md`. **SQL ANAMNESE-PRE-CONSULTA-PARTE1..5 aplicado no banco
+    real em 09/10** (conferido só leitura). PENDENTE: deploy de c22a27d.
 
 179. **Janelas de boas-vindas** (09/10, pedido da usuária). Três janelas com a logo, só front (`boas-vindas.js`):
     (1) **cadastro**: "Seja bem-vindo(a), nutricionista, ao HoloHacking", passo a passo Registro → Perfil → Liberação e
