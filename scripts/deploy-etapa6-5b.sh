@@ -1,15 +1,15 @@
 #!/bin/sh
-# HOLOHACKING — deploy do front na VPS (passos 4 a 11). Versao atual: Resultado HOLOS + Anamnese V2 (concluir sem conflito) + revisao das perguntas (518bd65). Rodar NA VPS:
+# HOLOHACKING — deploy do front na VPS (passos 4 a 11). Versao atual: prontuario — exames e documentos so como arquivos, pagina Resultado (f567a70). SO depois de aplicar PRONTUARIO-DOCUMENTOS-PARTE1..4.sql no banco. Rodar NA VPS:
 #   sh deploy-etapa6-5b.sh            -> passos 4-8 (estado, codigo, build, container temporario 8082). NAO troca producao.
 #   sh deploy-etapa6-5b.sh swap       -> passos 9-11 (troca 8080, valida local e publico). So depois de conferir o 1o.
 # Para sozinho em qualquer divergencia. Nunca apaga container. Nao usa credencial.
 set -eu
-ESPERADO=518bd650e2689ff35286d8de06a61748217b799c
-CURTO=518bd65
+ESPERADO=f567a70188b9a63ba02689c27f3e9f9afd1a0d36
+CURTO=f567a70
 DIR=/opt/holohacking
 IMG=holohacking-web:$CURTO
 PROD=holohacking-web
-ROLLBACK=holohacking-web-antes-518bd65
+ROLLBACK=holohacking-web-antes-f567a70
 TEMP=holohacking-web-teste-$CURTO
 pare() { echo; echo "### PARE: $*"; exit 1; }
 cd "$DIR"
