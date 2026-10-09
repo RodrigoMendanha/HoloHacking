@@ -173,7 +173,11 @@ ok(/Próximos passos combinados/.test(rp.texto) && /Caminhar 20 minutos de manh�
 const semRodape = rp.texto.replace(/Não é exame, não é diagnóstico e não é prescrição\./, '');   /* a frase de fronteira do rodapé é a única menção legítima */
 ok(!/DIETA_NAO|DIAG_NAO|ENCAMINHA_NAO|QUESTAO_SO_PROFISSIONAL|Pontuou neste sistema|hash|exame|Exame/.test(semRodape), 'nada profissional/interno vai para a paciente: sem prescrição, diagnóstico, encaminhamento, questões só profissionais, "pontuou", hash ou exames');
 ok(/termos fora do método/.test(rp.aviso) && /cardápio/.test(rp.aviso), 'aviso SÓ NA TELA sobre termo fora do método no texto da nutri: ' + rp.aviso.slice(0, 60));
-ok(rp.botoes.join(',') === 'Baixar PDF,Enviar pelo WhatsApp,Imprimir,Abrir na ficha', 'ações: ' + rp.botoes.join(' · '));
+ok(rp.botoes.join(',') === 'Gerar Resultado Final,Abrir na ficha' && /PRÉVIA/.test(await A.evaluate(() => document.getElementById('rp-acoes').innerText)), 'sem emissão: PRÉVIA e só "Gerar Resultado Final" (PDF e WhatsApp saem de uma emissão congelada): ' + rp.botoes.join(' · '));
+/* 10/10 (item 180): emite o Resultado Final; PDF/WhatsApp/Imprimir passam a sair da emissão */
+await A.evaluate(async () => { document.querySelector('[data-rp-acao="emitir"]').click(); for (let i = 0; i < 40 && !document.querySelector('[data-rp-acao="pdf"]'); i++) await new Promise(r => setTimeout(r, 100)); });
+const botoesEm = await A.evaluate(() => [...document.querySelectorAll('#rp-acoes button')].map(b => b.textContent.trim()));
+ok(botoesEm.join(',') === 'Baixar PDF,Enviar pelo WhatsApp,Imprimir,Abrir na ficha,Gerar nova emissão' && srv.linhas('holos_result_emissions').length === 1, 'emitido (1 emissão registrada): ações ' + botoesEm.join(' · '));
 const numeros = await A.evaluate(() => ['(11) 98888-7777', '+55 11 98888-7777', '011 98888-7777', '5511988887777', '1198887777', '12345'].map(window.ResultadoPagina.numeroWhatsApp));
 ok(numeros.join('|') === '5511988887777|5511988887777|5511988887777|5511988887777|551198887777|', 'número do WhatsApp: DDI 55 só quando falta; +55 não vira 5555: ' + numeros.join(' | '));
 await A.evaluate(() => {

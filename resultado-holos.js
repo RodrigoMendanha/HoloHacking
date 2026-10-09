@@ -134,7 +134,7 @@
   /* ---------- formulario (rascunho) ---------------------------------------- */
   function novoForm(pid, base) {
     var at = window.AtendimentoAtual && window.AtendimentoAtual.idPara ? window.AtendimentoAtual.idPara(pid) : null;
-    var f = { pid: pid, id: null, supersedes_id: null, encounter_id: at || "", holoscan_application_id: "", tools: [], mostrar: {},
+    var f = { pid: pid, id: null, supersedes_id: null, encounter_id: at || "", holoscan_application_id: "", tools: [], mostrar: {}, compartilhar_pp: false,
       leitura_profissional: "", pontos_acompanhar: "", questoes_aprofundar: "", expected_updated_at: null };
     if (base) {
       var s = base.selected_sources || {};
@@ -146,6 +146,7 @@
       f.tools = (s.tool_application_ids || []).slice();
       var vis = (s.visao_paciente && s.visao_paciente.ferramentas) || {};
       Object.keys(vis).forEach(function (k) { f.mostrar[k] = !!(vis[k] && vis[k].mostrar); });
+      f.compartilhar_pp = !!(s.visao_paciente && s.visao_paciente.proximos_passos === true);
       f.leitura_profissional = base.leitura_profissional || ""; f.pontos_acompanhar = base.pontos_acompanhar || ""; f.questoes_aprofundar = base.questoes_aprofundar || "";
     }
     return f;
@@ -154,7 +155,7 @@
     var vis = {};
     f.tools.forEach(function (id) { vis[id] = { mostrar: !!f.mostrar[id], ocultar: [] }; });
     return { id: f.id || null, supersedes_id: f.supersedes_id || null, patient_id: f.pid, encounter_id: f.encounter_id || null,
-      holoscan_application_id: f.holoscan_application_id || null, tool_application_ids: f.tools.slice(), visao_paciente: { ferramentas: vis },
+      holoscan_application_id: f.holoscan_application_id || null, tool_application_ids: f.tools.slice(), visao_paciente: { ferramentas: vis, proximos_passos: !!f.compartilhar_pp },
       leitura_profissional: f.leitura_profissional, pontos_acompanhar: f.pontos_acompanhar, questoes_aprofundar: f.questoes_aprofundar,
       expected_updated_at: f.expected_updated_at || null };
   }
@@ -164,6 +165,7 @@
     var h = a.querySelector('input[name="rh-holoscan"]:checked'); form.holoscan_application_id = h ? h.value : "";
     form.tools = [].slice.call(a.querySelectorAll("[data-rh-ferr]:checked")).map(function (c) { return c.value; });
     [].slice.call(a.querySelectorAll("[data-rh-mostrar]")).forEach(function (c) { form.mostrar[c.dataset.rhMostrar] = c.checked; });
+    var cpp = a.querySelector("#rh-compartilhar-pp"); if (cpp) form.compartilhar_pp = cpp.checked;
     ["leitura_profissional", "pontos_acompanhar", "questoes_aprofundar"].forEach(function (k) { var t = a.querySelector("#rh-" + k); if (t) form[k] = t.value; });
   }
 
@@ -257,21 +259,37 @@
     }
     return html;
   }
+  /* Resultado estruturado da ferramenta (decisao 2, item 180): organiza o registro, sem score nem interpretacao.
+     Profissional: o fechamento + o registro completo (recolhido). Paciente: so o fechamento (sem o que e so da
+     profissional; a Carta ao Futuro Eu aparece so como "realizada") e, nos registros visuais, o desenho. */
+  function fechamentoHtml(t, paciente) {
+    var FF = window.FerramentasFechamento, S = window.ResultadoSintese;
+    if (!FF || !S) return "";
+    var x = FF.de(t); x.nome = defFerr(t.ferramenta_id).titulo;
+    return '<div class="rh-fech-caixa"><span class="rh-tag">Resultado estruturado</span>' + S.htmlFechamento(x, paciente) + "</div>";
+  }
   function cartaoFerramenta(t, paciente) {
     var f = defFerr(t.ferramenta_id);
+    var fech = fechamentoHtml(t, paciente);
+    var corpo;
+    if (!fech) corpo = corpoFerramenta(t, paciente);
+    else if (paciente) corpo = fech + (t.ferramenta_id !== "carta_futuro" && f.visualizacao && window.RegistroVisual ? '<div class="rh-visual">' + window.RegistroVisual.desenhar(f, t.respostas || {}) + "</div>" : "");
+    else corpo = fech + '<details class="rh-registro"><summary>Registro completo da aplicação</summary>' + corpoFerramenta(t, false) + "</details>";
     return '<article class="rh-ferr' + (f.visualizacao ? " rh-ferr-largo" : "") + '" data-rh-ferr-snap="' + e(t.ferramenta_id) + '">' +
       '<header class="rh-ferr-topo"><h5>' + e(f.titulo) + "</h5>" +
       '<span class="rh-ferr-meta">' + e(dataBR(t.concluida_em || t.iniciada_em)) + (paciente ? "" : " · " + e(t.status === "revisada" ? "revisada" : "concluída") +
         (t.mostrar_paciente ? ' · <span class="rh-selo-paciente">na visão do paciente</span>' : ' · <span class="rh-selo-privado">só na visão profissional</span>')) + "</span></header>" +
-      corpoFerramenta(t, paciente) + "</article>";
+      corpo + "</article>";
   }
   function mapaProposito(snap, paciente) {
     var fs = snap.ferramentas || [], oq3 = fs.filter(function (t) { return t.ferramenta_id === "oq3"; })[0], pqq = fs.filter(function (t) { return t.ferramenta_id === "pqq"; })[0];
     if (!oq3 || !pqq) return "";
+    /* OQ3 + PQQ -> Mapa do Proposito: a unica relacao ferramenta -> ferramenta homologada (opcional, item 180) */
+    if (window.FerramentasFechamento && !window.FerramentasFechamento.propositoDisponivel(fs)) return "";
     if (paciente && !(oq3.mostrar_paciente && pqq.mostrar_paciente)) return "";
     var a = oq3.respostas || {}, b = pqq.respostas || {};
     return '<article class="rh-ferr rh-ferr-mapa" data-rh-ferr-snap="mapa_proposito"><header class="rh-ferr-topo"><h5>Mapa do Propósito</h5>' +
-      '<span class="rh-ferr-meta">montado a partir do OQ³ e do PQQ selecionados</span></header>' +
+      '<span class="rh-ferr-meta">montado a partir do OQ³ e do PQQ selecionados · aprofundamento opcional</span></header>' +
       '<div class="rh-mapa-grade">' +
       [["Quer", a.quer], ["Precisa", a.precisa], ["Consegue", a.consegue], ["Objetivo", b.objetivo], ["Propósito registrado", b.verdadeiro]]
         .map(function (k) { return '<div class="rh-mapa-item"><span>' + e(k[0]) + "</span><p>" + (tem(k[1]) ? e(k[1]) : "—") + "</p></div>"; }).join("") +
@@ -328,7 +346,11 @@
     html += "</header>";
 
     // 1b. resumo estruturado (09/10): fatos + regra oficial + pendencias metodologicas, so a partir do snapshot
-    if (window.ResultadoSintese) html += window.ResultadoSintese.html(snap, visao, { moduloDe: moduloDe, nomeFerramenta: function (id) { return defFerr(id).titulo; } });
+    if (window.ResultadoSintese) {
+      html += window.ResultadoSintese.html(snap, visao, { moduloDe: moduloDe, nomeFerramenta: function (id) { return defFerr(id).titulo; } });
+      /* Modelo B: Proximos Passos na visao da paciente SO quando a nutricionista compartilhou (padrao desligado) */
+      if (paciente) html += window.ResultadoSintese.htmlProximosPassosPaciente(snap, function (id) { return defFerr(id).titulo; });
+    }
 
     // 2. visao geral HOLOSCAN
     var cob = h.cobertura || {};
@@ -473,6 +495,11 @@
       }).join("") + "</div>" : '<p class="dash-vazio">Nenhuma ferramenta de ' + e(x[1]) + " concluída.</p>") + "</fieldset>";
     });
 
+    // compartilhamento dos Proximos Passos (Modelo B): desligado por padrao
+    html += '<fieldset class="rh-grupo"><legend>Visão da paciente</legend><label class="rh-mostrar rh-compartilhar"><input type="checkbox" id="rh-compartilhar-pp"' + (f.compartilhar_pp ? " checked" : "") + "> " +
+      "Compartilhar Próximos Passos HOLOS com a paciente</label>" +
+      '<p class="dash-sub">Desligado: os Próximos Passos ficam só na visão profissional. Ligado: aparecem para a paciente com linguagem simples (só os nomes das ferramentas). Cada ferramenta continua com o seu "Mostrar ao paciente".</p></fieldset>';
+
     // observacoes
     html += '<fieldset class="rh-grupo"><legend>Observações da nutricionista</legend>' +
       [["leitura_profissional", "Leitura profissional da nutricionista", 5], ["pontos_acompanhar", "Pontos para acompanhar", 3], ["questoes_aprofundar", "Questões para aprofundar (só na visão profissional)", 3]].map(function (k) {
@@ -523,26 +550,13 @@
     var pid = pacienteId();
     a.innerHTML = modo === "editar" && form ? htmlEditar(pid) : modo === "ver" && vendo ? htmlVer() : htmlLista(pid);
     if (modo === "editar") atualizarContagem();
-    preencherProximosPassos(a);
-  }
-  /* Proximos Passos HOLOS ja registrados (snapshot imutavel) no resumo da visao PROFISSIONAL. Le so o registro salvo. */
-  function preencherProximosPassos(a) {
-    var caixa = a && a.querySelector(".rh-doc-profissional [data-rh-pp]");
-    if (!caixa || !window.ProximosPassos || !window.ResultadoSintese) return;
-    var snap = modo === "ver" && vendo ? (porId(vendo.id) || {}).content_snapshot : previa;
-    var appId = snap && snap.holoscan && snap.holoscan.id;
-    if (!appId) return;
-    caixa.innerHTML = '<p class="rh-nota-tec">Lendo os Próximos Passos HOLOS registrados…</p>';
-    window.ProximosPassos.registros(appId).then(function (lista) {
-      if (!caixa.isConnected) return;
-      caixa.innerHTML = window.ResultadoSintese.htmlProximosPassos((lista || [])[0] || null, function (id) { return defFerr(id).titulo; });
-    }, function () { if (caixa.isConnected) caixa.innerHTML = ""; });
   }
   function atualizarContagem() {
     var a = alvo(), c = a && a.querySelector("#rh-contagem"); if (!c) return;
     lerForm();
     c.textContent = (form.holoscan_application_id ? "HOLOSCAN escolhido" : "HOLOSCAN não escolhido") + " · " + form.tools.length + (form.tools.length === 1 ? " ferramenta" : " ferramentas") +
-      " · " + form.tools.filter(function (id) { return form.mostrar[id]; }).length + " na visão do paciente";
+      " · " + form.tools.filter(function (id) { return form.mostrar[id]; }).length + " na visão do paciente" +
+      " · Próximos Passos " + (form.compartilhar_pp ? "compartilhados" : "não compartilhados");
   }
   function mostrarErro(m) { var el = alvo() && alvo().querySelector("#rh-erro"); if (el) el.textContent = m || ""; if (m) toast(m); }
   function validarLocal() {

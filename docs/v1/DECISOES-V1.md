@@ -956,6 +956,23 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     feminino, a pedido. Fecham por botão, X, Esc ou clique fora; celular sem rolagem lateral; sem animação para quem
     pede menos movimento. Teste: `testes/testar-boas-vindas.mjs` (24). Capturas: `docs/v1/boas-vindas/`.
 
+180. **Resultado Final do Método HOLOS: decisões metodológicas aprovadas** (10/10, aprovadas pela usuária para implementação;
+    substituem as PM-01…PM-04 e resolvem a PM-05). (1) **Síntese HOLOS determinística**: organiza o que o método já produziu,
+    só a partir do snapshot; menor nota = maior prioridade DE INVESTIGAÇÃO ("1ª/2ª área para investigar"), nunca gravidade;
+    Tríade contextual (menor dimensão, empate de 2 = sem dimensão única, de 3 = sem predominância; sem corte de diferença);
+    nunca diagnóstico, causa, gravidade, risco, interpretação, conduta ou "mapeamento concluído". (2) **Resultado estruturado
+    das ferramentas** (`ferramentas-fechamento.js`), descritivo, não é score; Momentum = estado escolhido pela profissional;
+    Carta só "realizada"; Conexão sem score, vínculos só contados. (3) **Ferramenta → ferramenta**: só OQ³ + PQQ → Mapa do
+    Propósito (opcional). Sistema → ferramenta: as 30 relações do HOLOS-RECOMENDACOES-V1 intactas, 1 principal + até 2
+    complementares, nada obrigatório. (4) **Visão da paciente, Modelo B**: "Compartilhar Próximos Passos com a paciente"
+    desligado por padrão, congelado no snapshot; ferramentas pelo "Mostrar ao paciente" (padrão desligado); Índice/notas como
+    já eram. (5) **Emissão imutável do Resultado Final** (`holos_result_emissions`, `emitir_resultado_final`, template RF-1):
+    congela Resultado (id + hash), Conduta destinada à paciente, Perfil e imagens; PDF sempre igual. Resultado HOLOS novo =
+    template 2 (Próximos Passos já registrados congelados); antigos intactos (sem backfill, mesmo hash). Migration aditiva
+    20261015100000 (+ correção: convite de pré-anamnese sai na cascata da exclusão da paciente). Continuam abertas: PM-06…PM-14.
+    Detalhes: `docs/v1/RESULTADO-FINAL-DECISOES-APROVADAS.md`. PENDENTE: autorização, aplicar `supabase/RESULTADO-FINAL-PARTE1..7.sql`
+    e deploy.
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`

@@ -101,7 +101,10 @@ const COLUNAS = {
   /* Resultado HOLOS (migration 20261009100000): leitura so da propria; escrita SO pelas RPCs (resultado-holos-falso.mjs) */
   holos_results: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'status', 'revision_number', 'supersedes_id', 'superseded_at', 'holoscan_application_id',
     'selected_sources', 'leitura_profissional', 'pontos_acompanhar', 'questoes_aprofundar', 'content_snapshot', 'source_snapshot', 'content_hash', 'template_version',
-    'methodology_package_id', 'methodology_package_version', 'methodology_content_hash', 'operation_id', 'saved_at', 'reviewed_at', 'reviewed_by', 'created_at', 'updated_at']
+    'methodology_package_id', 'methodology_package_version', 'methodology_content_hash', 'operation_id', 'saved_at', 'reviewed_at', 'reviewed_by', 'created_at', 'updated_at'],
+  /* Emissao do Resultado Final (migration 20261015100000): leitura so da propria; escrita SO pela RPC emitir_resultado_final */
+  holos_result_emissions: ['id', 'nutritionist_id', 'patient_id', 'holos_result_id', 'result_content_hash', 'conduct_id', 'emission_number', 'template_version',
+    'content_snapshot', 'content_hash', 'operation_id', 'created_at']
 };
 
 const METODOLOGIA = ['methodology_packages', 'methodology_questionnaire_editions', 'methodology_scales', 'methodology_systems', 'methodology_questions', 'methodology_associations', 'methodology_ranges', 'methodology_rules', 'methodology_homologation_records'];
@@ -109,7 +112,7 @@ const FILHAS_PACOTE = METODOLOGIA.filter(t => t !== 'methodology_packages');
 const GLOBAIS_SO_LEITURA = ['holos_recommendation_catalogs', 'holos_recommendation_rules', 'lab_exam_catalog', 'lab_method_references', 'lab_unit_conversion_rules', 'lab_derived_calculations', 'integrated_reading_rule_packages', 'integrated_reading_domains', 'integrated_reading_exam_domain_links', 'integrated_reading_rules',
   'integrated_reading_package_dependencies', 'integrated_reading_package_approvals', 'integrated_reading_package_snapshots'];   // Etapa 5.2: aprovacoes so pela RPC
 const DONO_DIRETO = [...METODOLOGIA, 'methodology_package_approvals', 'lab_custom_exams', 'integrated_readings', 'holos_next_steps', 'patients', 'consultations', 'encounters', 'anamneses', 'conducts', 'agreements', 'report_emissions', 'schedule_blocks', 'holoscan_applications',
-  'lab_collections', 'tool_applications', 'documents', 'professional_assets', 'ai_threads', 'holos_results', 'anamnesis_invites'];
+  'lab_collections', 'tool_applications', 'documents', 'professional_assets', 'ai_threads', 'holos_results', 'anamnesis_invites', 'holos_result_emissions'];
 const FILHAS = {           // tabela -> [coluna, mae]
   holoscan_answers: ['application_id', 'holoscan_applications'],
   holoscan_system_scores: ['application_id', 'holoscan_applications'],
@@ -763,7 +766,7 @@ export function criarServidor() {
     const t = q.tabela;
     if (t === 'methodology_package_approvals' && q.acao !== 'select') return erro('permission denied for table methodology_package_approvals', '42501');
     if (t === 'methodology_approvers' && q.acao !== 'select') return erro('permission denied for table methodology_approvers', '42501');
-    if ((GLOBAIS_SO_LEITURA.includes(t) || t === 'integrated_readings' || t === 'holos_results' || t === 'holos_next_steps' || t === 'anamnesis_invites') && q.acao !== 'select' && uid) return erro('permission denied for table ' + t, '42501');
+    if ((GLOBAIS_SO_LEITURA.includes(t) || t === 'integrated_readings' || t === 'holos_results' || t === 'holos_next_steps' || t === 'anamnesis_invites' || t === 'holos_result_emissions') && q.acao !== 'select' && uid) return erro('permission denied for table ' + t, '42501');
     /* Prontuario (20261011100000): a API perdeu a escrita nas tabelas lab_* (revoke) e o DELETE em documents */
     if (['lab_collections', 'lab_results', 'lab_result_components', 'lab_custom_exams'].includes(t) && q.acao !== 'select' && uid) return erro('permission denied for table ' + t, '42501');
     if (t === 'documents' && q.acao === 'delete' && uid) return erro('permission denied for table documents', '42501');

@@ -133,6 +133,6 @@ export const SUITES = [
   'testar-prontuario.mjs',
   'testar-proximos-passos-motor.mjs', 'testar-proximos-passos.mjs',
   'testar-perfil-robustez.mjs', 'testar-conta-pendente.mjs',
-  'testar-resultado-sintese.mjs', 'testar-anamnese-pre-consulta.mjs', 'testar-boas-vindas.mjs',
+  'testar-resultado-sintese.mjs', 'testar-anamnese-pre-consulta.mjs', 'testar-boas-vindas.mjs', 'testar-resultado-final.mjs',
   'testar-conferir-producao.mjs',
 ];

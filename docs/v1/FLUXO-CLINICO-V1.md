@@ -1,4 +1,4 @@
-# Fluxo clínico V1: jornada completa (09/10)
+# Fluxo clínico V1: jornada completa (atualizado 10/10, item 180)
 
 **Legenda:** 🟢 dado da paciente · 🔵 cálculo do sistema · 🟣 metodologia homologada · 🟠 decisão da nutricionista · ⚪ pendência metodológica.
 
@@ -10,13 +10,14 @@
 | 4 | Nutricionista revisa | "Ver resposta" e "Levar para a anamnese do atendimento", que cria um rascunho V2 com origem `relato_paciente` | 🟢 + 🟠 (revisão) |
 | 5 | Consulta | atendimento, anamnese salva e revisada | 🟠 |
 | 6 | HOLOSCAN | respostas 🟢 → notas, faixas, Índice e Tríade pelo HOLOS-V1@2 | 🔵 + 🟣 |
-| 6b | Próximos Passos HOLOS | sistema → ferramenta, catálogo HOLOS-RECOMENDACOES-V1 | 🟣 (snapshot) |
-| 7 | Ferramentas | respostas 🟢 + leitura, prioridade e próximo passo | 🟢 + 🟠 |
-| 8 | Resultado HOLOS | snapshot imutável; **resumo estruturado**: fatos 🔵, "Por onde investigar" 🟣, Próximos Passos registrados 🟣, registros da nutricionista 🟠, pendências ⚪ | 🔵 🟣 🟠 ⚪ |
-| — | Conclusão integrada | **não existe regra** (PM-01) | ⚪ |
+| 6b | Próximos Passos HOLOS | sistema → ferramenta, catálogo HOLOS-RECOMENDACOES-V1 (1 principal + até 2 complementares, nada obrigatório) | 🟣 (snapshot) |
+| 7 | Ferramentas | respostas 🟢 + **resultado estruturado** (descritivo, não é score; Momentum = estado escolhido pela nutricionista) | 🟢 + 🟠 |
+| 7b | Mapa do Propósito | OQ³ + PQQ → Mapa do Propósito (opcional; única relação ferramenta → ferramenta homologada) | 🟣 |
+| 8 | Resultado HOLOS | snapshot imutável (template 2 congela os Próximos Passos e o compartilhamento); **Síntese HOLOS** determinística | 🔵 🟣 🟠 |
+| — | Conclusão integrada | **não existe fórmula** (PM-07); a Síntese organiza, não conclui | ⚪ |
 | 9 | Conduta | estratégia, ações, acordos | 🟠 |
-| 10 | Resultado final para a paciente | página Resultado: snapshot (visão da paciente) + Conduta vigente + Perfil | composição |
-| 11 | PDF e compartilhamento | html2pdf, imprimir, WhatsApp | exibição |
+| 10 | Resultado final para a paciente | **emissão imutável** (Resultado + Conduta + Perfil + imagens congelados, RF-1); Modelo B: Próximos Passos só se compartilhados | composição congelada |
+| 11 | PDF e compartilhamento | PDF, imprimir e WhatsApp só de uma emissão (sempre o mesmo conteúdo) | exibição |
 | 12 | Retorno | novo atendimento; anamnese de retorno (pode ser outro link, tipo "retorno"); novo HOLOSCAN; nova versão do Resultado | 🟢 🔵 🟣 🟠 |
 
 ## Regras que valem em toda a jornada
@@ -28,10 +29,16 @@
 
 ## Pendências metodológicas (aguardando Rodrigo/Daniel)
 
+As PM-01 a PM-05 de 09/10 foram decididas no item 180 (ver `RESULTADO-FINAL-DECISOES-APROVADAS.md`). Continuam abertas:
+
 | ID | Pendência |
 |---|---|
-| PM-01 | Conclusão integrada Corpo, Mente e Espírito |
-| PM-02 | Fechamento por ferramenta (regra de "resultado" de cada uma) |
-| PM-03 | Ferramenta → próxima ferramenta (matriz de indicação a partir do resultado de uma ferramenta) |
-| PM-04 | Prioridade e gravidade além da ordem "Por onde investigar" |
-| PM-05 | O que a paciente vê: "Por onde investigar" e Próximos Passos; frase dirigida à profissional na mensagem oficial de faixa para a paciente |
+| PM-06 | Diferença pequena / grande na Tríade |
+| PM-07 | Fórmula integrada Corpo + Mente + Espírito |
+| PM-08 | Mapeamento concluído e suficiência automática de informação |
+| PM-09 | Outras transições ferramenta → ferramenta |
+| PM-10 | Taxonomia automática de crenças |
+| PM-11 | Padrão automático em Gatilhos & Respostas |
+| PM-12 | Intervalo automático de reaplicação do HOLOSCAN |
+| PM-13 | Conduta automática |
+| PM-14 | Conteúdo da Carta ao Futuro Eu para a paciente (consentimento) |

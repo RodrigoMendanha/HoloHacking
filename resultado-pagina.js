@@ -24,6 +24,15 @@
    nutricionista escreveu. Um aviso SO NA TELA (nunca no PDF) alerta a
    nutricionista se o texto dela trouxer termos fora do metodo.
 
+   EMISSAO IMUTAVEL (10/10, DECISOES-V1 item 180): o documento enviado a
+   paciente e uma EMISSAO (holos_result_emissions, RPC emitir_resultado_final)
+   que congela o Resultado HOLOS usado (id + hash), a Conduta destinada a
+   paciente, a identidade profissional (nome, CRN, logo, assinatura, carimbo),
+   o template (RF-1) e a data. PDF, WhatsApp e Imprimir saem SO de uma emissao
+   e a desenham SO com o que ela congelou: mudar Perfil, Conduta, logo ou
+   assinatura depois nao altera uma emissao antiga. Sem emissao, a tela mostra
+   uma PREVIA (dados atuais) e o botao "Gerar Resultado Final".
+
    PDF: gerado no navegador (html2pdf.js, versao fixa, carregado so no clique);
    nenhum link publico, nada sobe para lugar nenhum. WhatsApp: no celular,
    compartilha o PDF pelo menu nativo; no computador, baixa o PDF e abre a
@@ -83,11 +92,14 @@
 
   /* ---------- HTML ------------------------------------------------------------ */
 
-  function cabecalhoProfissional(eu) {
+  function imgCongelada(src) {
+    return /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+\/=]+$/.test(String(src || "")) ? '<img src="' + escapar(src) + '" alt="">' : "";
+  }
+  function cabecalhoProfissional(eu, imagens) {
     var linha2 = [eu.profissao, eu.registro].filter(Boolean).map(escapar).join(" &middot; ");
     var linha3 = [eu.especialidade, eu.cidade].filter(Boolean).map(escapar).join(" &middot; ");
     return '<header class="rp-cab">' +
-      '<span class="rp-logo" id="rp-logo" aria-hidden="true"></span>' +
+      '<span class="rp-logo" id="rp-logo" aria-hidden="true">' + (imagens ? imgCongelada(imagens.logo) : "") + "</span>" +
       '<div class="rp-quem"><b>' + escapar(eu.nome || "HoloHacking") + "</b>" +
         (linha2 ? "<span>" + linha2 + "</span>" : "") + (linha3 ? "<span>" + linha3 + "</span>" : "") + "</div>" +
       '<div class="rp-marca"><span class="eyebrow">HoloHacking &middot; HOLOSCAN</span></div>' +
@@ -109,12 +121,13 @@
     "</section>";
   }
 
-  function rodapeProfissional(eu) {
+  function rodapeProfissional(eu, imagens) {
     var identidade = [eu.nome, eu.registro].filter(Boolean).map(escapar).join(" &middot; ");
     var contato = [eu.telefone, eu.instagram].filter(Boolean).map(escapar).join(" &middot; ");
     return '<footer class="rp-rodape">' +
       ((eu.assinatura_id || eu.carimbo_id)
-        ? '<div class="rp-assinaturas">' + (eu.assinatura_id ? '<span class="rp-imagem" id="rp-assinatura"></span>' : "") + (eu.carimbo_id ? '<span class="rp-imagem" id="rp-carimbo"></span>' : "") + "</div>"
+        ? '<div class="rp-assinaturas">' + (eu.assinatura_id ? '<span class="rp-imagem" id="rp-assinatura">' + (imagens ? imgCongelada(imagens.assinatura) : "") + "</span>" : "") +
+            (eu.carimbo_id ? '<span class="rp-imagem" id="rp-carimbo">' + (imagens ? imgCongelada(imagens.carimbo) : "") + "</span>" : "") + "</div>"
         : "") +
       (identidade ? '<p class="rp-emitiu">' + identidade + "</p>" : "") +
       (contato ? '<p class="rp-contato">' + contato + "</p>" : "") +
@@ -122,15 +135,27 @@
     "</footer>";
   }
 
-  function documentoHtml(pid, r, cv, eu) {
+  function documentoHtml(pid, r, cv, eu, imagens) {
     var snap = r.content_snapshot;
     var meta = { status: r.status, hash: r.content_hash };
     var corpo = window.ResultadoHolos.documentoHtml(snap, "paciente", meta);
     return '<article class="rp-doc" id="rp-doc" aria-label="Resultado para a paciente">' +
-      cabecalhoProfissional(eu) +
+      cabecalhoProfissional(eu, imagens) +
       '<div class="rp-corpo">' + corpo + blocoConduta(cv) + "</div>" +
-      rodapeProfissional(eu) +
+      rodapeProfissional(eu, imagens) +
     "</article>";
+  }
+
+  /* Documento de uma EMISSAO (template RF-1): SO o que ela congelou + o snapshot imutavel do Resultado HOLOS
+     (conferido pelo hash). Mesma entrada -> mesmo HTML, sempre. */
+  function documentoEmissao(em, r) {
+    var s = em.content_snapshot || {};
+    var c = s.conduta;
+    var cv = c ? { conduta: Object.assign({}, c.campos || {}), acordos: (c.acordos || []).map(function (a) { return { description: a.description, due_text: a.due_text }; }) } : null;
+    var eu = Object.assign({}, s.profissional || {});
+    var im = s.imagens || {};
+    eu.assinatura_id = im.assinatura ? "congelada" : null; eu.carimbo_id = im.carimbo ? "congelada" : null;
+    return documentoHtml(null, r, cv, eu, im);
   }
 
   function avisoTermos(r, cv) {
@@ -143,19 +168,99 @@
       "). O HoloHacking não entrega dieta, calorias, prescrição, diagnóstico nem encaminhamento. Revise na Conduta ou no Resultado HOLOS antes de enviar. Este aviso não vai no PDF.</p>";
   }
 
-  function barraAcoes(pid, r, p) {
+  function barraAcoes(pid, r, p, em) {
     var tel = p && numeroWhatsApp(p.telefone);
+    if (!em && emissoes.indisponivel) {
+      return '<div class="rp-acoes rp-so-tela" id="rp-acoes">' +
+        '<div class="rp-estado"><span class="rh-tag">Resultado HOLOS nº ' + escapar(r.revision_number || 1) + "</span>" +
+          "<span>Finalizado em " + escapar(dataHora(r.saved_at || r.created_at)) + " &middot; versão para a paciente</span></div>" +
+        '<div class="rp-botoes">' +
+          '<button type="button" class="btn-verde" data-rp-acao="pdf">Baixar PDF</button>' +
+          '<button type="button" class="btn-verde" data-rp-acao="whatsapp">Enviar pelo WhatsApp</button>' +
+          '<button type="button" class="btn-fantasma" data-rp-acao="imprimir">Imprimir</button>' +
+          '<button type="button" class="btn-fantasma" data-rp-acao="ficha">Abrir na ficha</button>' +
+        "</div></div>";
+    }
+    if (!em) {
+      return '<div class="rp-acoes rp-so-tela" id="rp-acoes">' +
+        '<div class="rp-estado"><span class="rh-tag">Resultado HOLOS nº ' + escapar(r.revision_number || 1) + "</span>" +
+          '<span class="rp-previa">PRÉVIA — ainda não emitido. Gere o Resultado Final para congelar o documento (Resultado, Conduta, nome, CRN, logo, assinatura e carimbo) e então baixar o PDF ou enviar.</span></div>' +
+        '<div class="rp-botoes">' +
+          '<button type="button" class="btn-verde" data-rp-acao="emitir">Gerar Resultado Final</button>' +
+          '<button type="button" class="btn-fantasma" data-rp-acao="ficha">Abrir na ficha</button>' +
+        "</div></div>";
+    }
     return '<div class="rp-acoes rp-so-tela" id="rp-acoes">' +
-      '<div class="rp-estado"><span class="rh-tag">Resultado HOLOS nº ' + escapar(r.revision_number || 1) + "</span>" +
-        "<span>Finalizado em " + escapar(dataHora(r.saved_at || r.created_at)) + " &middot; versão para a paciente</span>" +
+      '<div class="rp-estado"><span class="rh-tag">Resultado Final nº ' + escapar(em.emission_number) + "</span>" +
+        "<span>Emitido em " + escapar(dataHora(em.created_at)) + " &middot; Resultado HOLOS nº " + escapar(r.revision_number || 1) + " &middot; conteúdo congelado</span>" +
         (tel ? "" : '<span class="rp-sem-tel">Sem telefone no cadastro: o WhatsApp abre sem a conversa da paciente.</span>') + "</div>" +
       '<div class="rp-botoes">' +
         '<button type="button" class="btn-verde" data-rp-acao="pdf">Baixar PDF</button>' +
         '<button type="button" class="btn-verde" data-rp-acao="whatsapp">Enviar pelo WhatsApp</button>' +
         '<button type="button" class="btn-fantasma" data-rp-acao="imprimir">Imprimir</button>' +
         '<button type="button" class="btn-fantasma" data-rp-acao="ficha">Abrir na ficha</button>' +
+        '<button type="button" class="btn-borda-ouro" data-rp-acao="emitir">Gerar nova emissão</button>' +
       "</div></div>";
   }
+  function listaEmissoes(lista, atual) {
+    if (lista.length < 2) return "";
+    return '<details class="rp-emissoes rp-so-tela"><summary>Emissões deste paciente (' + lista.length + ")</summary><ul>" + lista.map(function (x) {
+      return '<li><button type="button" class="btn-fantasma" data-rp-acao="ver-emissao" data-rp-em="' + escapar(x.id) + '"' + (atual && atual.id === x.id ? ' aria-current="true"' : "") + ">" +
+        "nº " + escapar(x.emission_number) + " · " + escapar(dataHora(x.created_at)) + (atual && atual.id === x.id ? " (aberta)" : "") + "</button></li>";
+    }).join("") + "</ul></details>";
+  }
+
+  /* ---------- emissoes (so leitura + RPC) ------------------------------------- */
+  var emissoes = { pid: null, linhas: [] };
+  var emissaoAberta = null;   // id escolhido na lista; senao a mais recente do resultado atual
+  function carregarEmissoes(pid) {
+    return Promise.resolve(window.supabaseClient.from("holos_result_emissions").select("*").eq("patient_id", pid).order("created_at", { ascending: false }))
+      .then(function (r) {
+        var e = r && r.error, txt = e ? String((e.message || "") + " " + (e.code || "")) : "";
+        /* banco ainda sem a migration 20261015100000: a tela segue como antes (sem emissao) ate o SQL ser aplicado */
+        emissoes = { pid: pid, linhas: (r && !r.error && Array.isArray(r.data)) ? r.data : [], indisponivel: !!e && /PGRST205|42P01|schema cache|does not exist/i.test(txt) };
+        return emissoes.linhas;
+      }, function () { emissoes = { pid: pid, linhas: [] }; return []; });
+  }
+  /* imagem do Perfil -> data URL (ate 600 px; PNG, ou JPEG se ficar grande), para congelar na emissao */
+  function dataUrlDe(id) {
+    if (!id || !window.PerfilProfissional) return Promise.resolve(null);
+    return Promise.resolve(window.PerfilProfissional.imagem(id)).then(function (url) {
+      if (!url) return null;
+      return new Promise(function (ok) {
+        var img = new Image();
+        img.onload = function () {
+          try {
+            var k = Math.min(1, 600 / Math.max(img.width, img.height));
+            var cv = document.createElement("canvas"); cv.width = Math.max(1, Math.round(img.width * k)); cv.height = Math.max(1, Math.round(img.height * k));
+            cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
+            var d = cv.toDataURL("image/png");
+            if (d.length > 650000) d = cv.toDataURL("image/jpeg", 0.85);
+            ok(d.length <= 690000 ? d : null);
+          } catch (e) { ok(null); }
+        };
+        img.onerror = function () { ok(null); };
+        img.src = url;
+      });
+    }, function () { return null; });
+  }
+  function emitir(pid, r) {
+    var eu = perfil();
+    return Promise.all([dataUrlDe(eu.logo_id), dataUrlDe(eu.assinatura_id), dataUrlDe(eu.carimbo_id)]).then(function (im) {
+      var faltou = [[eu.logo_id, im[0], "logo"], [eu.assinatura_id, im[1], "assinatura"], [eu.carimbo_id, im[2], "carimbo"]].filter(function (x) { return x[0] && !x[1]; }).map(function (x) { return x[2]; });
+      var op = window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : null;
+      return Promise.resolve(window.supabaseClient.rpc("emitir_resultado_final", { payload: { holos_result_id: r.id, operation_id: op,
+        imagens: { logo: im[0], assinatura: im[1], carimbo: im[2] } } })).then(function (res) {
+        if (res && res.error) throw res.error;
+        emissaoAberta = res && res.data ? res.data.id : null;
+        if (faltou.length) toast("Resultado Final emitido. Não foi possível congelar: " + faltou.join(", ") + ".");
+        else toast("Resultado Final emitido e congelado.");
+        return res && res.data;
+      });
+    });
+  }
+  var MSG_EMISSAO = { resultado_substituido: "Este Resultado HOLOS foi substituído: emita a versão atual.", resultado_nao_finalizado: "Só Resultado HOLOS salvo pode ser emitido.",
+    paciente_arquivado: "Paciente arquivado: reative antes de emitir.", conta_inativa: "Sua conta ainda aguarda liberação.", imagem_invalida: "Uma imagem do Perfil não pôde ser usada." };
 
   /* ---------- desenhar ----------------------------------------------------------- */
 
@@ -171,7 +276,7 @@
     a.innerHTML = '<div class="dash-vazio" id="rp-carregando">Carregando o resultado…</div>';
     var R = window.ResultadoHolos;
     if (!R) { a.innerHTML = '<div class="dash-vazio" id="rp-vazio">O módulo do Resultado HOLOS não carregou.</div>'; return; }
-    R.carregar(pid).then(function () {
+    Promise.all([R.carregar(pid), carregarEmissoes(pid)]).then(function () {
       if (vez !== desenhoAtual || pacienteId() !== pid) return;
       var r = resultadoFinal(pid);
       if (!r) {
@@ -180,8 +285,21 @@
           '<button type="button" class="btn-verde" data-rp-acao="ficha">Abrir Resultado HOLOS na ficha</button></div>';
         return;
       }
+      /* a emissao a mostrar: a escolhida na lista, ou a mais recente DESTE resultado */
+      var em = emissoes.linhas.filter(function (x) { return x.id === emissaoAberta; })[0] ||
+        emissoes.linhas.filter(function (x) { return x.holos_result_id === r.id; })[0] || null;
+      var rEm = em ? (R.porId(em.holos_result_id) || null) : null;
+      if (em && (!rEm || !rEm.content_snapshot || rEm.content_hash !== em.result_content_hash)) {
+        a.innerHTML = '<div class="lista-vazia" id="rp-vazio"><strong>A emissão nº ' + escapar(em.emission_number) + " não confere com o Resultado HOLOS salvo.</strong><span>Nada foi mostrado.</span></div>";
+        return;
+      }
+      if (em) {
+        a.innerHTML = barraAcoes(pid, rEm, p, em) + listaEmissoes(emissoes.linhas, em) + documentoEmissao(em, rEm);
+        return;
+      }
       var cv = condutaVigente(pid), eu = perfil();
-      a.innerHTML = barraAcoes(pid, r, p) + avisoTermos(r, cv) + documentoHtml(pid, r, cv, eu);
+      a.innerHTML = barraAcoes(pid, r, p, null) + avisoTermos(r, cv) + listaEmissoes(emissoes.linhas, null) +
+        (emissoes.indisponivel ? "" : '<p class="rp-previa-selo rp-so-tela" role="status">PRÉVIA com os dados atuais. Ela ainda não foi emitida.</p>') + documentoHtml(pid, r, cv, eu);
       pintarImagens(eu);
     }, function (err) {
       if (vez !== desenhoAtual) return;
@@ -320,6 +438,15 @@
     ev.preventDefault();
     var acao = b.dataset.rpAcao, pid = pacienteId();
     if (acao === "ficha") { if (window.levarParaFicha && pid) window.levarParaFicha("aba:resultado-holos", pid); return; }
+    if (acao === "ver-emissao") { emissaoAberta = b.dataset.rpEm || null; desenhar(); return; }
+    if (acao === "emitir") {
+      var r0 = resultadoFinal(pid); if (!r0) return;
+      var libera = travar(true);
+      emitir(pid, r0).then(function () { desenhar(); }, function (e) {
+        toast((e && e.hint && MSG_EMISSAO[e.hint]) || "Não foi possível emitir agora: " + ((e && e.message) || "erro"));
+      }).then(libera);
+      return;
+    }
     if (acao === "imprimir") { imprimir(); return; }
     if (acao === "pdf") {
       var solta = travar(true);
@@ -334,6 +461,7 @@
     var anterior = window.aoTrocarPaciente;
     window.aoTrocarPaciente = function () {
       if (typeof anterior === "function") anterior();
+      emissaoAberta = null;
       var sec = document.getElementById("secao-resultado");
       if (sec && sec.classList.contains("ativa")) desenhar();
     };
@@ -341,7 +469,7 @@
 
   window.ResultadoPagina = {
     desenhar: desenhar, gerarPdf: gerarPdf, enviarWhatsApp: enviarWhatsApp, imprimir: imprimir,
-    resultadoFinal: resultadoFinal, condutaVigente: condutaVigente,
+    resultadoFinal: resultadoFinal, condutaVigente: condutaVigente, documentoEmissao: documentoEmissao, emissoes: function () { return emissoes.linhas.slice(); },
     numeroWhatsApp: numeroWhatsApp, linkWhatsApp: linkWhatsApp, mensagemWhatsApp: mensagemWhatsApp, termosFora: termosFora,
     CAMPOS_CONDUTA: CAMPOS_CONDUTA, HTML2PDF_URL: HTML2PDF_URL
   };

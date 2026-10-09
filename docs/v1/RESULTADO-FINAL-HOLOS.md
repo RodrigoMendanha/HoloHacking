@@ -1,6 +1,6 @@
 # Resultado final do processo HOLOS: auditoria, arquitetura e o que foi feito (09/10)
 
-Decisão: `DECISOES-V1.md` item 178.
+Decisão: `DECISOES-V1.md` item 178. **Atualização 10/10 (item 180):** as decisões metodológicas aprovadas foram implementadas — Síntese HOLOS, fechamento das ferramentas, Modelo B e emissão imutável. Ver `RESULTADO-FINAL-DECISOES-APROVADAS.md`; as PM-01…PM-05 abaixo ficaram decididas.
 **Situação:** implementado localmente, só no front. Sem migration, sem banco real, sem deploy.
 
 **Regra vigente:**

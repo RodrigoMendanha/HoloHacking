@@ -195,7 +195,7 @@ const rls = await A.evaluate(async (aid) => {
 ok(['regraIns', 'regraUpd', 'regraDel', 'catUpd', 'regIns', 'regUpd', 'regDel'].every(k => rls[k] === '42501') && rls.le === 30 && srv.linhas('holos_recommendation_rules').length === 30 && regs(A1).length === 1,
   'insert/update/delete no catalogo e nos registros: 42501; o frontend so le (30 regras)');
 
-titulo('17-18. RESULTADO DA PACIENTE, PDF E WHATSAPP NAO RECEBEM A RECOMENDACAO');
+titulo('17-18. RESULTADO DA PACIENTE, PDF E WHATSAPP: RECOMENDACAO SO QUANDO COMPARTILHADA (item 180, padrao desligado)');
 const RES = rpc('salvar_resultado_holos', { payload: { patient_id: P1, encounter_id: E1, holoscan_application_id: A1, tool_application_ids: [], visao_paciente: { ferramentas: {} }, leitura_profissional: 'Leitura da nutri', pontos_acompanhar: 'sono', questoes_aprofundar: 'x' } });
 ok(!RES.error, 'fixture: Resultado HOLOS salvo para a paciente (' + (RES.error ? RES.error.message : 'ok') + ')');
 const rp = await A.evaluate(async (pid) => {
@@ -207,7 +207,9 @@ const rp = await A.evaluate(async (pid) => {
 }, P1);
 ok(rp.texto.length > 100 && !/Próximos Passos|Mapa da Rotina|REC-FUN|Ajuda a localizar alimentação/.test(rp.texto) && !/pp-card|pp-principal/.test(rp.html), 'a pagina Resultado da paciente nao mostra os Proximos Passos');
 ok(!/Próximos|REC-/.test(rp.whats), 'a mensagem do WhatsApp nao muda');
-ok(!/Próximos Passos|pp-card|proximos_passos|holos_next_steps/.test(JSON.stringify(srv.linhas('holos_results')[0].content_snapshot)), 'o snapshot do Resultado HOLOS (fonte do PDF) nao leva a recomendacao');
+const snapR = srv.linhas('holos_results')[0].content_snapshot;
+ok(snapR.template_version === 2 && snapR.visibilidade && snapR.visibilidade.proximos_passos === false && snapR.proximos_passos && typeof snapR.proximos_passos.registrado === 'boolean',
+  'o snapshot do Resultado HOLOS congela os Proximos Passos (registrados ou nao) com o compartilhamento DESLIGADO por padrao')
 
 titulo('RESULTADO AINDA NAO SALVO: PREVIA; AO SALVAR O HOLOSCAN, O REGISTRO');
 await A.evaluate(async (pid) => { window.definirPacienteAtivo(pid); await window.AtendimentoAtual.iniciar({ patient_id: pid, occurred_at: new Date().toISOString() }); }, P8);
