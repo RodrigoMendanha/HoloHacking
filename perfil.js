@@ -644,12 +644,13 @@
     document.getElementById("sr-pct").textContent = c.pct + "%";
 
     var av = document.getElementById("sr-avatar");
-    urlDe(perfil.foto_id).then(function (u) {
+    var quem = perfil;   // a imagem chega depois: a conta pode ter saido no meio (perfil = null)
+    urlDe(quem.foto_id).then(function (u) {
       if (u) {
         av.innerHTML = '<img src="' + u + '" alt="">';
         av.classList.add("com-foto");
       } else {
-        av.textContent = (perfil.nome || "P").trim().charAt(0).toUpperCase();
+        av.textContent = (quem.nome || "P").trim().charAt(0).toUpperCase();
         av.classList.remove("com-foto");
       }
     });
@@ -1639,8 +1640,9 @@
   });
 
   /* login.js avisa quando o status da conta e conhecido ou muda (pendente/ativo) */
-  document.addEventListener("holo:conta-status", function () {
-    if (perfil) { desenhar(); trocarAba(aba); } else desenharAvisoConta();
+  document.addEventListener("holo:conta-status", function (ev) {
+    var st = ev && ev.detail ? ev.detail.status : null;
+    if (perfil && st) { desenhar(); trocarAba(aba); } else desenharAvisoConta();
   });
 
   window.redesenharPerfil = function () {
