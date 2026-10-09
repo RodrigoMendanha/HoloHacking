@@ -626,7 +626,31 @@
     return salvarRascunho();
   }
 
+  /** Pre-consulta (09/10): a resposta que a PACIENTE enviou pelo link vira um RASCUNHO V2 deste atendimento, para a
+      nutricionista revisar. Cada campo leva origem relato_paciente e a referencia do convite; peso/altura informados
+      pela paciente NAO viram dado_medido; "Prefiro nao responder" vira estado recusado. O convite nao muda. */
+  function prepararDePreConsulta(e, convite) {
+    var env = (convite && convite.submitted_content) || {};
+    st = novoEstado(e, null);
+    st.tipo = env.tipo === "retorno" ? "retorno" : "primeira";
+    var f = JSON.parse(JSON.stringify(env.formulario || {})), meta = {};
+    var marca = { origem: "relato_paciente", pre_consulta: convite.id };
+    blocosDe(st.tipo).forEach(function (b) {
+      var d = f[b.id]; if (!d) return;
+      b.campos.forEach(function (c) {
+        var k = chave(b.id, c.id);
+        if (d[c.id + "_prefiro_nao"] === true) { meta[k] = Object.assign({}, marca, { estado: "recusado" }); delete d[c.id]; }
+        delete d[c.id + "_prefiro_nao"];
+        if (c.tipo === "lista") (Array.isArray(d[c.id]) ? d[c.id] : []).forEach(function (l, i) { meta[k + "." + i] = Object.assign({}, marca); });
+        else if (tem(d[c.id]) || d[c.id + "_nega"] === true) meta[k] = Object.assign({}, meta[k] || {}, marca);
+      });
+    });
+    st.formulario = f; st.meta = meta; st.sujo = true; st.preConsulta = convite.id;
+    return salvarRascunho().then(function (linha) { return linha || (st && st.id ? { id: st.id } : null); });
+  }
+
   raiz.AnamneseV2 = {
+    prepararDePreConsulta: function (ctx, e, convite) { ctxAtual = ctx; return prepararDePreConsulta(e, convite); },
     VERSAO: VERSAO, BLOCOS_PRIMEIRA: BLOCOS_PRIMEIRA, BLOCOS_RETORNO: BLOCOS_RETORNO,
     ehV2: ehV2, gerarDominiosDaAnamneseV2: gerarDominiosDaAnamneseV2, montarContent: montarContent, problemas: problemas,
     resumo: resumo, resumoHtml: function (c) { return resumoHtml(c, esc); },

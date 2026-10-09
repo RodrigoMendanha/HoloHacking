@@ -20,7 +20,7 @@ const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  F
 const RAIZ = new URL('..', import.meta.url);
 const SCRIPT = new URL('../scripts/conferir-producao.sh', import.meta.url).pathname;
 
-const servidos = ['index.html', 'aprovacoes.html', 'style.css', 'favicon.svg', 'logo-holohacking.png', ...readdirSync(RAIZ).filter(f => f.endsWith('.js')).sort()];
+const servidos = ['index.html', 'aprovacoes.html', 'anamnese.html', 'style.css', 'favicon.svg', 'logo-holohacking.png', ...readdirSync(RAIZ).filter(f => f.endsWith('.js')).sort()];
 const conteudo = Object.fromEntries(servidos.map(f => [f, readFileSync(new URL(f, RAIZ))]));
 
 const doc = readFileSync(new URL('docs/deploy.md', RAIZ), 'utf8');

@@ -945,7 +945,11 @@
               <div class="aba-painel" id="aba-visao" role="tabpanel" aria-labelledby="tab-visao"></div>
               <div class="aba-painel hidden" id="aba-consultas" role="tabpanel" aria-labelledby="tab-consultas"></div>
               <!-- V1 Etapa 2: anamnese e conduta pertencem ao atendimento ativo (anamnese.js, conduta.js) -->
-              <div class="aba-painel hidden" id="aba-anamnese" role="tabpanel" aria-labelledby="tab-anamnese"></div>
+              <div class="aba-painel hidden" id="aba-anamnese" role="tabpanel" aria-labelledby="tab-anamnese">
+                <!-- 09/10: pre-consulta (link para a paciente; anamnese-convite.js) + registro do atendimento (anamnese.js) -->
+                <div id="an-preconsulta"></div>
+                <div id="anamnese-registro"></div>
+              </div>
               <div class="aba-painel hidden" id="aba-conduta" role="tabpanel" aria-labelledby="tab-conduta"></div>
               <div class="aba-painel hidden" id="aba-holoscan" role="tabpanel" aria-labelledby="tab-holoscan"></div>
               <div class="aba-painel hidden" id="aba-ferramentas" role="tabpanel" aria-labelledby="tab-ferramentas"></div>
@@ -1403,8 +1407,12 @@
 <script src="/atendimento.js"></script>
 <script src="/anamnese.js"></script>
 <script src="/anamnese-v2.js"></script>
+<!-- Anamnese pre-consulta: link para a paciente, status e resposta (09/10). Depois de anamnese-v2.js. -->
+<script src="/anamnese-convite.js"></script>
 <script src="/conduta.js"></script>
 <script src="/relatorios.js"></script>
+<!-- Resumo estruturado do Resultado HOLOS (fatos + regra oficial + pendencias metodologicas), antes de resultado-holos.js -->
+<script src="/resultado-sintese.js"></script>
 <script src="/resultado-holos.js"></script>
 <!-- Pagina Resultado (versao final para a paciente, PDF e WhatsApp). Depois de resultado-holos.js, que ela usa. -->
 <script src="/resultado-pagina.js"></script>

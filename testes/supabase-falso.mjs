@@ -28,6 +28,7 @@ import { criarResultadoHolos } from './resultado-holos-falso.mjs';
 import { criarProximosPassos } from './proximos-passos-falso.mjs';   // Proximos Passos HOLOS (migration 20261012100000)
 import '../proximos-passos.js';   // o MESMO motor de selecao do navegador
 import { CATALOGO as PP_CATALOGO, REGRAS as PP_REGRAS, canonico as ppCanonico } from './proximos-passos-catalogo-v1.mjs';
+import { criarAnamnesePreConsulta } from './anamnese-pre-consulta-falso.mjs';   // anamnese pre-consulta por link (migration 20261014100000)
 import { criarRevisaoPerguntas } from './revisao-perguntas-falso.mjs';   // revisao das perguntas (migration 20261010100000)   // Resultado HOLOS (migration 20261009100000)
 import '../metodologia-pacote.js';   // o MESMO validador de publicacao do navegador (Etapa 4)
 import '../laboratorio-catalogo.js';  // os MESMOS 45 exames-base da migration 20261001220000 (Etapa 5)
@@ -90,6 +91,9 @@ const COLUNAS = {
   /* Proximos Passos HOLOS (migration 20261012100000): catalogo global somente leitura + snapshot por (aplicacao, catalogo) */
   holos_recommendation_catalogs: ['id', 'code', 'version', 'status', 'content_hash', 'provenance', 'approved_at', 'approved_by', 'created_at'],
   holos_recommendation_rules: ['id', 'catalog_id', 'rule_id', 'catalog_code', 'catalog_version', 'system_id', 'rank', 'tool_id', 'professional_reason', 'next_action', 'status', 'provenance', 'approved_at', 'approved_by', 'created_at'],
+  /* Anamnese pre-consulta (migration 20261014100000): leitura so dos proprios convites (sem o hash); escrita so por RPC */
+  anamnesis_invites: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'status', 'form_version', 'form_tipo', 'expires_at', 'draft_content', 'submitted_content',
+    'save_count', 'professional_snapshot', 'imported_anamnesis_id', 'imported_at', 'created_at', 'started_at', 'last_saved_at', 'submitted_at', 'revoked_at'],
   holos_next_steps: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'holoscan_application_id', 'catalog_id', 'catalog_code', 'catalog_version', 'catalog_hash', 'engine_version', 'systems_order', 'selection', 'content_snapshot', 'content_hash', 'created_at'],
   profiles: null,          // nao estrito: o perfil nao e o assunto destes testes
   ai_threads: ['id', 'nutritionist_id', 'patient_id', 'titulo', 'created_at', 'updated_at'],
@@ -105,7 +109,7 @@ const FILHAS_PACOTE = METODOLOGIA.filter(t => t !== 'methodology_packages');
 const GLOBAIS_SO_LEITURA = ['holos_recommendation_catalogs', 'holos_recommendation_rules', 'lab_exam_catalog', 'lab_method_references', 'lab_unit_conversion_rules', 'lab_derived_calculations', 'integrated_reading_rule_packages', 'integrated_reading_domains', 'integrated_reading_exam_domain_links', 'integrated_reading_rules',
   'integrated_reading_package_dependencies', 'integrated_reading_package_approvals', 'integrated_reading_package_snapshots'];   // Etapa 5.2: aprovacoes so pela RPC
 const DONO_DIRETO = [...METODOLOGIA, 'methodology_package_approvals', 'lab_custom_exams', 'integrated_readings', 'holos_next_steps', 'patients', 'consultations', 'encounters', 'anamneses', 'conducts', 'agreements', 'report_emissions', 'schedule_blocks', 'holoscan_applications',
-  'lab_collections', 'tool_applications', 'documents', 'professional_assets', 'ai_threads', 'holos_results'];
+  'lab_collections', 'tool_applications', 'documents', 'professional_assets', 'ai_threads', 'holos_results', 'anamnesis_invites'];
 const FILHAS = {           // tabela -> [coluna, mae]
   holoscan_answers: ['application_id', 'holoscan_applications'],
   holoscan_system_scores: ['application_id', 'holoscan_applications'],
@@ -758,7 +762,7 @@ export function criarServidor() {
     const t = q.tabela;
     if (t === 'methodology_package_approvals' && q.acao !== 'select') return erro('permission denied for table methodology_package_approvals', '42501');
     if (t === 'methodology_approvers' && q.acao !== 'select') return erro('permission denied for table methodology_approvers', '42501');
-    if ((GLOBAIS_SO_LEITURA.includes(t) || t === 'integrated_readings' || t === 'holos_results' || t === 'holos_next_steps') && q.acao !== 'select' && uid) return erro('permission denied for table ' + t, '42501');
+    if ((GLOBAIS_SO_LEITURA.includes(t) || t === 'integrated_readings' || t === 'holos_results' || t === 'holos_next_steps' || t === 'anamnesis_invites') && q.acao !== 'select' && uid) return erro('permission denied for table ' + t, '42501');
     /* Prontuario (20261011100000): a API perdeu a escrita nas tabelas lab_* (revoke) e o DELETE em documents */
     if (['lab_collections', 'lab_results', 'lab_result_components', 'lab_custom_exams'].includes(t) && q.acao !== 'select' && uid) return erro('permission denied for table ' + t, '42501');
     if (t === 'documents' && q.acao === 'delete' && uid) return erro('permission denied for table documents', '42501');
@@ -996,9 +1000,12 @@ export function criarServidor() {
 
   const proximosPassos = criarProximosPassos(s, { statusConta: (u) => statusConta(u), carimbo: () => carimbo() });
   const revisaoPerguntas = criarRevisaoPerguntas(s, {});
+  const preConsulta = criarAnamnesePreConsulta(s, {});
+  s.preConsulta = preConsulta;
   s.revisaoPerguntas = revisaoPerguntas;
   function rpc(uid, nome, args) {
     if (revisaoPerguntas.NOMES.includes(nome)) return revisaoPerguntas.rpc(uid, nome, args);   // publicas (sem login)
+    if (preConsulta.PUBLICAS.includes(nome)) return preConsulta.rpc(uid, nome, args);           // anamnese pre-consulta: publicas (so o token)
     if (nome === 'minha_conta_status') return uid ? { data: statusConta(uid), error: null } : erro('permission denied for function minha_conta_status', '42501');
     /* o gatilho exigir_conta_ativa dispara dentro das RPCs que gravam */
     if (uid && RPC_GRAVA.test(nome) && statusConta(uid) !== 'ativo') return erroContaNaoLiberada(nome);
@@ -1022,6 +1029,7 @@ export function criarServidor() {
     const p = args && args.payload;
     if (resultadoHolos.NOMES.includes(nome)) return resultadoHolos.rpc(uid, nome, args);
     if (proximosPassos.NOMES.includes(nome)) return proximosPassos.rpc(uid, nome, args);
+    if (preConsulta.NOMES.includes(nome)) return preConsulta.rpc(uid, nome, args);
     if (nome === 'salvar_holoscan_completo') {
       if (!p || !p.application || !p.answers || !p.scores) return erro('payload incompleto', 'P0001');
       const a = p.application;

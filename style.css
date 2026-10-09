@@ -4846,3 +4846,41 @@ body.conta-pendente #secao-perfil{display:block}
 .pac-acoes{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:18px}
 .pac-msg{font-size:.8rem;color:var(--texto-suave)}
 @media (max-width:640px){ .perf-aviso-conta{padding:18px 16px} }
+
+/* ===================================================== RESUMO ESTRUTURADO (09/10)
+   Resultado HOLOS: fatos | regra oficial | decisao da nutricionista |
+   pendencias metodologicas — rotulados para nunca se confundirem. */
+.rh-resumo-grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr));gap:14px 22px;margin-top:12px}
+.rh-resumo-bloco h4{font-size:.92rem;margin:0 0 8px;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.rh-resumo-lista{margin:0;padding-left:18px;display:grid;gap:5px;font-size:.88rem;line-height:1.5}
+.rh-rotulo{font-family:var(--fonte-corpo,inherit);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600;
+  padding:3px 8px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.rh-rotulo-fato{color:var(--texto-suave)}
+.rh-rotulo-regra{color:var(--movimento-sobe,#1f6b4a)}
+.rh-rotulo-nutri{color:var(--dourado,#a07a2c)}
+.rh-pp{margin-top:10px}
+.rh-pp-tit{font-size:.85rem;margin:10px 0 6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.rh-pendencias{margin-top:16px;border:1px dashed var(--borda-suave);border-radius:12px;padding:10px 14px}
+.rh-pendencias summary{cursor:pointer;font-size:.86rem;font-weight:500}
+.rh-pendencias ul{margin:8px 0 0;padding-left:18px;display:grid;gap:6px;font-size:.84rem;line-height:1.55}
+.rh-selo-pend{margin:10px 0 0;font-size:.7rem;letter-spacing:.1em;font-weight:600;color:var(--movimento-desce,#a8442a)}
+@media print{ .rh-pendencias{display:none} }
+
+/* ===================================================== ANAMNESE PRE-CONSULTA (09/10)
+   Cartao no topo da aba Anamnese: status do link da paciente e a resposta. */
+.pc-cartao{background:var(--sup-card);border:1px solid var(--borda-suave);border-radius:16px;padding:18px 22px;margin-bottom:20px}
+.pc-topo{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px}
+.pc-titulo{font-family:var(--fonte-display);font-size:1.15rem;font-weight:500;color:var(--titulo);margin:0}
+.pc-status{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600;padding:4px 10px;border-radius:999px;border:1px solid currentColor;color:var(--texto-suave)}
+.pc-status.pc-concluido{color:var(--movimento-sobe)}
+.pc-status.pc-enviado,.pc-status.pc-iniciado{color:var(--dourado,#a07a2c)}
+.pc-status.pc-expirado,.pc-status.pc-revogado{color:var(--movimento-desce)}
+.pc-sub,.pc-origem{font-size:.84rem;color:var(--texto-suave);margin:8px 0 0;line-height:1.55}
+.pc-datas{display:flex;flex-wrap:wrap;gap:6px 22px;margin:12px 0 0}
+.pc-datas div{min-width:8rem}
+.pc-datas dt{font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--texto-suave)}
+.pc-datas dd{margin:2px 0 0;font-size:.86rem;font-variant-numeric:tabular-nums}
+.pc-link{margin:12px 0 0;font-size:.82rem;word-break:break-all}
+.pc-link code{background:var(--input-fundo,rgba(0,0,0,.04));padding:2px 6px;border-radius:6px}
+.pc-acoes{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.pc-resposta{margin-top:16px;padding-top:14px;border-top:1px solid var(--borda-suave)}

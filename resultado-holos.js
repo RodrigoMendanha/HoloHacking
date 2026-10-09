@@ -327,6 +327,9 @@
     }
     html += "</header>";
 
+    // 1b. resumo estruturado (09/10): fatos + regra oficial + pendencias metodologicas, so a partir do snapshot
+    if (window.ResultadoSintese) html += window.ResultadoSintese.html(snap, visao, { moduloDe: moduloDe, nomeFerramenta: function (id) { return defFerr(id).titulo; } });
+
     // 2. visao geral HOLOSCAN
     var cob = h.cobertura || {};
     html += '<section class="rh-secao rh-geral" aria-labelledby="rh-t-geral"><h3 id="rh-t-geral">' + (paciente ? "Seu Mapa HOLOS" : "Visão geral HOLOSCAN") + "</h3>" +
@@ -520,6 +523,20 @@
     var pid = pacienteId();
     a.innerHTML = modo === "editar" && form ? htmlEditar(pid) : modo === "ver" && vendo ? htmlVer() : htmlLista(pid);
     if (modo === "editar") atualizarContagem();
+    preencherProximosPassos(a);
+  }
+  /* Proximos Passos HOLOS ja registrados (snapshot imutavel) no resumo da visao PROFISSIONAL. Le so o registro salvo. */
+  function preencherProximosPassos(a) {
+    var caixa = a && a.querySelector(".rh-doc-profissional [data-rh-pp]");
+    if (!caixa || !window.ProximosPassos || !window.ResultadoSintese) return;
+    var snap = modo === "ver" && vendo ? (porId(vendo.id) || {}).content_snapshot : previa;
+    var appId = snap && snap.holoscan && snap.holoscan.id;
+    if (!appId) return;
+    caixa.innerHTML = '<p class="rh-nota-tec">Lendo os Próximos Passos HOLOS registrados…</p>';
+    window.ProximosPassos.registros(appId).then(function (lista) {
+      if (!caixa.isConnected) return;
+      caixa.innerHTML = window.ResultadoSintese.htmlProximosPassos((lista || [])[0] || null, function (id) { return defFerr(id).titulo; });
+    }, function () { if (caixa.isConnected) caixa.innerHTML = ""; });
   }
   function atualizarContagem() {
     var a = alvo(), c = a && a.querySelector("#rh-contagem"); if (!c) return;

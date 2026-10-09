@@ -1,5 +1,5 @@
 #!/bin/sh
-# Valida a cadeia de migrations 130000..20261009100000 + harness Etapa 4, 4.2, 5, 5.2, 5.3, 6, 6.0.1, aprovador unico, HOLOSCAN oficial (P0), registros clinicos estruturados (6.5 B), cadastro com aprovacao, Resultado HOLOS, revisao das perguntas, prontuario (exames so como arquivo), Proximos Passos HOLOS, conta pendente = somente Perfil e regressao de dados LEGADOS num PostgreSQL LOCAL descartavel.
+# Valida a cadeia de migrations 130000..20261009100000 + harness Etapa 4, 4.2, 5, 5.2, 5.3, 6, 6.0.1, aprovador unico, HOLOSCAN oficial (P0), registros clinicos estruturados (6.5 B), cadastro com aprovacao, Resultado HOLOS, revisao das perguntas, prontuario (exames so como arquivo), Proximos Passos HOLOS, conta pendente = somente Perfil, anamnese pre-consulta e regressao de dados LEGADOS num PostgreSQL LOCAL descartavel.
 # Antes das migrations entra supabase/tests/legado-seed-pre-etapa5.sql (dados legados sinteticos, como em producao); no fim, legado-harness.sql.
 # Uso: PGHOST=/caminho/socket PGPORT=55432 sh scripts/validar-cadeia-local.sh
 # Pre-requisito: banco "base" com supabase/tests/stub-supabase-local.sql e as migrations anteriores a 20260930130000.
@@ -76,5 +76,11 @@ cd "$(dirname "$0")/.."
     grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
   done
   cat supabase/tests/conta-pendente-harness.sql
+  # Anamnese pre-consulta por link (20261014100000): convite com token (so o hash no banco), paginas publicas sem conta,
+  # rascunho no servidor, envio imutavel; nada vira anamnese do atendimento sem a nutricionista.
+  for f in supabase/migrations/2026101410*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/anamnese-pre-consulta-harness.sql
   echo "rollback;"
 } | psql -U postgres -d base -v ON_ERROR_STOP=1 -At | tr '|' '\n' | sed 's/^ //'

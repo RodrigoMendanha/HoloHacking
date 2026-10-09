@@ -292,8 +292,8 @@ ok(ordem.manifesto < ordem.dados,
    correcao P0 pos-deploy 6.4 (holoscan-oficial.js: o questionario no motor oficial). */
 // ajuste 07/10: + ajuda.js (pagina de Ajuda); 08/10: + contas.js (cadastro)
 // 09/10 (prontuario): -laboratorio-catalogo.js -laboratorio-motor.js -leitura-integrada-motor.js -laboratorio.js (exames so como arquivo) +resultado-pagina.js
-ok(ordem.total === 54,
-   'o index tem 54 tags de script (09/10: documentos.js saiu — documento so na ficha; proximos-passos.js entrou): 22 de antes do P0 + concorrencia.js + metodologia.js (Etapa 0 da V1) + holoscan-oficial.js (correcao P0 pos-deploy 6.4) + ferramentas-registro.js (Etapa 6.5 B) + atendimento.js (Etapa 1) + anamnese.js + conduta.js (Etapa 2) + timeline.js + relatorios.js (Etapa 3) + metodologia-inventario.js + metodologia-pacote.js + metodologia-motor.js + metodologia-homologacao.js (Etapa 4) + metodologia-decisoes-v1.js (Etapa 4.2) + laboratorio-catalogo.js + laboratorio-motor.js + leitura-integrada-motor.js + laboratorio.js (Etapa 5) + ' +
+ok(ordem.total === 56,
+   'o index tem 56 tags de script (09/10: documentos.js saiu — documento so na ficha; proximos-passos.js entrou; resultado-sintese.js e anamnese-convite.js entraram): 22 de antes do P0 + concorrencia.js + metodologia.js (Etapa 0 da V1) + holoscan-oficial.js (correcao P0 pos-deploy 6.4) + ferramentas-registro.js (Etapa 6.5 B) + atendimento.js (Etapa 1) + anamnese.js + conduta.js (Etapa 2) + timeline.js + relatorios.js (Etapa 3) + metodologia-inventario.js + metodologia-pacote.js + metodologia-motor.js + metodologia-homologacao.js (Etapa 4) + metodologia-decisoes-v1.js (Etapa 4.2) + laboratorio-catalogo.js + laboratorio-motor.js + leitura-integrada-motor.js + laboratorio.js (Etapa 5) + ' +
    'armazenamento.js + validar-backup.js + restaurar-backup.js + ' +
    'importar-v1.js + excluir-paciente.js + login.js + CDN supabase-js + ' +
    'supabase-client.js + dados-router.js + migracao-supa.js + holos-ai.js + ' +

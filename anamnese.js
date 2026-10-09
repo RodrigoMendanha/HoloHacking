@@ -312,7 +312,10 @@
   var v2Corrigindo = null;   // id da revisao V2 vigente sendo corrigida (antes do 1o salvamento automatico)
 
   function desenhar() {
-    var alvo = document.getElementById("aba-anamnese");
+    /* 09/10: a aba tem duas partes — a pre-consulta da paciente (anamnese-convite.js, #an-preconsulta) e o
+       registro do atendimento (#anamnese-registro, desenhado aqui). Sem a divisao no HTML, usa a aba inteira. */
+    if (window.PreConsulta) window.PreConsulta.desenhar();
+    var alvo = document.getElementById("anamnese-registro") || document.getElementById("aba-anamnese");
     if (!alvo) return;
     var e = atendimentoAtivo();
     if (!e) {
@@ -577,6 +580,17 @@
     desenhar: desenhar, aoMudar: function (f) { if (typeof f === "function") ouvintes.push(f); },
     rascunhoLocal: function () { lerFormulario(); return rascunho ? JSON.parse(JSON.stringify(rascunho)) : null; },
     esquecer: function () { cache = []; locais = []; rascunho = null; vendo = null; v2Corrigindo = null; if (window.AnamneseV2) window.AnamneseV2.esquecer(); },
+    /** Pre-consulta (09/10): leva a resposta enviada pela paciente para um RASCUNHO V2 do atendimento ativo.
+        Recusa se nao houver atendimento ativo ou se ele ja tiver anamnese (nada e sobrescrito). */
+    usarPreConsulta: function (convite) {
+      var e = atendimentoAtivo();
+      if (!e) return Promise.reject(new Error("Selecione ou inicie um atendimento para levar a pré-anamnese para a anamnese dele."));
+      if (doAtendimento(e.id).length || rascunhoDe(e.id)) return Promise.reject(new Error("Este atendimento já tem anamnese. A resposta da paciente continua visível aqui, para consulta."));
+      if (!window.AnamneseV2 || !window.AnamneseV2.prepararDePreConsulta) return Promise.reject(new Error("Anamnese V2 indisponível."));
+      return window.AnamneseV2.prepararDePreConsulta({ salvar: salvar, redesenhar: desenhar, recarregar: function () { carregar().then(desenhar); } }, e, convite)
+        .then(function (linha) { if (!linha || !linha.id) throw new Error("Não foi possível criar o rascunho da anamnese."); rascunho = null; vendo = null; return carregar().then(function () { desenhar(); return linha; }); });
+    },
+    atendimentoAtivo: function () { return atendimentoAtivo(); },
     /** resumo da anamnese vigente (so V2; a antiga nao e reinterpretada) */
     resumoHtml: function (a) { return a && window.AnamneseV2 && window.AnamneseV2.ehV2(a.content) ? window.AnamneseV2.resumoHtml(a.content) : ""; }
   };
