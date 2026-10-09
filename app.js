@@ -271,6 +271,10 @@
     /* Prontuario (09/10): a Leitura Integrada saiu do fluxo e a secao virou a pagina RESULTADO.
        Atalho antigo (#confronto, botao esquecido) leva para ela. */
     if(secao === "confronto") secao = "resultado";
+    /* Conta PENDENTE (09/10): so o Perfil existe. Qualquer outro destino (menu,
+       atalho, botao esquecido, chamada direta) cai no Perfil. A trava de verdade
+       e do servidor; isto e a tela nao oferecer o que a conta nao pode usar. */
+    if(window.ContaAcesso && window.ContaAcesso.restrito() && secao !== "perfil") secao = "perfil";
     $$(".nav-item").forEach(b => b.classList.toggle("ativo", b.dataset.secao === secao));
     $$(".secao").forEach(s => s.classList.toggle("ativa", s.id === "secao-" + secao));
     $("#caminho-atual").textContent = nomesSecao[secao] || secao;

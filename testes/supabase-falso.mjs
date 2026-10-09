@@ -149,6 +149,11 @@ const UNICAS = {           // uniques alem da PK, como nas migrations
 const FERRAMENTAS = ['oq3', 'pqq', 'linha_momentum', 'mapa_crencas', 'roda_vida', 'carta_futuro'].concat(IDS_REGISTRO);
 
 const erro = (message, code) => ({ data: null, error: { message, code: code || 'XX000' } });
+/* Conta pendente = somente Perfil (migration 20261013100000): gatilho exigir_conta_ativa em toda tabela com
+   nutritionist_id (menos professional_assets) e nas filhas; dispara tambem dentro das RPCs. */
+const FILHAS_TRAVADAS = ['ai_messages', 'holoscan_answers', 'holoscan_system_scores', 'lab_results', 'lab_result_components'];
+const RPC_GRAVA = /^(salvar_|registrar_|criar_|emitir_|reagendar_|marcar_|revisar_|descartar_|aprovar_|retirar_|homologar_|finalizar_|arquivar_)/;
+const erroContaNaoLiberada = (t) => ({ data: null, error: { message: 'conta ainda nao liberada: so o Perfil pode ser editado ate a equipe HoloHacking liberar o acesso (' + t + ')', code: '42501', hint: 'conta_nao_liberada' } });
 const agora = () => new Date().toISOString();
 const copia = (x) => JSON.parse(JSON.stringify(x));
 
@@ -771,8 +776,18 @@ export function criarServidor() {
     if (!r.error) tocados.forEach(pid => invalidarAprovacoes(pid, 'pacote alterado depois da aprovacao (' + t + ' ' + q.acao + ')'));
     return r;
   }
+  function travada(t) {
+    return t !== 'professional_assets' && (FILHAS_TRAVADAS.includes(t) || (COLUNAS[t] || []).includes('nutritionist_id'));
+  }
   function consultarBase(uid, q) {
     const t = q.tabela;
+    /* trava real (20261013100000): conta logada e nao ativa nao grava dado clinico */
+    if (uid && ['insert', 'upsert', 'update', 'delete'].includes(q.acao) && travada(t) && statusConta(uid) !== 'ativo') return erroContaNaoLiberada(t);
+    /* conta RECUSADA nao edita o perfil nem as imagens (RLS restrictive: insert recusa; update/delete filtram a linha) */
+    if (uid && (t === 'profiles' || t === 'professional_assets') && statusConta(uid) === 'recusado') {
+      if (q.acao === 'insert' || q.acao === 'upsert') return erro('new row violates row-level security policy "' + t + '_recusada" for table "' + t + '"', '42501');
+      if (q.acao === 'update' || q.acao === 'delete') return finalizar(q, []);
+    }
     /* trava real (politica RESTRICTIVE): conta nao ativa nao cria nem altera paciente */
     if (t === 'patients' && uid && ['insert', 'upsert', 'update'].includes(q.acao) && statusConta(uid) !== 'ativo')
       return erro('new row violates row-level security policy "patients_exige_conta_ativa_ins" for table "patients"', '42501');
@@ -931,7 +946,7 @@ export function criarServidor() {
           else if (!q.dados.arquivado_em) { l.arquivado_em = null; l.arquivado_por = null; }
           else { l.arquivado_em = arqAntes; }
         }
-        if ((COLUNAS[t] || []).includes('updated_at')) l.updated_at = carimbo();
+        if ((COLUNAS[t] || []).includes('updated_at') || t === 'profiles') l.updated_at = carimbo();
         if (t === 'agreements' && 'status' in q.dados && q.dados.status !== statusAntes) l.status_changed_at = agora();
         if ((t === 'anamneses' || t === 'conducts')) {
           if (l.status === 'revisado' && statusAntes !== 'revisado') { l.reviewed_at = l.reviewed_at || agora(); l.reviewed_by = uid; }
@@ -985,6 +1000,8 @@ export function criarServidor() {
   function rpc(uid, nome, args) {
     if (revisaoPerguntas.NOMES.includes(nome)) return revisaoPerguntas.rpc(uid, nome, args);   // publicas (sem login)
     if (nome === 'minha_conta_status') return uid ? { data: statusConta(uid), error: null } : erro('permission denied for function minha_conta_status', '42501');
+    /* o gatilho exigir_conta_ativa dispara dentro das RPCs que gravam */
+    if (uid && RPC_GRAVA.test(nome) && statusConta(uid) !== 'ativo') return erroContaNaoLiberada(nome);
     if (nome === 'eh_administrador') return { data: !!uid && s.administradores.includes(uid), error: null };
     if (nome === 'listar_contas' || nome === 'decidir_conta') {
       if (!uid || !s.administradores.includes(uid)) return erro('apenas administradores', '42501');
@@ -1644,6 +1661,9 @@ export function criarServidor() {
     const meu = (path) => String(path).split('/')[0] === uid;
     if (m.acaoStorage === 'upload') {
       if (!meu(m.path)) return erro('new row violates row-level security policy', '42501');
+      /* storage_conta_liberada_ins (20261013100000) */
+      if (m.bucket === 'patient-documents' && statusConta(uid) !== 'ativo') return erro('new row violates row-level security policy "storage_conta_liberada_ins"', '42501');
+      if (m.bucket === 'professional-assets' && statusConta(uid) === 'recusado') return erro('new row violates row-level security policy "storage_conta_liberada_ins"', '42501');
       if (b[m.path]) return erro('The resource already exists', '409');
       b[m.path] = { b64: m.b64, tipo: m.tipo, dono: uid };
       return { data: { path: m.path }, error: null };

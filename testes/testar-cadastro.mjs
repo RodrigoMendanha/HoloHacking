@@ -2,10 +2,10 @@
  * Cadastro de nutricionistas com aprovacao (08/10). Supabase falso:
  *   1  /cadastro abre a tela de cadastro; "Criar conta" no login tambem
  *   2  validacoes: nome e sobrenome, e-mail, telefone com DDD (mascara), senha >= 8, confirmacao
- *   3  cadastrar cria a conta com nome/telefone/e-mail e status PENDENTE; a tela mostra "em analise" e o app NAO abre
+ *   3  cadastrar cria a conta com nome/telefone/e-mail e status PENDENTE; o app abre SO com o Perfil (09/10)
  *   4  conta pendente nao cria paciente (trava do servidor) nem muda o proprio status
  *   5  e-mail repetido: mensagem clara
- *   6  administradora ve o menu Contas com o numero de pendentes, libera; a nutri entra no app
+ *   6  administradora ve o menu Contas com o numero de pendentes, libera; "Verificar acesso novamente" abre o app completo
  *   7  recusada ve "Acesso nao liberado"; conta antiga (sem perfil novo) continua entrando direto
  */
 import './guarda-falhas.mjs';
@@ -59,11 +59,12 @@ ok(mask === '(11) 98888-7777', 'telefone com máscara: ' + mask);
 /* ----- 3 ----- */
 await preencher(C, { 'cad-nome': 'Ana Nutricionista Teste', 'cad-email': 'ana@holo.test', 'cad-senha': 'senha-boa-1', 'cad-senha2': 'senha-boa-1' });
 await C.click('#btn-cadastrar');
-await C.waitForFunction(() => { const t = document.getElementById('tela-status-conta'); return t && !t.hidden; }, { timeout: 8000 }).catch(() => {});
+await C.waitForFunction(() => document.body.classList.contains('conta-pendente') && document.getElementById('tela-login').hidden, { timeout: 8000 }).catch(() => {});
 const perfil = srv.linhas('profiles').find(p => p.email_contato === 'ana@holo.test');
 ok(!!perfil && perfil.nome === 'Ana Nutricionista Teste' && perfil.telefone === '11988887777' && perfil.status === 'pendente', 'a conta nasce com nome, telefone, e-mail e status PENDENTE');
-const st = await C.evaluate(() => ({ titulo: document.getElementById('status-conta-titulo').textContent, app: document.getElementById('tela-login').hidden, url: location.pathname }));
-ok(/em análise/.test(st.titulo) && st.app === false, 'depois do cadastro aparece "Seu cadastro está em análise" e o app NÃO abre');
+const st = await C.evaluate(() => ({ perfil: document.getElementById('secao-perfil').classList.contains('ativa'), aviso: document.getElementById('perfil-aviso-conta').innerText,
+  menu: [...document.querySelectorAll('.nav-item')].filter(b => b.offsetParent !== null).map(b => b.dataset.secao), url: location.pathname }));
+ok(st.perfil && /sendo preparado/.test(st.aviso) && st.menu.join() === 'perfil', 'depois do cadastro o app abre SÓ com o Perfil e o aviso de cadastro em preparação (menu: ' + st.menu.join() + ')');
 ok(st.url === '/', 'o endereço volta para / depois do cadastro');
 
 /* ----- 4 ----- */
@@ -74,8 +75,8 @@ const trava = await C.evaluate(async () => {
 });
 ok(trava.pac && srv.linhas('patients').length === 0, 'conta pendente não consegue criar paciente (trava do servidor)');
 ok(trava.st && srv.statusConta(perfil.id) === 'pendente', 'e não consegue se liberar sozinha');
-await C.click('#btn-status-verificar'); await espera(400);
-ok(/Ainda aguardando/.test(await C.evaluate(() => document.getElementById('status-conta-mensagem').textContent)), '"Verificar de novo" diz que ainda aguarda liberação');
+await C.click('#btn-verificar-acesso'); await espera(400);
+ok(/Ainda aguardando/.test(await C.evaluate(() => document.getElementById('pac-msg').textContent)), '"Verificar acesso novamente" diz que ainda aguarda liberação');
 
 /* ----- 5 ----- */
 const D = await pagina('http://127.0.0.1:5500/cadastro');
@@ -100,9 +101,9 @@ if (process.env.SHOT_DIR) await A.screenshot({ path: process.env.SHOT_DIR + '/co
 await A.evaluate(() => document.querySelector('[data-ct-aprovar]').click());
 await espera(700);
 ok(srv.statusConta(perfil.id) === 'ativo', 'Liberar acesso deixa a conta ativa');
-await C.click('#btn-status-verificar');
-await C.waitForFunction(() => document.getElementById('tela-login').hidden, { timeout: 6000 }).catch(() => {});
-ok(await C.evaluate(() => document.getElementById('tela-login').hidden), 'a nutri liberada entra no app ("Verificar de novo")');
+await C.click('#btn-verificar-acesso');
+await C.waitForFunction(() => document.getElementById('tela-login').hidden && !document.body.classList.contains('conta-pendente') && window.ContaAcesso && window.ContaAcesso.status() === 'ativo', { timeout: 8000 }).catch(() => {});
+ok(await C.evaluate(() => document.getElementById('tela-login').hidden && !document.body.classList.contains('conta-pendente')), 'a nutri liberada entra no app completo ("Verificar acesso novamente" recarrega)');
 const criou = await C.evaluate(async () => { const r = await window.supabaseClient.from('patients').insert({ nome: 'Paciente Ficticio' }).select(); return !r.error; });
 ok(criou, 'e agora consegue cadastrar paciente');
 
@@ -116,7 +117,9 @@ await A.evaluate(() => window.Contas.desenhar()); await espera(500);
 await A.evaluate((id) => document.querySelector('[data-ct-recusar="' + id + '"]').click(), idB); await espera(300);
 await A.evaluate(() => document.getElementById('modal-confirmar-ok').click()); await espera(600);
 ok(srv.statusConta(idB) === 'recusado', 'Recusar (com confirmação) marca a conta como recusada');
-await outra.click('#btn-status-verificar'); await espera(600);
+await outra.waitForSelector('#btn-verificar-acesso', { visible: true, timeout: 6000 }).catch(() => {});
+await outra.click('#btn-verificar-acesso');
+await outra.waitForFunction(() => { const t = document.getElementById('tela-status-conta'); return t && !t.hidden; }, { timeout: 8000 }).catch(() => {});
 ok(/Acesso não liberado/.test(await outra.evaluate(() => document.getElementById('status-conta-titulo').textContent)), 'a recusada vê "Acesso não liberado"');
 const V = await pagina('http://127.0.0.1:5500/');
 await V.waitForSelector('#login-email', { visible: true });

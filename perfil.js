@@ -21,10 +21,21 @@
    que nenhum. O que a Fase 1 trouxe (quem esta logado, e sair) esta na aba
    Conta, abaixo.
 
-   Onde as coisas ficam: os campos de texto vao para a tabela `perfil` (uma
-   linha so) e viajam no exportar/importar junto com os pacientes. As imagens
-   — foto, logo, assinatura, carimbo — vao para o IndexedDB, como os exames,
-   porque localStorage nao aguenta binario.
+   Onde as coisas ficam: com conta, o servidor e a fonte oficial — os campos
+   em `profiles` e as imagens (foto, logo, assinatura, carimbo) em
+   `professional_assets` + bucket `professional-assets`. Sem conta (modo local
+   de desenvolvimento), a tabela local `perfil` e o IndexedDB.
+
+   CORRECOES DE 09/10 (auditoria do cadastro):
+   - leitura do servidor que falha NAO vira formulario vazio: a tela mostra o
+     erro com "Tentar novamente" e nada pode ser salvo ate carregar de verdade
+     (antes, salvar ali apagava registro, cidade etc. no servidor);
+   - salvar manda SO os campos que mudaram, e so se a linha ainda estiver na
+     versao lida (updated_at). Se outro dispositivo salvou no meio: campos
+     diferentes sao mesclados; o MESMO campo mudado nos dois vira conflito
+     explicito — nunca sobrescrita silenciosa;
+   - trocar imagem: sobe a nova, registra, e so entao apaga a antiga. Upload
+     que falha deixa a antiga intacta.
    =========================================================================== */
 
 (function () {
@@ -39,11 +50,17 @@
   var supaAssets = {};           // "supa:uuid" -> storage_path (para download)
   var desenhando = false;        // a assinatura desenhada a mao esta aberta?
 
+  /* Estado da leitura do servidor: "ok" | "erro". base = os valores do servidor
+     (no formato das colunas) na ultima leitura; versao = o updated_at dela. */
+  var estadoCarga = "ok";
+  var base = null, versao = null, existeLinha = false;
+
   window.limparEstadoPerfil = function () {
     perfil = null;
     urls = {};
     supaAssets = {};
     ligado = false;
+    estadoCarga = "ok"; base = null; versao = null; existeLinha = false;
   };
 
   var PADRAO = {
@@ -53,7 +70,7 @@
     email_resposta: "", fuso: "America/Sao_Paulo",
     cor_primaria: "#0b3325", cor_secundaria: "#c9a35a",
     foto_id: "", logo_id: "", assinatura_id: "", carimbo_id: "",
-    modulos: { consultas: true, agenda: true, documentos: true }
+    modulos: { consultas: true, agenda: true }
   };
 
   /* Fusos do Brasil, e mais nada: o app atende aqui. Uma lista mundial de 400
@@ -74,13 +91,11 @@
       resumo: "Quem precisa voltar, e quando",
       texto: "Calcula o retorno de 4 semanas a partir da última aplicação e deixa " +
              "você marcar o dia combinado. Se a sua agenda vive em outro lugar, " +
-             "pode deixar desativado." },
-    { id: "documentos", nome: "Documentos",
-      resumo: "Os arquivos de todos os pacientes num lugar só",
-      texto: "Os mesmos exames e laudos que aparecem na ficha de cada um, reunidos " +
-             "para procurar sem saber de quem era. A aba da ficha continua existindo " +
-             "com ou sem isto." }
+             "pode deixar desativado." }
   ];
+  /* "Documentos" saiu daqui em 09/10: o menu global de documentos foi removido
+     (os documentos ficam na ficha do paciente) e a chave nao controlava nada.
+     A chave antiga em profiles.modulos fica onde esta e e ignorada. */
 
   var APARENCIAS = [
     { id: "claro", nome: "Claro" },
@@ -103,6 +118,50 @@
   ];
 
   var escapar = window.escapar;
+
+  /* CONTA PENDENTE (09/10): o texto do aviso fica AQUI, num lugar so — mudar a
+     redacao e mudar estas duas linhas. Sem data no texto. */
+  var TEXTO_CONTA_PENDENTE = {
+    titulo: "Seu cadastro profissional está sendo preparado.",
+    corpo: "Complete seu perfil agora. O acesso completo à plataforma será liberado em breve."
+  };
+  /* O que mais importa preencher enquanto espera (destaque, nao obrigatorio). */
+  var PRIORIDADES_PENDENTE = [
+    { rotulo: "Foto", feito: function (p) { return !!p.foto_id; }, aba: "perfil" },
+    { rotulo: "CRN (registro profissional)", feito: function (p) { return !!String(p.registro || "").trim(); }, aba: "perfil" },
+    { rotulo: "Logo", feito: function (p) { return !!p.logo_id; }, aba: "marca" },
+    { rotulo: "Assinatura", feito: function (p) { return !!p.assinatura_id; }, aba: "marca" },
+    { rotulo: "Carimbo", feito: function (p) { return !!p.carimbo_id; }, aba: "marca" },
+    { rotulo: "Contato (telefone ou e-mail)", feito: function (p) { return !!(String(p.telefone || "").trim() || String(p.email || "").trim()); }, aba: "perfil" }
+  ];
+
+  function contaRestrita() { return !!(window.ContaAcesso && window.ContaAcesso.restrito && window.ContaAcesso.restrito()); }
+
+  function desenharAvisoConta() {
+    var el = document.getElementById("perfil-aviso-conta");
+    var abaPrefs = document.getElementById("tab-prefs");
+    var restrita = contaRestrita();
+    /* pendente: Preferencias (modulos do menu clinico) nao se aplica */
+    if (abaPrefs) abaPrefs.hidden = restrita;
+    if (restrita && aba === "prefs") aba = "perfil";
+    if (!el) return;
+    el.hidden = !restrita;
+    if (!restrita) { el.innerHTML = ""; return; }
+    var p = perfil || PADRAO;
+    var itens = PRIORIDADES_PENDENTE.map(function (i) { return { rotulo: i.rotulo, feito: i.feito(p), aba: i.aba }; });
+    var feitos = itens.filter(function (i) { return i.feito; }).length;
+    el.innerHTML =
+      '<div class="pac-topo"><b class="pac-titulo">' + escapar(TEXTO_CONTA_PENDENTE.titulo) + "</b>" +
+      "<p>" + escapar(TEXTO_CONTA_PENDENTE.corpo) + "</p></div>" +
+      '<p class="pac-sub">Para os seus documentos saírem completos: <b>' + feitos + " de " + itens.length + "</b></p>" +
+      '<ul class="pac-lista">' + itens.map(function (i) {
+        return '<li class="' + (i.feito ? "feito" : "") + '"><span class="perf-marca" aria-hidden="true"></span>' +
+          (i.feito ? escapar(i.rotulo) : '<button type="button" class="pac-ir" data-pac-aba="' + i.aba + '">' + escapar(i.rotulo) + "</button>") +
+          (i.feito ? '<span class="sr-only"> (feito)</span>' : '<span class="sr-only"> (falta)</span>') + "</li>";
+      }).join("") + "</ul>" +
+      '<div class="pac-acoes"><button type="button" class="perf-botao" id="btn-verificar-acesso">Verificar acesso novamente</button>' +
+      '<span class="pac-msg" id="pac-msg" role="status"></span></div>';
+  }
 
   /* O dia de hoje no fuso de quem usa: toISOString() é UTC, e depois das 21h
      no Brasil ele já virou amanhã. */
@@ -157,6 +216,38 @@
     });
   }
 
+  /* A linha do servidor no formato do perfil (so os campos de texto). */
+  function perfilDeLinha(row) {
+    var p = {};
+    CAMPOS_SUPA.forEach(function (c) { p[c] = PADRAO[c]; });
+    p.email = PADRAO.email;
+    if (row) {
+      CAMPOS_SUPA.forEach(function (c) {
+        if (row[c] !== undefined && row[c] !== null) p[c] = row[c];
+      });
+      if (row.email_contato) p.email = row.email_contato;
+    }
+    p.modulos = Object.assign({}, PADRAO.modulos, p.modulos || {});
+    return p;
+  }
+
+  /* Comparacao no formato das colunas: null e "" sao o mesmo vazio; jsonb por conteudo. */
+  function normal(v) {
+    if (v === null || v === undefined) return "";
+    if (typeof v === "object") return JSON.stringify(Object.keys(v).sort().reduce(function (o, k) { o[k] = v[k]; return o; }, {}));
+    return String(v);
+  }
+  function igual(a, b) { return normal(a) === normal(b); }
+
+  /* Aplica a linha lida do servidor: campos de texto, base e versao. */
+  function aplicarLinha(row) {
+    var p = perfilDeLinha(row);
+    Object.keys(p).forEach(function (k) { perfil[k] = p[k]; });
+    base = localParaSupa(p);
+    versao = row ? row.updated_at || null : null;
+    existeLinha = !!row;
+  }
+
   function carregarSupa() {
     var uid = uidAtual();
     return Promise.all([
@@ -164,17 +255,15 @@
       window.supabaseClient.from("professional_assets")
         .select("id, tipo, storage_path")
     ]).then(function (res) {
+      /* leitura que falhou NAO vira perfil vazio: sem isto, "Salvar" apagava o servidor */
+      if (!res[0] || res[0].error || !res[1] || res[1].error) {
+        throw (res[0] && res[0].error) || (res[1] && res[1].error) || new Error("sem resposta do servidor");
+      }
       var row = ((res[0].data || [])[0]) || null;
       var assets = res[1].data || [];
 
       perfil = Object.assign({}, PADRAO);
-      if (row) {
-        CAMPOS_SUPA.forEach(function (c) {
-          if (row[c] !== undefined && row[c] !== null) perfil[c] = row[c];
-        });
-        if (row.email_contato) perfil.email = row.email_contato;
-      }
-      perfil.modulos = Object.assign({}, PADRAO.modulos, perfil.modulos || {});
+      aplicarLinha(row);
       perfil.id = LINHA;
 
       supaAssets = {};
@@ -187,10 +276,21 @@
         }
       });
 
+      estadoCarga = "ok";
       gravarLocal();
+      return perfil;
+    }).catch(function (e) {
+      console.error("[perfil] leitura do servidor:", e && e.message ? e.message : e);
+      estadoCarga = "erro";
+      perfil = Object.assign({}, PADRAO, { id: LINHA });
+      base = null; versao = null;
       return perfil;
     });
   }
+
+  /** O perfil esta bloqueado para gravar? (com conta e sem leitura valida do servidor) */
+  function bloqueado() { return !!(temSupa() && estadoCarga !== "ok"); }
+  var MSG_BLOQUEADO = "O perfil não foi carregado do servidor, então nada foi salvo. Use \"Tentar novamente\".";
 
   function gravarLocal() {
     var b = banco();
@@ -220,21 +320,66 @@
     });
   }
 
+  var ROTULO_CAMPO = { nome: "Nome completo", profissao: "Profissão", registro: "Registro profissional",
+    especialidade: "Especialidade", cidade: "Cidade/UF", instagram: "Instagram", telefone: "Telefone",
+    email_contato: "E-mail", fuso: "Fuso horário", cor_primaria: "Cor primária", cor_secundaria: "Cor secundária",
+    modulos: "Módulos do menu" };
+
+  /* Salva SO o que mudou desde a ultima leitura, e so se a linha ainda estiver
+     na versao lida. Se outro dispositivo salvou no meio, rele: campos que so o
+     outro mudou sao mantidos (mescla); o mesmo campo mudado nos dois e conflito. */
   function gravarSupa() {
-    var dados = localParaSupa(perfil);
-    return window.supabaseClient
-      .from("profiles")
-      .update(dados)
-      .eq("id", uidAtual())
-      .then(function (r) {
-        gravarLocal();
+    if (bloqueado() || !base) return Promise.resolve({ error: { message: MSG_BLOQUEADO }, bloqueado: true });
+    var atual = localParaSupa(perfil), mud = {};
+    Object.keys(atual).forEach(function (c) { if (!igual(atual[c], base[c])) mud[c] = atual[c]; });
+    if (!Object.keys(mud).length) return Promise.resolve({ error: null, nada: true });
+    var sb = window.supabaseClient, uid = uidAtual();
+    if (!existeLinha) {
+      /* conta sem linha em profiles (nao deveria existir: o gatilho do cadastro cria) — cria em vez de "salvar" nada */
+      return Promise.resolve(sb.from("profiles").insert(Object.assign({ id: uid }, atual)).select("*")).then(function (r) {
+        if (r.error) return r;
+        aplicarLinha((r.data || [])[0] || null); gravarLocal();
         return r;
       });
+    }
+    function tentar(m, n) {
+      var q = sb.from("profiles").update(m).eq("id", uid);
+      if (versao) q = q.eq("updated_at", versao);
+      return Promise.resolve(q.select("*")).then(function (r) {
+        if (r.error) return r;
+        if (r.data && r.data.length) { aplicarLinha(r.data[0]); gravarLocal(); return n > 0 ? { data: r.data, error: null, mesclou: true } : r; }
+        return Promise.resolve(sb.from("profiles").select("*").eq("id", uid)).then(function (rr) {
+          if (rr.error) return rr;
+          var row = (rr.data || [])[0];
+          if (!row) { existeLinha = false; return { error: { message: "Seu perfil não foi encontrado no servidor. Recarregue a página." } }; }
+          var serv = localParaSupa(perfilDeLinha(row));
+          var conflitos = Object.keys(m).filter(function (c) { return !igual(serv[c], base[c]) && !igual(serv[c], m[c]); });
+          if (conflitos.length || n >= 3) {
+            aplicarLinha(row); gravarLocal();
+            return { error: { message: "Este perfil foi alterado em outro dispositivo enquanto você editava (" +
+              conflitos.map(function (c) { return ROTULO_CAMPO[c] || c; }).join(", ") +
+              "). Para não apagar a outra alteração, nada foi salvo. A tela agora mostra o que está no servidor: confira e salve de novo." }, conflito: conflitos };
+          }
+          var resta = {};
+          Object.keys(m).forEach(function (c) { if (!igual(serv[c], m[c])) resta[c] = m[c]; });
+          /* o que o outro dispositivo mudou (e eu nao) passa a valer aqui tambem */
+          var meus = {}; Object.keys(m).forEach(function (c) { meus[c] = perfil[c === "email_contato" ? "email" : c]; });
+          aplicarLinha(row);
+          Object.keys(meus).forEach(function (k) { perfil[k === "email_contato" ? "email" : k] = meus[k]; });
+          if (!Object.keys(resta).length) { gravarLocal(); return { error: null, mesclou: true }; }
+          return tentar(resta, n + 1);
+        });
+      });
+    }
+    return tentar(mud, 0);
   }
 
   function salvar(mensagem) {
     return Promise.resolve(gravar()).then(function (r) {
+      if (r && (r.bloqueado || r.conflito)) { if (r.conflito) { desenhar(); trocarAba(aba); } aviso(r.error.message, true); return false; }
       if (r && r.error) { console.error("[perfil] salvar:", r.error); aviso(window.mensagemHumana(r.error), true); return false; }
+      /* outro dispositivo tinha salvo outros campos: a tela passa a mostrar o perfil inteiro do servidor */
+      if (r && r.mesclou) { desenhar(); trocarAba(aba); }
       espalhar();
       if (mensagem && window.avisar) window.avisar(mensagem);
       return true;
@@ -244,6 +389,7 @@
   /* Quem mais precisa saber que o perfil mudou: o rodape da sidebar, o menu
      (modulos ligados e desligados) e o relatorio, que e o consumidor final. */
   function espalhar() {
+    desenharAvisoConta();
     desenharRodape();
     aplicarModulos();
     if (typeof window.redesenharRelatorio === "function") window.redesenharRelatorio();
@@ -253,7 +399,9 @@
     var alvo = document.getElementById("perfil-aviso");
     if (!alvo) { if (window.avisar) window.avisar(texto); return; }
     alvo.textContent = texto;
-    alvo.className = ruim ? "perfil-aviso ruim" : "perfil-aviso";
+    alvo.className = ruim ? "perf-aviso ruim" : "perf-aviso";   // (antes "perfil-aviso": classe sem estilo, o erro nao ficava em destaque)
+    /* o aviso mora na aba Perfil: estando em outra aba (Marca), tambem vira toast */
+    if (texto && window.avisar && alvo.closest(".hidden")) window.avisar(texto);
   }
 
   /* ---------- as imagens -------------------------------------------------- */
@@ -298,6 +446,7 @@
   /** Troca a imagem de um campo, apagando a anterior: guardar as duas encheria
       o navegador de logos velhos que ninguem mais vai ver. */
   function guardarImagem(campo, arquivo, tipo) {
+    if (bloqueado()) { aviso(MSG_BLOQUEADO, true); desenhar(); return Promise.resolve(false); }
     if (temSupa()) return guardarImagemSupa(campo, arquivo, tipo);
     if (!window.ArquivoStore) return Promise.resolve(false);
     var antiga = perfil[campo];
@@ -325,17 +474,15 @@
     var antiga = perfil[campo];
     var antigaPath = antiga ? supaAssets[antiga] : null;
 
-    var limparAntiga = (antigaPath)
-      ? window.supabaseClient.storage
-          .from("professional-assets").remove([antigaPath]).catch(function () {})
-      : Promise.resolve();
+    var bucket = function () { return window.supabaseClient.storage.from("professional-assets"); };
+    var subiu = false;
 
-    return limparAntiga.then(function () {
-      return window.supabaseClient.storage
-        .from("professional-assets")
-        .upload(path, arquivo, { contentType: arquivo.type });
-    }).then(function (r) {
-      if (r.error) throw r.error;
+    /* 09/10: a ordem importa. Primeiro sobe a nova e registra; so depois apaga
+       a antiga. Se o upload ou o registro falhar, a imagem antiga continua
+       valendo (antes ela era apagada primeiro e ficava quebrada). */
+    return Promise.resolve(bucket().upload(path, arquivo, { contentType: arquivo.type })).then(function (r) {
+      if (!r || r.error) throw (r && r.error) || new Error("o envio do arquivo falhou");
+      subiu = true;
       return window.supabaseClient
         .from("professional_assets")
         .upsert({
@@ -346,7 +493,10 @@
         }, { onConflict: "nutritionist_id,tipo" })
         .select("id").single();
     }).then(function (r) {
-      if (r.error) throw r.error;
+      if (!r || r.error) throw (r && r.error) || new Error("o registro da imagem falhou");
+      if (antigaPath && antigaPath !== path) {
+        Promise.resolve(bucket().remove([antigaPath])).catch(function (e) { console.error("[perfil] apagar imagem antiga:", e && e.message ? e.message : e); });
+      }
       if (antiga && urls[antiga]) { URL.revokeObjectURL(urls[antiga]); delete urls[antiga]; }
       if (antiga) delete supaAssets[antiga];
 
@@ -361,7 +511,10 @@
     }).then(function () { desenhar(); return true; })
     .catch(function (e) {
       console.error("[perfil] imagem:", e);
-      aviso("Não foi possível guardar a imagem. " + window.mensagemHumana(e), true);
+      /* o arquivo novo subiu mas o registro falhou: tira o orfao; a antiga segue valendo */
+      if (subiu) Promise.resolve(bucket().remove([path])).catch(function () {});
+      desenhar(); trocarAba(aba);
+      aviso("Não foi possível guardar a imagem: " + window.mensagemHumana(e) + " A imagem anterior continua no perfil.", true);
       return false;
     });
   }
@@ -376,6 +529,7 @@
   function tirarImagem(campo) {
     var id = perfil[campo];
     if (!id) return Promise.resolve(false);
+    if (bloqueado()) { aviso(MSG_BLOQUEADO, true); return Promise.resolve(false); }
     var oque = NOME_IMAGEM[campo] || "a imagem";
     var perguntar = window.abrirModalConfirmar
       ? window.abrirModalConfirmar({
@@ -1185,8 +1339,8 @@
       if (aviso) { aviso.textContent = "Informe a nova senha."; aviso.className = "perf-aviso ruim"; }
       nova.focus(); return;
     }
-    if (novaSenha.length < 6) {
-      if (aviso) { aviso.textContent = "A senha deve ter pelo menos 6 caracteres."; aviso.className = "perf-aviso ruim"; }
+    if (novaSenha.length < 8) {
+      if (aviso) { aviso.textContent = "A senha precisa ter pelo menos 8 caracteres."; aviso.className = "perf-aviso ruim"; }
       nova.focus(); return;
     }
     if (novaSenha !== confirmarSenha) {
@@ -1224,8 +1378,32 @@
 
   /* ---------- desenhar e ligar -------------------------------------------- */
 
+  /* A leitura do servidor falhou: no lugar dos formularios, o erro e o
+     "Tentar novamente". A aba Conta (sair, senha) continua funcionando. */
+  function painelErroCarga() {
+    var html = cartao("Não foi possível carregar o seu perfil",
+      "",
+      '<p class="perf-ajuda">O servidor não respondeu. Para não apagar nada, o perfil não pode ser editado nem salvo ' +
+      "até carregar de verdade. Confira sua internet e tente de novo.</p>" +
+      '<div class="perf-foto-acoes"><button type="button" class="btn-verde" data-perfil-recarregar>Tentar novamente</button></div>' +
+      '<p class="perf-aviso" id="perfil-aviso"></p>');
+    ["painel-perfil", "painel-marca", "painel-prefs"].forEach(function (id, i) {
+      var el = document.getElementById(id);
+      if (el) el.innerHTML = i === 0 ? '<div class="perf-erro-carga">' + html + "</div>" : '<div class="perf-erro-carga">' + html.replace(' id="perfil-aviso"', "") + "</div>";
+    });
+    var c = document.getElementById("perfil-completude");
+    if (c) c.innerHTML = "";
+  }
+
   function desenhar() {
     if (!document.getElementById("painel-perfil")) return;
+    desenharAvisoConta();
+    if (bloqueado()) {
+      painelErroCarga();
+      painelConta();
+      ligar();
+      return;
+    }
     desenharCompletude();
     painelPerfil();
     painelMarca();
@@ -1237,6 +1415,7 @@
   }
 
   function trocarAba(qual) {
+    if (qual === "prefs" && contaRestrita()) qual = "perfil";
     aba = qual;
     document.querySelectorAll("[data-aba-perfil]").forEach(function (b) {
       var meu = b.dataset.abaPerfil === qual;
@@ -1261,8 +1440,33 @@
     var secao = document.getElementById("secao-perfil");
 
     secao.addEventListener("click", function (ev) {
+      var irAba = ev.target.closest("[data-pac-aba]");
+      if (irAba) { trocarAba(irAba.dataset.pacAba); return; }
+      if (ev.target.closest("#btn-verificar-acesso")) {
+        var bv = ev.target.closest("#btn-verificar-acesso"), msg = document.getElementById("pac-msg");
+        bv.disabled = true;
+        if (msg) msg.textContent = "Verificando…";
+        Promise.resolve(window.ContaAcesso && window.ContaAcesso.verificar ? window.ContaAcesso.verificar() : null).then(function (st) {
+          bv.disabled = false;
+          if (!msg) return;
+          msg.textContent = st === "ativo" ? "Acesso liberado! Abrindo a plataforma…"
+            : st === "pendente" ? "Ainda aguardando liberação. Você pode continuar completando o perfil."
+            : st === "recusado" ? "O acesso não foi liberado." : "Não foi possível verificar agora. Tente de novo.";
+        });
+        return;
+      }
+      var recarregar = ev.target.closest("[data-perfil-recarregar]");
+      if (recarregar) {
+        recarregar.disabled = true;
+        recarregar.textContent = "Carregando…";
+        carregar().then(function () {
+          desenhar(); trocarAba(aba);
+          if (bloqueado()) aviso("Ainda não foi possível carregar. Tente de novo em instantes.", true);
+        });
+        return;
+      }
       var enviar = ev.target.closest("[data-enviar]");
-      if (enviar) { pedirArquivo(enviar.dataset.enviar); return; }
+      if (enviar) { if (bloqueado()) { aviso(MSG_BLOQUEADO, true); return; } pedirArquivo(enviar.dataset.enviar); return; }
 
       var tirar = ev.target.closest("[data-tirar]");
       if (tirar) { tirarImagem(tirar.dataset.tirar); return; }
@@ -1432,6 +1636,11 @@
         });
       }
     });
+  });
+
+  /* login.js avisa quando o status da conta e conhecido ou muda (pendente/ativo) */
+  document.addEventListener("holo:conta-status", function () {
+    if (perfil) { desenhar(); trocarAba(aba); } else desenharAvisoConta();
   });
 
   window.redesenharPerfil = function () {

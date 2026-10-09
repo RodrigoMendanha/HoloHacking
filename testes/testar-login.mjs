@@ -77,8 +77,8 @@ ok(inicial.tipoSenha === 'password', 'a senha comeca com type=password: ' + inic
 ok(inicial.labelEmail && inicial.labelSenha, 'os dois campos tem <label for> de verdade');
 ok(inicial.autoEmail === 'username' && inicial.autoSenha === 'current-password',
    'autocomplete correto: ' + inicial.autoEmail + ' / ' + inicial.autoSenha);
-ok(inicial.temEntrar && inicial.temEsqueci && inicial.temManter,
-   'botao Entrar, link Esqueci minha senha e caixa Manter conectado presentes');
+ok(inicial.temEntrar && inicial.temEsqueci && !inicial.temManter,
+   'botao Entrar e link Esqueci minha senha presentes; sem a caixa "Manter conectado" (09/10: ela nao tinha efeito, a sessao sempre fica)');
 ok(inicial.live === 'polite', 'a area de mensagem e uma regiao aria-live');
 ok(inicial.appEscondidoDeLeitor === 'true', 'o app atras fica aria-hidden enquanto a entrada esta aberta');
 ok(inicial.focoInicial === 'login-email', 'o foco comeca no e-mail: ' + inicial.focoInicial);

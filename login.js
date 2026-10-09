@@ -57,7 +57,7 @@
     if (/email not confirmed/i.test(msg)) return "Esta conta ainda não confirmou o e-mail.";
     if (/too many requests|rate limit/i.test(msg)) return "Muitas tentativas seguidas. Aguarde um instante e tente de novo.";
     if (/new password should be different/i.test(msg)) return "A nova senha deve ser diferente da anterior.";
-    if (/password.*at least|password.*too short|at least \d|weak.*password/i.test(msg)) return "A senha deve ter pelo menos 8 caracteres.";
+    if (/password.*at least|password.*too short|at least \d|weak.*password/i.test(msg)) return "A senha precisa ter pelo menos 8 caracteres.";
     if (/network|fetch|failed to fetch|load failed/i.test(msg)) return "Sem conexão com o servidor. Verifique sua internet.";
     return "Não foi possível entrar. Tente novamente.";
   }
@@ -223,10 +223,11 @@
           var txt = /already registered|already exists|user_already_exists/i.test(m + " " + c)
               ? "Já existe uma conta com este e-mail. Entre com sua senha ou use \"Esqueci minha senha\"."
             : /signups? not allowed|signup.*disabled/i.test(m) ? "O cadastro está fechado no momento. Fale com a equipe HoloHacking."
-            : /password/i.test(m) ? "Senha fraca: use pelo menos 8 caracteres, misturando letras e números."
+            : /password/i.test(m + " " + c) ? "A senha não foi aceita: ela precisa ter pelo menos 8 caracteres."
             : /rate limit|too many/i.test(m) ? "Muitos cadastros em pouco tempo. Aguarde alguns minutos e tente de novo."
             : /invalid.*email|email.*invalid/i.test(m) ? "Este e-mail não foi aceito. Confira se está correto."
-            : mensagemDeErro(r.error);
+            : /network|fetch|failed to fetch|load failed/i.test(m) ? "Sem conexão com o servidor. Verifique sua internet e tente de novo."
+            : "Não foi possível concluir o cadastro agora. Tente de novo em instantes ou fale com a equipe HoloHacking.";
           return { ok: false, motivo: c || "ERRO_CADASTRO", mensagem: txt };
         }
         /* com "Confirm email" ligado no painel, o Supabase nao devolve sessao
@@ -383,7 +384,7 @@
       primeiro.focus();
       return null;
     }
-    return { email: email, senha: senha, manterConectado: !!form.manter.checked };
+    return { email: email, senha: senha };
   }
 
   function carregando(ligado) {
@@ -446,7 +447,7 @@
     if (status === "recusado") {
       statusTitulo.textContent = "Acesso não liberado";
       statusTexto.textContent = "O cadastro" + (nome ? " de " + nome : "") + " não foi liberado para usar o HoloHacking. Se você acha que é um engano, fale com a equipe HoloHacking.";
-      btnStatusVerificar.hidden = true;
+      btnStatusVerificar.hidden = false;   // a equipe pode liberar depois ("Liberar" em Contas)
     } else if (status === null) {
       statusTitulo.textContent = "Não foi possível verificar seu acesso";
       statusTexto.textContent = "O servidor não respondeu. Confira sua internet e tente de novo.";
@@ -505,20 +506,59 @@
 
   /* ---------- abrir/fechar o app --------------------------------------- */
 
-  /* Abrir o app passa pelo status da conta (08/10): pendente ou recusada fica
-     na tela de status. O app ja aberto nao e re-checado a cada renovacao de
-     token (um soluco de rede nao pode derrubar quem esta atendendo). */
+  /* Abrir o app passa pelo status da conta (08/10):
+       ativo    -> app completo;
+       pendente -> (09/10) app LIMITADO ao Perfil: a nutricionista completa os
+                   dados profissionais e as imagens enquanto espera a liberacao;
+       recusado -> tela "Acesso nao liberado" (sem editar nada);
+       sem resposta -> "nao foi possivel verificar" com Verificar de novo.
+     O app ja aberto nao e re-checado a cada renovacao de token (um soluco de
+     rede nao pode derrubar quem esta atendendo). A trava de verdade e do
+     servidor (migration 20261013100000): conta nao ativa nao grava nada clinico. */
   var checando = null;
+  var statusAtual = null;   // "ativo" | "pendente" | "recusado" | null
+  function avisarStatus() {
+    try { document.dispatchEvent(new CustomEvent("holo:conta-status", { detail: { status: statusAtual } })); } catch (e) { /* nada */ }
+  }
+  function definirRestrito(ligado) {
+    document.body.classList.toggle("conta-pendente", !!ligado);
+  }
   function liberarApp() {
     if (camada && camada.hidden) return;
     if (modoRecuperacao) return;
-    if (!sessaoAtual) { abrirApp(); return; }
+    /* sem sessao, so o atalho de desenvolvimento (localhost) abre o app */
+    if (!sessaoAtual) { if (ambienteLocal()) abrirApp(); return; }
     if (checando) return;
     checando = window.AuthService.statusConta().then(function (st) {
       checando = null;
       if (!sessaoAtual || modoRecuperacao) return;   // chegou pelo link de "esqueci minha senha": primeiro a senha nova
-      if (st === "ativo") abrirApp();
-      else mostrarStatusConta(st);
+      statusAtual = st;
+      if (st === "ativo") { definirRestrito(false); abrirApp(); avisarStatus(); }
+      else if (st === "pendente") abrirAppPendente();
+      else { definirRestrito(false); mostrarStatusConta(st); avisarStatus(); }
+    });
+  }
+
+  /* Conta pendente: o app abre so com o Perfil (o CSS de body.conta-pendente
+     esconde o resto e irParaSecao redireciona qualquer outra secao). */
+  function abrirAppPendente() {
+    definirRestrito(true);
+    abrirApp();
+    if (window.irParaSecao) window.irParaSecao("perfil");
+    avisarStatus();
+  }
+
+  /* "Verificar acesso novamente" (aviso do Perfil). Se a decisao saiu (liberada
+     ou recusada), recarrega a pagina: liberada abre com todos os modulos
+     completos; recusada cai na tela "Acesso nao liberado". */
+  function verificarAcesso() {
+    return window.AuthService.statusConta().then(function (st) {
+      var antes = statusAtual;
+      if (st) statusAtual = st;
+      if ((st === "ativo" || st === "recusado") && st !== antes) {
+        try { window.location.reload(); } catch (e) { /* sem reload (teste): a proxima entrada decide */ }
+      }
+      return st;
     });
   }
 
@@ -560,6 +600,9 @@
       .then(function (r) {
         if (r.ok) {
           mensagem("", null);
+          /* a resposta do login pode chegar antes do evento SIGNED_IN: sem a
+             sessao aqui, liberarApp abria o app sem checar o status da conta */
+          if (!sessaoAtual && r.sessao) sessaoAtual = r.sessao;
           liberarApp();
         } else {
           mensagem(r.mensagem, "aviso");
@@ -728,9 +771,9 @@
         if (!r.ok) { mensagemEm(cadMensagem, r.mensagem, "aviso"); return; }
         cadSenha.value = ""; cadSenha2.value = "";
         if (!r.sessao) {
-          mensagemEm(cadMensagem, "Cadastro recebido! Confirme seu e-mail pelo link que enviamos. Depois disso, a equipe HoloHacking libera o seu acesso.", "ok");
+          mensagemEm(cadMensagem, "Cadastro recebido! Confirme seu e-mail pelo link que enviamos e depois entre para completar o seu perfil. A equipe HoloHacking libera o acesso completo em seguida.", "ok");
         }
-        /* com sessao, o SIGNED_IN abre a tela "em analise" sozinho */
+        /* com sessao, o SIGNED_IN abre o app limitado ao Perfil (conta pendente) */
         try { if (window.history && /\/cadastro\/?$/.test(window.location.pathname)) window.history.replaceState(null, "", "/"); } catch (x) { /* nada */ }
       })
       .catch(function () { mensagemEm(cadMensagem, "Não foi possível falar com o servidor. Tente de novo.", "aviso"); })
@@ -800,6 +843,9 @@
       }
 
       if (evento === "SIGNED_OUT") {
+        statusAtual = null;
+        definirRestrito(false);
+        avisarStatus();
         limparEstadoLocal(uidSaindo);
         definirEstadoAuth("nao_autenticado");
         bloquearApp();
@@ -900,8 +946,10 @@
       btnStatusVerificar.addEventListener("click", function () {
         mensagemEm(statusMensagem, "Verificando…", null);
         window.AuthService.statusConta().then(function (st) {
-          if (st === "ativo") abrirApp();
-          else { mostrarStatusConta(st); mensagemEm(statusMensagem, st === "pendente" ? "Ainda aguardando liberação." : "", null); }
+          statusAtual = st;
+          if (st === "ativo") { definirRestrito(false); abrirApp(); avisarStatus(); }
+          else if (st === "pendente") abrirAppPendente();
+          else { mostrarStatusConta(st); mensagemEm(statusMensagem, "", null); }
         });
       });
       document.getElementById("link-status-sair").addEventListener("click", function (ev) { ev.preventDefault(); window.HoloAuth.sair(); });
@@ -973,6 +1021,14 @@
      nao para esconder atalho: o botao da saida esta visivel na tela, com o
      nome do que ele faz, e so existe em ambiente local. */
   window.LoginView = { abrirApp: liberarApp };
+
+  /* Quem mais precisa saber o status da conta (app.js para a navegacao, perfil.js
+     para o aviso). restrito() = conta pendente, app limitado ao Perfil. */
+  window.ContaAcesso = {
+    status: function () { return statusAtual; },
+    restrito: function () { return statusAtual === "pendente"; },
+    verificar: verificarAcesso
+  };
 
   if (ambienteLocal()) {
     window._testeIsolamento = {

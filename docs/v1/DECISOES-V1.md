@@ -914,8 +914,21 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     inventado). Motor no servidor + mesmo algoritmo em JS; snapshot por (aplicação, catálogo), imutável; aplicação
     anterior ao catálogo só por ação explícita. Exames, Leitura Integrada, REC-001…023/SEL-001, Conduta, HOLOS AI,
     Resultado/PDF/WhatsApp da paciente e HOLOS-V1@2 ficam **fora**. Detalhes:
-    `docs/v1/IMPLEMENTACAO-PROXIMOS-PASSOS-HOLOS-V1.md`. PENDENTE: aplicar no banco real
-    (`supabase/PROXIMOS-PASSOS-PARTE1..8.sql`) e deploy.
+    `docs/v1/IMPLEMENTACAO-PROXIMOS-PASSOS-HOLOS-V1.md`. **Aplicado no banco real e no ar em 09/10** (commit 732081c).
+
+177. **Conta pendente = somente Perfil + correções do Perfil** (09/10, aprovado pela usuária depois da auditoria do
+    cadastro). Sem status novo: reaproveita `profiles.status` e a liberação em Configurações → Contas. **Pendente** entra
+    no app só com Perfil e Sair (aviso "Seu cadastro profissional está sendo preparado…", checklist Foto/CRN/Logo/
+    Assinatura/Carimbo/Contato, "Verificar acesso novamente"); qualquer outra seção cai no Perfil. **Recusada** vê só
+    "Acesso não liberado" e não edita nada. **Ativa**: tudo como antes. Trava REAL no servidor (migration
+    20261013100000): gatilho de comando `exigir_conta_ativa` em todas as 32 tabelas de dado da nutricionista (dispara
+    também dentro das RPCs), políticas RESTRICTIVE para recusada em `profiles`/`professional_assets` e no Storage
+    (documento de paciente exige conta ativa). Perfil: leitura que falha não vira formulário vazio (erro + "Tentar
+    novamente", sem salvar); salva só os campos alterados com controle por `updated_at` (mescla campos diferentes,
+    conflito explícito no mesmo campo); troca de imagem sobe a nova antes de apagar a antiga; senha mínima 8 em todo
+    lugar; "Manter conectado" removido (não tinha efeito); chave "Documentos" removida de Preferências. Detalhes:
+    `docs/v1/CONTA-PENDENTE-SOMENTE-PERFIL.md`. PENDENTE: aplicar `supabase/CONTA-PENDENTE-PARTE1..2.sql`, deploy e o
+    checklist do Supabase (SMTP, URLs, senha mínima 8).
 
 ## Decisões pendentes (não decididas aqui)
 

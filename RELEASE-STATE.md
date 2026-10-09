@@ -279,6 +279,8 @@ senha, caminho de storage, URL nem binário.
 | Item | Situação | Quem |
 |---|---|---|
 | Cadastro com aprovação | **Pronto e no ar** (c654dcb; SQL aplicado; testado de ponta a ponta) | — |
+| **Conta pendente = somente Perfil** (09/10) | **Pronto localmente, NÃO aplicado e NÃO no ar.** Pendente entra só no Perfil; recusada não edita nada; trava no servidor para tudo que é clínico. Aplicar `supabase/CONTA-PENDENTE-PARTE1.sql` e `PARTE2.sql` (nessa ordem) e fazer o deploy do commit. Ver `docs/v1/CONTA-PENDENTE-SOMENTE-PERFIL.md` | responsável |
+| Painel do Supabase antes de abrir o cadastro | SMTP próprio; Site URL `https://holohacking.com.br`; redirect `https://holohacking.com.br/*`; senha mínima 8; teste real de "Esqueci minha senha" com e-mail fora da equipe | responsável |
 | **Recuperação de senha — e-mail** | **PENDENTE.** O código foi corrigido (05bc411, aguardando deploy), mas o e-mail padrão do Supabase só entrega para a equipe do projeto. Falta SMTP próprio + texto em português: `docs/v1/EMAIL-RECUPERAR-SENHA.md`. Até lá, quem esquecer a senha é atendida pela equipe (painel do Supabase → Users → "Send password recovery" não resolve sem SMTP; redefinir senha manualmente). | responsável |
 | Termos de uso e privacidade (LGPD) | PENDENTE: texto | responsável/jurídico |
 | Canal de suporte do "Reportar um erro" | PENDENTE: e-mail ou WhatsApp | responsável |
@@ -322,7 +324,8 @@ chat: para falar de um paciente de teste, diga "paciente de teste 1".
 **Atualização 08/10:** o app agora tem **cadastro pelo próprio app**
 (holohacking.com.br/cadastro, ou "Criar conta" no login). A conta nasce
 **aguardando liberação** e só entra depois que uma administradora libera em
-**Configurações → Contas** (ver `docs/v1/CADASTRO-NUTRICIONISTAS.md`). O caminho
+**Configurações → Contas** (ver `docs/v1/CADASTRO-NUTRICIONISTAS.md`). **Atualização 09/10 (depois do deploy da conta pendente):** enquanto aguarda, ela já
+entra no app, mas só no **Perfil** (dados profissionais, foto, logo, assinatura, carimbo); o resto abre quando for liberada. O caminho
 manual abaixo continua valendo, mas a conta criada pelo painel também nasce
 pendente e precisa ser liberada em Contas.
 
