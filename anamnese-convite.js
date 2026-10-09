@@ -46,6 +46,11 @@
     return M[h] || (window.mensagemHumana ? window.mensagemHumana(err) : (err && err.message) || "Não foi possível concluir.");
   }
 
+  function indisponivel(e) {
+    var t = String((e && (e.message || "")) + " " + (e && e.code || ""));
+    return /PGRST205|PGRST202|42P01|42883|could not find the (table|function)|schema cache|does not exist/i.test(t);
+  }
+
   function carregar(id) {
     if (!temSupa() || !id) { cache = { pid: id, linhas: [], carregado: true, erro: null }; return Promise.resolve(); }
     return Promise.resolve(sb().from("anamnesis_invites").select("*").eq("patient_id", id).order("created_at", { ascending: false }))
@@ -126,6 +131,8 @@
       carregar(id).then(function () { if (pid() === id) desenhar(); });
       return;
     }
+    /* banco ainda sem a pre-anamnese (SQL ANAMNESE-PRE-CONSULTA nao aplicado): o cartao nao aparece */
+    if (cache.erro && indisponivel(cache.erro)) { alvo.innerHTML = ""; return; }
     var c = atual(), st = estadoDe(c), link = c && links[c.id];
     var arq = window.pacienteArquivado && window.pacienteArquivado(id);
     var dl = c ? '<dl class="pc-datas">' +

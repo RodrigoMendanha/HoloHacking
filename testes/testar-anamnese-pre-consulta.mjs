@@ -202,6 +202,19 @@ ok(/venceu/.test(await R.evaluate(() => document.body.innerText)) && /Expirada/.
 const sem = await pagina('http://127.0.0.1:5500/anamnese.html', 390, 844); await espera(400);
 ok(/Link não encontrado/.test(await sem.evaluate(() => document.body.innerText)), 'sem token: "Link não encontrado"');
 
+/* banco ainda sem o SQL da pre-anamnese (deploy antes de aplicar ANAMNESE-PRE-CONSULTA-PARTE1..5): o cartao some, sem erro */
+const sql = await N.evaluate(async (pid) => {
+  const orig = window.supabaseClient.from.bind(window.supabaseClient);
+  window.supabaseClient.from = (t) => t !== 'anamnesis_invites' ? orig(t) : { select: () => ({ eq: () => ({ order: () => Promise.resolve({ data: null, error: { code: 'PGRST205', message: "Could not find the table 'public.anamnesis_invites' in the schema cache" } }) }) }) };
+  window.PreConsulta.esquecer && window.PreConsulta.esquecer();
+  await window.PreConsulta.carregar(pid); window.PreConsulta.desenhar();
+  await new Promise(r => setTimeout(r, 200));
+  const el = document.getElementById('an-preconsulta');
+  window.supabaseClient.from = orig;
+  return { vazio: el.innerHTML.trim() === '', registro: !!document.getElementById('anamnese-registro') };
+}, PB);
+ok(sql.vazio && sql.registro, 'banco sem o SQL da pré-anamnese: o cartão não aparece (sem mensagem de erro) e a anamnese do atendimento continua');
+
 /* ===== 9 ===== */
 ok(digitais() === antes, 'HOLOSCAN, ferramentas, Resultado HOLOS, Próximos Passos, metodologia e condutas intactos');
 ok(JSON.stringify(srv.linhas('anamneses').find(a => a.id === legId)) === legAntes, 'anamnese antiga (formato anterior) intacta');
