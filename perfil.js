@@ -162,6 +162,18 @@
       }).join("") + "</ul>" +
       '<div class="pac-acoes"><button type="button" class="perf-botao" id="btn-verificar-acesso">Verificar acesso novamente</button>' +
       '<span class="pac-msg" id="pac-msg" role="status"></span></div>';
+    /* primeira entrada da conta pendente: janela "o proximo passo e completar o perfil" (boas-vindas.js).
+       So com o perfil de verdade carregado, para a lista do que falta estar certa. */
+    if (perfil && window.BoasVindas && (!temSupa() || existeLinha)) {
+      var u = window.HoloAuth && window.HoloAuth.usuarioAtual();
+      window.BoasVindas.perfilPendente(uidAtual(), perfil.nome || (u && u.user_metadata && u.user_metadata.nome),
+        itens.filter(function (i) { return !i.feito; }).map(function (i) { return i.rotulo; }),
+        function (acao) {
+          if (acao !== "completar") return;
+          var ir = document.querySelector("#perfil-aviso-conta .pac-ir");
+          if (ir) ir.click();
+        });
+    }
   }
 
   /* O dia de hoje no fuso de quem usa: toISOString() é UTC, e depois das 21h

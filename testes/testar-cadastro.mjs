@@ -27,6 +27,8 @@ async function pagina(url) {
   await P.setViewport({ width: 1280, height: 900 });
   P.on('pageerror', e => errosJS.push(e.message));
   await ligarPagina(P, srv);
+  /* as janelas de boas-vindas sao testadas em testar-boas-vindas.mjs; aqui a pessoa as fecha */
+  await P.evaluateOnNewDocument(() => { setInterval(() => { if (window.BoasVindas && window.BoasVindas.aberta()) window.BoasVindas.fechar(); }, 80); });
   await P.goto(url, { waitUntil: 'networkidle2' });
   return P;
 }

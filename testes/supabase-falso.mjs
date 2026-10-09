@@ -216,6 +216,7 @@ export function criarServidor() {
     if (!msg.password || msg.password.length < 6) return erro('Password should be at least 6 characters.', 'weak_password');
     const id = s.criarConta(msg.email, msg.password);
     const meta = msg.data || {};
+    s.contas[msg.email].meta = Object.assign({}, meta);
     s.tabelas.profiles.push({ id, nome: (meta.nome || '').trim() || msg.email, telefone: String(meta.telefone || '').replace(/\D/g, '') || null,
       email_contato: msg.email, status: 'pendente', aprovado_em: null, aprovado_por: null, created_at: agora(), updated_at: agora() });
     return { data: { id }, error: null };
@@ -1694,9 +1695,15 @@ export function criarServidor() {
     if (msg.op === 'login') {
       const c = s.contas[msg.email];
       if (!c || c.senha !== msg.password) return erro('Invalid login credentials', 'invalid_credentials');
-      return { data: { id: c.id }, error: null };
+      return { data: { id: c.id, meta: Object.assign({}, c.meta || {}) }, error: null };
     }
     if (msg.op === 'signup') return cadastrar(msg);
+    if (msg.op === 'metadados') {   // auth.updateUser({ data }): mescla em user_metadata (como o Supabase)
+      const email = Object.keys(s.contas).find(e => s.contas[e].id === msg.uid);
+      if (!email) return erro('not authenticated', '42501');
+      s.contas[email].meta = Object.assign({}, s.contas[email].meta || {}, msg.data || {});
+      return { data: { meta: Object.assign({}, s.contas[email].meta) }, error: null };
+    }
     if (msg.op === 'recuperar') {
       if (s.limiteRecuperacao) return erro('email rate limit exceeded', 'over_email_send_rate_limit');
       s.pedidosRecuperacao = (s.pedidosRecuperacao || 0) + 1;
@@ -1795,7 +1802,7 @@ const BIBLIOTECA = `(function () {
         signInWithPassword: function (c) {
           return chamar({ op: "login", email: c.email, password: c.password }).then(function (r) {
             if (r.error) return { data: { session: null, user: null }, error: { name: "AuthApiError", message: r.error.message } };
-            var s = { access_token: "falso-" + r.data.id, user: { id: r.data.id, email: c.email } };
+            var s = { access_token: "falso-" + r.data.id, user: { id: r.data.id, email: c.email, user_metadata: r.data.meta || {} } };
             localStorage.setItem(CHAVE, JSON.stringify(s));
             emitir("SIGNED_IN", s);
             return { data: { session: s, user: s.user }, error: null };
@@ -1824,6 +1831,14 @@ const BIBLIOTECA = `(function () {
         },
         updateUser: function (u) {
           var s = sessao();
+          if (u && u.data && !u.password) {
+            return chamar({ op: "metadados", uid: s ? s.user.id : null, data: u.data }).then(function (r) {
+              if (r.error) return { data: null, error: { name: "AuthApiError", message: r.error.message } };
+              var atual = sessao();
+              if (atual) { atual.user.user_metadata = r.data.meta; localStorage.setItem(CHAVE, JSON.stringify(atual)); }
+              return { data: { user: atual && atual.user }, error: null };
+            });
+          }
           if (!u || !u.password) return Promise.resolve({ data: {}, error: null });
           return chamar({ op: "trocar_senha", uid: s ? s.user.id : null, password: u.password }).then(function (r) {
             return r.error ? { data: null, error: { name: "AuthApiError", message: r.error.message } } : { data: { user: s && s.user }, error: null };

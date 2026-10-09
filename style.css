@@ -4884,3 +4884,65 @@ body.conta-pendente #secao-perfil{display:block}
 .pc-link code{background:var(--input-fundo,rgba(0,0,0,.04));padding:2px 6px;border-radius:6px}
 .pc-acoes{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
 .pc-resposta{margin-top:16px;padding-top:14px;border-top:1px solid var(--borda-suave)}
+
+/* ===== Boas-vindas (boas-vindas.js, 09/10): cadastro, primeira entrada pendente, conta liberada ===== */
+.bv-janela{position:fixed;inset:0;margin:auto;height:fit-content;border:0;padding:0;background:transparent;max-width:min(580px,calc(100vw - 32px));width:100%;color:var(--texto);overflow:visible}
+.bv-janela::backdrop{background:radial-gradient(circle at 50% 30%,rgba(20,80,59,.55),rgba(6,35,26,.82));backdrop-filter:blur(4px)}
+.bv-corpo{position:relative;overflow:auto;max-height:calc(100vh - 32px);text-align:center;border-radius:26px;padding:38px clamp(20px,5.5vw,46px) 30px;
+  background:radial-gradient(120% 55% at 50% 0%,rgba(201,163,90,.20),transparent 62%),var(--sup-card);
+  border:1px solid rgba(201,163,90,.38);box-shadow:0 40px 90px rgba(3,20,14,.45),inset 0 1px 0 rgba(255,255,255,.35);animation:bv-entrar .45s cubic-bezier(.2,.8,.2,1) both}
+.bv-corpo::before{content:"";position:absolute;inset:10px;border-radius:19px;border:1px solid rgba(201,163,90,.16);pointer-events:none}
+@keyframes bv-entrar{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+.bv-x{position:absolute;top:16px;right:18px;z-index:1;width:38px;height:38px;border:0;border-radius:50%;background:transparent;color:var(--texto-suave);font-size:1.55rem;line-height:1;cursor:pointer;transition:background .2s,color .2s}
+.bv-x:hover,.bv-x:focus-visible{background:rgba(201,163,90,.16);color:var(--titulo);outline:none}
+.bv-logo{display:block;margin:0 auto 12px;width:92px;height:92px;padding:10px;object-fit:contain;border-radius:50%;
+  background:radial-gradient(circle,rgba(201,163,90,.22) 0%,rgba(201,163,90,.08) 55%,transparent 72%);animation:bv-logo .9s ease .15s both}
+@keyframes bv-logo{from{opacity:0;transform:scale(.85) rotate(-6deg)}to{opacity:1;transform:none}}
+.bv-sobre{display:flex;align-items:center;justify-content:center;gap:12px;margin:0;font-size:.68rem;letter-spacing:.24em;text-transform:uppercase;color:var(--dourado);font-weight:600}
+.bv-sobre::before,.bv-sobre::after{content:"";flex:0 0 34px;height:1px;background:linear-gradient(90deg,transparent,var(--dourado))}
+.bv-sobre::after{background:linear-gradient(90deg,var(--dourado),transparent)}
+.bv-titulo{text-wrap:balance;font-family:var(--fonte-display);font-weight:500;font-size:clamp(1.75rem,5vw,2.4rem);line-height:1.12;letter-spacing:-.005em;color:var(--titulo);margin:12px 0 14px}
+.bv-titulo span{font-style:italic;background:linear-gradient(100deg,#b8893a,#e2c98a 50%,#b8893a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.bv-texto{text-wrap:pretty;margin:0 auto 22px;max-width:31rem;font-size:.96rem;line-height:1.65;color:var(--texto-suave)}
+.bv-texto b{color:var(--titulo)}
+.bv-rotulo{margin:4px 0 14px;font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;color:var(--texto-suave);font-weight:600}
+/* passo a passo: circulos ligados por uma linha com a setinha no meio */
+.bv-passos{list-style:none;margin:0 auto 24px;padding:18px 8px 16px;display:flex;justify-content:center;max-width:31rem;border-radius:18px;background:rgba(201,163,90,.07)}
+.bv-passos li{position:relative;flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:9px;padding:0 6px;font-size:.84rem;line-height:1.35;color:var(--texto-suave)}
+.bv-passos li:not(:last-child)::before{content:"";position:absolute;top:17px;left:calc(50% + 24px);right:calc(-50% + 24px);height:2px;border-radius:2px;background:linear-gradient(90deg,rgba(201,163,90,.55),rgba(201,163,90,.18))}
+.bv-passos li.bv-feito:not(:last-child)::before{background:linear-gradient(90deg,var(--verde-suave),rgba(201,163,90,.55))}
+.bv-passos li:not(:last-child)::after{content:"›";position:absolute;top:17px;left:100%;transform:translate(-50%,-54%);font-size:1.25rem;line-height:1;font-weight:600;color:var(--dourado)}
+.bv-num{position:relative;z-index:1;display:inline-grid;place-items:center;width:36px;height:36px;border-radius:50%;border:1.5px solid rgba(201,163,90,.45);background:var(--sup-card);font-weight:600;font-size:.92rem;color:var(--texto-suave)}
+.bv-passos li.bv-atual{color:var(--titulo);font-weight:600}
+.bv-passos li.bv-atual .bv-num{background:linear-gradient(135deg,#e2c98a,#c9a35a);border-color:transparent;color:#0b3325;box-shadow:0 0 0 6px rgba(201,163,90,.2);animation:bv-pulso 2.4s ease-in-out infinite}
+@keyframes bv-pulso{0%,100%{box-shadow:0 0 0 6px rgba(201,163,90,.2)}50%{box-shadow:0 0 0 10px rgba(201,163,90,.06)}}
+.bv-passos li.bv-feito .bv-num{background:var(--verde-suave);border-color:var(--verde-suave);color:#fff}
+.bv-faltam{list-style:none;margin:0 auto 18px;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;max-width:31rem}
+.bv-faltam li{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;background:rgba(201,163,90,.1);border:1px solid rgba(201,163,90,.42);font-size:.82rem;color:var(--texto)}
+.bv-faltam li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--dourado)}
+.bv-nota{margin:0 auto 22px;max-width:30rem;font-size:.84rem;color:var(--texto-suave);line-height:1.55}
+.bv-atalhos{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:31rem;margin:0 auto 22px}
+.bv-atalho{padding:13px 12px;border-radius:14px;border:1px solid rgba(201,163,90,.35);background:rgba(201,163,90,.05);color:var(--titulo);font:inherit;font-size:.86rem;font-weight:500;line-height:1.3;cursor:pointer;transition:border-color .2s,transform .2s,background .2s}
+.bv-atalho:hover,.bv-atalho:focus-visible{border-color:var(--dourado);background:rgba(201,163,90,.12);transform:translateY(-1px);outline:none}
+.bv-acoes{display:flex;flex-direction:column;align-items:center;gap:12px}
+.bv-principal{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:12px;padding:16px 34px;border:0;border-radius:15px;background:linear-gradient(135deg,var(--verde-medio),var(--verde-escuro));color:#f4efe3;font:inherit;font-size:.8rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;box-shadow:0 14px 30px rgba(11,51,37,.3);transition:transform .2s,box-shadow .2s}
+.bv-principal::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(226,201,138,.28),transparent);transform:skewX(-20deg);animation:bv-brilho 3.2s ease-in-out 1s infinite}
+@keyframes bv-brilho{0%{left:-60%}45%,100%{left:130%}}
+.bv-principal:hover{transform:translateY(-1px);box-shadow:0 18px 36px rgba(11,51,37,.36)}
+.bv-principal:focus{outline:none}
+.bv-principal:focus-visible{outline:2px solid var(--dourado);outline-offset:3px}
+.bv-seta{display:inline-block;color:#e2c98a;font-size:1.2rem;letter-spacing:0;animation:bv-seta 1.4s ease-in-out infinite}
+@keyframes bv-seta{0%,100%{transform:translateX(0)}50%{transform:translateX(6px)}}
+.bv-link{border:0;background:transparent;color:var(--texto-suave);font:inherit;font-size:.86rem;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:4px}
+.bv-link:hover,.bv-link:focus-visible{color:var(--titulo)}
+@media (max-width:560px){
+  .bv-corpo{padding:34px 18px 24px}
+  .bv-passos{flex-direction:column;align-items:stretch;gap:18px;padding:16px 18px;max-width:20rem}
+  .bv-passos li{flex-direction:row;gap:12px;text-align:left;padding:0}
+  .bv-passos li:not(:last-child)::before{top:38px;bottom:-18px;left:17px;right:auto;width:2px;height:auto;background:linear-gradient(180deg,rgba(201,163,90,.55),rgba(201,163,90,.18))}
+  .bv-passos li.bv-feito:not(:last-child)::before{background:linear-gradient(180deg,var(--verde-suave),rgba(201,163,90,.55))}
+  .bv-passos li:not(:last-child)::after{content:"⌄";top:auto;bottom:-15px;left:18px;transform:translateX(-50%);font-size:1rem}
+  .bv-atalhos{grid-template-columns:1fr}
+  .bv-principal{width:100%;justify-content:center;padding:16px 20px}
+}
+@media (prefers-reduced-motion:reduce){.bv-corpo,.bv-seta,.bv-logo,.bv-principal::after,.bv-passos li.bv-atual .bv-num{animation:none}}

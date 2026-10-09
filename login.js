@@ -436,6 +436,14 @@
     mensagemEm(cadMensagem, "", null);
     if (cadEmail && campoEmail && !cadEmail.value) cadEmail.value = campoEmail.value.trim();
     if (cadNome) cadNome.focus();
+    /* boas-vindas (boas-vindas.js): "Fazer meu registro" leva ao formulario; "Ja tenho conta" volta ao login */
+    if (window.BoasVindas) {
+      window.BoasVindas.cadastro(function (acao) {
+        var voltar = document.getElementById("link-cadastro-voltar");
+        if (acao === "entrar" && voltar) voltar.click();
+        else if (cadNome) cadNome.focus();
+      });
+    }
   }
 
   /* A conta entrou, mas ainda nao foi liberada (ou foi recusada). O app nao abre. */
@@ -533,7 +541,10 @@
       checando = null;
       if (!sessaoAtual || modoRecuperacao) return;   // chegou pelo link de "esqueci minha senha": primeiro a senha nova
       statusAtual = st;
-      if (st === "ativo") { definirRestrito(false); abrirApp(); avisarStatus(); }
+      if (st === "ativo") {
+        definirRestrito(false); abrirApp(); avisarStatus();
+        if (window.BoasVindas) window.BoasVindas.contaLiberada();   // so na 1a entrada depois de liberada
+      }
       else if (st === "pendente") abrirAppPendente();
       else { definirRestrito(false); mostrarStatusConta(st); avisarStatus(); }
     });

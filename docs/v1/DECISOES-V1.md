@@ -945,6 +945,17 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     `docs/v1/ANAMNESE-PRE-CONSULTA.md`, `docs/v1/FLUXO-CLINICO-V1.md`. PENDENTE: revisão da usuária, aplicar
     `supabase/ANAMNESE-PRE-CONSULTA-PARTE1..5.sql` (nessa ordem) e deploy.
 
+179. **Janelas de boas-vindas** (09/10, pedido da usuária). Três janelas com a logo, só front (`boas-vindas.js`):
+    (1) **cadastro**: "Seja bem-vindo(a), nutricionista, ao HoloHacking", passo a passo Registro → Perfil → Liberação e
+    "Fazer meu registro →"; aparece **toda vez** que /cadastro (ou "Criar conta") abre. (2) **primeira entrada da conta
+    pendente**: "Olá, <nome>! … o próximo passo é completar o seu perfil profissional", com o que falta e "Completar meu
+    perfil →" (leva ao primeiro item). (3) **primeira entrada depois de liberada**: "Olá, <nome>! Seja bem-vindo(a),
+    nutri HoloHacking", com atalhos (primeira paciente, perfil, ajuda). (2) e (3) só no **primeiro acesso**: o "já vi"
+    fica na própria conta (`user_metadata` do Auth, sem tabela nova) e vale em qualquer aparelho. (3) só para conta
+    liberada nos últimos 30 dias (`profiles.aprovado_em`): as contas antigas não veem. "Bem-vindo(a)" no lugar do
+    feminino, a pedido. Fecham por botão, X, Esc ou clique fora; celular sem rolagem lateral; sem animação para quem
+    pede menos movimento. Teste: `testes/testar-boas-vindas.mjs` (24). Capturas: `docs/v1/boas-vindas/`.
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`
