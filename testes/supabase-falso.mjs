@@ -24,7 +24,8 @@
  */
 
 import { randomUUID, createHash } from 'node:crypto';
-import { criarResultadoHolos } from './resultado-holos-falso.mjs';   // Resultado HOLOS (migration 20261009100000)
+import { criarResultadoHolos } from './resultado-holos-falso.mjs';
+import { criarRevisaoPerguntas } from './revisao-perguntas-falso.mjs';   // revisao das perguntas (migration 20261010100000)   // Resultado HOLOS (migration 20261009100000)
 import '../metodologia-pacote.js';   // o MESMO validador de publicacao do navegador (Etapa 4)
 import '../laboratorio-catalogo.js';  // os MESMOS 45 exames-base da migration 20261001220000 (Etapa 5)
 import '../leitura-integrada-pacote-v1.js';
@@ -945,7 +946,10 @@ export function criarServidor() {
   }
 
   const resultadoHolos = criarResultadoHolos(s, { statusConta: (u) => statusConta(u), carimbo: () => carimbo() });
+  const revisaoPerguntas = criarRevisaoPerguntas(s, {});
+  s.revisaoPerguntas = revisaoPerguntas;
   function rpc(uid, nome, args) {
+    if (revisaoPerguntas.NOMES.includes(nome)) return revisaoPerguntas.rpc(uid, nome, args);   // publicas (sem login)
     if (nome === 'minha_conta_status') return uid ? { data: statusConta(uid), error: null } : erro('permission denied for function minha_conta_status', '42501');
     if (nome === 'eh_administrador') return { data: !!uid && s.administradores.includes(uid), error: null };
     if (nome === 'listar_contas' || nome === 'decidir_conta') {

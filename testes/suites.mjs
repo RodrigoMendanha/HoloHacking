@@ -129,5 +129,6 @@ export const SUITES = [
   'testar-anamnese-v2-dominios.mjs',
   'testar-anamnese-v2.mjs',
   'testar-anamnese-v2-concluir.mjs',
+  'testar-aprovacoes.mjs',
   'testar-conferir-producao.mjs',
 ];

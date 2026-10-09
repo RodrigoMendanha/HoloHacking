@@ -1,6 +1,6 @@
 FROM nginx:stable-alpine
 
-COPY index.html style.css favicon.svg logo-holohacking.png *.js /usr/share/nginx/html/
+COPY index.html aprovacoes.html style.css favicon.svg logo-holohacking.png *.js /usr/share/nginx/html/
 
 # Rodada 08 — build auditavel: /version.json diz qual codigo esta no ar.
 # O commit vem de fora (o contexto do build nao leva o .git):

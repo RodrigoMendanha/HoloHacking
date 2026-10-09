@@ -1,7 +1,7 @@
 /**
  * scripts/conferir-producao.sh — a conferencia do ar pelo hash.
  *
- * Sobe um servidor HTTP local que serve o que o Dockerfile copia (index.html,
+ * Sobe um servidor HTTP local que serve o que o Dockerfile copia (index.html, aprovacoes.html,
  * style.css, favicon.svg, logo-holohacking.png, *.js da raiz), com o fallback do nginx (arquivo que
  * nao existe volta como index.html), e roda o script contra ele:
  *   1  tudo igual ao docs/deploy.md §3.5: "OK: N de N", exit 0
@@ -20,7 +20,7 @@ const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  F
 const RAIZ = new URL('..', import.meta.url);
 const SCRIPT = new URL('../scripts/conferir-producao.sh', import.meta.url).pathname;
 
-const servidos = ['index.html', 'style.css', 'favicon.svg', 'logo-holohacking.png', ...readdirSync(RAIZ).filter(f => f.endsWith('.js')).sort()];
+const servidos = ['index.html', 'aprovacoes.html', 'style.css', 'favicon.svg', 'logo-holohacking.png', ...readdirSync(RAIZ).filter(f => f.endsWith('.js')).sort()];
 const conteudo = Object.fromEntries(servidos.map(f => [f, readFileSync(new URL(f, RAIZ))]));
 
 const doc = readFileSync(new URL('docs/deploy.md', RAIZ), 'utf8');
