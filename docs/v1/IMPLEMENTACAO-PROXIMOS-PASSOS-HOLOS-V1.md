@@ -161,7 +161,7 @@ RELEASE-STATE.md                                   |   1 +
 
 ## N. Commit final
 `732081c` — "Proximos Passos HOLOS: motor oficial V1 de recomendacao de ferramentas" (implementação completa). O commit seguinte
-só atualiza o roteiro de deploy (`scripts/deploy-etapa6-5b.sh`) e esta seção. Suíte completa: ver o relatório final da sessão (rodada sobre este commit).
+só atualiza o roteiro de deploy (`scripts/deploy-etapa6-5b.sh`) e esta seção. Suíte completa sobre `732081c`: 126 suítes, 3857 asserções, 1 falha — a guarda de `testar-v1-registros-legado.mjs` não listava `proximos-passos.js` como fonte legítima dos IDs `*_v1`; corrigido no commit `16b97f3` (verde ao rerodar). Nenhuma outra falha.
 
 ## Plano de aplicação real (depois da revisão)
 1. SQL Editor: `supabase/PROXIMOS-PASSOS-PARTE1` → … → `PARTE8` (na ordem; a 8 confere e registra). Depois, só leitura:
