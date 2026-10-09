@@ -87,6 +87,18 @@ await preencher(C, { 'pf-registro': 'CRN-1 12345', 'pf-especialidade': 'Nutriç�
 await C.evaluate(() => document.getElementById('btn-salvar-perfil').click()); await espera(700);
 const p1 = srv.linhas('profiles').find(p => p.id === ID);
 ok(p1.registro === 'CRN-1 12345' && p1.cidade === 'Goiânia/GO' && p1.telefone === '62988887777' && p1.status === 'pendente', 'pendente salva os dados profissionais no servidor (CRN, cidade, Instagram); status continua pendente');
+/* checklist do aviso: cada item leva a aba certa, rola ate o campo e poe o foco nele */
+const irPor = async (rotulo) => {
+  await C.evaluate(() => window.scrollTo(0, 0));
+  await C.evaluate(r => [...document.querySelectorAll('#perfil-aviso-conta [data-pac-aba]')].find(b => b.textContent.startsWith(r)).click(), rotulo);
+  await espera(700);
+  return C.evaluate(() => { const a = document.activeElement, r = a.getBoundingClientRect();
+    return { foco: a.id || a.getAttribute('data-enviar') || a.tagName, visivel: r.top >= 0 && r.bottom <= innerHeight, aba: document.querySelector('[data-aba-perfil].ativa').dataset.abaPerfil }; });
+};
+const viaLogo = await irPor('Logo'), viaFoto = await irPor('Foto'), viaCarimbo = await irPor('Carimbo');
+ok(viaLogo.aba === 'marca' && viaLogo.foco === 'logo_id' && viaLogo.visivel && viaFoto.aba === 'perfil' && viaFoto.foco === 'foto_id' && viaFoto.visivel
+  && viaCarimbo.aba === 'marca' && viaCarimbo.foco === 'carimbo_id' && viaCarimbo.visivel,
+  'checklist: clicar em Logo/Foto/Carimbo troca a aba, rola até o botão de enviar e põe o foco nele (' + [viaLogo, viaFoto, viaCarimbo].map(x => x.aba + ':' + x.foco + ':' + x.visivel).join(' ') + ')');
 for (const [c, a] of [['foto_id', 'perfil'], ['logo_id', 'marca'], ['assinatura_id', 'marca'], ['carimbo_id', 'marca']]) await enviar(C, c, a);
 const meus = srv.linhas('professional_assets').filter(a => a.nutritionist_id === ID);
 ok(meus.length === 4 && meus.every(a => a.storage_path.startsWith(ID + '/')) && Object.keys(srv.storage['professional-assets']).filter(k => k.startsWith(ID + '/')).length === 4,

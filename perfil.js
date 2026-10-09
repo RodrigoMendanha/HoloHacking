@@ -127,12 +127,13 @@
   };
   /* O que mais importa preencher enquanto espera (destaque, nao obrigatorio). */
   var PRIORIDADES_PENDENTE = [
-    { rotulo: "Foto", feito: function (p) { return !!p.foto_id; }, aba: "perfil" },
-    { rotulo: "CRN (registro profissional)", feito: function (p) { return !!String(p.registro || "").trim(); }, aba: "perfil" },
-    { rotulo: "Logo", feito: function (p) { return !!p.logo_id; }, aba: "marca" },
-    { rotulo: "Assinatura", feito: function (p) { return !!p.assinatura_id; }, aba: "marca" },
-    { rotulo: "Carimbo", feito: function (p) { return !!p.carimbo_id; }, aba: "marca" },
-    { rotulo: "Contato (telefone ou e-mail)", feito: function (p) { return !!(String(p.telefone || "").trim() || String(p.email || "").trim()); }, aba: "perfil" }
+    /* alvo: o que recebe a rolagem e o foco ao clicar no item (campo ou botao de enviar) */
+    { rotulo: "Foto", feito: function (p) { return !!p.foto_id; }, aba: "perfil", alvo: '[data-enviar="foto_id"]' },
+    { rotulo: "CRN (registro profissional)", feito: function (p) { return !!String(p.registro || "").trim(); }, aba: "perfil", alvo: "#pf-registro" },
+    { rotulo: "Logo", feito: function (p) { return !!p.logo_id; }, aba: "marca", alvo: '[data-enviar="logo_id"]' },
+    { rotulo: "Assinatura", feito: function (p) { return !!p.assinatura_id; }, aba: "marca", alvo: '[data-enviar="assinatura_id"]' },
+    { rotulo: "Carimbo", feito: function (p) { return !!p.carimbo_id; }, aba: "marca", alvo: '[data-enviar="carimbo_id"]' },
+    { rotulo: "Contato (telefone ou e-mail)", feito: function (p) { return !!(String(p.telefone || "").trim() || String(p.email || "").trim()); }, aba: "perfil", alvo: "#pf-telefone" }
   ];
 
   function contaRestrita() { return !!(window.ContaAcesso && window.ContaAcesso.restrito && window.ContaAcesso.restrito()); }
@@ -148,7 +149,7 @@
     el.hidden = !restrita;
     if (!restrita) { el.innerHTML = ""; return; }
     var p = perfil || PADRAO;
-    var itens = PRIORIDADES_PENDENTE.map(function (i) { return { rotulo: i.rotulo, feito: i.feito(p), aba: i.aba }; });
+    var itens = PRIORIDADES_PENDENTE.map(function (i) { return { rotulo: i.rotulo, feito: i.feito(p), aba: i.aba, alvo: i.alvo }; });
     var feitos = itens.filter(function (i) { return i.feito; }).length;
     el.innerHTML =
       '<div class="pac-topo"><b class="pac-titulo">' + escapar(TEXTO_CONTA_PENDENTE.titulo) + "</b>" +
@@ -156,7 +157,7 @@
       '<p class="pac-sub">Para os seus documentos saírem completos: <b>' + feitos + " de " + itens.length + "</b></p>" +
       '<ul class="pac-lista">' + itens.map(function (i) {
         return '<li class="' + (i.feito ? "feito" : "") + '"><span class="perf-marca" aria-hidden="true"></span>' +
-          (i.feito ? escapar(i.rotulo) : '<button type="button" class="pac-ir" data-pac-aba="' + i.aba + '">' + escapar(i.rotulo) + "</button>") +
+          (i.feito ? escapar(i.rotulo) : '<button type="button" class="pac-ir" data-pac-aba="' + i.aba + '" data-pac-alvo="' + escapar(i.alvo) + '">' + escapar(i.rotulo) + "</button>") +
           (i.feito ? '<span class="sr-only"> (feito)</span>' : '<span class="sr-only"> (falta)</span>') + "</li>";
       }).join("") + "</ul>" +
       '<div class="pac-acoes"><button type="button" class="perf-botao" id="btn-verificar-acesso">Verificar acesso novamente</button>' +
@@ -1442,7 +1443,17 @@
 
     secao.addEventListener("click", function (ev) {
       var irAba = ev.target.closest("[data-pac-aba]");
-      if (irAba) { trocarAba(irAba.dataset.pacAba); return; }
+      if (irAba) {
+        /* a aba fica abaixo da parte visivel: trocar so a aba parecia nao fazer nada.
+           Troca, rola ate o campo (ou o botao de enviar) e poe o foco nele. */
+        trocarAba(irAba.dataset.pacAba);
+        var destino = irAba.dataset.pacAlvo && document.querySelector("#painel-" + irAba.dataset.pacAba + " " + irAba.dataset.pacAlvo);
+        if (destino) {
+          if (destino.scrollIntoView) destino.scrollIntoView({ behavior: "smooth", block: "center" });
+          try { destino.focus({ preventScroll: true }); } catch (x) { destino.focus(); }
+        }
+        return;
+      }
       if (ev.target.closest("#btn-verificar-acesso")) {
         var bv = ev.target.closest("#btn-verificar-acesso"), msg = document.getElementById("pac-msg");
         bv.disabled = true;
