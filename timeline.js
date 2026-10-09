@@ -5,8 +5,9 @@
    A unica fonte de eventos da linha do tempo (Visao geral, Evolucao, HOLOS AI,
    exportacao). So entra o que esta CONSOLIDADO: atendimento registrado,
    anamnese salva/revisada, HOLOSCAN com identidade remota (com sessao),
-   coleta no servidor, ferramenta concluida/revisada, conduta salva/revisada,
-   acordo com situacao alterada, documento anexado, relatorio emitido. O
+   ferramenta concluida/revisada, conduta salva/revisada, acordo com
+   situacao alterada, documento/exame guardado no prontuario, relatorio
+   emitido. Coleta de exames estruturada nao entra (decisao 09/10). O
    agendamento entra como evento ADMINISTRATIVO, rotulado como tal.
 
    Nao entra: rascunho, previa, cache local nao sincronizado.
@@ -23,8 +24,8 @@
   var escapar = window.escapar;
   var TIPOS = [
     ["tudo", "Tudo"], ["consulta", "Agendamentos"], ["atendimento", "Atendimentos"], ["anamnese", "Anamnese"],
-    ["conduta", "Conduta"], ["mapa", "HOLOSCAN"], ["exame", "Exames"], ["ferramenta", "Ferramentas"],
-    ["documento", "Documentos"], ["relatorio", "Relatórios"]
+    ["conduta", "Conduta"], ["mapa", "HOLOSCAN"], ["ferramenta", "Ferramentas"],
+    ["documento", "Documentos e exames"], ["relatorio", "Relatórios"]
   ];
 
   function temSupa() { return !!(window.supabaseClient && window.HoloAuth && window.HoloAuth.sessaoAtiva()); }
@@ -111,21 +112,8 @@
       });
     }
 
-    var coletas = window.Sincronizacao ? window.Sincronizacao.coletas(pid) : null;
-    if (coletas && coletas.length) coletas.forEach(function (c) {
-      if (c.state === "rascunho") return;   // Etapa 5: rascunho nao entra na timeline oficial
-      var n = (c.resultados || []).length, semData = c.data_coleta_desconhecida || !c.coletado_em;
-      var revisao = c.revision > 1 || !!c.supersedes_id;
-      /* Etapa 5: a correcao de uma coleta consolidada e uma REVISAO (nova versao, mesma data
-         clinica), nao uma coleta clinica nova; a versao substituida continua no historico. */
-      lista.push(ev({ tipo: "exame", selo: "Exames", titulo: (revisao ? "Revisão da coleta de exames (versão " + c.revision + ")" : "Coleta de exames") + (semData ? " (data não informada)" : "") + (c.superseded_at ? " — substituída" : ""),
-        detalhe: n + (n === 1 ? " exame" : " exames") + (c.laboratorio ? " · " + escapar(c.laboratorio) : "") + (c.state === "revisado" ? " · revisada" : "") + (revisao && c.revision_note ? " · " + escapar(c.revision_note) : ""),
-        quando: semData ? "" : c.coletado_em, registrado_em: c.created_at, ref: { tabela: "lab_collections", id: c.id }, acao: "aba:documentos" }));
-    });
-    /* Sem leitura remota, o painel local de exames e um evento so, sem data:
-       ele nao sabe quando foi coletado (comportamento anterior da ficha). */
-    else if (opcoes.examesLocais > 0) lista.push(ev({ tipo: "exame", selo: "Exames", titulo: "Exames laboratoriais registrados",
-      detalhe: opcoes.examesLocais + (opcoes.examesLocais === 1 ? " exame" : " exames") + " no painel", quando: "", acao: "aba:visao" }));
+    /* Decisao de produto 09/10: coletas de exames (historico laboratorial estruturado) nao aparecem mais.
+       Exame e documento entram como DOCUMENTO do prontuario, logo abaixo. */
 
     if (window.Agenda && window.Agenda.todas && !opcoes.semAgenda) {
       var hj = hojeISO();
@@ -138,9 +126,9 @@
 
     /* Documento anexado: o que esta no ArquivoStore (local ou servidor). */
     if (opcoes.documentos) opcoes.documentos.forEach(function (d) {
-      lista.push(ev({ tipo: "documento", selo: d.tipo || "Documento", titulo: escapar(d.nome),
+      lista.push(ev({ tipo: "documento", selo: /^exame/i.test(d.tipo || "") ? "Exame" : (d.tipo || "Documento"), titulo: escapar(d.titulo || d.nome),
         detalhe: window.ArquivoStore && window.ArquivoStore.tamanhoLegivel ? window.ArquivoStore.tamanhoLegivel(d.tamanho) : "",
-        quando: d.data || diaLocal(d.created_at), registrado_em: d.created_at, ref: { tabela: "documents", id: d._supa_id || d.id }, acao: "aba:documentos" }));
+        quando: d.data || diaLocal(d.enviado_em || d.created_at), registrado_em: d.enviado_em || d.created_at, ref: { tabela: "documents", id: d._supa_id || d.id }, acao: "aba:documentos" }));
     });
 
     if (R && R.doPaciente) R.doPaciente(pid).filter(function (r) { return r.status === "emitido"; }).forEach(function (r) {

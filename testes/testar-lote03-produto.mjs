@@ -223,10 +223,10 @@ const relatorio = await p.evaluate(() => {
     btnPaciente: !!alvo.querySelector('[data-registro="paciente"]'),
     btnImprimir: !!alvo.querySelector('[data-acao="imprimir"]'),
     secaoA: alvo.innerText.includes('A. HOLOSCAN'),
-    secaoB: alvo.innerText.includes('B. Leitura Integrada'),
-    secaoC: alvo.innerText.includes('C. Consultas'),
-    secaoD: alvo.innerText.includes('D. Documentos'),
-    secaoE: alvo.innerText.includes('E. Interpretação profissional')
+    secaoB: alvo.innerText.includes('B. Consultas'),
+    secaoC: alvo.innerText.includes('C. Documentos'),
+    secaoD: alvo.innerText.includes('D. Interpretação profissional'),
+    semLI: !alvo.innerText.includes('Leitura Integrada')
   };
 });
 conferir(relatorio.existe, 'aba relatório existe');
@@ -236,10 +236,10 @@ conferir(relatorio.registroGroup, 'registro tem role="group" com aria-label');
 conferir(relatorio.btnNutri && relatorio.btnPaciente, 'toggle nutri/paciente presente');
 conferir(relatorio.btnImprimir, 'botão imprimir presente');
 conferir(relatorio.secaoA, 'seção A (HOLOSCAN) presente');
-conferir(relatorio.secaoB, 'seção B (Leitura Integrada) presente');
-conferir(relatorio.secaoC, 'seção C (Consultas) presente');
-conferir(relatorio.secaoD, 'seção D (Documentos) presente');
-conferir(relatorio.secaoE, 'seção E (Interpretação) presente');
+conferir(relatorio.secaoB, 'seção B (Consultas) presente');
+conferir(relatorio.secaoC, 'seção C (Documentos do prontuário) presente');
+conferir(relatorio.secaoD, 'seção D (Interpretação) presente');
+conferir(relatorio.semLI, 'nenhuma seção de Leitura Integrada (saiu do fluxo em 09/10)');
 
 // Toggle to patient view
 await p.evaluate(async () => {

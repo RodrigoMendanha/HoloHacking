@@ -2,11 +2,11 @@
  * Correcoes do teste real de 07/10 e pagina de Ajuda. Supabase falso, com conta:
  *   1  o atendimento ativo volta depois de recarregar a pagina
  *   2  com um atendimento ANTIGO ativo, a aba Conduta e a Visao geral mostram a conduta vigente do atendimento mais novo
- *   3  busca "glicose" acha Glicemia de jejum; o contador acompanha a busca
- *   4  a ficha conta os exames das coletas V1; HOLOSCAN salvo nao aparece como "nao iniciado"
+ *   3  (09/10) nenhum catalogo/painel de exames na ficha: a aba Documentos e a biblioteca de arquivos
+ *   4  (09/10) o panorama nao conta valores de exame
  *   5  ferramenta concluida tira o alerta "mapa sem conduta"
  *   6  Proxima consulta ignora a de hoje que ja passou; "Ver" abre a consulta na Agenda
- *   7  relatorio mostra a referencia do laudo
+ *   7  (09/10) emissao antiga com exames: registro preservado, valores nao exibidos
  *   8  pagina de Ajuda: perguntas, busca, relato de erro sem dado de paciente
  */
 import './guarda-falhas.mjs';
@@ -73,40 +73,15 @@ const cd = await A.evaluate(async (pid, ev) => {
 ok(/conduta vigente desta pessoa está no atendimento/.test(cd.aviso), 'com atendimento antigo ativo, a aba Conduta diz onde está a conduta vigente');
 ok(/Conduta vigente\s*rev\. 1/i.test(cd.visao) && !/Conduta vigente\s*não registrada/i.test(cd.visao), 'a Visão geral mostra a conduta vigente (não "não registrada")');
 
-/* ----- 3: busca de exames ----- */
-const busca = await A.evaluate(() => {
-  const g = window.LabCatalogo.buscar('glicose').map(e => e.code);
-  return { g, tsh: window.LabCatalogo.buscar('TSH').map(e => e.code), exato: window.LabCatalogo.porNomeExato('glicose') };
-});
-ok(busca.g.includes('LAB-002') && busca.tsh[0] === 'LAB-030' && busca.exato === null, 'busca "glicose" acha Glicemia de jejum (sem virar identidade exata): ' + busca.g.join(','));
-const cont = await A.evaluate(async (pid) => {
+/* ----- 3/4: exame e so arquivo (09/10) ----- */
+const lab = await A.evaluate(async (pid) => {
   window.levarParaFicha('aba:documentos', pid);
-  for (let i = 0; i < 40 && !document.querySelector('[data-lab-acao="nova"]'); i++) await new Promise(r => setTimeout(r, 100));
-  document.querySelector('[data-lab-acao="nova"]').click();
-  await new Promise(r => setTimeout(r, 200));
-  const b = document.getElementById('lab-busca'); b.value = 'tireo'; b.dispatchEvent(new Event('input', { bubbles: true }));
-  await new Promise(r => setTimeout(r, 100));
-  return document.getElementById('lab-contador').textContent;
+  await new Promise(r => setTimeout(r, 700));
+  return { modulos: !!window.LabCatalogo || !!window.Laboratorio || !!window.LabMotor, painel: document.querySelectorAll('[data-lab-acao], #lab-busca, #lab-corpo, #lab-contador, #ex-corpo').length,
+    biblioteca: !!document.getElementById('doc-arquivo') && !!document.getElementById('doc-titulo'), panorama: window.Panorama.doPaciente(pid) };
 }, PA);
-ok(/^1 de 45/.test(cont), 'o contador acompanha a busca: ' + cont);
-
-/* ----- 4: exames V1 na ficha e HOLOSCAN ----- */
-await A.evaluate(async () => {
-  document.getElementById('lab-busca').value = ''; document.getElementById('lab-busca').dispatchEvent(new Event('input', { bubbles: true }));
-  document.getElementById('lab-data').value = new Date().toISOString().slice(0, 10);
-  document.querySelector('[data-lab-add="LAB-030"]').click();
-  await new Promise(r => setTimeout(r, 150));
-  const set = (c, v) => { const el = document.querySelector('[data-lab-campo="' + c + '"]'); if (el) el.value = v; };
-  set('value_original_text', '2,1'); set('unit_original', 'µUI/mL'); set('report_reference_min', '0,4'); set('report_reference_max', '4,5'); set('report_reference_text', '0,4 a 4,5');
-  document.querySelector('[data-lab-acao="salvar"]').click();
-  await new Promise(r => setTimeout(r, 900));
-  if (window.Sincronizacao && window.Sincronizacao.atualizarColetas) await window.Sincronizacao.atualizarColetas(window.pacienteAtivoId());
-});
-const ficha = await A.evaluate(async (pid) => {
-  const d = window.Panorama.doPaciente(pid);
-  return { exames: d.exames };
-}, PA);
-ok(ficha.exames === 1, 'a ficha conta o resultado da coleta V1 (antes: "nenhum valor"): ' + ficha.exames);
+ok(!lab.modulos && lab.painel === 0 && lab.biblioteca, '3: nenhum catalogo, busca ou painel de exames na ficha; a aba Documentos e a biblioteca de arquivos');
+ok(!lab.panorama.exames, '4: o panorama da ficha nao conta valores de exame (exame e so arquivo)');
 
 /* ----- 5: ferramenta concluida tira o alerta ----- */
 const alerta = await A.evaluate(async (pid) => {
@@ -132,7 +107,7 @@ const rel = await A.evaluate(() => {
   const h = window.Relatorios && window.Relatorios.snapshotHtml ? window.Relatorios.snapshotHtml({ content_snapshot: { exames: [{ tipo_conteudo: 'DADO_MEDIDO', coletado_em: '2026-10-07', resultados: [{ nome: 'TSH', valor: '2,1', unidade: 'µUI/mL', referencia_laudo: { texto: '0,4 a 4,5' } }] }] } }) : null;
   return h;
 });
-ok(rel === null || /referência do laudo: 0,4 a 4,5/.test(rel), 'o relatório mostra a referência do laudo' + (rel === null ? ' (sem acesso direto ao desenho; conferido no código)' : ''));
+ok(rel === null || (/Esta emissão antiga registrou 1 coleta de exames/.test(rel) && !/2,1|0,4 a 4,5|TSH/.test(rel)), '7: emissão antiga com exames: o registro fica, mas valor e referência não são mais exibidos' + (rel === null ? ' (sem acesso direto ao desenho)' : ''));
 
 /* ----- 8: Ajuda ----- */
 const aj = await A.evaluate(async () => {

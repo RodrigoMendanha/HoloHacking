@@ -38,7 +38,7 @@
     "#lista-pacientes", "#pac-sel-acoes", ".aba-painel", "[id^='vista-gen-']", ".ferr-historico",
     "#agenda-corpo", "#consultas-corpo", "#documentos-corpo", "#fic-janela-corpo",
     "#dash-trabalho",
-    "#holo-prioridades", "#holo-dominantes", "#holo-confronto", "#holo-leitura",
+    "#holo-prioridades", "#holo-dominantes", "#resultado-pagina-corpo", "#holo-leitura",
     "#holo-triada", "#holo-evolucao", "#holo-territorios",
     "#holo-frequencias", "#holo-origem", "#painel-pac-revisao"
   ].join(", ");
@@ -58,7 +58,7 @@
       el.value = "";
     });
     app.querySelectorAll(DESENHADOS_POR_JS).forEach(el => { el.innerHTML = ""; });
-    /* seletores de paciente (HOLOSCAN, OQ3, PQQ, mapa, confronto): so a
+    /* seletores de paciente (HOLOSCAN, OQ3, PQQ, mapa, resultado): so a
        opcao vazia fica — as outras sao nomes de paciente */
     app.querySelectorAll("select").forEach(sel => {
       [...sel.options].forEach(o => { if(o.value && sel.id && /^sel-/.test(sel.id)) o.remove(); });
@@ -263,11 +263,14 @@
   const nomesSecao = {
     dashboard:"Dashboard", pacientes:"Pacientes", consultas:"Atendimentos",
     agenda:"Agenda", documentos:"Documentos",
-    holoscan:"HOLOSCAN", confronto:"Leitura Integrada",
+    holoscan:"HOLOSCAN", resultado:"Resultado",
     corpo:"Módulo Corpo", mente:"Módulo Mente",
     espirito:"Módulo Espírito", perfil:"Perfil", ajuda:"Ajuda", contas:"Contas", metodologia:"Metodologia / Homologação"
   };
   function irPara(secao){
+    /* Prontuario (09/10): a Leitura Integrada saiu do fluxo e a secao virou a pagina RESULTADO.
+       Atalho antigo (#confronto, botao esquecido) leva para ela. */
+    if(secao === "confronto") secao = "resultado";
     $$(".nav-item").forEach(b => b.classList.toggle("ativo", b.dataset.secao === secao));
     $$(".secao").forEach(s => s.classList.toggle("ativa", s.id === "secao-" + secao));
     $("#caminho-atual").textContent = nomesSecao[secao] || secao;
@@ -290,11 +293,9 @@
       consultas: window.redesenharConsultas,
       agenda: window.redesenharAgenda,
       documentos: window.redesenharDocumentos,
-      /* O HOLOSCAN virou secao propria e precisa disto mais do que as outras:
-         os exames sao lancados na ficha, noutra tela. Sem redesenhar ao abrir,
-         lancar um exame e vir para ca mostrava o confronto de antes — e um
-         confronto desatualizado e pior do que confronto nenhum. */
-      confronto: () => { if(window.desenharHoloscan) window.desenharHoloscan("holo-confronto"); },
+      /* Resultado: a versao final para apresentar a paciente (Resultado HOLOS salvo + Conduta vigente +
+         identidade profissional). Redesenha ao abrir: o resultado pode ter sido finalizado na ficha. */
+      resultado: () => { if(window.ResultadoPagina) window.ResultadoPagina.desenhar(); },
       /* Pacientes entrou aqui depois das outras, e era a que mais precisava:
          o cartao agora mostra "Último contato" e o proximo passo. Aplicar um
          HOLOSCAN e voltar para a lista deixava o cartao dizendo "Sem consulta
@@ -944,7 +945,6 @@
         const d = sit[p.id].dados;
         const feito = [];
         if(d.respondidas > 0) feito.push(d.respondidas + " de " + d.totalPerguntas + " respostas");
-        if(d.exames > 0) feito.push(d.exames + (d.exames === 1 ? " exame" : " exames"));
         if(d.ferramentas.length > 0) feito.push(d.ferramentas.length
           + (d.ferramentas.length === 1 ? " ferramenta" : " ferramentas"));
         if(temConteudo(p.oq3)) feito.push("OQ³");
@@ -1132,8 +1132,6 @@
       if(sit.pontuacao) exportado.pontuacao = sit.pontuacao;
       if(sit.ferramentas && sit.ferramentas.length) exportado.ferramentas = sit.ferramentas;
       if(sit.historico && sit.historico.length) exportado.historico = sit.historico;
-      if(sit.exames) exportado.totalExames = sit.exames;
-      if(sit.exames) exportado.exames = sit.valoresExames;
       /* respostasHoloscan: as da ultima aplicacao SALVA. Um questionario em
          andamento (rascunho, ainda sem mapa salvo) vai separado, com o nome
          dizendo o que e. */
@@ -2964,8 +2962,8 @@
       + '</div><div><h4 class="res-tit">Por onde investigar</h4>'
       + (investigar ? '<p class="res-linha">Os sistemas de nota mais baixa e os sinais que mais pesaram neles. É a aritmética das respostas — não é diagnóstico nem conduta.</p>' + investigar
                     : '<p class="res-linha">Nenhum sistema com nota nesta aplicação.</p>')
-      + '<div class="res-botoes"><button type="button" class="btn-borda-ouro" data-res-ir="confronto">Leitura Integrada &rarr;</button>'
-      + '<button type="button" class="btn-borda-ouro" data-res-ir="resultado-holos">Resultado HOLOS &rarr;</button>'
+      + '<div class="res-botoes"><button type="button" class="btn-borda-ouro" data-res-ir="resultado-holos">Resultado HOLOS &rarr;</button>'
+      + '<button type="button" class="btn-borda-ouro" data-res-ir="resultado">Resultado para a paciente &rarr;</button>'
       + '<button type="button" class="btn-borda-ouro" data-res-ir="conduta">Conduta &rarr;</button></div></div></div>'
       + '<div class="res-interp"><label for="res-interp-texto" class="res-tit">Sua interpretação</label>'
       + '<p class="res-linha">A leitura clínica desta aplicação é sua. Ela fica guardada junto do HOLOSCAN e vai para o relatório.</p>'
@@ -2975,7 +2973,7 @@
     caixa.classList.remove("hidden");
 
     caixa.querySelectorAll("[data-res-ir]").forEach(b => b.addEventListener("click", () => {
-      if(b.dataset.resIr === "confronto") irPara("confronto");
+      if(b.dataset.resIr === "resultado") irPara("resultado");
       else if(b.dataset.resIr === "resultado-holos") levarPara("aba:resultado-holos", estado.ativo);
       else levarPara("aba:conduta", estado.ativo);
     }));
@@ -3441,7 +3439,6 @@
     desenharTriada(r.triada, r.triada_com_dado, r.triada_exibicao);
     desenharFrequencias(r.frequencias);
     desenharTerritorios(r.territorios);
-    if(window.desenharHoloscan) window.desenharHoloscan("holo-confronto");
     if(window.redesenharEvolucao) window.redesenharEvolucao();
 
     $("#holo-score-total").textContent = window.HoloAusencia.indiceTexto(r);
@@ -3722,7 +3719,6 @@
     if(origem) origem.innerHTML = "";
     const total = $("#holo-score-total");
     if(total) total.textContent = "—";
-    if(window.desenharHoloscan) window.desenharHoloscan("holo-confronto");
 
     // a evolucao e por paciente: quem nao tem duas aplicacoes nao mostra nada
     if(window.redesenharEvolucao) window.redesenharEvolucao();
@@ -4053,13 +4049,8 @@
         window.AtendimentoAtual.abrirDialogo({ patient_id: estado.ativo }).then(desenharAtendimentoHoloscan);
       });
     }
-    const irDocs = document.getElementById("conf-ir-documentos");
-    if(irDocs) irDocs.addEventListener("click", () => {
-      if(!estado.ativo){ toast("Escolha um paciente."); return; }
-      levarPara("aba:documentos", estado.ativo);
-    });
     $$("[data-ir-holo]").forEach(b => b.addEventListener("click", () => {
-      if(b.dataset.irHolo === "confronto") irPara("confronto");
+      if(b.dataset.irHolo === "resultado") irPara("resultado");
       else levarPara("aba:conduta", estado.ativo);
     }));
     document.addEventListener("DOMContentLoaded", () => {

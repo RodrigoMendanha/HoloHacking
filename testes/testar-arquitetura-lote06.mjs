@@ -179,8 +179,8 @@ ok(/salvarSupa/.test(arquivoStore) && /supabaseClient\.storage/.test(arquivoStor
 ok(/listarSupa/.test(arquivoStore) && /documents/.test(arquivoStore),
   'ArquivoStore tem camada Supabase para listar');
 
-ok(/removerSupa/.test(arquivoStore) && /\.delete\(\)/.test(arquivoStore),
-  'ArquivoStore tem camada Supabase para remover');
+ok(/arquivarHibrido/.test(arquivoStore) && /arquivado_em/.test(arquivoStore) && !/removerSupa/.test(arquivoStore),
+  'ArquivoStore arquiva no Supabase (arquivado_em) e nao tem camada para apagar documento (09/10)');
 
 ok(/patient-documents/.test(arquivoStore),
   'ArquivoStore usa bucket patient-documents');

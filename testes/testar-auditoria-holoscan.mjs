@@ -63,7 +63,7 @@ const ini = await A.evaluate(async (ids) => {
 ok(ini.aviso === true, 'com paciente escolhido, o aviso "Selecione um paciente" some');
 ok(ini.opcoes.includes(PA) && !ini.opcoes.includes(PARQ), 'o seletor do HOLOSCAN não lista o paciente arquivado');
 ok(!ini.pontue && ini.eyebrows === '123456', 'texto da seção 2 atualizado e seções numeradas em sequência: ' + ini.eyebrows);
-ok(!ini.limparResultado && ini.seguir === 'confronto,conduta', 'um só "Limpar" (o do questionário) e botões para seguir: Leitura Integrada e Conduta');
+ok(!ini.limparResultado && ini.seguir === 'resultado,conduta', 'um só "Limpar" (o do questionário) e botões para seguir: Resultado (09/10, no lugar da Leitura Integrada) e Conduta');
 ok(/nenhum selecionado/.test(ini.at), 'sem atendimento, a tela diz que o HOLOSCAN só é salvo ligado a um: ' + ini.at.replace(/\s+/g, ' ').slice(0, 90));
 
 /* ----- 2: atendimento visivel e trocavel ----- */

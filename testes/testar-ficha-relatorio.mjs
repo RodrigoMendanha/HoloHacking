@@ -122,7 +122,7 @@ const cheio = await p.evaluate(() => {
   };
 });
 
-conferir(cheio.secoes.length === 5, 'as cinco seções automáticas/profissional existem: ' + cheio.secoes.map(s => s.titulo).join(' | '));
+conferir(cheio.secoes.length === 4 && !cheio.secoes.some(s => /Leitura Integrada/.test(s.titulo)), 'as quatro seções automáticas/profissional existem (sem Leitura Integrada, 09/10): ' + cheio.secoes.map(s => s.titulo).join(' | '));
 conferir(/Aplicado em \d\d\/\d\d\/\d{4}/.test(cheio.aplicadoEm),
   'a seção A mostra a data da APLICAÇÃO, não só a data do relatório: ' + cheio.aplicadoEm);
 conferir(cheio.indice === '43', 'índice HOLOS: ' + cheio.indice);
@@ -131,36 +131,21 @@ conferir(cheio.sistemas === 5, 'os cinco sistemas aparecem: ' + cheio.sistemas);
 const consultasEDocs = await p.evaluate(() => {
   const r = document.getElementById('relatorio');
   const de = titulo => [...r.querySelectorAll('.rel-parte')].find(s => s.querySelector('h3').textContent === titulo);
-  const consultas = de('C. Consultas e acompanhamento');
-  const docs = de('D. Documentos e materiais');
+  const consultas = de('B. Consultas e acompanhamento');
+  const docs = de('C. Documentos do prontuário');
   return {
     consultasTexto: consultas.textContent.replace(/\s+/g, ' '),
     docsTexto: docs.textContent.replace(/\s+/g, ' '),
   };
 });
 conferir(/1 consulta registrada/.test(consultasEDocs.consultasTexto) && /Retorno/.test(consultasEDocs.consultasTexto),
-  'seção C (Consultas): ' + consultasEDocs.consultasTexto);
-conferir(/1 documento registrado/.test(consultasEDocs.docsTexto) && /Hemograma\.pdf/.test(consultasEDocs.docsTexto),
-  'seção D (Documentos), já preenchida após a promise do ArquivoStore: ' + consultasEDocs.docsTexto);
+  'seção B (Consultas): ' + consultasEDocs.consultasTexto);
+conferir(/1 documento\/exame armazenado/.test(consultasEDocs.docsTexto) && !/Hemograma/.test(consultasEDocs.docsTexto),
+  'seção C (Documentos): só a referência administrativa, sem nome de arquivo (09/10): ' + consultasEDocs.docsTexto);
 
-const holoscanSecao = await p.evaluate(() => {
-  const r = document.getElementById('relatorio');
-  const b = [...r.querySelectorAll('.rel-parte')].find(s => /Leitura Integrada/.test(s.querySelector('h3').textContent));
-  return [...b.querySelectorAll('p')].map(x => x.textContent.trim());
-});
-const TEXTOS_FIXOS = [
-  'Existe convergência entre o relato do paciente e os dados laboratoriais nesta dimensão.',
-  'Relato e dados laboratoriais disponíveis estão convergentes nesta dimensão.',
-  'O relato e os dados laboratoriais não estão caminhando na mesma direção neste momento.',
-  'Ainda não há dados laboratoriais suficientes para realizar a leitura integrada desta dimensão.',
-];
-/* simulacao 08/10: a secao B mostra as LEITURAS INTEGRADAS SALVAS (servidor); sem conta nao ha leitura —
-   a secao diz isso, e o confronto legado (com os textos fixos abaixo) nao aparece mais */
-void TEXTOS_FIXOS;
-conferir(holoscanSecao.some(t => /Leituras integradas indisponíveis sem conexão|Nenhuma leitura integrada salva/.test(t)), 'a seção B (Leitura Integrada) diz que não há leitura salva disponível: ' + holoscanSecao.join(' | ').slice(0, 120));
-conferir(
-  holoscanSecao.filter(t => !/^A Leitura Integrada organiza/.test(t) && !/Leituras integradas indisponíveis|Nenhuma leitura integrada salva/.test(t)).length === 0,
-  'nenhuma leitura causal do motor nem confronto legado na seção B');
+/* 09/10: a seção B (Leitura Integrada) saiu do relatório; nada de convergente/divergente em lugar nenhum */
+const semLI = await p.evaluate(() => { const t = document.getElementById('relatorio').innerText; return !/Leitura Integrada|Convergente|Divergente/.test(t); });
+conferir(semLI, 'o relatório não traz Leitura Integrada nem convergente/divergente');
 
 /* -------------------------------------------- interpretação separada ----- */
 
@@ -177,9 +162,9 @@ const interp = await p.evaluate(async () => {
       [...r.querySelectorAll('.rel-parte')].slice(0, -1).map(s => s.textContent).join(' ')),
   };
 });
-conferir(interp.origem === 'profissional' && interp.titulo === 'E. Interpretação profissional',
+conferir(interp.origem === 'profissional' && interp.titulo === 'D. Interpretação profissional',
   'a interpretação profissional é a última seção, com origem marcada: ' + interp.titulo);
-conferir(!interp.misturouComB, 'e o texto não vaza para as seções automáticas (A/B/C/D)');
+conferir(!interp.misturouComB, 'e o texto não vaza para as seções automáticas (A/B/C)');
 
 /* --------------------------------------------- impressão sem chrome ------ */
 

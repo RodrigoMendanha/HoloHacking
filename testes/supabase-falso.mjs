@@ -81,7 +81,8 @@ const COLUNAS = {
   integrated_reading_package_snapshots: ['id', 'package_id', 'package_version', 'content_hash', 'snapshot', 'approval_1', 'approval_2', 'homologated_by', 'homologated_at', 'governance_regime'],
   integrated_readings: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'responsible', 'clinical_context', 'holoscan_application_id', 'selected_collection_ids', 'selected_result_ids', 'references_snapshot', 'sources_snapshot', 'rule_package_id', 'rule_version', 'engine_version', 'state', 'reason_codes', 'trace', 'professional_note', 'revision', 'supersedes_id', 'superseded_at', 'content_hash', 'created_by', 'created_at', 'domain_code', 'holoscan_direction', 'laboratory_direction', 'snapshot'],
   tool_applications: ['id', 'nutritionist_id', 'patient_id', 'consultation_id', 'encounter_id', 'ferramenta_id', 'versao_ferramenta', 'origem_legada', 'status', 'iniciada_em', 'concluida_em', 'atualizada_em', 'respostas', 'resultado', 'leitura', 'prioridade', 'proximo_passo', 'created_at', 'updated_at'],
-  documents: ['id', 'nutritionist_id', 'patient_id', 'nome', 'tipo', 'data_documento', 'mime_type', 'tamanho_bytes', 'storage_path', 'origem_local', 'created_at', 'updated_at'],
+  documents: ['id', 'nutritionist_id', 'patient_id', 'nome', 'tipo', 'data_documento', 'mime_type', 'tamanho_bytes', 'storage_path', 'origem_local', 'created_at', 'updated_at',
+    'titulo', 'observacao', 'arquivado_em', 'arquivado_por'],   // prontuario (20261011100000)
   professional_assets: ['id', 'nutritionist_id', 'tipo', 'nome', 'mime_type', 'tamanho_bytes', 'storage_path', 'created_at', 'updated_at'],
   profiles: null,          // nao estrito: o perfil nao e o assunto destes testes
   ai_threads: ['id', 'nutritionist_id', 'patient_id', 'titulo', 'created_at', 'updated_at'],
@@ -738,6 +739,9 @@ export function criarServidor() {
     if (t === 'methodology_package_approvals' && q.acao !== 'select') return erro('permission denied for table methodology_package_approvals', '42501');
     if (t === 'methodology_approvers' && q.acao !== 'select') return erro('permission denied for table methodology_approvers', '42501');
     if ((GLOBAIS_SO_LEITURA.includes(t) || t === 'integrated_readings' || t === 'holos_results') && q.acao !== 'select' && uid) return erro('permission denied for table ' + t, '42501');
+    /* Prontuario (20261011100000): a API perdeu a escrita nas tabelas lab_* (revoke) e o DELETE em documents */
+    if (['lab_collections', 'lab_results', 'lab_result_components', 'lab_custom_exams'].includes(t) && q.acao !== 'select' && uid) return erro('permission denied for table ' + t, '42501');
+    if (t === 'documents' && q.acao === 'delete' && uid) return erro('permission denied for table documents', '42501');
     if (uid && (t in s.tabelas)) { const pe = protegerLab(q, uid); if (pe) return pe; }
     const filhaConteudo = FILHAS_PACOTE.includes(t) && t !== 'methodology_homologation_records' && ['insert', 'upsert', 'update', 'delete'].includes(q.acao);
     const pacoteMuda = t === 'methodology_packages' && q.acao === 'update' && q.dados && ('version' in q.dados || 'code' in q.dados);
@@ -822,6 +826,7 @@ export function criarServidor() {
           return erro('duplicate key value violates unique constraint "' + t + '_pkey"', '23505');
         }
         const l = novaLinha(t, d, uid);
+        if (t === 'documents') { l.arquivado_em = null; l.arquivado_por = null; }   // trigger documents_nasce_ativo
         const e = checarLinha(t, l, uid);
         if (e) return e;                                  // o comando inteiro falha
         novas.push({ nova: l });
@@ -862,6 +867,12 @@ export function criarServidor() {
           if (p && ['aprovado', 'retirado'].includes(p.status) && s.aprovacaoRpc !== p.id) return erro('conteudo de pacote ' + p.status + ' e imutavel: crie uma nova versao do pacote', 'P0001');
           if (('package_id' in q.dados && q.dados.package_id !== l.package_id) || ('nutritionist_id' in q.dados && q.dados.nutritionist_id !== l.nutritionist_id)) return erro('elemento nao muda de pacote nem de profissional', 'P0001');
         }
+        // trigger documents_proteger (prontuario 20261011100000): o arquivo e o paciente nao mudam
+        if (t === 'documents') {
+          const fixos = ['patient_id', 'nutritionist_id', 'storage_path', 'mime_type', 'tamanho_bytes', 'origem_local', 'created_at'];
+          const mudou = fixos.find(c => c in q.dados && JSON.stringify(q.dados[c] === undefined ? null : q.dados[c]) !== JSON.stringify(l[c] === undefined ? null : l[c]));
+          if (mudou) return { data: null, error: { message: 'o arquivo do documento nao muda: so titulo, tipo, data, observacao e arquivamento', code: 'P0001', hint: 'documento_imutavel' } };
+        }
         // trigger registro_clinico_concluido_imutavel (Etapa 6.5 B)
         if (t === 'tool_applications') {
           const ec = erroConcluido(l, teste);
@@ -898,7 +909,13 @@ export function criarServidor() {
       }
       alvo.forEach(l => {
         const statusAntes = l.status;
+        const arqAntes = l.arquivado_em || null;
         Object.assign(l, q.dados);
+        if (t === 'documents' && 'arquivado_em' in q.dados) {   // quem e quando: do servidor
+          if (q.dados.arquivado_em && !arqAntes) { l.arquivado_em = agora(); l.arquivado_por = uid; }
+          else if (!q.dados.arquivado_em) { l.arquivado_em = null; l.arquivado_por = null; }
+          else { l.arquivado_em = arqAntes; }
+        }
         if ((COLUNAS[t] || []).includes('updated_at')) l.updated_at = carimbo();
         if (t === 'agreements' && 'status' in q.dados && q.dados.status !== statusAntes) l.status_changed_at = agora();
         if ((t === 'anamneses' || t === 'conducts')) {
@@ -1043,6 +1060,7 @@ export function criarServidor() {
           r.avaliavel ? {} : { nota: null, carga: null, faixa: null }), uid)));
       return { data: app.id, error: null };
     }
+    if (nome === 'salvar_coleta_exames') return { data: null, error: { message: 'resultados laboratoriais estruturados foram desativados: exame e guardado so como arquivo do prontuario', code: 'P0001', hint: 'laboratorio_desativado' } };
     if (nome === 'salvar_coleta_exames') {
       // Etapa 0 da V1: espelha a migration 20260930140000 reescrita —
       // identidade pelo id (collection.id → editar; sem id → inserir),
@@ -1171,7 +1189,10 @@ export function criarServidor() {
       if (!['rascunho', 'salvo', 'revisado'].includes(status)) return erro('status invalido', 'P0001');
       const ja = porOp('conducts', p.operation_id); if (ja) return { data: ja.id, error: null };
       const CAMPOS = ['objective', 'nutrition_strategy', 'actions', 'resources', 'requested_exams', 'referrals', 'monitoring', 'return_plan', 'observations', 'nutrition_diagnosis', 'dietary_prescription', 'professional_guidance'];
-      const campos = (base) => { const o = {}; CAMPOS.forEach(c => { o[c] = p[c] !== undefined ? (p[c] === '' ? null : p[c]) : (base ? base[c] : null); }); return o; };
+      const campos = (base) => { const o = {}; CAMPOS.forEach(c => { o[c] = p[c] !== undefined ? (p[c] === '' ? null : p[c]) : (base ? base[c] : null); });
+        // trigger conducts_sem_prescricao (prontuario 20261011100000): nada novo nesses 3 campos
+        ['dietary_prescription', 'nutrition_diagnosis', 'referrals'].forEach(c => { o[c] = base ? (base[c] === undefined ? null : base[c]) : null; });
+        return o; };
       let atual = p.id ? s.tabelas.conducts.find(c => c.id === p.id && c.nutritionist_id === uid) : null;
       if (p.id && !atual) return erro('conduta ' + p.id + ' nao encontrada', 'P0002');
       if (atual && p.expected_updated_at && atual.updated_at !== p.expected_updated_at) return erro('a conduta foi alterada em outro lugar; recarregue antes de salvar', 'P0001');
@@ -1332,6 +1353,7 @@ export function criarServidor() {
         return { data: n, error: null };
       } finally { s.labRpc = null; }
     };
+    if (nome === 'salvar_coleta_laboratorial') return { data: null, error: { message: 'resultados laboratoriais estruturados foram desativados: exame e guardado so como arquivo do prontuario', code: 'P0001', hint: 'laboratorio_desativado' } };
     if (nome === 'salvar_coleta_laboratorial') {
       const c = p && p.collection; if (!c) return erro('payload incompleto: collection e obrigatoria', 'P0001');
       if (!pacienteDe(uid, c.patient_id)) return erro('paciente nao e deste profissional', 'P0001');
@@ -1359,6 +1381,7 @@ export function criarServidor() {
       if (st === 'salvo' && g.data === 0) return erro('coleta salva exige ao menos um resultado', 'P0001');
       return { data: { id: col.id, state: st, results: g.data, repetida: false }, error: null };
     }
+    if (nome === 'revisar_coleta_laboratorial') return { data: null, error: { message: 'resultados laboratoriais estruturados foram desativados: exame e guardado so como arquivo do prontuario', code: 'P0001', hint: 'laboratorio_desativado' } };
     if (nome === 'revisar_coleta_laboratorial') {
       const old = p && s.tabelas.lab_collections.find(x => x.id === p.collection_id && x.nutritionist_id === uid);
       if (!old) return erro('coleta nao encontrada', 'P0002');
@@ -1377,6 +1400,7 @@ export function criarServidor() {
       old.superseded_at = carimbo(); old.updated_at = old.superseded_at;
       return { data: { id: novo.id, supersedes_id: old.id, revision: novo.revision, results: g.data }, error: null };
     }
+    if (nome === 'marcar_coleta_revisada') return { data: null, error: { message: 'resultados laboratoriais estruturados foram desativados: exame e guardado so como arquivo do prontuario', code: 'P0001', hint: 'laboratorio_desativado' } };
     if (nome === 'marcar_coleta_revisada') {
       const col = s.tabelas.lab_collections.find(x => x.id === (args && args.p_collection_id) && x.nutritionist_id === uid);
       if (!args || !String(args.p_responsible || '').trim()) return erro('revisao exige responsavel identificado', 'P0001');
@@ -1385,6 +1409,7 @@ export function criarServidor() {
       col.state = 'revisado'; col.reviewed_at = carimbo(); col.reviewed_by = uid; col.revision_note = (col.revision_note ? col.revision_note + ' | ' : '') + 'revisado por ' + String(args.p_responsible).trim(); col.updated_at = col.reviewed_at;
       return { data: { id: col.id, state: 'revisado' }, error: null };
     }
+    if (nome === 'salvar_leitura_integrada') return { data: null, error: { message: 'a Leitura Integrada foi retirada do fluxo: exame nao produz resultado. As leituras salvas ficam so para leitura', code: 'P0001', hint: 'li_desativada' } };
     if (nome === 'salvar_leitura_integrada') {
       if (!p || !pacienteDe(uid, p.patient_id)) return erro('paciente nao e deste profissional', 'P0001');
       if (!p.responsible || !String(p.responsible).trim()) return erro('leitura exige responsavel identificado', 'P0001');
@@ -1544,7 +1569,7 @@ export function criarServidor() {
       const conteudo = { template_version: 1, tipos_de_conteudo: ['RELATO_DO_PACIENTE', 'OBSERVACAO_PROFISSIONAL', 'DADO_MEDIDO', 'DADO_DOCUMENTAL', 'INDICADOR_CALCULADO', 'TEXTO_ASSISTIDO'],
         paciente: { nome: pac.nome, nascimento: pac.nascimento || null, sexo: pac.sexo || null }, profissional: { nome: prof.nome || null, profissao: prof.profissao || null, registro: prof.registro || null },
         periodo: { inicio: p.period_start || (atual && atual.period_start) || null, fim: p.period_end || (atual && atual.period_end) || null }, titulo: p.title || (atual && atual.title) || null,
-        metodologia: 'Resultados metodológicos do HOLOSCAN (notas, faixas, Índice, Tríada, Leitura Integrada) ainda não são oficiais: Pacote Metodológico V1 não homologado. Constam só identificação, data, versão e cobertura bruta.',
+        metodologia: 'Resultados metodológicos do HOLOSCAN (notas, faixas, Índice, Tríada) ainda não são oficiais: Pacote Metodológico V1 não homologado. Constam só identificação, data, versão e cobertura bruta.',
         texto_assistido: [] };
       conteudo.atendimentos = [];
       for (const id of (sel.encounter_ids || [])) { const r = mine('encounters', id); if (!r) return erro('atendimento ' + id + ' nao e deste paciente', 'P0001');
@@ -1562,14 +1587,7 @@ export function criarServidor() {
       for (const id of (sel.holoscan_application_ids || [])) { const r = mine('holoscan_applications', id); if (!r) return erro('aplicacao HOLOSCAN ' + id + ' nao e deste paciente', 'P0001');
         conteudo.holoscan.push({ tipo_conteudo: 'INDICADOR_CALCULADO', id: r.id, encounter_id: r.encounter_id || null, quando: r.quando, versao_estrutura: r.versao_estrutura, versao_bancos: r.versao_bancos || null, cobertura: r.cobertura || null, resultados_oficiais: false,
           interpretacao_profissional: interp ? (r.interpretacao_texto || null) : null, interpretacao_em: interp ? (r.interpretacao_em || null) : null }); addFonte('holoscan_applications', { id: r.id, updated_at: r.updated_at }); }
-      conteudo.exames = [];
-      for (const id of (sel.lab_collection_ids || [])) { const r = mine('lab_collections', id); if (!r) return erro('coleta ' + id + ' nao e deste paciente', 'P0001');
-        if (r.state === 'rascunho') return erro('coleta ' + id + ' e rascunho: nao entra em relatorio', 'P0001');
-        const res = s.tabelas.lab_results.filter(x => x.collection_id === r.id).sort((a, b) => String(a.exam_code || a.exame_id).localeCompare(String(b.exam_code || b.exame_id))).map(x => x.exam_code || x.custom_exam_id || x.value_original_text
-          ? { exame_id: x.exam_code, custom_exam_id: x.custom_exam_id, nome: (s.tabelas.lab_exam_catalog.find(c => c.code === x.exam_code) || {}).canonical_name || null, variante: x.variant, material: x.material, metodo: x.method, valor: x.value_original_text, unidade: x.unit_original,
-              referencia_laudo: x.reference_status === 'informed' ? { texto: x.report_reference_text, min: x.report_reference_min, max: x.report_reference_max, unidade: x.report_reference_unit } : null }
-          : { exame_id: x.exame_id, nome: x.nome_exame_no_momento, valor: x.valor, unidade: x.unidade_no_momento });
-        conteudo.exames.push({ tipo_conteudo: 'DADO_MEDIDO', id: r.id, encounter_id: r.encounter_id || null, coletado_em: r.coletado_em, data_coleta_desconhecida: r.data_coleta_desconhecida, laboratorio: r.laboratorio || null, state: r.state || null, revision: r.revision || 1, resultados: res }); addFonte('lab_collections', { id: r.id, updated_at: r.updated_at }); }
+      conteudo.exames_incluidos = false;   // prontuario: coleta nao e mais fonte do relatorio
       conteudo.ferramentas = [];
       for (const id of (sel.tool_application_ids || [])) { const r = mine('tool_applications', id); if (!r) return erro('ferramenta ' + id + ' nao e deste paciente', 'P0001');
         if (r.status === 'rascunho') return erro('ferramenta ' + id + ' e rascunho: nao entra em relatorio', 'P0001');
@@ -1581,11 +1599,9 @@ export function criarServidor() {
         const ac = s.tabelas.agreements.filter(g => g.conduct_id === r.id && (!(sel.agreement_ids || []).length || sel.agreement_ids.includes(g.id))).sort((a, b) => (a.position - b.position) || String(a.created_at).localeCompare(String(b.created_at)))
           .map(g => ({ id: g.id, description: g.description, responsible: g.responsible || null, due_text: g.due_text || null, follow_up: g.follow_up || null, status: g.status, status_note: g.status_note || null }));
         const o = { tipo_conteudo: 'OBSERVACAO_PROFISSIONAL', id: r.id, encounter_id: r.encounter_id, revision_number: r.revision_number, status: r.status, priorities: r.priorities };
-        for (const k of ['objective', 'nutrition_strategy', 'actions', 'resources', 'requested_exams', 'referrals', 'monitoring', 'return_plan', 'observations', 'nutrition_diagnosis', 'dietary_prescription', 'professional_guidance']) o[k] = r[k] || null;
+        for (const k of ['objective', 'nutrition_strategy', 'actions', 'resources', 'requested_exams', 'monitoring', 'return_plan', 'observations', 'professional_guidance']) o[k] = r[k] || null;
         o.acordos = ac; conteudo.condutas.push(o); addFonte('conducts', { id: r.id, revision_number: r.revision_number, updated_at: r.updated_at }); }
-      conteudo.documentos = [];
-      for (const id of (sel.document_ids || [])) { const r = mine('documents', id); if (!r) return erro('documento ' + id + ' nao e deste paciente', 'P0001');
-        conteudo.documentos.push({ tipo_conteudo: 'DADO_DOCUMENTAL', id: r.id, nome: r.nome, tipo: r.tipo || null, data_documento: r.data_documento || null }); addFonte('documents', { id: r.id, updated_at: r.updated_at }); }
+      conteudo.documentos_armazenados = s.tabelas.documents.filter(d => d.patient_id === pid && d.nutritionist_id === uid && !d.arquivado_em).length;   // so a referencia administrativa
       const texto = p.professional_text !== undefined && p.professional_text !== null ? p.professional_text : (atual && atual.professional_text) || null;
       conteudo.interpretacao_profissional = interp && texto ? { tipo_conteudo: 'OBSERVACAO_PROFISSIONAL', texto } : null;
       const hash = createHash('sha256').update(JSON.stringify(conteudo), 'utf8').digest('hex');
@@ -1620,7 +1636,8 @@ export function criarServidor() {
       return { data: { b64: o.b64, tipo: o.tipo }, error: null };
     }
     if (m.acaoStorage === 'remove') {
-      (m.paths || []).forEach(pth => { if (b[pth] && b[pth].dono === uid) delete b[pth]; });
+      // policy storage_patient_docs_delete (prontuario): objeto de documento registrado nao sai; so o orfao
+      (m.paths || []).forEach(pth => { if (b[pth] && b[pth].dono === uid && !(m.bucket === 'patient-documents' && s.tabelas.documents.some(d => d.storage_path === pth))) delete b[pth]; });
       return { data: [], error: null };
     }
     return erro('op desconhecida');

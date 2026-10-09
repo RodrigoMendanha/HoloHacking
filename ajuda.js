@@ -29,7 +29,7 @@
       ["Por onde eu começo?",
        "Complete o seu <b>Perfil</b> (nome completo, registro profissional e, se quiser, assinatura e marca): é isso que aparece nos relatórios. Depois cadastre o paciente em <b>Pacientes → Novo paciente</b>, agende a consulta na <b>Agenda</b> e, no dia, inicie o atendimento a partir da consulta."],
       ["Qual é o caminho de um atendimento completo?",
-       "Agenda → <b>Iniciar atendimento</b> → HOLOSCAN (questionário) → Leitura Integrada (se houver exame) → ferramentas de Corpo, Mente e Espírito → Conduta → Relatório. Nenhuma etapa trava a seguinte: você usa o que fizer sentido para a pessoa."],
+       "Agenda → <b>Iniciar atendimento</b> → HOLOSCAN (questionário) → ferramentas de Corpo, Mente e Espírito → Resultado HOLOS → Conduta → Resultado para a paciente (PDF ou WhatsApp). Nenhuma etapa trava a seguinte: você usa o que fizer sentido para a pessoa."],
       ["Meus dados ficam salvos onde?",
        "Com a conta conectada, tudo vai para o servidor da sua conta (só você vê). A mensagem de sucesso só aparece depois que o servidor confirmou. Se aparecer “não salvo no servidor”, o dado está só neste navegador: abra a tela indicada e salve de novo."],
       ["Posso usar em mais de um computador ou no celular?",
@@ -37,7 +37,7 @@
     ]},
     { grupo: "Pacientes, agenda e atendimentos", itens: [
       ["Qual a diferença entre consulta e atendimento?",
-       "A <b>consulta</b> é o horário marcado na agenda. O <b>atendimento</b> é o encontro que aconteceu de fato: é nele que ficam o HOLOSCAN, as ferramentas, os exames vinculados e a conduta. Você inicia o atendimento a partir da consulta (Agenda → abrir a consulta → Iniciar atendimento) ou direto na ficha, aba Atendimentos."],
+       "A <b>consulta</b> é o horário marcado na agenda. O <b>atendimento</b> é o encontro que aconteceu de fato: é nele que ficam o HOLOSCAN, as ferramentas e a conduta. Você inicia o atendimento a partir da consulta (Agenda → abrir a consulta → Iniciar atendimento) ou direto na ficha, aba Atendimentos."],
       ["O que é o “atendimento ativo”?",
        "É o atendimento em que o que você salvar vai ficar registrado. Ele aparece no topo da ficha. Para trocar, use a aba <b>Atendimentos</b> da ficha. O sistema lembra a sua escolha enquanto a aba do navegador estiver aberta."],
       ["Como remarco ou desmarco uma consulta?",
@@ -57,17 +57,27 @@
       ["Apareceu “não salvo no servidor”. E agora?",
        "O mapa foi gerado mas ainda não foi salvo: confira se há um atendimento selecionado na tela do HOLOSCAN e clique em <b>Salvar HOLOSCAN</b>. Gerar de novo com as mesmas respostas de uma aplicação já salva não cria duplicata."]
     ]},
-    { grupo: "Exames e Leitura Integrada", itens: [
-      ["Enviei o PDF do exame. Por que a Leitura Integrada não calcula?",
-       "Enviar o PDF só guarda o arquivo. A Leitura Integrada usa os <b>valores</b>, que entram numa coleta. Na ficha, aba Documentos, clique em <b>Lançar valores deste exame</b>: a coleta abre ligada ao laudo, com o PDF ao lado para você digitar."],
-      ["Como lanço os valores de um exame?",
-       "Na coleta: confira a data, busque cada exame no catálogo (pode digitar o nome do laudo, como “glicose” ou “TSH”), e preencha o valor, a unidade e a referência <b>exatamente como estão no laudo</b>. <b>Guardar rascunho</b> não vale para a leitura; <b>Salvar coleta</b> consolida."],
-      ["O exame que eu quero não está no catálogo.",
-       "O catálogo tem 45 exames, nenhum obrigatório. Para outro exame, use <b>Criar exame customizado</b> na própria coleta: ele fica registrado, mas não entra nas regras da Leitura Integrada."],
-      ["Por que todos os domínios deram “sem dados suficientes”?",
-       "Cada domínio precisa de exames mínimos e de coleta até 30 dias antes ou depois da data do HOLOSCAN. Laudo antigo ou com poucos exames resulta em “sem dados suficientes” — é o comportamento esperado, não um erro."],
-      ["Como salvo a Leitura Integrada?",
-       "Depois de <b>Calcular leitura</b>, cada domínio tem o seu botão <b>Salvar</b>. Salve os domínios que vai usar; cada um fica como um registro congelado, que uma coleta nova não altera."]
+    { grupo: "Resultado para a paciente", itens: [
+      ["Onde fica o resultado para mostrar e enviar à paciente?",
+       "No menu <b>Resultado</b>. Ele mostra o último <b>Resultado HOLOS finalizado</b> da paciente (versão para a paciente), as ferramentas que você escolheu mostrar, os seus textos e a <b>Conduta vigente</b>, com o seu nome, registro, logo, assinatura e carimbo do Perfil."],
+      ["O Resultado está vazio. Por quê?",
+       "A página só mostra resultado <b>finalizado</b>. Na ficha, aba <b>Resultado HOLOS</b>, prepare, revise e clique em <b>Finalizar</b>. Rascunho não aparece para a paciente."],
+      ["Como envio pelo WhatsApp?",
+       "Clique em <b>Enviar pelo WhatsApp</b>. No <b>celular</b>, abre o menu de compartilhar com o PDF já anexado: escolha o WhatsApp e a conversa da paciente. No <b>computador</b>, o PDF é baixado e a conversa com o número cadastrado da paciente abre com uma mensagem pronta: é só anexar o arquivo baixado. Nenhum link público é criado."],
+      ["O resultado traz dieta ou prescrição?",
+       "Não. O HoloHacking não prescreve dieta nem calorias e não emite laudo. Os próximos passos são as ferramentas do método e as orientações que você mesma escreveu na Conduta."]
+    ]},
+    { grupo: "Documentos e exames", itens: [
+      ["Como guardo um exame ou documento do paciente?",
+       "Ficha → aba <b>Documentos</b> → <b>+ Adicionar arquivo</b>. Escolha o tipo (Exame, Laudo, Receita, Encaminhamento, Documento ou Outro), dê um título, informe a data do documento e escolha o arquivo (PDF, foto ou texto, até 10 MB). A observação é opcional. Clique em <b>Guardar</b>."],
+      ["O sistema lê ou interpreta os exames?",
+       "<b>Não.</b> Exames e documentos são só arquivos do prontuário, para você consultar. O sistema não lê o arquivo, não extrai valores, não compara com referência e não usa o exame no HOLOSCAN, no Índice, na Tríade, no Resultado HOLOS, em relatórios, na Evolução nem no HOLOS AI."],
+      ["O arquivo aparece em outro computador ou no celular?",
+       "Sim. Com login, o arquivo vai para o armazenamento privado da sua conta e abre em qualquer aparelho em que você entrar (<b>Abrir</b> ou <b>Baixar</b>). Se aparecer “só neste dispositivo”, o envio falhou: adicione de novo com conexão."],
+      ["Como tiro um documento da lista?",
+       "Use <b>Arquivar</b>. O documento sai da lista, mas <b>não é apagado</b>: o registro e o arquivo continuam guardados no prontuário. Para ver ou devolver à lista, clique em <b>Ver arquivados</b> → <b>Restaurar</b>."],
+      ["Onde foram parar os valores de exame e a Leitura Integrada?",
+       "Saíram do sistema: exame não produz resultado. O que já tinha sido registrado continua guardado no banco, sem alteração, mas não aparece mais nas telas."]
     ]},
     { grupo: "Ferramentas (Corpo, Mente, Espírito)", itens: [
       ["Qual a diferença entre salvar e concluir uma ferramenta?",
@@ -83,7 +93,7 @@
       ["A aba Conduta diz “Iniciar conduta”, mas eu já salvei uma.",
        "A conduta pertence a um atendimento. Se o atendimento ativo for outro, a aba avisa em qual atendimento está a conduta vigente e mostra um botão para abri-lo."],
       ["Como emito um relatório?",
-       "Na ficha, aba <b>Relatório</b>: escolha o que entra (atendimentos, HOLOSCAN, coletas, ferramentas, conduta), escreva a sua interpretação e clique em <b>Emitir</b>. A emissão fica registrada e não muda; para corrigir, emita uma retificação."]
+       "Na ficha, aba <b>Relatório</b>: escolha o que entra (atendimentos, HOLOSCAN, ferramentas, conduta), escreva a sua interpretação e clique em <b>Emitir</b>. A emissão fica registrada e não muda; para corrigir, emita uma retificação."]
     ]},
     { grupo: "Conta, dados e segurança", itens: [
       ["Alguém além de mim vê os meus pacientes?",
@@ -101,23 +111,23 @@
     ["Consulta", "Agenda → clique no horário → escolha o paciente."],
     ["Atendimento", "No dia: abra a consulta → Iniciar atendimento."],
     ["HOLOSCAN", "Aplicar questionário → Gerar o mapa → Salvar HOLOSCAN → Sua interpretação."],
-    ["Exames", "Ficha → Documentos → enviar o laudo → Lançar valores deste exame → Salvar coleta."],
-    ["Leitura Integrada", "Escolha a aplicação e a coleta → Calcular → Salvar por domínio."],
     ["Ferramentas", "Corpo, Mente, Espírito: preencher → Concluir → leitura profissional."],
-    ["Conduta", "Ficha → Conduta → objetivo, estratégia, acordos → Salvar."],
+    ["Resultado HOLOS", "Ficha → Resultado HOLOS → escolher o que entra → Finalizar."],
+    ["Conduta", "Ficha → Conduta → objetivo, ações, orientações, acordos → Salvar."],
+    ["Resultado para a paciente", "Menu Resultado → Baixar PDF ou Enviar pelo WhatsApp."],
+    ["Documentos e exames", "Ficha → Documentos → + Adicionar arquivo → tipo, título, data, arquivo → Guardar."],
     ["Relatório", "Ficha → Relatório → escolher as fontes → Emitir → Imprimir."]
   ];
 
   var GLOSSARIO = [
     ["Atendimento", "O encontro clínico que aconteceu. Tudo o que é clínico fica ligado a um atendimento."],
-    ["Coleta", "Um conjunto de exames de uma mesma data, com valores e referências do laudo."],
     ["Faixa", "Baixa, intermediária ou alta: onde a nota do sistema caiu nesta aplicação."],
     ["Cobertura", "Quantas perguntas foram respondidas. Abaixo de 80% num sistema, ele fica sem nota."],
     ["Tríade", "Físico, Mental e Espiritual, calculados a partir da origem das perguntas."],
     ["Índice HOLOS", "Informação secundária; só existe quando os cinco sistemas têm nota."],
-    ["Domínio (Leitura Integrada)", "Área em que o HOLOSCAN é comparado com os exames: convergente, divergente ou sem dados suficientes."],
-    ["Revisada", "Ferramenta ou coleta com leitura/conferência profissional registrada."],
-    ["Rascunho", "Algo guardado que ainda não vale como registro (não entra na Leitura Integrada nem no relatório)."]
+    ["Arquivar (documento)", "Tirar da lista sem apagar: o registro e o arquivo continuam guardados e podem ser restaurados."],
+    ["Revisada", "Ferramenta com leitura profissional registrada."],
+    ["Rascunho", "Algo guardado que ainda não vale como registro (não entra no Resultado nem no relatório)."]
   ];
 
   /* ---------- desenho ----------------------------------------------------- */

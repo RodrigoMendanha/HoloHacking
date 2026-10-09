@@ -247,13 +247,13 @@ const filtrado = await p.evaluate(async () => {
 conferir(filtrado.length === 1 && /Laudo/.test(filtrado[0]),
   'da para achar o arquivo pelo nome do paciente: ' + filtrado.join(', '));
 
-// --- remover remove de verdade, e so uma vez ---
+// --- arquivar tira da tela e NAO apaga (decisao 09/10) ---
 const removido = await p.evaluate(async () => {
   const b = document.getElementById('busca-documentos');
   b.value = '';
   b.dispatchEvent(new Event('input', { bubbles: true }));
   await new Promise(r => setTimeout(r, 400));
-  document.querySelector('[data-tirar]').click();
+  document.querySelector('[data-arquivar]').click();
   await new Promise(r => setTimeout(r, 150));
   document.getElementById('modal-confirmar-ok').click();   // rodada 08: confirma no modal
   await new Promise(r => setTimeout(r, 500));
@@ -261,8 +261,8 @@ const removido = await p.evaluate(async () => {
   const noBanco = (await window.ArquivoStore.listarTudo()).length;
   return { naTela, noBanco };
 });
-conferir(removido.naTela === 1 && removido.noBanco === 1,
-  'remover apaga de verdade: sobrou ' + removido.noBanco);
+conferir(removido.naTela === 1 && removido.noBanco === 2,
+  'arquivar tira da tela (sobrou 1) e NAO apaga: ' + removido.noBanco + ' continuam guardados');
 
 /* --------------------------------------------------------------- fim ----- */
 console.log('');

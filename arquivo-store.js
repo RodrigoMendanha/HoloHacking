@@ -185,6 +185,9 @@
       nome: meta.nome || arquivo.name,
       tipo: meta.tipo || "Outro",
       data: meta.data || "",
+      titulo: meta.titulo || "",
+      observacao: meta.observacao || "",
+      enviado_em: new Date().toISOString(),
       mime: arquivo.type || "application/octet-stream",
       tamanho: arquivo.size,
       arquivo: arquivo
@@ -350,7 +353,9 @@
 
   function semBlob(i) {
     var r = { id: i.id, paciente: i.paciente, nome: i.nome, tipo: i.tipo,
-              data: i.data, mime: i.mime, tamanho: i.tamanho };
+              data: i.data, mime: i.mime, tamanho: i.tamanho,
+              titulo: i.titulo || "", observacao: i.observacao || "", enviado_em: i.enviado_em || "",
+              arquivado_em: i.arquivado_em || "" };
     if (i._supa_id) r._supa_id = i._supa_id;
     return r;
   }
@@ -373,12 +378,31 @@
         })
         .map(function (i) {
           var item = { id: i.id, nome: i.nome, tipo: i.tipo, data: i.data,
-                       mime: i.mime, tamanho: i.tamanho };
+                       mime: i.mime, tamanho: i.tamanho,
+                       titulo: i.titulo || "", observacao: i.observacao || "", enviado_em: i.enviado_em || "",
+                       arquivado_em: i.arquivado_em || "" };
           /* a copia local de um documento que tambem esta no servidor sabe
              qual e: a listagem hibrida deduplica por identidade, nao por nome */
           if (i._supa_id) item._supa_id = i._supa_id;
           return item;
         }).sort(porData);
+    });
+  }
+
+  /** Prontuario (09/10): documento nao e apagado, e ARQUIVADO. No aparelho, o registro ganha arquivado_em
+      (ou perde, ao restaurar) e continua guardado com o arquivo. */
+  function marcarArquivadoLocal(id, arquivar) {
+    var impedido = barrado();
+    if (impedido) return Promise.reject(impedido);
+    var uid = uidAtual();
+    return transacao("readwrite").then(function (t) {
+      var esperar = aguardarTransacao(t.tx);
+      return promessa(t.loja.get(id)).then(function (reg) {
+        if (!reg) throw new Error("Documento não encontrado neste dispositivo.");
+        if (uid && reg.uid !== uid) throw new Error("Sem permissao: registro pertence a outro usuario.");
+        reg.arquivado_em = arquivar ? new Date().toISOString() : "";
+        return promessa(t.loja.put(reg)).then(function () { return esperar; }).then(function () { return true; });
+      });
     });
   }
 
@@ -390,21 +414,6 @@
         if (!reg) return esperar;
         reg._supa_id = supaId;
         return promessa(t.loja.put(reg)).then(function () { return esperar; });
-      });
-    });
-  }
-
-  /** Apaga as copias locais (do uid atual) de um documento do servidor. */
-  function removerCopiasDe(supaId) {
-    var uid = uidAtual();
-    return transacao("readwrite").then(function (t) {
-      var esperar = aguardarTransacao(t.tx);
-      return promessa(t.loja.getAll()).then(function (todos) {
-        var alvo = (todos || []).filter(function (r) {
-          return r._supa_id === supaId && (!uid || r.uid === uid);
-        });
-        return Promise.all(alvo.map(function (r) { return promessa(t.loja.delete(r.id)); }))
-          .then(function () { return esperar; });
       });
     });
   }
@@ -526,6 +535,8 @@
           patient_id: paciente,
           nome: meta.nome || arquivo.name,
           tipo: meta.tipo || "Outro",
+          titulo: meta.titulo || null,
+          observacao: meta.observacao || null,
           data_documento: meta.data || null,
           mime_type: arquivo.type || "application/octet-stream",
           tamanho_bytes: arquivo.size,
@@ -567,27 +578,35 @@
   }
   function invalidarListas() { cacheListas = {}; }
 
-  function listarSupa(paciente) {
+  function listarSupa(paciente, arquivados) {
     if (!temSupa()) return Promise.resolve(null);
     /* sem paciente de verdade nao ha o que perguntar: "_sem_paciente" nao e
        uuid e o servidor responderia 400 */
     if (!UUID_RE.test(String(paciente))) return Promise.resolve([]);
-    return compartilhado("pac:" + uidAtual() + ":" + paciente, function () { return listarSupaAgora(paciente); });
+    return compartilhado("pac:" + uidAtual() + ":" + paciente + (arquivados ? ":arq" : ""), function () { return listarSupaAgora(paciente, arquivados); });
   }
 
-  function listarSupaAgora(paciente) {
-    return window.supabaseClient.from("documents")
-      .select("id, nome, tipo, data_documento, mime_type, tamanho_bytes, storage_path")
-      .eq("patient_id", paciente)
+  /* Prontuario (09/10): a lista normal so traz os documentos ATIVOS; "arquivados" traz so os arquivados.
+     Nada e apagado: arquivar so tira da lista. */
+  function listarSupaAgora(paciente, arquivados) {
+    var q = window.supabaseClient.from("documents")
+      .select("id, nome, titulo, tipo, data_documento, observacao, mime_type, tamanho_bytes, storage_path, created_at, arquivado_em")
+      .eq("patient_id", paciente);
+    if (!arquivados) q = q.is("arquivado_em", null);
+    return q
       .order("created_at", { ascending: false })
       .then(function (r) {
         if (r.error) { console.error("documents select:", r.error); return null; }
-        return (r.data || []).map(function (d) {
+        return (r.data || []).filter(function (d) { return arquivados ? !!d.arquivado_em : !d.arquivado_em; }).map(function (d) {
           return {
             id: "supa:" + d.id,
             nome: d.nome,
+            titulo: d.titulo || "",
             tipo: d.tipo,
             data: d.data_documento || "",
+            observacao: d.observacao || "",
+            enviado_em: d.created_at || "",
+            arquivado_em: d.arquivado_em || "",
             mime: d.mime_type,
             tamanho: d.tamanho_bytes,
             _supa_id: d.id,
@@ -608,45 +627,6 @@
         return { arquivo: r.data };
       })
       .catch(function (e) { console.error("pegarSupa:", e); return undefined; });
-  }
-
-  /** Rejeita se o servidor nao confirmou a exclusao — a tela nao pode dizer
-      "excluido" de um documento que continua la.
-
-      Rodada 08: a linha so conta como excluida se o DELETE devolveu a linha
-      (0 linhas = RLS filtrou = nada saiu). Depois sai o objeto do bucket; se
-      ESSE passo falhar, resolve com { armazenamento: "falhou" } para a tela
-      dizer isso — o documento ja nao aparece para ninguem, mas o arquivo
-      ficou no armazenamento e isso nao e escondido. */
-  function removerSupa(supaId) {
-    if (!temSupa() || !supaId) return Promise.reject(new Error("Sem sessão para excluir do servidor."));
-    return Promise.resolve(window.supabaseClient.from("documents")
-      .select("storage_path")
-      .eq("id", supaId)
-      .single())
-      .then(function (r) {
-        if (r.error || !r.data) throw (r.error || new Error("Documento não encontrado no servidor."));
-        var caminho = r.data.storage_path;
-        return Promise.resolve(window.supabaseClient.from("documents")
-          .delete().eq("id", supaId).select("id"))
-          .then(function (d) {
-            if (!d || d.error) throw (d && d.error) || new Error("sem resposta do servidor");
-            if (!Array.isArray(d.data) || !d.data.length) {
-              throw new Error("O servidor não confirmou a exclusão do documento.");
-            }
-            return Promise.resolve(window.supabaseClient.storage
-              .from("patient-documents")
-              .remove([caminho]))
-              .then(function (x) {
-                if (x && x.error) throw x.error;
-                return { armazenamento: "ok" };
-              })
-              .catch(function (e) {
-                console.error("storage remove:", e && e.message ? e.message : e);
-                return { armazenamento: "falhou" };
-              });
-          });
-      });
   }
 
   /* ---------- API publica com roteamento --------------------------------- */
@@ -691,11 +671,18 @@
   }
   function marcarFalha(lista) { var l = lista.slice(); l.falhaServidor = true; return l; }
 
-  function listarHibrido(paciente) {
-    if (!temSupa()) return listar(paciente);
-    return Promise.all([listar(paciente), deNovoSeFalhou(function () { return listarSupa(paciente); })])
+  /* opcoes.arquivados: true lista SO os arquivados (para restaurar); sem ela, so os ativos */
+  function soAtivos(lista, arquivados) {
+    var l = (lista || []).filter(function (d) { return arquivados ? !!d.arquivado_em : !d.arquivado_em; });
+    if (lista && lista.falhaServidor) l.falhaServidor = true;
+    return l;
+  }
+  function listarHibrido(paciente, opcoes) {
+    var arquivados = !!(opcoes && opcoes.arquivados);
+    if (!temSupa()) return listar(paciente).then(function (l) { return soAtivos(l, arquivados); });
+    return Promise.all([listar(paciente), deNovoSeFalhou(function () { return listarSupa(paciente, arquivados); })])
       .then(function (par) {
-        var local = par[0] || [];
+        var local = soAtivos(par[0] || [], arquivados);
         var supa = par[1];
         if (!supa) return marcarFalha(local);        // servidor fora: mostra o que ha aqui, avisando
         var idsSupa = {}, chaves = {};
@@ -726,7 +713,8 @@
     var linhas = [];
     function pagina(de) {
       return Promise.resolve(window.supabaseClient.from("documents")
-        .select("id, patient_id, nome, tipo, data_documento, mime_type, tamanho_bytes, created_at")
+        .select("id, patient_id, nome, titulo, tipo, data_documento, observacao, mime_type, tamanho_bytes, created_at")
+        .is("arquivado_em", null)
         .order("created_at", { ascending: false })
         .order("id", { ascending: true })
         .range(de, de + 999))
@@ -739,17 +727,17 @@
     }
     return pagina(0).then(function (todas) {
       return todas.map(function (d) {
-        return { id: "supa:" + d.id, paciente: d.patient_id, nome: d.nome, tipo: d.tipo,
-                 data: d.data_documento || "", mime: d.mime_type, tamanho: d.tamanho_bytes,
-                 _supa_id: d.id };
+        return { id: "supa:" + d.id, paciente: d.patient_id, nome: d.nome, titulo: d.titulo || "", tipo: d.tipo,
+                 data: d.data_documento || "", observacao: d.observacao || "", enviado_em: d.created_at || "",
+                 mime: d.mime_type, tamanho: d.tamanho_bytes, _supa_id: d.id };
       });
     }).catch(function (e) { console.error("documents (todos):", e); return null; });
   }
 
   function listarTudoHibrido() {
-    if (!temSupa()) return listarTudo();
+    if (!temSupa()) return listarTudo().then(function (l) { return soAtivos(l, false); });
     return Promise.all([listarTudo(), deNovoSeFalhou(listarTudoSupa)]).then(function (par) {
-      var local = par[0] || [], supa = par[1];
+      var local = soAtivos(par[0] || [], false), supa = par[1];
       if (!supa) return marcarFalha(local);
       var chaves = {};
       supa.forEach(function (d) { chaves[d.paciente + "|" + d.nome + "|" + d.tamanho] = true; });
@@ -768,7 +756,7 @@
     if (typeof id === "string" && id.indexOf("supa:") === 0) {
       var supaId = id.slice(5);
       return window.supabaseClient.from("documents")
-        .select("storage_path, nome, tipo, data_documento, mime_type, tamanho_bytes")
+        .select("storage_path, nome, titulo, tipo, data_documento, mime_type, tamanho_bytes")
         .eq("id", supaId)
         .single()
         .then(function (r) {
@@ -778,6 +766,7 @@
             return {
               id: id,
               nome: r.data.nome,
+              titulo: r.data.titulo || "",
               tipo: r.data.tipo,
               data: r.data.data_documento || "",
               mime: r.data.mime_type,
@@ -790,15 +779,12 @@
     return pegar(id);
   }
 
+  /* Prontuario (09/10): documento do prontuario NAO e apagado — e arquivado (arquivar). Fica aqui so o caminho
+     antigo, que agora recusa, para nenhuma tela esquecida apagar laudo por engano. As imagens do PERFIL (que nunca
+     vao para 'documents') continuam com remover() local. */
   function removerHibrido(id) {
     if (typeof id === "string" && id.indexOf("supa:") === 0) {
-      var supaId = id.slice(5);
-      /* a copia local sai junto — senao o documento "voltava" na lista */
-      return depoisDeEscrever(removerSupa(supaId).then(function (res) {
-        return removerCopiasDe(supaId)
-          .catch(function (e) { console.error("remover copia local:", e); })
-          .then(function () { return res; });
-      }));
+      return Promise.reject(new Error("Documento do prontuário não é excluído: use Arquivar."));
     }
     var impedido = barrado();
     if (impedido) return Promise.reject(impedido);
@@ -813,9 +799,30 @@
                   function (e) { invalidarListas(); throw e; });
   }
 
+  /** Arquivar (true) ou restaurar (false) um documento do prontuario. No servidor, so arquivado_em muda (quem e
+      quando sao gravados pelo servidor); o registro e o arquivo ficam guardados. Rejeita se o servidor nao confirmou. */
+  function arquivarHibrido(id, arquivar) {
+    var impedido = barrado();
+    if (impedido) return Promise.reject(impedido);
+    arquivar = arquivar !== false;
+    if (typeof id === "string" && id.indexOf("supa:") === 0) {
+      if (!temSupa()) return Promise.reject(new Error("Sem sessão para arquivar no servidor."));
+      return depoisDeEscrever(Promise.resolve(window.supabaseClient.from("documents")
+        .update({ arquivado_em: arquivar ? new Date().toISOString() : null })
+        .eq("id", id.slice(5)).select("id, arquivado_em"))
+        .then(function (r) {
+          if (!r || r.error) throw (r && r.error) || new Error("sem resposta do servidor");
+          if (!Array.isArray(r.data) || !r.data.length) throw new Error("O servidor não confirmou o arquivamento.");
+          return true;
+        }));
+    }
+    return depoisDeEscrever(marcarArquivadoLocal(id, arquivar));
+  }
+
   window.ArquivoStore = {
     salvar: salvarHibrido,
     remover: removerHibrido,
+    arquivar: arquivarHibrido,
     esquecerListas: invalidarListas,
 
     /* tolerantes — para a tela */

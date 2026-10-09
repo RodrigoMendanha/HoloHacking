@@ -83,7 +83,7 @@ const ondeAparece = await p.evaluate(() => {
     const t = (el.textContent || '');
     if (/diagn[óo]stic/i.test(t)) {
       saida.push({ texto: t.replace(/\s+/g, ' ').trim().slice(0, 80),
-                   naFronteira: !!el.closest('.holo-fronteira, .rel-fronteira') });
+                   naFronteira: !!el.closest('.holo-fronteira, .rel-fronteira, .rp-fronteira, .rh-doc-rodape') });
     }
   });
   return saida;

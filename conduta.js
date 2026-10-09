@@ -23,12 +23,13 @@
 (function () {
   "use strict";
 
+  /* Decisao de produto 09/10: o sistema nao prescreve dieta. Prescricao dietetica, diagnostico nutricional e
+     encaminhamentos sairam da conduta (o servidor tambem nao grava mais esses campos em revisao nova —
+     migration 20261011100000). Revisoes antigas guardam o que foi escrito, mas a tela nao exibe nem copia. */
   var CAMPOS = [
     ["objective", "Objetivo da etapa"], ["nutrition_strategy", "Estratégia nutricional"], ["actions", "Ações"],
-    ["resources", "Recursos"], ["requested_exams", "Exames solicitados (quando pertinente)"], ["referrals", "Encaminhamentos"],
+    ["resources", "Recursos"], ["requested_exams", "Exames solicitados (quando pertinente)"],
     ["monitoring", "Monitoramento"], ["return_plan", "Retorno"], ["observations", "Observações"],
-    ["nutrition_diagnosis", "Diagnóstico nutricional (quando utilizado)"],
-    ["dietary_prescription", "Prescrição dietética (quando utilizada)"],
     ["professional_guidance", "Orientações profissionais"]
   ];
   var ESTADOS_ACORDO = [["proposto", "Proposto"], ["acordado", "Acordado"], ["em_acompanhamento", "Em acompanhamento"],
@@ -260,10 +261,8 @@
     var holoIds = historico.filter(function (h) { return h._supa_id; }).map(function (h) { return { id: h._supa_id, rot: "HOLOSCAN de " + (window.dataBR ? window.dataBR(h.quando) : h.quando) }; });
     var ferr = (window.Aplicacoes && window.Aplicacoes.doPaciente ? window.Aplicacoes.doPaciente(pid) : []).filter(function (a) { return a.id && a.status !== "rascunho"; })
       .map(function (a) { var d = String(a.concluida_em || a.iniciada_em || "").slice(0, 10); return { id: a.id, rot: nomeFerramenta(a.ferramenta_id) + " (" + (window.dataBR ? window.dataBR(d) : d) + ")" }; });
-    var col = (S && S.coletas ? S.coletas(pid) : []) || [];
-    var colIds = col.map(function (c) { return { id: c.id, rot: "coleta " + (c.coletado_em ? (window.dataBR ? window.dataBR(c.coletado_em) : c.coletado_em) : "sem data") }; });
     var enc = (A ? A.doPaciente(pid) : []).map(function (e) { return { id: e.id, rot: "atendimento " + A.rotuloQuando(e) }; });
-    var grupos = [["holoscan_application_ids", "HOLOSCAN", holoIds], ["tool_application_ids", "Ferramentas", ferr], ["lab_collection_ids", "Coletas", colIds], ["previous_encounter_ids", "Atendimentos", enc]];
+    var grupos = [["holoscan_application_ids", "HOLOSCAN", holoIds], ["tool_application_ids", "Ferramentas", ferr], ["previous_encounter_ids", "Atendimentos", enc]];
     var html = '<details class="an-dominio" id="cd-referencias"><summary><b>Referências clínicas</b> <span class="an-conta">por ID, sem copiar</span></summary>';
     grupos.forEach(function (gr) {
       var sel = (refs || {})[gr[0]] || [];

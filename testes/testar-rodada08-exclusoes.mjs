@@ -9,7 +9,7 @@
  *      e o modal nomeia um e outro (singular/plural)
  *   3  paciente unico com historico: so arquivar
  *   4  excluir o paciente com a ficha aberta tira a ficha da tela
- *   5  documento: linha e arquivo saem; falha do servidor nao vira sucesso;
+ *   5  documento: ARQUIVA (linha e arquivo ficam, 09/10); falha do servidor nao vira sucesso;
  *      falha so do armazenamento e dita
  *   6  o modal e global: visivel de dentro da ficha
  */
@@ -23,7 +23,7 @@ const titulo = (t) => console.log('\n  ' + t + '\n');
 const esperar = (ms) => new Promise(r => setTimeout(r, ms));
 
 const srv = criarServidor();
-srv.criarConta('a@holo.test', 'senha-a-123');
+const UID_A = srv.criarConta('a@holo.test', 'senha-a-123');
 const nav = await puppeteer.launch({
   executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
   headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
@@ -201,7 +201,7 @@ async function excluirPelaFicha(nome) {
     await new Promise(r => setTimeout(r, 200));
     document.querySelector('[data-aba="documentos"]').click();
     await new Promise(r => setTimeout(r, 600));
-    const b = document.querySelector('#aba-documentos [data-tirar][data-nome="' + nome + '"]');
+    const b = document.querySelector('#aba-documentos [data-arquivar][data-nome="' + nome + '"]');   /* 09/10: arquivar, nao excluir */
     if (!b) { obs.disconnect(); return { achou: false }; }
     b.click();
     await new Promise(r => setTimeout(r, 150));
@@ -216,22 +216,27 @@ async function excluirPelaFicha(nome) {
 const docs = () => srv.linhas('documents').filter(d => d.patient_id === H1);
 const objetos = () => Object.keys(srv.storage['patient-documents'] || {});
 
+/* 09/10: documento do prontuario NAO se exclui — se ARQUIVA. A linha e o arquivo ficam sempre. */
+const ativos = () => docs().filter(d => !d.arquivado_em);
 ok(await subir('laudo-a.pdf') === true && docs().length === 1 && objetos().length === 1, 'documento enviado (linha + arquivo)');
 let r = await excluirPelaFicha('laudo-a.pdf');
-ok(r.achou && r.visivel, 'o modal de confirmacao aparece DE DENTRO da ficha (e global)');
-ok(docs().length === 0 && objetos().length === 0 && /Documento excluído/.test(r.toasts),
-   'linha e arquivo sairam, e so entao "Documento excluído"');
+ok(r.achou && r.visivel, 'o modal de confirmacao (Arquivar documento) aparece DE DENTRO da ficha (e global)');
+ok(docs().length === 1 && objetos().length === 1 && ativos().length === 0 && docs()[0].arquivado_por === UID_A && /Documento arquivado/.test(r.toasts),
+   'arquivado: a linha (com quem/quando) e o arquivo continuam; a tela diz "Documento arquivado"');
 
 await subir('laudo-b.pdf');
-srv.falhar.push({ tabela: 'documents', acao: 'delete', vezes: 1 });
+srv.falhar.push({ tabela: 'documents', acao: 'update', vezes: 1 });
 r = await excluirPelaFicha('laudo-b.pdf');
-ok(docs().length === 1 && objetos().length === 1 && /Não foi possível excluir o documento/.test(r.toasts) &&
-   !/Documento excluído/.test(r.toasts), 'servidor recusou: nada saiu, e a tela diz: ' + r.toasts);
+ok(ativos().length === 1 && objetos().length === 2 && /Não foi possível arquivar o documento/.test(r.toasts) &&
+   !/Documento arquivado/.test(r.toasts), 'servidor recusou: nada mudou, e a tela diz: ' + r.toasts);
 
-srv.falhar.push({ tabela: 'patient-documents', acao: 'remove', vezes: 1 });
-r = await excluirPelaFicha('laudo-b.pdf');
-ok(docs().length === 0 && /arquivo não pôde ser removido/.test(r.toasts),
-   'so o armazenamento falhou: a linha saiu e a tela DIZ que o arquivo ficou');
+const apagar = await A.evaluate(async (id, path) => {
+  const sb = window.supabaseClient;
+  const d = await sb.from('documents').delete().eq('id', id);
+  await sb.storage.from('patient-documents').remove([path]);
+  return d.error ? d.error.code : 'APAGOU';
+}, docs()[0].id, docs()[0].storage_path);
+ok(apagar === '42501' && docs().length === 2 && objetos().length === 2, 'nem por fora: DELETE na tabela e sem permissao e o objeto registrado nao sai do Storage');
 
 ok(errosJS.length === 0, 'nenhum erro de JavaScript' + (errosJS.length ? ': ' + errosJS.join(' | ') : ''));
 await nav.close();

@@ -207,8 +207,8 @@
   function blocoJornadaClinica() {
     var etapas = [
       { mov: "MAPEAR",      nome: "HOLOSCAN",          texto: "Mapear prioridades de investigação.",                destino: "holoscan" },
-      { mov: "CONFRONTAR",  nome: "Leitura Integrada", texto: "Confrontar o mapa com dados laboratoriais.",         destino: "confronto" },
       { mov: "INTEGRAR",    nome: "Ferramentas",       texto: "Integrar ferramentas e condutas ao caso.",           destino: "aba:ferramentas" },
+      { mov: "APRESENTAR",  nome: "Resultado",         texto: "Apresentar e enviar o resultado à paciente.",        destino: "resultado" },
       { mov: "ACOMPANHAR",  nome: "Evolução",          texto: "Acompanhar mudanças entre aplicações.",              destino: "evolucao" }
     ];
 

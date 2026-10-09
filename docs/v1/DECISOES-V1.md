@@ -891,6 +891,19 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     trocar de bloco, uma chamada por vez, `expected_updated_at`; conflito não sobrescreve). Resumo automático sem IA (na
     anamnese e na Visão geral). Anamnese antiga abre e edita no formato antigo, sem conversão. Detalhes:
     `docs/v1/ANAMNESE-V2.md`.
+175. **Prontuário: exames e documentos são só arquivos** (09/10, aprovado pela usuária com 12 decisões). Regra definitiva: o
+    sistema **não lê, interpreta, estrutura, classifica, compara, pontua nem cruza exames**; exame e documento ficam na
+    biblioteca do prontuário (tipo, título, data, arquivo, observação; Abrir/Baixar/**Arquivar** — nunca apagar). Laboratório
+    estruturado e Leitura Integrada **saem do fluxo**: RPCs recusam (`laboratorio_desativado`, `li_desativada`), escrita nas
+    tabelas `lab_*` revogada, UI removida (inclusive o confronto legado); o histórico fica no banco, só leitura, fora de toda
+    tela. **Página Resultado** no lugar da Leitura Integrada: Resultado HOLOS salvo (versão da paciente) + Conduta vigente +
+    identidade profissional; PDF (html2pdf 0.10.2) e WhatsApp (celular compartilha o PDF; computador baixa e abre a conversa
+    com mensagem pronta). O sistema **não prescreve dieta/déficit/cardápio**: Conduta sem Prescrição dietética, Diagnóstico
+    nutricional e Encaminhamentos. Relatório sem exames (documentos só como contagem). Migration 20261011100000 (não
+    destrutiva), harness P00–P18. Detalhes: `docs/v1/PRONTUARIO-DOCUMENTOS.md`. PENDENTE: aplicar no banco real
+    (`supabase/PRONTUARIO-DOCUMENTOS-PARTE1..4.sql`) e deploy. Sugestão de ferramentas no resultado do HOLOSCAN (só as 10
+    ativas) fica para um motor de recomendação futuro, **não implementado**.
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`
@@ -929,7 +942,7 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
   **DECIDIDAS na Etapa 4.2** (itens 52–66). Pendente só a **publicação técnica**: validar a
   cadeia 130000→210000 no banco real, registrar a Aprovação 1 (Daniel) e a Aprovação 2 (Rodrigo)
   sobre o mesmo pacote, versão e hash, e então homologar o HOLOS-V1@2 (item 67).
-- **Leitura Integrada** — infraestrutura (Etapa 5), decisões 1–29 (Etapas 5.4–5.13) e **implementação local**
+- ~~**Leitura Integrada**~~ — **RETIRADA DO FLUXO em 09/10 (item 175)**: o histórico fica só leitura; o gate abaixo deixa de existir. Registro anterior: infraestrutura (Etapa 5), decisões 1–29 (Etapas 5.4–5.13) e **implementação local**
   (Etapa 6.0, itens 143–149) concluídas. Pendente só o gate técnico/operacional (grupo B de
   `docs/v1/laboratorio/PACOTE-FINAL-PENDENCIAS-EXECUTAVEIS-LI-V1.md`): validar a cadeia no banco real, aplicar as
   migrations, cadastrar os `auth.uid` reais, Aprovação 1 (Daniel), Aprovação 2 (Rodrigo), Homologar LI-V1@2
@@ -941,6 +954,6 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
   guarda de aplicação vazia, pendente de decisão metodológica.
 - **Réguas manuais dos 5 sistemas** — LEGADO / EM REVISÃO; fora da jornada normal,
   visíveis só em modo de homologação (`?homologacao=1`); não sincronizadas.
-- ~~**Catálogo laboratorial de 45 exames**~~ — **ENTREGUE na Etapa 5** (itens 68–72). Pendente só o
+- ~~**Catálogo laboratorial de 45 exames**~~ — **ENTREGUE na Etapa 5** (itens 68–72) e **DESATIVADO em 09/10 (item 175)**: histórico só leitura, sem gravação nova. Antes pendia só o
   mapeamento manual dos itens legado marcados `requires_manual_mapping` (Insulina de jejum) e a
   validação da migration 20261001220000 no banco real. (Mestre §21)

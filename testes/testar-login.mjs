@@ -348,8 +348,8 @@ const app = await p.evaluate(async () => {
   const navs = [...document.querySelectorAll('.nav-item')].map(b => b.dataset.secao);
   document.querySelector('.nav-item[data-secao="holoscan"]').click();
   const holoscan = document.getElementById('secao-holoscan').classList.contains('ativa');
-  document.querySelector('.nav-item[data-secao="confronto"]').click();
-  const confronto = document.getElementById('secao-confronto').classList.contains('ativa');
+  document.querySelector('.nav-item[data-secao="resultado"]').click();
+  const confronto = document.getElementById('secao-resultado').classList.contains('ativa');
   return {
     telaFechada: document.getElementById('tela-login').hidden,
     appLiberado: !document.getElementById('app').getAttribute('aria-hidden'),
@@ -361,7 +361,7 @@ const app = await p.evaluate(async () => {
   };
 });
 /* Lista nominal, nao contagem: um numero certo com a secao errada passaria. */
-const SECOES = ['secao-dashboard', 'secao-holoscan', 'secao-confronto', 'secao-pacientes',
+const SECOES = ['secao-dashboard', 'secao-holoscan', 'secao-resultado', 'secao-pacientes',
                 'secao-consultas', 'secao-agenda', 'secao-documentos', 'secao-perfil',
                 'secao-corpo', 'secao-mente', 'secao-espirito',
                 // Etapa 4: secao interna Metodologia / Homologacao (consulta, so com ?homologacao=1)
@@ -369,7 +369,7 @@ const SECOES = ['secao-dashboard', 'secao-holoscan', 'secao-confronto', 'secao-p
                 // 07/10: Ajuda; 08/10: Contas (liberar cadastros, so administradoras)
                 'secao-contas', 'secao-ajuda'];
 const MENU = ['dashboard', 'pacientes', 'consultas', 'agenda', 'documentos',
-              'holoscan', 'confronto', 'corpo', 'mente', 'espirito', 'metodologia', 'contas', 'perfil', 'ajuda'];
+              'holoscan', 'resultado', 'corpo', 'mente', 'espirito', 'metodologia', 'contas', 'perfil', 'ajuda'];
 const faltando = SECOES.filter(s => !app.secoes.includes(s));
 const sobrando = app.secoes.filter(s => !SECOES.includes(s));
 
@@ -380,7 +380,7 @@ ok(faltando.length === 0 && sobrando.length === 0,
    (sobrando.length ? ' | apareceu: ' + sobrando.join(', ') : ''));
 ok(JSON.stringify(app.navs) === JSON.stringify(MENU),
    'o menu continua com os mesmos ' + MENU.length + ' itens, na mesma ordem: ' + app.navs.join(', '));
-ok(app.holoscan && app.confronto, 'HOLOSCAN e Leitura Integrada continuam abrindo pelo menu');
+ok(app.holoscan && app.confronto, 'HOLOSCAN e Resultado (no lugar da Leitura Integrada, 09/10) abrem pelo menu');
 ok(app.metodologiaOculta, 'o item Metodologia / Homologacao fica oculto sem ?homologacao=1 (flag interna)');
 ok(app.loginNaoEhSecao, 'a tela de entrada nao virou secao nem item de menu');
 

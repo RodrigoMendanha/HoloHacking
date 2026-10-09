@@ -6,8 +6,10 @@
    (source_snapshot + content_snapshot) e montado PELO SERVIDOR (RPC
    emitir_relatorio) a partir das fontes que a profissional ESCOLHEU uma a
    uma: atendimentos, anamneses consolidadas, aplicacoes do HOLOSCAN,
-   coletas, ferramentas concluidas, condutas consolidadas (com acordos),
-   documentos e a interpretacao profissional. Nada e selecionado por padrao;
+   ferramentas concluidas, condutas consolidadas (com acordos) e a
+   interpretacao profissional. Exames e documentos (decisao 09/10) entram so
+   como referencia administrativa: "N documentos/exames armazenados no
+   prontuario" — nunca valor, nome ou conteudo. Nada e selecionado por padrao;
    conteudo intimo (campos emocionais, sentido pessoal, respostas das
    ferramentas) so entra com a marcacao explicita.
 
@@ -77,13 +79,14 @@
 
   function fontesDisponiveis(pid) {
     var A = window.AtendimentoAtual, An = window.Anamnese, Cd = window.Conduta, comSessao = temSupa();
-    var f = { atendimentos: [], anamneses: [], holoscan: [], coletas: [], ferramentas: [], condutas: [], documentos: documentosCache[pid] || [] };
+    /* Decisao de produto 09/10: exame e documento sao so arquivos do prontuario. Coleta nao e mais fonte do
+       relatorio, e documento entra so como referencia administrativa (quantos ha), nunca nome nem conteudo. */
+    var f = { atendimentos: [], anamneses: [], holoscan: [], ferramentas: [], condutas: [], documentos: documentosCache[pid] || [] };
     if (A) f.atendimentos = A.doPaciente(pid).slice().sort(function (a, b) { return String(b.occurred_at).localeCompare(String(a.occurred_at)); });
     if (An) f.anamneses = An.doPaciente(pid).filter(An.consolidada);
     if (Cd) f.condutas = Cd.doPaciente(pid).filter(Cd.consolidada);
     var h = window.historicoPontuacao ? (window.historicoPontuacao(pid) || []) : [];
     f.holoscan = h.filter(function (x) { return x._supa_id; });
-    f.coletas = (window.Sincronizacao ? window.Sincronizacao.coletas(pid) : null) || [];
     if (window.Aplicacoes) f.ferramentas = window.Aplicacoes.doPaciente(pid).filter(function (a) { return a.status !== "rascunho" && a.id && (comSessao || true); });
     return f;
   }
@@ -107,6 +110,8 @@
       f.encounter_id = base.encounter_id || null; f.professional_text = base.professional_text || "";
       var s = base.selected_sources || {};
       Object.keys(f.sel).forEach(function (k) { if (s[k] !== undefined) f.sel[k] = Array.isArray(s[k]) ? s[k].slice() : s[k]; });
+      /* rascunho antigo podia ter coleta/documento marcados: nao entram mais (o servidor tambem ignora) */
+      f.sel.lab_collection_ids = []; f.sel.document_ids = [];
       if (base.status === "emitido") f.title = base.title || f.title;
     }
     return f;
@@ -117,7 +122,7 @@
       operation_id: f.operation_id, expected_updated_at: f.expected_updated_at || null };
   }
   function totalFontes(sel) {
-    return ["encounter_ids", "anamnesis_ids", "holoscan_application_ids", "lab_collection_ids", "tool_application_ids", "conduct_ids", "document_ids"]
+    return ["encounter_ids", "anamnesis_ids", "holoscan_application_ids", "tool_application_ids", "conduct_ids"]
       .reduce(function (n, k) { return n + (sel[k] || []).length; }, 0);
   }
 
@@ -147,18 +152,7 @@
       return { tipo_conteudo: "INDICADOR_CALCULADO", id: h._supa_id, quando: h.quando, versao_estrutura: h.versao_estrutura, cobertura: h.cobertura, resultados_oficiais: false,
         interpretacao_profissional: interp && h.interpretacao ? h.interpretacao.texto : null };
     });
-    c.exames = em(F.coletas, sel.lab_collection_ids).map(function (k) {
-      return { tipo_conteudo: "DADO_MEDIDO", id: k.id, coletado_em: k.coletado_em, data_coleta_desconhecida: k.data_coleta_desconhecida, laboratorio: k.laboratorio,
-        state: k.state || null, revision: k.revision || 1,
-        resultados: (k.resultados || []).map(function (r) {
-          if (r.exam_code || r.custom_exam_id || r.value_original_text) {
-            /* Etapa 5: snapshot do valor ORIGINAL e da referencia DO LAUDO usados; nenhuma classificacao */
-            return { exame_id: r.exam_code || null, custom_exam_id: r.custom_exam_id || null, nome: window.Laboratorio ? window.Laboratorio.nomeExame(r) : (r.exam_code || "exame"), variante: r.variant || null, material: r.material || null, metodo: r.method || null,
-              valor: r.value_original_text, unidade: r.unit_original || null, referencia_laudo: r.reference_status === "informed" ? { texto: r.report_reference_text || null, min: r.report_reference_min, max: r.report_reference_max, unidade: r.report_reference_unit || null } : null };
-          }
-          return { exame_id: r.exame_id, nome: r.nome_exame_no_momento, valor: r.valor, unidade: r.unidade_no_momento };
-        }) };
-    });
+    c.exames_incluidos = false;
     c.ferramentas = em(F.ferramentas, sel.tool_application_ids).map(function (a) {
       return { tipo_conteudo: "RELATO_DO_PACIENTE", id: a.id, ferramenta_id: a.ferramenta_id, versao_ferramenta: a.versao_ferramenta, concluida_em: a.concluida_em, status: a.status,
         respostas: intimo ? a.respostas : null, respostas_incluidas: intimo, leitura_profissional: interp ? a.leitura : null, prioridade: a.prioridade, proximo_passo: a.proximo_passo };
@@ -170,7 +164,7 @@
         .map(function (g) { return { id: g.id, description: g.description, responsible: g.responsible, due_text: g.due_text, follow_up: g.follow_up, status: g.status, status_note: g.status_note }; });
       return o;
     });
-    c.documentos = em(F.documentos, sel.document_ids, "_supa_id").map(function (d) { return { tipo_conteudo: "DADO_DOCUMENTAL", id: d._supa_id, nome: d.nome, tipo: d.tipo, data_documento: d.data }; });
+    c.documentos_armazenados = F.documentos.length;
     c.interpretacao_profissional = interp && f.professional_text ? { tipo_conteudo: "OBSERVACAO_PROFISSIONAL", texto: f.professional_text } : null;
     void An;
     return c;
@@ -181,16 +175,6 @@
   function tag(t) { return t ? '<span class="rel-tipo" title="tipo de conteúdo">' + escapar(TIPOS_CONTEUDO[t] || t) + "</span>" : ""; }
   function bloco(titulo, corpo) { return corpo ? '<section class="rel-secao"><h4>' + escapar(titulo) + "</h4>" + corpo + "</section>" : ""; }
   function lista(itens) { return itens && itens.length ? '<ul class="rel-lista">' + itens.join("") + "</ul>" : ""; }
-
-  /* teste real 07/10: a referencia do laudo vai no snapshot, mas nao era desenhada */
-  function refLaudo(r2) {
-    if (!("referencia_laudo" in r2)) return "";
-    var f = r2.referencia_laudo;
-    if (!f) return ' <span class="rel-ref">(referência do laudo não informada)</span>';
-    var num = function (v) { return v === null || v === undefined || v === "" ? null : String(v).replace(".", ","); };
-    var t = f.texto || (num(f.min) && num(f.max) ? num(f.min) + " a " + num(f.max) : num(f.max) ? "até " + num(f.max) : num(f.min) ? "≥ " + num(f.min) : "");
-    return t ? ' <span class="rel-ref">(referência do laudo: ' + escapar(t) + (f.unidade && !f.texto ? " " + escapar(f.unidade) : "") + ")</span>" : "";
-  }
 
   function snapshotHtml(r) {
     var c = (r && r.content_snapshot) || {}, Cd = window.Conduta, An = window.Anamnese;
@@ -226,10 +210,10 @@
       return "<li>" + tag(x.tipo_conteudo) + " <b>" + escapar(dataBR(x.quando)) + "</b> · versão " + escapar(x.versao_estrutura || "?") + " · " + escapar(cob) + " · resultados não oficiais" +
         (x.interpretacao_profissional ? "<br>" + tag("OBSERVACAO_PROFISSIONAL") + " " + escapar(x.interpretacao_profissional) : "") + "</li>";
     })) : "");
-    h += bloco("Exames", (c.exames || []).map(function (k) {
-      return '<div class="rel-coleta"><p class="rel-meta">' + tag(k.tipo_conteudo) + " Coleta " + (k.data_coleta_desconhecida || !k.coletado_em ? "(data não informada)" : "de " + escapar(dataBR(k.coletado_em))) + (k.laboratorio ? " · " + escapar(k.laboratorio) : "") + "</p>" +
-        lista((k.resultados || []).map(function (r2) { return "<li>" + escapar(r2.nome || r2.exame_id) + ": <b>" + escapar(String(r2.valor)) + "</b> " + escapar(r2.unidade || "") + refLaudo(r2) + "</li>"; })) + "</div>";
-    }).join(""));
+    /* emissao ANTIGA que guardou valores de exame: o snapshot fica preservado no banco, mas a tela nao mostra
+       valor laboratorial (decisao de produto 09/10) */
+    if ((c.exames || []).length) h += bloco("Exames", '<p class="rel-aviso">Esta emissão antiga registrou ' + c.exames.length +
+      (c.exames.length === 1 ? " coleta de exames" : " coletas de exames") + ". O registro fica preservado, mas os valores laboratoriais não são mais exibidos.</p>");
     h += bloco("Ferramentas", lista((c.ferramentas || []).map(function (a) {
       return "<li>" + tag(a.tipo_conteudo) + " <b>" + escapar(nomeFerramenta(a.ferramenta_id)) + "</b> · " + escapar(dataBR(a.concluida_em)) + " · versão " + escapar(a.versao_ferramenta || "?") +
         (a.respostas_incluidas ? " · respostas incluídas" : " · respostas não incluídas") +
@@ -241,7 +225,9 @@
         ((k.acordos || []).length ? "<h5>Acordos</h5>" + lista(k.acordos.map(function (g) { return "<li>" + escapar(g.description) + " · " + escapar(Cd ? Cd.rotulo(g.status) : g.status) + (g.responsible ? " · " + escapar(g.responsible) : "") + (g.due_text ? " · " + escapar(g.due_text) : "") + "</li>"; })) : "") +
         (k.return_plan ? '<p class="rel-meta"><b>Retorno:</b> ' + escapar(k.return_plan) + "</p>" : "") + "</div>";
     }).join(""));
-    h += bloco("Documentos anexados", lista((c.documentos || []).map(function (d) { return "<li>" + tag(d.tipo_conteudo) + " " + escapar(d.nome) + (d.tipo ? " · " + escapar(d.tipo) : "") + (d.data_documento ? " · " + escapar(dataBR(d.data_documento)) : "") + "</li>"; })));
+    var nDocs = typeof c.documentos_armazenados === "number" ? c.documentos_armazenados : (c.documentos || []).length;
+    if (nDocs || typeof c.documentos_armazenados === "number") h += bloco("Documentos", "<p>" + tag("DADO_DOCUMENTAL") + " " +
+      (nDocs === 0 ? "Nenhum documento/exame armazenado no prontuário." : nDocs + (nDocs === 1 ? " documento/exame armazenado no prontuário." : " documentos/exames armazenados no prontuário.")) + "</p>");
     if (c.interpretacao_profissional && c.interpretacao_profissional.texto) h += bloco("Interpretação profissional", "<p>" + tag(c.interpretacao_profissional.tipo_conteudo) + " " + escapar(c.interpretacao_profissional.texto).replace(/\n/g, "<br>") + "</p>");
     if (r.status === "emitido") h += '<footer class="rel-rodape"><p class="rel-meta">Hash técnico do snapshot (sha256, não é assinatura digital): <code>' + escapar(r.content_hash || "") + "</code></p>" +
       '<p class="rel-meta">Modelo ' + escapar(String(r.template_version || 1)) + " · emissão " + escapar(r.id) + "</p></footer>";
@@ -312,14 +298,14 @@
       grupo("Atendimentos", "encounter_ids", F.atendimentos, function (e) { return escapar(rotuloAtendimento(e)) + (e.type ? " · " + escapar(e.type) : ""); }) +
       grupo("Anamnese (salva/revisada)", "anamnesis_ids", F.anamneses, function (a) { return "rev. " + a.revision_number + " · " + escapar(a.status) + " · atendimento de " + escapar(dataBR(diaDoAtendimento(a.encounter_id))) + (a.superseded_at ? " · substituída" : "") + " · " + (An ? An.contarItens(a.content) : "?") + " itens"; }) +
       grupo("HOLOSCAN (aplicações consolidadas — sem resultados oficiais)", "holoscan_application_ids", F.holoscan, function (x) { return escapar(dataBR(x.quando)) + " · versão " + escapar(x.versao_estrutura || "?"); }, function (x) { return x._supa_id; }) +
-      grupo("Exames (coletas)", "lab_collection_ids", F.coletas, function (k) { return (k.data_coleta_desconhecida || !k.coletado_em ? "data não informada" : escapar(dataBR(k.coletado_em))) + " · " + (k.resultados || []).length + " exames" + (k.laboratorio ? " · " + escapar(k.laboratorio) : ""); }) +
       grupo("Ferramentas (concluídas)", "tool_application_ids", F.ferramentas, function (a) { return escapar(nomeFerramenta(a.ferramenta_id)) + " · " + escapar(dataBR(a.concluida_em || a.iniciada_em)); }) +
       grupo("Conduta (salva/revisada) e acordos", "conduct_ids", F.condutas, function (k) {
         var ac = Cd ? Cd.acordosDe(k.id) : [];
         return "rev. " + k.revision_number + " · " + escapar(k.status) + " · atendimento de " + escapar(dataBR(diaDoAtendimento(k.encounter_id))) + (k.objective ? " · " + escapar(k.objective) : "") +
           (ac.length ? '<span class="rel-acordos">' + ac.map(function (g) { return '<label class="rel-fonte rel-fonte-acordo"><input type="checkbox" data-rel-fonte="agreement_ids" value="' + escapar(g.id) + '"' + marcado("agreement_ids", g.id) + "> acordo: " + escapar(g.description) + " (" + escapar(Cd.rotulo(g.status)) + ")</label>"; }).join("") + "</span>" : "");
       }) +
-      grupo("Documentos anexados", "document_ids", F.documentos, function (d) { return escapar(d.nome) + (d.data ? " · " + escapar(dataBR(d.data)) : ""); }, function (d) { return d._supa_id; }) +
+      '<p class="dash-sub">Documentos e exames: o relatório leva só a referência “' + F.documentos.length +
+        (F.documentos.length === 1 ? " documento/exame armazenado" : " documentos/exames armazenados") + ' no prontuário”. Nome, valores e conteúdo dos arquivos não entram.</p>' +
       '<fieldset class="rel-grupo"><legend>Conteúdo profissional e íntimo</legend>' +
       '<label class="rel-fonte"><input type="checkbox" data-rel-opcao="incluir_interpretacao"' + (f.sel.incluir_interpretacao !== false ? " checked" : "") + "> Incluir interpretação profissional (HOLOSCAN, leituras das ferramentas e o texto abaixo)</label>" +
       '<label class="rel-fonte"><input type="checkbox" data-rel-opcao="incluir_intimo"' + (f.sel.incluir_intimo ? " checked" : "") + "> Incluir conteúdo íntimo (campos emocionais, sentido pessoal, respostas das ferramentas) — <b>não entra por padrão</b></label>" +

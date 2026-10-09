@@ -137,7 +137,7 @@ const arq = await p.evaluate(async (ids) => {
 }, ids);
 ok(arq.principal === 'Reativar', 'lista: o botão principal do arquivado é "Reativar": ' + arq.principal);
 ok(arq.menu.join(',') === 'Reativar paciente,Remover paciente', 'e o menu só tem Reativar e Remover: ' + arq.menu.join(' · '));
-ok(arq.bt.length >= 4 && arq.bt.every(Boolean), 'ficha do arquivado: botões de registro desabilitados de verdade (' + arq.bt.length + ')');
+ok(arq.bt.length >= 3 && arq.bt.every(Boolean),   /* Marcar consulta, Adicionar arquivo, Aplicar HOLOSCAN (09/10: um botao de arquivo so) */ 'ficha do arquivado: botões de registro desabilitados de verdade (' + arq.bt.length + ')');
 ok(arq.reativarVisivel, 'e a ficha tem o botão "Reativar paciente"');
 ok(/^1 paciente ativo · 1 arquivado$/.test(arq.total.replace(/\s+/g, ' ')) && arq.nav === '1', 'contadores só de ativos: "' + arq.total + '", menu lateral ' + arq.nav);
 ok(arq.barra === true, 'a barra de contexto não aparece na lista de pacientes');

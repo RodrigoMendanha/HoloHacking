@@ -240,56 +240,43 @@ ok(/TABELAS QUE CONTINUAM EM DADOSLOCAIS[\s\S]*holoscan\s+—/.test(ler('dados-r
 await q.browserContext().close();
 
 /* ==================================================================== */
-titulo('11, 12, 13, 14 — COLETAS: IDENTIDADE PELO ID');
+titulo('11, 12, 13, 14 — COLETAS: EXAME E SO ARQUIVO (09/10)');
 /* ==================================================================== */
-const EX = await p.evaluate(() => window.HOLOSCAN.listaDeExames().slice(0, 3).map(e => e.id));
+/* A Etapa 0 provava a identidade da coleta pelo id. Decisao de produto 09/10: coleta estruturada nao
+   e mais gravada por caminho nenhum; a migration 140000 fica como historico (e continua sem regra de
+   data futura, que segue em migrations-pendentes/, nunca decidida). */
 const D = '2026-05-05';
-const duas = await p.evaluate(async (pid, d, ex) => {
-  const a = await window.Sincronizacao.salvarColeta(pid, { [ex[0]]: 10 }, d, { modo: 'nova' });
-  const b = await window.Sincronizacao.salvarColeta(pid, { [ex[0]]: 20 }, d, { modo: 'nova' });
-  return { a, b };
-}, A, D, EX);
-const coletasD = srv.linhas('lab_collections').filter(c => c.patient_id === A && c.coletado_em === D);
-const vals = (id) => Object.fromEntries(srv.linhas('lab_results').filter(r => r.collection_id === id).map(r => [r.exame_id, Number(r.valor)]));
-ok(duas.a.ok && duas.b.ok && duas.a.coleta !== duas.b.coleta && coletasD.length === 2,
-   '11: duas coletas em ' + D + ' persistem, ids independentes');
-const editada = await p.evaluate(async (pid, d, ex, idA) => {
-  return window.Sincronizacao.salvarColeta(pid, { [ex[0]]: 11, [ex[1]]: 7 }, d, { coletaId: idA, modo: 'editar' });
-}, A, D, EX, duas.a.coleta);
-ok(editada.ok && editada.coleta === duas.a.coleta && JSON.stringify(vals(duas.a.coleta)) === JSON.stringify({ [EX[0]]: 11, [EX[1]]: 7 }),
-   '12: editar A pelo id troca so os resultados de A');
-ok(JSON.stringify(vals(duas.b.coleta)) === JSON.stringify({ [EX[0]]: 20 }) &&
-   srv.linhas('lab_collections').filter(c => c.patient_id === A && c.coletado_em === D).length === 2,
-   '12: B nao mudou, e nenhuma terceira coleta nasceu');
+const duas = await p.evaluate(async (pid, d) => ({
+  a: await window.Sincronizacao.salvarColeta(pid, { 'EXA-001': 10 }, d, { modo: 'nova' }),
+  b: await window.Sincronizacao.salvarColeta(pid, { 'EXA-001': 11, 'EXA-002': 7 }, d, { coletaId: 'qualquer', modo: 'editar' }),
+}), A, D);
+ok(!duas.a.ok && !duas.b.ok && duas.a.motivo === 'laboratorio_desativado' && duas.b.motivo === 'laboratorio_desativado' && srv.linhas('lab_collections').length === 0,
+   '11/12: nova coleta e edicao pelo id: as duas recusadas (laboratorio_desativado); nenhuma coleta nasce');
 ok(!/coletado_em\s*=\s*dt/.test(ler('supabase/migrations/20260930140000_exames_identidade_coleta.sql').split('if col_data->>')[0]),
-   'migration 140000: a RPC nao procura mais coleta por (paciente, data)');
+   'migration 140000 (historico): a RPC nao procurava coleta por (paciente, data)');
 ok(/collection\.id|col_data->>'id'/.test(ler('supabase/migrations/20260930140000_exames_identidade_coleta.sql')) &&
    !/nao_futura|futuro/.test(ler('supabase/migrations/20260930140000_exames_identidade_coleta.sql').replace(/^--.*$/gm, '')),
-   'migration 140000: editar pelo id; nenhuma regra de data futura no SQL (separada em migrations-pendentes/)');
+   'migration 140000: identidade pelo id; nenhuma regra de data futura no SQL (separada em migrations-pendentes/)');
 ok(readdirSync(new URL('supabase/migrations-pendentes/', RAIZ)).some(f => /data_nao_futura/.test(f)),
    'a regra de data futura esta em supabase/migrations-pendentes/ (pendente de decisao)');
+ok(/laboratorio_desativado/.test(ler('supabase/migrations/20261011100000_prontuario_documentos.sql')) && /revoke insert, update, delete on table public\.lab_collections/.test(ler('supabase/migrations/20261011100000_prontuario_documentos.sql')),
+   'migration 20261011100000: as RPCs de coleta recusam e a escrita nas tabelas de laboratorio e revogada');
 
 const painel = await p.evaluate(async (pid) => {
   window.abrirFichaDe(pid);
   await new Promise(r => setTimeout(r, 300));
   document.querySelector('[data-aba="documentos"]').click();
   await new Promise(r => setTimeout(r, 400));
-  const b = document.querySelector('#ex-corpo [data-acao="nova-coleta"]'); if (b) b.click();
-  await new Promise(r => setTimeout(r, 200));
-  const v = {};
-  document.querySelectorAll('#ex-corpo .ex-linha').forEach(l => { const t = l.querySelector('input').value; if (t !== '') v[l.dataset.exame] = t; });
-  return { modo: (document.getElementById('ex-modo') || {}).textContent || '', valores: Object.keys(v).length,
-           data: document.getElementById('ex-data-coleta').value };
+  return { lab: document.querySelectorAll('#ex-corpo, #lab-corpo, .ex-linha, [data-acao="nova-coleta"], [data-lancar], [data-lab-acao]').length,
+           biblioteca: !!document.getElementById('doc-arquivo') && !!document.getElementById('doc-titulo') };
 }, A);
-ok(/Nova coleta/.test(painel.modo) && painel.valores === 0 && painel.data === '', '13: "Nova coleta" abre vazia, sem herdar valores nem data');
+ok(painel.lab === 0 && painel.biblioteca, '13: a aba Documentos nao tem painel de coleta; tem a biblioteca de arquivos');
 
-srv.falhar.push({ tabela: 'lab_collections', acao: 'upsert', vezes: 1 });
-const antesFalha = srv.linhas('lab_collections').filter(c => c.patient_id === A).length;
-const falha = await p.evaluate(async (pid, ex) =>
-  window.Sincronizacao.salvarColeta(pid, { [ex[2]]: 3 }, '2026-05-06', { modo: 'nova' }), A, EX);
-ok(!falha.ok && srv.linhas('lab_collections').filter(c => c.patient_id === A).length === antesFalha,
-   '14: servidor falhou -> ok:false e nada novo no servidor (nenhum sucesso falso)');
-srv.falhar.length = 0;
+const direto = await p.evaluate(async (pid) => {
+  const r = await window.supabaseClient.from('lab_collections').insert([{ patient_id: pid, coletado_em: '2026-05-06', data_coleta_desconhecida: false }]);
+  return r.error ? r.error.code : 'GRAVOU';
+}, A);
+ok(direto === '42501' && srv.linhas('lab_collections').length === 0, '14: escrita direta em lab_collections: sem permissao (42501), nada no servidor');
 
 /* ==================================================================== */
 titulo('15, 16 — "APAGAR TUDO" E "BACKUP COMPLETO" FORA');

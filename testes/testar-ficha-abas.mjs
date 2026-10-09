@@ -129,7 +129,7 @@ conferir(/Cadastrado em \d\d\/\d\d\/\d{4}/.test(topo.contato),
 conferir(/42 anos/.test(topo.sobre) && /Feminino/.test(topo.sobre),
   'e a linha "sobre" resume quem é: ' + topo.sobre);
 conferir(topo.detalhesFechados, 'os detalhes do cadastro começam fechados');
-conferir(topo.acoes.join(',') === 'Editar,Marcar consulta,Registrar exames,Novo documento,Aplicar HOLOSCAN,Exportar dados',
+conferir(topo.acoes.join(',') === 'Editar,Marcar consulta,Adicionar arquivo,Aplicar HOLOSCAN,Exportar dados',
   'as ações ficam no topo, não no fim da página: ' + topo.acoes.join(' · '));
 
 // "Registrar exames" e "Novo documento" iam para "aba:documentos" — o clique
@@ -146,7 +146,7 @@ const abriuDocumentos = await p.evaluate(async () => {
   return r;
 });
 conferir(abriuDocumentos.abaAtiva && abriuDocumentos.fichaVisivel,
-  'e "Registrar exames"/"Novo documento" abrem a aba certa, sem zerar a tela');
+  'e "Adicionar arquivo" abre a aba certa, sem zerar a tela');
 
 // ------------------------------------------------------ a jornada clinica --
 
@@ -154,8 +154,8 @@ const jornada = await p.evaluate(() => ({
   passos: [...document.querySelectorAll('.fic-jornada .dash-jornada-passo b')]
     .map(b => b.textContent),
 }));
-conferir(jornada.passos.join(',') === 'HOLOSCAN,Leitura Integrada,Ferramentas,Resultado HOLOS,Evolução',
-  'a jornada clínica mostra os 5 movimentos (CONSOLIDAR: Resultado HOLOS, 09/10): ' + jornada.passos.join(' · '));
+conferir(jornada.passos.join(',') === 'HOLOSCAN,Ferramentas,Resultado HOLOS,Resultado,Evolução',
+  'a jornada clínica mostra os 5 movimentos (APRESENTAR: Resultado no lugar da Leitura Integrada, 09/10): ' + jornada.passos.join(' · '));
 
 const detalhes = await p.evaluate(async () => {
   document.getElementById('ficha-ver-detalhes').click();
@@ -178,8 +178,8 @@ const faixa = await p.evaluate(() => {
     ultima: ler(um('última aplicação')),
     proxima: ler(um('próxima consulta')),
     aberto: ler(um('em aberto')),
-    exames: ler(um('exames')),
-    docs: ler(um('documentos')),
+    exames: ler(um('^exames$')),
+    docs: ler(um('documentos e exames')),
   };
 });
 
@@ -192,8 +192,8 @@ conferir(/às 10:00/.test(faixa.proxima.txt) && /em 6 dias/.test(faixa.proxima.t
    (Mestre §24, §33). Sem pendencia operacional, a faixa diz "tudo em dia". */
 conferir(faixa.aberto && /tudo em dia/.test(faixa.aberto.txt) && !/alerta/.test(faixa.aberto.cls),
   'sem pendência inventada por regra em homologação: ' + faixa.aberto.txt);
-conferir(/1 preenchidos/.test(faixa.exames.txt), 'conta os exames: ' + faixa.exames.txt);
-conferir(/1 arquivo/.test(faixa.docs.txt), 'e os documentos: ' + faixa.docs.txt);
+conferir(!faixa.exames, 'sem pílula de valores de exame (exame é só arquivo, 09/10)');
+conferir(/1 arquivo/.test(faixa.docs.txt), 'e conta os documentos e exames guardados: ' + faixa.docs.txt);
 
 /* ------------------------------------------- visão geral: exames e docs -- */
 
@@ -201,14 +201,13 @@ await new Promise(r => setTimeout(r, 200)); // ArquivoStore.listar() e assincron
 const visaoResumo = await p.evaluate(() => {
   const blocos = [...document.querySelectorAll('#aba-visao .dash-bloco-compacto')];
   const de = titulo => blocos.find(b => b.querySelector('.dash-titulo').textContent === titulo);
-  const exames = de('Exames');
-  const docs = de('Documentos recentes');
+  const docs = de('Documentos e exames recentes');
   return {
-    exames: exames.textContent.replace(/\s+/g, ' ').trim(),
+    semExames: !de('Exames'),
     docItens: [...docs.querySelectorAll('.dash-pendente b')].map(b => b.textContent),
   };
 });
-conferir(/1 valor registrado/.test(visaoResumo.exames), 'Visão geral resume os exames: ' + visaoResumo.exames);
+conferir(visaoResumo.semExames, 'Visão geral não tem bloco de valores de exame (09/10)');
 conferir(visaoResumo.docItens.includes('Hemograma completo'),
   'e os documentos recentes: ' + visaoResumo.docItens.join(' · '));
 
@@ -224,8 +223,11 @@ const linha = await p.evaluate(() => ({
   nota: document.querySelector('#fic-visao-timeline .dash-sub')?.textContent || '',
 }));
 
-conferir(linha.eventos.length === 6,
-  'a linha do tempo junta o que tem data: ' + linha.eventos.length + ' registros');
+/* 5 registros: consulta marcada, 2 aplicacoes do HOLOSCAN, documento e
+   ferramenta. O valor de exame guardado em localStorage NAO vira evento
+   (decisao 09/10: exame e so arquivo). */
+conferir(linha.eventos.length === 5,
+  'a linha do tempo junta o que tem data (sem o valor de exame legado): ' + linha.eventos.length + ' registros');
 conferir(/Consulta marcada/.test(linha.eventos[0].txt) && /futuro/.test(linha.eventos[0].cls),
   'o que ainda vai acontecer vem primeiro e se marca como futuro: ' +
   linha.eventos[0].txt.slice(0, 40));
@@ -329,16 +331,15 @@ conferir(fechou, 'e a janela fecha');
 
 await aba('documentos');
 const juntos = await p.evaluate(() => ({
-  exames: document.querySelectorAll('#ex-corpo .ex-linha').length,
+  exames: document.querySelectorAll('#ex-corpo .ex-linha, #lab-corpo, [data-lancar]').length,
   cartoes: [...document.querySelectorAll('#aba-documentos .arq-titulo')].map(h => h.textContent),
-  atalho: document.querySelector('.ex-atalho')?.textContent || '',
+  titulos: [...document.querySelectorAll('.bib-titulo')].map(b => b.textContent),
 }));
-conferir(juntos.exames > 0, 'os valores do exame continuam inteiros: ' + juntos.exames + ' linhas');
-// Etapa 5 da V1: documento + Exames laboratoriais (V1) + painel legado rotulado "fora da saida oficial"
-conferir(juntos.cartoes.length === 3 && /Exames laboratoriais/.test(juntos.cartoes[1]) && /Painel legado/.test(juntos.cartoes[2]),
-  'e moram junto com o documento de onde saem: ' + juntos.cartoes.join(' · '));
-conferir(/Hemograma/.test(juntos.atalho),
-  'o exame guardado vira atalho para abrir ao lado: ' + juntos.atalho);
+conferir(juntos.exames === 0, 'nenhum painel de valores de exame na aba Documentos (09/10)');
+conferir(juntos.cartoes.length === 2 && /Adicionar arquivo/.test(juntos.cartoes[0]) && /Documentos e exames/.test(juntos.cartoes[1]),
+  'a aba é a biblioteca: ' + juntos.cartoes.join(' · '));
+conferir(juntos.titulos.some(t => /Hemograma/.test(t)),
+  'o exame guardado está na lista como arquivo: ' + juntos.titulos.join(' · '));
 
 await aba('relatorio');
 const rel = await p.evaluate(() => !!document.getElementById('relatorio'));

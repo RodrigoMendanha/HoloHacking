@@ -1,10 +1,10 @@
 /**
  * Consulta simulada de 08/10 (jornada completa). Supabase falso, com conta:
- *   1  relatorio, secao B: mostra as LEITURAS INTEGRADAS SALVAS (nao o confronto legado)
- *   2  relatorio, secao D e menu Documentos: o laudo do servidor aparece; falha passageira tenta de novo;
+ *   1  (09/10) relatorio sem Leitura Integrada; a leitura historica fica so no banco
+ *   2  relatorio (so contagem) e menu Documentos: o laudo do servidor aparece; falha passageira tenta de novo;
  *      servidor fora diz "nao foi possivel carregar" (nunca "nenhum documento")
  *   3  escolher o arquivo NAO envia; "Guardar" envia com nome/tipo/data; sem data pede confirmacao;
- *      o laudo novo entra na lista de laudos que podem ser ligados a uma coleta
+ *      o laudo novo NAO oferece "Lancar valores" (09/10)
  *   9  Conexao & Pertencimento: natureza/tipo/papel/proximidade de cada vinculo sao gravados e aparecem na tabela;
  *      a lista diz que as opcoes sao para tocar
  *   7  Conduta: cada ferramenta aparece uma vez, com o nome (nunca o id interno)
@@ -56,19 +56,21 @@ await A.evaluate(async (pid) => {
 ok(srv.linhas('holoscan_applications').length === 1, 'HOLOSCAN salvo no servidor');
 
 /* ----- 1 ----- */
+/* 09/10: a Leitura Integrada saiu do relatorio (e de toda tela); a leitura historica fica so no banco */
 const relB = await A.evaluate(async (pid) => {
   window.levarParaFicha('aba:relatorio', pid);
-  for (let i = 0; i < 40; i++) { const e = document.getElementById('rel-li-corpo'); if (e && !/Carregando/.test(e.textContent)) break; await new Promise(r => setTimeout(r, 100)); }
-  const e = document.getElementById('rel-li-corpo');
-  const nutri = e ? e.innerText : '(sem secao B)';
+  await new Promise(r => setTimeout(r, 900));
+  const nutri = document.getElementById('relatorio').innerText;
   const bp = document.querySelector('[data-registro="paciente"]'); if (bp) bp.click();
-  for (let i = 0; i < 40; i++) { const x = document.getElementById('rel-li-corpo'); if (x && !/Carregando/.test(x.textContent)) break; await new Promise(r => setTimeout(r, 100)); }
-  const pac = (document.getElementById('rel-li-corpo') || {}).innerText || '';
+  await new Promise(r => setTimeout(r, 400));
+  const pac = document.getElementById('relatorio').innerText;
   const bn = document.querySelector('[data-registro="nutri"]'); if (bn) bn.click();
-  return { nutri, pac };
+  await new Promise(r => setTimeout(r, 300));
+  return { nutri, pac, secaoLI: !!document.getElementById('rel-li-corpo') };
 }, PA);
-ok(/Lipídico/.test(relB.nutri) && /Convergente/.test(relB.nutri) && /HDL acompanham/.test(relB.nutri) && !/Dados insuficientes/.test(relB.nutri), 'relatório, seção B: mostra a leitura salva (Lipídico convergente, com a observação) — ' + relB.nutri.slice(0, 140).replace(/\n/g, ' | '));
-ok(/padrão semelhante neste domínio/.test(relB.pac) && !/Convergente/.test(relB.pac) && !/HDL acompanham/.test(relB.pac), 'versão para o paciente: o texto decidido para o paciente, sem rótulo técnico nem observação interna');
+ok(!relB.secaoLI && !/Lipídico|Convergente|HDL acompanham|Leitura Integrada|Dados insuficientes/.test(relB.nutri), 'relatório (nutri): nenhuma seção de Leitura Integrada, nenhuma conclusão laboratorial');
+ok(!/Lipídico|Convergente|HDL acompanham|padrão semelhante neste domínio/.test(relB.pac), 'versão para o paciente: idem');
+ok(srv.linhas('integrated_readings').length === 1 && srv.linhas('integrated_readings')[0].professional_note === 'Triglicerideos e HDL acompanham o relato.', 'a leitura integrada histórica continua intacta no servidor');
 
 /* ----- 2 ----- */
 const relD = await A.evaluate(async (pid) => {
@@ -77,7 +79,7 @@ const relD = await A.evaluate(async (pid) => {
   const e = document.getElementById('rel-documentos-corpo');
   return e ? e.textContent : '(sem secao D: ' + document.getElementById('aba-relatorio').innerText.slice(0, 200) + ')';
 }, PA);
-ok(/laudo_teste\.pdf/.test(relD), 'relatório, seção D: o laudo do servidor aparece — ' + relD.slice(0, 120));
+ok(/1 documento\/exame armazenado/.test(relD) && !/laudo_teste\.pdf/.test(relD), 'relatório, seção C: o documento do servidor entra só como contagem (nome e conteúdo ficam fora) — ' + relD.slice(0, 120));
 const menu = await A.evaluate(async () => {
   document.querySelector('.nav-item[data-secao="documentos"]').click();
   await new Promise(r => setTimeout(r, 1200));
@@ -108,19 +110,19 @@ await (await A.$('#doc-arquivo')).uploadFile('amostras/laudo-sim.pdf');
 await espera(700);
 const prep = await A.evaluate(() => ({ caixa: (document.getElementById('doc-pendente') || {}).innerText || '' }));
 ok(srv.linhas('documents').length === antes && /laudo-sim\.pdf/.test(prep.caixa) && /Nada foi enviado/.test(prep.caixa), 'escolher o arquivo só prepara: nada vai ao servidor antes de "Guardar"');
-await A.evaluate(() => { document.getElementById('doc-nome').value = 'Laudo coleta outubro'; document.getElementById('doc-guardar').click(); });
+await A.evaluate(() => { document.getElementById('doc-titulo').value = 'Laudo coleta outubro'; document.getElementById('doc-guardar').click(); });
 await espera(300);
 const semData = await A.evaluate(() => ({ aviso: (document.getElementById('doc-sem-data') || {}).textContent || '', botao: (document.getElementById('doc-guardar') || {}).textContent || '' }));
 ok(/sem data/.test(semData.aviso) && srv.linhas('documents').length === antes, 'exame sem data: pede a data (ou "Guardar sem data") antes de enviar');
 await A.evaluate(() => { const d = document.getElementById('doc-data'); d.value = '2026-10-06'; d.dispatchEvent(new Event('change', { bubbles: true })); });
 await espera(150);
 await A.evaluate(() => document.getElementById('doc-guardar').click());
-await A.waitForFunction((n) => document.querySelectorAll('#doc-lista .doc-item').length >= n, { timeout: 8000 }, 2).catch(() => {});
+await A.waitForFunction((n) => document.querySelectorAll('.bib-item').length >= n, { timeout: 8000 }, 2).catch(() => {});
 await espera(1200);
-const novo = srv.linhas('documents').find(d => d.nome === 'Laudo coleta outubro');
-ok(!!novo && novo.data_documento === '2026-10-06' && novo.tipo === 'Exame laboratorial', 'guardado com o nome, o tipo e a data preenchidos');
-const vinc = await A.evaluate((id) => (window.Laboratorio.dados().documentos || []).some(d => d.id === id), novo && novo.id);
-ok(vinc, 'o laudo novo já aparece entre os laudos que podem ser ligados a uma coleta');
+const novo = srv.linhas('documents').find(d => d.titulo === 'Laudo coleta outubro');
+ok(!!novo && novo.data_documento === '2026-10-06' && novo.tipo === 'Exame' && novo.nome === 'laudo-sim.pdf', 'guardado com o título, o tipo, a data e o nome do arquivo');
+const lancar = await A.evaluate(() => ({ botao: document.querySelectorAll('[data-lancar], [data-lab-acao]').length, modulo: !!window.Laboratorio, texto: document.getElementById('aba-documentos').innerText }));
+ok(lancar.botao === 0 && !lancar.modulo && !/Lançar valores|valores lançados|Leitura Integrada|ligar a uma coleta/.test(lancar.texto), 'o laudo novo NÃO oferece "Lançar valores" (09/10: exame é só arquivo)');
 
 /* ----- 6 ----- */
 const V6 = '#vista-gen-mente';

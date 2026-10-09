@@ -95,24 +95,23 @@ ok(conduzido.chips.length === 1, 'lista a ferramenta aplicada: ' + conduzido.chi
 ok(conduzido.formularios.some(l=>/1 de 10 aplicadas/.test(l)),
    'conta 1 de 10 ferramentas (so ativas)');
 
-// --- exame que diverge vira alerta -------------------------------------------
+// --- exame e so arquivo (09/10): valor local nao vira alerta, pendencia nem pilula ---
 await p.evaluate(async () => {
+  const id = window.pacienteAtivoId();
+  localStorage.setItem('holohacking.exames', JSON.stringify({ [id]: { 'EXA-015': 78 } }));
   document.querySelector('.nav-item[data-secao="pacientes"]').click();
   document.getElementById('vista-lista-pacientes').classList.add('hidden');
   document.getElementById('vista-ficha').classList.remove('hidden');
   document.querySelector('[data-aba="documentos"]').click();
-  const l = [...document.querySelectorAll('.ex-linha')].find(x=>x.dataset.exame==='EXA-015');
-  l.querySelector('input').value = '78';
-  l.querySelector('input').dispatchEvent(new Event('input',{bubbles:true}));
+  await new Promise(r => setTimeout(r, 250));
 });
+const semPainel = await p.evaluate(() => document.querySelectorAll('#ex-corpo, #lab-corpo, .ex-linha, [data-lancar]').length);
+ok(semPainel === 0, 'a aba Documentos nao tem painel de valores de exame (09/10)');
 const comExame = await verFicha();
-/* Etapa 0 da V1: a Leitura Integrada atual usa regra nao homologada (nota
-   <= 3 x um exame fora da faixa). Regra em homologacao nao vira pendencia
-   nem alerta (Mestre §24, §33); a leitura fica na propria tela, com selo. */
-ok(!comExame.alertas.some(a=>/diverg/i.test(a)),
-   'NAO transforma a divergencia relato x exame em alerta/pendencia (regra em homologacao)');
-ok(comExame.faixa.some(l=>/1 preenchidos/.test(l)),
-   'a faixa conta os exames preenchidos: ' + (comExame.faixa.find(l=>/preenchid/.test(l))||''));
+ok(!comExame.alertas.some(a=>/diverg|exame/i.test(a)),
+   'valor de exame antigo NAO vira alerta/pendencia');
+ok(!comExame.faixa.some(l=>/preenchid/.test(l)) && comExame.faixa.some(l=>/Documentos e exames/i.test(l)),
+   'a faixa nao conta valores de exame; conta documentos e exames guardados: ' + (comExame.faixa.find(l=>/Documentos/i.test(l))||''));
 ok(comExame.faixa.some(l=>/ÚLTIMA APLICAÇÃO/i.test(l) || /Última aplicação/i.test(l)),
    'e diz quando foi a ultima aplicacao');
 

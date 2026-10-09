@@ -78,7 +78,7 @@ conferir(vazio.titulo === 'Nenhum atendimento registrado', 'título do estado va
 conferir(/Inicie um atendimento/.test(vazio.texto) && /Marcar na agenda não cria atendimento/.test(vazio.texto),
   'texto do estado vazio: ' + vazio.texto);
 conferir(!vazio.temProxima, 'sem consulta, nenhum bloco "Próxima consulta" aparece');
-conferir(vazio.continuidade.join(',') === 'HOLOSCAN,Leitura Integrada,Documentos',
+conferir(vazio.continuidade.join(',') === 'HOLOSCAN,Conduta,Documentos',
   'a continuidade clínica discreta aparece mesmo vazio: ' + vazio.continuidade.join(' · '));
 
 /* -------------------------------- "Nova consulta" pre-seleciona a pessoa - */

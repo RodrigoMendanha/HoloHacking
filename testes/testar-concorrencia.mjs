@@ -515,7 +515,8 @@ const cobertura = await A.evaluate(async () => {
   return {
     dados: /avancarRevisao/.test(await ler('/dados.js')),
     questionario: /avancarRevisao/.test(await ler('/questionario.js')),
-    arquivos: /avancarRevisao/.test(await ler('/arquivos.js')),
+    /* 09/10: arquivos.js deixou de escrever dado clinico (o painel de exames saiu); excluir-paciente.js escreve */
+    excluir: /avancarRevisao/.test(await ler('/excluir-paciente.js')),
     app: /avancarRevisao/.test(await ler('/app.js')),
     restaurar: /avancarRevisao/.test(await ler('/restaurar-backup.js'))
   };

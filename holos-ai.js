@@ -79,10 +79,12 @@
          bruta (respondidas de 84, uma contagem, nao uma regra) — mapa gerado
          e nao salvo e previa e fica de fora;
        - a interpretacao profissional escrita pela nutricionista;
-       - exames: valor, unidade, laboratorio e data da coleta salva (sem a
-         "faixa ideal" do banco em rascunho);
        - consultas da agenda;
-       - respostas das ferramentas e a leitura profissional delas. */
+       - respostas das ferramentas e a leitura profissional delas.
+
+     Decisao de produto 09/10: exames e documentos NAO entram — nem valor
+     laboratorial, nem resultado estruturado, nem PDF/imagem, nem Leitura
+     Integrada. Sao so arquivos do prontuario. */
   function consolidada(p) {
     return window.Panorama && window.Panorama.consolidada ? window.Panorama.consolidada(p) : !!p;
   }
@@ -127,64 +129,6 @@
     if (interp && interp.texto) {
       t += "\n### Interpretação profissional (texto da nutricionista)\n" + interp.texto + "\n";
     }
-    return t;
-  }
-
-  /* Exames com nome, resultado, unidade e data — dado bruto do laudo. A
-     "faixa ideal" de exames.csv (rascunho) NAO entra (Etapa 0 da V1). Com
-     conta, vem das coletas do servidor (cada uma com a data dela); sem
-     conta, dos valores do painel. */
-  function dadosExames() {
-    var pid = pacienteId();
-    if (!pid) return "";
-    var coletas = window.Sincronizacao ? window.Sincronizacao.coletas(pid) : null;
-    var t = "";
-    if (coletas && coletas.length) {
-      coletas.filter(function (c) { return !c.superseded_at; }).slice().reverse().forEach(function (c) {
-        var quando = c.data_coleta_desconhecida || !c.coletado_em ? "data não informada" : dataBR(c.coletado_em);
-        t += "\n### Coleta — " + quando + (c.laboratorio ? " (" + c.laboratorio + ")" : "") + "\n";
-        if (c.state === "rascunho") return;   // Etapa 5: rascunho nao e registro consolidado
-        (c.resultados || []).forEach(function (r) {
-          /* Etapa 5: dado factual do laudo (valor original, unidade, variante, material,
-             referencia DO LAUDO). Nunca ideal legado, classificacao ou inferencia. */
-          if (r.legacy_exame_id) {
-            /* linha do painel legado (migrada ou gravada pelo painel antigo): so o fato registrado — nome, valor,
-               unidade e data; sem ideal legado, sem classificacao */
-            t += "- " + window.rotuloExibivel(r.nome_exame_no_momento || r.legacy_exame_id) + ": " + r.value_original_text +
-              (r.unit_original ? " " + r.unit_original : "") + " — " + quando + "\n";
-            return;
-          }
-          if (r.exam_code || r.custom_exam_id || r.value_original_text) {
-            var nome = window.Laboratorio ? window.Laboratorio.identidadeTexto(r) : (r.exam_code || "exame");
-            t += "- " + nome + ": " + r.value_original_text + (r.unit_original ? " " + r.unit_original : "") +
-              (r.reference_status === "informed" ? " (referência do laudo: " + (r.report_reference_text || ((r.report_reference_min == null ? "" : r.report_reference_min) + " a " + (r.report_reference_max == null ? "" : r.report_reference_max))) + ")" : " (sem referência informada)") +
-              " — " + quando + (c.revision > 1 ? " · revisão " + c.revision : "") + "\n";
-            return;
-          }
-          t += "- " + window.rotuloExibivel(r.nome_exame_no_momento || r.exame_id) + ": " + r.valor +
-            (r.unidade_no_momento ? " " + r.unidade_no_momento : "") +
-            " — " + quando + "\n";
-        });
-      });
-      return t;
-    }
-    /* Com conta, so coleta salva no servidor entra. O painel local pode ser
-       rascunho/pendente — nao e registro consolidado (Mestre §36.1). */
-    if (autenticado()) return "";
-    var exames;
-    try { exames = JSON.parse(localStorage.getItem("holohacking.exames")) || {}; }
-    catch (e) { return ""; }
-    var d = exames[pid];
-    if (!d || typeof d !== "object") return "";
-    var g = window.HOLOSCAN || null;
-    var lista = g && g.listaDeExames ? g.listaDeExames() : [];
-    var porId = {};
-    lista.forEach(function (e) { porId[e.id] = e; });
-    Object.keys(d).filter(function (k) { return d[k] !== "" && d[k] != null; }).forEach(function (k) {
-      var ref = porId[k];
-      t += "- " + (ref ? window.rotuloExibivel(ref.exame) : k) + ": " + d[k] +
-        (ref && ref.unidade ? " " + ref.unidade : "") + " — data da coleta não registrada\n";
-    });
     return t;
   }
 
@@ -394,7 +338,6 @@
   var ATALHOS_CONTEXTO = [
     { id: "completo",  rotulo: "Caso completo",  gerar: gerarCompleto },
     { id: "holoscan",  rotulo: "HOLOSCAN",        gerar: gerarHoloscan },
-    { id: "exames",    rotulo: "Exames",           gerar: gerarExames },
     { id: "evolucao",  rotulo: "Evolução / retorno", gerar: gerarEvolucao },
     { id: "relatorios", rotulo: "Relatórios emitidos", gerar: gerarRelatorios }
   ];
@@ -406,7 +349,8 @@
       "Gerado em: " + new Date().toLocaleString("pt-BR") + "\n" +
       "Conteúdo: só registros salvos no servidor e texto da profissional. Notas, faixas, " +
       "Índice e Tríada entram só de aplicação calculada pelo pacote oficial HOLOS-V1. " +
-      "Já prioridades, combinações, Leitura Integrada e sugestões automáticas NÃO estão incluídos.\n" +
+      "Já prioridades, combinações, Leitura Integrada e sugestões automáticas NÃO estão incluídos. " +
+      "Exames e documentos do prontuário (arquivos e valores) também NÃO estão incluídos.\n" +
       "---\n";
   }
 
@@ -417,7 +361,6 @@
     var t = cabecalhoContexto("Caso completo");
     t += secaoSe("Paciente", dadosPaciente());
     t += secaoSe("HOLOSCAN — Mapa HOLOS atual", dadosHoloscan());
-    t += secaoSe("Camada Laboratorial", dadosExames());
     t += secaoSe("Atendimentos registrados", dadosAtendimentos());
     t += secaoSe("Anamnese (salva/revisada, texto da profissional)", dadosAnamnese());
     t += secaoSe("Conduta e acordos (salvos/revisados)", dadosConduta());
@@ -434,15 +377,6 @@
     t += secaoSe("Paciente", dadosPaciente());
     t += secaoSe("HOLOSCAN — Mapa HOLOS atual", dadosHoloscan());
     return t.trim() || "Nenhuma aplicação do HOLOSCAN disponível.";
-  }
-
-  function gerarExames() {
-    var t = cabecalhoContexto("Exames");
-    t += secaoSe("Paciente", dadosPaciente());
-    t += secaoSe("Exames laboratoriais", dadosExames());
-    var holoscan = dadosHoloscan();
-    if (holoscan) t += secaoSe("HOLOSCAN (referência)", holoscan);
-    return t.trim() || "Nenhum exame registrado para este paciente.";
   }
 
   function gerarEvolucao() {

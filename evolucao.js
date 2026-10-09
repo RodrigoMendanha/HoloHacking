@@ -221,14 +221,15 @@
    Historico LONGITUDINAL por atendimento: dois pontos escolhidos
    EXPLICITAMENTE (atendimento anterior x atual, linha de base x atual, dois
    atendimentos, ou duas datas) e as fontes consolidadas de cada um lado a
-   lado — atendimentos, anamnese, medidas, HOLOSCAN, exames, ferramentas,
-   conduta e acordos, e a timeline do intervalo.
+   lado — atendimentos, anamnese, medidas, HOLOSCAN, ferramentas,
+   conduta e acordos, e a timeline do intervalo. Exames NAO entram (decisao
+   de produto 09/10: exame e so arquivo do prontuario, nunca comparado).
 
    Regras (docs/v1/ETAPA3-ARQUITETURA-EVOLUCAO-RELATORIOS.md):
    - nada e inferido: sem dois pontos escolhidos nao ha comparacao, e a
      "primeira aplicacao" nunca vira linha de base em silencio;
    - so o consolidado entra (rascunho, previa e cache local ficam fora);
-   - delta numerico so quando a medida/o exame/a ferramenta sao a MESMA coisa
+   - delta numerico so quando a medida/a ferramenta sao a MESMA coisa
      na MESMA unidade/versao; nunca "melhorou", "piorou" ou "+X%";
    - HOLOSCAN: nenhum delta de nota, Indice, Triada ou faixa (metodologia nao
      homologada) — datas, versao, cobertura, interpretacao e id lado a lado;
@@ -247,7 +248,7 @@
   ];
   var FONTES = [
     ["atendimentos", "Atendimentos"], ["anamnese", "Anamnese"], ["medidas", "Medidas"], ["holoscan", "HOLOSCAN"],
-    ["exames", "Exames"], ["ferramentas", "Ferramentas"], ["conduta", "Conduta e acordos"], ["timeline", "Linha do tempo do intervalo"]
+    ["ferramentas", "Ferramentas"], ["conduta", "Conduta e acordos"], ["timeline", "Linha do tempo do intervalo"]
   ];
   var ESTADOS_SEM_INFO = ["desconhecido", "nao_investigado", "recusado", "nao_aplicavel"];
   var selecoes = {};   // por paciente: { modo, a, b, dataA, dataB, fontes, aberto }
@@ -342,18 +343,6 @@
     var u2 = ultimoAte(h, p.data, "quando");
     return u2 ? { app: u2, vinculo: "mais recente até a data" } : null;
   }
-  function coletasEm(pid, p) {
-    var todas = (window.Sincronizacao ? window.Sincronizacao.coletas(pid) : null) || [];
-    todas = todas.filter(function (c) { return !c.data_coleta_desconhecida && c.coletado_em; })
-      .sort(function (a, b) { return String(a.coletado_em).localeCompare(String(b.coletado_em)); });
-    if (!p) return [];
-    if (p.tipo === "atendimento") {
-      var doAt = todas.filter(function (c) { return c.encounter_id === p.id; });
-      if (doAt.length) return doAt;
-    }
-    var u = ultimoAte(todas, p.data, "coletado_em");
-    return u ? [u] : [];
-  }
   function ferramentasEm(pid, p) {
     if (!window.Aplicacoes || !p) return [];
     var comSessao = temSupa();
@@ -439,40 +428,6 @@
     });
   }
 
-  /** Exames por coleta: delta so entre o MESMO exame_id na MESMA unidade. */
-  function compararExames(coletasA, coletasB) {
-    /* Etapa 5: resultado V1 tem identidade exam_code (ou custom) + variante + material;
-       a compatibilidade e o delta vem do LabMotor (unidade igual ou conversao aprovada —
-       nenhuma aprovada; tipo de valor numerico; referencias diferentes ficam visiveis).
-       Resultado legado (exame_id) segue a regra antiga: mesmo exame_id, mesma unidade. */
-    function chave(r) { return r.exam_code || r.custom_exam_id ? "v1|" + (window.LabMotor ? window.LabMotor.identidade(r) : r.exam_code) : "leg|" + r.exame_id; }
-    function mapa(coletas) {
-      var out = {};
-      coletas.filter(function (c) { return c.state !== "rascunho" && !c.superseded_at; }).forEach(function (c) { (c.resultados || []).forEach(function (r) { out[chave(r)] = { r: Object.assign({}, r, { clinical_date: c.coletado_em }), coleta: c }; }); });
-      return out;
-    }
-    var ma = mapa(coletasA), mb = mapa(coletasB), chaves = {};
-    Object.keys(ma).concat(Object.keys(mb)).forEach(function (k) { chaves[k] = true; });
-    return Object.keys(chaves).sort().map(function (k) {
-      var x = ma[k], y = mb[k], r0 = (y || x).r;
-      var nome = r0.exam_code || r0.custom_exam_id ? (window.Laboratorio ? window.Laboratorio.identidadeTexto(r0) : r0.exam_code) : (r0.nome_exame_no_momento || r0.exame_id);
-      var out = { exame_id: r0.exam_code || r0.exame_id || k, nome: nome, antes: x ? x.r : null, depois: y ? y.r : null,
-        dataA: x ? x.coleta.coletado_em : "", dataB: y ? y.coleta.coletado_em : "", delta: null, motivo: "", referencias_diferentes: false };
-      if (!x || !y) { out.motivo = !x ? "sem resultado no ponto anterior" : "sem resultado no ponto atual"; return out; }
-      if (k.indexOf("v1|") === 0 && window.LabMotor) {
-        var c = window.LabMotor.comparar(x.r, y.r, { conversoes: [] });
-        out.referencias_diferentes = c.referencias_diferentes;
-        if (!c.comparavel) out.motivo = c.motivos.map(function (m) { return window.LabMotor.MOTIVO[m] || m; }).join("; ") + ": sem delta";
-        else { out.delta = c.delta; out.unidade = c.unidade; out.direcao = c.direcao; }
-        return out;
-      }
-      if (norm(x.r.unidade_no_momento) !== norm(y.r.unidade_no_momento)) out.motivo = "unidades diferentes (" + (x.r.unidade_no_momento || "?") + " × " + (y.r.unidade_no_momento || "?") + "): sem delta";
-      else { var va = num(x.r.valor), vb = num(y.r.valor); if (va === null || vb === null) out.motivo = "valor não numérico: sem delta"; else { out.delta = vb - va; out.unidade = y.r.unidade_no_momento; } }
-      return out;
-    });
-  }
-
-  /** Ferramentas: lado a lado por ferramenta; delta so com a mesma versao e chaves numericas iguais. */
   function compararFerramentas(fa, fb) {
     var porId = {};
     fa.forEach(function (a) { porId[a.ferramenta_id] = { a: a }; });
@@ -519,14 +474,12 @@
     if (!pts.a || !pts.b) return { pontos: pts, pronto: false };
     var anA = anamneseEm(pid, pts.a), anB = anamneseEm(pid, pts.b);
     var cdA = condutaEm(pid, pts.a), cdB = condutaEm(pid, pts.b);
-    var colA = coletasEm(pid, pts.a), colB = coletasEm(pid, pts.b);
     var fA = ferramentasEm(pid, pts.a), fB = ferramentasEm(pid, pts.b);
     return {
       pontos: pts, pronto: true,
       anamnese: { a: anA, b: anB, itens: compararAnamnese(anA, anB) },
       medidas: compararMedidas(anA, anB),
       holoscan: { a: holoscanEm(pid, pts.a), b: holoscanEm(pid, pts.b) },
-      exames: { a: colA, b: colB, itens: compararExames(colA, colB) },
       ferramentas: { a: fA, b: fB, itens: compararFerramentas(fA, fB) },
       conduta: { a: cdA, b: cdB, campos: (window.Conduta ? window.Conduta.CAMPOS : []).map(function (c) {
         var va = cdA ? (cdA[c[0]] || "") : "", vb = cdB ? (cdB[c[0]] || "") : "";
@@ -611,17 +564,6 @@
       '<p class="evo-nota">' + (M ? M.selo("comparação não homologada") + " " : "") + "Sem delta de notas, Índice, Tríade ou faixas: a regra de comparabilidade entre aplicações não foi homologada. Datas, versão, cobertura bruta e interpretação profissional lado a lado.</p>";
   }
 
-  function htmlExames(c) {
-    var it = c.exames.itens;
-    if (!it.length) return vazio("Nenhuma coleta com data nos dois pontos.");
-    var f = function (r, d) { return r ? escapar(String(r.valor)) + " " + escapar(r.unidade_no_momento || "") + (d ? " <small>(" + escapar(dataBR(d)) + ")</small>" : "") : "—"; };
-    return '<table class="evo-tabela"><thead><tr><th>Exame</th><th>A</th><th>B</th><th>Delta</th></tr></thead><tbody>' +
-      it.map(function (x) {
-        return "<tr><td>" + escapar(x.nome) + "</td><td>" + f(x.antes, x.dataA) + "</td><td>" + f(x.depois, x.dataB) + '</td><td class="evo-delta-cel">' +
-          (x.delta !== null ? "<b>delta " + escapar(fmtDelta(x.delta)) + " " + escapar(x.unidade || "") + "</b>" : '<span class="evo-sem-delta">' + escapar(x.motivo) + "</span>") + "</td></tr>";
-      }).join("") + "</tbody></table><p class=\"evo-nota\">Delta só entre o mesmo exame canônico na mesma unidade. Nenhuma equivalência inventada entre exames parecidos; faixas de referência não entram.</p>";
-  }
-
   function htmlFerramentas(c) {
     var it = c.ferramentas.itens;
     if (!it.length) return vazio("Nenhuma ferramenta concluída até os pontos escolhidos.");
@@ -669,7 +611,6 @@
     var partes = [];
     partes.push(n(c.anamnese.itens, function (l) { return l.categoria !== "mantido"; }) + " itens de anamnese com diferença");
     partes.push(n(c.medidas, function (m) { return m.delta !== null; }) + " medidas com delta comparável");
-    partes.push(n(c.exames.itens, function (m) { return m.delta !== null; }) + " exames com delta comparável");
     partes.push(c.conduta.acordos.length + " acordos acompanhados");
     partes.push(c.timeline.length + " eventos consolidados no intervalo");
     return '<p class="evo-resumo">' + partes.map(escapar).join(" · ") + "</p>";
@@ -693,7 +634,6 @@
       if (s.fontes.anamnese) html += secao("anamnese", "Anamnese: o que mudou", htmlAnamnese(c), s);
       if (s.fontes.medidas) html += secao("medidas", "Medidas", htmlMedidas(c), s);
       if (s.fontes.holoscan) html += secao("holoscan", "HOLOSCAN lado a lado", htmlHoloscan(c), s);
-      if (s.fontes.exames) html += secao("exames", "Exames", htmlExames(c), s);
       if (s.fontes.ferramentas) html += secao("ferramentas", "Ferramentas", htmlFerramentas(c), s);
       if (s.fontes.conduta) html += secao("conduta", "Conduta e acordos", htmlConduta(c), s);
       if (s.fontes.timeline) html += secao("timeline", "Linha do tempo do intervalo", htmlTimeline(c), s);
@@ -733,7 +673,6 @@
         itens: c.anamnese.itens.map(function (l) { return { dominio: l.dominio, campo: l.campo, categoria: l.categoria }; }) },
       medidas: c.medidas.map(function (m) { return { campo: m.campo, antes: m.antes, depois: m.depois, delta: m.delta, unidade: m.unidade || null, motivo: m.motivo || null }; }),
       holoscan: { a_id: c.holoscan.a ? c.holoscan.a.app._supa_id || null : null, b_id: c.holoscan.b ? c.holoscan.b.app._supa_id || null : null, delta: null, nota: "sem comparação metodológica (não homologada)" },
-      exames: c.exames.itens.map(function (x) { return { exame_id: x.exame_id, antes: x.antes, depois: x.depois, delta: x.delta, unidade: x.unidade || null, motivo: x.motivo || null }; }),
       ferramentas: c.ferramentas.itens.map(function (x) { return { ferramenta_id: x.ferramenta_id, a_id: x.antes ? x.antes.id : null, b_id: x.depois ? x.depois.id : null, deltas: x.deltas, motivo: x.motivo || null }; }),
       conduta: { a_id: c.conduta.a ? c.conduta.a.id : null, b_id: c.conduta.b ? c.conduta.b.id : null,
         acordos: c.conduta.acordos.map(function (l) { return { origem_id: l.antes ? l.antes.id : null, atual_id: l.depois ? l.depois.id : null, estado_anterior: l.antes ? l.antes.status : null, estado_atual: l.depois ? l.depois.status : null, situacao: l.situacao }; }) },
@@ -745,7 +684,7 @@
     MODOS: MODOS, FONTES: FONTES,
     selecao: selecao, selecionar: function (pid, patch) { Object.assign(selecao(pid), patch || {}); },
     atendimentos: atendimentos, pontos: pontos, comparar: comparar, metadados: metadados, desenhar: desenhar,
-    compararAnamnese: compararAnamnese, compararMedidas: compararMedidas, compararExames: compararExames,
+    compararAnamnese: compararAnamnese, compararMedidas: compararMedidas,
     compararFerramentas: compararFerramentas, compararAcordos: compararAcordos,
     esquecer: function () { selecoes = {}; }
   };

@@ -246,45 +246,29 @@ ok(appsDepois[0].encounter_id === e1[0].id && appsDepois[0].consultation_id === 
    '13: marcar outra consulta no mesmo dia nao alterou o vinculo da aplicacao');
 
 /* ==================================================================== */
-titulo('14, 15 — COLETAS');
+titulo('14, 15 — COLETAS: EXAME E SO ARQUIVO (09/10)');
 /* ==================================================================== */
-async function registrarColeta(valores, data, vincular) {
-  return A.evaluate(async (valores, data, vincular) => {
-    Object.keys(valores).forEach(id => {
-      const inp = document.querySelector('#ex-corpo .ex-linha[data-exame="' + id + '"] input');
-      inp.value = String(valores[id]); inp.dispatchEvent(new Event('input', { bubbles: true }));
-    });
-    const d = document.getElementById('ex-data-coleta');
-    if (data && !d.disabled) d.value = data;
-    const cb = document.getElementById('ex-vincular-atendimento');
-    const temCaixa = !!cb;
-    if (cb) cb.checked = !!vincular;
-    document.querySelector('#ex-corpo [data-acao="conferir"]').click();
-    await new Promise(r => setTimeout(r, 900));
-    return { temCaixa };
-  }, valores, data, vincular);
-}
-const EXAME = await A.evaluate(() => document.querySelector('#ex-corpo .ex-linha') ? null : null);
+/* A Etapa 1 provava o vinculo coleta x atendimento. Decisao de produto 09/10: nao existe mais coleta
+   estruturada — nem pelo painel (que saiu da ficha), nem pela sincronizacao, nem pelo servidor, com ou
+   sem atendimento ativo. */
 await A.evaluate(async (pid) => {
   window.AtendimentoAtual.limpar();
   window.abrirFichaDe(pid); await new Promise(r => setTimeout(r, 300));
   document.querySelector('[data-aba="documentos"]').click(); await new Promise(r => setTimeout(r, 400));
 }, PA);
-const primeiroExame = await A.evaluate(() => document.querySelector('#ex-corpo .ex-linha').dataset.exame);
-const r14 = await registrarColeta({ [primeiroExame]: 95 }, '2026-02-01', false);
-const coletas1 = srv.linhas('lab_collections').filter(c => c.patient_id === PA);
-ok(!r14.temCaixa && coletas1.length === 1 && coletas1[0].encounter_id == null, '14: sem atendimento ativo nao ha caixa de vinculo; a coleta nasce sem encounter');
-await A.evaluate(async (id) => {
-  window.AtendimentoAtual.selecionarPorId(id); await new Promise(r => setTimeout(r, 300));
-  document.querelector = null;
-  const nova = document.querySelector('#ex-corpo [data-acao="nova-coleta"]'); if (nova) nova.click();
-  await new Promise(r => setTimeout(r, 300));
-}, e2.id);
-const r15 = await registrarColeta({ [primeiroExame]: 101 }, '2026-02-02', true);
-const coletas2 = srv.linhas('lab_collections').filter(c => c.patient_id === PA);
-const vinculada = coletas2.find(c => c.id !== coletas1[0].id);
-ok(r15.temCaixa && coletas2.length === 2 && vinculada && vinculada.encounter_id === e2.id && coletas2.find(c => c.id === coletas1[0].id).encounter_id == null,
-   '15: com atendimento ativo a caixa aparece; marcada, a coleta nova sai vinculada e a anterior continua sem vinculo');
+const painel14 = await A.evaluate(() => document.querySelectorAll('#ex-corpo, #lab-corpo, .ex-linha, [data-lancar], #ex-vincular-atendimento, [data-lab-acao]').length);
+const r14 = await A.evaluate((pid) => window.Sincronizacao.salvarColeta(pid, { 'EXA-001': 95 }, '2026-02-01'), PA);
+ok(painel14 === 0 && !r14.ok && r14.motivo === 'laboratorio_desativado' && srv.linhas('lab_collections').length === 0,
+   '14: sem atendimento ativo: nenhum painel de valores na aba Documentos, e a sincronizacao recusa a coleta');
+await A.evaluate(async (id) => { window.AtendimentoAtual.selecionarPorId(id); await new Promise(r => setTimeout(r, 300)); }, e2.id);
+const r15 = await A.evaluate(async (pid, eid) => {
+  const sb = window.supabaseClient;
+  const rpc = await sb.rpc('salvar_coleta_laboratorial', { payload: { collection: { patient_id: pid, encounter_id: eid, clinical_date: '2026-02-02', state: 'salvo' }, results: [{ exam_code: 'LAB-002', value_original_text: '101', numeric_value: 101, qualifier: 'eq' }] } });
+  const direto = await sb.from('lab_collections').insert([{ patient_id: pid, encounter_id: eid, coletado_em: '2026-02-02', data_coleta_desconhecida: false }]);
+  return { rpc: rpc.error && rpc.error.hint, direto: direto.error && direto.error.code };
+}, PA, e2.id);
+ok(r15.rpc === 'laboratorio_desativado' && r15.direto === '42501' && srv.linhas('lab_collections').length === 0,
+   '15: com atendimento ativo tambem: a RPC recusa (laboratorio_desativado) e a tabela nao aceita (42501)');
 
 /* ==================================================================== */
 titulo('16, 17 — TROCA DE PACIENTE E HISTORICO');
@@ -404,8 +388,8 @@ ok(exportado && Array.isArray(exportado.agendamentos) && exportado.agendamentos.
    exportado.agendamentos.some(c => c.cancelled_at && c.rescheduled_to_id) && !('consultas' in exportado),
    '19: e "agendamentos" separados (com cancelados/reagendados marcados), nao chamados de atendimento');
 ok(exportado && exportado.holoscanAplicacoes && exportado.holoscanAplicacoes[0].encounter_id === e2.id &&
-   exportado.aplicacoesFerramentas[0].encounter_id === e1[0].id && exportado.coletasExames.some(c => c.encounter_id === e2.id),
-   '19: HOLOSCAN, ferramenta e coleta exportados levam o encounter_id');
+   exportado.aplicacoesFerramentas[0].encounter_id === e1[0].id && !exportado.coletasExames,
+   '19: HOLOSCAN e ferramenta exportados levam o encounter_id; nenhuma coleta (09/10: nada foi gravado)');
 
 /* ==================================================================== */
 titulo('20 — HOLOS AI');

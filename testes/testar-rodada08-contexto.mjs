@@ -72,8 +72,16 @@ const appH = (quando, indice, fisico) => ({
 });
 semearHistorica(srv, UID_A, appH('2026-06-01', 40, 3));
 semearHistorica(srv, UID_A, appH('2026-09-01', 60, 5));
+/* coleta HISTORICA (anterior a 09/10): ja esta no servidor, como o banco real a tem; nada novo pode entrar (ver abaixo) */
+{
+  const agora = new Date().toISOString();
+  const cid = globalThis.crypto.randomUUID();
+  srv.tabelas.lab_collections.push({ id: cid, nutritionist_id: UID_A, patient_id: P, encounter_id: null, coletado_em: '2026-08-20', data_coleta_desconhecida: false, laboratorio: null, observacao: null,
+    state: 'salvo', source: 'manual', revision: 1, created_by: UID_A, created_at: agora, updated_at: agora });
+  srv.tabelas.lab_results.push({ id: globalThis.crypto.randomUUID(), collection_id: cid, exame_id: 'EXA-001', valor: 95, unidade_no_momento: 'mg/dL', nome_exame_no_momento: 'Glicose de jejum', sistema_no_momento: 'metabolico', created_at: agora });
+}
 /* dados no SERVIDOR, gravados pelos caminhos reais (RPC e tabelas sob RLS) */
-await A.evaluate(async (pid, hoje) => {
+const coletaRecusada = await A.evaluate(async (pid, hoje) => {
   const sb = window.supabaseClient;
   const app = (quando, indice, fisico) => ({
     application: { patient_id: pid, quando, versao_estrutura: 1, versao_bancos: 'v', indice, indice_maximo: 100,
@@ -84,10 +92,10 @@ await A.evaluate(async (pid, hoje) => {
                maximo: 3, respondidos: 2, total_marcadores: 2, avaliavel: true }]
   });
   void app;   // as 2 aplicacoes HOLOSCAN (historicas) ja estao no servidor: semeadas antes (ver abaixo do comentario P0)
-  await sb.rpc('salvar_coleta_exames', { payload: {
+  /* 09/10: a RPC de coleta recusa (laboratorio_desativado); a coleta HISTORICA entra direto no servidor falso (abaixo, fora do navegador) */
+  window.__coletaRecusada = (await sb.rpc('salvar_coleta_exames', { payload: {
     collection: { patient_id: pid, coletado_em: '2026-08-20', data_coleta_desconhecida: false },
-    results: [{ exame_id: 'EXA-001', valor: 95, unidade_no_momento: 'mg/dL', ideal_min_no_momento: 70,
-                ideal_max_no_momento: 90, nome_exame_no_momento: 'Glicose de jejum', sistema_no_momento: 'metabolico' }] } });
+    results: [{ exame_id: 'EXA-001', valor: 95, unidade_no_momento: 'mg/dL', nome_exame_no_momento: 'Glicose de jejum', sistema_no_momento: 'metabolico' }] } })).error;
   await sb.from('consultations').insert([{ patient_id: pid, data: hoje, hora: '09:00', tipo: 'retorno', duracao_min: 60, nota: 'retorno de rotina' }]);
   const concluida = (fid, respostas, quando) => ({ patient_id: pid, ferramenta_id: fid, versao_ferramenta: '1',
     status: 'concluida', respostas, iniciada_em: quando, concluida_em: quando, atualizada_em: quando });
@@ -102,6 +110,7 @@ await A.evaluate(async (pid, hoje) => {
   await window.Sincronizacao.hidratar(window.pacientesTodos());
   await window.Sincronizacao.aguardar();
   await window.Aplicacoes.carregar();
+  return window.__coletaRecusada;
   await window.Agenda.carregarDados();
 }, P, hoje);
 await esperar(300);
@@ -199,9 +208,10 @@ const contexto = await A.evaluate(async (pid) => {
   return (document.getElementById('ai-hub-texto') || {}).textContent || '';
 }, P);
 const tem = (re, nome) => ok(re.test(contexto), 'o contexto traz ' + nome);
-// Etapa 0 (ajuste final): a 'faixa ideal' (exames.csv em rascunho) nao entra no contexto
-tem(/Glicose de jejum: 95 mg\/dL — 20\/08\/2026/, 'exames com nome, resultado, unidade e data (sem faixa do banco em rascunho)');
-ok(!/faixa 70–90/.test(contexto), 'o contexto nao traz a faixa ideal em rascunho');
+// 09/10: exame e so arquivo — nem a coleta historica (semeada direto no servidor) nem valor algum entram no contexto da IA
+ok(!/Glicose de jejum|95 mg\/dL|faixa 70–90|## Exames|EXA-001/.test(contexto) && /Exames e documentos do prontuário .* NÃO estão incluídos/.test(contexto),
+   'o contexto NAO traz exames (nem a coleta historica, nem faixa) e diz isso na fronteira: exame nao participa');
+ok(coletaRecusada && coletaRecusada.hint === 'laboratorio_desativado' && srv.linhas('lab_collections').length === 1, 'a RPC de coleta recusou (laboratorio_desativado) e a coleta historica semeada ficou intacta');
 tem(/Marcada|Realizada/, 'as consultas');
 tem(/retorno de rotina/, 'a observacao da consulta');
 tem(/### OQ³[\s\S]*quer dormir bem/, 'o OQ³');

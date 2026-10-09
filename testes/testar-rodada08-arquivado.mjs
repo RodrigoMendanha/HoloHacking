@@ -111,15 +111,18 @@ let t = await toasts(`document.querySelector('.nav-item[data-secao="holoscan"]')
   document.getElementById('btn-salvar-holoscan').click();`);
 ok(t.includes(MSG) && contar().holoscan === 0, 'Salvar HOLOSCAN: ' + t);
 
+/* 09/10: nao ha mais painel de coleta; o que a ficha oferece e "Adicionar arquivo" — e ele tambem barra */
 t = await toasts(`window.abrirFichaDe('${P}');
   await new Promise(r => setTimeout(r, 200));
   document.querySelector('[data-aba="documentos"]').click();
   await new Promise(r => setTimeout(r, 300));
-  const inp = document.querySelector('#ex-corpo .ex-linha input');
-  inp.value = '90'; inp.dispatchEvent(new Event('input', { bubbles: true }));
-  document.getElementById('ex-data-coleta').value = '2026-03-20';
-  document.querySelector('#ex-corpo [data-acao="conferir"]').click();`);
-ok(t.includes(MSG) && contar().coletas === 0, 'Registrar coleta: ' + t);
+  const f = new File(['%PDF-1.4 x'], 'laudo.pdf', { type: 'application/pdf' });
+  const dt = new DataTransfer(); dt.items.add(f);
+  const inp = document.getElementById('doc-arquivo'); inp.files = dt.files; inp.dispatchEvent(new Event('change', { bubbles: true }));
+  await new Promise(r => setTimeout(r, 300));
+  window.__formulario = !!document.getElementById('doc-guardar');`);
+const semForm = await A.evaluate(() => window.__formulario === false);
+ok(t.includes(MSG) && semForm && contar().docs === 0 && Object.keys(srv.storage['patient-documents'] || {}).length === 0, 'Adicionar arquivo (barrado ja ao escolher o arquivo, sem formulario): ' + t);
 
 const ferr = await A.evaluate(async () => {
   window.abrirFerramentaPorId('mapa_crencas');
@@ -164,8 +167,9 @@ const direto = await A.evaluate(async (pid, payloadH) => {
     lab_collections: m(await sb.from('lab_collections').insert([{ patient_id: pid, coletado_em: null, data_coleta_desconhecida: true }]))
   };
 }, P, PAYLOAD_H);
+/* 09/10: coleta e recusada ANTES de olhar o paciente (laboratorio desativado / tabela sem permissao) */
 Object.entries(direto).forEach(([k, v]) =>
-  ok(/paciente arquivado/.test(v), k + ' recusado: ' + v));
+  ok(k === 'rpc_coleta' ? /desativad/.test(v) : k === 'lab_collections' ? /permission denied/.test(v) : /paciente arquivado/.test(v), k + ' recusado: ' + v));
 ok(JSON.stringify(contar()) === JSON.stringify(antes), 'e nenhuma linha foi criada');
 
 /* ==================================================================== */

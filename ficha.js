@@ -133,9 +133,7 @@
       { rot: "Em aberto",
         valor: abertas === 0 ? "tudo em dia" : abertas + (abertas === 1 ? " pendência" : " pendências"),
         alerta: abertas > 0, acao: "aba:visao" },
-      { rot: "Exames", valor: d.exames > 0 ? d.exames + " preenchidos" : null,
-        vazio: "nenhum valor", acao: "aba:documentos" },
-      { rot: "Documentos", valor: null, vazio: "carregando…", id: "fic-faixa-docs",
+      { rot: "Documentos e exames", valor: null, vazio: "carregando…", id: "fic-faixa-docs",
         acao: "aba:documentos" }
     ];
 
@@ -226,26 +224,9 @@
 
   /* ================================================= ABA: VISÃO CLÍNICA === */
 
-  /* Exames: resumo compacto, nao duplica o HOLOSCAN — so diz quantos valores
-     ja foram lancados (mesmo d.exames que a faixa e o panorama ja contam) e
-     manda para onde eles moram ou para o confronto em si. */
-  function blocoExames(d) {
-    return '<div class="dash-bloco dash-bloco-compacto">' +
-      '<h3 class="dash-titulo">Exames</h3>' +
-      (d.exames > 0
-        ? '<p class="dash-sub">' + d.exames +
-          (d.exames === 1 ? " valor registrado." : " valores registrados.") + "</p>" +
-          '<button type="button" class="dash-ir" data-ir="confronto">Ver Leitura Integrada ' +
-          '<span aria-hidden="true">&rarr;</span></button>'
-        : '<p class="dash-vazio">Nenhum exame registrado.</p>' +
-          '<button type="button" class="dash-ir" data-ir="aba:documentos">Registrar exames ' +
-          '<span aria-hidden="true">&rarr;</span></button>') +
-      "</div>";
-  }
-
   function blocoDocumentosPlaceholder() {
     return '<div class="dash-bloco dash-bloco-compacto">' +
-      '<h3 class="dash-titulo">Documentos recentes</h3>' +
+      '<h3 class="dash-titulo">Documentos e exames recentes</h3>' +
       '<div id="fic-visao-docs"><p class="dash-vazio">Carregando…</p></div>' +
       "</div>";
   }
@@ -261,7 +242,7 @@
       if (!alvo) return;
       if (!itens.length) {
         alvo.innerHTML = (itens.falhaServidor ? '<p class="dash-vazio">Não foi possível carregar os documentos do servidor agora.</p>' : '<p class="dash-vazio">Nenhum documento.</p>') +
-          '<button type="button" class="dash-ir" data-ir="aba:documentos">Adicionar documento ' +
+          '<button type="button" class="dash-ir" data-ir="aba:documentos">Adicionar arquivo ' +
           '<span aria-hidden="true">&rarr;</span></button>';
         return;
       }
@@ -274,7 +255,7 @@
           // o avatar o botao caia na coluna do meio e esticava.
           return '<li class="dash-pendente">' +
             '<span class="pac-avatar">' + escapar((a.tipo || "Documento").charAt(0).toUpperCase()) + "</span>" +
-            '<span class="dash-quem"><b>' + escapar(a.nome) + "</b>" +
+            '<span class="dash-quem"><b>' + escapar(a.titulo || a.nome) + "</b>" +
               '<span class="dash-porque">' + escapar(a.tipo || "Documento") +
                 (a.data ? " &middot; " + escapar(dataBR(a.data)) : "") + "</span></span>" +
             '<button type="button" class="dash-ir" data-ir="aba:documentos">Ver ' +
@@ -310,7 +291,7 @@
       html += '<div class="dash-vazio">Sem HOLOSCAN aplicado. O mapa é o que ' +
         "transforma o que ela conta em leitura — e é dele que sai tudo o que " +
         "aparece nesta aba.</div>";
-      html += blocoDocumentosPlaceholder() + blocoExames(d);
+      html += blocoDocumentosPlaceholder();
       html += '<div class="dash-bloco dash-bloco-compacto" id="fic-visao-timeline-bloco">' +
         '<h3 class="dash-titulo">Linha do tempo</h3>' +
         '<div id="fic-visao-timeline"></div></div>';
@@ -385,7 +366,7 @@
 
     html += blocoRetorno(d, pid);
 
-    html += blocoDocumentosPlaceholder() + blocoExames(d);
+    html += blocoDocumentosPlaceholder();
 
     html += '<div class="dash-bloco dash-bloco-compacto" id="fic-visao-timeline-bloco">' +
       '<h3 class="dash-titulo">Linha do tempo</h3>' +
@@ -437,21 +418,6 @@
     if (ferr.length > 0)
       itens.push(ferr.length + (ferr.length === 1 ? " ferramenta aplicada" : " ferramentas aplicadas"));
 
-    var coletasRet = window.Sincronizacao ? window.Sincronizacao.coletas(pid) : null;
-    if (coletasRet) {
-      /* "registrada desde": com data de coleta, a data da coleta; sem ela, o
-         dia em que o registro foi feito (updated_at) — e o texto diz
-         "registrada", nao "coletada" */
-      var novas = coletasRet.filter(function (c) {
-        if (!c.data_coleta_desconhecida && c.coletado_em) return c.coletado_em >= desde;
-        return diaLocal(c.updated_at || c.created_at) >= desde;
-      });
-      if (novas.length > 0)
-        itens.push(novas.length + (novas.length === 1 ? " coleta de exames registrada" : " coletas de exames registradas"));
-    } else if (d.exames > 0) {
-      itens.push(d.exames + (d.exames === 1 ? " valor de exame registrado" : " valores de exame registrados"));
-    }
-
     return '<div class="dash-bloco dash-bloco-compacto fic-retorno">' +
       '<h3 class="dash-titulo">Desde a última consulta</h3>' +
       '<p class="dash-sub">Última consulta em ' + escapar(dataBR(desde)) +
@@ -475,7 +441,7 @@
       '<span class="fic-rot">Depois da consulta</span>' +
       '<button type="button" class="fic-chip" data-ir="holoscan">HOLOSCAN</button>' +
       '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span>' +
-      '<button type="button" class="fic-chip" data-ir="confronto">Leitura Integrada</button>' +
+      '<button type="button" class="fic-chip" data-ir="aba:conduta">Conduta</button>' +
       '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span>' +
       '<button type="button" class="fic-chip" data-ir="aba:documentos">Documentos</button>' +
     "</div>";
@@ -604,7 +570,9 @@
   function blocoContinuidadeHoloscan() {
     return '<div class="fic-continuidade">' +
       '<span class="fic-rot">Depois do mapa</span>' +
-      '<button type="button" class="fic-chip" data-ir="confronto">Ver Leitura Integrada</button>' +
+      '<button type="button" class="fic-chip" data-ir="aba:resultado-holos">Resultado HOLOS</button>' +
+      '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span>' +
+      '<button type="button" class="fic-chip" data-ir="resultado">Resultado para a paciente</button>' +
     "</div>";
   }
 
@@ -645,9 +613,7 @@
             "<span>Verifique a conexão e abra o app de novo. Nenhuma aplicação foi apagada.</span></div>"
           : '<div class="lista-vazia"><strong>Nenhuma aplicação HOLOSCAN</strong>' +
             "<span>Faça a primeira aplicação para mapear prioridades de investigação.</span></div>") +
-        '<div id="aba-holoscan-laboratorial"></div>' +
         blocoContinuidadeHoloscan();
-      if (window.desenharHoloscanLaboratorial) window.desenharHoloscanLaboratorial();
       ligar(alvo);
       return;
     }
@@ -683,12 +649,9 @@
           }).join("") + "</ul>") +
     "</div>";
 
-    html += '<div id="aba-holoscan-laboratorial"></div>';
-
     html += blocoContinuidadeHoloscan();
 
     alvo.innerHTML = html;
-    if (window.desenharHoloscanLaboratorial) window.desenharHoloscanLaboratorial();
     ligar(alvo);
   }
 
@@ -709,7 +672,7 @@
        clinico. O agendamento entra como evento administrativo. */
     var pintar = function (arquivos) {
       var eventos = window.Timeline
-        ? window.Timeline.eventos(pid, { documentos: arquivos, examesLocais: d.exames })
+        ? window.Timeline.eventos(pid, { documentos: arquivos })
         : [];
 
       if (!eventos.length) {

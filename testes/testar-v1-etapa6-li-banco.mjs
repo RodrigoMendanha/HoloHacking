@@ -1,154 +1,76 @@
 /**
- * V1 — ETAPA 6.0 — LEITURA INTEGRADA NO SERVIDOR (Supabase falso que espelha a migration 20261002120000;
- * a migration foi provada em PostgreSQL local — supabase/tests/etapa6-harness.sql)
+ * V1 — ETAPA 6.0 (reescrita 09/10) — LEITURA INTEGRADA RETIRADA DO FLUXO; HISTORICO E PACOTE PRESERVADOS
+ * (Supabase falso que espelha as migrations 20261002120000 + 20261011100000; a migration 20261011100000 foi
+ * provada em PostgreSQL local — supabase/tests/prontuario-harness.sql)
  *
- *  - LI-V1@2 em_revisao com 7 dominios / 47 vinculos; hash do servidor == hash do pacote JS == hash do SQL local
- *  - completude publicavel; governanca intocada (0 aprovacoes; aprovador unico Daniel so por RPC com identidade real —
- *    migration 20261003100000; antes da 6.3-B: Daniel -> Rodrigo; mudanca legitima de contrato documentada)
- *  - leitura POR DOMINIO: convergente/divergente so com pacote aprovado e direcoes deterministicas coerentes
- *  - D05/D06/D07 nao recebem leitura cross-source (nao e erro de mapeamento)
- *  - snapshot imutavel: nova coleta e mudanca do pacote candidato nao alteram a leitura salva
- *  - duplicidade: duas coletas mesma data, mesmo exame -> duplicate_result_unresolved; escolha explicita resolve
- *  - exames nunca alteram HOLOSCAN (nota/faixa/Indice/Triada antes == depois)
+ *  - os pacotes LI-V1 (v1 infraestrutura, v2 candidato em revisao) continuam no servidor, globais e somente
+ *    leitura: a aplicacao nao cria vinculo, nao muda dominio, nao aprova nem apaga pacote
+ *  - a leitura HISTORICA (salva antes de 09/10) continua: o dono le; outra conta nao; ninguem altera
+ *  - salvar_leitura_integrada recusa SEMPRE (li_desativada): com pacote candidato, com pacote aprovado por fixture,
+ *    com e sem coleta; nenhuma leitura nova nasce; revisao de leitura historica tambem nao
+ *  - exames nunca alteram HOLOSCAN (notas/faixas/Indice antes == depois de todas as tentativas)
  */
 import './guarda-falhas.mjs';
+import { createHash } from 'node:crypto';
 import { criarServidor } from './supabase-falso.mjs';
 import { semearHistorica, semearHolosAprovado, payloadOficial } from './holos-aprovado.mjs';
-import '../laboratorio-motor.js';
-import '../leitura-integrada-motor.js';
 
 let falhou = false;
 const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
 const titulo = (t) => console.log('\n  ' + t + '\n');
 const srv = criarServidor();
 const UA = srv.criarConta('a@holo.test', 'x'), UB = srv.criarConta('b@holo.test', 'x');
-srv.gestaoTecnica('methodology_approvers', 'insert', { user_id: UA, scope: 'integrated_reading', approval_stage: 1, display_name: 'Daniel' });
-srv.gestaoTecnica('methodology_approvers', 'insert', { user_id: UB, scope: 'integrated_reading', approval_stage: 2, display_name: 'Rodrigo', active: false, deactivated_at: '2026-10-03T00:00:00Z', deactivation_reason: 'etapa 2 descontinuada (aprovador unico)' });
 const q = (uid, tabela, acao, extra) => srv.tratar({ op: 'query', uid, q: Object.assign({ tabela, acao, filtros: [], ordem: [], range: null, colunas: '*', single: null, opcoes: {}, retornar: true }, extra) });
 const insert = (uid, t, dados) => q(uid, t, 'insert', { dados });
-const select = (uid, t) => q(uid, t, 'select');
+const select = (uid, t, filtros) => q(uid, t, 'select', { filtros: filtros || [] });
 const update = (uid, t, dados, filtros) => q(uid, t, 'update', { dados, filtros });
-const rpc = (uid, nome, args) => srv.tratar({ op: 'rpc', uid, nome, args });
+const del = (uid, t, filtros) => q(uid, t, 'delete', { filtros });
 const eq = (col, val) => [{ op: 'eq', col, val }];
-const G = srv.gestaoTecnica;
-const PK = globalThis.LeituraIntegradaPacoteV1, L = globalThis.LeituraIntegradaMotor, M = globalThis.LabMotor;
-const P = 'attention_present', N = 'attention_not_detected', I = 'indeterminate';
+const rpc = (uid, nome, args) => srv.tratar({ op: 'rpc', uid, nome, args });
+const agora = () => new Date().toISOString();
+const PA = insert(UA, 'patients', { nome: 'Paciente LI Ficticia' }).data[0].id;
 const D = '2026-03-10';
 
-titulo('PACOTE LI-V1@2 NO SERVIDOR: CONTEUDO, HASH, COMPLETUDE, GOVERNANCA INTOCADA');
+titulo('1. PACOTES LI-V1: GLOBAIS, SOMENTE LEITURA');
 const pks = select(UA, 'integrated_reading_rule_packages').data.filter(p => p.code === 'LI-V1').sort((a, b) => a.version - b.version);
-const v1 = pks[0], v2 = pks[1];
-ok(pks.length === 2 && v1.status === 'rascunho' && v2.status === 'em_revisao', 'LI-V1@1 rascunho (historico) e LI-V1@2 em_revisao (candidato)');
-const doms = select(UA, 'integrated_reading_domains').data.filter(d => d.package_id === v2.id), links = select(UA, 'integrated_reading_exam_domain_links').data.filter(l => l.package_id === v2.id), rules = select(UA, 'integrated_reading_rules').data.filter(r => r.package_id === v2.id);
-ok(doms.length === 7 && links.length === 47 && links.filter(l => l.cross_source_role === 'directional').length === 9 && links.filter(l => l.cross_source_role === 'contextual').length === 38 && rules.length === PK.REGRAS.length, '7 dominios, 47 vinculos (9 directional + 38 contextual), ' + PK.REGRAS.length + ' regras');
-const porDom = Object.fromEntries(doms.map(d => [d.code, links.filter(l => l.domain_id === d.id).length]));
-ok(JSON.stringify(porDom) === JSON.stringify({ 'LI-D01': 7, 'LI-D02': 3, 'LI-D03': 5, 'LI-D04': 4, 'LI-D05': 4, 'LI-D06': 12, 'LI-D07': 12 }) && new Set(links.map(l => l.exam_code)).size === 42, 'por dominio 7/3/5/4/4/12/12; 42 exames vinculados');
-const h = rpc(UA, 'li_hash_conteudo', { p_package_id: v2.id }).data;
-ok(h === PK.hashConteudo() && /^[0-9a-f]{64}$/.test(h), 'hash do servidor falso == hash do pacote JS (' + h.slice(0, 12) + ') — o mesmo provado no PostgreSQL local');
-ok(rpc(UA, 'li_validar_completude', { p_package_id: v2.id }).data.publicavel === true && rpc(UA, 'li_validar_completude', { p_package_id: v1.id }).data.publicavel === false, 'LI-V1@2 completo (publicavel); LI-V1@1 continua incompleto');
-ok(srv.linhas('integrated_reading_package_approvals').length === 0 && srv.linhas('integrated_reading_package_snapshots').length === 0, '0 aprovacoes e 0 snapshots: nada homologado pelo codigo');
-ok(insert(UA, 'integrated_reading_exam_domain_links', { package_id: v2.id, domain_id: doms[0].id, exam_code: 'LAB-027' }).error && update(UA, 'integrated_reading_domains', { holoscan_system: 'fungico' }, eq('id', doms[4].id)).error && update(UA, 'integrated_reading_rule_packages', { status: 'aprovado' }, eq('id', v2.id)).error, 'a aplicacao nao cria vinculo, nao muda dominio e nao aprova pacote');
-ok(G('integrated_reading_domains', 'insert', { package_id: v2.id, code: 'X', name: 'x', holoscan_mapping_mode: 'mapped', holoscan_system: null }).error && G('integrated_reading_exam_domain_links', 'insert', { package_id: v2.id, domain_id: doms[0].id, exam_code: 'LAB-027', cross_source_role: 'directional' }).error, 'constraints novas espelhadas: mapped exige sistema; directional exige direction_rules');
+ok(pks.length === 2 && pks[0].status === 'rascunho' && pks[1].status === 'em_revisao', 'LI-V1 v1 (rascunho de infraestrutura) e v2 (candidato em revisao) continuam no servidor');
+const v2 = pks[1];
+const doms = select(UA, 'integrated_reading_domains', eq('package_id', v2.id)).data;
+ok(doms.length === 7 && select(UB, 'integrated_reading_rule_packages').data.length === pks.length, '7 dominios do v2; o pacote e visivel a qualquer conta');
+ok(insert(UA, 'integrated_reading_exam_domain_links', { package_id: v2.id, domain_id: doms[0].id, exam_code: 'LAB-027' }).error
+   && update(UA, 'integrated_reading_domains', { holoscan_system: 'fungico' }, eq('id', doms[0].id)).error
+   && update(UA, 'integrated_reading_rule_packages', { status: 'aprovado' }, eq('id', v2.id)).error
+   && del(UA, 'integrated_reading_rule_packages', eq('id', v2.id)).error, 'a aplicacao nao cria vinculo, nao muda dominio, nao aprova nem apaga pacote');
 
-titulo('PACIENTE, HOLOSCAN (fonte congelada) E COLETAS (TEST_FIXTURE_ONLY)');
-const PA = insert(UA, 'patients', { nome: 'Paciente E6' }).data[0].id;
-/* Correcao P0 (pos-deploy 6.4): a RPC so grava aplicacao OFICIAL; esta e a aplicacao HISTORICA (pre-existente, sem pacote, motor legado). */
+titulo('2. LEITURA HISTORICA: FICA, SO PARA O DONO, SEM ALTERACAO');
+const LID = globalThis.crypto.randomUUID();
+srv.tabelas.integrated_readings.push({ id: LID, nutritionist_id: UA, patient_id: PA, responsible: 'Nutri Teste', state: 'divergente', domain_code: 'LI-D01', rule_package_id: v2.id, rule_version: 2,
+  professional_note: 'leitura anterior a 09/10', revision: 1, reason_codes: [], trace: {}, created_at: agora() });
 const hid = semearHistorica(srv, UA, { application: { patient_id: PA, quando: D }, scores: [{ sistema: 'acido_inflamatorio', nome: 'A', nota: 5, carga: 5, faixa: 'medio', obtido: 1, maximo: 2, respondidos: 1, total_marcadores: 2, avaliavel: true }] });
-const antesH = JSON.stringify([srv.linhas('holoscan_applications').find(a => a.id === hid), srv.linhas('holoscan_system_scores').filter(x => x.application_id === hid)]);
-const R = (code, valor, extra) => Object.assign({ exam_code: code, value_original_text: String(valor), numeric_value: Number(valor), qualifier: 'eq', unit_original: 'mg/L', report_reference_text: '10 a 20', report_reference_min: 10, report_reference_max: 20 }, extra || {});
-const coleta = (data, results) => rpc(UA, 'salvar_coleta_laboratorial', { payload: { collection: { patient_id: PA, clinical_date: data, state: 'salvo' }, results } }).data.id;
-const C1 = coleta(D, [R('LAB-016', 30), R('LAB-018', 30), R('LAB-010', 30)]);
-const resultadosDe = (...cids) => srv.linhas('lab_results').filter(r => cids.includes(r.collection_id));
-const pacoteServidor = (pkRow) => ({ id: pkRow.id, code: pkRow.code, version: pkRow.version, status: pkRow.status, domains: select(UA, 'integrated_reading_domains').data.filter(d => d.package_id === pkRow.id), links: select(UA, 'integrated_reading_exam_domain_links').data.filter(l => l.package_id === pkRow.id), rules: select(UA, 'integrated_reading_rules').data.filter(r => r.package_id === pkRow.id) });
-const classificar = (rs) => Object.fromEntries(rs.map(r => [r.id, M.classificar(r, r.reference_status === 'informed' ? { source: 'laudo', min: r.report_reference_min, max: r.report_reference_max, operator: r.report_reference_operator || 'range', unit: r.report_reference_unit || r.unit_original } : null, { conversoes: [] })]));
-const holo = (faixa) => ({ application: { id: hid, clinical_date: D, methodology_package: { code: 'HOLOS-V1', version: 2, status: 'aprovado' } }, system_results: { acido_inflamatorio: { avaliavel: true, faixa, nota: 1 } } });
-const calc = (pk, cids, h2, sel) => { const rs = resultadosDe(...cids); return L.calcular({ rule_package: pk, patient_id: PA, holoscan: h2, collections: cids.map(c => ({ id: c, clinical_date: srv.linhas('lab_collections').find(x => x.id === c).coletado_em })), results: rs, classifications: classificar(rs), selected_result_ids: sel || [] }); };
-const salvar = (uid, dom, extra) => rpc(uid, 'salvar_leitura_integrada', { payload: Object.assign({ patient_id: PA, responsible: 'Prof', rule_package_id: v2.id, engine_version: L.VERSAO, domain_code: dom.domain_code, state: dom.state, holoscan_direction: dom.holoscan_direction, laboratory_direction: dom.laboratory_direction, reason_codes: dom.reason_codes, trace: dom.snapshot, snapshot: dom.snapshot, holoscan_application_id: hid, selected_collection_ids: dom.snapshot.selected_collection_ids, selected_result_ids: dom.snapshot.selected_result_ids }, extra || {}) });
+ok(select(UA, 'integrated_readings').data.length === 1 && select(UA, 'integrated_readings').data[0].professional_note === 'leitura anterior a 09/10', 'o dono le a leitura historica');
+ok(select(UB, 'integrated_readings').data.length === 0, 'outra conta nao');
+ok(update(UA, 'integrated_readings', { state: 'convergente' }, eq('id', LID)).error.code === '42501' && del(UA, 'integrated_readings', eq('id', LID)).error.code === '42501', 'nem o dono altera ou apaga pela tabela (42501)');
+const digital = () => createHash('sha256').update(JSON.stringify(['integrated_readings', 'integrated_reading_rule_packages', 'integrated_reading_domains', 'integrated_reading_exam_domain_links', 'integrated_reading_rules', 'holoscan_applications', 'holoscan_system_scores', 'lab_collections', 'lab_results'].map(t => srv.linhas(t)))).digest('hex');
 
-titulo('LEITURA POR DOMINIO COM O PACOTE DO SERVIDOR (em_revisao): SO SEM DADOS E GRAVADO');
-const r1 = calc(pacoteServidor(v2), [C1], holo('baixa'));
-ok(r1.domains['LI-D01'].state === 'convergente' && r1.domains['LI-D01'].laboratory_direction === P && r1.domains['LI-D05'].cross_source_mode === 'not_applicable' && r1.domains['LI-D05'].lab_domain_availability.classifiable === 1, 'motor com as linhas do servidor: D01 convergente (PCR+fibrinogenio acima x HOLOSCAN baixa); D05 informacao laboratorial (creatinina classificavel, sem confronto)');
-let r = salvar(UA, r1.domains['LI-D01']);
-ok(r.error && /nao aprovado/.test(r.error.message) && srv.linhas('integrated_readings').length === 0, 'convergente recusado: pacote LI-V1@2 ainda em_revisao (nada oficial antes da homologacao)');
-r = salvar(UA, Object.assign({}, r1.domains['LI-D05'], { state: 'sem_dados_suficientes' }));
-ok(r.error && /nao possui confronto HOLOSCAN/.test(r.error.message), 'D05 nao recebe leitura cross-source (ausencia intencional, nao erro de mapeamento)');
-const semDados = calc(pacoteServidor(v2), [C1], holo('intermediaria')).domains['LI-D01'];
-r = salvar(UA, semDados, { professional_note: 'observacao separada' });
-ok(!r.error && r.data.state === 'sem_dados_suficientes' && r.data.domain_code === 'LI-D01' && /^[0-9a-f]{64}$/.test(r.data.content_hash), 'sem dados suficientes (HOLOSCAN intermediaria -> indeterminate) gravado por dominio com hash');
-const lr = srv.linhas('integrated_readings').find(x => x.id === r.data.id);
-ok(lr.domain_code === 'LI-D01' && lr.holoscan_direction === I && lr.laboratory_direction === P && lr.snapshot.temporal_rule_code === 'LI-TEMP-01' && lr.snapshot.items.length === 2 && lr.snapshot.items.every(i => i.value_original_text === '30' && i.unit_original === 'mg/L') && lr.professional_note === 'observacao separada' && !('professional_note' in lr.snapshot) && lr.rule_version === 2, 'linha congela dominio, direcoes, snapshot (LI-TEMP-01, itens com valor/unidade originais), nota profissional separada, pacote v2');
-ok(update(UA, 'integrated_readings', { snapshot: {} }, eq('id', lr.id)).error && update(UA, 'integrated_readings', { laboratory_direction: N }, eq('id', lr.id)).error, 'snapshot e direcoes imutaveis');
+titulo('3. salvar_leitura_integrada RECUSA SEMPRE');
+const tenta = (rotulo, payload) => { const r = rpc(UA, 'salvar_leitura_integrada', { payload }); ok(r.error && r.error.hint === 'li_desativada' && r.data === null, rotulo + ': recusada (li_desativada) — ' + (r.error ? r.error.message : 'GRAVOU')); };
+tenta('sem coleta, estado sem_dados_suficientes', { patient_id: PA, holoscan_application_id: hid, responsible: 'x', state: 'sem_dados_suficientes', rule_package_id: v2.id });
+tenta('com pacote candidato (em revisao)', { patient_id: PA, holoscan_application_id: hid, responsible: 'x', state: 'convergente', domain_code: 'LI-D01', rule_package_id: v2.id, selected_collection_ids: [] });
+const pkA = semearHolosAprovado(srv, UA, { effective_from: '2026-01-01' });
+const EA = insert(UA, 'encounters', { patient_id: PA, occurred_at: agora(), timezone: 'America/Sao_Paulo', type: 'consulta', modality: 'presencial' }).data[0].id;
+const HO = rpc(UA, 'salvar_holoscan_completo', { payload: payloadOficial(srv, pkA.id, { patient_id: PA, encounter_id: EA, quando: agora().slice(0, 10) }) }).data;
+ok(!!HO, 'fixture: HOLOSCAN oficial salvo');
+const scoresAntes = JSON.stringify(srv.linhas('holoscan_system_scores').filter(s => s.application_id === HO));
+const antes = digital();   /* a partir daqui nada pode mudar */
+srv.tabelas.integrated_reading_rule_packages.find(p => p.id === v2.id).status = 'aprovado';   // fixture: nem aprovado o pacote reabre o fluxo
+tenta('com pacote LI aprovado (fixture) e HOLOSCAN oficial', { patient_id: PA, holoscan_application_id: HO, responsible: 'x', state: 'convergente', domain_code: 'LI-D01', rule_package_id: v2.id });
+srv.tabelas.integrated_reading_rule_packages.find(p => p.id === v2.id).status = 'em_revisao';
+tenta('revisao da leitura historica', { patient_id: PA, holoscan_application_id: hid, responsible: 'x', state: 'convergente', domain_code: 'LI-D01', rule_package_id: v2.id, supersedes_id: LID, reason: 'teste' });
+ok(srv.linhas('integrated_readings').length === 1 && !srv.linhas('integrated_readings')[0].superseded_at, 'nenhuma leitura nova nasceu; a historica nao foi substituida');
 
-titulo('HOMOLOGACAO LOCAL DO CANDIDATO (fixture de teste: NAO e aprovacao real) -> CONVERGENTE/DIVERGENTE OFICIAIS');
-const hv2 = rpc(UA, 'li_hash_conteudo', { p_package_id: v2.id }).data;
-ok(!rpc(UA, 'registrar_aprovacao_li', { p_package_id: v2.id, p_version: 2, p_content_hash: hv2, p_etapa: 1, p_responsavel: 'Daniel', p_justificativa: 'teste local' }).error, 'Aprovacao (conta de teste no papel de Daniel, aprovador unico) sobre o hash atual');
-ok(rpc(UA, 'registrar_aprovacao_li', { p_package_id: v2.id, p_version: 2, p_content_hash: hv2, p_etapa: 2, p_responsavel: 'Rodrigo', p_justificativa: 'teste local' }).error, 'etapa 2 recusada (descontinuada; nenhuma segunda revisao)');
-ok(rpc(UB, 'registrar_aprovacao_li', { p_package_id: v2.id, p_version: 2, p_content_hash: hv2, p_etapa: 2, p_responsavel: 'Rodrigo', p_justificativa: 'teste local' }).error && rpc(UB, 'homologar_pacote_li', { p_package_id: v2.id, p_version: 2, p_content_hash: hv2, p_responsavel: 'Rodrigo' }).error, 'conta no papel desativado de Rodrigo nao aprova nem homologa');
-const hom = rpc(UA, 'homologar_pacote_li', { p_package_id: v2.id, p_version: 2, p_content_hash: hv2, p_responsavel: 'Daniel' });
-const snapH = srv.linhas('integrated_reading_package_snapshots');
-ok(!hom.error && hom.data.status === 'aprovado' && snapH.length === 1 && snapH[0].approval_2 === null && snapH[0].governance_regime === 'aprovador_unico', 'homologacao explicita pelo aprovador unico (fixture local): LI-V1@2 aprovado + snapshot (approval_2 nulo, regime aprovador_unico)');
-const v2a = select(UA, 'integrated_reading_rule_packages').data.find(p => p.id === v2.id);
-const conv = calc(pacoteServidor(v2a), [C1], holo('baixa')).domains['LI-D01'];
-r = salvar(UA, conv);
-ok(!r.error && r.data.state === 'convergente' && srv.linhas('integrated_readings').find(x => x.id === r.data.id).holoscan_direction === P, 'convergente gravado (D01: present x present) com pacote aprovado');
-const div = calc(pacoteServidor(v2a), [C1], holo('alta')).domains['LI-D01'];
-r = salvar(UA, div);
-ok(!r.error && r.data.state === 'divergente' && srv.linhas('integrated_readings').find(x => x.id === r.data.id).holoscan_direction === N, 'divergente gravado (D01: not_detected x present)');
-ok(/incoerente/.test(salvar(UA, Object.assign({}, conv, { state: 'divergente' })).error.message) && /deterministicas/.test(salvar(UA, Object.assign({}, conv, { state: 'convergente', holoscan_direction: I })).error.message) && /domain_code/.test(salvar(UA, Object.assign({}, conv, { domain_code: null })).error.message), 'servidor recusa estado incoerente com as direcoes, direcao indeterminada em convergente, e convergente sem dominio');
-const C1b = coleta(D, [R('LAB-016', 15), R('LAB-018', 30)]);   // mesma data: PCR dentro + fibrinogenio acima -> mistura
-const mist = calc(pacoteServidor(v2a), [C1b], holo('baixa')).domains['LI-D01'];
-ok(mist.laboratory_direction === I && mist.state === 'sem_dados_suficientes' && mist.reason_codes.includes('mixed_results_indeterminate') && !salvar(UA, mist).error, 'mistura PCR dentro + fibrinogenio acima -> indeterminate -> sem dados (mixed_results_indeterminate), gravavel; nunca divergente');
+titulo('4. HOLOSCAN INTOCADO');
+ok(JSON.stringify(srv.linhas('holoscan_system_scores').filter(s => s.application_id === HO)) === scoresAntes, 'as notas da aplicacao oficial sao as mesmas depois de todas as tentativas');
+ok(digital() === antes, 'impressao digital de leituras, pacotes LI, dominios, vinculos, regras, HOLOSCAN historico e coletas: intacta');
 
-titulo('DUPLICIDADE: DUAS COLETAS NA MESMA DATA, MESMO EXAME, IDS INDEPENDENTES');
-const dup = calc(pacoteServidor(v2a), [C1, C1b], holo('baixa')).domains['LI-D01'];
-ok(C1 !== C1b && dup.state === 'sem_dados_suficientes' && dup.reason_codes.includes('duplicate_result_unresolved') && dup.duplicates_unresolved.length === 2, 'PCR e fibrinogenio em duas coletas da mesma data: duplicate_result_unresolved (nenhuma escolha silenciosa por id/created_at)');
-const escolhidos = resultadosDe(C1).map(x => x.id);
-const esc = calc(pacoteServidor(v2a), [C1, C1b], holo('baixa'), escolhidos).domains['LI-D01'];
-ok(esc.state === 'convergente' && esc.snapshot.selected_result_ids.every(id => escolhidos.includes(id)) && esc.items.filter(i => i.exclusion_reason === 'not_selected_duplicate').length === 2, 'escolha explicita dos result_ids da coleta 1 resolve; os da coleta 2 ficam registrados como nao escolhidos');
-
-titulo('SNAPSHOT IMUTAVEL: NOVA COLETA E NOVA VERSAO DO PACOTE NAO MUDAM A LEITURA SALVA');
-const salva = srv.linhas('integrated_readings').find(x => x.state === 'convergente');
-const antesSnap = JSON.stringify(salva);
-coleta('2026-03-20', [R('LAB-016', 1), R('LAB-018', 1)]);
-ok(JSON.stringify(srv.linhas('integrated_readings').find(x => x.id === salva.id)) === antesSnap && srv.linhas('lab_collections').filter(c => c.patient_id === PA).length === 3, 'nova coleta (PCR abaixo) nao altera a leitura convergente salva');
-const v3 = G('integrated_reading_rule_packages', 'insert', { code: 'LI-V1', version: 3, status: 'rascunho', notes: 'TEST_FIXTURE_ONLY: nova versao candidata' }).data[0];
-G('integrated_reading_domains', 'insert', { package_id: v3.id, code: 'LI-D01', name: 'x', holoscan_mapping_mode: 'none', holoscan_system: null, status: 'rascunho' });
-ok(JSON.stringify(srv.linhas('integrated_readings').find(x => x.id === salva.id)) === antesSnap && srv.linhas('integrated_readings').find(x => x.id === salva.id).rule_version === 2, 'nova versao do pacote (v3 rascunho) nao recalcula nem reescreve a leitura salva (continua v2)');
-ok(G('integrated_reading_rules', 'update', { payload: {} }, eq('package_id', v2.id)).error && /imutavel/.test(G('integrated_reading_rules', 'update', { payload: {} }, eq('package_id', v2.id)).error.message), 'conteudo do pacote aprovado e imutavel (nova versao e o caminho)');
-
-titulo('NAO INTERFERENCIA E ISOLAMENTO');
-ok(JSON.stringify([srv.linhas('holoscan_applications').find(a => a.id === hid), srv.linhas('holoscan_system_scores').filter(x => x.application_id === hid)]) === antesH, 'calcular e salvar leituras nao alterou holoscan_applications nem holoscan_system_scores (nota/faixa/Indice/Triada identicos)');
-ok(select(UB, 'integrated_readings').data.length === 0 && select(UB, 'integrated_reading_rule_packages').data.length === pks.length + 1, 'outra conta nao le leituras alheias; o pacote global e visivel a todos (somente leitura)');
-ok(srv.linhas('integrated_reading_package_approvals').length === 1 && srv.linhas('integrated_reading_package_approvals').every(a => a.approver_id && a.step === 1), 'a unica aprovacao do fixture (aprovador unico) tem identidade real (approver_id) — nenhuma por string de nome; nenhuma de etapa 2');
-
-titulo('ETAPA 6.0.1 — REFERENCIA AMBIGUA PERSISTIDA; PROVENIENCIA HOLOSCAN (sem backfill); HASH JS == FAKE');
-const CA = coleta('2026-03-12', [R('LAB-016', 30, { reference_ambiguous: true, report_reference_text: '10 a 20 ou 5 a 15 (laudo ambiguo)' }), R('LAB-018', 30)]);
-const ra = resultadosDe(CA).find(x => x.exam_code === 'LAB-016');
-ok(ra.reference_status === 'ambiguous' && ra.report_reference_text === '10 a 20 ou 5 a 15 (laudo ambiguo)' && ra.report_reference_min === 10, 'resultado gravado com reference_status ambiguous e a referencia original preservada');
-const classAmb = (rs) => Object.fromEntries(rs.map(r => [r.id, M.classificar(r, ['informed', 'ambiguous'].includes(r.reference_status) ? { source: 'laudo', ambiguous: r.reference_status === 'ambiguous', min: r.report_reference_min, max: r.report_reference_max, operator: r.report_reference_operator || 'range', unit: r.report_reference_unit || r.unit_original } : null, { conversoes: [] })]));
-const rsA = resultadosDe(CA);
-const domA = L.calcular({ rule_package: pacoteServidor(v2a), patient_id: PA, holoscan: holo('baixa'), collections: [{ id: CA, clinical_date: '2026-03-12' }], results: rsA, classifications: classAmb(rsA) }).domains['LI-D01'];
-ok(domA.state === 'sem_dados_suficientes' && domA.reason_codes.includes('ambiguous_reference') && domA.reason_codes.includes('missing_required_exam') && domA.items.find(i => i.exam_code === 'LAB-016').exclusion_reason === 'ambiguous_reference', 'motor: PCR com referencia ambigua -> excluida (ambiguous_reference) -> missing_required_exam -> SEM DADOS');
-const salvaAmb = salvar(UA, domA, { selected_collection_ids: [CA] });
-ok(!salvaAmb.error, 'leitura salva');
-const relidaAmb = select(UA, 'integrated_readings').data.find(x => x.id === salvaAmb.data.id);   // reload pela API de leitura
-ok(relidaAmb && relidaAmb.reason_codes.includes('ambiguous_reference') && relidaAmb.snapshot.excluded.some(e => e.exam_code === 'LAB-016' && e.reason === 'ambiguous_reference') && relidaAmb.snapshot.items.find(i => i.exam_code === 'LAB-016').reference_text === '10 a 20 ou 5 a 15 (laudo ambiguo)' && relidaAmb.snapshot.items.find(i => i.exam_code === 'LAB-016').classification === 'not_classifiable', 'apos reload: motivo ambiguous_reference, exclusao, referencia original e nao classificabilidade continuam na leitura salva');
-// proveniencia HOLOSCAN
-const mp = insert(UA, 'methodology_packages', { code: 'TEST_FIXTURE_ONLY-HP', version: 2, status: 'rascunho', origin: 'fixture', justification: 'fixture' }).data[0];
-const appBase = { patient_id: PA, quando: D, versao_estrutura: 2, indice: 50, indice_maximo: 100, avaliavel: true, nota_media: 5, triada: {}, triada_com_dado: {}, cobertura: {} };
-/* Correcao P0: so pacote APROVADO e vigente produz aplicacao; o rascunho e recusado. A nova aplicacao usa o HOLOS-V1 aprovado. */
-ok(rpc(UA, 'salvar_holoscan_completo', { payload: { application: Object.assign({ methodology_package_id: mp.id, methodology_package_version: 2 }, appBase), answers: [], scores: [] } }).error, 'pacote em rascunho nao produz aplicacao (recusado)');
-const HP = semearHolosAprovado(srv, UA, { effective_from: '2026-01-01' });
-const enN = insert(UA, 'encounters', { patient_id: PA, occurred_at: new Date().toISOString() }).data[0].id;
-const novaApp = rpc(UA, 'salvar_holoscan_completo', { payload: payloadOficial(srv, HP.id, { patient_id: PA, encounter_id: enN, quando: D }) });
-ok(!novaApp.error && srv.linhas('holoscan_applications').find(a => a.id === novaApp.data).methodology_package_id === HP.id && srv.linhas('holoscan_applications').find(a => a.id === novaApp.data).methodology_package_version === 2 && srv.linhas('holoscan_applications').find(a => a.id === novaApp.data).calculation_mode === 'oficial', 'nova aplicacao HOLOSCAN recebe methodology_package_id + methodology_package_version declarados e validados (oficial)' + (novaApp.error ? ': ' + novaApp.error.message : ''));
-ok(rpc(UA, 'salvar_holoscan_completo', { payload: { application: Object.assign({ methodology_package_id: mp.id, methodology_package_version: 9 }, appBase), answers: [], scores: [] } }).error && rpc(UA, 'salvar_holoscan_completo', { payload: { application: Object.assign({ methodology_package_id: mp.id }, appBase), answers: [], scores: [] } }).error, 'versao incoerente ou proveniencia incompleta: recusadas');
-const hist = srv.linhas('holoscan_applications').find(a => a.id === hid);
-ok(hist.methodology_package_id === null && (hist.methodology_package_version === null || hist.methodology_package_version === undefined), 'aplicacao historica (sem proveniencia) continua sem vinculo');
-ok(update(UA, 'holoscan_applications', { methodology_package_id: mp.id, methodology_package_version: 2 }, eq('id', hid)).error && srv.linhas('holoscan_applications').find(a => a.id === hid).methodology_package_id === null, 'backfill recusado: proveniencia nao pode ser preenchida depois (imutavel)');
-const semProv = calc(pacoteServidor(v2a), [C1], { application: { id: hid, clinical_date: D, methodology_package: null }, system_results: { acido_inflamatorio: { avaliavel: true, faixa: 'baixa', nota: 1 } } }).domains['LI-D01'];
-ok(semProv.reason_codes[0] === 'incompatible_holoscan_version' && semProv.state === 'sem_dados_suficientes', 'LI com aplicacao sem proveniencia: incompatible_holoscan_version (nada inferido por faixa/estrutura)');
-ok(rpc(UA, 'li_hash_conteudo', { p_package_id: v2.id }).data === 'fa99ec80507e277307a9b0d2a09a8f0abc1519e55bede08d8715697412137be9' && PK.hashConteudo() === 'fa99ec80507e277307a9b0d2a09a8f0abc1519e55bede08d8715697412137be9', 'hash JS == fake == ' + 'fa99ec80507e…' + ' (SQL local provado no harness etapa6 E13b)');
-
-console.log('\n  RESULTADO: ' + (falhou ? 'VERMELHO' : 'VERDE'));
+console.log('\n' + (falhou ? 'RESULTADO: FALHOU' : 'RESULTADO: VERDE') + '\n');
 process.exit(falhou ? 1 : 0);

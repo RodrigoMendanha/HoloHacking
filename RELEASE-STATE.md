@@ -75,8 +75,8 @@ SUPABASE_DB_URL='<connection string do Postgres>' sh supabase/checagem/checar-rp
 | Consultas / bloqueios | `dados.consultas` / `dados.bloqueios` | `consultations` / `schedule_blocks` (DadosRouter, com tradução de campos) | memória da Agenda |
 | Ferramentas (OQ³, PQQ, Linha do Momentum, Mapa de Crenças, Roda, Carta) | `dados.aplicacoes` | `tool_applications` (DadosRouter) | memória de Aplicacoes |
 | HOLOSCAN | `holohacking.pontuacao` + `holohacking.questionario` | `holoscan_applications` / `_answers` / `_system_scores` (escrita: RPC `salvar_holoscan_completo`) | as mesmas caixas, reescritas por `sincronizacao.js` |
-| Exames | `holohacking.exames` (valores atuais) | `lab_collections` / `lab_results` (escrita: RPC `salvar_coleta_exames`) | `holohacking.exames` + coletas **em memória** |
-| Documentos | IndexedDB `holohacking/arquivos` | `documents` + bucket privado `patient-documents` | IndexedDB (cópia vinculada por `_supa_id`) |
+| Exames | `holohacking.exames` (legado local; não sobe, não aparece) | `lab_collections` / `lab_results` **só leitura** (09/10: nenhuma gravação nova; RPCs recusam `laboratorio_desativado`) | coletas históricas **em memória**, fora de toda tela |
+| Documentos | IndexedDB `holohacking/arquivos` | `documents` (título, tipo, data, observação, `arquivado_em`) + bucket privado `patient-documents`; **arquiva, nunca apaga** | IndexedDB (cópia vinculada por `_supa_id`) |
 | Perfil | `dados.perfil` | `profiles` + `professional_assets` (perfil.js) | — |
 | HOLOS AI | — | `ai_threads` / `ai_messages` **dormentes** | — |
 
@@ -97,7 +97,7 @@ em 100 ids por filtro `.in()` e paginada de 1000 em 1000:
 
 - HOLOSCAN: 3 leituras (aplicações, scores, respostas da **última**
   aplicação de cada paciente);
-- exames: 2 leituras (coletas e resultados);
+- exames: 2 leituras (coletas e resultados) — **histórico só leitura desde 09/10**, não aparece em tela;
 - mais a recarga de consultas (Agenda) e de aplicações (Aplicacoes).
 
 **Regras:**
@@ -113,15 +113,19 @@ em 100 ids por filtro `.in()` e paginada de 1000 em 1000:
 4. **O que só existe aqui não se perde.** Os casos que permanecem:
    - HOLOSCAN calculado e não salvo, quando é mais novo que o do servidor no
      mesmo dia (ou quando o servidor não tem nada naquele dia);
-   - exame digitado e não conferido (`rascunho`);
-   - exame cujo envio falhou (`pendente`, reenviado na próxima carga com a
-     data original);
+   - ~~exame digitado e não conferido / envio que falhou~~ — **09/10: nada de
+     exame é enviado**; o legado local fica no aparelho e não aparece;
    - respostas do questionário editadas depois da última sincronização.
 5. **De quem é.** Se a conta muda durante a leitura, o resultado é descartado.
 
 As decisões ficam em `holohacking.sincronizacao` (metadado, não dado clínico;
 entra no stash por conta). As tabelas de decisão são testadas uma a uma em
 `testar-release01-regras.mjs`.
+
+> **09/10 — exames são só arquivos.** Tudo abaixo neste bloco (painel, data da
+> coleta, coletas sem data, reenvio) é **histórico**: o painel saiu da ficha, o
+> servidor recusa qualquer coleta nova e o que existe fica só leitura, fora de
+> toda tela. Ver `docs/v1/PRONTUARIO-DOCUMENTOS.md`.
 
 **Data da coleta de exames.** Desde a rodada 04, o painel de exames tem o
 campo **Data da coleta**, ao lado de "Conferir com o mapa":
@@ -176,8 +180,13 @@ UTC−3, UTC+14 e UTC−11 e o dia não muda.
 - A tela avisa "somente neste dispositivo" quando o envio falha. A lista marca
   "só neste dispositivo" nos arquivos locais sem par remoto.
 - A listagem deduplica por identidade (`_supa_id`) e, para o legado, por
-  nome + tamanho. Excluir um documento remoto apaga também a cópia local, e a
-  tela só confirma se o servidor confirmou.
+  nome + tamanho. **Documento não é excluído (09/10): é arquivado** —
+  `arquivado_em`/`arquivado_por` carimbados pelo servidor; a linha e o arquivo
+  continuam; "Ver arquivados" → Restaurar. `DELETE` em `documents` é recusado
+  (privilégio revogado + gatilho) e o objeto registrado não sai do bucket.
+- A biblioteca guarda **tipo, título, data, observação**; o sistema não lê o
+  arquivo. Nada do documento entra em HOLOSCAN, Resultado, relatório
+  (só a contagem), Evolução ou HOLOS AI.
 - Abrir um documento remoto usa `storage.download()` **autenticado**. Não há
   signed URL no código, e isso é intencional. Nenhum caminho de storage ou URL
   vai para localStorage ou para a exportação.
@@ -233,8 +242,8 @@ UTC−3, UTC+14 e UTC−11 e o dia não muda.
 ## 8. Exportação JSON do prontuário
 
 Espera a leitura remota e inclui: paciente, consultas, HOLOSCAN (histórico,
-última pontuação e respostas), valores atuais de exame, coletas datadas (com
-sessão), aplicações de ferramenta e metadados de documentos. Não inclui token,
+última pontuação e respostas), coletas históricas (com sessão; só leitura,
+nenhuma nova desde 09/10), aplicações de ferramenta e metadados de documentos. Não inclui token,
 senha, caminho de storage, URL nem binário.
 
 ---
@@ -274,9 +283,8 @@ senha, caminho de storage, URL nem binário.
 | Backups do Supabase | Conferir o plano | responsável |
 
 
-1. ~~Data de coleta de exames~~ **resolvido na rodada 04:** o painel tem o
-   campo "Data da coleta", obrigatório e sem data futura (ver §3). As coletas
-   antigas sem data continuam "Data da coleta não informada".
+1. ~~Data de coleta de exames~~ **superado em 09/10:** não há mais coleta
+   (exame é só arquivo); as coletas antigas ficam no banco, só leitura.
 2. ~~HOLOSCAN cujo "Salvar" falhou~~ **resolvido:** o local fica, o aviso é
    "Os dados foram salvos neste dispositivo, mas não foi possível
    sincronizá-los…", e salvar de novo tenta de novo. Não há fila automática.
@@ -369,38 +377,32 @@ Antes de começar:
    - Tem de aparecer: "HOLOSCAN salvo na ficha de <primeiro nome>. Score: <n>".
    - Se aparecer "Os dados foram salvos neste dispositivo, mas não foi
      possível sincronizá-los…", **o teste falhou**. Anote a hora e avise.
-6. Volte à ficha (**Pacientes** → clique no paciente) → botão **Registrar
-   exames**. Na aba **Documentos**, cartão **Os valores do exame**:
-   1. Clique em **Conferir com o mapa** sem preencher a data. Tem de
-      aparecer, ao lado do campo: "Informe a data da coleta para registrar
-      os exames." Nada vai ao servidor.
-   2. Em **Data da coleta**, tente escolher amanhã. O calendário não deixa
-      (ou, digitada, aparece "A data da coleta não pode ser futura.").
-   3. Escolha uma data **passada, que não seja hoje** (por exemplo, a de uma
-      semana atrás). Digite 2 ou 3 valores (glicose, por exemplo). Clique em
-      **Conferir com o mapa**.
-   - Quando dá certo, não aparece mensagem nenhuma e o aviso do campo some.
-   - Se aparecer "Exames salvos só neste dispositivo — não foi possível
-     enviar ao servidor…", **o teste falhou**. Anote a hora e avise.
-7. Anote o score do passo 5, a data da coleta e os valores do passo 6.
+6. Volte à ficha (**Pacientes** → clique no paciente) → botão **Adicionar
+   arquivo**. Na aba **Documentos** (09/10: biblioteca do prontuário):
+   1. Escolha um PDF ou foto de teste (sem dado real), tipo **Exame**, dê um
+      **título** e uma **data** passada. Clique em **Guardar**.
+   - Tem de aparecer "1 arquivo(s) guardado(s) no prontuário." e o item na
+     lista com Abrir / Baixar / Arquivar.
+   - Se aparecer "ficou salvo somente neste dispositivo", **o teste falhou**.
+     Anote a hora e avise.
+7. Anote o score do passo 5 e o título do arquivo do passo 6.
 
 **No aparelho B**
 
 1. Entre com **a mesma conta**.
 2. **Pacientes** → abra o paciente de teste. Espere uns segundos: a ficha se
    redesenha quando o servidor responde.
-3. Aba **Visão geral**, bloco **Exames**: tem de aparecer "N valores
-   registrados.", com N igual ao número de valores digitados no passo 6.
-4. Aba **HOLOSCAN**:
-   - bloco **Mapa HOLOS — última aplicação**: a data de hoje, "Índice X de
-     100 · N de 84 respondidas", com X igual ao score anotado;
-   - mais abaixo, **Histórico de coletas**: uma linha com **a data da coleta
-     anotada** (dd/mm/aaaa, não a de hoje) e "N exames".
-5. Aba **Visão geral**, **Linha do tempo**: um evento "Coleta de exames" na
-   **data da coleta anotada**, não na data de hoje.
+3. Aba **Documentos**: o arquivo do passo 6 aparece com o título, a data e
+   o responsável; **Abrir** mostra o arquivo. **Arquivar** tira da lista;
+   **Ver arquivados** → **Restaurar** devolve.
+4. Aba **HOLOSCAN**: bloco **Mapa HOLOS — última aplicação**: a data de hoje,
+   "Índice X de 100 · N de 84 respondidas", com X igual ao score anotado.
+   Não há bloco de exames nem Leitura Integrada.
+5. Aba **Visão geral**, **Linha do tempo**: o documento na data informada;
+   nenhum evento "Coleta de exames".
 6. Se aparecer "Não foi possível carregar o HOLOSCAN do servidor" ou "Não foi
-   possível carregar os exames do servidor", **o teste falhou**. Anote a hora
-   e avise.
+   possível carregar os documentos do servidor", **o teste falhou**. Anote a
+   hora e avise.
 
 **Sobre a data da coleta.** Coletas registradas antes do campo continuam
 como "Data da coleta não informada", e isso é o esperado. Toda coleta nova

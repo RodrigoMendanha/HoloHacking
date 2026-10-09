@@ -9,10 +9,10 @@
  *   C  salvar de novo, RPC volta → sincroniza, sem duplicar
  *   D  interpretacao: servidor falha → feedback, texto nao se perde, nem na
  *                                  proxima hidratacao
- *   E  exames: sem data informada → data de coleta desconhecida; data
- *      historica preservada; reenvio mantem a data original; fuso nao muda o dia;
- *      cada registro sem data e uma coleta propria; retry completa a mesma
- *   F  duas coletas sem data: navegador B limpo, linha do tempo, exportacao
+ *   E  (09/10) exame e so arquivo: nenhum caminho grava coleta; a historica e
+ *      lida como esta, com a mesma data em qualquer fuso
+ *   F  duas coletas HISTORICAS sem data: navegador B limpo le, sem evento na
+ *      linha do tempo, exportacao preserva
  */
 import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
@@ -266,134 +266,39 @@ h = await historico(A, P);
 ok(!h[h.length - 1].interp.pendente, 'e a marca de pendente sai');
 
 /* ==================================================================== */
-titulo('E. DATA DA COLETA DE EXAMES');
+titulo('E. EXAME E SO ARQUIVO (09/10): O SERVIDOR RECUSA, NADA E INVENTADO');
 /* ==================================================================== */
-
-const exames = await A.evaluate(() => window.HOLOSCAN.listaDeExames().slice(0, 3).map(e => e.id));
-/* o painel: "Conferir com o mapa" com o campo "Data da coleta" (data = '' deixa vazio).
-   Devolve a mensagem que a tela mostrou ao lado do campo. */
-async function conferirPeloPainel(valores, data) {
-  return A.evaluate(async (pid, valores, data) => {
-    window.abrirFichaDe(pid);
-    await new Promise(r => setTimeout(r, 200));
-    document.querySelector('[data-aba="documentos"]').click();
-    await new Promise(r => setTimeout(r, 300));
-    Object.keys(valores).forEach(id => {
-      const inp = document.querySelector('#ex-corpo .ex-linha[data-exame="' + id + '"] input');
-      inp.value = String(valores[id]); inp.dispatchEvent(new Event('input', { bubbles: true }));
-    });
-    document.getElementById('ex-data-coleta').value = data || '';
-    document.querySelector('#ex-corpo [data-acao="conferir"]').click();
-    await new Promise(r => setTimeout(r, 600));
-    return document.getElementById('ex-data-erro').textContent;
-  }, P, valores, data);
-}
-/* registro SEM data de coleta: o legado (migracao, reenvio de pendente antigo).
-   O painel nao grava mais assim; o caminho continua na sincronizacao. */
-async function registrarSemData(pid, valores) {
-  return A.evaluate(async (pid, valores) => {
-    const t = JSON.parse(localStorage.getItem('holohacking.exames') || '{}');
-    t[pid] = valores;
-    localStorage.setItem('holohacking.exames', JSON.stringify(t));
-    const r = await window.Sincronizacao.salvarColeta(pid, valores, null);
-    if (r.ok) await window.Sincronizacao.atualizarColetas(pid);
-    return r;
-  }, pid, valores);
-}
+/* Antes: data de coleta nunca inventada, reenvio com a data original, fuso nao muda o dia. Decisao de
+   produto 09/10: coleta estruturada nao e mais gravada por caminho nenhum; a historica (ja no servidor)
+   e lida como esta — com a MESMA data em qualquer fuso. */
 const coletas = () => srv.linhas('lab_collections').filter(c => c.patient_id === P);
-function diaLocal(deslocamentoDias) {
-  const d = new Date(Date.now() + deslocamentoDias * 86400000);
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+function semearColetaHistorica(pid, data, resultados) {
+  const id = globalThis.crypto.randomUUID(), agora = new Date().toISOString();
+  srv.tabelas.lab_collections.push({ id, nutritionist_id: UID, patient_id: pid, encounter_id: null, coletado_em: data, data_coleta_desconhecida: !data, laboratorio: null, observacao: null,
+    state: 'salvo', source: 'manual', revision: 1, created_by: UID, created_at: agora, updated_at: agora });
+  Object.keys(resultados).forEach(eid => srv.tabelas.lab_results.push({ id: globalThis.crypto.randomUUID(), collection_id: id, exame_id: eid, valor: resultados[eid], unidade_no_momento: 'un', nome_exame_no_momento: eid, created_at: agora }));
+  return id;
 }
-
-let msgData = await conferirPeloPainel({ [exames[0]]: 90 }, '');
-ok(coletas().length === 0 && /Informe a data da coleta/.test(msgData),
-   'sem data da coleta: nao salva no servidor, e a tela diz "' + msgData + '"');
-const localSemData = await A.evaluate((pid) =>
-  (JSON.parse(localStorage.getItem('holohacking.exames') || '{}')[pid] || {}), P);
-ok(localSemData[exames[0]] === 90, 'o valor digitado continua no aparelho (nao se perde)');
-/* Etapa 0 da V1: a recusa de data futura (Rodada 08) nao e contrato do
-   Mestre e esta PENDENTE de decisao de produto/clinica — o app nao a
-   aplica por conta propria. A data e gravada como veio. */
-const futura = diaLocal(1);
-msgData = await conferirPeloPainel({ [exames[0]]: 90 }, futura);
-ok(msgData === '' && coletas().some(c => c.coletado_em === futura),
-   'data futura (' + futura + '): aceita e gravada como veio — regra de data futura pendente de decisao');
-await A.evaluate(() => { const b = document.querySelector('#ex-corpo [data-acao="nova-coleta"]'); if (b) b.click(); });
-msgData = await conferirPeloPainel({ [exames[0]]: 90 }, '2026-03-20');
-const c0320 = coletas().find(c => c.coletado_em === '2026-03-20');
-ok(msgData === '' && c0320 && c0320.data_coleta_desconhecida === false,
-   'com a data da coleta: grava com a data escolhida (2026-03-20), identidade pelo id');
-ok(!!c0320.created_at, 'o momento do registro fica em created_at/updated_at (dado tecnico)');
-
-await registrarSemData(P, { [exames[0]]: 85 });
-ok(coletas().some(c => c.data_coleta_desconhecida === true && c.coletado_em === null),
-   'registro legado sem data: data da coleta DESCONHECIDA, nunca "hoje"');
-
-const hist = await A.evaluate((pid, eid) => window.Sincronizacao.salvarColeta(pid, { [eid]: 70 }, '2026-03-15'),
-  P, exames[1]);
-ok(hist.ok && coletas().some(c => c.coletado_em === '2026-03-15' && c.data_coleta_desconhecida === false),
-   'data historica valida informada: gravada como veio (2026-03-15)');
-await registrarSemData(P, { [exames[0]]: 95 });
-const resultadosDe = (cid) => srv.linhas('lab_results').filter(r => r.collection_id === cid)
-  .map(r => r.exame_id + '=' + r.valor).sort().join(',');
-{
-  const sd = coletas().filter(c => c.data_coleta_desconhecida)
-    .sort((a, b) => a.created_at.localeCompare(b.created_at));
-  ok(coletas().length === 5 && sd.length === 2 && sd[0].id !== sd[1].id,
-     'segundo registro sem data = coleta NOVA, com id proprio (nao atualiza a primeira)');
-  ok(resultadosDe(sd[0].id) === exames[0] + '=85' && resultadosDe(sd[1].id) === exames[0] + '=95',
-     'cada coleta sem data mantem os proprios resultados: ' + resultadosDe(sd[0].id) + ' | ' + resultadosDe(sd[1].id));
-  ok(coletas().some(c => c.coletado_em === '2026-03-15'), 'e a coleta historica nao foi tocada');
-}
-const antesDuplo = coletas().length;
-await registrarSemData(P, { [exames[0]]: 95 });
-ok(coletas().length === antesDuplo, 'conferir de novo os MESMOS valores nao cria coleta repetida');
-
-// reenvio: a coleta pendente de uma data historica volta com a MESMA data
-// (Etapa 0 da V1: a coleta vai direto na tabela, por id — a falha simulada
-// e na escrita de lab_collections)
-srv.falhar.push({ tabela: 'lab_collections', acao: 'upsert' });
-const pend = await A.evaluate((pid, eid) => window.Sincronizacao.salvarColeta(pid, { [eid]: 66 }, '2026-02-10'),
-  P, exames[2]);
-ok(!pend.ok && !coletas().some(c => c.coletado_em === '2026-02-10'), 'envio falhou: nada novo no servidor');
-await A.evaluate((pid, eid) => {
-  const t = JSON.parse(localStorage.getItem('holohacking.exames') || '{}');
-  t[pid] = Object.assign({}, t[pid], { [eid]: 66 });
-  localStorage.setItem('holohacking.exames', JSON.stringify(t));
-}, P, exames[2]);
-srv.falhar.length = 0;
-await recarregar(A);
-ok(coletas().some(c => c.coletado_em === '2026-02-10'),
-   'reenvio na proxima carga usa a data original (2026-02-10), nao a de hoje');
-ok(!coletas().some(c => c.coletado_em && !['2026-03-20', '2026-03-15', '2026-02-10', futura].includes(c.coletado_em)),
-   'nenhuma coleta ganhou a data do reenvio');
-
-// registro sem data que falha NO MEIO (coleta gravada, resultados nao):
-// Etapa 0 da V1 — a coleta vazia e DESFEITA (protocolo de consolidacao,
-// Mestre §34.2) e o registro fica pendente com o id; o reenvio refaz a
-// MESMA coleta, sem criar outra
-const semDataAntes = coletas().filter(c => c.data_coleta_desconhecida).map(c => c.id);
-srv.falhar.push({ tabela: 'lab_results', acao: 'upsert' });
-await registrarSemData(P, { [exames[0]]: 101 });
-srv.falhar.length = 0;
-const registrado = await A.evaluate((pid) =>
-  Object.entries(JSON.parse(localStorage.getItem('holohacking.exames') || '{}')[pid] || {})
-    .map(([k, v]) => k + '=' + v).sort().join(','), P);
-const pendente = await A.evaluate((pid) =>
-  (JSON.parse(localStorage.getItem('holohacking.sincronizacao')) || {}).exames[pid], P);
-const novaMeia = coletas().filter(c => c.data_coleta_desconhecida && !semDataAntes.includes(c.id));
-ok(pendente && pendente.estado === 'pendente' && novaMeia.length === 0,
-   'falha no meio: nenhuma coleta vazia fica no servidor; registro pendente com o id reservado');
-await recarregar(A);
-const semData = coletas().filter(c => c.data_coleta_desconhecida && !semDataAntes.includes(c.id));
-ok(semData.length === 1 && semData[0].id === pendente.coleta && semData[0].coletado_em === null,
-   'retry: a MESMA coleta (mesmo id), sem duplicar, e continua sem data');
-ok(resultadosDe(semData[0].id) === registrado && /=101/.test(registrado),
-   'e agora com exatamente os resultados do registro: ' + registrado);
-const reg = await A.evaluate((pid) =>
-  (JSON.parse(localStorage.getItem('holohacking.sincronizacao')) || {}).exames[pid], P);
-ok(reg && reg.estado === 'sincronizado', 'e o registro deixa de estar pendente');
+semearColetaHistorica(P, '2026-03-15', { 'EXA-002': 70 });
+semearColetaHistorica(P, null, { 'EXA-001': 85 });
+const tent = await A.evaluate(async (pid) => {
+  window.abrirFichaDe(pid); await new Promise(r => setTimeout(r, 300));
+  document.querySelector('[data-aba="documentos"]').click(); await new Promise(r => setTimeout(r, 300));
+  const painel = document.querySelectorAll('#ex-corpo, #ex-data-coleta, [data-acao="conferir"], [data-lab-acao], [data-lancar]').length;
+  const antes = localStorage.getItem('holohacking.exames');
+  const s1 = await window.Sincronizacao.salvarColeta(pid, { 'EXA-001': 90 }, null);
+  const s2 = await window.Sincronizacao.salvarColeta(pid, { 'EXA-001': 90 }, '2026-03-20');
+  const rpc = await window.supabaseClient.rpc('salvar_coleta_exames', { payload: { collection: { patient_id: pid, coletado_em: '2026-03-20', data_coleta_desconhecida: false }, results: [{ exame_id: 'EXA-001', valor: 90 }] } });
+  const up = await window.supabaseClient.from('lab_collections').upsert([{ patient_id: pid, coletado_em: null, data_coleta_desconhecida: true }]);
+  await window.Sincronizacao.atualizarColetas(pid);
+  return { painel, s1: s1.motivo, s2: s2.motivo, rpc: rpc.error && rpc.error.hint, up: up.error && up.error.code, local: localStorage.getItem('holohacking.exames') === antes,
+    lidas: (window.Sincronizacao.coletas(pid) || []).map(c => c.coletado_em) };
+}, P);
+ok(tent.painel === 0, 'a ficha nao tem mais painel de valores de exame');
+ok(tent.s1 === 'laboratorio_desativado' && tent.s2 === 'laboratorio_desativado', 'a sincronizacao recusa coleta sem data e com data — nenhuma data e inventada porque nada e gravado');
+ok(tent.rpc === 'laboratorio_desativado' && tent.up === '42501' && coletas().length === 2, 'RPC e tabela recusam; so as duas coletas historicas continuam no servidor');
+ok(tent.local, 'nada do que estava neste aparelho foi mexido');
+ok(tent.lidas.length === 2 && tent.lidas.includes('2026-03-15') && tent.lidas.includes(null), 'as coletas historicas sao lidas como estao (uma com data, uma sem), so leitura');
 
 // fuso: a mesma data clinica, lida em dois fusos extremos, e o mesmo dia
 async function lerNoFuso(fuso) {
@@ -404,8 +309,7 @@ async function lerNoFuso(fuso) {
     await new Promise(r => setTimeout(r, 300));
     document.querySelector('[data-aba="holoscan"]').click();
     await new Promise(r => setTimeout(r, 300));
-    const txt = (document.getElementById('aba-holoscan-laboratorial') || {}).textContent || '';
-    return { txt, coletas: window.Sincronizacao.coletas(pid).map(c => c.coletado_em) };
+    return { lab: !!document.getElementById('aba-holoscan-laboratorial'), coletas: (window.Sincronizacao.coletas(pid) || []).map(c => c.coletado_em) };
   }, P);
   await p.browserContext().close();
   return r;
@@ -413,24 +317,20 @@ async function lerNoFuso(fuso) {
 const sp = await lerNoFuso('America/Sao_Paulo');
 const ki = await lerNoFuso('Pacific/Kiritimati');
 const la = await lerNoFuso('Pacific/Pago_Pago');
-ok([sp, ki, la].every(r => /20\/03\/2026/.test(r.txt) && /15\/03\/2026/.test(r.txt) && /10\/02\/2026/.test(r.txt)),
-   'UTC-3, UTC+14 e UTC-11 mostram 20/03, 15/03 e 10/02/2026 — o fuso nao muda o dia');
-ok([sp, ki, la].every(r => r.coletas.includes('2026-03-15') && r.coletas.includes('2026-02-10')),
-   'e a data guardada e a mesma string nos tres');
-ok([sp, ki, la].every(r => /Data da coleta não informada/.test(r.txt)),
-   'a coleta sem data aparece como "Data da coleta não informada" nos tres fusos');
+ok([sp, ki, la].every(r => !r.lab), 'nenhum bloco laboratorial na aba HOLOSCAN, em nenhum fuso');
+ok([sp, ki, la].every(r => r.coletas.includes('2026-03-15') && r.coletas.includes(null)),
+   'UTC-3, UTC+14 e UTC-11 leem a mesma string de data (2026-03-15) e a mesma coleta sem data — o fuso nao muda o dia');
 
 /* ==================================================================== */
-titulo('F. DUAS COLETAS SEM DATA (LEGADO), NAVEGADOR B LIMPO');
+titulo('F. DUAS COLETAS HISTORICAS SEM DATA, NAVEGADOR B LIMPO');
 /* ==================================================================== */
 
 const Q = await cadastrar(A, 'Paciente Duas Coletas');
-const conferirQ = (valores) => registrarSemData(Q, valores);
-await conferirQ({ [exames[0]]: 80, [exames[1]]: 4.9 });
-await conferirQ({ [exames[0]]: 110, [exames[1]]: 6.3 });
+semearColetaHistorica(Q, null, { 'EXA-001': 80, 'EXA-002': 4.9 });
+semearColetaHistorica(Q, null, { 'EXA-001': 110, 'EXA-002': 6.3 });
 const colQ = srv.linhas('lab_collections').filter(c => c.patient_id === Q);
 ok(colQ.length === 2 && colQ.every(c => c.data_coleta_desconhecida && c.coletado_em === null) &&
-   colQ[0].id !== colQ[1].id, 'A: duas coletas sem data, ids diferentes');
+   colQ[0].id !== colQ[1].id, 'duas coletas historicas sem data, ids diferentes (como o banco real as tem)');
 
 const B = await navegador('B');
 await B.evaluate(() => {
@@ -452,27 +352,23 @@ const vistoB = await B.evaluate(async (pid) => {
   for (let i = 0; i < 30 && !document.getElementById('modal-confirmar-ok'); i++) await new Promise(r => setTimeout(r, 50));
   document.getElementById('modal-confirmar-ok').click();
   for (let i = 0; i < 60 && !window.__exportado; i++) await new Promise(r => setTimeout(r, 100));
-  const ex = JSON.parse(localStorage.getItem('holohacking.exames') || '{}')[pid] || {};
   return {
     coletas: cs.map(c => ({ id: c.id, sem: c.data_coleta_desconhecida,
       r: c.resultados.map(x => x.exame_id + '=' + Number(x.valor)).sort().join(',') })),
-    eventos: (linha.match(/Coleta de exames \(data não informada\)/g) || []).length,
-    exportado: window.__exportado,
-    atuais: ex
+    eventos: (linha.match(/Coleta de exames/g) || []).length,
+    exportado: window.__exportado
   };
 }, Q);
 ok(vistoB.coletas.length === 2 && vistoB.coletas.every(c => c.sem) && vistoB.coletas[0].id !== vistoB.coletas[1].id,
-   'B limpo: ve as duas coletas sem data, separadas');
-ok(vistoB.coletas.some(c => c.r === [exames[0] + '=80', exames[1] + '=4.9'].sort().join(',')) &&
-   vistoB.coletas.some(c => c.r === [exames[0] + '=110', exames[1] + '=6.3'].sort().join(',')),
+   'B limpo: le as duas coletas historicas sem data, separadas (so leitura)');
+ok(vistoB.coletas.some(c => c.r === 'EXA-001=80,EXA-002=4.9') && vistoB.coletas.some(c => c.r === 'EXA-001=110,EXA-002=6.3'),
    'cada uma com os proprios resultados');
-ok(vistoB.atuais[exames[0]] === 110, 'valores atuais em B = os do registro mais recente');
-ok(vistoB.eventos === 2, 'linha do tempo em B: dois eventos de coleta sem data');
+ok(vistoB.eventos === 0, 'linha do tempo em B: nenhum evento de coleta (09/10: exame e so arquivo)');
 let expQ = null; try { expQ = JSON.parse(vistoB.exportado); } catch (e) { /* null */ }
 ok(expQ && Array.isArray(expQ.coletasExames) && expQ.coletasExames.length === 2 &&
    expQ.coletasExames.every(c => c.data_coleta_desconhecida === true && c.coletado_em === null) &&
    expQ.coletasExames[0].id !== expQ.coletasExames[1].id,
-   'exportacao em B: as duas coletas, sem data, sem duplicar');
+   'exportacao em B: as duas coletas historicas, sem data, sem duplicar (historico preservado)');
 await B.browserContext().close();
 
 /* ==================================================================== */

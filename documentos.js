@@ -94,7 +94,7 @@
     var lista = todos.filter(function (d) {
       if (filtroTipo && (d.tipo || "Outro") !== filtroTipo) return false;
       if (!busca) return true;
-      return (d.nome || "").toLowerCase().indexOf(busca) >= 0 ||
+      return (d.nome || "").toLowerCase().indexOf(busca) >= 0 || (d.titulo || "").toLowerCase().indexOf(busca) >= 0 ||
              nomeDe(d.paciente).toLowerCase().indexOf(busca) >= 0;
     });
 
@@ -137,16 +137,17 @@
     } else {
       html += '<ul class="doc-todos">' + lista.map(function (d) {
         return '<li class="doc-todos-item">' +
-          '<span class="doc-tipo">' + escapar(d.tipo || "Outro") + "</span>" +
-          '<span class="doc-todos-nome"><b>' + escapar(d.nome) + "</b>" +
+          '<span class="doc-tipo">' + escapar(/^exame/i.test(d.tipo || "") ? "Exame" : (d.tipo || "Outro")) + "</span>" +
+          '<span class="doc-todos-nome"><b>' + escapar(d.titulo || d.nome) + "</b>" +
             '<span class="doc-todos-dono">' + escapar(nomeDe(d.paciente)) + "</span></span>" +
           '<span class="doc-data">' + escapar(dataBR(d.data)) + "</span>" +
           '<span class="doc-tam">' + window.ArquivoStore.tamanhoLegivel(d.tamanho) + "</span>" +
           (d.so_local ? '<span class="doc-tipo" title="O envio ao servidor falhou: este arquivo não aparece em outro computador.">só neste dispositivo</span>' : "") +
-          '<button type="button" class="doc-abrir" data-abrir="' + escapar(d.id) + '">abrir</button>' +
-          '<button type="button" class="doc-tirar" data-tirar="' + escapar(d.id) +
-            '" data-nome="' + escapar(d.nome) + '" data-paciente="' + escapar(d.paciente || "") +
-            '" aria-label="Remover ' + escapar(d.nome) + '">&times;</button>' +
+          '<button type="button" class="doc-abrir" data-abrir="' + escapar(d.id) + '">Abrir</button>' +
+          '<button type="button" class="doc-abrir" data-baixar="' + escapar(d.id) + '">Baixar</button>' +
+          '<button type="button" class="doc-arquivar" data-arquivar="' + escapar(d.id) +
+            '" data-nome="' + escapar(d.titulo || d.nome) + '" data-paciente="' + escapar(d.paciente || "") +
+            '">Arquivar</button>' +
           "</li>";
       }).join("") + "</ul>";
     }
@@ -186,18 +187,13 @@
 
     alvo.addEventListener("click", function (ev) {
       var abrir = ev.target.closest("[data-abrir]");
-      if (abrir) {
-        window.ArquivoStore.pegar(abrir.dataset.abrir).then(function (r) {
-          if (!r || !r.arquivo) return;
-          var url = URL.createObjectURL(r.arquivo);
-          window.open(url, "_blank");
-          setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
-        });
-        return;
-      }
-      var tirar = ev.target.closest("[data-tirar]");
-      if (tirar) {
-        window.excluirDocumento(tirar.dataset.tirar, tirar.dataset.nome, tirar.dataset.paciente)
+      if (abrir) { window.abrirDocumentoDoProntuario(abrir.dataset.abrir, false); return; }
+      var baixar = ev.target.closest("[data-baixar]");
+      if (baixar) { window.abrirDocumentoDoProntuario(baixar.dataset.baixar, true); return; }
+      /* documento nao e excluido: e arquivado (o registro e o arquivo ficam guardados) */
+      var arq = ev.target.closest("[data-arquivar]");
+      if (arq) {
+        window.arquivarDocumento(arq.dataset.arquivar, arq.dataset.nome, arq.dataset.paciente)
           .then(function (saiu) { if (saiu) desenhar(); });
       }
     });

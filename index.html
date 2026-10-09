@@ -282,12 +282,12 @@
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5"/><circle cx="12" cy="12" r="3"/></svg>
           HOLOSCAN
         </button>
-        <!-- Leitura Integrada vem logo abaixo do HOLOSCAN de proposito: e a
-             camada laboratorial do mesmo sistema — le o mapa e os exames,
-             nunca os altera. -->
-        <button class="nav-item" data-secao="confronto">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M3 12h18"/></svg>
-          Leitura Integrada <span class="nav-tag">Exames</span>
+        <!-- Resultado vem logo abaixo do HOLOSCAN: e a versao final do resultado para apresentar e enviar a
+             paciente (Resultado HOLOS salvo + Conduta vigente + identidade profissional). Substituiu a Leitura
+             Integrada, que saiu do fluxo (exame nao produz resultado). -->
+        <button class="nav-item" data-secao="resultado">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg>
+          Resultado <span class="nav-tag">Paciente</span>
         </button>
         <button class="nav-item" data-secao="corpo">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5.5" r="2.6"/><path d="M12 8.5v6M12 14.5l-3.5 5M12 14.5l3.5 5M7 10.5h10"/></svg>
@@ -501,7 +501,7 @@
           <p>O HOLOSCAN reúne, numa leitura só, o que o paciente relata sobre corpo, emoção e propósito — e organiza o resultado pelos cinco sistemas, o Índice HOLOS e a Tríada do pacote metodológico homologado. A interpretação e a conduta são da nutricionista.</p>
           <!-- Fluxo clinico do metodo, so como referencia visual — nao e um
                wizard, nenhuma etapa bloqueia a seguinte. -->
-          <p class="fluxo-clinico">História &rarr; <b>HOLOSCAN</b> &rarr; Leitura Integrada &rarr; Aprofundamento &rarr; Interpretação &rarr; Conduta &rarr; Evolução</p>
+          <p class="fluxo-clinico">História &rarr; <b>HOLOSCAN</b> &rarr; Aprofundamento &rarr; Interpretação &rarr; Conduta &rarr; Resultado &rarr; Evolução</p>
         </div>
 
         <div class="barra-paciente">
@@ -660,13 +660,6 @@
           <span class="eyebrow">6 &middot; Aprofundamento</span>
           <div class="holo-leitura" id="holo-leitura"></div>
 
-          <!-- O HOLOSCAN era o item 8 daqui. Saiu para a secao propria
-               (#secao-confronto, logo abaixo no menu): ele nao e uma parte do
-               HOLOSCAN, e a etapa seguinte — le este mapa e os exames e
-               confronta os dois, sem mexer em nota, indice, triade ou
-               respostas. Manter dentro sugeria que o mapa se corrigia com
-               exame, e ele nao se corrige. -->
-
           <!-- A fronteira. Ficava so no rodape do relatorio impresso; a tela
                onde a nutricionista abre o mapa junto com a paciente nao dizia
                nada. Fica fixa: aparece com mapa e sem mapa. -->
@@ -703,7 +696,7 @@
           <div class="holo-atendimento" id="holo-atendimento" role="group" aria-label="Atendimento do HOLOSCAN"></div>
           <div class="acoes-form" style="margin-top:14px;justify-content:center">
             <button type="button" id="btn-salvar-holoscan" class="btn-verde">Salvar HOLOSCAN</button>
-            <button type="button" class="perf-botao" data-ir-holo="confronto">Leitura Integrada &rarr;</button>
+            <button type="button" class="perf-botao" data-ir-holo="resultado">Resultado para a paciente &rarr;</button>
             <button type="button" class="perf-botao" data-ir-holo="conduta">Conduta &rarr;</button>
           </div>
         </div>
@@ -715,41 +708,26 @@
         </div>
       </section>
 
-      <!-- ============ HOLOSCAN ============
-           Saiu de dentro do HOLOSCAN (era o item 8 de la) para ficar no
-           nivel que lhe cabe: a etapa seguinte do fluxo, nao um pedaco do
-           mapa. Le os exames lancados na aba Documentos da ficha e confronta
-           com as notas do HOLOSCAN, sistema a sistema. NUNCA escreve: nao
-           altera nota, Indice, Triade nem resposta nenhuma.
-           O lancamento dos valores continua so na ficha — aqui e leitura.
-           Desenhado por desenharHoloscan() (arquivos.js), chamado tanto por
-           irPara("confronto") quanto por desenharPontuacao() em app.js. -->
-      <section class="secao" id="secao-confronto">
+      <!-- ============ RESULTADO ============
+           Versao final do resultado para apresentar a paciente: o Resultado HOLOS SALVO (versao para a paciente),
+           as ferramentas e textos que entraram nele, a Conduta vigente e a identidade profissional (nome, registro,
+           logo, assinatura e carimbo do Perfil). Baixar PDF e Enviar pelo WhatsApp. A nutricionista prepara e
+           finaliza o resultado na aba "Resultado HOLOS" da ficha; esta tela so apresenta. Sem exames.
+           Desenhada por resultado-pagina.js. -->
+      <section class="secao" id="secao-resultado">
         <div class="secao-cabeca">
-          <span class="eyebrow">HOLOSCAN &mdash; Leitura Integrada</span>
-          <h2>O que os exames <em>acrescentam</em> ao mapa</h2>
-          <p>A Leitura Integrada compara, sistema a sistema, o que o paciente relata no HOLOSCAN com o que os exames mostram. Ela não corrige o mapa nem o exame: mostra onde os dois caminham juntos, onde divergem — e onde ainda não há dado para comparar.</p>
-          <p class="fluxo-clinico">História &rarr; HOLOSCAN &rarr; <b>Leitura Integrada</b> &rarr; Aprofundamento &rarr; Interpretação &rarr; Conduta &rarr; Evolução</p>
+          <span class="eyebrow">HOLOSCAN &mdash; Resultado</span>
+          <h2>O resultado para <em>a paciente</em></h2>
+          <p>A versão final do Resultado HOLOS, pronta para apresentar na consulta e enviar: os cinco sistemas, o Índice, a Tríade, as ferramentas de Corpo, Mente e Espírito, os seus textos e a sua conduta — com o seu nome, registro e carimbo.</p>
         </div>
 
         <div class="barra-paciente">
           <span class="rotulo">Paciente</span>
-          <select class="seletor-paciente" id="sel-confronto" aria-label="Selecionar paciente"></select>
-          <span class="aviso">A leitura usa o HOLOSCAN já aplicado a este paciente.</span>
+          <select class="seletor-paciente" id="sel-resultado" aria-label="Selecionar paciente"></select>
+          <span class="aviso">Mostra o último Resultado HOLOS finalizado deste paciente.</span>
         </div>
 
-        <div class="painel-escuro">
-          <p class="arq-nota">O lançamento e a edição dos valores ficam na aba
-            <button type="button" class="btn-link" id="conf-ir-documentos">Documentos</button>, na ficha do paciente. Esta tela apenas lê.</p>
-
-          <div class="holo-caixa-mapa" id="holo-confronto"></div>
-
-          <p class="holo-fronteira">
-            A Leitura Integrada organiza informações laboratoriais para apoiar a
-            <b>interpretação profissional</b>. Não realiza diagnóstico, não altera o
-            HOLOSCAN e não substitui avaliação médica.
-          </p>
-        </div>
+        <div id="resultado-pagina-corpo"></div>
       </section>
 
       <!-- ============ PACIENTES ============ -->
@@ -886,8 +864,7 @@
                   Editar
                 </button>
                 <button type="button" class="perf-botao" data-atalho="agenda">Marcar consulta</button>
-                <button type="button" class="perf-botao" data-ir="aba:documentos" data-rolar="lab-corpo">Registrar exames</button>
-                <button type="button" class="perf-botao" data-ir="aba:documentos" data-rolar="doc-solta">Novo documento</button>
+                <button type="button" class="perf-botao" data-ir="aba:documentos" data-rolar="doc-solta">Adicionar arquivo</button>
                 <button type="button" class="btn-verde" data-atalho="holoscan">Aplicar HOLOSCAN</button>
                 <button type="button" class="btn-verde hidden" id="btn-reativar-paciente">Reativar paciente</button>
                 <button type="button" class="perf-botao" id="btn-exportar-paciente" aria-label="Exportar dados do paciente">Exportar dados</button>
@@ -927,13 +904,6 @@
                 </div>
                 <div class="dash-jornada-seta" aria-hidden="true">&darr;</div>
                 <div class="dash-jornada-passo">
-                  <span class="dash-mov">CONFRONTAR</span>
-                  <span class="dash-quem"><b>Leitura Integrada</b>
-                    <span class="dash-porque">Confrontar o mapa com dados laboratoriais.</span></span>
-                  <button type="button" class="dash-ir" data-atalho="confronto">Abrir <span aria-hidden="true">&rarr;</span></button>
-                </div>
-                <div class="dash-jornada-seta" aria-hidden="true">&darr;</div>
-                <div class="dash-jornada-passo">
                   <span class="dash-mov">INTEGRAR</span>
                   <span class="dash-quem"><b>Ferramentas</b>
                     <span class="dash-porque">Integrar ferramentas e condutas ao caso.</span></span>
@@ -945,6 +915,13 @@
                   <span class="dash-quem"><b>Resultado HOLOS</b>
                     <span class="dash-porque">Reunir HOLOSCAN, ferramentas e a sua leitura antes da Conduta.</span></span>
                   <button type="button" class="dash-ir" data-ir="aba:resultado-holos">Abrir <span aria-hidden="true">&rarr;</span></button>
+                </div>
+                <div class="dash-jornada-seta" aria-hidden="true">&darr;</div>
+                <div class="dash-jornada-passo">
+                  <span class="dash-mov">APRESENTAR</span>
+                  <span class="dash-quem"><b>Resultado</b>
+                    <span class="dash-porque">Apresentar e enviar o resultado à paciente.</span></span>
+                  <button type="button" class="dash-ir" data-atalho="resultado">Abrir <span aria-hidden="true">&rarr;</span></button>
                 </div>
                 <div class="dash-jornada-seta" aria-hidden="true">&darr;</div>
                 <div class="dash-jornada-passo">
@@ -1382,9 +1359,6 @@
 <script src="/metodologia-motor.js"></script>
 <script src="/metodologia.js"></script>
 <script src="/holoscan-oficial.js"></script>
-<script src="/laboratorio-catalogo.js"></script>
-<script src="/laboratorio-motor.js"></script>
-<script src="/leitura-integrada-motor.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"></script>
 <script src="/supabase-client.js"></script>
 <script src="/concorrencia.js"></script>
@@ -1412,7 +1386,7 @@
      qualquer tela consumir `sb`. -->
 <script src="/dados-router.js"></script>
 <script src="/migracao-supa.js"></script>
-<!-- com sessao, rele HOLOSCAN e exames do servidor e reescreve as caixas
+<!-- com sessao, rele HOLOSCAN do servidor e reescreve as caixas
      locais a partir dele (o servidor vence). Antes de app.js, que o chama. -->
 <script src="/sincronizacao.js"></script>
 <script src="/holoscan.js"></script>
@@ -1430,7 +1404,6 @@
 <script src="/questionario.js"></script>
 <script src="/arquivo-store.js"></script>
 <script src="/arquivos.js"></script>
-<script src="/laboratorio.js"></script>
 <script src="/ficha.js"></script>
 <script src="/timeline.js"></script>
 <script src="/evolucao.js"></script>
@@ -1443,6 +1416,8 @@
 <script src="/conduta.js"></script>
 <script src="/relatorios.js"></script>
 <script src="/resultado-holos.js"></script>
+<!-- Pagina Resultado (versao final para a paciente, PDF e WhatsApp). Depois de resultado-holos.js, que ela usa. -->
+<script src="/resultado-pagina.js"></script>
 <script src="/metodologia-homologacao.js"></script>
 <script src="/documentos.js"></script>
 <script src="/perfil.js"></script>

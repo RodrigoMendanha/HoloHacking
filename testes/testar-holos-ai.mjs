@@ -132,11 +132,11 @@ conferir(hub.temTitulo === 'HOLOS AI', 'titulo: ' + hub.temTitulo);
 conferir(hub.temDescricao, 'descricao presente');
 conferir(hub.temBtnChatgpt, 'botao ChatGPT presente');
 conferir(hub.temBtnGemini, 'botao Gemini presente');
-conferir(hub.atalhos === 5, hub.atalhos + ' atalhos de contexto (V1 Etapa 3: + Relatórios emitidos)');
+conferir(hub.atalhos === 4, hub.atalhos + ' atalhos de contexto (V1 Etapa 3: + Relatórios emitidos; 09/10: − Exames)');
 conferir(hub.rotulosAtalhos.includes('Relatórios emitidos'), 'atalho "Relatórios emitidos"');
 conferir(hub.rotulosAtalhos.includes('Caso completo'), 'atalho "Caso completo"');
 conferir(hub.rotulosAtalhos.includes('HOLOSCAN'), 'atalho "HOLOSCAN"');
-conferir(hub.rotulosAtalhos.includes('Exames'), 'atalho "Exames"');
+conferir(!hub.rotulosAtalhos.includes('Exames'), 'sem atalho "Exames" (exame não vai para a IA, 09/10)');
 conferir(hub.rotulosAtalhos.includes('Evolução / retorno'), 'atalho "Evolução / retorno"');
 conferir(hub.temPrivacidade, 'aviso de privacidade visivel');
 conferir(!hub.saidaVisivel, 'area de saida começa oculta');
@@ -191,15 +191,13 @@ const ctxHoloscan = await p.evaluate(() => ({
 conferir(ctxHoloscan.tipo === 'HOLOSCAN', 'trocar atalho atualiza tipo: ' + ctxHoloscan.tipo);
 conferir(/HOLOSCAN/i.test(ctxHoloscan.texto), 'contexto HOLOSCAN gerado');
 
-// Testar atalho Exames
-await p.evaluate(async () => {
-  document.querySelector('.ai-atalho-ctx[data-ctx="exames"]').click();
+// 09/10: nenhum contexto leva exame — nem o "Caso completo"
+const semExame = await p.evaluate(async () => {
+  document.querySelector('.ai-atalho-ctx[data-ctx="completo"]').click();
   await new Promise(r => setTimeout(r, 100));
+  return document.getElementById('ai-hub-texto')?.textContent || '';
 });
-const ctxExames = await p.evaluate(() => ({
-  tipo: document.getElementById('ai-hub-tipo')?.textContent?.trim(),
-}));
-conferir(ctxExames.tipo === 'Exames', 'contexto Exames gerado: ' + ctxExames.tipo);
+conferir(!/Camada Laboratorial|Exames laboratoriais/.test(semExame) && /Exames e documentos do prontuário .* NÃO estão incluídos/.test(semExame), 'o caso completo não leva exames e diz isso no cabeçalho');
 
 // Testar atalho Evolução / retorno
 await p.evaluate(async () => {

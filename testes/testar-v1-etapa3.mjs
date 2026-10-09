@@ -7,7 +7,7 @@
  *   - anamnese: novo / alterado / negado / sem informacao, sem julgamento
  *   - medidas: delta so com a mesma unidade; unidades diferentes bloqueiam
  *   - HOLOSCAN: lado a lado, sem delta de Indice
- *   - ferramentas e exames incompativeis: lado a lado, sem delta
+ *   - ferramentas incompativeis: lado a lado, sem delta; exames NAO entram (09/10)
  *   - acordos: estado anterior -> atual, sem indice de adesao
  *   - cache local nao sincronizado fora da timeline; rascunhos fora da Evolucao
  *  RELATORIOS
@@ -116,12 +116,18 @@ const T1 = insert('tool_applications', { patient_id: PA, encounter_id: E1, ferra
 const T2 = insert('tool_applications', { patient_id: PA, encounter_id: E2, ferramenta_id: 'oq3', versao_ferramenta: 2, status: 'concluida', respostas: { quer: 'x' }, resultado: { total: 12 }, concluida_em: '2026-06-01T13:00:00.000Z', leitura: 'leitura E2' }).data[0].id;
 const R1 = insert('tool_applications', { patient_id: PA, encounter_id: E1, ferramenta_id: 'roda_vida', versao_ferramenta: 1, status: 'concluida', respostas: {}, resultado: { media: 5 }, concluida_em: '2026-05-01T14:00:00.000Z' }).data[0].id;
 const R2 = insert('tool_applications', { patient_id: PA, encounter_id: E2, ferramenta_id: 'roda_vida', versao_ferramenta: 1, status: 'concluida', respostas: {}, resultado: { media: 6 }, concluida_em: '2026-06-01T14:00:00.000Z' }).data[0].id;
-const coleta = (eid, data, resultados) => srv.tratar({ op: 'rpc', uid: UA, nome: 'salvar_coleta_exames', args: { payload: { collection: { patient_id: PA, encounter_id: eid, coletado_em: data, data_coleta_desconhecida: false, laboratorio: 'Lab' }, results: resultados } } }).data;
+/* 09/10: coletas HISTORICAS (anteriores a decisao) ja estao no servidor, como o banco real as tem; a RPC recusa qualquer nova */
+const coleta = (eid, data, resultados) => {
+  const id = globalThis.crypto.randomUUID(), agora = new Date().toISOString();
+  srv.tabelas.lab_collections.push({ id, nutritionist_id: UA, patient_id: PA, encounter_id: eid, coletado_em: data, data_coleta_desconhecida: false, laboratorio: 'Lab', observacao: null, state: 'salvo', source: 'manual', revision: 1, created_by: UA, created_at: agora, updated_at: agora });
+  resultados.forEach(r => srv.tabelas.lab_results.push(Object.assign({ id: globalThis.crypto.randomUUID(), collection_id: id, created_at: agora }, r)));
+  return id;
+};
 const C1 = coleta(E1, '2026-04-28', [{ exame_id: 'glicose', valor: 90, unidade_no_momento: 'mg/dL', nome_exame_no_momento: 'Glicose' }, { exame_id: 'hemoglobina', valor: 13, unidade_no_momento: 'g/dL', nome_exame_no_momento: 'Hemoglobina' }]);
 const C2 = coleta(E2, '2026-05-28', [{ exame_id: 'glicose', valor: 5, unidade_no_momento: 'mmol/L', nome_exame_no_momento: 'Glicose' }, { exame_id: 'hemoglobina', valor: 12.5, unidade_no_momento: 'g/dL', nome_exame_no_momento: 'Hemoglobina' }]);
 ok(E1 && E2 && AN1 && AN1b && AN2 && CD1 && CD2 && H1 && H2 && T1 && T2 && R1 && R2 && C1 && C2, 'cenario consolidado no servidor: 2 atendimentos, anamneses (com revisão e rascunho), condutas, HOLOSCANs, ferramentas, coletas');
-// a coleta com encounter_id: a RPC real nao recebe encounter_id; o falso tambem nao — ligamos direto (como sincronizacao.js faz)
-for (const [c, e] of [[C1, E1], [C2, E2]]) q(UA, 'lab_collections', 'update', { dados: { encounter_id: e }, filtros: [{ op: 'eq', col: 'id', val: c }] });
+ok(srv.tratar({ op: 'rpc', uid: UA, nome: 'salvar_coleta_exames', args: { payload: { collection: { patient_id: PA, encounter_id: E2, coletado_em: '2026-06-02', data_coleta_desconhecida: false }, results: [] } } }).error.hint === 'laboratorio_desativado'
+   && srv.linhas('lab_collections').length === 2, 'nenhuma coleta nova entra (laboratorio_desativado); as duas historicas ficam');
 await recarregar();
 
 /* ==================================================================== */
@@ -166,9 +172,9 @@ ok(!/70 kg/.test(med), 'o rascunho de anamnese (70 kg) NAO entra na Evolucao');
 const holoSec = await texto('#aba-evolucao [data-evo-secao="holoscan"]');
 ok(/01\/05\/2026/.test(holoSec) && /01\/06\/2026/.test(holoSec) && /60 de 60 respondidas|70 de 60 respondidas/.test(holoSec) && !/delta [+-]?\d/i.test(holoSec) && !/Índice \d/.test(holoSec) && /não foi homologada/.test(holoSec),
    'HOLOSCAN: datas, versao e cobertura lado a lado; nenhum delta nem Indice; selo de nao homologado');
-const ex = await texto('#aba-evolucao [data-evo-secao="exames"]');
-ok(/Glicose.*90 mg\/dL.*5 mmol\/L.*unidades diferentes/.test(ex.replace(/\s+/g, ' ')), 'exame com unidade diferente (mg/dL × mmol/L): lado a lado, sem delta');
-ok(/Hemoglobina.*13 g\/dL.*12\.5 g\/dL.*delta -0,5 g\/dL/.test(ex.replace(/\s+/g, ' ')), 'mesmo exame, mesma unidade: delta -0,5 g/dL');
+const evoTudo = await texto('#aba-evolucao');
+ok(!(await A.evaluate(() => !!document.querySelector('#aba-evolucao [data-evo-secao="exames"], #aba-evolucao [data-evo-fonte="exames"]'))) && !/Glicose|Hemoglobina|mg\/dL|mmol\/L/.test(evoTudo),
+   '09/10: a Evolucao nao compara exames — nenhuma secao, fonte ou valor laboratorial (as coletas historicas ficam so no banco)');
 const fe = await texto('#aba-evolucao [data-evo-secao="ferramentas"]');
 ok(/OQ³[\s\S]*versões diferentes/.test(fe) && /Roda[\s\S]*media: 5 → 6 \(delta \+1\)/.test(fe), 'ferramenta com versao diferente so lado a lado; mesma ferramenta/versao com delta por chave numerica');
 const cd = await texto('#aba-evolucao [data-evo-secao="conduta"]');
@@ -181,7 +187,7 @@ const tlEvo = await A.evaluate(() => [...document.querySelectorAll('#aba-evoluca
 ok(tlEvo.some(t => /revisao/.test(t) && /Anamnese revisada \(rev\. 2\)/.test(t)) && tlEvo.some(t => /registrado em/.test(t)), 'timeline do intervalo: revisao marcada como revisao, com data de registro');
 ok(!tlEvo.some(t => /consulta/.test(t.split('|')[0])), 'a timeline da Evolucao nao mistura agendamentos');
 const resumo = await texto('#aba-evolucao .evo-resumo');
-ok(/1 medidas com delta comparável/.test(resumo) && /1 exames com delta comparável/.test(resumo), 'resumo conta so o comparavel: ' + resumo);
+ok(/1 medidas com delta comparável/.test(resumo) && !/exames/.test(resumo), 'resumo conta so o comparavel (sem exames): ' + resumo);
 await A.evaluate(async () => { document.querySelector('[data-evo-fonte="holoscan"]').click(); await new Promise(r => setTimeout(r, 250)); });
 ok(!(await A.evaluate(() => !!document.querySelector('#aba-evolucao [data-evo-secao="holoscan"]'))), 'desmarcar a fonte HOLOSCAN esconde a secao');
 await A.evaluate(async () => { document.querySelector('[data-evo-abrir="medidas"]').click(); await new Promise(r => setTimeout(r, 250)); });

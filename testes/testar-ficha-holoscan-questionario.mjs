@@ -79,7 +79,7 @@ const vazio = await p.evaluate(() => {
     titulo: v?.querySelector('strong')?.textContent,
     texto: v?.querySelector('span')?.textContent,
     botao: document.querySelector('#aba-holoscan .fic-consultas-topo button')?.textContent,
-    // Etapa 5: a aba tambem traz o bloco "Leitura Integrada (V1)" (.dash-titulo); o que nao pode existir e "Ultima aplicacao"
+    // 09/10: a Leitura Integrada saiu da aba; o que nao pode existir e "Ultima aplicacao"
     temUltima: [...document.querySelectorAll('#aba-holoscan .dash-titulo')].some(t => /Última aplicação/.test(t.textContent)),
     continuidade: document.querySelector('#aba-holoscan .fic-chip')?.textContent,
   };
@@ -89,7 +89,7 @@ conferir(vazio.texto === 'Faça a primeira aplicação para mapear prioridades d
   'texto do estado vazio: ' + vazio.texto);
 conferir(vazio.botao === 'Iniciar HOLOSCAN', 'o CTA é "Iniciar HOLOSCAN": ' + vazio.botao);
 conferir(!vazio.temUltima, 'sem aplicação, nenhum bloco "Última aplicação" aparece');
-conferir(/Leitura Integrada/.test(vazio.continuidade), 'a continuidade com a Leitura Integrada aparece mesmo vazio: ' + vazio.continuidade);
+conferir(/Resultado HOLOS/.test(vazio.continuidade), 'a continuidade com o Resultado HOLOS aparece mesmo vazio: ' + vazio.continuidade);
 
 const foiPara = await p.evaluate(async () => {
   document.querySelector('#aba-holoscan [data-ir="holoscan"]').click();

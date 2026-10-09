@@ -5,10 +5,10 @@
  * RLS, FKs, RPCs e esquema estrito, compartilhado por contextos de navegador
  * realmente separados (localStorage e IndexedDB proprios). O app roda de
  * verdade: login pela tela, questionario clicado, "Salvar HOLOSCAN" clicado,
- * exames digitados e conferidos, exportacao pelo botao.
+ * coleta historica semeada (09/10: exame e so arquivo), exportacao pelo botao.
  *
- *   1  Dispositivo A registra: paciente, HOLOSCAN (84 respostas), duas
- *      coletas de exame, ferramenta, consulta, documento, paciente arquivado
+ *   1  Dispositivo A registra: paciente, HOLOSCAN (84 respostas), ferramenta,
+ *      consulta, documento, paciente arquivado; coleta HISTORICA so leitura
  *   2  Dispositivo B, navegador limpo, mesma conta: tudo aparece
  *   3  Exportacao num terceiro navegador limpo, sem abrir aba nenhuma antes
  *   4  Cache velho: o servidor muda em A, B recarrega → servidor vence;
@@ -139,23 +139,14 @@ async function aplicarHoloscan(p, delta) {
   return r;
 }
 
-async function registrarExamesPelaTela(p, valores, data) {
-  return p.evaluate(async (valores, data) => {
-    const pid = window.pacienteAtivoId();
-    window.abrirFichaDe(pid);
-    await new Promise(r => setTimeout(r, 200));
-    const aba = document.querySelector('[data-aba="documentos"]');
-    if (aba) aba.click();
-    await new Promise(r => setTimeout(r, 300));
-    Object.keys(valores).forEach(id => {
-      const linha = document.querySelector('#ex-corpo .ex-linha[data-exame="' + id + '"] input');
-      if (linha) { linha.value = String(valores[id]); linha.dispatchEvent(new Event('input', { bubbles: true })); }
-    });
-    document.getElementById('ex-data-coleta').value = data;
-    document.querySelector('#ex-corpo [data-acao="conferir"]').click();
-    await new Promise(r => setTimeout(r, 600));
-    return JSON.parse(localStorage.getItem('holohacking.exames') || '{}')[pid] || null;
-  }, valores, data);
+/* 09/10: exame e so arquivo. A coleta HISTORICA (anterior a decisao) entra direto no servidor falso,
+   como o banco real a tem; nenhum caminho novo grava coleta. */
+function semearColetaHistorica(pid, data, resultados, extra) {
+  const id = globalThis.crypto.randomUUID(), agora = new Date().toISOString();
+  srv.tabelas.lab_collections.push(Object.assign({ id, nutritionist_id: UID_A, patient_id: pid, encounter_id: null, coletado_em: data, data_coleta_desconhecida: !data, laboratorio: null, observacao: null,
+    state: 'salvo', source: 'manual', revision: 1, created_by: UID_A, created_at: agora, updated_at: agora }, extra || {}));
+  Object.keys(resultados).forEach(eid => srv.tabelas.lab_results.push({ id: globalThis.crypto.randomUUID(), collection_id: id, exame_id: eid, valor: resultados[eid], unidade_no_momento: 'un', nome_exame_no_momento: eid, created_at: agora }));
+  return id;
 }
 
 const estadoLocal = (p, pid) => p.evaluate((pid) => {
@@ -198,21 +189,22 @@ ok(histA.length === 1 && histA[0]._supa_id === (apps1[0] || {}).id,
    'a entrada local de A ganhou a identidade remota (_supa_id)');
 
 const exames = await A.p.evaluate(() => window.HOLOSCAN.listaDeExames().slice(0, 3).map(e => e.id));
-/* uma coleta historica com data clinica valida, e depois o registro pelo
-   painel, com a data da coleta informada no campo "Data da coleta" */
 const antiga = diaLocal(-60);
-const salvaAntiga = await A.p.evaluate((pid, eid, d) =>
-  window.Sincronizacao.salvarColeta(pid, { [eid]: 77 }, d), P, exames[2], antiga);
-ok(salvaAntiga.ok, 'coleta historica (de ' + antiga + ') salva com a data clinica informada');
-const vals1 = { [exames[0]]: 91, [exames[1]]: 5.4 };
+semearColetaHistorica(P, antiga, { [exames[2]]: 77 });
 const DATA1 = diaLocal(-3);
-await registrarExamesPelaTela(A.p, vals1, DATA1);
+const recusas = await A.p.evaluate(async (pid, eid, d) => {
+  const s = await window.Sincronizacao.salvarColeta(pid, { [eid]: 91 }, d);
+  const r = await window.supabaseClient.rpc('salvar_coleta_exames', { payload: { collection: { patient_id: pid, coletado_em: d, data_coleta_desconhecida: false }, results: [{ exame_id: eid, valor: 91 }] } });
+  const t = await window.supabaseClient.from('lab_collections').insert([{ patient_id: pid, coletado_em: d, data_coleta_desconhecida: false }]);
+  window.abrirFichaDe(pid); await new Promise(r => setTimeout(r, 300));
+  document.querySelector('[data-aba="documentos"]').click(); await new Promise(r => setTimeout(r, 300));
+  return { sinc: s.motivo, rpc: r.error && r.error.hint, tabela: t.error && t.error.code, painel: document.querySelectorAll('#ex-corpo, .ex-linha, #ex-data-coleta, [data-lab-acao], [data-lancar]').length };
+}, P, exames[0], DATA1);
 const colsA = srv.linhas('lab_collections').filter(c => c.patient_id === P);
-ok(colsA.length === 2 && colsA.some(c => c.coletado_em === antiga && c.data_coleta_desconhecida === false),
-   'a data historica valida foi preservada: ' + antiga);
-ok(colsA.some(c => c.coletado_em === DATA1 && c.data_coleta_desconhecida === false),
-   'o registro pelo painel vai com a data da coleta escolhida (' + DATA1 + ')');
-ok(!colsA.some(c => c.coletado_em === HOJE), 'nenhuma coleta ganhou a data de hoje (a do registro)');
+ok(recusas.sinc === 'laboratorio_desativado' && recusas.rpc === 'laboratorio_desativado' && recusas.tabela === '42501' && recusas.painel === 0,
+   '09/10: nenhuma coleta nova por caminho nenhum (sincronizacao, RPC, tabela) e nenhum painel de valores na ficha');
+ok(colsA.length === 1 && colsA[0].coletado_em === antiga && colsA[0].data_coleta_desconhecida === false,
+   'a coleta historica (' + antiga + ') continua no servidor, com a data dela');
 
 const app = await A.p.evaluate(async () => {
   const a = await window.Aplicacoes.nova({ id: 'roda_vida' });
@@ -292,12 +284,8 @@ ok(Object.keys(eb.aplicadas).length === 84 &&
    'as 84 respostas da aplicacao chegaram a B (respostas aplicadas), identicas');
 ok(Object.keys(eb.questionario).length === 0,
    'rodada 08: o questionario de B comeca VAZIO — reaplicar nao copia a aplicacao anterior');
-ok(eb.exames && eb.exames[exames[0]] === 91 && eb.exames[exames[1]] === 5.4 && eb.exames[exames[2]] === undefined,
-   'valores atuais de exame = os da coleta mais recente: ' + JSON.stringify(eb.exames));
-ok(Array.isArray(eb.coletas) && eb.coletas.length === 2 &&
-   eb.coletas.some(c => c.coletado_em === antiga) &&
-   eb.coletas.some(c => c.coletado_em === DATA1 && c.data_coleta_desconhecida === false),
-   'as duas coletas em B, cada uma com a propria data da coleta');
+ok(Array.isArray(eb.coletas) && eb.coletas.length === 1 && eb.coletas[0].coletado_em === antiga && eb.coletas[0].data_coleta_desconhecida === false,
+   'B le a coleta historica (so leitura), com a data da coleta: ' + antiga);
 ok(eb.aplicacoes.length === 3 && eb.aplicacoes.every(a => a.s === 'concluida') &&
    ['roda_vida', 'oq3', 'pqq'].every(f => eb.aplicacoes.some(a => a.f === f)),
    'as ferramentas aplicadas em A (Roda, OQ³, PQQ) aparecem em B');
@@ -354,19 +342,14 @@ const tela = await B.p.evaluate(async (pid) => {
   };
 }, P);
 ok(tela.holoNaLinha === 1, 'linha do tempo: 1 HOLOSCAN (sem duplicar remoto + cache)');
-ok(tela.coletasNaLinha === 2, 'linha do tempo: 2 coletas de exame');
-ok(tela.eventosExame.some(t => t.includes(dataBR(DATA1))) &&
-   tela.eventosExame.some(t => t.includes(dataBR(antiga))) &&
-   !tela.eventosExame.some(t => t.includes(dataBR(HOJE))),
-   'evolucao: cada coleta aparece na data da coleta (' + dataBR(DATA1) + ', ' + dataBR(antiga) +
-   '), nao na do registro (' + dataBR(HOJE) + ')');
+ok(tela.coletasNaLinha === 0 && tela.eventosExame.length === 0, 'linha do tempo: nenhum evento de coleta (09/10: exame e so arquivo)');
 ok(!/data não informada/.test(tela.linha), 'e nenhuma coleta com data virou "data não informada"');
 ok(/Roda/.test(tela.linha) && /Agendamento/.test(tela.linha) && /Laudo glicemia/.test(tela.linha),
    'linha do tempo: ferramenta, agendamento e documento tambem');
 ok(/Mapa HOLOS/.test(tela.abaHolo), 'aba HOLOSCAN da ficha mostra o Mapa HOLOS vindo do servidor');
 ok(tela.indiceTela === holo1.indice, 'a secao HOLOSCAN desenha o mapa de A em B: Indice ' + tela.indiceTela);
 ok(/1 aplicação HOLOSCAN/.test(tela.retorno) && /3 ferramentas aplicadas/.test(tela.retorno) &&
-   /1 coleta de exames/.test(tela.retorno),
+   !/coleta de exames/.test(tela.retorno),
    '"Desde a última consulta" conta o que veio do servidor: ' + tela.retorno.replace(/\s+/g, ' ').slice(0, 160));
 
 /* ==================================================================== */
@@ -402,10 +385,8 @@ if (json) {
   ok(Array.isArray(json.historico) && json.historico.length === 1 && json.pontuacao,
      'com o HOLOSCAN (historico + ultima pontuacao)');
   ok(json.respostasHoloscan && Object.keys(json.respostasHoloscan).length === 84, 'com as 84 respostas');
-  ok(json.exames && json.exames[exames[0]] === 91, 'com os valores atuais de exame');
-  ok(Array.isArray(json.coletasExames) && json.coletasExames.length === 2 &&
-     json.coletasExames.some(c => c.coletado_em === DATA1 && c.data_coleta_desconhecida === false),
-     'com as 2 coletas, cada uma com a propria data da coleta');
+  ok(Array.isArray(json.coletasExames) && json.coletasExames.length === 1 && json.coletasExames[0].coletado_em === antiga,
+     'com a coleta historica preservada (so leitura), com a data dela');
   ok(Array.isArray(json.aplicacoesFerramentas) && json.aplicacoesFerramentas.length === 3, 'com as ferramentas');
   /* V1 Etapa 1: a agenda exporta como "agendamentos" (nao "consultas"), separada de "atendimentos" */
   ok(Array.isArray(json.agendamentos) && json.agendamentos.length === 1 && !('consultas' in json),
@@ -431,7 +412,7 @@ await B.p.evaluate((pid) => {
   localStorage.setItem('holohacking.pontuacao', JSON.stringify(t));
 }, P);
 
-// A: segundo HOLOSCAN no MESMO dia, com outras respostas; exames atualizados
+// A: segundo HOLOSCAN no MESMO dia, com outras respostas
 const holo2 = await aplicarHoloscan(A.p, 1);
 const apps2 = srv.linhas('holoscan_applications').filter(x => x.patient_id === P);
 ok(apps2.length === 2 && apps2[0].quando === apps2[1].quando,
@@ -439,8 +420,6 @@ ok(apps2.length === 2 && apps2[0].quando === apps2[1].quando,
 const histA2 = (await estadoLocal(A.p, P)).historico;
 ok(histA2.length === 2 && histA2.every(e => !!e._supa_id) && histA2[0]._supa_id !== histA2[1]._supa_id,
    'A: o calculo novo do mesmo dia virou entrada NOVA, sem sobrescrever a ja salva');
-const DATA2 = diaLocal(-1);
-await registrarExamesPelaTela(A.p, { [exames[0]]: 88, [exames[1]]: 6.1 }, DATA2);
 
 await recarregar(B.p);
 eb = await estadoLocal(B.p, P);
@@ -456,27 +435,8 @@ ok(umaCasa(eb.historico[eb.historico.length - 1].indice) === holo2.indice,
 ok(Object.keys(holo2.respostas).every(k => eb.aplicadas[k] === holo2.respostas[k]) &&
    Object.keys(eb.questionario).length === 0,
    'B: respostas aplicadas = as da aplicacao nova; a copia velha saiu do rascunho');
-ok(eb.exames && eb.exames[exames[0]] === 88 && eb.exames[exames[1]] === 6.1,
-   'B: valores de exame antigos trocados pelos do servidor: ' + JSON.stringify(eb.exames));
-ok(eb.coletas.length === 3 && eb.coletas.some(c => c.coletado_em === antiga) &&
-   eb.coletas.some(c => c.coletado_em === DATA1) && eb.coletas.some(c => c.coletado_em === DATA2),
-   'B: o registro de outra data virou coleta NOVA (3 no total) e as anteriores mantem as datas delas');
-
-// rascunho: B digita e nao confere — a proxima carga NAO troca pelo servidor
+ok(eb.coletas.length === 1 && eb.coletas[0].coletado_em === antiga, 'B: a coleta historica continua a unica, com a data dela');
 await ativar(B.p, P);
-await B.p.evaluate(async (eid) => {
-  const pid = window.pacienteAtivoId();
-  window.abrirFichaDe(pid);
-  await new Promise(r => setTimeout(r, 200));
-  document.querySelector('[data-aba="documentos"]').click();
-  await new Promise(r => setTimeout(r, 300));
-  const inp = document.querySelector('#ex-corpo .ex-linha[data-exame="' + eid + '"] input');
-  inp.value = '123'; inp.dispatchEvent(new Event('input', { bubbles: true }));
-  await new Promise(r => setTimeout(r, 200));
-}, exames[0]);
-await recarregar(B.p);
-eb = await estadoLocal(B.p, P);
-ok(eb.exames && eb.exames[exames[0]] === 123, 'B: rascunho digitado e nao conferido sobrevive a recarga');
 
 /* ==================================================================== */
 titulo('5. ERRO REMOTO NAO E VAZIO');
@@ -565,16 +525,22 @@ srv.falhar.length = 0;
 ok(r2 === false && !Object.keys(srv.storage['patient-documents']).some(k => /orfao/.test(k)),
    'upload ok + linha falhou: reporta nao sincronizado e remove o objeto orfao do bucket');
 
-// excluir no servidor remove tambem a copia local
-const exclusao = await A.p.evaluate(async (pid) => {
+// 09/10: documento do prontuario nao se exclui — se ARQUIVA; sai da lista nos dois lados, a linha e o arquivo ficam
+const arquivamento = await A.p.evaluate(async (pid) => {
   const l = await window.ArquivoStore.listar(pid);
   const alvo = l.find(d => d.nome === 'Laudo glicemia');
-  await window.ArquivoStore.remover(alvo.id);
-  const depois = await window.ArquivoStore.listar(pid);
-  return depois.filter(d => d.nome === 'Laudo glicemia').length;
+  let remover = 'nao recusou';
+  try { await window.ArquivoStore.remover(alvo.id); } catch (e) { remover = e.message; }
+  await window.ArquivoStore.arquivar(alvo.id, true);
+  const ativos = (await window.ArquivoStore.listar(pid)).filter(d => d.nome === 'Laudo glicemia').length;
+  const arquivados = (await window.ArquivoStore.listar(pid, { arquivados: true })).filter(d => d.nome === 'Laudo glicemia').length;
+  return { remover, ativos, arquivados };
 }, P);
-ok(exclusao === 0 && !srv.linhas('documents').some(d => d.nome === 'Laudo glicemia'),
-   'excluir o documento remove do servidor E da copia local (nao "volta" na lista)');
+const linhaLaudo = srv.linhas('documents').find(d => d.nome === 'Laudo glicemia');
+ok(/Arquivar/.test(arquivamento.remover) && arquivamento.ativos === 0 && arquivamento.arquivados === 1 && linhaLaudo && linhaLaudo.arquivado_em && !!srv.storage['patient-documents'][linhaLaudo.storage_path],
+   'remover e recusado; arquivar tira da lista (e aparece em arquivados), a linha e o arquivo continuam no servidor');
+await recarregar(B.p);
+ok((await B.p.evaluate(async (pid) => (await window.ArquivoStore.listar(pid)).filter(d => d.nome === 'Laudo glicemia').length, P)) === 0, 'em B o documento arquivado tambem saiu da lista (nao "volta")');
 
 /* ==================================================================== */
 titulo('7. EXCLUSAO EM LOTE INTERROMPIDA NO MEIO');
@@ -628,10 +594,8 @@ titulo('8. DADO DO SERVIDOR E TAO NAO-CONFIAVEL QUANTO O LOCAL (XSS)');
 const MAU = '<img src=x onerror="window.__xss=1">';
 const R = srv.tratar({ op: 'query', uid: UID_A, q: { tabela: 'patients', acao: 'insert', filtros: [], ordem: [],
   retornar: true, colunas: 'id', dados: { nome: 'Rita ' + MAU, queixa: MAU } } }).data[0].id;
-srv.tratar({ op: 'rpc', uid: UID_A, nome: 'salvar_coleta_exames', args: { payload: {
-  collection: { patient_id: R, coletado_em: HOJE, data_coleta_desconhecida: false, laboratorio: 'Lab ' + MAU },
-  results: [{ exame_id: exames[0], valor: 90, unidade_no_momento: MAU, ideal_min_no_momento: 70,
-              ideal_max_no_momento: 99, nome_exame_no_momento: MAU, sistema_no_momento: 'metabolico' }] } } });
+semearColetaHistorica(R, HOJE, { [exames[0]]: 90 }, { laboratorio: 'Lab ' + MAU });   // historico com texto malicioso, como o banco real poderia ter
+srv.tabelas.lab_results.filter(r => r.collection_id === srv.tabelas.lab_collections.find(c => c.patient_id === R).id).forEach(r => { r.nome_exame_no_momento = MAU; r.unidade_no_momento = MAU; });
 srv.tratar({ op: 'query', uid: UID_A, q: { tabela: 'documents', acao: 'insert', filtros: [], ordem: [],
   dados: { patient_id: R, nome: 'doc ' + MAU, tipo: MAU, mime_type: 'text/plain', tamanho_bytes: 1,
            storage_path: UID_A + '/' + R + '/x' } } });

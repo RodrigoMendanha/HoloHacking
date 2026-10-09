@@ -11,8 +11,8 @@
    mostrando o mesmo que mostrava; o dashboard passa a mostrar quem precisa de
    atencao antes de a nutricionista abrir ficha por ficha.
 
-   Nao decide nada de clinico por conta propria: as notas, as combinacoes e o
-   confronto com exame vem todos do motor.
+   Nao decide nada de clinico por conta propria: as notas vem do motor.
+   Exame nao entra em nada daqui (decisao de produto 09/10).
    =========================================================================== */
 
 (function () {
@@ -87,7 +87,6 @@
     var pont = window.ultimaPontuacao ? window.ultimaPontuacao(id) : null;
     var historico = window.historicoPontuacao ? window.historicoPontuacao(id) : [];
     var quest = caixa("holohacking.questionario", id) || {};
-    var exames = caixa("holohacking.exames", id) || {};
 
     var preenchidas = window.Aplicacoes
       ? window.Aplicacoes.preenchidas(id)
@@ -98,20 +97,8 @@
       return !conhecidas || conhecidas[mid];
     }).length;
 
-    /* Teste real 07/10: a ficha dizia "Exames: nenhum valor" com uma coleta V1
-       salva — so a caixa do painel legado era contada. Com a leitura do
-       servidor disponivel, conta os resultados das coletas atuais (V1 e legado). */
-    var nExames = Object.keys(exames).length;
-    var S = window.Sincronizacao;
-    var cols = S && S.coletas ? S.coletas(id) : null;
-    if (cols) {
-      var n = 0;
-      cols.forEach(function (c) {
-        if (c.superseded_at) return;
-        (c.resultados || []).forEach(function (r) { if (r.value_original_text || (r.valor !== null && r.valor !== undefined && r.valor !== "")) n++; });
-      });
-      nExames = Math.max(nExames, n);
-    }
+    /* Decisao de produto 09/10: exame e so arquivo do prontuario. O panorama nao conta mais valores de
+       exame (nem do painel legado nem das coletas antigas): documento aparece pelo ArquivoStore. */
     var Cd = window.Conduta;
     var temConduta = !!(Cd && Cd.doPaciente && Cd.doPaciente(id).some(function (c) { return Cd.consolidada(c); }));
 
@@ -122,8 +109,6 @@
       respondidas: respondidas,
       totalPerguntas: totalDePerguntas(),
       ferramentas: preenchidas,
-      exames: nExames,
-      valoresExames: exames,
       temConduta: temConduta
     };
   }
@@ -243,12 +228,8 @@
   function contexto(pid) {
     var id = pid || (window.pacienteAtivoId && window.pacienteAtivoId()) || SEM_PACIENTE;
 
+    /* Decisao de produto 09/10: exame NAO entra em contexto de calculo nenhum (nem em combinacao). */
     var exames = {};
-    var brutos = caixa("holohacking.exames", id) || {};
-    Object.keys(brutos).forEach(function (k) {
-      var n = Number(brutos[k]);
-      if (brutos[k] !== "" && brutos[k] != null && isFinite(n)) exames[k] = n;
-    });
 
     var ferramentas = {};
     if (window.Aplicacoes) {
@@ -320,9 +301,9 @@
     var desdeCadastro = diasDesde(cadastro);
 
     /* "Alguma coisa" e qualquer sinal de que a ficha comecou a existir: uma
-       resposta, um exame, uma ferramenta, um OQ3. Sem nenhum deles, o
-       cadastro e so um nome. */
-    var comecou = d.respondidas > 0 || d.ferramentas.length > 0 || d.exames > 0 ||
+       resposta, uma ferramenta, um OQ3. Sem nenhum deles, o cadastro e so um
+       nome. (Exame guardado e arquivo do prontuario, nao conta aqui.) */
+    var comecou = d.respondidas > 0 || d.ferramentas.length > 0 ||
                   temConteudo(p.oq3) || temConteudo(p.pqq);
 
     return {

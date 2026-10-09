@@ -221,55 +221,11 @@
 
   /* ---- exames ----------------------------------------------------------- */
 
+  /* Decisao de produto 09/10: valor de exame digitado no aparelho NAO sobe mais ao servidor (resultado
+     laboratorial estruturado foi desativado). Fica so neste navegador, como estava. */
   function migrarExames() {
-    var tudo;
-    try { tudo = JSON.parse(localStorage.getItem("holohacking.exames")) || {}; }
-    catch (e) { return Promise.resolve(0); }
-
-    var g = window.HOLOSCAN || null;
-    if (!g || !g.listaDeExames) return Promise.resolve(0);
-
-    /* Paciente com registro de sincronizacao ja e da sincronizacao.js (ela
-       sabe se o valor local e copia, rascunho ou pendente). Aqui so entra o
-       legado: valores digitados sem sessao, que nunca foram para o servidor. */
-    var sync;
-    try { sync = (JSON.parse(localStorage.getItem("holohacking.sincronizacao")) || {}).exames || {}; }
-    catch (e) { sync = {}; }
-
-    var candidatos = Object.keys(tudo).filter(function (pid) {
-      var vals = tudo[pid];
-      return UUID_RE.test(pid) && vals && typeof vals === "object" &&
-        Object.keys(vals).length > 0 && !sync[pid];
-    });
-    if (!candidatos.length) return Promise.resolve(0);
-
-    return lerEmLote("lab_collections", "id, patient_id", "patient_id", candidatos, ["patient_id", "id"])
-      .then(function (r) {
-        if (!r.ok) { erros++; log("exames: leitura falhou, passo adiado"); return 0; }
-        /* Se o servidor ja tem QUALQUER coleta do paciente, o valor local nao
-           sobe como "data desconhecida": ou e copia dela, ou a sincronizacao
-           decide. Subir criaria uma segunda coleta com os mesmos numeros. */
-        var temRemoto = {};
-        r.linhas.forEach(function (c) { temRemoto[c.patient_id] = true; });
-
-        var cadeia = Promise.resolve();
-        var migrados = 0;
-        candidatos.forEach(function (pid) {
-          if (temRemoto[pid]) return;
-          cadeia = cadeia.then(function () {
-            var s = window.Sincronizacao;
-            if (!s || !s.salvarColeta) return;
-            // data de coleta desconhecida: o valor legado nunca teve data
-            return s.salvarColeta(pid, tudo[pid], null).then(function (res) {
-              if (res.ok) migrados++;
-              else if (res.motivo !== "vazio") { erros++; log("exames " + pid + ": " + res.motivo); }
-            });
-          });
-        });
-        return cadeia.then(function () { return migrados; });
-      });
+    return Promise.resolve(0);
   }
-
   /* ---- aplicacoes de ferramenta ----------------------------------------
      Criadas sem sessao, vivem so em holohacking.dados.aplicacoes. O banco
      aceita as seis ferramentas ativas; aplicacao de ferramenta legada (fora

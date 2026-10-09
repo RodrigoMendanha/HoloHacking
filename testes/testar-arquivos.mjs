@@ -1,8 +1,7 @@
 /**
- * Exames, documentos e relatorio dentro do app.
- * O caso de exemplo tem Mental 0.7 e Metabolico 0.8 — bem baixos — e os
- * outros tres altos. Entao exame alterado no metabolico deve CONFIRMAR, e
- * exame alterado no detox (nota 6.7) deve DIVERGIR.
+ * Documentos e relatorio dentro do app (decisao de produto 09/10: exame e
+ * documento sao so arquivos do prontuario; nada de valor, confronto ou
+ * Leitura Integrada).
  */
 import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
@@ -19,10 +18,7 @@ await p.goto('http://127.0.0.1:5500/', { waitUntil: 'networkidle2' });
 await p.addStyleTag({ content: '*{transition:none!important;animation:none!important}' });
 await p.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados());
 let falhou = false;
-const ok = (c, t) => {
-  if (!c) falhou = true;
-  console.log((c ? '  ok    ' : '  FALHA ') + t);
-};
+const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
 
 // --- a secao existe e abre -------------------------------------------------
 const base = await p.evaluate(() => {
@@ -33,40 +29,19 @@ const base = await p.evaluate(() => {
   return {
     visivel: !document.getElementById('ficha-arquivos').classList.contains('hidden'),
     abas: [...document.querySelectorAll('#ficha-arquivos .aba')].map(b => b.textContent.trim()),
-    exames: document.querySelectorAll('#ex-corpo .ex-linha').length,
-    blocos: [...document.querySelectorAll('#ex-corpo .ex-bloco h4')].map(h => h.textContent),
+    painelExames: document.querySelectorAll('#ex-corpo, #lab-corpo, .ex-linha, [data-lancar]').length,
     cartoes: [...document.querySelectorAll('#aba-documentos .arq-titulo')].map(h => h.textContent),
+    texto: document.getElementById('aba-documentos').innerText,
   };
 });
 ok(base.visivel, 'a secao Arquivos abre');
 ok(base.abas.join(',') === 'Visão geral,Atendimentos,Anamnese,HOLOSCAN,Ferramentas,Resultado HOLOS,Documentos,Conduta,Evolução,Relatório,HOLOS AI',
    'as abas (Anamnese e Conduta na Etapa 2; Resultado HOLOS em 09/10, entre Ferramentas e Conduta): ' + base.abas.join(' · '));
-/* Exames e documentos eram duas abas, e a separacao estava errada: os valores
-   saem do PDF. Agora e um lugar so, em dois passos. */
-/* Etapa 5 da V1: o cartao "Os valores do exame" virou "Exames laboratoriais"
-   (catalogo de 45, coleta por id, valor original) e o painel antigo ficou como
-   "Painel legado (valores locais) — fora da saida oficial". */
-ok(base.cartoes.join(' / ') === 'O que o paciente trouxe / Exames laboratoriais / Painel legado (valores locais) — fora da saída oficial',
-   'o papel e os numeros no mesmo lugar (Etapa 5: V1 + painel legado rotulado): ' + base.cartoes.join(' · '));
-ok(base.exames === 24, base.exames + ' exames no formulario');
-ok(base.blocos.length === 5, 'agrupados nos ' + base.blocos.length + ' sistemas');
+ok(base.cartoes.join(' / ') === 'Adicionar arquivo / Documentos e exames', 'a aba e a biblioteca do prontuario: ' + base.cartoes.join(' · '));
+ok(base.painelExames === 0, 'nenhum painel de valores de exame (nem V1 nem legado)');
+ok(/não lê nem interpreta/.test(base.texto) && !/Leitura Integrada|Lançar valores|Painel legado/.test(base.texto), 'a tela diz que o sistema nao le nem interpreta os arquivos');
 
-// --- sem mapa, o exame nao tem com o que confrontar ------------------------
-const semMapa = await p.evaluate(() => {
-  const l = [...document.querySelectorAll('#ex-corpo .ex-linha')]
-    .find(x => x.dataset.exame === 'EXA-005');
-  l.querySelector('input').value = '115';
-  l.querySelector('input').dispatchEvent(new Event('input', { bubbles: true }));
-  return {
-    marcado: l.classList.contains('alterado'),
-    situacao: l.querySelector('.ex-situacao').textContent,
-    aviso: document.getElementById('ex-confronto').textContent.trim(),
-  };
-});
-ok(semMapa.marcado && semMapa.situacao === 'acima', 'glicemia 115 marca como acima');
-ok(/question[aá]rio/i.test(semMapa.aviso), 'pede o questionario antes de confrontar');
-
-// --- aplica o questionario e volta ----------------------------------------
+// --- aplica o questionario (modo local) ------------------------------------
 await p.evaluate((respostas) => {
   document.querySelector('.nav-item[data-secao="holoscan"]').click();
   document.getElementById('btn-abrir-questionario').click();
@@ -78,49 +53,24 @@ await p.evaluate((respostas) => {
   document.querySelector('[data-acao="calcular"]').click();
 }, caso.respostas);
 
-const conf = await p.evaluate(() => {
+// --- documentos ------------------------------------------------------------
+const doc = await p.evaluate(() => {
   document.querySelector('.nav-item[data-secao="pacientes"]').click();
   document.getElementById('vista-lista-pacientes').classList.add('hidden');
   document.getElementById('vista-ficha').classList.remove('hidden');
-  // metabolico esta baixo (0.4) e detox esta alto (6.7)
-  const por = {};
-  [...document.querySelectorAll('#ex-corpo .ex-linha')].forEach(l => por[l.dataset.exame] = l);
-  por['EXA-005'].querySelector('input').value = '115';   // metabolico, alterado
-  por['EXA-015'].querySelector('input').value = '78';    // detox GGT, alterado
-  por['EXA-005'].querySelector('input').dispatchEvent(new Event('input', { bubbles: true }));
-  const itens = [...document.querySelectorAll('.conf-item')];
-  return itens.map(i => ({
-    sistema: i.querySelector('b').textContent,
-    tipo: i.classList.contains('divergente') ? 'divergente' : 'convergente',
-    leitura: i.querySelector('.conf-leitura').textContent.trim().slice(0, 60),
-  }));
-});
-/* Revisao clinica do HOLOSCAN (Holoscan): os nomes de classe/estado viraram
-   convergente/divergente/dados_insuficientes (window.Holoscan em
-   arquivos.js) em vez de confirma/diverge — so a apresentacao, o motor
-   continua devolvendo confirma/diverge/sem_exame como sempre (ver
-   testar-exames.mjs). */
-const met = conf.find(c => /Metab/.test(c.sistema));
-const det = conf.find(c => /Detox/.test(c.sistema));
-ok(met && met.tipo === 'convergente', 'metabolico baixo + exame alterado = convergente');
-ok(det && det.tipo === 'divergente', 'detox alto + exame alterado = divergente');
-if (det) console.log('    divergencia: ' + det.leitura + '...');
-
-// --- documentos ------------------------------------------------------------
-// documentos: a area de receber arquivo. O ciclo completo de subir, guardar
-// e remover esta em testar-upload.mjs.
-const doc = await p.evaluate(() => {
   document.querySelector('[data-aba="documentos"]').click();
   const t = document.getElementById('aba-documentos').textContent;
   return {
     solta: !!document.getElementById('doc-solta'),
     aceita: document.getElementById('doc-arquivo')?.getAttribute('accept') || '',
     avisaOnde: /neste navegador/i.test(t),
+    campos: ['doc-tipo', 'doc-titulo', 'doc-data', 'doc-observacao'].every(id => !!document.getElementById(id)),
   };
 });
 ok(doc.solta, 'a area de arrastar arquivo existe');
 ok(/pdf/.test(doc.aceita) && /jpg|jpeg/.test(doc.aceita), 'aceita PDF e foto: ' + doc.aceita);
 ok(doc.avisaOnde, 'a tela diz onde o arquivo fica guardado');
+ok(doc.campos, 'tipo, titulo, data e observacao estao no formulario');
 
 // --- relatorio -------------------------------------------------------------
 const rel = await p.evaluate(() => {
@@ -128,16 +78,14 @@ const rel = await p.evaluate(() => {
   const r = document.getElementById('relatorio');
   return {
     existe: !!r,
-    // Revisao clinica do HOLOSCAN: o Indice saiu do cabecalho (.rel-meta) e
-    // foi para o fim da secao A, como informacao secundaria (.rel-indice).
     indice: r?.querySelector('.rel-indice b')?.textContent,
     sistemas: r?.querySelectorAll('.rel-sistema').length,
     primeiro: r?.querySelector('.rel-sistema b')?.textContent,
     combinada: r?.querySelector('.rel-combinada')?.textContent.trim(),
     temTriada: !!r?.querySelector('.rel-triada'),
-    temHoloscan: /Leitura Integrada/.test(r?.textContent || ''),   // simulacao 08/10: secao B = leituras integradas salvas
+    semLI: !/Leitura Integrada|Convergente|Divergente/.test(r?.textContent || ''),
     partes: [...r?.querySelectorAll('.rel-parte') || []].map(s => s.dataset.origem),
-    textoNutri: r?.querySelector('.rel-sistema p')?.textContent.slice(0, 70),
+    titulos: [...r?.querySelectorAll('.rel-parte h3') || []].map(h => h.textContent),
   };
 });
 ok(rel.existe, 'o relatorio e montado');
@@ -147,19 +95,13 @@ const maisBaixo = await p.evaluate((respostas) =>
   [...HOLOSCAN.calcular(respostas).sistemas].sort((a, b) => a.nota - b.nota)[0].nome,
   caso.respostas);
 ok(rel.primeiro === maisBaixo, 'comeca pelo mais baixo: ' + rel.primeiro);
-ok(rel.temTriada && rel.temHoloscan, 'traz Triada e Holoscan');
-/* Revisao clinica do HOLOSCAN (decisao 1): nenhuma CMB aparece no
-   relatorio nesta rodada, nem a CMB-001. */
+ok(rel.temTriada && rel.semLI, 'traz Triada e nao traz Leitura Integrada nem conclusao laboratorial');
 ok(!rel.combinada, 'nao traz leitura combinada: ' + rel.combinada);
-ok(rel.partes.join(',') === 'automatico,automatico,automatico,automatico,profissional',
-   'relatorio separa A/B/C/D automatico de E profissional: ' + rel.partes.join(','));
+ok(rel.partes.join(',') === 'automatico,automatico,automatico,profissional',
+   'relatorio separa A/B/C automatico de D profissional: ' + rel.titulos.join(' | '));
 
-/* Revisao clinica do HOLOSCAN (decisao 2): o paragrafo de "Os cinco
-   sistemas" que antes vinha de mensagens.csv (status=rascunho, e por isso
-   diferia por registro) foi substituido pela mesma linha neutra fixa nos
-   dois registros — o dado objetivo (nota/faixa/cobertura) nao muda por
-   registro nenhum. O que continua diferindo por registro e a secao C:
-   "nutri" edita a interpretacao profissional; "paciente" so le. */
+/* Os cinco sistemas mostram a mesma linha neutra nos dois registros; a
+   interpretacao profissional continua mudando por registro. */
 const dois = await p.evaluate(() => {
   const antes = document.querySelector('.rel-sistema p').textContent;
   const eraTextarea = !!document.getElementById('rel-interpretacao');
@@ -171,13 +113,8 @@ const dois = await p.evaluate(() => {
     viraSoLeitura: !document.getElementById('rel-interpretacao'),
   };
 });
-ok(dois.antes === dois.depois,
-   'os cinco sistemas mostram o mesmo texto objetivo nos dois registros (mensagens.csv suprimido): "' +
-   dois.antes + '"');
-ok(dois.eraTextarea && dois.viraSoLeitura,
-   'mas a seção C continua mudando por registro: "nutri" edita, "paciente" só lê');
-console.log('    nutri:    ' + dois.antes + '...');
-console.log('    paciente: ' + dois.depois + '...');
+ok(dois.antes === dois.depois, 'os cinco sistemas mostram o mesmo texto objetivo nos dois registros: "' + dois.antes + '"');
+ok(dois.eraTextarea && dois.viraSoLeitura, 'mas a interpretação continua mudando por registro: "nutri" edita, "paciente" só lê');
 
 await nav.close();
 console.log(ruim.length ? '\n  ERRO: ' + ruim[0] : '\n  sem erro de JS');
