@@ -134,7 +134,8 @@ ok(JSON.stringify(registros()) === antesNav && registros().every(x => NOVOS.incl
   'nenhum registro *_v1 com chave do schema antigo; nenhum registro com ID antigo no servidor');
 const fontes = readdirSync(new URL('.', RAIZ)).filter(f => f.endsWith('.js'));
 const comV1 = fontes.filter(f => /(mapa_rotina|gatilhos_respostas|conexao_pertencimento)_v1/.test(readFileSync(new URL(f, RAIZ), 'utf8'))).sort();
-ok(JSON.stringify(comV1) === JSON.stringify(['ferramentas.js', 'migracao-supa.js']), 'os IDs novos so aparecem no catalogo e na lista de sincronizacao: ' + comV1.join(', '));
+/* 09/10: proximos-passos.js e o catalogo oficial de recomendacao (sistema -> uma das 10 ferramentas ativas): cita os IDs novos de proposito */
+ok(JSON.stringify(comV1) === JSON.stringify(['ferramentas.js', 'migracao-supa.js', 'proximos-passos.js']), 'os IDs novos so aparecem no catalogo, na lista de sincronizacao e no motor de Proximos Passos: ' + comV1.join(', '));
 const conversao = fontes.filter(f => /["']?(mapa_rotina|gatilhos_respostas|conexao_pertencimento)["']?\s*[:=]\s*["'](mapa_rotina|gatilhos_respostas|conexao_pertencimento)_v1|replace\([^)]*_v1|\+\s*["']_v1["']/.test(readFileSync(new URL(f, RAIZ), 'utf8')));
 ok(conversao.length === 0, 'nenhum mapa/replace/concatenacao que transforme ID antigo em ID novo' + (conversao.length ? ': ' + conversao.join(', ') : ''));
 
