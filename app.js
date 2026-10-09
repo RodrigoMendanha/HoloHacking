@@ -292,7 +292,6 @@
       dashboard: window.redesenharDashboard,
       consultas: window.redesenharConsultas,
       agenda: window.redesenharAgenda,
-      documentos: window.redesenharDocumentos,
       /* Resultado: a versao final para apresentar a paciente (Resultado HOLOS salvo + Conduta vigente +
          identidade profissional). Redesenha ao abrir: o resultado pode ter sido finalizado na ficha. */
       resultado: () => { if(window.ResultadoPagina) window.ResultadoPagina.desenhar(); },

@@ -190,7 +190,9 @@ UTC−3, UTC+14 e UTC−11 e o dia não muda.
 - Abrir um documento remoto usa `storage.download()` **autenticado**. Não há
   signed URL no código, e isso é intencional. Nenhum caminho de storage ou URL
   vai para localStorage ou para a exportação.
-- A seção Documentos (todos os pacientes) usa `listarTudoHibrido`.
+- ~~A seção Documentos (todos os pacientes)~~ **saiu do menu em 09/10**: documento se
+  acessa só pela ficha do paciente (aba Documentos). `listarTudoHibrido` continua
+  para contagens.
 
 ---
 

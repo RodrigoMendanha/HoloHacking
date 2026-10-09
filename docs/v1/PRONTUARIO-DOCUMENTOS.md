@@ -25,6 +25,9 @@ ações, recursos, exames solicitados, acompanhamento, retorno, observações, o
 - Multidispositivo: a lista vem de `documents` (só ativos por padrão) e o arquivo de `storage.download()` autenticado.
   Nenhum link público, nenhum caminho de storage em localStorage ou exportação.
 
+- **Menu**: a seção global "Documentos" (todos os pacientes) saiu do menu — pedido da usuária; o acesso aos documentos
+  é **só pela ficha do paciente** (`documentos.js` removido).
+
 ### F2 — Laboratório estruturado desativado (histórico só leitura)
 - `salvar_coleta_laboratorial`, `salvar_coleta_exames`, `revisar_coleta_laboratorial`, `marcar_coleta_revisada`
   recusam com `hint = 'laboratorio_desativado'`.

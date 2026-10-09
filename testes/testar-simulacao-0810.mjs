@@ -80,26 +80,26 @@ const relD = await A.evaluate(async (pid) => {
   return e ? e.textContent : '(sem secao D: ' + document.getElementById('aba-relatorio').innerText.slice(0, 200) + ')';
 }, PA);
 ok(/1 documento\/exame armazenado/.test(relD) && !/laudo_teste\.pdf/.test(relD), 'relatório, seção C: o documento do servidor entra só como contagem (nome e conteúdo ficam fora) — ' + relD.slice(0, 120));
-const menu = await A.evaluate(async () => {
-  document.querySelector('.nav-item[data-secao="documentos"]').click();
-  await new Promise(r => setTimeout(r, 1200));
-  return document.getElementById('secao-documentos').innerText;
-});
-ok(/laudo_teste\.pdf/.test(menu), 'menu Documentos: o laudo aparece — ' + menu.slice(0, 160).replace(/\n/g, ' | '));
+/* 09/10: a secao global Documentos saiu do menu; documento so na aba Documentos da ficha */
+const menu = await A.evaluate(async (pid) => {
+  const semMenu = !document.querySelector('.nav-item[data-secao="documentos"]') && !document.getElementById('secao-documentos');
+  window.levarParaFicha('aba:documentos', pid); await new Promise(r => setTimeout(r, 1200));
+  return { semMenu, texto: document.getElementById('aba-documentos').innerText };
+}, PA);
+ok(menu.semMenu && /laudo_teste\.pdf/.test(menu.texto), 'sem secao Documentos no menu; na aba Documentos da ficha o laudo aparece — ' + menu.texto.slice(0, 120).replace(/\n/g, ' | '));
 
-const menuDeNovo = () => A.evaluate(async () => {
+const abaDeNovo = () => A.evaluate(async (pid) => {
   document.querySelector('.nav-item[data-secao="dashboard"]').click();
-  await new Promise(r => setTimeout(r, 1700));
-  document.querySelector('.nav-item[data-secao="documentos"]').click();
-  await new Promise(r => setTimeout(r, 2500));
-  return document.getElementById('secao-documentos').innerText;
-});
-srv.falhar.push({ tabela: 'documents', acao: 'select', vezes: 1 });
-ok(/laudo_teste\.pdf/.test(await menuDeNovo()), 'uma falha passageira do servidor: a lista tenta de novo e o laudo aparece');
+  await new Promise(r => setTimeout(r, 800));
+  window.levarParaFicha('aba:documentos', pid);
+  await new Promise(r => setTimeout(r, 3500));   // a lista tenta o servidor de novo uma vez antes de desistir
+  return document.getElementById('aba-documentos').innerText;
+}, PA);
 srv.falhar.push({ tabela: 'documents', acao: 'select', vezes: 50 });
-const fora = await menuDeNovo();
+const fora = await abaDeNovo();
 srv.falhar.length = 0;
-ok(/Não foi possível carregar os documentos do servidor/.test(fora) && !/Nenhum documento guardado/.test(fora), 'servidor fora: a tela diz que não carregou (não "nenhum documento")');
+ok(/Não foi possível carregar os documentos do servidor/.test(fora) && !/Nenhum documento adicionado|Nenhum documento guardado/.test(fora), 'servidor fora: a aba diz que não carregou (não "nenhum documento adicionado")');
+ok(/laudo_teste\.pdf/.test(await abaDeNovo()), 'servidor de volta: abrir a aba de novo mostra o laudo');
 
 /* ----- 3 ----- */
 mkdirSync('amostras', { recursive: true });

@@ -157,8 +157,8 @@ Cache-Control. Nas próximas atualizações não precisa.
 
 ### 3.5 Hashes esperados (sha256 dos arquivos servidos pela `main` saneada)
 
-Todos os 64 arquivos que o `Dockerfile` copia (`index.html aprovacoes.html style.css favicon.svg
-logo-holohacking.png *.js`). Inclui a pagina publica de revisao das perguntas (`aprovacoes.html`, `aprovacoes.js`). Atualizados no prontuario 09/10 (exame e documento sao so arquivos: novo `resultado-pagina.js`; `arquivos.js`, `arquivo-store.js`, `app.js`, `ficha.js`, `conduta.js`, `relatorios.js`, `evolucao.js`, `timeline.js`, `panorama.js`, `sincronizacao.js`, `migracao-supa.js`, `holos-ai.js`, `dashboard.js`, `ajuda.js`, `demo.js`, `documentos.js`, `index.html`, `style.css`; os arquivos `laboratorio-*.js` e `leitura-integrada-*.js` continuam copiados pelo `Dockerfile` mas nao sao mais carregados pelo `index.html`); antes, na correcao do Perfil (`perfil.js`, `style.css`); antes, na correcao das ferramentas (`formulario.js`, `ferramentas.js`, `app.js`, `index.html`, `style.css`); antes, na correcao da Leitura Integrada (`laboratorio.js`, `arquivos.js`, `agenda.js`, `app.js`, `index.html`, `style.css`); antes, na correcao do HOLOSCAN (`app.js`, `questionario.js`, `consultas.js`, `metodologia-inventario.js`, `index.html`, `style.css`); antes, na correcao da Agenda (`agenda.js`, `atendimento.js`, `app.js`, `ficha.js`, `style.css`); antes, na correcao de Pacientes/Atendimentos (`app.js`, `consultas.js`, `panorama.js`, `metodologia.js`, `questionario.js`, `index.html`, `style.css`); antes, na correcao do dashboard (`dashboard.js`, `agenda.js`, `app.js`, `panorama.js`, `sincronizacao.js`, `index.html`, `style.css`); antes, na troca do logo (pinha dourada: novo `logo-holohacking.png`; `favicon.svg`, `index.html`, `style.css`, `demo.js`); antes, na correcao pos-6.5 (leitura oficial do HOLOSCAN so com textos do pacote; rotulo neutro; textos e acentos: `app.js`, `formulario.js`, `ferramentas.js`, `index.html`); antes, Etapa 6.5 B da V1 (registros clinicos com IDs novos `*_v1`: novo `ferramentas-registro.js`; `ferramentas.js`, `formulario.js`, `panorama.js`, `migracao-supa.js`, `style.css`, `index.html`); antes, Etapa 6.5 (correcao P0: novo `holoscan-oficial.js`; `questionario.js`, `app.js`, `metodologia.js`, `utils.js`, `migracao-supa.js`, `sincronizacao.js`, `ficha.js`, `arquivos.js`, `consultas.js`, `dashboard.js`, `evolucao.js`, `timeline.js`, `panorama.js`, `laboratorio.js`, `metodologia-inventario.js`, `index.html`); antes, Etapa 6.0 da V1 (branch `claude/v1-etapa6-implementacao-li-local`: `laboratorio.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js`, `style.css` e o novo `leitura-integrada-pacote-v1.js`; antes, Etapa 5.3: `metodologia-homologacao.js` e `dados-router.js`; Etapa 5: inclui `laboratorio-catalogo.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js` e `laboratorio.js`; antes, Etapa 4.2: `metodologia-decisoes-v1.js` e `questionario.js`; Etapa 4:
+Todos os 63 arquivos que o `Dockerfile` copia (`index.html aprovacoes.html style.css favicon.svg
+logo-holohacking.png *.js`). Inclui a pagina publica de revisao das perguntas (`aprovacoes.html`, `aprovacoes.js`). Atualizados no prontuario 09/10 (exame e documento sao so arquivos: novo `resultado-pagina.js`; `documentos.js` removido — a secao global Documentos saiu do menu; `arquivos.js`, `arquivo-store.js`, `app.js`, `ficha.js`, `conduta.js`, `relatorios.js`, `evolucao.js`, `timeline.js`, `panorama.js`, `sincronizacao.js`, `migracao-supa.js`, `holos-ai.js`, `dashboard.js`, `ajuda.js`, `demo.js`, `documentos.js`, `index.html`, `style.css`; os arquivos `laboratorio-*.js` e `leitura-integrada-*.js` continuam copiados pelo `Dockerfile` mas nao sao mais carregados pelo `index.html`); antes, na correcao do Perfil (`perfil.js`, `style.css`); antes, na correcao das ferramentas (`formulario.js`, `ferramentas.js`, `app.js`, `index.html`, `style.css`); antes, na correcao da Leitura Integrada (`laboratorio.js`, `arquivos.js`, `agenda.js`, `app.js`, `index.html`, `style.css`); antes, na correcao do HOLOSCAN (`app.js`, `questionario.js`, `consultas.js`, `metodologia-inventario.js`, `index.html`, `style.css`); antes, na correcao da Agenda (`agenda.js`, `atendimento.js`, `app.js`, `ficha.js`, `style.css`); antes, na correcao de Pacientes/Atendimentos (`app.js`, `consultas.js`, `panorama.js`, `metodologia.js`, `questionario.js`, `index.html`, `style.css`); antes, na correcao do dashboard (`dashboard.js`, `agenda.js`, `app.js`, `panorama.js`, `sincronizacao.js`, `index.html`, `style.css`); antes, na troca do logo (pinha dourada: novo `logo-holohacking.png`; `favicon.svg`, `index.html`, `style.css`, `demo.js`); antes, na correcao pos-6.5 (leitura oficial do HOLOSCAN so com textos do pacote; rotulo neutro; textos e acentos: `app.js`, `formulario.js`, `ferramentas.js`, `index.html`); antes, Etapa 6.5 B da V1 (registros clinicos com IDs novos `*_v1`: novo `ferramentas-registro.js`; `ferramentas.js`, `formulario.js`, `panorama.js`, `migracao-supa.js`, `style.css`, `index.html`); antes, Etapa 6.5 (correcao P0: novo `holoscan-oficial.js`; `questionario.js`, `app.js`, `metodologia.js`, `utils.js`, `migracao-supa.js`, `sincronizacao.js`, `ficha.js`, `arquivos.js`, `consultas.js`, `dashboard.js`, `evolucao.js`, `timeline.js`, `panorama.js`, `laboratorio.js`, `metodologia-inventario.js`, `index.html`); antes, Etapa 6.0 da V1 (branch `claude/v1-etapa6-implementacao-li-local`: `laboratorio.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js`, `style.css` e o novo `leitura-integrada-pacote-v1.js`; antes, Etapa 5.3: `metodologia-homologacao.js` e `dados-router.js`; Etapa 5: inclui `laboratorio-catalogo.js`, `laboratorio-motor.js`, `leitura-integrada-motor.js` e `laboratorio.js`; antes, Etapa 4.2: `metodologia-decisoes-v1.js` e `questionario.js`; Etapa 4:
 inclui `metodologia.js`, `atendimento.js`, `anamnese.js`, `conduta.js`, `timeline.js`, `relatorios.js`, `metodologia-inventario.js`, `metodologia-pacote.js`, `metodologia-motor.js` e `metodologia-homologacao.js`), conferidos contra a imagem do `docker build` da branch (o nginx ainda põe o
 `50x.html` dele, que não é nosso):
 
@@ -168,12 +168,12 @@ inclui `metodologia.js`, `atendimento.js`, `anamnese.js`, `conduta.js`, `timelin
 de35fb23e02e7596c583d13331d8fb4ceea2f05c5ac8b3066444529f4ef4c67d  anamnese-v2.js
 5400142e00d78a6d2036a928ccf93a3525191f0131b44cdd0e0dcef53e6ffd86  anamnese.js
 b1ea48449d74ba8427c7a59947ae73d55a4d88896ea1fcf4f9823dc4087bd049  aplicacoes.js
-e0d077b6169aeb5850dc7319e4ed52c303a9986018ee8c139876077c96a6ebe4  app.js
+0dedb0f5cd206c26a490ac42269ee0c530f2be5e50d27ccd80fc913393247917  app.js
 6952336cdfd5aa3387bd8a9e15f1860897ae0302e2bfcadbb5f13a32fed89eae  aprovacoes.html
 5daf4f30c86424e65636abf8de6dd9edc72439d7533a7bd6e1b7c8a091870825  aprovacoes.js
 d3efacba60b26bc2da2311a273881948882570773e4016f59ce2a0845661746c  armazenamento.js
 5bb2e258075f144c1ba48d99781919f8bc7be04900d6867cc7bd96fb8ebde6b4  arquivo-store.js
-3ff02f6e64e1dde923be49bce49786ffa4062bc691e7b96b77d11195ea153d21  arquivos.js
+777e27e02ee55ca38405feac5d23660da8efb01348f936eb5198ea589ae207d6  arquivos.js
 beb7c9738377c0a57ab081d9f876d4c501bc21217006b029abe48ca3da956966  atendimento.js
 410b78815fa33df41eeadd22c8f3dbfb5b5bfeecaf89784fb2d35a590474cdb7  caso-marina.js
 e66cd4b4cd1163cce5680b8d2b56b820c44c1cf430ed413d8de2fe7766112a14  concorrencia.js
@@ -185,7 +185,6 @@ e66cd4b4cd1163cce5680b8d2b56b820c44c1cf430ed413d8de2fe7766112a14  concorrencia.j
 a77e7bf6acab37680d25eb5451442539bda71a84c6e921940a6065b9b9a3b806  dados.js
 6e3c12499206f03dbb09e34a55dd10efc5d5cc317a1763540d0e8d5a7caed250  dashboard.js
 ddeab39e18a0594ecbc64e243b0863f46718e8d9fd45c8ff4ed3658b3b0ba612  demo.js
-c4c9b8c364df9078fe511291589a25e9a706cadd6a75465c62743af69ca335d5  documentos.js
 268838159c1ece024be95518b34b5612dcec93c93b15e4ce8db4d4c9aa3ee3af  evolucao.js
 11e08342911df7f528993946a7e07746a9c26f66657eb0d139e746ade32e161f  excluir-paciente.js
 ccab4b8d1492eab5ef40def11944fbc8612ff8d4bf26b36548f5641caaa54044  favicon.svg
@@ -197,7 +196,7 @@ e86a0e9fb6152446a8ab3f4a2f863172be89d5a513a59f6700b262a8f62e303b  holos-ai.js
 a1fdc291ea46a92dfb48ec92c2c12b7f87be9fb2ed9a9f48cfd29a6721135878  holoscan-oficial.js
 b6c7e8b1341a10bf45c2f895218e5529176b9c36aa035be6a2aa1ed0fb41cfac  holoscan.js
 b2705ac28dc9f6175ec5586ef02e86b00f2fe1265dbb23a34e3bb2cebb8718c3  importar-v1.js
-8ce604ed458c1b65e8070e1ff92e0227299229ac014114c3b10f9d3fedd49688  index.html
+ed94269e350adf49fed0129a1a0bb3597e2c1b08bb50955145cfed892e4c69c7  index.html
 66b6752b882d5cca5f666545b37db0dfed8c9e6ab8506189ba88bca88975f14a  laboratorio-catalogo.js
 8ad2d6789fdc62fe83f2c9cc85acbf03e481ed40f3dc72575b20bc8eb0b2acbc  laboratorio-motor.js
 66ca581a8cdb088279a8977e022b71fb58ee3e0cb757805f532d5f1709d1684c  laboratorio.js
@@ -222,7 +221,7 @@ f089a9413c9fb82209a9a027c78fe78b5eb0c8503dd66f290eea13bd88c1b862  metodologia-pa
 7fe3bc466ce3cb54374b13d43966c4b761ba79bd899d488196e9154452016e53  resultado-holos.js
 79ccaee711a1bbe0c1f00e98fd5b5407d909e6c84a84def035c48fe4187c77fd  resultado-pagina.js
 2da5d29945a1f58cd9be4f9f3dcae01f879702ed2c841e860263a9576d7f1e8d  sincronizacao.js
-646189ea4d6fb59d8656f599d94b3828c6290a3977da5c071fa155fca13b619c  style.css
+8c58fe795cadfc2f6536ee7ebbc450f9562a39b8152e07a57b30d0863e2c5bb3  style.css
 482687b6663c97cfc92151da80a62ff0fdfa8f82fc3ff24a399ab583d3ff0d6d  supabase-client.js
 06d270ebd63159d3535171777d8237f820223897389cb0bf81d2b8ba31ea3bc2  timeline.js
 4fb021a657aea7e2908081b01e8828444047d2a316a566abdd98d03b0f819cdd  utils.js

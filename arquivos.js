@@ -284,7 +284,9 @@
         if (total) total.textContent = itens.length + (verArquivados
           ? (itens.length === 1 ? " documento arquivado" : " documentos arquivados")
           : (itens.length === 1 ? " documento" : " documentos"));
-        alvo.innerHTML = '<div class="bib-lista">' + itens.map(itemHtml).join("") + "</div>";
+        alvo.innerHTML = (itens.falhaServidor
+          ? '<p class="q-erro">Não foi possível carregar os documentos do servidor agora: a lista abaixo é só o que há neste aparelho. Abra a aba de novo em instantes.</p>'
+          : "") + '<div class="bib-lista">' + itens.map(itemHtml).join("") + "</div>";
       }
       mostrarEspaco();
     });

@@ -628,7 +628,7 @@ ok(intacto.v1 === 1,
    quem chama a restauracao seja um arquivo so: duas telas chamando o mesmo
    motor seriam duas portas para a mesma operacao exclusiva. */
 const comUI = await A.evaluate(async () => {
-  const outras = ['/app.js', '/ficha.js', '/arquivos.js', '/documentos.js'];
+  const outras = ['/app.js', '/ficha.js', '/arquivos.js', '/dashboard.js'];
   const vazou = [];
   for (const a of outras) {
     const t = await (await fetch(a)).text();

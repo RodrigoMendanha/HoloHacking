@@ -170,16 +170,13 @@ conferir(/--rel-p:\s*#8c682b/.test(noPapel.cor),
 
 /* ------------------------------------------- o limite dos documentos ----- */
 
-const naTelaDeDocumentos = await p.evaluate(async () => {
-  document.querySelector('.nav-item[data-secao="documentos"]').click();
-  await new Promise(r => setTimeout(r, 500));
-  return {
-    itens: document.querySelectorAll('.doc-todos-item').length,
-    texto: document.getElementById('documentos-corpo').innerText.replace(/\s+/g, ' '),
-  };
+/* 09/10: a secao global Documentos saiu; o limite e provado na listagem geral do ArquivoStore (o que a ficha le) */
+const entreDocumentos = await p.evaluate(async () => {
+  const todos = await window.ArquivoStore.listarTudo();
+  return { itens: todos.filter(d => d.paciente !== '_perfil').length, perfil: todos.filter(d => d.paciente === '_perfil').length, semMenu: !document.querySelector('.nav-item[data-secao="documentos"]') };
 });
-conferir(naTelaDeDocumentos.itens === 0 && /Nenhum documento guardado/i.test(naTelaDeDocumentos.texto),
-  'a assinatura e o logo NÃO aparecem entre os documentos dos pacientes');
+conferir(entreDocumentos.itens === 0 && entreDocumentos.semMenu,
+  'a assinatura e o logo NÃO aparecem entre os documentos dos pacientes (e nao ha mais tela global de Documentos): ' + JSON.stringify(entreDocumentos));
 
 /* -------------------------------------------------- os módulos ----------- */
 

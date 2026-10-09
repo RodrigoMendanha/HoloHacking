@@ -4,7 +4,7 @@
  *      "valores lancados"; nenhum documento esta ligado a coleta
  *   2  a aba HOLOSCAN nao convida a lancar exame nem a Leitura Integrada; o quadro do HOLOSCAN leva ao Resultado
  *   3  "Abrir" e "Baixar" vem do Storage privado (sem link publico)
- *   4  o nome do laudo aparece so na biblioteca e no menu Documentos; o relatorio leva so a contagem
+ *   4  o nome do laudo aparece so na ficha (biblioteca e Visao geral); o relatorio leva so a contagem
  */
 import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
@@ -78,13 +78,12 @@ ok(abrir.urls.length === 2 && abrir.urls.some(u => /^blob:/.test(u)) && abrir.ur
 const onde = await A.evaluate(async (pid) => {
   const out = {};
   for (const aba of ['visao', 'relatorio', 'evolucao']) { window.levarParaFicha('aba:' + aba, pid); await new Promise(r => setTimeout(r, 700)); out[aba] = (document.getElementById('aba-' + aba) || {}).innerText || ''; }
-  document.querySelector('.nav-item[data-secao="documentos"]').click(); await new Promise(r => setTimeout(r, 1200));
-  out.menu = document.getElementById('secao-documentos').innerText;
+  out.menuSemDocumentos = !document.querySelector('.nav-item[data-secao="documentos"]') && !document.getElementById('secao-documentos');
   document.querySelector('.nav-item[data-secao="resultado"]').click(); await new Promise(r => setTimeout(r, 900));
   out.resultado = document.getElementById('secao-resultado').innerText;
   return out;
 }, PA);
-ok(/Laudo de outubro/.test(onde.menu) && /Laudo de outubro/.test(onde.visao), 'o laudo aparece no menu Documentos e nos documentos recentes da Visao geral');
+ok(onde.menuSemDocumentos && /Laudo de outubro/.test(onde.visao), 'nao ha secao Documentos no menu (documento so na ficha); o laudo aparece nos documentos recentes da Visao geral');
 ok(/1 documento\/exame armazenado/.test(onde.relatorio) && !/Laudo de outubro|laudo\.png/.test(onde.relatorio), 'o relatorio leva so a contagem (sem nome do arquivo)');
 ok(!/Laudo de outubro|laudo\.png/.test(onde.evolucao) && !/Laudo de outubro|laudo\.png/.test(onde.resultado), 'Evolucao e Resultado nao mencionam o laudo');
 

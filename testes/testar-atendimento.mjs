@@ -41,7 +41,6 @@ const existem = await p.evaluate(() => {
   return {
     consultas: ir('consultas'),
     agenda: ir('agenda'),
-    documentos: ir('documentos'),
     caminho: document.getElementById('caminho-atual').textContent,
     // o HOLOSCAN mudou de grupo: e ferramenta, nao atendimento
     grupoHolo: document.querySelector('.nav-item[data-secao="holoscan"]')
@@ -52,9 +51,9 @@ const existem = await p.evaluate(() => {
                  .getAttribute('aria-labelledby'),
   };
 });
-conferir(existem.consultas && existem.agenda && existem.documentos,
+conferir(existem.consultas && existem.agenda,
   'as tres secoes abrem pelo menu');
-conferir(existem.caminho === 'Documentos',
+conferir(existem.caminho === 'Agenda',   // 09/10: a ultima secao visitada e a Agenda (Documentos saiu do menu)
   'o caminho no topo acompanha: ' + existem.caminho);
 conferir(existem.grupoHolo === 'nav-grupo-recursos',
   'HOLOSCAN esta em Recursos');
@@ -184,85 +183,58 @@ conferir(age.vistas.join(',') === 'Dia,Semana,Mês',
   'com as três formas de ver o período: ' + age.vistas.join(' · '));
 
 /* ------------------------------------------------------ documentos ------- */
-
-const semArquivo = await p.evaluate(() => {
-  document.querySelector('.nav-item[data-secao="documentos"]').click();
-  return document.getElementById('documentos-corpo').innerText.replace(/\s+/g, ' ');
-});
-conferir(/Nenhum documento guardado/i.test(semArquivo),
-  'sem arquivo, diz que nao ha e onde eles entram');
+/* 09/10: a secao global "Documentos" saiu do menu. Documento se acessa SO pela
+   ficha do paciente (aba Documentos): cada ficha mostra os arquivos daquela pessoa. */
+const semMenu = await p.evaluate(() => ({
+  nav: !!document.querySelector('.nav-item[data-secao="documentos"]'),
+  secao: !!document.getElementById('secao-documentos'),
+  script: [...document.scripts].some(s => /documentos\.js/.test(s.src)),
+}));
+conferir(!semMenu.nav && !semMenu.secao && !semMenu.script,
+  'nao ha secao Documentos no menu nem documentos.js carregado');
 
 // dois arquivos, de dois pacientes diferentes
 await p.evaluate(async (ids) => {
   const fazer = (nome, texto, mime) =>
     new File([texto], nome, { type: mime });
   await window.ArquivoStore.salvar(ids.marina, fazer('hemograma.pdf', '%PDF-1.4 marina', 'application/pdf'),
-    { nome: 'Hemograma completo', tipo: 'Exame laboratorial', data: '2026-09-01' });
+    { nome: 'hemograma.pdf', titulo: 'Hemograma completo', tipo: 'Exame', data: '2026-09-01' });
   await window.ArquivoStore.salvar(ids.carla, fazer('laudo.txt', 'laudo da carla', 'text/plain'),
-    { nome: 'Laudo do endocrinologista', tipo: 'Laudo', data: '2026-08-15' });
+    { nome: 'laudo.txt', titulo: 'Laudo do endocrinologista', tipo: 'Laudo', data: '2026-08-15' });
 }, ids);
 
-const docs = await p.evaluate(async () => {
-  // pelo menu, de proposito: e navegar que tem que redesenhar
-  document.querySelector('.nav-item[data-secao="pacientes"]').click();
-  document.querySelector('.nav-item[data-secao="documentos"]').click();
-  await new Promise(r => setTimeout(r, 400));
-  return {
-    itens: [...document.querySelectorAll('.doc-todos-item')].map(l => ({
-      tipo: l.querySelector('.doc-tipo').textContent,
-      nome: l.querySelector('.doc-todos-nome b').textContent,
-      dono: l.querySelector('.doc-todos-dono').textContent,
-      data: l.querySelector('.doc-data').textContent,
-      tam: l.querySelector('.doc-tam').textContent,
-    })),
-    tiles: [...document.querySelectorAll('.dash-tile')].map(t =>
-      t.querySelector('b').textContent + ' ' + t.querySelector('span').textContent),
-    tipos: [...document.querySelectorAll('#filtro-tipo-doc option')].map(o => o.textContent),
-  };
-});
+const naFicha = (id) => p.evaluate(async (pid) => {
+  window.levarParaFicha('aba:documentos', pid);
+  await new Promise(r => setTimeout(r, 600));
+  return [...document.querySelectorAll('#aba-documentos .bib-item')].map(it => ({
+    titulo: it.querySelector('.bib-titulo').textContent,
+    tipo: it.querySelector('.doc-tipo').textContent,
+    meta: it.querySelector('.bib-meta').innerText.replace(/\s+/g, ' '),
+  }));
+}, id);
+const deMarina = await naFicha(ids.marina);
+const deCarla = await naFicha(ids.carla);
+conferir(deMarina.length === 1 && deMarina[0].titulo === 'Hemograma completo' && /01\/09\/2026/.test(deMarina[0].meta),
+  'a ficha de Marina mostra so o arquivo dela, com a data: ' + JSON.stringify(deMarina));
+conferir(deCarla.length === 1 && deCarla[0].titulo === 'Laudo do endocrinologista' && deCarla[0].tipo === 'Laudo',
+  'a ficha de Carla mostra so o arquivo dela: ' + JSON.stringify(deCarla));
+conferir(deMarina.every(i => /B|KB|MB/.test(i.meta)) && deCarla.every(i => /B|KB|MB/.test(i.meta)),
+  'mostra o tamanho do arquivo');
 
-conferir(docs.itens.length === 2,
-  'abrir a tela pelo menu ja traz os arquivos novos: ' + docs.itens.length);
-conferir(docs.itens.every(i => /Marina|Carla/.test(i.dono)),
-  'cada arquivo diz de quem e: ' + docs.itens.map(i => i.dono).join(', '));
-conferir(docs.itens[0].data === '01/09/2026',
-  'o mais recente vem primeiro: ' + docs.itens[0].data);
-conferir(docs.itens.every(i => /B|KB|MB/.test(i.tam)),
-  'mostra o tamanho: ' + docs.itens.map(i => i.tam).join(' / '));
-conferir(docs.tiles.some(t => /^2 documentos/.test(t)) &&
-         docs.tiles.some(t => /pacientes com arquivo/.test(t)),
-  'conta documentos e donos');
-conferir(docs.tipos.length === 3,
-  'o filtro conhece so os tipos que existem: ' + docs.tipos.join(', '));
-
-// --- procurar pelo nome do paciente, que e o que a aba da ficha nao permite ---
-const filtrado = await p.evaluate(async () => {
-  const b = document.getElementById('busca-documentos');
-  b.value = 'carla';
-  b.dispatchEvent(new Event('input', { bubbles: true }));
-  await new Promise(r => setTimeout(r, 400));
-  return [...document.querySelectorAll('.doc-todos-item')]
-    .map(l => l.querySelector('.doc-todos-nome b').textContent);
-});
-conferir(filtrado.length === 1 && /Laudo/.test(filtrado[0]),
-  'da para achar o arquivo pelo nome do paciente: ' + filtrado.join(', '));
-
-// --- arquivar tira da tela e NAO apaga (decisao 09/10) ---
-const removido = await p.evaluate(async () => {
-  const b = document.getElementById('busca-documentos');
-  b.value = '';
-  b.dispatchEvent(new Event('input', { bubbles: true }));
-  await new Promise(r => setTimeout(r, 400));
-  document.querySelector('[data-arquivar]').click();
+// --- arquivar tira da lista e NAO apaga (decisao 09/10) ---
+const removido = await p.evaluate(async (pid) => {
+  window.levarParaFicha('aba:documentos', pid);
+  await new Promise(r => setTimeout(r, 600));
+  document.querySelector('#aba-documentos [data-arquivar]').click();
   await new Promise(r => setTimeout(r, 150));
   document.getElementById('modal-confirmar-ok').click();   // rodada 08: confirma no modal
-  await new Promise(r => setTimeout(r, 500));
-  const naTela = document.querySelectorAll('.doc-todos-item').length;
+  await new Promise(r => setTimeout(r, 600));
+  const naTela = document.querySelectorAll('#aba-documentos .bib-item').length;
   const noBanco = (await window.ArquivoStore.listarTudo()).length;
   return { naTela, noBanco };
-});
-conferir(removido.naTela === 1 && removido.noBanco === 2,
-  'arquivar tira da tela (sobrou 1) e NAO apaga: ' + removido.noBanco + ' continuam guardados');
+}, ids.marina);
+conferir(removido.naTela === 0 && removido.noBanco === 2,
+  'arquivar tira da lista da ficha e NAO apaga: ' + removido.noBanco + ' continuam guardados');
 
 /* --------------------------------------------------------------- fim ----- */
 console.log('');

@@ -610,12 +610,10 @@ const xss = await B.p.evaluate(async (pid) => {
     const b = document.querySelector('[data-aba="' + aba + '"]'); if (b) b.click();
     await new Promise(r => setTimeout(r, 400));
   }
-  document.querySelector('.nav-item[data-secao="documentos"]').click();
-  await new Promise(r => setTimeout(r, 600));
   return { disparou: !!window.__xss, imgs: document.querySelectorAll('img[src="x"]').length };
 }, R);
 ok(!xss.disparou && xss.imgs === 0,
-   'nome, laboratorio, documento e leitura vindos do servidor sao escapados na ficha, linha do tempo e Documentos');
+   'nome, laboratorio, documento e leitura vindos do servidor sao escapados na ficha e na linha do tempo');
 
 /* ==================================================================== */
 console.log('');

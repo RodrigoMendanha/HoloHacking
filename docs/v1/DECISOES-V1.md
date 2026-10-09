@@ -902,7 +902,8 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     nutricional e Encaminhamentos. Relatório sem exames (documentos só como contagem). Migration 20261011100000 (não
     destrutiva), harness P00–P18. Detalhes: `docs/v1/PRONTUARIO-DOCUMENTOS.md`. PENDENTE: aplicar no banco real
     (`supabase/PRONTUARIO-DOCUMENTOS-PARTE1..4.sql`) e deploy. Sugestão de ferramentas no resultado do HOLOSCAN (só as 10
-    ativas) fica para um motor de recomendação futuro, **não implementado**.
+    ativas) fica para um motor de recomendação futuro, **não implementado**. Complemento (mesmo dia): a seção global
+    "Documentos" saiu do menu — documento se acessa só pela ficha do paciente.
 
 ## Decisões pendentes (não decididas aqui)
 
