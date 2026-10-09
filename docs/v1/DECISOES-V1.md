@@ -929,6 +929,21 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     lugar; "Manter conectado" removido (não tinha efeito); chave "Documentos" removida de Preferências. Detalhes:
     `docs/v1/CONTA-PENDENTE-SOMENTE-PERFIL.md`. PENDENTE: aplicar `supabase/CONTA-PENDENTE-PARTE1..2.sql`, deploy e o
     checklist do Supabase (SMTP, URLs, senha mínima 8).
+    **Atualização 09/10:** SQL aplicado no banco real e no ar (cd9e23f; correção do checklist em dbac2db aguardando deploy).
+
+178. **Resumo estruturado do Resultado HOLOS + anamnese pré-consulta por link** (09/10, missão autônoma, local).
+    Resultado: o documento ganha um "Resumo estruturado" separado por rótulo: **Fatos** (cálculo do snapshot),
+    **Regra oficial** ("Por onde investigar" e Próximos Passos registrados) e **Decisão da nutricionista** (leituras e
+    observações já registradas). Nenhuma frase clínica nova é gerada; o que não tem regra homologada aparece como
+    "PENDÊNCIA METODOLÓGICA — AGUARDANDO RODRIGO/DANIEL" (PM-01 conclusão integrada, PM-02 fechamento por ferramenta,
+    PM-03 ferramenta → ferramenta, PM-04 prioridade/gravidade, PM-05 o que a paciente vê). HOLOS-V1@2, 84 perguntas,
+    pesos e snapshots antigos intocados; exames e Leitura Integrada fora. Anamnese pré-consulta: a nutricionista gera
+    um link (`/anamnese.html#t=…`, 7 dias, só o hash SHA-256 do token no banco), envia por WhatsApp, a paciente
+    preenche sem conta com rascunho no servidor e envia (resposta congelada); a ficha mostra o status e "Levar para a
+    anamnese do atendimento" cria um rascunho V2 com origem `relato_paciente`, que a nutricionista revisa. Nada do
+    relato vira diagnóstico, nota ou conduta. Detalhes: `docs/v1/RESULTADO-FINAL-HOLOS.md`,
+    `docs/v1/ANAMNESE-PRE-CONSULTA.md`, `docs/v1/FLUXO-CLINICO-V1.md`. PENDENTE: revisão da usuária, aplicar
+    `supabase/ANAMNESE-PRE-CONSULTA-PARTE1..5.sql` (nessa ordem) e deploy.
 
 ## Decisões pendentes (não decididas aqui)
 

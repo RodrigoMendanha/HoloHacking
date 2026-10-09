@@ -111,21 +111,21 @@ await abrirVer(A, 'profissional');
 const tp = await A.evaluate(() => { const d = document.querySelector('#aba-resultado-holos .rh-doc'); return d ? d.innerText : ''; });
 ok(/Resumo estruturado/i.test(tp) && /Por onde investigar/i.test(tp) && /Pendências metodológicas/i.test(tp), 'tela (visão profissional): o resultado sem texto da nutricionista abre com o Resumo estruturado');
 ok(!reg.error && /Próximos Passos HOLOS registrados/i.test(tp) && /HOLOS-RECOMENDACOES-V1/.test(tp), 'Próximos Passos HOLOS já registrados aparecem no resumo da visão profissional (catálogo aprovado)');
-if (process.env.SHOT_DIR) { const el = await A.$('#aba-resultado-holos .rh-resumo'); if (el) await el.screenshot({ path: process.env.SHOT_DIR + '/resultado-resumo-profissional.png' }); }
+if (process.env.SHOT_DIR) { await new Promise(r => setTimeout(r, 900)); const el = await A.$('#aba-resultado-holos .rh-resumo'); if (el) await el.screenshot({ path: process.env.SHOT_DIR + '/resultado-resumo-profissional.png' }); }
 await abrirVer(A, 'paciente');
 const tpa = await A.evaluate(() => { const d = document.querySelector('#aba-resultado-holos .rh-doc'); return d ? d.innerText : ''; });
 ok(/Resumo da sua avaliação/i.test(tpa) && !/Por onde investigar|Próximos Passos HOLOS|Pendência|PENDÊNCIA/.test(tpa), 'visão do paciente: "Resumo da sua avaliação" só com fatos; sem Próximos Passos nem pendências');
-if (process.env.SHOT_DIR) { const el = await A.$('#aba-resultado-holos .rh-doc'); if (el) await el.screenshot({ path: process.env.SHOT_DIR + '/resultado-paciente-desktop.png' }); }
+if (process.env.SHOT_DIR) { await new Promise(r => setTimeout(r, 900)); const el = await A.$('#aba-resultado-holos .rh-doc'); if (el) await el.screenshot({ path: process.env.SHOT_DIR + '/resultado-paciente-desktop.png' }); }
 await A.evaluate(() => window.irParaSecao('resultado'));
 await A.evaluate((pid) => { const s = document.getElementById('sel-resultado'); if (s) { s.value = pid; s.dispatchEvent(new Event('change', { bubbles: true })); } if (window.ResultadoPagina) window.ResultadoPagina.desenhar(); }, PA);
 await espera(1200);
 const pagina = await A.evaluate(() => (document.getElementById('resultado-pagina-corpo') || {}).innerText || '');
 ok(/Resumo da sua avaliação/i.test(pagina) && !/Próximos Passos HOLOS|Por onde investigar|Pendência|PENDÊNCIA/.test(pagina), 'página Resultado (a que vira PDF/WhatsApp): resumo simples da paciente, sem Próximos Passos');
-if (process.env.SHOT_DIR) await A.screenshot({ path: process.env.SHOT_DIR + '/resultado-final-desktop.png' });
+if (process.env.SHOT_DIR) await new Promise(r => setTimeout(r, 4500)), await A.screenshot({ path: process.env.SHOT_DIR + '/resultado-final-desktop.png' });
 const M = await sessao(390);
 await abrirVer(M, 'profissional');
 ok(await M.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'celular 390px: o resumo não cria rolagem lateral');
-if (process.env.SHOT_DIR) { const el = await M.$('#aba-resultado-holos .rh-resumo'); if (el) await el.screenshot({ path: process.env.SHOT_DIR + '/resultado-resumo-mobile.png' }); }
+if (process.env.SHOT_DIR) { await new Promise(r => setTimeout(r, 900)); const el = await M.$('#aba-resultado-holos .rh-resumo'); if (el) await el.screenshot({ path: process.env.SHOT_DIR + '/resultado-resumo-mobile.png' }); }
 ok(JSON.stringify(srv.linhas('holos_results')[0].content_snapshot) === snapAntes && digitais() === antes, 'nada recalculado nem gravado: snapshot, HOLOSCAN, ferramentas e Próximos Passos iguais');
 ok(errosJS.length === 0, 'nenhum erro de JavaScript' + (errosJS.length ? ': ' + errosJS.join(' | ').slice(0, 300) : ''));
 await nav.close();

@@ -279,7 +279,8 @@ senha, caminho de storage, URL nem binário.
 | Item | Situação | Quem |
 |---|---|---|
 | Cadastro com aprovação | **Pronto e no ar** (c654dcb; SQL aplicado; testado de ponta a ponta) | — |
-| **Conta pendente = somente Perfil** (09/10) | **Pronto localmente, NÃO aplicado e NÃO no ar.** Pendente entra só no Perfil; recusada não edita nada; trava no servidor para tudo que é clínico. Aplicar `supabase/CONTA-PENDENTE-PARTE1.sql` e `PARTE2.sql` (nessa ordem) e fazer o deploy do commit. Ver `docs/v1/CONTA-PENDENTE-SOMENTE-PERFIL.md` | responsável |
+| **Conta pendente = somente Perfil** (09/10) | **Aplicado no banco real e no ar** (cd9e23f). Correção do checklist do Perfil (rolar até o campo) em dbac2db, aguardando deploy. Ver `docs/v1/CONTA-PENDENTE-SOMENTE-PERFIL.md` | — |
+| **Resumo do Resultado HOLOS + anamnese pré-consulta por link** (09/10) | **Pronto localmente, NÃO aplicado e NÃO no ar; aguardando revisão.** Aplicar `supabase/ANAMNESE-PRE-CONSULTA-PARTE1..5.sql` (nessa ordem) e fazer o deploy (inclui o novo `anamnese.html`). Pendências metodológicas PM-01..05 aguardam Rodrigo/Daniel. Ver `docs/v1/ANAMNESE-PRE-CONSULTA.md` e `docs/v1/RESULTADO-FINAL-HOLOS.md` | responsável |
 | Painel do Supabase antes de abrir o cadastro | SMTP próprio; Site URL `https://holohacking.com.br`; redirect `https://holohacking.com.br/*`; senha mínima 8; teste real de "Esqueci minha senha" com e-mail fora da equipe | responsável |
 | **Recuperação de senha — e-mail** | **PENDENTE.** O código foi corrigido (05bc411, aguardando deploy), mas o e-mail padrão do Supabase só entrega para a equipe do projeto. Falta SMTP próprio + texto em português: `docs/v1/EMAIL-RECUPERAR-SENHA.md`. Até lá, quem esquecer a senha é atendida pela equipe (painel do Supabase → Users → "Send password recovery" não resolve sem SMTP; redefinir senha manualmente). | responsável |
 | Termos de uso e privacidade (LGPD) | PENDENTE: texto | responsável/jurídico |

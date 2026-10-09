@@ -82,7 +82,9 @@ ok(/Enviada/.test(s.status) && !!token && token.length === 43 && /\/anamnese\.ht
 ok(!/[0-9a-f]{8}-[0-9a-f]{4}-/.test(s.link) && !JSON.stringify(srv.linhas('anamnesis_invites')).includes(token) && srv.convitesAnamnese.hashes.get(convite.id) === createHash('sha256').update(token).digest('hex'),
   'o link não tem ID de paciente nem de nutricionista; a tabela guarda só o hash do token');
 ok(convite.encounter_id === EA && convite.form_tipo === 'primeira' && convite.professional_snapshot.nome === 'Nutri Ficticia Teste', 'convite ligado à paciente e à consulta futura ativa; identidade da nutricionista copiada no convite');
-if (SHOT) { const el = await N.$('#an-preconsulta'); if (el) await el.screenshot({ path: SHOT + '/ficha-preconsulta-link.png' }); }
+if (SHOT) { await new Promise(r => setTimeout(r, 900)); const el = await N.$('#an-preconsulta'); if (el) await el.screenshot({ path: SHOT + '/ficha-preconsulta-link.png' }); }
+const cores = await N.evaluate(() => { const c = document.querySelector('#an-preconsulta .pc-cartao'); const d = document.querySelector('#an-preconsulta .pc-datas dd'); return { cartao: getComputedStyle(c).color, dd: getComputedStyle(d).color, fundo: getComputedStyle(c).backgroundColor }; });
+ok(cores.dd === cores.cartao && cores.dd !== cores.fundo && cores.dd !== 'rgb(244, 239, 227)', 'cartão legível: datas e link com a cor de texto do cartão (não herdam o creme da ficha)');
 
 /* ===== 2 ===== */
 await N.evaluate(() => { window.__aberto = null; window.open = (u) => { window.__aberto = u; return null; }; });
@@ -102,7 +104,7 @@ ok(/Nutri Ficticia Teste/.test(pub.cab) && /CRN-1 0000/.test(pub.cab) && /Olá, 
   'página pública sem conta: nome, profissão e CRN da nutricionista; "Olá, Joana!" (só o primeiro nome)');
 ok(/Etapa 1 de 8/.test(pub.passo) && /Sobre você e seu objetivo/.test(pub.h2) && pub.foco === 'H2' && pub.sw <= pub.w + 1, 'celular 390px: "Etapa 1 de 8 — Sobre você e seu objetivo", foco no título, sem rolagem lateral');
 ok(!/nutritionist_id|patient_id|domin|origem|meta/i.test(pub.txt), 'nenhum ID, "domínio", origem ou metadado técnico na tela da paciente');
-if (SHOT) await M.screenshot({ path: SHOT + '/publica-mobile.png' });
+if (SHOT) await new Promise(r => setTimeout(r, 900)), await M.screenshot({ path: SHOT + '/publica-mobile.png' });
 const XSS = '<img src=x onerror="window.__x=1">Mais energia';
 await M.evaluate((x) => {
   const set = (id, v) => { const e = document.getElementById(id); e.focus(); e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); };
@@ -119,7 +121,7 @@ ok(await M.evaluate(() => document.getElementById('pa-motivo-motivo').value) ===
 const D = await pagina(URL_PUB, 1280, 900);
 await espera(600);
 ok(await D.evaluate(() => (document.getElementById('pa-motivo-motivo') || {}).value) === 'Cansaço à tarde', 'outro aparelho (computador): o rascunho vem do servidor');
-if (SHOT) await D.screenshot({ path: SHOT + '/publica-desktop.png' });
+if (SHOT) await new Promise(r => setTimeout(r, 900)), await D.screenshot({ path: SHOT + '/publica-desktop.png' });
 await D.close();
 
 /* ===== 5 ===== */
@@ -146,7 +148,7 @@ const fim = srv.linhas('anamnesis_invites').find(c => c.id === convite.id);
 pub = await M.evaluate(() => document.querySelector('main').innerText);
 ok(fim.status === 'concluido' && fim.submitted_content.formulario.motivo.objetivo === XSS && fim.draft_content === null && /Anamnese enviada!/.test(pub),
   'enviar: status Concluída, resposta congelada no servidor e "Anamnese enviada!" na tela');
-if (SHOT) await M.screenshot({ path: SHOT + '/publica-enviada-mobile.png' });
+if (SHOT) await new Promise(r => setTimeout(r, 900)), await M.screenshot({ path: SHOT + '/publica-enviada-mobile.png' });
 const reenvio = rpc('anamnese_publica_enviar', { p_token: token, p_conteudo: { formulario: { motivo: { motivo: 'OUTRA' } } } }, null);
 const resalvar = rpc('anamnese_publica_salvar', { p_token: token, p_conteudo: { formulario: { motivo: { motivo: 'OUTRA' } } } }, null);
 await M.reload({ waitUntil: 'networkidle2' }); await espera(500);
@@ -164,7 +166,7 @@ await clicarPc(N, 'ver'); await espera(300);
 s = await pc(N);
 ok(/Relato da paciente/.test(s.txt) && s.txt.includes('Cansaço à tarde') && s.txt.includes('<img src=x') && await N.evaluate(() => window.__x === undefined) && /Prefiro não responder/.test(s.txt),
   'Ver resposta: relato da paciente organizado (texto com HTML mostrado literal, não executado) e os "Prefiro não responder"');
-if (SHOT) { const el = await N.$('#an-preconsulta'); if (el) await el.screenshot({ path: SHOT + '/ficha-preconsulta-resposta.png' }); }
+if (SHOT) { await new Promise(r => setTimeout(r, 900)); const el = await N.$('#an-preconsulta'); if (el) await el.screenshot({ path: SHOT + '/ficha-preconsulta-resposta.png' }); }
 await clicarPc(N, 'usar'); await espera(1500);
 const an = srv.linhas('anamneses').filter(a => a.patient_id === PA);
 const a0 = an[0] || { content: {} }, meta = a0.content.meta || {};

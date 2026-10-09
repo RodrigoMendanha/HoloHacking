@@ -4868,7 +4868,7 @@ body.conta-pendente #secao-perfil{display:block}
 
 /* ===================================================== ANAMNESE PRE-CONSULTA (09/10)
    Cartao no topo da aba Anamnese: status do link da paciente e a resposta. */
-.pc-cartao{background:var(--sup-card);border:1px solid var(--borda-suave);border-radius:16px;padding:18px 22px;margin-bottom:20px}
+.pc-cartao{color:var(--texto);background:var(--sup-card);border:1px solid var(--borda-suave);border-radius:16px;padding:18px 22px;margin-bottom:20px}
 .pc-topo{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px}
 .pc-titulo{font-family:var(--fonte-display);font-size:1.15rem;font-weight:500;color:var(--titulo);margin:0}
 .pc-status{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600;padding:4px 10px;border-radius:999px;border:1px solid currentColor;color:var(--texto-suave)}
