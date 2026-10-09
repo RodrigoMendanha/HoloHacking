@@ -135,3 +135,9 @@ Os passos, todos verificados no servidor de teste:
    - entrar com ela;
    - pedir de novo e usar o link antigo, que deve dizer "expirou ou já foi usado".
 5. **Depois do deploy:** cadastrar uma conta de teste e conferir que ela entra só no Perfil. Depois liberar e conferir o acesso completo.
+
+## 12. Suíte completa
+
+- **Suíte completa (09/10):** 128 arquivos de teste, 3910 asserções, 1 falha. A falha era `testar-release01-contas-migracao.mjs`: o rodapé do Perfil quebrava quando a conta saía enquanto a foto ainda carregava. Foi corrigida em `19b0021`.
+- **Depois da correção, rodados de novo e todos verdes:** perfil, auditoria-perfil, perfil-robustez, conta-pendente, cadastro, login, troca-conta, release01-contas-migracao, release01-multidispositivo, rodada08-sessao, conferir-producao, recuperar-senha.
+- **Cadeia SQL local** (`scripts/validar-cadeia-local.sh`): 0 falhas, incluindo CP00–CP13.
