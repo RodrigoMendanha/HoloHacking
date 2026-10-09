@@ -77,6 +77,8 @@ const trava = await C.evaluate(async () => {
 });
 ok(trava.pac && srv.linhas('patients').length === 0, 'conta pendente não consegue criar paciente (trava do servidor)');
 ok(trava.st && srv.statusConta(perfil.id) === 'pendente', 'e não consegue se liberar sozinha');
+/* a janela de boas-vindas do primeiro acesso (testada em testar-boas-vindas.mjs) pode abrir agora: espera ela fechar antes do clique real */
+await C.waitForFunction(() => !document.querySelector('dialog.bv-janela[open]'), { timeout: 5000 }).catch(() => {}); await espera(300);
 await C.click('#btn-verificar-acesso'); await espera(400);
 ok(/Ainda aguardando/.test(await C.evaluate(() => document.getElementById('pac-msg').textContent)), '"Verificar acesso novamente" diz que ainda aguarda liberação');
 
@@ -103,6 +105,7 @@ if (process.env.SHOT_DIR) await A.screenshot({ path: process.env.SHOT_DIR + '/co
 await A.evaluate(() => document.querySelector('[data-ct-aprovar]').click());
 await espera(700);
 ok(srv.statusConta(perfil.id) === 'ativo', 'Liberar acesso deixa a conta ativa');
+await C.waitForFunction(() => !document.querySelector('dialog.bv-janela[open]'), { timeout: 5000 }).catch(() => {});
 await C.click('#btn-verificar-acesso');
 await C.waitForFunction(() => document.getElementById('tela-login').hidden && !document.body.classList.contains('conta-pendente') && window.ContaAcesso && window.ContaAcesso.status() === 'ativo', { timeout: 8000 }).catch(() => {});
 ok(await C.evaluate(() => document.getElementById('tela-login').hidden && !document.body.classList.contains('conta-pendente')), 'a nutri liberada entra no app completo ("Verificar acesso novamente" recarrega)');
@@ -120,6 +123,7 @@ await A.evaluate((id) => document.querySelector('[data-ct-recusar="' + id + '"]'
 await A.evaluate(() => document.getElementById('modal-confirmar-ok').click()); await espera(600);
 ok(srv.statusConta(idB) === 'recusado', 'Recusar (com confirmação) marca a conta como recusada');
 await outra.waitForSelector('#btn-verificar-acesso', { visible: true, timeout: 6000 }).catch(() => {});
+await outra.waitForFunction(() => !document.querySelector('dialog.bv-janela[open]'), { timeout: 5000 }).catch(() => {});
 await outra.click('#btn-verificar-acesso');
 await outra.waitForFunction(() => { const t = document.getElementById('tela-status-conta'); return t && !t.hidden; }, { timeout: 8000 }).catch(() => {});
 ok(/Acesso não liberado/.test(await outra.evaluate(() => document.getElementById('status-conta-titulo').textContent)), 'a recusada vê "Acesso não liberado"');
