@@ -160,7 +160,8 @@ RELEASE-STATE.md                                   |   1 +
 ```
 
 ## N. Commit final
-{{COMMIT}}
+`732081c` — "Proximos Passos HOLOS: motor oficial V1 de recomendacao de ferramentas" (implementação completa). O commit seguinte
+só atualiza o roteiro de deploy (`scripts/deploy-etapa6-5b.sh`) e esta seção. Suíte completa: ver o relatório final da sessão (rodada sobre este commit).
 
 ## Plano de aplicação real (depois da revisão)
 1. SQL Editor: `supabase/PROXIMOS-PASSOS-PARTE1` → … → `PARTE8` (na ordem; a 8 confere e registra). Depois, só leitura:
