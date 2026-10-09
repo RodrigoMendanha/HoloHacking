@@ -4795,3 +4795,25 @@ body.rp-gerando .rp-doc{border-radius:0;border:0}
   body.rp-imprimindo .rp-so-tela{display:none!important}
   body.rp-imprimindo .rh-secao,body.rp-imprimindo .rh-sis,body.rp-imprimindo .rh-ferr,body.rp-imprimindo .rp-campo,body.rp-imprimindo .rp-rodape{break-inside:avoid}
 }
+
+/* ---------- Proximos Passos HOLOS (bloco profissional do Resultado HOLOSCAN, 09/10) ---------- */
+.holo-resumo .res-passos{margin-top:22px;padding-top:18px;border-top:1px solid var(--borda-suave)}
+.holo-resumo .pp-sub{opacity:.85}
+.pp-card{background:var(--sup-card);border:1px solid var(--borda-suave);border-radius:12px;padding:16px 18px;margin:12px 0}
+.pp-card.pp-principal{border-color:var(--dourado-claro)}
+.pp-ferramenta{font-family:var(--fonte-display);font-size:1.1rem;margin:6px 0 4px;color:var(--texto)}
+.pp-ferramenta small{font-size:.72rem;font-weight:400;color:var(--texto-suave);margin-left:8px;letter-spacing:.04em;text-transform:uppercase}
+.pp-razao{font-size:.9rem;line-height:1.55;margin:0 0 10px}
+.pp-porque,.pp-acao{font-size:.84rem;line-height:1.5;margin:8px 0}
+.pp-porque b,.pp-acao b{display:block;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--dourado-claro);margin-bottom:4px}
+.pp-sistema b{display:inline;font-size:inherit;letter-spacing:0;text-transform:none;color:var(--texto)}
+.pp-sinais-tit{margin:6px 0 2px}
+.pp-sinais{margin:0 0 6px 18px;padding:0;opacity:.9}
+.pp-explica{opacity:.8;font-size:.8rem}
+.pp-acao p{margin:0}
+.pp-iniciar{margin-top:10px}
+.pp-outras{font-family:var(--fonte-display);font-size:.95rem;color:var(--dourado-claro);margin:16px 0 4px}
+.pp-comps{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pp-meta{font-size:.74rem;color:var(--texto-suave);margin-top:10px}
+.pp-vazio,.pp-carregando{opacity:.85}
+@media (max-width:820px){.pp-comps{grid-template-columns:1fr}}

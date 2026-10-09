@@ -75,7 +75,7 @@ const ui = await A.evaluate(async (pid) => {
   out.botoes = document.querySelectorAll('[data-lab-acao], [data-lancar], #lab-corpo, #ex-corpo, #li-corpo, [data-li-acao]').length;
   return out;
 }, PA);
-ok(!ui.menu.includes('confronto') && ui.menu.includes('resultado') && ui.menu.includes('documentos'), 'menu: sem Leitura Integrada; com Resultado e Documentos');
+ok(!ui.menu.includes('confronto') && ui.menu.includes('resultado') && !ui.menu.includes('documentos'), 'menu: sem Leitura Integrada e sem Documentos global (so na ficha); com Resultado');
 const vazou = Object.entries(ui.abas).filter(([, t]) => PROIBIDO.test(t)).map(([k]) => k);
 ok(vazou.length === 0 && ui.botoes === 0, 'nenhuma aba da ficha oferece lancar/coleta/LI/catalogo/comparacao laboratorial' + (vazou.length ? ': ' + vazou.join(',') : ''));
 

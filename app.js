@@ -2915,9 +2915,17 @@
   function desenharResumo(r){
     const caixa = $("#holo-resumo");
     if(!caixa) return;
+    const vazioPP = $("#holo-proximos-passos-vazio");
     if(!r || !Array.isArray(r.sistemas) || r.avaliavel === false && !r.sistemas.some(s => s.avaliavel)){
-      caixa.classList.add("hidden"); caixa.innerHTML = ""; return;
+      caixa.classList.add("hidden"); caixa.innerHTML = "";
+      /* sem sistema avaliavel nao ha quadro — mas os Proximos Passos HOLOS explicam por que nao ha recomendacao */
+      if(vazioPP){
+        if(r && Array.isArray(r.sistemas) && window.ProximosPassos){ vazioPP.classList.remove("hidden"); window.ProximosPassos.desenhar(r, vazioPP); }
+        else { vazioPP.classList.add("hidden"); vazioPP.innerHTML = ""; }
+      }
+      return;
     }
+    if(vazioPP){ vazioPP.classList.add("hidden"); vazioPP.innerHTML = ""; }
     const esc = window.escapar, A = window.HoloAusencia;
     const ord = r.sistemas.slice().sort(A.porLeitura);
     const comNota = ord.filter(s => !A.semNota(s));
@@ -2964,12 +2972,16 @@
       + '<div class="res-botoes"><button type="button" class="btn-borda-ouro" data-res-ir="resultado-holos">Resultado HOLOS &rarr;</button>'
       + '<button type="button" class="btn-borda-ouro" data-res-ir="resultado">Resultado para a paciente &rarr;</button>'
       + '<button type="button" class="btn-borda-ouro" data-res-ir="conduta">Conduta &rarr;</button></div></div></div>'
+      /* Proximos Passos HOLOS (09/10): bloco PROFISSIONAL, logo depois de "Por onde investigar". Desenhado por
+         proximos-passos.js a partir dos MESMOS dois sistemas e do catalogo aprovado do servidor. */
+      + '<div id="holo-proximos-passos" class="res-passos"></div>'
       + '<div class="res-interp"><label for="res-interp-texto" class="res-tit">Sua interpretação</label>'
       + '<p class="res-linha">A leitura clínica desta aplicação é sua. Ela fica guardada junto do HOLOSCAN e vai para o relatório.</p>'
       + '<textarea id="res-interp-texto" rows="4" placeholder="O que este mapa mostra para você, o que investigar, o que conversar com a pessoa…">' + esc(interp && interp.texto || "") + '</textarea>'
       + '<button type="button" class="btn-verde" id="res-interp-salvar">Salvar interpretação</button>'
       + '<span class="res-interp-estado" id="res-interp-estado"></span></div>';
     caixa.classList.remove("hidden");
+    if(window.ProximosPassos) window.ProximosPassos.desenhar(r, $("#holo-proximos-passos"));
 
     caixa.querySelectorAll("[data-res-ir]").forEach(b => b.addEventListener("click", () => {
       if(b.dataset.resIr === "resultado") irPara("resultado");
@@ -3916,6 +3928,8 @@
         return;
       }
       r._supa_id = appId;
+      /* a aplicacao agora existe no servidor: os Proximos Passos HOLOS sao registrados (snapshot) e redesenhados */
+      if(window.ProximosPassos && $("#holo-proximos-passos")) window.ProximosPassos.desenhar(r, $("#holo-proximos-passos"));
 
       p.holoscan = {
         id: appId,

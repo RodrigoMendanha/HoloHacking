@@ -79,6 +79,7 @@ SUPABASE_DB_URL='<connection string do Postgres>' sh supabase/checagem/checar-rp
 | Documentos | IndexedDB `holohacking/arquivos` | `documents` (título, tipo, data, observação, `arquivado_em`) + bucket privado `patient-documents`; **arquiva, nunca apaga** | IndexedDB (cópia vinculada por `_supa_id`) |
 | Perfil | `dados.perfil` | `profiles` + `professional_assets` (perfil.js) | — |
 | HOLOS AI | — | `ai_threads` / `ai_messages` **dormentes** | — |
+| Próximos Passos HOLOS (09/10) | — (precisa de sessão) | `holos_recommendation_*` (catálogo global, só leitura) + `holos_next_steps` (snapshot por aplicação, só por RPC) | cache do catálogo em memória |
 
 **DadosRouter** (`dados-router.js`) só roteia `pacientes`, `consultas`,
 `bloqueios` e `aplicacoes`, e só quando `HoloAuth.sessaoAtiva()`. O resto passa

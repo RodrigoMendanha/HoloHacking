@@ -25,6 +25,9 @@
 
 import { randomUUID, createHash } from 'node:crypto';
 import { criarResultadoHolos } from './resultado-holos-falso.mjs';
+import { criarProximosPassos } from './proximos-passos-falso.mjs';   // Proximos Passos HOLOS (migration 20261012100000)
+import '../proximos-passos.js';   // o MESMO motor de selecao do navegador
+import { CATALOGO as PP_CATALOGO, REGRAS as PP_REGRAS, canonico as ppCanonico } from './proximos-passos-catalogo-v1.mjs';
 import { criarRevisaoPerguntas } from './revisao-perguntas-falso.mjs';   // revisao das perguntas (migration 20261010100000)   // Resultado HOLOS (migration 20261009100000)
 import '../metodologia-pacote.js';   // o MESMO validador de publicacao do navegador (Etapa 4)
 import '../laboratorio-catalogo.js';  // os MESMOS 45 exames-base da migration 20261001220000 (Etapa 5)
@@ -84,6 +87,10 @@ const COLUNAS = {
   documents: ['id', 'nutritionist_id', 'patient_id', 'nome', 'tipo', 'data_documento', 'mime_type', 'tamanho_bytes', 'storage_path', 'origem_local', 'created_at', 'updated_at',
     'titulo', 'observacao', 'arquivado_em', 'arquivado_por'],   // prontuario (20261011100000)
   professional_assets: ['id', 'nutritionist_id', 'tipo', 'nome', 'mime_type', 'tamanho_bytes', 'storage_path', 'created_at', 'updated_at'],
+  /* Proximos Passos HOLOS (migration 20261012100000): catalogo global somente leitura + snapshot por (aplicacao, catalogo) */
+  holos_recommendation_catalogs: ['id', 'code', 'version', 'status', 'content_hash', 'provenance', 'approved_at', 'approved_by', 'created_at'],
+  holos_recommendation_rules: ['id', 'catalog_id', 'rule_id', 'catalog_code', 'catalog_version', 'system_id', 'rank', 'tool_id', 'professional_reason', 'next_action', 'status', 'provenance', 'approved_at', 'approved_by', 'created_at'],
+  holos_next_steps: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'holoscan_application_id', 'catalog_id', 'catalog_code', 'catalog_version', 'catalog_hash', 'engine_version', 'systems_order', 'selection', 'content_snapshot', 'content_hash', 'created_at'],
   profiles: null,          // nao estrito: o perfil nao e o assunto destes testes
   ai_threads: ['id', 'nutritionist_id', 'patient_id', 'titulo', 'created_at', 'updated_at'],
   ai_messages: ['id', 'thread_id', 'role', 'content', 'metadata', 'created_at'],
@@ -95,9 +102,9 @@ const COLUNAS = {
 
 const METODOLOGIA = ['methodology_packages', 'methodology_questionnaire_editions', 'methodology_scales', 'methodology_systems', 'methodology_questions', 'methodology_associations', 'methodology_ranges', 'methodology_rules', 'methodology_homologation_records'];
 const FILHAS_PACOTE = METODOLOGIA.filter(t => t !== 'methodology_packages');
-const GLOBAIS_SO_LEITURA = ['lab_exam_catalog', 'lab_method_references', 'lab_unit_conversion_rules', 'lab_derived_calculations', 'integrated_reading_rule_packages', 'integrated_reading_domains', 'integrated_reading_exam_domain_links', 'integrated_reading_rules',
+const GLOBAIS_SO_LEITURA = ['holos_recommendation_catalogs', 'holos_recommendation_rules', 'lab_exam_catalog', 'lab_method_references', 'lab_unit_conversion_rules', 'lab_derived_calculations', 'integrated_reading_rule_packages', 'integrated_reading_domains', 'integrated_reading_exam_domain_links', 'integrated_reading_rules',
   'integrated_reading_package_dependencies', 'integrated_reading_package_approvals', 'integrated_reading_package_snapshots'];   // Etapa 5.2: aprovacoes so pela RPC
-const DONO_DIRETO = [...METODOLOGIA, 'methodology_package_approvals', 'lab_custom_exams', 'integrated_readings', 'patients', 'consultations', 'encounters', 'anamneses', 'conducts', 'agreements', 'report_emissions', 'schedule_blocks', 'holoscan_applications',
+const DONO_DIRETO = [...METODOLOGIA, 'methodology_package_approvals', 'lab_custom_exams', 'integrated_readings', 'holos_next_steps', 'patients', 'consultations', 'encounters', 'anamneses', 'conducts', 'agreements', 'report_emissions', 'schedule_blocks', 'holoscan_applications',
   'lab_collections', 'tool_applications', 'documents', 'professional_assets', 'ai_threads', 'holos_results'];
 const FILHAS = {           // tabela -> [coluna, mae]
   holoscan_answers: ['application_id', 'holoscan_applications'],
@@ -106,7 +113,7 @@ const FILHAS = {           // tabela -> [coluna, mae]
   lab_result_components: ['result_id', 'lab_results'],
   ai_messages: ['thread_id', 'ai_threads']
 };
-const COM_PACIENTE = ['consultations', 'encounters', 'anamneses', 'conducts', 'agreements', 'report_emissions', 'holoscan_applications', 'lab_collections', 'integrated_readings', 'tool_applications', 'documents', 'ai_threads'];
+const COM_PACIENTE = ['consultations', 'encounters', 'anamneses', 'conducts', 'agreements', 'report_emissions', 'holoscan_applications', 'lab_collections', 'integrated_readings', 'tool_applications', 'documents', 'ai_threads', 'holos_next_steps'];
 const DOMINIOS_AN = ['motivo_objetivo','historia_alimentar','rotina_acesso','sono','atividade_fisica','sintomas_relatados','condicoes_diagnosticos_informados','medicamentos','suplementos','alergias_informadas','intolerancias_informadas','antecedentes','contexto_familiar','contexto_social','avaliacoes','medidas','emocional','sentido_pessoal'];
 const ESTADOS_AN = ['informado','negado_explicitamente','desconhecido','nao_investigado','nao_aplicavel','recusado'];
 const ORIGENS_AN = ['relato_paciente','observacao_profissional','documento_externo','dado_medido'];
@@ -162,6 +169,14 @@ export function criarServidor() {
   s.tabelas.integrated_reading_rule_packages.push({ id: randomUUID(), code: 'LI-V1', version: 1, status: 'rascunho', notes: 'Infraestrutura da Etapa 5: sem dominio, vinculo ou regra aprovados.', content_hash: null, responsible: null, approval_provenance: null, created_at: agora() });
   /* Etapa 6.0 (migration 20261002120000): LI-V1@2 em_revisao com o conteudo decidido — IDENTICO a leitura-integrada-pacote-v1.js.
      Nenhuma aprovacao, nenhum snapshot: a homologacao e ato humano (aprovador unico: Daniel). */
+  /* Proximos Passos HOLOS (migration 20261012100000): catalogo HOLOS-RECOMENDACOES-V1, IDENTICO a migration (fixture conferida contra o SQL) */
+  (function seedCatalogoPP() {
+    const cid = randomUUID(); const criado = agora();
+    const hash = createHash('sha256').update(ppCanonico(PP_REGRAS), 'utf8').digest('hex');
+    s.tabelas.holos_recommendation_catalogs.push({ id: cid, code: PP_CATALOGO.code, version: PP_CATALOGO.version, status: PP_CATALOGO.status, content_hash: hash, provenance: PP_CATALOGO.provenance, approved_at: PP_CATALOGO.approved_at + 'T00:00:00.000Z', approved_by: null, created_at: criado });
+    PP_REGRAS.forEach(r => s.tabelas.holos_recommendation_rules.push({ id: randomUUID(), catalog_id: cid, rule_id: r.rule_id, catalog_code: PP_CATALOGO.code, catalog_version: PP_CATALOGO.version, system_id: r.system_id, rank: r.rank, tool_id: r.tool_id,
+      professional_reason: r.professional_reason, next_action: r.next_action, status: 'aprovado', provenance: PP_CATALOGO.provenance, approved_at: PP_CATALOGO.approved_at + 'T00:00:00.000Z', approved_by: null, created_at: criado }));
+  })();
   (function seedLIV2() {
     const PK = globalThis.LeituraIntegradaPacoteV1; if (!PK) return;
     const pk = PK.pacote(); const pid = randomUUID();
@@ -738,7 +753,7 @@ export function criarServidor() {
     const t = q.tabela;
     if (t === 'methodology_package_approvals' && q.acao !== 'select') return erro('permission denied for table methodology_package_approvals', '42501');
     if (t === 'methodology_approvers' && q.acao !== 'select') return erro('permission denied for table methodology_approvers', '42501');
-    if ((GLOBAIS_SO_LEITURA.includes(t) || t === 'integrated_readings' || t === 'holos_results') && q.acao !== 'select' && uid) return erro('permission denied for table ' + t, '42501');
+    if ((GLOBAIS_SO_LEITURA.includes(t) || t === 'integrated_readings' || t === 'holos_results' || t === 'holos_next_steps') && q.acao !== 'select' && uid) return erro('permission denied for table ' + t, '42501');
     /* Prontuario (20261011100000): a API perdeu a escrita nas tabelas lab_* (revoke) e o DELETE em documents */
     if (['lab_collections', 'lab_results', 'lab_result_components', 'lab_custom_exams'].includes(t) && q.acao !== 'select' && uid) return erro('permission denied for table ' + t, '42501');
     if (t === 'documents' && q.acao === 'delete' && uid) return erro('permission denied for table documents', '42501');
@@ -963,6 +978,8 @@ export function criarServidor() {
   }
 
   const resultadoHolos = criarResultadoHolos(s, { statusConta: (u) => statusConta(u), carimbo: () => carimbo() });
+
+  const proximosPassos = criarProximosPassos(s, { statusConta: (u) => statusConta(u), carimbo: () => carimbo() });
   const revisaoPerguntas = criarRevisaoPerguntas(s, {});
   s.revisaoPerguntas = revisaoPerguntas;
   function rpc(uid, nome, args) {
@@ -987,6 +1004,7 @@ export function criarServidor() {
     if (deveFalhar('rpc:' + nome, 'rpc') || deveFalhar(null, 'rpc')) return erro('falha simulada em rpc ' + nome, 'SIMULADA');
     const p = args && args.payload;
     if (resultadoHolos.NOMES.includes(nome)) return resultadoHolos.rpc(uid, nome, args);
+    if (proximosPassos.NOMES.includes(nome)) return proximosPassos.rpc(uid, nome, args);
     if (nome === 'salvar_holoscan_completo') {
       if (!p || !p.application || !p.answers || !p.scores) return erro('payload incompleto', 'P0001');
       const a = p.application;

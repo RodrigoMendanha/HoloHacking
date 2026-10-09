@@ -905,6 +905,18 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     ativas) fica para um motor de recomendação futuro, **não implementado**. Complemento (mesmo dia): a seção global
     "Documentos" saiu do menu — documento se acessa só pela ficha do paciente.
 
+176. **Próximos Passos HOLOS — motor oficial V1 de recomendação de ferramentas** (09/10, aprovado pela usuária). Depois do
+    Resultado HOLOSCAN, o sistema entrega automaticamente, pelos **mesmos dois sistemas de "Por onde investigar"**, 1
+    recomendação principal + até 2 complementares, com explicação (sistema de origem + até 3 sinais dominantes, que só
+    explicam) e botão "Iniciar ferramenta". Catálogo **HOLOS-RECOMENDACOES-V1** (30 regras, 6 por sistema, rank
+    metodológico; só as 10 ferramentas ativas), **aprovado por aprovação metodológica expressa do responsável pelo projeto
+    em 09/10/2026**, em tabela global só leitura e imutável (migration 20261012100000); `approved_by` nulo (nenhum UUID
+    inventado). Motor no servidor + mesmo algoritmo em JS; snapshot por (aplicação, catálogo), imutável; aplicação
+    anterior ao catálogo só por ação explícita. Exames, Leitura Integrada, REC-001…023/SEL-001, Conduta, HOLOS AI,
+    Resultado/PDF/WhatsApp da paciente e HOLOS-V1@2 ficam **fora**. Detalhes:
+    `docs/v1/IMPLEMENTACAO-PROXIMOS-PASSOS-HOLOS-V1.md`. PENDENTE: aplicar no banco real
+    (`supabase/PROXIMOS-PASSOS-PARTE1..8.sql`) e deploy.
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`
@@ -948,8 +960,8 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
   `docs/v1/laboratorio/PACOTE-FINAL-PENDENCIAS-EXECUTAVEIS-LI-V1.md`): validar a cadeia no banco real, aplicar as
   migrations, cadastrar os `auth.uid` reais, Aprovação 1 (Daniel), Aprovação 2 (Rodrigo), Homologar LI-V1@2
   (hash `fa99ec80…`), registrar o pacote V1 nas aplicações HOLOSCAN, deploy. (Mestre §24)
-- **Regras de sugestão de ferramentas** — nenhuma das 23 REC nem SEL-001 é aprovada; a Etapa 4.2
-  decidiu que nenhuma sugestão automática é oficial na V1 (item 65). (Mestre §29)
+- ~~**Regras de sugestão de ferramentas**~~ — **DECIDIDO em 09/10 (item 176)**: catálogo HOLOS-RECOMENDACOES-V1 aprovado; as 23 REC
+  e a SEL-001 continuam não validadas e desligadas (o item 65 valia para elas). (Mestre §29)
 - **Conteúdo mínimo para "Concluir" uma ferramenta** — a guarda técnica da Rodada 08
   (Mapa de Crenças não conclui vazio; OQ3/PQQ não salvam vazios) fica mantida como
   guarda de aplicação vazia, pendente de decisão metodológica.
