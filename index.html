@@ -179,6 +179,7 @@
     <!-- NOVA SENHA (apos clique no link de recuperacao) -->
     <div id="tela-nova-senha" hidden>
       <h2 class="login-titulo">Criar nova senha</h2>
+      <p class="login-subtela-desc" id="nova-senha-obrigatoria" hidden>A equipe HoloHacking redefiniu o seu acesso com uma senha provisória. Para continuar, crie agora uma senha só sua.</p>
       <form id="form-nova-senha" novalidate>
         <input type="text" name="username" autocomplete="username" class="sr-only" tabindex="-1" aria-hidden="true">
         <div class="login-grupo">
@@ -303,7 +304,7 @@
         </button>
         <button class="nav-item hidden" data-secao="contas" id="nav-contas">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c0-3 2.5-5.2 5.5-5.2s5.5 2.2 5.5 5.2"/><path d="M16 11l2 2 4-4"/></svg>
-          Contas <span class="nav-badge" id="nav-contas-num" hidden></span>
+          Administração <span class="nav-badge" id="nav-contas-num" hidden></span>
         </button>
         <button class="nav-item" data-secao="perfil">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.4 3.1-6 7-6s7 2.6 7 6"/></svg>
@@ -1016,12 +1017,13 @@
         <div id="metodologia-corpo"></div>
       </section>
 
-      <!-- ============ CONTAS (08/10): liberar cadastros — so administradores (contas.js) ============ -->
+      <!-- ============ ADMINISTRACAO (08/10, ampliada 10/10): cadastros, contas, acesso e historico —
+           so administradores (contas.js; o servidor recusa quem nao e) ============ -->
       <section class="secao" id="secao-contas">
         <div class="secao-cabeca">
-          <span class="eyebrow">Configurações</span>
-          <h2>Cadastros de <em>nutricionistas</em></h2>
-          <p>Quem se cadastrou pelo app fica aguardando até você liberar o acesso.</p>
+          <span class="eyebrow">Configurações · só a equipe HoloHacking</span>
+          <h2><em>Administração</em></h2>
+          <p>Quem está se cadastrando, liberação de acesso, contas das nutricionistas e o histórico de tudo que foi feito aqui.</p>
         </div>
         <div id="contas-corpo"></div>
       </section>

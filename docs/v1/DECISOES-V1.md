@@ -973,6 +973,17 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     Detalhes: `docs/v1/RESULTADO-FINAL-DECISOES-APROVADAS.md`. PENDENTE: autorização, aplicar `supabase/RESULTADO-FINAL-PARTE1..7.sql`
     e deploy.
 
+181. **Página de Administração** (10/10, pedido da usuária). Substitui a seção "Contas": abas Visão geral (números, só
+    contagens de uso), Cadastros (quem está se cadastrando, liberar/recusar, aviso de cadastro novo), Contas (busca,
+    filtros, painel da conta: dados, perfil %, uso, liberar/recusar/voltar para análise, corrigir nome e telefone) e
+    Histórico (registro imutável `admin_audit_log`). Acesso pela Edge Function `admin-usuarios` (service_role só no
+    ambiente da função): senha provisória (aparece uma vez; troca obrigatória no próximo acesso via
+    `user_metadata.precisa_trocar_senha`), link de nova senha, trocar e-mail, bloquear/desbloquear. Nunca na própria conta
+    nem em conta de administrador; senha/token/link nunca registrados; nenhum dado de paciente na página. Migration aditiva
+    20261016100000; SQL em `supabase/ADMINISTRACAO-PARTE1..4.sql`. Sem o SQL a página cai no modo antigo; sem a função, os
+    botões de acesso avisam. Testes: harness AD00–AD12, `testar-admin.mjs` (34), `testar-admin-usuarios.mjs` (23).
+    Detalhes: `docs/v1/ADMINISTRACAO.md`. PENDENTE: autorização, SQL, publicar a função e deploy.
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`

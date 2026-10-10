@@ -28,6 +28,7 @@ import { criarResultadoHolos } from './resultado-holos-falso.mjs';
 import { criarProximosPassos } from './proximos-passos-falso.mjs';   // Proximos Passos HOLOS (migration 20261012100000)
 import '../proximos-passos.js';   // o MESMO motor de selecao do navegador
 import { CATALOGO as PP_CATALOGO, REGRAS as PP_REGRAS, canonico as ppCanonico } from './proximos-passos-catalogo-v1.mjs';
+import { criarAdministracao } from './administracao-falso.mjs';   // Administracao (migration 20261016100000 + Edge Function admin-usuarios)
 import { criarAnamnesePreConsulta } from './anamnese-pre-consulta-falso.mjs';   // anamnese pre-consulta por link (migration 20261014100000)
 import { criarRevisaoPerguntas } from './revisao-perguntas-falso.mjs';   // revisao das perguntas (migration 20261010100000)   // Resultado HOLOS (migration 20261009100000)
 import '../metodologia-pacote.js';   // o MESMO validador de publicacao do navegador (Etapa 4)
@@ -200,7 +201,7 @@ export function criarServidor() {
   })();
   s.labRpc = null;
   s.criarConta = (email, senha, id) => {
-    s.contas[email] = { senha, id: id || randomUUID() };
+    s.contas[email] = { senha, id: id || randomUUID(), criado_em: agora() };
     return s.contas[email].id;
   };
   /* Cadastro pelo app (migration 20261008100000): auth.signUp cria a conta e o
@@ -1007,6 +1008,8 @@ export function criarServidor() {
   const preConsulta = criarAnamnesePreConsulta(s, {});
   s.preConsulta = preConsulta;
   s.revisaoPerguntas = revisaoPerguntas;
+  const administracao = criarAdministracao(s, { statusConta: (u) => statusConta(u), agora });
+  s.administracao = administracao;
   function rpc(uid, nome, args) {
     if (revisaoPerguntas.NOMES.includes(nome)) return revisaoPerguntas.rpc(uid, nome, args);   // publicas (sem login)
     if (preConsulta.PUBLICAS.includes(nome)) return preConsulta.rpc(uid, nome, args);           // anamnese pre-consulta: publicas (so o token)
@@ -1014,6 +1017,7 @@ export function criarServidor() {
     /* o gatilho exigir_conta_ativa dispara dentro das RPCs que gravam */
     if (uid && RPC_GRAVA.test(nome) && statusConta(uid) !== 'ativo') return erroContaNaoLiberada(nome);
     if (nome === 'eh_administrador') return { data: !!uid && s.administradores.includes(uid), error: null };
+    if (administracao.NOMES.includes(nome)) return administracao.rpc(uid, nome, args);
     if (nome === 'listar_contas' || nome === 'decidir_conta') {
       if (!uid || !s.administradores.includes(uid)) return erro('apenas administradores', '42501');
       if (nome === 'listar_contas') {
@@ -1698,6 +1702,8 @@ export function criarServidor() {
     if (msg.op === 'login') {
       const c = s.contas[msg.email];
       if (!c || c.senha !== msg.password) return erro('Invalid login credentials', 'invalid_credentials');
+      if (administracao.banido(c)) return erro('User is banned', 'user_banned');
+      c.ultimo_acesso = agora();
       return { data: { id: c.id, meta: Object.assign({}, c.meta || {}) }, error: null };
     }
     if (msg.op === 'signup') return cadastrar(msg);
@@ -1717,11 +1723,13 @@ export function criarServidor() {
       if (!email) return erro('not authenticated', '42501');
       if (!msg.password || msg.password.length < 8) return erro('Password should be at least 8 characters.', 'weak_password');
       s.contas[email].senha = msg.password;
-      return { data: {}, error: null };
+      if (msg.data) s.contas[email].meta = Object.assign({}, s.contas[email].meta || {}, msg.data);
+      return { data: { meta: Object.assign({}, s.contas[email].meta || {}) }, error: null };
     }
     if (msg.op === 'query') return consultar(msg.uid, msg.q);
     if (msg.op === 'rpc') return rpc(msg.uid, msg.nome, msg.args);
     if (msg.op === 'storage') return storage(msg.uid, msg);
+    if (msg.op === 'funcao') return administracao.funcao(msg.uid, msg.nome, msg.body);   // Promise (Edge Function)
     return erro('op desconhecida');
   };
 
@@ -1843,12 +1851,20 @@ const BIBLIOTECA = `(function () {
             });
           }
           if (!u || !u.password) return Promise.resolve({ data: {}, error: null });
-          return chamar({ op: "trocar_senha", uid: s ? s.user.id : null, password: u.password }).then(function (r) {
-            return r.error ? { data: null, error: { name: "AuthApiError", message: r.error.message } } : { data: { user: s && s.user }, error: null };
+          return chamar({ op: "trocar_senha", uid: s ? s.user.id : null, password: u.password, data: u.data || null }).then(function (r) {
+            if (r.error) return { data: null, error: { name: "AuthApiError", message: r.error.message } };
+            var atual = sessao();
+            if (atual && u.data) { atual.user.user_metadata = r.data.meta; localStorage.setItem(CHAVE, JSON.stringify(atual)); }
+            return { data: { user: atual && atual.user }, error: null };
           });
         }
       },
       from: function (t) { return new Builder(t); },
+      functions: {
+        invoke: function (nome, o) {
+          return chamar({ op: "funcao", uid: uid(), nome: nome, body: (o && o.body) || null });
+        }
+      },
       rpc: function (nome, args) { return chamar({ op: "rpc", uid: uid(), nome: nome, args: args }); },
       storage: {
         from: function (bucket) {
@@ -1879,9 +1895,9 @@ const BIBLIOTECA = `(function () {
  * Liga uma pagina ao servidor falso. Chamar ANTES do goto.
  */
 export async function ligarPagina(page, servidor) {
-  await page.exposeFunction('__supaFalso', (texto) => {
+  await page.exposeFunction('__supaFalso', async (texto) => {
     let r;
-    try { r = servidor.tratar(JSON.parse(texto)); }
+    try { r = await servidor.tratar(JSON.parse(texto)); }
     catch (e) { r = { data: null, error: { message: 'erro no servidor falso: ' + e.message, code: 'FALSO' } }; }
     return JSON.stringify(r);
   });

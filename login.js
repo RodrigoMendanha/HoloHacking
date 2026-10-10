@@ -55,6 +55,7 @@
     if (/invalid login credentials/i.test(msg)) return "E-mail ou senha incorretos.";
     if (/user not found/i.test(msg)) return "E-mail ou senha incorretos.";
     if (/email not confirmed/i.test(msg)) return "Esta conta ainda não confirmou o e-mail.";
+    if (/banned/i.test(msg)) return "Este acesso está bloqueado. Fale com a equipe HoloHacking.";
     if (/too many requests|rate limit/i.test(msg)) return "Muitas tentativas seguidas. Aguarde um instante e tente de novo.";
     if (/new password should be different/i.test(msg)) return "A nova senha deve ser diferente da anterior.";
     if (/password.*at least|password.*too short|at least \d|weak.*password/i.test(msg)) return "A senha precisa ter pelo menos 8 caracteres.";
@@ -261,7 +262,7 @@
         });
       }
       return window.supabaseClient.auth
-        .updateUser({ password: novaSenha })
+        .updateUser(trocaObrigatoria ? { password: novaSenha, data: { precisa_trocar_senha: false } } : { password: novaSenha })
         .then(function (r) {
           if (r.error) {
             return { ok: false, motivo: r.error.name || "ERRO_AUTH", mensagem: mensagemDeErro(r.error) };
@@ -278,6 +279,14 @@
      Supabase ou continua local. */
 
   var sessaoAtual = null;   // objeto Session do supabase-js, ou null
+  /* Senha provisoria (Administracao, 10/10): a equipe definiu uma senha provisoria
+     e marcou user_metadata.precisa_trocar_senha. Antes de abrir o app, a pessoa
+     cria uma senha so dela; a troca limpa a marca. */
+  var trocaObrigatoria = false;
+  function precisaTrocarSenha() {
+    var u = sessaoAtual && sessaoAtual.user;
+    return !!(u && u.user_metadata && u.user_metadata.precisa_trocar_senha === true);
+  }
   var prontoParaAvisar = false;
 
   var estadoAuth = "pendente";   // "pendente" | "autenticado" | "nao_autenticado"
@@ -536,6 +545,7 @@
     if (modoRecuperacao) return;
     /* sem sessao, so o atalho de desenvolvimento (localhost) abre o app */
     if (!sessaoAtual) { if (ambienteLocal()) abrirApp(); return; }
+    if (precisaTrocarSenha()) { exigirTrocaDeSenha(); return; }
     if (checando) return;
     checando = window.AuthService.statusConta().then(function (st) {
       checando = null;
@@ -571,6 +581,15 @@
       }
       return st;
     });
+  }
+
+  function exigirTrocaDeSenha() {
+    trocaObrigatoria = true;
+    modoRecuperacao = true;
+    bloquearApp();
+    mostrarNovaSenha();
+    var aviso = document.getElementById("nova-senha-obrigatoria");
+    if (aviso) aviso.hidden = false;
   }
 
   function abrirApp() {
@@ -728,8 +747,14 @@
         if (r.ok) {
           mensagemEm(novaSenhaMensagem, "Senha alterada com sucesso. Entrando…", "ok");
           try { if (chegouPeloLinkDeRecuperacao()) window.history.replaceState(null, "", "/"); } catch (x) { /* nada */ }
+          if (trocaObrigatoria && sessaoAtual && sessaoAtual.user) {
+            sessaoAtual.user.user_metadata = Object.assign({}, sessaoAtual.user.user_metadata, { precisa_trocar_senha: false });
+          }
           setTimeout(function () {
             modoRecuperacao = false;
+            trocaObrigatoria = false;
+            var aviso = document.getElementById("nova-senha-obrigatoria");
+            if (aviso) aviso.hidden = true;
             liberarApp();
           }, 1500);
         } else {
