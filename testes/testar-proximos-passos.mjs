@@ -121,6 +121,14 @@ ok(!b7.principal && b7.botaoAtual && /anterior ao catálogo/.test(b7.texto) && r
 await A.evaluate(async () => { document.getElementById('pp-ver-atual').click(); await new Promise(r => setTimeout(r, 800)); });
 const b7b = await A.evaluate(() => ({ regra: (document.querySelector('#holo-proximos-passos .pp-principal') || {}).dataset ? document.querySelector('#holo-proximos-passos .pp-principal').dataset.ppRegra : null, meta: (document.querySelector('#holo-proximos-passos .pp-meta') || {}).textContent }));
 ok(b7b.regra === 'REC-FUN-01' && /ação explícita/.test(b7b.meta) && regs(A7).length === 1, 'depois do clique: recomendacao calculada pelo catalogo atual e registrada');
+/* teste de ponta a ponta 10/10: no tema claro o texto do cartao herdava o creme da secao e ficava ilegivel */
+const contraste = await A.evaluate(() => {
+  const lum = (c) => { const m = c.match(/[\d.]+/g).map(Number); const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(m[0]) + 0.7152 * f(m[1]) + 0.0722 * f(m[2]); };
+  const card = document.querySelector('#holo-proximos-passos .pp-principal'), txt = card.querySelector('.pp-razao') || card;
+  const a = lum(getComputedStyle(txt).color), b = lum(getComputedStyle(card).backgroundColor);
+  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+});
+ok(contraste >= 4.5, 'texto do cartao dos Próximos Passos legível (contraste ' + contraste.toFixed(1) + ':1, mínimo 4,5:1)');
 
 titulo('13-14. O BOTAO ABRE A FERRAMENTA CERTA E MANTEM O PACIENTE');
 await bloco(P1);
