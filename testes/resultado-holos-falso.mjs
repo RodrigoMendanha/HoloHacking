@@ -81,9 +81,22 @@ export function criarResultadoHolos(s, ctx) {
     const pp = reg ? { registrado: true, registro_id: reg.id, registrado_em: reg.created_at,
       catalogo: { code: reg.catalog_code, version: reg.catalog_version, content_hash: reg.catalog_hash }, engine_version: reg.engine_version, content_hash: reg.content_hash,
       systems_order: copia(reg.systems_order), selection: copia(reg.selection), motivo: (reg.content_snapshot && reg.content_snapshot.motivo) ?? null } : { registrado: false };
+    /* template 3 (migration 20261017100000, proximos_passos_pendentes): a mesma escolha, sem as concluidas no atendimento */
+    if (reg) {
+      const PPm = globalThis.ProximosPassos;
+      const encs = [enc.id, app.encounter_id].filter(Boolean);
+      const concluidas = [...new Set(T.tool_applications.filter(t => t.nutritionist_id === uid && t.patient_id === pid && encs.includes(t.encounter_id)
+        && ['concluida', 'revisada'].includes(t.status)).map(t => t.ferramenta_id))].sort();
+      const regras = T.holos_recommendation_rules.filter(g => g.catalog_id === reg.catalog_id);
+      const sis = (reg.systems_order || []).map(x => x.system_id);
+      const usadas = concluidas.slice(), sel = [];
+      const slots = sis.length >= 2 ? [sis[0], sis[1], sis[0]] : sis.length ? [sis[0], sis[0], sis[0]] : [];
+      slots.forEach(sx => { const e = PPm.escolher(regras, sx, usadas, concluidas); if (e) { usadas.push(e.tool_id); sel.push(Object.assign(e, { papel: sel.length ? 'complementar' : 'principal', slot: sel.length + 1 })); } });
+      pp.pendentes = { concluidas_no_atendimento: concluidas, selection: sel, todas_realizadas: sel.length === 0 && sis.length > 0 };
+    }
     return {
       conteudo: {
-        template_version: 2,
+        template_version: 3,
         paciente: { id: pac.id, nome: pac.nome },
         profissional: { nome: prof.nome ?? null },
         atendimento: { id: enc.id, occurred_at: enc.occurred_at, timezone: enc.timezone ?? null, type: enc.type ?? null, modality: enc.modality ?? null },

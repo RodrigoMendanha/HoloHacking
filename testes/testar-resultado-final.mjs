@@ -38,8 +38,8 @@ const base = { patient_id: PA, encounter_id: EA, holoscan_application_id: HA, to
   visao_paciente: { ferramentas: { [T_OQ3]: { mostrar: true }, [T_GAT]: { mostrar: false }, [T_CAR]: { mostrar: true } } } };
 const R1 = rpc('salvar_resultado_holos', { payload: base });
 const linha1 = srv.linhas('holos_results').find(r => r.id === R1.data);
-ok(!reg.error && !R1.error && linha1.template_version === 2 && linha1.content_snapshot.proximos_passos.registrado === true && linha1.content_snapshot.visibilidade.proximos_passos === false,
-  'Resultado HOLOS (template 2): Próximos Passos congelados no snapshot; compartilhar com a paciente DESLIGADO por padrão');
+ok(!reg.error && !R1.error && linha1.template_version === 3 && linha1.content_snapshot.proximos_passos.registrado === true && linha1.content_snapshot.visibilidade.proximos_passos === false,
+  'Resultado HOLOS (template 3 desde 12/10: + Próximos Passos pendentes): Próximos Passos congelados no snapshot; compartilhar com a paciente DESLIGADO por padrão');
 ok(rpc('salvar_resultado_holos', { payload: Object.assign({}, base, { visao_paciente: { ferramentas: {}, proximos_passos: 'sim' } }) }).error?.hint === 'payload_invalido', 'compartilhamento que não é true/false: recusado');
 
 const nav = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });

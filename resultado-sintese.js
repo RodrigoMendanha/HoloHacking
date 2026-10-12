@@ -93,7 +93,11 @@
     /* Proximos Passos: SO o que esta congelado no snapshot (template 2). Template 1: nao existem neste resultado. */
     var pp = snap.proximos_passos || null;
     var ppEstado = !pp ? "fora_do_snapshot" : (pp.registrado ? "registrado" : "nao_registrado");
-    var selecao = pp && pp.registrado && Array.isArray(pp.selection) ? pp.selection : [];
+    /* Template 3 (12/10): o Resultado congela tambem os PENDENTES — a escolha do catalogo sem as ferramentas ja concluidas no
+       atendimento. Template 2 continua mostrando o registro original (congelado como foi emitido). */
+    var pend = pp && pp.registrado && pp.pendentes && Array.isArray(pp.pendentes.selection) ? pp.pendentes : null;
+    var selecao = pend ? pend.selection : (pp && pp.registrado && Array.isArray(pp.selection) ? pp.selection : []);
+    var todasRealizadas = !!(pend && pend.todas_realizadas);
     var sugeridas = selecao.map(function (s) { return { tool_id: s.tool_id, nome: nomeF(s.tool_id), papel: s.papel, rank: s.rank, sistema: s.system_id, motivo: s.professional_reason, acao: s.next_action, rule_id: s.rule_id }; });
     var principal = sugeridas.filter(function (s) { return s.papel === "principal"; })[0] || null;
     var disponiveis = sugeridas.filter(function (s) { return aplicadas.indexOf(s.tool_id) < 0; });
@@ -122,6 +126,8 @@
       proximos_passos: ppEstado,
       catalogo: pp && pp.catalogo ? pp.catalogo : null,
       sugeridas: sugeridas,
+      pp_pendentes: !!pend,
+      todas_realizadas: todasRealizadas,
       principal: principal,
       disponiveis: disponiveis,
       fechamentos: fechamentos,
@@ -157,8 +163,10 @@
     else add("triade", "fato", "Na Tríade, " + lista(f.triade_empate) + " empataram na menor nota: não existe dimensão única menor (" + triV + ").");
     if (f.proximos_passos === "registrado" && f.sugeridas.length) {
       var cat = f.catalogo ? " (" + f.catalogo.code + " v" + f.catalogo.version + ")" : "";
-      add("catalogo", "regra", "Pelo catálogo vigente" + cat + ", as ferramentas indicadas para aprofundamento são " +
+      add("catalogo", "regra", "Pelo catálogo vigente" + cat + ", as ferramentas indicadas para aprofundamento" + (f.pp_pendentes ? " (sem as já realizadas neste atendimento)" : "") + " são " +
         lista(f.sugeridas.map(function (s) { return s.nome + (s.papel === "principal" ? " (principal)" : ""); })) + ".");
+    } else if (f.proximos_passos === "registrado" && f.todas_realizadas) {
+      add("catalogo", "fato", "As ferramentas indicadas pelo catálogo para as áreas prioritárias desta aplicação já foram realizadas neste atendimento.");
     } else if (f.proximos_passos === "registrado") {
       add("catalogo", "regra", "Os Próximos Passos HOLOS registrados não trazem ferramenta para esta aplicação (sem sistema com nota).");
     } else if (f.proximos_passos === "nao_registrado") {
@@ -182,6 +190,8 @@
     return out;
   }
 
+  var MSG_TODAS_PACIENTE = "As ferramentas sugeridas para esta etapa já foram feitas. Os próximos passos são combinados com a sua nutricionista em consulta.";
+
   /* As frases para a PACIENTE (linguagem simples; so o que a decisao permite). */
   function frasesPaciente(f) {
     var out = [];
@@ -195,6 +205,7 @@
     var autorizadas = f.fechamentos.filter(function (x) { return x.mostrar_paciente; }).map(function (x) { return x.nome; });
     if (autorizadas.length) out.push("Ferramentas que você fez e que a sua nutricionista compartilhou com você: " + lista(autorizadas) + ".");
     if (f.compartilhar_pp && f.sugeridas.length) out.push("Próximos passos de aprofundamento: " + lista(f.sugeridas.map(function (s) { return s.nome; })) + ". A escolha e o momento são combinados com a sua nutricionista.");
+    else if (f.compartilhar_pp && f.todas_realizadas) out.push(MSG_TODAS_PACIENTE);
     return out;
   }
 
@@ -253,6 +264,7 @@
   function htmlProximosPassos(f) {
     if (f.proximos_passos === "fora_do_snapshot") return '<p class="rh-nota-tec">Este resultado foi salvo antes de os Próximos Passos HOLOS fazerem parte do Resultado. Eles não são buscados ao vivo.</p>';
     if (f.proximos_passos === "nao_registrado") return '<p class="rh-nota-tec">Não estavam registrados para esta aplicação quando o resultado foi salvo.</p>';
+    if (!f.sugeridas.length && f.todas_realizadas) return '<p class="rh-nota-tec">As ferramentas indicadas para as áreas prioritárias desta aplicação já foram realizadas neste atendimento.</p>';
     if (!f.sugeridas.length) return '<p class="rh-nota-tec">Nenhuma recomendação para esta aplicação.</p>';
     return '<ul class="rh-resumo-lista">' + f.sugeridas.map(function (s) {
       var feita = f.aplicadas.indexOf(s.tool_id) >= 0;
@@ -266,6 +278,10 @@
   /* Bloco dos Proximos Passos na visao da PACIENTE (so quando compartilhados). */
   function htmlProximosPassosPaciente(snap, nomeFerramenta) {
     var f = fatos(snap, null, nomeFerramenta);
+    if (f.compartilhar_pp && !f.sugeridas.length && f.todas_realizadas) {
+      return '<section class="rh-secao rh-pp-paciente" aria-labelledby="rh-t-pp-pac"><h3 id="rh-t-pp-pac">Próximos passos de aprofundamento</h3>' +
+        '<p class="rh-intro">' + esc(MSG_TODAS_PACIENTE) + "</p></section>";
+    }
     if (!f.compartilhar_pp || !f.sugeridas.length) return "";
     return '<section class="rh-secao rh-pp-paciente" aria-labelledby="rh-t-pp-pac"><h3 id="rh-t-pp-pac">Próximos passos de aprofundamento</h3>' +
       '<p class="rh-intro">Ferramentas do método que podem ajudar a aprofundar a conversa com a sua nutricionista. Nenhuma é obrigatória; a escolha e o momento são combinados em consulta.</p>' +

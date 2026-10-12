@@ -94,5 +94,10 @@ cd "$(dirname "$0")/.."
     grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
   done
   cat supabase/tests/administracao-harness.sql
+  # Correcoes da jornada (20261017100000): Resultado HOLOS template 3 congela os Proximos Passos pendentes.
+  for f in supabase/migrations/2026101710*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/correcoes-jornada-harness.sql
   echo "rollback;"
 } | psql -U postgres -d base -v ON_ERROR_STOP=1 -At | tr '|' '\n' | sed 's/^ //'

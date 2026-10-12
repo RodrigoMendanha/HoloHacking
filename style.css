@@ -4795,6 +4795,9 @@ body.rp-gerando .rp-doc{border-radius:0;border:0}
 .pp-card{background:var(--sup-card);color:var(--texto);border:1px solid var(--borda-suave);border-radius:12px;padding:16px 18px;margin:12px 0}
 .painel-escuro .pp-card p,.painel-escuro .pp-card li{color:inherit}
 .pp-card.pp-principal{border-color:var(--dourado-claro)}
+.pp-card.pp-feita{opacity:.78;border-style:dashed}
+.pp-selo-feita{color:var(--movimento-sobe)!important}
+.pp-todas-feitas{font-weight:500}
 .pp-ferramenta{font-family:var(--fonte-display);font-size:1.1rem;margin:6px 0 4px;color:var(--texto)}
 .pp-ferramenta small{font-size:.72rem;font-weight:400;color:var(--texto-suave);margin-left:8px;letter-spacing:.04em;text-transform:uppercase}
 .pp-razao{font-size:.9rem;line-height:1.55;margin:0 0 10px}

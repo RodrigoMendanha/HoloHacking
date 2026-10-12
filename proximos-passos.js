@@ -152,12 +152,14 @@
   function esc(s) { return raiz.escapar ? raiz.escapar(String(s == null ? "" : s)) : String(s == null ? "" : s); }
   function dataBR(iso) { if (!iso) return ""; var d = String(iso).slice(0, 10).split("-"); return d.length === 3 ? d[2] + "/" + d[1] + "/" + d[0] : String(iso); }
   function sistemaDe(saida, id) { return (saida.systems_order || []).filter(function (s) { return s.system_id === id; })[0] || { system_id: id, nome: id, dominantes: [] }; }
-  function cartao(item, saida, principal) {
+  function cartao(item, saida, principal, feitas) {
     var sis = sistemaDe(saida, item.system_id);
     var dom = (sis.dominantes || []).slice(0, 3);
     var nome = NOME_FERRAMENTA[item.tool_id] || item.tool_id;
-    return '<article class="pp-card' + (principal ? " pp-principal" : "") + '" data-pp-regra="' + esc(item.rule_id) + '">' +
-      (principal ? '<span class="eyebrow">Próximo passo recomendado</span>' : "") +
+    /* 12/10: o registro continua o mesmo (congelado ao salvar o HOLOSCAN); so se marca o que ja foi feito no atendimento */
+    var feita = (feitas || []).indexOf(item.tool_id) >= 0;
+    return '<article class="pp-card' + (principal ? " pp-principal" : "") + (feita ? " pp-feita" : "") + '" data-pp-regra="' + esc(item.rule_id) + '"' + (feita ? ' data-pp-feita="1"' : "") + ">" +
+      (feita ? '<span class="eyebrow pp-selo-feita">✓ Já realizada neste atendimento</span>' : principal ? '<span class="eyebrow">Próximo passo recomendado</span>' : "") +
       '<h5 class="pp-ferramenta">' + esc(nome) + ' <small>' + esc(EIXO_FERRAMENTA[item.tool_id] || "") + '</small></h5>' +
       '<p class="pp-razao">' + esc(item.professional_reason) + '</p>' +
       '<div class="pp-porque"><b>Por que esta ferramenta?</b>' +
@@ -165,10 +167,10 @@
         (dom.length ? '<p class="pp-sinais-tit">Sinais que contribuíram para esta área:</p><ul class="pp-sinais">' + dom.map(function (d) { return "<li>" + esc(d.rotulo || d.question_id) + "</li>"; }).join("") + "</ul>" : "") +
         '<p class="pp-explica">' + esc(EXPLICACAO) + '</p></div>' +
       '<div class="pp-acao"><b>O que fazer agora</b><p>' + esc(item.next_action) + '</p></div>' +
-      '<button type="button" class="btn-verde pp-iniciar" data-pp-abrir="' + esc(item.tool_id) + '">Iniciar ferramenta</button>' +
+      '<button type="button" class="' + (feita ? "btn-borda-ouro" : "btn-verde") + ' pp-iniciar" data-pp-abrir="' + esc(item.tool_id) + '">' + (feita ? "Abrir a ferramenta" : "Iniciar ferramenta") + "</button>" +
       "</article>";
   }
-  function htmlBloco(saida, meta) {
+  function htmlBloco(saida, meta, feitas) {
     var sel = saida.selection || [];
     var principal = sel.filter(function (x) { return x.papel === "principal"; })[0];
     var comps = sel.filter(function (x) { return x.papel === "complementar"; }).slice(0, 2);
@@ -177,8 +179,10 @@
     if (!principal) {
       h += '<p class="res-linha pp-vazio">' + esc(saida.motivo || MSG_SEM_DADOS) + "</p>";
     } else {
-      h += cartao(principal, saida, true);
-      if (comps.length) h += '<h5 class="pp-outras">Outras possibilidades de aprofundamento</h5><div class="pp-comps">' + comps.map(function (c) { return cartao(c, saida, false); }).join("") + "</div>";
+      var todas = [principal].concat(comps), nFeitas = todas.filter(function (x) { return (feitas || []).indexOf(x.tool_id) >= 0; }).length;
+      if (nFeitas && nFeitas === todas.length) h += '<p class="res-linha pp-todas-feitas">As ferramentas sugeridas para esta aplicação já foram realizadas neste atendimento. A nutricionista decide os próximos passos.</p>';
+      h += cartao(principal, saida, true, feitas);
+      if (comps.length) h += '<h5 class="pp-outras">Outras possibilidades de aprofundamento</h5><div class="pp-comps">' + comps.map(function (c) { return cartao(c, saida, false, feitas); }).join("") + "</div>";
     }
     var cat = saida.catalogo || {};
     h += '<p class="pp-meta">Catálogo ' + esc(cat.code || CATALOGO_CODE) + (cat.version ? " v" + esc(cat.version) : "") + " · " + esc(meta || "") +
@@ -216,9 +220,23 @@
       return Promise.resolve(null);
     }
     var appId = r._supa_id || null;
+    /* ferramentas concluidas/revisadas no atendimento da aplicacao (ou no ativo, para a previa) */
+    function feitasNoAtendimento() {
+      var out = [];
+      try {
+        var at = raiz.AtendimentoAtual && raiz.AtendimentoAtual.atual ? raiz.AtendimentoAtual.atual() : null;
+        var enc = r.encounter_id || r._supa_encounter_id || (at ? at.id : null);
+        if (enc && raiz.Aplicacoes && raiz.Aplicacoes.doPaciente) {
+          raiz.Aplicacoes.doPaciente(pid).forEach(function (a) {
+            if (a.encounter_id === enc && (a.status === "concluida" || a.status === "revisada") && out.indexOf(a.ferramenta_id) < 0) out.push(a.ferramenta_id);
+          });
+        }
+      } catch (e) { out = []; }
+      return out;
+    }
     function pintar(saida, meta) {
       if (g !== geracao) return saida;
-      alvo.innerHTML = htmlBloco(saida, meta);
+      alvo.innerHTML = htmlBloco(saida, meta, feitasNoAtendimento());
       ligarBotoes(alvo, pid);
       return saida;
     }
