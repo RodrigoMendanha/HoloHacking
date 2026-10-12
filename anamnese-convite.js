@@ -150,18 +150,21 @@
   }
 
   /* ---------- tela ---------- */
+  /* A resposta ENVIADA, completa, nas etapas e com as perguntas que o paciente viu (mapeamento-holistico.js).
+     So leitura: a resposta original nunca muda. */
   function htmlResposta(c) {
-    var V2 = window.AnamneseV2;
-    var env = c.submitted_content || {};
-    var content = V2 && V2.montarContent ? V2.montarContent(env.tipo || "primeira", env.formulario || {}, {}) : null;
-    var resumo = V2 && content ? V2.resumoHtml(content) : "";
-    var recusados = [];
-    Object.keys(env.formulario || {}).forEach(function (b) { Object.keys(env.formulario[b] || {}).forEach(function (k) { if (/_prefiro_nao$/.test(k) && env.formulario[b][k] === true) recusados.push(k.replace(/_prefiro_nao$/, "")); }); });
-    return '<div class="pc-resposta"><p class="pc-origem">Relato da paciente, enviado em ' + escapar(dataHora(c.submitted_at)) +
-      '. Organizado como foi respondido — nada aqui é diagnóstico nem conclusão.</p>' +
-      (resumo || '<p class="dash-vazio">Sem conteúdo para mostrar.</p>') +
-      (recusados.length ? '<p class="pc-origem">A paciente marcou "Prefiro não responder" em: ' + escapar(recusados.map(function (k) { return k === "emocional" ? "como tem se sentido" : k === "sentido" ? "sentido pessoal" : k; }).join(", ")) + ".</p>" : "") +
-      "</div>";
+    var MH = window.MapeamentoHolistico;
+    var corpo = MH ? MH.respostaHtml(c.submitted_content || {}, escapar) : '<p class="dash-vazio">Sem conteúdo para mostrar.</p>';
+    return '<div class="pc-resposta"><p class="pc-origem">Respostas do paciente, enviadas em ' + escapar(dataHora(c.submitted_at)) +
+      '. Como o paciente respondeu — nada aqui é diagnóstico nem conclusão.</p>' + corpo + "</div>";
+  }
+  /* Mapeamentos recebidos antes do atual: recolhidos, para rever */
+  function htmlAnteriores(atualId) {
+    var antigos = cache.linhas.filter(function (x) { return x.id !== atualId && x.status === "concluido"; });
+    if (!antigos.length) return "";
+    return '<div class="mh-anteriores"><h4 class="pc-sub-tit">Mapeamentos anteriores</h4>' + antigos.map(function (x) {
+      return '<details class="mh-anterior"><summary>Recebido em ' + escapar(dataHora(x.submitted_at)) + (x.form_tipo === "retorno" ? " · retorno" : " · primeira consulta") + "</summary>" + htmlResposta(x) + "</details>";
+    }).join("") + "</div>";
   }
 
   function desenhar() {
@@ -198,8 +201,8 @@
       acoes = (link ? bt("copiar", "Copiar link") + bt("whatsapp", "Enviar pelo WhatsApp", "btn-verde") : bt("novo", "Gerar novo link")) +
         bt("revogar", "Revogar link", "perf-tirar");
     } else if (st === "concluido") {
-      acoes = bt("ver", vendoResposta[c.id] ? "Esconder resposta" : "Ver resposta", "btn-verde") +
-        (!c.imported_anamnesis_id ? bt("usar", "Levar para o atendimento") : "") + bt("novo", "Enviar novo Mapeamento");
+      /* 12/10: a resposta aparece aberta; "Levar para o atendimento" saiu (o Mapeamento e so o do paciente) */
+      acoes = bt("ver", vendoResposta[c.id] === false ? "Ver respostas" : "Recolher respostas") + bt("novo", "Enviar novo Mapeamento");
     }
     alvo.innerHTML = '<section class="pc-cartao" aria-labelledby="pc-titulo">' +
       '<div class="pc-topo"><h3 id="pc-titulo" class="pc-titulo">' + TITULO + "</h3>" +
@@ -211,18 +214,21 @@
       dl +
       (link && aberto ? '<p class="pc-link"><span>Link:</span> <code>' + escapar(link) + "</code></p>" : "") +
       (aberto && !link ? '<p class="pc-sub">Por segurança o link só aparece no momento em que é gerado. Para enviar de novo, use "Gerar novo link" (o anterior deixa de valer).</p>' : "") +
-      (c && c.imported_anamnesis_id ? '<p class="pc-sub">Levado para o atendimento em ' + escapar(dataHora(c.imported_at)) + ".</p>" : "") +
+
       (arq ? '<p class="pc-sub">Paciente arquivado: reative para enviar o Mapeamento Holístico.</p>' : "") +
       '<div class="pc-acoes">' + acoes + "</div>" +
-      (st === "concluido" && vendoResposta[c.id] ? htmlResposta(c) : "") +
-      "</section>";
+      (st === "concluido" && vendoResposta[c.id] !== false ? htmlResposta(c) : "") +
+      "</section>" + htmlAnteriores(c ? c.id : null);
   }
 
   function gerar(revogarAntes) {
     var p = paciente(); if (!p || ocupado) return;
     ocupado = true; desenhar();
     var A = window.AtendimentoAtual, e = A && A.atual ? A.atual() : null;
-    var tipo = window.Anamnese && window.Anamnese.doPaciente && window.Anamnese.doPaciente(p.id).some(function (a) { return a.status !== "rascunho"; }) ? "retorno" : "primeira";
+    /* retorno se o paciente ja tem Mapeamento recebido (ou um registro antigo da nutricionista); senao, primeira consulta */
+    var jaRecebeu = cache.pid === p.id && cache.linhas.some(function (x) { return x.status === "concluido"; });
+    var registroAntigo = window.Anamnese && window.Anamnese.doPaciente && window.Anamnese.doPaciente(p.id).some(function (a) { return a.status !== "rascunho"; });
+    var tipo = jaRecebeu || registroAntigo ? "retorno" : "primeira";
     return miniaturaLogo().then(function (logo) {
       return Promise.resolve(sb().rpc("criar_convite_anamnese", { p_patient_id: p.id, p_encounter_id: e && e.patient_id === p.id ? e.id : null, p_dias: DIAS, p_tipo: tipo, p_logo: logo }));
     }).then(function (r) {
@@ -255,7 +261,7 @@
     if (!c) return;
     if (acao === "copiar" && links[c.id]) return copiar(links[c.id]);
     if (acao === "whatsapp" && links[c.id]) return whatsapp(links[c.id]);
-    if (acao === "ver") { vendoResposta[c.id] = !vendoResposta[c.id]; return desenhar(); }
+    if (acao === "ver") { vendoResposta[c.id] = vendoResposta[c.id] === false; return desenhar(); }
     if (acao === "revogar") {
       var cr = window.abrirModalConfirmar ? window.abrirModalConfirmar({ titulo: "Revogar link", corpo: "<p>O paciente não vai mais conseguir abrir nem enviar por este link.</p>", botaoConfirmar: "Revogar link" })
         : Promise.resolve(confirm("Revogar o link?") ? "confirmar" : null);
@@ -288,6 +294,13 @@
 
   window.PreConsulta = {
     desenhar: desenhar, carregar: carregar, estadoDe: estadoDe,
+    /** situacao do Mapeamento deste paciente (so do que ja foi lido; null = ainda nao lido) */
+    situacao: function (id) {
+      if (cache.pid !== id || !cache.carregado) return null;
+      var c = atual(), st = estadoDe(c);
+      var quando = st === "concluido" ? c.submitted_at : st === "iniciado" ? c.started_at : c ? c.created_at : null;
+      return { estado: st, rotulo: st === "concluido" ? "Mapeamento recebido" : (ROTULO[st] || st), quando: quando };
+    },
     esquecer: function () { cache = { pid: null, linhas: [], carregado: false, erro: null }; links = {}; vendoResposta = {}; }
   };
 })();

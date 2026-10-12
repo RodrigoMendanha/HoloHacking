@@ -196,9 +196,13 @@
     var foco = (ativo && ativo.patient_id === pid) ? ativo : ultimo;
     var linhas = [];
     linhas.push(["Último atendimento", ultimo ? A.rotuloQuando(ultimo) + (ultimo.consultation_id ? " · com agendamento" : " · sem agendamento") : "nenhum registrado"]);
+    /* 12/10: o Mapeamento Holistico e o que o PACIENTE responde pelo link (anamnese-convite.js) */
+    var PC = window.PreConsulta, mh = PC && PC.situacao ? PC.situacao(pid) : null;
+    if (!mh && PC && PC.carregar && window.HoloAuth && window.HoloAuth.sessaoAtiva && window.HoloAuth.sessaoAtiva()) {
+      PC.carregar(pid).then(function () { if (paciente() === pid) redesenharVisaoSeAberta(); });
+    }
+    linhas.push(["Mapeamento Holístico", mh ? mh.rotulo + (mh.quando && mh.estado !== "nao_enviada" ? " · " + dataBR(String(mh.quando).slice(0, 10)) : "") : "carregando…"]);
     if (foco) {
-      var an = An.vigente(foco.id), anR = An.rascunhoDe(foco.id);
-      linhas.push(["Mapeamento Holístico" + (foco === ativo ? " (atendimento ativo)" : ""), an ? "rev. " + an.revision_number + " · " + an.status + " · " + An.contarItens(an.content) + " itens" : (anR ? "rascunho (não consolidado)" : "não registrado")]);
       var cd = Cd.vigente(foco.id), cdR = Cd.rascunhoDe(foco.id);
       /* teste real 07/10: a conduta vigente e a mais recente DA PESSOA; o
          atendimento ativo pode ser um antigo, sem conduta propria */
@@ -223,14 +227,8 @@
         ? (rel.title || "Relatório clínico") + " · emissão nº " + rel.revision_number + " · " + dataBR(String(rel.issued_at).slice(0, 10)) + (rel.superseded_at ? " · substituído por retificação" : "")
         : "nenhum emitido" + (window.Relatorios.rascunhos(pid).length ? " (há rascunho não emitido)" : "")]);
     }
-    /* Anamnese V2: o resumo (so organizacao do registrado) da anamnese vigente do atendimento em foco */
-    var anResumo = "";
-    if (foco && An.resumoHtml) {
-      var anV = An.vigente(foco.id);
-      if (!anV) { var antes = An.anteriorDe ? An.anteriorDe(pid, foco.id) : null; anV = antes; }
-      var rh = anV ? An.resumoHtml(anV) : "";
-      if (rh) anResumo = '<details class="fic-an-resumo" id="fic-an-resumo"><summary>Resumo do Mapeamento (rev. ' + anV.revision_number + ")</summary>" + rh + "</details>";
-    }
+    var anResumo = mh && mh.estado === "concluido"
+      ? '<button type="button" class="dash-ir" data-ir="aba:anamnese">Ver respostas do Mapeamento <span aria-hidden="true">&rarr;</span></button>' : "";
     return '<div class="dash-bloco dash-bloco-compacto" id="fic-atendimento-clinico">' +
       '<h3 class="dash-titulo">Atendimento clínico</h3>' +
       linhas.map(function (l) { return '<div class="fic-det"><span>' + escapar(l[0]) + "</span><b>" + escapar(l[1]) + "</b></div>"; }).join("") +

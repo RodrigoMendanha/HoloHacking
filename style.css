@@ -4892,7 +4892,7 @@ body.conta-pendente #secao-perfil{display:block}
 .pc-link{margin:12px 0 0;font-size:.82rem;word-break:break-all}
 .pc-link code{background:var(--input-fundo,rgba(0,0,0,.04));padding:2px 6px;border-radius:6px}
 /* Mapeamento Holistico (12/10): aviso de sucesso / recebido e rotulo "Status:" so para leitor de tela */
-.pc-sucesso,.pc-recebido{margin:10px 0 0;font-weight:600;color:var(--verde-medio,#1f5c46)}
+.pc-sucesso,.pc-recebido{margin:10px 0 0;font-weight:600;color:var(--movimento-sobe,#1f6b47)}
 .pc-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .pc-acoes{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
 .pc-resposta{margin-top:16px;padding-top:14px;border-top:1px solid var(--borda-suave)}
@@ -5417,10 +5417,10 @@ body.escuro #secao-pacientes .pac-dado.atraso{color:var(--dourado-claro)}
 #secao-pacientes .ficha-arquivos > .abas-ficha-caixa{position:sticky;top:var(--topo-altura,72px);z-index:15;background:#0b3325;padding:6px 0;margin-bottom:12px;border-radius:12px}
 #secao-pacientes .abas-ficha-caixa{position:relative}
 #secao-pacientes .ficha-arquivos .abas[role="tablist"]{
-  display:flex;flex-wrap:nowrap;gap:2px;overflow-x:auto;scrollbar-width:thin;border:none;background:var(--pc-sup);border-radius:12px;padding:4px;margin:0;scroll-behavior:smooth;
+  display:flex;flex-wrap:nowrap;gap:2px;overflow-x:auto;scrollbar-width:none;border:none;background:var(--pc-sup);border-radius:12px;padding:4px;margin:0;scroll-behavior:smooth;
 }
-#secao-pacientes .ficha-arquivos .abas[role="tablist"]::-webkit-scrollbar{height:4px;display:block}
-#secao-pacientes .ficha-arquivos .abas[role="tablist"]::-webkit-scrollbar-thumb{background:var(--dourado-suave);border-radius:4px}
+/* sem a barra de rolagem do sistema (no Windows ela e larga e cinza): a pista sao as setas e o esmaecido */
+#secao-pacientes .ficha-arquivos .abas[role="tablist"]::-webkit-scrollbar{display:none}
 #secao-pacientes .ficha-arquivos .abas .aba{flex:0 0 auto;border:none;border-radius:9px;padding:8px 14px;margin:0;font-size:.74rem;white-space:nowrap;color:var(--pc-claro-suave);background:none}
 #secao-pacientes .ficha-arquivos .abas .aba.ativa{background:var(--pc-faixa);color:var(--pc-faixa-texto)}
 #secao-pacientes .ficha-arquivos .abas .aba:not(.ativa):hover{background:var(--pc-hover)}
@@ -5455,7 +5455,8 @@ body.escuro #secao-pacientes .pac-dado.atraso{color:var(--dourado-claro)}
 #secao-pacientes .fic-barra-faixa{grid-area:faixa;font-size:.7rem;letter-spacing:.06em;text-transform:none;color:var(--pc-claro-suave);display:block!important}
 #secao-pacientes .fic-barra.insuficiente .fic-barra-trilho i{opacity:.55}
 #secao-pacientes #fic-visao-timeline-bloco{padding:16px 18px}
-#secao-pacientes .fic-filtros-linha{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:2px;background:rgba(0,0,0,.16);border-radius:10px;padding:3px;scrollbar-width:thin}
+#secao-pacientes .fic-filtros-linha{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:2px;background:rgba(0,0,0,.16);border-radius:10px;padding:3px;scrollbar-width:none}
+#secao-pacientes .fic-filtros-linha::-webkit-scrollbar{display:none}
 #secao-pacientes .fic-filtro-btn{flex:0 0 auto;border:none;background:none;border-radius:8px;padding:5px 10px;font-size:.74rem;white-space:nowrap;color:var(--pc-claro-suave)}
 #secao-pacientes .fic-filtro-btn.ativo,#secao-pacientes .fic-filtro-btn[aria-pressed="true"]{background:var(--pc-faixa);color:var(--pc-faixa-texto)}
 
@@ -5502,3 +5503,20 @@ body.escuro #secao-pacientes .pac-dado.atraso{color:var(--dourado-claro)}
 #secao-pacientes .ficha #aba-visao .fic-evento:hover{background:rgba(201,163,90,.07)}
 #secao-pacientes .ficha #aba-visao .fic-an-resumo,#secao-pacientes .ficha #aba-visao .an2-resumo{color:var(--pc-claro)}
 #secao-pacientes .ficha #aba-visao .dash-bloco{padding:16px 18px}
+/* Mapeamento Holistico: a resposta do paciente, completa, por etapa (12/10) */
+.mh-resposta{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+.mh-etapa{background:var(--input-fundo,rgba(0,0,0,.03));border-radius:12px;padding:14px 16px}
+.mh-etapa h5{display:flex;align-items:center;gap:10px;font-family:var(--fonte-display);font-size:1.12rem;font-weight:600;color:var(--titulo);margin:0 0 8px}
+.mh-n{flex:0 0 24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-family:var(--fonte-corpo);font-size:.75rem;background:var(--dourado-bg);color:var(--realce)}
+.mh-secao{font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--texto-suave);margin:10px 0 2px}
+.mh-lista{margin:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:0}
+.mh-item{display:contents}
+.mh-item dt{font-size:.82rem;color:var(--texto-suave);padding:7px 12px 7px 0;border-top:1px solid var(--borda-suave)}
+.mh-item dd{margin:0;font-size:.9rem;color:var(--texto);padding:7px 0;border-top:1px solid var(--borda-suave);white-space:pre-wrap;word-break:break-word}
+.mh-item:first-child dt,.mh-item:first-child dd{border-top:none}
+.mh-vazio{font-size:.82rem;color:var(--texto-suave);margin:0}
+.mh-anteriores{margin-top:14px}
+.mh-anterior,.mh-antigos{background:var(--sup-card);border-radius:12px;padding:10px 14px;margin-top:8px}
+.mh-anterior summary,.mh-antigos summary{cursor:pointer;font-size:.86rem;color:var(--realce)}
+.pc-sub-tit{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--texto-suave);margin:0}
+@media (max-width:700px){.mh-lista{grid-template-columns:1fr}.mh-item dt{padding-bottom:0}.mh-item dd{border-top:none;padding-top:2px}}

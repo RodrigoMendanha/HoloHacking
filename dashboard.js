@@ -162,7 +162,10 @@
     if (conv && (conv.status === "enviado" || conv.status === "iniciado") && !(Date.parse(conv.expires_at) < Date.now())) {
       return { chave: "aguardando_anamnese", sub: conv.status === "iniciado" ? "O paciente começou a responder" : "Mapeamento Holístico enviado", data: conv.created_at, destino: "aba:anamnese" };
     }
-    if (conv && conv.status === "concluido" && !conv.imported_at) {
+    /* recebido e a consulta ainda nao aconteceu (nenhum atendimento depois do envio) */
+    var ATd = window.AtendimentoAtual;
+    var atendeuDepois = conv && conv.submitted_at && ATd && ATd.doPaciente ? ATd.doPaciente(pid).some(function (e) { return String(e.occurred_at) >= String(conv.submitted_at); }) : false;
+    if (conv && conv.status === "concluido" && !conv.imported_at && !atendeuDepois) {
       return { chave: "anamnese_recebida", sub: "Respondido pelo paciente", data: conv.submitted_at, destino: "aba:anamnese" };
     }
     var res = maisRecente(jornada.resultados.filter(function (r) { return r.patient_id === pid && !r.superseded_at && (r.status === "salvo" || r.status === "revisado"); }), "saved_at");

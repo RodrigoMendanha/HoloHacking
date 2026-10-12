@@ -157,24 +157,19 @@ ok(reenvio.error && reenvio.error.hint === 'ja_enviada' && resalvar.error && res
 await N.evaluate(async () => { await window.PreConsulta.carregar(window.pacienteAtivoId()); window.PreConsulta.desenhar(); });
 await espera(300);
 s = await pc(N);
-ok(/Concluído/.test(s.status) && /Mapeamento recebido/.test(s.txt) && /Recebido em/i.test(s.txt) && /Ver resposta/i.test(s.txt) && /Levar para o atendimento/i.test(s.txt), 'ficha: "Mapeamento recebido", "Concluído", data, "Ver resposta" e "Levar para o atendimento"');
-await clicarPc(N, 'ver'); await espera(300);
-s = await pc(N);
-ok(/Relato da paciente/.test(s.txt) && s.txt.includes('Cansaço à tarde') && s.txt.includes('<img src=x') && await N.evaluate(() => window.__x === undefined) && /Prefiro não responder/.test(s.txt),
-  'Ver resposta: relato da paciente organizado (texto com HTML mostrado literal, não executado) e os "Prefiro não responder"');
+/* 12/10 (decisao da usuaria): o unico Mapeamento e o do paciente; as respostas aparecem completas, sem "Levar para o atendimento" */
+ok(/Concluído/.test(s.status) && /Mapeamento recebido/.test(s.txt) && /Recebido em/i.test(s.txt) && /Recolher respostas/i.test(s.txt) && !/Levar para o atendimento/i.test(s.txt),
+  'ficha: "Mapeamento recebido", "Concluído", data e as respostas já abertas; sem "Levar para o atendimento"');
+ok(/Respostas do paciente/.test(s.txt) && /Qual é o principal motivo para buscar acompanhamento agora\?/.test(s.txt) && s.txt.includes('Cansaço à tarde') && s.txt.includes('<img src=x')
+  && await N.evaluate(() => window.__x === undefined) && /Prefiro não responder/.test(s.txt) && /Sobre você e o que busca/.test(s.txt),
+  'resposta completa por etapa, com as perguntas que o paciente viu (HTML mostrado literal, não executado) e os "Prefiro não responder"');
 if (SHOT) { await new Promise(r => setTimeout(r, 900)); const el = await N.$('#an-preconsulta'); if (el) await el.screenshot({ path: SHOT + '/ficha-preconsulta-resposta.png' }); }
-await clicarPc(N, 'usar'); await espera(1500);
-const an = srv.linhas('anamneses').filter(a => a.patient_id === PA);
-const a0 = an[0] || { content: {} }, meta = a0.content.meta || {};
-const doms = a0.content.dominios || {};
-const peso = ((doms.medidas || {}).itens || []).find(i => i.campo === 'Peso');
-const emo = ((doms.emocional || {}).itens || [])[0];
-ok(an.length === 1 && a0.status === 'rascunho' && a0.encounter_id === EA && a0.content.formulario_versao === 2, 'Levar para a anamnese: cria UM rascunho V2 no atendimento ativo (a nutricionista revisa e salva)');
-ok(meta['motivo.motivo'] && meta['motivo.motivo'].origem === 'relato_paciente' && meta['motivo.motivo'].pre_consulta === convite.id && !peso && emo && emo.estado === 'recusado',
-  'rastreabilidade: cada campo com origem relato_paciente e a referência do convite; sem peso (o Mapeamento não pede medidas); "Prefiro não responder" vira estado recusado');
+ok(srv.linhas('anamneses').filter(a => a.patient_id === PA).length === 0 && await N.evaluate(() => !document.querySelector('#anamnese-registro .an2-form, #anamnese-registro textarea')),
+  'a aba não tem mais o formulário da nutricionista e nada vira anamnese sozinho');
 const cv2 = srv.linhas('anamnesis_invites').find(c => c.id === convite.id);
-ok(cv2.imported_anamnesis_id === a0.id && JSON.stringify(cv2.submitted_content) === JSON.stringify(fim.submitted_content), 'o convite registra que foi levado; o relato original continua igual');
-ok(await N.evaluate(() => /Rascunho|rascunho/.test(document.getElementById('anamnese-registro').innerText)), 'a aba mostra o rascunho da anamnese logo abaixo, para revisar');
+ok(JSON.stringify(cv2.submitted_content) === JSON.stringify(fim.submitted_content), 'a resposta original continua igual');
+await clicarPc(N, 'ver'); await espera(200);
+ok(!/Respostas do paciente/.test((await pc(N)).txt), '"Recolher respostas" esconde, e volta com "Ver respostas"');
 
 /* ===== 8 ===== */
 const B = rpc('criar_convite_anamnese', { p_patient_id: PA }, UB);

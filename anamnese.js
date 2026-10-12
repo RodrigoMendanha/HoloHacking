@@ -311,12 +311,34 @@
   var vendo = null;   // id de uma revisao antiga aberta so para leitura
   var v2Corrigindo = null;   // id da revisao V2 vigente sendo corrigida (antes do 1o salvamento automatico)
 
+  /* registros da anamnese profissional feitos antes de 12/10: so leitura, recolhidos */
+  function registrosAntigosHtml() {
+    var pid = window.pacienteAtivoId ? window.pacienteAtivoId() : null;
+    if (!pid) return "";
+    var lista = cache.filter(function (a) { return a.patient_id === pid && a.status !== "rascunho" && !a.superseded_at; })
+      .sort(function (a, b) { return String(b.created_at).localeCompare(String(a.created_at)); });
+    if (!lista.length) return "";
+    var A = window.AtendimentoAtual;
+    return '<details class="mh-antigos"><summary>Registros anteriores feitos pela nutricionista (' + lista.length + ') — somente leitura</summary>' +
+      lista.map(function (a) {
+        var e = A && A.porId ? A.porId(a.encounter_id) : null;
+        var corpo = window.AnamneseV2 && window.AnamneseV2.ehV2(a.content) ? window.AnamneseV2.resumoHtml(a.content) : '<p class="an2-vazio">Registro em formato antigo.</p>';
+        return '<section class="mh-antigo"><p class="pc-sub">' + escapar(e && A.rotuloQuando ? "Atendimento de " + A.rotuloQuando(e) : "Atendimento") +
+          " · rev. " + escapar(String(a.revision_number)) + " · " + escapar(a.status) + "</p>" + corpo + "</section>";
+      }).join("") + "</details>";
+  }
+
   function desenhar() {
     /* 09/10: a aba tem duas partes — a pre-consulta da paciente (anamnese-convite.js, #an-preconsulta) e o
        registro do atendimento (#anamnese-registro, desenhado aqui). Sem a divisao no HTML, usa a aba inteira. */
     if (window.PreConsulta) window.PreConsulta.desenhar();
     var alvo = document.getElementById("anamnese-registro") || document.getElementById("aba-anamnese");
     if (!alvo) return;
+    /* 12/10 (decisao da usuaria): o unico Mapeamento Holistico e o que o PACIENTE responde pelo link
+       (anamnese-convite.js). O formulario da nutricionista saiu da aba. Os registros feitos antes continuam
+       guardados e aparecem aqui so para leitura. O editor antigo fica desligado (window.__REGISTRO_PROFISSIONAL
+       liga, so para os testes do codigo legado). */
+    if (!window.__REGISTRO_PROFISSIONAL) { alvo.innerHTML = registrosAntigosHtml(); return; }
     var e = atendimentoAtivo();
     if (!e) {
       rascunho = null;
