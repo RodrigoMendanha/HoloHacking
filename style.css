@@ -5231,3 +5231,274 @@ body.escuro #secao-dashboard .dash-status.tom-neutro{color:#b7c9bd;border-color:
 #secao-dashboard .dash-hero-cta{margin-top:18px}
 #secao-dashboard .dash-colunas{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr)}
 @media (max-width:1180px){#secao-dashboard .dash-colunas{grid-template-columns:minmax(0,1fr)}}
+
+/* =========================================================================
+   PACIENTES — REDESIGN (12/10). So visual: mesmos dados, mesmos handlers.
+   Escopo #secao-pacientes. Elevacao por contraste de fundo, poucas bordas,
+   dourado so como destaque, sem vermelho de alerta.
+   ========================================================================= */
+#secao-pacientes{
+  --pc-sup:var(--sup-card);
+  --pc-sup-2:#ffffff;
+  --pc-linha:rgba(29,58,46,.07);
+  --pc-zebra:rgba(29,58,46,.025);
+  --pc-hover:rgba(201,163,90,.08);
+  --pc-faixa:#0b3325;
+  --pc-faixa-texto:#f4efe3;
+  --pc-ok:#1f6b47;
+  --pc-apagado:rgba(29,58,46,.28);
+}
+body.escuro #secao-pacientes{
+  --pc-sup:#0c3225;
+  --pc-sup-2:#103b2c;
+  --pc-linha:rgba(201,163,90,.1);
+  --pc-zebra:rgba(244,239,227,.02);
+  --pc-hover:rgba(201,163,90,.07);
+  --pc-faixa:#14503b;
+  --pc-faixa-texto:#f4efe3;
+  --pc-ok:#8fc9a5;
+  --pc-apagado:rgba(237,232,218,.25);
+}
+
+/* ---------- cabecalho da lista ---------- */
+#secao-pacientes .pac-cabeca{margin-bottom:18px;align-items:center}
+#secao-pacientes .pac-cabeca h2{font-family:var(--fonte-display);font-size:2.3rem;letter-spacing:.02em}
+#secao-pacientes .pac-cabeca-texto p{color:var(--texto-suave);font-size:.92rem;margin-top:2px}
+#secao-pacientes .abas-pacientes{border:none;background:var(--pc-sup);border-radius:12px;padding:4px;display:inline-flex;gap:2px;margin-bottom:16px}
+#secao-pacientes .abas-pacientes .aba{border:none;border-radius:9px;padding:8px 16px;margin:0}
+#secao-pacientes .abas-pacientes .aba.ativa{background:var(--pc-faixa);color:var(--pc-faixa-texto)}
+#secao-pacientes .abas-pacientes .aba.ativa svg{color:var(--dourado)}
+
+/* busca + ordem + filtros numa faixa so */
+#secao-pacientes .acoes-topo{margin-bottom:12px;gap:10px}
+#secao-pacientes .acoes-topo .campo-busca{flex:1 1 280px;max-width:420px!important}
+#secao-pacientes .acoes-topo .campo-busca input{background:var(--pc-sup);border-color:transparent;border-radius:10px}
+#secao-pacientes .acoes-topo .campo-busca input:focus{border-color:var(--dourado-suave)}
+#secao-pacientes .pac-ordem{background:var(--pc-sup);border-color:transparent;border-radius:10px}
+#secao-pacientes .pac-chips{display:inline-flex;flex-wrap:wrap;gap:2px;background:var(--pc-sup);border-radius:11px;padding:3px;margin-bottom:12px}
+#secao-pacientes .pac-chip{border:none;background:none;border-radius:8px;padding:6px 11px;font-size:.8rem;color:var(--texto-suave);display:inline-flex;align-items:center;gap:6px}
+#secao-pacientes .pac-chip:hover{color:var(--titulo);background:var(--pc-hover)}
+#secao-pacientes .pac-chip.ativo{background:var(--pc-faixa);color:var(--pc-faixa-texto)}
+#secao-pacientes .pac-chip-n{font-size:.7rem;opacity:.75;background:none;padding:0;min-width:0}
+#secao-pacientes .pac-selecao{margin-bottom:8px}
+#secao-pacientes .pac-sel-acoes{background:var(--pc-faixa);color:var(--pc-faixa-texto);border-radius:10px;padding:6px 8px 6px 14px;display:inline-flex;align-items:center;gap:8px}
+#secao-pacientes .pac-sel-acoes .pac-sel-btn{border:none;background:rgba(244,239,227,.1);color:var(--pc-faixa-texto);border-radius:8px;padding:6px 12px}
+#secao-pacientes .pac-sel-acoes .pac-sel-btn:hover{background:rgba(244,239,227,.18)}
+
+/* ---------- a tabela (desktop) ---------- */
+#secao-pacientes .pac-tabela{gap:0;background:var(--pc-sup);border-radius:14px;overflow:visible}
+#secao-pacientes .pac-tabela-cab,
+#secao-pacientes .pac-tabela .card-paciente{
+  display:grid;align-items:center;column-gap:16px;
+  grid-template-columns:24px minmax(180px,2.2fr) minmax(90px,1fr) minmax(110px,1fr) minmax(140px,1.2fr) minmax(120px,1fr) 40px;
+}
+#secao-pacientes .pac-tabela-cab{padding:12px 18px;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--texto-suave);border-bottom:1px solid var(--pc-linha)}
+#secao-pacientes .pac-tabela .card-paciente{
+  background:none;border:none;border-radius:0;border-bottom:1px solid var(--pc-linha);
+  padding:10px 18px;min-height:60px;row-gap:0;
+}
+#secao-pacientes .pac-tabela .card-paciente:nth-child(even of .card-paciente){background:var(--pc-zebra)}
+#secao-pacientes .pac-tabela .card-paciente:last-child{border-bottom:none;border-radius:0 0 14px 14px}
+#secao-pacientes .pac-tabela .card-paciente:hover{background:var(--pc-hover);border-color:var(--pc-linha)}
+#secao-pacientes .pac-tabela .card-paciente:focus-visible{outline:2px solid var(--dourado);outline-offset:-2px}
+#secao-pacientes .pac-tabela .card-paciente.ativo{box-shadow:inset 3px 0 0 var(--dourado)}
+#secao-pacientes .pac-tabela .card-paciente.inativo .pac-col-quem{opacity:.7}
+#secao-pacientes .pac-col-quem{display:flex;align-items:center;gap:12px;min-width:0}
+#secao-pacientes .pac-tabela .pac-avatar{width:34px;height:34px;font-size:1rem}
+#secao-pacientes .pac-quem-txt{display:flex;flex-direction:column;min-width:0}
+#secao-pacientes .pac-quem-txt h4{font-size:1.05rem;margin:0}
+#secao-pacientes .pac-sub{display:flex;gap:10px;flex-wrap:wrap;font-size:.76rem;color:var(--texto-suave);min-width:0}
+#secao-pacientes .pac-sub a{color:inherit;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:16rem}
+#secao-pacientes .pac-sub a:hover{color:var(--dourado)}
+#secao-pacientes .pac-col-status{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+#secao-pacientes .pac-tag{font-size:.68rem;padding:2px 8px;border-radius:999px;background:var(--dourado-bg);color:var(--realce);white-space:nowrap}
+#secao-pacientes .pac-col-contato .pac-dado,
+#secao-pacientes .pac-col-consulta .pac-dado{font-size:.8rem;color:var(--texto);display:block}
+#secao-pacientes .pac-dado.atraso{color:var(--dourado-escuro)}
+body.escuro #secao-pacientes .pac-dado.atraso{color:var(--dourado-claro)}
+#secao-pacientes .pac-vazio{color:var(--texto-suave);font-size:.8rem}
+#secao-pacientes .pac-tabela .pac-acao{width:auto}
+#secao-pacientes .pac-tabela .pac-acao-principal{border:none;border-radius:8px;background:var(--dourado-bg);padding:7px 12px;font-size:.78rem;flex:0 1 auto}
+#secao-pacientes .pac-tabela .pac-acao-principal:hover{background:var(--dourado-suave)}
+#secao-pacientes .pac-col-menu{position:relative;display:flex;justify-content:flex-end}
+#secao-pacientes .pac-acao-mais{border:none;border-radius:8px;padding:6px 10px;font-size:1.05rem;letter-spacing:.05em;color:var(--texto-suave)}
+#secao-pacientes .pac-acao-mais:hover{background:var(--pc-hover);color:var(--titulo)}
+#secao-pacientes .pac-col-menu .pac-menu{top:calc(100% + 4px);right:0;left:auto;border:none;background:var(--pc-sup-2);box-shadow:0 12px 32px rgba(6,35,26,.22)}
+#secao-pacientes .pac-tabela .pac-abrir{display:none}
+#secao-pacientes .card-revisao{background:var(--pc-sup);border:none;border-radius:12px}
+
+/* ---------- tablet/celular: a tabela vira cartao (a area util abaixo de ~1180px nao cabe 6 colunas) ---------- */
+@media (max-width:1180px){
+  #secao-pacientes .pac-tabela{background:none;gap:10px}
+  #secao-pacientes .pac-tabela-cab{display:none}
+  #secao-pacientes .pac-tabela .card-paciente{
+    grid-template-columns:24px 1fr auto;grid-template-areas:"check quem menu" ". status status" ". passo passo" ". consulta consulta";
+    row-gap:8px;padding:14px;border-radius:14px!important;border:none;background:var(--pc-sup)!important;align-items:start;
+  }
+  #secao-pacientes .pac-tabela .pac-check{grid-area:check;margin-top:6px}
+  #secao-pacientes .pac-col-quem{grid-area:quem}
+  #secao-pacientes .pac-col-status{grid-area:status}
+  #secao-pacientes .pac-col-contato{display:none}
+  #secao-pacientes .pac-col-passo{grid-area:passo}
+  #secao-pacientes .pac-col-consulta{grid-area:consulta}
+  #secao-pacientes .pac-col-consulta:empty{display:none}
+  #secao-pacientes .pac-col-menu{grid-area:menu}
+  #secao-pacientes .pac-sub{display:none}
+  #secao-pacientes .pac-tabela .pac-acao{max-width:none}
+}
+
+/* =========================== FICHA ======================================= */
+/* A ficha ja e uma casca verde-floresta (.ficha) nos dois temas: as superficies dentro dela sao
+   verdes um pouco mais claros, texto creme e dourado como destaque. */
+#secao-pacientes .ficha{
+  --pc-sup:rgba(244,239,227,.055);--pc-sup-2:#0f3d2d;--pc-linha:rgba(201,163,90,.16);--pc-hover:rgba(201,163,90,.1);
+  --pc-faixa:#c9a35a;--pc-faixa-texto:#06231a;--pc-apagado:rgba(244,239,227,.3);--pc-ok:#8fc9a5;
+  --pc-claro:#f4efe3;--pc-claro-suave:rgba(244,239,227,.62);--pc-ouro:#e2c98a;
+  padding:22px 24px;
+}
+#secao-pacientes #vista-ficha .btn-voltar{margin-bottom:10px}
+#secao-pacientes .fic-topo{
+  display:grid;grid-template-columns:auto 1fr auto;gap:6px 18px;align-items:center;
+  background:var(--pc-sup);border:none;border-radius:16px;padding:16px 20px;margin-bottom:10px;
+}
+#secao-pacientes .fic-topo .pac-avatar{width:52px;height:52px;font-size:1.4rem}
+#secao-pacientes .fic-nome-linha h3{font-size:1.65rem}
+#secao-pacientes .fic-contato{font-size:.82rem}
+#secao-pacientes .fic-topo .fic-sobre{grid-column:2;margin:0;padding:0;border:none;background:none;font-size:.8rem;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#secao-pacientes .fic-topo .fic-sobre-rot{display:none}
+#secao-pacientes .fic-topo .fic-detalhe-corpo{grid-column:1/-1}
+#secao-pacientes .fic-topo .fic-faixa{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px 18px;margin:8px 0 0;padding-top:10px;border-top:1px solid var(--pc-linha)}
+#secao-pacientes .fic-topo .fic-aviso-arquivado{grid-column:1/-1}
+#secao-pacientes .fic-faixa .fic-pilula{background:none;border:none;padding:2px 0;display:inline-flex;gap:8px;align-items:baseline;min-height:0;border-radius:6px}
+#secao-pacientes .fic-faixa .fic-pilula .fic-pilula-rot{font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;color:var(--pc-claro-suave)}
+#secao-pacientes .fic-faixa .fic-pilula b{font-size:.84rem;font-weight:500;color:var(--pc-claro)}
+#secao-pacientes .fic-faixa .fic-pilula:hover b{color:var(--dourado)}
+#secao-pacientes .fic-faixa .fic-pilula.vazia b{color:var(--pc-claro-suave);font-weight:400}
+#secao-pacientes .fic-acoes-topo{grid-column:3;grid-row:1/span 2;display:flex;gap:8px;align-items:center;flex-wrap:nowrap;position:relative}
+#secao-pacientes .fic-mais{position:relative}
+#secao-pacientes .fic-mais-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:35;display:flex;flex-direction:column;min-width:13rem;padding:6px;background:var(--pc-sup-2);border-radius:12px;box-shadow:0 12px 32px rgba(6,35,26,.22)}
+#secao-pacientes .fic-mais-menu.hidden{display:none}
+#secao-pacientes .fic-mais-menu button{justify-content:flex-start;border:none;background:none;text-align:left;padding:9px 12px;border-radius:8px;font-size:.85rem;color:var(--pc-claro);width:100%;letter-spacing:normal;text-transform:none}
+#secao-pacientes .fic-mais-menu button:hover{background:var(--pc-hover);color:var(--dourado)}
+#secao-pacientes .fic-mais-menu button:disabled{opacity:.45;cursor:not-allowed}
+
+/* atendimento ativo: uma barra */
+#secao-pacientes .fic-atendimento{
+  display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;
+  background:rgba(0,0,0,.22);color:var(--pc-claro);border:none;border-radius:12px;padding:9px 14px;margin-bottom:10px;
+}
+#secao-pacientes .fic-atendimento .fic-at-rot{font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--dourado-claro);margin:0}
+#secao-pacientes .fic-atendimento .fic-at-valor{color:var(--pc-claro);font-weight:500;font-size:.9rem}
+#secao-pacientes .fic-atendimento .fic-at-valor.vazio{color:rgba(244,239,227,.65);font-weight:400}
+#secao-pacientes .fic-atendimento .fic-at-origem{color:rgba(244,239,227,.6);font-style:normal;font-size:.78rem}
+#secao-pacientes .fic-atendimento .fic-at-acoes{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+#secao-pacientes .fic-atendimento .fic-at-acoes button{border:none;border-radius:8px;padding:6px 12px;font-size:.78rem;background:rgba(244,239,227,.1);color:var(--pc-claro);letter-spacing:normal;text-transform:none;box-shadow:none}
+#secao-pacientes .fic-atendimento .fic-at-acoes button:hover{background:rgba(244,239,227,.18)}
+#secao-pacientes .fic-atendimento .fic-at-acoes .btn-verde{background:var(--dourado);color:var(--verde-noite)}
+
+/* jornada horizontal */
+#secao-pacientes .fic-jornada-bloco{background:none;border:none;padding:0;margin:0 0 12px}
+#secao-pacientes .fic-stepper{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;list-style:none;margin:0;padding:0;background:var(--pc-sup);border-radius:14px}
+#secao-pacientes .fic-step{position:relative}
+#secao-pacientes .fic-step button{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;border-radius:14px}
+#secao-pacientes .fic-step button:hover{background:var(--pc-hover)}
+#secao-pacientes .fic-step button:focus-visible{outline:2px solid var(--dourado);outline-offset:-2px}
+#secao-pacientes .fic-step:not(:last-child)::after{content:"";position:absolute;right:0;top:22%;bottom:22%;width:1px;background:var(--pc-linha)}
+#secao-pacientes .fic-step-no{flex:0 0 26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:600;border:1.5px solid var(--pc-apagado);color:var(--pc-claro-suave)}
+#secao-pacientes .fic-step.feito .fic-step-no{background:var(--pc-ok);border-color:var(--pc-ok);color:#07211a}
+#secao-pacientes .fic-step.atual .fic-step-no{border-color:var(--dourado);color:var(--dourado);box-shadow:0 0 0 3px var(--dourado-bg)}
+#secao-pacientes .fic-step-txt{display:flex;flex-direction:column;min-width:0}
+#secao-pacientes .fic-step-mov{font-size:.62rem;letter-spacing:.16em;color:var(--pc-claro-suave)}
+#secao-pacientes .fic-step.atual .fic-step-mov{color:var(--dourado)}
+#secao-pacientes .fic-step-nome{font-size:.86rem;color:var(--pc-claro);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#secao-pacientes .fic-step-estado{font-size:.7rem;color:var(--pc-claro-suave)}
+
+/* abas: indicador solido, rolagem com pista, presas ao rolar */
+#secao-pacientes .ficha-arquivos > .abas-ficha-caixa{position:sticky;top:var(--topo-altura,72px);z-index:15;background:#0b3325;padding:6px 0;margin-bottom:12px;border-radius:12px}
+#secao-pacientes .abas-ficha-caixa{position:relative}
+#secao-pacientes .ficha-arquivos .abas[role="tablist"]{
+  display:flex;flex-wrap:nowrap;gap:2px;overflow-x:auto;scrollbar-width:thin;border:none;background:var(--pc-sup);border-radius:12px;padding:4px;margin:0;scroll-behavior:smooth;
+}
+#secao-pacientes .ficha-arquivos .abas[role="tablist"]::-webkit-scrollbar{height:4px;display:block}
+#secao-pacientes .ficha-arquivos .abas[role="tablist"]::-webkit-scrollbar-thumb{background:var(--dourado-suave);border-radius:4px}
+#secao-pacientes .ficha-arquivos .abas .aba{flex:0 0 auto;border:none;border-radius:9px;padding:8px 14px;margin:0;font-size:.74rem;white-space:nowrap;color:var(--pc-claro-suave);background:none}
+#secao-pacientes .ficha-arquivos .abas .aba.ativa{background:var(--pc-faixa);color:var(--pc-faixa-texto)}
+#secao-pacientes .ficha-arquivos .abas .aba:not(.ativa):hover{background:var(--pc-hover)}
+#secao-pacientes .abas-seta{position:absolute;top:50%;transform:translateY(-50%);z-index:2;border:none;width:30px;height:30px;border-radius:50%;background:var(--pc-faixa);color:var(--pc-faixa-texto);box-shadow:0 4px 14px rgba(6,35,26,.18);display:flex;align-items:center;justify-content:center}
+#secao-pacientes .abas-seta.esq{left:-6px}
+#secao-pacientes .abas-seta.dir{right:-6px}
+#secao-pacientes .abas-seta[hidden]{display:none}
+#secao-pacientes .abas-ficha-caixa.fade-dir::after,#secao-pacientes .abas-ficha-caixa.fade-esq::before{content:"";position:absolute;top:6px;bottom:6px;width:36px;pointer-events:none;z-index:1}
+#secao-pacientes .abas-ficha-caixa.fade-dir::after{right:0;background:linear-gradient(90deg,transparent,#0b3325);border-radius:0 12px 12px 0}
+#secao-pacientes .abas-ficha-caixa.fade-esq::before{left:0;background:linear-gradient(270deg,transparent,#0b3325);border-radius:12px 0 0 12px}
+
+/* visao geral em duas colunas */
+#secao-pacientes .fic-visao-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px;align-items:start}
+#secao-pacientes .fic-visao-grid > div{display:flex;flex-direction:column;gap:14px;min-width:0}
+#secao-pacientes #aba-visao .dash-bloco,#secao-pacientes #aba-visao .fic-mapa,#secao-pacientes #aba-visao .fic-sistemas,#secao-pacientes #aba-visao .fic-leituras,#secao-pacientes #aba-visao > .dash-vazio,#secao-pacientes .fic-visao-grid .dash-vazio.fic-sem-mapa{
+  background:var(--pc-sup);border:none;border-radius:16px;margin:0;box-shadow:none;
+}
+#secao-pacientes #aba-visao .fic-alertas{margin-bottom:14px}
+#secao-pacientes .fic-mapa{padding:18px 20px;display:grid;grid-template-columns:auto 1fr;gap:10px 22px;align-items:center}
+#secao-pacientes .fic-mapa > .fic-rot-mapa{grid-column:1/-1}
+#secao-pacientes .fic-mapa .fic-indice{margin:0}
+#secao-pacientes .fic-mapa .fic-indice b{font-family:var(--fonte-display);font-size:2.6rem;line-height:1;color:var(--pc-ouro)}
+#secao-pacientes .fic-mapa .fic-triada{margin:0;display:flex;gap:18px;flex-wrap:wrap}
+#secao-pacientes .fic-mapa .fic-piores{grid-column:1/-1;margin:0;padding-top:10px;border-top:1px solid var(--pc-linha)}
+#secao-pacientes .fic-sistemas{padding:16px 20px;display:flex;flex-direction:column;gap:12px}
+#secao-pacientes .fic-barra{display:grid;grid-template-columns:minmax(130px,11rem) 1fr auto;grid-template-areas:"nome trilho n" "faixa faixa faixa";column-gap:12px;row-gap:3px;align-items:center}
+#secao-pacientes .fic-barra-nome{grid-area:nome;font-size:.86rem;color:var(--pc-claro)}
+#secao-pacientes .fic-barra-trilho{grid-area:trilho;height:12px;border-radius:999px;background:rgba(201,163,90,.14)}
+#secao-pacientes .fic-barra-trilho i{background:#c9a35a}
+#secao-pacientes .fic-barra-trilho i{height:12px;border-radius:999px}
+#secao-pacientes .fic-barra-n{grid-area:n;font-weight:600;font-size:.92rem;min-width:2.6rem;text-align:right;color:var(--pc-ouro)}
+#secao-pacientes .fic-barra-faixa{grid-area:faixa;font-size:.7rem;letter-spacing:.06em;text-transform:none;color:var(--pc-claro-suave);display:block!important}
+#secao-pacientes .fic-barra.insuficiente .fic-barra-trilho i{opacity:.55}
+#secao-pacientes #fic-visao-timeline-bloco{padding:16px 18px}
+#secao-pacientes .fic-filtros-linha{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:2px;background:rgba(0,0,0,.16);border-radius:10px;padding:3px;scrollbar-width:thin}
+#secao-pacientes .fic-filtro-btn{flex:0 0 auto;border:none;background:none;border-radius:8px;padding:5px 10px;font-size:.74rem;white-space:nowrap;color:var(--pc-claro-suave)}
+#secao-pacientes .fic-filtro-btn.ativo,#secao-pacientes .fic-filtro-btn[aria-pressed="true"]{background:var(--pc-faixa);color:var(--pc-faixa-texto)}
+
+
+@media (max-width:1100px){
+  #secao-pacientes .fic-visao-grid{grid-template-columns:1fr}
+  #secao-pacientes .fic-topo{grid-template-columns:auto 1fr}
+  #secao-pacientes .fic-acoes-topo{grid-column:1/-1;grid-row:auto;flex-wrap:wrap}
+}
+@media (max-width:760px){
+  #secao-pacientes .fic-stepper{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(140px,1fr);overflow-x:auto}
+  #secao-pacientes .fic-step-estado{display:none}
+  #secao-pacientes .fic-topo{padding:14px}
+  #secao-pacientes .fic-topo .pac-avatar{width:42px;height:42px}
+  #secao-pacientes .fic-nome-linha h3{font-size:1.35rem}
+  #secao-pacientes .fic-atendimento .fic-at-acoes{margin-left:0;width:100%}
+  #secao-pacientes .fic-barra{grid-template-columns:1fr auto;grid-template-areas:"nome n" "trilho trilho" "faixa faixa"}
+  #secao-pacientes .fic-mapa{grid-template-columns:1fr}
+}
+
+/* ficha: textos do cabecalho e da barra em creme sobre o verde */
+#secao-pacientes .fic-topo .fic-contato,#secao-pacientes .fic-topo .fic-contato a,#secao-pacientes .fic-topo .fic-sobre{color:var(--pc-claro-suave)}
+#secao-pacientes .fic-topo .fic-contato a:hover{color:var(--pc-ouro)}
+#secao-pacientes .fic-topo .fic-detalhes{color:var(--pc-ouro)}
+#secao-pacientes .fic-topo .fic-nome-linha h3{color:var(--pc-ouro)}
+#secao-pacientes .fic-mapa .fic-rot,#secao-pacientes .fic-sistemas .fic-rot{color:var(--pc-ouro)}
+#secao-pacientes .fic-alerta span{color:var(--pc-claro)}
+
+/* dentro da casca verde, os blocos redesenhados (cabecalho, Visao Geral) leem os tons claros */
+#secao-pacientes .ficha .fic-topo,#secao-pacientes .ficha #aba-visao{
+  --titulo:var(--pc-ouro);--texto:var(--pc-claro);--texto-suave:var(--pc-claro-suave);--realce:var(--pc-ouro);
+  --borda-suave:rgba(201,163,90,.18);--input-borda:rgba(201,163,90,.3);--halo:rgba(201,163,90,.08);color:var(--pc-claro);
+}
+#secao-pacientes .ficha .fic-topo .perf-botao{background:rgba(244,239,227,.06);border-color:rgba(201,163,90,.3);color:var(--pc-claro)}
+#secao-pacientes .ficha .fic-topo .perf-botao:hover{background:rgba(201,163,90,.14)}
+#secao-pacientes .ficha .fic-topo .pac-status.ativo{background:rgba(143,201,165,.14);color:#8fc9a5;border-color:transparent}
+#secao-pacientes .ficha .fic-topo .fic-cadastro{color:var(--pc-claro-suave)}
+#secao-pacientes .ficha #aba-visao .fic-triada span,#secao-pacientes .ficha #aba-visao .fic-triada i{color:var(--pc-claro)}
+#secao-pacientes .ficha #aba-visao .fic-triada i{color:var(--pc-claro-suave);font-style:normal}
+#secao-pacientes .ficha #aba-visao .dash-titulo{color:var(--pc-ouro)}
+#secao-pacientes .ficha #aba-visao .fic-evento b,#secao-pacientes .ficha #aba-visao .dash-quem b,#secao-pacientes .ficha #aba-visao .fic-det b{color:var(--pc-claro)}
+#secao-pacientes .ficha #aba-visao .fic-det span,#secao-pacientes .ficha #aba-visao .fic-evento-quando,#secao-pacientes .ficha #aba-visao .dash-porque{color:var(--pc-claro-suave)}
+#secao-pacientes .ficha #aba-visao .fic-evento{background:none;border-color:transparent}
+#secao-pacientes .ficha #aba-visao .fic-evento:hover{background:rgba(201,163,90,.07)}
+#secao-pacientes .ficha #aba-visao .fic-an-resumo,#secao-pacientes .ficha #aba-visao .an2-resumo{color:var(--pc-claro)}
+#secao-pacientes .ficha #aba-visao .dash-bloco{padding:16px 18px}

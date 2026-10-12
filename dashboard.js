@@ -137,6 +137,7 @@
       jornada = { convites: rs[0], resultados: rs[1], emissoes: rs[2], carregadoEm: Date.now(), carregando: false };
       var sec = document.getElementById("secao-dashboard");
       if (sec && sec.classList.contains("ativa")) desenhar();
+      ouvintes.forEach(function (fn) { try { fn(); } catch (e) { /* nada */ } });
     });
   }
 
@@ -162,7 +163,7 @@
       return { chave: "aguardando_anamnese", sub: conv.status === "iniciado" ? "O paciente começou a responder" : "Mapeamento Holístico enviado", data: conv.created_at, destino: "aba:anamnese" };
     }
     if (conv && conv.status === "concluido" && !conv.imported_at) {
-      return { chave: "anamnese_recebida", sub: "Respondida pela paciente", data: conv.submitted_at, destino: "aba:anamnese" };
+      return { chave: "anamnese_recebida", sub: "Respondido pelo paciente", data: conv.submitted_at, destino: "aba:anamnese" };
     }
     var res = maisRecente(jornada.resultados.filter(function (r) { return r.patient_id === pid && !r.superseded_at && (r.status === "salvo" || r.status === "revisado"); }), "saved_at");
     var emis = res ? maisRecente(jornada.emissoes.filter(function (e) { return e.holos_result_id === res.id; }), "created_at") : null;
@@ -446,4 +447,37 @@
   });
 
   window.redesenharDashboard = desenhar;
+
+  /* Redesign da ficha (12/10): a MESMA regra das etapas do Dashboard e os passos da jornada clinica,
+     para a ficha contar a mesma historia. So le o que ja foi carregado (convites, Resultados HOLOS,
+     emissoes) e o que a sincronizacao ja trouxe; nao cria consulta nova alem da leitura do Dashboard. */
+  var ouvintes = [];
+  window.JornadaPaciente = {
+    carregar: function () { carregarJornada(false); },
+    carregado: function () { return jornada.carregadoEm > 0; },
+    aoCarregar: function (fn) { if (typeof fn === "function" && ouvintes.indexOf(fn) < 0) ouvintes.push(fn); },
+    /** etapa atual do paciente (rotulo do Dashboard) ou null */
+    etapa: function (pid) {
+      var p = pacientePorId(pid); if (!p || !ativo(p)) return null;
+      var e = null; try { e = etapaDe(p, consultasFuturas()); } catch (err) { e = null; }
+      return e ? { chave: e.chave, rotulo: ETAPAS[e.chave].rotulo, sub: e.sub } : null;
+    },
+    /** os 5 passos da jornada, feitos so com dado real */
+    passos: function (pid) {
+      var hist = window.historicoPontuacao ? (window.historicoPontuacao(pid) || []) : [];
+      var comSessao = temSupa();
+      var salvos = hist.filter(function (h) { return comSessao ? !!h._supa_id : true; }).length;
+      var Ap = window.Aplicacoes;
+      var ferramentas = Ap && Ap.doPaciente ? Ap.doPaciente(pid).filter(function (a) { return a.status === "concluida" || a.status === "revisada"; }).length : 0;
+      var res = maisRecente(jornada.resultados.filter(function (r) { return r.patient_id === pid && !r.superseded_at && (r.status === "salvo" || r.status === "revisado"); }), "saved_at");
+      var emis = res ? jornada.emissoes.some(function (e) { return e.holos_result_id === res.id; }) : false;
+      return [
+        { id: "mapear", feito: salvos >= 1 },
+        { id: "integrar", feito: ferramentas >= 1 },
+        { id: "consolidar", feito: !!res },
+        { id: "apresentar", feito: !!emis },
+        { id: "acompanhar", feito: salvos >= 2 }
+      ];
+    }
+  };
 })();

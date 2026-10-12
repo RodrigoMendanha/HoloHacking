@@ -110,10 +110,11 @@ ok(semPainel === 0, 'a aba Documentos nao tem painel de valores de exame (09/10)
 const comExame = await verFicha();
 ok(!comExame.alertas.some(a=>/diverg|exame/i.test(a)),
    'valor de exame antigo NAO vira alerta/pendencia');
-ok(!comExame.faixa.some(l=>/preenchid/.test(l)) && comExame.faixa.some(l=>/Documentos e exames/i.test(l)),
-   'a faixa nao conta valores de exame; conta documentos e exames guardados: ' + (comExame.faixa.find(l=>/Documentos/i.test(l))||''));
-ok(comExame.faixa.some(l=>/ÚLTIMA APLICAÇÃO/i.test(l) || /Última aplicação/i.test(l)),
-   'e diz quando foi a ultima aplicacao');
+/* redesign 12/10: a faixa e proxima consulta, ultimo HOLOSCAN e etapa atual (documentos ficam na Visao e na aba) */
+ok(!comExame.faixa.some(l=>/preenchid|exame/i.test(l)),
+   'a faixa nao conta valores de exame');
+ok(comExame.faixa.some(l=>/ÚLTIMO HOLOSCAN/i.test(l)),
+   'e diz quando foi o ultimo HOLOSCAN');
 
 await nav.close();
 console.log(ruim.length?'\n  ERRO: '+ruim[0]:'\n  sem erro de JS');

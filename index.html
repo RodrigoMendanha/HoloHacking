@@ -733,9 +733,8 @@
         <div id="vista-lista-pacientes">
           <div class="secao-cabeca pac-cabeca">
             <div class="pac-cabeca-texto">
-              <span class="eyebrow">Módulo - Pacientes</span>
               <h2>Pacientes</h2>
-              <p>Gerencie sua carteira e acompanhe a jornada de cada paciente.</p>
+              <p>Acompanhe seus pacientes e cada etapa do cuidado.</p>
             </div>
             <div class="pac-cabeca-acoes">
               <span class="contador-busca" id="pac-total-cabeca"><b>0</b> pacientes</span>
@@ -847,6 +846,10 @@
             <!-- ===== o cabecalho: quem e, como falar com ela, e o que fazer
                  agora. Antes era so o avatar e o nome; as acoes estavam la
                  embaixo, depois de tudo, onde ninguem as via. -->
+            <!-- Redesign 12/10: cabecalho compacto (quem e, contato, idade e a faixa com proxima
+                 consulta, ultimo HOLOSCAN e etapa atual). Acao principal: Aplicar HOLOSCAN;
+                 secundaria: Nova consulta; o resto em "Mais acoes". Os IDs e data-atributos
+                 sao os mesmos de antes (os handlers e a regra de arquivado nao mudam). -->
             <header class="fic-topo">
               <span class="pac-avatar" id="ficha-avatar">-</span>
               <div class="fic-quem">
@@ -857,82 +860,40 @@
                 <div class="fic-contato" id="ficha-contato"></div>
               </div>
               <div class="fic-acoes-topo">
-                <button type="button" class="perf-botao btn-editar-pac" id="btn-editar-paciente" aria-label="Editar cadastro">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-                  Editar
-                </button>
-                <button type="button" class="perf-botao" data-atalho="agenda">Marcar consulta</button>
-                <button type="button" class="perf-botao" data-ir="aba:documentos" data-rolar="doc-solta">Adicionar arquivo</button>
                 <button type="button" class="btn-verde" data-atalho="holoscan">Aplicar HOLOSCAN</button>
                 <button type="button" class="btn-verde hidden" id="btn-reativar-paciente">Reativar paciente</button>
-                <button type="button" class="perf-botao" id="btn-exportar-paciente" aria-label="Exportar dados do paciente">Exportar dados</button>
+                <button type="button" class="perf-botao" data-atalho="agenda">Nova consulta</button>
+                <span class="fic-mais">
+                  <button type="button" class="perf-botao" id="btn-mais-acoes" aria-haspopup="menu" aria-expanded="false" aria-controls="fic-mais-menu">Mais ações <span aria-hidden="true">&#9662;</span></button>
+                  <span class="fic-mais-menu hidden" id="fic-mais-menu" role="menu" aria-label="Mais ações">
+                    <button type="button" role="menuitem" class="perf-botao btn-editar-pac" id="btn-editar-paciente" aria-label="Editar cadastro">Editar cadastro</button>
+                    <button type="button" role="menuitem" class="perf-botao" data-ir="aba:documentos" data-rolar="doc-solta">Adicionar arquivo</button>
+                    <button type="button" role="menuitem" class="perf-botao" id="btn-exportar-paciente" aria-label="Exportar dados do paciente">Exportar dados</button>
+                  </span>
+                </span>
               </div>
+              <div class="fic-sobre">
+                <span class="fic-sobre-rot">Sobre o paciente</span>
+                <span id="ficha-sobre"></span>
+                <button type="button" class="fic-detalhes" id="ficha-ver-detalhes"
+                        aria-expanded="false">Detalhes</button>
+              </div>
+              <div class="fic-detalhe-corpo hidden" id="ficha-detalhes"></div>
+              <!-- faixa: proxima consulta, ultimo HOLOSCAN, etapa atual (ficha.js) -->
+              <div class="fic-faixa" id="ficha-faixa"></div>
             </header>
 
-            <!-- V1, Etapa 1: PACIENTE ATIVO + ATENDIMENTO ATIVO, sempre a vista.
-                 Desenhado por atendimento.js. "Nenhum atendimento selecionado"
-                 quando nao ha; nenhum registro clinico novo e salvo sem um. -->
+            <!-- V1, Etapa 1: ATENDIMENTO ATIVO, sempre a vista, agora numa barra so.
+                 Desenhado por atendimento.js; nenhum registro clinico novo e salvo sem um. -->
             <div class="fic-atendimento" id="ficha-atendimento" role="group" aria-label="Atendimento ativo"></div>
 
-            <div class="fic-sobre">
-              <span class="fic-sobre-rot">Sobre o paciente</span>
-              <span id="ficha-sobre"></span>
-              <button type="button" class="fic-detalhes" id="ficha-ver-detalhes"
-                      aria-expanded="false">Detalhes</button>
-            </div>
-            <div class="fic-detalhe-corpo hidden" id="ficha-detalhes"></div>
-
-            <!-- A faixa de situacao: as quatro perguntas que se faz antes de
-                 abrir qualquer aba. Desenhada por ficha.js. -->
-            <div class="fic-faixa" id="ficha-faixa"></div>
-
-            <!-- A jornada clinica, so o encadeamento visual: nao calcula nada,
-                 nao muda com o paciente. Mesmo vocabulario do dashboard
-                 (dash-jornada), reaproveitado — nao inventa um segundo visual
-                 so porque mudou de tela. data-ir="aba:x" fica dentro da ficha;
-                 data-atalho="x" vai para a secao do menu, como no cabecalho. -->
-            <div class="dash-bloco dash-bloco-compacto fic-jornada-bloco">
-              <h3 class="dash-titulo">Jornada clínica</h3>
-              <div class="dash-jornada fic-jornada">
-                <div class="dash-jornada-passo">
-                  <span class="dash-mov">MAPEAR</span>
-                  <span class="dash-quem"><b>HOLOSCAN</b>
-                    <span class="dash-porque">Mapear prioridades de investigação.</span></span>
-                  <button type="button" class="dash-ir" data-atalho="holoscan">Abrir <span aria-hidden="true">&rarr;</span></button>
-                </div>
-                <div class="dash-jornada-seta" aria-hidden="true">&darr;</div>
-                <div class="dash-jornada-passo">
-                  <span class="dash-mov">INTEGRAR</span>
-                  <span class="dash-quem"><b>Ferramentas</b>
-                    <span class="dash-porque">Integrar ferramentas e condutas ao caso.</span></span>
-                  <button type="button" class="dash-ir" data-atalho="corpo">Abrir <span aria-hidden="true">&rarr;</span></button>
-                </div>
-                <div class="dash-jornada-seta" aria-hidden="true">&darr;</div>
-                <div class="dash-jornada-passo">
-                  <span class="dash-mov">CONSOLIDAR</span>
-                  <span class="dash-quem"><b>Resultado HOLOS</b>
-                    <span class="dash-porque">Reunir HOLOSCAN, ferramentas e a sua leitura antes da Conduta.</span></span>
-                  <button type="button" class="dash-ir" data-ir="aba:resultado-holos">Abrir <span aria-hidden="true">&rarr;</span></button>
-                </div>
-                <div class="dash-jornada-seta" aria-hidden="true">&darr;</div>
-                <div class="dash-jornada-passo">
-                  <span class="dash-mov">APRESENTAR</span>
-                  <span class="dash-quem"><b>Resultado</b>
-                    <span class="dash-porque">Apresentar e enviar o resultado à paciente.</span></span>
-                  <button type="button" class="dash-ir" data-atalho="resultado">Abrir <span aria-hidden="true">&rarr;</span></button>
-                </div>
-                <div class="dash-jornada-seta" aria-hidden="true">&darr;</div>
-                <div class="dash-jornada-passo">
-                  <span class="dash-mov">ACOMPANHAR</span>
-                  <span class="dash-quem"><b>Evolução</b>
-                    <span class="dash-porque">Acompanhar mudanças entre aplicações.</span></span>
-                  <button type="button" class="dash-ir" data-ir="aba:visao">Abrir <span aria-hidden="true">&rarr;</span></button>
-                </div>
-              </div>
-            </div>
+            <!-- Jornada clinica horizontal (ficha.js): cada passo marcado so com dado real. -->
+            <nav class="fic-jornada-bloco" id="ficha-jornada" aria-label="Jornada clínica"></nav>
 
             <div class="ficha-arquivos" id="ficha-arquivos">
-              <div class="abas" role="tablist">
+              <div class="abas-ficha-caixa">
+              <button type="button" class="abas-seta esq" data-abas-seta="-1" aria-label="Abas anteriores" hidden>&lsaquo;</button>
+              <div class="abas" role="tablist" aria-label="Seções da ficha">
                 <button class="aba ativa" data-aba="visao" role="tab" id="tab-visao" aria-controls="aba-visao" aria-selected="true">Visão geral</button>
                 <button class="aba" data-aba="consultas" role="tab" id="tab-consultas" aria-controls="aba-consultas" aria-selected="false">Atendimentos</button>
                 <button class="aba" data-aba="anamnese" role="tab" id="tab-anamnese" aria-controls="aba-anamnese" aria-selected="false">Mapeamento Holístico</button>
@@ -944,6 +905,8 @@
                 <button class="aba" data-aba="evolucao" role="tab" id="tab-evolucao" aria-controls="aba-evolucao" aria-selected="false">Evolução</button>
                 <button class="aba" data-aba="relatorio" role="tab" id="tab-relatorio" aria-controls="aba-relatorio" aria-selected="false">Relatório</button>
                 <button class="aba" data-aba="holos-ai" role="tab" id="tab-holos-ai" aria-controls="aba-holos-ai" aria-selected="false">HOLOS AI</button>
+              </div>
+              <button type="button" class="abas-seta dir" data-abas-seta="1" aria-label="Mais abas" hidden>&rsaquo;</button>
               </div>
 
               <div class="aba-painel" id="aba-visao" role="tabpanel" aria-labelledby="tab-visao"></div>

@@ -177,14 +177,14 @@ const b7 = await A.evaluate(async (pid, eid) => {
   window.AtendimentoAtual.selecionarPorId(eid);
   window.levarParaFicha('aba:visao', pid); await new Promise(r => setTimeout(r, 600));
   const linha = () => ([...document.querySelectorAll('#aba-visao *')].map(e => e.textContent).find(t => /^Anamnese/.test(t) && t.length < 200) || document.getElementById('aba-visao').innerText);
-  const pega = () => { const t = document.getElementById('aba-visao').innerText; const i = t.search(/Anamnese \(atendimento ativo\)|Anamnese\s*\n\s*(rev|não|rascunho)/); return i < 0 ? t.slice(0, 300) : t.slice(i, i + 80); };
+  const pega = () => { const t = document.getElementById('aba-visao').innerText; const i = t.search(/MAPEAMENTO HOLÍSTICO \(ATENDIMENTO ATIVO\)|Mapeamento Holístico \(atendimento ativo\)|Mapeamento Holístico\s*\n\s*(rev|não|rascunho)/i); return i < 0 ? t.slice(0, 300) : t.slice(i, i + 80); };
   const antes = [pega()];
   await window.Anamnese.salvar({ encounter_id: eid, content: { formato: 'v2', dominios: {} }, status: 'salvo' });
   await new Promise(r => setTimeout(r, 400));
   const depois = [pega()];
   return { antes: antes && antes[0], depois: depois && depois[0] };
 }, PA, EA);
-ok(/não registrada/.test(b7.antes || '') && /rev\. 1 · salvo/.test(b7.depois || ''), 'Visão Geral: ao salvar a anamnese, a linha muda sozinha de "não registrada" para "rev. 1 · salvo" (' + (b7.depois || '').replace(/\s+/g, ' ') + ')');
+ok(/não registrado/.test(b7.antes || '') && /rev\. 1 · salvo/.test(b7.depois || ''), 'Visão Geral: ao salvar o Mapeamento, a linha muda sozinha de "não registrado" para "rev. 1 · salvo" (' + (b7.depois || '').replace(/\s+/g, ' ') + ')');
 
 titulo('B8 — HOLOS AI: TODAS AS FERRAMENTAS CONCLUIDAS E O RESULTADO HOLOS');
 const ia = await A.evaluate(async (pid) => {

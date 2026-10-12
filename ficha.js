@@ -122,42 +122,66 @@
 
     var prox = window.Agenda && window.Agenda.proxima ? window.Agenda.proxima(pid) : null;
     var proxTexto = prox
-      ? dataBR(prox.data) + " às " + prox.hora + " &middot; " + emQuantoTempo(-diasDesde(prox.data))
+      ? dataBR(prox.data) + " às " + String(prox.hora || "").slice(0, 5) + " &middot; " + emQuantoTempo(-diasDesde(prox.data))
       : null;
 
-    var abertas = alertas(d).length;
+    /* Redesign 12/10: "Em aberto" (pendencias) virou ETAPA ATUAL, com a mesma regra do Dashboard */
+    var J = window.JornadaPaciente;
+    var et = J ? J.etapa(pid) : null;
 
     var itens = [
-      { rot: "Última aplicação", valor: ultima, vazio: "nenhuma", acao: "holoscan" },
       { rot: "Próxima consulta", valor: proxTexto, vazio: "não agendada", acao: "agenda" },
-      { rot: "Em aberto",
-        valor: abertas === 0 ? "tudo em dia" : abertas + (abertas === 1 ? " pendência" : " pendências"),
-        alerta: abertas > 0, acao: "aba:visao" },
-      { rot: "Documentos e exames", valor: null, vazio: "carregando…", id: "fic-faixa-docs",
-        acao: "aba:documentos" }
+      { rot: "Último HOLOSCAN", valor: ultima, vazio: "nenhum", acao: "holoscan" },
+      { rot: "Etapa atual", valor: et ? escapar(et.rotulo) : null, vazio: "—", acao: "aba:visao", id: "fic-faixa-etapa" }
     ];
 
     alvo.setAttribute("role", "group");
     alvo.setAttribute("aria-label", "Resumo do paciente");
     alvo.innerHTML = itens.map(function (i) {
       return '<button type="button" class="fic-pilula' +
-        (i.valor ? "" : " vazia") + (i.alerta ? " alerta" : "") + '"' +
+        (i.valor ? "" : " vazia") + '"' +
         (i.id ? ' id="' + i.id + '"' : "") +
         ' data-ir="' + i.acao + '"' +
-        ' aria-label="' + escapar(i.rot) + ': ' + escapar(i.valor || i.vazio) + '">' +
+        ' aria-label="' + escapar(i.rot) + ': ' + (i.valor || i.vazio).replace(/&middot;/g, "·") + '">' +
         '<span class="fic-pilula-rot">' + i.rot + "</span>" +
         '<b>' + (i.valor || i.vazio) + "</b></button>";
     }).join("");
+    desenharJornada();
+  }
 
-    if (window.ArquivoStore) {
-      window.ArquivoStore.listar(pid).then(function (itens) {
-        var el = document.getElementById("fic-faixa-docs");
-        if (!el) return;
-        el.classList.toggle("vazia", itens.length === 0);
-        el.querySelector("b").textContent = itens.length === 0
-          ? "nenhum" : itens.length + (itens.length === 1 ? " arquivo" : " arquivos");
-      });
-    }
+  /* ============================================ JORNADA CLINICA (12/10) ==== */
+  /* Horizontal. Cada passo marcado SO com dado real (JornadaPaciente.passos):
+     Mapear = HOLOSCAN salvo; Integrar = 1+ ferramenta concluida/revisada;
+     Consolidar = Resultado HOLOS vigente salvo/revisado; Apresentar = Resultado
+     Final emitido; Acompanhar = 2+ HOLOSCANs salvos. Sem porcentagem, sem
+     pendencia: o primeiro passo nao feito e o "atual", os outros sao futuros. */
+  var PASSOS = [
+    { id: "mapear", mov: "MAPEAR", nome: "HOLOSCAN", atalho: "holoscan" },
+    { id: "integrar", mov: "INTEGRAR", nome: "Ferramentas", atalho: "corpo" },
+    { id: "consolidar", mov: "CONSOLIDAR", nome: "Resultado HOLOS", ir: "aba:resultado-holos" },
+    { id: "apresentar", mov: "APRESENTAR", nome: "Resultado", atalho: "resultado" },
+    { id: "acompanhar", mov: "ACOMPANHAR", nome: "Evolução", ir: "aba:evolucao" }
+  ];
+  function desenharJornada() {
+    var alvo = document.getElementById("ficha-jornada");
+    if (!alvo) return;
+    var J = window.JornadaPaciente, pid = paciente();
+    var feitos = {};
+    try { (J ? J.passos(pid) : []).forEach(function (p) { feitos[p.id] = !!p.feito; }); } catch (e) { feitos = {}; }
+    var atual = null;
+    PASSOS.forEach(function (p) { if (!atual && !feitos[p.id]) atual = p.id; });
+    alvo.innerHTML = '<ol class="fic-stepper">' + PASSOS.map(function (p, i) {
+      var st = feitos[p.id] ? "feito" : p.id === atual ? "atual" : "futuro";
+      var rot = st === "feito" ? "concluído" : st === "atual" ? "etapa atual" : "ainda não";
+      return '<li class="fic-step ' + st + '"' + (st === "atual" ? ' aria-current="step"' : "") + '>' +
+        '<button type="button" data-passo-jornada="' + p.id + '"' +
+          (p.atalho ? ' data-jornada-atalho="' + p.atalho + '"' : ' data-jornada-ir="' + p.ir + '"') +
+          ' aria-label="' + (i + 1) + ". " + p.mov + " — " + p.nome + ": " + rot + '">' +
+          '<span class="fic-step-no" aria-hidden="true">' + (st === "feito" ? "&#10003;" : String(i + 1)) + "</span>" +
+          '<span class="fic-step-txt"><span class="fic-step-mov">' + p.mov + "</span>" +
+          '<span class="fic-step-nome">' + p.nome + "</span>" +
+          '<span class="fic-step-estado">' + rot + "</span></span></button></li>";
+    }).join("") + "</ol>";
   }
 
   /* V1, Etapa 2: o bloco clinico do atendimento — ultimo atendimento, estado
@@ -187,8 +211,7 @@
         if (ag.length) linhas.push(["Acordos", ag.map(function (g) { return g.description + " [" + Cd.rotulo(g.status) + "]"; }).join(" · ")]);
       }
     }
-    var prox = window.Agenda && window.Agenda.proxima ? window.Agenda.proxima(pid) : null;
-    if (prox) linhas.push(["Próxima consulta marcada (agenda)", dataBR(prox.data) + " às " + String(prox.hora).slice(0, 5)]);
+    /* a proxima consulta ja esta no cabecalho e na aba Atendimentos (redesign 12/10) */
     /* V1, Etapa 3: a Evolucao disponivel (so por atendimento, nunca "primeira x
        ultima" automatica) e o ultimo relatorio EMITIDO (rascunho nao conta). */
     linhas.push(["Última evolução disponível", lista.length >= 2
@@ -211,13 +234,6 @@
     return '<div class="dash-bloco dash-bloco-compacto" id="fic-atendimento-clinico">' +
       '<h3 class="dash-titulo">Atendimento clínico</h3>' +
       linhas.map(function (l) { return '<div class="fic-det"><span>' + escapar(l[0]) + "</span><b>" + escapar(l[1]) + "</b></div>"; }).join("") +
-      '<div class="fic-continuidade"><button type="button" class="fic-chip" data-ir="aba:anamnese">Mapeamento Holístico</button>' +
-      '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="holoscan">HOLOSCAN</button>' +
-      '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="aba:ferramentas">Ferramentas</button>' +
-      '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="aba:resultado-holos">Resultado HOLOS</button>' +
-      '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="aba:conduta">Conduta</button>' +
-      '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="aba:evolucao">Evolução</button>' +
-      '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="aba:relatorio">Relatório</button></div>' +
       anResumo +
     "</div>";
   }
@@ -285,16 +301,19 @@
       html += "</div>";
     }
 
-    html += blocoAtendimentoClinico(pid);
+    /* Redesign 12/10: duas colunas — esquerda Mapa HOLOS + cinco sistemas (+ leitura e
+       atendimento clinico); direita a linha do tempo e os documentos recentes. */
+    var colunaDireita = '<div class="fic-col-dir">' +
+      '<div class="dash-bloco dash-bloco-compacto" id="fic-visao-timeline-bloco">' +
+        '<h3 class="dash-titulo">Linha do tempo</h3>' +
+        '<div id="fic-visao-timeline"></div></div>' +
+      blocoDocumentosPlaceholder() + "</div>";
 
     if (!d.pontuacao) {
-      html += '<div class="dash-vazio">Sem HOLOSCAN aplicado. O mapa é o que ' +
-        "transforma o que ela conta em leitura — e é dele que sai tudo o que " +
-        "aparece nesta aba.</div>";
-      html += blocoDocumentosPlaceholder();
-      html += '<div class="dash-bloco dash-bloco-compacto" id="fic-visao-timeline-bloco">' +
-        '<h3 class="dash-titulo">Linha do tempo</h3>' +
-        '<div id="fic-visao-timeline"></div></div>';
+      html += '<div class="fic-visao-grid"><div class="fic-col-esq">' +
+        '<div class="dash-vazio fic-sem-mapa">Sem HOLOSCAN aplicado. O mapa é o que ' +
+        "transforma o que o paciente conta em leitura — e é dele que sai o Mapa HOLOS e os cinco sistemas.</div>" +
+        blocoAtendimentoClinico(pid) + "</div>" + colunaDireita + "</div>";
       alvo.innerHTML = html;
       ligar(alvo);
       preencherDocumentosRecentes(pid);
@@ -303,6 +322,7 @@
     }
 
     var p = d.pontuacao;
+    html += '<div class="fic-visao-grid"><div class="fic-col-esq">';
     html += '<div class="fic-mapa"><span class="fic-rot fic-rot-mapa">Mapa HOLOS</span>' +
       (window.Metodologia ? window.Metodologia.avisoAplicacaoHtml(p) : "") +
       '<div class="fic-indice">' +
@@ -365,12 +385,8 @@
     }
 
     html += blocoRetorno(d, pid);
-
-    html += blocoDocumentosPlaceholder();
-
-    html += '<div class="dash-bloco dash-bloco-compacto" id="fic-visao-timeline-bloco">' +
-      '<h3 class="dash-titulo">Linha do tempo</h3>' +
-      '<div id="fic-visao-timeline"></div></div>';
+    html += blocoAtendimentoClinico(pid);
+    html += "</div>" + colunaDireita + "</div>";
 
     alvo.innerHTML = html;
     ligar(alvo);
@@ -1056,7 +1072,9 @@
         fecharJanela();
         // "aba:x" abre uma aba aqui mesmo; o resto e secao do menu
         if (ir.dataset.ir.indexOf("aba:") === 0) {
-          var aba = document.querySelector('[data-aba="' + ir.dataset.ir.slice(4) + '"]');
+          var nomeAba = ir.dataset.ir.slice(4);
+          if (nomeAba === "formularios") nomeAba = "ferramentas";
+          var aba = document.querySelector('[data-aba="' + nomeAba + '"]');
           if (aba) { aba.click(); aba.scrollIntoView({ block: "center" }); }
           return;
         }
@@ -1103,9 +1121,57 @@
     if (!document.getElementById("ficha-faixa")) return;
     desenharFaixa();
     if (DESENHOS[abaAtual]) DESENHOS[abaAtual]();
+    if (window.JornadaPaciente && !window.JornadaPaciente.carregado()) window.JornadaPaciente.carregar();
+    setTimeout(function () { if (window.atualizarSetasAbasFicha) window.atualizarSetasAbasFicha(); }, 0);
   }
 
   window.redesenharFicha = desenhar;
+
+  /* jornada: mesmo destino de antes (atalho do menu ou aba da ficha) */
+  document.addEventListener("click", function (ev) {
+    var b = ev.target.closest("[data-passo-jornada]");
+    if (!b || !document.getElementById("ficha-jornada").contains(b)) return;
+    if (b.dataset.jornadaIr) {
+      var aba = document.querySelector('[data-aba="' + b.dataset.jornadaIr.slice(4) + '"]');
+      if (aba) { aba.click(); aba.scrollIntoView({ block: "nearest" }); }
+    } else if (window.irAtalho) window.irAtalho(b.dataset.jornadaAtalho);
+  });
+  /* a etapa atual e a jornada dependem de convites/Resultados lidos pelo Dashboard: quando chegam, redesenha */
+
+  /* abas: setas e esmaecido quando ha abas escondidas; teclado (setas, Home, End) */
+  function abasDaFicha() { return document.querySelector("#ficha-arquivos .abas[role=tablist]"); }
+  function atualizarSetasAbas() {
+    var t = abasDaFicha(); if (!t) return;
+    var caixa = t.parentNode, esq = caixa.querySelector('[data-abas-seta="-1"]'), dir = caixa.querySelector('[data-abas-seta="1"]');
+    var temEsq = t.scrollLeft > 4, temDir = t.scrollLeft + t.clientWidth < t.scrollWidth - 4;
+    if (esq) esq.hidden = !temEsq;
+    if (dir) dir.hidden = !temDir;
+    caixa.classList.toggle("fade-esq", temEsq);
+    caixa.classList.toggle("fade-dir", temDir);
+  }
+  document.addEventListener("DOMContentLoaded", function () {
+    if (window.JornadaPaciente) window.JornadaPaciente.aoCarregar(function () {
+      var f = document.getElementById("vista-ficha");
+      if (f && !f.classList.contains("hidden")) desenharFaixa();
+    });
+    var t = abasDaFicha(); if (!t) return;
+    t.addEventListener("scroll", atualizarSetasAbas, { passive: true });
+    window.addEventListener("resize", atualizarSetasAbas);
+    t.parentNode.addEventListener("click", function (ev) {
+      var s = ev.target.closest("[data-abas-seta]"); if (!s) return;
+      t.scrollBy({ left: Number(s.dataset.abasSeta) * Math.max(160, t.clientWidth * 0.6), behavior: "smooth" });
+    });
+    t.addEventListener("click", function (ev) {
+      var a = ev.target.closest(".aba"); if (a && a.scrollIntoView) a.scrollIntoView({ block: "nearest", inline: "nearest" });
+      setTimeout(atualizarSetasAbas, 350);
+    });
+    /* teclado (setas, Home, End) e roving tabindex ja sao do arquivos.js */
+    /* o topo global e fixo: as abas grudam logo abaixo dele */
+    var topo = document.querySelector(".topo");
+    var medir = function () { if (topo) document.documentElement.style.setProperty("--topo-altura", topo.offsetHeight + "px"); atualizarSetasAbas(); };
+    window.addEventListener("resize", medir); medir();
+  });
+  window.atualizarSetasAbasFicha = atualizarSetasAbas;
 
   /* 12/10 (bug 7): a Visao Geral mostra o estado da anamnese/conduta/atendimento; quando qualquer um muda (salvar,
      concluir, trocar de atendimento, chegar do servidor), ela se redesenha sozinha se estiver aberta. */

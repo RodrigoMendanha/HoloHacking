@@ -129,7 +129,8 @@ conferir(/Cadastrado em \d\d\/\d\d\/\d{4}/.test(topo.contato),
 conferir(/42 anos/.test(topo.sobre) && /Feminino/.test(topo.sobre),
   'e a linha "sobre" resume quem é: ' + topo.sobre);
 conferir(topo.detalhesFechados, 'os detalhes do cadastro começam fechados');
-conferir(topo.acoes.join(',') === 'Editar,Marcar consulta,Adicionar arquivo,Aplicar HOLOSCAN,Exportar dados',
+/* redesign 12/10: Aplicar HOLOSCAN em destaque, Nova consulta, e o resto em "Mais ações" (as mesmas acoes de antes) */
+conferir(topo.acoes.join(',') === 'Aplicar HOLOSCAN,Nova consulta,Mais ações ▾,Editar cadastro,Adicionar arquivo,Exportar dados',
   'as ações ficam no topo, não no fim da página: ' + topo.acoes.join(' · '));
 
 // "Registrar exames" e "Novo documento" iam para "aba:documentos" — o clique
@@ -151,7 +152,7 @@ conferir(abriuDocumentos.abaAtiva && abriuDocumentos.fichaVisivel,
 // ------------------------------------------------------ a jornada clinica --
 
 const jornada = await p.evaluate(() => ({
-  passos: [...document.querySelectorAll('.fic-jornada .dash-jornada-passo b')]
+  passos: [...document.querySelectorAll('#ficha-jornada .fic-step-nome')]
     .map(b => b.textContent),
 }));
 conferir(jornada.passos.join(',') === 'HOLOSCAN,Ferramentas,Resultado HOLOS,Resultado,Evolução',
@@ -175,8 +176,9 @@ const faixa = await p.evaluate(() => {
     .find(e => new RegExp(rot, 'i').test(e.querySelector('.fic-pilula-rot').textContent));
   const ler = e => e ? { txt: e.querySelector('b').textContent, cls: e.className } : null;
   return {
-    ultima: ler(um('última aplicação')),
+    ultima: ler(um('último holoscan')),
     proxima: ler(um('próxima consulta')),
+    etapa: ler(um('etapa atual')),
     aberto: ler(um('em aberto')),
     exames: ler(um('^exames$')),
     docs: ler(um('documentos e exames')),
@@ -190,10 +192,10 @@ conferir(/às 10:00/.test(faixa.proxima.txt) && /em 6 dias/.test(faixa.proxima.t
 /* Etapa 0 da V1: a unica pendencia deste caso era a divergencia relato x
    exame, que vem de regra ainda nao homologada e deixou de virar alerta
    (Mestre §24, §33). Sem pendencia operacional, a faixa diz "tudo em dia". */
-conferir(faixa.aberto && /tudo em dia/.test(faixa.aberto.txt) && !/alerta/.test(faixa.aberto.cls),
-  'sem pendência inventada por regra em homologação: ' + faixa.aberto.txt);
-conferir(!faixa.exames, 'sem pílula de valores de exame (exame é só arquivo, 09/10)');
-conferir(/1 arquivo/.test(faixa.docs.txt), 'e conta os documentos e exames guardados: ' + faixa.docs.txt);
+/* redesign 12/10: "Em aberto" (pendencias) virou "Etapa atual", com a regra do Dashboard; documentos ficam na Visao e na aba */
+conferir(!faixa.aberto && faixa.etapa && !/alerta/.test(faixa.etapa.cls),
+  'sem pílula de pendências; a faixa mostra a etapa atual: ' + (faixa.etapa && faixa.etapa.txt));
+conferir(!faixa.exames && !faixa.docs, 'sem pílula de valores de exame (exame é só arquivo, 09/10) nem de documentos repetida');
 
 /* ------------------------------------------- visão geral: exames e docs -- */
 

@@ -762,28 +762,59 @@
     return { rotulo: "Abrir ficha", destino: "ficha" };
   }
 
+  /* Redesign 12/10: a lista vira TABELA no desktop (cartao no celular, so CSS).
+     Mesmos dados e os mesmos ganchos de antes (data-id, data-sel, data-passo,
+     data-menu, data-ficha, .pac-dado), entao clique, menu e lote nao mudam.
+     Colunas: paciente | status | ultimo contato | proximo passo | proxima consulta | acoes. */
+  function tagsDoPaciente(s){
+    // so estados que ja existem (Panorama.situacao); nada de gravidade nem prioridade
+    const t = [];
+    if(s.inativo) return t;
+    if(s.novo) t.push("Novo");
+    if(s.semContato) t.push("Sem contato");
+    if(s.vazia) t.push("Ficha vazia");
+    else if(s.aguardandoMapa) t.push("Aguardando mapa");
+    return t;
+  }
+
   function cardPaciente(p, s){
     const passo = proximoPasso(s);
     const marcado = selecionados.has(p.id);
+    const atraso = s.semContato ? " atraso" : "";
+    const contato = s.nuncaAtendido ? "Sem atendimento ainda" : "Último contato " + haQuantoTempo(s.diasDeSilencio);
+    let consulta = "";
+    if(window.Agenda && window.Agenda.proxima){
+      const prox = window.Agenda.proxima(p.id);
+      if(prox) consulta = '<span class="pac-dado">' + ico(ICONES.agenda) + " Próximo atendimento "
+        + dataBR(prox.data) + (prox.hora ? " às " + String(prox.hora).slice(0, 5) : "") + "</span>";
+    }
+    const sub = [];
+    if(p.telefone) sub.push('<a class="pac-dado pac-link" href="tel:' + escapar(p.telefone) + '">' + ico(ICONES.fone) + " " + escapar(p.telefone) + "</a>");
+    if(p.email) sub.push('<a class="pac-dado pac-link" href="mailto:' + escapar(p.email) + '">' + ico(ICONES.carta) + " " + escapar(p.email) + "</a>");
     return '<div class="card-paciente' + (p.id === estado.ativo ? " ativo" : "")
-        + (s.inativo ? " inativo" : "") + '" data-id="' + p.id + '">'
-      + '<label class="pac-check"><input type="checkbox" data-sel="' + p.id + '"'
+        + (s.inativo ? " inativo" : "") + '" data-id="' + p.id + '" tabindex="0" role="row"'
+        + ' aria-label="' + escapar(p.nome) + ': abrir ficha">'
+      + '<label class="pac-check" role="cell"><input type="checkbox" data-sel="' + p.id + '"'
         + (marcado ? " checked" : "") + ' aria-label="Selecionar ' + escapar(p.nome) + '"></label>'
-      + '<span class="pac-avatar">' + escapar(p.nome.charAt(0).toUpperCase()) + "</span>"
-      + '<span class="pac-info">'
-        + '<span class="pac-nome"><h4>' + escapar(p.nome) + "</h4>" + sexoDe(p)
-          + '<span class="pac-status' + (s.inativo ? " arquivado" : " ativo") + '">'
-          + (s.inativo ? "Arquivado" : "Ativo") + "</span></span>"
-        + '<span class="pac-meta">' + metaDoPaciente(p, s) + "</span>"
-      + "</span>"
-      + '<button type="button" class="pac-abrir" data-ficha="' + p.id + '" '
-        + 'aria-label="Abrir ficha de ' + escapar(p.nome) + '">&rarr;</button>'
-      + '<span class="pac-acao">'
+      + '<span class="pac-col-quem" role="cell"><span class="pac-avatar" aria-hidden="true">' + escapar(p.nome.charAt(0).toUpperCase()) + "</span>"
+        + '<span class="pac-quem-txt pac-info"><span class="pac-nome"><h4>' + escapar(p.nome) + "</h4>" + sexoDe(p) + "</span>"
+        + (sub.length ? '<span class="pac-sub">' + sub.join("") + "</span>" : "")
+      + "</span></span>"
+      + '<span class="pac-col-status" role="cell"><span class="pac-status' + (s.inativo ? " arquivado" : " ativo") + '">'
+        + (s.inativo ? "Arquivado" : "Ativo") + "</span>"
+        + tagsDoPaciente(s).map(t => '<span class="pac-tag">' + t + "</span>").join("") + "</span>"
+      + '<span class="pac-col-contato" role="cell"><span class="pac-dado' + atraso + '">' + contato + "</span>"
+        + (p.created_at ? '<span class="pac-dado pac-dado-sec">Cadastrado ' + dataBR(p.created_at.slice(0, 10)) + "</span>" : "") + "</span>"
+      + '<span class="pac-col-passo pac-acao" role="cell">'
         + '<button type="button" class="pac-acao-principal" data-passo="' + escapar(passo.destino)
-          + '" data-id="' + p.id + '">' + escapar(passo.rotulo) + "</button>"
+          + '" data-id="' + p.id + '">' + escapar(passo.rotulo) + "</button></span>"
+      + '<span class="pac-col-consulta" role="cell">' + (consulta || '<span class="pac-vazio">—</span>') + "</span>"
+      + '<span class="pac-col-menu" role="cell">'
+        + '<button type="button" class="pac-abrir" data-ficha="' + p.id + '" '
+          + 'aria-label="Abrir ficha de ' + escapar(p.nome) + '">&rarr;</button>'
         + '<button type="button" class="pac-acao-mais" data-menu="' + p.id + '" '
-          + 'aria-haspopup="true" aria-expanded="false" aria-label="Mais ações para '
-          + escapar(p.nome) + '">&#9662;</button>'
+          + 'aria-haspopup="menu" aria-expanded="false" aria-label="Mais ações para '
+          + escapar(p.nome) + '">&middot;&middot;&middot;</button>'
         + menuDoPaciente(p, s)
       + "</span>"
       + "</div>";
@@ -873,6 +904,9 @@
     const termo = semAcento($("#busca-pacientes").value.trim());
     const lista = $("#lista-pacientes");
     const semCarteira = estado.pacientes.length === 0;
+    lista.classList.add("pac-tabela");
+    lista.setAttribute("role", "table");
+    lista.setAttribute("aria-label", "Pacientes");
     /* Um padrao so de contagem: pacientes ATIVOS (como o dashboard e o filtro
        Ativos). Os arquivados sao ditos a parte. */
     const nAtivos = estado.pacientes.filter(x => x.status !== "inativo").length;
@@ -920,7 +954,9 @@
         + "<span>" + (termo ? "Nenhum nome, e-mail ou telefone bate com a busca."
                             : "Nenhum paciente neste filtro.") + "</span></div>";
     } else {
-      lista.innerHTML = visiveis.map(p => cardPaciente(p, sit[p.id])).join("");
+      lista.innerHTML = '<div class="pac-tabela-cab" role="row" aria-hidden="true"><span></span><span>Paciente</span><span>Status</span>'
+        + "<span>Último contato</span><span>Próximo passo</span><span>Próxima consulta</span><span></span></div>"
+        + visiveis.map(p => cardPaciente(p, sit[p.id])).join("");
     }
 
     desenharSelecao(visiveis);
@@ -1650,8 +1686,19 @@
       return;
     }
 
+    /* telefone/e-mail abrem o discador/e-mail, nao a ficha; o rotulo da caixa de selecao tambem nao */
+    if(e.target.closest("a, .pac-check")) return;
     const card = e.target.closest(".card-paciente");
     if(card) abrirFicha(card.dataset.id);
+  });
+  /* a linha da tabela abre a ficha pelo teclado (Enter ou Espaco), como o clique */
+  $("#painel-pac-lista").addEventListener("keydown", e => {
+    if(e.key === "Escape"){ fecharMenusDePaciente(); return; }
+    if(!(e.key === "Enter" || e.key === " ")) return;
+    const card = e.target.classList && e.target.classList.contains("card-paciente") ? e.target : null;
+    if(!card) return;
+    e.preventDefault();
+    abrirFicha(card.dataset.id);
   });
 
   $("#painel-pac-revisao").addEventListener("click", e => {
@@ -1703,6 +1750,41 @@
     renderPacientes();
     window.scrollTo({ top:0, behavior:"smooth" });
   });
+
+  /* o mesmo destino do atalho, para botoes desenhados depois (jornada da ficha) */
+  function irAtalho(destino){
+    irPara(destino);
+    if(destino === "corpo") abrirFerramenta("vista-oq3");
+    else if(destino === "mente") abrirFerramenta("vista-pqq");
+    else if(destino === "espirito") abrirFerramenta("vista-mapa");
+    else if(destino === "agenda"){
+      if(window.Agenda && window.Agenda.novaConsultaPara) window.Agenda.novaConsultaPara(estado.ativo);
+    }
+  }
+  window.irAtalho = irAtalho;
+
+  /* "Mais acoes" do cabecalho da ficha: abre/fecha; fecha ao escolher, ao clicar fora e com Esc */
+  (function(){
+    const botao = $("#btn-mais-acoes"), menu = $("#fic-mais-menu");
+    if(!botao || !menu) return;
+    const fechar = (focar) => { menu.classList.add("hidden"); botao.setAttribute("aria-expanded", "false"); if(focar) botao.focus(); };
+    botao.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      const abrir = menu.classList.contains("hidden");
+      menu.classList.toggle("hidden", !abrir);
+      botao.setAttribute("aria-expanded", abrir ? "true" : "false");
+      if(abrir){ const primeiro = menu.querySelector("button:not([disabled])"); if(primeiro) primeiro.focus(); }
+    });
+    menu.addEventListener("click", (ev) => { if(ev.target.closest("button")) fechar(false); });
+    menu.addEventListener("keydown", (ev) => {
+      const itens = [...menu.querySelectorAll("button:not([disabled])")];
+      const i = itens.indexOf(document.activeElement);
+      if(ev.key === "Escape"){ ev.preventDefault(); fechar(true); }
+      else if(ev.key === "ArrowDown"){ ev.preventDefault(); (itens[i + 1] || itens[0]).focus(); }
+      else if(ev.key === "ArrowUp"){ ev.preventDefault(); (itens[i - 1] || itens[itens.length - 1]).focus(); }
+    });
+    document.addEventListener("click", (ev) => { if(!menu.classList.contains("hidden") && !ev.target.closest(".fic-mais")) fechar(false); });
+  })();
 
   $$("[data-atalho]").forEach(b => b.addEventListener("click", () => {
     const destino = b.dataset.atalho;

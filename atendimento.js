@@ -401,8 +401,8 @@
       html += '<b class="fic-at-valor vazio" id="fic-at-valor">Nenhum atendimento selecionado</b>';
     }
     html += '<span class="fic-at-acoes">' +
-      '<button type="button" class="perf-botao" data-at-acao="selecionar">Selecionar atendimento</button>' +
-      (arquivado ? "" : '<button type="button" class="btn-verde" data-at-acao="novo">Iniciar novo atendimento</button>') +
+      '<button type="button" class="perf-botao" data-at-acao="selecionar" aria-label="Selecionar atendimento">Selecionar</button>' +
+      (arquivado ? "" : '<button type="button" class="btn-verde" data-at-acao="novo" aria-label="Iniciar novo atendimento">Novo atendimento</button>') +
       (e ? '<button type="button" class="btn-fantasma" data-at-acao="limpar">Soltar</button>' : "") +
       "</span>";
     alvo.innerHTML = html;
