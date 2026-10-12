@@ -88,7 +88,7 @@ const tela = await A.evaluate(() => ({
 }));
 const de = (n) => tela.linhas.find(l => l.nome.startsWith(n));
 ok(de('Mariana')?.etapa === 'aguardando_anamnese' && de('Mariana').status === 'Aguardando anamnese', 'convite enviado e no prazo → Aguardando anamnese');
-ok(de('Beatriz')?.etapa === 'anamnese_recebida' && de('Beatriz').status === 'Anamnese recebida', 'convite concluído e ainda não usado → Anamnese recebida');
+ok(de('Beatriz')?.etapa === 'anamnese_recebida' && de('Beatriz').status === 'Mapeamento recebido', 'convite concluído e ainda não usado → Mapeamento recebido');
 ok(de('Camila')?.etapa === 'holoscan_andamento' && /3 de 84 respondidas/.test(de('Camila').sub), 'questionário com respostas guardadas → HOLOSCAN em andamento (' + (de('Camila') || {}).sub + ')');
 ok(de('Felipe')?.etapa === 'resultado_pronto', 'Resultado HOLOS salvo sem emissão → Resultado pronto');
 ok(!em.error && de('Helena')?.etapa === 'resultado_apresentado', 'Resultado Final emitido → Resultado apresentado' + (em.error ? ' [' + em.error.message + ']' : ''));
@@ -121,7 +121,7 @@ const ir = async (nome) => A.evaluate(async (n) => {
   return { secao: (document.querySelector('.secao.ativa') || {}).id, aba: (document.querySelector('#secao-pacientes .aba.ativa[data-aba]') || { dataset: {} }).dataset.aba || null, pid: window.pacienteAtivoId() };
 }, nome);
 const c1 = await ir('Beatriz');
-ok(c1.secao === 'secao-pacientes' && c1.aba === 'anamnese' && c1.pid === P.beatriz, 'Anamnese recebida → ficha da paciente, aba Anamnese');
+ok(c1.secao === 'secao-pacientes' && c1.aba === 'anamnese' && c1.pid === P.beatriz, 'Mapeamento recebido → ficha da paciente, aba Anamnese');
 const c2 = await ir('Camila');
 ok(c2.secao === 'secao-holoscan' && c2.pid === P.camila, 'HOLOSCAN em andamento → HOLOSCAN da paciente');
 const c3 = await ir('Felipe');

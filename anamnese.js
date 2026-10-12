@@ -584,7 +584,7 @@
         Recusa se nao houver atendimento ativo ou se ele ja tiver anamnese (nada e sobrescrito). */
     usarPreConsulta: function (convite) {
       var e = atendimentoAtivo();
-      if (!e) return Promise.reject(new Error("Selecione ou inicie um atendimento para levar a pré-anamnese para a anamnese dele."));
+      if (!e) return Promise.reject(new Error("Selecione ou inicie um atendimento para levar o Mapeamento Holístico para a anamnese dele."));
       if (doAtendimento(e.id).length || rascunhoDe(e.id)) return Promise.reject(new Error("Este atendimento já tem anamnese. A resposta da paciente continua visível aqui, para consulta."));
       if (!window.AnamneseV2 || !window.AnamneseV2.prepararDePreConsulta) return Promise.reject(new Error("Anamnese V2 indisponível."));
       return window.AnamneseV2.prepararDePreConsulta({ salvar: salvar, redesenhar: desenhar, recarregar: function () { carregar().then(desenhar); } }, e, convite)

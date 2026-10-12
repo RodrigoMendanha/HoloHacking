@@ -1016,6 +1016,14 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     aprovada; próximas consultas, recentes, jornada, rascunhos, sem conduta e "Primeiros passos" saíram — estes viram
     janela dos primeiros acessos, a fazer); o Perfil abre pelo canto superior direito. Sem mudança de banco. Detalhes:
     `docs/v1/DASHBOARD-ACOMPANHAMENTO.md`.
+185. **Mapeamento Holístico da Saúde: o envio do link volta a funcionar** (12/10, pedido da usuária). Causa: a ficha
+    lia `anamnesis_invites` com `select("*")`, e o banco dá SELECT coluna a coluna (sem `token_hash`); o PostgREST
+    expande `*` para todas as colunas e o banco recusa a leitura inteira (42501). O convite era criado, a releitura
+    falhava e a tela voltava para "Não enviado", sem link. Correção só no navegador: lista explícita de colunas (sem
+    `token_hash`) e o convite recém-criado fica na tela com o link mesmo se a releitura falhar. Na interface, "Anamnese
+    pré-consulta" passa a se chamar **Mapeamento Holístico da Saúde** (botão "Enviar Mapeamento Holístico", "Mapeamento
+    recebido", "Levar para o atendimento"); tabelas, RPCs, arquivos e campos internos mantêm os nomes. Sem migration,
+    sem mudança de pergunta, metodologia ou banco. Detalhes: `docs/v1/MAPEAMENTO-HOLISTICO-LINK.md`.
 
 ## Decisões pendentes (não decididas aqui)
 

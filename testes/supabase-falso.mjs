@@ -768,6 +768,10 @@ export function criarServidor() {
     if (t === 'methodology_package_approvals' && q.acao !== 'select') return erro('permission denied for table methodology_package_approvals', '42501');
     if (t === 'methodology_approvers' && q.acao !== 'select') return erro('permission denied for table methodology_approvers', '42501');
     if ((GLOBAIS_SO_LEITURA.includes(t) || t === 'integrated_readings' || t === 'holos_results' || t === 'holos_next_steps' || t === 'anamnesis_invites' || t === 'holos_result_emissions') && q.acao !== 'select' && uid) return erro('permission denied for table ' + t, '42501');
+    /* Anamnese pre-consulta: grant de SELECT por COLUNA (token_hash fora). O PostgREST expande "*" para TODAS as colunas
+       da tabela, inclusive token_hash, e o banco recusa a leitura inteira (provado no PG local: harness AP18). */
+    if (t === 'anamnesis_invites' && q.acao === 'select' && uid
+        && (!q.colunas || q.colunas.trim() === '*' || q.colunas.split(',').some(c => c.trim() === 'token_hash'))) return erro('permission denied for table anamnesis_invites', '42501');
     /* Prontuario (20261011100000): a API perdeu a escrita nas tabelas lab_* (revoke) e o DELETE em documents */
     if (['lab_collections', 'lab_results', 'lab_result_components', 'lab_custom_exams'].includes(t) && q.acao !== 'select' && uid) return erro('permission denied for table ' + t, '42501');
     if (t === 'documents' && q.acao === 'delete' && uid) return erro('permission denied for table documents', '42501');

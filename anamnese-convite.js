@@ -3,7 +3,17 @@
    ===========================================================================
 
    Na aba Anamnese da ficha, antes do registro do atendimento: o status da
-   pre-anamnese da paciente e as acoes.
+   pre-anamnese da paciente e as acoes. Na interface (12/10) chama-se
+   MAPEAMENTO HOLISTICO DA SAUDE; os nomes tecnicos (tabela anamnesis_invites,
+   RPCs, arquivos) continuam os mesmos.
+
+   LEITURA (correcao 12/10): o banco da SELECT em anamnesis_invites COLUNA a
+   COLUNA, sem token_hash. "select *" vira, no PostgREST, a lista de TODAS as
+   colunas (inclusive token_hash) e o banco recusa a leitura inteira (42501).
+   Era isso que quebrava o "Gerar link": o convite era criado, mas a releitura
+   falhava, a lista ficava vazia e a tela voltava para "Nao enviado". Por isso a
+   leitura usa COLUNAS (explicita) e, se ainda assim falhar, o convite recem-criado
+   (devolvido pela RPC) continua na tela com o link.
 
      Nao enviada | Enviada | Iniciada | Concluida | Expirada | Revogada
 
@@ -25,7 +35,11 @@
   var vendoResposta = {};  // invite id -> true
   var ocupado = false;
 
-  var ROTULO = { nao_enviada: "Não enviada", enviado: "Enviada", iniciado: "Iniciada", concluido: "Concluída", expirado: "Expirada", revogado: "Revogada" };
+  var ROTULO = { nao_enviada: "Não enviado", enviado: "Enviado", iniciado: "Iniciado", concluido: "Concluído", expirado: "Expirado", revogado: "Revogado" };
+  var TITULO = "Mapeamento Holístico da Saúde";
+  var DIAS = 7;
+  /* so o que a ficha usa; NUNCA token_hash (sem grant) nem "*" */
+  var COLUNAS = "id,patient_id,encounter_id,status,form_version,form_tipo,expires_at,submitted_content,imported_anamnesis_id,imported_at,created_at,started_at,last_saved_at,submitted_at,revoked_at";
 
   function sb() { return window.supabaseClient; }
   function temSupa() { return !!(sb() && window.HoloAuth && window.HoloAuth.sessaoAtiva && window.HoloAuth.sessaoAtiva()); }
@@ -41,7 +55,7 @@
   function atual() { return cache.linhas[0] || null; }
   function mensagemErro(err) {
     var h = err && err.hint;
-    var M = { paciente_arquivado: "Paciente arquivado: reative para enviar a anamnese.", conta_nao_liberada: "Sua conta ainda não foi liberada para enviar anamneses.",
+    var M = { paciente_arquivado: "Paciente arquivado: reative para enviar o Mapeamento Holístico.", conta_nao_liberada: "Sua conta ainda não foi liberada para enviar o Mapeamento Holístico.",
       convite_concluido: "A paciente já respondeu este link.", logo_invalido: "Não foi possível usar o logo do seu perfil." };
     return M[h] || (window.mensagemHumana ? window.mensagemHumana(err) : (err && err.message) || "Não foi possível concluir.");
   }
@@ -53,10 +67,13 @@
 
   function carregar(id) {
     if (!temSupa() || !id) { cache = { pid: id, linhas: [], carregado: true, erro: null }; return Promise.resolve(); }
-    return Promise.resolve(sb().from("anamnesis_invites").select("*").eq("patient_id", id).order("created_at", { ascending: false }))
+    var anteriores = cache.pid === id ? cache.linhas : [];
+    return Promise.resolve(sb().from("anamnesis_invites").select(COLUNAS).eq("patient_id", id).order("created_at", { ascending: false }))
       .then(function (r) {
-        cache = { pid: id, linhas: r && !r.error && Array.isArray(r.data) ? r.data : [], carregado: true, erro: r && r.error ? r.error : null };
-      }, function (e) { cache = { pid: id, linhas: [], carregado: true, erro: e }; });
+        var erro = r && r.error ? r.error : null;
+        /* leitura falhou: nao apaga o que ja estava na tela (inclusive o convite recem-criado) */
+        cache = { pid: id, linhas: !erro && r && Array.isArray(r.data) ? r.data : anteriores, carregado: true, erro: erro };
+      }, function (e) { cache = { pid: id, linhas: anteriores, carregado: true, erro: e }; });
   }
 
   /* o logo do Perfil vira uma miniatura (data URL) que vai junto no convite: a pagina publica nao le o Storage */
@@ -86,23 +103,50 @@
 
   function linkDe(token) { return window.location.origin + "/anamnese.html#t=" + token; }
   function primeiroNome(n) { return String(n || "").trim().split(/\s+/)[0] || ""; }
+  /* so um link do Mapeamento com token no formato do servidor (43 caracteres base64url) e valido para copiar/enviar */
+  function linkValido(link) { return typeof link === "string" && /\/anamnese\.html#t=[A-Za-z0-9_-]{40,64}$/.test(link); }
   function mensagemWhats(link) {
     var p = paciente();
-    return "Olá" + (p && p.nome ? ", " + primeiroNome(p.nome) : "") + ".\nAntes da nossa consulta, peço que preencha sua anamnese pelo link abaixo:\n\n" + link +
-      "\n\nAs informações serão usadas para preparar seu atendimento.";
+    return "Olá" + (p && p.nome ? ", " + primeiroNome(p.nome) : "") + ".\n\nAntes da nossa consulta, peço que preencha o seu Mapeamento Holístico da Saúde pelo link abaixo:\n\n" + link +
+      "\n\nAs informações serão utilizadas para preparar seu atendimento.";
+  }
+  /* telefone -> numero do wa.me: so digitos, com 55 uma vez so (mesma regra do Resultado) */
+  function numeroWhats(tel) {
+    var R = window.ResultadoPagina;
+    if (R && R.numeroWhatsApp) return R.numeroWhatsApp(tel);
+    var d = String(tel || "").replace(/\D/g, "").replace(/^0+/, "");
+    if (!d) return "";
+    if (d.length === 10 || d.length === 11) return "55" + d;
+    return d;
   }
   function whatsapp(link) {
-    var p = paciente(), R = window.ResultadoPagina;
-    var msg = mensagemWhats(link);
-    var url = R && R.linkWhatsApp ? R.linkWhatsApp(p && p.telefone, msg)
-      : "https://wa.me/" + (p && p.telefone ? "55" + String(p.telefone).replace(/\D/g, "").replace(/^55(?=\d{10,11}$)/, "") : "") + "?text=" + encodeURIComponent(msg);
-    try { window.open(url, "_blank", "noopener"); } catch (e) { location.href = url; }
-    if (!(p && p.telefone)) toast("Telefone da paciente não cadastrado: escolha o contato na conversa que abriu.");
+    if (!linkValido(link)) { toast("Link indisponível. Gere um novo link."); return; }
+    var p = paciente();
+    var url = "https://wa.me/" + numeroWhats(p && p.telefone) + "?text=" + encodeURIComponent(mensagemWhats(link));
+    var w = null;
+    try { w = window.open(url, "_blank", "noopener"); } catch (e) { w = null; }
+    if (!(p && p.telefone)) toast("Telefone do paciente não cadastrado: escolha o contato na conversa que abriu.");
+  }
+  function copiarSemApi(link) {
+    try {
+      var ta = document.createElement("textarea");
+      ta.value = link; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      var ok = document.execCommand && document.execCommand("copy");
+      document.body.removeChild(ta);
+      return !!ok;
+    } catch (e) { return false; }
   }
   function copiar(link) {
-    var feito = function () { toast("Link copiado."); };
-    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(link).then(feito, function () { prompt("Copie o link:", link); });
-    prompt("Copie o link:", link);
+    if (!linkValido(link)) { toast("Link indisponível. Gere um novo link."); return Promise.resolve(false); }
+    var feito = function () { toast("Link copiado."); return true; };
+    var reserva = function () {
+      if (copiarSemApi(link)) return feito();
+      try { window.prompt("Copie o link:", link); } catch (e) { /* sem prompt: o link continua visivel no cartao */ }
+      return false;
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(link).then(feito, reserva);
+    return Promise.resolve(reserva());
   }
 
   /* ---------- tela ---------- */
@@ -127,7 +171,7 @@
     if (!id) { alvo.innerHTML = ""; return; }
     if (!temSupa()) { alvo.innerHTML = ""; return; }
     if (cache.pid !== id || !cache.carregado) {
-      alvo.innerHTML = '<section class="pc-cartao"><p class="dash-vazio">Carregando a pré-anamnese…</p></section>';
+      alvo.innerHTML = '<section class="pc-cartao"><p class="dash-vazio">Carregando o Mapeamento Holístico…</p></section>';
       carregar(id).then(function () { if (pid() === id) desenhar(); });
       return;
     }
@@ -135,52 +179,68 @@
     if (cache.erro && indisponivel(cache.erro)) { alvo.innerHTML = ""; return; }
     var c = atual(), st = estadoDe(c), link = c && links[c.id];
     var arq = window.pacienteArquivado && window.pacienteArquivado(id);
+    var aberto = st === "enviado" || st === "iniciado";
+    var validade = c && c.created_at && c.expires_at ? Math.round((Date.parse(c.expires_at) - Date.parse(c.created_at)) / 86400000) : null;
+    var linhaData = function (rot, v) { return "<div><dt>" + rot + "</dt><dd>" + escapar(v) + "</dd></div>"; };
     var dl = c ? '<dl class="pc-datas">' +
-      "<div><dt>Enviada</dt><dd>" + escapar(dataHora(c.created_at)) + "</dd></div>" +
-      "<div><dt>Iniciada</dt><dd>" + escapar(dataHora(c.started_at)) + "</dd></div>" +
-      "<div><dt>Concluída</dt><dd>" + escapar(dataHora(c.submitted_at)) + "</dd></div>" +
-      (st === "enviado" || st === "iniciado" ? "<div><dt>Vale até</dt><dd>" + escapar(dataHora(c.expires_at)) + "</dd></div>" : "") +
-      (st === "revogado" ? "<div><dt>Revogada</dt><dd>" + escapar(dataHora(c.revoked_at)) + "</dd></div>" : "") +
+      linhaData("Criado em", dataHora(c.created_at)) +
+      (aberto && validade ? linhaData("Validade", validade + (validade === 1 ? " dia" : " dias")) : "") +
+      (aberto ? linhaData("Expira em", dataHora(c.expires_at)) : "") +
+      (c.started_at ? linhaData("Iniciado em", dataHora(c.started_at)) : "") +
+      (c.submitted_at ? linhaData("Recebido em", dataHora(c.submitted_at)) : "") +
+      (st === "expirado" ? linhaData("Expirou em", dataHora(c.expires_at)) : "") +
+      (st === "revogado" ? linhaData("Revogado em", dataHora(c.revoked_at)) : "") +
       "</dl>" : "";
     var bt = function (acao, txt, cls) { return '<button type="button" class="' + (cls || "perf-botao") + '" data-pc-acao="' + acao + '"' + (arq || ocupado ? " disabled" : "") + ">" + txt + "</button>"; };
     var acoes = "";
-    if (st === "nao_enviada" || st === "revogado" || st === "expirado") acoes = bt("gerar", "Gerar link", "btn-verde");
-    else if (st === "enviado" || st === "iniciado") {
-      acoes = (link ? bt("copiar", "Copiar link") + bt("whatsapp", "Enviar pelo WhatsApp", "btn-verde") : "") +
-        bt("novo", "Gerar novo link") + bt("revogar", "Revogar", "perf-tirar");
+    if (st === "nao_enviada" || st === "revogado" || st === "expirado") acoes = bt("gerar", ocupado ? "Gerando link…" : "Enviar Mapeamento Holístico", "btn-verde");
+    else if (aberto) {
+      acoes = (link ? bt("copiar", "Copiar link") + bt("whatsapp", "Enviar pelo WhatsApp", "btn-verde") : bt("novo", "Gerar novo link")) +
+        bt("revogar", "Revogar link", "perf-tirar");
     } else if (st === "concluido") {
       acoes = bt("ver", vendoResposta[c.id] ? "Esconder resposta" : "Ver resposta", "btn-verde") +
-        (!c.imported_anamnesis_id ? bt("usar", "Levar para a anamnese do atendimento") : "") + bt("novo", "Gerar novo link");
+        (!c.imported_anamnesis_id ? bt("usar", "Levar para o atendimento") : "") + bt("novo", "Enviar novo Mapeamento");
     }
     alvo.innerHTML = '<section class="pc-cartao" aria-labelledby="pc-titulo">' +
-      '<div class="pc-topo"><h3 id="pc-titulo" class="pc-titulo">Anamnese pré-consulta</h3>' +
-      '<span class="pc-status pc-' + escapar(st) + '">' + escapar(ROTULO[st] || st) + "</span></div>" +
-      '<p class="pc-sub">A paciente preenche pelo celular, sem criar conta, e a resposta aparece aqui antes da consulta.</p>' +
-      (cache.erro ? '<p class="q-erro">Não foi possível ler a pré-anamnese: ' + escapar(mensagemErro(cache.erro)) + "</p>" : "") +
+      '<div class="pc-topo"><h3 id="pc-titulo" class="pc-titulo">' + TITULO + "</h3>" +
+      '<span class="pc-status pc-' + escapar(st) + '"><span class="pc-sr">Status: </span>' + escapar(ROTULO[st] || st) + "</span></div>" +
+      '<p class="pc-sub">O paciente preenche pelo celular, sem criar conta, e a resposta aparece aqui antes da consulta.</p>' +
+      (cache.erro && !link ? '<p class="q-erro">Não foi possível ler o Mapeamento Holístico: ' + escapar(mensagemErro(cache.erro)) + "</p>" : "") +
+      (st === "concluido" ? '<p class="pc-recebido" role="status">Mapeamento recebido</p>' : "") +
+      (link && aberto ? '<p class="pc-sucesso" role="status">Link gerado com sucesso</p>' : "") +
       dl +
-      (link && (st === "enviado" || st === "iniciado") ? '<p class="pc-link"><span>Link:</span> <code>' + escapar(link) + "</code></p>" : "") +
-      ((st === "enviado" || st === "iniciado") && !link ? '<p class="pc-sub">Por segurança o link só aparece quando é gerado. Para enviar de novo, use "Gerar novo link" (o anterior deixa de valer).</p>' : "") +
-      (c && c.imported_anamnesis_id ? '<p class="pc-sub">Levada para a anamnese do atendimento em ' + escapar(dataHora(c.imported_at)) + ".</p>" : "") +
-      (arq ? '<p class="pc-sub">Paciente arquivado: reative para enviar a anamnese.</p>' : "") +
+      (link && aberto ? '<p class="pc-link"><span>Link:</span> <code>' + escapar(link) + "</code></p>" : "") +
+      (aberto && !link ? '<p class="pc-sub">Por segurança o link só aparece no momento em que é gerado. Para enviar de novo, use "Gerar novo link" (o anterior deixa de valer).</p>' : "") +
+      (c && c.imported_anamnesis_id ? '<p class="pc-sub">Levado para o atendimento em ' + escapar(dataHora(c.imported_at)) + ".</p>" : "") +
+      (arq ? '<p class="pc-sub">Paciente arquivado: reative para enviar o Mapeamento Holístico.</p>' : "") +
       '<div class="pc-acoes">' + acoes + "</div>" +
       (st === "concluido" && vendoResposta[c.id] ? htmlResposta(c) : "") +
       "</section>";
   }
 
   function gerar(revogarAntes) {
-    var p = paciente(); if (!p) return;
+    var p = paciente(); if (!p || ocupado) return;
     ocupado = true; desenhar();
     var A = window.AtendimentoAtual, e = A && A.atual ? A.atual() : null;
     var tipo = window.Anamnese && window.Anamnese.doPaciente && window.Anamnese.doPaciente(p.id).some(function (a) { return a.status !== "rascunho"; }) ? "retorno" : "primeira";
     return miniaturaLogo().then(function (logo) {
-      return Promise.resolve(sb().rpc("criar_convite_anamnese", { p_patient_id: p.id, p_encounter_id: e && e.patient_id === p.id ? e.id : null, p_dias: 7, p_tipo: tipo, p_logo: logo }));
+      return Promise.resolve(sb().rpc("criar_convite_anamnese", { p_patient_id: p.id, p_encounter_id: e && e.patient_id === p.id ? e.id : null, p_dias: DIAS, p_tipo: tipo, p_logo: logo }));
     }).then(function (r) {
       ocupado = false;
       if (!r || r.error) throw (r && r.error) || new Error("sem resposta");
-      links[r.data.id] = linkDe(r.data.token);
-      toast(revogarAntes ? "Novo link gerado. O anterior deixou de valer." : "Link gerado. Envie para a paciente.");
+      var d = r.data || {};
+      if (!d.id || typeof d.token !== "string" || !/^[A-Za-z0-9_-]{40,64}$/.test(d.token)) throw new Error("O servidor não devolveu o link. Tente de novo.");
+      links[d.id] = linkDe(d.token);
+      /* o convite novo entra na tela JA com o que a RPC devolveu: se a releitura falhar, o link nao some */
+      var novo = { id: d.id, patient_id: p.id, status: d.status || "enviado", form_tipo: d.form_tipo || tipo, expires_at: d.expires_at,
+        created_at: new Date().toISOString(), started_at: null, submitted_at: null, revoked_at: null, imported_anamnesis_id: null, imported_at: null };
+      var resto = (cache.pid === p.id ? cache.linhas : []).filter(function (x) { return x.id !== d.id; })
+        .map(function (x) { return (x.status === "enviado" || x.status === "iniciado") ? Object.assign({}, x, { status: "revogado", revoked_at: x.revoked_at || novo.created_at }) : x; });
+      cache = { pid: p.id, linhas: [novo].concat(resto), carregado: true, erro: null };
+      toast(revogarAntes ? "Novo link gerado. O anterior deixou de valer." : "Link gerado com sucesso. Envie para o paciente.");
+      desenhar();
       return carregar(p.id);
-    }).then(desenhar).catch(function (err) { ocupado = false; toast(mensagemErro(err)); desenhar(); });
+    }).then(desenhar).catch(function (err) { ocupado = false; toast(err && err.message && !err.hint && !err.code ? err.message : mensagemErro(err)); desenhar(); });
   }
 
   document.addEventListener("click", function (ev) {
@@ -188,7 +248,7 @@
     var c = atual(), acao = b.dataset.pcAcao;
     if (acao === "gerar") return gerar(false);
     if (acao === "novo") {
-      var conf = window.abrirModalConfirmar ? window.abrirModalConfirmar({ titulo: "Gerar novo link", corpo: "<p>O link anterior deixa de funcionar" + (c && estadoDe(c) === "iniciado" ? " (o que a paciente já preencheu nele fica guardado aqui, mas ela recomeça no novo link)" : "") + ".</p>", botaoConfirmar: "Gerar novo link", classeConfirmar: "btn-verde" })
+      var conf = window.abrirModalConfirmar ? window.abrirModalConfirmar({ titulo: "Gerar novo link", corpo: "<p>O link anterior deixa de funcionar" + (c && estadoDe(c) === "iniciado" ? " (o que o paciente já preencheu nele fica guardado aqui, mas recomeça no novo link)" : "") + ".</p>", botaoConfirmar: "Gerar novo link", classeConfirmar: "btn-verde" })
         : Promise.resolve(confirm("Gerar novo link? O anterior deixa de funcionar.") ? "confirmar" : null);
       return conf.then(function (r) { if (r === "confirmar") gerar(true); });
     }
@@ -197,13 +257,16 @@
     if (acao === "whatsapp" && links[c.id]) return whatsapp(links[c.id]);
     if (acao === "ver") { vendoResposta[c.id] = !vendoResposta[c.id]; return desenhar(); }
     if (acao === "revogar") {
-      var cr = window.abrirModalConfirmar ? window.abrirModalConfirmar({ titulo: "Revogar link", corpo: "<p>A paciente não vai mais conseguir abrir nem enviar por este link.</p>", botaoConfirmar: "Revogar" })
+      var cr = window.abrirModalConfirmar ? window.abrirModalConfirmar({ titulo: "Revogar link", corpo: "<p>O paciente não vai mais conseguir abrir nem enviar por este link.</p>", botaoConfirmar: "Revogar link" })
         : Promise.resolve(confirm("Revogar o link?") ? "confirmar" : null);
       return cr.then(function (r) {
         if (r !== "confirmar") return;
         Promise.resolve(sb().rpc("revogar_convite_anamnese", { p_id: c.id })).then(function (x) {
           if (x && x.error) throw x.error;
-          delete links[c.id]; toast("Link revogado."); return carregar(c.patient_id);
+          delete links[c.id];
+          /* a tela ja mostra "Revogado" mesmo se a releitura falhar */
+          cache.linhas = cache.linhas.map(function (x) { return x.id === c.id ? Object.assign({}, x, { status: "revogado", revoked_at: (x && x.revoked_at) || new Date().toISOString() }) : x; });
+          toast("Link revogado."); desenhar(); return carregar(c.patient_id);
         }).then(desenhar).catch(function (err) { toast(mensagemErro(err)); });
       });
     }
@@ -213,7 +276,7 @@
       window.Anamnese.usarPreConsulta(c).then(function (linha) {
         return Promise.resolve(sb().rpc("marcar_convite_anamnese_usado", { p_id: c.id, p_anamnesis_id: linha.id }));
       }).then(function () {
-        ocupado = false; toast("A pré-anamnese virou o rascunho da anamnese deste atendimento. Revise e salve.");
+        ocupado = false; toast("O Mapeamento virou o rascunho da anamnese deste atendimento. Revise e salve.");
         return carregar(c.patient_id);
       }).then(desenhar).catch(function (err) { ocupado = false; toast(err && err.message && !err.hint ? err.message : mensagemErro(err)); desenhar(); });
     }

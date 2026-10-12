@@ -73,12 +73,12 @@ const N = await pagina('http://127.0.0.1:5500/');
 await entrar(N, 'a@holo.test', 'senha-a-123');
 await abrirFicha(N, PA, EA);
 let s = await pc(N);
-ok(/Não enviada/.test(s.status) && /Gerar link/i.test(s.txt), 'ficha: "Anamnese pré-consulta — Não enviada" com "Gerar link"');
+ok(/Não enviado/.test(s.status) && /Mapeamento Holístico da Saúde/.test(s.txt) && /Enviar Mapeamento Holístico/i.test(s.txt), 'ficha: "Mapeamento Holístico da Saúde — Não enviado" com "Enviar Mapeamento Holístico"');
 await clicarPc(N, 'gerar'); await espera(900);
 s = await pc(N);
 const convite = srv.linhas('anamnesis_invites')[0];
 const token = (/#t=([A-Za-z0-9_-]+)$/.exec(s.link) || [])[1];
-ok(/Enviada/.test(s.status) && !!token && token.length === 43 && /\/anamnese\.html#t=/.test(s.link), 'Gerar link: status "Enviada" e link /anamnese.html#t=<token de 43>');
+ok(/Enviado/.test(s.status) && !!token && token.length === 43 && /\/anamnese\.html#t=/.test(s.link) && /Link gerado com sucesso/.test(s.txt), 'Enviar Mapeamento: status "Enviado", "Link gerado com sucesso" e link /anamnese.html#t=<token de 43>');
 ok(!/[0-9a-f]{8}-[0-9a-f]{4}-/.test(s.link) && !JSON.stringify(srv.linhas('anamnesis_invites')).includes(token) && srv.convitesAnamnese.hashes.get(convite.id) === createHash('sha256').update(token).digest('hex'),
   'o link não tem ID de paciente nem de nutricionista; a tabela guarda só o hash do token');
 ok(convite.encounter_id === EA && convite.form_tipo === 'primeira' && convite.professional_snapshot.nome === 'Nutri Ficticia Teste', 'convite ligado à paciente e à consulta futura ativa; identidade da nutricionista copiada no convite');
@@ -161,7 +161,7 @@ ok(reenvio.error && reenvio.error.hint === 'ja_enviada' && resalvar.error && res
 await N.evaluate(async () => { await window.PreConsulta.carregar(window.pacienteAtivoId()); window.PreConsulta.desenhar(); });
 await espera(300);
 s = await pc(N);
-ok(/Concluída/.test(s.status) && /Ver resposta/i.test(s.txt) && /Levar para a anamnese do atendimento/i.test(s.txt), 'ficha: "Concluída" com datas, "Ver resposta" e "Levar para a anamnese do atendimento"');
+ok(/Concluído/.test(s.status) && /Mapeamento recebido/.test(s.txt) && /Recebido em/i.test(s.txt) && /Ver resposta/i.test(s.txt) && /Levar para o atendimento/i.test(s.txt), 'ficha: "Mapeamento recebido", "Concluído", data, "Ver resposta" e "Levar para o atendimento"');
 await clicarPc(N, 'ver'); await espera(300);
 s = await pc(N);
 ok(/Relato da paciente/.test(s.txt) && s.txt.includes('Cansaço à tarde') && s.txt.includes('<img src=x') && await N.evaluate(() => window.__x === undefined) && /Prefiro não responder/.test(s.txt),
@@ -182,7 +182,7 @@ ok(await N.evaluate(() => /Rascunho|rascunho/.test(document.getElementById('anam
 
 /* ===== 8 ===== */
 const B = rpc('criar_convite_anamnese', { p_patient_id: PA }, UB);
-const vB = q('anamnesis_invites', 'select', {}, UB);
+const vB = q('anamnesis_invites', 'select', { colunas: 'id,patient_id,status' }, UB);
 ok(B.error && B.error.hint === 'paciente_invalido' && vB.data.length === 0, 'outra conta: não cria link para paciente alheio e não vê convites');
 ok(rpc('anamnese_publica_abrir', { p_token: 'A'.repeat(43) }, null).data.estado === 'invalido' && rpc('anamnese_publica_abrir', { p_token: token.slice(0, 42) + (token[42] === 'A' ? 'B' : 'A') }, null).data.estado === 'invalido'
   && q('anamnesis_invites', 'select', {}, null).error, 'token inventado ou com 1 caractere trocado: "inválido"; anônimo não lê a tabela');
@@ -191,14 +191,14 @@ await clicarPc(N, 'gerar'); await espera(900);
 const tokB = (/#t=([A-Za-z0-9_-]+)$/.exec((await pc(N)).link) || [])[1];
 await clicarPc(N, 'revogar'); await confirmarModal(N);
 const R = await pagina('http://127.0.0.1:5500/anamnese.html#t=' + tokB, 390, 844); await espera(500);
-ok(/foi substituído/.test(await R.evaluate(() => document.body.innerText)) && /Revogada/.test((await pc(N)).status), 'Revogar: a ficha mostra "Revogada" e o link abre só o aviso');
+ok(/foi substituído/.test(await R.evaluate(() => document.body.innerText)) && /Revogado/.test((await pc(N)).status), 'Revogar: a ficha mostra "Revogado" e o link abre só o aviso');
 await clicarPc(N, 'gerar'); await espera(900);
 const tokC = (/#t=([A-Za-z0-9_-]+)$/.exec((await pc(N)).link) || [])[1];
 const hC = createHash('sha256').update(tokC).digest('hex');
 srv.preConsulta.vencer([...srv.convitesAnamnese.hashes.entries()].find(([, h]) => h === hC)[0]);
 await R.goto('http://127.0.0.1:5500/anamnese.html#t=' + tokC, { waitUntil: 'networkidle2' }); await espera(1200);   // so o "#" muda: a pagina recarrega sozinha
 await N.evaluate(async (pid) => { await window.PreConsulta.carregar(pid); window.PreConsulta.desenhar(); }, PB); await espera(300);
-ok(/venceu/.test(await R.evaluate(() => document.body.innerText)) && /Expirada/.test((await pc(N)).status), 'link vencido: "Expirada" na ficha e aviso na página');
+ok(/venceu/.test(await R.evaluate(() => document.body.innerText)) && /Expirado/.test((await pc(N)).status), 'link vencido: "Expirado" na ficha e aviso na página');
 const sem = await pagina('http://127.0.0.1:5500/anamnese.html', 390, 844); await espera(400);
 ok(/Link não encontrado/.test(await sem.evaluate(() => document.body.innerText)), 'sem token: "Link não encontrado"');
 

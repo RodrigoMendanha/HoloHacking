@@ -105,7 +105,7 @@
      revisada" separado do atendimento (ver DECISOES-V1 item 184). */
   var ETAPAS = {
     aguardando_anamnese:   { rotulo: "Aguardando anamnese",   tom: "aguardando", ordem: 1 },
-    anamnese_recebida:     { rotulo: "Anamnese recebida",     tom: "pronto",     ordem: 2 },
+    anamnese_recebida:     { rotulo: "Mapeamento recebido",   tom: "pronto",     ordem: 2 },
     holoscan_andamento:    { rotulo: "HOLOSCAN em andamento", tom: "andamento",  ordem: 3 },
     resultado_pronto:      { rotulo: "Resultado pronto",      tom: "pronto",     ordem: 4 },
     resultado_apresentado: { rotulo: "Resultado apresentado", tom: "neutro",     ordem: 5 },

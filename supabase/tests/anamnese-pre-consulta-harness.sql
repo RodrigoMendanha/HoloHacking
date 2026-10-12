@@ -220,4 +220,18 @@ insert into _logap select 'AP17 ' || case when position('holoscan' in lower(pg_g
   and position('methodology' in pg_get_functiondef('public.criar_convite_anamnese(uuid, uuid, integer, text, text)'::regprocedure)) = 0
   then 'ok' else 'FALHOU' end || ': as funcoes publicas nao tocam HOLOSCAN, ferramentas, Resultado HOLOS, anamneses nem metodologia';
 
+-- AP18 — leitura pela API (PostgREST): o grant e por COLUNA (token_hash fora). "select *" expande para todas as
+-- colunas e e RECUSADO (42501) — era o que a ficha fazia (anamnese-convite.js) e quebrava o "Gerar link" no banco real.
+-- A lista explicita de colunas que a ficha usa passa, e token_hash continua ilegivel.
+set local role authenticated;
+select pg_temp.como_daniel();
+insert into _ap select 'star', pg_temp.ap_tenta('select * from public.anamnesis_invites');
+insert into _ap select 'cols', pg_temp.ap_tenta('select id, patient_id, encounter_id, status, form_version, form_tipo, expires_at, submitted_content, imported_anamnesis_id, imported_at, created_at, started_at, last_saved_at, submitted_at, revoked_at from public.anamnesis_invites');
+insert into _ap select 'hash', pg_temp.ap_tenta('select token_hash from public.anamnesis_invites');
+reset role;
+insert into _logap select 'AP18 ' || case when (select v from _ap where k = 'star') like '42501:%' and (select v from _ap where k = 'cols') = 'ACEITO'
+  and (select v from _ap where k = 'hash') like '42501:%'
+  then 'ok' else 'FALHOU: ' || (select v from _ap where k = 'star') || ' / ' || (select v from _ap where k = 'cols') || ' / ' || (select v from _ap where k = 'hash') end
+  || ': select * recusado pelo grant por coluna; colunas explicitas da ficha aceitas; token_hash ilegivel';
+
 select string_agg(passo, ' | ' order by passo) from _logap;

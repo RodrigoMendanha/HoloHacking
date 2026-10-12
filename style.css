@@ -4891,6 +4891,9 @@ body.conta-pendente #secao-perfil{display:block}
 .pc-datas dd{margin:2px 0 0;font-size:.86rem;font-variant-numeric:tabular-nums}
 .pc-link{margin:12px 0 0;font-size:.82rem;word-break:break-all}
 .pc-link code{background:var(--input-fundo,rgba(0,0,0,.04));padding:2px 6px;border-radius:6px}
+/* Mapeamento Holistico (12/10): aviso de sucesso / recebido e rotulo "Status:" so para leitor de tela */
+.pc-sucesso,.pc-recebido{margin:10px 0 0;font-weight:600;color:var(--verde-medio,#1f5c46)}
+.pc-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .pc-acoes{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
 .pc-resposta{margin-top:16px;padding-top:14px;border-top:1px solid var(--borda-suave)}
 
