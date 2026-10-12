@@ -4,7 +4,7 @@
 
    Origem: a revisao publica das 84 perguntas do HOLOS-V1 v2 (aprovacoes.html),
    concluida em 11/10 (53 aprovadas, 28 com texto novo, 3 negadas), mais as
-   decisoes da dona do metodo em 12/10 (DECISOES-V1 item 183).
+   decisoes de 12/10 sobre ela (DECISOES-V1 item 183).
 
    Este arquivo e SO a lista de decisoes. Quem monta a versao nova e
    PacoteMetodologico.aplicarRevisao(v2, esta revisao): copia o v2 aprovado,
@@ -37,7 +37,7 @@
       "SNT-101": "Você sente uma forte vontade de ingerir doces ou pães quase todo dia?",
       "SNT-102": "Sua barriga incha/estufa ou fica com gases depois das refeições?",
       "SNT-103": "Sua língua costuma ter uma camada esbranquiçada no dia a dia?",
-      // [detalhado pela dona do metodo: o "sapinho" e a candidiase da boca, termo que a paciente reconhece]
+      // [detalhado na decisao de 12/10: o "sapinho" e a candidiase da boca, termo que a paciente reconhece]
       "SNT-104": "Você tem candidíase com frequência (íntima ou na boca, o \"sapinho\")?",
       "SNT-105": "Você tem micose de pele ou unha que sempre volta?",
       "SNT-109": "Você precisou tomar antibióticos muitas vezes ao longo da vida?",
@@ -48,9 +48,9 @@
       "SNT-303": "Você fica com fome de novo pouco tempo depois de ter comido?",
       // [concordancia: "local em que"]
       "SNT-305": "O principal local em que a gordura se concentra no seu corpo é a região da barriga?",
-      // [detalhado: "aveludada" e o que caracteriza o sinal]
+      // [detalhado na decisao de 12/10: "aveludada" e o que caracteriza o sinal]
       "SNT-306": "A pele do seu pescoço ou axila está mais escura e com textura mais grossa ou aveludada?",
-      // [detalhado: o tremor e o sinal fisico]
+      // [detalhado na decisao de 12/10: o tremor e o sinal fisico]
       "SNT-307": "Você fica irritado, nervoso ou trêmulo se atrasa uma refeição?",
       "SNT-402": "Seu rosto amanhece muito inchado logo ao acordar?",
       "SNT-403": "Cheiros fortes te incomodam mais do que geralmente incomodam as outras pessoas?",
@@ -89,7 +89,7 @@
     /* Passa a pontuar em outro sistema. */
     mover: {
       "ESP-404": { de: "acido_inflamatorio", para: "mental_emocional_espiritual",
-        motivo: "negada na revisão por estar no Sistema Ácido Inflamatório; a dona do método manteve a pergunta no Sistema Mental Emocional Espiritual" }
+        motivo: "negada na revisão por estar no Sistema Ácido Inflamatório; decisão de 12/10: a pergunta fica, no Sistema Mental Emocional Espiritual" }
     },
 
     /* O que o v3 tem de ter (conferido por aplicarRevisao e pelos testes). */

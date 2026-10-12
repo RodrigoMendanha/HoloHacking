@@ -12,7 +12,7 @@
     "code": "HOLOS-V1",
     "version": 3,
     "status": "em_revisao",
-    "content_hash": "4e799a6697fd026e5d327fe2176f3835710e4ddd42745cd22706e5cda0d5eba3",
+    "content_hash": "33ccb2d7a5d3e2c51888fa28f9663b34077e254f940c89afe8161e83a40a2d39",
     "perguntas": 82,
     "erros_validador": 0,
     "referencias": [
@@ -205,7 +205,7 @@
     "reviewed_at": null,
     "effective_from": null,
     "effective_to": null,
-    "content_hash": "4e799a6697fd026e5d327fe2176f3835710e4ddd42745cd22706e5cda0d5eba3",
+    "content_hash": "33ccb2d7a5d3e2c51888fa28f9663b34077e254f940c89afe8161e83a40a2d39",
     "created_at": null,
     "notes": "Copia do HOLOS-V1 v2 com 24 textos revisados, 3 perguntas trocadas (ID novo), 2 removidas e 1 com sistema novo. Pesos, escalas, faixas, Indice e Triade sem mudanca. Aprovacao formal so pela RPC aprovar_pacote_metodologico.",
     "edicao": {
@@ -3516,7 +3516,7 @@
         "status": "aprovado",
         "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
         "conflict": false,
-        "conflict_note": "sistema mudado na revisao: negada na revisão por estar no Sistema Ácido Inflamatório; a dona do método manteve a pergunta no Sistema Mental Emocional Espiritual",
+        "conflict_note": "sistema mudado na revisao: negada na revisão por estar no Sistema Ácido Inflamatório; decisão de 12/10: a pergunta fica, no Sistema Mental Emocional Espiritual",
         "legacy": {
           "legacy_recovered_weight": 2,
           "legacy_role": "primaria",

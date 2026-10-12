@@ -995,6 +995,16 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     OQQ/OQP/OQCC das três perguntas do OQ³ ficam). Migration aditiva 20261017100000; SQL em
     `supabase/CORRECOES-JORNADA-PARTE1..2.sql`. Testes: harness CJ01–CJ05, `testar-correcoes-jornada.mjs`.
     SQL aplicado em 12/10. PENDENTE: deploy do site (commit `b62ab2b`).
+183. **Revisão das perguntas do HOLOSCAN → HOLOS-V1 v3** (12/10). A revisão pública das 84 perguntas do v2
+    (`aprovacoes.html`, concluída em 11/10: 53 aprovadas, 28 com texto novo, 3 negadas) foi decidida em 12/10:
+    24 textos novos com o mesmo ID (SNT-104, SNT-306 e SNT-307 detalhados; SNT-208, SNT-305, EMO-302, EMO-502 e ESP-402
+    com correção de redação); 3 trocas por outro sinal com **ID novo** (SNT-106→SNT-112, SNT-410→SNT-411 em frequência,
+    SNT-507→SNT-511 direta); SNT-209 e ESP-102 removidas; ESP-404 passa do Ácido Inflamatório para o Mental Emocional
+    Espiritual. v3 = 82 perguntas (48/19/15), 7 invertidas; pesos, faixas, Índice, Tríade e cobertura mínima iguais.
+    O v3 é montado do v2 aprovado (`PacoteMetodologico.aplicarRevisao` + `metodologia-revisao-v3.js`) e gravado pela tela
+    de Homologação; aprovação pelo aprovador único; o v2 é retirado para aplicações novas e as antigas ficam nele.
+    A tela do questionário passa a mostrar as perguntas do pacote vigente (antes vinham do `holoscan.js`).
+    Detalhes: `docs/v1/REVISAO-PERGUNTAS-V3.md`. PENDENTE: deploy, gravar/aprovar o v3 e retirar o v2 pela Homologação.
 
 ## Decisões pendentes (não decididas aqui)
 
