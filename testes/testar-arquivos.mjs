@@ -97,8 +97,8 @@ const maisBaixo = await p.evaluate((respostas) =>
 ok(rel.primeiro === maisBaixo, 'comeca pelo mais baixo: ' + rel.primeiro);
 ok(rel.temTriada && rel.semLI, 'traz Triada e nao traz Leitura Integrada nem conclusao laboratorial');
 ok(!rel.combinada, 'nao traz leitura combinada: ' + rel.combinada);
-ok(rel.partes.join(',') === 'automatico,automatico,automatico,profissional',
-   'relatorio separa A/B/C automatico de D profissional: ' + rel.titulos.join(' | '));
+ok(rel.partes.join(',') === 'automatico,automatico,automatico,profissional,automatico,profissional,profissional',
+   'relatorio separa A/B/C automatico de D profissional (E-G: ferramentas, Conduta e Resultado HOLOS so na versao da nutri): ' + rel.titulos.join(' | '));
 
 /* Os cinco sistemas mostram a mesma linha neutra nos dois registros; a
    interpretacao profissional continua mudando por registro. */
