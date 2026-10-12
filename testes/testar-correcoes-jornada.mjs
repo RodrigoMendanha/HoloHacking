@@ -171,6 +171,21 @@ ok(b6.secao !== 'secao-holoscan' && b6.form, 'o botão "Iniciar ferramenta" leva
 ok(b6.at === EA, 'sem atendimento ativo, a ferramenta abre no atendimento do HOLOSCAN que gerou a recomendação');
 ok(b6.pqq && b6.oq3, 'PQQ e OQ³ (ferramentas com tela própria) também abrem a partir do HOLOSCAN');
 
+titulo('B7 — VISAO GERAL MOSTRA A ANAMNESE CONCLUIDA');
+const b7 = await A.evaluate(async (pid, eid) => {
+  window.definirPacienteAtivo(pid);
+  window.AtendimentoAtual.selecionarPorId(eid);
+  window.levarParaFicha('aba:visao', pid); await new Promise(r => setTimeout(r, 600));
+  const linha = () => ([...document.querySelectorAll('#aba-visao *')].map(e => e.textContent).find(t => /^Anamnese/.test(t) && t.length < 200) || document.getElementById('aba-visao').innerText);
+  const pega = () => { const t = document.getElementById('aba-visao').innerText; const i = t.search(/Anamnese \(atendimento ativo\)|Anamnese\s*\n\s*(rev|não|rascunho)/); return i < 0 ? t.slice(0, 300) : t.slice(i, i + 80); };
+  const antes = [pega()];
+  await window.Anamnese.salvar({ encounter_id: eid, content: { formato: 'v2', dominios: {} }, status: 'salvo' });
+  await new Promise(r => setTimeout(r, 400));
+  const depois = [pega()];
+  return { antes: antes && antes[0], depois: depois && depois[0] };
+}, PA, EA);
+ok(/não registrada/.test(b7.antes || '') && /rev\. 1 · salvo/.test(b7.depois || ''), 'Visão Geral: ao salvar a anamnese, a linha muda sozinha de "não registrada" para "rev. 1 · salvo" (' + (b7.depois || '').replace(/\s+/g, ' ') + ')');
+
 /* B5 de verdade: HOLOSCAN salvo NESTA sessao (sem recarregar) ja aparece ligado ao atendimento */
 const PB = ins('patients', { nome: 'Paciente Sessao Ficticia' }).id;
 await A.reload({ waitUntil: 'networkidle2' });

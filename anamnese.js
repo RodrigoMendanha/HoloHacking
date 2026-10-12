@@ -566,7 +566,7 @@
     var anterior = window.aoTrocarPaciente;
     window.aoTrocarPaciente = function () { if (typeof anterior === "function") anterior(); rascunho = null; vendo = null; v2Corrigindo = null; estadoSalvo = ""; if (window.AnamneseV2) { window.AnamneseV2.salvarAgora(); window.AnamneseV2.esquecer(); } };
     if (window.HoloAuth && window.HoloAuth.aoMudarEstado) {
-      window.HoloAuth.aoMudarEstado(function (estado) { if (estado === "pendente") return; if (estado !== "autenticado") { cache = []; rascunho = null; v2Corrigindo = null; if (window.AnamneseV2) window.AnamneseV2.esquecer(); } carregar(); });
+      window.HoloAuth.aoMudarEstado(function (estado) { if (estado === "pendente") return; if (estado !== "autenticado") { cache = []; rascunho = null; v2Corrigindo = null; if (window.AnamneseV2) window.AnamneseV2.esquecer(); } carregar().then(avisarMudanca); });
     }
   });
 

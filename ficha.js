@@ -1106,6 +1106,30 @@
 
   window.redesenharFicha = desenhar;
 
+  /* 12/10 (bug 7): a Visao Geral mostra o estado da anamnese/conduta/atendimento; quando qualquer um muda (salvar,
+     concluir, trocar de atendimento, chegar do servidor), ela se redesenha sozinha se estiver aberta. */
+  var pendenteVisao = null;
+  function redesenharVisaoSeAberta() {
+    if (pendenteVisao) return;
+    pendenteVisao = setTimeout(function () {
+      pendenteVisao = null;
+      var alvo = document.getElementById("aba-visao");
+      if (abaAtual === "visao" && alvo && alvo.offsetParent !== null) desenharVisao();
+    }, 50);
+  }
+  window.addEventListener("load", function () {
+    if (window.Anamnese && window.Anamnese.aoMudar) window.Anamnese.aoMudar(redesenharVisaoSeAberta);
+    if (window.Conduta && window.Conduta.aoMudar) window.Conduta.aoMudar(redesenharVisaoSeAberta);
+    if (window.AtendimentoAtual && window.AtendimentoAtual.aoMudar) window.AtendimentoAtual.aoMudar(redesenharVisaoSeAberta);
+    /* a lista de anamneses chega do servidor depois do login: a Visao desenhada antes disso se corrige */
+    var tentativas = 0;
+    (function aguardarCarga() {
+      var An = window.Anamnese;
+      if (An && An.carregando && An.carregando()) { if (++tentativas < 100) setTimeout(aguardarCarga, 150); return; }
+      redesenharVisaoSeAberta();
+    })();
+  });
+
   document.addEventListener("DOMContentLoaded", function () {
     if (!document.getElementById("ficha-faixa")) return;
 
