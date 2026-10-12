@@ -120,7 +120,7 @@
     return h.filter(function (x) { return x._supa_id; }).map(function (x) {
       var oficial = M && M.naturezaAplicacao ? M.naturezaAplicacao(x) === "oficial_v1" : !!x.methodology_package_id;
       return { id: x._supa_id, quando: x.quando, criado: x._supa_criado_em || x.calculado_em || null, oficial: oficial && !!x.methodology_package_id,
-        pacote: x.methodology_package_id ? (x.methodology_package_code || "HOLOS-V1") + (x.methodology_package_version ? "@" + x.methodology_package_version : "") : null,
+        pacote: x.methodology_package_id ? (x.methodology_package_code || "HOLOS-V1") + (x.methodology_package_version ? " v" + x.methodology_package_version : "") : null,
         encounter_id: x._supa_encounter_id || null, indice: x.indice };
     }).sort(function (a, b) { return String(b.criado || b.quando).localeCompare(String(a.criado || a.quando)); });
   }
@@ -134,6 +134,15 @@
   /* ---------- formulario (rascunho) ---------------------------------------- */
   function novoForm(pid, base) {
     var at = window.AtendimentoAtual && window.AtendimentoAtual.idPara ? window.AtendimentoAtual.idPara(pid) : null;
+    /* 12/10 (bug 10d): sem atendimento ativo na memoria (recarregou a pagina, trocou de paciente), o formulario vinha
+       vazio. Agora: o atendimento ativo; senao, o da aplicacao HOLOSCAN mais recente; senao, o atendimento mais recente.
+       O HOLOSCAN continua sem pre-marcacao (escolha explicita, decisao do Resultado HOLOS). A nutricionista pode trocar. */
+    var hs0 = aplicacoesHoloscan(pid).filter(function (h) { return h.oficial; });
+    if (!at && hs0.length && hs0[0].encounter_id) at = hs0[0].encounter_id;
+    if (!at && window.AtendimentoAtual && window.AtendimentoAtual.doPaciente) {
+      var ult = window.AtendimentoAtual.doPaciente(pid).slice().sort(function (a, b) { return String(b.occurred_at).localeCompare(String(a.occurred_at)); })[0];
+      if (ult) at = ult.id;
+    }
     var f = { pid: pid, id: null, supersedes_id: null, encounter_id: at || "", holoscan_application_id: "", tools: [], mostrar: {}, compartilhar_pp: false,
       leitura_profissional: "", pontos_acompanhar: "", questoes_aprofundar: "", expected_updated_at: null };
     if (base) {
@@ -349,7 +358,7 @@
         "<div><dt>HOLOSCAN</dt><dd>" + e(dataBR(h.quando)) + (h.registrado_em ? " · registrado " + e(dataHora(h.registrado_em)) : "") + " · " + e(curto(h.id)) + "</dd></div>" +
         "<div><dt>Ferramentas incluídas</dt><dd>" + (snap.ferramentas || []).length + "</dd></div>" +
         "<div><dt>Versão do resultado</dt><dd>" + (r.revision_number ? "nº " + e(r.revision_number) + (meta.status ? " · " + e(ROTULO_STATUS[meta.status] || meta.status) : "") : "—") + "</dd></div>" +
-        "<div><dt>Pacote metodológico</dt><dd>" + e(h.pacote ? h.pacote.code + "@" + h.pacote.version : "—") + "</dd></div>" +
+        "<div><dt>Pacote metodológico</dt><dd>" + e(h.pacote ? h.pacote.code + " v" + h.pacote.version : "—") + "</dd></div>" +
         "</dl>";
     }
     html += "</header>";
@@ -371,7 +380,7 @@
         EIXOS.map(function (x) { return '<div class="rh-num"><span>' + e(x[1]) + "</span><b>" + (triOk[x[2]] === false || tri[x[2]] === null || tri[x[2]] === undefined ? "—" : num(tri[x[2]])) + "</b><small>Tríade</small></div>"; }).join("") +
         (paciente ? "" : '<div class="rh-num rh-num-cob"><span>Cobertura</span><b>' + (typeof cob.respondidos === "number" ? e(cob.respondidos + "/" + cob.total) : "—") + "</b><small>respostas</small></div>") +
       "</div></div>" +
-      (paciente ? "" : '<p class="rh-nota-tec">Dados oficiais salvos da aplicação HOLOSCAN selecionada (' + e(h.pacote ? h.pacote.code + "@" + h.pacote.version : "") + '). Nada foi recalculado nesta página.</p>') +
+      (paciente ? "" : '<p class="rh-nota-tec">Dados oficiais salvos da aplicação HOLOSCAN selecionada (' + e(h.pacote ? h.pacote.code + " v" + h.pacote.version : "") + '). Nada foi recalculado nesta página.</p>') +
       "</section>";
 
     // 3. cinco sistemas

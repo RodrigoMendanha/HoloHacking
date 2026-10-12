@@ -3932,6 +3932,7 @@
         return;
       }
       r._supa_id = appId;
+      r._supa_encounter_id = atendimento.id;   // 12/10 (bug 5): o atendimento ja vale na tela, sem recarregar
       /* a aplicacao agora existe no servidor: os Proximos Passos HOLOS sao registrados (snapshot) e redesenhados */
       if(window.ProximosPassos && $("#holo-proximos-passos")) window.ProximosPassos.desenhar(r, $("#holo-proximos-passos"));
 
@@ -3964,6 +3965,7 @@
         if (alvoLocal) {
           alvoLocal._supa_id = appId;
           alvoLocal._supa_criado_em = new Date().toISOString();
+          alvoLocal._supa_encounter_id = atendimento.id;   // 12/10 (bug 5): Resultado HOLOS e Evolucao enxergam o atendimento
           // a interpretacao do dia foi junto no payload: nao esta mais pendente
           if (alvoLocal.interpretacao) delete alvoLocal.interpretacao.pendente;
           localStorage.setItem("holohacking.pontuacao", JSON.stringify(hist));

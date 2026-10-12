@@ -131,6 +131,44 @@ ok(!/INTERP_INTERNA_DA_NUTRI/.test(relPac) && /LEITURA_PARA_A_PACIENTE/.test(rel
 ok(/D\. Leitura da sua nutricionista/.test(relPac) && !/encaminhad|médico/i.test(relPac), 'seção D da paciente com título próprio; sem encaminhamento médico');
 ok(/INTERP_INTERNA_DA_NUTRI/.test(relNut) && /só para você/.test(relNut), 'relatório "Para a nutricionista": a interpretação continua lá, marcada "só para você"');
 
+titulo('B4 / B5 — RELATORIO DA NUTRICIONISTA COMPLETO; HOLOSCAN LIGADO AO ATENDIMENTO');
+ok(/1 atendimento registrado/.test(relNut) && !/Nenhuma consulta registrada/.test(relNut), 'seção B lista o atendimento (mesmo sem agendamento)');
+ok(/E\. Ferramentas concluídas/.test(relNut) && /Mapa da Rotina/.test(relNut) && /Linha do Momentum/.test(relNut), 'seção E: ferramentas concluídas');
+ok(/F\. Conduta vigente/.test(relNut) && /G\. Resultado HOLOS/.test(relNut) && /LEITURA_PARA_A_PACIENTE/.test(relNut) && /QUESTAO_INTERNA/.test(relNut), 'seções F (Conduta) e G (último Resultado HOLOS salvo, com as observações)');
+ok(!/E\. Ferramentas concluídas|F\. Conduta vigente|QUESTAO_INTERNA/.test(relPac), 'nada disso vai para a versão da paciente');
+const formRH = await A.evaluate(async (pid) => {
+  window.definirPacienteAtivo(pid); if (window.ResultadoHolos) window.ResultadoHolos.esquecer(); window.levarParaFicha('aba:resultado-holos', pid);
+  for (let i = 0; i < 60; i++) { const a = document.querySelector('#aba-resultado-holos [data-rh-acao="novo"]'); if (a) break; await new Promise(r => setTimeout(r, 100)); }
+  document.querySelector('#aba-resultado-holos [data-rh-acao="novo"]').click(); await new Promise(r => setTimeout(r, 600));
+  const sel = document.getElementById('rh-atendimento'); const h = document.querySelector('input[name="rh-holoscan"]:checked');
+  return { enc: sel ? sel.value : null, holoscan: h ? h.value : null, txt: (document.querySelector('.rh-opcoes') || {}).innerText || '' };
+}, PA);
+ok(formRH.enc === EA && formRH.holoscan === null, 'Resultado HOLOS → Gerar: o atendimento já vem preenchido (mesmo depois de recarregar a página); o HOLOSCAN continua escolha explícita');
+ok(!/sem atendimento/.test(formRH.txt) && /HOLOS-V1 v2/.test(formRH.txt) && !/HOLOS-V12|HOLOS-V1@2/.test(formRH.txt), 'a aplicação mostra o atendimento e "HOLOS-V1 v2": ' + formRH.txt.split('\n').slice(0, 2).join(' | '));
+
+/* B5 de verdade: HOLOSCAN salvo NESTA sessao (sem recarregar) ja aparece ligado ao atendimento */
+const PB = ins('patients', { nome: 'Paciente Sessao Ficticia' }).id;
+await A.reload({ waitUntil: 'networkidle2' });
+await A.waitForFunction(() => window.HoloAuth && window.HoloAuth.sessaoAtiva() && window.pacientesCarregados && window.pacientesCarregados(), { timeout: 15000 });
+await A.waitForFunction(() => window.HoloscanOficial && window.HoloscanOficial.disponivel(), { timeout: 15000 });
+const sess = await A.evaluate(async (pid) => {
+  window.definirPacienteAtivo(pid);
+  const at = await window.AtendimentoAtual.iniciar({ patient_id: pid, occurred_at: new Date(Date.now() - 600000).toISOString() });
+  document.querySelector('.nav-item[data-secao="holoscan"]').click(); await new Promise(r => setTimeout(r, 250));
+  document.getElementById('btn-abrir-questionario').click(); await new Promise(r => setTimeout(r, 250));
+  [...document.querySelectorAll('.q-item[data-marcador]')].forEach((it, i) => { const b = it.querySelectorAll('.q-btn')[(i * 7) % 4]; if (!b.classList.contains('marcado')) b.click(); });
+  document.querySelector('[data-acao="calcular"]').click(); await new Promise(r => setTimeout(r, 700));
+  document.getElementById('btn-salvar-holoscan').click(); await new Promise(r => setTimeout(r, 1500));
+  if (window.ResultadoHolos) window.ResultadoHolos.esquecer(); window.levarParaFicha('aba:resultado-holos', pid);
+  for (let i = 0; i < 60; i++) { const a = document.querySelector('#aba-resultado-holos [data-rh-acao="novo"]'); if (a) break; await new Promise(r => setTimeout(r, 100)); }
+  document.querySelector('#aba-resultado-holos [data-rh-acao="novo"]').click(); await new Promise(r => setTimeout(r, 600));
+  const h = document.querySelector('input[name="rh-holoscan"]:checked');
+  return { at: at && at.id, enc: (document.getElementById('rh-atendimento') || {}).value, h: !!h, txt: (document.querySelector('.rh-opcoes') || {}).innerText || '' };
+}, PB);
+const appB = srv.linhas('holoscan_applications').find(a => a.patient_id === PB);
+ok(appB && appB.encounter_id === sess.at && sess.enc === sess.at && !/sem atendimento/.test(sess.txt),
+  'HOLOSCAN salvo agora, sem recarregar: gravado com o atendimento e mostrado com ele no Resultado HOLOS (' + sess.txt.split('\n')[1] + ')');
+
 ok(errosJS.length === 0, 'nenhum erro de JavaScript na pagina' + (errosJS.length ? ': ' + errosJS.join(' | ') : ''));
 await nav.close();
 console.log(falhou ? '\nFALHOU' : '\ncorrecoes da jornada: tudo ok');

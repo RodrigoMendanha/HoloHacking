@@ -607,13 +607,24 @@
        lista, em ordem decrescente, que a aba Consultas da ficha usa. Aparece
        sempre: "nenhuma consulta" tambem e informacao da jornada. */
     var consultas = (window.Agenda && window.Agenda.todas) ? window.Agenda.todas(paciente()) : [];
+    /* 12/10 (bug 4): o atendimento que aconteceu (com ou sem agendamento) tambem e acompanhamento */
+    var AT = window.AtendimentoAtual;
+    var atendimentos = AT && AT.doPaciente ? AT.doPaciente(paciente()).slice()
+      .sort(function (a, b) { return String(b.occurred_at).localeCompare(String(a.occurred_at)); }) : [];
     html += '<section class="rel-parte" data-origem="automatico">' +
       "<h3>B. Consultas e acompanhamento</h3><div class=\"rel-bloco\">";
-    if (consultas.length === 0) {
+    if (atendimentos.length) {
+      html += "<p>" + atendimentos.length + (atendimentos.length === 1 ? " atendimento registrado." : " atendimentos registrados.") + "</p>";
+      atendimentos.forEach(function (e) {
+        html += '<p class="rel-prioridade"><b>' + escapar(AT.rotuloQuando ? AT.rotuloQuando(e) : dataBR(String(e.occurred_at).slice(0, 10))) + "</b>" +
+          (e.consultation_id ? " &middot; com agendamento" : " &middot; sem agendamento") + "</p>";
+      });
+    }
+    if (consultas.length === 0 && atendimentos.length === 0) {
       html += '<p class="rel-vazio">Nenhuma consulta registrada até o momento.</p>';
-    } else {
+    } else if (consultas.length) {
       html += "<p>" + consultas.length +
-        (consultas.length === 1 ? " consulta registrada." : " consultas registradas.") + "</p>";
+        (consultas.length === 1 ? " consulta agendada." : " consultas agendadas.") + "</p>";
       consultas.forEach(function (c) {
         html += '<p class="rel-prioridade"><b>' + escapar(dataBR(c.data)) + "</b> &middot; " +
           escapar(c.hora) + " &middot; " + escapar(c.tipo || "Consulta") + "</p>";
@@ -635,6 +646,11 @@
        Editavel so no registro "nutri"; no registro "paciente" e so leitura,
        exatamente com o que foi escrito — sem gerar nada em cima. */
     var interpretacao = window.interpretacaoDe ? window.interpretacaoDe() : null;
+    /* 12/10 (bug 4): a ultima aplicacao pode nao ter interpretacao; vale a mais recente que tem */
+    if (!(interpretacao && interpretacao.texto) && window.historicoPontuacao) {
+      var comTexto = (window.historicoPontuacao(paciente()) || []).filter(function (x) { return x.interpretacao && x.interpretacao.texto; });
+      if (comTexto.length) interpretacao = comTexto[comTexto.length - 1].interpretacao;
+    }
     var textoInterpretacao = (interpretacao && interpretacao.texto) || "";
     html += '<section class="rel-parte" data-origem="profissional">' +
       "<h3>" + (registroAtual === "nutri" ? "D. Interpretação profissional (só para você)" : "D. Leitura da sua nutricionista") + "</h3><div class=\"rel-bloco\">";
@@ -652,6 +668,10 @@
       html += '<div id="rel-leitura-paciente"><p class="rel-vazio">Carregando…</p></div>';
     }
     html += "</div></section>";
+
+    /* 12/10 (bug 4): o relatorio da nutricionista traz tambem ferramentas concluidas, Conduta vigente e o ultimo
+       Resultado HOLOS salvo. So na versao da nutricionista (a paciente recebe o Resultado Final). */
+    if (registroAtual === "nutri") html += secoesProfissionais(paciente());
 
     /* A assinatura e o carimbo vem antes da identificacao, como no papel:
        a imagem, e embaixo dela quem assinou e sob qual registro. */
@@ -676,6 +696,7 @@
     pintarImagensDoPerfil(eu);
     preencherDocumentosRelatorio(paciente());
     if (registroAtual !== "nutri") preencherLeituraPaciente(paciente());
+    else preencherResultadoNutri(paciente());
   }
 
   /* Mesmo padrao de pintarImagensDoPerfil(): o HTML sincrono ja foi escrito
@@ -683,6 +704,51 @@
      ArquivoStore resolve. Confere se a secao ainda existe — trocar de aba
      ou de paciente antes da promise resolver nao pode escrever por cima da
      tela errada. */
+  function nomeFerramenta(fid) {
+    var c = (window.CATALOGO_FERRAMENTAS || []).filter(function (x) { return x.id === fid; })[0];
+    var PPn = window.ProximosPassos && window.ProximosPassos.NOME_FERRAMENTA;
+    return (PPn && PPn[fid]) || (c && c.titulo) || fid;
+  }
+  function secoesProfissionais(pid) {
+    var h = "";
+    var Ap = window.Aplicacoes;
+    var feitas = (Ap && Ap.doPaciente ? Ap.doPaciente(pid) : []).filter(function (a) { return a.status === "concluida" || a.status === "revisada"; })
+      .sort(function (a, b) { return String(b.concluida_em || b.iniciada_em || "").localeCompare(String(a.concluida_em || a.iniciada_em || "")); });
+    h += '<section class="rel-parte" data-origem="automatico"><h3>E. Ferramentas concluídas</h3><div class="rel-bloco">';
+    h += feitas.length ? feitas.map(function (a) {
+      return '<p class="rel-prioridade"><b>' + escapar(nomeFerramenta(a.ferramenta_id)) + "</b> &middot; " +
+        escapar(dataBR(String(a.concluida_em || a.iniciada_em || "").slice(0, 10))) + " &middot; " + (a.status === "revisada" ? "revisada" : "concluída") + "</p>";
+    }).join("") : '<p class="rel-vazio">Nenhuma ferramenta concluída até o momento.</p>';
+    h += "</div></section>";
+    var C = window.Conduta, v = C && C.vigenteDoPaciente ? C.vigenteDoPaciente(pid) : null;
+    h += '<section class="rel-parte" data-origem="profissional"><h3>F. Conduta vigente</h3><div class="rel-bloco">';
+    if (v && v.conduta) {
+      var cd = v.conduta, campos = (C.CAMPOS || []).filter(function (f) { return f[0] !== "requested_exams" && cd[f[0]] && String(cd[f[0]]).trim(); });
+      h += "<p>rev. " + escapar(String(cd.revision_number)) + " &middot; atendimento " + escapar(window.AtendimentoAtual && window.AtendimentoAtual.rotuloQuando ? window.AtendimentoAtual.rotuloQuando(v.atendimento) : "") + "</p>";
+      h += campos.map(function (f) { return '<h5 class="rel-sub">' + escapar(f[1]) + "</h5><p>" + escapar(String(cd[f[0]])).replace(/\n/g, "<br>") + "</p>"; }).join("");
+      var ac = C.acordosDe ? C.acordosDe(cd.id).filter(function (a) { return a.description && String(a.description).trim(); }) : [];
+      if (ac.length) h += '<h5 class="rel-sub">Acordos</h5>' + ac.map(function (a) { return "<p>" + escapar(a.description) + (a.status ? " &middot; " + escapar(C.rotulo ? C.rotulo(a.status) : a.status) : "") + "</p>"; }).join("");
+    } else {
+      h += '<p class="rel-vazio">Nenhuma conduta salva até o momento.</p>';
+    }
+    h += "</div></section>";
+    h += '<section class="rel-parte" data-origem="profissional"><h3>G. Resultado HOLOS</h3><div class="rel-bloco" id="rel-resultado-holos"><p class="rel-vazio">Carregando…</p></div></section>';
+    return h;
+  }
+  function preencherResultadoNutri(pid) {
+    ultimoResultadoHolos(pid).then(function (r) {
+      var alvo = document.getElementById("rel-resultado-holos");
+      if (!alvo) return;
+      if (!r) { alvo.innerHTML = '<p class="rel-vazio">Nenhum Resultado HOLOS salvo até o momento.</p>'; return; }
+      var s = r.content_snapshot || {}, o = s.observacoes || {}, f = s.ferramentas || [];
+      alvo.innerHTML = "<p>Resultado nº " + escapar(String(r.revision_number || 1)) + " &middot; salvo em " + escapar(dataBR(String(r.saved_at || r.created_at).slice(0, 10))) +
+        (f.length ? " &middot; ferramentas: " + escapar(f.map(function (t) { return nomeFerramenta(t.ferramenta_id); }).join(", ")) : "") + "</p>" +
+        (o.leitura_profissional ? '<h5 class="rel-sub">Leitura profissional</h5><p>' + escapar(o.leitura_profissional).replace(/\n/g, "<br>") + "</p>" : "") +
+        (o.pontos_acompanhar ? '<h5 class="rel-sub">Pontos para acompanhar</h5><p>' + escapar(o.pontos_acompanhar).replace(/\n/g, "<br>") + "</p>" : "") +
+        (o.questoes_aprofundar ? '<h5 class="rel-sub">Questões para aprofundar</h5><p>' + escapar(o.questoes_aprofundar).replace(/\n/g, "<br>") + "</p>" : "");
+    });
+  }
+
   /* O ultimo Resultado HOLOS salvo (nao substituido) do paciente, ou null. */
   function ultimoResultadoHolos(pid) {
     var R = window.ResultadoHolos;

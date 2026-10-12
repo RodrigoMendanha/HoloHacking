@@ -1570,6 +1570,7 @@ body.escuro .btn-tema .icone-lua{display:none}
   vertical-align:middle;
 }
 .rel-prioridade{font-size:.88rem;font-weight:300;color:var(--texto-suave);margin:0 0 6px}
+.rel-sub{font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--texto-suave);margin:14px 0 4px}
 .rel-prioridade b{color:var(--texto);font-weight:500}
 .rel-indice p{font-size:1.1rem;color:var(--texto);margin:0 0 6px}
 .rel-indice b{font-family:var(--fonte-display);color:var(--dourado);font-size:1.4rem}

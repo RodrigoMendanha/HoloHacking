@@ -122,7 +122,7 @@ const cheio = await p.evaluate(() => {
   };
 });
 
-conferir(cheio.secoes.length === 4 && !cheio.secoes.some(s => /Leitura Integrada/.test(s.titulo)), 'as quatro seções automáticas/profissional existem (sem Leitura Integrada, 09/10): ' + cheio.secoes.map(s => s.titulo).join(' | '));
+conferir(cheio.secoes.length === 7 && /^E\. Ferramentas/.test(cheio.secoes[4].titulo) && /^F\. Conduta/.test(cheio.secoes[5].titulo) && /^G\. Resultado HOLOS/.test(cheio.secoes[6].titulo) && !cheio.secoes.some(s => /Leitura Integrada/.test(s.titulo)), 'as sete seções da versão da nutricionista (12/10: + ferramentas, Conduta, Resultado HOLOS; sem Leitura Integrada): ' + cheio.secoes.map(s => s.titulo).join(' | '));
 conferir(/Aplicado em \d\d\/\d\d\/\d{4}/.test(cheio.aplicadoEm),
   'a seção A mostra a data da APLICAÇÃO, não só a data do relatório: ' + cheio.aplicadoEm);
 conferir(cheio.indice === '43', 'índice HOLOS: ' + cheio.indice);
@@ -138,7 +138,7 @@ const consultasEDocs = await p.evaluate(() => {
     docsTexto: docs.textContent.replace(/\s+/g, ' '),
   };
 });
-conferir(/1 consulta registrada/.test(consultasEDocs.consultasTexto) && /Retorno/.test(consultasEDocs.consultasTexto),
+conferir(/1 consulta agendada/.test(consultasEDocs.consultasTexto) && /Retorno/.test(consultasEDocs.consultasTexto),
   'seção B (Consultas): ' + consultasEDocs.consultasTexto);
 conferir(/1 documento\/exame armazenado/.test(consultasEDocs.docsTexto) && !/Hemograma/.test(consultasEDocs.docsTexto),
   'seção C (Documentos): só a referência administrativa, sem nome de arquivo (09/10): ' + consultasEDocs.docsTexto);
@@ -154,17 +154,18 @@ const interp = await p.evaluate(async () => {
   document.querySelector('[data-acao="salvar-interpretacao"]').click();
   await new Promise(r => setTimeout(r, 200));
   const r = document.getElementById('relatorio');
-  const ultima = [...r.querySelectorAll('.rel-parte')].pop();
+  const partes = [...r.querySelectorAll('.rel-parte')];
+  const ultima = partes.find(s => /^D\./.test(s.querySelector('h3').textContent));
   return {
     origem: ultima.dataset.origem,
     titulo: ultima.querySelector('h3').textContent,
     misturouComB: /Observação clínica de teste/.test(
-      [...r.querySelectorAll('.rel-parte')].slice(0, -1).map(s => s.textContent).join(' ')),
+      partes.filter(s => s !== ultima).map(s => s.textContent).join(' ')),
   };
 });
 conferir(interp.origem === 'profissional' && /^D\. Interpretação profissional/.test(interp.titulo),
-  'a interpretação profissional é a última seção, com origem marcada: ' + interp.titulo);
-conferir(!interp.misturouComB, 'e o texto não vaza para as seções automáticas (A/B/C)');
+  'a interpretação profissional fica na seção D, com origem marcada: ' + interp.titulo);
+conferir(!interp.misturouComB, 'e o texto não vaza para as outras seções');
 
 /* --------------------------------------------- impressão sem chrome ------ */
 
