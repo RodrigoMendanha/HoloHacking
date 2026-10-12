@@ -437,7 +437,8 @@
   function desenhar() {
     var alvo = document.getElementById("aba-holos-ai");
     /* 12/10 (bug 8): o Resultado HOLOS salvo entra no "Caso completo" — ja carregado quando a aba abre */
-    if (alvo && window.ResultadoHolos && window.ResultadoHolos.carregar && pacienteId()) window.ResultadoHolos.carregar(pacienteId());
+    try { if (alvo && window.ResultadoHolos && window.ResultadoHolos.carregar && pacienteId()) Promise.resolve(window.ResultadoHolos.carregar(pacienteId())).catch(function () {}); }
+    catch (e) { /* sem servidor: o Caso completo sai sem o Resultado HOLOS */ }
     if (!alvo) return;
     var pid = pacienteId();
 
