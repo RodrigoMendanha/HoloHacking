@@ -1,15 +1,15 @@
 #!/bin/sh
-# HOLOHACKING — deploy do front na VPS (passos 4 a 11). Versao atual: c22a27d = janelas de boas-vindas + resumo do Resultado HOLOS + anamnese pre-consulta (o cartao so aparece depois do SQL ANAMNESE-PRE-CONSULTA-PARTE1..5; sem ele, nada muda na aba Anamnese) + checklist do Perfil (dbac2db). Nao exige SQL novo. Rodar NA VPS:
+# HOLOHACKING — deploy do front na VPS (passos 4 a 11). Versao atual: 00d8035 = Resultado Final HOLOS (exige o SQL RESULTADO-FINAL-PARTE1..7, ja aplicado em 12/10) + pagina de Administracao (sem o SQL ADMINISTRACAO-PARTE1..4 cai no modo antigo de liberar cadastros; sem a Edge Function admin-usuarios os botoes de acesso avisam) + cartoes dos Proximos Passos legiveis. Rodar NA VPS:
 #   sh deploy-etapa6-5b.sh            -> passos 4-8 (estado, codigo, build, container temporario 8082). NAO troca producao.
 #   sh deploy-etapa6-5b.sh swap       -> passos 9-11 (troca 8080, valida local e publico). So depois de conferir o 1o.
 # Para sozinho em qualquer divergencia. Nunca apaga container. Nao usa credencial.
 set -eu
-ESPERADO=c22a27d4938de625a25c354f2bded673a0c647fd
-CURTO=c22a27d
+ESPERADO=00d80357d5145bb9458ba303585496656cbb68c0
+CURTO=00d8035
 DIR=/opt/holohacking
 IMG=holohacking-web:$CURTO
 PROD=holohacking-web
-ROLLBACK=holohacking-web-antes-c22a27d
+ROLLBACK=holohacking-web-antes-00d8035
 TEMP=holohacking-web-teste-$CURTO
 pare() { echo; echo "### PARE: $*"; exit 1; }
 cd "$DIR"
@@ -44,12 +44,12 @@ if [ "${1:-}" != "swap" ]; then
   docker run -d --name "$TEMP" -p 127.0.0.1:8082:80 "$IMG" >/dev/null
   sleep 2
   curl -s http://127.0.0.1:8082/version.json; echo
-  for p in / /index.html /app.js /ferramentas-registro.js /metodologia.js /formulario.js /holoscan-oficial.js /proximos-passos.js /ajuda.js /contas.js /login.js /resultado-holos.js /resultado-sintese.js /resultado-pagina.js /anamnese-v2.js /anamnese-convite.js /anamnese-publica.js /anamnese.html /boas-vindas.js /arquivos.js /aprovacoes.html /aprovacoes.js /style.css /favicon.svg /logo-holohacking.png /version.json; do
+  for p in / /index.html /app.js /ferramentas-registro.js /metodologia.js /formulario.js /holoscan-oficial.js /proximos-passos.js /ajuda.js /contas.js /login.js /resultado-holos.js /ferramentas-fechamento.js /resultado-sintese.js /resultado-pagina.js /anamnese-v2.js /anamnese-convite.js /anamnese-publica.js /anamnese.html /boas-vindas.js /arquivos.js /aprovacoes.html /aprovacoes.js /style.css /favicon.svg /logo-holohacking.png /version.json; do
     c=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:8082$p"); echo "$c $p"; [ "$c" = 200 ] || pare "$p devolveu $c no temporario"
   done
   curl -sI http://127.0.0.1:8082/app.js | grep -iE 'cache-control|x-content-type|referrer-policy|content-type'
-  echo; echo "=== conferir-producao no temporario (esperado 69 de 69) ==="
-  sh scripts/conferir-producao.sh http://127.0.0.1:8082 || pare "conferir-producao no temporario nao deu 69/69 — NAO fazer swap"
+  echo; echo "=== conferir-producao no temporario (esperado 70 de 70) ==="
+  sh scripts/conferir-producao.sh http://127.0.0.1:8082 || pare "conferir-producao no temporario nao deu 70/70 — NAO fazer swap"
   echo; echo "=== PASSO 8 — referencias do index (nenhum 404) ==="
   for s in $(curl -s http://127.0.0.1:8082/ | grep -o 'src="/[^"]*\.js"' | sed 's/src="//;s/"//'); do
     c=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:8082$s"); [ "$c" = 200 ] || pare "$s -> $c"
@@ -71,13 +71,13 @@ echo "rollback preservado: $ROLLBACK ($(docker inspect "$ROLLBACK" --format '{{.
 echo; echo "=== PASSO 10 — validacao local 8080 ==="
 V=$(curl -s http://127.0.0.1:8080/version.json); echo "$V"
 echo "$V" | grep -q "\"commit\":\"$CURTO\"" || pare "8080 nao serve $CURTO — fazer ROLLBACK (ver abaixo)"
-sh scripts/conferir-producao.sh http://127.0.0.1:8080 || pare "8080 nao deu 69/69 — fazer ROLLBACK"
+sh scripts/conferir-producao.sh http://127.0.0.1:8080 || pare "8080 nao deu 70/70 — fazer ROLLBACK"
 
 echo; echo "=== PASSO 11 — validacao publica ==="
 curl -s https://holohacking.com.br/version.json; echo
 for p in / /app.js /ferramentas-registro.js /style.css; do echo "$(curl -s -o /dev/null -w '%{http_code}' "https://holohacking.com.br$p") $p"; done
 curl -sI https://holohacking.com.br/app.js | grep -iE 'cache-control|x-content-type|referrer-policy|content-type'
-sh scripts/conferir-producao.sh || pare "publico nao deu 69/69 — fazer ROLLBACK"
+sh scripts/conferir-producao.sh || pare "publico nao deu 70/70 — fazer ROLLBACK"
 docker rm -f "$TEMP" >/dev/null 2>&1 || true
 echo; echo ">>> NO AR: $CURTO. Rollback disponivel em $ROLLBACK."
 echo "ROLLBACK (so se precisar): docker stop $PROD && docker rename $PROD $PROD-$CURTO-falhou && docker rename $ROLLBACK $PROD && docker start $PROD"
