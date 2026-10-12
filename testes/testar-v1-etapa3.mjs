@@ -321,8 +321,10 @@ ok(/Último relatório emitido.*retificado.*emissão nº 2/.test(tl2.visao) && !
 /* ==================================================================== */
 titulo('CONTEXTOS: DASHBOARD, HOLOS AI, EXPORTACAO, HISTORICO');
 /* ==================================================================== */
-const dash = await A.evaluate(async () => { document.querySelector('.nav-item[data-secao="dashboard"]').click(); await new Promise(r => setTimeout(r, 500)); return (document.getElementById('dash-rascunhos') || {}).innerText || ''; });
-ok(/Rascunhos em aberto/.test(dash) && /1 relatório em rascunho/.test(dash) && /RASCUNHO PENDENTE/.test(dash) && /anamnese em rascunho/.test(dash) && !/Índice/.test(dash), 'dashboard: rascunhos em aberto (anamnese, relatorio) sem Indice medio — ' + dash.replace(/\s+/g, ' ').slice(0, 120));
+const dash = await A.evaluate(async () => { document.querySelector('.nav-item[data-secao="dashboard"]').click(); await new Promise(r => setTimeout(r, 500)); return { bloco: !!document.getElementById('dash-rascunhos'), texto: document.getElementById('dash-trabalho').innerText }; });
+/* 12/10 (pedido da usuaria): "Rascunhos" saiu do Dashboard (tela so com topo, Agenda de Hoje e Acompanhamento); os
+   rascunhos continuam na ficha de cada paciente. */
+ok(!dash.bloco && !/rascunho/i.test(dash.texto) && !/Índice/.test(dash.texto), 'dashboard: sem bloco de rascunhos nem Indice medio (tela limpa, decisao 12/10)');
 const ctx = await A.evaluate(async (pid) => {
   window.abrirFichaDe(pid); await new Promise(r => setTimeout(r, 300));
   document.querySelector('[data-aba="holos-ai"]').click(); await new Promise(r => setTimeout(r, 400));

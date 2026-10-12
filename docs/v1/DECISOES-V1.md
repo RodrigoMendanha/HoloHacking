@@ -1012,8 +1012,10 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     Resultado apresentado (Resultado HOLOS e emissão do Resultado Final), Aguardando retorno (já atendida + consulta
     marcada à frente). "Em acompanhamento" = pacientes ativos com alguma etapa. "Pronto para consulta" não foi usado
     (não há registro de "anamnese revisada" separado do atendimento). Sem prioridade, gravidade nem vermelho. Topo
-    marfim; Agenda de Hoje + Acompanhamento lado a lado; o Perfil abre pelo canto superior direito. Sem mudança de
-    banco. Detalhes: `docs/v1/DASHBOARD-ACOMPANHAMENTO.md`.
+    marfim com a pinha da marca ao fundo; o Dashboard é só o topo + Agenda de Hoje + Acompanhamento (igual à referência
+    aprovada; próximas consultas, recentes, jornada, rascunhos, sem conduta e "Primeiros passos" saíram — estes viram
+    janela dos primeiros acessos, a fazer); o Perfil abre pelo canto superior direito. Sem mudança de banco. Detalhes:
+    `docs/v1/DASHBOARD-ACOMPANHAMENTO.md`.
 
 ## Decisões pendentes (não decididas aqui)
 

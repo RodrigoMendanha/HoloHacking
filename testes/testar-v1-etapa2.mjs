@@ -262,18 +262,10 @@ const dash = await A.evaluate(async () => { document.querySelector('.nav-item[da
 ok(dash === '' || !/Paciente Um/.test(dash), 'dashboard: Paciente Um tem conduta salva nos dois atendimentos — nao esta em "sem conduta salva"' + (dash ? ' (' + dash.replace(/\s+/g, ' ').slice(0, 60) + ')' : ''));
 const E3 = await iniciarAtendimento(PB, '2026-05-02T12:00:00.000Z');
 await A.evaluate(async (e3) => { await window.Conduta.salvar({ encounter_id: e3, status: 'rascunho', objective: 'so rascunho' }).catch(() => {}); }, E3);
-const dash2 = await A.evaluate(async () => { document.querySelector('.nav-item[data-secao="pacientes"]').click(); document.querySelector('.nav-item[data-secao="dashboard"]').click(); await new Promise(r => setTimeout(r, 400)); return (document.getElementById('dash-sem-conduta') || {}).innerText || ''; });
-ok(/Paciente Dois/.test(dash2) && /conduta em rascunho/.test(dash2), 'dashboard: atendimento com conduta so em RASCUNHO conta como "sem conduta salva" (rascunho nao e conduta)');
-/* Correcao do dashboard (pos-6.5): "Abrir conduta" leva ao ATENDIMENTO (selecionado), na aba Conduta — nao so a ficha. */
-const irConduta = await A.evaluate(async (e3) => {
-  const bt = document.querySelector('#dash-sem-conduta [data-atendimento="' + e3 + '"]');
-  if (!bt) return { achou: false };
-  bt.click(); await new Promise(r => setTimeout(r, 400));
-  return { achou: true, botao: bt.textContent.trim(), atual: (window.AtendimentoAtual.atual() || {}).id,
-    aba: document.querySelector('[data-aba].ativa')?.dataset.aba, secao: document.querySelector('.secao.ativa')?.id };
-}, E3);
-ok(irConduta.achou && irConduta.atual === E3 && irConduta.aba === 'conduta' && irConduta.secao === 'secao-pacientes',
-   'dashboard: "Abrir conduta" seleciona o atendimento sem conduta e abre a aba Conduta: ' + JSON.stringify(irConduta));
+const dash2 = await A.evaluate(async () => { document.querySelector('.nav-item[data-secao="pacientes"]').click(); document.querySelector('.nav-item[data-secao="dashboard"]').click(); await new Promise(r => setTimeout(r, 400)); return { bloco: !!document.getElementById('dash-sem-conduta'), texto: document.getElementById('dash-trabalho').innerText }; });
+/* 12/10 (pedido da usuaria): "Atendimentos sem conduta salva" saiu do Dashboard, que ficou so com o topo, a Agenda de
+   Hoje e o Acompanhamento dos pacientes. Conduta em rascunho continua sendo rascunho (testado na ficha acima). */
+ok(!dash2.bloco && !/sem conduta salva|conduta em rascunho/.test(dash2.texto), 'dashboard: sem a lista "Atendimentos sem conduta salva" (tela limpa, decisao 12/10)');
 const gerarContexto = (eid) => A.evaluate(async (pid, eid) => {
   window.abrirFichaDe(pid); await new Promise(r => setTimeout(r, 200));
   window.AtendimentoAtual.selecionarPorId(eid);

@@ -13,17 +13,22 @@ Redesenho do topo do Dashboard. "Pendências" deixa de ser o eixo da tela e dá 
 | **Precisa de você** (sem HOLOSCAN, questionário parado, mapa sem conduta, atendimentos sem conduta) | **Acompanhamento dos pacientes**, ao lado da Agenda. Cada linha mostra avatar, nome, informação curta, data, etapa e seta |
 | "Nutricionista" + "N" estáticos no topo | Bloco **iniciais + nome + profissão + seta**, que abre o **Perfil** com clique, Enter ou Espaço (`role=button`, `tabindex=0`, `aria-label="Abrir meu perfil"`). Mostra a foto do Perfil, se houver |
 
-O restante continua no tema escolhido, com verde-noite e dourado no escuro:
+**Segunda rodada (12/10, pedido da usuária): o Dashboard é só o que está na imagem aprovada.**
 
-- **HOLOSCAN não salvo no servidor**: aviso técnico de risco de perder dado. Não é etapa.
-- **Rascunhos em aberto**: antes "Rascunhos pendentes".
-- **Atendimentos sem conduta salva**: agora é um bloco próprio.
-- **Próximas consultas marcadas**.
-- **Pacientes recentes**.
-- **Jornada clínica**.
-- **Primeiros passos**.
+- **Topo marfim:** "Plataforma clínica", saudação, frase-resumo e os 4 cards. A **pinha da marca** fica ao fundo como marca d'água, com a citação "Saúde integral para uma vida extraordinária.". Em telas largas, o topo ocupa a largura toda da área de conteúdo.
+- **Abaixo do topo, lado a lado:** **Agenda de Hoje** e **Acompanhamento dos pacientes**.
 
-Ações rápidas que continuam no topo: **Novo paciente** e **Abrir HOLOSCAN**. "Nova consulta" e "Abrir agenda" ficaram no bloco Agenda de Hoje.
+**Saíram do Dashboard:**
+
+- Próximas consultas marcadas: continuam na Agenda.
+- Pacientes recentes: continuam em Pacientes.
+- Jornada clínica: continua no menu e na ficha.
+- Rascunhos e atendimentos sem conduta salva: continuam na ficha.
+- O aviso "HOLOSCAN não salvo no servidor": continua no cartão do paciente e na ficha.
+- Os botões "Novo paciente" e "Abrir HOLOSCAN".
+- **Primeiros passos:** vão virar uma janela nos primeiros acessos da nutricionista (a fazer). Não ficam fixos no Dashboard.
+
+**Conta sem nenhum paciente:** o topo mostra "Comece cadastrando seu primeiro paciente" com o botão **Cadastrar primeiro paciente**, e a apresentação do método aparece abaixo.
 
 ## Etapas e de onde vem cada uma
 
@@ -46,7 +51,22 @@ Cada paciente ativo recebe **uma** etapa, verificada nesta ordem. Paciente sem n
 - Paciente sem HOLOSCAN não entra.
 - Ferramenta não aplicada nunca é etapa.
 
-**Leitura.** O Dashboard faz 3 consultas a mais, só de leitura: convites, Resultados HOLOS e emissões. Elas trazem só as colunas de estado e nunca o conteúdo das respostas. As consultas valem por 20 segundos e respeitam a RLS (cada nutricionista vê só os seus). O resto já vinha carregado pela sincronização.
+**Leitura e sincronização.**
+
+- O Dashboard faz 3 consultas a mais, só de leitura: convites, Resultados HOLOS e emissões. Elas trazem só as colunas de estado e nunca o conteúdo das respostas nem o código do convite.
+- As consultas são refeitas a cada abertura do Dashboard, no máximo uma vez a cada 5 segundos.
+- Ao trocar de conta ou sair, o que foi lido é apagado na hora.
+- A RLS garante que cada nutricionista vê só os seus registros.
+- Pacientes, agenda, atendimentos e HOLOSCAN já vinham carregados pela sincronização, que redesenha o Dashboard ao terminar.
+
+**Conferido no banco real em 12/10, só leitura:**
+
+- as colunas existem;
+- RLS ligada nas 3 tabelas, com política "só os próprios";
+- quem está logado lê as colunas usadas, e o código secreto do convite (`token_hash`) continua fechado;
+- anônimo não lê nada.
+
+A mesma regra calculada direto no banco para a conta em uso deu 4 pacientes ativos e 2 em acompanhamento (1 "Aguardando retorno" e 1 "Resultado apresentado").
 
 **Cores das etapas.** Não há vermelho nem "alta/média/baixa".
 
@@ -94,9 +114,12 @@ As capturas estão em `docs/v1/dashboard/`, todas com dados **fictícios**:
 - os cliques de cada etapa;
 - o card "Em acompanhamento";
 - o perfil do topo: nome, iniciais, acessibilidade, clique, Enter e Espaço;
-- 1280, 900 e 390 px sem rolagem lateral.
+- 1280, 900 e 390 px sem rolagem lateral;
+- tela limpa: só o topo e os dois blocos, com a pinha ao fundo.
 
-**Testes antigos ajustados ao conceito novo:**
+**Testes antigos ajustados à tela nova:**
 
-- `testar-dashboard.mjs`: "Precisa de você" virou "Acompanhamento dos pacientes".
-- `testar-v1-etapa3.mjs`: "Rascunhos em aberto".
+- `testar-dashboard.mjs`: "Precisa de você" virou "Acompanhamento dos pacientes"; saíram os blocos removidos.
+- `testar-v1-etapa2.mjs`: o Dashboard não lista mais "sem conduta salva".
+- `testar-v1-etapa3.mjs`: o Dashboard não mostra mais os rascunhos.
+- `testar-rodada08-contexto.mjs`: a Evolução abre pelo HOLOSCAN, não mais pela Jornada do Dashboard.

@@ -2,18 +2,21 @@
    DASHBOARD — o que tenho hoje e em que etapa esta cada paciente
    ===========================================================================
 
-   A primeira tela que a nutricionista ve ao abrir o app (redesenho 12/10):
+   A primeira tela que a nutricionista ve ao abrir o app (redesenho 12/10,
+   igual a referencia aprovada):
 
-     topo claro    saudacao, frase-resumo e 4 cards: Pacientes ativos,
-                   Atendimentos hoje, Proxima consulta, Em acompanhamento
+     topo claro    "Plataforma clinica", saudacao, frase-resumo e 4 cards:
+                   Pacientes ativos, Atendimentos hoje, Proxima consulta,
+                   Em acompanhamento; a pinha da marca ao fundo
+     Primeiros passos          so enquanto houver passo a fazer
      Agenda de Hoje            consultas marcadas para hoje e atendimentos
                                de hoje sem agendamento
      Acompanhamento dos        a etapa de cada paciente, derivada SO de
      pacientes                 registros que ja existem (ver etapaDe)
-     registros em aberto       HOLOSCAN nao salvo no servidor (aviso
-                               tecnico), rascunhos, atendimentos sem conduta
-     depois                    proximas consultas, pacientes recentes,
-                               jornada clinica, primeiros passos
+
+   Nada mais fica no Dashboard: proximas consultas, pacientes recentes,
+   jornada clinica, rascunhos e atendimentos sem conduta continuam na Agenda,
+   em Pacientes/Atendimentos e na ficha.
 
    "Pendencias" nao e mais o eixo da tela: o fluxo nao trabalha com tarefas
    atrasadas, e ferramenta nao aplicada nao e pendencia. Nada aqui calcula
@@ -68,20 +71,9 @@
 
   function pacientePorId(pid) { return todos().filter(function (x) { return x.id === pid; })[0] || null; }
 
-  function nomeDe(pid) { var p = pacientePorId(pid); return p ? p.nome : "Paciente"; }
 
   /* "14:00:00" (como vem do banco) vira "14:00". */
   function horaCurta(h) { return h ? String(h).slice(0, 5) : ""; }
-
-  /* V1, Etapa 2: registro OPERACIONAL objetivo — atendimento registrado sem
-     conduta consolidada (rascunho nao conta), so de pacientes ativos. Nao e
-     julgamento clinico nem etapa da jornada. */
-  function semConduta() {
-    var A = window.AtendimentoAtual, Cd = window.Conduta;
-    if (!A || !Cd) return [];
-    return A.todos().filter(function (e) { return !Cd.vigente(e.id) && ativo(pacientePorId(e.patient_id)); })
-      .sort(function (a, b) { return String(b.occurred_at).localeCompare(String(a.occurred_at)); });
-  }
 
   /* As consultas vigentes de hoje em diante, todas (nao so a proxima de cada
      paciente), por data e hora — Agenda.daCarteira() ja vem nessa ordem. */
@@ -130,7 +122,9 @@
   function temSupa() { return !!(sb() && window.HoloAuth && window.HoloAuth.sessaoAtiva && window.HoloAuth.sessaoAtiva()); }
   function carregarJornada(forcar) {
     if (!temSupa()) { jornada = { convites: [], resultados: [], emissoes: [], carregadoEm: 0, carregando: false }; return; }
-    if (jornada.carregando || (!forcar && Date.now() - jornada.carregadoEm < 20000)) return;
+    /* releitura a cada abertura do Dashboard (no maximo uma a cada 5 s): convite enviado, Resultado salvo ou
+       emitido em outra tela aparecem ao voltar, sem dado velho */
+    if (jornada.carregando || (!forcar && Date.now() - jornada.carregadoEm < 5000)) return;
     jornada.carregando = true;
     var ler = function (t, cols) {
       return Promise.resolve(sb().from(t).select(cols)).then(function (r) { return r && !r.error && Array.isArray(r.data) ? r.data : []; }, function () { return []; });
@@ -226,13 +220,9 @@
 
   /* ---------- os blocos --------------------------------------------------- */
 
-  /* Folhagem discreta no canto do topo claro (desenho proprio, sem imagem externa). */
-  var FOLHAS = '<svg class="dash-hero-folhas" viewBox="0 0 320 260" aria-hidden="true" focusable="false">' +
-    '<g fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round">' +
-    '<path d="M300 250C250 190 236 120 262 20"/><path d="M262 20c-40 26-56 70-40 112 34-12 50-56 40-112z"/>' +
-    '<path d="M250 120c-52 4-86 34-92 80 46 2 80-28 92-80z"/><path d="M270 150c40-20 52-60 38-104-34 18-48 58-38 104z"/>' +
-    '<path d="M282 210c-46-10-84 6-104 44 42 12 82-6 104-44z"/></g>' +
-    '<g fill="currentColor" opacity=".35"><path d="M262 20c-40 26-56 70-40 112 34-12 50-56 40-112z"/><path d="M270 150c40-20 52-60 38-104-34 18-48 58-38 104z"/></g></svg>';
+  /* A pinha da marca como fundo do topo claro (marca d'agua, sem texto), e a citacao da referencia aprovada. */
+  var MARCA = '<span class="dash-hero-pinha" aria-hidden="true"></span>' +
+    '<blockquote class="dash-hero-citacao"><p>\u201cSa\u00fade integral<br>para uma vida extraordin\u00e1ria.\u201d</p></blockquote>';
 
   function tile(icn, numero, rotulo, destino, sub) {
     return '<button type="button" class="dash-tile" data-destino="' + destino + '">' +
@@ -257,21 +247,18 @@
     else frase = "Você tem <b>" + nPac + (nPac === 1 ? " paciente ativo" : " pacientes ativos") + "</b> na sua carteira" +
       (h.total ? " e <b>" + h.total + (h.total === 1 ? " atendimento" : " atendimentos") + "</b> hoje." : ".");
 
-    return '<div class="dash-hero">' + FOLHAS +
+    return '<div class="dash-hero">' + MARCA +
       '<div class="secao-cabeca dash-cabeca">' +
         '<span class="eyebrow">Plataforma clínica</span>' +
         "<h2>" + saudacao() + ", <em>" + escapar(nome) + "</em></h2>" +
         "<p>" + frase + "</p>" +
+        (nPac === 0 ? '<button type="button" class="dash-botao-dourado dash-hero-cta" data-destino="novo">Cadastrar primeiro paciente <span aria-hidden="true">&rarr;</span></button>' : "") +
       "</div>" +
       '<div class="dash-numeros dash-resumo">' +
         tile("pessoa", nPac, "Pacientes ativos", "pacientes") +
         tile("documento", h.total, "Atendimentos hoje", "consultas", h.semAgenda.length ? h.consultas.length + " agendado" + (h.consultas.length === 1 ? "" : "s") + " · " + h.semAgenda.length + " sem agendamento" : "") +
         tile("calendario", proxLabel, "Próxima consulta", "agenda") +
         tile("pessoas", nAcomp, "Em acompanhamento", "acompanhamento") +
-      "</div>" +
-      '<div class="dash-acoes-rapidas">' +
-        '<button type="button" class="dash-acao" data-destino="novo">Novo paciente</button>' +
-        '<button type="button" class="dash-acao" data-destino="holoscan">Abrir HOLOSCAN</button>' +
       "</div>" +
     "</div>";
   }
@@ -346,213 +333,12 @@
     return '<div class="dash-bloco dash-painel dash-acompanhamento" id="dash-acompanhamento">' + topo + corpo + "</div>";
   }
 
-  function blocoProximosAtendimentos(futuras) {
-    var hj = hojeISO();
-    var proximas = futuras.filter(function (l) { return l.data > hj; }).slice(0, 5);
-
-    var corpo;
-    if (proximas.length === 0) {
-      corpo = '<p class="dash-vazio">Nenhuma consulta agendada nos próximos dias.</p>' +
-        '<button type="button" class="perf-botao" data-destino="nova-consulta">Agendar consulta</button>';
-    } else {
-      corpo = '<ul class="dash-pendentes" id="dash-lista-atendimentos">' + proximas.map(function (l) {
-        return linhaConsulta(l, dataBR(l.data) + (l.hora ? " às " + horaCurta(l.hora) : ""));
-      }).join("") + "</ul>";
-    }
-
-    return '<div class="dash-bloco dash-bloco-compacto">' +
-      '<h3 class="dash-titulo">Próximas consultas marcadas</h3>' + corpo + "</div>";
-  }
-
-  function blocoPacientesRecentes() {
-    var recentes = todos().filter(ativo)
-      .sort(function (a, b) { return (b.created_at || "").localeCompare(a.created_at || ""); })
-      .slice(0, 3);
-
-    var corpo;
-    if (recentes.length === 0) {
-      corpo = '<p class="dash-vazio">Nenhum paciente cadastrado ainda.</p>' +
-        '<button type="button" class="btn-verde" data-destino="novo">Cadastrar primeiro paciente</button>';
-    } else {
-      corpo = '<ul class="dash-pendentes" id="dash-lista-recentes">' + recentes.map(function (p) {
-        return '<li class="dash-pendente">' +
-          '<span class="pac-avatar">' + escapar(inicial(p.nome)) + "</span>" +
-          '<span class="dash-quem"><b>' + escapar(p.nome) + "</b></span>" +
-          '<button type="button" class="dash-ir" data-paciente="' + escapar(p.id) +
-            '" data-destino="ficha">Abrir <span aria-hidden="true">&rarr;</span></button>' +
-          "</li>";
-      }).join("") + "</ul>";
-    }
-
-    return '<div class="dash-bloco dash-bloco-compacto">' +
-      '<h3 class="dash-titulo">Pacientes recentes</h3>' + corpo + "</div>";
-  }
-
-  /* A jornada age sobre o paciente em foco — e diz qual e. Sem paciente em
-     foco (ou com um arquivado), os botoes pedem para escolher antes.
-     INTEGRAR leva as Ferramentas do paciente (aba da ficha), nao ao Corpo. */
-  function blocoJornadaClinica() {
-    var etapas = [
-      { mov: "MAPEAR",      nome: "HOLOSCAN",          texto: "Mapear prioridades de investigação.",                destino: "holoscan" },
-      { mov: "INTEGRAR",    nome: "Ferramentas",       texto: "Integrar ferramentas e condutas ao caso.",           destino: "aba:ferramentas" },
-      { mov: "APRESENTAR",  nome: "Resultado",         texto: "Apresentar e enviar o resultado à paciente.",        destino: "resultado" },
-      { mov: "ACOMPANHAR",  nome: "Evolução",          texto: "Acompanhar mudanças entre aplicações.",              destino: "evolucao" }
-    ];
-
-    var pid = window.pacienteAtivoId ? window.pacienteAtivoId() : null;
-    var foco = pid ? pacientePorId(pid) : null;
-    var linhaFoco = !foco
-      ? "Nenhum paciente em foco: escolha um paciente para seguir a jornada."
-      : !ativo(foco)
-        ? "Paciente em foco: <b>" + escapar(foco.nome) + "</b> &middot; arquivado. Escolha um paciente ativo para seguir a jornada."
-        : "Paciente em foco: <b>" + escapar(foco.nome) + "</b>";
-
-    var passos = etapas.map(function (e, i) {
-      var seta = i > 0 ? '<div class="dash-jornada-seta" aria-hidden="true">&darr;</div>' : "";
-      return seta + '<div class="dash-jornada-passo">' +
-        '<span class="dash-mov">' + escapar(e.mov) + "</span>" +
-        '<span class="dash-quem"><b>' + escapar(e.nome) + "</b>" +
-          '<span class="dash-porque">' + escapar(e.texto) + "</span></span>" +
-        '<button type="button" class="dash-ir" data-jornada="1" data-destino="' + e.destino + '">Abrir <span aria-hidden="true">&rarr;</span></button>' +
-      "</div>";
-    }).join("");
-
-    return '<div class="dash-bloco dash-bloco-compacto">' +
-      '<h3 class="dash-titulo">Jornada clínica</h3>' +
-      '<p class="dash-sub" id="dash-jornada-foco">' + linhaFoco + "</p>" +
-      '<div class="dash-jornada">' + passos + "</div></div>";
-  }
-
-  /* Atendimentos sem conduta salva (id dash-sem-conduta): registro em aberto,
-     nao etapa da jornada. "Abrir" leva ao atendimento, na aba Conduta. */
-  function listaSemConduta() {
-    var A = window.AtendimentoAtual, Cd = window.Conduta;
-    var pend = semConduta();
-    if (!pend.length) return "";
-    return '<div class="dash-bloco dash-bloco-compacto" id="dash-sem-conduta">' +
-      '<h3 class="dash-titulo">Atendimentos sem conduta salva <em>' + pend.length + "</em></h3>" +
-      '<p class="dash-sub">Atendimentos registrados cuja conduta ainda não foi salva.</p>' +
-      '<ul class="dash-pendentes">' + pend.slice(0, 5).map(function (e) {
-        return '<li class="dash-pendente"><span class="pac-avatar">' + escapar(inicial(nomeDe(e.patient_id))) + "</span>" +
-          '<span class="dash-quem"><b>' + escapar(nomeDe(e.patient_id)) + "</b><span class=\"dash-porque\">" + escapar(A.rotuloQuando(e)) +
-          (Cd.rascunhoDe(e.id) ? " · conduta em rascunho" : " · sem conduta") + "</span></span>" +
-          '<button type="button" class="dash-ir" data-paciente="' + escapar(e.patient_id) + '" data-atendimento="' + escapar(e.id) +
-          '" data-destino="atendimento-conduta">Abrir conduta <span aria-hidden="true">&rarr;</span></button></li>';
-      }).join("") + "</ul></div>";
-  }
-
-  /* V1, Etapa 3: registros OPERACIONAIS em aberto — rascunhos de anamnese/conduta nao
-     consolidados e relatorios em rascunho. Contagens, nao julgamentos; nada
-     de Indice medio ou metodologia nao homologada. */
-  function blocoRascunhos() {
-    var An = window.Anamnese, Cd = window.Conduta, R = window.Relatorios;
-    var ativos = todos().filter(ativo);
-    var nAn = An ? An.doPaciente ? ativos.reduce(function (n, p) { return n + An.doPaciente(p.id).filter(function (a) { return a.status === "rascunho"; }).length; }, 0) : 0 : 0;
-    var nCd = Cd ? ativos.reduce(function (n, p) { return n + Cd.doPaciente(p.id).filter(function (c) { return c.status === "rascunho"; }).length; }, 0) : 0;
-    var rel = (R && R.todosRascunhos ? R.todosRascunhos() : []).filter(function (r) { return ativo(pacientePorId(r.patient_id)); });
-    if (!nAn && !nCd && !rel.length) return "";
-    return '<div class="dash-bloco dash-bloco-compacto" id="dash-rascunhos">' +
-      '<h3 class="dash-titulo">Rascunhos em aberto <em>' + (nAn + nCd + rel.length) + "</em></h3>" +
-      '<p class="dash-sub">' + [nAn ? nAn + (nAn === 1 ? " anamnese em rascunho" : " anamneses em rascunho") : "",
-        nCd ? nCd + (nCd === 1 ? " conduta em rascunho" : " condutas em rascunho") : "",
-        rel.length ? rel.length + (rel.length === 1 ? " relatório em rascunho" : " relatórios em rascunho") : ""].filter(Boolean).join(" · ") + ". Nada disso entra na timeline, na Evolução nem na HOLOS AI.</p>" +
-      (rel.length ? '<ul class="dash-pendentes" id="dash-relatorios-rascunho">' + rel.slice(0, 5).map(function (r) {
-        return '<li class="dash-pendente"><span class="pac-avatar">' + escapar(inicial(nomeDe(r.patient_id))) + "</span>" +
-          '<span class="dash-quem"><b>' + escapar(nomeDe(r.patient_id)) + "</b><span class=\"dash-porque\">relatório em rascunho · " + escapar(r.title || "Relatório clínico") + "</span></span>" +
-          '<button type="button" class="dash-ir" data-paciente="' + escapar(r.patient_id) + '" data-destino="aba:relatorio">Abrir <span aria-hidden="true">&rarr;</span></button></li>';
-      }).join("") + "</ul>" : "") + "</div>";
-  }
-
-  /* 12/10: "Precisa de voce" saiu (o fluxo nao e lista de tarefas atrasadas).
-     Fica so o aviso TECNICO de HOLOSCAN calculado e nao salvo no servidor
-     (panorama.js, peso 0): e risco de perder dado, nao etapa clinica. */
-  function blocoNaoSalvos(c) {
-    var linhas = c ? c.linhas.filter(function (l) { return ativo(l.paciente) && l.alertas.some(function (a) { return a.peso === 0; }); }) : [];
-    if (!linhas.length) return "";
-    return '<div class="dash-bloco dash-bloco-compacto dash-aviso-tecnico" id="dash-nao-salvos">' +
-      '<h3 class="dash-titulo">HOLOSCAN não salvo no servidor <em>' + linhas.length + "</em></h3>" +
-      '<p class="dash-sub">O mapa foi calculado neste aparelho e ainda não está guardado na sua conta.</p>' +
-      '<ul class="dash-pendentes">' + linhas.map(function (l) {
-        var a = l.alertas.filter(function (x) { return x.peso === 0; })[0];
-        return '<li class="dash-pendente"><span class="pac-avatar">' + escapar(inicial(l.paciente.nome)) + "</span>" +
-          '<span class="dash-quem"><b>' + escapar(l.paciente.nome) + '</b><span class="dash-porque">' + escapar(a.curto) + "</span></span>" +
-          '<button type="button" class="dash-ir" data-paciente="' + escapar(l.paciente.id) + '" data-destino="' + escapar(a.acao) + '">' + escapar(a.botao) + ' <span aria-hidden="true">&rarr;</span></button></li>';
-      }).join("") + "</ul></div>";
-  }
-
   /* Etapa 0 da V1: os tiles "reavaliacoes vencidas" e "Indice HOLOS medio"
      sairam. Correcao do dashboard (pos-6.5): o bloco "N pacientes / N com
      HOLOSCAN" tambem saiu — repetia o cabecalho com outro numero (contava os
      arquivados). "O terreno da sua carteira" so ocupava espaco com o aviso
      de recurso desligado: fica escondido ate existir regra homologada de
      agregacao no Pacote Metodologico. */
-
-  /* ---------- onboarding contextual --------------------------------------- */
-
-  function blocoOnboarding(c) {
-    var perfilPct = 0;
-    if (window.Perfil && window.Perfil.completude) {
-      perfilPct = window.Perfil.completude().pct;
-    }
-
-    var passos = [];
-
-    if (perfilPct < 100) {
-      passos.push({
-        feito: false,
-        rotulo: "Complete seu perfil profissional",
-        sub: "Nome, registro e assinatura aparecem nos documentos que você imprime.",
-        destino: "perfil",
-        acao: "Completar perfil"
-      });
-    } else {
-      passos.push({ feito: true, rotulo: "Perfil profissional completo", sub: "", destino: "", acao: "" });
-    }
-
-    if (c.total === 0) {
-      passos.push({
-        feito: false,
-        rotulo: "Cadastre seu primeiro paciente",
-        sub: "Tudo começa com uma pessoa. Cadastre e aplique o HOLOSCAN.",
-        destino: "novo",
-        acao: "Cadastrar paciente"
-      });
-    } else {
-      passos.push({ feito: true, rotulo: "Primeiro paciente cadastrado", sub: "", destino: "", acao: "" });
-    }
-
-    if (c.comMapa === 0) {
-      passos.push({
-        feito: false,
-        rotulo: "Aplique o primeiro HOLOSCAN",
-        sub: "O mapa integral revela o que o paciente relata sobre corpo, mente e espírito.",
-        destino: "holoscan",
-        acao: "Abrir HOLOSCAN"
-      });
-    } else {
-      passos.push({ feito: true, rotulo: "HOLOSCAN aplicado", sub: "", destino: "", acao: "" });
-    }
-
-    var todosProntos = passos.every(function (p) { return p.feito; });
-    if (todosProntos) return "";
-
-    var html = '<div class="dash-bloco dash-onboarding">' +
-      '<h3 class="dash-titulo">Primeiros passos</h3>' +
-      '<ul class="dash-passos">';
-
-    passos.forEach(function (p) {
-      html += '<li class="dash-passo' + (p.feito ? " feito" : "") + '">' +
-        '<span class="dash-passo-marca" aria-hidden="true">' + (p.feito ? "&#10003;" : "") + "</span>" +
-        '<span class="dash-passo-info"><b>' + escapar(p.rotulo) + "</b>" +
-          (p.sub ? '<span>' + escapar(p.sub) + "</span>" : "") + "</span>" +
-        (p.feito ? "" : '<button type="button" class="dash-ir" data-destino="' +
-          escapar(p.destino) + '">' + escapar(p.acao) +
-          ' <span aria-hidden="true">&rarr;</span></button>') +
-        "</li>";
-    });
-
-    return html + "</ul></div>";
-  }
 
   /* ---------- desenhar ---------------------------------------------------- */
 
@@ -571,29 +357,14 @@
     var acomp = emAcompanhamento(futuras);
     var metodo = document.getElementById("dash-metodo");
 
-    if (c.total === 0) {
-      if (metodo) metodo.classList.remove("hidden");
-      alvo.innerHTML = blocoCabecalho(c, futuras, acomp) +
-        blocoOnboarding(c) +
-        blocoProximosAtendimentos(futuras) +
-        blocoPacientesRecentes() +
-        blocoJornadaClinica();
-      ligar();
-      return;
-    }
-
-    if (metodo) metodo.classList.add("hidden");
-
-    /* Ordem: o resumo (topo claro); o dia e a jornada de cada paciente lado a
-       lado; os registros em aberto; o que vem depois, quem chegou, a jornada
-       clinica. "Primeiros passos" vai para o fim. */
+    /* 12/10 (pedido da usuaria): o Dashboard e so o topo (Plataforma clinica) e os dois blocos — Agenda de Hoje e
+       Acompanhamento dos pacientes, igual a referencia aprovada. Proximas consultas, pacientes recentes, jornada
+       clinica, rascunhos e atendimentos sem conduta sairam desta tela (continuam na Agenda, em Pacientes/
+       Atendimentos e na ficha). "Primeiros passos" tambem saiu: vai virar janela dos primeiros acessos.
+       Conta nova (0 pacientes) mostra tambem a apresentacao do metodo. */
+    if (metodo) metodo.classList.toggle("hidden", c.total !== 0);
     alvo.innerHTML = blocoCabecalho(c, futuras, acomp) +
-      '<div class="dash-colunas">' + blocoAgendaHoje(futuras) + blocoAcompanhamento(acomp) + "</div>" +
-      blocoNaoSalvos(c) +
-      '<div class="dash-grade-baixo">' + blocoRascunhos() + listaSemConduta() + blocoProximosAtendimentos(futuras) + blocoPacientesRecentes() + "</div>" +
-      blocoJornadaClinica() +
-      blocoOnboarding(c);
-
+      '<div class="dash-colunas">' + blocoAgendaHoje(futuras) + blocoAcompanhamento(acomp) + "</div>";
     ligar();
   }
 
@@ -624,58 +395,6 @@
           if (window.irParaSecao) window.irParaSecao("agenda");
           var novaConsulta = document.querySelector('[data-novo="consulta"]');
           if (novaConsulta) novaConsulta.click();
-          return;
-        }
-
-        /* Jornada: precisa de um paciente ativo em foco para os destinos que
-           dependem dele (a ficha). Arquivado nao segue a jornada. */
-        if (b.dataset.jornada) {
-          var foco = window.pacienteAtivoId ? window.pacienteAtivoId() : null;
-          if (foco && !ativo(pacientePorId(foco))) {
-            if (window.avisar) window.avisar("O paciente em foco está arquivado. Escolha um paciente ativo para seguir a jornada.");
-            if (window.irParaSecao) window.irParaSecao("pacientes");
-            return;
-          }
-          if (destino.indexOf("aba:") === 0) {
-            if (!foco) {
-              if (window.avisar) window.avisar("Escolha um paciente para abrir as ferramentas dele.");
-              if (window.irParaSecao) window.irParaSecao("pacientes");
-              return;
-            }
-            pid = foco;
-          }
-        }
-
-        /* Rodada 08: "Evolução → Abrir" leva ao comparativo de verdade (antes x
-           agora, Indice, sistemas, Triade, aplicacoes e datas), que mora no
-           HOLOSCAN — e so existe a partir da segunda aplicacao. */
-        if (destino === "evolucao") {
-          var hist = window.historicoPontuacao ? window.historicoPontuacao() : [];
-          if (!window.pacienteAtivoId || !window.pacienteAtivoId()) {
-            if (window.avisar) window.avisar("Escolha um paciente para ver a evolução dele.");
-            if (window.irParaSecao) window.irParaSecao("pacientes");
-            return;
-          }
-          if (hist.length < 2) {
-            if (window.avisar) window.avisar("A evolução aparece a partir da segunda aplicação do HOLOSCAN deste paciente.");
-            if (window.irParaSecao) window.irParaSecao("holoscan");
-            return;
-          }
-          if (window.irParaSecao) window.irParaSecao("holoscan");
-          if (window.redesenharEvolucao) window.redesenharEvolucao();
-          var evo = document.getElementById("holo-evolucao");
-          if (evo && evo.scrollIntoView) evo.scrollIntoView({ behavior: "smooth", block: "start" });
-          return;
-        }
-
-        /* "Abrir conduta" de um atendimento: a ficha do paciente, com ESSE
-           atendimento selecionado, na aba Conduta. */
-        if (destino === "atendimento-conduta") {
-          if (window.irParaSecao) window.irParaSecao("pacientes");
-          if (pid && window.abrirFichaDe) window.abrirFichaDe(pid);
-          if (window.AtendimentoAtual && b.dataset.atendimento) window.AtendimentoAtual.selecionarPorId(b.dataset.atendimento);
-          var abaC = document.querySelector('[data-aba="conduta"]');
-          if (abaC) abaC.click();
           return;
         }
 
@@ -712,6 +431,11 @@
   document.addEventListener("DOMContentLoaded", function () {
     alvo = document.getElementById("dash-trabalho");
     if (!alvo) return;
+    /* troca de conta (ou saida): o que foi lido da conta anterior nao pode aparecer nem por um instante */
+    if (window.HoloAuth && window.HoloAuth.aoMudarEstado) window.HoloAuth.aoMudarEstado(function () {
+      jornada = { convites: [], resultados: [], emissoes: [], carregadoEm: 0, carregando: false };
+      verTodos = false;
+    });
 
     var anterior = window.aoTrocarPaciente;
     window.aoTrocarPaciente = function () {

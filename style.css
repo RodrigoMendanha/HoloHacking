@@ -5040,10 +5040,6 @@ body.escuro .ad-aba.ativa{color:var(--verde-noite)}
   box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 10px 34px rgba(6,35,26,.10);
   color:var(--hero-verde);
 }
-#secao-dashboard .dash-hero-folhas{
-  position:absolute;right:-10px;top:-6px;width:min(38%,360px);height:auto;z-index:-1;
-  color:#7f9d73;opacity:.45;pointer-events:none;
-}
 #secao-dashboard .dash-hero .dash-cabeca{margin-bottom:26px;max-width:640px}
 #secao-dashboard .dash-hero .eyebrow{color:var(--hero-suave)}
 #secao-dashboard .dash-hero h2{color:var(--hero-verde)}
@@ -5073,13 +5069,6 @@ body.escuro .ad-aba.ativa{color:var(--verde-noite)}
 #secao-dashboard .dash-hero .dash-tile span{color:var(--hero-suave);font-size:.84rem;font-weight:400;grid-column:2}
 #secao-dashboard .dash-hero .dash-tile-sub{grid-column:2;font-size:.7rem;color:var(--hero-suave);opacity:.85}
 #secao-dashboard .dash-tile-seta{position:absolute;right:14px;top:18px;color:var(--hero-suave);font-style:normal;display:flex}
-#secao-dashboard .dash-acoes-rapidas{margin:0;gap:8px}
-#secao-dashboard .dash-acao{
-  background:none;border:1px solid var(--hero-borda);border-radius:999px;cursor:pointer;
-  font-family:inherit;font-size:.78rem;color:var(--hero-verde);padding:7px 14px;transition:background .15s,border-color .15s;
-}
-#secao-dashboard .dash-acao:hover{background:rgba(63,122,82,.08);border-color:rgba(63,122,82,.3)}
-#secao-dashboard .dash-acao:focus-visible{outline:2px solid var(--hero-verde-vivo);outline-offset:2px}
 
 /* ---------- Agenda de Hoje + Acompanhamento (lado a lado) ---------- */
 #secao-dashboard .dash-colunas{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:22px;margin-bottom:28px}
@@ -5141,8 +5130,6 @@ body.escuro #secao-dashboard .dash-status.tom-pronto{color:#9fd3b2;border-color:
 body.escuro #secao-dashboard .dash-status.tom-andamento{color:#c8d19a;border-color:rgba(184,196,122,.4);background:rgba(184,196,122,.10)}
 body.escuro #secao-dashboard .dash-status.tom-neutro{color:#b7c9bd;border-color:rgba(183,201,189,.3);background:rgba(183,201,189,.07)}
 
-#secao-dashboard .dash-grade-baixo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 22px}
-#secao-dashboard .dash-aviso-tecnico .dash-titulo{color:var(--realce)}
 
 /* ---------- acesso ao Perfil no topo ---------- */
 .chip-perfil{
@@ -5168,9 +5155,7 @@ body.escuro #secao-dashboard .dash-status.tom-neutro{color:#b7c9bd;border-color:
 }
 @media (max-width:760px){
   #secao-dashboard .dash-hero{padding:28px 20px 22px;border-radius:18px}
-  #secao-dashboard .dash-hero-folhas{width:58%;opacity:.3}
-  #secao-dashboard .dash-grade-baixo{grid-template-columns:minmax(0,1fr)}
-  #secao-dashboard .dash-acomp{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"av quem seta" "av status data";row-gap:6px}
+      #secao-dashboard .dash-acomp{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"av quem seta" "av status data";row-gap:6px}
   #secao-dashboard .dash-acomp .pac-avatar{grid-area:av}
   #secao-dashboard .dash-acomp .dash-quem{grid-area:quem}
   #secao-dashboard .dash-acomp-seta{grid-area:seta}
@@ -5200,3 +5185,46 @@ body.escuro #secao-dashboard .dash-status.tom-neutro{color:#b7c9bd;border-color:
   #secao-dashboard .dash-acomp{grid-template-areas:"av quem seta" "av status status" "av data data"}
   #secao-dashboard .dash-acomp-data{justify-self:start;font-size:.72rem}
 }
+
+/* ---------- Dashboard igual a referencia (12/10, segunda rodada) ----------
+   O topo marfim ocupa a largura toda da area de conteudo (cantos arredondados
+   so a esquerda, como na referencia); a pinha da marca fica ao fundo, a
+   direita, como marca d'agua; Agenda de Hoje e Acompanhamento logo abaixo. */
+.conteudo:has(#secao-dashboard.ativa){max-width:none;padding:0 0 70px}
+#secao-dashboard .dash-hero{
+  border-radius:24px 0 0 24px;margin:0 0 26px;padding:40px 48px 30px 52px;
+  box-shadow:0 12px 40px rgba(0,0,0,.18);
+}
+#secao-dashboard .dash-hero-pinha{
+  position:absolute;z-index:-1;pointer-events:none;
+  right:-40px;top:50%;transform:translateY(-58%) rotate(-8deg);width:430px;height:430px;
+  background:url("/logo-holohacking.png") center/contain no-repeat;
+  opacity:.16;filter:saturate(.55) sepia(.25);
+}
+#secao-dashboard .dash-hero-citacao{
+  position:absolute;right:48px;top:74px;margin:0;max-width:300px;text-align:left;
+}
+#secao-dashboard .dash-hero-citacao p{
+  margin:0;font-family:var(--fonte-display);font-style:italic;font-size:1.28rem;line-height:1.45;color:var(--hero-verde);
+}
+#secao-dashboard .dash-hero-citacao::after{content:"";display:block;width:34px;height:2px;margin:16px 0 0;background:var(--dourado)}
+#secao-dashboard .dash-hero .dash-cabeca{max-width:calc(100% - 340px)}
+#secao-dashboard .dash-hero .dash-numeros.dash-resumo{margin-bottom:0}
+#secao-dashboard .dash-colunas{margin-left:48px;margin-right:48px}
+#secao-dashboard #dash-metodo{padding:0 48px}
+#secao-dashboard .dash-colunas{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr)}
+@media (max-width:1180px){
+  #secao-dashboard .dash-hero-citacao{display:none}
+  #secao-dashboard .dash-hero .dash-cabeca{max-width:none}
+  #secao-dashboard .dash-colunas{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:960px){
+  .conteudo:has(#secao-dashboard.ativa){padding:16px 0 60px}
+  #secao-dashboard .dash-hero{border-radius:18px;margin:0 16px 22px;padding:28px 20px 22px}
+  #secao-dashboard .dash-colunas{margin-left:16px;margin-right:16px}
+  #secao-dashboard #dash-metodo{padding:0 16px}
+  #secao-dashboard .dash-hero-pinha{width:260px;height:260px;right:-50px;top:40%;opacity:.12}
+}
+#secao-dashboard .dash-hero-cta{margin-top:18px}
+#secao-dashboard .dash-colunas{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr)}
+@media (max-width:1180px){#secao-dashboard .dash-colunas{grid-template-columns:minmax(0,1fr)}}

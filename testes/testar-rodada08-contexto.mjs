@@ -160,11 +160,9 @@ titulo('2. EVOLUCAO → ABRIR');
 /* ==================================================================== */
 
 const evo = await A.evaluate(async () => {
-  document.querySelector('.nav-item[data-secao="dashboard"]').click();
-  await new Promise(r => setTimeout(r, 300));
-  const b = [...document.querySelectorAll('#dash-trabalho [data-destino="evolucao"]')][0];
-  if (!b) return { achou: false };
-  b.click();
+  /* 12/10: a "Jornada clinica" saiu do Dashboard; a Evolucao abre pelo HOLOSCAN da paciente */
+  window.irParaSecao('holoscan');
+  if (window.redesenharEvolucao) window.redesenharEvolucao();
   await new Promise(r => setTimeout(r, 400));
   const e = document.getElementById('holo-evolucao');
   const secao = document.querySelector('.secao.ativa');

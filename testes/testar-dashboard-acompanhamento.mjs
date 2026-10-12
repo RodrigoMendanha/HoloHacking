@@ -99,7 +99,11 @@ ok(tela.linhas.map(l => l.etapa).join(',') === 'aguardando_anamnese,anamnese_rec
 ok(tela.tiles.join(' / ') === '8|Pacientes ativos / 0|Atendimentos hoje / ' + tela.tiles[2].split('|')[0] + '|Próxima consulta / 6|Em acompanhamento', 'cards: ' + tela.tiles.join(' · '));
 ok(/Você tem 6 pacientes em acompanhamento na sua carteira/.test(tela.frase), 'saudação: "' + tela.frase + '"');
 ok(!/pendênc|Precisa de você|Alta prioridade|Média|Baixa/i.test(tela.texto), 'nenhum "Pendências", "Precisa de você" nem prioridade no Dashboard');
-ok(tela.titulos[0] === 'Agenda de Hoje' && tela.titulos[1] === 'Acompanhamento dos pacientes', 'blocos lado a lado: Agenda de Hoje + Acompanhamento dos pacientes');
+ok(tela.titulos.join(' | ') === 'Agenda de Hoje | Acompanhamento dos pacientes', 'só dois blocos abaixo do topo, lado a lado: ' + tela.titulos.join(' | '));
+ok(!/Primeiros passos|Jornada clínica|Pacientes recentes|Próximas consultas marcadas|sem conduta salva|Rascunhos|Novo paciente|Abrir HOLOSCAN/.test(tela.texto),
+  'tela limpa: sem Primeiros passos, Jornada clínica, recentes, próximas consultas, rascunhos, sem conduta nem botões extras no topo');
+const pinha = await A.evaluate(() => { const el = document.querySelector('#secao-dashboard .dash-hero .dash-hero-pinha'); return el ? getComputedStyle(el).backgroundImage : ''; });
+ok(/logo-holohacking\.png/.test(pinha), 'a pinha da marca é o fundo do topo marfim');
 const vazio = await A.evaluate(() => { const b = document.getElementById('dash-agenda-hoje'); return { t: b.innerText, nova: !!b.querySelector('[data-destino="nova-consulta"]'), abrir: !!b.querySelector('[data-destino="agenda"]') }; });
 ok(/Nenhuma consulta hoje/.test(vazio.t) && /revisar seus pacientes/.test(vazio.t) && vazio.nova && vazio.abrir, 'Agenda de Hoje vazia: estado elegante + "Nova consulta" + "Abrir agenda"');
 const cores = await A.evaluate(() => [...document.querySelectorAll('#secao-dashboard .dash-status')].map(s => getComputedStyle(s).color));
