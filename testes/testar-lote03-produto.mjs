@@ -225,7 +225,7 @@ const relatorio = await p.evaluate(() => {
     secaoA: alvo.innerText.includes('A. HOLOSCAN'),
     secaoB: alvo.innerText.includes('B. Consultas'),
     secaoC: alvo.innerText.includes('C. Documentos'),
-    secaoD: alvo.innerText.includes('D. Interpretação profissional'),
+    secaoD: /D\. Interpretação profissional/i.test(alvo.innerText),
     semLI: !alvo.innerText.includes('Leitura Integrada')
   };
 });

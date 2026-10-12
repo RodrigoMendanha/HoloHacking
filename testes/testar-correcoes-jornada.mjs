@@ -103,6 +103,25 @@ const cartoes = await A.evaluate(() => [...document.querySelectorAll('#holo-prox
 ok(cartoes.length >= 2 && cartoes.slice(0, 2).every(c => c.feita && /Já realizada neste atendimento/i.test(c.txt)),
   'tela do HOLOSCAN: as sugeridas já feitas no atendimento aparecem "✓ Já realizada neste atendimento" (o registro não muda)');
 
+titulo('B2 — INTERPRETACAO DO HOLOSCAN SO NA VISAO PROFISSIONAL');
+srv.tabelas.holoscan_applications.find(a => a.id === HA).interpretacao_texto = 'INTERP_INTERNA_DA_NUTRI';
+srv.tabelas.holos_results.filter(r => r.status !== 'rascunho' && r.template_version === 3).forEach(r => {
+  r.content_snapshot.observacoes = { leitura_profissional: 'LEITURA_PARA_A_PACIENTE', pontos_acompanhar: 'PONTOS_PARA_ACOMPANHAR', questoes_aprofundar: 'QUESTAO_INTERNA' }; });
+await A.reload({ waitUntil: 'networkidle2' });
+await A.waitForFunction(() => window.HoloAuth && window.HoloAuth.sessaoAtiva() && window.pacientesCarregados && window.pacientesCarregados(), { timeout: 15000 });
+await A.evaluate(async () => { if (window.Sincronizacao && window.Sincronizacao.aguardar) await window.Sincronizacao.aguardar(); });
+const rel = async (registro) => A.evaluate(async (pid, reg) => {
+  window.levarParaFicha('aba:relatorio', pid); await new Promise(r => setTimeout(r, 800));
+  const b = document.querySelector('[data-registro="' + reg + '"]'); if (b) b.click(); await new Promise(r => setTimeout(r, 900));
+  const el = document.getElementById('relatorio'); const ta = el.querySelector('#rel-interpretacao');
+  return el.innerText + (ta ? '\n[campo]' + ta.value : '');
+}, PA, registro);
+const relPac = await rel('paciente'), relNut = await rel('nutri');
+ok(!/INTERP_INTERNA_DA_NUTRI/.test(relPac) && /LEITURA_PARA_A_PACIENTE/.test(relPac) && /PONTOS_PARA_ACOMPANHAR/.test(relPac) && !/QUESTAO_INTERNA/.test(relPac),
+  'relatório "Para o paciente": sem a interpretação interna; mostra "Leitura profissional" e "Pontos para acompanhar" do Resultado HOLOS');
+ok(/D\. Leitura da sua nutricionista/.test(relPac) && !/encaminhad|médico/i.test(relPac), 'seção D da paciente com título próprio; sem encaminhamento médico');
+ok(/INTERP_INTERNA_DA_NUTRI/.test(relNut) && /só para você/.test(relNut), 'relatório "Para a nutricionista": a interpretação continua lá, marcada "só para você"');
+
 ok(errosJS.length === 0, 'nenhum erro de JavaScript na pagina' + (errosJS.length ? ': ' + errosJS.join(' | ') : ''));
 await nav.close();
 console.log(falhou ? '\nFALHOU' : '\ncorrecoes da jornada: tudo ok');

@@ -115,10 +115,11 @@ const rel = await p.evaluate(async (respostas) => {
   };
 }, caso.respostas);
 
-ok(/não é diagnóstico médico/i.test(rel.fronteira || ''),
+ok(/Não é exame nem diagnóstico/i.test(rel.fronteira || '') && !/médico/i.test(rel.fronteira || ''),
    'o registro do paciente traz a fronteira no topo, não no rodapé');
-ok(/encaminhada ao médico/i.test(rel.rodape || ''),
-   'e o rodapé diz para onde encaminhar: "' + (rel.rodape || '').slice(-58) + '"');
+/* 12/10: o metodo nao encaminha ao medico; o rodape diz o limite (nao e diagnostico nem prescricao) */
+ok(!/encaminhad|médico/i.test(rel.rodape || '') && /Não é diagnóstico nem prescrição/.test(rel.rodape || ''),
+   'o rodapé diz o limite do método, sem encaminhar: "' + (rel.rodape || '').slice(-58) + '"');
 
 await nav.close();
 console.log(ruim.length ? '\n  ERRO: ' + ruim[0] : '\n  sem erro de JS');

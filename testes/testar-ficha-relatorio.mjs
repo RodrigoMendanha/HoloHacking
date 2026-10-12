@@ -162,7 +162,7 @@ const interp = await p.evaluate(async () => {
       [...r.querySelectorAll('.rel-parte')].slice(0, -1).map(s => s.textContent).join(' ')),
   };
 });
-conferir(interp.origem === 'profissional' && interp.titulo === 'D. Interpretação profissional',
+conferir(interp.origem === 'profissional' && /^D\. Interpretação profissional/.test(interp.titulo),
   'a interpretação profissional é a última seção, com origem marcada: ' + interp.titulo);
 conferir(!interp.misturouComB, 'e o texto não vaza para as seções automáticas (A/B/C)');
 

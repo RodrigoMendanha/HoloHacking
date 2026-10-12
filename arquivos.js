@@ -511,8 +511,7 @@
         (p.cobertura && typeof p.cobertura.percentual === "number"
           ? " &middot; cobertura " + p.cobertura.percentual + "%" : "") + "</p>" +
       '<p class="rel-fronteira">Avaliação nutricional integral construída a partir ' +
-        "do que o paciente relata. Não é exame, não é diagnóstico médico e não " +
-        "substitui avaliação clínica.</p>" +
+        "do que o paciente relata. Não é exame nem diagnóstico: organiza as respostas para a conversa com a sua nutricionista.</p>" +
       "</header>";
 
     /* ====================================================================
@@ -638,7 +637,7 @@
     var interpretacao = window.interpretacaoDe ? window.interpretacaoDe() : null;
     var textoInterpretacao = (interpretacao && interpretacao.texto) || "";
     html += '<section class="rel-parte" data-origem="profissional">' +
-      "<h3>D. Interpretação profissional</h3><div class=\"rel-bloco\">";
+      "<h3>" + (registroAtual === "nutri" ? "D. Interpretação profissional (só para você)" : "D. Leitura da sua nutricionista") + "</h3><div class=\"rel-bloco\">";
     if (registroAtual === "nutri") {
       html += '<textarea id="rel-interpretacao" class="rel-interpretacao-campo" ' +
         'placeholder="Registre aqui a leitura profissional deste mapa.">' +
@@ -647,9 +646,10 @@
         'data-acao="salvar-interpretacao">Salvar interpretação</button>' +
         '<span class="rel-interpretacao-aviso" id="rel-interpretacao-aviso"></span></div>';
     } else {
-      html += (textoInterpretacao
-        ? "<p>" + escapar(textoInterpretacao).replace(/\n/g, "<br>") + "</p>"
-        : '<p class="rel-vazio">Sem interpretação registrada.</p>');
+      /* 12/10 (bug 2): a interpretacao do HOLOSCAN e interna da nutricionista e NAO vai para a paciente. Para a
+         paciente vale o que a nutricionista escreveu PARA ela no Resultado HOLOS salvo: "Leitura profissional" e
+         "Pontos para acompanhar" (preenchido depois, pelo ultimo Resultado HOLOS salvo e nao substituido). */
+      html += '<div id="rel-leitura-paciente"><p class="rel-vazio">Carregando…</p></div>';
     }
     html += "</div></section>";
 
@@ -670,11 +670,12 @@
     if (contato) html += '<p class="rel-contato">' + contato + "</p>";
     html += "<p>Documento gerado pelo HoloHacking. " +
       "Notas e faixas seguem o pacote metodológico indicado na aplicação do HOLOSCAN. " +
-      "Queixa que sugira doença deve ser encaminhada ao médico.</p></footer></article>";
+      "Não é diagnóstico nem prescrição.</p></footer></article>";
 
     alvo.innerHTML = html;
     pintarImagensDoPerfil(eu);
     preencherDocumentosRelatorio(paciente());
+    if (registroAtual !== "nutri") preencherLeituraPaciente(paciente());
   }
 
   /* Mesmo padrao de pintarImagensDoPerfil(): o HTML sincrono ja foi escrito
@@ -682,6 +683,27 @@
      ArquivoStore resolve. Confere se a secao ainda existe — trocar de aba
      ou de paciente antes da promise resolver nao pode escrever por cima da
      tela errada. */
+  /* O ultimo Resultado HOLOS salvo (nao substituido) do paciente, ou null. */
+  function ultimoResultadoHolos(pid) {
+    var R = window.ResultadoHolos;
+    if (!R || !R.carregar || !pid) return Promise.resolve(null);
+    return R.carregar(pid).then(function (linhas) {
+      return (linhas || []).filter(function (r) { return r.status !== "rascunho" && !r.superseded_at && r.content_snapshot; })
+        .sort(function (a, b) { return String(b.saved_at || b.created_at).localeCompare(String(a.saved_at || a.created_at)); })[0] || null;
+    }, function () { return null; });
+  }
+  function preencherLeituraPaciente(pid) {
+    ultimoResultadoHolos(pid).then(function (r) {
+      var alvo = document.getElementById("rel-leitura-paciente");
+      if (!alvo) return;
+      var o = r && r.content_snapshot && r.content_snapshot.observacoes || {};
+      var leitura = String(o.leitura_profissional || "").trim(), pontos = String(o.pontos_acompanhar || "").trim();
+      if (!leitura && !pontos) { alvo.innerHTML = '<p class="rel-vazio">A sua nutricionista conversa a leitura do mapa com você em consulta.</p>'; return; }
+      alvo.innerHTML = (leitura ? '<h5 class="rel-sub">Leitura profissional</h5><p>' + escapar(leitura).replace(/\n/g, "<br>") + "</p>" : "") +
+        (pontos ? '<h5 class="rel-sub">Pontos para acompanhar</h5><p>' + escapar(pontos).replace(/\n/g, "<br>") + "</p>" : "");
+    });
+  }
+
   function preencherDocumentosRelatorio(pid) {
     if (!window.ArquivoStore) return;
     window.ArquivoStore.listar(pid).then(function (itens) {
