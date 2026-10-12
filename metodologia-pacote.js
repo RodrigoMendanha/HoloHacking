@@ -608,6 +608,47 @@
   function retirar(id, motivo, responsavel) {
     return rpc("retirar_pacote_metodologico", { p_package_id: id, p_motivo: motivo, p_responsible: responsavel }).then(function (d) { return carregar().then(function () { return d; }); });
   }
+  /* ---------- publicacao direta (12/10, migration 20261018100000) -------------
+     Sem Aprovacao nem Homologacao: a revisao das perguntas que vem no codigo
+     (window.MetodologiaRevisaoV3, depois V4...) entra no ar sozinha quando o
+     responsavel metodologico (dono da versao anterior) entra no sistema:
+     grava a versao nova (em_revisao) a partir da versao que esta no banco e
+     chama publicar_pacote_metodologico, que confere validador + hash do servidor,
+     poe a nova no ar hoje e retira a anterior. Para qualquer outra conta nao faz
+     nada. Idempotente: se a versao nova ja esta no ar, nao grava de novo. */
+  var publicando = null;
+  function revisoesDoCodigo() { return [raiz.MetodologiaRevisaoV3].filter(Boolean); }
+  function publicar(id) {
+    return rpc("publicar_pacote_metodologico", { p_package_id: id }).then(function (d) { return carregar().then(function () { return d; }); });
+  }
+  function publicarRevisoesPendentes() {
+    if (publicando) return publicando;
+    var u = raiz.HoloAuth && raiz.HoloAuth.usuarioAtual ? raiz.HoloAuth.usuarioAtual() : null;
+    if (!temSupa() || !u) return Promise.resolve([]);
+    var feitas = [];
+    /* antes de gravar qualquer coisa: a conta tem o papel de responsavel metodologico (holoscan/1)? */
+    var papel = Promise.resolve(raiz.supabaseClient.rpc("meus_papeis_aprovacao")).then(function (r) {
+      return !!(r && !r.error && Array.isArray(r.data) && r.data.some(function (x) { return x.scope === "holoscan" && x.approval_stage === 1; }));
+    }).catch(function () { return false; });
+    publicando = revisoesDoCodigo().reduce(function (cadeia, R) {
+      return cadeia.then(function () {
+        var doCodigo = cache.filter(function (x) { return x.code === R.base.code; });
+        var nova = doCodigo.filter(function (x) { return x.version === R.versao_nova; })[0];
+        if (nova && (nova.status === "aprovado" || nova.status === "retirado")) return;
+        var base = doCodigo.filter(function (x) { return x.version === R.base.version && (x.status === "aprovado" || x.status === "retirado"); })[0];
+        if (!base || base.nutritionist_id !== u.id) return;          // so o responsavel metodologico publica
+        if (nova && nova.nutritionist_id !== u.id) return;
+        return papel.then(function (pode) {
+          if (!pode) return;
+          var gravar = nova ? Promise.resolve(nova.id) : salvarRascunho(aplicarRevisao(base, R));
+          return gravar.then(publicar).then(function (d) { feitas.push(d); });
+        });
+      });
+    }, Promise.resolve()).then(function () { return feitas; })
+      .catch(function (e) { console.error("[pacote] publicacao direta:", e); return feitas; })
+      .then(function (r) { publicando = null; return r; });
+    return publicando;
+  }
   function validarNoServidor(id) {
     if (!temSupa()) return Promise.reject(new Error("sem sessao"));
     return Promise.resolve(raiz.supabaseClient.rpc("validar_pacote_metodologico", { p_package_id: id })).then(function (r) { if (r.error) throw r.error; return r.data; });
@@ -621,6 +662,7 @@
     exportarJSON: exportarJSON, exportarCSV: exportarCSV, resumo: resumo,
     carregar: carregar, todos: todos, porId: porId, ativo: ativo, salvarRascunho: salvarRascunho, validarNoServidor: validarNoServidor,
     REGIME_GOVERNANCA: REGIME, APROVADORES: APROVADORES, estadoAprovacao: estadoAprovacao, hashNoServidor: hashNoServidor, registrarAprovacao: registrarAprovacao, homologar: homologar, retirar: retirar,
+    publicar: publicar, publicarRevisoesPendentes: publicarRevisoesPendentes,
     esquecer: function () { cache = []; }
   };
 })();

@@ -132,7 +132,6 @@ export const SUITES = [
   'testar-anamnese-v2-dominios.mjs',
   'testar-anamnese-v2.mjs',
   'testar-anamnese-v2-concluir.mjs',
-  'testar-aprovacoes.mjs',
   'testar-prontuario.mjs',
   'testar-proximos-passos-motor.mjs', 'testar-proximos-passos.mjs',
   'testar-perfil-robustez.mjs', 'testar-conta-pendente.mjs',

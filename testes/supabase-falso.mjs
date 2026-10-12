@@ -400,7 +400,8 @@ export function criarServidor() {
       if (!['rascunho', 'em_revisao', 'aprovado', 'retirado'].includes(linha.status)) return erro('violates check constraint "methodology_packages_status_valido"', '23514');
       if (!linha.code || !String(linha.code).trim()) return erro('violates check constraint "methodology_packages_code_nao_vazio"', '23514');
       // migration 20261003100000: no regime aprovador_unico o segundo revisor (reviewed_by/at) e NULO; no legado (dupla) e obrigatorio
-      const revisaoOk = linha.governance_regime === 'aprovador_unico' ? (!linha.reviewed_by && !linha.reviewed_at)
+      // migration 20261018100000: publicacao_direta tambem sem segundo revisor
+      const revisaoOk = (linha.governance_regime === 'aprovador_unico' || linha.governance_regime === 'publicacao_direta') ? (!linha.reviewed_by && !linha.reviewed_at)
         : ((linha.governance_regime || 'dupla_aprovacao') === 'dupla_aprovacao' && !!linha.reviewed_by && !!linha.reviewed_at);
       if (['aprovado', 'retirado'].includes(linha.status) && !(linha.content_hash && linha.responsible && linha.effective_from && linha.approved_at && linha.approved_by && revisaoOk)) return erro('violates check constraint "methodology_packages_aprovado_completo"', '23514');
       if (linha.status === 'retirado' && !linha.retired_at) return erro('violates check constraint "methodology_packages_retirado_completo"', '23514');
@@ -1371,6 +1372,42 @@ export function criarServidor() {
       s.aprovacaoRpc = null;
       if (r.error) return r;
       return { data: { id, status: 'aprovado', regime: 'aprovador_unico', content_hash: h, aprovacao_1: a1.id, validacao: v }, error: null };
+    }
+    /* migration 20261018100000: publicacao direta — sem Aprovacao/Homologacao; quem publica e o
+       responsavel metodologico (aprovador ativo holoscan/1) dono do pacote; validador + hash do servidor;
+       a versao anterior sai do ar ontem */
+    if (nome === 'publicar_pacote_metodologico') {
+      const id = args && args.p_package_id;
+      if (!uid) return erro('nao autenticado', 'P0001');
+      const ap = aprovador(uid, 'holoscan', 1);
+      if (!ap) return erro('so o responsavel metodologico do HOLOSCAN publica uma versao nova', 'P0001');
+      const pk = s.tabelas.methodology_packages.find(x => x.id === id && x.nutritionist_id === uid);
+      if (!pk) return erro('pacote ' + id + ' nao encontrado', 'P0002');
+      if (pk.status !== 'em_revisao') return erro('so um pacote em_revisao pode ser publicado (status atual: ' + pk.status + ')', 'P0001');
+      const doCodigo = s.tabelas.methodology_packages.filter(x => x.code === pk.code && x.nutritionist_id === uid && (x.status === 'aprovado' || x.status === 'retirado'));
+      const ult = doCodigo.length ? Math.max(...doCodigo.map(x => x.version)) : null;
+      if (ult !== null && pk.version !== ult + 1) return erro('a versao publicada tem de ser a seguinte (' + pk.code + ' v' + (ult + 1) + '), nao v' + pk.version, 'P0001');
+      const v = globalThis.PacoteMetodologico.validar(montarPacote(id));
+      if (!v.publicavel) return erro('publicacao bloqueada pelo validador: ' + v.total_erros + ' erro(s) — ' + JSON.stringify(v.erros).slice(0, 400), 'P0001');
+      const h = hashServidor(id);
+      const resp = (ap.display_name || 'responsável metodológico') + ' (publicação direta)';
+      const hoje = agora().slice(0, 10), ontem = new Date(Date.parse(hoje + 'T12:00:00Z') - 86400000).toISOString().slice(0, 10);
+      const retiradas = [];
+      for (const ant of s.tabelas.methodology_packages.filter(x => x.code === pk.code && x.nutritionist_id === uid && x.status === 'aprovado' && x.id !== id)) {
+        const rr = inserir('methodology_homologation_records', { package_id: ant.id, topic: 'pacote', element: ant.code, version: String(ant.version), decision: 'retirado', responsible: resp, decided_at: hoje, source: 'publicacao direta', justification: 'substituída por ' + pk.code + ' v' + pk.version });
+        if (rr.error) return rr;
+        const ru = atualizar('methodology_packages', ant.id, { status: 'retirado', retired_at: agora(), retired_reason: 'substituída por ' + pk.code + ' v' + pk.version, effective_to: String(ant.effective_from) > ontem ? ant.effective_from : ontem });
+        if (ru.error) return ru;
+        retiradas.push(ant.id);
+      }
+      const r0 = inserir('methodology_homologation_records', { package_id: id, topic: 'pacote', element: pk.code, version: String(pk.version), decision: 'aprovado', responsible: resp, decided_at: hoje, source: 'publicacao direta',
+        justification: 'Publicação direta (regime publicacao_direta, sem etapa de aprovação)', evidence: 'content_hash ' + h + '; validar_pacote_metodologico: 0 erros' });
+      if (r0.error) return r0;
+      s.aprovacaoRpc = id;
+      const r = atualizar('methodology_packages', id, { status: 'aprovado', governance_regime: 'publicacao_direta', approved_at: agora(), approved_by: uid, reviewed_by: null, reviewed_at: null, responsible: resp, justification: pk.justification || 'publicação direta', effective_from: hoje, effective_to: null, content_hash: h });
+      s.aprovacaoRpc = null;
+      if (r.error) return r;
+      return { data: { id, status: 'aprovado', regime: 'publicacao_direta', content_hash: h, effective_from: hoje, retiradas, validacao: v }, error: null };
     }
     // ---------------- V1 Etapa 5: laboratorio ----------------
     const gravarResultados = (cid, results) => {

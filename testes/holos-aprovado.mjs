@@ -25,15 +25,24 @@ export function candidatoV3() {
   return globalThis.PacoteMetodologico.aplicarRevisao(v2, globalThis.MetodologiaRevisaoV3);
 }
 
+/** Liga/desliga o papel de responsavel metodologico (holoscan/1) da conta, por gestao tecnica (nunca apaga). */
+export function papelAprovador(srv, uid, ativo) {
+  const atual = srv.linhas('methodology_approvers').find(a => a.user_id === uid && a.scope === 'holoscan');
+  if (!atual) { if (ativo) srv.gestaoTecnica('methodology_approvers', 'insert', { user_id: uid, scope: 'holoscan', approval_stage: 1, display_name: 'Daniel' }); return; }
+  if ((atual.active !== false) === ativo) return;
+  const f = [{ col: 'id', op: 'eq', val: atual.id }];
+  const r = srv.gestaoTecnica('methodology_approvers', 'update', ativo ? { active: true, deactivated_at: null, deactivation_reason: null }
+    : { active: false, deactivated_at: new Date().toISOString(), deactivation_reason: 'fixture de teste: sem publicacao automatica' }, f);
+  if (r && r.error) throw new Error('papel do aprovador: ' + r.error.message);
+}
+
 export function semearHolosAprovado(srv, uid, opts) {
   opts = opts || {};
   const c = opts.pacote || candidatoV1();
   const version = opts.version || c.version || 2;
   const q = (tabela, acao, extra) => srv.tratar({ op: 'query', uid, q: Object.assign({ tabela, acao, filtros: [], ordem: [], range: null, colunas: '*', single: null, opcoes: {}, retornar: true }, extra) });
   const rpc = (nome, args) => srv.tratar({ op: 'rpc', uid, nome, args });
-  if (!srv.linhas('methodology_approvers').some(a => a.user_id === uid && a.scope === 'holoscan' && a.approval_stage === 1 && a.active !== false)) {
-    srv.gestaoTecnica('methodology_approvers', 'insert', { user_id: uid, scope: 'holoscan', approval_stage: 1, display_name: 'Daniel' });
-  }
+  papelAprovador(srv, uid, true);
   const pk = q('methodology_packages', 'insert', { dados: { code: opts.code || c.code, version, status: 'em_revisao', origin: c.origin, justification: c.justification, notes: c.notes, lineage: c.lineage, content_hash: c.content_hash } }).data[0];
   const ed = q('methodology_questionnaire_editions', 'insert', { dados: Object.assign({}, c.edicao, { package_id: pk.id }) }).data[0];
   const ins = (t, l) => { if (l.length) { const r = q(t, 'insert', { dados: l.map(x => Object.assign({}, x, { package_id: pk.id })) }); if (r.error) throw new Error(t + ': ' + r.error.message); } };
@@ -45,6 +54,9 @@ export function semearHolosAprovado(srv, uid, opts) {
   if (r.error) throw new Error('aprovacao: ' + r.error.message);
   r = rpc('aprovar_pacote_metodologico', { p_package_id: pk.id, p_registro: { effective_from: opts.effective_from || '2026-01-01' } });
   if (r.error) throw new Error('homologacao: ' + r.error.message);
+  /* 12/10 (publicacao direta): com o papel ativo, o login publica sozinho a revisao do codigo (v3) sobre este v2.
+     Os testes que trabalham no v2 ficam sem o papel depois de semear; quem testa a publicacao passa manterAprovador. */
+  if (!opts.manterAprovador) papelAprovador(srv, uid, false);
   return srv.linhas('methodology_packages').find(x => x.id === pk.id);
 }
 

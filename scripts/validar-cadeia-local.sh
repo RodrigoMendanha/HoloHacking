@@ -102,5 +102,10 @@ cd "$(dirname "$0")/.."
   # HOLOS-V1 v3 (revisao das perguntas, 12/10): sem migration; o v3 e gravado pela API como a tela de Homologacao faz.
   cat supabase/tests/pacote-v3-doc.sql
   cat supabase/tests/pacote-v3-harness.sql
+  # Publicacao direta (12/10): sem Aprovacao/Homologacao; revisao publica fora do ar
+  for f in supabase/migrations/2026101810*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/publicacao-direta-harness.sql
   echo "rollback;"
 } | psql -U postgres -d base -v ON_ERROR_STOP=1 -At | tr '|' '\n' | sed 's/^ //'

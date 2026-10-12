@@ -75,26 +75,24 @@ SNT-411 passa para a escala de **frequência** ("costuma"), últimos 30 dias.
   Sistema Ácido Inflamatório; mantida, por decisão de 12/10, no **Sistema Mental Emocional Espiritual** (mesmo texto,
   peso 1, Tríade Espírito).
 
-## Como entra no ar (nada foi aplicado)
+## Como entra no ar
 
-1. **Deploy do site** (as telas passam a mostrar as perguntas do pacote vigente; enquanto o v2 for o vigente,
-   a tela fica igual à de hoje).
-2. **Homologação** — com a conta que aprovou o v2, abrir `holohacking.com.br/?homologacao=1` → Metodologia:
-   1. no seletor "Pacote", escolher **HOLOS-V1 v3 — revisão das perguntas** e conferir (82 itens);
-   2. **Gravar HOLOS-V1 v3 (em_revisao, sem aprovar)**;
-   3. **Conferir o hash** → marcar "conferi" → **Registrar Aprovação** (Daniel);
-   4. **Homologar pacote** — o v3 vale a partir de hoje;
-   5. selecionar o **HOLOS-V1 v2** → escrever o responsável → **Retirar esta versão**.
-3. Aplicações novas usam o v3. HOLOSCANs, Resultados HOLOS e emissões já salvos continuam no v2, congelados.
-   A Evolução mostra v2 e v3 lado a lado, sem diferença de notas (comparação não homologada, como hoje).
+**Atualizado em 12/10: sem homologação.** Veja `docs/v1/PUBLICACAO-DIRETA-HOLOSCAN.md`. São três passos:
+1. rodar o SQL `PUBLICACAO-DIRETA-PARTE1/2`;
+2. fazer o deploy;
+3. o responsável metodológico entra no sistema. O v3 é gravado e publicado sozinho, e o v2 é retirado.
 
-Nenhum SQL é necessário: o v3 é gravado pela API, pela tela, como o v2 foi.
+**O que fica como estava:**
+- HOLOSCANs, Resultados HOLOS e emissões já salvos continuam no v2, congelados.
+- A Evolução mostra v2 e v3 lado a lado, sem diferença de notas.
+
+**O caminho antigo deixou de existir:** tela de Homologação, Gravar, Aprovação de Daniel, Homologar e Retirar.
 
 ## Provas
 
 - `testes/testar-pacote-v3.mjs`: v3 = v2 + exatamente as decisões, item a item; validador limpo; REF-01/02/03;
   determinístico; revisão que não bate é recusada.
-- `testes/testar-questionario-v3.mjs`: pela tela — gravar, aprovar, homologar, retirar o v2; questionário com 82
+- `testes/testar-questionario-v3.mjs`: pela tela — (12/10) publicação automática no login do responsável, v2 retirado sozinho; questionário com 82
   perguntas e os textos novos; HOLOSCAN salvo no v3; aplicação antiga do v2 intacta.
 - `supabase/tests/pacote-v3-harness.sql` (PV01–PV08, Postgres local com as regras reais): gravar pela API, validador
   SQL, aprovação, HOLOSCAN no v3 aceito (Ácido Inflamatório sobre 14, Mental sobre 24), pergunta removida recusada,

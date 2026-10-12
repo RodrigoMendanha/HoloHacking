@@ -1025,6 +1025,18 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     recebido", "Levar para o atendimento"); tabelas, RPCs, arquivos e campos internos mantêm os nomes. Sem migration,
     sem mudança de pergunta, metodologia ou banco. Detalhes: `docs/v1/MAPEAMENTO-HOLISTICO-LINK.md`.
 
+186. **Mapeamento Holístico enxuto** (12/10, pedido da usuária). O paciente responde em 3 a 5 minutos, quase tudo por
+    toque: 5 blocos mais a revisão, perguntas condicionais e 4 campos de texto no fluxo normal. Sinais do corpo são
+    marcados só por presença, sem escala e sem nenhuma frase do HOLOSCAN. Nada de peso, medidas ou exames. A ficha mostra
+    a resposta completa; "Levar para o atendimento" cria o rascunho profissional. Sem migration: os campos novos reutilizam
+    o JSON e os domínios existentes. Detalhes: `docs/v1/IMPLEMENTACAO-MAPEAMENTO-HOLISTICO-ENXUTO-V1.md`.
+187. **HOLOSCAN sem homologação: publicação direta** (12/10, decisão da usuária: "o sistema todo já está aprovado").
+    A versão nova das perguntas, que vem no código, entra no ar sozinha quando o responsável metodológico entra no
+    sistema. Para isso, a RPC `publicar_pacote_metodologico` confere o validador e calcula o hash do servidor, põe a
+    versão nova no ar e retira a anterior. Isso substitui a Aprovação e a Homologação (itens da Etapa 4.2 e do aprovador
+    único). Continuam: quem publica (só o responsável), versão seguinte, imutabilidade e auditoria. A página pública de
+    revisão das perguntas (`aprovacoes.html`) saiu do ar. Nada foi apagado. Detalhes: `docs/v1/PUBLICACAO-DIRETA-HOLOSCAN.md`.
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`
