@@ -74,7 +74,7 @@ ok(/Selecione ou inicie um atendimento para registrar a anamnese\./.test(await t
 await abrirAba(PA, 'conduta');
 ok(/Selecione ou inicie um atendimento para registrar a conduta\./.test(await texto('#aba-conduta')), 'aba Conduta sem atendimento: mensagem certa');
 const abas = await A.evaluate(() => [...document.querySelectorAll('#ficha-arquivos .aba[data-aba]')].map(b => b.textContent.trim()));
-ok(abas.indexOf('Anamnese') < abas.indexOf('HOLOSCAN') && abas.indexOf('Conduta') > abas.indexOf('Ferramentas'),
+ok(abas.indexOf('Mapeamento Holístico') < abas.indexOf('HOLOSCAN') && abas.indexOf('Conduta') > abas.indexOf('Ferramentas'),
    'a ordem das abas reflete a jornada: Atendimento -> Anamnese -> HOLOSCAN -> Ferramentas/Exames -> Conduta: ' + abas.join(' · '));
 ok(anamneses(PA).length === 0 && condutas(PA).length === 0, 'nada foi criado ao abrir as abas');
 
@@ -254,10 +254,10 @@ const visao = await texto('#fic-atendimento-clinico');
 ok(/Último atendimento/i.test(visao) && /Conduta vigente/i.test(visao) && /rev\. 1 · salvo/.test(visao) && /Manter o jantar cedo/.test(visao) && !/rascunho de correção/.test(visao),
    'Visao geral: ultimo atendimento, anamnese e conduta VIGENTE (rev. 1), nunca o rascunho — ' + visao.replace(/\s+/g, ' ').slice(0, 300));
 const tl = await A.evaluate(() => [...document.querySelectorAll('#fic-visao-timeline .fic-evento')].map(e => e.innerText.replace(/\s+/g, ' ')).join(' | '));
-ok(/Anamnese salva/.test(tl) && /Anamnese revisada \(rev\. 2\)/.test(tl) && /Conduta salva/.test(tl) && !/rascunho de correção/.test(tl),
+ok(/Mapeamento salvo/.test(tl) && /Mapeamento revisado \(rev\. 2\)/.test(tl) && /Conduta salva/.test(tl) && !/rascunho de correção/.test(tl),
    'timeline: anamnese salva, revisao como revisao, conduta salva; rascunho fora — ' + tl.slice(0, 300));
 const filtros = await A.evaluate(() => [...document.querySelectorAll('[data-filtro-linha]')].map(b => b.textContent.trim()));
-ok(filtros.includes('Anamnese') && filtros.includes('Conduta'), 'filtros da timeline: ' + filtros.join(' · '));
+ok(filtros.includes('Mapeamento Holístico') && filtros.includes('Conduta'), 'filtros da timeline: ' + filtros.join(' · '));
 const dash = await A.evaluate(async () => { document.querySelector('.nav-item[data-secao="dashboard"]').click(); await new Promise(r => setTimeout(r, 400)); return (document.getElementById('dash-sem-conduta') || {}).innerText || ''; });
 ok(dash === '' || !/Paciente Um/.test(dash), 'dashboard: Paciente Um tem conduta salva nos dois atendimentos — nao esta em "sem conduta salva"' + (dash ? ' (' + dash.replace(/\s+/g, ' ').slice(0, 60) + ')' : ''));
 const E3 = await iniciarAtendimento(PB, '2026-05-02T12:00:00.000Z');
@@ -274,7 +274,7 @@ const gerarContexto = (eid) => A.evaluate(async (pid, eid) => {
   return (document.getElementById('ai-hub-texto') || {}).textContent || '';
 }, PA, eid);
 const ctx1 = await gerarContexto(E1);
-ok(/## Anamnese \(salva\/revisada/.test(ctx1) && /rev\. 2 · revisado/.test(ctx1) && /Amendoim: \[Negado explicitamente\]/.test(ctx1) && /Hipotireoidismo: relatado pela paciente \(Relato do paciente; informado, não confirmado\)/.test(ctx1),
+ok(/## Mapeamento Holístico \(salvo\/revisado/.test(ctx1) && /rev\. 2 · revisado/.test(ctx1) && /Amendoim: \[Negado explicitamente\]/.test(ctx1) && /Hipotireoidismo: relatado pela paciente \(Relato do paciente; informado, não confirmado\)/.test(ctx1),
    'HOLOS AI (atendimento 1): anamnese CONSOLIDADA (rev. 2 revisada), com estado e origem e o "informado, não confirmado"');
 const contexto = await gerarContexto(E2);
 ok(!/## Anamnese/.test(contexto), 'HOLOS AI (atendimento 2): a anamnese deste atendimento e RASCUNHO (copia) e NAO entra');

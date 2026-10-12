@@ -399,7 +399,7 @@
     t += secaoSe("Paciente", dadosPaciente());
     t += secaoSe("HOLOSCAN — Mapa HOLOS atual", dadosHoloscan());
     t += secaoSe("Atendimentos registrados", dadosAtendimentos());
-    t += secaoSe("Anamnese (salva/revisada, texto da profissional)", dadosAnamnese());
+    t += secaoSe("Mapeamento Holístico (salvo/revisado, texto da profissional)", dadosAnamnese());
     t += secaoSe("Conduta e acordos (salvos/revisados)", dadosConduta());
     t += secaoSe("Linha do tempo consolidada (data clínica e data de registro)", dadosTimeline());
     t += secaoSe("Agenda (agendamentos)", dadosConsultas());
@@ -424,7 +424,7 @@
     if (evo) t += secaoSe("Aplicações do HOLOSCAN (datas e cobertura)", evo);
     else t += secaoSe("HOLOSCAN — Mapa HOLOS atual", dadosHoloscan());
     t += secaoSe("Atendimentos registrados", dadosAtendimentos());
-    t += secaoSe("Anamnese (salva/revisada, texto da profissional)", dadosAnamnese());
+    t += secaoSe("Mapeamento Holístico (salvo/revisado, texto da profissional)", dadosAnamnese());
     t += secaoSe("Conduta e acordos (salvos/revisados)", dadosConduta());
     t += secaoSe("Linha do tempo consolidada (data clínica e data de registro)", dadosTimeline());
     t += secaoSe("Agenda (agendamentos recentes)", dadosConsultas());

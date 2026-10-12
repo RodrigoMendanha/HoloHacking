@@ -249,7 +249,7 @@
     var medida = it.medida || null;
     var informado = dom === "condicoes_diagnosticos_informados" && it.origem === "relato_paciente";
     var cab = '<div class="an-item' + (it.previo ? " previo" : "") + '" data-an-dom="' + dom + '" data-an-i="' + i + '">' +
-      (it.previo ? '<span class="an-selo previo" title="Copiado da anamnese anterior; precisa ser revisado">prévio — a revisar</span>' : "") +
+      (it.previo ? '<span class="an-selo previo" title="Copiado do Mapeamento anterior; precisa ser revisado">prévio — a revisar</span>' : "") +
       (informado ? '<span class="an-selo informado" title="' + MSG_INFORMADO + '">informado, não confirmado</span>' : "");
     if (!editavel) {
       return cab + "<b>" + escapar(it.campo || "(sem rótulo)") + "</b> " +
@@ -321,7 +321,7 @@
     if (!e) {
       rascunho = null;
       alvo.innerHTML = '<div class="lista-vazia" id="an-sem-atendimento"><strong>' + MSG_SEM_ATENDIMENTO + "</strong>" +
-        "<span>A anamnese pertence a um atendimento. Na aba Atendimentos, selecione um ou inicie um novo.</span></div>";
+        "<span>O Mapeamento Holístico pertence a um atendimento. Na aba Atendimentos, selecione um ou inicie um novo.</span></div>";
       return;
     }
     var pid = e.patient_id;
@@ -351,7 +351,7 @@
     }
 
     var html = '<div class="an-topo">' +
-      '<div><span class="fic-rot">Anamnese</span><b>' + escapar(nome) + "</b> · atendimento de " + escapar(A.rotuloQuando(e)) +
+      '<div><span class="fic-rot">Mapeamento Holístico</span><b>' + escapar(nome) + "</b> · atendimento de " + escapar(A.rotuloQuando(e)) +
         (e.consultation_id ? " (com agendamento)" : " (sem agendamento)") + "</div>" +
       '<span class="an-salvo" id="an-estado" role="status" aria-live="polite">' + escapar(textoEstado()) + "</span>" +
     "</div>";
@@ -375,7 +375,7 @@
       html += '<div id="an2-corpo"></div>';
       alvo.innerHTML = html;
       var ant = anteriorCompletaDe(pid, e.id);
-      var antHtml = ant ? '<p class="perf-ajuda">Anamnese de ' + escapar(A.porId(ant.encounter_id) ? A.rotuloQuando(A.porId(ant.encounter_id)) : "atendimento anterior") + " · rev. " + ant.revision_number + " · " + escapar(ant.status) + " (somente leitura)</p>" +
+      var antHtml = ant ? '<p class="perf-ajuda">Mapeamento de ' + escapar(A.porId(ant.encounter_id) ? A.rotuloQuando(A.porId(ant.encounter_id)) : "atendimento anterior") + " · rev. " + ant.revision_number + " · " + escapar(ant.status) + " (somente leitura)</p>" +
         (V2.ehV2(ant.content) ? V2.resumoHtml(ant.content) : "") +
         '<div class="an-dominios">' + DOMINIOS.map(function (p) { var it = (((ant.content || {}).dominios || {})[p[0]] || {}).itens || []; return it.length ? dominioHtml(p[0], p[1], it, false) : ""; }).join("") + "</div>" : "";
       var perfil = window.PerfilProfissional && window.PerfilProfissional.dados ? window.PerfilProfissional.dados() : {};
@@ -390,14 +390,14 @@
 
     var mostrar = null, editavel = false, titulo = "";
     if (vendo) { mostrar = lista.filter(function (a) { return a.id === vendo; })[0]; titulo = mostrar ? "Revisão " + mostrar.revision_number + " (histórico, somente leitura)" : ""; }
-    if (!mostrar && rascunho) { mostrar = { content: rascunho.content, status: "rascunho" }; editavel = !arquivado; titulo = rascunho.id ? "Rascunho em edição" : "Nova anamnese (ainda não salva)"; }
+    if (!mostrar && rascunho) { mostrar = { content: rascunho.content, status: "rascunho" }; editavel = !arquivado; titulo = rascunho.id ? "Rascunho em edição" : "Novo Mapeamento (ainda não salvo)"; }
     if (!mostrar && vig) { mostrar = vig; titulo = "Revisão vigente (rev. " + vig.revision_number + ")"; }
 
     html += '<div class="an-acoes">';
     if (vendo) html += '<button type="button" class="perf-botao" data-an-acao="fechar-ver">Voltar</button>';
     else if (!rascunho && !vig && !arquivado) {
-      html += '<button type="button" class="btn-verde" data-an-acao="nova">Iniciar anamnese</button>';
-      if (anterior) html += '<button type="button" class="perf-botao" data-an-acao="copiar" data-an-fonte="' + escapar(anterior.id) + '">Criar a partir da anamnese anterior</button>';
+      html += '<button type="button" class="btn-verde" data-an-acao="nova">Iniciar Mapeamento</button>';
+      if (anterior) html += '<button type="button" class="perf-botao" data-an-acao="copiar" data-an-fonte="' + escapar(anterior.id) + '">Criar a partir do Mapeamento anterior</button>';
     } else if (!rascunho && vig && !arquivado) {
       html += '<button type="button" class="perf-botao" data-an-acao="corrigir">Corrigir (nova revisão)</button>';
       if (vig.status === "salvo") html += '<button type="button" class="btn-dourado" data-an-acao="revisar">Marcar como revisada</button>';
@@ -410,7 +410,7 @@
 
     if (mostrar) {
       html += '<p class="an-titulo"><b>' + escapar(titulo) + "</b>" +
-        (mostrar.copied_from_previous || (rascunho && rasc && rasc.copied_from_previous) ? ' <span class="an-selo previo">criada a partir da anamnese anterior — itens prévios precisam ser revisados</span>' : "") + "</p>";
+        (mostrar.copied_from_previous || (rascunho && rasc && rasc.copied_from_previous) ? ' <span class="an-selo previo">criado a partir do Mapeamento anterior — itens prévios precisam ser revisados</span>' : "") + "</p>";
       html += '<p class="perf-ajuda">Cada item diz o <b>estado</b> (campo vazio não é "não") e a <b>origem</b> da informação. ' + MSG_INFORMADO + "</p>";
       var d = (mostrar.content || {}).dominios || {};
       html += '<div class="an-dominios">' + DOMINIOS.map(function (p) {
@@ -473,12 +473,12 @@
       vendo = null;
       desenhar();
       mostrarEstado(status);
-      if (window.avisar) window.avisar(status === "rascunho" ? "Rascunho da anamnese salvo." : "Anamnese salva (rev. " + a.revision_number + ").");
+      if (window.avisar) window.avisar(status === "rascunho" ? "Rascunho do Mapeamento salvo." : "Mapeamento salvo (rev. " + a.revision_number + ").");
       return a;
     }).catch(function (err) {
       console.error("[anamnese] salvar:", err);
       mostrarEstado(/conflito|alterada em outro lugar/i.test(err && err.message) ? "conflito" : "falha");
-      if (window.avisar) window.avisar(window.mensagemHumana ? window.mensagemHumana(err) : "Não foi possível salvar a anamnese. Nada foi gravado; tente de novo.");
+      if (window.avisar) window.avisar(window.mensagemHumana ? window.mensagemHumana(err) : "Não foi possível salvar o Mapeamento. Nada foi gravado; tente de novo.");
       return null;
     });
   }
@@ -495,8 +495,8 @@
         if (acao === "copiar") {
           var fonte = b.dataset.anFonte;
           if (!window.abrirModalConfirmar) return;
-          window.abrirModalConfirmar({ titulo: "Criar a partir da anamnese anterior",
-            corpo: "<p>Os itens da anamnese anterior serão copiados para este atendimento <b>marcados como informação prévia, a revisar</b>. " +
+          window.abrirModalConfirmar({ titulo: "Criar a partir do Mapeamento anterior",
+            corpo: "<p>Os itens do Mapeamento anterior serão copiados para este atendimento <b>marcados como informação prévia, a revisar</b>. " +
                    "A origem de cada item continua visível. Nada é copiado para o HOLOSCAN.</p>",
             botaoConfirmar: "Copiar como prévia", classeConfirmar: "btn-verde" }).then(function (r) {
             if (r !== "confirmar") return;
@@ -507,7 +507,7 @@
               ? V2a.prepararCopia({ salvar: salvar, redesenhar: desenhar, recarregar: function () { carregar().then(desenhar); } }, e, linhaFonte)
               : criarAPartirDe(e.id, fonte);
             copia.then(function () { rascunho = null; vendo = null; desenhar(); mostrarEstado("rascunho"); })
-              .catch(function (err) { mostrarEstado("falha"); if (window.avisar) window.avisar(window.mensagemHumana ? window.mensagemHumana(err) : "Não foi possível copiar a anamnese anterior."); });
+              .catch(function (err) { mostrarEstado("falha"); if (window.avisar) window.avisar(window.mensagemHumana ? window.mensagemHumana(err) : "Não foi possível copiar o Mapeamento anterior."); });
           });
           return;
         }
@@ -584,11 +584,11 @@
         Recusa se nao houver atendimento ativo ou se ele ja tiver anamnese (nada e sobrescrito). */
     usarPreConsulta: function (convite) {
       var e = atendimentoAtivo();
-      if (!e) return Promise.reject(new Error("Selecione ou inicie um atendimento para levar o Mapeamento Holístico para a anamnese dele."));
-      if (doAtendimento(e.id).length || rascunhoDe(e.id)) return Promise.reject(new Error("Este atendimento já tem anamnese. A resposta da paciente continua visível aqui, para consulta."));
-      if (!window.AnamneseV2 || !window.AnamneseV2.prepararDePreConsulta) return Promise.reject(new Error("Anamnese V2 indisponível."));
+      if (!e) return Promise.reject(new Error("Selecione ou inicie um atendimento para levar o Mapeamento Holístico para ele."));
+      if (doAtendimento(e.id).length || rascunhoDe(e.id)) return Promise.reject(new Error("Este atendimento já tem Mapeamento Holístico. A resposta do paciente continua visível aqui, para consulta."));
+      if (!window.AnamneseV2 || !window.AnamneseV2.prepararDePreConsulta) return Promise.reject(new Error("Mapeamento Holístico indisponível."));
       return window.AnamneseV2.prepararDePreConsulta({ salvar: salvar, redesenhar: desenhar, recarregar: function () { carregar().then(desenhar); } }, e, convite)
-        .then(function (linha) { if (!linha || !linha.id) throw new Error("Não foi possível criar o rascunho da anamnese."); rascunho = null; vendo = null; return carregar().then(function () { desenhar(); return linha; }); });
+        .then(function (linha) { if (!linha || !linha.id) throw new Error("Não foi possível criar o rascunho do Mapeamento."); rascunho = null; vendo = null; return carregar().then(function () { desenhar(); return linha; }); });
     },
     atendimentoAtivo: function () { return atendimentoAtivo(); },
     /** resumo da anamnese vigente (so V2; a antiga nao e reinterpretada) */

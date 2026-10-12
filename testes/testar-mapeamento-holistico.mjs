@@ -197,7 +197,7 @@ await clicarPc(N, 'usar'); await espera(800);
 ok(nAn() === n0 && (await toasts(N)).some(t => /Selecione ou inicie um atendimento/.test(t)), 'sem atendimento ativo: não leva (pede para selecionar um atendimento)');
 await N.evaluate((e) => { window.AtendimentoAtual.selecionarPorId(e); window.__toasts.length = 0; }, EA2);
 await clicarPc(N, 'usar'); await espera(800);
-ok(nAn() === n0 && (await toasts(N)).some(t => /já tem anamnese/.test(t)), 'atendimento que já tem anamnese: não sobrescreve (recusa)');
+ok(nAn() === n0 && (await toasts(N)).some(t => /já tem Mapeamento Holístico/.test(t)), 'atendimento que já tem anamnese: não sobrescreve (recusa)');
 await N.evaluate((e) => { window.AtendimentoAtual.selecionarPorId(e); window.__toasts.length = 0; }, EA);
 await clicarPc(N, 'usar'); await espera(1500);
 const novas = srv.linhas('anamneses').filter(a => a.patient_id === PA && a.encounter_id === EA);
@@ -207,7 +207,7 @@ s = await pc(N);
 ok(!s.botoes.some(b => b.startsWith('usar')) && /Levado para o atendimento em/.test(s.txt), 'depois de levar: o botão some e a ficha registra "Levado para o atendimento em …"');
 ok(JSON.stringify(convites(PA).find(c => c.status === 'concluido').submitted_content) === recebido, 'a resposta original do paciente não mudou');
 const outraVez = await N.evaluate(async (c) => { try { await window.Anamnese.usarPreConsulta(c); return 'aceito'; } catch (e) { return e.message; } }, convites(PA).find(c => c.status === 'concluido'));
-ok(/já tem anamnese/.test(outraVez) && nAn() === n0 + 1, 'levar de novo para o mesmo atendimento: recusado, sem duplicar');
+ok(/já tem Mapeamento Holístico/.test(outraVez) && nAn() === n0 + 1, 'levar de novo para o mesmo atendimento: recusado, sem duplicar');
 
 /* ===== 8 — isolamento ===== */
 await abrirFicha(N, PD, null);

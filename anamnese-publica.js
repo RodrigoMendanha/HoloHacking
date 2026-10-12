@@ -271,7 +271,7 @@
       c.appendChild(prof);
     }
     var nome = info && info.paciente && info.paciente.primeiro_nome;
-    c.appendChild(el("p", { class: "olho", texto: "Anamnese pré-consulta" }));
+    c.appendChild(el("p", { class: "olho", texto: "Mapeamento Holístico da Saúde" }));
     c.appendChild(el("h1", { texto: nome ? "Olá, " + nome + "!" : "Olá!" }));
     c.appendChild(el("p", { texto: "Antes da consulta, responda com calma. Leva uns 10 minutos, nada é obrigatório e tudo é salvo sozinho: você pode parar e continuar depois por este mesmo link." }));
   }
@@ -284,7 +284,7 @@
       invalido: ["Link não encontrado", "Este link não é válido. Confira se ele foi copiado inteiro ou peça um novo à sua nutricionista."],
       revogado: ["Este link foi substituído", "A sua nutricionista gerou um novo link. Use o mais recente que ela enviou."],
       expirado: ["Este link venceu", "O prazo para responder terminou. Peça um novo link à sua nutricionista."],
-      concluido: ["Anamnese enviada!", "Obrigada! Suas respostas chegaram para a sua nutricionista" + (quando ? " em " + new Date(quando).toLocaleString("pt-BR") : "") + ". Se quiser corrigir alguma coisa, fale com ela: o envio não pode ser alterado por este link."],
+      concluido: ["Mapeamento enviado!", "Obrigada! Suas respostas chegaram para a sua nutricionista" + (quando ? " em " + new Date(quando).toLocaleString("pt-BR") : "") + ". Se quiser corrigir alguma coisa, fale com ela: o envio não pode ser alterado por este link."],
       erro: ["Não foi possível abrir", "Confira a sua internet e tente de novo em instantes."]
     }[qual] || ["", ""];
     if (qual === "concluido") apagarLocal();
@@ -330,7 +330,7 @@
   }
   function telaRevisar() {
     var main = $("conteudo"); main.textContent = "";
-    var seguir = $("btn-seguir"); seguir.textContent = "Enviar anamnese";
+    var seguir = $("btn-seguir"); seguir.textContent = "Enviar Mapeamento";
     var h = el("h2", { texto: "Revisar e enviar", tabindex: "-1" });
     main.appendChild(h);
     main.appendChild(el("p", { class: "intro", texto: "Confira o que você respondeu. Para mudar algo, volte à etapa. Depois de enviar, as respostas não podem ser alteradas por este link." }));
@@ -366,7 +366,7 @@
       if (h === "ja_enviada") return telaEstado("concluido");
       if (h === "link_revogado") return telaEstado("revogado");
       if (h === "link_expirado") return telaEstado("expirado");
-      b.disabled = false; b.textContent = "Enviar anamnese";
+      b.disabled = false; b.textContent = "Enviar Mapeamento";
       var e = $("erro-envio"); if (e) e.textContent = h === "vazio" ? "Responda ao menos uma pergunta para enviar." : "Não foi possível enviar agora. Confira a internet e tente de novo — nada se perdeu.";
     });
   }

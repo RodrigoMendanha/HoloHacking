@@ -269,7 +269,7 @@
         // fica sem dono e a plateia acha que ainda e a paciente.
         painel.innerHTML = telaTexto([
           ["Do outro lado, a nutricionista.", 0],
-          ["Quarenta minutos de anamnese.", 1]
+          ["Quarenta minutos de Mapeamento Holístico.", 1]
         ]);
       },
       quadro: function (p) { animarLinhas(p, .04, .2); } },

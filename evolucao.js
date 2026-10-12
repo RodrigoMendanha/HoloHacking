@@ -247,7 +247,7 @@
     ["datas", "Duas datas"]
   ];
   var FONTES = [
-    ["atendimentos", "Atendimentos"], ["anamnese", "Anamnese"], ["medidas", "Medidas"], ["holoscan", "HOLOSCAN"],
+    ["atendimentos", "Atendimentos"], ["anamnese", "Mapeamento Holístico"], ["medidas", "Medidas"], ["holoscan", "HOLOSCAN"],
     ["ferramentas", "Ferramentas"], ["conduta", "Conduta e acordos"], ["timeline", "Linha do tempo do intervalo"]
   ];
   var ESTADOS_SEM_INFO = ["desconhecido", "nao_investigado", "recusado", "nao_aplicavel"];
@@ -525,21 +525,21 @@
   function htmlAnamnese(c) {
     var a = c.anamnese.a, b = c.anamnese.b;
     if (!a && !b) return vazio("Nenhuma anamnese consolidada nos dois pontos.");
-    var cab = col2("A", a ? "<small>rev. " + a.revision_number + " · " + escapar(a.status) + " · registrada em " + escapar(dataBR(a.created_at)) + "</small>" : "<small>sem anamnese consolidada</small>",
-                   "B", b ? "<small>rev. " + b.revision_number + " · " + escapar(b.status) + " · registrada em " + escapar(dataBR(b.created_at)) + "</small>" : "<small>sem anamnese consolidada</small>");
+    var cab = col2("A", a ? "<small>rev. " + a.revision_number + " · " + escapar(a.status) + " · registrado em " + escapar(dataBR(a.created_at)) + "</small>" : "<small>sem Mapeamento consolidado</small>",
+                   "B", b ? "<small>rev. " + b.revision_number + " · " + escapar(b.status) + " · registrada em " + escapar(dataBR(b.created_at)) + "</small>" : "<small>sem Mapeamento consolidado</small>");
     var itens = c.anamnese.itens.filter(function (l) { return l.categoria !== "mantido"; });
     var mantidos = c.anamnese.itens.length - itens.length;
     var tabela = itens.length ? '<table class="evo-tabela"><thead><tr><th>Domínio</th><th>Item</th><th>A</th><th>B</th><th>Situação</th></tr></thead><tbody>' +
       itens.map(function (l) {
         var f = function (it) { if (!it) return "—"; return it.estado === "informado" ? escapar(it.valor || "(informado)") : "[" + escapar(window.Anamnese.rotulo(it.estado)) + "]"; };
         return '<tr class="evo-an-' + l.categoria + '"><td>' + escapar(l.dominio_rotulo) + "</td><td>" + escapar(l.campo) + "</td><td>" + f(l.antes) + "</td><td>" + f(l.depois) + '</td><td><span class="evo-tag ' + l.categoria + '">' + escapar(l.rotulo) + "</span></td></tr>";
-      }).join("") + "</tbody></table>" : vazio("Nenhuma diferença entre os itens das duas anamneses.");
+      }).join("") + "</tbody></table>" : vazio("Nenhuma diferença entre os itens dos dois Mapeamentos.");
     return cab + tabela + (mantidos ? '<p class="evo-nota">' + mantidos + (mantidos === 1 ? " item mantido" : " itens mantidos") + " sem alteração.</p>" : "") +
       '<p class="evo-nota">Diferenças documentais: nenhum item vira “melhora” ou “piora”. Vazio não é negado; só “negado explicitamente” nega.</p>';
   }
 
   function htmlMedidas(c) {
-    if (!c.medidas.length) return vazio("Nenhuma medida (valor + unidade + data) registrada nas anamneses dos dois pontos.");
+    if (!c.medidas.length) return vazio("Nenhuma medida (valor + unidade + data) registrada nos Mapeamentos dos dois pontos.");
     var f = function (m) { return m ? escapar(String(m.valor)) + " " + escapar(m.unidade || "") + (m.data ? " <small>(" + escapar(dataBR(m.data)) + ")</small>" : "") : "—"; };
     return '<table class="evo-tabela"><thead><tr><th>Medida</th><th>A</th><th>B</th><th>Delta</th></tr></thead><tbody>' +
       c.medidas.map(function (m) {
@@ -609,7 +609,7 @@
   function resumo(c) {
     var n = function (lista, f) { return lista.filter(f).length; };
     var partes = [];
-    partes.push(n(c.anamnese.itens, function (l) { return l.categoria !== "mantido"; }) + " itens de anamnese com diferença");
+    partes.push(n(c.anamnese.itens, function (l) { return l.categoria !== "mantido"; }) + " itens do Mapeamento com diferença");
     partes.push(n(c.medidas, function (m) { return m.delta !== null; }) + " medidas com delta comparável");
     partes.push(c.conduta.acordos.length + " acordos acompanhados");
     partes.push(c.timeline.length + " eventos consolidados no intervalo");

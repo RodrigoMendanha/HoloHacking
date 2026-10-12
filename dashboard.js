@@ -104,7 +104,7 @@
      "Pronto para consulta" NAO e usado: o sistema nao registra "anamnese
      revisada" separado do atendimento (ver DECISOES-V1 item 184). */
   var ETAPAS = {
-    aguardando_anamnese:   { rotulo: "Aguardando anamnese",   tom: "aguardando", ordem: 1 },
+    aguardando_anamnese:   { rotulo: "Aguardando Mapeamento", tom: "aguardando", ordem: 1 },
     anamnese_recebida:     { rotulo: "Mapeamento recebido",   tom: "pronto",     ordem: 2 },
     holoscan_andamento:    { rotulo: "HOLOSCAN em andamento", tom: "andamento",  ordem: 3 },
     resultado_pronto:      { rotulo: "Resultado pronto",      tom: "pronto",     ordem: 4 },
@@ -159,7 +159,7 @@
     }
     var conv = maisRecente(jornada.convites.filter(function (c) { return c.patient_id === pid && c.status !== "revogado"; }), "created_at");
     if (conv && (conv.status === "enviado" || conv.status === "iniciado") && !(Date.parse(conv.expires_at) < Date.now())) {
-      return { chave: "aguardando_anamnese", sub: conv.status === "iniciado" ? "A paciente começou a responder" : "Anamnese pré-consulta enviada", data: conv.created_at, destino: "aba:anamnese" };
+      return { chave: "aguardando_anamnese", sub: conv.status === "iniciado" ? "O paciente começou a responder" : "Mapeamento Holístico enviado", data: conv.created_at, destino: "aba:anamnese" };
     }
     if (conv && conv.status === "concluido" && !conv.imported_at) {
       return { chave: "anamnese_recebida", sub: "Respondida pela paciente", data: conv.submitted_at, destino: "aba:anamnese" };
@@ -316,7 +316,7 @@
       corpo = '<div class="dash-vazio-elegante dash-vazio-baixo">' +
         '<span class="dash-vazio-icone">' + icone("pessoas", 28) + "</span>" +
         "<h4>Nenhum paciente com etapa em andamento</h4>" +
-        "<p>Aqui aparecem as anamneses enviadas e recebidas, o HOLOSCAN em andamento,<br>os Resultados prontos ou apresentados e os retornos marcados.</p></div>";
+        "<p>Aqui aparecem os Mapeamentos Holísticos enviados e recebidos, o HOLOSCAN em andamento,<br>os Resultados prontos ou apresentados e os retornos marcados.</p></div>";
     } else {
       corpo = '<ul class="dash-acomp-lista" id="dash-lista-acompanhamento">' + lista.map(function (a) {
         var E = ETAPAS[a.chave];

@@ -87,7 +87,7 @@ const tela = await A.evaluate(() => ({
   titulos: [...document.querySelectorAll('#dash-trabalho .dash-titulo')].map(h => h.childNodes[0].textContent.trim())
 }));
 const de = (n) => tela.linhas.find(l => l.nome.startsWith(n));
-ok(de('Mariana')?.etapa === 'aguardando_anamnese' && de('Mariana').status === 'Aguardando anamnese', 'convite enviado e no prazo → Aguardando anamnese');
+ok(de('Mariana')?.etapa === 'aguardando_anamnese' && de('Mariana').status === 'Aguardando Mapeamento', 'convite enviado e no prazo → Aguardando Mapeamento');
 ok(de('Beatriz')?.etapa === 'anamnese_recebida' && de('Beatriz').status === 'Mapeamento recebido', 'convite concluído e ainda não usado → Mapeamento recebido');
 ok(de('Camila')?.etapa === 'holoscan_andamento' && /3 de 84 respondidas/.test(de('Camila').sub), 'questionário com respostas guardadas → HOLOSCAN em andamento (' + (de('Camila') || {}).sub + ')');
 ok(de('Felipe')?.etapa === 'resultado_pronto', 'Resultado HOLOS salvo sem emissão → Resultado pronto');

@@ -195,7 +195,7 @@ ok(res.ro && /Objetivo principal/.test(res.t) && /Sintomas informados/.test(res.
 ok(!/INTIMO_EMOCIONAL/.test(res.t) && /Conteúdo íntimo/.test(res.t), 'resumo não mostra o texto íntimo');
 await shot(A, 'an2-concluida');
 const visao = await A.evaluate(async (pid) => { window.levarParaFicha('aba:visao', pid); await new Promise(r => setTimeout(r, 300)); return (document.getElementById('fic-an-resumo') || {}).innerText || ''; }, PA);
-ok(/Resumo da anamnese/.test(visao), 'Visão geral da ficha mostra o resumo da anamnese');
+ok(/Resumo do Mapeamento/.test(visao), 'Visão geral da ficha mostra o resumo da anamnese');
 
 /* ----- conteudo intimo: relatorio sem marcacao nao inclui ----- */
 const emi = (intimo) => rpc('emitir_relatorio', { payload: { patient_id: PA, title: 'teste', selected_sources: { anamnesis_ids: [an[0].id], incluir_intimo: intimo }, operation_id: globalThis.crypto.randomUUID() } });
@@ -224,7 +224,7 @@ const r0 = await A.evaluate(() => ({ ret: document.querySelector('[data-an2-tipo
   anterior: (document.querySelector('.an2-anterior') || {}).innerText || '' }));
 ok(r0.ret === 'true' && r0.sug && r0.blocos.join() === 'Desde a última consulta' && !r0.copiar, 'retorno sugerido (há anamnese concluída): "Desde a última consulta", sem copiar a anamnese inteira');
 await A.evaluate(() => { document.querySelector('.an2-anterior').open = true; });
-ok(/Ver anamnese completa anterior/.test(r0.anterior) && /Losartana/.test(await A.evaluate(() => document.querySelector('.an2-anterior').innerText)) && !(await A.evaluate(() => !!document.querySelector('.an2-anterior input:not([disabled]), .an2-anterior textarea'))),
+ok(/Ver Mapeamento completo anterior/.test(r0.anterior) && /Losartana/.test(await A.evaluate(() => document.querySelector('.an2-anterior').innerText)) && !(await A.evaluate(() => !!document.querySelector('.an2-anterior input:not([disabled]), .an2-anterior textarea'))),
   '"Ver anamnese completa anterior" em modo leitura');
 await clicar(A, '[data-an2-tipo="primeira"]'); await espera(200);
 ok(await A.evaluate(() => document.querySelectorAll('.an2-bloco').length === 7 && !!document.querySelector('[data-an-acao="copiar"]')), 'troca manual para Primeira consulta: os 7 blocos e "Criar a partir da anamnese anterior"');

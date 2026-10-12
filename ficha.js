@@ -174,7 +174,7 @@
     linhas.push(["Último atendimento", ultimo ? A.rotuloQuando(ultimo) + (ultimo.consultation_id ? " · com agendamento" : " · sem agendamento") : "nenhum registrado"]);
     if (foco) {
       var an = An.vigente(foco.id), anR = An.rascunhoDe(foco.id);
-      linhas.push(["Anamnese" + (foco === ativo ? " (atendimento ativo)" : ""), an ? "rev. " + an.revision_number + " · " + an.status + " · " + An.contarItens(an.content) + " itens" : (anR ? "rascunho (não consolidada)" : "não registrada")]);
+      linhas.push(["Mapeamento Holístico" + (foco === ativo ? " (atendimento ativo)" : ""), an ? "rev. " + an.revision_number + " · " + an.status + " · " + An.contarItens(an.content) + " itens" : (anR ? "rascunho (não consolidado)" : "não registrado")]);
       var cd = Cd.vigente(foco.id), cdR = Cd.rascunhoDe(foco.id);
       /* teste real 07/10: a conduta vigente e a mais recente DA PESSOA; o
          atendimento ativo pode ser um antigo, sem conduta propria */
@@ -206,12 +206,12 @@
       var anV = An.vigente(foco.id);
       if (!anV) { var antes = An.anteriorDe ? An.anteriorDe(pid, foco.id) : null; anV = antes; }
       var rh = anV ? An.resumoHtml(anV) : "";
-      if (rh) anResumo = '<details class="fic-an-resumo" id="fic-an-resumo"><summary>Resumo da anamnese (rev. ' + anV.revision_number + ")</summary>" + rh + "</details>";
+      if (rh) anResumo = '<details class="fic-an-resumo" id="fic-an-resumo"><summary>Resumo do Mapeamento (rev. ' + anV.revision_number + ")</summary>" + rh + "</details>";
     }
     return '<div class="dash-bloco dash-bloco-compacto" id="fic-atendimento-clinico">' +
       '<h3 class="dash-titulo">Atendimento clínico</h3>' +
       linhas.map(function (l) { return '<div class="fic-det"><span>' + escapar(l[0]) + "</span><b>" + escapar(l[1]) + "</b></div>"; }).join("") +
-      '<div class="fic-continuidade"><button type="button" class="fic-chip" data-ir="aba:anamnese">Anamnese</button>' +
+      '<div class="fic-continuidade"><button type="button" class="fic-chip" data-ir="aba:anamnese">Mapeamento Holístico</button>' +
       '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="holoscan">HOLOSCAN</button>' +
       '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="aba:ferramentas">Ferramentas</button>' +
       '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="aba:resultado-holos">Resultado HOLOS</button>' +

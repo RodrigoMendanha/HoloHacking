@@ -138,22 +138,22 @@ ok(/Medidas/.test(pub.h2) && pub.ids.some(i => i === 'pa-objetiva-peso') && !pub
 await M.evaluate(() => { const e = document.getElementById('pa-objetiva-peso'); e.value = '70'; e.dispatchEvent(new Event('input', { bubbles: true })); });
 await seguir();
 pub = await M.evaluate(() => ({ h2: document.querySelector('main h2').textContent, txt: document.querySelector('main').innerText, btn: document.getElementById('btn-seguir').textContent }));
-ok(/Revisar e enviar/.test(pub.h2) && pub.txt.includes('Cansaço à tarde') && pub.txt.includes(XSS) && pub.txt.includes('Prefiro não responder') && /Enviar anamnese/.test(pub.btn),
-  'etapa 8: revisão mostra as respostas como texto (inclusive o "<img ...>" literal) e "Enviar anamnese"');
+ok(/Revisar e enviar/.test(pub.h2) && pub.txt.includes('Cansaço à tarde') && pub.txt.includes(XSS) && pub.txt.includes('Prefiro não responder') && /Enviar Mapeamento/.test(pub.btn),
+  'etapa 8: revisão mostra as respostas como texto (inclusive o "<img ...>" literal) e "Enviar Mapeamento"');
 ok(await M.evaluate(() => window.__x === undefined), 'XSS: o texto com HTML não executou na página pública');
 
 /* ===== 6 ===== */
 await seguir(); await espera(600);
 const fim = srv.linhas('anamnesis_invites').find(c => c.id === convite.id);
 pub = await M.evaluate(() => document.querySelector('main').innerText);
-ok(fim.status === 'concluido' && fim.submitted_content.formulario.motivo.objetivo === XSS && fim.draft_content === null && /Anamnese enviada!/.test(pub),
-  'enviar: status Concluída, resposta congelada no servidor e "Anamnese enviada!" na tela');
+ok(fim.status === 'concluido' && fim.submitted_content.formulario.motivo.objetivo === XSS && fim.draft_content === null && /Mapeamento enviado!/.test(pub),
+  'enviar: status Concluída, resposta congelada no servidor e "Mapeamento enviado!" na tela');
 if (SHOT) await new Promise(r => setTimeout(r, 900)), await M.screenshot({ path: SHOT + '/publica-enviada-mobile.png' });
 const reenvio = rpc('anamnese_publica_enviar', { p_token: token, p_conteudo: { formulario: { motivo: { motivo: 'OUTRA' } } } }, null);
 const resalvar = rpc('anamnese_publica_salvar', { p_token: token, p_conteudo: { formulario: { motivo: { motivo: 'OUTRA' } } } }, null);
 await M.reload({ waitUntil: 'networkidle2' }); await espera(500);
 pub = await M.evaluate(() => document.body.innerText);
-ok(reenvio.error && reenvio.error.hint === 'ja_enviada' && resalvar.error && resalvar.error.hint === 'ja_enviada' && /Anamnese enviada!/.test(pub) && !pub.includes('Cansaço') &&
+ok(reenvio.error && reenvio.error.hint === 'ja_enviada' && resalvar.error && resalvar.error.hint === 'ja_enviada' && /Mapeamento enviado!/.test(pub) && !pub.includes('Cansaço') &&
   srv.linhas('anamnesis_invites').find(c => c.id === convite.id).submitted_content.formulario.motivo.motivo === 'Cansaço à tarde',
   'reenvio e novo salvamento recusados (já enviada); reabrir o link mostra só "enviada", sem as respostas');
 

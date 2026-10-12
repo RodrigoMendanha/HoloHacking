@@ -23,7 +23,7 @@
 
   var escapar = window.escapar;
   var TIPOS = [
-    ["tudo", "Tudo"], ["consulta", "Agendamentos"], ["atendimento", "Atendimentos"], ["anamnese", "Anamnese"],
+    ["tudo", "Tudo"], ["consulta", "Agendamentos"], ["atendimento", "Atendimentos"], ["anamnese", "Mapeamento Holístico"],
     ["conduta", "Conduta"], ["mapa", "HOLOSCAN"], ["ferramenta", "Ferramentas"],
     ["documento", "Documentos e exames"], ["relatorio", "Relatórios"]
   ];
@@ -64,8 +64,8 @@
     if (An && Cd) {
       An.doPaciente(pid).filter(An.consolidada).forEach(function (a) {
         var revisao = a.revision_number > 1;
-        lista.push(ev({ tipo: "anamnese", selo: revisao ? "Revisão" : "Anamnese",
-          titulo: revisao ? "Anamnese revisada (rev. " + a.revision_number + ")" : "Anamnese salva",   // revisao = correcao documental ligada ao original
+        lista.push(ev({ tipo: "anamnese", selo: revisao ? "Revisão" : "Mapeamento",
+          titulo: revisao ? "Mapeamento revisado (rev. " + a.revision_number + ")" : "Mapeamento salvo",   // revisao = correcao documental ligada ao original
           detalhe: a.status + " · " + An.contarItens(a.content) + " itens" + (a.revision_note ? " · " + escapar(a.revision_note) : "") +
             (a.superseded_at ? " · substituída por revisão posterior" : ""),
           quando: diaDoAtendimento(a.encounter_id), registrado_em: a.created_at, revisao: revisao,

@@ -338,7 +338,7 @@
     var semFor = f.tipo === "chips" || f.tipo === "sintoma" || f.tipo === "lista";
     return '<div class="an2-campo an2-t-' + f.tipo + (m.previo ? " previo" : "") + '" data-an2-k="' + esc(k) + '">' +
       (semFor ? '<span class="an2-rot">' + esc(f.rotulo) + "</span>" : '<label class="an2-rot" for="' + id + '">' + esc(f.rotulo) + "</label>") +
-      (m.previo ? '<span class="an2-selo-previo" title="Copiado da anamnese anterior; revise">prévio — a revisar</span>' : "") +
+      (m.previo ? '<span class="an2-selo-previo" title="Copiado do Mapeamento anterior; revise">prévio — a revisar</span>' : "") +
       (m.estado && m.estado !== "informado" ? '<span class="an2-selo-estado">' + esc(ROT[m.estado] || m.estado) + "</span>" : "") +
       ctrl + "</div>";
   }
@@ -404,28 +404,28 @@
   function desenharCorpo(alvo, ctx, ro) {
     var html = "";
     if (!ro) {
-      html += '<div class="an2-tipo" role="radiogroup" aria-label="Tipo de anamnese">' +
+      html += '<div class="an2-tipo" role="radiogroup" aria-label="Tipo de Mapeamento">' +
         [["primeira", "Primeira consulta"], ["retorno", "Retorno"]].map(function (t) {
           var on = st.tipo === t[0];
           return '<button type="button" role="radio" class="an2-tipo-btn' + (on ? " on" : "") + '" aria-checked="' + on + '" data-an2-tipo="' + t[0] + '">' + esc(t[1]) +
             (t[0] === "retorno" && ctx.sugerirRetorno ? ' <small class="an2-sugerido">sugerido</small>' : "") + "</button>";
         }).join("") + "</div>";
       if (st.tipo === "primeira" && ctx.anterior && !st.id && !st.sujo && !st.corrigeDe) {
-        html += '<div class="an2-cta"><span>Já existe uma anamnese concluída deste paciente.</span><button type="button" class="perf-botao" data-an-acao="copiar" data-an-fonte="' + esc(ctx.anterior.id) + '">Criar a partir da anamnese anterior</button></div>';
+        html += '<div class="an2-cta"><span>Já existe um Mapeamento Holístico concluído deste paciente.</span><button type="button" class="perf-botao" data-an-acao="copiar" data-an-fonte="' + esc(ctx.anterior.id) + '">Criar a partir do Mapeamento anterior</button></div>';
       }
       if (st.tipo === "retorno" && ctx.anterior) {
-        html += '<details class="an2-anterior"><summary>Ver anamnese completa anterior</summary><div class="an2-anterior-corpo">' + (ctx.anteriorHtml || "") + "</div></details>";
+        html += '<details class="an2-anterior"><summary>Ver Mapeamento completo anterior</summary><div class="an2-anterior-corpo">' + (ctx.anteriorHtml || "") + "</div></details>";
       }
-      if (st.copiado) html += '<p class="an-titulo"><span class="an-selo previo">criada a partir da anamnese anterior — itens prévios precisam ser revisados</span></p>';
+      if (st.copiado) html += '<p class="an-titulo"><span class="an-selo previo">criado a partir do Mapeamento anterior — itens prévios precisam ser revisados</span></p>';
     }
     var blocos = blocosDe(st.tipo);
     html += '<div class="an2-form" data-an2-form="1">' + blocos.map(function (b, i) { return blocoHtml(b, i, ctx, ro); }).join("") + "</div>";
-    html += '<section class="an2-resumo-caixa" aria-labelledby="an2-t-resumo"><h4 id="an2-t-resumo">Resumo da anamnese</h4><p class="an2-nota">Organização automática do que foi registrado — não é interpretação clínica.</p>' + resumoHtml(contentAtual(), esc) + "</section>";
+    html += '<section class="an2-resumo-caixa" aria-labelledby="an2-t-resumo"><h4 id="an2-t-resumo">Resumo do Mapeamento</h4><p class="an2-nota">Organização automática do que foi registrado — não é interpretação clínica.</p>' + resumoHtml(contentAtual(), esc) + "</section>";
     if (!ro) {
       html += '<div class="an2-rodape"><span class="an2-estado" id="an2-estado" role="status" aria-live="polite"></span>' +
         '<button type="button" class="btn-fantasma" id="an2-tentar" hidden data-an2-acao="tentar">Tentar novamente</button>' +
         (st.corrigeDe ? '<button type="button" class="btn-fantasma" data-an-acao="descartar">Descartar correção</button>' : "") +
-        '<button type="button" class="btn-verde" data-an2-acao="concluir">Concluir anamnese</button></div>';
+        '<button type="button" class="btn-verde" data-an2-acao="concluir">Concluir Mapeamento</button></div>';
     }
     alvo.innerHTML = html;
     pintarEstado();
@@ -491,7 +491,7 @@
     if (probs.length) { if (raiz.avisar) raiz.avisar(probs[0]); return Promise.resolve(null); }
     var n = 0; Object.keys(content.dominios).forEach(function (k) { n += content.dominios[k].itens.length; });
     if (!n) { if (raiz.avisar) raiz.avisar("Preencha ao menos um campo antes de concluir a anamnese."); return Promise.resolve(null); }
-    if (st.estado === "conflito") { if (raiz.avisar) raiz.avisar("A anamnese mudou em outra sessão: recarregue antes de concluir."); return Promise.resolve(null); }
+    if (st.estado === "conflito") { if (raiz.avisar) raiz.avisar("O Mapeamento mudou em outra sessão: recarregue antes de concluir."); return Promise.resolve(null); }
     // Concluir logo depois de digitar: a gravacao automatica (ao sair do campo) pode estar em andamento.
     // Espera ela terminar para mandar o updated_at novo; enquanto isso, nenhuma outra gravacao comeca.
     var ctx = ctxAtual, est = st;
@@ -501,7 +501,7 @@
       if (st !== est) return null;
       if (st.estado === "conflito") {
         st.concluindo = false; pintarEstado();
-        if (raiz.avisar) raiz.avisar("A anamnese mudou em outra sessão: recarregue antes de concluir.");
+        if (raiz.avisar) raiz.avisar("O Mapeamento mudou em outra sessão: recarregue antes de concluir.");
         return null;
       }
       var payload = { id: st.id || st.corrigeDe || null, encounter_id: st.eid, content: contentAtual(), status: "salvo" };
@@ -510,7 +510,7 @@
       st.estado = "salvando"; pintarEstado();
       return ctx.salvar(payload).then(function (linha) {
         st = null;
-        if (raiz.avisar) raiz.avisar("Anamnese concluída (rev. " + (linha && linha.revision_number) + ").");
+        if (raiz.avisar) raiz.avisar("Mapeamento concluído (rev. " + (linha && linha.revision_number) + ").");
         ctx.redesenhar();
         return linha;
       }, function (err) {
@@ -518,7 +518,7 @@
           st.concluindo = false;
           st.estado = /conflito|alterada em outro lugar|outra sess/i.test((err && (err.message + " " + (err.hint || ""))) || "") ? "conflito" : "falha"; pintarEstado();
         }
-        if (raiz.avisar) raiz.avisar(raiz.mensagemHumana ? raiz.mensagemHumana(err) : "Não foi possível concluir a anamnese.");
+        if (raiz.avisar) raiz.avisar(raiz.mensagemHumana ? raiz.mensagemHumana(err) : "Não foi possível concluir o Mapeamento.");
         return null;
       });
     });
@@ -572,7 +572,7 @@
         var temDados = Object.keys(contentAtual().dominios).length > 0;
         var trocar = function () { st.tipo = t.dataset.an2Tipo; if (st.id || temDados) sujar(); ctxAtual.redesenhar(); };
         if (temDados && raiz.abrirModalConfirmar) {
-          raiz.abrirModalConfirmar({ titulo: "Trocar o tipo de anamnese", corpo: "<p>Os campos já preenchidos do tipo atual <b>não entram</b> no registro do outro tipo.</p>", botaoConfirmar: "Trocar" })
+          raiz.abrirModalConfirmar({ titulo: "Trocar o tipo de Mapeamento", corpo: "<p>Os campos já preenchidos do tipo atual <b>não entram</b> no registro do outro tipo.</p>", botaoConfirmar: "Trocar" })
             .then(function (r2) { if (r2 === "confirmar") trocar(); });
         } else trocar();
         return;

@@ -184,7 +184,7 @@ ok(!/\d+ ?%/.test(cd) && !/não cumpriu[^”]/.test(cd) && /Nenhum índice de ad
 const atend = await texto('#aba-evolucao [data-evo-secao="atendimentos"]');
 ok((atend.match(/registrado em/g) || []).length === 2, 'atendimentos no intervalo: 2 (a revisao da anamnese nao virou atendimento)');
 const tlEvo = await A.evaluate(() => [...document.querySelectorAll('#aba-evolucao [data-evo-secao="timeline"] .fic-evento')].map(e => e.className + '|' + e.innerText.replace(/\s+/g, ' ')));
-ok(tlEvo.some(t => /revisao/.test(t) && /Anamnese revisada \(rev\. 2\)/.test(t)) && tlEvo.some(t => /registrado em/.test(t)), 'timeline do intervalo: revisao marcada como revisao, com data de registro');
+ok(tlEvo.some(t => /revisao/.test(t) && /Mapeamento revisado \(rev\. 2\)/.test(t)) && tlEvo.some(t => /registrado em/.test(t)), 'timeline do intervalo: revisao marcada como revisao, com data de registro');
 ok(!tlEvo.some(t => /consulta/.test(t.split('|')[0])), 'a timeline da Evolucao nao mistura agendamentos');
 const resumo = await texto('#aba-evolucao .evo-resumo');
 ok(/1 medidas com delta comparável/.test(resumo) && !/exames/.test(resumo), 'resumo conta so o comparavel (sem exames): ' + resumo);
@@ -209,7 +209,7 @@ const tl = await A.evaluate(async (pid) => {
 }, PA);
 ok(tl.filter(e => /mapa/.test(e.cls)).length === 2 && !tl.some(e => /99/.test(e.txt) && /mapa/.test(e.cls)), 'HOLOSCAN: so as 2 aplicacoes do servidor; o cache local nao sincronizado fica fora');
 ok(!tl.some(e => /RASCUNHO NAO ENTRA|rascunho/i.test(e.txt)), 'nenhum rascunho (anamnese/conduta) na timeline');
-const rev = tl.find(e => /Anamnese revisada \(rev\. 2\)/.test(e.txt));
+const rev = tl.find(e => /Mapeamento revisado \(rev\. 2\)/.test(e.txt));
 ok(rev && /revisao/.test(rev.cls) && rev.reg && /registrado em/.test(rev.title) && /01\/05\/2026/.test(rev.txt), 'revisao: ligada ao atendimento original (data clinica 01/05), data de registro consultavel');
 const filtros = await A.evaluate(() => [...document.querySelectorAll('[data-filtro-linha]')].map(b => b.textContent.trim()));
 ok(filtros.includes('Atendimentos') && filtros.includes('Relatórios'), 'filtros: ' + filtros.join(' · '));
@@ -235,7 +235,7 @@ const form = await A.evaluate(() => ({
 ok(form.total >= 10 && form.marcados === 0, 'nada vem marcado: ' + form.total + ' fontes, 0 marcadas');
 ok(form.intimo === false && form.interp === true, 'conteudo intimo NAO vem marcado; interpretacao profissional vem');
 ok(/Solicitação de exames com assinatura: não implementada/.test(form.pendencia), 'pendencia da solicitacao de exames registrada na tela');
-ok(!/RASCUNHO NAO ENTRA/.test(form.pendencia) && (await A.evaluate(() => [...document.querySelectorAll('[data-rel-fonte="anamnesis_ids"]')].map(c => c.parentNode.innerText))).filter(t => /substituída/.test(t)).length === 1 && (await A.evaluate(() => document.querySelectorAll('[data-rel-fonte="anamnesis_ids"]').length)) === 3, 'so anamneses consolidadas sao oferecidas (rev. 1 marcada como substituida, rev. 2, e a de E2; rascunho fora)');
+ok(!/RASCUNHO NAO ENTRA/.test(form.pendencia) && (await A.evaluate(() => [...document.querySelectorAll('[data-rel-fonte="anamnesis_ids"]')].map(c => c.parentNode.innerText))).filter(t => /substituído/.test(t)).length === 1 && (await A.evaluate(() => document.querySelectorAll('[data-rel-fonte="anamnesis_ids"]').length)) === 3, 'so anamneses consolidadas sao oferecidas (rev. 1 marcada como substituida, rev. 2, e a de E2; rascunho fora)');
 await A.evaluate(async (ids) => {
   for (const [k, v] of ids) { const c = document.querySelector('[data-rel-fonte="' + k + '"][value="' + v + '"]'); if (c) c.click(); }
   document.querySelector('[data-rel-campo="title"]').value = 'Relatório de retorno';
@@ -337,7 +337,7 @@ const ctx = await A.evaluate(async (pid) => {
   return out;
 }, PA);
 const vaz = /### Índice HOLOS|### Tríada|- Físico:|\nTríade:|- Corpo:|faixa \d|### Leitura Integrada|CMB-|\bREC-|\bSEL-|nota \d/;
-ok(/Linha do tempo consolidada/.test(ctx.evolucao) && /Anamnese revisada/.test(ctx.evolucao) && /registrado em/.test(ctx.evolucao) && !/RASCUNHO|rascunho de/i.test(ctx.evolucao) && !vaz.test(ctx.evolucao) && !/Índice 50|Índice 60/.test(ctx.evolucao),
+ok(/Linha do tempo consolidada/.test(ctx.evolucao) && /Mapeamento revisado/.test(ctx.evolucao) && /registrado em/.test(ctx.evolucao) && !/RASCUNHO|rascunho de/i.test(ctx.evolucao) && !vaz.test(ctx.evolucao) && !/Índice 50|Índice 60/.test(ctx.evolucao),
    'HOLOS AI (evolucao): timeline consolidada com data de registro, sem rascunho e sem Indice');
 ok(/Relatórios emitidos/.test(ctx.relatorios) && /Emissão nº 2/.test(ctx.relatorios) && /Emissão nº 1/.test(ctx.relatorios) && !/RASCUNHO PENDENTE/.test(ctx.relatorios) && !/SEGREDO_INTIMO/.test(ctx.relatorios) && !vaz.test(ctx.relatorios),
    'HOLOS AI (relatorios emitidos): so emissoes, sem rascunho, sem conteudo intimo');

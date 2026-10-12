@@ -35,7 +35,7 @@ const base = await p.evaluate(() => {
   };
 });
 ok(base.visivel, 'a secao Arquivos abre');
-ok(base.abas.join(',') === 'Visão geral,Atendimentos,Anamnese,HOLOSCAN,Ferramentas,Resultado HOLOS,Documentos,Conduta,Evolução,Relatório,HOLOS AI',
+ok(base.abas.join(',') === 'Visão geral,Atendimentos,Mapeamento Holístico,HOLOSCAN,Ferramentas,Resultado HOLOS,Documentos,Conduta,Evolução,Relatório,HOLOS AI',
    'as abas (Anamnese e Conduta na Etapa 2; Resultado HOLOS em 09/10, entre Ferramentas e Conduta): ' + base.abas.join(' · '));
 ok(base.cartoes.join(' / ') === 'Adicionar arquivo / Documentos e exames', 'a aba e a biblioteca do prontuario: ' + base.cartoes.join(' · '));
 ok(base.painelExames === 0, 'nenhum painel de valores de exame (nem V1 nem legado)');

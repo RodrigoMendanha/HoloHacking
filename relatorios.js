@@ -193,7 +193,7 @@
       var A = window.AtendimentoAtual, w = A ? A.paraParede(e.occurred_at, e.timezone || A.fuso()) : { data: String(e.occurred_at).slice(0, 10), hora: "" };
       return "<li>" + tag(e.tipo_conteudo) + " <b>" + escapar(dataBR(w.data)) + " " + escapar(w.hora) + "</b>" + (e.type ? " · " + escapar(e.type) : "") + (e.modality ? " · " + escapar(e.modality) : "") + (e.com_agendamento ? " · com agendamento" : "") + "</li>";
     })));
-    h += bloco("Anamnese", (c.anamneses || []).map(function (a) {
+    h += bloco("Mapeamento Holístico", (c.anamneses || []).map(function (a) {
       var porDom = {};
       (a.itens || []).forEach(function (it) { (porDom[it.dominio] = porDom[it.dominio] || []).push(it); });
       return '<div class="rel-anamnese"><p class="rel-meta">Revisão ' + escapar(String(a.revision_number)) + " · " + escapar(a.status) + (a.encounter_id ? " · atendimento de " + escapar(dataBR(diaDoAtendimento(a.encounter_id)) || "—") : "") +
@@ -294,9 +294,9 @@
       '<label class="rel-campo"><span>Período (início)</span><input type="date" data-rel-campo="period_start" value="' + escapar(f.period_start || "") + '"></label>' +
       '<label class="rel-campo"><span>Período (fim)</span><input type="date" data-rel-campo="period_end" value="' + escapar(f.period_end || "") + '"></label>' +
       "</div>" +
-      '<p class="dash-sub">Fontes: nada vem marcado. Só o consolidado aparece (rascunhos de anamnese/conduta e cálculos não sincronizados não entram).</p>' +
+      '<p class="dash-sub">Fontes: nada vem marcado. Só o consolidado aparece (rascunhos de Mapeamento/conduta e cálculos não sincronizados não entram).</p>' +
       grupo("Atendimentos", "encounter_ids", F.atendimentos, function (e) { return escapar(rotuloAtendimento(e)) + (e.type ? " · " + escapar(e.type) : ""); }) +
-      grupo("Anamnese (salva/revisada)", "anamnesis_ids", F.anamneses, function (a) { return "rev. " + a.revision_number + " · " + escapar(a.status) + " · atendimento de " + escapar(dataBR(diaDoAtendimento(a.encounter_id))) + (a.superseded_at ? " · substituída" : "") + " · " + (An ? An.contarItens(a.content) : "?") + " itens"; }) +
+      grupo("Mapeamento Holístico (salvo/revisado)", "anamnesis_ids", F.anamneses, function (a) { return "rev. " + a.revision_number + " · " + escapar(a.status) + " · atendimento de " + escapar(dataBR(diaDoAtendimento(a.encounter_id))) + (a.superseded_at ? " · substituído" : "") + " · " + (An ? An.contarItens(a.content) : "?") + " itens"; }) +
       grupo("HOLOSCAN (aplicações consolidadas — sem resultados oficiais)", "holoscan_application_ids", F.holoscan, function (x) { return escapar(dataBR(x.quando)) + " · versão " + escapar(x.versao_estrutura || "?"); }, function (x) { return x._supa_id; }) +
       grupo("Ferramentas (concluídas)", "tool_application_ids", F.ferramentas, function (a) { return escapar(nomeFerramenta(a.ferramenta_id)) + " · " + escapar(dataBR(a.concluida_em || a.iniciada_em)); }) +
       grupo("Conduta (salva/revisada) e acordos", "conduct_ids", F.condutas, function (k) {
