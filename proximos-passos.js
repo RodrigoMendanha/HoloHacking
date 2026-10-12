@@ -189,13 +189,16 @@
       " · A nutricionista decide como conduzir: seguir, abrir outra ferramenta ou ignorar não altera o Resultado HOLOSCAN.</p>";
     return h;
   }
-  function ligarBotoes(alvo, pid) {
+  function ligarBotoes(alvo, pid, enc) {
     alvo.querySelectorAll("[data-pp-abrir]").forEach(function (b) {
       b.addEventListener("click", function () {
         var id = b.dataset.ppAbrir;
         if (FERRAMENTAS.indexOf(id) < 0) return;
         /* paciente certo: o da aplicacao que gerou a recomendacao */
         if (pid && raiz.definirPacienteAtivo && raiz.pacienteAtivoId && raiz.pacienteAtivoId() !== pid) raiz.definirPacienteAtivo(pid);
+        /* 12/10 (bug 6): sem atendimento ativo, a ferramenta abre no atendimento do HOLOSCAN que gerou a recomendacao */
+        var AT = raiz.AtendimentoAtual;
+        if (enc && AT && AT.idPara && !AT.idPara(pid) && AT.selecionarPorId) AT.selecionarPorId(enc);
         if (raiz.abrirFerramentaPorId) raiz.abrirFerramentaPorId(id);
       });
     });
@@ -237,7 +240,7 @@
     function pintar(saida, meta) {
       if (g !== geracao) return saida;
       alvo.innerHTML = htmlBloco(saida, meta, feitasNoAtendimento());
-      ligarBotoes(alvo, pid);
+      ligarBotoes(alvo, pid, r.encounter_id || r._supa_encounter_id || null);
       return saida;
     }
     function falhou(e) {

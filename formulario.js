@@ -878,21 +878,36 @@
 
   /* Abre uma ferramenta de qualquer lugar do app — é o que permite o mapa
      mandar direto para a conduta, sem a pessoa procurar na galeria. */
+  /* 12/10 (bug 6): abre a ferramenta a partir de qualquer tela (ex.: "Iniciar ferramenta" dos Proximos Passos HOLOS).
+     Antes: OQ3/PQQ/Mapa clicavam no atalho dentro do modulo ESCONDIDO (nada aparecia), e com alteracao nao salva na
+     tela atual a protecao de navegacao segurava a troca de modulo enquanto o clique no cartao se perdia. Agora: vai ao
+     modulo da ferramenta (passando pela protecao, se houver o que salvar) e so depois abre o cartao/atalho. */
   window.abrirFerramentaPorId = function (id) {
     var ativas = (window.FERRAMENTAS_ATIVAS || []).concat(["oq3", "pqq", "mapa"]);
     if (ativas.indexOf(id) < 0) return false;
-
-    var f = catalogo(id);
-    var card = document.querySelector('[data-ferramenta="' + id + '"]');
-    if (f && card) {
-      var nav = document.querySelector('.nav-item[data-secao="' + f.modulo + '"]');
-      if (nav) nav.click();
-      card.click();
-      return true;
+    var seletor = '[data-ferramenta="' + id + '"], [data-vista="vista-' + id + '"]';
+    var alvo = document.querySelector(seletor);
+    if (!alvo) return false;
+    var secao = alvo.closest(".secao");
+    var modulo = secao && secao.id ? secao.id.replace(/^secao-/, "") : null;
+    function abrir() {
+      var el = document.querySelector(seletor);
+      if (!el) return;
+      el.click();
+      var aberta = document.querySelector(".secao.ativa .vista-ferramenta:not(.hidden), .secao.ativa .form-ferramenta");
+      if (aberta && aberta.scrollIntoView) aberta.scrollIntoView({ block: "start" });
     }
-    var ancora = document.querySelector('[data-vista="vista-' + id + '"]');
-    if (ancora) { ancora.click(); return true; }
-    return false;
+    if (!secao || secao.classList.contains("ativa")) { abrir(); return true; }
+    var nav = modulo ? document.querySelector('.nav-item[data-secao="' + modulo + '"]') : null;
+    if (!nav) { abrir(); return true; }
+    nav.click();
+    /* troca imediata, ou depois do "Salvar / Descartar" da protecao; "Cancelar" deixa como esta */
+    var t0 = Date.now();
+    (function esperar() {
+      if (secao.classList.contains("ativa")) { abrir(); return; }
+      if (Date.now() - t0 < 60000) setTimeout(esperar, 80);
+    })();
+    return true;
   };
 
   window.remarcarCardsDeFerramenta = marcarTodos;

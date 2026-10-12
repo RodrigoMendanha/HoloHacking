@@ -146,6 +146,31 @@ const formRH = await A.evaluate(async (pid) => {
 ok(formRH.enc === EA && formRH.holoscan === null, 'Resultado HOLOS → Gerar: o atendimento já vem preenchido (mesmo depois de recarregar a página); o HOLOSCAN continua escolha explícita');
 ok(!/sem atendimento/.test(formRH.txt) && /HOLOS-V1 v2/.test(formRH.txt) && !/HOLOS-V12|HOLOS-V1@2/.test(formRH.txt), 'a aplicação mostra o atendimento e "HOLOS-V1 v2": ' + formRH.txt.split('\n').slice(0, 2).join(' | '));
 
+titulo('B6 — "INICIAR FERRAMENTA" ABRE A FERRAMENTA');
+const b6 = await A.evaluate(async (pid) => {
+  sessionStorage.clear();
+  window.definirPacienteAtivo(pid); if (window.AtendimentoAtual.limpar) window.AtendimentoAtual.limpar();
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
+  for (let i = 0; i < 80; i++) { if (document.querySelector('#holo-proximos-passos [data-pp-abrir]')) break; await new Promise(r => setTimeout(r, 100)); }
+  const botoes = [...document.querySelectorAll('#holo-proximos-passos [data-pp-abrir]')];
+  const b = botoes[botoes.length - 1]; const id = b.dataset.ppAbrir;
+  b.click(); await new Promise(r => setTimeout(r, 900));
+  const sec = document.querySelector('.secao.ativa');
+  const form = [...document.querySelectorAll('.secao.ativa .form-ferramenta, .secao.ativa [id^="form-"]')].some(e => e.offsetParent !== null);
+  const at = window.AtendimentoAtual.idPara(pid);
+  const r = { id, secao: sec && sec.id, form, at };
+  document.querySelector('.nav-item[data-secao="holoscan"]').click(); await new Promise(r => setTimeout(r, 400));
+  window.abrirFerramentaPorId('pqq'); await new Promise(r => setTimeout(r, 900));
+  r.pqq = !!(document.getElementById('vista-pqq') && document.getElementById('vista-pqq').offsetParent !== null);
+  document.querySelector('.nav-item[data-secao="holoscan"]').click(); await new Promise(r => setTimeout(r, 400));
+  window.abrirFerramentaPorId('oq3'); await new Promise(r => setTimeout(r, 900));
+  r.oq3 = !!(document.getElementById('vista-oq3') && document.getElementById('vista-oq3').offsetParent !== null);
+  return r;
+}, PA);
+ok(b6.secao !== 'secao-holoscan' && b6.form, 'o botão "Iniciar ferramenta" leva ao módulo da ferramenta e abre o formulário (' + b6.id + ' → ' + b6.secao + ')');
+ok(b6.at === EA, 'sem atendimento ativo, a ferramenta abre no atendimento do HOLOSCAN que gerou a recomendação');
+ok(b6.pqq && b6.oq3, 'PQQ e OQ³ (ferramentas com tela própria) também abrem a partir do HOLOSCAN');
+
 /* B5 de verdade: HOLOSCAN salvo NESTA sessao (sem recarregar) ja aparece ligado ao atendimento */
 const PB = ins('patients', { nome: 'Paciente Sessao Ficticia' }).id;
 await A.reload({ waitUntil: 'networkidle2' });
