@@ -173,7 +173,7 @@ const evo = await A.evaluate(async () => {
 });
 ok(evo.achou && evo.secao === 'secao-holoscan' && evo.visivel,
    '"Evolução → Abrir" leva ao comparativo no HOLOSCAN (' + evo.secao + ')');
-ok(/Tríade/.test(evo.texto) && /Físico/.test(evo.texto) && /1ª/.test(evo.texto) && /2ª/.test(evo.texto) &&
+ok(/Tríade/.test(evo.texto) && /Corpo/.test(evo.texto) && /1ª/.test(evo.texto) && /2ª/.test(evo.texto) &&
    /Índice 40/.test(evo.texto) && /Índice 60/.test(evo.texto),
    'com antes x agora, Tríade e a lista das aplicacoes com data e Índice');
 

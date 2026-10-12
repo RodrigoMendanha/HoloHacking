@@ -334,7 +334,7 @@ const ctx = await A.evaluate(async (pid) => {
   }
   return out;
 }, PA);
-const vaz = /### Índice HOLOS|### Tríada|- Físico:|faixa \d|### Leitura Integrada|CMB-|\bREC-|\bSEL-|nota \d/;
+const vaz = /### Índice HOLOS|### Tríada|- Físico:|\nTríade:|- Corpo:|faixa \d|### Leitura Integrada|CMB-|\bREC-|\bSEL-|nota \d/;
 ok(/Linha do tempo consolidada/.test(ctx.evolucao) && /Anamnese revisada/.test(ctx.evolucao) && /registrado em/.test(ctx.evolucao) && !/RASCUNHO|rascunho de/i.test(ctx.evolucao) && !vaz.test(ctx.evolucao) && !/Índice 50|Índice 60/.test(ctx.evolucao),
    'HOLOS AI (evolucao): timeline consolidada com data de registro, sem rascunho e sem Indice');
 ok(/Relatórios emitidos/.test(ctx.relatorios) && /Emissão nº 2/.test(ctx.relatorios) && /Emissão nº 1/.test(ctx.relatorios) && !/RASCUNHO PENDENTE/.test(ctx.relatorios) && !/SEGREDO_INTIMO/.test(ctx.relatorios) && !vaz.test(ctx.relatorios),

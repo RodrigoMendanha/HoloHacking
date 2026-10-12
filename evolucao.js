@@ -101,7 +101,7 @@
 
   /* Rodada 08: antes x agora tambem na Triade, e a lista de todas as
      aplicacoes (data e Indice) — a evolucao nao e so a primeira e a ultima. */
-  var EIXOS = [["fisico", "Físico"], ["mental", "Mental"], ["espiritual", "Espiritual"]];
+  var EIXOS = [["fisico", "Corpo"], ["mental", "Mente"], ["espiritual", "Espírito"]];
   function blocoTriada(antes, depois) {
     var ta = antes.triada || {}, td = depois.triada || {};
     var F = window.HoloAusencia.fmt;

@@ -45,7 +45,7 @@ await A.waitForFunction(() => window.HoloAuth && window.HoloAuth.sessaoAtiva() &
 await esperar(300);
 await A.evaluate(() => { window.confirm = () => true; });
 const texto = (sel) => A.evaluate((sel) => (document.querySelector(sel) || {}).innerText || '', sel);
-const VAZ = /### Índice HOLOS|### Tríada|- Físico:|faixa \d|### Leitura Integrada|CMB-|\bREC-|\bSEL-|nota \d/;
+const VAZ = /### Índice HOLOS|### Tríada|- Físico:|\nTríade:|- Corpo:|faixa \d|### Leitura Integrada|CMB-|\bREC-|\bSEL-|nota \d/;
 
 titulo('SEM PACOTE: TODA SAIDA OFICIAL NEGADA');
 const b0 = await A.evaluate(() => { const M = window.Metodologia; return { status: M.status(), pacote: M.pacote(), pode: M.podeCalcularOficial(), motivos: M.motivosBloqueio(), negadas: M.SAIDAS.filter(t => !M.podeExibirOficial(t)).length, total: M.SAIDAS.length, cob: M.coberturaMinima() }; });

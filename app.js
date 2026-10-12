@@ -2050,15 +2050,15 @@
      conclui. Devolve true/false (a guarda de navegacao usa). */
   async function salvarOQ3(){
     const p = pacienteAtivo();
-    if(!p){ toast("Selecione um paciente para salvar o OQ3."); return false; }
+    if(!p){ toast("Selecione um paciente para salvar o OQ³."); return false; }
     if(window.bloqueioArquivado(p.id)) return false;
-    if(!window.Aplicacoes){ toast("Erro ao salvar OQ3."); return false; }
+    if(!window.Aplicacoes){ toast("Erro ao salvar OQ³."); return false; }
     const respostas = respostasOQ3();
     const algo = Object.keys(respostas).filter(k => k !== "data_consulta").some(k => {
       const v = respostas[k];
       return v !== null && v !== undefined && String(v).trim() !== "";
     });
-    if(!algo){ toast("Preencha ao menos um campo do OQ3 antes de salvar."); return false; }
+    if(!algo){ toast("Preencha ao menos um campo do OQ³ antes de salvar."); return false; }
     // data da consulta no futuro nao e consulta que aconteceu (auditoria Ferramentas)
     if(respostas.data_consulta && respostas.data_consulta > hojeISO()){ toast("A data da consulta não pode estar no futuro."); $("#oq3-data").focus(); return false; }
     try {
@@ -2069,14 +2069,14 @@
       console.error("[oq3] salvar:", e && e.message ? e.message : e);
       toast(/arquivado/i.test(String(e && e.message))
         ? "Paciente arquivado — reative antes de registrar novas informações."
-        : "Não foi possível salvar o OQ3 no servidor — nada foi registrado. O que você digitou continua na tela.");
+        : "Não foi possível salvar o OQ³ no servidor — nada foi registrado. O que você digitou continua na tela.");
       return false;
     }
     sincronizarOQ3();
     renderPacientes();
     notaDeQuandoOQ3();
     desenharHistoricoOQ3();
-    toast("OQ3 salvo na ficha de " + p.nome + ".");
+    toast("OQ³ salvo na ficha de " + p.nome + ".");
     if(window.limpaSuja) window.limpaSuja("oq3");
     return true;
   }
@@ -2105,7 +2105,7 @@
     pintarOQ3(vazioOQ3());
     notaDeQuandoOQ3();
     desenharHistoricoOQ3();
-    toast("Nova aplicação do OQ3 — ela entra no histórico quando for salva. A anterior continua lá.");
+    toast("Nova aplicação do OQ³ — ela entra no histórico quando for salva. A anterior continua lá.");
     } finally { destravarBotao(btn); }
   });
 
@@ -2359,10 +2359,10 @@
     $("#mapa-paciente").textContent = p
       ? p.nome + (oq3.data_consulta ? " - " + dataBR(oq3.data_consulta) : "")
       : "Selecione um paciente acima";
-    preencher("#mapa-quer", oq3.quer, "Aplique o OQ3 no módulo Corpo.");
-    preencher("#mapa-precisa", oq3.precisa, "Aplique o OQ3 no módulo Corpo.");
-    preencher("#mapa-consegue", oq3.consegue, "Aplique o OQ3 no módulo Corpo.");
-    preencher("#mapa-alavancas", oq3.alavancas, "Aplique o OQ3 no módulo Corpo.");
+    preencher("#mapa-quer", oq3.quer, "Aplique o OQ³ no módulo Corpo.");
+    preencher("#mapa-precisa", oq3.precisa, "Aplique o OQ³ no módulo Corpo.");
+    preencher("#mapa-consegue", oq3.consegue, "Aplique o OQ³ no módulo Corpo.");
+    preencher("#mapa-alavancas", oq3.alavancas, "Aplique o OQ³ no módulo Corpo.");
     preencher("#mapa-objetivo", pqq.objetivo, "Aplique o PQQ no módulo Mente.");
     /* O propósito é o campo "O verdadeiro", e só ele.
 
@@ -3534,9 +3534,9 @@
      --------------------------------------------------------------------- */
 
   const EIXOS_TRIADA = [
-    ["fisico", "Físico", "o que o corpo mostra"],
-    ["mental", "Mental", "o que a emoção mostra"],
-    ["espiritual", "Espiritual", "o que o propósito mostra"]
+    ["fisico", "Corpo", "o que o corpo mostra"],
+    ["mental", "Mente", "o que a emoção mostra"],
+    ["espiritual", "Espírito", "o que o propósito mostra"]
   ];
 
   function pontoTriada(cx, cy, raio, valor, i){

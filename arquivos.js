@@ -561,10 +561,10 @@
     }
 
     if (p.triada) {
-      html += '<div class="rel-bloco"><h4>Tríada</h4><p class="rel-triada">' +
-        "Físico <b>" + A.fmt(p.triada.fisico) + "</b> &middot; " +
-        "Mental <b>" + A.fmt(p.triada.mental) + "</b> &middot; " +
-        "Espiritual <b>" + A.fmt(p.triada.espiritual) + "</b></p></div>";
+      html += '<div class="rel-bloco"><h4>Tríade</h4><p class="rel-triada">' +
+        "Corpo <b>" + A.fmt(p.triada.fisico) + "</b> &middot; " +
+        "Mente <b>" + A.fmt(p.triada.mental) + "</b> &middot; " +
+        "Espírito <b>" + A.fmt(p.triada.espiritual) + "</b></p></div>";
     }
 
     // Revisao clinica do HOLOSCAN: nenhuma CMB aparece no relatorio nesta

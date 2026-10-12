@@ -258,6 +258,24 @@ const appB = srv.linhas('holoscan_applications').find(a => a.patient_id === PB);
 ok(appB && appB.encounter_id === sess.at && sess.enc === sess.at && !/sem atendimento/.test(sess.txt),
   'HOLOSCAN salvo agora, sem recarregar: gravado com o atendimento e mostrado com ele no Resultado HOLOS (' + sess.txt.split('\n')[1] + ')');
 
+/* B11: nomes padronizados — Tríade (Corpo / Mente / Espírito), OQ³, HOLOS-V1 v2 */
+console.log('\nB11 — nomes padronizados');
+const nomes = await A.evaluate(async () => {
+  document.querySelector('.nav-item[data-secao="holoscan"]').click(); await new Promise(r => setTimeout(r, 300));
+  const tri = [...document.querySelectorAll('svg text')].map(t => t.textContent.trim()).filter(t => /^(CORPO|MENTE|ESPÍRITO|FÍSICO|MENTAL|ESPIRITUAL)$/.test(t));
+  const nav = (document.querySelector('.nav-item[data-secao="corpo"] .nav-tag') || {}).textContent || '';
+  const visivel = document.body.innerText + ' ' + [...document.querySelectorAll('.secao')].map(s => s.textContent).join(' ');
+  return { tri, nav, oq3: /\bOQ3\b/.test(visivel), triada: /Tríada/.test(visivel) };
+});
+ok(nomes.tri.join(',') === 'CORPO,MENTE,ESPÍRITO', 'Tríade do HOLOSCAN com Corpo / Mente / Espírito: ' + nomes.tri.join(' · '));
+ok(nomes.nav === 'OQ³' && !nomes.oq3, 'menu e telas escrevem OQ³ (nenhum "OQ3" visível): ' + nomes.nav);
+ok(!nomes.triada, 'nenhuma tela escreve "Tríada"');
+const fsB11 = await import('fs');
+const fonte = f => fsB11.readFileSync(new URL('../' + f, import.meta.url), 'utf8');
+ok(!/"Físico"|Físico <b>|\(Físico, Mental/.test(fonte('app.js') + fonte('arquivos.js') + fonte('evolucao.js') + fonte('ajuda.js') + fonte('holos-ai.js')),
+  'relatório, Evolução, Ajuda e HOLOS AI sem os rótulos Físico/Mental/Espiritual');
+ok(/aprovado \(HOLOS-V1 v2\)/.test(fonte("ajuda.js")) && /code \+ " v" \+ h\.pacote\.version/.test(fonte('resultado-holos.js')), 'versão do pacote escrita como "HOLOS-V1 v2"');
+
 ok(errosJS.length === 0, 'nenhum erro de JavaScript na pagina' + (errosJS.length ? ': ' + errosJS.join(' | ') : ''));
 await nav.close();
 console.log(falhou ? '\nFALHOU' : '\ncorrecoes da jornada: tudo ok');

@@ -454,8 +454,8 @@ ok(leitura.noBanco === 5,
 
 /* --- a Tríade descreve, não prescreve ---------------------------------- */
 ok(leitura.triadaVisivel, 'a Tríade HOLOS continua aparecendo');
-ok(/Físico/.test(leitura.triadaTxt) && /Mental/.test(leitura.triadaTxt) &&
-   /Espiritual/.test(leitura.triadaTxt),
+ok(/Corpo/.test(leitura.triadaTxt) && /Mente/.test(leitura.triadaTxt) &&
+   /Espírito/.test(leitura.triadaTxt),
    'com os três eixos');
 ok(/Dimensão mais baixa/.test(leitura.triadaTxt),
    'e continua identificando a dimensão mais baixa — isso é descrição');

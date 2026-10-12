@@ -200,15 +200,15 @@ const abrirOQ3 = `document.querySelector('.nav-item[data-secao="mente"]').click(
   await new Promise(r => setTimeout(r, 400));`;
 
 let t = await toasts(abrirOQ3 + `document.getElementById('btn-salvar-oq3').click();`);
-ok(oq3().length === 0 && /Preencha ao menos um campo do OQ3/.test(t), 'OQ3 vazio nao salva: ' + t);
+ok(oq3().length === 0 && /Preencha ao menos um campo do OQ³/.test(t), 'OQ3 vazio nao salva: ' + t);
 srv.falhar.push({ tabela: 'tool_applications', acao: 'insert', vezes: 1 });
 t = await toasts(`const q = document.getElementById('oq3-quer'); q.value = 'quer x';
   q.dispatchEvent(new Event('input', { bubbles: true }));
   document.getElementById('btn-salvar-oq3').click();`);
-ok(oq3().length === 0 && !/OQ3 salvo/.test(t) && /Não foi possível salvar o OQ3/.test(t),
+ok(oq3().length === 0 && !/OQ(3|³) salvo/.test(t) && /Não foi possível salvar o OQ³/.test(t),
    'OQ3 com falha: nada de "OQ3 salvo": ' + t);
 t = await toasts(`document.getElementById('btn-salvar-oq3').click();`);
-ok(oq3().length === 1 && /OQ3 salvo/.test(t), 'de novo: gravou e so entao "OQ3 salvo"');
+ok(oq3().length === 1 && /OQ³ salvo/.test(t), 'de novo: gravou e so entao "OQ3 salvo"');
 
 ok(errosJS.length === 0, 'nenhum erro de JavaScript' + (errosJS.length ? ': ' + errosJS.join(' | ') : ''));
 await nav.close();

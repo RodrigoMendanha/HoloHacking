@@ -554,7 +554,7 @@
     var cab = '<p class="dash-sub li-status" id="li-status"><b>Pacote de regras ' + escapar(pk.code + " v" + pk.version) + " · " + escapar(pk.status) + ".</b> " +
       (!regra ? "Nenhum domínio, vínculo exame → domínio, suficiência, janela temporal ou regra de resultados mistos foi homologado: a única leitura possível é <b>sem dados suficientes</b>." :
         pk.status !== "aprovado" ? "Conteúdo metodológico decidido (7 domínios, 47 vínculos), <b>ainda não homologado</b>: o servidor só grava leituras <b>sem dados suficientes</b> até a homologação (aprovador único: Daniel)." : "") +
-      " A leitura compara, por domínio, a direção do HOLOSCAN com a dos exames; exames não alteram nota, faixa, Índice nem Tríada.</p>";
+      " A leitura compara, por domínio, a direção do HOLOSCAN com a dos exames; exames não alteram nota, faixa, Índice nem Tríade.</p>";
     if (!temSupa()) return aviso + cab + '<p class="dash-vazio">Sem conta ativa não há aplicação HOLOSCAN nem coleta no servidor para selecionar.</p>';
     /* aplicacao incompleta / nao avaliavel aparece desabilitada (nao entra na leitura) */
     var incompleta = function (a) { return a.avaliavel === false || (a.cobertura && typeof a.cobertura.respondidos === "number" && a.cobertura.respondidos < a.cobertura.total); };

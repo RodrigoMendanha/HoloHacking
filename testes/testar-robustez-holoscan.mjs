@@ -202,9 +202,9 @@ const naTela = await p.evaluate(async (respostas) => {
 }, (await respostasDe(['SNT'], 2)));
 
 ok(naTela.eixos.length === 3, 'os três eixos continuam listados');
-const fisico = naTela.eixos.find(e => e.nome === 'Físico');
-const mental = naTela.eixos.find(e => e.nome === 'Mental');
-const espirit = naTela.eixos.find(e => e.nome === 'Espiritual');
+const fisico = naTela.eixos.find(e => e.nome === 'Corpo');
+const mental = naTela.eixos.find(e => e.nome === 'Mente');
+const espirit = naTela.eixos.find(e => e.nome === 'Espírito');
 ok(fisico && !fisico.semDado && /^\d/.test(fisico.nota),
    'o eixo com dado mostra a nota: ' + (fisico || {}).nota);
 ok(mental.semDado && espirit.semDado,

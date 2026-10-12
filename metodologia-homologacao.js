@@ -57,7 +57,7 @@
       '<p class="dash-sub">' + (v.publicavel ? "Nenhum erro estrutural. A aprovação continua exigindo registro de homologação com responsável humano (RPC)." : "O validador aponta; não corrige. Cada linha abaixo é uma decisão humana pendente.") + "</p>" +
       '<ul class="mh-lista" id="mh-pendencias">' + v.erros.map(function (e) { return "<li><code>" + escapar(e.codigo) + "</code> <b>" + escapar(e.onde) + "</b> — " + escapar(e.mensagem) + "</li>"; }).join("") + "</ul></div>" +
       '<div class="dash-bloco"><h3 class="dash-titulo">Contagem</h3><div class="mh-grade">' +
-      [["Perguntas", r.perguntas], ["Associações", r.associacoes], ["Primárias pontuáveis", r.primarias], ["Secundárias contextuais", r.contextuais], ["Tríada", r.triade], ["Em conflito", r.conflitos], ["Faixas", r.faixas], ["Regras", r.regras], ["Registros de homologação", r.registros]].map(function (x) { return '<div class="fic-det"><span>' + x[0] + "</span><b>" + x[1] + "</b></div>"; }).join("") + "</div></div>";
+      [["Perguntas", r.perguntas], ["Associações", r.associacoes], ["Primárias pontuáveis", r.primarias], ["Secundárias contextuais", r.contextuais], ["Tríade", r.triade], ["Em conflito", r.conflitos], ["Faixas", r.faixas], ["Regras", r.regras], ["Registros de homologação", r.registros]].map(function (x) { return '<div class="fic-det"><span>' + x[0] + "</span><b>" + x[1] + "</b></div>"; }).join("") + "</div></div>";
   }
   function htmlItens(p) {
     var f = filtroItens.toLowerCase();
@@ -88,7 +88,7 @@
     var inv = inventario();
     if (!p._inventario && p.status !== "rascunho") return htmlRegrasPacote(p);
     return '<div class="dash-bloco"><h3 class="dash-titulo">Índice HOLOS</h3><pre class="mh-pre" id="mh-indice">' + escapar(JSON.stringify(inv ? inv.indice : null, null, 2)) + "</pre></div>" +
-      '<div class="dash-bloco"><h3 class="dash-titulo">Tríada</h3><pre class="mh-pre" id="mh-triada">' + escapar(JSON.stringify(inv ? inv.triada : null, null, 2)) + "</pre></div>" +
+      '<div class="dash-bloco"><h3 class="dash-titulo">Tríade</h3><pre class="mh-pre" id="mh-triada">' + escapar(JSON.stringify(inv ? inv.triada : null, null, 2)) + "</pre></div>" +
       '<div class="dash-bloco"><h3 class="dash-titulo">Ausência e cobertura</h3><pre class="mh-pre">' + escapar(JSON.stringify(inv ? { ausencia: inv.ausencia, cobertura: inv.cobertura } : null, null, 2)) + "</pre></div>" +
       '<div class="dash-bloco"><h3 class="dash-titulo">Regras do pacote <em>' + (p.regras || []).length + "</em></h3>" +
       '<table class="evo-tabela mh-tabela" id="mh-regras"><thead><tr><th>Tipo</th><th>Alvo</th><th>Payload</th><th>Status</th></tr></thead><tbody>' +
@@ -102,7 +102,7 @@
     var refs = (p.regras || []).filter(function (r) { return r.rule_type === "example"; });
     var M = window.MotorMetodologico;
     return pre("Índice HOLOS", "mh-indice", regra("index", "global") ? regra("index", "global").payload : null) +
-      pre("Tríada", "mh-triada", EIXOS().map(function (e) { var t = regra("triad", e); return t ? Object.assign({ eixo: e }, t.payload) : { eixo: e, ausente: true }; })) +
+      pre("Tríade", "mh-triada", EIXOS().map(function (e) { var t = regra("triad", e); return t ? Object.assign({ eixo: e }, t.payload) : { eixo: e, ausente: true }; })) +
       pre("Ausência e cobertura", "mh-ausencia", { ausencia: regra("absence") ? regra("absence").payload : null, cobertura: regra("coverage") ? regra("coverage").payload : null }) +
       pre("Comparabilidade", "mh-comparabilidade", regra("comparability", "global") ? regra("comparability", "global").payload : null) +
       '<div class="dash-bloco"><h3 class="dash-titulo">Sugestões automáticas</h3><p class="dash-sub" id="mh-sugestao">' + escapar(sug && sug.payload && sug.payload.automatica === false ? sug.payload.mensagem : "Sem política de sugestão no pacote: nenhuma sugestão automática.") + "</p></div>" +
@@ -141,7 +141,7 @@
     var D = decisoes(), l = p.lineage;
     if (!l) return "";
     return '<p class="dash-sub" id="mh-linhagem"><b>' + escapar(D ? D.status_metodologico : "DECISOES METODOLOGICAS V1 FECHADAS") + "</b> · <b>" + escapar(D ? D.status_tecnico : "PUBLICACAO TECNICA PENDENTE DE VALIDACAO NO BANCO REAL") + "</b><br>" +
-      "Nova versão de " + escapar(l.parent_code + "@" + l.parent_version) + " (status " + escapar(l.parent_status || "?") + ", hash " + escapar(String(l.parent_content_hash || "—").slice(0, 16)) + "…) · decisões " + escapar(l.decisoes || "") + "</p>";
+      "Nova versão de " + escapar(l.parent_code + " v" + l.parent_version) + " (status " + escapar(l.parent_status || "?") + ", hash " + escapar(String(l.parent_content_hash || "—").slice(0, 16)) + "…) · decisões " + escapar(l.decisoes || "") + "</p>";
   }
   function htmlConflitos(p) {
     var inv = inventario(), c = inv ? inv.conflitos : [];
@@ -298,7 +298,7 @@
       (p && p._inventario ? '<button type="button" class="btn-fantasma" data-mh-acao="importar-rascunho">Gravar inventário como RASCUNHO</button>' : "") +
       (p && p._candidato ? '<button type="button" class="btn-fantasma" data-mh-acao="gravar-candidato">Gravar candidato V1 (em_revisao, sem aprovar)</button>' : "") +
       '<span class="rel-estado" id="mh-estado"></span></span></div>' +
-      '<div class="abas mh-abas" role="tablist">' + [["resumo", "Resumo e pendências"], ["itens", "84 itens"], ["associacoes", "Associações e pesos"], ["faixas", "Faixas"], ["regras", "Índice, Tríada, ausência"], ["conflitos", "Conflitos e registros"]].map(function (a) {
+      '<div class="abas mh-abas" role="tablist">' + [["resumo", "Resumo e pendências"], ["itens", "84 itens"], ["associacoes", "Associações e pesos"], ["faixas", "Faixas"], ["regras", "Índice, Tríade, ausência"], ["conflitos", "Conflitos e registros"]].map(function (a) {
         return '<button type="button" class="aba' + (aba === a[0] ? " ativa" : "") + '" data-mh-aba="' + a[0] + '" role="tab" aria-selected="' + (aba === a[0]) + '">' + a[1] + "</button>";
       }).join("") + "</div>";
     if (!p) html += '<div class="dash-vazio">Sem inventário carregado.</div>';

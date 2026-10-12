@@ -288,7 +288,7 @@ const contexto = await gerarContexto(E2);
 ok(!/## Anamnese/.test(contexto), 'HOLOS AI (atendimento 2): a anamnese deste atendimento e RASCUNHO (copia) e NAO entra');
 ok(/## Conduta e acordos/.test(contexto) && /Manter o jantar cedo/.test(contexto) && /Jantar até 20h \[Em acompanhamento\]/.test(contexto) && !/rascunho de correção/.test(contexto),
    'HOLOS AI: conduta vigente e acordos salvos; o rascunho de correcao fica fora');
-ok(!/### Índice HOLOS|### Tríada|- Físico:|faixa \d|### Leitura Integrada|CMB-|\bREC-|\bSEL-|nota \d/.test(contexto), 'nenhuma metodologia nao homologada no contexto');
+ok(!/### Índice HOLOS|### Tríada|- Físico:|\nTríade:|- Corpo:|faixa \d|### Leitura Integrada|CMB-|\bREC-|\bSEL-|nota \d/.test(contexto), 'nenhuma metodologia nao homologada no contexto');
 
 const exportado = await A.evaluate(async () => {
   let dados = null; const origURL = URL.createObjectURL;

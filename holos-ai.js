@@ -121,7 +121,7 @@
         t += "- " + (x.nome || x.sistema) + ": " + (sem ? "sem nota (cobertura abaixo do mínimo)" : (A ? A.notaTexto(x) : String(x.nota)) + (x.faixa ? " · faixa " + (window.rotuloExibivel ? window.rotuloExibivel(x.faixa) : x.faixa) : "")) + "\n";
       });
       if (A && A.indiceTexto) t += linhaSe("Índice HOLOS", A.indiceTexto(p) + (p.indice_maximo ? " de " + p.indice_maximo : ""));
-      if (p.triada) t += linhaSe("Tríade", ["fisico", "mental", "espiritual"].filter(function (k) { return typeof p.triada[k] === "number"; }).map(function (k) { return { fisico: "Físico", mental: "Mental", espiritual: "Espiritual" }[k] + " " + (A ? A.fmt(p.triada[k]) : p.triada[k]); }).join(" · "));
+      if (p.triada) t += linhaSe("Tríade", ["fisico", "mental", "espiritual"].filter(function (k) { return typeof p.triada[k] === "number"; }).map(function (k) { return { fisico: "Corpo", mental: "Mente", espiritual: "Espírito" }[k] + " " + (A ? A.fmt(p.triada[k]) : p.triada[k]); }).join(" · "));
     } else {
       t += linhaSe("Resultados calculados", "não incluídos — aplicação " + (nat === "homologacao" ? "de homologação" : "histórica, sem o pacote metodológico oficial HOLOS-V1"));
     }
@@ -385,7 +385,7 @@
       "Paciente: " + (p ? p.nome : "desconhecido") + "\n" +
       "Gerado em: " + new Date().toLocaleString("pt-BR") + "\n" +
       "Conteúdo: só registros salvos no servidor e texto da profissional. Notas, faixas, " +
-      "Índice e Tríada entram só de aplicação calculada pelo pacote oficial HOLOS-V1. " +
+      "Índice e Tríade entram só de aplicação calculada pelo pacote oficial HOLOS-V1. " +
       "Já prioridades, combinações, Leitura Integrada e sugestões automáticas NÃO estão incluídos. " +
       "Exames e documentos do prontuário (arquivos e valores) também NÃO estão incluídos.\n" +
       "---\n";
@@ -428,7 +428,7 @@
     t += secaoSe("Conduta e acordos (salvos/revisados)", dadosConduta());
     t += secaoSe("Linha do tempo consolidada (data clínica e data de registro)", dadosTimeline());
     t += secaoSe("Agenda (agendamentos recentes)", dadosConsultas());
-    t += secaoSe("Ferramentas (OQ3, PQQ e outras)", dadosFerramentas());
+    t += secaoSe("Ferramentas (OQ³, PQQ e outras)", dadosFerramentas());
     return t.trim() || "Nenhum dado de evolução disponível.";
   }
 

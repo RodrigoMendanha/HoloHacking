@@ -983,6 +983,18 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     20261016100000; SQL em `supabase/ADMINISTRACAO-PARTE1..4.sql`. Sem o SQL a página cai no modo antigo; sem a função, os
     botões de acesso avisam. Testes: harness AD00–AD12, `testar-admin.mjs` (34), `testar-admin-usuarios.mjs` (23).
     Detalhes: `docs/v1/ADMINISTRACAO.md`. PENDENTE: autorização, SQL, publicar a função e deploy.
+182. **Correções da jornada** (12/10, teste com paciente fictícia; pedido da usuária). Sem mudar o motor do HOLOSCAN, o
+    catálogo, nem Resultado HOLOS salvo ou emissão: (B1) o Resultado HOLOS novo (template 3) congela os Próximos Passos
+    **pendentes** — a mesma escolha do catálogo sem as ferramentas concluídas no atendimento do resultado e no do
+    HOLOSCAN; tudo feito = mensagem neutra; (B2) relatório da paciente sem a interpretação profissional do HOLOSCAN;
+    (B3) texto da faixa em linguagem simples para a paciente; (B4) relatório da nutricionista com atendimentos,
+    ferramentas, Conduta e Resultado HOLOS; (B5) HOLOSCAN salvo já ligado ao atendimento; (B6) "Iniciar ferramenta"
+    abre a ferramenta; (B7) Visão Geral atualiza a anamnese; (B8) HOLOS AI com todas as ferramentas e o Resultado HOLOS;
+    (B9) Conduta lista OQ³, PQQ e Mapa do Propósito; (B10) ajustes visuais; (B11) nomes únicos: Tríade com
+    Corpo / Mente / Espírito, OQ³, "HOLOS-V1 v2" (as chaves internas `fisico/mental/espiritual` não mudam; as siglas
+    OQQ/OQP/OQCC das três perguntas do OQ³ ficam). Migration aditiva 20261017100000; SQL em
+    `supabase/CORRECOES-JORNADA-PARTE1..2.sql`. Testes: harness CJ01–CJ05, `testar-correcoes-jornada.mjs`.
+    PENDENTE: autorização, SQL e deploy.
 
 ## Decisões pendentes (não decididas aqui)
 
