@@ -205,6 +205,36 @@ const b9 = await A.evaluate(async (pid, eid) => {
 }, PA, EA);
 ok(b9.length === 10 && ['OQ³', 'PQQ', 'Mapa do Propósito', 'Mapa da Rotina', 'Linha do Momentum'].every(x => b9.includes(x)), 'lista com as 10 ferramentas do método: ' + b9.join(', '));
 
+titulo('B10 — AJUSTES VISUAIS');
+const b10 = await A.evaluate(async (pid, eid) => {
+  const out = {};
+  window.definirPacienteAtivo(pid);
+  document.querySelector('.nav-item[data-secao="holoscan"]').click(); await new Promise(r => setTimeout(r, 500));
+  const svg = document.getElementById('radar-svg'), vb = svg.viewBox.baseVal;
+  out.rotulosCabem = [...svg.querySelectorAll('text')].every(t => { const b = t.getBBox(); return b.x >= vb.x - 0.5 && b.x + b.width <= vb.x + vb.width + 0.5; });
+  out.inflam = [...svg.querySelectorAll('text')].some(t => t.textContent === 'Inflamatório');
+  window.AtendimentoAtual.selecionarPorId(eid);
+  window.levarParaFicha('aba:conduta', pid); await new Promise(r => setTimeout(r, 600));
+  const n = document.querySelector('[data-cd-acao="nova"]'); if (n) n.click(); await new Promise(r => setTimeout(r, 400));
+  const ta = document.querySelector('[data-cd-campo="objective"]'), inp = document.querySelector('.perf-campo input, .perf-campo select');
+  out.ta = ta ? getComputedStyle(ta).backgroundColor : null; out.inp = inp ? getComputedStyle(inp).backgroundColor : null;
+  document.querySelector('.nav-item[data-secao="dashboard"]').click(); await new Promise(r => setTimeout(r, 600));
+  out.dash = (document.querySelector('.dash-resumo') || {}).innerText || '';
+  return out;
+}, PA, EA);
+ok(b10.inflam && b10.rotulosCabem, 'radar do HOLOSCAN: "Inflamatório" e os outros nomes cabem inteiros no gráfico');
+ok(b10.ta && b10.ta === b10.inp, 'Conduta: caixas de texto com o mesmo fundo dos outros campos do tema (' + b10.ta + ')');
+ok(/Atendimentos hoje/.test(b10.dash), 'Dashboard: "Atendimentos hoje" conta também os atendimentos sem agendamento (' + b10.dash.replace(/\s+/g, ' ').slice(0, 80) + ')');
+await A.evaluate(async (pid) => { window.definirPacienteAtivo(pid); window.irParaSecao('resultado'); await new Promise(r => setTimeout(r, 1200)); }, PA);
+const radarDoc = await A.evaluate(() => { const t = document.querySelector('#rp-doc .rh-radar-rotulo'); if (!t) return null;
+  const lum = (c) => { const m = c.match(/[\d.]+/g).map(Number); const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(m[0]) + 0.7152 * f(m[1]) + 0.0722 * f(m[2]); };
+  const a = lum(getComputedStyle(t).fill), b = lum(getComputedStyle(document.getElementById('rp-doc')).backgroundColor); return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05); });
+ok(radarDoc === null || radarDoc >= 4.5, 'radar no documento da paciente (fundo creme): nomes com contraste ' + (radarDoc ? radarDoc.toFixed(1) + ':1' : '(sem radar nesta tela)'));
+await A.evaluate(() => document.body.classList.add('escuro'));
+const radarDocEscuro = await A.evaluate(() => { const t = document.querySelector('#rp-doc .rh-radar-rotulo'); return t ? getComputedStyle(t).fill : null; });
+ok(radarDocEscuro === null || /29, 58, 46/.test(radarDocEscuro), 'e continua escuro no tema escuro (o documento é sempre creme): ' + radarDocEscuro);
+await A.evaluate(() => document.body.classList.remove('escuro'));
+
 /* B5 de verdade: HOLOSCAN salvo NESTA sessao (sem recarregar) ja aparece ligado ao atendimento */
 const PB = ins('patients', { nome: 'Paciente Sessao Ficticia' }).id;
 await A.reload({ waitUntil: 'networkidle2' });

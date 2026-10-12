@@ -105,6 +105,15 @@
 
     var hj = hojeISO();
     var consultasHoje = futuras.filter(function (l) { return l.data === hj; }).length;
+    /* 12/10 (bug 10e): atendimento feito hoje sem agendamento tambem conta no dia */
+    var AT = window.AtendimentoAtual;
+    var semAgendaHoje = AT && AT.todos ? AT.todos().filter(function (e) {
+      if (e.consultation_id || !e.occurred_at) return false;
+      var d = new Date(e.occurred_at);
+      var loc = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+      return loc === hj;
+    }).length : 0;
+    var hojeTotal = consultasHoje + semAgendaHoje;
     var Ag = window.Agenda;
     var proxima = futuras.filter(function (l) { return !Ag || !Ag.aindaVem || Ag.aindaVem(l); })[0];
     var proxLabel = proxima ? escapar(dataBR(proxima.data)) : "&mdash;";
@@ -115,13 +124,13 @@
         '<span class="eyebrow">Plataforma clínica</span>' +
         "<h2>" + saudacao() + ", <em>" + escapar(nome) + "</em></h2>" +
         (nPac > 0
-          ? "<p>Você tem <b>" + consultasHoje + (consultasHoje === 1 ? " consulta" : " consultas") +
-            "</b> hoje e <b>" + nPend + (nPend === 1 ? " pendência" : " pendências") + "</b> na carteira.</p>"
+          ? "<p>Você tem <b>" + hojeTotal + (hojeTotal === 1 ? " atendimento" : " atendimentos") +
+            "</b> hoje" + (semAgendaHoje ? " (" + consultasHoje + " agendado" + (consultasHoje === 1 ? "" : "s") + ")" : "") + " e <b>" + nPend + (nPend === 1 ? " pendência" : " pendências") + "</b> na carteira.</p>"
           : "<p>Comece cadastrando seu primeiro paciente para usar a plataforma.</p>") +
       "</div>" +
       '<div class="dash-numeros dash-resumo">' +
         '<div class="dash-tile"><b>' + nPac + '</b><span>Pacientes ativos</span></div>' +
-        '<div class="dash-tile"><b>' + consultasHoje + '</b><span>Consultas hoje</span></div>' +
+        '<div class="dash-tile"><b>' + hojeTotal + '</b><span>Atendimentos hoje</span>' + (semAgendaHoje ? '<small class="dash-tile-sub">' + consultasHoje + " agendado" + (consultasHoje === 1 ? "" : "s") + " · " + semAgendaHoje + " sem agendamento</small>" : "") + "</div>" +
         '<div class="dash-tile"><b>' + proxLabel + '</b><span>Próxima consulta</span></div>' +
         '<div class="dash-tile"><b>' + nPend + '</b><span>Pendências</span></div>' +
       "</div>" +

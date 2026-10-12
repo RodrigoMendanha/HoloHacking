@@ -2739,12 +2739,12 @@ body.escuro .btn-tema .icone-lua{display:none}
   display:flex;align-items:center;gap:7px;
   font-size:.78rem;font-weight:500;color:var(--texto);
 }
-.perf-campo input,.perf-campo select{
+.perf-campo input,.perf-campo select,.perf-campo textarea{
   font-family:inherit;font-size:.9rem;color:var(--texto);
   background:var(--input-fundo);border:1px solid var(--input-borda);
   border-radius:10px;padding:11px 14px;width:100%;
 }
-.perf-campo input:focus,.perf-campo select:focus{
+.perf-campo input:focus,.perf-campo select:focus,.perf-campo textarea:focus{
   outline:none;border-color:var(--dourado);
 }
 .perf-ajuda{
@@ -4153,7 +4153,7 @@ button.cal-hoje-item:hover{border-color:var(--dourado)}
 .cd-anterior{border-left:3px solid var(--dourado,#c9a227)}
 .cd-ref-grupo{margin:6px 0}
 .cd-decisao{align-items:center}
-.perf-campo.largo textarea{width:100%;padding:8px 10px;border:1px solid var(--borda,#cfd4cc);border-radius:8px;font:inherit;resize:vertical}
+.perf-campo.largo textarea{width:100%;padding:10px 14px;border:1px solid var(--input-borda);border-radius:10px;font:inherit;resize:vertical;background:var(--input-fundo);color:var(--texto)}
 
 
 /* ======================================================================
@@ -4753,6 +4753,10 @@ textarea.an2-input{resize:vertical;min-height:44px}
 .rp-doc .rh-num,.rp-doc .rh-sis,.rp-doc .rh-ferr,.rp-doc .rh-conj-col{background:#fff;border-color:rgba(29,58,46,.14);color:#1d3a2e}
 .rp-doc .rh-num b{color:#0b3325}
 .rp-doc .rh-intro,.rp-doc .rh-sis-faixa,.rp-doc .rh-doc-sub,.rp-doc .rh-doc-rodape,.rp-doc .rh-vazio,.rp-doc .rh-num span,.rp-doc .rh-num small{color:#55705f}
+.rp-doc .rh-radar-rotulo{fill:#1d3a2e}
+.rp-doc .rh-radar-nota{fill:#0b3325}
+.rp-doc .rh-radar-grade,.rp-doc .rh-radar-eixo{stroke:rgba(29,58,46,.22)}
+.rp-doc .rh-radar-area{fill:#c9a35a;stroke:#8a6f32}
 .rp-doc .rh-tag{color:#8a6f32}
 .rp-cab{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;border-bottom:1px solid rgba(29,58,46,.14);padding-bottom:16px}
 .rp-logo{display:block;width:72px;height:72px}
