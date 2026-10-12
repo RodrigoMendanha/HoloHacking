@@ -1,15 +1,15 @@
 #!/bin/sh
-# HOLOHACKING — deploy do front na VPS (passos 4 a 11). Versao atual: 00d8035 = Resultado Final HOLOS (exige o SQL RESULTADO-FINAL-PARTE1..7, ja aplicado em 12/10) + pagina de Administracao (sem o SQL ADMINISTRACAO-PARTE1..4 cai no modo antigo de liberar cadastros; sem a Edge Function admin-usuarios os botoes de acesso avisam) + cartoes dos Proximos Passos legiveis. Rodar NA VPS:
+# HOLOHACKING — deploy do front na VPS (passos 4 a 11). Versao atual: b62ab2b = correcoes da jornada 12/10 (Bugs 1 a 11; o Bug 1 exige o SQL CORRECOES-JORNADA-PARTE1..2, ja aplicado em 12/10). Rodar NA VPS:
 #   sh deploy-etapa6-5b.sh            -> passos 4-8 (estado, codigo, build, container temporario 8082). NAO troca producao.
 #   sh deploy-etapa6-5b.sh swap       -> passos 9-11 (troca 8080, valida local e publico). So depois de conferir o 1o.
 # Para sozinho em qualquer divergencia. Nunca apaga container. Nao usa credencial.
 set -eu
-ESPERADO=00d80357d5145bb9458ba303585496656cbb68c0
-CURTO=00d8035
+ESPERADO=b62ab2b8764834abe747ea37d87de78a2c66a47c
+CURTO=b62ab2b
 DIR=/opt/holohacking
 IMG=holohacking-web:$CURTO
 PROD=holohacking-web
-ROLLBACK=holohacking-web-antes-00d8035
+ROLLBACK=holohacking-web-antes-b62ab2b
 TEMP=holohacking-web-teste-$CURTO
 pare() { echo; echo "### PARE: $*"; exit 1; }
 cd "$DIR"
@@ -27,7 +27,7 @@ if [ "${1:-}" != "swap" ]; then
   [ -z "$(git status --porcelain)" ] || pare "working tree da VPS nao esta limpa"
   # a versao e o commit exato (nao depende de a main ja apontar para ele)
   git fetch origin
-  git cat-file -e "$ESPERADO^{commit}" 2>/dev/null || git fetch origin claude/v1-etapa6-1-validacao-banco-real
+  git cat-file -e "$ESPERADO^{commit}" 2>/dev/null || git fetch origin claude/admiring-mccarthy-jke2pf
   git cat-file -e "$ESPERADO^{commit}" 2>/dev/null || pare "commit $ESPERADO nao encontrado no GitHub"
   git checkout --detach "$ESPERADO"
   [ "$(git rev-parse HEAD)" = "$ESPERADO" ] || pare "HEAD da VPS $(git rev-parse HEAD) != $ESPERADO"

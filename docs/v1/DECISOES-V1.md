@@ -994,7 +994,7 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     Corpo / Mente / Espírito, OQ³, "HOLOS-V1 v2" (as chaves internas `fisico/mental/espiritual` não mudam; as siglas
     OQQ/OQP/OQCC das três perguntas do OQ³ ficam). Migration aditiva 20261017100000; SQL em
     `supabase/CORRECOES-JORNADA-PARTE1..2.sql`. Testes: harness CJ01–CJ05, `testar-correcoes-jornada.mjs`.
-    PENDENTE: autorização, SQL e deploy.
+    SQL aplicado em 12/10. PENDENTE: deploy do site (commit `b62ab2b`).
 
 ## Decisões pendentes (não decididas aqui)
 
