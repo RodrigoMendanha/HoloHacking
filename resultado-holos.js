@@ -316,6 +316,15 @@
   }
 
   /* ---------- documento (profissional | paciente) --------------------------- */
+  /* texto da faixa para a PACIENTE: o que a nota quer dizer, sem instrucao tecnica nem leitura clinica */
+  function textoPacienteFaixa(s) {
+    if (!s || !s.avaliavel) return "Não houve respostas suficientes para dar nota a esta área nesta avaliação.";
+    if (s.faixa === "baixa") return "Esta área apareceu com mais sinais nas suas respostas e será conversada com a sua nutricionista.";
+    if (s.faixa === "intermediaria") return "Esta área apareceu com alguns sinais nas suas respostas e pode ser conversada com a sua nutricionista.";
+    if (s.faixa === "alta") return "Esta área apareceu com poucos sinais nas suas respostas.";
+    return "Esta área faz parte do seu mapa e é conversada com a sua nutricionista.";
+  }
+
   function documentoHtml(snap, visao, meta) {
     meta = meta || {};
     var paciente = visao === "paciente";
@@ -368,7 +377,9 @@
     // 3. cinco sistemas
     html += '<section class="rh-secao" aria-labelledby="rh-t-sis"><h3 id="rh-t-sis">' + (paciente ? "Os cinco sistemas" : "Cinco sistemas") + '</h3><div class="rh-sistemas">' +
       sis.map(function (s) {
-        var msg = paciente ? s.mensagem_paciente : s.mensagem_nutri;
+        /* 12/10 (bug 3): a mensagem da faixa do pacote e escrita para a profissional ("Revise os itens..."). Na visao da
+           paciente, Resultado novo (template 3) usa linguagem simples; template 1/2 (ja emitidos) ficam como foram. */
+        var msg = paciente ? ((snap.template_version || 1) >= 3 ? textoPacienteFaixa(s) : s.mensagem_paciente) : s.mensagem_nutri;
         return '<article class="rh-sis rh-faixa-' + e(s.faixa || "sem") + '"><header><h4>' + e(s.nome || s.sistema) + "</h4>" +
           '<span class="rh-sis-nota">' + (s.avaliavel ? num(s.nota) : "—") + "</span></header>" +
           '<p class="rh-sis-faixa">' + (s.avaliavel ? "faixa " + e(faixaTxt(s.faixa)) : "sem nota (menos respostas do que o mínimo)") +

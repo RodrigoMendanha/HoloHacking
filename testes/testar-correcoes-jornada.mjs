@@ -103,6 +103,15 @@ const cartoes = await A.evaluate(() => [...document.querySelectorAll('#holo-prox
 ok(cartoes.length >= 2 && cartoes.slice(0, 2).every(c => c.feita && /Já realizada neste atendimento/i.test(c.txt)),
   'tela do HOLOSCAN: as sugeridas já feitas no atendimento aparecem "✓ Já realizada neste atendimento" (o registro não muda)');
 
+titulo('B3 — TEXTO DA FAIXA PARA A PACIENTE');
+t = await abrirResultado(R1.data, 'paciente');
+ok(!/Revise os itens respondidos|interpretação profissional|cobertura/i.test(t) && /apareceu com (mais|alguns|poucos) sinais nas suas respostas/.test(t),
+  'visão da paciente (Resultado novo): texto simples por faixa, sem "Revise os itens… interpretação profissional"');
+t = await abrirResultado(R1.data, 'profissional');
+ok(/Revise os itens respondidos/.test(t), 'visão profissional: continua com a mensagem técnica do pacote');
+t = await abrirResultado(antigo.id, 'paciente');
+ok(/Revise os itens respondidos/.test(t), 'Resultado antigo (template 2, já emitido): texto congelado como foi emitido');
+
 titulo('B2 — INTERPRETACAO DO HOLOSCAN SO NA VISAO PROFISSIONAL');
 srv.tabelas.holoscan_applications.find(a => a.id === HA).interpretacao_texto = 'INTERP_INTERNA_DA_NUTRI';
 srv.tabelas.holos_results.filter(r => r.status !== 'rascunho' && r.template_version === 3).forEach(r => {
