@@ -363,6 +363,132 @@
     return p;
   }
 
+  /* ---------- NOVA VERSAO a partir de uma REVISAO DAS PERGUNTAS (v2 -> v3) --
+     Copia o pacote base (o aprovado, como veio do servidor), aplica SO o que a
+     revisao decide (texto novo, troca por ID novo, remocao, mudanca de sistema)
+     e devolve a versao seguinte em_revisao, com linhagem. Pesos, escalas,
+     faixas, Indice, regras da Triade, ausencia e cobertura minima sao copiados.
+     Os casos de referencia sao remontados para o conjunto novo de itens (mesmo
+     esperado: respostas uniformes por orientacao). Qualquer divergencia entre a
+     revisao e o pacote base e ERRO: nada e ajustado em silencio. */
+  function copiaSemIds(x) {
+    if (Array.isArray(x)) return x.map(copiaSemIds);
+    if (x && typeof x === "object") {
+      var c = {};
+      Object.keys(x).forEach(function (k) { if (FORA_DO_HASH.indexOf(k) < 0 && k.charAt(0) !== "_" && k !== "invalidated_at" && typeof x[k] !== "function") c[k] = copiaSemIds(x[k]); });
+      return c;
+    }
+    return x;
+  }
+  function aplicarRevisao(base, R) {
+    if (!base || !base.perguntas || !R) throw new Error("pacote base e revisao sao obrigatorios");
+    if (base.code !== R.base.code || base.version !== R.base.version) throw new Error("revisao e do " + R.base.code + " v" + R.base.version + ", nao do " + base.code + " v" + base.version);
+    var falhas = [];
+    var ids = base.perguntas.map(function (q) { return q.stable_id; });
+    var tem = function (id) { return ids.indexOf(id) >= 0; };
+    var textos = R.textos || {}, trocar = R.trocar || {}, remover = R.remover || {}, mover = R.mover || {};
+    var tocados = {};
+    [textos, trocar, remover, mover].forEach(function (m) { Object.keys(m).forEach(function (id) {
+      if (!tem(id)) falhas.push(id + " nao existe no pacote base");
+      tocados[id] = (tocados[id] || 0) + 1;
+    }); });
+    Object.keys(tocados).forEach(function (id) { if (tocados[id] > 1 && !(textos[id] && mover[id])) falhas.push(id + " aparece em mais de uma decisao incompativel"); });
+    Object.keys(trocar).forEach(function (id) { var n = trocar[id].novo_id; if (!n || tem(n)) falhas.push(id + ": ID novo " + n + " ausente ou ja usado"); if (!trocar[id].texto) falhas.push(id + ": troca sem texto"); });
+    Object.keys(textos).forEach(function (id) { var q = base.perguntas.filter(function (x) { return x.stable_id === id; })[0]; if (q && q.statement === textos[id]) falhas.push(id + ": texto novo igual ao atual"); });
+    Object.keys(mover).forEach(function (id) {
+      var prim = (base.associacoes || []).filter(function (a) { return a.question_stable_id === id && a.destination_type === "system" && a.role === "primaria"; });
+      if (prim.length !== 1 || prim[0].destination_id !== mover[id].de) falhas.push(id + ": primario atual nao e " + mover[id].de);
+      if ((base.sistemas || []).every(function (s) { return s.code !== mover[id].para; })) falhas.push(id + ": sistema " + mover[id].para + " nao existe");
+    });
+    if (falhas.length) throw new Error("revisao nao bate com o pacote base: " + falhas.join("; "));
+
+    var A = "aprovado", fonte = "Revisão das perguntas (" + R.id + ", " + R.decidido_em + ")";
+    var p = novo(base.code, R.versao_nova || base.version + 1, {
+      status: "em_revisao",
+      origin: "nova versao: revisao das perguntas aplicada sobre " + base.code + " v" + base.version,
+      justification: "REVISAO DAS PERGUNTAS (" + R.id + ", " + R.decidido_em + "): " + R.revisao_publica,
+      notes: "Copia do " + base.code + " v" + base.version + " com " + Object.keys(textos).length + " textos revisados, " + Object.keys(trocar).length + " perguntas trocadas (ID novo), " +
+        Object.keys(remover).length + " removidas e " + Object.keys(mover).length + " com sistema novo. Pesos, escalas, faixas, Indice e Triade sem mudanca. Aprovacao formal so pela RPC aprovar_pacote_metodologico.",
+      lineage: { parent_code: base.code, parent_version: base.version, parent_status: base.status, parent_content_hash: base.content_hash || hashConteudo(base), revisao: R.id, decididas_em: R.decidido_em }
+    });
+    p.escalas = copiaSemIds(base.escalas);
+    p.sistemas = copiaSemIds(base.sistemas);
+    p.faixas = copiaSemIds(base.faixas);
+    var rotulosEscala = function (code) { var e = p.escalas.filter(function (x) { return x.code === code; })[0]; return e && e.labels ? e.labels.slice() : null; };
+
+    var novoId = {};
+    var ordem = base.perguntas.slice().sort(function (a, b) { return (a.position || 0) - (b.position || 0) || (a.stable_id < b.stable_id ? -1 : 1); });
+    p.perguntas = [];
+    ordem.forEach(function (q) {
+      var id = q.stable_id;
+      if (remover[id]) return;
+      var c = copiaSemIds(q);
+      if (trocar[id]) {
+        var t = trocar[id];
+        novoId[id] = t.novo_id;
+        c.stable_id = t.novo_id; c.statement = t.texto; c.version = 1;
+        if (t.scale_code) { c.scale_code = t.scale_code; c.response_labels = rotulosEscala(t.scale_code); }
+        if (t.temporal_context) c.temporal_context = t.temporal_context;
+        if (t.orientation) c.orientation = t.orientation;
+        c.source = fonte; c.notes = "substitui " + id + " (" + t.motivo + ")"; c.status = A;
+      } else if (textos[id]) {
+        c.statement = textos[id]; c.version = (q.version || 1) + 1; c.source = fonte; c.notes = "texto revisado (antes: " + q.statement + ")"; c.status = A;
+      }
+      if (mover[id]) c.notes = (c.notes ? c.notes + "; " : "") + "sistema: " + mover[id].de + " -> " + mover[id].para;
+      c.position = p.perguntas.length + 1;
+      p.perguntas.push(c);
+    });
+
+    p.associacoes = [];
+    (base.associacoes || []).forEach(function (a) {
+      var id = a.question_stable_id;
+      if (remover[id]) return;
+      var c = copiaSemIds(a);
+      if (novoId[id]) { c.question_stable_id = novoId[id]; c.source = fonte; c.legacy = null; }
+      if (mover[id] && a.destination_type === "system" && a.role === "primaria") {
+        c.destination_id = mover[id].para; c.source = fonte; c.conflict_note = "sistema mudado na revisao: " + mover[id].motivo;
+      }
+      p.associacoes.push(c);
+    });
+
+    var porBloco = {}, porEscala = {};
+    p.perguntas.forEach(function (q) { porBloco[q.block] = (porBloco[q.block] || 0) + 1; porEscala[q.scale_code] = (porEscala[q.scale_code] || 0) + 1; });
+    var porEixo = {}; p.associacoes.forEach(function (a) { if (a.destination_type === "triad") porEixo[a.destination_id] = (porEixo[a.destination_id] || 0) + 1; });
+    var be = base.edicao || {};
+    p.edicao = { code: be.code || p.code + "-questionario", version: (be.version || 1) + 1, status: be.status || "aprovada", item_count: p.perguntas.length,
+      notes: "Edicao " + p.code + " v" + p.version + ": " + p.perguntas.length + " perguntas (" + (porBloco.fisico || 0) + "/" + (porBloco.mental_emocional || 0) + "/" + (porBloco.espiritual || 0) + "); " + fonte };
+
+    // regras: copia; contagens remontadas; casos de referencia remontados para os itens novos
+    var orient = {}; base.perguntas.forEach(function (q) { orient[q.stable_id] = q.orientation; });
+    p.regras = copiaSemIds(base.regras || []).map(function (r) {
+      if (r.rule_type === "coverage" && r.payload && typeof r.payload.global === "string") r.payload.global = r.payload.global.replace(/\/\s*\d+\s*$/, "/ " + p.perguntas.length);
+      if (r.rule_type === "triad" && r.payload && "itens" in r.payload) r.payload.itens = porEixo[r.target] || 0;
+      if (r.rule_type === "example" && r.payload && r.payload.entrada && r.payload.entrada.responses) {
+        var antes = r.payload.entrada.responses, dir = null, inv = null;
+        Object.keys(antes).forEach(function (id) { if (orient[id] === "invertida") { if (inv === null) inv = antes[id]; } else if (dir === null) dir = antes[id]; });
+        var resp = {}; p.perguntas.forEach(function (q) { resp[q.stable_id] = q.orientation === "invertida" ? inv : dir; });
+        r.payload.entrada.responses = resp;
+      }
+      return r;
+    });
+    p.registros = [];
+
+    var E = R.esperado;
+    if (E) {
+      var porSistema = {}; p.associacoes.forEach(function (a) { if (a.destination_type === "system" && a.role === "primaria") porSistema[a.destination_id] = (porSistema[a.destination_id] || 0) + 1; });
+      var invertidas = p.perguntas.filter(function (q) { return q.orientation === "invertida"; }).map(function (q) { return q.stable_id; }).sort();
+      var dif = [];
+      if (E.total !== undefined && p.perguntas.length !== E.total) dif.push("total " + p.perguntas.length + " (esperado " + E.total + ")");
+      [["bloco", E.por_bloco, porBloco], ["sistema", E.por_sistema, porSistema], ["escala", E.escalas, porEscala]].forEach(function (t) {
+        if (t[1]) Object.keys(t[1]).forEach(function (k) { if ((t[2][k] || 0) !== t[1][k]) dif.push(t[0] + " " + k + ": " + (t[2][k] || 0) + " (esperado " + t[1][k] + ")"); });
+      });
+      if (E.invertidas && invertidas.join(",") !== E.invertidas.slice().sort().join(",")) dif.push("invertidas " + invertidas.join(",") + " (esperado " + E.invertidas.join(",") + ")");
+      if (dif.length) throw new Error("versao nova nao bate com o esperado da revisao: " + dif.join("; "));
+    }
+    p.content_hash = hashConteudo(p);
+    return p;
+  }
+
   /* ---------- exportacao para revisao humana (so metodologia) --------------- */
   function exportarJSON(p) { return JSON.stringify(semPaciente(p), null, 2); }
   function semPaciente(p) { return p; }   // o pacote nao tem dado de paciente por construcao; a funcao existe para o teste provar isso
@@ -411,7 +537,10 @@
             if (chave === "edicoes") p.edicao = minhas[0] || p.edicao; else p[chave] = minhas;
           });
         });
-        cache = pacotes; return cache;
+        cache = pacotes;
+        // quem mostra perguntas (questionario, ficha) relê a lista do pacote vigente
+        try { if (raiz.document && typeof CustomEvent === "function") raiz.document.dispatchEvent(new CustomEvent("metodologia:pacotes", { detail: { total: cache.length } })); } catch (e) { /* sem evento */ }
+        return cache;
       });
     }).catch(function (e) { console.error("[pacote] carregar:", e); return cache; });
   }
@@ -475,6 +604,10 @@
   function homologar(id, effectiveFrom) {
     return rpc("aprovar_pacote_metodologico", { p_package_id: id, p_registro: effectiveFrom ? { effective_from: effectiveFrom } : {} }).then(function (d) { return carregar().then(function () { return d; }); });
   }
+  /** Retira um pacote aprovado (substituido por versao nova): aplicacoes novas deixam de usa-lo; as antigas continuam nele. */
+  function retirar(id, motivo, responsavel) {
+    return rpc("retirar_pacote_metodologico", { p_package_id: id, p_motivo: motivo, p_responsible: responsavel }).then(function (d) { return carregar().then(function () { return d; }); });
+  }
   function validarNoServidor(id) {
     if (!temSupa()) return Promise.reject(new Error("sem sessao"));
     return Promise.resolve(raiz.supabaseClient.rpc("validar_pacote_metodologico", { p_package_id: id })).then(function (r) { if (r.error) throw r.error; return r.data; });
@@ -484,10 +617,10 @@
     STATUS_PACOTE: STATUS_PACOTE, STATUS_ELEMENTO: STATUS_ELEMENTO, EIXOS: EIXOS, TEST_FIXTURE: TEST_FIXTURE,
     CONTEXTOS_TEMPORAIS: CONTEXTOS_TEMPORAIS, EIXO_DO_BLOCO: EIXO_DO_BLOCO, TERMOS_CAUSAIS: TERMOS_CAUSAIS,
     novo: novo, vigente: vigente, validar: validar, importarInventario: importarInventario,
-    aplicarDecisoesV1: aplicarDecisoesV1, hashConteudo: hashConteudo, sha256: sha256, valorExato: valorExato, termoCausal: termoCausal,
+    aplicarDecisoesV1: aplicarDecisoesV1, aplicarRevisao: aplicarRevisao, hashConteudo: hashConteudo, sha256: sha256, valorExato: valorExato, termoCausal: termoCausal,
     exportarJSON: exportarJSON, exportarCSV: exportarCSV, resumo: resumo,
     carregar: carregar, todos: todos, porId: porId, ativo: ativo, salvarRascunho: salvarRascunho, validarNoServidor: validarNoServidor,
-    REGIME_GOVERNANCA: REGIME, APROVADORES: APROVADORES, estadoAprovacao: estadoAprovacao, hashNoServidor: hashNoServidor, registrarAprovacao: registrarAprovacao, homologar: homologar,
+    REGIME_GOVERNANCA: REGIME, APROVADORES: APROVADORES, estadoAprovacao: estadoAprovacao, hashNoServidor: hashNoServidor, registrarAprovacao: registrarAprovacao, homologar: homologar, retirar: retirar,
     esquecer: function () { cache = []; }
   };
 })();

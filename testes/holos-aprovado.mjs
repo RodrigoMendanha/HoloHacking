@@ -11,6 +11,7 @@
 import { readFileSync } from 'node:fs';
 import '../metodologia-pacote.js';
 import '../metodologia-decisoes-v1.js';
+import '../metodologia-revisao-v3.js';
 
 export function candidatoV1() {
   const P = globalThis.PacoteMetodologico, D = globalThis.MetodologiaDecisoesV1;
@@ -18,15 +19,21 @@ export function candidatoV1() {
   return P.aplicarDecisoesV1(P.importarInventario(inv, 'HOLOS-V1', 1), D);
 }
 
+/** HOLOS-V1 v3 (revisao das perguntas 12/10) montado sobre o candidato v2, como a tela de Homologacao o monta. */
+export function candidatoV3() {
+  const v2 = candidatoV1(); v2.status = 'aprovado';
+  return globalThis.PacoteMetodologico.aplicarRevisao(v2, globalThis.MetodologiaRevisaoV3);
+}
+
 export function semearHolosAprovado(srv, uid, opts) {
   opts = opts || {};
-  const version = opts.version || 2;
+  const c = opts.pacote || candidatoV1();
+  const version = opts.version || c.version || 2;
   const q = (tabela, acao, extra) => srv.tratar({ op: 'query', uid, q: Object.assign({ tabela, acao, filtros: [], ordem: [], range: null, colunas: '*', single: null, opcoes: {}, retornar: true }, extra) });
   const rpc = (nome, args) => srv.tratar({ op: 'rpc', uid, nome, args });
   if (!srv.linhas('methodology_approvers').some(a => a.user_id === uid && a.scope === 'holoscan' && a.approval_stage === 1 && a.active !== false)) {
     srv.gestaoTecnica('methodology_approvers', 'insert', { user_id: uid, scope: 'holoscan', approval_stage: 1, display_name: 'Daniel' });
   }
-  const c = candidatoV1();
   const pk = q('methodology_packages', 'insert', { dados: { code: opts.code || c.code, version, status: 'em_revisao', origin: c.origin, justification: c.justification, notes: c.notes, lineage: c.lineage, content_hash: c.content_hash } }).data[0];
   const ed = q('methodology_questionnaire_editions', 'insert', { dados: Object.assign({}, c.edicao, { package_id: pk.id }) }).data[0];
   const ins = (t, l) => { if (l.length) { const r = q(t, 'insert', { dados: l.map(x => Object.assign({}, x, { package_id: pk.id })) }); if (r.error) throw new Error(t + ': ' + r.error.message); } };

@@ -62,9 +62,11 @@
       revisao nao pode contar — senao aparece "86 de 84". */
   function perguntasDeHoje() {
     try {
-      if (window.HOLOSCAN && window.HOLOSCAN.questionario) {
+      var lista = window.HoloscanOficial && window.HoloscanOficial.perguntas ? window.HoloscanOficial.perguntas()
+        : window.HOLOSCAN && window.HOLOSCAN.questionario ? window.HOLOSCAN.questionario() : null;
+      if (lista && lista.length) {
         var mapa = {};
-        window.HOLOSCAN.questionario().forEach(function (q) { mapa[q.id] = true; });
+        lista.forEach(function (q) { mapa[q.id] = true; });
         return mapa;
       }
     } catch (e) { /* sem motor, conta tudo */ }
@@ -73,6 +75,7 @@
 
   function totalDePerguntas() {
     try {
+      if (window.HoloscanOficial && window.HoloscanOficial.perguntas && window.HoloscanOficial.perguntas().length) return window.HoloscanOficial.perguntas().length;
       if (window.HOLOSCAN && window.HOLOSCAN.questionario) {
         return window.HOLOSCAN.questionario().length;
       }

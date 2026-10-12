@@ -82,6 +82,38 @@
     return q ? q.statement : id;
   }
 
+  /* ---------- as perguntas que a tela mostra (12/10) ----------------------
+     Antes a tela lia as perguntas do holoscan.js (gerado dos CSVs do motor
+     antigo) e o calculo usava o pacote: texto novo no pacote nao aparecia na
+     tela, e pergunta removida do pacote continuava sendo perguntada. Agora a
+     lista sai do pacote APROVADO e VIGENTE (texto, escala, bloco e ordem do
+     pacote). Sem pacote (modo local sem servidor, homologacao do legado), a
+     lista do holoscan.js continua valendo. No HOLOS-V1 v2 as duas listas sao
+     identicas (mesma ordem, textos e escalas). */
+  var ORIGEM_DO_BLOCO = { fisico: "sintoma", mental_emocional: "emocao", espiritual: "espiritual" };
+  var cachePerguntas = { chave: null, lista: null };
+  function perguntasLegado() {
+    try { return raiz.HOLOSCAN && raiz.HOLOSCAN.questionario ? raiz.HOLOSCAN.questionario() : []; } catch (e) { return []; }
+  }
+  function perguntas(dia) {
+    var M = raiz.Metodologia;
+    var p = M && M.obterPacoteAtivo ? M.obterPacoteAtivo(dia) : null;
+    if (!p || !p.perguntas || !p.perguntas.length) return perguntasLegado();
+    var chave = (p.id || p.code + "@" + p.version) + "|" + (p.content_hash || "") + "|" + p.perguntas.length;
+    if (cachePerguntas.chave === chave) return cachePerguntas.lista;
+    var curtos = {};
+    perguntasLegado().forEach(function (q) { curtos[q.id] = q; });
+    var lista = p.perguntas.slice().sort(function (a, b) { return (a.position || 0) - (b.position || 0) || (a.stable_id < b.stable_id ? -1 : 1); })
+      .map(function (q) {
+        var velho = curtos[q.stable_id];
+        return { id: q.stable_id, origem: ORIGEM_DO_BLOCO[q.block] || q.block, pergunta: q.statement, escala: q.scale_code,
+          rotulo: velho && velho.rotulo ? velho.rotulo : q.statement, sentido: q.orientation === "invertida" ? "invertido" : "direto",
+          pacote: p.code + " v" + p.version };
+      });
+    cachePerguntas = { chave: chave, lista: lista };
+    return lista;
+  }
+
   /**
    * respostas: { stable_id: inteiro } — so as dadas.
    * contexto:  { patient_id?, applied_at? (AAAA-MM-DD) }
@@ -196,6 +228,6 @@
   raiz.HoloscanOficial = {
     MSG_SEM_PACOTE: MSG_SEM_PACOTE, ErroSemPacote: ErroSemPacote,
     pacote: pacote, disponivel: disponivel, motivos: motivos, recarregar: recarregar,
-    calcular: calcular, paraTela: paraTela, payload: payload, natureza: natureza
+    calcular: calcular, paraTela: paraTela, payload: payload, natureza: natureza, perguntas: perguntas
   };
 })();

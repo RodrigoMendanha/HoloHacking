@@ -99,6 +99,8 @@ export const SUITES = [
   'testar-v1-etapa4-banco.mjs',
   'testar-v1-etapa4-barreira.mjs',
   'testar-v1-etapa4-2-pacote-v1.mjs',
+  'testar-pacote-v3.mjs',
+  'testar-questionario-v3.mjs',
   'testar-v1-aprovador-unico.mjs',
   'testar-v1-etapa5-motor.mjs',
   'testar-v1-etapa5-banco.mjs',

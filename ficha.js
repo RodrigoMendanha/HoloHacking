@@ -769,6 +769,7 @@
 
   function perguntasDoMotor() {
     try {
+      if (window.HoloscanOficial && window.HoloscanOficial.perguntas) return window.HoloscanOficial.perguntas();
       return (window.HOLOSCAN && window.HOLOSCAN.questionario)
         ? window.HOLOSCAN.questionario() : [];
     } catch (e) { return []; }

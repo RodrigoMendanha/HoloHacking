@@ -23,12 +23,22 @@
 
   function inventario() { return window.MetodologiaInventario || null; }
   function decisoes() { return window.MetodologiaDecisoesV1 || null; }
+  /* 12/10: revisao das perguntas -> versao nova. So aparece com a versao base gravada (aprovada ou retirada)
+     e enquanto a versao nova ainda nao existe no servidor. */
+  function revisao() { return window.MetodologiaRevisaoV3 || null; }
+  function baseDaRevisao() {
+    var R = revisao(); if (!R || !P()) return null;
+    var todos = P().todos();
+    if (todos.some(function (x) { return x.code === R.base.code && x.version === R.versao_nova; })) return null;
+    return todos.filter(function (x) { return x.code === R.base.code && x.version === R.base.version && (x.status === "aprovado" || x.status === "retirado"); })[0] || null;
+  }
   function P() { return window.PacoteMetodologico; }
   function alvo() { return document.getElementById("metodologia-corpo"); }
   function pacoteAtual() {
     var inv = inventario(); if (!P()) return null;
     if (pacoteSel === "inventario" || !pacoteSel) return inv ? Object.assign(P().importarInventario(inv, "HOLOS-V1", 1), { _inventario: true }) : null;
     if (pacoteSel === "candidato") return inv && decisoes() ? Object.assign(P().aplicarDecisoesV1(P().importarInventario(inv, "HOLOS-V1", 1), decisoes()), { _candidato: true }) : null;
+    if (pacoteSel === "revisao-v3") { var b = baseDaRevisao(); return b ? Object.assign(P().aplicarRevisao(b, revisao()), { _candidato: true, _revisao: true }) : null; }
     return P().porId(pacoteSel);
   }
   function baixar(nome, conteudo, tipo) {
@@ -292,13 +302,17 @@
     var html = '<div class="mh-topo"><label class="evo-campo"><span>Pacote</span><select data-mh-pacote>' +
       '<option value="inventario"' + (!pacoteSel || pacoteSel === "inventario" ? " selected" : "") + '>Inventário recuperado (não gravado) — rascunho</option>' +
       (decisoes() ? '<option value="candidato"' + (pacoteSel === "candidato" ? " selected" : "") + '>Candidato V1 — decisões fechadas (não gravado) — em_revisao</option>' : "") +
+      (baseDaRevisao() ? '<option value="revisao-v3"' + (pacoteSel === "revisao-v3" ? " selected" : "") + '>' + escapar(revisao().base.code + " v" + revisao().versao_nova) + ' — revisão das perguntas (não gravado) — em_revisao</option>' : "") +
       pacotes.map(function (x) { return '<option value="' + escapar(x.id) + '"' + (x.id === pacoteSel ? " selected" : "") + ">" + escapar(x.code + " v" + x.version + " · " + x.status) + "</option>"; }).join("") + "</select></label>" +
       '<span class="rel-acoes"><button type="button" class="btn-fantasma" data-mh-acao="exportar-json">Exportar JSON</button>' +
       '<button type="button" class="btn-fantasma" data-mh-acao="exportar-csv">Exportar CSV</button>' +
       (p && p._inventario ? '<button type="button" class="btn-fantasma" data-mh-acao="importar-rascunho">Gravar inventário como RASCUNHO</button>' : "") +
-      (p && p._candidato ? '<button type="button" class="btn-fantasma" data-mh-acao="gravar-candidato">Gravar candidato V1 (em_revisao, sem aprovar)</button>' : "") +
+      (p && p._candidato ? '<button type="button" class="btn-fantasma" data-mh-acao="gravar-candidato">' + (p._revisao ? "Gravar " + escapar(p.code + " v" + p.version) + " (em_revisao, sem aprovar)" : "Gravar candidato V1 (em_revisao, sem aprovar)") + "</button>" : "") +
+      (p && p.id && p.status === "aprovado" && pacotes.some(function (x) { return x.code === p.code && x.status === "aprovado" && x.version > p.version; })
+        ? '<input type="text" class="mh-retirar-resp" data-mh-retirar-resp placeholder="Responsável pela retirada" aria-label="Responsável pela retirada">' +
+          '<button type="button" class="btn-fantasma" data-mh-acao="retirar">Retirar esta versão (novas aplicações usam a mais nova)</button>' : "") +
       '<span class="rel-estado" id="mh-estado"></span></span></div>' +
-      '<div class="abas mh-abas" role="tablist">' + [["resumo", "Resumo e pendências"], ["itens", "84 itens"], ["associacoes", "Associações e pesos"], ["faixas", "Faixas"], ["regras", "Índice, Tríade, ausência"], ["conflitos", "Conflitos e registros"]].map(function (a) {
+      '<div class="abas mh-abas" role="tablist">' + [["resumo", "Resumo e pendências"], ["itens", (p && p.perguntas ? p.perguntas.length : 84) + " itens"], ["associacoes", "Associações e pesos"], ["faixas", "Faixas"], ["regras", "Índice, Tríade, ausência"], ["conflitos", "Conflitos e registros"]].map(function (a) {
         return '<button type="button" class="aba' + (aba === a[0] ? " ativa" : "") + '" data-mh-aba="' + a[0] + '" role="tab" aria-selected="' + (aba === a[0]) + '">' + a[1] + "</button>";
       }).join("") + "</div>";
     if (!p) html += '<div class="dash-vazio">Sem inventário carregado.</div>';
@@ -339,9 +353,17 @@
           P().homologar(p.id).then(function () { avisar("Pacote homologado (aprovado)."); })
             .catch(function (e) { delete hashes[p.id]; avisar("Homologação recusada: " + (window.mensagemHumana ? window.mensagemHumana(e) : e.message)); });
         }
+        if (b.dataset.mhAcao === "retirar") {
+          var quem = (el.querySelector("[data-mh-retirar-resp]") || {}).value || "";
+          if (!quem.trim()) { if (estado) estado.textContent = "Escreva o nome de quem responde pela retirada."; return; }
+          if (estado) estado.textContent = "Retirando…";
+          P().retirar(p.id, "substituída pela versão nova do pacote (revisão das perguntas)", quem.trim()).then(function () { avisar("Versão retirada: aplicações novas usam a versão mais nova; as antigas continuam nesta."); })
+            .catch(function (e) { avisar("Retirada recusada: " + (window.mensagemHumana ? window.mensagemHumana(e) : e.message)); });
+        }
         if (b.dataset.mhAcao === "gravar-candidato") {
           if (estado) estado.textContent = "Gravando candidato…";
-          P().salvarRascunho(p).then(function (id) { pacoteSel = id; avisar("Candidato gravado (status em_revisao; nada aprovado; publicação técnica pendente)."); })
+          var eraRevisao = !!p._revisao;
+          P().salvarRascunho(p).then(function (id) { pacoteSel = id; avisar(eraRevisao ? "Versão nova gravada (status em_revisao; nada aprovado). Confira o hash e registre a Aprovação para homologar." : "Candidato gravado (status em_revisao; nada aprovado; publicação técnica pendente)."); })
             .catch(function (e) { if (estado) estado.textContent = "Não foi possível gravar: " + (window.mensagemHumana ? window.mensagemHumana(e) : e.message); });
         }
         if (b.dataset.mhAcao === "importar-rascunho") {

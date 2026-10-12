@@ -2,9 +2,10 @@
    QUESTIONARIO DO HOLOSCAN — as 84 perguntas
    ===========================================================================
 
-   As perguntas NAO estao escritas aqui. Vem de HOLOSCAN.questionario(), que
-   as le do banco de marcadores. Quando o Rodrigo corrigir uma pergunta no CSV,
-   ela muda na tela sem ninguem tocar em codigo.
+   As perguntas NAO estao escritas aqui. Desde 12/10 vem do pacote metodologico
+   APROVADO e VIGENTE (HoloscanOficial.perguntas): uma versao nova do pacote
+   (texto revisado, pergunta trocada ou removida) muda a tela sem tocar em
+   codigo. Sem pacote (modo local), vem de HOLOSCAN.questionario().
 
    Tres blocos, que sao as tres subferramentas do material:
      BioRoot             sintomas do corpo      49
@@ -56,12 +57,20 @@
       sub: "alinhamento, pertencimento, bloqueios" }
   ];
 
-  var perguntas = null;      // as 84, carregadas do motor uma vez
+  var perguntas = null;      // as do pacote vigente (ou do holoscan.js, sem pacote); relidas a cada desenho
   var caixa = null;
   var ligado = false;        // o ouvinte de clique e um so, para sempre
 
+  /* 12/10: as perguntas saem do pacote APROVADO e VIGENTE (HoloscanOficial.perguntas: texto, escala, bloco e
+     ordem do pacote). Sem pacote, a lista do holoscan.js. Assim uma versao nova do pacote (texto revisado,
+     pergunta trocada ou removida) aparece na tela sem recompilar o motor. */
+  function lista() {
+    var O = window.HoloscanOficial;
+    if (O && O.perguntas) return O.perguntas();
+    return window.HOLOSCAN && window.HOLOSCAN.questionario ? window.HOLOSCAN.questionario() : [];
+  }
   function motorPronto() {
-    return !!(window.HOLOSCAN && window.HOLOSCAN.questionario);
+    return lista().length > 0;
   }
 
   /* ---------- de quem sao estas respostas -------------------------------- */
@@ -136,7 +145,8 @@
   function respostasValidas() {
     var dadas = respostasDoPaciente();
     var validas = {};
-    if (!perguntas) return validas;
+    perguntas = lista();
+    if (!perguntas.length) return validas;
     for (var i = 0; i < perguntas.length; i++) {
       var id = perguntas[i].id;
       if (dadas[id] !== undefined) validas[id] = dadas[id];
@@ -164,7 +174,7 @@
       caixa.innerHTML = '<p class="q-aviso">Carregando o paciente…</p>';
       return;
     }
-    if (!perguntas) perguntas = window.HOLOSCAN.questionario();
+    perguntas = lista();
 
     var dadas = respostasValidas();
     var html = "";
@@ -350,7 +360,8 @@
       /* so revisao tecnica (?homologacao=1) ou modo local sem servidor: motor legado, sem contexto,
          marcado como homologacao (nunca salvo como aplicacao oficial) */
       try {
-        r = window.HOLOSCAN.calcular(ids.map(function (id) { return { marcador_id: id, intensidade: dadas[id] }; }), {});
+        var doLegado = {}; window.HOLOSCAN.questionario().forEach(function (q) { doLegado[q.id] = true; });
+        r = window.HOLOSCAN.calcular(ids.filter(function (id) { return doLegado[id]; }).map(function (id) { return { marcador_id: id, intensidade: dadas[id] }; }), {});
       } catch (e) {
         mostrarAviso("O motor recusou as respostas: " + e.message);
         return;
@@ -432,7 +443,7 @@
      motor. */
   function rotularBotao(botao) {
     if (!botao || !motorPronto()) return;
-    if (!perguntas) perguntas = window.HOLOSCAN.questionario();
+    perguntas = lista();
     botao.innerHTML = "Aplicar question\u00e1rio &mdash; " + perguntas.length + " perguntas";
   }
 
@@ -483,6 +494,11 @@
     rotularBotao(abrirBtn);
     var voltar = document.getElementById("btn-voltar-manual");
     if (voltar) voltar.addEventListener("click", fechar);
+    // o pacote chega depois do login: o rotulo do botao e a tela abertas passam a usar as perguntas dele
+    document.addEventListener("metodologia:pacotes", function () {
+      rotularBotao(abrirBtn);
+      if (aberto()) desenhar();
+    });
 
     // trocar de paciente troca o questionario inteiro — e a chegada da lista
     // de pacientes conta como troca, porque ate ali nao se sabia de quem era
