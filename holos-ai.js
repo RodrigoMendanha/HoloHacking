@@ -193,6 +193,8 @@
   }
 
   var FERRAMENTAS_CONTEXTO = ["linha_momentum", "mapa_crencas", "roda_vida", "carta_futuro"];
+  /* 12/10 (bug 8): as tres ferramentas estruturadas (_v1) tambem entram, pelo "Resultado estruturado" do metodo */
+  var FERRAMENTAS_ESTRUTURADAS = ["mapa_rotina_v1", "gatilhos_respostas_v1", "conexao_pertencimento_v1"];
 
   function valorLegivel(v) {
     if (v === null || v === undefined || v === "") return "";
@@ -232,9 +234,44 @@
         });
       }
       if (ap.app.leitura) linhas += "- Leitura profissional: " + ap.app.leitura + "\n";
+      var Fx = window.FerramentasFechamento;
+      if (!linhas && Fx && Fx.de) {   /* concluida sem os campos do catalogo: ainda assim entra (nada fica de fora) */
+        var x0 = Fx.de({ ferramenta_id: fid, respostas: ap.r });
+        linhas = (x0.itens || []).map(function (it) { return it.valor ? "- " + it.rotulo + ": " + it.valor + "\n" : ""; }).join("") || (x0.linha ? "- " + x0.linha + "\n" : "- concluída\n");
+      }
       if (!linhas) return;
       t += "\n### " + f.titulo + (ap.app.concluida_em ? " — " + dataBR(ap.app.concluida_em) : "") + "\n" + linhas;
     });
+    var F = window.FerramentasFechamento;
+    FERRAMENTAS_ESTRUTURADAS.forEach(function (fid) {
+      var ap = respostasDe(fid, pid);
+      if (!ap || !F || !F.de) return;
+      var x = F.de({ ferramenta_id: fid, respostas: ap.r });
+      var linhas = (x.itens || []).map(function (it) { return it.valor ? "- " + it.rotulo + ": " + it.valor + "\n" : ""; }).join("");
+      if (ap.app.leitura) linhas += "- Leitura profissional: " + ap.app.leitura + "\n";
+      if (!linhas && x.linha) linhas = "- " + x.linha + "\n";
+      if (!linhas) return;
+      t += "\n### " + (x.nome || fid) + (ap.app.concluida_em ? " — " + dataBR(ap.app.concluida_em) : "") + "\n" + linhas;
+    });
+    return t;
+  }
+
+  /* 12/10 (bug 8): o ultimo Resultado HOLOS salvo (snapshot congelado; nada recalculado) */
+  function dadosResultadoHolos() {
+    var R = window.ResultadoHolos, pid = pacienteId();
+    if (!R || !R.doPaciente || !pid) return "";
+    var r = R.doPaciente(pid).filter(function (x) { return x.status !== "rascunho" && !x.superseded_at && x.content_snapshot; })
+      .sort(function (a, b) { return String(b.saved_at || b.created_at).localeCompare(String(a.saved_at || a.created_at)); })[0];
+    if (!r) return "";
+    var s = r.content_snapshot, t = "- Resultado nº " + (r.revision_number || 1) + " · salvo em " + dataBR(r.saved_at || r.created_at) + "\n";
+    var S = window.ResultadoSintese;
+    if (S && S.frases && S.fatos) {
+      try { var NF = (window.ProximosPassos && window.ProximosPassos.NOME_FERRAMENTA) || {}; S.frases(S.fatos(s, null, function (id) { return NF[id] || id; })).forEach(function (f) { t += "- " + f.texto + "\n"; }); } catch (e) { /* so o basico */ }
+    }
+    var o = s.observacoes || {};
+    if (o.leitura_profissional) t += "- Leitura profissional: " + o.leitura_profissional + "\n";
+    if (o.pontos_acompanhar) t += "- Pontos para acompanhar: " + o.pontos_acompanhar + "\n";
+    if (o.questoes_aprofundar) t += "- Questões para aprofundar: " + o.questoes_aprofundar + "\n";
     return t;
   }
 
@@ -367,6 +404,7 @@
     t += secaoSe("Linha do tempo consolidada (data clínica e data de registro)", dadosTimeline());
     t += secaoSe("Agenda (agendamentos)", dadosConsultas());
     t += secaoSe("Ferramentas (OQ³, PQQ, Mapa do Propósito e outras)", dadosFerramentas());
+    t += secaoSe("Resultado HOLOS (último salvo)", dadosResultadoHolos());
     var evo = dadosEvolucao();
     if (evo) t += secaoSe("Aplicações do HOLOSCAN (datas e cobertura)", evo);
     return t.trim() || "Nenhum dado disponível para este paciente.";
@@ -398,6 +436,8 @@
 
   function desenhar() {
     var alvo = document.getElementById("aba-holos-ai");
+    /* 12/10 (bug 8): o Resultado HOLOS salvo entra no "Caso completo" — ja carregado quando a aba abre */
+    if (alvo && window.ResultadoHolos && window.ResultadoHolos.carregar && pacienteId()) window.ResultadoHolos.carregar(pacienteId());
     if (!alvo) return;
     var pid = pacienteId();
 

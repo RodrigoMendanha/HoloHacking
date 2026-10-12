@@ -186,6 +186,16 @@ const b7 = await A.evaluate(async (pid, eid) => {
 }, PA, EA);
 ok(/não registrada/.test(b7.antes || '') && /rev\. 1 · salvo/.test(b7.depois || ''), 'Visão Geral: ao salvar a anamnese, a linha muda sozinha de "não registrada" para "rev. 1 · salvo" (' + (b7.depois || '').replace(/\s+/g, ' ') + ')');
 
+titulo('B8 — HOLOS AI: TODAS AS FERRAMENTAS CONCLUIDAS E O RESULTADO HOLOS');
+const ia = await A.evaluate(async (pid) => {
+  window.definirPacienteAtivo(pid); window.levarParaFicha('aba:holos-ai', pid); await new Promise(r => setTimeout(r, 900));
+  const b = document.querySelector('.ai-atalho-ctx[data-ctx="completo"]'); if (b) b.click(); await new Promise(r => setTimeout(r, 400));
+  const ta = document.querySelector('#aba-holos-ai textarea'); return ta ? ta.value : document.getElementById('aba-holos-ai').innerText;
+}, PA);
+ok(/### Mapa da Rotina/.test(ia) && /### Gatilhos & Respostas/.test(ia) && /### Conexão & Pertencimento/.test(ia) && /### Linha do Momentum/.test(ia),
+  'Caso completo inclui as ferramentas estruturadas concluídas (Mapa da Rotina, Gatilhos & Respostas, Conexão & Pertencimento) e as demais');
+ok(/Resultado HOLOS \(último salvo\)/.test(ia) && /LEITURA_PARA_A_PACIENTE/.test(ia) && /1ª área para investigar/.test(ia), 'e o último Resultado HOLOS salvo (Síntese + observações)');
+
 /* B5 de verdade: HOLOSCAN salvo NESTA sessao (sem recarregar) ja aparece ligado ao atendimento */
 const PB = ins('patients', { nome: 'Paciente Sessao Ficticia' }).id;
 await A.reload({ waitUntil: 'networkidle2' });
