@@ -24,10 +24,10 @@
   var token = (/[#&]t=([A-Za-z0-9_-]{40,64})/.exec(window.location.hash || "") || [])[1] || null;
   var CHAVE_LOCAL = token ? "holohacking.preanamnese." + token.slice(0, 12) : null;
 
-  /* Etapas, perguntas e campos sensiveis: mapeamento-holistico.js (fonte unica, tambem usada pela ficha). */
+  /* Etapas, perguntas, regras (condicionais, limites, opcoes) e campos sensiveis: mapeamento-holistico.js
+     (fonte unica, tambem usada pela ficha para mostrar a resposta). */
   var MH = window.MapeamentoHolistico;
-  var ETAPAS_PRIMEIRA = MH.ETAPAS_PRIMEIRA, ETAPAS_RETORNO = MH.ETAPAS_RETORNO, FINAL = MH.FINAL, TXT_FINAL = MH.TXT_FINAL,
-    SE = MH.SE, ROTULO = MH.ROTULO, SENSIVEIS = MH.SENSIVEIS, TXT_SENSIVEL = MH.TXT_SENSIVEL;
+  var FINAL = MH.FINAL, SENSIVEIS = MH.SENSIVEIS, TXT_SENSIVEL = MH.TXT_SENSIVEL;
 
   var estado = { info: null, tipo: "primeira", formulario: {}, passo: 0, salvando: false, sujo: false, timer: null, enviado: false };
 
@@ -42,22 +42,11 @@
     return n;
   }
   function $(id) { return document.getElementById(id); }
-  function etapas() { return estado.tipo === "retorno" ? ETAPAS_RETORNO : ETAPAS_PRIMEIRA; }
+  function etapas() { return MH.etapasDe(estado.tipo); }
   function totalPassos() { return etapas().length + 1; }   // + revisar e enviar
   function blocoDef(id) { return (estado.tipo === "retorno" ? V2.BLOCOS_RETORNO : V2.BLOCOS_PRIMEIRA).filter(function (b) { return b.id === id; })[0]; }
-  function camposDa(et) {
-    var b = blocoDef(et.bloco); if (!b) return [];
-    return (et.campos || b.campos.map(function (f) { return f.id; })).map(function (c) {
-      if (typeof c !== "string") return c;
-      return b.campos.filter(function (f) { return f.id === c; })[0] || null;
-    }).filter(Boolean);
-  }
-  function visivel(b, f) { var c = SE[b + "." + f.id]; return !c || dados(b)[c.campo] === c.valor; }
-  function atualizarCondicionais() {
-    document.querySelectorAll("[data-se]").forEach(function (n) {
-      var p = n.getAttribute("data-se").split("|"); n.hidden = dados(p[0])[p[1]] !== p[2];
-    });
-  }
+  function camposDa(et) { return MH.camposDa(estado.tipo, et); }
+  function visivel(b, f) { return MH.visivel(estado.formulario, b, f); }
   function dados(b) { return (estado.formulario[b] = estado.formulario[b] || {}); }
   function tem(v) { return v !== null && v !== undefined && (typeof v !== "string" || v.trim() !== "") && (!Array.isArray(v) || v.length > 0); }
 
@@ -66,15 +55,8 @@
     if (!sb) return Promise.reject(new Error("sem conexão"));
     return Promise.resolve(sb.rpc(nome, args)).then(function (r) { if (r.error) throw r.error; return r.data; });
   }
-  /* o que vai ao servidor: campo condicional escondido (ex.: "conte um pouco" sem o "Sim") nao vai */
-  function conteudo() {
-    var f = JSON.parse(JSON.stringify(estado.formulario || {}));
-    Object.keys(SE).forEach(function (k) {
-      var p = k.split("."), c = SE[k];
-      if (f[p[0]] && (f[p[0]][c.campo] !== c.valor)) { delete f[p[0]][p[1]]; delete f[p[0]][p[1] + "_prefiro_nao"]; }
-    });
-    return { formulario_versao: 2, tipo: estado.tipo, formulario: f };
-  }
+  /* o que vai ao servidor: sem resposta de pergunta condicional que fechou (ex.: "Qual e quando?" depois de "Nao") */
+  function conteudo() { return { formulario_versao: 2, tipo: estado.tipo, formulario: MH.limparForm(estado.formulario, estado.tipo) }; }
   function copiaLocal(gravar) {
     if (!CHAVE_LOCAL) return null;
     try {
@@ -106,7 +88,6 @@
     });
   }
   function mudou() {
-    atualizarCondicionais();
     estado.sujo = true;
     copiaLocal(true);
     pintarSalvo("Alterações não salvas…");
@@ -116,14 +97,18 @@
 
   /* ---------- campos ---------- */
   function idCampo(b, c, extra) { return "pa-" + b + "-" + c + (extra ? "-" + extra : ""); }
-  function rotuloDe(b, f) { return ROTULO[b + "." + f.id] || f.rotulo; }
+  function rotuloDe(b, f) { return MH.rotuloDe(b, f); }
+  /* escolha que abre/fecha pergunta: redesenha a etapa no mesmo lugar da tela */
+  function redesenharEtapa() { var y = window.scrollY; telaPasso(true); window.scrollTo(0, y); }
 
-  function campoTexto(b, f) {
+  function campoTexto(b, f, r) {
+    r = r || {};
     var id = idCampo(b, f.id), d = dados(b);
-    var inp = f.tipo === "area" ? el("textarea", { id: id, rows: 3 }) : el("input", { type: "text", id: id });
+    var inp = r.hora ? el("input", { type: "time", id: id, step: 300 })
+      : (f.tipo === "area" && !r.curto) ? el("textarea", { id: id, rows: 3 }) : el("input", { type: "text", id: id, autocomplete: "off" });
     inp.value = d[f.id] || "";
     inp.addEventListener("input", function () { d[f.id] = inp.value; mudou(); });
-    var bloco = el("div", { class: "campo" }, [el("label", { for: id, texto: rotuloDe(b, f) })]);
+    var bloco = el("div", { class: "campo" + (r.hora ? " campo-hora" : "") }, [el("label", { for: id, texto: rotuloDe(b, f) })]);
     if (SENSIVEIS[b + "." + f.id]) {
       bloco.appendChild(el("p", { class: "ajuda", id: id + "-ajuda", texto: TXT_SENSIVEL }));
       inp.setAttribute("aria-describedby", id + "-ajuda");
@@ -140,37 +125,56 @@
     } else bloco.appendChild(inp);
     return bloco;
   }
-  function campoChips(b, f) {
+  /* selecao rapida: unica ou multipla, com limite, opcao exclusiva, "Outro" que abre um campo curto e
+     "Prefiro nao responder" nos campos sensiveis. So valores ja previstos no esquema sao gravados. */
+  function campoChips(b, f, r) {
+    r = r || {};
     var d = dados(b), nome = idCampo(b, f.id);
+    var opcoes = MH.opcoesDe(estado.formulario, b, f);
     var atual = f.multi ? (Array.isArray(d[f.id]) ? d[f.id] : []) : d[f.id];
-    var grupo = el("div", { class: "chips" });
     var sensivel = !f.multi && SENSIVEIS[b + "." + f.id];
-    var opcoes = sensivel ? f.opcoes.concat([null]) : f.opcoes;
-    opcoes.forEach(function (o, i) {
-      var nr = o === null;   // "Prefiro nao responder": nao vira valor, vira a marca _prefiro_nao (estado "recusado" no rascunho)
-      var inp = el("input", { type: f.multi ? "checkbox" : "radio", name: nome, id: nome + "-" + i, value: nr ? "" : o });
-      inp.checked = nr ? d[f.id + "_prefiro_nao"] === true : (f.multi ? atual.indexOf(o) >= 0 : atual === o && d[f.id + "_prefiro_nao"] !== true);
+    var grupo = el("div", { class: "chips" });
+    var lista = opcoes.slice();
+    if (sensivel) lista.push([null, "Prefiro não responder"]);
+    var cheio = f.multi && r.max && atual.length >= r.max;
+    lista.forEach(function (o, i) {
+      var nr = o[0] === null, v = o[0];
+      var marcado = nr ? d[f.id + "_prefiro_nao"] === true : (f.multi ? atual.indexOf(v) >= 0 : atual === v && d[f.id + "_prefiro_nao"] !== true);
+      var inp = el("input", { type: f.multi ? "checkbox" : "radio", name: nome, id: nome + "-" + i, value: nr ? "" : v });
+      inp.checked = marcado;
+      if (cheio && !marcado) inp.disabled = true;
       inp.addEventListener("change", function () {
-        if (nr) { d[f.id] = ""; d[f.id + "_prefiro_nao"] = true; mudou(); return; }
+        if (nr) { d[f.id] = ""; d[f.id + "_prefiro_nao"] = true; mudou(); return redesenharEtapa(); }
         if (sensivel) d[f.id + "_prefiro_nao"] = false;
         if (f.multi) {
-          var lista = Array.isArray(d[f.id]) ? d[f.id].slice() : [];
-          if (inp.checked && lista.indexOf(o) < 0) lista.push(o);
-          if (!inp.checked) lista = lista.filter(function (x) { return x !== o; });
-          d[f.id] = lista;
-        } else d[f.id] = o;
-        mudou();
+          var l = Array.isArray(d[f.id]) ? d[f.id].slice() : [];
+          if (inp.checked) {
+            if (r.exclusivo && v === r.exclusivo) l = [];
+            else if (r.exclusivo) l = l.filter(function (x) { return x !== r.exclusivo; });
+            if (l.indexOf(v) < 0) l.push(v);
+          } else l = l.filter(function (x) { return x !== v; });
+          d[f.id] = l;
+        } else d[f.id] = v;
+        mudou(); redesenharEtapa();
       });
-      grupo.appendChild(el("label", { class: "chip", for: nome + "-" + i }, [inp, el("span", { texto: nr ? "Prefiro não responder" : o })]));
+      grupo.appendChild(el("label", { class: "chip" + (inp.disabled ? " chip-off" : ""), for: nome + "-" + i }, [inp, el("span", { texto: o[1] })]));
     });
-    if (!f.multi) {
-      var limpar = el("button", { type: "button", class: "btn btn-peq", texto: "Limpar" });
-      limpar.addEventListener("click", function () { d[f.id] = ""; delete d[f.id + "_prefiro_nao"]; grupo.querySelectorAll("input").forEach(function (x) { x.checked = false; }); mudou(); });
-      grupo.appendChild(limpar);
-    }
-    var fs = el("fieldset", { class: "campo" }, [el("legend", { texto: rotuloDe(b, f) + (f.multi ? " (pode marcar mais de um)" : "") })]);
+    var leg = rotuloDe(b, f) + (f.multi ? (r.max ? " (escolha até " + r.max + ")" : " (pode marcar mais de um)") : "");
+    var fs = el("fieldset", { class: "campo" }, [el("legend", { texto: leg })]);
+    if (r.ajuda) fs.appendChild(el("p", { class: "ajuda", texto: r.ajuda }));
     if (sensivel) fs.appendChild(el("p", { class: "ajuda", texto: TXT_SENSIVEL }));
     fs.appendChild(grupo);
+    /* "Outro" marcado: um campo curto (gravado em <campo>_outro, como no registro profissional) */
+    var temOutro = f.multi ? atual.indexOf("Outro") >= 0 : atual === "Outro";
+    if (temOutro && r.outro) {
+      var oid = nome + "-outro";
+      var oi = el("input", { type: "text", id: oid, "aria-label": r.outro, placeholder: r.outro, autocomplete: "off" });
+      oi.value = d[f.id + "_outro"] || "";
+      oi.style.marginTop = "8px";
+      oi.addEventListener("input", function () { d[f.id + "_outro"] = oi.value; mudou(); });
+      fs.appendChild(oi);
+    }
+    if (!opcoes.length) return null;
     return fs;
   }
   function campoSintoma(b, f) {
@@ -243,16 +247,12 @@
     }
     return caixa;
   }
-  function campo(b, f) {
-    var c = SE[b + "." + f.id];
-    if (c) { var n = campoBase(b, f); if (n) { n.setAttribute("data-se", b + "|" + c.campo + "|" + c.valor); n.hidden = !visivel(b, f); } return n; }
-    return campoBase(b, f);
-  }
-  function campoBase(b, f) {
-    if (f.tipo === "texto" || f.tipo === "area") return campoTexto(b, f);
-    if (f.tipo === "chips") return campoChips(b, f);
+  function campo(b, f, r) {
+    if (!visivel(b, f)) return null;
+    if (f.tipo === "texto" || f.tipo === "area") return campoTexto(b, f, r);
+    if (f.tipo === "chips") return campoChips(b, f, r);
     if (f.tipo === "sintoma") return campoSintoma(b, f);
-    if (f.tipo === "medida") return campoMedida(b, f);
+    if (f.tipo === "medida") return null;   // o Mapeamento nao pede medidas
     if (f.tipo === "lista") return campoLista(b, f);
     return null;
   }
@@ -292,7 +292,7 @@
     if (qual === "erro") { var b = el("button", { type: "button", class: "btn btn-pri", texto: "Tentar de novo" }); b.addEventListener("click", iniciar); main.appendChild(b); }
     h.focus();
   }
-  function telaPasso() {
+  function telaPasso(manter) {
     var main = $("conteudo"); main.textContent = "";
     var total = totalPassos(), i = estado.passo;
     $("passo-txt").innerHTML = "";
@@ -300,35 +300,27 @@
     $("trilho").style.width = Math.round(((i + 1) / total) * 100) + "%";
     $("btn-voltar").disabled = i === 0;
     var seguir = $("btn-seguir");
-    if (i === total - 1) return telaRevisar();
+    if (i === total - 1) return telaRevisar(manter);
     seguir.textContent = i === total - 2 ? "Revisar respostas" : "Continuar";
     var et = etapas()[i];
     var h = el("h2", { texto: et.titulo, tabindex: "-1" });
     main.appendChild(h);
     main.appendChild(el("p", { class: "intro", texto: et.intro }));
-    camposDa(et).forEach(function (f) {
-      if (f.secao) { main.appendChild(el("h3", { class: "secao", texto: f.secao })); return; }
-      var n = campo(et.bloco, f); if (n) main.appendChild(n);
+    var par = null;
+    camposDa(et).forEach(function (c) {
+      if (c.secao) { main.appendChild(el("h3", { class: "secao", texto: c.secao })); return; }
+      var n = campo(c.b, c.f, c.r); if (!n) return;
+      /* horarios lado a lado (dormir / acordar) */
+      if (c.r.par) { par = el("div", { class: "campo-par" }, [n]); main.appendChild(par); return; }
+      if (par && c.r.hora) { par.appendChild(n); par = null; return; }
+      par = null;
+      main.appendChild(n);
     });
     if (i === 0) main.appendChild(el("p", { class: "privacidade", texto: "Suas respostas vão só para a sua nutricionista e ajudam a preparar o atendimento. Este formulário não é diagnóstico." }));
-    h.focus();
-    window.scrollTo(0, 0);
+    if (!manter) { h.focus(); window.scrollTo(0, 0); }
   }
-  function valorTexto(f, d) {
-    var v = d[f.id];
-    if (d[f.id + "_prefiro_nao"] === true) return "Prefiro não responder";
-    if (f.tipo === "chips") return Array.isArray(v) ? v.join(", ") : (v || "");
-    if (f.tipo === "sintoma") return v ? ({ nao: "Não", as_vezes: "Às vezes", frequente: "Frequente" }[v] || "") + (tem(d[f.id + "_detalhe"]) ? " — " + d[f.id + "_detalhe"] : "") : "";
-    if (f.tipo === "medida") return tem(v) ? v + " " + (d[f.id + "_unidade"] || f.unidades[0]) : "";
-    if (f.tipo === "lista") {
-      var l = (Array.isArray(v) ? v : []).filter(function (x) { return x && tem(x.nome); });
-      if (!l.length && d[f.id + "_nega"] === true) return "Não";
-      return l.map(function (x) { return f.colunas.map(function (c) { return x[c[0]]; }).filter(tem).join(" · "); }).join("\n");
-    }
-    if (d[f.id + "_prefiro_nao"] === true) return "Prefiro não responder";
-    return v || "";
-  }
-  function telaRevisar() {
+  function valorTexto(f, d, b) { return MH.valorTexto(f, d, b); }
+  function telaRevisar(manter) {
     var main = $("conteudo"); main.textContent = "";
     var seguir = $("btn-seguir"); seguir.textContent = "Enviar Mapeamento";
     var h = el("h2", { texto: "Revisar e enviar", tabindex: "-1" });
@@ -336,11 +328,11 @@
     main.appendChild(el("p", { class: "intro", texto: "Confira o que você respondeu. Para mudar algo, volte à etapa. Depois de enviar, as respostas não podem ser alteradas por este link." }));
     var rev = el("div", { class: "revisao" }), algum = false;
     etapas().forEach(function (et, idx) {
-      var d = dados(et.bloco), dl = el("dl");
-      camposDa(et).forEach(function (f) {
-        if (f.secao || !visivel(et.bloco, f)) return;
-        var t = valorTexto(f, d);
-        if (tem(t)) { algum = true; dl.appendChild(el("dt", { texto: rotuloDe(et.bloco, f) })); dl.appendChild(el("dd", { texto: t })); }
+      var dl = el("dl");
+      camposDa(et).forEach(function (c) {
+        if (c.secao || !visivel(c.b, c.f)) return;
+        var t = valorTexto(c.f, dados(c.b), c.b);
+        if (tem(t)) { algum = true; dl.appendChild(el("dt", { texto: rotuloDe(c.b, c.f) })); dl.appendChild(el("dd", { texto: t })); }
       });
       var ir = el("button", { type: "button", class: "btn btn-peq", texto: "Editar esta etapa" });
       ir.addEventListener("click", function () { estado.passo = idx; telaPasso(); });
@@ -351,7 +343,7 @@
     main.appendChild(rev);
     /* campo aberto final (opcional) */
     var fin = FINAL[estado.tipo], fdef = blocoDef(fin.bloco).campos.filter(function (f) { return f.id === fin.campo; })[0];
-    if (fdef) { var nf = campo(fin.bloco, fdef); nf.classList.add("final"); main.appendChild(nf); if (tem(dados(fin.bloco)[fin.campo])) algum = true; }
+    if (fdef) { var nf = campoTexto(fin.bloco, fdef, {}); nf.classList.add("final"); main.appendChild(nf); if (tem(dados(fin.bloco)[fin.campo])) algum = true; }
     main.appendChild(el("p", { class: "erro", id: "erro-envio", role: "alert" }));
     var podeEnviar = function () {
       var ok = algum || tem(dados(fin.bloco)[fin.campo]);

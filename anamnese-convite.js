@@ -201,8 +201,9 @@
       acoes = (link ? bt("copiar", "Copiar link") + bt("whatsapp", "Enviar pelo WhatsApp", "btn-verde") : bt("novo", "Gerar novo link")) +
         bt("revogar", "Revogar link", "perf-tirar");
     } else if (st === "concluido") {
-      /* 12/10: a resposta aparece aberta; "Levar para o atendimento" saiu (o Mapeamento e so o do paciente) */
-      acoes = bt("ver", vendoResposta[c.id] === false ? "Ver respostas" : "Recolher respostas") + bt("novo", "Enviar novo Mapeamento");
+      /* a resposta aparece aberta (12/10); "Levar para o atendimento" cria o rascunho profissional */
+      acoes = bt("ver", vendoResposta[c.id] === false ? "Ver resposta" : "Esconder resposta") +
+        (!c.imported_anamnesis_id ? bt("usar", "Levar para o atendimento", "btn-verde") : "") + bt("novo", "Enviar novo Mapeamento");
     }
     alvo.innerHTML = '<section class="pc-cartao" aria-labelledby="pc-titulo">' +
       '<div class="pc-topo"><h3 id="pc-titulo" class="pc-titulo">' + TITULO + "</h3>" +
@@ -215,6 +216,7 @@
       (link && aberto ? '<p class="pc-link"><span>Link:</span> <code>' + escapar(link) + "</code></p>" : "") +
       (aberto && !link ? '<p class="pc-sub">Por segurança o link só aparece no momento em que é gerado. Para enviar de novo, use "Gerar novo link" (o anterior deixa de valer).</p>' : "") +
 
+      (c && c.imported_anamnesis_id ? '<p class="pc-sub">Levado para o atendimento em ' + escapar(dataHora(c.imported_at)) + ". O rascunho profissional está logo abaixo.</p>" : "") +
       (arq ? '<p class="pc-sub">Paciente arquivado: reative para enviar o Mapeamento Holístico.</p>' : "") +
       '<div class="pc-acoes">' + acoes + "</div>" +
       (st === "concluido" && vendoResposta[c.id] !== false ? htmlResposta(c) : "") +
@@ -225,10 +227,8 @@
     var p = paciente(); if (!p || ocupado) return;
     ocupado = true; desenhar();
     var A = window.AtendimentoAtual, e = A && A.atual ? A.atual() : null;
-    /* retorno se o paciente ja tem Mapeamento recebido (ou um registro antigo da nutricionista); senao, primeira consulta */
-    var jaRecebeu = cache.pid === p.id && cache.linhas.some(function (x) { return x.status === "concluido"; });
-    var registroAntigo = window.Anamnese && window.Anamnese.doPaciente && window.Anamnese.doPaciente(p.id).some(function (a) { return a.status !== "rascunho"; });
-    var tipo = jaRecebeu || registroAntigo ? "retorno" : "primeira";
+    /* primeira consulta x retorno: retorno se o paciente ja tem anamnese profissional salva (regra mantida) */
+    var tipo = window.Anamnese && window.Anamnese.doPaciente && window.Anamnese.doPaciente(p.id).some(function (a) { return a.status !== "rascunho"; }) ? "retorno" : "primeira";
     return miniaturaLogo().then(function (logo) {
       return Promise.resolve(sb().rpc("criar_convite_anamnese", { p_patient_id: p.id, p_encounter_id: e && e.patient_id === p.id ? e.id : null, p_dias: DIAS, p_tipo: tipo, p_logo: logo }));
     }).then(function (r) {

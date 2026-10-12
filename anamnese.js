@@ -334,11 +334,14 @@
     if (window.PreConsulta) window.PreConsulta.desenhar();
     var alvo = document.getElementById("anamnese-registro") || document.getElementById("aba-anamnese");
     if (!alvo) return;
-    /* 12/10 (decisao da usuaria): o unico Mapeamento Holistico e o que o PACIENTE responde pelo link
-       (anamnese-convite.js). O formulario da nutricionista saiu da aba. Os registros feitos antes continuam
-       guardados e aparecem aqui so para leitura. O editor antigo fica desligado (window.__REGISTRO_PROFISSIONAL
-       liga, so para os testes do codigo legado). */
-    if (!window.__REGISTRO_PROFISSIONAL) { alvo.innerHTML = registrosAntigosHtml(); return; }
+    /* 12/10: a aba nao mostra mais um formulario profissional VAZIO. O rascunho profissional nasce do
+       Mapeamento do paciente ("Levar para o atendimento") e so entao aparece aqui para revisar e completar.
+       Quem ja tem registro neste atendimento continua vendo e editando como antes; os registros de outros
+       atendimentos aparecem so para leitura. (window.__REGISTRO_PROFISSIONAL abre o editor vazio, para os
+       testes do codigo legado.) */
+    var ea = atendimentoAtivo();
+    var temRegistro = ea && (doAtendimento(ea.id).length || rascunhoDe(ea.id) || rascunho);
+    if (!window.__REGISTRO_PROFISSIONAL && !temRegistro) { alvo.innerHTML = registrosAntigosHtml(); return; }
     var e = atendimentoAtivo();
     if (!e) {
       rascunho = null;

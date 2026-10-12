@@ -29,6 +29,8 @@ const nav = await puppeteer.launch({
 const errosJS = [];
 const ctx = await nav.createBrowserContext();
 const A = await ctx.newPage();
+/* 12/10: o editor profissional vazio so aparece depois de "Levar para o atendimento"; aqui o teste exercita o editor direto */
+await A.evaluateOnNewDocument(() => { window.__REGISTRO_PROFISSIONAL = true; });
 await A.setViewport({ width: 1366, height: 1000 });
 A.on('pageerror', e => errosJS.push(e.message));
 await ligarPagina(A, srv);
