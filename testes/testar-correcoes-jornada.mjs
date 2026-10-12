@@ -184,7 +184,9 @@ const b7 = await A.evaluate(async (pid, eid) => {
   const depois = [pega()];
   return { antes: antes && antes[0], depois: depois && depois[0] };
 }, PA, EA);
-ok(/não registrado/.test(b7.antes || '') && /rev\. 1 · salvo/.test(b7.depois || ''), 'Visão Geral: ao salvar o Mapeamento, a linha muda sozinha de "não registrado" para "rev. 1 · salvo" (' + (b7.depois || '').replace(/\s+/g, ' ') + ')');
+/* 12/10 (Mapeamento enxuto): a linha "Mapeamento Holístico" da Visão é o que o PACIENTE respondeu pelo link;
+   o registro profissional fica na aba e não muda essa linha */
+ok(/Mapeamento Holístico\s*\n?\s*Não enviado/i.test(b7.antes || '') && /Não enviado/i.test(b7.depois || '') && !/rev\. 1 · salvo/.test(b7.depois || ''), 'Visão Geral: a linha "Mapeamento Holístico" mostra o estado do Mapeamento do paciente (' + (b7.depois || '').replace(/\s+/g, ' ').slice(0, 80) + ')');
 
 titulo('B8 — HOLOS AI: TODAS AS FERRAMENTAS CONCLUIDAS E O RESULTADO HOLOS');
 const ia = await A.evaluate(async (pid) => {

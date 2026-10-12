@@ -29,6 +29,8 @@ srv.tratar = (m) => { const r = tratar(m); if (m.nome === 'salvar_anamnese' && r
 const nav = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const errosJS = [];
 const P = await (await nav.createBrowserContext()).newPage();
+/* 12/10: o editor profissional vazio so aparece depois de "Levar para o atendimento"; aqui o teste exercita o editor direto */
+await P.evaluateOnNewDocument(() => { window.__REGISTRO_PROFISSIONAL = true; });
 await P.setViewport({ width: 1366, height: 1000 });
 P.on('pageerror', e => errosJS.push(e.message));
 await ligarPagina(P, srv);

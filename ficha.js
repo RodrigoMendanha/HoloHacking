@@ -229,6 +229,13 @@
     }
     var anResumo = mh && mh.estado === "concluido"
       ? '<button type="button" class="dash-ir" data-ir="aba:anamnese">Ver respostas do Mapeamento <span aria-hidden="true">&rarr;</span></button>' : "";
+    /* registro profissional (depois de "Levar para o atendimento"): o resumo continua na Visao */
+    if (foco && An.resumoHtml) {
+      var anV = An.vigente(foco.id);
+      if (!anV) anV = An.anteriorDe ? An.anteriorDe(pid, foco.id) : null;
+      var rh = anV ? An.resumoHtml(anV) : "";
+      if (rh) anResumo += '<details class="fic-an-resumo" id="fic-an-resumo"><summary>Resumo do Mapeamento (rev. ' + anV.revision_number + ")</summary>" + rh + "</details>";
+    }
     return '<div class="dash-bloco dash-bloco-compacto" id="fic-atendimento-clinico">' +
       '<h3 class="dash-titulo">Atendimento clínico</h3>' +
       linhas.map(function (l) { return '<div class="fic-det"><span>' + escapar(l[0]) + "</span><b>" + escapar(l[1]) + "</b></div>"; }).join("") +

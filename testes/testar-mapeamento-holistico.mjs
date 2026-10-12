@@ -184,8 +184,8 @@ const enviado = rpc('anamnese_publica_enviar', { p_token: tokA, p_conteudo: { fo
 await recarregarCartao(N, PA);
 s = await pc(N);
 ok(!enviado.error && /Concluído/.test(s.status) && /Mapeamento recebido/.test(s.txt) && /Recebido em/i.test(s.txt)
-  && s.botoes.join('|') === 'ver:Ver resposta|usar:Levar para o atendimento|novo:Enviar novo Mapeamento',
-  'paciente enviou: "Mapeamento recebido", status "Concluído", data, "Ver resposta" e "Levar para o atendimento"');
+  && s.botoes.join('|') === 'ver:Esconder resposta|usar:Levar para o atendimento|novo:Enviar novo Mapeamento',
+  'paciente enviou: "Mapeamento recebido", status "Concluído", data, resposta aberta (Esconder resposta) e "Levar para o atendimento"');
 const recebido = JSON.stringify(convites(PA).find(c => c.status === 'concluido').submitted_content);
 if (SHOT) { await clicarPc(N, 'ver'); await espera(500); const el = await N.$('#an-preconsulta'); if (el) await el.screenshot({ path: SHOT + '/mapeamento-recebido.png' }); await clicarPc(N, 'ver'); }
 

@@ -43,6 +43,8 @@ const errosJS = [];
 const espera = ms => new Promise(r => setTimeout(r, ms));
 async function sessao(largura) {
   const P = await (await nav.createBrowserContext()).newPage();
+  /* 12/10: o editor profissional vazio so aparece depois de "Levar para o atendimento"; aqui o teste exercita o editor direto */
+  await P.evaluateOnNewDocument(() => { window.__REGISTRO_PROFISSIONAL = true; });
   await P.setViewport({ width: largura || 1366, height: 1000 });
   P.on('pageerror', e => errosJS.push(e.message));
   await ligarPagina(P, srv);
@@ -230,7 +232,7 @@ await clicar(A, '[data-an2-tipo="primeira"]'); await espera(200);
 ok(await A.evaluate(() => document.querySelectorAll('.an2-bloco').length === 7 && !!document.querySelector('[data-an-acao="copiar"]')), 'troca manual para Primeira consulta: os 7 blocos e "Criar a partir da anamnese anterior"');
 await clicar(A, '[data-an2-tipo="retorno"]'); await espera(200);
 const campos = await A.evaluate(() => [...document.querySelectorAll('[data-an2-bloco="retorno"] .an2-rot')].map(x => x.textContent));
-ok(campos.length === 16 && /O que melhorou/.test(campos.join()) && /Principal dificuldade/.test(campos.join()) && /colocar em prática/.test(campos.join()), 'retorno: os 15 campos curtos (+ peso atual; 5 novos do Mapeamento Holístico)');
+ok(campos.length === 25 && /O que melhorou/.test(campos.join()) && /Principal dificuldade/.test(campos.join()) && /colocar em prática/.test(campos.join()), 'retorno: os 15 campos curtos (+ peso atual; 5 do Mapeamento Holístico; 9 de seleção do Mapeamento enxuto)');
 await digitar(A, '[data-an2-campo="retorno.melhorou"]', 'sono melhor');
 await digitar(A, '[data-an2-campo="retorno.peso"]', '71');
 await sair(A, '[data-an2-campo="retorno.peso"]'); await espera(1200);
