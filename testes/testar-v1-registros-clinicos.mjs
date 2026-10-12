@@ -175,7 +175,10 @@ ok(RV.previa(cat('gatilhos_respostas_v1'), { respostas: VAL.gatilhos_respostas_v
 titulo('6. NAO INTERFERENCIA (ESTATICA)');
 const motores = ['holoscan-oficial.js', 'metodologia-motor.js', 'holoscan.js', 'leitura-integrada-motor.js', 'laboratorio-motor.js', 'questionario.js'];
 ok(motores.every(f => !/Aplicacoes|tool_applications|mapa_rotina_v1|gatilhos_respostas_v1|conexao_pertencimento_v1|RegistroVisual|REGISTRO_OPCOES/.test(ler(f))), 'motores (HOLOSCAN oficial e legado, LI, laboratorio, questionario) nao leem ferramentas: ' + motores.join(', '));
-ok(!/mapa_rotina_v1|gatilhos_respostas_v1|conexao_pertencimento_v1/.test(ler('holos-ai.js')), 'HOLOS AI nao recebe os registros (nenhuma interpretacao automatica)');
+/* 12/10 (Bug 8, pedido da usuaria): o HOLOS AI passa a receber os registros, mas SO pelo fechamento descritivo
+   (FerramentasFechamento, o mesmo do Resultado HOLOS): sem leitura visual nem interpretacao automatica. */
+ok(/FerramentasFechamento/.test(ler('holos-ai.js')) && !/RegistroVisual|REGISTRO_OPCOES|interpretar\(/.test(ler('holos-ai.js')),
+  'HOLOS AI recebe os registros so pelo fechamento descritivo (nenhuma interpretacao automatica)');
 ok(/cat && cat\.registro\) return;/.test(ler('panorama.js')), 'Panorama.contexto ignora registros (nem a intensidade percebida entra em contexto de calculo)');
 const sql = ler('supabase/migrations/20261005110000_ferramentas_registro_v1.sql').replace(/--.*$/gm, '');
 ok(!/holoscan_|methodology_|integrated_reading|lab_/.test(sql), 'a migration nao toca HOLOSCAN, pacotes, Leitura Integrada nem laboratorio');
