@@ -62,13 +62,21 @@ export function criarResultadoHolos(s, ctx) {
       .map(a => ({ a, q: porQ[a.question_stable_id], r: respostas.find(x => x.marcador_id === a.question_stable_id) })).filter(x => x.q && x.r)
       .sort(ordemQ).map(({ a, q, r }) => Object.assign({ question_id: q.stable_id, enunciado: q.statement, valor: r.valor,
         resposta: Array.isArray(q.response_labels) ? (q.response_labels[r.valor] ?? null) : null }, comPeso ? { peso: a.weight ?? null } : {}));
+    /* template 4 (migration 20261019100000, resultado_holos_dominantes): ate 3 sinais dominantes reais por sistema —
+       peso x valor orientado (a mesma conta do motor e dos Proximos Passos), texto aprovado da pergunta */
+    const escalas = de('methodology_scales');
+    const dominantes = (sis) => assoc.filter(a => a.destination_type === 'system' && a.destination_id === sis && a.role === 'primaria' && a.weight != null)
+      .map(a => { const q = porQ[a.question_stable_id], r = respostas.find(x => x.marcador_id === a.question_stable_id), e = q && escalas.find(z => z.code === q.scale_code);
+        if (!q || !r || r.valor === null || r.valor === undefined || !e) return null;
+        return { question_id: q.stable_id, enunciado: q.statement, pontos: a.weight * (q.orientation === 'invertida' ? e.max_value - r.valor : r.valor - e.min_value) }; })
+      .filter(x => x && x.pontos > 0).sort((a, b) => (b.pontos - a.pontos) || (a.question_id < b.question_id ? -1 : a.question_id > b.question_id ? 1 : 0)).slice(0, 3);
     const sistemas = T.holoscan_system_scores.filter(x => x.application_id === app.id).map(sc => {
       const ms = sistemasPk.find(y => y.code === sc.sistema) || {};
       const fx = faixas.find(f => f.destination_type === 'system' && f.destination_id === sc.sistema && f.label === sc.faixa) || {};
       return { _pos: ms.position ?? 99, sistema: sc.sistema, nome: sc.nome, nota: sc.nota, carga: sc.carga, faixa: sc.faixa, obtido: sc.obtido, maximo: sc.maximo,
         respondidos: sc.respondidos, total_marcadores: sc.total_marcadores, avaliavel: sc.avaliavel, texto_publico: ms.public_text ?? null,
         mensagem_nutri: fx.message_nutri ?? null, mensagem_paciente: fx.message_paciente ?? null,
-        pontuou: itens(sc.sistema, 'primaria', true), contexto: itens(sc.sistema, 'secondary_contextual', false) };
+        pontuou: itens(sc.sistema, 'primaria', true), contexto: itens(sc.sistema, 'secondary_contextual', false), dominantes: dominantes(sc.sistema) };
     }).sort((a, b) => (a._pos - b._pos) || a.sistema.localeCompare(b.sistema)).map(x => { delete x._pos; return x; });
     const ferramentas = tools.map(t => ({ id: t.id, ferramenta_id: t.ferramenta_id, versao_ferramenta: t.versao_ferramenta, status: t.status,
       iniciada_em: t.iniciada_em, concluida_em: t.concluida_em, encounter_id: t.encounter_id || null, respostas: copia(t.respostas || {}),
@@ -96,7 +104,8 @@ export function criarResultadoHolos(s, ctx) {
     }
     return {
       conteudo: {
-        template_version: 3,
+        template_version: 4,
+        motor_resultados: 'MR-V1',
         paciente: { id: pac.id, nome: pac.nome },
         profissional: { nome: prof.nome ?? null },
         atendimento: { id: enc.id, occurred_at: enc.occurred_at, timezone: enc.timezone ?? null, type: enc.type ?? null, modality: enc.modality ?? null },
@@ -170,8 +179,9 @@ export function criarResultadoHolos(s, ctx) {
     const pac = T.patients.find(x => x.id === r.patient_id && x.nutritionist_id === uid);
     if (pac && pac.status === 'inativo') falha('paciente arquivado: reative antes de registrar novas informacoes', 'paciente_arquivado');
     const encDe = (id) => T.encounters.find(e => e.id === id) || {};
-    const cd = T.conducts.filter(c => c.patient_id === r.patient_id && c.nutritionist_id === uid && ['salvo', 'revisado'].includes(c.status))
-      .sort((a, b) => String(encDe(b.encounter_id).occurred_at).localeCompare(String(encDe(a.encounter_id).occurred_at)) || (b.revision_number - a.revision_number))[0];
+    /* RF-2 (migration 20261019100000): a Conduta do ATENDIMENTO DO RESULTADO — nunca a de outro atendimento */
+    const cd = T.conducts.filter(c => c.patient_id === r.patient_id && c.nutritionist_id === uid && ['salvo', 'revisado'].includes(c.status) && c.encounter_id === r.encounter_id)
+      .sort((a, b) => b.revision_number - a.revision_number)[0];
     const conduta = cd ? { id: cd.id, revision_number: cd.revision_number, encounter_id: cd.encounter_id, atendimento_em: encDe(cd.encounter_id).occurred_at ?? null,
       campos: { objective: cd.objective ?? null, nutrition_strategy: cd.nutrition_strategy ?? null, actions: cd.actions ?? null, resources: cd.resources ?? null,
         professional_guidance: cd.professional_guidance ?? null, return_plan: cd.return_plan ?? null },
@@ -181,14 +191,14 @@ export function criarResultadoHolos(s, ctx) {
     const pr = T.profiles.find(x => x.id === uid) || {};
     const num = T.holos_result_emissions.filter(e => e.patient_id === r.patient_id).reduce((m, e) => Math.max(m, e.emission_number), 0) + 1;
     const agora = carimbo();
-    const snap = { template: 'RF-1', emitida_em: agora, emissao: { numero: num }, paciente: { id: pac.id, nome: pac.nome },
+    const snap = { template: 'RF-2', emitida_em: agora, emissao: { numero: num }, paciente: { id: pac.id, nome: pac.nome },
       resultado: { id: r.id, revision_number: r.revision_number, status: r.status, salvo_em: r.saved_at, content_hash: r.content_hash, template_version: r.template_version || 1 },
       conduta,
       profissional: { nome: pr.nome ?? null, profissao: pr.profissao ?? null, registro: pr.registro ?? null, especialidade: pr.especialidade ?? null, cidade: pr.cidade ?? null,
         telefone: pr.telefone ?? null, instagram: pr.instagram ?? null, cor_primaria: pr.cor_primaria ?? null, cor_secundaria: pr.cor_secundaria ?? null },
       imagens: { logo: imagem(img.logo), assinatura: imagem(img.assinatura), carimbo: imagem(img.carimbo) } };
     const l = { id: randomUUID(), nutritionist_id: uid, patient_id: r.patient_id, holos_result_id: r.id, result_content_hash: r.content_hash, conduct_id: cd ? cd.id : null,
-      emission_number: num, template_version: 'RF-1', content_snapshot: snap, content_hash: createHash('sha256').update(JSON.stringify(snap), 'utf8').digest('hex'),
+      emission_number: num, template_version: 'RF-2', content_snapshot: snap, content_hash: createHash('sha256').update(JSON.stringify(snap), 'utf8').digest('hex'),
       operation_id: p.operation_id || null, created_at: agora };
     T.holos_result_emissions.push(l);
     return { id: l.id, emission_number: l.emission_number, content_hash: l.content_hash, created_at: l.created_at };

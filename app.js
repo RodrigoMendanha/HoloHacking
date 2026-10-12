@@ -3039,9 +3039,10 @@
     if(r.triada){
       const vals = EIXOS_TRIADA.filter(e => typeof r.triada[e[0]] === "number" && !(r.triada_com_dado && r.triada_com_dado[e[0]] === false));
       if(vals.length){
-        const min = vals.reduce((a, b) => r.triada[b[0]] < r.triada[a[0]] ? b : a);
+        /* 12/10 (item 4.3): no empate nenhuma dimensao e escolhida — a mesma regra do Resultado HOLOS (window.triadeMenores) */
+        const tm = window.triadeMenores(vals.map(e => ({ nome: e[1], valor: r.triada[e[0]] })));
         triTxt = '<p class="res-linha"><b>Tríade:</b> ' + vals.map(e => esc(e[1]) + " " + esc(A.fmt(r.triada[e[0]]))).join(" · ")
-          + (vals.length > 1 ? ' — dimensão mais baixa: <b>' + esc(min[1]) + '</b>.' : '') + '</p>';
+          + (tm.frase ? ' — ' + esc(tm.frase) : '') + '</p>';
       }
     }
     const investigar = comNota.slice(0, 2).map(s => {
@@ -3700,7 +3701,7 @@
     const comSinais = r.sistemas.filter(s => s.dominantes && s.dominantes.length > 0);
     if(comSinais.length === 0){ caixa.classList.add("hidden"); caixa.innerHTML = ""; return; }
     const blocos = comSinais.map(s => {
-      const itens = s.dominantes.map(d => "<li>" + (d.rotulo || d.marcador_id) + "</li>").join("");
+      const itens = s.dominantes.slice(0, 3).map(d => "<li>" + window.escapar(d.rotulo || d.marcador_id) + "</li>").join("");
       return '<div class="holo-dominante-sistema"><h5>' + s.nome + '</h5>'
            + '<ul class="holo-dominante-lista">' + itens + '</ul></div>';
     }).join("");
@@ -3759,11 +3760,10 @@
     /* O eixo mais baixo so pode sair de quem tem dado. Sem isso, um eixo em
        branco (que a formula devolve como 10) nunca seria o menor — mas um
        eixo em branco tambem nao pode competir. */
-    let menor = -1;
-    [0,1,2].forEach(i => {
-      if(!temDado(i)) return;
-      if(menor < 0 || valores[i] < valores[menor]) menor = i;
-    });
+    /* 12/10 (item 4.3): empate nao escolhe uma dimensao — todas as de menor nota ficam marcadas e a frase diz o empate
+       (a mesma regra da Sintese e do Resultado HOLOS: window.triadeMenores) */
+    const tmTri = window.triadeMenores([0,1,2].map(i => ({ nome: EIXOS_TRIADA[i][1], valor: temDado(i) ? valores[i] : null })));
+    const ehMenor = i => tmTri.menores.indexOf(EIXOS_TRIADA[i][1]) >= 0 && !tmTri.todas;
 
     caixa.innerHTML =
       '<h4 class="leitura-titulo">Tríade HOLOS '
@@ -3773,7 +3773,7 @@
       +   'class="triada-grafico" aria-hidden="true">' + svg + "</svg>"
       +   '<div class="triada-eixos">'
       +     EIXOS_TRIADA.map((e, i) =>
-            '<div class="triada-eixo' + (i === menor ? " menor" : "")
+            '<div class="triada-eixo' + (ehMenor(i) ? " menor" : "")
               + (temDado(i) ? "" : " sem-dado") + '">'
             + '<span class="triada-nota">'
             + (temDado(i) ? (exibicao && exibicao[e[0]] ? exibicao[e[0]] : window.HoloAusencia.fmt(valores[i])) : "—") + "</span>"
@@ -3784,9 +3784,8 @@
          procedencia: nada no metodo diz que a dimensao mais baixa da Triade e
          por onde comecar. Saiu so ela. A Triade continua identificando e
          destacando a menor — isso e descricao, e e o que o grafico ja faz. */
-      +     (menor >= 0
-              ? '<p class="triada-leitura">Dimensão mais baixa: <b>'
-                + EIXOS_TRIADA[menor][1] + "</b>.</p>"
+      +     (tmTri.frase
+              ? '<p class="triada-leitura">' + window.escapar(tmTri.frase) + "</p>"
               : "")
       +     (todosComDado
               ? ""

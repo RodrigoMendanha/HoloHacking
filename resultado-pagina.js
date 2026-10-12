@@ -12,8 +12,9 @@
        HOLOSCAN oficial, cinco sistemas, Indice, Triade, ferramentas de Corpo,
        Mente e Espirito marcadas "mostrar a paciente" e os textos da
        nutricionista (ResultadoHolos.documentoHtml, sem recalculo);
-     - a CONDUTA VIGENTE do paciente (consolidada), nos campos escritos pela
-       nutricionista: objetivo, estrategia, acoes, recursos, orientacoes,
+     - a CONDUTA do ATENDIMENTO DO RESULTADO (consolidada; motor de resultados
+       V1, 12/10 — antes era a vigente do paciente, de qualquer atendimento),
+       nos campos escritos pela nutricionista: objetivo, estrategia, acoes, recursos, orientacoes,
        retorno e os acordos combinados;
      - a IDENTIDADE PROFISSIONAL do Perfil: nome, registro, especialidade,
        logo, assinatura e carimbo.
@@ -84,6 +85,14 @@
     var acordos = Cd.acordosDe ? Cd.acordosDe(v.conduta.id) : [];
     return { conduta: v.conduta, atendimento: v.atendimento, acordos: acordos };
   }
+  /* Motor de resultados V1 (12/10, item 4.6): a Conduta que acompanha o Resultado e a do ATENDIMENTO DO RESULTADO
+     (a mesma regra da emissao RF-2 no servidor) — nunca a mais recente de outro atendimento. */
+  function condutaDoResultado(r) {
+    var Cd = window.Conduta; if (!Cd || !Cd.vigente || !r || !r.encounter_id) return null;
+    var c = Cd.vigente(r.encounter_id);
+    if (!c) return null;
+    return { conduta: c, atendimento: window.AtendimentoAtual && window.AtendimentoAtual.porId ? window.AtendimentoAtual.porId(r.encounter_id) : null, acordos: Cd.acordosDe ? Cd.acordosDe(c.id) : [] };
+  }
   function termosFora(textos) {
     var achados = {};
     textos.forEach(function (t) { var m = String(t || "").match(new RegExp(TERMOS_FORA.source, "gi")); (m || []).forEach(function (x) { achados[x.toLowerCase()] = true; }); });
@@ -150,6 +159,9 @@
      (conferido pelo hash). Mesma entrada -> mesmo HTML, sempre. */
   function documentoEmissao(em, r) {
     var s = em.content_snapshot || {};
+    /* motor de resultados V1 (12/10, item 4.7): emissao RF-1 ja feita e desenhada pelo desenho CONGELADO da epoca
+       (resultado-legado-r3.js) — o codigo novo nunca muda um documento ja emitido. RF-2 em diante: desenho atual. */
+    if ((em.template_version || s.template) === "RF-1" && window.ResultadoLegadoR3) return window.ResultadoLegadoR3.documentoEmissao(em, r);
     var c = s.conduta;
     var cv = c ? { conduta: Object.assign({}, c.campos || {}), acordos: (c.acordos || []).map(function (a) { return { description: a.description, due_text: a.due_text }; }) } : null;
     var eu = Object.assign({}, s.profissional || {});
@@ -297,7 +309,7 @@
         a.innerHTML = barraAcoes(pid, rEm, p, em) + listaEmissoes(emissoes.linhas, em) + documentoEmissao(em, rEm);
         return;
       }
-      var cv = condutaVigente(pid), eu = perfil();
+      var cv = condutaDoResultado(r), eu = perfil();
       a.innerHTML = barraAcoes(pid, r, p, null) + avisoTermos(r, cv) + listaEmissoes(emissoes.linhas, null) +
         (emissoes.indisponivel ? "" : '<p class="rp-previa-selo rp-so-tela" role="status">PRÉVIA com os dados atuais. Ela ainda não foi emitida.</p>') + documentoHtml(pid, r, cv, eu);
       pintarImagens(eu);
@@ -469,7 +481,7 @@
 
   window.ResultadoPagina = {
     desenhar: desenhar, gerarPdf: gerarPdf, enviarWhatsApp: enviarWhatsApp, imprimir: imprimir,
-    resultadoFinal: resultadoFinal, condutaVigente: condutaVigente, documentoEmissao: documentoEmissao, emissoes: function () { return emissoes.linhas.slice(); },
+    resultadoFinal: resultadoFinal, condutaVigente: condutaVigente, condutaDoResultado: condutaDoResultado, documentoEmissao: documentoEmissao, emissoes: function () { return emissoes.linhas.slice(); },
     numeroWhatsApp: numeroWhatsApp, linkWhatsApp: linkWhatsApp, mensagemWhatsApp: mensagemWhatsApp, termosFora: termosFora,
     CAMPOS_CONDUTA: CAMPOS_CONDUTA, HTML2PDF_URL: HTML2PDF_URL
   };

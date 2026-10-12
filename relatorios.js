@@ -128,6 +128,25 @@
 
   /* ---------- previa (cliente) — rotulada, nunca "emitida" ------------------ */
 
+  /* Motor de resultados V1 (12/10, item 4.4): o texto sobre a metodologia sai do ESTADO REAL do pacote das aplicacoes
+     incluidas — o mesmo texto que o servidor grava na emissao (migration 20261019100000). Antes era fixo: "nao homologado". */
+  function textoMetodologia(sel, hist) {
+    var ids = (sel && sel.holoscan_application_ids) || [];
+    if (!ids.length) return "Nenhuma aplicação HOLOSCAN incluída neste relatório.";
+    hist = hist || [];
+    var P = window.PacoteMetodologico, pacotes = P && P.todos ? P.todos() : [];
+    var nomes = [], historica = false;
+    ids.forEach(function (id) {
+      var h = hist.filter(function (x) { return x._supa_id === id; })[0];
+      var pk = h && h.methodology_package_id ? pacotes.filter(function (x) { return x.id === h.methodology_package_id; })[0] : null;
+      if (!pk || (pk.status !== "aprovado" && pk.status !== "retirado")) historica = true;
+      else if (nomes.indexOf(pk.code + " v" + pk.version) < 0) nomes.push(pk.code + " v" + pk.version);
+    });
+    if (historica) return "Há aplicação HOLOSCAN histórica, sem pacote metodológico oficial aprovado: seus resultados metodológicos não são oficiais; constam só identificação, data, versão e cobertura bruta.";
+    return "Aplicações HOLOSCAN calculadas pelo pacote metodológico oficial aprovado (" + nomes.sort().join(", ") +
+      "). Este relatório registra identificação, data, versão, cobertura e a interpretação profissional; notas, Índice, Tríade e o resultado do método ficam no Resultado HOLOS.";
+  }
+
   function montarPrevia(pid, f) {
     var F = fontesDisponiveis(pid), An = window.Anamnese, Cd = window.Conduta, sel = f.sel, intimo = !!sel.incluir_intimo, interp = sel.incluir_interpretacao !== false;
     var p = (window.pacientesTodos ? window.pacientesTodos() : []).filter(function (x) { return x.id === pid; })[0] || {};
@@ -135,7 +154,7 @@
     var em = function (lista, ids, chave) { return lista.filter(function (x) { return ids.indexOf(x[chave || "id"]) >= 0; }); };
     var c = { template_version: 1, previa: true, titulo: f.title, paciente: { nome: p.nome, nascimento: p.nascimento, sexo: p.sexo },
       profissional: { nome: prof.nome, profissao: prof.profissao, registro: prof.registro }, periodo: { inicio: f.period_start || null, fim: f.period_end || null },
-      metodologia: "Resultados metodológicos do HOLOSCAN ainda não são oficiais (Pacote Metodológico V1 não homologado).", texto_assistido: [] };
+      metodologia: textoMetodologia(sel, F.holoscan), texto_assistido: [] };
     c.atendimentos = em(F.atendimentos, sel.encounter_ids).map(function (e) { return { tipo_conteudo: "DADO_DOCUMENTAL", id: e.id, occurred_at: e.occurred_at, timezone: e.timezone, type: e.type, modality: e.modality, com_agendamento: !!e.consultation_id }; });
     c.anamneses = em(F.anamneses, sel.anamnesis_ids).map(function (a) {
       var itens = [];

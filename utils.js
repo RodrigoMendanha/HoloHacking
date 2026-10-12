@@ -261,6 +261,23 @@
     "Magnesio eritrocitario": "Magnésio eritrocitário",
     "Homocisteina": "Homocisteína"
   };
+  /* Triade: a(s) dimensao(oes) de menor nota, sem escolher uma no empate (motor de resultados V1, 12/10, item 4.3).
+     Uma regra so para a tela do HOLOSCAN, o Resultado HOLOS e a Sintese. lista: [{ nome, valor }] (valor null = sem dado).
+     Devolve { menores: [nomes], todas: bool, frase } — frase vazia com menos de 2 dimensoes com dado. */
+  window.triadeMenores = function (lista) {
+    var com = (lista || []).filter(function (t) { return typeof t.valor === "number" && !isNaN(t.valor); });
+    if (!com.length) return { menores: [], todas: false, frase: "" };
+    /* so um eixo com dado: ele e o destacado (comportamento anterior do HOLOSCAN: eixo sem dado nao compete) */
+    if (com.length === 1) return { menores: [com[0].nome], todas: false, frase: "Dimensão mais baixa: " + com[0].nome + "." };
+    var min = Math.min.apply(null, com.map(function (t) { return t.valor; }));
+    var menores = com.filter(function (t) { return t.valor === min; }).map(function (t) { return t.nome; });
+    var todas = menores.length === com.length;
+    var frase = menores.length === 1 ? "Dimensão mais baixa: " + menores[0] + "."
+      : todas && com.length === 3 ? "As três dimensões apresentaram a mesma nota."
+      : menores.slice(0, -1).join(", ") + " e " + menores[menores.length - 1] + " apresentaram a mesma nota" + (todas ? "." : ", a menor entre as dimensões.");
+    return { menores: menores, todas: todas, frase: frase };
+  };
+
   window.rotuloExibivel = function (s) {
     if (s === null || s === undefined) return s;
     var t = String(s);

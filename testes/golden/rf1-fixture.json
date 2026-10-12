@@ -1,0 +1,1431 @@
+{
+ "resultado": {
+  "id": "cc48d233-2b3c-49b1-8e09-e291adea7790",
+  "nutritionist_id": "b383a7cd-f581-42ec-8b74-986623f88dcf",
+  "patient_id": "93187a01-c61d-4dce-9c99-a77d62a6218e",
+  "encounter_id": "7fb65e0e-a337-421a-8c73-048831a62d15",
+  "status": "salvo",
+  "revision_number": 1,
+  "supersedes_id": null,
+  "superseded_at": null,
+  "holoscan_application_id": "752290dc-9987-4967-9303-8b24cca88179",
+  "selected_sources": {
+   "holoscan_application_id": "752290dc-9987-4967-9303-8b24cca88179",
+   "tool_application_ids": [
+    "7f10b81e-8ad8-453b-85ea-ee845d277e45",
+    "4a52f6d6-085b-4079-b807-6e05e5cbc1fa",
+    "68f69e56-fa16-4344-9e41-ec221a661d28",
+    "b0ed6908-f05a-46e2-8f68-90cce861a376",
+    "4342e4d6-dfb1-4d4f-9888-0f1dcdfdc4f2",
+    "49845c6e-fbd3-45e1-97c8-cb5fbe851cae",
+    "d79762ab-1b3a-4f2e-b203-c67210fb9e95",
+    "41f706f7-ab89-4f07-aea4-07f6848ac1c7",
+    "459e2fa9-33ee-44c6-95ff-b1c004a40bb5"
+   ],
+   "visao_paciente": {
+    "ferramentas": {
+     "7f10b81e-8ad8-453b-85ea-ee845d277e45": {
+      "mostrar": true
+     },
+     "4a52f6d6-085b-4079-b807-6e05e5cbc1fa": {
+      "mostrar": true
+     },
+     "68f69e56-fa16-4344-9e41-ec221a661d28": {
+      "mostrar": true
+     },
+     "b0ed6908-f05a-46e2-8f68-90cce861a376": {
+      "mostrar": true
+     },
+     "4342e4d6-dfb1-4d4f-9888-0f1dcdfdc4f2": {
+      "mostrar": true
+     },
+     "49845c6e-fbd3-45e1-97c8-cb5fbe851cae": {
+      "mostrar": true
+     },
+     "d79762ab-1b3a-4f2e-b203-c67210fb9e95": {
+      "mostrar": true
+     },
+     "41f706f7-ab89-4f07-aea4-07f6848ac1c7": {
+      "mostrar": true
+     },
+     "459e2fa9-33ee-44c6-95ff-b1c004a40bb5": {
+      "mostrar": true
+     }
+    },
+    "proximos_passos": true
+   }
+  },
+  "leitura_profissional": "Leitura da nutricionista ficticia.",
+  "pontos_acompanhar": "Sono e lanche.",
+  "questoes_aprofundar": "QUESTAO_SO_PROFISSIONAL",
+  "content_snapshot": {
+   "template_version": 3,
+   "paciente": {
+    "id": "93187a01-c61d-4dce-9c99-a77d62a6218e",
+    "nome": "Paciente Golden Ficticia"
+   },
+   "profissional": {
+    "nome": "Nutri Golden Ficticia"
+   },
+   "atendimento": {
+    "id": "7fb65e0e-a337-421a-8c73-048831a62d15",
+    "occurred_at": "2026-10-12T13:00:00.000Z",
+    "timezone": "America/Sao_Paulo",
+    "type": "consulta",
+    "modality": "presencial"
+   },
+   "holoscan": {
+    "id": "752290dc-9987-4967-9303-8b24cca88179",
+    "quando": "2026-10-12",
+    "registrado_em": "2026-10-12T22:37:21.751Z",
+    "encounter_id": "7fb65e0e-a337-421a-8c73-048831a62d15",
+    "pacote": {
+     "id": "5fe48641-69a7-4b14-b8ef-41c4fd76ccaf",
+     "code": "HOLOS-V1",
+     "version": 2,
+     "content_hash": "1c2b56f5d47878a0df70b95acf9ec755de80080ae5cdb002809605fb4c6ec183"
+    },
+    "engine_version": "motor-generico-2.0.0",
+    "calculation_mode": "oficial",
+    "cobertura": {
+     "respondidos": 84,
+     "total": 84
+    },
+    "indice": 50,
+    "indice_maximo": 100,
+    "avaliavel": true,
+    "nota_media": 5,
+    "triada": {
+     "fisico": 5,
+     "mental": 5,
+     "espiritual": 5
+    },
+    "triada_com_dado": {
+     "fisico": true,
+     "mental": true,
+     "espiritual": true
+    },
+    "interpretacao_texto": null,
+    "sistemas": [
+     {
+      "sistema": "fungico",
+      "nome": "Sistema Fúngico",
+      "nota": 5,
+      "carga": 5,
+      "faixa": "intermediaria",
+      "obtido": 1,
+      "maximo": 2,
+      "respondidos": 15,
+      "total_marcadores": 15,
+      "avaliavel": true,
+      "texto_publico": "Eixo autoral do HOLOSCAN que organiza respostas relacionadas a sinais digestivos, mucosas, pele e padrões de desejo alimentar agrupados pelo método. Não diagnostica candidíase, infecção fúngica, disbiose ou qualquer outra doença.",
+      "mensagem_nutri": "A pontuação deste eixo ficou na faixa intermediária nesta aplicação. Revise os itens respondidos e a cobertura antes da interpretação profissional.",
+      "mensagem_paciente": "A pontuação deste eixo ficou na faixa intermediária nesta aplicação. Revise os itens respondidos e a cobertura antes da interpretação profissional. Esta pontuação organiza respostas do HOLOSCAN e não representa, sozinha, um diagnóstico.",
+      "pontuou": [
+       {
+        "question_id": "SNT-101",
+        "enunciado": "Você sente vontade forte de doce ou pão quase todo dia?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-102",
+        "enunciado": "Sua barriga incha ou dá gases depois das refeições?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-103",
+        "enunciado": "Sua língua costuma ter uma camada esbranquiçada?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-104",
+        "enunciado": "Você tem candidíase ou sapinho com frequência?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-105",
+        "enunciado": "Você tem micose de pele ou unha que volta sempre?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-106",
+        "enunciado": "Você sente coceira na região íntima ou anal?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-107",
+        "enunciado": "Sua cabeça fica pesada ou confusa depois de comer massa ou doce?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-108",
+        "enunciado": "Você tem caspa ou coceira no couro cabeludo com frequência?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-109",
+        "enunciado": "Você precisou tomar antibiótico ao longo da vida?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-110",
+        "enunciado": "Você passa mal com pouca bebida alcoólica?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-111",
+        "enunciado": "Você vive com nariz entupido ou sinusite?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "EMO-101",
+        "enunciado": "Você adia começar coisas mesmo sabendo que precisa fazer?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "EMO-102",
+        "enunciado": "Você sente que sua vida está desorganizada e não consegue pôr ordem?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "EMO-103",
+        "enunciado": "Você sente um peso para sair do lugar mesmo querendo mudar?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "ESP-501",
+        "enunciado": "Você passa algum tempo em contato com a natureza?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       }
+      ],
+      "contexto": []
+     },
+     {
+      "sistema": "acido_inflamatorio",
+      "nome": "Sistema Ácido Inflamatório",
+      "nota": 5,
+      "carga": 5,
+      "faixa": "intermediaria",
+      "obtido": 1,
+      "maximo": 2,
+      "respondidos": 16,
+      "total_marcadores": 16,
+      "avaliavel": true,
+      "texto_publico": "Eixo autoral que organiza respostas relacionadas a dor, rigidez, pele, mucosas e reatividade presentes no questionário. O termo 'ácido' faz parte da nomenclatura autoral e não representa medição do pH corporal. O eixo não diagnostica inflamação nem substitui avaliação ou exames clínicos.",
+      "mensagem_nutri": "A pontuação deste eixo ficou na faixa intermediária nesta aplicação. Revise os itens respondidos e a cobertura antes da interpretação profissional.",
+      "mensagem_paciente": "A pontuação deste eixo ficou na faixa intermediária nesta aplicação. Revise os itens respondidos e a cobertura antes da interpretação profissional. Esta pontuação organiza respostas do HOLOSCAN e não representa, sozinha, um diagnóstico.",
+      "pontuou": [
+       {
+        "question_id": "SNT-201",
+        "enunciado": "Você sente dor nas articulações mesmo sem ter feito esforço?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-202",
+        "enunciado": "Você acorda com o corpo travado que leva um tempo para soltar?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-203",
+        "enunciado": "Você sente o corpo dolorido sem causa clara?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-204",
+        "enunciado": "Você sente azia ou queimação no estômago?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-205",
+        "enunciado": "Você tem dor de cabeça mais de uma vez por semana?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-206",
+        "enunciado": "Sua pele tem crises de acne inflamada, eczema ou psoríase?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-207",
+        "enunciado": "Sua gengiva sangra ao escovar?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-208",
+        "enunciado": "Você percebe que piora quando come ultraprocessado ou açúcar?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-209",
+        "enunciado": "Suas mãos ou dedos amanhecem inchados?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-210",
+        "enunciado": "Seus exames costumam mostrar PCR ou VHS acima do normal?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "EMO-201",
+        "enunciado": "Você se irrita com facilidade por coisas pequenas?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "EMO-202",
+        "enunciado": "Sua raiva sobe rápido e demora a passar?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "EMO-203",
+        "enunciado": "Você costuma aceitar o que não quer para evitar conflito?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "EMO-204",
+        "enunciado": "Você engole o que gostaria de dizer para não criar problema?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "ESP-203",
+        "enunciado": "Você abre mão do que é inegociável para você só para agradar alguém?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "ESP-404",
+        "enunciado": "Você acredita que para ter saúde precisa sofrer ou se privar?",
+        "valor": 1,
+        "resposta": "Um pouco",
+        "peso": 1
+       }
+      ],
+      "contexto": []
+     },
+     {
+      "sistema": "metabolico",
+      "nome": "Sistema Metabólico",
+      "nota": 5,
+      "carga": 5,
+      "faixa": "intermediaria",
+      "obtido": 1,
+      "maximo": 2,
+      "respondidos": 14,
+      "total_marcadores": 14,
+      "avaliavel": true,
+      "texto_publico": "Eixo autoral que organiza respostas relacionadas a energia, fome, comportamento alimentar, composição corporal percebida e achados laboratoriais relatados no questionário. Não diagnostica resistência à insulina, diabetes ou outra condição metabólica.",
+      "mensagem_nutri": "A pontuação deste eixo ficou na faixa intermediária nesta aplicação. Revise os itens respondidos e a cobertura antes da interpretação profissional.",
+      "mensagem_paciente": "A pontuação deste eixo ficou na faixa intermediária nesta aplicação. Revise os itens respondidos e a cobertura antes da interpretação profissional. Esta pontuação organiza respostas do HOLOSCAN e não representa, sozinha, um diagnóstico.",
+      "pontuou": [
+       {
+        "question_id": "SNT-301",
+        "enunciado": "Você fica com muito sono logo depois do almoço?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-303",
+        "enunciado": "Você sente fome de novo pouco tempo depois de ter comido?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-304",
+        "enunciado": "Você come depois do jantar mesmo sem fome real?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-305",
+        "enunciado": "Sua gordura se concentra na barriga?",
+        "valor": 1,
+        "resposta": "Um pouco",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-306",
+        "enunciado": "A pele do seu pescoço ou axila está mais escura e aveludada?",
+        "valor": 1,
+        "resposta": "Um pouco",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-307",
+        "enunciado": "Você fica irritado ou trêmulo se atrasa uma refeição?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-308",
+        "enunciado": "Você tem dificuldade de perder peso mesmo comendo pouco?",
+        "valor": 1,
+        "resposta": "Um pouco",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-309",
+        "enunciado": "Seus exames costumam mostrar triglicerídeos altos ou HDL baixo?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "EMO-301",
+        "enunciado": "Você sente um vazio que a comida parece tentar preencher?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "EMO-302",
+        "enunciado": "Você passa os dias no piloto automático sem perceber o que está fazendo?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "EMO-303",
+        "enunciado": "Você usa comida como recompensa depois de um dia difícil?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "ESP-101",
+        "enunciado": "Você sente que sua vida tem uma direção clara?",
+        "valor": 1,
+        "resposta": "Um pouco",
+        "peso": 1
+       },
+       {
+        "question_id": "ESP-103",
+        "enunciado": "Sua rotina de hoje te afasta do que você quer para a sua vida?",
+        "valor": 1,
+        "resposta": "Um pouco",
+        "peso": 1
+       },
+       {
+        "question_id": "ESP-303",
+        "enunciado": "Você começa a comer sem fazer nenhuma pausa antes?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       }
+      ],
+      "contexto": [
+       {
+        "question_id": "SNT-101",
+        "enunciado": "Você sente vontade forte de doce ou pão quase todo dia?",
+        "valor": 1,
+        "resposta": "Às vezes"
+       },
+       {
+        "question_id": "SNT-501",
+        "enunciado": "Você acorda cansado mesmo dormindo as horas necessárias?",
+        "valor": 1,
+        "resposta": "Às vezes"
+       },
+       {
+        "question_id": "EMO-101",
+        "enunciado": "Você adia começar coisas mesmo sabendo que precisa fazer?",
+        "valor": 1,
+        "resposta": "Às vezes"
+       },
+       {
+        "question_id": "EMO-502",
+        "enunciado": "Quando você sai da linha um dia você sente que perdeu tudo e abandona?",
+        "valor": 1,
+        "resposta": "Às vezes"
+       },
+       {
+        "question_id": "EMO-504",
+        "enunciado": "Você sente culpa ou vergonha depois de comer?",
+        "valor": 1,
+        "resposta": "Às vezes"
+       }
+      ]
+     },
+     {
+      "sistema": "detox_linfatico",
+      "nome": "Sistema Detox e Linfático",
+      "nota": 5,
+      "carga": 5,
+      "faixa": "intermediaria",
+      "obtido": 1,
+      "maximo": 2,
+      "respondidos": 15,
+      "total_marcadores": 15,
+      "avaliavel": true,
+      "texto_publico": "Eixo autoral que organiza respostas relacionadas a inchaço, hábito intestinal, pele e sensibilidade relatada a substâncias presentes no questionário. 'Detox' é nomenclatura do método; a pontuação não mede toxinas, função hepática ou função linfática.",
+      "mensagem_nutri": "A pontuação deste eixo ficou na faixa intermediária nesta aplicação. Revise os itens respondidos e a cobertura antes da interpretação profissional.",
+      "mensagem_paciente": "A pontuação deste eixo ficou na faixa intermediária nesta aplicação. Revise os itens respondidos e a cobertura antes da interpretação profissional. Esta pontuação organiza respostas do HOLOSCAN e não representa, sozinha, um diagnóstico.",
+      "pontuou": [
+       {
+        "question_id": "SNT-401",
+        "enunciado": "Você percebe inchaço nas pernas ou nos pés no fim do dia?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-402",
+        "enunciado": "Seu rosto amanhece inchado?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-403",
+        "enunciado": "Cheiros fortes te incomodam mais do que incomodam as outras pessoas?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-404",
+        "enunciado": "Comida gordurosa te faz passar mal ou pesa muito?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-405",
+        "enunciado": "Você passa um dia ou mais sem evacuar?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-406",
+        "enunciado": "Uma taça já te dá ressaca no dia seguinte?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-407",
+        "enunciado": "Você reage muito forte a medicamento ou a café?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-408",
+        "enunciado": "Sua pele está opaca ou com olheiras marcadas?",
+        "valor": 1,
+        "resposta": "Um pouco",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-409",
+        "enunciado": "Seu suor tem odor forte?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-410",
+        "enunciado": "Você tem celulite acentuada?",
+        "valor": 1,
+        "resposta": "Um pouco",
+        "peso": 1
+       },
+       {
+        "question_id": "EMO-401",
+        "enunciado": "Você se pega remoendo uma mágoa antiga?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "EMO-402",
+        "enunciado": "Você costuma guardar o que sente em vez de falar?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "EMO-403",
+        "enunciado": "Você tem dificuldade de aceitar ajuda ou cuidado das pessoas?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "ESP-405",
+        "enunciado": "Você carrega o peso de não ter conseguido perdoar alguém?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "ESP-502",
+        "enunciado": "Você faz suas refeições sozinho e com pressa?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       }
+      ],
+      "contexto": [
+       {
+        "question_id": "EMO-203",
+        "enunciado": "Você costuma aceitar o que não quer para evitar conflito?",
+        "valor": 1,
+        "resposta": "Às vezes"
+       }
+      ]
+     },
+     {
+      "sistema": "mental_emocional_espiritual",
+      "nome": "Sistema Mental Emocional Espiritual",
+      "nota": 5,
+      "carga": 5,
+      "faixa": "intermediaria",
+      "obtido": 1,
+      "maximo": 2,
+      "respondidos": 24,
+      "total_marcadores": 24,
+      "avaliavel": true,
+      "texto_publico": "Eixo autoral que organiza respostas relacionadas a sono, alerta, foco, emoções, relação consigo e questões de sentido pessoal. Não diagnostica transtornos mentais e não mede saúde, valor ou qualidade espiritual.",
+      "mensagem_nutri": "A pontuação deste eixo ficou na faixa intermediária nesta aplicação. Revise os itens respondidos e a cobertura antes da interpretação profissional.",
+      "mensagem_paciente": "A pontuação deste eixo ficou na faixa intermediária nesta aplicação. Revise os itens respondidos e a cobertura antes da interpretação profissional. Esta pontuação organiza respostas do HOLOSCAN e não representa, sozinha, um diagnóstico.",
+      "pontuou": [
+       {
+        "question_id": "SNT-501",
+        "enunciado": "Você acorda cansado mesmo dormindo as horas necessárias?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-502",
+        "enunciado": "Você demora a dormir porque a cabeça não desliga?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-503",
+        "enunciado": "Você acorda de madrugada e custa a voltar a dormir?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-504",
+        "enunciado": "Você se preocupa muito com coisas que ainda nem aconteceram?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-505",
+        "enunciado": "Você come para se acalmar quando fica ansioso ou triste?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-506",
+        "enunciado": "Você sente que está sempre em alerta esperando algo dar errado?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-507",
+        "enunciado": "Você consegue perceber quando está com fome e quando já está satisfeito?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-508",
+        "enunciado": "Você tem dificuldade de manter o foco em uma tarefa?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-509",
+        "enunciado": "Você perde a paciência com facilidade?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "SNT-510",
+        "enunciado": "Você tem se afastado das pessoas?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "EMO-501",
+        "enunciado": "Você fala consigo mesmo de um jeito que não falaria com um amigo?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "EMO-502",
+        "enunciado": "Quando você sai da linha um dia você sente que perdeu tudo e abandona?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "EMO-503",
+        "enunciado": "Você se descreve com frases como sempre fui assim ou não tenho força de vontade?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "EMO-504",
+        "enunciado": "Você sente culpa ou vergonha depois de comer?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "EMO-505",
+        "enunciado": "Você sente que seu corpo trabalha contra você?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "EMO-507",
+        "enunciado": "Você olha para sua vida hoje e se reconhece nela?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "ESP-102",
+        "enunciado": "Você sabe dizer o que veio fazer nesta vida?",
+        "valor": 1,
+        "resposta": "Um pouco",
+        "peso": 1
+       },
+       {
+        "question_id": "ESP-201",
+        "enunciado": "Suas escolhas alimentares combinam com aquilo que você diz valorizar?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "ESP-202",
+        "enunciado": "Você tem clareza sobre o que é inegociável para você?",
+        "valor": 1,
+        "resposta": "Um pouco",
+        "peso": 1
+       },
+       {
+        "question_id": "ESP-301",
+        "enunciado": "Você sente que existe algo maior te sustentando?",
+        "valor": 1,
+        "resposta": "Um pouco",
+        "peso": 1
+       },
+       {
+        "question_id": "ESP-302",
+        "enunciado": "Você reserva um momento do dia para agradecer alguma coisa?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "ESP-401",
+        "enunciado": "Você sente que não merece as coisas boas que conquista?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "ESP-402",
+        "enunciado": "Quando as coisas começam a dar certo você acaba boicotando?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       },
+       {
+        "question_id": "ESP-403",
+        "enunciado": "Você repete sobre si mesmo histórias que ouviu na família e nunca questionou?",
+        "valor": 1,
+        "resposta": "Às vezes",
+        "peso": 1
+       }
+      ],
+      "contexto": [
+       {
+        "question_id": "EMO-103",
+        "enunciado": "Você sente um peso para sair do lugar mesmo querendo mudar?",
+        "valor": 1,
+        "resposta": "Às vezes"
+       },
+       {
+        "question_id": "EMO-201",
+        "enunciado": "Você se irrita com facilidade por coisas pequenas?",
+        "valor": 1,
+        "resposta": "Às vezes"
+       },
+       {
+        "question_id": "EMO-301",
+        "enunciado": "Você sente um vazio que a comida parece tentar preencher?",
+        "valor": 1,
+        "resposta": "Às vezes"
+       },
+       {
+        "question_id": "EMO-302",
+        "enunciado": "Você passa os dias no piloto automático sem perceber o que está fazendo?",
+        "valor": 1,
+        "resposta": "Às vezes"
+       },
+       {
+        "question_id": "EMO-402",
+        "enunciado": "Você costuma guardar o que sente em vez de falar?",
+        "valor": 1,
+        "resposta": "Às vezes"
+       }
+      ]
+     }
+    ]
+   },
+   "ferramentas": [
+    {
+     "id": "7f10b81e-8ad8-453b-85ea-ee845d277e45",
+     "ferramenta_id": "oq3",
+     "versao_ferramenta": "1",
+     "status": "concluida",
+     "iniciada_em": "2026-10-12T14:00:00.000Z",
+     "concluida_em": "2026-10-12T14:00:00.000Z",
+     "encounter_id": "7fb65e0e-a337-421a-8c73-048831a62d15",
+     "respostas": {
+      "quer": "ter energia à tarde",
+      "precisa": "dormir melhor",
+      "consegue": "caminhar 10 minutos",
+      "alavancas": "a filha"
+     },
+     "leitura": null,
+     "prioridade": null,
+     "proximo_passo": null,
+     "mostrar_paciente": true,
+     "ocultar": []
+    },
+    {
+     "id": "4a52f6d6-085b-4079-b807-6e05e5cbc1fa",
+     "ferramenta_id": "pqq",
+     "versao_ferramenta": "1",
+     "status": "concluida",
+     "iniciada_em": "2026-10-12T14:00:00.000Z",
+     "concluida_em": "2026-10-12T14:00:00.000Z",
+     "encounter_id": "7fb65e0e-a337-421a-8c73-048831a62d15",
+     "respostas": {
+      "objetivo": "emagrecer",
+      "r1": "para me sentir bem",
+      "r2": "para ter disposição",
+      "r3": "para brincar com a filha",
+      "verdadeiro": "estar presente para a família"
+     },
+     "leitura": null,
+     "prioridade": null,
+     "proximo_passo": null,
+     "mostrar_paciente": true,
+     "ocultar": []
+    },
+    {
+     "id": "68f69e56-fa16-4344-9e41-ec221a661d28",
+     "ferramenta_id": "linha_momentum",
+     "versao_ferramenta": "1",
+     "status": "concluida",
+     "iniciada_em": "2026-10-12T14:00:00.000Z",
+     "concluida_em": "2026-10-12T14:00:00.000Z",
+     "encounter_id": "7fb65e0e-a337-421a-8c73-048831a62d15",
+     "respostas": {
+      "energia": 4,
+      "carga": 7,
+      "controle": 3,
+      "suporte": 6,
+      "espaco": 4,
+      "estabilidade": 5,
+      "sustenta": "a rotina da manhã",
+      "limita": "o trabalho à noite",
+      "nao_pedir": "mudanças no jantar",
+      "estado_confirmado": "Reorganizar",
+      "justificativa_estado": "JUSTIFICATIVA_SO_PROFISSIONAL"
+     },
+     "leitura": null,
+     "prioridade": null,
+     "proximo_passo": null,
+     "mostrar_paciente": true,
+     "ocultar": []
+    },
+    {
+     "id": "b0ed6908-f05a-46e2-8f68-90cce861a376",
+     "ferramenta_id": "mapa_rotina_v1",
+     "versao_ferramenta": "1",
+     "status": "revisada",
+     "iniciada_em": "2026-10-12T14:00:00.000Z",
+     "concluida_em": "2026-10-12T14:00:00.000Z",
+     "encounter_id": "7fb65e0e-a337-421a-8c73-048831a62d15",
+     "respostas": {
+      "acorda": "06:00",
+      "dorme": "23:30",
+      "sono": "curto",
+      "trabalho": "escritório",
+      "dificuldade": "16h e à noite",
+      "disponiveis": "manhã cedo",
+      "espacos": "lanche das 16h",
+      "eventos": [
+       {
+        "inicio": "07:00",
+        "titulo": "Café da manhã",
+        "categoria": "refeição",
+        "percepcao": "baixa"
+       }
+      ]
+     },
+     "leitura": "Janela crítica às 16h.",
+     "prioridade": "Aprofundar",
+     "proximo_passo": "Planejar o lanche das 16h",
+     "mostrar_paciente": true,
+     "ocultar": []
+    },
+    {
+     "id": "4342e4d6-dfb1-4d4f-9888-0f1dcdfdc4f2",
+     "ferramenta_id": "mapa_crencas",
+     "versao_ferramenta": "1",
+     "status": "concluida",
+     "iniciada_em": "2026-10-12T14:00:00.000Z",
+     "concluida_em": "2026-10-12T14:00:00.000Z",
+     "encounter_id": "7fb65e0e-a337-421a-8c73-048831a62d15",
+     "respostas": {
+      "crencas": "comer à noite engorda",
+      "origem": "a mãe dizia",
+      "mais_atrapalha": "culpa depois do jantar",
+      "alternativa": "posso jantar com calma"
+     },
+     "leitura": null,
+     "prioridade": null,
+     "proximo_passo": null,
+     "mostrar_paciente": true,
+     "ocultar": []
+    },
+    {
+     "id": "49845c6e-fbd3-45e1-97c8-cb5fbe851cae",
+     "ferramenta_id": "gatilhos_respostas_v1",
+     "versao_ferramenta": "1",
+     "status": "concluida",
+     "iniciada_em": "2026-10-12T14:00:00.000Z",
+     "concluida_em": "2026-10-12T14:00:00.000Z",
+     "encounter_id": "7fb65e0e-a337-421a-8c73-048831a62d15",
+     "respostas": {
+      "contexto": "fim do dia",
+      "gatilho": "cansaço",
+      "pensamento": "mereço",
+      "emocao": "ansiedade",
+      "intensidade": 7,
+      "resposta": "come doce",
+      "consequencia_imediata": "alívio",
+      "alternativa": "chá",
+      "observacao_nutri": "OBS_SO_PROFISSIONAL"
+     },
+     "leitura": null,
+     "prioridade": null,
+     "proximo_passo": null,
+     "mostrar_paciente": true,
+     "ocultar": []
+    },
+    {
+     "id": "d79762ab-1b3a-4f2e-b203-c67210fb9e95",
+     "ferramenta_id": "roda_vida",
+     "versao_ferramenta": "1",
+     "status": "concluida",
+     "iniciada_em": "2026-10-12T14:00:00.000Z",
+     "concluida_em": "2026-10-12T14:00:00.000Z",
+     "encounter_id": "7fb65e0e-a337-421a-8c73-048831a62d15",
+     "respostas": {
+      "saude": 4,
+      "relacoes": 7,
+      "trabalho": 5,
+      "financas": 6,
+      "espiritualidade": 8,
+      "lazer": 3,
+      "desenvolvimento": 6,
+      "proposito": 7,
+      "puxa": "lazer"
+     },
+     "leitura": null,
+     "prioridade": null,
+     "proximo_passo": null,
+     "mostrar_paciente": true,
+     "ocultar": []
+    },
+    {
+     "id": "41f706f7-ab89-4f07-aea4-07f6848ac1c7",
+     "ferramenta_id": "carta_futuro",
+     "versao_ferramenta": "1",
+     "status": "concluida",
+     "iniciada_em": "2026-10-12T14:00:00.000Z",
+     "concluida_em": "2026-10-12T14:00:00.000Z",
+     "encounter_id": "7fb65e0e-a337-421a-8c73-048831a62d15",
+     "respostas": {
+      "carta": "CARTA_INTIMA_NAO_MOSTRAR",
+      "para_quando": "2027-01-01"
+     },
+     "leitura": null,
+     "prioridade": null,
+     "proximo_passo": null,
+     "mostrar_paciente": true,
+     "ocultar": []
+    },
+    {
+     "id": "459e2fa9-33ee-44c6-95ff-b1c004a40bb5",
+     "ferramenta_id": "conexao_pertencimento_v1",
+     "versao_ferramenta": "1",
+     "status": "concluida",
+     "iniciada_em": "2026-10-12T14:00:00.000Z",
+     "concluida_em": "2026-10-12T14:00:00.000Z",
+     "encounter_id": "7fb65e0e-a337-421a-8c73-048831a62d15",
+     "respostas": {
+      "contar": "a irmã",
+      "pertence": "grupo de corrida",
+      "vinculos": [
+       {
+        "rotulo": "Irmã Ficticia",
+        "natureza": "pessoa",
+        "papel": "apoia",
+        "proximidade": "próxima"
+       },
+       {
+        "rotulo": "Colega Ficticio",
+        "natureza": "pessoa",
+        "papel": "dificulta",
+        "proximidade": "distante"
+       }
+      ]
+     },
+     "leitura": null,
+     "prioridade": null,
+     "proximo_passo": null,
+     "mostrar_paciente": true,
+     "ocultar": []
+    }
+   ],
+   "proximos_passos": {
+    "registrado": true,
+    "registro_id": "2c6e10fb-60f8-41e5-9466-b0c8a413fa7c",
+    "registrado_em": "2026-10-12T22:37:21.850Z",
+    "catalogo": {
+     "code": "HOLOS-RECOMENDACOES-V1",
+     "version": 1,
+     "content_hash": "0d35b513547f7bca620be97b7d193b256fb125d9787e1ecadb8c1e2b42df9ca4"
+    },
+    "engine_version": "PP-V1",
+    "content_hash": "4847e1f3916799bbd7443d8ace4b98718c9453c6ef3e670fba63482b3a3d0f84",
+    "systems_order": [
+     {
+      "system_id": "fungico",
+      "nome": "Sistema Fúngico",
+      "nota": 5,
+      "faixa": "intermediaria",
+      "respondidos": 15,
+      "total_marcadores": 15,
+      "dominantes": [
+       {
+        "question_id": "ESP-501",
+        "rotulo": "Você passa algum tempo em contato com a natureza?",
+        "pontos": 2
+       },
+       {
+        "question_id": "EMO-101",
+        "rotulo": "Você adia começar coisas mesmo sabendo que precisa fazer?",
+        "pontos": 1
+       },
+       {
+        "question_id": "EMO-102",
+        "rotulo": "Você sente que sua vida está desorganizada e não consegue pôr ordem?",
+        "pontos": 1
+       }
+      ]
+     },
+     {
+      "system_id": "acido_inflamatorio",
+      "nome": "Sistema Ácido Inflamatório",
+      "nota": 5,
+      "faixa": "intermediaria",
+      "respondidos": 16,
+      "total_marcadores": 16,
+      "dominantes": [
+       {
+        "question_id": "EMO-201",
+        "rotulo": "Você se irrita com facilidade por coisas pequenas?",
+        "pontos": 1
+       },
+       {
+        "question_id": "EMO-202",
+        "rotulo": "Sua raiva sobe rápido e demora a passar?",
+        "pontos": 1
+       },
+       {
+        "question_id": "EMO-203",
+        "rotulo": "Você costuma aceitar o que não quer para evitar conflito?",
+        "pontos": 1
+       }
+      ]
+     },
+     {
+      "system_id": "metabolico",
+      "nome": "Sistema Metabólico",
+      "nota": 5,
+      "faixa": "intermediaria",
+      "respondidos": 14,
+      "total_marcadores": 14,
+      "dominantes": [
+       {
+        "question_id": "ESP-101",
+        "rotulo": "Você sente que sua vida tem uma direção clara?",
+        "pontos": 2
+       },
+       {
+        "question_id": "EMO-301",
+        "rotulo": "Você sente um vazio que a comida parece tentar preencher?",
+        "pontos": 1
+       },
+       {
+        "question_id": "EMO-302",
+        "rotulo": "Você passa os dias no piloto automático sem perceber o que está fazendo?",
+        "pontos": 1
+       }
+      ]
+     },
+     {
+      "system_id": "detox_linfatico",
+      "nome": "Sistema Detox e Linfático",
+      "nota": 5,
+      "faixa": "intermediaria",
+      "respondidos": 15,
+      "total_marcadores": 15,
+      "dominantes": [
+       {
+        "question_id": "EMO-401",
+        "rotulo": "Você se pega remoendo uma mágoa antiga?",
+        "pontos": 1
+       },
+       {
+        "question_id": "EMO-402",
+        "rotulo": "Você costuma guardar o que sente em vez de falar?",
+        "pontos": 1
+       },
+       {
+        "question_id": "EMO-403",
+        "rotulo": "Você tem dificuldade de aceitar ajuda ou cuidado das pessoas?",
+        "pontos": 1
+       }
+      ]
+     },
+     {
+      "system_id": "mental_emocional_espiritual",
+      "nome": "Sistema Mental Emocional Espiritual",
+      "nota": 5,
+      "faixa": "intermediaria",
+      "respondidos": 24,
+      "total_marcadores": 24,
+      "dominantes": [
+       {
+        "question_id": "EMO-507",
+        "rotulo": "Você olha para sua vida hoje e se reconhece nela?",
+        "pontos": 2
+       },
+       {
+        "question_id": "ESP-102",
+        "rotulo": "Você sabe dizer o que veio fazer nesta vida?",
+        "pontos": 2
+       },
+       {
+        "question_id": "ESP-201",
+        "rotulo": "Suas escolhas alimentares combinam com aquilo que você diz valorizar?",
+        "pontos": 2
+       }
+      ]
+     }
+    ],
+    "selection": [
+     {
+      "rule_id": "REC-FUN-01",
+      "system_id": "fungico",
+      "rank": 1,
+      "tool_id": "mapa_rotina_v1",
+      "professional_reason": "Ajuda a localizar alimentação, horários, sinais percebidos e hábitos dentro do cotidiano real.",
+      "next_action": "Aplique o Mapa da Rotina com foco em refeições, intervalos, sono, rotina e momentos em que os sinais são percebidos.",
+      "pulou_concluida": true,
+      "papel": "principal",
+      "slot": 1
+     },
+     {
+      "rule_id": "REC-AIN-02",
+      "system_id": "acido_inflamatorio",
+      "rank": 2,
+      "tool_id": "linha_momentum",
+      "professional_reason": "Ajuda a calibrar o cuidado à energia, à carga de vida e à capacidade atual de sustentar mudanças.",
+      "next_action": "Avalie energia disponível, carga de vida, controle da rotina, suporte, espaço mental e estabilidade atual.",
+      "pulou_concluida": true,
+      "papel": "complementar",
+      "slot": 2
+     },
+     {
+      "rule_id": "REC-FUN-02",
+      "system_id": "fungico",
+      "rank": 2,
+      "tool_id": "gatilhos_respostas_v1",
+      "professional_reason": "Ajuda a investigar o que costuma acontecer antes de comportamentos alimentares recorrentes.",
+      "next_action": "Escolha um episódio recente e organize situação, pensamento ou emoção relatada, resposta e consequência percebida.",
+      "pulou_concluida": true,
+      "papel": "complementar",
+      "slot": 3
+     }
+    ],
+    "motivo": null,
+    "pendentes": {
+     "concluidas_no_atendimento": [
+      "carta_futuro",
+      "conexao_pertencimento_v1",
+      "gatilhos_respostas_v1",
+      "linha_momentum",
+      "mapa_crencas",
+      "mapa_rotina_v1",
+      "oq3",
+      "pqq",
+      "roda_vida"
+     ],
+     "selection": [],
+     "todas_realizadas": true
+    }
+   },
+   "visibilidade": {
+    "proximos_passos": true
+   },
+   "exames": {
+    "incluidos": false,
+    "nota": "Exames e Leitura Integrada nao fazem parte desta versao do Resultado HOLOS."
+   },
+   "resultado": {
+    "id": "cc48d233-2b3c-49b1-8e09-e291adea7790",
+    "revision_number": 1,
+    "supersedes_id": null,
+    "salvo_em": "2026-10-12T22:37:21.852Z"
+   },
+   "observacoes": {
+    "leitura_profissional": "Leitura da nutricionista ficticia.",
+    "pontos_acompanhar": "Sono e lanche.",
+    "questoes_aprofundar": "QUESTAO_SO_PROFISSIONAL"
+   }
+  },
+  "source_snapshot": {
+   "holoscan": {
+    "id": "752290dc-9987-4967-9303-8b24cca88179",
+    "updated_at": "2026-10-12T22:37:21.751Z"
+   },
+   "ferramentas": [
+    {
+     "tipo": "tool_application",
+     "id": "7f10b81e-8ad8-453b-85ea-ee845d277e45",
+     "updated_at": "2026-10-12T22:37:21.841Z",
+     "status": "concluida"
+    },
+    {
+     "tipo": "tool_application",
+     "id": "4a52f6d6-085b-4079-b807-6e05e5cbc1fa",
+     "updated_at": "2026-10-12T22:37:21.842Z",
+     "status": "concluida"
+    },
+    {
+     "tipo": "tool_application",
+     "id": "68f69e56-fa16-4344-9e41-ec221a661d28",
+     "updated_at": "2026-10-12T22:37:21.843Z",
+     "status": "concluida"
+    },
+    {
+     "tipo": "tool_application",
+     "id": "b0ed6908-f05a-46e2-8f68-90cce861a376",
+     "updated_at": "2026-10-12T22:37:21.844Z",
+     "status": "revisada"
+    },
+    {
+     "tipo": "tool_application",
+     "id": "4342e4d6-dfb1-4d4f-9888-0f1dcdfdc4f2",
+     "updated_at": "2026-10-12T22:37:21.845Z",
+     "status": "concluida"
+    },
+    {
+     "tipo": "tool_application",
+     "id": "49845c6e-fbd3-45e1-97c8-cb5fbe851cae",
+     "updated_at": "2026-10-12T22:37:21.846Z",
+     "status": "concluida"
+    },
+    {
+     "tipo": "tool_application",
+     "id": "d79762ab-1b3a-4f2e-b203-c67210fb9e95",
+     "updated_at": "2026-10-12T22:37:21.847Z",
+     "status": "concluida"
+    },
+    {
+     "tipo": "tool_application",
+     "id": "41f706f7-ab89-4f07-aea4-07f6848ac1c7",
+     "updated_at": "2026-10-12T22:37:21.848Z",
+     "status": "concluida"
+    },
+    {
+     "tipo": "tool_application",
+     "id": "459e2fa9-33ee-44c6-95ff-b1c004a40bb5",
+     "updated_at": "2026-10-12T22:37:21.849Z",
+     "status": "concluida"
+    }
+   ]
+  },
+  "content_hash": "6ddb3f0444e67205a58577dd0c1a2cb660ed62ca9007b9373e1212c7fe2c058f",
+  "template_version": 3,
+  "methodology_package_id": "5fe48641-69a7-4b14-b8ef-41c4fd76ccaf",
+  "methodology_package_version": 2,
+  "methodology_content_hash": "1c2b56f5d47878a0df70b95acf9ec755de80080ae5cdb002809605fb4c6ec183",
+  "operation_id": null,
+  "saved_at": "2026-10-12T22:37:21.852Z",
+  "reviewed_at": null,
+  "reviewed_by": null,
+  "created_at": "2026-10-12T22:37:21.851Z",
+  "updated_at": "2026-10-12T22:37:21.852Z"
+ },
+ "emissao": {
+  "id": "abc85a29-3236-4c1d-a930-bd41784c0c00",
+  "nutritionist_id": "b383a7cd-f581-42ec-8b74-986623f88dcf",
+  "patient_id": "93187a01-c61d-4dce-9c99-a77d62a6218e",
+  "holos_result_id": "cc48d233-2b3c-49b1-8e09-e291adea7790",
+  "result_content_hash": "6ddb3f0444e67205a58577dd0c1a2cb660ed62ca9007b9373e1212c7fe2c058f",
+  "conduct_id": "bcb7488e-0173-43b3-a08b-12f9a7f9eaad",
+  "emission_number": 1,
+  "template_version": "RF-1",
+  "content_snapshot": {
+   "template": "RF-1",
+   "emitida_em": "2026-10-12T22:37:21.855Z",
+   "emissao": {
+    "numero": 1
+   },
+   "paciente": {
+    "id": "93187a01-c61d-4dce-9c99-a77d62a6218e",
+    "nome": "Paciente Golden Ficticia"
+   },
+   "resultado": {
+    "id": "cc48d233-2b3c-49b1-8e09-e291adea7790",
+    "revision_number": 1,
+    "status": "salvo",
+    "salvo_em": "2026-10-12T22:37:21.852Z",
+    "content_hash": "6ddb3f0444e67205a58577dd0c1a2cb660ed62ca9007b9373e1212c7fe2c058f",
+    "template_version": 3
+   },
+   "conduta": {
+    "id": "bcb7488e-0173-43b3-a08b-12f9a7f9eaad",
+    "revision_number": 1,
+    "encounter_id": "7fb65e0e-a337-421a-8c73-048831a62d15",
+    "atendimento_em": "2026-10-12T13:00:00.000Z",
+    "campos": {
+     "objective": "Estabilizar a energia",
+     "nutrition_strategy": "Organizar o lanche",
+     "actions": "Lanche às 16h",
+     "resources": "Lista de lanches",
+     "professional_guidance": "Observar a fome",
+     "return_plan": "Retorno em 30 dias"
+    },
+    "acordos": [
+     {
+      "description": "Beber água",
+      "due_text": "diário"
+     }
+    ]
+   },
+   "profissional": {
+    "nome": "Nutri Golden Ficticia",
+    "profissao": "Nutricionista",
+    "registro": "CRN-0 0000",
+    "especialidade": "Nutrição",
+    "cidade": "Cidade Ficticia",
+    "telefone": null,
+    "instagram": null,
+    "cor_primaria": null,
+    "cor_secundaria": null
+   },
+   "imagens": {
+    "logo": null,
+    "assinatura": null,
+    "carimbo": null
+   }
+  },
+  "content_hash": "ef1b1c630d6ed260d74fd1705d2bdff3c1e3e29e89b06afad60803cb84f84d54",
+  "operation_id": null,
+  "created_at": "2026-10-12T22:37:21.855Z"
+ }
+}

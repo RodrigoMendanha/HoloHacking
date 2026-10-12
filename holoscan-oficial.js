@@ -69,17 +69,19 @@
     return Promise.resolve(P.carregar()).then(function () { return disponivel(); }, function () { return false; });
   }
 
-  /** Rotulo curto do item so para exibicao (nao entra em conta nenhuma). */
+  /** Texto do item para exibicao (nao entra em conta nenhuma). Motor de resultados V1 (12/10, item 4.5): o texto
+      APROVADO da pergunta no pacote — nunca o rotulo clinico curto do holoscan.js (ex.: "marcador inflamatorio alterado
+      no exame"), que nao e texto aprovado. O rotulo legado so vale sem pacote (modo local/legado). */
   function rotuloItem(p, id) {
+    var q = (p && p.perguntas || []).filter(function (x) { return x.stable_id === id; })[0];
+    if (q && q.statement) return q.statement;
     try {
       if (!rotuloItem._mapa && raiz.HOLOSCAN && raiz.HOLOSCAN.questionario) {
         rotuloItem._mapa = {};
-        raiz.HOLOSCAN.questionario().forEach(function (q) { rotuloItem._mapa[q.id] = q.rotulo; });
+        raiz.HOLOSCAN.questionario().forEach(function (x) { rotuloItem._mapa[x.id] = x.rotulo; });
       }
     } catch (e) { rotuloItem._mapa = {}; }
-    if (rotuloItem._mapa && rotuloItem._mapa[id]) return rotuloItem._mapa[id];
-    var q = (p.perguntas || []).filter(function (x) { return x.stable_id === id; })[0];
-    return q ? q.statement : id;
+    return (rotuloItem._mapa && rotuloItem._mapa[id]) || id;
   }
 
   /* ---------- as perguntas que a tela mostra (12/10) ----------------------
@@ -101,13 +103,10 @@
     if (!p || !p.perguntas || !p.perguntas.length) return perguntasLegado();
     var chave = (p.id || p.code + "@" + p.version) + "|" + (p.content_hash || "") + "|" + p.perguntas.length;
     if (cachePerguntas.chave === chave) return cachePerguntas.lista;
-    var curtos = {};
-    perguntasLegado().forEach(function (q) { curtos[q.id] = q; });
     var lista = p.perguntas.slice().sort(function (a, b) { return (a.position || 0) - (b.position || 0) || (a.stable_id < b.stable_id ? -1 : 1); })
       .map(function (q) {
-        var velho = curtos[q.stable_id];
         return { id: q.stable_id, origem: ORIGEM_DO_BLOCO[q.block] || q.block, pergunta: q.statement, escala: q.scale_code,
-          rotulo: velho && velho.rotulo ? velho.rotulo : q.statement, sentido: q.orientation === "invertida" ? "invertido" : "direto",
+          rotulo: q.statement, sentido: q.orientation === "invertida" ? "invertido" : "direto",
           pacote: p.code + " v" + p.version };
       });
     cachePerguntas = { chave: chave, lista: lista };

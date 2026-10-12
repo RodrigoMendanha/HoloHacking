@@ -99,6 +99,12 @@ cd "$(dirname "$0")/.."
     grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
   done
   cat supabase/tests/correcoes-jornada-harness.sql
+  # Motor de resultados V1 (20261019100000): Resultado HOLOS template 4 (dominantes reais), emissao RF-2 com a Conduta do
+  # atendimento do resultado, relatorio com o estado real do pacote.
+  for f in supabase/migrations/2026101910*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/motor-resultados-harness.sql
   # HOLOS-V1 v3 (revisao das perguntas, 12/10): sem migration; o v3 e gravado pela API como a tela de Homologacao faz.
   cat supabase/tests/pacote-v3-doc.sql
   cat supabase/tests/pacote-v3-harness.sql

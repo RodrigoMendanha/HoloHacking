@@ -38,8 +38,8 @@ const base = { patient_id: PA, encounter_id: EA, holoscan_application_id: HA, to
   visao_paciente: { ferramentas: { [T_OQ3]: { mostrar: true }, [T_GAT]: { mostrar: false }, [T_CAR]: { mostrar: true } } } };
 const R1 = rpc('salvar_resultado_holos', { payload: base });
 const linha1 = srv.linhas('holos_results').find(r => r.id === R1.data);
-ok(!reg.error && !R1.error && linha1.template_version === 3 && linha1.content_snapshot.proximos_passos.registrado === true && linha1.content_snapshot.visibilidade.proximos_passos === false,
-  'Resultado HOLOS (template 3 desde 12/10: + Próximos Passos pendentes): Próximos Passos congelados no snapshot; compartilhar com a paciente DESLIGADO por padrão');
+ok(!reg.error && !R1.error && linha1.template_version === 4 && linha1.content_snapshot.motor_resultados === 'MR-V1' && linha1.content_snapshot.proximos_passos.registrado === true && linha1.content_snapshot.visibilidade.proximos_passos === false,
+  'Resultado HOLOS (template 4 desde o motor de resultados V1: + dominantes por sistema, motor MR-V1): Próximos Passos congelados no snapshot; compartilhar com a paciente DESLIGADO por padrão');
 ok(rpc('salvar_resultado_holos', { payload: Object.assign({}, base, { visao_paciente: { ferramentas: {}, proximos_passos: 'sim' } }) }).error?.hint === 'payload_invalido', 'compartilhamento que não é true/false: recusado');
 
 const nav = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
@@ -129,9 +129,9 @@ ok(previa.acoes.join(',') === 'Gerar Resultado Final,Abrir na ficha' && previa.s
 await A.evaluate(async () => { document.querySelector('[data-rp-acao="emitir"]').click(); for (let i = 0; i < 50 && !document.querySelector('[data-rp-acao="pdf"]'); i++) await new Promise(r => setTimeout(r, 100)); });
 const em1 = srv.linhas('holos_result_emissions')[0];
 const html1 = await A.evaluate(() => document.getElementById('rp-doc').outerHTML);
-ok(em1 && em1.emission_number === 1 && em1.template_version === 'RF-1' && em1.holos_result_id === R2.id && em1.result_content_hash === R2.content_hash && em1.content_snapshot.conduta.campos.objective === 'Objetivo Antes'
+ok(em1 && em1.emission_number === 1 && em1.template_version === 'RF-2' && em1.holos_result_id === R2.id && em1.result_content_hash === R2.content_hash && em1.content_snapshot.conduta.campos.objective === 'Objetivo Antes'
   && em1.content_snapshot.profissional.nome === 'Nutri Ficticia Antes' && /Nutri Ficticia Antes/.test(html1) && /Objetivo Antes/.test(html1),
-  'emissão gerada: congela Resultado (id + hash), Conduta, nome, CRN e template RF-1');
+  'emissão gerada: congela Resultado (id + hash), Conduta do atendimento do resultado, nome, CRN e template RF-2');
 ok(!(await A.evaluate(() => window.__xss === 1)) && html1.includes('&lt;img src=x'), 'XSS no texto da Conduta: escapado na emissão');
 if (SHOT) { await espera(400); await A.screenshot({ path: SHOT + '/emissao-desktop.png' }); }
 await A.evaluate(() => {

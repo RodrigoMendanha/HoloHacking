@@ -4551,6 +4551,8 @@ tr.mh-conflito td{background:rgba(201,138,122,.08)}
 .rh-num span{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-suave)}
 .rh-num b{font-family:var(--fonte-display);font-size:1.7rem;color:var(--titulo);line-height:1.1}
 .rh-num small{font-size:.75rem;color:var(--texto-suave)}
+/* motor de resultados V1 (12/10): aviso anti-percentual junto do Indice */
+.rh-num small.rh-indice-aviso{display:block;margin-top:6px;font-size:.72rem;line-height:1.35;font-style:italic}
 .rh-sistemas{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
 .rh-sis{border:1px solid var(--borda-suave);border-radius:12px;padding:14px;background:var(--sup-fundo);border-top:4px solid var(--borda-suave)}
 .rh-sis.rh-faixa-baixa{border-top-color:#c0714f}

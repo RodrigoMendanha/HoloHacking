@@ -326,6 +326,12 @@
 
   /* ---------- documento (profissional | paciente) --------------------------- */
   /* texto da faixa para a PACIENTE: o que a nota quer dizer, sem instrucao tecnica nem leitura clinica */
+  /* Motor de resultados V1 (12/10, item 4.1): junto do numero, onde quer que o Indice apareca */
+  var AVISO_INDICE = "O Índice HOLOS organiza as respostas desta aplicação e não representa percentual de saúde.";
+  /* item 4.2: na visao da paciente a faixa nao e o rotulo principal (a escala e contraintuitiva: faixa alta = menos
+     marcadores). So camada de comunicacao: a faixa salva e a matematica nao mudam. */
+  var FAIXA_PACIENTE = { baixa: "Mais marcadores neste eixo", intermediaria: "Alguns marcadores neste eixo", alta: "Menos marcadores neste eixo" };
+  function faixaPaciente(f) { return FAIXA_PACIENTE[f] || ""; }
   function textoPacienteFaixa(s) {
     if (!s || !s.avaliavel) return "Não houve respostas suficientes para dar nota a esta área nesta avaliação.";
     if (s.faixa === "baixa") return "Esta área apareceu com mais sinais nas suas respostas e será conversada com a sua nutricionista.";
@@ -376,7 +382,8 @@
       (paciente ? '<p class="rh-intro">Nesta avaliação, as suas respostas ao HOLOSCAN foram organizadas em cinco sistemas. Notas mais baixas indicam onde mais sinais foram relatados. O mapa não é um diagnóstico: ele mostra por onde a conversa com a sua nutricionista pode seguir.</p>' : "") +
       '<div class="rh-geral-grade"><div class="rh-radar-caixa">' + radarSvg(sis) + "</div>" +
       '<div class="rh-numeros">' +
-        '<div class="rh-num"><span>Índice HOLOS</span><b>' + (h.indice === null || h.indice === undefined ? "—" : num(h.indice)) + "</b><small>de " + e(h.indice_maximo || 100) + "</small></div>" +
+        '<div class="rh-num rh-num-indice"><span>Índice HOLOS</span><b>' + (h.indice === null || h.indice === undefined ? "—" : num(h.indice)) + "</b><small>de " + e(h.indice_maximo || 100) + "</small>" +
+          '<small class="rh-indice-aviso">' + e(AVISO_INDICE) + "</small></div>" +
         EIXOS.map(function (x) { return '<div class="rh-num"><span>' + e(x[1]) + "</span><b>" + (triOk[x[2]] === false || tri[x[2]] === null || tri[x[2]] === undefined ? "—" : num(tri[x[2]])) + "</b><small>Tríade</small></div>"; }).join("") +
         (paciente ? "" : '<div class="rh-num rh-num-cob"><span>Cobertura</span><b>' + (typeof cob.respondidos === "number" ? e(cob.respondidos + "/" + cob.total) : "—") + "</b><small>respostas</small></div>") +
       "</div></div>" +
@@ -391,7 +398,7 @@
         var msg = paciente ? ((snap.template_version || 1) >= 3 ? textoPacienteFaixa(s) : s.mensagem_paciente) : s.mensagem_nutri;
         return '<article class="rh-sis rh-faixa-' + e(s.faixa || "sem") + '"><header><h4>' + e(s.nome || s.sistema) + "</h4>" +
           '<span class="rh-sis-nota">' + (s.avaliavel ? num(s.nota) : "—") + "</span></header>" +
-          '<p class="rh-sis-faixa">' + (s.avaliavel ? "faixa " + e(faixaTxt(s.faixa)) : "sem nota (menos respostas do que o mínimo)") +
+          '<p class="rh-sis-faixa">' + (s.avaliavel ? (paciente ? e(faixaPaciente(s.faixa)) : "faixa " + e(faixaTxt(s.faixa))) : "sem nota (menos respostas do que o mínimo)") +
             (paciente ? "" : " · " + e(s.respondidos + " de " + s.total_marcadores) + " respondidas" + (s.avaliavel ? "" : " · não avaliável")) + "</p>" +
           (msg ? '<p class="rh-sis-msg">' + e(msg) + "</p>" : "") +
           (!paciente && s.texto_publico ? '<p class="rh-sis-pub">' + e(s.texto_publico) + "</p>" : "") +
@@ -682,7 +689,7 @@
 
   window.ResultadoHolos = {
     desenhar: desenhar, carregar: carregar, doPaciente: doPaciente, porId: porId,
-    documentoHtml: documentoHtml, radarSvg: radarSvg,
+    documentoHtml: documentoHtml, radarSvg: radarSvg, AVISO_INDICE: AVISO_INDICE, FAIXA_PACIENTE: FAIXA_PACIENTE,
     /** para o Relatorio e, no futuro, a HOLOS AI: o snapshot salvo, estruturado (nunca a ficha viva) */
     snapshotSalvo: function (id) { var r = porId(id); return r && r.status !== "rascunho" ? JSON.parse(JSON.stringify(r.content_snapshot)) : null; },
     esquecer: function () { cache = { pid: null, linhas: [], erro: null, carregado: false }; modo = "lista"; form = null; vendo = null; previa = null; }

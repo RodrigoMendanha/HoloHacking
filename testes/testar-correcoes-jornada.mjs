@@ -40,8 +40,8 @@ const R1 = rpc('salvar_resultado_holos', { payload: { patient_id: PA, encounter_
   visao_paciente: { ferramentas: { [T1]: { mostrar: true }, [T2]: { mostrar: true } }, proximos_passos: true } } });
 const snap = srv.linhas('holos_results').find(r => r.id === R1.data).content_snapshot;
 const pend = sel(snap.proximos_passos.pendentes.selection);
-ok(snap.template_version === 3 && pend.length >= 1 && !pend.includes(original[0]) && !pend.includes(original[1]),
-  'Resultado novo (template 3): as ferramentas feitas no atendimento (' + original.slice(0, 2).join(', ') + ') saem dos Próximos Passos → ' + pend.join(', '));
+ok(snap.template_version === 4 && pend.length >= 1 && !pend.includes(original[0]) && !pend.includes(original[1]),
+  'Resultado novo (template 4; os pendentes desde o template 3): as ferramentas feitas no atendimento (' + original.slice(0, 2).join(', ') + ') saem dos Próximos Passos → ' + pend.join(', '));
 ok(snap.proximos_passos.pendentes.selection[0].papel === 'principal' && sel(snap.proximos_passos.selection).join() === original.join(),
   'a próxima ainda não feita vira a principal; o registro original fica congelado ao lado (' + original.join(', ') + ')');
 
@@ -114,7 +114,7 @@ ok(/Revise os itens respondidos/.test(t), 'Resultado antigo (template 2, já emi
 
 titulo('B2 — INTERPRETACAO DO HOLOSCAN SO NA VISAO PROFISSIONAL');
 srv.tabelas.holoscan_applications.find(a => a.id === HA).interpretacao_texto = 'INTERP_INTERNA_DA_NUTRI';
-srv.tabelas.holos_results.filter(r => r.status !== 'rascunho' && r.template_version === 3).forEach(r => {
+srv.tabelas.holos_results.filter(r => r.status !== 'rascunho' && r.template_version === 4).forEach(r => {
   r.content_snapshot.observacoes = { leitura_profissional: 'LEITURA_PARA_A_PACIENTE', pontos_acompanhar: 'PONTOS_PARA_ACOMPANHAR', questoes_aprofundar: 'QUESTAO_INTERNA' }; });
 await A.reload({ waitUntil: 'networkidle2' });
 await A.waitForFunction(() => window.HoloAuth && window.HoloAuth.sessaoAtiva() && window.pacientesCarregados && window.pacientesCarregados(), { timeout: 15000 });

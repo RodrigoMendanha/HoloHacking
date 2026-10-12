@@ -1661,7 +1661,16 @@ export function criarServidor() {
       const conteudo = { template_version: 1, tipos_de_conteudo: ['RELATO_DO_PACIENTE', 'OBSERVACAO_PROFISSIONAL', 'DADO_MEDIDO', 'DADO_DOCUMENTAL', 'INDICADOR_CALCULADO', 'TEXTO_ASSISTIDO'],
         paciente: { nome: pac.nome, nascimento: pac.nascimento || null, sexo: pac.sexo || null }, profissional: { nome: prof.nome || null, profissao: prof.profissao || null, registro: prof.registro || null },
         periodo: { inicio: p.period_start || (atual && atual.period_start) || null, fim: p.period_end || (atual && atual.period_end) || null }, titulo: p.title || (atual && atual.title) || null,
-        metodologia: 'Resultados metodológicos do HOLOSCAN (notas, faixas, Índice, Tríada) ainda não são oficiais: Pacote Metodológico V1 não homologado. Constam só identificação, data, versão e cobertura bruta.',
+        metodologia: (() => {
+          /* migration 20261019100000 (motor de resultados V1, item 4.4): o texto sai do estado real do pacote das aplicacoes incluidas */
+          const ids = sel.holoscan_application_ids || [];
+          if (!ids.length) return 'Nenhuma aplicação HOLOSCAN incluída neste relatório.';
+          const apps = ids.map(id => s.tabelas.holoscan_applications.find(h => h.id === id && h.nutritionist_id === uid));
+          const pks = apps.map(h => h && h.methodology_package_id ? s.tabelas.methodology_packages.find(m => m.id === h.methodology_package_id) : null);
+          if (pks.some(m => !m || !['aprovado', 'retirado'].includes(m.status))) return 'Há aplicação HOLOSCAN histórica, sem pacote metodológico oficial aprovado: seus resultados metodológicos não são oficiais; constam só identificação, data, versão e cobertura bruta.';
+          return 'Aplicações HOLOSCAN calculadas pelo pacote metodológico oficial aprovado (' + [...new Set(pks.map(m => m.code + ' v' + m.version))].sort().join(', ') +
+            '). Este relatório registra identificação, data, versão, cobertura e a interpretação profissional; notas, Índice, Tríade e o resultado do método ficam no Resultado HOLOS.';
+        })(),
         texto_assistido: [] };
       conteudo.atendimentos = [];
       for (const id of (sel.encounter_ids || [])) { const r = mine('encounters', id); if (!r) return erro('atendimento ' + id + ' nao e deste paciente', 'P0001');
