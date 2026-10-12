@@ -44,7 +44,10 @@
   var BLOCOS_PRIMEIRA = [
     { id: "motivo", titulo: "Motivo e objetivo", campos: [
       A("motivo", "Motivo da consulta", "motivo_objetivo"), A("objetivo", "Principal objetivo", "motivo_objetivo"),
-      A("expectativa", "Expectativa com o acompanhamento", "motivo_objetivo"), A("mudar_primeiro", "O que gostaria de mudar primeiro", "motivo_objetivo")] },
+      A("expectativa", "Expectativa com o acompanhamento", "motivo_objetivo"), A("mudar_primeiro", "O que gostaria de mudar primeiro", "motivo_objetivo"),
+      /* Mapeamento Holistico (12/10): relato do paciente antes da consulta */
+      T("ha_quanto_tempo", "Há quanto tempo isso chama atenção", "motivo_objetivo"), A("ja_tentou", "O que já tentou antes", "motivo_objetivo"),
+      A("ajudou", "O que ajudou", "motivo_objetivo"), A("nao_funcionou", "O que não funcionou", "motivo_objetivo")] },
     { id: "alimentar", titulo: "História e rotina alimentar", campos: [
       C("refeicoes", "Número habitual de refeições", "historia_alimentar", ["1–2", "3", "4", "5", "6 ou mais"]),
       T("horarios", "Horários aproximados", "historia_alimentar"),
@@ -58,30 +61,50 @@
       C("quem_prepara", "Quem prepara as refeições", "rotina_acesso", ["Eu", "Parceiro(a)", "Família", "Restaurante", "Varia"], { multi: true }),
       C("comer_fora", "Frequência de comer fora", "rotina_acesso", ["Raramente", "1–2x/semana", "3–5x/semana", "Quase todo dia"]),
       C("delivery", "Delivery", "rotina_acesso", ["Raramente", "1–2x/semana", "3–5x/semana", "Quase todo dia"]),
-      T("trabalho", "Alimentação no trabalho", "rotina_acesso"), A("obs", "Observações livres", "historia_alimentar")] },
+      T("trabalho", "Alimentação no trabalho", "rotina_acesso"), A("obs", "Observações livres", "historia_alimentar"),
+      A("dia_comum", "Alimentação em um dia comum (relato)", "historia_alimentar"),
+      C("saciedade", "Saciedade depois de comer", "historia_alimentar", ["Geralmente satisfeito(a)", "Às vezes", "Raramente"]),
+      T("desejos", "Vontades frequentes de alimentos específicos", "historia_alimentar"),
+      C("sem_fome", "Come mesmo sem fome", "historia_alimentar", ["Não", "Às vezes", "Com frequência"]),
+      T("bebidas", "Outras bebidas no dia a dia", "historia_alimentar"), T("com_quem", "Onde e com quem costuma comer", "rotina_acesso")] },
     { id: "saude", titulo: "Saúde e sintomas", campos: [
       A("condicoes", "Condições / diagnósticos informados", "condicoes_diagnosticos_informados"),
       T("cirurgias", "Cirurgias relevantes", "antecedentes"),
       C("intestino", "Intestino", "sintomas_relatados", ["Regular", "Constipação", "Diarreia", "Alternado"]),
       S("gastrointestinais", "Sintomas gastrointestinais"), S("azia_refluxo", "Azia / refluxo"), S("distensao", "Distensão"),
-      S("nausea", "Náusea"), S("dor", "Dor"), T("outros", "Outros sintomas relevantes", "sintomas_relatados")] },
+      S("nausea", "Náusea"), S("dor", "Dor"), T("outros", "Outros sintomas relevantes", "sintomas_relatados"),
+      S("dor_cabeca", "Dor de cabeça"), S("retencao", "Inchaço / sensação de retenção"),
+      T("pele", "Pele (relato)", "sintomas_relatados"), A("ciclo", "Ciclo menstrual (se pertinente)", "sintomas_relatados"),
+      A("mudancas", "Mudanças percebidas no corpo recentemente", "sintomas_relatados")] },
     { id: "restricoes", titulo: "Medicamentos, suplementos e restrições", campos: [
       L("medicamentos", "Medicamentos", "medicamentos", COL_MED, { nega: "Não usa medicamentos", item: "medicamento" }),
       L("suplementos", "Suplementos", "suplementos", COL_MED, { nega: "Não usa suplementos", item: "suplemento" }),
       L("alergias", "Alergias", "alergias_informadas", [["nome", "Alergia"], ["obs", "Observação"]], { nega: "Nega alergias", item: "alergia" }),
-      L("intolerancias", "Intolerâncias", "intolerancias_informadas", [["nome", "Intolerância"], ["obs", "Observação"]], { nega: "Nega intolerâncias", item: "intolerância" })] },
+      L("intolerancias", "Intolerâncias", "intolerancias_informadas", [["nome", "Intolerância"], ["obs", "Observação"]], { nega: "Nega intolerâncias", item: "intolerância" }),
+      A("evita_desconforto", "Alimentos que evita por perceber desconforto (relato)", "historia_alimentar")] },
     { id: "estilo", titulo: "Estilo de vida", rotina: true, campos: [
       C("sono", "Sono", "sono", ["Bom", "Regular", "Ruim"]),
       C("atividade", "Atividade física", "atividade_fisica", ["Não pratica", "1–2x/semana", "3–4x/semana", "5+x/semana"]),
       T("trabalho", "Trabalho", "rotina_acesso"),
       C("estresse", "Estresse percebido", "contexto_social", ["Baixo", "Moderado", "Alto"]),
       C("tabagismo", "Tabagismo (se pertinente)", "antecedentes", ["Não fuma", "Ex-fumante", "Fuma"]),
-      A("rotina", "Rotina geral (resumo)", "rotina_acesso")] },
+      A("rotina", "Rotina geral (resumo)", "rotina_acesso"),
+      T("dorme", "Horário aproximado em que dorme", "sono"), T("acorda", "Horário aproximado em que acorda", "sono"),
+      C("despertares", "Acorda durante a noite", "sono", ["Não", "Às vezes", "Com frequência"]),
+      A("energia", "Energia ao longo do dia", "rotina_acesso"), T("deslocamento", "Deslocamento", "rotina_acesso"),
+      T("pausas", "Pausas para as refeições", "rotina_acesso"), A("dias_diferentes", "Dias úteis x fins de semana", "rotina_acesso"),
+      A("dificulta", "O que na rotina mais dificulta cuidar da alimentação e da saúde", "rotina_acesso"),
+      A("funciona", "O que na rotina já funciona e quer preservar", "rotina_acesso")] },
     { id: "contexto", titulo: "Histórico e contexto", campos: [
       A("familiar_saude", "Histórico familiar relevante", "antecedentes"), A("familiar", "Contexto familiar", "contexto_familiar"),
       A("social", "Contexto social", "contexto_social"), A("financeiro", "Condições financeiras/alimentares relevantes (se necessário)", "contexto_social"),
       A("obs", "Observações importantes", "contexto_social"),
-      A("emocional", "Campos emocionais", "emocional", { intimo: true }), A("sentido", "Sentido pessoal", "sentido_pessoal", { intimo: true })] },
+      A("emocional", "Campos emocionais", "emocional", { intimo: true }), A("sentido", "Sentido pessoal", "sentido_pessoal", { intimo: true }),
+      A("historia_alimentacao", "História com a alimentação", "historia_alimentar"), A("mudancas_vida", "Mudanças importantes recentes", "contexto_social"),
+      A("responsabilidades", "Responsabilidades do dia a dia", "contexto_social"),
+      C("sobrecarga", "Sobrecarga percebida", "emocional", ["Não", "Às vezes", "Com frequência"], { intimo: true }),
+      A("apoio", "Apoio disponível", "contexto_social"),
+      C("sentido_importante", "Algo do momento de vida, valores ou espiritualidade importante para o cuidado", "sentido_pessoal", ["Sim", "Não"], { intimo: true })] },
     { id: "objetiva", titulo: "Avaliação objetiva", campos: [
       M("peso", "Peso", ["kg"]), M("altura", "Altura", ["cm", "m"]),
       L("circunferencias", "Circunferências", "medidas", COL_MEDIDA, { medida: true, item: "circunferência", padrao: "cm" }),
@@ -96,7 +119,11 @@
       A("sintomas", "Novos sintomas?", "sintomas_relatados"), A("medicamento", "Alterou medicamento?", "medicamentos"),
       A("suplemento", "Alterou suplemento?", "suplementos"), A("peso_medidas", "Mudou peso/medidas?", "medidas"),
       M("peso", "Peso atual", ["kg"]),
-      A("dificuldade", "Principal dificuldade desde a última consulta?", "motivo_objetivo"), A("obs", "Alguma observação importante?", "motivo_objetivo")] }
+      A("dificuldade", "Principal dificuldade desde a última consulta?", "motivo_objetivo"), A("obs", "Alguma observação importante?", "motivo_objetivo"),
+      /* Mapeamento Holistico (12/10) */
+      A("praticou", "O que conseguiu colocar em prática?", "motivo_objetivo"), A("nao_praticou", "O que não conseguiu colocar em prática?", "motivo_objetivo"),
+      A("facilitou", "O que facilitou?", "motivo_objetivo"), A("dificultou", "O que dificultou?", "motivo_objetivo"),
+      A("nova_questao", "Apareceu alguma questão nova?", "motivo_objetivo")] }
   ];
   var ESTADOS = [["informado", "Informado"], ["negado_explicitamente", "Negado explicitamente"], ["desconhecido", "Desconhecido"],
     ["nao_investigado", "Não investigado"], ["nao_aplicavel", "Não aplicável"], ["recusado", "Recusado"]];
@@ -220,6 +247,8 @@
       return blocos;
     }
     add("Objetivo principal", [g("motivo", "objetivo"), tem(g("motivo", "motivo")) ? "Motivo: " + g("motivo", "motivo") : "", tem(g("motivo", "mudar_primeiro")) ? "Mudar primeiro: " + g("motivo", "mudar_primeiro") : ""]);
+    add("O que busca", [["ha_quanto_tempo", "Há quanto tempo"], ["ja_tentou", "Já tentou"], ["ajudou", "Ajudou"], ["nao_funcionou", "Não funcionou"]]
+      .map(function (p) { return tem(g("motivo", p[0])) ? p[1] + ": " + String(g("motivo", p[0])).trim() : ""; }));
     add("Pontos clínicos relevantes (informados)", itens("condicoes_diagnosticos_informados", inf).map(lin).concat(itens("antecedentes", inf).filter(function (it) { return it.chave === "saude.cirurgias" || it.chave === "contexto.familiar_saude"; }).map(lin)));
     add("Hábitos alimentares", itens("historia_alimentar", inf).concat(itens("rotina_acesso", inf).filter(function (it) { return /^alimentar\./.test(it.chave || ""); })).map(lin));
     add("Sintomas informados", itens("sintomas_relatados", inf).map(lin));
@@ -229,6 +258,7 @@
     add("Alergias e intolerâncias", itens("alergias_informadas").map(function (it) { return neg(it) ? "Nega alergias" : "Alergia: " + lin(it); })
       .concat(itens("intolerancias_informadas").map(function (it) { return neg(it) ? "Nega intolerâncias" : "Intolerância: " + lin(it); })));
     add("Sono e atividade", itens("sono", inf).concat(itens("atividade_fisica", inf)).map(lin));
+    add("Rotina", itens("rotina_acesso", inf).filter(function (it) { return /^estilo\./.test(it.chave || ""); }).map(lin));
     add("Contexto relevante", itens("contexto_familiar", inf).concat(itens("contexto_social", inf)).map(lin));
     add("Medidas", itens("medidas", function (it) { return !!it.medida; }).map(lin));
     var intimo = itens("emocional").length + itens("sentido_pessoal").length;

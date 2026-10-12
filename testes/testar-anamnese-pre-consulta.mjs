@@ -7,7 +7,7 @@
  *   5  campos intimos opcionais com "Prefiro nao responder"; campos da profissional fora
  *   6  enviar: concluido, congelado; reabrir o link so mostra "enviada"; reenvio recusado
  *   7  ficha: "Concluída", Ver resposta (relato da paciente, texto escapado), Levar para a anamnese do atendimento
- *      (rascunho V2, origem relato_paciente, peso NAO vira dado medido, "prefiro nao" vira recusado); o relato nao muda
+ *      (rascunho V2, origem relato_paciente, sem medidas, "prefiro nao" vira recusado); o relato nao muda
  *   8  seguranca: outra conta nao ve nem cria; token errado/inventado; revogado; expirado
  *   9  nao interferencia: HOLOSCAN, ferramentas, Resultado HOLOS, metodologia e anamnese antiga intactos
  *  10  acessibilidade: todo campo com rotulo; foco no titulo de cada etapa; teclado
@@ -102,7 +102,7 @@ let pub = await M.evaluate(() => ({ cab: document.getElementById('cabeca').inner
   sw: document.documentElement.scrollWidth, w: innerWidth, txt: document.body.innerText }));
 ok(/Nutri Ficticia Teste/.test(pub.cab) && /CRN-1 0000/.test(pub.cab) && /Olá, Joana!/.test(pub.cab) && !/Ficticia Teste/.test(pub.cab.replace('Nutri Ficticia Teste', '')),
   'página pública sem conta: nome, profissão e CRN da nutricionista; "Olá, Joana!" (só o primeiro nome)');
-ok(/Etapa 1 de 8/.test(pub.passo) && /Sobre você e seu objetivo/.test(pub.h2) && pub.foco === 'H2' && pub.sw <= pub.w + 1, 'celular 390px: "Etapa 1 de 8 — Sobre você e seu objetivo", foco no título, sem rolagem lateral');
+ok(/Etapa 1 de 7/.test(pub.passo) && /Sobre você e o que busca/.test(pub.h2) && pub.foco === 'H2' && pub.sw <= pub.w + 1, 'celular 390px: "Etapa 1 de 7 — Sobre você e o que busca", foco no título, sem rolagem lateral');
 ok(!/nutritionist_id|patient_id|domin|origem|meta/i.test(pub.txt), 'nenhum ID, "domínio", origem ou metadado técnico na tela da paciente');
 if (SHOT) await new Promise(r => setTimeout(r, 900)), await M.screenshot({ path: SHOT + '/publica-mobile.png' });
 const XSS = '<img src=x onerror="window.__x=1">Mais energia';
@@ -129,17 +129,13 @@ const seguir = async () => { await M.evaluate(() => document.getElementById('btn
 for (let i = 0; i < 5; i++) await seguir();
 pub = await M.evaluate(() => ({ h2: document.querySelector('main h2').textContent, txt: document.querySelector('main').innerText, nr: !!document.getElementById('pa-contexto-emocional-nr'),
   rotulos: [...document.querySelectorAll('main input, main textarea, main select')].every(i => i.labels && i.labels.length || i.getAttribute('aria-label') || i.closest('label')) }));
-ok(/Histórico e contexto/.test(pub.h2) && /Opcional\. Responda só se quiser/.test(pub.txt) && pub.nr, 'etapa 6: campos emocionais e de sentido pessoal OPCIONAIS, com "Prefiro não responder"');
+ok(/Sua história e seu momento de vida/.test(pub.h2) && /Opcional\. Responda só se quiser/.test(pub.txt) && pub.nr, 'etapa 6: campos emocionais e de sentido pessoal OPCIONAIS, com "Prefiro não responder"');
 ok(pub.rotulos, 'todo campo tem rótulo (label ou aria-label)');
 await M.evaluate(() => { const c = document.getElementById('pa-contexto-emocional-nr'); c.click(); });
 await seguir();
-pub = await M.evaluate(() => ({ h2: document.querySelector('main h2').textContent, ids: [...document.querySelectorAll('main [id^="pa-objetiva-"]')].map(e => e.id) }));
-ok(/Medidas/.test(pub.h2) && pub.ids.some(i => i === 'pa-objetiva-peso') && !pub.ids.some(i => /circunfer|exames|obs_fisicas|outras/.test(i)), 'etapa 7 (Medidas): só peso e altura; medidas aferidas e exames são da profissional e não aparecem');
-await M.evaluate(() => { const e = document.getElementById('pa-objetiva-peso'); e.value = '70'; e.dispatchEvent(new Event('input', { bubbles: true })); });
-await seguir();
 pub = await M.evaluate(() => ({ h2: document.querySelector('main h2').textContent, txt: document.querySelector('main').innerText, btn: document.getElementById('btn-seguir').textContent }));
 ok(/Revisar e enviar/.test(pub.h2) && pub.txt.includes('Cansaço à tarde') && pub.txt.includes(XSS) && pub.txt.includes('Prefiro não responder') && /Enviar Mapeamento/.test(pub.btn),
-  'etapa 8: revisão mostra as respostas como texto (inclusive o "<img ...>" literal) e "Enviar Mapeamento"');
+  'etapa 7: revisão mostra as respostas como texto (inclusive o "<img ...>" literal) e "Enviar Mapeamento"');
 ok(await M.evaluate(() => window.__x === undefined), 'XSS: o texto com HTML não executou na página pública');
 
 /* ===== 6 ===== */
@@ -174,8 +170,8 @@ const doms = a0.content.dominios || {};
 const peso = ((doms.medidas || {}).itens || []).find(i => i.campo === 'Peso');
 const emo = ((doms.emocional || {}).itens || [])[0];
 ok(an.length === 1 && a0.status === 'rascunho' && a0.encounter_id === EA && a0.content.formulario_versao === 2, 'Levar para a anamnese: cria UM rascunho V2 no atendimento ativo (a nutricionista revisa e salva)');
-ok(meta['motivo.motivo'] && meta['motivo.motivo'].origem === 'relato_paciente' && meta['motivo.motivo'].pre_consulta === convite.id && peso && peso.origem === 'relato_paciente' && emo && emo.estado === 'recusado',
-  'rastreabilidade: cada campo com origem relato_paciente e a referência do convite; peso informado NÃO vira dado medido; "Prefiro não responder" vira estado recusado');
+ok(meta['motivo.motivo'] && meta['motivo.motivo'].origem === 'relato_paciente' && meta['motivo.motivo'].pre_consulta === convite.id && !peso && emo && emo.estado === 'recusado',
+  'rastreabilidade: cada campo com origem relato_paciente e a referência do convite; sem peso (o Mapeamento não pede medidas); "Prefiro não responder" vira estado recusado');
 const cv2 = srv.linhas('anamnesis_invites').find(c => c.id === convite.id);
 ok(cv2.imported_anamnesis_id === a0.id && JSON.stringify(cv2.submitted_content) === JSON.stringify(fim.submitted_content), 'o convite registra que foi levado; o relato original continua igual');
 ok(await N.evaluate(() => /Rascunho|rascunho/.test(document.getElementById('anamnese-registro').innerText)), 'a aba mostra o rascunho da anamnese logo abaixo, para revisar');

@@ -24,45 +24,92 @@
   var token = (/[#&]t=([A-Za-z0-9_-]{40,64})/.exec(window.location.hash || "") || [])[1] || null;
   var CHAVE_LOCAL = token ? "holohacking.preanamnese." + token.slice(0, 12) : null;
 
-  /* Etapas (primeira consulta). Os blocos sao os da V2; titulos e textos para a paciente. */
+  /* Etapas do MAPEAMENTO HOLISTICO (12/10). Os blocos e as chaves sao os da Anamnese V2 (o "Levar para o atendimento"
+     usa as mesmas chaves); aqui so a ordem, o que o paciente ve e os textos dele. "campos" e a lista do que aparece, na
+     ordem; { secao } abre um subtitulo. Medidas (peso, altura, circunferencias), exames e observacoes fisicas NAO entram:
+     sao da nutricionista, no atendimento. O ultimo campo aberto ("final") fica na tela de revisar e enviar. */
   var ETAPAS_PRIMEIRA = [
-    { bloco: "motivo", titulo: "Sobre você e seu objetivo", intro: "Conte com suas palavras o que te traz à consulta." },
-    { bloco: "alimentar", titulo: "Alimentação", intro: "Como costuma ser a sua alimentação no dia a dia. Responda só o que souber." },
-    { bloco: "saude", titulo: "Saúde e sintomas", intro: "Condições que você já sabe que tem e sinais que tem percebido." },
-    { bloco: "restricoes", titulo: "Medicamentos e suplementos", intro: "O que você usa hoje, e alergias ou intolerâncias que conhece." },
-    { bloco: "estilo", titulo: "Sono e rotina", intro: "Sono, movimento e o ritmo da sua semana." },
-    { bloco: "contexto", titulo: "Histórico e contexto", intro: "O que ajuda a sua nutricionista a entender o seu momento. Tudo aqui é opcional." },
-    { bloco: "objetiva", titulo: "Medidas", intro: "Se souber, informe peso e altura aproximados. A nutricionista confere na consulta.", so: ["peso", "altura"] }
+    { bloco: "motivo", titulo: "Sobre você e o que busca", intro: "Conte com suas palavras o que te traz ao acompanhamento agora.",
+      campos: ["motivo", "objetivo", "ha_quanto_tempo", "ja_tentou", "ajudou", "nao_funcionou"] },
+    { bloco: "alimentar", titulo: "Sua alimentação no dia a dia", intro: "Queremos entender como a alimentação acontece na sua rotina. Responda só o que souber.",
+      campos: ["dia_comum", "refeicoes", "horarios", "maior_fome", "saciedade", "sem_fome", "desejos", "preferencias", "evitados",
+        "agua", "bebidas", "alcool", "quem_prepara", "com_quem", "comer_fora", "delivery", "trabalho", "dificuldade"] },
+    { bloco: "saude", titulo: "Como seu corpo tem se sentido", intro: "Conte o que você tem percebido no seu corpo. Não existe resposta certa.",
+      campos: [{ secao: "O que você tem percebido" }, "intestino", "gastrointestinais", "azia_refluxo", "distensao", "nausea", "retencao",
+        "dor_cabeca", "dor", "pele", "ciclo", "mudancas", "outros",
+        { secao: "Diagnósticos já informados por profissionais de saúde" }, "condicoes", "cirurgias"] },
+    { bloco: "restricoes", titulo: "Medicamentos, suplementos, alergias e intolerâncias", intro: "O que você usa hoje e o que já sabe sobre alergias e intolerâncias.",
+      campos: ["medicamentos", "suplementos", "alergias", "intolerancias", "evita_desconforto"] },
+    { bloco: "estilo", titulo: "Sono, energia e rotina", intro: "Sono, energia e o ritmo da sua semana.",
+      campos: ["dorme", "acorda", "sono", "despertares", "energia", "trabalho", "deslocamento", "atividade", "pausas", "rotina",
+        "dias_diferentes", "estresse", "tabagismo", "dificulta", "funciona"] },
+    { bloco: "contexto", titulo: "Sua história e seu momento de vida", intro: "O que ajuda a sua nutricionista a entender o seu momento. Tudo aqui é opcional.",
+      campos: ["historia_alimentacao", "familiar_saude", "mudancas_vida", "familiar", "responsabilidades", "sobrecarga", "apoio",
+        "financeiro", "emocional", "sentido_importante", "sentido"] }
   ];
-  var ETAPAS_RETORNO = [{ bloco: "retorno", titulo: "Desde a última consulta", intro: "Conte o que mudou desde o último encontro." }];
+  var ETAPAS_RETORNO = [{ bloco: "retorno", titulo: "Desde a última consulta", intro: "Conte o que mudou desde o último encontro.",
+    campos: ["melhorou", "piorou", "praticou", "nao_praticou", "facilitou", "dificultou", "alimentacao", "rotina", "sintomas", "nova_questao",
+      "medicamento", "suplemento", "dificuldade"] }];
+  /* campo aberto final, na tela de revisar e enviar */
+  var FINAL = { primeira: { bloco: "contexto", campo: "obs" }, retorno: { bloco: "retorno", campo: "obs" } };
+  var TXT_FINAL = "Tem alguma coisa importante sobre você, sua alimentação, sua saúde ou seu momento atual que não perguntamos e que gostaria que sua nutricionista soubesse?";
+  /* campo que so aparece com uma resposta: "Se quiser, conte um pouco" so com "Sim" */
+  var SE = { "contexto.sentido": { campo: "sentido_importante", valor: "Sim" } };
 
-  /* Perguntas mais simples para a paciente (a chave continua a mesma da V2). */
+  /* Perguntas para o paciente (a chave continua a mesma da V2). */
   var ROTULO = {
-    "motivo.motivo": "O que te trouxe à consulta?", "motivo.objetivo": "Qual é o seu principal objetivo?",
-    "motivo.expectativa": "O que você espera do acompanhamento?", "motivo.mudar_primeiro": "O que gostaria de mudar primeiro?",
+    "motivo.motivo": "Qual é o principal motivo para buscar acompanhamento agora?", "motivo.objetivo": "O que você gostaria que estivesse diferente?",
+    "motivo.ha_quanto_tempo": "Há quanto tempo isso chama a sua atenção ou incomoda?", "motivo.ja_tentou": "O que você já tentou antes?",
+    "motivo.ajudou": "O que ajudou?", "motivo.nao_funcionou": "O que não funcionou?",
+    "alimentar.dia_comum": "Como costuma ser a sua alimentação em um dia comum?",
     "alimentar.refeicoes": "Quantas refeições você costuma fazer por dia?", "alimentar.horarios": "Em que horários, mais ou menos?",
-    "alimentar.cafe": "O que costuma comer no café da manhã?", "alimentar.almoco": "E no almoço?", "alimentar.jantar": "E no jantar?",
-    "alimentar.lanches": "E nos lanches?", "alimentar.agua": "Quanta água bebe por dia?", "alimentar.alcool": "Consome bebida alcoólica?",
+    "alimentar.maior_fome": "Em que períodos sente mais fome?", "alimentar.saciedade": "Depois de comer, você costuma se sentir satisfeito(a)?",
+    "alimentar.sem_fome": "Você percebe que come mesmo sem fome?", "alimentar.desejos": "Tem vontade frequente de algum alimento específico?",
     "alimentar.preferencias": "Alimentos de que mais gosta", "alimentar.evitados": "Alimentos que evita ou não come",
-    "alimentar.dificuldade": "Qual a sua maior dificuldade com a alimentação?", "alimentar.maior_fome": "Em que períodos sente mais fome?",
-    "alimentar.quem_prepara": "Quem prepara as suas refeições?", "alimentar.comer_fora": "Com que frequência come fora?",
+    "alimentar.agua": "Quanta água bebe por dia?", "alimentar.bebidas": "Outras bebidas no dia a dia (café, chás, sucos, refrigerantes…)",
+    "alimentar.alcool": "Consome bebida alcoólica?", "alimentar.quem_prepara": "Quem prepara as suas refeições?",
+    "alimentar.com_quem": "Onde e com quem costuma comer?", "alimentar.comer_fora": "Com que frequência come fora?",
     "alimentar.delivery": "Com que frequência pede delivery?", "alimentar.trabalho": "Como você se alimenta no trabalho?",
-    "alimentar.obs": "Quer contar mais alguma coisa sobre a sua alimentação?",
-    "saude.condicoes": "Tem alguma condição de saúde ou diagnóstico que já conhece?", "saude.cirurgias": "Já fez alguma cirurgia?",
-    "saude.intestino": "Como funciona o seu intestino?", "saude.gastrointestinais": "Desconforto no estômago ou intestino",
-    "saude.azia_refluxo": "Azia ou refluxo", "saude.distensao": "Barriga estufada", "saude.nausea": "Enjoo", "saude.dor": "Dor",
-    "saude.outros": "Outros sinais que tem percebido",
+    "alimentar.dificuldade": "Qual a sua maior dificuldade com a alimentação?",
+    "saude.intestino": "Como funciona o seu intestino?", "saude.gastrointestinais": "Você percebe desconfortos digestivos?",
+    "saude.azia_refluxo": "Azia ou refluxo", "saude.distensao": "Barriga estufada", "saude.nausea": "Enjoo",
+    "saude.retencao": "Sensação de inchaço ou retenção", "saude.dor_cabeca": "Dor de cabeça", "saude.dor": "Outras dores",
+    "saude.pele": "Percebe alguma mudança na pele?", "saude.ciclo": "Se fizer sentido para você: algo sobre o ciclo menstrual que queira contar?",
+    "saude.mudancas": "Percebeu mudanças no seu corpo recentemente?", "saude.outros": "Outros sinais que tem percebido",
+    "saude.condicoes": "Algum diagnóstico já informado por um profissional de saúde?", "saude.cirurgias": "Já fez alguma cirurgia?",
     "restricoes.medicamentos": "Medicamentos que usa", "restricoes.suplementos": "Suplementos que usa",
-    "restricoes.alergias": "Alergias", "restricoes.intolerancias": "Intolerâncias alimentares",
-    "estilo.sono": "Como está o seu sono?", "estilo.atividade": "Pratica atividade física?", "estilo.trabalho": "Como é o seu trabalho?",
-    "estilo.estresse": "Como está o seu nível de estresse?", "estilo.tabagismo": "Fuma?", "estilo.rotina": "Como é a sua rotina, em poucas palavras?",
-    "contexto.familiar_saude": "Alguma condição de saúde importante na família?", "contexto.familiar": "Como é o seu contexto familiar?",
-    "contexto.social": "E a sua vida social?", "contexto.financeiro": "Algo sobre condições financeiras que influencia a sua alimentação? (se quiser contar)",
-    "contexto.obs": "Algo mais que acha importante a nutricionista saber?",
-    "contexto.emocional": "Como você tem se sentido emocionalmente?", "contexto.sentido": "O que dá sentido à sua vida hoje?",
-    "objetiva.peso": "Peso aproximado", "objetiva.altura": "Altura"
+    "restricoes.alergias": "Alergias conhecidas ou diagnosticadas", "restricoes.intolerancias": "Intolerâncias conhecidas",
+    "restricoes.evita_desconforto": "Existe algum alimento que você evita porque percebe desconforto? Se quiser, conte qual e o que costuma perceber.",
+    "estilo.dorme": "Que horas costuma dormir, mais ou menos?", "estilo.acorda": "E que horas costuma acordar?",
+    "estilo.sono": "Como está o seu sono?", "estilo.despertares": "Acorda durante a noite?",
+    "estilo.energia": "Como está a sua energia ao longo do dia?", "estilo.trabalho": "Como é o seu trabalho?",
+    "estilo.deslocamento": "Como são os seus deslocamentos no dia a dia?", "estilo.atividade": "Pratica atividade física?",
+    "estilo.pausas": "Consegue fazer pausas para comer com calma?", "estilo.rotina": "Como é a sua rotina, em poucas palavras? Quais períodos são mais corridos?",
+    "estilo.dias_diferentes": "Seus dias úteis e fins de semana são muito diferentes?", "estilo.estresse": "Como está o seu nível de estresse?",
+    "estilo.tabagismo": "Fuma?",
+    "estilo.dificulta": "Qual parte da sua rotina hoje mais dificulta cuidar da sua alimentação e da sua saúde?",
+    "estilo.funciona": "Existe alguma parte da sua rotina que já funciona bem e você gostaria de preservar?",
+    "contexto.historia_alimentacao": "Algo da sua história com a alimentação que considera importante? (dietas, fases, mudanças)",
+    "contexto.familiar_saude": "Alguma condição de saúde importante na família?",
+    "contexto.mudancas_vida": "Aconteceu alguma mudança importante na sua vida recentemente?",
+    "contexto.familiar": "Como é o seu contexto familiar?", "contexto.responsabilidades": "Quais são as suas principais responsabilidades no dia a dia?",
+    "contexto.sobrecarga": "Você tem se sentido sobrecarregado(a)?", "contexto.apoio": "Com quem você pode contar no dia a dia?",
+    "contexto.financeiro": "Algo sobre condições financeiras que influencia a sua alimentação?",
+    "contexto.emocional": "Você percebe que emoções ou situações específicas influenciam a sua alimentação?",
+    "contexto.sentido_importante": "Existe algo relacionado ao seu momento de vida, valores, propósito, espiritualidade ou sentido pessoal que você considera importante para o seu cuidado?",
+    "contexto.sentido": "Se quiser, conte um pouco.",
+    "contexto.obs": TXT_FINAL,
+    "retorno.melhorou": "O que melhorou?", "retorno.piorou": "O que piorou?",
+    "retorno.praticou": "O que você conseguiu colocar em prática desde a última consulta?", "retorno.nao_praticou": "O que você não conseguiu colocar em prática?",
+    "retorno.facilitou": "O que facilitou?", "retorno.dificultou": "O que dificultou?",
+    "retorno.alimentacao": "O que mudou na alimentação?", "retorno.rotina": "Mudou alguma coisa na rotina?", "retorno.sintomas": "Mudou algo nos sintomas ou percebeu sinais novos?",
+    "retorno.nova_questao": "Apareceu alguma questão nova desde o último encontro?", "retorno.medicamento": "Mudou algum medicamento?",
+    "retorno.suplemento": "Mudou algum suplemento?", "retorno.dificuldade": "Qual foi a principal dificuldade desde a última consulta?",
+    "retorno.obs": TXT_FINAL
   };
-  var SENSIVEIS = { "contexto.emocional": true, "contexto.sentido": true };
+  /* campos sensiveis: opcionais, com "Prefiro nao responder" */
+  var SENSIVEIS = { "contexto.familiar": true, "contexto.sobrecarga": true, "contexto.apoio": true, "contexto.financeiro": true,
+    "contexto.emocional": true, "contexto.sentido_importante": true, "contexto.sentido": true, "saude.ciclo": true };
   var TXT_SENSIVEL = "Opcional. Responda só se quiser: não há resposta certa, e você pode deixar em branco ou marcar \"Prefiro não responder\".";
 
   var estado = { info: null, tipo: "primeira", formulario: {}, passo: 0, salvando: false, sujo: false, timer: null, enviado: false };
@@ -81,6 +128,19 @@
   function etapas() { return estado.tipo === "retorno" ? ETAPAS_RETORNO : ETAPAS_PRIMEIRA; }
   function totalPassos() { return etapas().length + 1; }   // + revisar e enviar
   function blocoDef(id) { return (estado.tipo === "retorno" ? V2.BLOCOS_RETORNO : V2.BLOCOS_PRIMEIRA).filter(function (b) { return b.id === id; })[0]; }
+  function camposDa(et) {
+    var b = blocoDef(et.bloco); if (!b) return [];
+    return (et.campos || b.campos.map(function (f) { return f.id; })).map(function (c) {
+      if (typeof c !== "string") return c;
+      return b.campos.filter(function (f) { return f.id === c; })[0] || null;
+    }).filter(Boolean);
+  }
+  function visivel(b, f) { var c = SE[b + "." + f.id]; return !c || dados(b)[c.campo] === c.valor; }
+  function atualizarCondicionais() {
+    document.querySelectorAll("[data-se]").forEach(function (n) {
+      var p = n.getAttribute("data-se").split("|"); n.hidden = dados(p[0])[p[1]] !== p[2];
+    });
+  }
   function dados(b) { return (estado.formulario[b] = estado.formulario[b] || {}); }
   function tem(v) { return v !== null && v !== undefined && (typeof v !== "string" || v.trim() !== "") && (!Array.isArray(v) || v.length > 0); }
 
@@ -89,7 +149,15 @@
     if (!sb) return Promise.reject(new Error("sem conexão"));
     return Promise.resolve(sb.rpc(nome, args)).then(function (r) { if (r.error) throw r.error; return r.data; });
   }
-  function conteudo() { return { formulario_versao: 2, tipo: estado.tipo, formulario: estado.formulario }; }
+  /* o que vai ao servidor: campo condicional escondido (ex.: "conte um pouco" sem o "Sim") nao vai */
+  function conteudo() {
+    var f = JSON.parse(JSON.stringify(estado.formulario || {}));
+    Object.keys(SE).forEach(function (k) {
+      var p = k.split("."), c = SE[k];
+      if (f[p[0]] && (f[p[0]][c.campo] !== c.valor)) { delete f[p[0]][p[1]]; delete f[p[0]][p[1] + "_prefiro_nao"]; }
+    });
+    return { formulario_versao: 2, tipo: estado.tipo, formulario: f };
+  }
   function copiaLocal(gravar) {
     if (!CHAVE_LOCAL) return null;
     try {
@@ -121,6 +189,7 @@
     });
   }
   function mudou() {
+    atualizarCondicionais();
     estado.sujo = true;
     copiaLocal(true);
     pintarSalvo("Alterações não salvas…");
@@ -158,10 +227,15 @@
     var d = dados(b), nome = idCampo(b, f.id);
     var atual = f.multi ? (Array.isArray(d[f.id]) ? d[f.id] : []) : d[f.id];
     var grupo = el("div", { class: "chips" });
-    f.opcoes.forEach(function (o, i) {
-      var inp = el("input", { type: f.multi ? "checkbox" : "radio", name: nome, id: nome + "-" + i, value: o });
-      inp.checked = f.multi ? atual.indexOf(o) >= 0 : atual === o;
+    var sensivel = !f.multi && SENSIVEIS[b + "." + f.id];
+    var opcoes = sensivel ? f.opcoes.concat([null]) : f.opcoes;
+    opcoes.forEach(function (o, i) {
+      var nr = o === null;   // "Prefiro nao responder": nao vira valor, vira a marca _prefiro_nao (estado "recusado" no rascunho)
+      var inp = el("input", { type: f.multi ? "checkbox" : "radio", name: nome, id: nome + "-" + i, value: nr ? "" : o });
+      inp.checked = nr ? d[f.id + "_prefiro_nao"] === true : (f.multi ? atual.indexOf(o) >= 0 : atual === o && d[f.id + "_prefiro_nao"] !== true);
       inp.addEventListener("change", function () {
+        if (nr) { d[f.id] = ""; d[f.id + "_prefiro_nao"] = true; mudou(); return; }
+        if (sensivel) d[f.id + "_prefiro_nao"] = false;
         if (f.multi) {
           var lista = Array.isArray(d[f.id]) ? d[f.id].slice() : [];
           if (inp.checked && lista.indexOf(o) < 0) lista.push(o);
@@ -170,14 +244,17 @@
         } else d[f.id] = o;
         mudou();
       });
-      grupo.appendChild(el("label", { class: "chip", for: nome + "-" + i }, [inp, el("span", { texto: o })]));
+      grupo.appendChild(el("label", { class: "chip", for: nome + "-" + i }, [inp, el("span", { texto: nr ? "Prefiro não responder" : o })]));
     });
     if (!f.multi) {
       var limpar = el("button", { type: "button", class: "btn btn-peq", texto: "Limpar" });
-      limpar.addEventListener("click", function () { d[f.id] = ""; grupo.querySelectorAll("input").forEach(function (x) { x.checked = false; }); mudou(); });
+      limpar.addEventListener("click", function () { d[f.id] = ""; delete d[f.id + "_prefiro_nao"]; grupo.querySelectorAll("input").forEach(function (x) { x.checked = false; }); mudou(); });
       grupo.appendChild(limpar);
     }
-    return el("fieldset", { class: "campo" }, [el("legend", { texto: rotuloDe(b, f) + (f.multi ? " (pode marcar mais de um)" : "") }), grupo]);
+    var fs = el("fieldset", { class: "campo" }, [el("legend", { texto: rotuloDe(b, f) + (f.multi ? " (pode marcar mais de um)" : "") })]);
+    if (sensivel) fs.appendChild(el("p", { class: "ajuda", texto: TXT_SENSIVEL }));
+    fs.appendChild(grupo);
+    return fs;
   }
   function campoSintoma(b, f) {
     var d = dados(b), nome = idCampo(b, f.id);
@@ -250,6 +327,11 @@
     return caixa;
   }
   function campo(b, f) {
+    var c = SE[b + "." + f.id];
+    if (c) { var n = campoBase(b, f); if (n) { n.setAttribute("data-se", b + "|" + c.campo + "|" + c.valor); n.hidden = !visivel(b, f); } return n; }
+    return campoBase(b, f);
+  }
+  function campoBase(b, f) {
     if (f.tipo === "texto" || f.tipo === "area") return campoTexto(b, f);
     if (f.tipo === "chips") return campoChips(b, f);
     if (f.tipo === "sintoma") return campoSintoma(b, f);
@@ -303,12 +385,12 @@
     var seguir = $("btn-seguir");
     if (i === total - 1) return telaRevisar();
     seguir.textContent = i === total - 2 ? "Revisar respostas" : "Continuar";
-    var et = etapas()[i], b = blocoDef(et.bloco);
+    var et = etapas()[i];
     var h = el("h2", { texto: et.titulo, tabindex: "-1" });
     main.appendChild(h);
     main.appendChild(el("p", { class: "intro", texto: et.intro }));
-    (b ? b.campos : []).forEach(function (f) {
-      if (et.so && et.so.indexOf(f.id) < 0) return;
+    camposDa(et).forEach(function (f) {
+      if (f.secao) { main.appendChild(el("h3", { class: "secao", texto: f.secao })); return; }
       var n = campo(et.bloco, f); if (n) main.appendChild(n);
     });
     if (i === 0) main.appendChild(el("p", { class: "privacidade", texto: "Suas respostas vão só para a sua nutricionista e ajudam a preparar o atendimento. Este formulário não é diagnóstico." }));
@@ -317,6 +399,7 @@
   }
   function valorTexto(f, d) {
     var v = d[f.id];
+    if (d[f.id + "_prefiro_nao"] === true) return "Prefiro não responder";
     if (f.tipo === "chips") return Array.isArray(v) ? v.join(", ") : (v || "");
     if (f.tipo === "sintoma") return v ? ({ nao: "Não", as_vezes: "Às vezes", frequente: "Frequente" }[v] || "") + (tem(d[f.id + "_detalhe"]) ? " — " + d[f.id + "_detalhe"] : "") : "";
     if (f.tipo === "medida") return tem(v) ? v + " " + (d[f.id + "_unidade"] || f.unidades[0]) : "";
@@ -336,9 +419,9 @@
     main.appendChild(el("p", { class: "intro", texto: "Confira o que você respondeu. Para mudar algo, volte à etapa. Depois de enviar, as respostas não podem ser alteradas por este link." }));
     var rev = el("div", { class: "revisao" }), algum = false;
     etapas().forEach(function (et, idx) {
-      var b = blocoDef(et.bloco), d = dados(et.bloco), dl = el("dl");
-      (b ? b.campos : []).forEach(function (f) {
-        if (et.so && et.so.indexOf(f.id) < 0) return;
+      var d = dados(et.bloco), dl = el("dl");
+      camposDa(et).forEach(function (f) {
+        if (f.secao || !visivel(et.bloco, f)) return;
         var t = valorTexto(f, d);
         if (tem(t)) { algum = true; dl.appendChild(el("dt", { texto: rotuloDe(et.bloco, f) })); dl.appendChild(el("dd", { texto: t })); }
       });
@@ -349,9 +432,18 @@
       rev.appendChild(ir);
     });
     main.appendChild(rev);
+    /* campo aberto final (opcional) */
+    var fin = FINAL[estado.tipo], fdef = blocoDef(fin.bloco).campos.filter(function (f) { return f.id === fin.campo; })[0];
+    if (fdef) { var nf = campo(fin.bloco, fdef); nf.classList.add("final"); main.appendChild(nf); if (tem(dados(fin.bloco)[fin.campo])) algum = true; }
     main.appendChild(el("p", { class: "erro", id: "erro-envio", role: "alert" }));
-    seguir.disabled = !algum;
-    if (!algum) $("erro-envio").textContent = "Responda ao menos uma pergunta para enviar.";
+    var podeEnviar = function () {
+      var ok = algum || tem(dados(fin.bloco)[fin.campo]);
+      seguir.disabled = !ok;
+      $("erro-envio").textContent = ok ? "" : "Responda ao menos uma pergunta para enviar.";
+    };
+    podeEnviar();
+    var caixaFinal = document.getElementById(idCampo(fin.bloco, fin.campo));
+    if (caixaFinal) caixaFinal.addEventListener("input", podeEnviar);
     h.focus(); window.scrollTo(0, 0);
   }
   function enviar() {
