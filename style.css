@@ -5019,3 +5019,184 @@ body.escuro .ad-aba.ativa{color:var(--verde-noite)}
 .ad-senha code{display:inline-block;font-size:1.25rem;letter-spacing:.08em;padding:4px 10px;border-radius:8px;background:var(--input-fundo);border:1px solid var(--input-borda);margin-bottom:8px;user-select:all}
 .ad-hist .ct-quem b{font-weight:500}
 @media (max-width:600px){.ad-dl div{flex-direction:column;gap:0}.ad-dl dd{text-align:left}}
+
+/* =========================================================================
+   DASHBOARD 12/10 — topo claro (marfim) + Agenda de Hoje + Acompanhamento
+   dos pacientes. Tudo escopado em #secao-dashboard: .dash-tile, .dash-bloco
+   e .dash-pendente tambem sao usados na ficha, em Atendimentos e no Perfil.
+   O topo e claro nos dois temas (marfim quente, texto verde); o resto segue
+   o tema (no escuro: verde-noite com dourado).
+   ========================================================================= */
+#secao-dashboard{
+  --hero-fundo:#f5efe1;--hero-card:#fbf8f1;--hero-verde:#0f3b2b;--hero-verde-vivo:#3f7a52;
+  --hero-suave:#55705f;--hero-borda:rgba(15,59,43,.08);
+}
+#secao-dashboard .dash-hero{
+  position:relative;overflow:hidden;isolation:isolate;
+  background:
+    radial-gradient(ellipse 55% 70% at 100% 0%, rgba(126,160,110,.18), transparent 70%),
+    linear-gradient(180deg,#f7f2e6,var(--hero-fundo));
+  border-radius:22px;padding:40px 44px 30px;margin-bottom:28px;
+  box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 10px 34px rgba(6,35,26,.10);
+  color:var(--hero-verde);
+}
+#secao-dashboard .dash-hero-folhas{
+  position:absolute;right:-10px;top:-6px;width:min(38%,360px);height:auto;z-index:-1;
+  color:#7f9d73;opacity:.45;pointer-events:none;
+}
+#secao-dashboard .dash-hero .dash-cabeca{margin-bottom:26px;max-width:640px}
+#secao-dashboard .dash-hero .eyebrow{color:var(--hero-suave)}
+#secao-dashboard .dash-hero h2{color:var(--hero-verde)}
+#secao-dashboard .dash-hero h2 em{color:var(--hero-verde)}
+#secao-dashboard .dash-hero .dash-cabeca p{color:var(--hero-suave);font-size:1.02rem}
+#secao-dashboard .dash-hero .dash-cabeca p b{color:var(--hero-verde);font-weight:500}
+
+#secao-dashboard .dash-numeros.dash-resumo{
+  grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:18px;
+}
+#secao-dashboard .dash-hero .dash-tile{
+  position:relative;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto auto;
+  column-gap:16px;row-gap:2px;align-items:center;text-align:left;
+  background:var(--hero-card);border:1px solid var(--hero-borda);border-radius:16px;
+  padding:20px 38px 20px 18px;box-shadow:0 4px 16px rgba(6,35,26,.05);
+  font-family:inherit;color:var(--hero-verde);cursor:pointer;
+  transition:box-shadow .2s,transform .2s,border-color .2s;
+}
+#secao-dashboard .dash-hero .dash-tile:hover{box-shadow:0 8px 24px rgba(6,35,26,.09);transform:translateY(-1px);border-color:rgba(63,122,82,.22)}
+#secao-dashboard .dash-hero .dash-tile:focus-visible{outline:2px solid var(--hero-verde-vivo);outline-offset:3px}
+#secao-dashboard .dash-tile-icone{
+  grid-row:1 / span 3;width:52px;height:52px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(63,122,82,.10);color:var(--hero-verde);font-style:normal;
+}
+#secao-dashboard .dash-hero .dash-tile b{color:var(--hero-verde);font-size:2rem;grid-column:2}
+#secao-dashboard .dash-hero .dash-tile span{color:var(--hero-suave);font-size:.84rem;font-weight:400;grid-column:2}
+#secao-dashboard .dash-hero .dash-tile-sub{grid-column:2;font-size:.7rem;color:var(--hero-suave);opacity:.85}
+#secao-dashboard .dash-tile-seta{position:absolute;right:14px;top:18px;color:var(--hero-suave);font-style:normal;display:flex}
+#secao-dashboard .dash-acoes-rapidas{margin:0;gap:8px}
+#secao-dashboard .dash-acao{
+  background:none;border:1px solid var(--hero-borda);border-radius:999px;cursor:pointer;
+  font-family:inherit;font-size:.78rem;color:var(--hero-verde);padding:7px 14px;transition:background .15s,border-color .15s;
+}
+#secao-dashboard .dash-acao:hover{background:rgba(63,122,82,.08);border-color:rgba(63,122,82,.3)}
+#secao-dashboard .dash-acao:focus-visible{outline:2px solid var(--hero-verde-vivo);outline-offset:2px}
+
+/* ---------- Agenda de Hoje + Acompanhamento (lado a lado) ---------- */
+#secao-dashboard .dash-colunas{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:22px;margin-bottom:28px}
+#secao-dashboard .dash-painel{
+  margin:0;background:var(--sup-card);border:1px solid var(--borda-suave);border-radius:18px;
+  padding:24px 24px 20px;display:flex;flex-direction:column;
+}
+#secao-dashboard .dash-bloco-topo{display:flex;align-items:flex-start;gap:14px;margin-bottom:16px}
+#secao-dashboard .dash-bloco-icone{color:var(--dourado);display:flex;padding-top:2px}
+#secao-dashboard .dash-bloco-titulos{flex:1;min-width:0}
+#secao-dashboard .dash-bloco-titulos .dash-titulo{font-size:1.5rem;margin:0}
+#secao-dashboard .dash-bloco-titulos .dash-sub{margin:2px 0 0;font-size:.8rem}
+#secao-dashboard .dash-botao-contorno{
+  border:1px solid var(--dourado-suave);background:none;color:var(--dourado);border-radius:10px;
+  font-family:inherit;font-size:.8rem;padding:9px 14px;white-space:nowrap;cursor:pointer;transition:background .15s,border-color .15s;
+}
+#secao-dashboard .dash-botao-contorno:hover{background:var(--dourado-bg);border-color:var(--dourado)}
+#secao-dashboard .dash-botao-contorno:focus-visible,#secao-dashboard .dash-botao-dourado:focus-visible{outline:2px solid var(--dourado);outline-offset:2px}
+#secao-dashboard .dash-vazio-elegante{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  border:1px solid var(--borda-suave);border-radius:14px;padding:34px 18px;gap:8px;
+}
+#secao-dashboard .dash-vazio-icone{
+  width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  color:var(--dourado);background:var(--dourado-bg);margin-bottom:8px;
+}
+#secao-dashboard .dash-vazio-elegante h4{font-family:var(--fonte-display);font-weight:500;font-size:1.35rem;color:var(--titulo);margin:0}
+#secao-dashboard .dash-vazio-elegante p{font-size:.88rem;font-weight:300;color:var(--texto-suave);margin:0 0 10px;line-height:1.6}
+#secao-dashboard .dash-botao-dourado{
+  border:0;border-radius:10px;cursor:pointer;font-family:inherit;font-size:.88rem;font-weight:500;
+  background:var(--dourado-claro);color:#1d2a20;padding:11px 26px;box-shadow:0 6px 18px rgba(201,163,90,.22);
+  transition:filter .15s;
+}
+#secao-dashboard .dash-botao-dourado:hover{filter:brightness(1.05)}
+
+#secao-dashboard .dash-acomp-lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+#secao-dashboard .dash-acomp{
+  width:100%;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;align-items:center;gap:14px;
+  background:none;border:1px solid var(--borda-suave);border-radius:12px;padding:12px 14px;
+  font-family:inherit;color:inherit;text-align:left;cursor:pointer;transition:background .15s,border-color .15s;
+}
+#secao-dashboard .dash-acomp:hover{background:var(--halo);border-color:var(--dourado-suave)}
+#secao-dashboard .dash-acomp:focus-visible{outline:2px solid var(--dourado);outline-offset:2px}
+#secao-dashboard .dash-acomp .pac-avatar{width:40px;height:40px;font-size:1.05rem}
+#secao-dashboard .dash-acomp-data{font-size:.76rem;color:var(--texto-suave);font-variant-numeric:tabular-nums;white-space:nowrap}
+#secao-dashboard .dash-acomp-seta{color:var(--texto-suave);display:flex;font-style:normal}
+#secao-dashboard .dash-status{
+  display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+  font-size:.74rem;font-weight:500;border-radius:999px;padding:5px 11px;border:1px solid;
+}
+/* sem vermelho, sem "alta/media/baixa": aguardando = dourado suave; pronto = verde;
+   andamento = oliva; neutro = verde discreto */
+#secao-dashboard .dash-status.tom-aguardando{color:#8a6f32;border-color:rgba(201,163,90,.45);background:rgba(201,163,90,.10)}
+#secao-dashboard .dash-status.tom-pronto{color:#2c6a51;border-color:rgba(44,106,81,.35);background:rgba(44,106,81,.08)}
+#secao-dashboard .dash-status.tom-andamento{color:#5b6b2e;border-color:rgba(107,124,58,.4);background:rgba(107,124,58,.09)}
+#secao-dashboard .dash-status.tom-neutro{color:#4c6357;border-color:rgba(76,99,87,.3);background:rgba(76,99,87,.07)}
+body.escuro #secao-dashboard .dash-status.tom-aguardando{color:#e2c98a;border-color:rgba(226,201,138,.45);background:rgba(201,163,90,.12)}
+body.escuro #secao-dashboard .dash-status.tom-pronto{color:#9fd3b2;border-color:rgba(127,190,150,.4);background:rgba(127,190,150,.10)}
+body.escuro #secao-dashboard .dash-status.tom-andamento{color:#c8d19a;border-color:rgba(184,196,122,.4);background:rgba(184,196,122,.10)}
+body.escuro #secao-dashboard .dash-status.tom-neutro{color:#b7c9bd;border-color:rgba(183,201,189,.3);background:rgba(183,201,189,.07)}
+
+#secao-dashboard .dash-grade-baixo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 22px}
+#secao-dashboard .dash-aviso-tecnico .dash-titulo{color:var(--realce)}
+
+/* ---------- acesso ao Perfil no topo ---------- */
+.chip-perfil{
+  display:flex;align-items:center;gap:10px;cursor:pointer;border-radius:14px;
+  padding:6px 12px 6px 6px;border:1px solid var(--borda-suave);transition:background .15s,border-color .15s;
+}
+.chip-perfil:hover{background:var(--halo);border-color:var(--dourado-suave)}
+.chip-perfil:focus-visible{outline:2px solid var(--dourado);outline-offset:2px}
+.chip-perfil .avatar{
+  width:38px;height:38px;background:linear-gradient(135deg,var(--dourado-claro),var(--dourado));
+  color:#1d2a20;font-family:var(--fonte-corpo);font-size:.82rem;font-weight:600;letter-spacing:.02em;overflow:hidden;
+}
+.chip-perfil .avatar.com-foto img{width:100%;height:100%;object-fit:cover}
+.chip-perfil-texto{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+.chip-perfil-texto b{font-weight:500;font-size:.86rem;color:var(--texto);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+.chip-perfil-texto small{font-size:.7rem;color:var(--texto-suave)}
+.chip-perfil-seta{color:var(--texto-suave)}
+
+/* ---------- responsivo ---------- */
+@media (max-width:1180px){
+  #secao-dashboard .dash-numeros.dash-resumo{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #secao-dashboard .dash-colunas{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:760px){
+  #secao-dashboard .dash-hero{padding:28px 20px 22px;border-radius:18px}
+  #secao-dashboard .dash-hero-folhas{width:58%;opacity:.3}
+  #secao-dashboard .dash-grade-baixo{grid-template-columns:minmax(0,1fr)}
+  #secao-dashboard .dash-acomp{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"av quem seta" "av status data";row-gap:6px}
+  #secao-dashboard .dash-acomp .pac-avatar{grid-area:av}
+  #secao-dashboard .dash-acomp .dash-quem{grid-area:quem}
+  #secao-dashboard .dash-acomp-seta{grid-area:seta}
+  #secao-dashboard .dash-status{grid-area:status;justify-self:start}
+  #secao-dashboard .dash-acomp-data{grid-area:data;justify-self:end}
+  #secao-dashboard .dash-bloco-topo{flex-wrap:wrap}
+  #secao-dashboard .dash-bloco-topo .dash-botao-contorno{margin-left:auto}
+  .chip-perfil-texto,.chip-perfil-seta{display:none}
+  .chip-perfil{padding:4px;border-color:transparent}
+}
+@media (max-width:420px){
+  #secao-dashboard .dash-hero .dash-tile{grid-template-columns:1fr;padding:16px 30px 16px 14px;row-gap:6px}
+  #secao-dashboard .dash-tile-icone{grid-row:auto;width:40px;height:40px}
+  #secao-dashboard .dash-hero .dash-tile b,#secao-dashboard .dash-hero .dash-tile span,#secao-dashboard .dash-hero .dash-tile-sub{grid-column:1}
+  #secao-dashboard .dash-hero .dash-tile b{font-size:1.55rem}
+}
+/* ajustes finos 12/10: data no card, nomes numa linha, mais espaco para o Acompanhamento */
+#secao-dashboard .dash-hero .dash-tile{column-gap:12px;padding:18px 30px 18px 14px}
+#secao-dashboard .dash-tile-icone{width:46px;height:46px}
+#secao-dashboard .dash-hero .dash-tile b.dash-tile-data{font-size:1.38rem;white-space:nowrap}
+#secao-dashboard .dash-hero .dash-tile span{line-height:1.3}
+#secao-dashboard .dash-colunas{grid-template-columns:minmax(0,1fr) minmax(0,1.55fr)}
+#secao-dashboard .dash-acomp .dash-quem b,#secao-dashboard .dash-acomp .dash-porque{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#secao-dashboard .dash-acomp{gap:12px}
+@media (max-width:1180px){#secao-dashboard .dash-colunas{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:760px){
+  #secao-dashboard .dash-acomp{grid-template-areas:"av quem seta" "av status status" "av data data"}
+  #secao-dashboard .dash-acomp-data{justify-self:start;font-size:.72rem}
+}

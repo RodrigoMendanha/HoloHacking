@@ -1005,6 +1005,15 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     de Homologação; aprovação pelo aprovador único; o v2 é retirado para aplicações novas e as antigas ficam nele.
     A tela do questionário passa a mostrar as perguntas do pacote vigente (antes vinham do `holoscan.js`).
     Detalhes: `docs/v1/REVISAO-PERGUNTAS-V3.md`. PENDENTE: deploy, gravar/aprovar o v3 e retirar o v2 pela Homologação.
+184. **Dashboard: "Acompanhamento dos pacientes" no lugar de "Pendências"** (12/10, pedido da usuária). O fluxo não
+    trabalha com tarefas atrasadas: ferramenta não aplicada, opcional ou complementar não é pendência. O Dashboard mostra
+    em que etapa cada paciente ativo está, só a partir de dados que já existem: Aguardando anamnese e Anamnese recebida
+    (convites pré-consulta), HOLOSCAN em andamento (rascunho do questionário neste aparelho), Resultado pronto e
+    Resultado apresentado (Resultado HOLOS e emissão do Resultado Final), Aguardando retorno (já atendida + consulta
+    marcada à frente). "Em acompanhamento" = pacientes ativos com alguma etapa. "Pronto para consulta" não foi usado
+    (não há registro de "anamnese revisada" separado do atendimento). Sem prioridade, gravidade nem vermelho. Topo
+    marfim; Agenda de Hoje + Acompanhamento lado a lado; o Perfil abre pelo canto superior direito. Sem mudança de
+    banco. Detalhes: `docs/v1/DASHBOARD-ACOMPANHAMENTO.md`.
 
 ## Decisões pendentes (não decididas aqui)
 

@@ -429,6 +429,14 @@
       renderPacientes();
     }
   }));
+  /* 12/10: o bloco nome + avatar do topo abre o Perfil (clique, Enter ou Espaco). */
+  const chipPerfil = document.getElementById("chip-perfil");
+  if(chipPerfil){
+    chipPerfil.addEventListener("click", () => irPara("perfil"));
+    chipPerfil.addEventListener("keydown", (ev) => {
+      if(ev.key === "Enter" || ev.key === " " || ev.key === "Spacebar"){ ev.preventDefault(); irPara("perfil"); }
+    });
+  }
   // "aba:x" abre uma aba da ficha aberta, nao uma secao do menu — irPara("aba:x")
   // nao batia com secao nenhuma e zerava a tela (nenhuma .secao ficava ativa).
   $$("[data-ir]").forEach(c => c.addEventListener("click", () => {

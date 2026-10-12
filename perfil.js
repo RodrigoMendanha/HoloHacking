@@ -646,6 +646,13 @@
 
   /* ---------- o rodape da sidebar ----------------------------------------- */
 
+  /* "Daniel Bego" -> "DB" no topo; a sidebar continua com a inicial so. */
+  function iniciais(nome, so1) {
+    var partes = String(nome || "P").trim().split(/\s+/).filter(Boolean);
+    if (so1 || partes.length < 2) return (partes[0] || "P").charAt(0).toUpperCase();
+    return (partes[0].charAt(0) + partes[partes.length - 1].charAt(0)).toUpperCase();
+  }
+
   function desenharRodape() {
     var nome = document.getElementById("sr-nome");
     if (!nome) return;
@@ -656,17 +663,25 @@
     document.getElementById("sr-barra").style.width = c.pct + "%";
     document.getElementById("sr-pct").textContent = c.pct + "%";
 
-    var av = document.getElementById("sr-avatar");
+    // acesso ao Perfil no topo (12/10): mesmo nome, papel e foto do rodape da sidebar
+    var chipNome = document.getElementById("chip-nome"), chipPapel = document.getElementById("chip-papel");
+    if (chipNome) chipNome.textContent = perfil.nome || "Profissional";
+    if (chipPapel) chipPapel.textContent = perfil.profissao || "Nutricionista";
+    var av = document.getElementById("sr-avatar"), chipAv = document.getElementById("chip-avatar");
     var quem = perfil;   // a imagem chega depois: a conta pode ter saido no meio (perfil = null)
     urlDe(quem.foto_id).then(function (u) {
-      if (u) {
-        av.innerHTML = '<img src="' + u + '" alt="">';
-        av.classList.add("com-foto");
-      } else {
-        av.textContent = (quem.nome || "P").trim().charAt(0).toUpperCase();
-        av.classList.remove("com-foto");
-      }
+      [av, chipAv].forEach(function (el) {
+        if (!el) return;
+        if (u) {
+          el.innerHTML = '<img src="' + u + '" alt="">';
+          el.classList.add("com-foto");
+        } else {
+          el.textContent = iniciais(quem.nome, el === av);
+          el.classList.remove("com-foto");
+        }
+      });
     });
+    if (window.redesenharDashboard && document.getElementById("secao-dashboard") && document.getElementById("secao-dashboard").classList.contains("ativa")) window.redesenharDashboard();
   }
 
   /* ---------- os modulos do menu ------------------------------------------ */
