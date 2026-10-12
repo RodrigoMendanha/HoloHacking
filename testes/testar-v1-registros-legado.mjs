@@ -135,8 +135,9 @@ ok(JSON.stringify(registros()) === antesNav && registros().every(x => NOVOS.incl
 const fontes = readdirSync(new URL('.', RAIZ)).filter(f => f.endsWith('.js'));
 const comV1 = fontes.filter(f => /(mapa_rotina|gatilhos_respostas|conexao_pertencimento)_v1/.test(readFileSync(new URL(f, RAIZ), 'utf8'))).sort();
 /* 09/10: proximos-passos.js e o catalogo oficial de recomendacao (sistema -> uma das 10 ferramentas ativas): cita os IDs novos de proposito.
-   10/10: ferramentas-fechamento.js (resultado estruturado de cada ferramenta, item 180) tambem le pelos IDs novos. */
-ok(JSON.stringify(comV1) === JSON.stringify(['ferramentas-fechamento.js', 'ferramentas.js', 'migracao-supa.js', 'proximos-passos.js']), 'os IDs novos so aparecem no catalogo, na lista de sincronizacao, no motor de Proximos Passos e no fechamento das ferramentas: ' + comV1.join(', '));
+   10/10: ferramentas-fechamento.js (resultado estruturado de cada ferramenta, item 180) tambem le pelos IDs novos.
+   12/10: holos-ai.js (Bug 8) passa os 3 registros pelo mesmo fechamento descritivo. */
+ok(JSON.stringify(comV1) === JSON.stringify(['ferramentas-fechamento.js', 'ferramentas.js', 'holos-ai.js', 'migracao-supa.js', 'proximos-passos.js']), 'os IDs novos so aparecem no catalogo, na lista de sincronizacao, no motor de Proximos Passos, no HOLOS AI e no fechamento das ferramentas: ' + comV1.join(', '));
 const conversao = fontes.filter(f => /["']?(mapa_rotina|gatilhos_respostas|conexao_pertencimento)["']?\s*[:=]\s*["'](mapa_rotina|gatilhos_respostas|conexao_pertencimento)_v1|replace\([^)]*_v1|\+\s*["']_v1["']/.test(readFileSync(new URL(f, RAIZ), 'utf8')));
 ok(conversao.length === 0, 'nenhum mapa/replace/concatenacao que transforme ID antigo em ID novo' + (conversao.length ? ': ' + conversao.join(', ') : ''));
 
