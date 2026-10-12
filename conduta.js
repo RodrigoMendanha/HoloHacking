@@ -251,7 +251,7 @@
   /* simulacao 08/10: nome da ferramenta para a tela (antes aparecia o id interno da ferramenta) */
   function nomeFerramenta(id) {
     var f = (window.CATALOGO_FERRAMENTAS || []).filter(function (x) { return x.id === id; })[0];
-    return f ? f.titulo + (f.legado ? " (versão anterior)" : "") : id === "oq3" ? "OQ³" : id === "pqq" ? "PQQ" : String(id || "");
+    return f ? f.titulo + (f.legado ? " (versão anterior)" : "") : id === "oq3" ? "OQ³" : id === "pqq" ? "PQQ" : id === "mapa" ? "Mapa do Propósito" : String(id || "");
   }
 
   function referenciasHtml(pid, refs, editavel) {
@@ -377,6 +377,8 @@
            alguma antiga que ja esteja marcada nesta conduta (para nao perder a marcacao). */
         var ativas = window.FERRAMENTAS_ATIVAS || null, marcadas = mostrar.related_tools || [];
         var cat = (window.CATALOGO_FERRAMENTAS || []).filter(function (f) { return !ativas || ativas.indexOf(f.id) >= 0 || marcadas.indexOf(f.id) >= 0; });
+        /* 12/10 (bug 9): OQ3, PQQ e Mapa do Proposito tem tela propria (fora do catalogo): as 10 do metodo na lista */
+        cat = [{ id: "oq3" }, { id: "pqq" }, { id: "mapa" }].filter(function (x) { return !cat.some(function (f) { return f.id === x.id; }); }).concat(cat);
         html += '<details class="an-dominio"><summary><b>Ferramentas relacionadas</b></summary>' + cat.map(function (f) {
           return '<label class="an-check"><input type="checkbox" data-cd-tool="' + escapar(f.id) + '"' + (marcadas.indexOf(f.id) >= 0 ? " checked" : "") + "> " + escapar(nomeFerramenta(f.id)) + "</label>";
         }).join("") + "</details>";

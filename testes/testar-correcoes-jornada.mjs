@@ -196,6 +196,15 @@ ok(/### Mapa da Rotina/.test(ia) && /### Gatilhos & Respostas/.test(ia) && /### 
   'Caso completo inclui as ferramentas estruturadas concluídas (Mapa da Rotina, Gatilhos & Respostas, Conexão & Pertencimento) e as demais');
 ok(/Resultado HOLOS \(último salvo\)/.test(ia) && /LEITURA_PARA_A_PACIENTE/.test(ia) && /1ª área para investigar/.test(ia), 'e o último Resultado HOLOS salvo (Síntese + observações)');
 
+titulo('B9 — CONDUTA: AS 10 FERRAMENTAS EM "FERRAMENTAS RELACIONADAS"');
+const b9 = await A.evaluate(async (pid, eid) => {
+  window.definirPacienteAtivo(pid); window.AtendimentoAtual.selecionarPorId(eid);
+  window.levarParaFicha('aba:conduta', pid); await new Promise(r => setTimeout(r, 700));
+  const n = document.querySelector('[data-cd-acao="nova"]'); if (n) n.click(); await new Promise(r => setTimeout(r, 500));
+  return [...document.querySelectorAll('[data-cd-tool]')].map(c => c.closest('label').textContent.trim());
+}, PA, EA);
+ok(b9.length === 10 && ['OQ³', 'PQQ', 'Mapa do Propósito', 'Mapa da Rotina', 'Linha do Momentum'].every(x => b9.includes(x)), 'lista com as 10 ferramentas do método: ' + b9.join(', '));
+
 /* B5 de verdade: HOLOSCAN salvo NESTA sessao (sem recarregar) ja aparece ligado ao atendimento */
 const PB = ins('patients', { nome: 'Paciente Sessao Ficticia' }).id;
 await A.reload({ waitUntil: 'networkidle2' });
