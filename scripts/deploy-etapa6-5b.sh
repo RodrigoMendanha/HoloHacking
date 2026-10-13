@@ -1,15 +1,16 @@
 #!/bin/sh
-# HOLOHACKING — deploy do front na VPS (passos 4 a 11). Versao atual: b12d6d6 = Dashboard novo, HOLOS-V1 v3 no questionario, Mapeamento Holistico (link corrigido + V1) e redesign de Pacientes (12/10). Sem SQL novo. Rodar NA VPS:
+# HOLOHACKING — deploy do front na VPS (passos 4 a 11). Versao atual: 46cab4e = Motor de Resultados MR-V1 + rodada final de UX do Resultado da paciente (13/10).
+# SQL do MR-V1 (MOTOR-RESULTADOS-PARTE1..3) JA APLICADO no banco em 13/10 03:24-03:29 UTC. Imagem conferida antes (72/72). Rodar NA VPS:
 #   sh deploy-etapa6-5b.sh            -> passos 4-8 (estado, codigo, build, container temporario 8082). NAO troca producao.
 #   sh deploy-etapa6-5b.sh swap       -> passos 9-11 (troca 8080, valida local e publico). So depois de conferir o 1o.
 # Para sozinho em qualquer divergencia. Nunca apaga container. Nao usa credencial.
 set -eu
-ESPERADO=b12d6d6e8805d79d244850b7cb492532aceeb952
-CURTO=b12d6d6
+ESPERADO=46cab4e68852617c05c85b032f501b7890dff738
+CURTO=46cab4e
 DIR=/opt/holohacking
 IMG=holohacking-web:$CURTO
 PROD=holohacking-web
-ROLLBACK=holohacking-web-antes-b12d6d6
+ROLLBACK=holohacking-web-antes-$CURTO
 TEMP=holohacking-web-teste-$CURTO
 pare() { echo; echo "### PARE: $*"; exit 1; }
 cd "$DIR"
