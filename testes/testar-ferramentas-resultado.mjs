@@ -127,7 +127,7 @@ const d = await P.evaluate((snap) => {
   const leitura = !!div.querySelector('.rf-leitura');
   const ordemProf = [...div.querySelectorAll('section > h3')].map(h => h.textContent.trim());
   div.innerHTML = window.ResultadoHolos.documentoHtml(snap, 'paciente', { blocos: { foco: '<p>FOCO_CONDUTA</p>', combinado: '<p>COMBINADO_CONDUTA</p>', observar: '<p>RETORNO_CONDUTA</p>' }, semRodape: true });
-  const ordemPac = [...div.querySelectorAll('section > h3, section > .rh-junto > h3')].map(h => h.textContent.trim()), rodapes = div.querySelectorAll('footer').length;
+  const ordemPac = [...div.querySelectorAll('section h3[id^="rh-t-"]')].map(h => h.textContent.trim()), rodapes = div.querySelectorAll('footer').length;
   div.remove();
   return { pac, pacHtml, prof, nRes, nReg, leitura, ordemProf, ordemPac, rodapes };
 }, fx.resultado.content_snapshot);

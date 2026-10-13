@@ -358,17 +358,68 @@
       var fechados = [].slice.call(doc.querySelectorAll("details:not([open])"));
       fechados.forEach(function (d) { d.open = true; });
       var limpar = function () { document.body.classList.remove("rp-gerando"); fechados.forEach(function (d) { d.open = false; }); };
-      return Promise.resolve(h2p().set({
+      var w = h2p().set({
         margin: [12, 12, 14, 12], filename: nome,
         image: { type: "jpeg", quality: 0.95 },
         html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false, scrollX: 0, scrollY: 0, onclone: svgComEstiloProprio },
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-        /* rodada de UX 13/10: cartoes altos (sistema, ferramenta) PODEM quebrar entre blocos — inteiros so os blocos pequenos.
-           A lista "o que mais contribuiu" quebra entre itens. O html2pdf poe um espacador ANTES do elemento evitado: dentro de
-           grade ele vira celula — por isso as grades inteiras (cinco sistemas compactos, radar + numeros) sao o elemento evitado */
-        pagebreak: { mode: ["css", "legacy"], avoid: [".sf-bloco:not(.sf-c)", ".sf-c > .sf-rot", ".sf-c li", ".rf-bloco", ".rp-campo", ".rh-obs-item", ".rh-sistemas-compactos", ".rp-rodape", ".rh-junto", ".rh-sis > header", ".rh-ferr-topo", ".rh-geral-grade"] }
-      }).from(doc).outputPdf("blob")).then(function (blob) { limpar(); return { blob: blob, nome: nome }; }, function (e) { limpar(); throw e; });
+        /* pos-teste MR-V1 13/10: a quebra de pagina e feita por paginar() na copia do html2pdf (a regra automatica dele
+           deixava titulo sozinho, moldura de cartao vazia e pagina quase vazia) */
+        pagebreak: { mode: [] }
+      }).from(doc).toContainer().then(function () { paginar(this.prop.container, this.prop.pageSize.inner.px.height); });
+      return Promise.resolve(w.outputPdf("blob")).then(function (blob) { limpar(); return { blob: blob, nome: nome }; }, function (e) { limpar(); throw e; });
     });
+  }
+  /* Paginacao do PDF baixado (pos-teste MR-V1 13/10), na COPIA que o html2pdf monta (o documento da tela nao muda).
+     Blocos "atomicos" nunca quebram; quando um bloco cruzaria o fim da pagina, um espacador o leva para a proxima.
+     Regras: (1) titulo/intro/rotulo nunca ficam sozinhos no fim — vao junto com o bloco seguinte; (2) se o bloco e o
+     comeco de um cartao, vai o cartao inteiro (sem moldura vazia no fim da pagina); (3) cartao grande quebra entre blocos;
+     (4) bloco maior que a pagina nao e mexido. */
+  var ATOMOS = [".rp-cab", ".rh-doc-cab", ".rh-resumo-lista > li", ".rh-intro", "h3", "h4", "h5", ".rh-sis > header",
+    ".sf-bloco:not(.sf-c)", ".sf-c > .sf-rot", ".sf-c > .sf-nota", ".sf-c li", ".rh-ferr-topo", ".rf-caixa > .rh-tag", ".rf-bloco",
+    ".rh-obs-item", ".rp-campo", ".rp-acordos > li", ".rh-geral-grade", ".rh-sistemas-compactos", ".rp-rodape", ".rh-mapa-grade", ".rh-visual"].join(",");
+  var TITULOS = "h3,h4,h5,.rh-intro,.sf-rot,.rh-tag,.rh-sis > header,.rh-ferr-topo,.rh-junto";
+  var CARTOES = ".rh-sis,.rh-ferr,.rf-caixa,.rp-conduta,.rh-eixo,.rh-junto,.rh-obs-item,.rp-campo";
+  function paginar(caixa, alturaPagina) {
+    if (!caixa || !alturaPagina) return;
+    var topo = function (el) { return el.getBoundingClientRect().top - caixa.getBoundingClientRect().top; };
+    var base = function (el) { return el.getBoundingClientRect().bottom - caixa.getBoundingClientRect().top; };
+    var todos = [].slice.call(caixa.querySelectorAll(ATOMOS));
+    var atomos = todos.filter(function (el) { return !todos.some(function (o) { return o !== el && o.contains(el); }) && el.getBoundingClientRect().height > 0; });
+    var primeiroDoPai = function (el) {   /* el e o primeiro conteudo visivel do pai? */
+      var a = el.previousElementSibling;
+      while (a && (a.offsetHeight === 0 || a.classList.contains("rp-quebra"))) a = a.previousElementSibling;
+      return !a;
+    };
+    for (var i = 0, guarda = 0; i < atomos.length && guarda < 400; i++, guarda++) {
+      var el = atomos[i], t = topo(el), b = base(el);
+      var fim = Math.ceil((t + 1) / alturaPagina) * alturaPagina;
+      if (b <= fim + 1 || b - t > alturaPagina * 0.9) continue;
+      var ancora = el;
+      /* (1) puxa titulos/rotulos imediatamente anteriores que estao na mesma pagina */
+      for (var k = i - 1; k >= 0; k--) {
+        var ant = atomos[k];
+        if (!ant.matches(TITULOS) || topo(ant) < fim - alturaPagina) break;
+        ancora = ant;
+      }
+      /* (2) se e o comeco de um cartao, sobe para o cartao (o mais externo que ainda comeca nesta pagina) */
+      var sobe = ancora;
+      while (sobe.parentElement && sobe.parentElement !== caixa && primeiroDoPai(sobe)) {
+        sobe = sobe.parentElement;
+        if (sobe.matches(CARTOES) && topo(sobe) >= fim - alturaPagina) ancora = sobe;
+      }
+      var falta = fim - topo(ancora);
+      if (falta <= 0 || falta >= alturaPagina) continue;
+      var esp = document.createElement("div");
+      esp.className = "rp-quebra"; esp.style.height = falta + "px"; esp.setAttribute("aria-hidden", "true");
+      ancora.parentNode.insertBefore(esp, ancora);
+      var ajuste = fim - topo(ancora);   /* gap de grade/flex: corrige para o topo cair exatamente no inicio da pagina */
+      if (ajuste !== 0) esp.style.height = Math.max(0, falta + ajuste) + "px";
+      /* recomeca a partir do bloco movido */
+      i = Math.max(-1, atomos.indexOf(ancora.matches(ATOMOS) ? ancora : el) - 1);
+      var dentro = atomos.filter(function (a) { return ancora.contains(a); });
+      if (dentro.length) i = atomos.indexOf(dentro[0]) - 1;
+    }
   }
   /* html2canvas desenha o SVG como imagem isolada: sem o CSS da pagina (classes) e sem tamanho ele sai em branco.
      Na COPIA que o html2canvas monta (onclone) cada SVG recebe largura/altura e as cores calculadas em estilo proprio;
@@ -505,7 +556,7 @@
   });
 
   window.ResultadoPagina = {
-    desenhar: desenhar, gerarPdf: gerarPdf, enviarWhatsApp: enviarWhatsApp, imprimir: imprimir,
+    desenhar: desenhar, gerarPdf: gerarPdf, paginar: paginar, ATOMOS: ATOMOS, enviarWhatsApp: enviarWhatsApp, imprimir: imprimir,
     resultadoFinal: resultadoFinal, condutaVigente: condutaVigente, condutaDoResultado: condutaDoResultado, blocosConduta: blocosConduta, documentoEmissao: documentoEmissao, emissoes: function () { return emissoes.linhas.slice(); },
     numeroWhatsApp: numeroWhatsApp, linkWhatsApp: linkWhatsApp, mensagemWhatsApp: mensagemWhatsApp, termosFora: termosFora,
     CAMPOS_CONDUTA: CAMPOS_CONDUTA, HTML2PDF_URL: HTML2PDF_URL

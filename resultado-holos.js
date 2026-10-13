@@ -449,12 +449,16 @@
     var mapa = mapaProposito(snap, true);
     /* os Proximos Passos compartilhados ja aparecem uma vez, em "O que entendemos nesta etapa" (um so bloco, item 34) */
     if (c.ferr.length || mapa) {
-      html += '<section class="rh-secao rh-descobertas" aria-labelledby="rh-t-desc"><h3 id="rh-t-desc">O que descobrimos com as ferramentas</h3>';
+      html += '<section class="rh-secao rh-descobertas" aria-labelledby="rh-t-desc">';
+      /* pos-teste MR-V1 13/10: o titulo da secao vai DENTRO do primeiro grupo de eixo — no PDF o grupo (titulo + eixo +
+         cartao) fica junto e o titulo nunca sobra sozinho no fim da pagina */
+      var tituloDesc = '<h3 id="rh-t-desc">O que descobrimos com as ferramentas</h3>';
       EIXOS.forEach(function (x) {
         var doEixo = c.ferr.filter(function (t) { return moduloDe(t.ferramenta_id) === x[0]; });
         var m = x[0] === "espirito" ? mapa : "";
         if (!doEixo.length && !m) return;
-        html += '<div class="rh-eixo rh-eixo-' + x[0] + '"><h4 class="rh-sub">' + e(x[1]) + '</h4><div class="rh-ferrs">' + m + doEixo.map(function (t) { return cartaoFerramenta(t, true, snap.ferramentas || []); }).join("") + "</div></div>";
+        html += '<div class="rh-eixo rh-eixo-' + x[0] + '">' + tituloDesc + '<h4 class="rh-sub">' + e(x[1]) + '</h4><div class="rh-ferrs">' + m + doEixo.map(function (t) { return cartaoFerramenta(t, true, snap.ferramentas || []); }).join("") + "</div></div>";
+        tituloDesc = "";
       });
       html += "</section>";
     }

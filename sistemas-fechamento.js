@@ -202,14 +202,16 @@
   /* "Categoria autoral que organiza..." / "Organiza..." -> "Este eixo reune..." (mesmo conteudo, sem jargao) */
   function definicaoPaciente(t) { return String(t || "").replace(/^(Categoria autoral que organiza|Organiza)\s+/, "Este eixo reúne "); }
   function significadoPaciente(t) { return String(t || "").replace("Não possui significado clínico independente.", "Essa nota, sozinha, não indica uma condição de saúde."); }
-  /* ferramentas do mesmo sistema: a principal (papel/rank do catalogo) em destaque; as outras como "outra possibilidade" */
+  /* pos-teste MR-V1 13/10: dentro de um sistema nao ha "Principal" (o papel principal/complementar e do motor global PP-V1):
+     so a frase neutra e as ferramentas na ordem do catalogo */
+  var PP_PACIENTE_LEAD = "Ferramenta que pode ajudar a aprofundar este eixo:";
+  var PP_PACIENTE_LEAD_VARIAS = "Ferramentas que podem ajudar a aprofundar este eixo:";
   function ppPaciente(lista) {
-    var l = lista.slice().sort(function (a, b) { return (a.papel === "principal" ? 0 : 1) - (b.papel === "principal" ? 0 : 1); });
-    var h = '<div class="sf-bloco sf-g sf-g-pac"><span class="sf-rot">' + PP_PACIENTE_TITULO + "</span>";
-    if (l.length === 1) h += '<p class="sf-pp-principal">' + esc(l[0].nome) + "</p>";
-    else h += '<p class="sf-pp-principal"><span class="sf-pp-rot">Principal:</span> ' + esc(l[0].nome) + "</p>" +
-      l.slice(1).map(function (p) { return '<p class="sf-pp-outra"><span class="sf-pp-rot">Outra possibilidade:</span> ' + esc(p.nome) + "</p>"; }).join("");
-    return h + '<p class="sf-nota">' + PP_PACIENTE_ESCOLHA + "</p></div>";
+    var nomes = lista.map(function (p) { return esc(p.nome); });
+    var txt = nomes.length > 1 ? nomes.slice(0, -1).join(", ") + " e " + nomes[nomes.length - 1] : nomes[0];
+    return '<div class="sf-bloco sf-g sf-g-pac"><span class="sf-rot">' + PP_PACIENTE_TITULO + "</span>" +
+      '<p class="sf-pp-lead">' + (lista.length > 1 ? PP_PACIENTE_LEAD_VARIAS : PP_PACIENTE_LEAD) + ' <b>' + txt + "</b></p>" +
+      '<p class="sf-nota">' + PP_PACIENTE_ESCOLHA + "</p></div>";
   }
   /* versao COMPACTA (paciente, "Detalhes do mapa"): nome, nota, marcadores, definicao curta */
   function htmlSistemaCompacto(f, extras) {
@@ -254,7 +256,7 @@
     PROIBIDOS: PROIBIDOS, PP_POR_QUE: PP_POR_QUE, PP_SINAIS: PP_SINAIS, INTRO_SINAIS: INTRO_SINAIS, RESSALVA_SINAIS: RESSALVA_SINAIS,
     ROTULO_HISTORICO: ROTULO_HISTORICO, SELO_PENDENCIA: SELO_PENDENCIA, PENDENCIA_PRIORITARIO: PENDENCIA_PRIORITARIO,
     fechamento: fechamento, deResultado: deResultado, historico: historico, htmlSistema: htmlSistema, htmlSistemaCompacto: htmlSistemaCompacto,
-    INTRO_SINAIS_PACIENTE: INTRO_SINAIS_PACIENTE, PP_PACIENTE_TITULO: PP_PACIENTE_TITULO, PP_PACIENTE_ESCOLHA: PP_PACIENTE_ESCOLHA, definicaoPaciente: definicaoPaciente
+    INTRO_SINAIS_PACIENTE: INTRO_SINAIS_PACIENTE, PP_PACIENTE_TITULO: PP_PACIENTE_TITULO, PP_PACIENTE_ESCOLHA: PP_PACIENTE_ESCOLHA, PP_PACIENTE_LEAD: PP_PACIENTE_LEAD, PP_PACIENTE_LEAD_VARIAS: PP_PACIENTE_LEAD_VARIAS, definicaoPaciente: definicaoPaciente
   };
   raiz.SistemasFechamento = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;

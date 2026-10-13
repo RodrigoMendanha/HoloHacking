@@ -181,7 +181,7 @@ ok(botoesEm.join(',') === 'Baixar PDF,Enviar pelo WhatsApp,Imprimir,Abrir na fic
 const numeros = await A.evaluate(() => ['(11) 98888-7777', '+55 11 98888-7777', '011 98888-7777', '5511988887777', '1198887777', '12345'].map(window.ResultadoPagina.numeroWhatsApp));
 ok(numeros.join('|') === '5511988887777|5511988887777|5511988887777|5511988887777|551198887777|', 'número do WhatsApp: DDI 55 só quando falta; +55 não vira 5555: ' + numeros.join(' | '));
 await A.evaluate(() => {
-  window.html2pdf = () => ({ set() { return this; }, from() { return this; }, outputPdf() { return Promise.resolve(new Blob(['%PDF-1.4 falso'], { type: 'application/pdf' })); } });
+  window.html2pdf = () => ({ set() { return this; }, from() { return this; }, toContainer() { return this; }, then() { return this; }, outputPdf() { return Promise.resolve(new Blob(['%PDF-1.4 falso'], { type: 'application/pdf' })); } });
   window.__baixados = []; const orig = HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click = function () { if (this.download) { window.__baixados.push(this.download); return; } return orig.call(this); };
   window.__abertos = []; window.open = (u) => { window.__abertos.push(u); return {}; };
   try { Object.defineProperty(navigator, 'canShare', { value: undefined, configurable: true }); } catch (e) {}

@@ -74,9 +74,7 @@ const pp = await P.evaluate(() => {
   const dois = [Object.assign({ tool_id: 'oq3', nome: 'OQ³', papel: 'complementar' }, base), Object.assign({ tool_id: 'linha_momentum', nome: 'Linha do Momentum', papel: 'principal' }, base)];
   const um = [Object.assign({ tool_id: 'gatilhos_respostas_v1', nome: 'Gatilhos & Respostas', papel: 'principal' }, base)];
   const div = document.createElement('div');
-  const ler = (html) => { div.innerHTML = html; return { txt: div.textContent, principal: (div.querySelector('.sf-pp-principal') || {}).textContent || '', outras: [...div.querySelectorAll('.sf-pp-outra')].map(x => x.textContent),
-    pesoP: div.querySelector('.sf-pp-principal') ? getComputedStyle(div.querySelector('.sf-pp-principal')).fontWeight : '', tamO: div.querySelector('.sf-pp-outra') ? parseFloat(getComputedStyle(div.querySelector('.sf-pp-outra')).fontSize) : 0,
-    tamP: div.querySelector('.sf-pp-principal') ? parseFloat(getComputedStyle(div.querySelector('.sf-pp-principal')).fontSize) : 0 }; };
+  const ler = (html) => { div.innerHTML = html; return { txt: div.textContent, lead: (div.querySelector('.sf-pp-lead') || {}).textContent || '' }; };
   document.body.appendChild(div);
   const r = { dois: ler(SF.htmlSistema(mk(dois), 'paciente', { mostrarPP: true })), um: ler(SF.htmlSistema(mk(um), 'paciente', { mostrarPP: true })),
     off: ler(SF.htmlSistema(mk(dois), 'paciente', {})), prof: ler(SF.htmlSistema(mk(dois), 'profissional', {})) };
@@ -84,9 +82,18 @@ const pp = await P.evaluate(() => {
 });
 ok(pp.dois.txt.includes(d.TIT) && pp.dois.txt.includes(d.ESC) && !/Próximo passo pelo catálogo|Próximo aprofundamento sugerido|POR_QUE_TECNICO/.test(pp.dois.txt) && !pp.off.txt.includes(d.TIT),
   'item 4: paciente vê "Possíveis próximos aprofundamentos" + "A escolha do que aplicar…" (sem justificativa técnica), só quando compartilhado');
-ok(/^Principal:\s*Linha do Momentum$/.test(pp.dois.principal.trim()) && pp.dois.outras.length === 1 && /^Outra possibilidade:\s*OQ³$/.test(pp.dois.outras[0].trim())
-  && Number(pp.dois.pesoP) >= 700 && pp.dois.tamO < pp.dois.tamP && pp.um.principal.trim() === 'Gatilhos & Respostas' && !/Principal:|Outra possibilidade/.test(pp.um.txt),
-  'item 4: "Principal:" (a do rank, em negrito) e "Outra possibilidade:" (menor), sem peso igual; com uma só ferramenta, sem rótulo');
+/* pos-teste MR-V1 13/10: dentro do sistema nao ha "Principal" (o papel e do motor global PP-V1): so a frase neutra, na ordem do catalogo */
+ok(pp.dois.lead.trim() === 'Ferramentas que podem ajudar a aprofundar este eixo: OQ³ e Linha do Momentum' && pp.um.lead.trim() === 'Ferramenta que pode ajudar a aprofundar este eixo: Gatilhos & Respostas'
+  && !/Principal:|Outra possibilidade/.test(pp.dois.txt + pp.um.txt),
+  'item 7: no cartão do sistema, "Ferramenta(s) que pode(m) ajudar a aprofundar este eixo:" sem "Principal" — ' + pp.dois.lead.trim());
+const resumoPP = await P.evaluate(() => {
+  const RS = window.ResultadoSintese;
+  const f = { investigar: [], fechamentos: [], compartilhar_pp: true, todas_realizadas: false,
+    sugeridas: [{ nome: 'OQ³', papel: 'complementar' }, { nome: 'Gatilhos & Respostas', papel: 'principal' }, { nome: 'Linha do Momentum', papel: 'complementar' }] };
+  return RS.frasesPaciente(f);
+});
+ok(resumoPP.includes('Próximo aprofundamento sugerido: Gatilhos & Respostas.') && resumoPP.includes('Outras possibilidades: OQ³ e Linha do Momentum. Nenhuma é obrigatória; a escolha e o momento são combinados com a sua nutricionista.'),
+  'item 7: no resumo, "Próximo aprofundamento sugerido" = a principal do PP-V1 e "Outras possibilidades" = as complementares — ' + resumoPP.join(' | '));
 ok(/Próximo passo pelo catálogo/.test(pp.prof.txt) && /Ferramenta recomendada \(principal\)/.test(pp.prof.txt) && /POR_QUE_TECNICO/.test(pp.prof.txt) && /Categoria autoral que organiza/.test(pp.prof.txt),
   'item 4: a visão profissional mantém o catálogo/rank e o texto técnico');
 /* 5 */
@@ -114,7 +121,7 @@ ok(/body\.rp-imprimindo > \*:not\(#rp-impressao\)\{display:none!important\}/.tes
   'item 8: a impressão usa a cópia em #rp-impressao (o resto do app sai com display:none; sem position:absolute por cima — o rodapé não cai sobre o último cartão)');
 ok(/\.rp-doc \.rh-secao,\.rp-doc \.rh-sis,\.rp-doc \.rh-ferr,\.rp-doc \.rf-caixa\{break-inside:auto\}/.test(css) && /\.rp-doc h3,\.rp-doc h4,\.rp-doc \.rh-sub,\.rp-doc \.rh-intro\{break-after:avoid\}/.test(css),
   'item 8: cartões grandes podem quebrar entre blocos; título fica com o primeiro bloco');
-ok(/onclone: svgComEstiloProprio/.test(js) && /scrollY: 0/.test(js) && /"\.rh-sistemas-compactos"/.test(js) && !/"\.sf-compacto"/.test(js) && /"\.sf-bloco:not\(\.sf-c\)"/.test(js),
+ok(/onclone: svgComEstiloProprio/.test(js) && /scrollY: 0/.test(js) && /paginar\(this\.prop\.container, this\.prop\.pageSize\.inner\.px\.height\)/.test(js) && /pagebreak: \{ mode: \[\] \}/.test(js) && /"\.rh-sistemas-compactos"/.test(js),
   'item 8: PDF baixado — radar desenhado na cópia (onclone), página rolada não sai em branco, espaçador do html2pdf nunca dentro de grade');
 
 /* impressao real do documento da paciente pela pagina Resultado */
@@ -146,6 +153,34 @@ const contraste = await P.evaluate((snap) => {
 }, snap);
 ok(Object.keys(contraste).length >= 5 && Object.values(contraste).every(c => c >= 4.5),
   'tema escuro: rótulos e textos do documento da paciente legíveis no papel creme (contraste ≥ 4,5) — ' + JSON.stringify(contraste));
+/* pos-teste MR-V1 13/10: paginacao propria do PDF baixado, rodada no documento real na largura util do A4 (186 mm) */
+const pg = await P.evaluate((snap) => {
+  document.body.classList.add('rp-gerando');
+  const caixa = document.createElement('div'); caixa.style.cssText = 'width:703px;position:absolute;left:0;top:0;background:#fff';
+  caixa.innerHTML = '<article class="rp-doc">' + window.ResultadoHolos.documentoHtml(snap, 'paciente', { semRodape: true }) +
+    '<footer class="rp-rodape"><p class="rp-emitiu">Nutri Ficticia</p><p class="rp-fronteira">Rodapé fictício.</p></footer></article>';
+  document.body.appendChild(caixa);
+  const H = 1024;   // 271 mm de area util (297 - 12 - 14) a 96 dpi
+  window.ResultadoPagina.paginar(caixa, H);
+  const top0 = caixa.getBoundingClientRect().top, T = (el) => el.getBoundingClientRect().top - top0, B = (el) => el.getBoundingClientRect().bottom - top0;
+  const todos = [...caixa.querySelectorAll(window.ResultadoPagina.ATOMOS)];
+  const atomos = todos.filter(el => !todos.some(o => o !== el && o.contains(el)) && el.getBoundingClientRect().height > 0);
+  const cruzam = atomos.filter(el => B(el) - T(el) < H * 0.9 && Math.floor((T(el) + 1) / H) !== Math.floor((B(el) - 1) / H)).map(el => el.className || el.tagName);
+  /* titulo sozinho: o ultimo atomo de uma pagina e um titulo/rotulo e o seguinte comeca na pagina seguinte */
+  const orfaos = [];
+  for (let i = 0; i < atomos.length - 1; i++) {
+    const a = atomos[i], b = atomos[i + 1];
+    if (a.matches('h3,h4,.rh-intro,.sf-rot') && Math.floor(T(a) / H) < Math.floor(T(b) / H)) orfaos.push(a.textContent.trim().slice(0, 40));
+  }
+  const paginas = Math.ceil(caixa.scrollHeight / H), espacadores = caixa.querySelectorAll('.rp-quebra').length;
+  caixa.remove(); document.body.classList.remove('rp-gerando');
+  return { cruzam, orfaos, paginas, espacadores };
+}, snap);
+ok(pg.cruzam.length === 0 && pg.orfaos.length === 0 && pg.espacadores > 0,
+  'PDF baixado: nenhum bloco cruza o fim da página e nenhum título fica sozinho (' + pg.paginas + ' páginas, ' + pg.espacadores + ' quebras) ' + JSON.stringify({ cruzam: pg.cruzam, orfaos: pg.orfaos }));
+const idx = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+ok(!/Seu corpo está contando uma história/.test(idx) && idx.includes('HOLOSCAN concluído. Revise as áreas prioritárias e os próximos aprofundamentos sugeridos antes de seguir para as ferramentas.'),
+  'pós-teste 13/10: frase pós-HOLOSCAN profissional (a frase causal/mística saiu)');
 ok(errosJS.length === 0, 'nenhum erro de JavaScript' + (errosJS.length ? ': ' + errosJS.join(' | ') : ''));
 await nav.close();
 console.log(falhou ? '\nFALHOU' : '\nresultado da paciente (UX final): tudo ok');

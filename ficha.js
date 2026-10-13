@@ -223,9 +223,11 @@
       : lista.length === 1 ? "só 1 atendimento: sem comparação" : "sem atendimentos: sem comparação"]);
     if (window.Relatorios && window.Relatorios.ultimoEmitido) {
       var rel = window.Relatorios.ultimoEmitido(pid);
-      linhas.push(["Último relatório emitido", rel
+      /* pos-teste MR-V1 13/10: o Relatorio profissional (aba Relatorio) e o Resultado Final da paciente (pagina Resultado)
+         sao objetos diferentes — o rotulo diz qual e, para nao parecer contradicao com a emissao do Resultado Final */
+      linhas.push(["Último relatório profissional (aba Relatório)", rel
         ? (rel.title || "Relatório clínico") + " · emissão nº " + rel.revision_number + " · " + dataBR(String(rel.issued_at).slice(0, 10)) + (rel.superseded_at ? " · substituído por retificação" : "")
-        : "nenhum emitido" + (window.Relatorios.rascunhos(pid).length ? " (há rascunho não emitido)" : "")]);
+        : "nenhum relatório profissional emitido" + (window.Relatorios.rascunhos(pid).length ? " (há rascunho não emitido)" : "") + ". O Resultado Final da paciente fica na página Resultado."]);
     }
     var anResumo = mh && mh.estado === "concluido"
       ? '<button type="button" class="dash-ir" data-ir="aba:anamnese">Ver respostas do Mapeamento <span aria-hidden="true">&rarr;</span></button>' : "";

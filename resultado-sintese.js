@@ -204,7 +204,13 @@
     /* rodada de UX 13/10: a Triade nao entra no resumo da paciente (continua em "Detalhes do mapa"); nada de "dimensao menor" */
     var autorizadas = f.fechamentos.filter(function (x) { return x.mostrar_paciente; }).map(function (x) { return x.nome; });
     if (autorizadas.length) out.push("Ferramentas que você fez e que a sua nutricionista compartilhou com você: " + lista(autorizadas) + ".");
-    if (f.compartilhar_pp && f.sugeridas.length) out.push("Possíveis próximos aprofundamentos: " + lista(f.sugeridas.map(function (s) { return s.nome; })) + ". Nenhuma é obrigatória; a escolha e o momento são combinados com a sua nutricionista.");
+    /* pos-teste MR-V1 13/10: a principal do PP-V1 (motor global) em destaque; as complementares como outras possibilidades */
+    if (f.compartilhar_pp && f.sugeridas.length) {
+      var princ = f.sugeridas.filter(function (s) { return s.papel === "principal"; })[0] || f.sugeridas[0];
+      var outras = f.sugeridas.filter(function (s) { return s !== princ; });
+      out.push("Próximo aprofundamento sugerido: " + princ.nome + "." + (outras.length ? "" : " A escolha e o momento são combinados com a sua nutricionista."));
+      if (outras.length) out.push("Outras possibilidades: " + lista(outras.map(function (s) { return s.nome; })) + ". Nenhuma é obrigatória; a escolha e o momento são combinados com a sua nutricionista.");
+    }
     else if (f.compartilhar_pp && f.todas_realizadas) out.push(MSG_TODAS_PACIENTE);
     return out;
   }
