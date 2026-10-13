@@ -70,16 +70,18 @@ const A = await sessao();
 await abrirAba(A);
 await ver(A, R1.data, 'profissional');
 let t = await docTxt(A);
-ok(/Síntese HOLOS/.test(t) && /1ª área para investigar/.test(t) && /2ª área para investigar/.test(t) && /Pelo catálogo vigente \(HOLOS-RECOMENDACOES-V1 v1\)/i.test(t) && /Na Tríade|Tríade sem dado/.test(t)
-  && /foram aplicadas: OQ³, Gatilhos & Respostas e Carta ao Futuro Eu/.test(t) && /não possui regra homologada para afirmar gravidade, diagnóstico ou causa/.test(t),
-  'visão profissional: Síntese HOLOS (1ª/2ª área, Tríade, catálogo congelado, aplicadas, limite explícito)');
+/* motor de resultados 12/10 (item 28): Sintese em 5 blocos; os fatos antigos (Triade, catalogo por extenso) ficam recolhidos */
+ok(/Síntese HOLOS/.test(t) && /1ª área para aprofundar/.test(t) && /2ª área para aprofundar/.test(t) && /Onde aprofundar/i.test(t) && /Por que essas áreas apareceram/i.test(t)
+  && /O que já foi aprofundado/i.test(t) && /O que ainda pode ser aprofundado/i.test(t) && /Catálogo HOLOS-RECOMENDACOES-V1 v1, congelado/.test(t) && /Fatos organizados/.test(t)
+  && /OQ³:[^\n]*ter energia/.test(t) && /Gatilhos & Respostas:/.test(t) && /Carta ao Futuro Eu:/.test(t) && /não possui regra homologada para afirmar gravidade, diagnóstico ou causa/.test(t),
+  'visão profissional: Síntese HOLOS em 5 blocos (onde aprofundar, por quê, já aprofundado, ainda pode, leitura) + catálogo congelado + limite explícito');
 ok((t.match(/Resultado da ferramenta/gi) || []).length >= 3 && /O que a pessoa quer\s*\n?\s*ter energia/i.test(t)
   && /A Carta ao Futuro Eu foi realizada como exercício de reflexão sobre identidade, direção e cuidado futuro\./.test(t) && !/CARTA_INTIMA_NAO_MOSTRAR/.test(t),
   'cada ferramenta com "Resultado da ferramenta" (motor de resultados 12/10; o registro completo fica recolhido); Carta: texto aprovado, sem o conteúdo');
 if (SHOT) { await espera(400); const el = await A.$('#aba-resultado-holos .rh-sintese'); if (el) await el.screenshot({ path: SHOT + '/sintese-profissional.png' }); }
 await A.evaluate(() => document.querySelector('#aba-resultado-holos [data-rh-visao-troca="paciente"]').click()); await espera(700);
 t = await docTxt(A);
-ok(/Resumo da sua avaliação/.test(t) && /áreas que aparecem primeiro para aprofundar/.test(t) && /OQ³/.test(t) && !/Gatilhos|PENSAMENTO_PRIVADO/.test(t)
+ok(/O que entendemos nesta etapa/i.test(t) && /áreas que aparecem primeiro para aprofundar/.test(t) && /OQ³/.test(t) && !/Gatilhos|PENSAMENTO_PRIVADO/.test(t)
   && !/CARTA_INTIMA_NAO_MOSTRAR/.test(t) && /Carta ao Futuro Eu/.test(t), 'visão paciente: resumo simples; ferramentas só autorizadas; Carta só "realizada" (o texto nunca aparece)');
 ok(!/Próximos passos de aprofundamento|Mapa da Rotina|Pelo catálogo|PENDÊNCIA|Regra oficial|HOLOS-RECOMENDACOES|hash|REC-/.test(t), 'Próximos Passos OFF: não aparecem para a paciente; sem pendência, código, hash ou regra interna');
 if (SHOT) { await espera(400); const el = await A.$('#aba-resultado-holos .rh-doc'); if (el) await el.screenshot({ path: SHOT + '/paciente-pp-off.png' }); }

@@ -37,7 +37,11 @@
     { id: "PM-11", titulo: "Padrão automático em Gatilhos & Respostas", texto: "A cadeia é registrada como foi relatada; não há padrão nem causa inferidos." },
     { id: "PM-12", titulo: "Intervalo de reaplicação do HOLOSCAN", texto: "Não há intervalo automático; reaplicar é decisão profissional." },
     { id: "PM-13", titulo: "Conduta automática", texto: "O resultado informa a Conduta; não a gera. Objetivo, estratégia, ações e combinados são da nutricionista." },
-    { id: "PM-14", titulo: "Conteúdo da Carta ao Futuro Eu para a paciente", texto: "Não há regra de consentimento: na visão da paciente aparece só \"realizada\", nunca o texto." }
+    { id: "PM-14", titulo: "Conteúdo da Carta ao Futuro Eu para a paciente", texto: "Não há regra de consentimento: na visão da paciente aparece só o texto aprovado de que a Carta foi realizada, nunca o conteúdo." },
+    /* motor de resultados V1 (12/10) */
+    { id: "PM-15", titulo: "SNT-210 e SNT-309 (pacote HOLOSCAN)", texto: "Pendência metodológica do pacote HOLOSCAN, não resolvida nesta versão. Exames e documentos continuam fora do Resultado, do motor e dos Próximos Passos." },
+    { id: "PM-16", titulo: "Recomendação por sinal → tema → ferramenta (PP-V2)", texto: "Não implementada: o motor vigente continua SISTEMA → CATÁLOGO → FERRAMENTA. O mapeamento necessário está pendente de homologação." },
+    { id: "PM-17", titulo: "Textos ainda não aprovados do Resultado", texto: "\"O que significa\" de cada ferramenta, o texto de cada estado do Momentum, o \"ponto de intervenção\" de Gatilhos e o aprofundamento do Detox + Linfático como área prioritária: aparecem como pendência, sem texto inventado." }
   ];
   var SELO = "PENDÊNCIA METODOLÓGICA — AGUARDANDO RODRIGO/DANIEL";
   var LIMITE = "O sistema não possui regra homologada para afirmar gravidade, diagnóstico ou causa, nem para dizer que o mapeamento está concluído. A leitura do conjunto e a Conduta são da nutricionista.";
@@ -221,34 +225,94 @@
     return '<dl class="rh-fech">' + itens.map(function (i) { return "<div><dt>" + esc(i.rotulo) + "</dt><dd>" + esc(i.valor).replace(/\n/g, "<br>") + "</dd></div>"; }).join("") + "</dl>";
   }
 
+  /* ---------- motor de resultados V1 (12/10, itens 28 e 30) ---------- */
+  var SF = raiz.SistemasFechamento || null;
+  function sf() { return raiz.SistemasFechamento || SF; }
+  /* os sinais dominantes de um sistema (os do fechamento MR-V1; sem ele, os do snapshot) */
+  function sinaisDoSistema(snap, sistema) {
+    var M = sf();
+    if (M) { var x = M.deResultado(snap).filter(function (q) { return q.sistema === sistema; })[0]; return x ? x.contribuiu.sinais.map(function (d) { return d.texto; }) : []; }
+    var s = ((snap.holoscan || {}).sistemas || []).filter(function (q) { return q.sistema === sistema; })[0];
+    return s && Array.isArray(s.dominantes) ? s.dominantes.slice(0, 3).map(function (d) { return d.enunciado; }) : [];
+  }
+  /* resumo de 1 linha do RESULTADO de uma ferramenta (o que apareceu, sem o que e so da profissional quando paciente) */
+  function resumoResultado(t, todas, paciente) {
+    if (!F || !F.resultado) return "";
+    var x = F.resultado(t, todas || []);
+    var itens = (x.apareceu || []).filter(function (i) { return !paciente || !i.so_profissional; }).slice(0, 2);
+    return itens.map(function (i) { return i.rotulo + ": " + (String(i.valor).length > 120 ? String(i.valor).slice(0, 117) + "…" : i.valor); }).join(" · ");
+  }
+  function li(t) { return "<li>" + t + "</li>"; }
+
+  /* 1. RESUMO PARA DECISAO (visao profissional, item 30): conclusao primeiro */
+  function htmlResumoDecisao(snap, opts) {
+    opts = opts || {};
+    var f = fatos(snap, opts.moduloDe, opts.nomeFerramenta);
+    var nomeF = opts.nomeFerramenta || function (id) { return (F && F.NOMES[id]) || id; };
+    var comps = f.sugeridas.filter(function (s) { return s.papel !== "principal"; });
+    var processo = [];
+    processo.push(f.ferramentas_total ? f.ferramentas_total + (f.ferramentas_total === 1 ? " ferramenta aplicada neste resultado" : " ferramentas aplicadas neste resultado") : "nenhuma ferramenta aplicada neste resultado");
+    if (f.momentum) processo.push("Linha do Momentum: estado " + f.momentum + " (escolhido pela nutricionista)");
+    if (f.proposito_disponivel) processo.push("Mapa do Propósito disponível (opcional)");
+    if (f.todas_realizadas) processo.push("as ferramentas indicadas pelo catálogo já foram realizadas neste atendimento");
+    var h = '<section class="rh-secao rh-decisao" aria-labelledby="rh-t-decisao"><h3 id="rh-t-decisao">Resumo para decisão</h3>' +
+      '<p class="rh-nota-tec">Resultado do método: cálculo salvo e catálogo aprovado. A leitura e a Conduta são da nutricionista.</p><dl class="rh-decisao-grade">';
+    h += "<div><dt>1ª área para aprofundar</dt><dd>" + (f.investigar[0] ? "<b>" + esc(f.investigar[0].nome) + "</b> · nota " + fmt(f.investigar[0].nota) : "—") + "</dd></div>";
+    h += "<div><dt>2ª área para aprofundar</dt><dd>" + (f.investigar[1] ? "<b>" + esc(f.investigar[1].nome) + "</b> · nota " + fmt(f.investigar[1].nota) : "—") +
+      (f.empate_investigar.length ? ' <small>(empate: ' + esc(lista(f.empate_investigar)) + "; a ordem oficial do motor desempata)</small>" : "") + "</dd></div>";
+    h += "<div><dt>Próximo passo principal</dt><dd>" + (f.principal ? "<b>" + esc(f.principal.nome) + "</b>" + (f.aplicadas.indexOf(f.principal.tool_id) >= 0 ? " · já aplicada neste resultado" : "") :
+      esc(f.todas_realizadas ? "As ferramentas indicadas já foram realizadas neste atendimento." : f.proximos_passos === "registrado" ? "Sem recomendação para esta aplicação." : "Não registrado neste resultado.")) + "</dd></div>";
+    h += "<div><dt>Complementares</dt><dd>" + (comps.length ? esc(lista(comps.map(function (s) { return s.nome; }))) : "—") + "</dd></div>";
+    h += "<div><dt>Ferramentas já aplicadas</dt><dd>" + (f.aplicadas.length ? esc(lista(f.aplicadas.map(nomeF))) : "Nenhuma") + "</dd></div>";
+    h += "<div><dt>Estado atual do processo</dt><dd>" + esc(processo.join(" · ")) + ".</dd></div>";
+    return h + "</dl></section>";
+  }
+
   /* HTML da Sintese HOLOS. visao "profissional" ou "paciente". */
   function html(snap, visao, opts) {
     opts = opts || {};
     var f = fatos(snap, opts.moduloDe, opts.nomeFerramenta);
+    var nomeF = opts.nomeFerramenta || function (id) { return (F && F.NOMES[id]) || id; };
     if (visao === "paciente") {
       var fp = frasesPaciente(f);
-      return '<section class="rh-secao rh-resumo rh-sintese" aria-labelledby="rh-t-resumo"><h3 id="rh-t-resumo">Resumo da sua avaliação</h3>' +
+      return '<section class="rh-secao rh-resumo rh-sintese" aria-labelledby="rh-t-resumo"><h3 id="rh-t-resumo">O que entendemos nesta etapa</h3>' +
         (fp.length ? '<ul class="rh-resumo-lista">' + fp.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul>" : "") +
         '<p class="rh-intro">Este resumo só organiza o que foi registrado. Ele não é diagnóstico; o que fazer com ele é combinado com a sua nutricionista.</p></section>';
     }
+    var ferr = snap.ferramentas || [], obs = snap.observacoes || opts.observacoes || {};
     var fr = frases(f);
     var h = '<section class="rh-secao rh-resumo rh-sintese" aria-labelledby="rh-t-resumo"><h3 id="rh-t-resumo">Síntese HOLOS</h3>' +
-      '<p class="rh-nota-tec">Organização automática e factual do que o método já produziu, a partir só dos dados salvos neste resultado. Não é conclusão clínica.</p>' +
-      '<ul class="rh-resumo-lista rh-sintese-lista">' + fr.map(function (x) { return '<li data-sintese="' + esc(x.chave) + '">' + rotulo(x.natureza) + " " + esc(x.texto) + "</li>"; }).join("") + "</ul>" +
+      '<p class="rh-nota-tec">Organização automática e determinística do que o método já produziu, a partir só dos dados salvos neste resultado. Não é conclusão clínica nem relação de causa.</p>';
+    /* bloco 1 */
+    h += '<div class="rh-sint-bloco" data-sint-bloco="1"><h4>' + rotulo("regra") + " Onde aprofundar</h4>" +
+      (f.investigar.length ? '<ol class="rh-resumo-lista rh-investigar">' + f.investigar.map(function (s, i) {
+        return "<li><b>" + (i + 1) + "ª área para aprofundar: " + esc(s.nome) + "</b> — nota " + fmt(s.nota) + "</li>";
+      }).join("") + '</ol><p class="rh-nota-tec">Menor nota = maior prioridade de investigação dentro do HOLOSCAN. Não significa gravidade, doença ou prioridade clínica.</p>'
+        : '<p class="rh-vazio">Nenhum sistema com nota.</p>') + "</div>";
+    /* bloco 2 */
+    h += '<div class="rh-sint-bloco" data-sint-bloco="2"><h4>' + rotulo("fato") + " Por que essas áreas apareceram</h4>" +
+      (f.investigar.length ? f.investigar.map(function (s) {
+        var sin = sinaisDoSistema(snap, s.sistema);
+        return '<p class="rh-sint-sis"><b>' + esc(s.nome) + "</b></p>" + (sin.length ? '<ul class="rh-resumo-lista">' + sin.map(function (t) { return li(esc(t)); }).join("") + "</ul>" : '<p class="rh-vazio">Sinais não registrados neste resultado.</p>');
+      }).join("") + '<p class="rh-nota-tec">Estes foram alguns dos itens que mais contribuíram para a pontuação de cada eixo. Não são causa nem diagnóstico.</p>' : '<p class="rh-vazio">—</p>') + "</div>";
+    /* bloco 3 */
+    var prop = F && F.resultadoProposito ? F.resultadoProposito(ferr, snap.derivados ? snap.derivados.mapa_proposito : null) : null;
+    h += '<div class="rh-sint-bloco" data-sint-bloco="3"><h4>' + rotulo("fato") + " O que já foi aprofundado</h4>" +
+      (ferr.length ? '<ul class="rh-resumo-lista">' + ferr.map(function (t) {
+        return li("<b>" + esc(nomeF(t.ferramenta_id)) + ":</b> " + esc(resumoResultado(t, ferr, false) || "registrada."));
+      }).join("") + (prop ? li("<b>Mapa do Propósito</b> (derivado de OQ³ + PQQ, opcional): " + esc(prop.apareceu.slice(0, 2).map(function (i) { return i.rotulo + ": " + i.valor; }).join(" · "))) : "") + "</ul>"
+        : '<p class="rh-vazio">Nenhuma ferramenta neste resultado.</p>') + "</div>";
+    /* bloco 4 */
+    h += '<div class="rh-sint-bloco rh-pp" data-rh-pp data-sint-bloco="4"><h4>' + rotulo("regra") + " O que ainda pode ser aprofundado</h4>" + htmlProximosPassos(f) + "</div>";
+    /* bloco 5 */
+    h += '<div class="rh-sint-bloco rh-sint-nutri" data-sint-bloco="5"><h4>' + rotulo("nutri") + " Leitura profissional</h4>" +
+      (obs.leitura_profissional && String(obs.leitura_profissional).trim() ? "<p>" + esc(obs.leitura_profissional).replace(/\n/g, "<br>") + "</p>" : '<p class="rh-vazio">Não registrada neste resultado.</p>') +
+      '<p class="rh-nota-tec">Escrita pela nutricionista. Não é gerada pelo sistema.</p></div>';
+    h += '<details class="rh-sint-fatos"><summary>Fatos organizados (' + fr.length + ")</summary>" +
+      '<ul class="rh-resumo-lista rh-sintese-lista">' + fr.map(function (x) { return '<li data-sintese="' + esc(x.chave) + '">' + rotulo(x.natureza) + " " + esc(x.texto) + "</li>"; }).join("") + "</ul></details>" +
       '<p class="rh-sintese-limite">' + esc(LIMITE) + "</p>";
 
     h += '<div class="rh-resumo-grade">';
-    h += '<div class="rh-resumo-bloco"><h4>' + rotulo("regra") + " Por onde investigar</h4>" +
-      (f.investigar.length ? '<ol class="rh-resumo-lista rh-investigar">' + f.investigar.map(function (s, i) {
-        return "<li><b>" + (i + 1) + "ª área para investigar: " + esc(s.nome) + "</b> — nota " + fmt(s.nota) + (s.faixa ? " · faixa " + esc(rotuloFaixa(s.faixa)) : "") + "</li>";
-      }).join("") + '</ol><p class="rh-nota-tec">Menor nota = maior prioridade de investigação dentro do HOLOSCAN. Não significa gravidade, risco ou prioridade clínica.</p>'
-        : '<p class="rh-vazio">Nenhum sistema com nota.</p>') + "</div>";
-    h += '<div class="rh-resumo-bloco rh-pp" data-rh-pp><h4>' + rotulo("regra") + " Próximos Passos HOLOS</h4>" + htmlProximosPassos(f) + "</div>";
-    h += '<div class="rh-resumo-bloco"><h4>' + rotulo("fato") + " Resultados estruturados</h4>" +
-      (f.fechamentos.length ? '<ul class="rh-resumo-lista">' + f.fechamentos.map(function (x) {
-        return "<li><b>" + esc(x.nome) + ":</b> " + esc(x.ferramenta_id === "carta_futuro" ? "realizada." : x.linha) + "</li>";
-      }).join("") + (f.proposito_disponivel ? "<li><b>Mapa do Propósito:</b> disponível (OQ³ + PQQ), opcional.</li>" : "") + "</ul>"
-        : '<p class="rh-vazio">Nenhuma ferramenta neste resultado.</p>') + "</div>";
     h += '<div class="rh-resumo-bloco"><h4>' + rotulo("nutri") + " Registros da nutricionista</h4><ul class=\"rh-resumo-lista\">" +
       "<li>Leituras de ferramenta registradas: <b>" + f.leituras_nutri + "</b> de " + f.ferramentas_total + ".</li>" +
       "<li>Observações deste resultado preenchidas: <b>" + f.observacoes_nutri + "</b> de 3 (nenhuma é obrigatória).</li>" +
@@ -271,13 +335,21 @@
       return "<li><b>" + esc(s.nome) + "</b> (" + (s.papel === "principal" ? "principal" : "complementar") + (feita ? " · aplicada neste resultado" : "") + ")" +
         (s.motivo ? ' <span class="rh-pp-motivo">' + esc(s.motivo) + "</span>" : "") + "</li>";
     }).join("") + '</ul><p class="rh-nota-tec">Catálogo ' + esc(f.catalogo ? f.catalogo.code + " v" + f.catalogo.version : "") +
-      ", congelado neste resultado. Rank = ordem de recomendação do motor; nenhuma ferramenta é obrigatória." +
+      ", congelado neste resultado" + (f.pp_pendentes ? ", sem as já realizadas neste atendimento" : "") + ". Rank = ordem de recomendação do motor; nenhuma ferramenta é obrigatória." +
       (f.compartilhar_pp ? " Compartilhados com a paciente." : " Só na visão profissional.") + "</p>";
   }
 
   /* Bloco dos Proximos Passos na visao da PACIENTE (so quando compartilhados). */
-  function htmlProximosPassosPaciente(snap, nomeFerramenta) {
+  function htmlProximosPassosPaciente(snap, nomeFerramenta, embutido) {
     var f = fatos(snap, null, nomeFerramenta);
+    /* motor de resultados V1 (item 31/34): dentro de "O que descobrimos com as ferramentas" — um so bloco de proximos passos */
+    if (embutido) {
+      if (f.compartilhar_pp && !f.sugeridas.length && f.todas_realizadas) return '<div class="rh-pp-paciente"><h4 class="rh-sub">O que ainda pode ser aprofundado</h4><p class="rh-intro">' + esc(MSG_TODAS_PACIENTE) + "</p></div>";
+      if (!f.compartilhar_pp || !f.sugeridas.length) return "";
+      return '<div class="rh-pp-paciente"><h4 class="rh-sub">O que ainda pode ser aprofundado</h4>' +
+        '<p class="rh-intro">Ferramentas do método que podem ajudar a aprofundar a conversa com a sua nutricionista. Nenhuma é obrigatória; a escolha e o momento são combinados em consulta.</p>' +
+        '<ul class="rh-resumo-lista">' + f.sugeridas.map(function (s) { return "<li>" + esc(s.nome) + "</li>"; }).join("") + "</ul></div>";
+    }
     if (f.compartilhar_pp && !f.sugeridas.length && f.todas_realizadas) {
       return '<section class="rh-secao rh-pp-paciente" aria-labelledby="rh-t-pp-pac"><h3 id="rh-t-pp-pac">Próximos passos de aprofundamento</h3>' +
         '<p class="rh-intro">' + esc(MSG_TODAS_PACIENTE) + "</p></section>";
@@ -288,7 +360,7 @@
       '<ul class="rh-resumo-lista">' + f.sugeridas.map(function (s) { return "<li>" + esc(s.nome) + "</li>"; }).join("") + "</ul></section>";
   }
 
-  var api = { fatos: fatos, frases: frases, frasesPaciente: frasesPaciente, html: html, htmlFechamento: htmlFechamento,
+  var api = { fatos: fatos, frases: frases, frasesPaciente: frasesPaciente, html: html, htmlFechamento: htmlFechamento, htmlResumoDecisao: htmlResumoDecisao, resumoResultado: resumoResultado,
     htmlProximosPassosPaciente: htmlProximosPassosPaciente, PENDENCIAS: PENDENCIAS, SELO: SELO, LIMITE: LIMITE, ordenar: ordenar };
   raiz.ResultadoSintese = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
