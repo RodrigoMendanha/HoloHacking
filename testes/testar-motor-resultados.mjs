@@ -76,8 +76,9 @@ const doc = await A.evaluate(async (pid, rid) => {
 }, PA, R.data);
 ok(/Índice HOLOS[\s\S]{0,40}de 100[\s\S]{0,10}O Índice HOLOS organiza as respostas desta aplicação e não representa percentual de saúde\./.test(doc.pac),
   '4.1 visão da paciente: o aviso anti-percentual fica junto do Índice ("de 100")');
-ok(!/faixa (baixa|intermediária|alta)/i.test(doc.pac) && /(Mais|Alguns|Menos) marcadores neste eixo/.test(doc.pac) && /faixa (baixa|intermediária|alta)/i.test(doc.prof),
-  '4.2 paciente vê "Mais/Alguns/Menos marcadores neste eixo" (nunca "faixa baixa/alta"); a visão profissional mantém a faixa técnica');
+ok(!/faixa (baixa|intermediária|alta)/i.test(doc.pac) && !/(Mais|Alguns|Menos) marcadores/.test(doc.pac) && /Nota neste eixo nesta aplicação: [0-9],[0-9] de 10 · a nota organiza as suas respostas; não indica doença nem saúde\./.test(doc.pac)
+  && /faixa (baixa|intermediária|alta)/i.test(doc.prof),
+  '4.2 paciente vê a nota como detalhe ("não indica doença nem saúde"), sem "faixa baixa/alta" e sem "menos/alguns marcadores" (ajuste final T5); a visão profissional mantém a faixa técnica');
 
 const tri = await A.evaluate(() => {
   const T = window.triadeMenores, S = window.ResultadoSintese;
@@ -120,8 +121,8 @@ ok(!rel.error && /pacote metodológico oficial aprovado \(HOLOS-V1 v2\)/.test(re
 /* commit 2 (itens 5-14): o fechamento dos cinco sistemas no documento do Resultado HOLOS */
 ok(/1ª área para aprofundar/.test(doc.prof) && /2ª área para aprofundar/.test(doc.prof) && /O que este eixo organiza/i.test(doc.prof) && /O que isso significa dentro do HOLOSCAN/i.test(doc.prof)
   && /O que isso não significa/i.test(doc.prof) && /Alguns dos sinais que mais contribuíram para este eixo nesta aplicação/.test(doc.prof) && /Pontuou neste sistema/.test(doc.prof)
-  && /Detalhes do mapa/.test(doc.pac) && /Este eixo reúne/.test(doc.pac) && /1ª área para aprofundar/.test(doc.pac) && !/Categoria autoral|Não possui significado clínico independente/.test(doc.pac) && /não representa doença, gravidade ou diagnóstico/.test(doc.pac) && !/PENDÊNCIA|respondidas/.test(doc.pac),
-  'fechamento A-G de cada sistema no Resultado (profissional com o registro completo); paciente (template 5): sistemas compactos nos Detalhes do mapa, sem pendência nem cobertura');
+  && /Detalhes do mapa/.test(doc.pac) && /Os cinco sistemas/.test(doc.pac) && /Este eixo reúne/.test(doc.pac) && /Área principal para aprofundar/.test(doc.pac) && /Como cuidar deste eixo/i.test(doc.pac) && !/Categoria autoral|Não possui significado clínico independente/.test(doc.pac) && /não representa doença, gravidade ou diagnóstico/.test(doc.pac) && !/PENDÊNCIA|respondidas/.test(doc.pac),
+  'fechamento A-G de cada sistema no Resultado (profissional com o registro completo); paciente (template 5): "Os cinco sistemas" no fim (área principal, como cuidar deste eixo, definição aprovada), sem pendência nem cobertura');
 ok(errosJS.length === 0, 'nenhum erro de JavaScript' + (errosJS.length ? ': ' + errosJS.join(' | ') : ''));
 await nav.close();
 console.log(falhou ? '\nFALHOU' : '\nmotor de resultados: tudo ok');

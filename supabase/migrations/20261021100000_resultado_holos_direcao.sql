@@ -15,8 +15,9 @@
 --    'direcao_paciente' (projecao montada NO SERVIDOR: so o compartilhavel; sem hipotese, sem ref) e 'caminho' (os
 --    Resultados anteriores da paciente, lidos do snapshot imutavel deles: data, foco e avancos compartilhados; nada de nota).
 -- 3. Foco atual: NAO e exigido no rascunho; e OBRIGATORIO (confirmado) para finalizar (salvar) e para emitir.
--- 4. Emissao RF-3: congela tambem 'direcao_paciente' e 'caminho' (o snapshot publico). Resultado sem foco confirmado
---    (inclusive templates 1-4) nao e emitido: cria-se uma nova versao com o foco. Emissoes RF-1/RF-2 ja feitas nao mudam.
+-- 4. Emissao: template 5 -> RF-3 (exige foco confirmado; congela tambem 'direcao_paciente' e 'caminho', o snapshot
+--    publico). Templates 1-4 (historicos) -> RF-2, a regra da epoca: sem direcao, sem foco, sem nova versao.
+--    Emissoes RF-1/RF-2 ja feitas nao mudam.
 -- ============================================================================
 
 begin;
@@ -30,23 +31,53 @@ comment on column public.holos_results.direcao is
 
 -- ----------------------------------------------------------------------------
 -- 1. validacao do formato (rascunho, previa e salvar passam por aqui)
+--    Item base: id, texto, texto_sugerido, origem, ref, sugestao, confirmado, mostrar_paciente, descartado.
+--    Campos proprios por lista: padroes (tipo), direcionamentos (territorio, porque, objetivo, status, sistemas),
+--    estrategias (direcionamento_id, finalidade, acao, observar, contexto, prazo, responsavel, status, anterior),
+--    acompanhamento_estrategias (estrategia, aplicou, facilitou, dificultou, percepcao, observacao, mudanca, decisao).
 -- ----------------------------------------------------------------------------
-create or replace function public.resultado_holos_validar_item(it jsonb, e_padrao boolean)
+drop function if exists public.resultado_holos_validar_item(jsonb, boolean);
+create or replace function public.resultado_holos_ref_resultado(r jsonb, obrigatorio boolean)
 returns void language plpgsql immutable set search_path = '' as $$
-declare k text; r jsonb;
+begin
+  if r is null or jsonb_typeof(r) = 'null' then
+    if obrigatorio then raise exception 'referencia da estrategia obrigatoria' using errcode = '22023', hint = 'direcao_invalida'; end if;
+    return;
+  end if;
+  if jsonb_typeof(r) <> 'object' or coalesce(r->>'resultado_id', '') !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+     or jsonb_typeof(r->'estrategia_id') is distinct from 'string' or length(r->>'estrategia_id') > 64
+     or exists (select 1 from jsonb_object_keys(r) x where x not in ('resultado_id', 'estrategia_id')) then
+    raise exception 'referencia de estrategia invalida' using errcode = '22023', hint = 'direcao_invalida';
+  end if;
+end;
+$$;
+revoke all on function public.resultado_holos_ref_resultado(jsonb, boolean) from public, anon, authenticated;
+
+create or replace function public.resultado_holos_validar_item(it jsonb, lista text)
+returns void language plpgsql immutable set search_path = '' as $$
+declare k text; r jsonb; extras text[];
 begin
   if jsonb_typeof(it) <> 'object' then raise exception 'item de direcao invalido' using errcode = '22023', hint = 'direcao_invalida'; end if;
+  extras := case lista
+    when 'padroes' then array['tipo']
+    when 'direcionamentos' then array['territorio', 'porque', 'objetivo', 'status', 'sistemas']
+    when 'estrategias' then array['direcionamento_id', 'finalidade', 'acao', 'observar', 'contexto', 'prazo', 'responsavel', 'status', 'anterior']
+    when 'acompanhamento_estrategias' then array['estrategia', 'aplicou', 'facilitou', 'dificultou', 'percepcao', 'observacao', 'mudanca', 'decisao']
+    else array[]::text[] end;
   for k in select jsonb_object_keys(it) loop
-    if k not in ('id', 'texto', 'texto_sugerido', 'origem', 'ref', 'sugestao', 'confirmado', 'mostrar_paciente', 'descartado', 'tipo') then
+    if k not in ('id', 'texto', 'texto_sugerido', 'origem', 'ref', 'sugestao', 'confirmado', 'mostrar_paciente', 'descartado') and not (k = any(extras)) then
       raise exception 'campo de item desconhecido: %', k using errcode = '22023', hint = 'direcao_invalida';
     end if;
   end loop;
   if jsonb_typeof(it->'texto') is distinct from 'string' or length(btrim(it->>'texto')) = 0 or length(it->>'texto') > 1000 then
     raise exception 'texto do item obrigatorio (ate 1000 caracteres)' using errcode = '22023', hint = 'direcao_invalida';
   end if;
-  if it ? 'texto_sugerido' and jsonb_typeof(it->'texto_sugerido') not in ('string', 'null') or length(coalesce(it->>'texto_sugerido', '')) > 1000 then
-    raise exception 'texto sugerido invalido' using errcode = '22023', hint = 'direcao_invalida';
-  end if;
+  foreach k in array array['texto_sugerido', 'porque', 'objetivo', 'direcionamento_id', 'finalidade', 'acao', 'observar', 'contexto', 'prazo', 'responsavel',
+                           'aplicou', 'facilitou', 'dificultou', 'percepcao', 'observacao', 'mudanca'] loop
+    if it ? k and (jsonb_typeof(it->k) not in ('string', 'null') or length(coalesce(it->>k, '')) > 1000) then
+      raise exception 'campo % invalido (texto ate 1000 caracteres)', k using errcode = '22023', hint = 'direcao_invalida';
+    end if;
+  end loop;
   if it ? 'id' and (jsonb_typeof(it->'id') <> 'string' or length(it->>'id') > 64) then
     raise exception 'id do item invalido' using errcode = '22023', hint = 'direcao_invalida';
   end if;
@@ -68,16 +99,32 @@ begin
     -- rastreabilidade: sugestao do sistema sempre diz de onde veio
     raise exception 'sugestao sem referencia de origem' using errcode = '22023', hint = 'direcao_invalida';
   end if;
-  if e_padrao then
+  if lista = 'padroes' then
     if coalesce(it->>'tipo', '') not in ('padrao_observado', 'hipotese') then
       raise exception 'padrao precisa do tipo padrao_observado ou hipotese' using errcode = '22023', hint = 'direcao_invalida';
     end if;
-  elsif it ? 'tipo' then
-    raise exception 'tipo so existe em padroes' using errcode = '22023', hint = 'direcao_invalida';
+  elsif lista = 'direcionamentos' then
+    if it ? 'territorio' and jsonb_typeof(it->'territorio') <> 'null' and coalesce(it->>'territorio', '') not in ('corpo', 'mente', 'espirito', 'integrado') then
+      raise exception 'territorio invalido' using errcode = '22023', hint = 'direcao_invalida'; end if;
+    if it ? 'status' and coalesce(it->>'status', '') not in ('proposto', 'ativo', 'concluido', 'encerrado') then
+      raise exception 'status do direcionamento invalido' using errcode = '22023', hint = 'direcao_invalida'; end if;
+    if it ? 'sistemas' and (jsonb_typeof(it->'sistemas') <> 'array' or jsonb_array_length(it->'sistemas') > 5
+       or exists (select 1 from jsonb_array_elements(it->'sistemas') x where jsonb_typeof(x) <> 'string' or length(x #>> '{}') > 40)) then
+      raise exception 'sistemas do direcionamento invalidos' using errcode = '22023', hint = 'direcao_invalida'; end if;
+  elsif lista = 'estrategias' then
+    if it ? 'status' and coalesce(it->>'status', '') not in ('proposta', 'acordada', 'em_teste', 'manter', 'ajustar', 'substituir', 'concluida', 'encerrada') then
+      raise exception 'status da estrategia invalido' using errcode = '22023', hint = 'direcao_invalida'; end if;
+    perform public.resultado_holos_ref_resultado(it->'anterior', false);
+  elsif lista = 'acompanhamento_estrategias' then
+    perform public.resultado_holos_ref_resultado(it->'estrategia', true);
+    if it ? 'decisao' and jsonb_typeof(it->'decisao') <> 'null' and coalesce(it->>'decisao', '') not in ('manter', 'ajustar', 'substituir', 'concluir', 'encerrar') then
+      raise exception 'decisao invalida' using errcode = '22023', hint = 'direcao_invalida'; end if;
+    if it->'confirmado' = 'true'::jsonb and coalesce(it->>'decisao', '') = '' then
+      raise exception 'acompanhamento confirmado precisa da decisao' using errcode = '22023', hint = 'direcao_invalida'; end if;
   end if;
 end;
 $$;
-revoke all on function public.resultado_holos_validar_item(jsonb, boolean) from public, anon, authenticated;
+revoke all on function public.resultado_holos_validar_item(jsonb, text) from public, anon, authenticated;
 
 -- todos os itens da direcao (listas, territorios e itens unicos), para conferir referencias e projetar
 create or replace function public.resultado_holos_itens(d jsonb)
@@ -85,7 +132,8 @@ returns setof jsonb language sql immutable set search_path = '' as $$
   select x from jsonb_array_elements(case when jsonb_typeof(d) = 'object' then (
       select coalesce(jsonb_agg(v), '[]'::jsonb) from (
         select jsonb_array_elements(case when jsonb_typeof(d->l) = 'array' then d->l else '[]'::jsonb end) v
-          from unnest(array['momento', 'dores', 'desejos', 'avancos', 'permaneceu', 'padroes', 'estrategias', 'acordos_compartilhados', 'observar']) l
+          from unnest(array['momento', 'dores', 'desejos', 'avancos', 'permaneceu', 'padroes', 'direcionamentos', 'estrategias', 'acompanhamento_estrategias',
+                            'acordos_compartilhados', 'observar']) l
         union all
         select jsonb_array_elements(case when jsonb_typeof(d#>array[t, 'itens']) = 'array' then d#>array[t, 'itens'] else '[]'::jsonb end)
           from unnest(array['corpo', 'mente', 'espirito']) t
@@ -97,7 +145,7 @@ revoke all on function public.resultado_holos_itens(jsonb) from public, anon, au
 
 create or replace function public.resultado_holos_validar_direcao(uid uuid, v_pid uuid, d jsonb)
 returns void language plpgsql stable security definer set search_path = '' as $$
-declare k text; it jsonb; tb text; ok boolean;
+declare k text; it jsonb; tb text; ok boolean; rid text;
 begin
   if d is null or jsonb_typeof(d) = 'null' then return; end if;
   if jsonb_typeof(d) <> 'object' then raise exception 'direcao invalida' using errcode = '22023', hint = 'direcao_invalida'; end if;
@@ -106,20 +154,21 @@ begin
     raise exception 'direcao: schema_version deve ser 1' using errcode = '22023', hint = 'direcao_invalida';
   end if;
   for k in select jsonb_object_keys(d) loop
-    if k not in ('schema_version', 'tipo', 'momento', 'dores', 'desejos', 'avancos', 'permaneceu', 'padroes', 'foco_atual', 'estrategias',
-                 'corpo', 'mente', 'espirito', 'acordos_compartilhados', 'observar', 'proxima_etapa') then
+    if k not in ('schema_version', 'tipo', 'momento', 'dores', 'desejos', 'avancos', 'permaneceu', 'padroes', 'foco_atual', 'direcionamentos', 'estrategias',
+                 'acompanhamento_estrategias', 'corpo', 'mente', 'espirito', 'acordos_compartilhados', 'observar', 'proxima_etapa') then
       raise exception 'direcao: campo desconhecido %', k using errcode = '22023', hint = 'direcao_invalida';
     end if;
   end loop;
   if d ? 'tipo' and coalesce(d->>'tipo', '') not in ('primeira', 'retorno') then
     raise exception 'direcao: tipo deve ser primeira ou retorno' using errcode = '22023', hint = 'direcao_invalida';
   end if;
-  foreach k in array array['momento', 'dores', 'desejos', 'avancos', 'permaneceu', 'padroes', 'estrategias', 'acordos_compartilhados', 'observar'] loop
+  foreach k in array array['momento', 'dores', 'desejos', 'avancos', 'permaneceu', 'padroes', 'direcionamentos', 'estrategias', 'acompanhamento_estrategias',
+                           'acordos_compartilhados', 'observar'] loop
     if d ? k then
       if jsonb_typeof(d->k) <> 'array' or jsonb_array_length(d->k) > 40 then
         raise exception 'direcao: % deve ser lista (ate 40 itens)', k using errcode = '22023', hint = 'direcao_invalida';
       end if;
-      for it in select jsonb_array_elements(d->k) loop perform public.resultado_holos_validar_item(it, k = 'padroes'); end loop;
+      for it in select jsonb_array_elements(d->k) loop perform public.resultado_holos_validar_item(it, k); end loop;
     end if;
   end loop;
   foreach k in array array['corpo', 'mente', 'espirito'] loop
@@ -128,11 +177,11 @@ begin
          or (d->k ? 'itens' and (jsonb_typeof(d#>array[k, 'itens']) <> 'array' or jsonb_array_length(d#>array[k, 'itens']) > 40)) then
         raise exception 'direcao: % deve ser {itens: [...]}', k using errcode = '22023', hint = 'direcao_invalida';
       end if;
-      for it in select jsonb_array_elements(coalesce(d#>array[k, 'itens'], '[]'::jsonb)) loop perform public.resultado_holos_validar_item(it, false); end loop;
+      for it in select jsonb_array_elements(coalesce(d#>array[k, 'itens'], '[]'::jsonb)) loop perform public.resultado_holos_validar_item(it, k); end loop;
     end if;
   end loop;
   foreach k in array array['foco_atual', 'proxima_etapa'] loop
-    if d ? k and jsonb_typeof(d->k) <> 'null' then perform public.resultado_holos_validar_item(d->k, false); end if;
+    if d ? k and jsonb_typeof(d->k) <> 'null' then perform public.resultado_holos_validar_item(d->k, k); end if;
   end loop;
   -- toda referencia aponta para um registro DESTA paciente e DESTA nutricionista (nunca de outra pessoa)
   for it in select r from public.resultado_holos_itens(d) x(r) where jsonb_typeof(r->'ref') = 'object' loop
@@ -142,6 +191,13 @@ begin
     execute format('select exists (select 1 from public.%I where id = $1 and patient_id = $2 and nutritionist_id = $3)', tb)
       into ok using (it#>>'{ref,id}')::uuid, v_pid, uid;
     if not ok then raise exception 'referencia de outra paciente ou inexistente' using errcode = 'P0001', hint = 'referencia_cruzada'; end if;
+  end loop;
+  -- estrategia anterior / acompanhada: um Resultado SALVO desta paciente (o historico e lido, nunca reescrito)
+  for rid in select coalesce(r#>>'{anterior,resultado_id}', r#>>'{estrategia,resultado_id}') from public.resultado_holos_itens(d) x(r)
+             where jsonb_typeof(r->'anterior') = 'object' or jsonb_typeof(r->'estrategia') = 'object' loop
+    if not exists (select 1 from public.holos_results h where h.id = rid::uuid and h.patient_id = v_pid and h.nutritionist_id = uid and h.status <> 'rascunho') then
+      raise exception 'estrategia de Resultado de outra paciente ou nao salvo' using errcode = 'P0001', hint = 'referencia_cruzada';
+    end if;
   end loop;
 end;
 $$;
@@ -159,49 +215,60 @@ returns boolean language sql immutable set search_path = '' as $$
      and coalesce(it->>'tipo', '') <> 'hipotese'                -- HIPOTESE NUNCA, mesmo com mostrar_paciente = true
      and length(btrim(coalesce(it->>'texto', ''))) > 0;
 $$;
-create or replace function public.resultado_holos_lista_paciente(l jsonb, so_observados boolean)
+drop function if exists public.resultado_holos_lista_paciente(jsonb, boolean);
+-- campos que a paciente ve, por lista (nunca ref, sugestao, observacao interna da nutricionista)
+create or replace function public.resultado_holos_lista_paciente(l jsonb, lista text)
 returns jsonb language sql immutable set search_path = '' as $$
-  select coalesce(jsonb_agg(jsonb_build_object('texto', btrim(x->>'texto'), 'origem', x->>'origem') order by n), '[]'::jsonb)
+  select coalesce(jsonb_agg(jsonb_build_object('texto', btrim(x->>'texto'), 'origem', x->>'origem') ||
+      (select coalesce(jsonb_object_agg(k, x->k), '{}'::jsonb) from unnest(case lista
+         when 'direcionamentos' then array['id', 'territorio', 'porque', 'objetivo', 'status', 'sistemas']
+         when 'estrategias' then array['id', 'direcionamento_id', 'finalidade', 'acao', 'observar', 'contexto', 'prazo', 'responsavel', 'status', 'anterior']
+         when 'acompanhamento_estrategias' then array['estrategia', 'aplicou', 'facilitou', 'dificultou', 'percepcao', 'mudanca', 'decisao']
+         else array[]::text[] end) k where x ? k and jsonb_typeof(x->k) <> 'null')
+    order by n), '[]'::jsonb)
   from jsonb_array_elements(case when jsonb_typeof(l) = 'array' then l else '[]'::jsonb end) with ordinality t(x, n)
-  where public.resultado_holos_item_paciente(x) and (not so_observados or x->>'tipo' = 'padrao_observado');
+  where public.resultado_holos_item_paciente(x) and (lista <> 'padroes' or x->>'tipo' = 'padrao_observado');
 $$;
 create or replace function public.resultado_holos_direcao_paciente(d jsonb)
 returns jsonb language sql immutable set search_path = '' as $$
   select case when d is null or jsonb_typeof(d) <> 'object' then
       jsonb_build_object('schema_version', 1, 'tipo', 'primeira', 'momento', '[]'::jsonb, 'dores', '[]'::jsonb, 'desejos', '[]'::jsonb, 'avancos', '[]'::jsonb,
-        'permaneceu', '[]'::jsonb, 'padroes', '[]'::jsonb, 'foco_atual', null, 'estrategias', '[]'::jsonb,
+        'permaneceu', '[]'::jsonb, 'padroes', '[]'::jsonb, 'foco_atual', null, 'direcionamentos', '[]'::jsonb, 'estrategias', '[]'::jsonb,
+        'acompanhamento_estrategias', '[]'::jsonb,
         'corpo', jsonb_build_object('itens', '[]'::jsonb), 'mente', jsonb_build_object('itens', '[]'::jsonb), 'espirito', jsonb_build_object('itens', '[]'::jsonb),
         'acordos_compartilhados', '[]'::jsonb, 'observar', '[]'::jsonb, 'proxima_etapa', null)
     else jsonb_build_object('schema_version', 1, 'tipo', coalesce(d->>'tipo', 'primeira'),
-      'momento', public.resultado_holos_lista_paciente(d->'momento', false),
-      'dores', public.resultado_holos_lista_paciente(d->'dores', false),
-      'desejos', public.resultado_holos_lista_paciente(d->'desejos', false),
-      'avancos', public.resultado_holos_lista_paciente(d->'avancos', false),
-      'permaneceu', public.resultado_holos_lista_paciente(d->'permaneceu', false),
-      'padroes', public.resultado_holos_lista_paciente(d->'padroes', true),
+      'momento', public.resultado_holos_lista_paciente(d->'momento', 'momento'),
+      'dores', public.resultado_holos_lista_paciente(d->'dores', 'dores'),
+      'desejos', public.resultado_holos_lista_paciente(d->'desejos', 'desejos'),
+      'avancos', public.resultado_holos_lista_paciente(d->'avancos', 'avancos'),
+      'permaneceu', public.resultado_holos_lista_paciente(d->'permaneceu', 'permaneceu'),
+      'padroes', public.resultado_holos_lista_paciente(d->'padroes', 'padroes'),
       -- o foco e sempre compartilhado quando confirmado (e o que a emissao exige)
       'foco_atual', case when jsonb_typeof(d->'foco_atual') = 'object' and d#>'{foco_atual,confirmado}' = 'true'::jsonb
                           and coalesce(d#>'{foco_atual,descartado}', 'false'::jsonb) <> 'true'::jsonb and coalesce(d#>>'{foco_atual,tipo}', '') <> 'hipotese'
                           and length(btrim(coalesce(d#>>'{foco_atual,texto}', ''))) > 0
                      then jsonb_build_object('texto', btrim(d#>>'{foco_atual,texto}'), 'origem', d#>>'{foco_atual,origem}') else null end,
-      'estrategias', public.resultado_holos_lista_paciente(d->'estrategias', false),
-      'corpo', jsonb_build_object('itens', public.resultado_holos_lista_paciente(d#>'{corpo,itens}', false)),
-      'mente', jsonb_build_object('itens', public.resultado_holos_lista_paciente(d#>'{mente,itens}', false)),
-      'espirito', jsonb_build_object('itens', public.resultado_holos_lista_paciente(d#>'{espirito,itens}', false)),
-      'acordos_compartilhados', public.resultado_holos_lista_paciente(d->'acordos_compartilhados', false),
-      'observar', public.resultado_holos_lista_paciente(d->'observar', false),
+      'direcionamentos', public.resultado_holos_lista_paciente(d->'direcionamentos', 'direcionamentos'),
+      'estrategias', public.resultado_holos_lista_paciente(d->'estrategias', 'estrategias'),
+      'acompanhamento_estrategias', public.resultado_holos_lista_paciente(d->'acompanhamento_estrategias', 'acompanhamento_estrategias'),
+      'corpo', jsonb_build_object('itens', public.resultado_holos_lista_paciente(d#>'{corpo,itens}', 'corpo')),
+      'mente', jsonb_build_object('itens', public.resultado_holos_lista_paciente(d#>'{mente,itens}', 'mente')),
+      'espirito', jsonb_build_object('itens', public.resultado_holos_lista_paciente(d#>'{espirito,itens}', 'espirito')),
+      'acordos_compartilhados', public.resultado_holos_lista_paciente(d->'acordos_compartilhados', 'acordos_compartilhados'),
+      'observar', public.resultado_holos_lista_paciente(d->'observar', 'observar'),
       'proxima_etapa', case when public.resultado_holos_item_paciente(d->'proxima_etapa')
                        then jsonb_build_object('texto', btrim(d#>>'{proxima_etapa,texto}'), 'origem', d#>>'{proxima_etapa,origem}') else null end)
   end;
 $$;
 revoke all on function public.resultado_holos_item_paciente(jsonb) from public, anon, authenticated;
-revoke all on function public.resultado_holos_lista_paciente(jsonb, boolean) from public, anon, authenticated;
+revoke all on function public.resultado_holos_lista_paciente(jsonb, text) from public, anon, authenticated;
 revoke all on function public.resultado_holos_direcao_paciente(jsonb) from public, anon, authenticated;
 
 -- ----------------------------------------------------------------------------
 -- 3. caminho: Resultados ANTERIORES da paciente (de outros atendimentos, anteriores a este), lidos do snapshot
---    imutavel de cada um. So o que ja era da paciente (foco e avancos compartilhados). Nada de nota: o passado nao
---    e recalculado e notas de pacotes diferentes nao sao comparadas.
+--    imutavel de cada um. So o que ja era da paciente (foco, direcionamentos, estrategias, avancos e acordos
+--    compartilhados). Nada de nota: o passado nao e recalculado e notas de pacotes diferentes nao sao comparadas.
 -- ----------------------------------------------------------------------------
 create or replace function public.resultado_holos_caminho(uid uuid, v_pid uuid, v_eid uuid)
 returns jsonb language sql stable security definer set search_path = '' as $$
@@ -209,6 +276,8 @@ returns jsonb language sql stable security definer set search_path = '' as $$
       'resultado_id', x.id, 'revision_number', x.revision_number, 'content_hash', x.content_hash, 'template_version', x.template_version,
       'atendimento_em', x.occurred_at,
       'foco', x.content_snapshot#>'{direcao_paciente,foco_atual}',
+      'direcionamentos', coalesce(x.content_snapshot#>'{direcao_paciente,direcionamentos}', '[]'::jsonb),
+      'estrategias', coalesce(x.content_snapshot#>'{direcao_paciente,estrategias}', '[]'::jsonb),
       'avancos', coalesce(x.content_snapshot#>'{direcao_paciente,avancos}', '[]'::jsonb),
       'acordos', coalesce(x.content_snapshot#>'{direcao_paciente,acordos_compartilhados}', '[]'::jsonb)
     ) order by x.occurred_at), '[]'::jsonb)
@@ -355,7 +424,7 @@ revoke all on function public.salvar_resultado_holos(jsonb) from public, anon;
 grant execute on function public.salvar_resultado_holos(jsonb) to authenticated;
 
 -- ----------------------------------------------------------------------------
--- 7. emissao RF-3: exige foco confirmado no snapshot; congela a projecao da paciente e o caminho
+-- 7. emissao: template 5 -> RF-3 (foco obrigatorio, projecao da paciente + caminho); templates 1-4 -> RF-2 historico
 -- ----------------------------------------------------------------------------
 alter table public.holos_result_emissions drop constraint holos_result_emissions_template;
 alter table public.holos_result_emissions add constraint holos_result_emissions_template check (template_version in ('RF-1', 'RF-2', 'RF-3'));
@@ -364,7 +433,7 @@ returns jsonb language plpgsql security definer set search_path = '' as $$
 declare
   uid uuid := auth.uid(); v_rid uuid; v_op uuid; r record; pac record; cd record; pr record; em record;
   v_acordos jsonb; v_conduta jsonb; v_img jsonb := coalesce(payload->'imagens', '{}'::jsonb);
-  v_logo text; v_ass text; v_car text; v_num int; snap jsonb; h text; agora timestamptz := now();
+  v_logo text; v_ass text; v_car text; v_num int; snap jsonb; h text; agora timestamptz := now(); v_t5 boolean; v_tpl text;
 begin
   if uid is null then raise exception 'sessao obrigatoria' using errcode = '42501'; end if;
   if not public.conta_ativa() then raise exception 'conta aguardando liberacao' using errcode = '42501', hint = 'conta_inativa'; end if;
@@ -383,9 +452,11 @@ begin
   if not found then raise exception 'resultado nao encontrado' using errcode = 'P0001', hint = 'referencia_cruzada'; end if;
   if r.status = 'rascunho' or r.content_snapshot is null then raise exception 'so Resultado HOLOS salvo e emitido' using errcode = 'P0001', hint = 'resultado_nao_finalizado'; end if;
   if r.superseded_at is not null then raise exception 'esta versao foi substituida: emita a versao atual' using errcode = 'P0001', hint = 'resultado_substituido'; end if;
-  -- template 5: sem Foco atual confirmado nao ha emissao para a paciente (resultados 1-4 nao tem foco: nova versao)
-  if coalesce(r.template_version, 1) < 5 or jsonb_typeof(r.content_snapshot#>'{direcao_paciente,foco_atual}') is distinct from 'object' then
-    raise exception 'Resultado HOLOS sem Foco atual confirmado: crie uma nova versao com o foco antes de emitir' using errcode = 'P0001', hint = 'foco_obrigatorio';
+  -- templates 1-4 (historicos): a regra da epoca (RF-2), sem direcao e sem foco. Template 5: sem Foco atual
+  -- confirmado nao ha emissao para a paciente.
+  v_t5 := coalesce(r.template_version, 1) >= 5;
+  if v_t5 and jsonb_typeof(r.content_snapshot#>'{direcao_paciente,foco_atual}') is distinct from 'object' then
+    raise exception 'Resultado HOLOS sem Foco atual confirmado: defina e confirme o foco antes de emitir' using errcode = 'P0001', hint = 'foco_obrigatorio';
   end if;
   select p.id, p.nome, p.status into pac from public.patients p where p.id = r.patient_id and p.nutritionist_id = uid;
   if pac.status = 'inativo' then raise exception 'paciente arquivado: reative antes de registrar novas informacoes' using errcode = 'P0001', hint = 'paciente_arquivado'; end if;
@@ -412,24 +483,27 @@ begin
   v_car := public.emissao_imagem_valida(v_img->'carimbo');
 
   select coalesce(max(e.emission_number), 0) + 1 into v_num from public.holos_result_emissions e where e.patient_id = r.patient_id;
+  v_tpl := case when v_t5 then 'RF-3' else 'RF-2' end;
   snap := jsonb_build_object(
-    'template', 'RF-3',
+    'template', v_tpl,
     'emitida_em', agora,
     'emissao', jsonb_build_object('numero', v_num),
     'paciente', jsonb_build_object('id', pac.id, 'nome', pac.nome),
     'resultado', jsonb_build_object('id', r.id, 'revision_number', r.revision_number, 'status', r.status, 'salvo_em', r.saved_at,
       'content_hash', r.content_hash, 'template_version', r.template_version),
-    -- snapshot publico: SO a projecao da paciente (nunca a direcao completa, que guarda sugestoes e hipoteses)
-    'direcao_paciente', r.content_snapshot->'direcao_paciente',
-    'caminho', coalesce(r.content_snapshot->'caminho', '[]'::jsonb),
     'conduta', v_conduta,
     'profissional', jsonb_build_object('nome', pr.nome, 'profissao', pr.profissao, 'registro', pr.registro, 'especialidade', pr.especialidade,
       'cidade', pr.cidade, 'telefone', pr.telefone, 'instagram', pr.instagram, 'cor_primaria', pr.cor_primaria, 'cor_secundaria', pr.cor_secundaria),
     'imagens', jsonb_build_object('logo', v_logo, 'assinatura', v_ass, 'carimbo', v_car));
+  -- RF-3: snapshot publico com SO a projecao da paciente (nunca a direcao completa, que guarda sugestoes e hipoteses).
+  -- RF-2 (templates 1-4): exatamente o snapshot da regra historica.
+  if v_t5 then
+    snap := snap || jsonb_build_object('direcao_paciente', r.content_snapshot->'direcao_paciente', 'caminho', coalesce(r.content_snapshot->'caminho', '[]'::jsonb));
+  end if;
   h := encode(sha256(convert_to(snap::text, 'UTF8')), 'hex');
   insert into public.holos_result_emissions (nutritionist_id, patient_id, holos_result_id, result_content_hash, conduct_id, emission_number,
       template_version, content_snapshot, content_hash, operation_id, created_at)
-    values (uid, r.patient_id, r.id, r.content_hash, case when v_conduta is null then null else cd.id end, v_num, 'RF-3', snap, h, v_op, agora)
+    values (uid, r.patient_id, r.id, r.content_hash, case when v_conduta is null then null else cd.id end, v_num, v_tpl, snap, h, v_op, agora)
     returning * into em;
   return jsonb_build_object('id', em.id, 'emission_number', em.emission_number, 'content_hash', em.content_hash, 'created_at', em.created_at);
 end;

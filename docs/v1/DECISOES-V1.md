@@ -1097,6 +1097,17 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
      HOLOSCAN no fim ("Detalhes do mapa"). "O que já está mudando" passou para o pilar Acompanhamento da evolução. Templates 1–4,
      emissões RF-1/RF-2, HOLOSCAN, pacotes e PP-V1 intactos. Migration 20261021100000; detalhes em
      `docs/v1/IMPLEMENTACAO-RESULTADO-HOLOS-T5.md`.
+193. **Ajuste final consolidado do template 5, antes do deploy** (13/10). (a) **Sem regra retroativa:** Resultados de templates
+     1–4 continuam abrindo pelo desenho histórico e são emitidos/baixados/enviados pela regra histórica (RF-2), sem `direcao`, sem
+     foco e sem nova versão; só o template 5 exige Foco atual para finalizar/emitir (RF-3)/PDF/WhatsApp (substitui o trecho do
+     item 192 que exigia foco de qualquer Resultado). (b) `direcao` ganha `direcionamentos[]` (território, por quê, objetivo,
+     status, sistemas), `estrategias[]` (vínculo com o direcionamento, finalidade, ação, observar, contexto, prazo, responsável,
+     status PROPOSTA…ENCERRADA, `anterior`) e `acompanhamento_estrategias[]` (aplicou, facilitou, dificultou, percepção,
+     observação só profissional, mudança, decisão MANTER/AJUSTAR/SUBSTITUIR/CONCLUIR/ENCERRAR); a estratégia anterior nunca é
+     sobrescrita (a continuação é um item novo com `anterior`). (c) Nenhum direcionamento ou estratégia sai da nota. (d) Ordem da
+     paciente em 14 blocos; "Como vamos caminhar" removido. (e) Os cinco sistemas explicam por que olhamos: prioritário com O que
+     apareceu / O que vale observar / Como cuidar deste eixo (textos-base CE-1) / Para você, nesta fase; não prioritário compacto;
+     nota como detalhe ("não indica doença nem saúde"). (f) WhatsApp: "Nesta fase, nosso principal direcionamento é: …".
 
 ## Decisões pendentes (não decididas aqui)
 

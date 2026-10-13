@@ -98,6 +98,12 @@ begin
        pg_temp.rd_item('Nos dias com tarde longa sem pausa, relata mais fome a noite.', 'observacao_profissional', null, false, true, true) || '{"tipo":"padrao_observado"}',
        pg_temp.rd_item('HIPOTESE_SECRETA investigar organizacao da tarde', 'observacao_profissional', null, false, true, true) || '{"tipo":"hipotese"}'),
     'foco_atual', pg_temp.rd_item('Organizar a tarde', 'conduta', jsonb_build_object('tipo', 'conduta', 'id', c1, 'campo', 'objective'), true, true, true),
+    'direcionamentos', jsonb_build_array(
+       pg_temp.rd_item('Organizar o periodo da tarde', 'nutricionista', null, false, true, true) || '{"id":"dir1","territorio":"corpo","porque":"fome forte no fim da tarde","objetivo":"chegar ao jantar com menos fome","status":"ativo","sistemas":["metabolico"]}',
+       pg_temp.rd_item('DIRECIONAMENTO_NAO_CONFIRMADO', 'conduta', jsonb_build_object('tipo', 'conduta', 'id', c1, 'campo', 'objective'), true, false, true) || '{"id":"dir2"}'),
+    'estrategias', jsonb_build_array(
+       pg_temp.rd_item('Pausa organizada no periodo da tarde', 'conduta', jsonb_build_object('tipo', 'conduta', 'id', c1, 'campo', 'nutrition_strategy'), true, true, true)
+         || '{"id":"est1","direcionamento_id":"dir1","acao":"lanche planejado as 16h","observar":"fome ao chegar em casa","status":"acordada"}'),
     'acordos_compartilhados', jsonb_build_array(pg_temp.rd_item('Levar lanche para o trabalho', 'acordo', jsonb_build_object('tipo', 'acordo', 'id', a1, 'campo', 'description'), true, true, true)),
     'corpo', jsonb_build_object('itens', jsonb_build_array(pg_temp.rd_item('Pausa para lanche as 16h', 'conduta', jsonb_build_object('tipo', 'conduta', 'id', c1, 'campo', 'actions'), true, true, true))),
     'mente', jsonb_build_object('itens', '[]'::jsonb),
@@ -120,6 +126,10 @@ begin
   insert into _logrd (passo) select 'RD03d ' || case when dp#>'{mente,itens}' = '[]'::jsonb and dp#>'{espirito,itens}' = '[]'::jsonb
       and jsonb_array_length(dp#>'{corpo,itens}') = 1 and dp->'acordos_compartilhados'->0->>'texto' = 'Levar lanche para o trabalho'
       and not (dp#>'{dores,0}' ? 'ref') then 'ok' else 'FALHOU' end || ': territorio sem material = itens [] (a tela mostra "Ainda nao aprofundado"); acordo da Conduta compartilhado; projecao sem ref';
+  insert into _logrd (passo) select 'RD10a ' || case when jsonb_array_length(dp->'direcionamentos') = 1 and dp#>>'{direcionamentos,0,territorio}' = 'corpo'
+      and dp#>'{direcionamentos,0,sistemas}' = '["metabolico"]'::jsonb and dp::text not like '%DIRECIONAMENTO_NAO_CONFIRMADO%'
+      and dp#>>'{estrategias,0,direcionamento_id}' = 'dir1' and dp#>>'{estrategias,0,status}' = 'acordada' and not (dp#>'{estrategias,0}' ? 'ref')
+    then 'ok' else 'FALHOU: ' || (dp->'direcionamentos')::text end || ': direcionamento confirmado (territorio, sistemas) e estrategia ligada a ele vao para a paciente; sugestao nao confirmada nao';
   insert into _logrd (passo) select 'RD04 ' || case when snap#>>'{direcao,dores,1,ref,tipo}' = 'holoscan' and snap#>>'{direcao,dores,1,ref,campo}' = 'SNT-507'
       and snap#>'{direcao,dores,1,sugestao}' = 'true'::jsonb and snap#>'{direcao,dores,1,confirmado}' = 'true'::jsonb
       and snap#>>'{direcao,foco_atual,ref,id}' = (select v from _rd where k = 'c1') and snap#>>'{direcao,dores,1,texto_sugerido}' = 'Sono depois do almoco'
@@ -137,6 +147,10 @@ begin
   insert into _logrd (passo) select 'RD05d ' || case when pg_temp.rd_tenta(format('select public.salvar_rascunho_resultado_holos(%L::jsonb)::text',
       (base || jsonb_build_object('direcao', jsonb_build_object('schema_version', 1, 'dores', jsonb_build_array(pg_temp.rd_item('x', 'nutricionista', null, false, true, true) || '{"tipo":"hipotese"}'))))::text)) = 'direcao_invalida'
     then 'ok' else 'FALHOU' end || ': tipo (padrao/hipotese) fora da lista de padroes recusado';
+  insert into _logrd (passo) select 'RD10c ' || case when pg_temp.rd_tenta(format('select public.salvar_rascunho_resultado_holos(%L::jsonb)::text',
+      (base || jsonb_build_object('direcao', jsonb_build_object('schema_version', 1, 'acompanhamento_estrategias', jsonb_build_array(
+        pg_temp.rd_item('x', 'nutricionista', null, false, true, true) || jsonb_build_object('estrategia', jsonb_build_object('resultado_id', r1, 'estrategia_id', 'est1'))))))::text)) = 'direcao_invalida'
+    then 'ok' else 'FALHOU' end || ': acompanhamento confirmado sem decisao (manter/ajustar/substituir/concluir/encerrar) e recusado';
   insert into _logrd (passo) select 'RD05e ' || case when pg_temp.rd_tenta(format('select public.salvar_rascunho_resultado_holos(%L::jsonb)::text',
       (base || jsonb_build_object('direcao', jsonb_build_object('schema_version', 1, 'dores', jsonb_build_array(pg_temp.rd_item('x', 'conduta', jsonb_build_object('tipo', 'atendimento', 'id', e9), true, false, false)))))::text)) = 'referencia_cruzada'
     then 'ok' else 'FALHOU' end || ': ref para registro de OUTRA paciente recusada';
@@ -149,8 +163,12 @@ do $$
 declare r1 uuid := (select v::uuid from _rd where k = 'r1'); rt4 uuid := (select v::uuid from _rd where k = 'r_t4'); t text; em jsonb; s jsonb;
 begin
   t := case when rt4 is null then 'foco_obrigatorio' else pg_temp.rd_tenta(format('select public.emitir_resultado_final(%L::jsonb)::text', jsonb_build_object('holos_result_id', rt4)::text)) end;
-  insert into _logrd (passo) select 'RD06a ' || case when rt4 is not null and t = 'foco_obrigatorio' then 'ok' else 'FALHOU: ' || coalesce(t, '') || ' / t4=' || coalesce(rt4::text, 'nenhum') end
-    || ': Resultado template 4 (sem foco) nao e emitido: foco_obrigatorio';
+  if t like 'ACEITO:%' then insert into _rd values ('em_t4', (substr(t, 8)::jsonb)->>'id'); end if;
+  insert into _logrd (passo) select 'RD06a ' || case when rt4 is not null and t like 'ACEITO:%'
+      and (select template_version = 'RF-2' and not (content_snapshot ? 'direcao_paciente') and content_snapshot->>'template' = 'RF-2'
+           from public.holos_result_emissions where id = ((substr(t, 8)::jsonb)->>'id')::uuid)
+    then 'ok' else 'FALHOU: ' || coalesce(t, '') || ' / t4=' || coalesce(rt4::text, 'nenhum') end
+    || ': Resultado HISTORICO template 4 (sem direcao, sem foco) continua emitindo pela regra da epoca (RF-2)';
   em := public.emitir_resultado_final(jsonb_build_object('holos_result_id', r1));
   select content_snapshot into s from public.holos_result_emissions where id = (em->>'id')::uuid;
   insert into _rd values ('em1', em->>'id');
@@ -173,9 +191,27 @@ begin
     'visao_paciente', jsonb_build_object('ferramentas', '{}'::jsonb, 'proximos_passos', false),
     'direcao', jsonb_build_object('schema_version', 1, 'tipo', 'retorno',
       'avancos', jsonb_build_array(pg_temp.rd_item('Conseguiu levar lanche 3 dias', 'relato_paciente', null, false, true, true)),
+      'acompanhamento_estrategias', jsonb_build_array(pg_temp.rd_item('Pausa organizada no periodo da tarde', 'resultado_anterior',
+          jsonb_build_object('tipo', 'resultado', 'id', (select v from _rd where k = 'r1'), 'campo', 'estrategias'), true, true, true)
+        || jsonb_build_object('estrategia', jsonb_build_object('resultado_id', (select v from _rd where k = 'r1'), 'estrategia_id', 'est1'),
+             'aplicou', 'conseguiu em 4 de 6 dias', 'percepcao', 'chega ao jantar com menos fome', 'observacao', 'OBSERVACAO_INTERNA_DA_NUTRI', 'decisao', 'manter')),
+      'estrategias', jsonb_build_array(pg_temp.rd_item('Pausa organizada no periodo da tarde', 'nutricionista', null, false, true, true)
+        || jsonb_build_object('id', 'est2', 'status', 'manter', 'anterior', jsonb_build_object('resultado_id', (select v from _rd where k = 'r1'), 'estrategia_id', 'est1'))),
       'foco_atual', pg_temp.rd_item('Manter a pausa da tarde', 'nutricionista', null, false, true, true))));
   insert into _rd values ('r2', r2::text);
   select content_snapshot into snap from public.holos_results where id = r2;
+  insert into _logrd (passo) select 'RD10b ' || case when snap#>>'{direcao_paciente,acompanhamento_estrategias,0,decisao}' = 'manter'
+      and snap#>>'{direcao_paciente,acompanhamento_estrategias,0,aplicou}' = 'conseguiu em 4 de 6 dias'
+      and (snap->'direcao_paciente')::text not like '%OBSERVACAO_INTERNA_DA_NUTRI%' and (snap->'direcao')::text like '%OBSERVACAO_INTERNA_DA_NUTRI%'
+      and snap#>>'{direcao_paciente,estrategias,0,anterior,estrategia_id}' = 'est1'
+      and snap#>>'{caminho,0,estrategias,0,id}' = 'est1' and snap#>>'{caminho,0,direcionamentos,0,id}' = 'dir1'
+    then 'ok' else 'FALHOU: ' || (snap->'direcao_paciente'->'acompanhamento_estrategias')::text end
+    || ': retorno registra experiencia e decisao sobre a estrategia anterior (ligada pelo id), a nova estrategia guarda a anterior; observacao interna fica so profissional; caminho traz as estrategias e direcionamentos anteriores';
+  insert into _logrd (passo) select 'RD10d ' || case when pg_temp.rd_tenta(format('select public.salvar_rascunho_resultado_holos(%L::jsonb)::text',
+      jsonb_build_object('patient_id', p, 'encounter_id', e2, 'holoscan_application_id', h, 'tool_application_ids', '[]'::jsonb,
+        'direcao', jsonb_build_object('schema_version', 1, 'estrategias', jsonb_build_array(pg_temp.rd_item('x', 'nutricionista', null, false, true, true)
+          || jsonb_build_object('anterior', jsonb_build_object('resultado_id', coalesce((select v from _rd where k = 'r_t4'), gen_random_uuid()::text), 'estrategia_id', 'zz')))))::text)) = 'referencia_cruzada'
+    then 'ok' else 'FALHOU' end || ': estrategia anterior de Resultado de OUTRA paciente e recusada';
   insert into _logrd (passo) select 'RD07a ' || case when jsonb_array_length(snap->'caminho') = 1
       and snap#>>'{caminho,0,resultado_id}' = (select v from _rd where k = 'r1') and snap#>>'{caminho,0,foco,texto}' = 'Organizar a tarde'
       and snap#>>'{direcao_paciente,tipo}' = 'retorno' and (snap->'caminho')::text not like '%HIPOTESE_SECRETA%' and (snap->'caminho')::text not like '%nota%'
@@ -195,7 +231,8 @@ insert into _logrd (passo) select 'RD08b ' || case when pg_temp.rd_tenta(format(
 insert into _logrd (passo) select 'RD09 ' || case when
     (select coalesce(md5(string_agg(id::text || coalesce(content_hash, '') || status || updated_at::text, ',' order by id)), '') from public.holos_results
       where patient_id not in ((select v::uuid from _rd where k = 'p'), (select v::uuid from _rd where k = 'p2'))) = (select v from _rd where k = 'rh_antes')
-    and (select coalesce(md5(string_agg(id::text || content_hash, ',' order by id)), '') from public.holos_result_emissions where patient_id <> (select v::uuid from _rd where k = 'p')) = (select v from _rd where k = 'em_antes')
+    and (select coalesce(md5(string_agg(id::text || content_hash, ',' order by id)), '') from public.holos_result_emissions where patient_id <> (select v::uuid from _rd where k = 'p')
+         and id::text is distinct from (select v from _rd where k = 'em_t4')) = (select v from _rd where k = 'em_antes')
     and (select coalesce(md5(string_agg(s.application_id::text || s.sistema || coalesce(s.nota::text, '') || coalesce(s.faixa, ''), ',' order by s.application_id, s.sistema)), '') from public.holoscan_system_scores s
       where s.application_id <> (select v::uuid from _rd where k = 'h')) = (select v from _rd where k = 'holo_antes')
   then 'ok' else 'FALHOU' end || ': Resultados, emissoes e HOLOSCAN anteriores identicos (sem backfill, sem recalculo)';

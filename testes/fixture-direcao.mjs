@@ -25,6 +25,14 @@ export async function montarFixture(srv, UA, opts = {}) {
   const carga = { 'SNT-301': 2, 'SNT-303': 2, 'SNT-304': 1, 'SNT-307': 2, 'SNT-501': 2, 'SNT-507': 1, 'ESP-303': 3, 'SNT-305': 2, 'SNT-308': 1, 'EMO-504': 1, 'SNT-505': 2, 'EMO-301': 1, 'EMO-303': 2, 'SNT-502': 2, 'EMO-501': 1 };
   tema.forEach(id => { if (carga[id] !== undefined) respostas[id] = ori[id] === 'invertida' ? 3 - carga[id] : carga[id]; });
   pacote.perguntas.forEach(p => { if (!caso.tema.includes(p.stable_id)) { const h = [...p.stable_id].reduce((a, c) => a + c.charCodeAt(0), 0); if (h % 5 === 0) respostas[p.stable_id] = p.orientation === 'invertida' ? 2 : 1; } });
+  /* desenho do caso (ficticio, so as RESPOSTAS; a matematica e o pacote nao mudam): Metabolico como area principal,
+     Detox + Linfatico como segunda area, Acido-Inflamatorio sem carga (nota 10) */
+  const primarias = (sis) => pacote.associacoes.filter(x => x.destination_type === 'system' && x.destination_id === sis && x.role === 'primaria').map(x => x.question_stable_id);
+  const carga0 = (id) => { respostas[id] = ori[id] === 'invertida' ? 3 : 0; };
+  const comCarga = (id, c) => { respostas[id] = ori[id] === 'invertida' ? 3 - c : c; };
+  const metab = primarias('metabolico');
+  primarias('acido_inflamatorio').filter(id => !metab.includes(id)).forEach(carga0);
+  primarias('detox_linfatico').filter(id => !metab.includes(id)).forEach((id, i) => comCarga(id, i < 2 ? 2 : i < 4 ? 1 : 0));
   const m = globalThis.MotorMetodologico.calcular({ methodology_package: pacote, mode: 'homologacao', responses: respostas });
   const pkRow = srv.linhas('methodology_packages').find(x => x.id === pk.id);
   const nomes = {}; srv.linhas('methodology_systems').filter(s => s.package_id === pk.id).forEach(s => { nomes[s.code] = s.name; });

@@ -200,7 +200,8 @@
       anamnese: an ? { id: an.id, content: an.content } : null,
       conduta: cd, acordos: cd && Cd.acordosDe ? Cd.acordosDe(cd.id) : [],
       acordosAnteriores: cdAnt && Cd.acordosDe ? Cd.acordosDe(cdAnt.id) : [],
-      ferramentas: ((snap && snap.ferramentas) || []).map(function (t) { return { id: t.id, ferramenta_id: t.ferramenta_id, modulo: moduloDe(t.ferramenta_id), respostas: t.respostas || {}, proximo_passo: t.proximo_passo }; }),
+      ferramentas: ((snap && snap.ferramentas) || []).map(function (t) { return { id: t.id, ferramenta_id: t.ferramenta_id, modulo: moduloDe(t.ferramenta_id), respostas: t.respostas || {}, proximo_passo: t.proximo_passo, prioridade: t.prioridade }; }),
+      direcaoAtual: f.direcao,
       holoscan: h.id ? { id: h.id, areas: areas } : null,
       anterior: ant && ant.content_snapshot && ant.content_snapshot.direcao_paciente ? { id: ant.id, direcao_paciente: ant.content_snapshot.direcao_paciente } : null
     };
@@ -490,20 +491,19 @@
     var dataEnc = snap.atendimento ? dataBR(snap.atendimento.occurred_at) : dataBR(h.quando);
     var html = '<article class="rh-doc rh-doc-paciente rd-doc" id="rh-doc" aria-label="Resultado HOLOS — visão do paciente">' +
       RD().htmlPaciente(dp, caminho, { nome: snap.paciente && snap.paciente.nome, data: dataEnc, profissional: snap.profissional && snap.profissional.nome,
-        previa: !!meta.previa, detalhes: detalhesMapa(snap) });
+        previa: !!meta.previa, detalhes: detalhesMapa(Object.assign({}, snap, { __dp: dp })) });
     if (!meta.semRodape) html += '<footer class="rh-doc-rodape">Este material organiza o que foi registrado e combinado no seu acompanhamento. Ele não é diagnóstico nem prescrição: os próximos passos são combinados com a sua nutricionista em consulta.</footer>';
     return html + "</article>";
   }
   /* DETALHES DO MAPA (fim do documento): HOLOSCAN (radar, Indice, Triade, cinco sistemas compactos) + registros de ferramentas compartilhados */
+  function dpDe(snap) { return snap.__dp || snap.direcao_paciente || {}; }
   function detalhesMapa(snap) {
     var h = snap.holoscan || {}, sis = h.sistemas || [], SF = window.SistemasFechamento;
     var fechs = SF ? SF.deResultado(snap, function (id) { return defFerr(id).titulo; }) : null;
     var ferr = (snap.ferramentas || []).filter(function (t) { return t.mostrar_paciente; });
     var html = '<section class="rh-secao rh-detalhes rd-detalhes" aria-labelledby="rh-t-det"><div class="rh-junto"><h3 id="rh-t-det">Detalhes do mapa</h3>' +
       '<p class="rh-intro">As suas respostas ao HOLOSCAN organizadas em cinco sistemas. Notas mais baixas indicam maior carga dos marcadores considerados neste eixo nesta aplicação. Isso ajuda a mostrar onde pode valer a pena aprofundar a conversa e não representa doença, gravidade ou diagnóstico.</p></div>' +
-      gradeGeral(h, true) +
-      '<div class="rh-junto rh-junto-sub"><h4 class="rh-sub">Os cinco sistemas</h4></div><div class="rh-sistemas rh-sistemas-compactos">' + sis.map(function (s, i) {
-        return fechs && SF.htmlSistemaCompacto ? SF.htmlSistemaCompacto(fechs[i], { faixaPaciente: faixaPaciente }) : cartaoSistema(s, null, true, false); }).join("") + "</div>";
+      gradeGeral(h, true);
     var mapa = mapaProposito(snap, true);
     if (ferr.length || mapa) {
       html += '<div class="rh-junto rh-junto-sub"><h4 class="rh-sub">Registros das ferramentas</h4></div><div class="rh-ferrs">' + mapa + ferr.map(function (t) { return cartaoFerramenta(t, true, snap.ferramentas || []); }).join("") + "</div>";
@@ -512,7 +512,11 @@
     var S = window.ResultadoSintese;
     if (S && S.htmlProximosPassosPaciente && snap.visibilidade && snap.visibilidade.proximos_passos === true)
       html += S.htmlProximosPassosPaciente(snap, function (id) { return defFerr(id).titulo; }, true);
-    return html + "</section>";
+    html += "</section>";
+    /* OS CINCO SISTEMAS (ultima secao): o que apareceu, o que vale observar, como cuidar do eixo e, quando ligado pela
+       nutricionista, o direcionamento e as estrategias pessoais (da direcao confirmada, nunca da nota) */
+    if (RD()) html += RD().htmlCincoSistemas(sis, fechs, dpDe(snap));
+    return html;
   }
 
   /* ======================= VISAO DA PACIENTE (item 31): 8 blocos, carga tecnica minima ======================= */

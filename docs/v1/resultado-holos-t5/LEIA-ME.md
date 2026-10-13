@@ -1,21 +1,17 @@
-# Capturas do Resultado HOLOS template 5 (caso fictício v6)
+# Capturas do Resultado HOLOS template 5 (caso fictício V6)
 
 Paciente fictícia "Marina Ficticia", HOLOS-V1 v6, servidor falso. 1ª consulta há 21 dias; retorno hoje.
-Gerado por `node <scratchpad>/rh5.mjs docs/v1/resultado-holos-t5` (mesma fixture de `testes/fixture-direcao.mjs`).
+Notas do caso: Metabólico 3,8 (área principal), Detox e Linfático 6,7 (segunda área), Fúngico 10,0, Ácido Inflamatório 10,0,
+Mental Emocional Espiritual 8,7. Gerado por `node <scratchpad>/rh5.mjs <pasta>` com a fixture de `testes/fixture-direcao.mjs`.
 
-| Arquivo | O que mostra |
-|---|---|
-| `p01-editor-sugestoes.png` | Profissional: "Montar resultado para a paciente" logo depois de "Trazer sugestões" (tudo SUGESTÃO DO SISTEMA) |
-| `p02-editor-em-construcao.png` | Itens confirmados, foco escolhido mas não confirmado: RESULTADO EM CONSTRUÇÃO |
-| `p03-editor-confirmado.png` | Foco confirmado |
-| `p04-so-profissional.png` | Área SÓ PARA A PROFISSIONAL (hipótese, leitura técnica, questões) |
-| `p05-previa-paciente.png` | Prévia da visão da paciente |
-| `p06-visao-profissional.png` | Resultado salvo, visão profissional (estado, origem e referência de cada item) |
-| `p1-paciente-documento.png`, `p1-paciente-celular.png` | 1ª consulta: documento da paciente (desktop e 390 px) |
-| `p1-resultado-emitido.png` | Página Resultado depois de emitir (RF-3) |
-| `p1-pdf-paciente.pdf` | PDF da 1ª consulta (5 páginas) |
-| `p1-whatsapp.txt` | Mensagem do WhatsApp da 1ª consulta |
-| `r01-editor-retorno-sugestoes.png`, `r02-editor-retorno-confirmado.png` | Retorno: editor (sugestões do Mapeamento de retorno, acordo concluído, Resultado anterior) |
-| `r03-visao-profissional-retorno.png` | Retorno salvo, visão profissional |
-| `r1-paciente-documento.png`, `r1-paciente-celular.png` | Retorno: documento da paciente (caminho até aqui, antes/agora, avanços…) |
-| `r1-resultado-emitido.png`, `r1-pdf-paciente.pdf`, `r1-whatsapp.txt` | Retorno: emissão, PDF (5 páginas) e WhatsApp |
+| Prova | Arquivo | O que mostra |
+|---|---|---|
+| A | `p1-paciente-documento.png`, `p1-paciente-celular.png` | 1ª consulta, topo da paciente: momento, pesando, construir, compreendendo, foco, direcionamento, estratégias, C·M·E, combinamos, observe, acompanhamento, próxima etapa, mapa, cinco sistemas |
+| B | `p1-sistema-metabolico-prioritario.png` | Metabólico "Área principal para aprofundar": o que apareceu, o que vale observar, como cuidar, Para você nesta fase (direcionamento + estratégia) |
+| C | `p1-sistema-detox-segundo.png` | Detox "Área para aprofundar nesta etapa" (sem direcionamento ligado: sem "Para você") |
+| D | `p1-sistema-acido-10.png` | Ácido 10,0 "Não aparece como um dos focos principais nesta etapa.", texto-base, nota como detalhe, sem "saúde perfeita" |
+| E | `r1-paciente-documento.png`, `r1-paciente-celular.png` | Retorno: caminho, antes/agora (direcionamento e estratégias anteriores), avanços, permaneceu, **Estratégias testadas** (aconteceu, facilitou, dificultou, percebeu, decisão MANTER), novo foco, novo direcionamento, novas estratégias (a continuada com status MANTER) |
+| F | `p01`…`p06`, `r01`, `r02*.png`, `r03` | Editor: sugestões (SUGESTÃO DO SISTEMA), em construção, confirmado/compartilhado, só profissional (hipótese), `r02a` acompanhamento, `r02b` estratégias, `r02c` direcionamentos |
+| — | `p1-resultado-emitido.png`, `r1-resultado-emitido.png` | Página Resultado depois de emitir (RF-3) |
+| — | `p1-pdf-paciente.pdf` (7 p.), `r1-pdf-paciente.pdf` (8 p.) | PDFs da paciente |
+| — | `p1-whatsapp.txt`, `r1-whatsapp.txt` | Mensagens do WhatsApp |

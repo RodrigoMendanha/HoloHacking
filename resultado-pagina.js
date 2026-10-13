@@ -38,10 +38,10 @@
    DIRECAO do acompanhamento (direcionamento, estrategias, acompanhamento da
    evolucao), lido SO da projecao montada pelo servidor; HOLOSCAN no fim. A
    emissao RF-3 congela essa projecao. SEM FOCO ATUAL CONFIRMADO NAO HA
-   EMISSAO, PDF NEM WHATSAPP ("RESULTADO EM CONSTRUCAO"); Resultados de
-   templates 1-4 continuam visiveis como foram salvos, e para enviar cria-se
-   uma nova versao com o foco. Emissoes RF-1/RF-2 ja feitas continuam
-   visiveis (e imprimiveis como registro), sem PDF/WhatsApp novos.
+   EMISSAO, PDF NEM WHATSAPP ("RESULTADO EM CONSTRUCAO"). Resultados de
+   templates 1-4 (historicos) seguem a regra da epoca: emitem (RF-2) sem foco
+   e sem direcao, com PDF, WhatsApp e Imprimir como antes; emissoes RF-1/RF-2
+   ja feitas continuam abrindo, iguais.
 
    PDF: gerado no navegador (html2pdf.js, versao fixa, carregado so no clique);
    nenhum link publico, nada sobe para lugar nenhum. WhatsApp: no celular,
@@ -79,6 +79,8 @@
   function primeiroNome(nome) { return String(nome || "").trim().split(/\s+/)[0] || ""; }
   function RD() { return window.ResultadoDirecao; }
   /* foco atual confirmado no Resultado salvo (template 5) — exigido para emitir */
+  function ehT5(r) { var s = r && r.content_snapshot; return Number((s && s.template_version) || (r && r.template_version) || 1) >= 5; }
+  function ehRF3(em) { return !!em && ((em.template_version || (em.content_snapshot || {}).template) === "RF-3"); }
   function focoDoResultado(r) {
     var s = r && r.content_snapshot;
     if (!s || Number(s.template_version || r.template_version || 1) < 5) return null;
@@ -220,8 +222,8 @@
           '<button type="button" class="btn-fantasma" data-rp-acao="ficha">Abrir na ficha</button>' +
         "</div></div>";
     }
-    if (!em && !focoDoResultado(r)) {
-      var t5 = Number((r.content_snapshot || {}).template_version || 1) >= 5;
+    if (!em && ehT5(r) && !focoDoResultado(r)) {
+      var t5 = true;
       return '<div class="rp-acoes rp-so-tela" id="rp-acoes">' +
         '<div class="rp-estado"><span class="rh-tag rd-construcao">RESULTADO EM CONSTRUÇÃO</span>' +
           '<span class="rp-previa">' + (t5 ? "Este Resultado HOLOS não tem Foco atual confirmado." : "Este Resultado HOLOS é de um formato anterior, sem Foco atual.") +
@@ -237,7 +239,7 @@
           '<button type="button" class="btn-fantasma" data-rp-acao="ficha">Abrir na ficha</button>' +
         "</div></div>";
     }
-    if (!focoDaEmissao(em)) {
+    if (ehRF3(em) && !focoDaEmissao(em)) {
       return '<div class="rp-acoes rp-so-tela" id="rp-acoes">' +
         '<div class="rp-estado"><span class="rh-tag">Resultado Final nº ' + escapar(em.emission_number) + " · registro histórico</span>" +
           "<span>Emitido em " + escapar(dataHora(em.created_at)) + " &middot; formato anterior, sem Foco atual. Fica aqui como foi emitido; para enviar de novo, gere um Resultado com foco.</span></div>" +
@@ -395,7 +397,9 @@
     var doc = document.getElementById("rp-doc");
     if (!doc) return Promise.reject(new Error("Nenhum resultado na tela."));
     /* template 5: PDF da paciente so de emissao com Foco atual confirmado */
-    if (!focoDaEmissao(emAtual)) return Promise.reject(new Error("Sem Foco atual confirmado não há PDF para a paciente"));
+    if (ehRF3(emAtual) && !focoDaEmissao(emAtual)) return Promise.reject(new Error("Sem Foco atual confirmado não há PDF para a paciente"));
+    var rTela = resultadoFinal(pacienteId());
+    if (!emAtual && rTela && ehT5(rTela)) return Promise.reject(new Error("Gere o Resultado Final (com o foco confirmado) antes do PDF"));
     var p = pacienteObj(pacienteId());
     var nome = nomeArquivo(p);
     return carregarHtml2pdf().then(function (h2p) {
@@ -423,9 +427,9 @@
   var ATOMOS = [".rp-cab", ".rh-doc-cab", ".rh-resumo-lista > li", ".rh-intro", "h3", "h4", "h5", ".rh-sis > header",
     ".sf-bloco:not(.sf-c)", ".sf-c > .sf-rot", ".sf-c > .sf-nota", ".sf-c li", ".rh-ferr-topo", ".rf-caixa > .rh-tag", ".rf-bloco",
     ".rh-obs-item", ".rp-campo", ".rp-acordos > li", ".rh-geral-grade", ".rh-sistemas-compactos", ".rp-rodape", ".rh-mapa-grade", ".rh-visual",
-    ".rd-pilar-cab", ".rd-secao", ".rd-lista > li", ".rd-territorio", ".rd-foco-txt", ".rd-caminho > li", ".rd-antes", ".rd-agora", ".rd-proxima", ".rd-vazio", ".rd-construcao"].join(",");
-  var TITULOS = "h3,h4,h5,.rh-intro,.sf-rot,.rh-tag,.rh-sis > header,.rh-ferr-topo,.rh-junto,.rd-pilar-cab,.rd-secao > header";
-  var CARTOES = ".rh-sis,.rh-ferr,.rf-caixa,.rp-conduta,.rh-eixo,.rh-junto,.rh-obs-item,.rp-campo,.rd-secao,.rd-territorio";
+    ".rd-pilar-cab", ".rd-secao:not(.rd-grande)", ".rd-grande > header", ".rd-dir", ".rd-est-dir", ".rd-est", ".rd-sis > header", ".rd-sis-bloco", ".rd-sis-def", ".rd-sis-nota", ".rd-sis-limite", ".rd-h4", ".rd-texto-p", ".rd-lista > li", ".rd-territorio", ".rd-foco-txt", ".rd-caminho > li", ".rd-antes", ".rd-agora", ".rd-proxima", ".rd-vazio", ".rd-construcao"].join(",");
+  var TITULOS = "h3,h4,h5,.rh-intro,.sf-rot,.rh-tag,.rh-sis > header,.rh-ferr-topo,.rh-junto,.rd-pilar-cab,.rd-secao > header,.rd-sis > header,.rd-est-dir,.rd-h4";
+  var CARTOES = ".rh-sis,.rh-ferr,.rf-caixa,.rp-conduta,.rh-eixo,.rh-junto,.rh-obs-item,.rp-campo,.rd-secao,.rd-territorio,.rd-sis,.rd-dir,.rd-est";
   function paginar(caixa, alturaPagina) {
     if (!caixa || !alturaPagina) return;
     var topo = function (el) { return el.getBoundingClientRect().top - caixa.getBoundingClientRect().top; };
@@ -540,11 +544,13 @@
     var foco = focoDaEmissao(em); if (!foco || !RD()) return null;
     var s = em.content_snapshot || {};
     var quando = dataBR(String((s.resultado && s.resultado.salvo_em) || em.created_at || "").slice(0, 10));
-    return RD().mensagemWhatsApp((p && p.nome) || (s.paciente && s.paciente.nome), quando, foco);
+    var dir = (((s.direcao_paciente || {}).direcionamentos || [])[0] || {}).texto || null;
+    return RD().mensagemWhatsApp((p && p.nome) || (s.paciente && s.paciente.nome), quando, foco, dir);
   }
   function enviarWhatsApp() {
     var pid = pacienteId(), p = pacienteObj(pid);
-    var msg = mensagemWhatsAppEmissao(p, emAtual);
+    /* RF-3: mensagem com direcionamento/foco congelados; RF-1/RF-2 (historicas): a mensagem de sempre */
+    var msg = ehRF3(emAtual) ? mensagemWhatsAppEmissao(p, emAtual) : mensagemWhatsApp(p, resultadoFinal(pid), perfil());
     if (!msg) { toast("Sem Foco atual confirmado não há envio pelo WhatsApp. Crie uma nova versão do Resultado HOLOS com o foco."); return Promise.resolve({ modo: "bloqueado" }); }
     var ocupado = travar(true);
     return gerarPdf().then(function (res) {

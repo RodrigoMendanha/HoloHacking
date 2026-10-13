@@ -193,7 +193,7 @@ ok(pdf.baixados.length === 1 && /^Resultado-HOLOS-Paciente-Prontuario-Ficticia\.
 await A.evaluate(async () => { document.querySelector('[data-rp-acao="whatsapp"]').click(); await new Promise(r => setTimeout(r, 800)); });
 const wa = await A.evaluate(() => ({ baixados: window.__baixados.slice(), abertos: window.__abertos.slice() }));
 const url = wa.abertos[0] || '';
-ok(wa.baixados.length === 2 && /^https:\/\/wa\.me\/5511988887777\?text=/.test(url) && /Resultado%20HOLOS/.test(url) && /Paciente/.test(decodeURIComponent(url)) && /nosso foco é: Foco ficticio de teste/.test(decodeURIComponent(url)),
+ok(wa.baixados.length === 2 && /^https:\/\/wa\.me\/5511988887777\?text=/.test(url) && /Resultado%20HOLOS/.test(url) && /Paciente/.test(decodeURIComponent(url)) && /nosso principal direcionamento é: Foco ficticio de teste/.test(decodeURIComponent(url)),
   'WhatsApp (computador): baixa o PDF e abre a conversa da paciente (número do cadastro) com a mensagem pronta');
 await A.setViewport({ width: 390, height: 800 }); await espera(300);
 ok(await A.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 2), 'celular (390 px): sem rolagem lateral');

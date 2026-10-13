@@ -18,11 +18,19 @@ const copia = (x) => JSON.parse(JSON.stringify(x));
 
 
 /* ---------- template 5: direcao (espelho de 20261021100000) ---------- */
-const LISTAS_D = ['momento', 'dores', 'desejos', 'avancos', 'permaneceu', 'padroes', 'estrategias', 'acordos_compartilhados', 'observar'];
+const LISTAS_D = ['momento', 'dores', 'desejos', 'avancos', 'permaneceu', 'padroes', 'direcionamentos', 'estrategias', 'acompanhamento_estrategias', 'acordos_compartilhados', 'observar'];
 const TERR_D = ['corpo', 'mente', 'espirito'];
 const UNICOS_D = ['foco_atual', 'proxima_etapa'];
 const CHAVES_D = ['schema_version', 'tipo'].concat(LISTAS_D, TERR_D, UNICOS_D);
-const CHAVES_ITEM = ['id', 'texto', 'texto_sugerido', 'origem', 'ref', 'sugestao', 'confirmado', 'mostrar_paciente', 'descartado', 'tipo'];
+const CHAVES_ITEM = ['id', 'texto', 'texto_sugerido', 'origem', 'ref', 'sugestao', 'confirmado', 'mostrar_paciente', 'descartado'];
+const EXTRAS_D = { padroes: ['tipo'], direcionamentos: ['territorio', 'porque', 'objetivo', 'status', 'sistemas'],
+  estrategias: ['direcionamento_id', 'finalidade', 'acao', 'observar', 'contexto', 'prazo', 'responsavel', 'status', 'anterior'],
+  acompanhamento_estrategias: ['estrategia', 'aplicou', 'facilitou', 'dificultou', 'percepcao', 'observacao', 'mudanca', 'decisao'] };
+const PUBLICAS_D = { direcionamentos: ['id', 'territorio', 'porque', 'objetivo', 'status', 'sistemas'],
+  estrategias: ['id', 'direcionamento_id', 'finalidade', 'acao', 'observar', 'contexto', 'prazo', 'responsavel', 'status', 'anterior'],
+  acompanhamento_estrategias: ['estrategia', 'aplicou', 'facilitou', 'dificultou', 'percepcao', 'mudanca', 'decisao'] };
+const TEXTOS_ITEM = ['texto_sugerido', 'porque', 'objetivo', 'direcionamento_id', 'finalidade', 'acao', 'observar', 'contexto', 'prazo', 'responsavel',
+  'aplicou', 'facilitou', 'dificultou', 'percepcao', 'observacao', 'mudanca'];
 const ORIGENS_D = ['relato_paciente', 'observacao_profissional', 'holoscan', 'ferramenta', 'conduta', 'acordo', 'nutricionista', 'resultado_anterior'];
 const REF_TAB = { anamnese: 'anamneses', conduta: 'conducts', acordo: 'agreements', ferramenta: 'tool_applications', holoscan: 'holoscan_applications', resultado: 'holos_results', atendimento: 'encounters' };
 const ehObj = (x) => x !== null && typeof x === 'object' && !Array.isArray(x);
@@ -36,19 +44,20 @@ export function itensDirecao(d) {
 }
 const itemPaciente = (it) => ehObj(it) && it.confirmado === true && it.mostrar_paciente === true && it.descartado !== true
   && it.tipo !== 'hipotese' && typeof it.texto === 'string' && it.texto.trim() !== '';
-const listaPaciente = (l, soObs) => (Array.isArray(l) ? l : []).filter(x => itemPaciente(x) && (!soObs || x.tipo === 'padrao_observado'))
-  .map(x => ({ texto: x.texto.trim(), origem: x.origem ?? null }));
+const listaPaciente = (l, lista) => (Array.isArray(l) ? l : []).filter(x => itemPaciente(x) && (lista !== 'padroes' || x.tipo === 'padrao_observado'))
+  .map(x => { const o = { texto: x.texto.trim(), origem: x.origem ?? null }; (PUBLICAS_D[lista] || []).forEach(k => { if (x[k] !== undefined && x[k] !== null) o[k] = copia(x[k]); }); return o; });
 export function direcaoPaciente(d) {
   const vazio = { schema_version: 1, tipo: 'primeira', momento: [], dores: [], desejos: [], avancos: [], permaneceu: [], padroes: [], foco_atual: null,
-    estrategias: [], corpo: { itens: [] }, mente: { itens: [] }, espirito: { itens: [] }, acordos_compartilhados: [], observar: [], proxima_etapa: null };
+    direcionamentos: [], estrategias: [], acompanhamento_estrategias: [], corpo: { itens: [] }, mente: { itens: [] }, espirito: { itens: [] }, acordos_compartilhados: [], observar: [], proxima_etapa: null };
   if (!ehObj(d)) return vazio;
   const f = d.foco_atual;
   const focoOk = ehObj(f) && f.confirmado === true && f.descartado !== true && f.tipo !== 'hipotese' && typeof f.texto === 'string' && f.texto.trim() !== '';
   return { schema_version: 1, tipo: d.tipo || 'primeira',
-    momento: listaPaciente(d.momento), dores: listaPaciente(d.dores), desejos: listaPaciente(d.desejos), avancos: listaPaciente(d.avancos),
-    permaneceu: listaPaciente(d.permaneceu), padroes: listaPaciente(d.padroes, true),
+    momento: listaPaciente(d.momento, 'momento'), dores: listaPaciente(d.dores, 'dores'), desejos: listaPaciente(d.desejos, 'desejos'), avancos: listaPaciente(d.avancos, 'avancos'),
+    permaneceu: listaPaciente(d.permaneceu, 'permaneceu'), padroes: listaPaciente(d.padroes, 'padroes'),
     foco_atual: focoOk ? { texto: f.texto.trim(), origem: f.origem ?? null } : null,
-    estrategias: listaPaciente(d.estrategias),
+    direcionamentos: listaPaciente(d.direcionamentos, 'direcionamentos'), estrategias: listaPaciente(d.estrategias, 'estrategias'),
+    acompanhamento_estrategias: listaPaciente(d.acompanhamento_estrategias, 'acompanhamento_estrategias'),
     corpo: { itens: listaPaciente(d.corpo && d.corpo.itens) }, mente: { itens: listaPaciente(d.mente && d.mente.itens) }, espirito: { itens: listaPaciente(d.espirito && d.espirito.itens) },
     acordos_compartilhados: listaPaciente(d.acordos_compartilhados), observar: listaPaciente(d.observar),
     proxima_etapa: itemPaciente(d.proxima_etapa) ? { texto: d.proxima_etapa.texto.trim(), origem: d.proxima_etapa.origem ?? null } : null };
@@ -105,11 +114,31 @@ export function criarResultadoHolos(s, ctx) {
       if (d.schema_version !== 1) invalida('direcao: schema_version deve ser 1');
       Object.keys(d).forEach(k => { if (!CHAVES_D.includes(k)) invalida('direcao: campo desconhecido ' + k); });
       if ('tipo' in d && !['primeira', 'retorno'].includes(d.tipo)) invalida('direcao: tipo deve ser primeira ou retorno');
-      const item = (it, padrao) => {
+      const refRes = (r, obrig) => {
+        if (r === undefined || r === null) { if (obrig) invalida('referencia da estrategia obrigatoria'); return; }
+        if (!ehObj(r) || !UUID.test(String(r.resultado_id || '')) || typeof r.estrategia_id !== 'string' || r.estrategia_id.length > 64
+          || Object.keys(r).some(k => !['resultado_id', 'estrategia_id'].includes(k))) invalida('referencia de estrategia invalida');
+      };
+      const item = (it, lista) => {
+        const padrao = lista === 'padroes';
         if (!ehObj(it)) invalida('item de direcao invalido');
-        Object.keys(it).forEach(k => { if (!CHAVES_ITEM.includes(k)) invalida('campo de item desconhecido: ' + k); });
+        Object.keys(it).forEach(k => { if (!CHAVES_ITEM.includes(k) && !(EXTRAS_D[lista] || []).includes(k)) invalida('campo de item desconhecido: ' + k); });
         if (typeof it.texto !== 'string' || !it.texto.trim() || it.texto.length > 1000) invalida('texto do item obrigatorio (ate 1000 caracteres)');
-        if ('texto_sugerido' in it && it.texto_sugerido !== null && (typeof it.texto_sugerido !== 'string' || it.texto_sugerido.length > 1000)) invalida('texto sugerido invalido');
+        TEXTOS_ITEM.forEach(k => { if (k in it && it[k] !== null && (typeof it[k] !== 'string' || it[k].length > 1000)) invalida('campo ' + k + ' invalido'); });
+        if (lista === 'direcionamentos') {
+          if (it.territorio != null && !['corpo', 'mente', 'espirito', 'integrado'].includes(it.territorio)) invalida('territorio invalido');
+          if ('status' in it && !['proposto', 'ativo', 'concluido', 'encerrado'].includes(it.status)) invalida('status do direcionamento invalido');
+          if ('sistemas' in it && (!Array.isArray(it.sistemas) || it.sistemas.length > 5 || it.sistemas.some(x => typeof x !== 'string' || x.length > 40))) invalida('sistemas invalidos');
+        }
+        if (lista === 'estrategias') {
+          if ('status' in it && !['proposta', 'acordada', 'em_teste', 'manter', 'ajustar', 'substituir', 'concluida', 'encerrada'].includes(it.status)) invalida('status da estrategia invalido');
+          refRes(it.anterior, false);
+        }
+        if (lista === 'acompanhamento_estrategias') {
+          refRes(it.estrategia, true);
+          if (it.decisao != null && !['manter', 'ajustar', 'substituir', 'concluir', 'encerrar'].includes(it.decisao)) invalida('decisao invalida');
+          if (it.confirmado === true && !it.decisao) invalida('acompanhamento confirmado precisa da decisao');
+        }
         if ('id' in it && (typeof it.id !== 'string' || it.id.length > 64)) invalida('id do item invalido');
         if (!ORIGENS_D.includes(it.origem)) invalida('origem do item invalida');
         ['sugestao', 'confirmado', 'mostrar_paciente', 'descartado'].forEach(k => { if (k in it && typeof it[k] !== 'boolean') invalida('campo ' + k + ' deve ser booleano'); });
@@ -118,19 +147,22 @@ export function criarResultadoHolos(s, ctx) {
           if (!ehObj(r) || !REF_TAB[r.tipo] || !UUID.test(String(r.id || '')) || ('campo' in r && r.campo !== null && typeof r.campo !== 'string') || String(r.campo || '').length > 80
             || Object.keys(r).some(k => !['tipo', 'id', 'campo'].includes(k))) invalida('referencia do item invalida');
         } else if (it.sugestao === true) invalida('sugestao sem referencia de origem');
-        if (padrao) { if (!['padrao_observado', 'hipotese'].includes(it.tipo)) invalida('padrao precisa do tipo padrao_observado ou hipotese'); }
-        else if ('tipo' in it) invalida('tipo so existe em padroes');
+        if (padrao && !['padrao_observado', 'hipotese'].includes(it.tipo)) invalida('padrao precisa do tipo padrao_observado ou hipotese');
       };
-      LISTAS_D.forEach(k => { if (k in d) { if (!Array.isArray(d[k]) || d[k].length > 40) invalida('direcao: ' + k + ' deve ser lista (ate 40 itens)'); d[k].forEach(it => item(it, k === 'padroes')); } });
+      LISTAS_D.forEach(k => { if (k in d) { if (!Array.isArray(d[k]) || d[k].length > 40) invalida('direcao: ' + k + ' deve ser lista (ate 40 itens)'); d[k].forEach(it => item(it, k)); } });
       TERR_D.forEach(k => { if (k in d) {
         const t = d[k];
         if (!ehObj(t) || Object.keys(t).some(x => x !== 'itens') || ('itens' in t && (!Array.isArray(t.itens) || t.itens.length > 40))) invalida('direcao: ' + k + ' deve ser {itens: [...]}');
-        (t.itens || []).forEach(it => item(it, false)); } });
-      UNICOS_D.forEach(k => { if (k in d && d[k] !== null) item(d[k], false); });
+        (t.itens || []).forEach(it => item(it, k)); } });
+      UNICOS_D.forEach(k => { if (k in d && d[k] !== null) item(d[k], k); });
       itensDirecao(d).forEach(it => { if (ehObj(it.ref)) {
         const tab = T[REF_TAB[it.ref.tipo]] || [];
         if (!tab.some(x => x.id === it.ref.id && x.patient_id === pid && x.nutritionist_id === uid)) falha('referencia de outra paciente ou inexistente', 'referencia_cruzada');
       } });
+      /* estrategia anterior / acompanhada: Resultado SALVO desta paciente */
+      itensDirecao(d).forEach(it => { const r = ehObj(it.anterior) ? it.anterior : ehObj(it.estrategia) ? it.estrategia : null; if (!r) return;
+        if (!T.holos_results.some(h => h.id === r.resultado_id && h.patient_id === pid && h.nutritionist_id === uid && h.status !== 'rascunho'))
+          falha('estrategia de Resultado de outra paciente ou nao salvo', 'referencia_cruzada'); });
     }
     /* caminho: Resultados anteriores (outros atendimentos, anteriores a este), do snapshot imutavel de cada um */
     const ocorrido = (id) => (T.encounters.find(x => x.id === id) || {}).occurred_at;
@@ -141,7 +173,8 @@ export function criarResultadoHolos(s, ctx) {
     const caminho = Object.values(porEnc).sort((a, b) => String(ocorrido(b.encounter_id)).localeCompare(String(ocorrido(a.encounter_id)))).slice(0, 10)
       .sort((a, b) => String(ocorrido(a.encounter_id)).localeCompare(String(ocorrido(b.encounter_id))))
       .map(h => ({ resultado_id: h.id, revision_number: h.revision_number, content_hash: h.content_hash, template_version: h.template_version, atendimento_em: ocorrido(h.encounter_id),
-        foco: copia((h.content_snapshot.direcao_paciente || {}).foco_atual ?? null), avancos: copia((h.content_snapshot.direcao_paciente || {}).avancos || []),
+        foco: copia((h.content_snapshot.direcao_paciente || {}).foco_atual ?? null),
+        direcionamentos: copia((h.content_snapshot.direcao_paciente || {}).direcionamentos || []), estrategias: copia((h.content_snapshot.direcao_paciente || {}).estrategias || []), avancos: copia((h.content_snapshot.direcao_paciente || {}).avancos || []),
         acordos: copia((h.content_snapshot.direcao_paciente || {}).acordos_compartilhados || []) }));
 
     const de = (t) => T[t].filter(l => l.package_id === pk.id);
@@ -283,8 +316,10 @@ export function criarResultadoHolos(s, ctx) {
     if (!r) falha('resultado nao encontrado', 'referencia_cruzada');
     if (r.status === 'rascunho' || !r.content_snapshot) falha('so Resultado HOLOS salvo e emitido', 'resultado_nao_finalizado');
     if (r.superseded_at) falha('esta versao foi substituida: emita a versao atual', 'resultado_substituido');
-    if ((r.template_version || 1) < 5 || !ehObj((r.content_snapshot.direcao_paciente || {}).foco_atual))
-      falha('Resultado HOLOS sem Foco atual confirmado: crie uma nova versao com o foco antes de emitir', 'foco_obrigatorio');
+    /* templates 1-4 (historicos): regra da epoca (RF-2), sem foco. Template 5: foco obrigatorio (RF-3) */
+    const t5 = (r.template_version || 1) >= 5;
+    if (t5 && !ehObj((r.content_snapshot.direcao_paciente || {}).foco_atual))
+      falha('Resultado HOLOS sem Foco atual confirmado: defina e confirme o foco antes de emitir', 'foco_obrigatorio');
     const pac = T.patients.find(x => x.id === r.patient_id && x.nutritionist_id === uid);
     if (pac && pac.status === 'inativo') falha('paciente arquivado: reative antes de registrar novas informacoes', 'paciente_arquivado');
     const encDe = (id) => T.encounters.find(e => e.id === id) || {};
@@ -300,15 +335,15 @@ export function criarResultadoHolos(s, ctx) {
     const pr = T.profiles.find(x => x.id === uid) || {};
     const num = T.holos_result_emissions.filter(e => e.patient_id === r.patient_id).reduce((m, e) => Math.max(m, e.emission_number), 0) + 1;
     const agora = carimbo();
-    const snap = { template: 'RF-3', emitida_em: agora, emissao: { numero: num }, paciente: { id: pac.id, nome: pac.nome },
+    const snap = { template: t5 ? 'RF-3' : 'RF-2', emitida_em: agora, emissao: { numero: num }, paciente: { id: pac.id, nome: pac.nome },
       resultado: { id: r.id, revision_number: r.revision_number, status: r.status, salvo_em: r.saved_at, content_hash: r.content_hash, template_version: r.template_version || 1 },
-      direcao_paciente: copia(r.content_snapshot.direcao_paciente), caminho: copia(r.content_snapshot.caminho || []),
       conduta,
       profissional: { nome: pr.nome ?? null, profissao: pr.profissao ?? null, registro: pr.registro ?? null, especialidade: pr.especialidade ?? null, cidade: pr.cidade ?? null,
         telefone: pr.telefone ?? null, instagram: pr.instagram ?? null, cor_primaria: pr.cor_primaria ?? null, cor_secundaria: pr.cor_secundaria ?? null },
       imagens: { logo: imagem(img.logo), assinatura: imagem(img.assinatura), carimbo: imagem(img.carimbo) } };
+    if (t5) Object.assign(snap, { direcao_paciente: copia(r.content_snapshot.direcao_paciente), caminho: copia(r.content_snapshot.caminho || []) });
     const l = { id: randomUUID(), nutritionist_id: uid, patient_id: r.patient_id, holos_result_id: r.id, result_content_hash: r.content_hash, conduct_id: cd ? cd.id : null,
-      emission_number: num, template_version: 'RF-3', content_snapshot: snap, content_hash: createHash('sha256').update(JSON.stringify(snap), 'utf8').digest('hex'),
+      emission_number: num, template_version: snap.template, content_snapshot: snap, content_hash: createHash('sha256').update(JSON.stringify(snap), 'utf8').digest('hex'),
       operation_id: p.operation_id || null, created_at: agora };
     T.holos_result_emissions.push(l);
     return { id: l.id, emission_number: l.emission_number, content_hash: l.content_hash, created_at: l.created_at };
