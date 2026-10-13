@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-HOLOS AI - modelo do PDF de saida (versao HOLOS-AI-PDF 1.0).
+HOLOS AI - modelo do PDF de saida (versao HOLOS-AI-PDF 1.1: Resultado Completo).
 
 Uso dentro do GPT (Code Interpreter):
     exec(open('/mnt/data/holos_ai_pdf.py', encoding='utf-8').read())
@@ -13,8 +13,15 @@ Uso dentro do GPT (Code Interpreter):
   resultado: {
     sintese: str,
     convergencias: [str], padroes_observados: [str], hipoteses_para_investigar: [str], questoes_para_aprofundar: [str],
+    leitura_sistemas: [ {sistema, nota_faixa, o_que_apareceu, o_que_observar, como_cuidar} ],
+    ferramentas_aplicadas_leitura: [ {ferramenta, o_que_esclareceu} ],
+    ferramentas_recomendadas: [ {papel ('principal'|'complementar'), regra_id, ferramenta, territorio, sistema, por_que, como_aplicar, o_que_procurar} ],
     direcionamentos: [ {titulo, sistema, por_que, objetivo, baseado_em: [str], catalogo: str, status: 'SUGERIDO'} ],
-    estrategias: [ {titulo, direcionamento, tipo, o_que_fazer, o_que_observar, prazo, baseado_em: [str], catalogo: str, status} ],
+    estrategias: [ {titulo, territorio ('Corpo'|'Mente'|'Espírito'), direcionamento, tipo, o_que_fazer, o_que_observar, prazo,
+                    criterio_sucesso, decisao_sugerida (so estrategia ja existente), baseado_em: [str], catalogo: str, status} ],
+    plano_acompanhamento: [str],
+    roteiro_proxima_consulta: {perguntas: [str], ferramenta: str, criterios_decisao: [str]},
+    texto_paciente: str   (rascunho, linguagem simples, sem numeros do HOLOSCAN, sem hipotese),
     corpo: str, mente: str, espirito: str,
     observar: [str], proxima_etapa: str,
     retorno: [ {estrategia, decisao_sugerida, motivo, baseado_em: [str]} ]   (so em retorno; senao [])
@@ -147,7 +154,7 @@ def gerar_pdf(dados, caminho):
     E += [Spacer(1, 14), Paragraph('TODO O CONTEÚDO DA PARTE B É SUGESTÃO (status SUGERIDO). A NUTRICIONISTA CONFIRMA, EDITA OU DESCARTA '
                                    'CADA ITEM ANTES DE QUALQUER USO COM A PACIENTE. NÃO É DIAGNÓSTICO NEM PRESCRIÇÃO.', S['aviso']),
           Spacer(1, 10), Paragraph('Parte A - Pacote recebido (transcrição fiel do PDF enviado pelo HoloHacking)<br/>'
-                                   'Parte B - Análise HOLOS AI (HOLOS_AI_RESULT)<br/>Parte C - Fontes, alertas e rastreabilidade', S['capa_sub']),
+                                   'Parte B - Resultado completo HOLOS AI: leitura, ferramentas, direcionamentos, estratégias, plano e roteiro<br/>Parte C - Fontes, alertas e rastreabilidade', S['capa_sub']),
           PageBreak()]
 
     # ---------- Parte A ----------
@@ -163,12 +170,28 @@ def gerar_pdf(dados, caminho):
     E.append(PageBreak())
 
     # ---------- Parte B ----------
-    E += [Paragraph('PARTE B', S['parte']), Paragraph('Análise HOLOS AI', S['h1'])]
+    E += [Paragraph('PARTE B', S['parte']), Paragraph('Resultado completo HOLOS AI', S['h1'])]
     E += [Paragraph('Síntese', S['h2']), Paragraph(T(r.get('sintese')), S['p'])]
     for chave, titulo in [('convergencias', 'Convergências'), ('padroes_observados', 'Padrões observados'),
                           ('hipoteses_para_investigar', 'Hipóteses para investigar (não são conclusões)'),
                           ('questoes_para_aprofundar', 'Questões para aprofundar na próxima conversa')]:
         E += [Paragraph(titulo, S['h2'])] + _lista(r.get(chave))
+    if r.get('leitura_sistemas'):
+        E += [CondPageBreak(50 * mm), Paragraph('Leitura dos sistemas prioritários', S['h2'])]
+        for x in r['leitura_sistemas']:
+            E.append(_card(x.get('sistema'), (x.get('nota_faixa') or '') + '  ·  eixo autoral de relatos, não é diagnóstico',
+                           [['O que apareceu', x.get('o_que_apareceu')], ['O que vale observar', x.get('o_que_observar')],
+                            ['Como cuidar deste eixo', x.get('como_cuidar')]]))
+    if r.get('ferramentas_aplicadas_leitura'):
+        E += [CondPageBreak(40 * mm), Paragraph('O que as ferramentas já aplicadas esclareceram', S['h2']),
+              _tabela_pares([[x.get('ferramenta'), x.get('o_que_esclareceu')] for x in r['ferramentas_aplicadas_leitura']])]
+    E += [CondPageBreak(50 * mm), Paragraph('Ferramentas recomendadas (catálogo HOLOS-RECOMENDACOES-V1)', S['h2'])]
+    if not r.get('ferramentas_recomendadas'):
+        E.append(Paragraph('Informação insuficiente para indicar ferramenta pelo catálogo.', S['pq']))
+    for x in r.get('ferramentas_recomendadas') or []:
+        E.append(_card('%s — %s' % ((x.get('papel') or '').upper(), x.get('ferramenta') or 'Sem dado'),
+                       '%s  ·  %s  ·  %s  ·  STATUS: SUGERIDO' % (x.get('regra_id') or 'sem ID', x.get('territorio') or '', x.get('sistema') or ''),
+                       [['Por que', x.get('por_que')], ['Como aplicar', x.get('como_aplicar')], ['O que procurar', x.get('o_que_procurar')]]))
     E += [CondPageBreak(50 * mm), Paragraph('Direcionamentos sugeridos', S['h2'])]
     if not r.get('direcionamentos'):
         E.append(Paragraph('Informação insuficiente para sugerir direcionamento.', S['pq']))
@@ -179,19 +202,37 @@ def gerar_pdf(dados, caminho):
     E += [CondPageBreak(50 * mm), Paragraph('Estratégias sugeridas', S['h2'])]
     if not r.get('estrategias'):
         E.append(Paragraph('Informação insuficiente para sugerir estratégia.', S['pq']))
-    for i, e in enumerate(r.get('estrategias') or [], 1):
-        E.append(_card('%d. %s' % (i, e.get('titulo') or 'Sem título'), 'STATUS: %s  ·  %s  ·  %s' % (e.get('status') or 'SUGERIDO', e.get('tipo') or 'tipo não informado', e.get('catalogo') or 'CANDIDATA NÃO CATALOGADA'),
+    ests = r.get('estrategias') or []
+    ordem = ['Corpo', 'Mente', 'Espírito']
+    ests = sorted(ests, key=lambda e: ordem.index(e.get('territorio')) if e.get('territorio') in ordem else 3)
+    for i, e in enumerate(ests, 1):
+        selo = 'STATUS: %s  ·  %s  ·  %s' % (e.get('status') or 'SUGERIDO', e.get('tipo') or 'tipo não informado', e.get('catalogo') or 'CANDIDATA NÃO CATALOGADA')
+        if e.get('territorio'): selo = e.get('territorio').upper() + '  ·  ' + selo
+        if e.get('decisao_sugerida'): selo += '  ·  DECISÃO SUGERIDA: ' + e.get('decisao_sugerida')
+        E.append(_card('%d. %s' % (i, e.get('titulo') or 'Sem título'), selo,
                        [['Direcionamento', e.get('direcionamento')], ['O que fazer', e.get('o_que_fazer')],
-                        ['O que observar', e.get('o_que_observar')], ['Prazo', e.get('prazo')]], e.get('baseado_em')))
+                        ['O que observar', e.get('o_que_observar')], ['Prazo', e.get('prazo')], ['Critério de sucesso', e.get('criterio_sucesso')]],
+                       e.get('baseado_em')))
     E += [CondPageBreak(45 * mm), Paragraph('Corpo · Mente · Espírito', S['h2']),
           _tabela_pares([['Corpo', r.get('corpo')], ['Mente', r.get('mente')], ['Espírito', r.get('espirito')]])]
     E += [Paragraph('Até o próximo encontro, observar', S['h2'])] + _lista(r.get('observar'))
+    if r.get('plano_acompanhamento'):
+        E += [Paragraph('Plano de acompanhamento (como registrar até o retorno)', S['h2'])] + _lista(r.get('plano_acompanhamento'))
+    rp = r.get('roteiro_proxima_consulta') or {}
+    if rp:
+        E += [CondPageBreak(45 * mm), Paragraph('Roteiro da próxima consulta', S['h2'])]
+        if rp.get('ferramenta'): E.append(Paragraph('<font name="%s">Ferramenta a aplicar:</font> %s' % (FONTE_B, T(rp.get('ferramenta'))), S['p']))
+        E += [Paragraph('Perguntas', S['rot'])] + _lista(rp.get('perguntas'))
+        E += [Paragraph('Critérios de decisão para cada estratégia', S['rot'])] + _lista(rp.get('criterios_decisao'))
     E += [Paragraph('Próxima etapa', S['h2']), Paragraph(T(r.get('proxima_etapa')), S['p'])]
     if r.get('retorno'):
         E += [CondPageBreak(50 * mm), Paragraph('Retorno: estratégias anteriores', S['h2'])]
         for x in r['retorno']:
             E.append(_card(x.get('estrategia'), 'DECISÃO SUGERIDA: %s  ·  STATUS: SUGERIDO' % (x.get('decisao_sugerida') or 'sem dado'),
                            [['Motivo', x.get('motivo')]], x.get('baseado_em')))
+    if r.get('texto_paciente'):
+        E += [CondPageBreak(50 * mm), Paragraph('Rascunho de texto para a paciente', S['h2'])]
+        E.append(_card('Rascunho para revisão da nutricionista', 'NÃO ENVIAR SEM CONFIRMAÇÃO  ·  STATUS: SUGERIDO', [['Texto', r.get('texto_paciente')]]))
     E.append(PageBreak())
 
     # ---------- Parte C ----------
