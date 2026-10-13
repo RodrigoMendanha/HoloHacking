@@ -153,7 +153,10 @@ const pac = await A.evaluate(() => ({ t: document.getElementById('rh-doc').inner
 ok(/Seu Mapa HOLOS/.test(pac.t) && /ter mais energia/.test(pac.t) && /romper o ciclo/.test(pac.t) && /Mapa do Propósito/.test(pac.t), 'visão do paciente: mapa e as ferramentas com "Mostrar ao paciente" ligado (OQ³, PQQ e o Mapa do Propósito)');
 ok(!/PENSAMENTO_INTIMO|discussão em casa/.test(pac.t) && !/Irmã/.test(pac.t), 'ferramenta com "Mostrar ao paciente" desligado (Gatilhos, Conexão) não aparece');
 ok(!/cód\.|hash|[0-9a-f]{8}-[0-9a-f]{4}|Pontuou|Contexto, sem pontuar|HOLOS-V1@|QUESTAO_SO_PROFISSIONAL|respondidas/.test(pac.t), 'sem ids, hash, pacote, "pontuou", cobertura técnica nem questões para aprofundar');
-ok(/O que sua nutricionista observou/.test(pac.t) && /leitura da nutri/.test(pac.t) && /Pontos que serão acompanhados/.test(pac.t) && /Nesta avaliação/.test(pac.t) && !/você tem|seu problema é|isso causa/i.test(pac.t),
+/* motor de resultados 12/10 (item 32): a paciente ve os enunciados aprovados das perguntas que mais contribuiram ("Voce tem...?");
+   a guarda e contra AFIRMACAO sobre a paciente, entao as linhas que sao pergunta (terminam em "?") ficam fora dela */
+const semPerguntas = t => t.split('\n').filter(x => !/\?\s*$/.test(x)).join('\n');
+ok(/O que sua nutricionista observou/.test(pac.t) && /leitura da nutri/.test(pac.t) && /Pontos que serão acompanhados/.test(pac.t) && /Nesta avaliação/.test(pac.t) && !/você tem|seu problema é|isso causa/i.test(semPerguntas(pac.t)),
   'observação e pontos da nutricionista; linguagem "nesta avaliação", sem "você tem" / "seu problema é"');
 await shot(A, 'rh-paciente', '#rh-doc');
 

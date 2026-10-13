@@ -4565,6 +4565,24 @@ tr.mh-conflito td{background:rgba(201,138,122,.08)}
 .rh-sis-msg,.rh-sis-pub{font-size:.88rem;margin:0 0 8px}
 .rh-sis-pub{color:var(--texto-suave)}
 .rh-sis-det summary{cursor:pointer;font-size:.85rem;font-weight:600;color:var(--verde-medio);margin-top:6px}
+/* motor de resultados V1 (12/10): fechamento A-G de cada sistema (sistemas-fechamento.js) */
+.sf-sis.sf-prioritario{box-shadow:0 0 0 1px var(--dourado-claro) inset}
+.sf-prioridade{color:var(--titulo);font-weight:700}
+.sf-bloco{margin:8px 0 0;font-size:.86rem;line-height:1.5}
+.sf-bloco p{margin:2px 0 0}
+.sf-rot{display:block;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--texto-suave);font-weight:600}
+.sf-nota{color:var(--texto-suave);font-size:.8rem}
+.sf-sinais{margin:4px 0 4px 18px;padding:0}
+.sf-pend{border-left:3px solid #c0714f;padding-left:8px}
+.sf-pp{border-top:1px dashed var(--borda-suave);margin-top:6px;padding-top:6px}
+.sf-pp p{margin:4px 0}
+.sf-pp .sf-rot{display:inline;margin-right:4px}
+.sf-pp-tit b{color:var(--titulo)}
+.pp-rot{font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--texto-suave);margin:6px 0 0}
+.pp-investiga,.pp-sinais-bloco{font-size:.84rem;line-height:1.5;margin:8px 0}
+.pp-investiga b,.pp-sinais-bloco b{display:block;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--dourado-claro);margin-bottom:4px}
+.pp-investiga .pp-razao{margin:0}
+@media print{.sf-bloco,.sf-pp{break-inside:avoid}}
 .rh-respostas{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:4px;font-size:.82rem}
 .rh-respostas li{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dotted var(--borda-suave);padding:3px 0}
 .rh-resp{white-space:nowrap;color:var(--titulo)}

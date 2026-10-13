@@ -390,9 +390,25 @@
       (paciente ? "" : '<p class="rh-nota-tec">Dados oficiais salvos da aplicação HOLOSCAN selecionada (' + e(h.pacote ? h.pacote.code + " v" + h.pacote.version : "") + '). Nada foi recalculado nesta página.</p>') +
       "</section>";
 
-    // 3. cinco sistemas
-    html += '<section class="rh-secao" aria-labelledby="rh-t-sis"><h3 id="rh-t-sis">' + (paciente ? "Os cinco sistemas" : "Cinco sistemas") + '</h3><div class="rh-sistemas">' +
-      sis.map(function (s) {
+    // 3. cinco sistemas — motor de resultados V1 (12/10, itens 5-14): fechamento A-G de cada sistema (sistemas-fechamento.js),
+    //    so a partir do snapshot. Resultado anterior ao template 4: desenhado com o motor atual e rotulado (item 40).
+    var SF = window.SistemasFechamento;
+    var fechs = SF ? SF.deResultado(snap, function (id) { return defFerr(id).titulo; }) : null;
+    var ppPac = paciente && snap.visibilidade && snap.visibilidade.proximos_passos === true;
+    html += '<section class="rh-secao" aria-labelledby="rh-t-sis"><h3 id="rh-t-sis">' + (paciente ? "Os cinco sistemas" : "Cinco sistemas") + "</h3>" +
+      (fechs && SF.historico(snap) ? '<p class="rh-nota-tec sf-historico">' + e(SF.ROTULO_HISTORICO) + "</p>" : "") +
+      (fechs && !paciente ? '<p class="rh-nota-tec">Resultado do método (' + e(SF.VERSAO) + '): textos aprovados e cálculo salvo. Não é leitura profissional nem Conduta.</p>' : "") +
+      '<div class="rh-sistemas">' +
+      sis.map(function (s, i) {
+        if (fechs) {
+          var art = SF.htmlSistema(fechs[i], visao, { faixaPaciente: faixaPaciente, faixaTxt: faixaTxt, mostrarPP: ppPac });
+          if (paciente) return art;
+          /* profissional: a mensagem aprovada do pacote para a faixa e o texto publico continuam, depois do fechamento */
+          return art.replace(/<\/article>$/, (s.mensagem_nutri ? '<p class="rh-sis-msg"><span class="sf-rot">Mensagem do pacote para a faixa</span>' + e(s.mensagem_nutri) + "</p>" : "") +
+            (s.texto_publico ? '<p class="rh-sis-pub">' + e(s.texto_publico) + "</p>" : "") + '<details class="rh-sis-det"><summary>Pontuou neste sistema (' + (s.pontuou || []).length + ")</summary>" + listaRespostas(s.pontuou) + "</details>" +
+            '<details class="rh-sis-det"><summary>Contexto, sem pontuar (' + (s.contexto || []).length + ")</summary>" +
+              ((s.contexto || []).length ? listaRespostas(s.contexto) : '<p class="rh-vazio">Nenhuma resposta de contexto neste sistema.</p>') + "</details></article>");
+        }
         /* 12/10 (bug 3): a mensagem da faixa do pacote e escrita para a profissional ("Revise os itens..."). Na visao da
            paciente, Resultado novo (template 3) usa linguagem simples; template 1/2 (ja emitidos) ficam como foram. */
         var msg = paciente ? ((snap.template_version || 1) >= 3 ? textoPacienteFaixa(s) : s.mensagem_paciente) : s.mensagem_nutri;

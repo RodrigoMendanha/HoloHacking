@@ -116,6 +116,11 @@ const relRow = srv.linhas('report_emissions').find(x => x.id === rel.data);
 ok(!rel.error && /pacote metodológico oficial aprovado \(HOLOS-V1 v2\)/.test(relRow.content_snapshot.metodologia) && !/não homologado/.test(relRow.content_snapshot.metodologia),
   'relatório emitido com HOLOSCAN oficial: diz o estado real do pacote (aprovado), sem "não homologado"');
 
+/* commit 2 (itens 5-14): o fechamento dos cinco sistemas no documento do Resultado HOLOS */
+ok(/1ª área para aprofundar/.test(doc.prof) && /2ª área para aprofundar/.test(doc.prof) && /O que este eixo organiza/i.test(doc.prof) && /O que isso significa dentro do HOLOSCAN/i.test(doc.prof)
+  && /O que isso não significa/i.test(doc.prof) && /Alguns dos sinais que mais contribuíram para este eixo nesta aplicação/.test(doc.prof) && /Pontuou neste sistema/.test(doc.prof)
+  && /O que este eixo organiza/i.test(doc.pac) && !/PENDÊNCIA|respondidas/.test(doc.pac),
+  'fechamento A-G de cada sistema no Resultado (profissional com o registro completo; paciente sem pendência nem cobertura)');
 ok(errosJS.length === 0, 'nenhum erro de JavaScript' + (errosJS.length ? ': ' + errosJS.join(' | ') : ''));
 await nav.close();
 console.log(falhou ? '\nFALHOU' : '\nmotor de resultados: tudo ok');

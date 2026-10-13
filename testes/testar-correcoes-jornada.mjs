@@ -105,12 +105,13 @@ ok(cartoes.length >= 2 && cartoes.slice(0, 2).every(c => c.feita && /Já realiza
 
 titulo('B3 — TEXTO DA FAIXA PARA A PACIENTE');
 t = await abrirResultado(R1.data, 'paciente');
-ok(!/Revise os itens respondidos|interpretação profissional|cobertura/i.test(t) && /apareceu com (mais|alguns|poucos) sinais nas suas respostas/.test(t),
-  'visão da paciente (Resultado novo): texto simples por faixa, sem "Revise os itens… interpretação profissional"');
+ok(!/Revise os itens respondidos|interpretação profissional|cobertura/i.test(t) && /(Mais|Alguns|Menos) marcadores neste eixo/.test(t) && /O que este eixo organiza/i.test(t),
+  'visão da paciente (Resultado novo): fechamento do sistema em linguagem simples (motor de resultados 12/10), sem "Revise os itens… interpretação profissional"');
 t = await abrirResultado(R1.data, 'profissional');
 ok(/Revise os itens respondidos/.test(t), 'visão profissional: continua com a mensagem técnica do pacote');
 t = await abrirResultado(antigo.id, 'paciente');
-ok(/Revise os itens respondidos/.test(t), 'Resultado antigo (template 2, já emitido): texto congelado como foi emitido');
+ok(/Gerado com o motor de resultados atual a partir do registro histórico\./.test(t) && !/Revise os itens respondidos/.test(t),
+  'Resultado antigo (template 2): desenhado com o motor atual e rotulado como registro histórico (item 40); o que já foi EMITIDO fica congelado pela emissão (testar-emissao-imutavel)');
 
 titulo('B2 — INTERPRETACAO DO HOLOSCAN SO NA VISAO PROFISSIONAL');
 srv.tabelas.holoscan_applications.find(a => a.id === HA).interpretacao_texto = 'INTERP_INTERNA_DA_NUTRI';
