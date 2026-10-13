@@ -1,6 +1,6 @@
 # ALTERAÇÕES DO PACOTE HOLOSCAN — HOLOS-V1 v4 (decisões de 13/10/2026)
 
-**Status:** IMPLEMENTADO E TESTADO no código. A publicação em produção segue a ordem da seção 9.
+**Status:** PUBLICADO EM PRODUÇÃO como **HOLOS-V1 v4** em 13/10/2026 (seção 9.2). Falta o smoke test com paciente fictícia.
 
 > **Por que v4 e não v3 (incidente de 13/10, 05:37 UTC).** Depois do deploy do front `74d0286` e da migration da publicação direta, o login do responsável metodológico rodou num navegador que ainda tinha o **front antigo** (`46cab4e`) carregado. Esse front trazia o **rascunho de 12/10** e o publicou como **HOLOS-V1 v3**.
 > - Conteúdo da v3 publicada: 82 perguntas, com textos revisados, trocas e ESP-404. **Não** tem as decisões de 13/10.
@@ -240,6 +240,28 @@ Contagens e md5 agregados por ID e hash, sem conteúdo clínico. Têm de ser id�
 | `publicar_pacote_metodologico` | não existe (migration 20261018 não aplicada) | — |
 
 **Suíte completa no commit `74d0286`:** VERDE. Foram 147 suítes, 4450 asserções e 0 falhas, e os 72 de 72 arquivos batem com `docs/deploy.md` §3.5. A guarda nova e as suítes que carregam `metodologia-pacote.js` foram rodadas de novo depois da última mudança: todas ok.
+
+### 9.2 Publicação feita (13/10/2026, conferida só por leitura)
+
+Front `4065f57` no ar (72/72). Todas as abas foram fechadas e o responsável metodológico entrou numa aba nova.
+
+| versão | status | regime | hash do servidor | perguntas | por sistema (Fún/Ác/Met/Det/MEE) | SNT-210/309 | 13 EMO no MEE | contextuais | aplicações |
+|---|---|---|---|---|---|---|---|---|---|
+| v2 | retirado (até 12/10) | aprovador_unico | `7af1dae6…` | 84 | 15/16/14/15/24 | sim | 0 | 11 | 6 (intactas) |
+| v3 (rascunho de 12/10, por engano) | **retirado** (só 13/10) | publicacao_direta | `07801fc0…` | 82 | 15/14/14/15/24 | sim | 0 | 11 | **0** |
+| **v4 (decisões de 13/10)** | **aprovado**, vigente desde 13/10 | publicacao_direta | `2e2f169c…` (= `metodologia_hash_conteudo`) | **82** | **12/11/10/12/37** | **não** | **13** | **4** | 0 |
+
+**Conferências**
+- A linhagem da v4 é a v2, com a revisão `HOLOS-V1-DECISOES-2026-10-13`.
+- A auditoria registra a v3 como aprovado e depois retirado, e a v4 como aprovado.
+- **Impressões digitais do histórico idênticas às do 9.1:**
+  - aplicações 6 `cc9da75c…`;
+  - respostas 504 `468f5044…`;
+  - notas 30 `118bd1ed…`;
+  - Resultados 3 `b85977d6…`;
+  - emissões 3 `5871721f…`;
+  - relatórios 2 `5f50be5b…`;
+  - Próximos Passos 3 `821a37ba…`.
 
 ## 10. Rollback
 
