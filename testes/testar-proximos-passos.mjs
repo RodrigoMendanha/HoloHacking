@@ -169,7 +169,9 @@ ok(b1x.principal.regra === 'REC-FUN-01' && b1x.comps.map(c => c.regra).join(',')
 ok(srv.linhas('conducts').length === 0 && b1x.principal, 'sem nenhuma Conduta, a recomendacao existe (nao depende de objetivo, estrategia, acoes…)');
 const ia = await A.evaluate(async (pid) => { window.levarParaFicha('aba:holos-ai', pid); await new Promise(r => setTimeout(r, 500)); const b = document.querySelector('.ai-atalho-ctx[data-ctx="completo"]'); if (b) b.click(); await new Promise(r => setTimeout(r, 300));
   return { texto: (document.getElementById('ai-hub-texto') || {}).textContent || '', selo: document.getElementById('aba-holos-ai').innerText }; }, P1);
-ok(ia.selo.length > 20 && !/Próximos Passos|REC-FUN|Mapa da Rotina/.test(ia.texto), 'HOLOS AI (contexto) nao recebe a recomendacao (nao integrada nesta tarefa) e a recomendacao existiu sem ela');
+/* motor de resultados 12/10 (item 37): o cabecalho do contexto agora DIZ que os Proximos Passos entram pelo Resultado HOLOS salvo;
+   a checagem vale para o conteudo (depois do cabecalho): sem Resultado salvo, nenhuma recomendacao entra */
+ok(ia.selo.length > 20 && !/Próximos Passos|REC-FUN|Mapa da Rotina/.test(ia.texto.split('---\n').slice(1).join('---\n')), 'HOLOS AI (contexto) nao recebe a recomendacao (nao integrada nesta tarefa) e a recomendacao existiu sem ela');
 
 titulo('16. CATALOGO NOVO NAO ALTERA O REGISTRO ANTIGO');
 {

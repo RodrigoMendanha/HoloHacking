@@ -218,7 +218,9 @@ tem(/### Mapa do Propósito[\s\S]*Propósito: “estar presente”/, 'o Mapa do 
 tem(/Linha do Momentum[\s\S]*a familia/, 'a Linha do Momentum');
 tem(/Mapa de Crenças[\s\S]*carboidrato engorda/, 'o Mapa de Crenças');
 tem(/Roda Holística da Vida[\s\S]*Saúde: 4[\s\S]*trabalho/, 'a Roda da Vida (Roda Holística da Vida)');
-tem(/Carta ao Futuro[\s\S]*querida eu do futuro/, 'a Carta ao Futuro');
+/* motor de resultados 12/10 (itens 25 e 37): sem regra de consentimento, a Carta entra so como realizada — o texto NAO vai */
+tem(/Carta ao Futuro[\s\S]*foi realizada como exercício[\s\S]*O conteúdo não é incluído/, 'a Carta ao Futuro (só como realizada)');
+ok(!/querida eu do futuro/.test(contexto), 'e o texto da Carta NÃO vai para o contexto da HOLOS AI');
 
 /* onda 9: sem URL configurada, o agente nao e um botao morto */
 const agentes = await A.evaluate(() => ['ai-btn-chatgpt', 'ai-btn-gemini'].map(id => {

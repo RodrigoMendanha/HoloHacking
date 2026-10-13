@@ -129,14 +129,18 @@ const rel = async (registro) => A.evaluate(async (pid, reg) => {
 const relPac = await rel('paciente'), relNut = await rel('nutri');
 ok(!/INTERP_INTERNA_DA_NUTRI/.test(relPac) && /LEITURA_PARA_A_PACIENTE/.test(relPac) && /PONTOS_PARA_ACOMPANHAR/.test(relPac) && !/QUESTAO_INTERNA/.test(relPac),
   'relatório "Para o paciente": sem a interpretação interna; mostra "Leitura profissional" e "Pontos para acompanhar" do Resultado HOLOS');
-ok(/D\. Leitura da sua nutricionista/.test(relPac) && !/encaminhad|médico/i.test(relPac), 'seção D da paciente com título próprio; sem encaminhamento médico');
+/* motor de resultados 12/10 (item 35): com Resultado HOLOS salvo, o relatorio vira UM documento (paciente = mesma arquitetura da visao da paciente) */
+ok(/Nosso foco agora/i.test(relPac) && /O que sua nutricionista observou/i.test(relPac) && /O que entendemos nesta etapa/i.test(relPac) && !/A\. HOLOSCAN|G\. Resultado HOLOS/.test(relPac) && !/encaminhad|médico/i.test(relPac),
+  'relatório da paciente = a arquitetura da visão da paciente (leitura em "Nosso foco agora"); sem o mapa ao vivo empilhado; sem encaminhamento médico');
 ok(/INTERP_INTERNA_DA_NUTRI/.test(relNut) && /só para você/.test(relNut), 'relatório "Para a nutricionista": a interpretação continua lá, marcada "só para você"');
 
 titulo('B4 / B5 — RELATORIO DA NUTRICIONISTA COMPLETO; HOLOSCAN LIGADO AO ATENDIMENTO');
 ok(/1 atendimento registrado/.test(relNut) && !/Nenhuma consulta registrada/.test(relNut), 'seção B lista o atendimento (mesmo sem agendamento)');
-ok(/E\. Ferramentas concluídas/.test(relNut) && /Mapa da Rotina/.test(relNut) && /Linha do Momentum/.test(relNut), 'seção E: ferramentas concluídas');
-ok(/F\. Conduta vigente/.test(relNut) && /G\. Resultado HOLOS/.test(relNut) && /LEITURA_PARA_A_PACIENTE/.test(relNut) && /QUESTAO_INTERNA/.test(relNut), 'seções F (Conduta) e G (último Resultado HOLOS salvo, com as observações)');
-ok(!/E\. Ferramentas concluídas|F\. Conduta vigente|QUESTAO_INTERNA/.test(relPac), 'nada disso vai para a versão da paciente');
+ok(/5\. Ferramentas aplicadas/.test(relNut) && /Mapa da Rotina/.test(relNut) && /Linha do Momentum/.test(relNut) && !/E\. Ferramentas concluídas/.test(relNut), 'relatório unificado, seção 5: ferramentas aplicadas (no lugar da antiga E)');
+ok(/1\. Identificação/.test(relNut) && /2\. Resumo executivo/.test(relNut) && /8\. Conduta/.test(relNut) && /7\. Leitura profissional/.test(relNut) && /10\. Proveniência técnica/.test(relNut)
+  && !/F\. Conduta vigente|G\. Resultado HOLOS|A\. HOLOSCAN/.test(relNut) && /LEITURA_PARA_A_PACIENTE/.test(relNut) && /QUESTAO_INTERNA/.test(relNut),
+  'relatório profissional unificado em 10 seções (Conduta, leitura e observações do Resultado salvo), sem o mapa ao vivo e o Resultado empilhados');
+ok(!/Ferramentas aplicadas|8\. Conduta|QUESTAO_INTERNA|Proveniência/.test(relPac), 'nada disso vai para a versão da paciente');
 const formRH = await A.evaluate(async (pid) => {
   window.definirPacienteAtivo(pid); if (window.ResultadoHolos) window.ResultadoHolos.esquecer(); window.levarParaFicha('aba:resultado-holos', pid);
   for (let i = 0; i < 60; i++) { const a = document.querySelector('#aba-resultado-holos [data-rh-acao="novo"]'); if (a) break; await new Promise(r => setTimeout(r, 100)); }

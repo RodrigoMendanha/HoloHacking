@@ -4615,6 +4615,11 @@ tr.mh-conflito td{background:rgba(201,138,122,.08)}
 .rh-conj-ferr p{margin:2px 0 0;color:var(--texto)}
 .rh-conduta-link p{margin:0 0 8px}
 .rh-sistemas-areas{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+/* relatorio profissional unificado (item 35) */
+.rh-rel-ferr{margin:0 0 12px}
+.rh-rel-ferr h4{margin:8px 0 4px;font-size:.95rem}
+.rh-rel-proveniencia{font-size:.72rem;color:var(--texto-suave);border-top:1px solid var(--borda-suave);padding-top:8px;margin-top:16px}
+@media print{.rh-rel-ferr,.rel-unificado .rh-sis{break-inside:avoid}.rel-unificado .rel-parte{break-inside:auto}.rel-unificado h3{break-after:avoid}}
 .rh-respostas{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:4px;font-size:.82rem}
 .rh-respostas li{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dotted var(--borda-suave);padding:3px 0}
 .rh-resp{white-space:nowrap;color:var(--titulo)}
@@ -4671,7 +4676,11 @@ tr.mh-conflito td{background:rgba(201,138,122,.08)}
   body.rh-imprimindo *{visibility:hidden!important}
   body.rh-imprimindo #rh-doc,body.rh-imprimindo #rh-doc *{visibility:visible!important}
   body.rh-imprimindo #rh-doc{position:absolute;left:0;top:0;width:100%;border:0;padding:0;background:#fff!important;color:#222!important}
-  body.rh-imprimindo .rh-secao,body.rh-imprimindo .rh-sis,body.rh-imprimindo .rh-ferr,body.rh-imprimindo .rh-radar-caixa{break-inside:avoid}
+  /* motor de resultados 12/10 (item 34): secao inteira com break-inside:avoid deixava paginas meio vazias — so os cartoes pequenos nao quebram; titulo fica com o conteudo */
+  body.rh-imprimindo .rh-secao{break-inside:auto}
+  body.rh-imprimindo .rh-sis,body.rh-imprimindo .rh-ferr,body.rh-imprimindo .rh-radar-caixa,body.rh-imprimindo .rh-obs-item{break-inside:avoid}
+  body.rh-imprimindo .rh-secao h3,body.rh-imprimindo .rh-sub{break-after:avoid}
+  body.rh-imprimindo .rh-so-tela{display:none!important}
   body.rh-imprimindo .rh-sis,body.rh-imprimindo .rh-ferr,body.rh-imprimindo .rh-num,body.rh-imprimindo .rh-conj-col{background:#fff!important;border-color:#ccc!important}
   body.rh-imprimindo .rh-doc h2,body.rh-imprimindo .rh-doc h3,body.rh-imprimindo .rh-doc h4,body.rh-imprimindo .rh-doc h5{color:#1d3a2e!important}
 }
@@ -4843,7 +4852,9 @@ body.rp-gerando .rp-doc{border-radius:0;border:0}
   body.rp-imprimindo #rp-doc,body.rp-imprimindo #rp-doc *{visibility:visible!important}
   body.rp-imprimindo #rp-doc{position:absolute;left:0;top:0;width:100%;border:0;padding:0;background:#fff!important}
   body.rp-imprimindo .rp-so-tela{display:none!important}
-  body.rp-imprimindo .rh-secao,body.rp-imprimindo .rh-sis,body.rp-imprimindo .rh-ferr,body.rp-imprimindo .rp-campo,body.rp-imprimindo .rp-rodape{break-inside:avoid}
+  body.rp-imprimindo .rh-secao{break-inside:auto}
+  body.rp-imprimindo .rh-sis,body.rp-imprimindo .rh-ferr,body.rp-imprimindo .rp-campo,body.rp-imprimindo .rp-rodape,body.rp-imprimindo .rh-obs-item{break-inside:avoid}
+  body.rp-imprimindo .rh-secao h3,body.rp-imprimindo .rh-sub{break-after:avoid}
 }
 
 /* ---------- Proximos Passos HOLOS (bloco profissional do Resultado HOLOSCAN, 09/10) ---------- */

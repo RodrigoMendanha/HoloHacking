@@ -65,13 +65,13 @@
   /* Etapa 0 da V1 — o que ENTRA e o que NAO entra no contexto assistivo.
 
      Documento Mestre §36.1: o contexto reune SOMENTE registros salvos
-     autorizados e conteudos APROVADOS. Enquanto o Pacote Metodologico V1 nao
-     for homologado, nada que dependa de perguntas, pesos, faixas ou regras
-     em rascunho entra aqui — nem rotulado "em homologacao". Ficam de fora:
-     notas dos cinco sistemas, faixas, Indice HOLOS, Triada numerica,
-     prioridades calculadas, sinais dominantes, combinacoes CMB, Leitura
-     Integrada deterministica, recomendacoes REC/SEL e qualquer
-     interpretacao derivada de regra nao aprovada.
+     autorizados e conteudos APROVADOS. Motor de resultados V1 (12/10, item 37):
+     o pacote HOLOS-V1 esta aprovado, entao notas, faixas, Indice e Triada entram
+     SO de aplicacao calculada pelo pacote oficial, e o Resultado HOLOS salvo entra
+     como foi congelado (areas para aprofundar, Proximos Passos do catalogo, Sintese
+     factual — nada recalculado). Ficam de fora: combinacoes CMB, Leitura Integrada,
+     recomendacoes REC/SEL legadas, qualquer regra nao aprovada, o CONTEUDO da Carta
+     ao Futuro Eu (so "realizada") e nomes de terceiros da Conexao & Pertencimento.
 
      O que entra e DADO BRUTO consolidado e texto de autoria humana:
        - cadastro do paciente;
@@ -214,6 +214,13 @@
       var f = window.CATALOGO_FERRAMENTAS.filter(function (x) { return x.id === fid; })[0];
       var ap = respostasDe(fid, pid);
       if (!f || !ap) return;
+      /* motor de resultados 12/10 (itens 25 e 37): sem regra de consentimento, o texto da Carta NAO vai para a IA */
+      if (fid === "carta_futuro") {
+        var FC = window.FerramentasFechamento;
+        t += "\n### " + f.titulo + (ap.app.concluida_em ? " — " + dataBR(ap.app.concluida_em) : "") + "\n- " +
+          ((FC && FC.CARTA_PACIENTE) || "Carta ao Futuro Eu realizada.") + " O conteúdo não é incluído.\n";
+        return;
+      }
       var linhas = "";
       (f.grupos || []).forEach(function (g) {
         if (g.origem === "momentum_dimensoes" && window.CorpoBancos && window.CorpoBancos.MOMENTUM) {
@@ -248,6 +255,13 @@
       if (!ap || !F || !F.de) return;
       var x = F.de({ ferramenta_id: fid, respostas: ap.r });
       var linhas = (x.itens || []).map(function (it) { return it.valor ? "- " + it.rotulo + ": " + it.valor + "\n" : ""; }).join("");
+      /* motor de resultados 12/10 (itens 26 e 37): Conexao & Pertencimento sem nomes de terceiros — so o resultado
+         que nao e exclusivo da profissional (contagem de apoios, contextos de pertencimento) */
+      if (fid === "conexao_pertencimento_v1" && F.resultado) {
+        var rx = F.resultado({ ferramenta_id: fid, respostas: ap.r }, []);
+        linhas = (rx.apareceu || []).filter(function (it) { return !it.so_profissional; }).map(function (it) { return "- " + it.rotulo + ": " + it.valor + "\n"; }).join("") +
+          "- Nomes de pessoas da rede não são incluídos.\n";
+      }
       if (ap.app.leitura) linhas += "- Leitura profissional: " + ap.app.leitura + "\n";
       if (!linhas && x.linha) linhas = "- " + x.linha + "\n";
       if (!linhas) return;
@@ -386,7 +400,9 @@
       "Gerado em: " + new Date().toLocaleString("pt-BR") + "\n" +
       "Conteúdo: só registros salvos no servidor e texto da profissional. Notas, faixas, " +
       "Índice e Tríade entram só de aplicação calculada pelo pacote oficial HOLOS-V1. " +
-      "Já prioridades, combinações, Leitura Integrada e sugestões automáticas NÃO estão incluídos. " +
+      "Do Resultado HOLOS salvo entram as áreas para aprofundar, os Próximos Passos do catálogo e a Síntese factual, como foram congelados. " +
+      "Combinações, Leitura Integrada e sugestões fora do catálogo NÃO estão incluídas. " +
+      "A Carta ao Futuro Eu entra só como realizada (o texto não é enviado) e nomes de terceiros não são enviados. " +
       "Exames e documentos do prontuário (arquivos e valores) também NÃO estão incluídos.\n" +
       "---\n";
   }

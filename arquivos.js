@@ -697,6 +697,40 @@
     preencherDocumentosRelatorio(paciente());
     if (registroAtual !== "nutri") preencherLeituraPaciente(paciente());
     else preencherResultadoNutri(paciente());
+    unificarRelatorio(paciente(), registroAtual);
+  }
+
+  /* Motor de resultados V1 (12/10, item 35): havendo Resultado HOLOS salvo, o relatorio deixa de empilhar o mapa ao vivo
+     (A..G) e o Resultado salvo — que podiam se contradizer. Fica UM documento, a partir do snapshot congelado:
+     nutricionista = relatorio profissional unificado em 10 secoes; paciente = a MESMA arquitetura da visao da paciente
+     (pagina Resultado / PDF). Sem Resultado HOLOS salvo, continua o relatorio de antes. */
+  function foraDoResultado(pid, r) {
+    var Ap = window.Aplicacoes, dentro = ((r.content_snapshot || {}).ferramentas || []).map(function (t) { return t.id; });
+    return (Ap && Ap.doPaciente ? Ap.doPaciente(pid) : []).filter(function (a) { return (a.status === "concluida" || a.status === "revisada") && dentro.indexOf(a.id) < 0; });
+  }
+  function unificarRelatorio(pid, registro) {
+    var R = window.ResultadoHolos;
+    if (!R || !R.relatorioProfissionalHtml) return;
+    ultimoResultadoHolos(pid).then(function (r) {
+      var art = document.getElementById("relatorio");
+      if (!r || !art || paciente() !== pid || registroAtual !== registro) return;
+      var RP = window.ResultadoPagina, cv = RP && RP.condutaDoResultado ? RP.condutaDoResultado(r) : null;
+      /* saem so as secoes que se sobrepunham ao Resultado salvo (A mapa ao vivo, E ferramentas, F Conduta, G Resultado;
+         na paciente tambem D, que agora esta em "Nosso foco agora"). B (consultas), C (documentos) e o editor D da
+         interpretacao (nutricionista) continuam, depois do documento unificado. */
+      var sai = registro === "nutri" ? /^(A|E|F|G)\. / : /^(A|D|E|F|G)\. /;
+      [].slice.call(art.querySelectorAll(".rel-parte")).forEach(function (s) { var t = s.querySelector("h3"); if (t && sai.test(t.textContent.trim())) s.parentNode.removeChild(s); });
+      var corpo = registro === "nutri"
+        ? R.relatorioProfissionalHtml(r, { conduta: cv ? { campos: cv.conduta || {}, acordos: cv.acordos || [] } : null, foraDoResultado: foraDoResultado(pid, r) })
+        : R.documentoHtml(r.content_snapshot, "paciente", { semRodape: true, blocos: RP && RP.blocosConduta ? RP.blocosConduta(cv) : {} });
+      var topo = art.querySelector(".rel-topo");
+      [].slice.call(art.querySelectorAll(".rel-parte")).forEach(function (s) { s.classList.add("rel-anexo"); });
+      var div = document.createElement("div");
+      div.className = "rel-unificado";
+      div.setAttribute("data-rel-unificado", registro);
+      div.innerHTML = corpo;
+      if (topo && topo.nextSibling) art.insertBefore(div, topo.nextSibling); else art.appendChild(div);
+    });
   }
 
   /* Mesmo padrao de pintarImagensDoPerfil(): o HTML sincrono ja foi escrito
