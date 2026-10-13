@@ -133,6 +133,19 @@ const pdf = await P.pdf({ format: 'A4', printBackground: true, margin: { top: '1
 await P.emulateMediaType('screen');
 const paginas = (Buffer.from(pdf).toString('latin1').match(/\/Type\s*\/Page[^s]/g) || []).length;
 ok(paginas >= 3 && paginas <= 12, 'item 8: a impressão gera um PDF com o documento inteiro (' + paginas + ' páginas para o snapshot com 9 ferramentas)');
+/* teste em producao 13/10: com o app no tema ESCURO, os rotulos do documento da paciente (papel creme) sumiam no PDF */
+const contraste = await P.evaluate((snap) => {
+  document.body.classList.add('escuro');
+  const sec = document.createElement('div'); sec.innerHTML = '<article class="rp-doc">' + window.ResultadoHolos.documentoHtml(snap, 'paciente', { semRodape: true }) + '</article>'; document.body.appendChild(sec);
+  const lum = (c) => { const m = c.match(/[\d.]+/g).map(Number); const a = m.length > 3 ? m[3] : 1; const f = (v) => { v = (v * a + 251 * (1 - a)) / 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    return 0.2126 * f(m[0]) + 0.7152 * f(m[1]) + 0.0722 * f(m[2]); };
+  const fundo = lum('rgb(251,248,240)');
+  const r = {};
+  ['.sf-rot', '.sf-nota', '.sf-def-curta', '.rh-intro', '.rh-sis-faixa', '.rh-num span'].forEach(sel => { const el = sec.querySelector(sel); if (!el) return; const l = lum(getComputedStyle(el).color); r[sel] = Math.round((Math.max(l, fundo) + 0.05) / (Math.min(l, fundo) + 0.05) * 10) / 10; });
+  sec.remove(); document.body.classList.remove('escuro'); return r;
+}, snap);
+ok(Object.keys(contraste).length >= 5 && Object.values(contraste).every(c => c >= 4.5),
+  'tema escuro: rótulos e textos do documento da paciente legíveis no papel creme (contraste ≥ 4,5) — ' + JSON.stringify(contraste));
 ok(errosJS.length === 0, 'nenhum erro de JavaScript' + (errosJS.length ? ': ' + errosJS.join(' | ') : ''));
 await nav.close();
 console.log(falhou ? '\nFALHOU' : '\nresultado da paciente (UX final): tudo ok');

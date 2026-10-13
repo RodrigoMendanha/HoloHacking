@@ -4809,6 +4809,11 @@ textarea.an2-input{resize:vertical;min-height:44px}
 .rp-doc{
   background:#fbf8f0;color:#1d3a2e;border:1px solid rgba(29,58,46,.14);border-radius:18px;
   padding:clamp(18px,3vw,36px);display:grid;gap:22px;
+  /* o documento da paciente e sempre papel creme: as variaveis de tema ficam as do tema claro mesmo com o app no
+     escuro (sem isto, rotulos e textos suaves saiam creme/dourado-claro sobre creme no PDF — teste em producao 13/10) */
+  --sup-fundo:#f4efe3;--sup-card:#faf7ee;--titulo:#0b3325;--texto:#1d3a2e;--texto-suave:#4f6a5d;--realce:#14503b;
+  --borda-suave:rgba(29,58,46,.1);--input-fundo:#fff;--input-borda:rgba(29,58,46,.18);--citacao-clara-fundo:rgba(20,80,59,.06);
+  --halo:rgba(201,163,90,.1);--movimento-sobe:#1f6b47;--movimento-desce:#a8442c;--dourado-claro:#a87f31;
 }
 .rp-doc .rh-doc{background:transparent;border:0;padding:0;color:inherit}
 .rp-doc .rh-doc h2,.rp-doc .rh-doc h3,.rp-doc .rh-doc h4,.rp-doc .rp-conduta h3,.rp-doc .rp-conduta h4{color:#0b3325}
