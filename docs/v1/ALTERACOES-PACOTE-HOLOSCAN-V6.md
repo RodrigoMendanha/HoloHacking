@@ -154,4 +154,11 @@ Não há migration nova: o contrato "pergunta só contextual" já está em produ
 
 ## 10. Publicação em produção
 
-_(preenchido na publicação)_
+Feita em 13/10/2026: deploy do front `c8a5ab1` (v6 com os textos oficiais corrigidos) e login do responsável metodológico com as abas antigas fechadas. Uma primeira tentativa de login, antes de o front novo estar no ar, não publicou nada (v5 continuou no ar, banco sem mudança).
+
+Conferência depois da publicação (só leitura, md5 agregados, sem dado clínico):
+- **HOLOS-V1 v6 aprovado** (hash do servidor `545a594d…` = recalculado pelo servidor; publicação direta; linhagem `HOLOS-V1-FECHAMENTO-61-2026-10-13`, pai v5); v5 `retirado` com registro de auditoria "publicação direta"; v2, v3 e v4 continuam `retirado`.
+- No banco: 81 perguntas, primárias 8/8/7/6/40, Tríade 36/19/14, SNT-110 ausente, validador do servidor com 0 erros, nenhum texto oficial citando exames, achados laboratoriais, pele ou composição corporal.
+- Histórico idêntico ao de antes da publicação: 9 aplicações, 749 respostas, 45 notas, 6 Resultados HOLOS, 3 emissões, 2 relatórios e 6 Próximos Passos, com os mesmos md5.
+
+Smoke test com paciente fictícia: _(preenchido depois do smoke)_
