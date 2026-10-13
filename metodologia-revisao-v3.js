@@ -305,4 +305,28 @@
       escalas: { frequencia: 70, intensidade: 11 }
     }
   };
+
+  /* ===========================================================================
+     HOLOS-V1 v7 — SO TEXTO (ultima checagem antes do deploy do Resultado HOLOS T5, 13/10/2026).
+     Decisao definitiva de Rodrigo: exames NAO participam do HOLOSCAN (ficam so guardados na ficha para a
+     profissional ver). Na v6 publicada, o texto oficial do Ácido Inflamatório ainda terminava com "nem
+     substitui avaliação ou exames clínicos". A v7 troca SO essa frase pelo limite aprovado.
+     Nada mais muda: perguntas, IDs, ordem, associacoes, pesos, cobertura, faixas, Indice, Triade, contextuais,
+     sinais dominantes, PP-V1 e os outros quatro textos ficam identicos aos da v6.
+     =========================================================================== */
+  raiz.MetodologiaRevisaoV7 = {
+    id: "HOLOS-V1-TEXTO-SISTEMAS-2026-10-13",
+    decidido_em: "2026-10-13",
+    revisao_publica: "somente texto: o texto oficial do Sistema Ácido Inflamatório deixa de citar exames (exames não participam do HOLOSCAN); base: HOLOS-V1 v6 ativo",
+    base: { code: "HOLOS-V1", version: 6 },
+    versao_nova: 7,
+    regra_metodologica: [
+      "Exames podem ficar guardados na ficha para visualização profissional, mas não participam do HOLOSCAN: não alteram perguntas, notas, Índice, Tríade, prioridade, sinais dominantes, Próximos Passos, Resultado HOLOS, PDF nem a escolha de ferramentas."
+    ],
+    textos: {}, trocar: {},
+    textos_sistemas: {
+      acido_inflamatorio: "Eixo autoral que organiza relatos de dor, rigidez, desconforto, mucosas e reatividade percebida presentes no questionário. O termo 'ácido' faz parte da nomenclatura autoral: o eixo não mede inflamação sistêmica, pH ou 'acidez corporal' e não diagnostica inflamação."
+    },
+    remover: {}, mover: {}, contextualizar: {}, manter: {}
+  };
 })();

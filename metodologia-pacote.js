@@ -566,6 +566,23 @@
   function temSupa() { return !!(raiz.supabaseClient && raiz.HoloAuth && raiz.HoloAuth.sessaoAtiva()); }
   function tabela(nome) { return raiz.DadosRouter ? raiz.DadosRouter.from(nome) : null; }
   var cache = [];
+  /* O PostgREST devolve no maximo 1000 linhas por pedido: com varias versoes do pacote, as filhas (associacoes,
+     perguntas, regras) passam disso e a leitura sairia cortada em silencio — um pacote incompleto no cache faria a
+     publicacao direta montar a versao seguinte errada (o validador recusa) e o questionario ler associacoes faltando.
+     Le em paginas de 1000, em ordem estavel (id), ate a ultima. */
+  var PAGINA = 1000;
+  function lerTudo(nome) {
+    var todas = [];
+    var pagina = function (de) {
+      var tt = tabela(nome); if (!tt) return Promise.resolve({ data: todas });
+      return Promise.resolve(tt.select("*").order("id", { ascending: true }).range(de, de + PAGINA - 1)).then(function (r) {
+        if (!r || r.error || !Array.isArray(r.data)) return { data: todas, error: (r && r.error) || null };
+        todas = todas.concat(r.data);
+        return r.data.length === PAGINA ? pagina(de + PAGINA) : { data: todas };
+      });
+    };
+    return pagina(0);
+  }
   /** Carrega todos os pacotes visiveis (os proprios + aprovados/retirados de terceiros), com filhas. */
   function carregar() {
     if (!temSupa()) { cache = []; return Promise.resolve(cache); }
@@ -574,7 +591,7 @@
       if (!r || r.error || !Array.isArray(r.data)) return cache;
       var pacotes = r.data.map(function (row) { return Object.assign(novo(row.code, row.version), row); });
       var nomes = [["metodologia_edicoes", "edicoes"], ["metodologia_escalas", "escalas"], ["metodologia_sistemas", "sistemas"], ["metodologia_perguntas", "perguntas"], ["metodologia_associacoes", "associacoes"], ["metodologia_faixas", "faixas"], ["metodologia_regras", "regras"], ["metodologia_registros", "registros"], ["metodologia_aprovacoes", "aprovacoes"]];
-      return Promise.all(nomes.map(function (n) { var tt = tabela(n[0]); return tt ? Promise.resolve(tt.select("*")) : Promise.resolve({ data: [] }); })).then(function (rs) {
+      return Promise.all(nomes.map(function (n) { return lerTudo(n[0]); })).then(function (rs) {
         rs.forEach(function (res, i) {
           var chave = nomes[i][1]; var linhas = (res && !res.error && Array.isArray(res.data)) ? res.data : [];
           pacotes.forEach(function (p) {
@@ -662,7 +679,7 @@
      poe a nova no ar hoje e retira a anterior. Para qualquer outra conta nao faz
      nada. Idempotente: se a versao nova ja esta no ar, nao grava de novo. */
   var publicando = null;
-  function revisoesDoCodigo() { return [raiz.MetodologiaRevisaoV3, raiz.MetodologiaRevisaoV5, raiz.MetodologiaRevisaoV6].filter(Boolean); }   // em ordem: v4 (decisoes de 13/10), v5 (Lote 2B), v6 (fechamento das 61)
+  function revisoesDoCodigo() { return [raiz.MetodologiaRevisaoV3, raiz.MetodologiaRevisaoV5, raiz.MetodologiaRevisaoV6, raiz.MetodologiaRevisaoV7].filter(Boolean); }   // em ordem: v4 (decisoes de 13/10), v5 (Lote 2B), v6 (fechamento das 61), v7 (so texto: exames fora)
   function publicar(id) {
     return rpc("publicar_pacote_metodologico", { p_package_id: id }).then(function (d) { return carregar().then(function () { return d; }); });
   }
@@ -697,7 +714,7 @@
         });
       });
     }, Promise.resolve()).then(function () { return feitas; })
-      .catch(function (e) { console.error("[pacote] publicacao direta:", e); return feitas; })
+      .catch(function (e) { console.error("[pacote] publicacao direta:", (e && (e.message || e.hint || JSON.stringify(e))) || e); return feitas; })
       .then(function (r) { publicando = null; return r; });
     return publicando;
   }

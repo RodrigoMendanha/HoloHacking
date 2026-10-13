@@ -173,6 +173,10 @@ ok(/Área principal para aprofundar/.test(met) && /Área para aprofundar nesta e
   'S01 sistemas: o texto-base "Como cuidar deste eixo" aparece (prioritário e não prioritário); Metabólico principal, Detox segundo');
 ok(/Para você, nesta fase/.test(met) && met.includes('Organizar o fim da tarde') && met.includes('Pausa organizada no período da tarde') && !/Para você, nesta fase/.test(dtx),
   'S02 sistemas: o direcionamento e as estratégias INDIVIDUAIS aparecem só no sistema ligado pela nutricionista');
+const dirSemSis = { direcionamentos: [{ id: 'dx', texto: 'DIR_INTEGRADO_SEM_SISTEMA', territorio: 'integrado' }], estrategias: [{ texto: 'EST_DO_DIR_INTEGRADO', direcionamento_id: 'dx' }] };
+ok(S2.direcionamentos.length > 0 && S2.direcionamentos.every(x => !x.sistemas || x.sistemas.length === 0)
+  && !RD.htmlCincoSistemas(SIS, FECH, dirSemSis).includes('DIR_INTEGRADO_SEM_SISTEMA') && RD.projecaoPaciente({ schema_version: 1, direcionamentos: [{ texto: 'DIR_INTEGRADO_SEM_SISTEMA', origem: 'nutricionista', territorio: 'integrado', confirmado: true, mostrar_paciente: true }] }).direcionamentos.length === 1,
+  'D02 vínculo direcionamento → sistema é opcional: as sugestões nunca inventam sistema; direcionamento sem sistema é válido, aparece em "Direcionamentos desta fase" e em nenhum cartão de sistema');
 ok(!/Para você, nesta fase/.test(RD.htmlCincoSistemas(SIS, FECH, {})) && S1.estrategias.length === 0 && S1.direcionamentos.length === 0,
   'S03 nenhuma estratégia nem direcionamento sai da nota: sem direção confirmada o sistema não mostra "Para você"; HOLOSCAN sozinho não gera estratégia');
 ok(!/\b(normal|saudáve|sem problema|sem doença|perfeit|menos marcadores|alguns marcadores)/i.test(txt(hs)), 'S04 sistemas: sem "normal / saudável / sem problema / sem doença / perfeito / menos marcadores"');

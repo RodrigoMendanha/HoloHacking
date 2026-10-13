@@ -1108,6 +1108,15 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
      paciente em 14 blocos; "Como vamos caminhar" removido. (e) Os cinco sistemas explicam por que olhamos: prioritário com O que
      apareceu / O que vale observar / Como cuidar deste eixo (textos-base CE-1) / Para você, nesta fase; não prioritário compacto;
      nota como detalhe ("não indica doença nem saúde"). (f) WhatsApp: "Nesta fase, nosso principal direcionamento é: …".
+194. **Exames não participam do HOLOSCAN — HOLOS-V1 v7 só texto** (13/10, última checagem antes do deploy). Decisão
+     definitiva: exames ficam guardados na ficha para visualização profissional e não alteram perguntas, notas, Índice, Tríade,
+     prioridade, sinais dominantes, Próximos Passos, Resultado HOLOS, PDF, contexto da paciente nem a escolha de ferramentas;
+     SNT-210/309 continuam removidas. Conferido em produção (só leitura): v6 ativa; o texto do Metabólico já estava correto e a
+     única menção a exame no pacote inteiro era a frase final do Ácido Inflamatório ("nem substitui avaliação ou exames
+     clínicos"). Como versão publicada não se edita, a v7 (`MetodologiaRevisaoV7`, publicação direta no login do responsável
+     metodológico) troca só essa frase pelo limite aprovado ("não mede inflamação sistêmica, pH ou 'acidez corporal'").
+     Prova de equivalência v6 × v7 em 12 casos (`docs/v1/metodologia/COMPARATIVO-HOLOSCAN-V6-V7.md`) e no Postgres (PV7-00..05).
+     O vínculo direcionamento → sistema do Resultado HOLOS T5 continua opcional (`sistemas`); sugestões nunca inventam sistema.
 
 ## Decisões pendentes (não decididas aqui)
 

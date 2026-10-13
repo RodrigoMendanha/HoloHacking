@@ -59,6 +59,8 @@ await A.setViewport({ width: 1366, height: 1000 });
 A.on('pageerror', e => errosJS.push(e.message));
 await ligarPagina(A, srv);
 await A.evaluateOnNewDocument(() => { setInterval(() => { if (window.BoasVindas && window.BoasVindas.aberta()) window.BoasVindas.fechar(); }, 80); });
+/* este teste e o cenario historico v5 -> v6; a v7 (so texto) tem o proprio teste (testar-questionario-v7.mjs) */
+await A.evaluateOnNewDocument(() => { Object.defineProperty(window, 'MetodologiaRevisaoV7', { configurable: false, get: () => undefined, set: () => {} }); });
 await A.goto('http://127.0.0.1:5500/', { waitUntil: 'networkidle2' });
 await A.waitForSelector('#login-email', { visible: true });
 await A.type('#login-email', 'a@holo.test'); await A.type('#login-senha', 'senha-a-123'); await A.click('#btn-entrar');

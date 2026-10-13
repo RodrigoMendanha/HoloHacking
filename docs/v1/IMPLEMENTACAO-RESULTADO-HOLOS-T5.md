@@ -151,7 +151,11 @@ templates 1–4, emissões RF-1/RF-2, Relatório. Nenhuma dieta, prescrição, s
 5. **Caminho do retorno** mostra foco, direcionamentos, estratégias, avanços e acordos de Resultados template 5; Resultados
    antigos aparecem como registro anterior ao formato com foco.
 6. **PDF**: o cartão grande de um sistema prioritário pode continuar na página seguinte (os blocos internos não são cortados).
-7. **Exames fora do HOLOSCAN** (lembrete de Rodrigo em 13/10): exames só ficam guardados em Documentos para visualização. O texto
-   público do sistema Metabólico no pacote publicado ainda cita "achados laboratoriais relatados no questionário"; a visão da
-   paciente do template 5 **não usa** esse texto (usa a definição aprovada "Este eixo reúne…" e descarta qualquer definição que
-   cite exame/laboratório). Corrigir o texto do próprio pacote exige uma nova versão do pacote (versão publicada não se edita).
+7. **Exames fora do HOLOSCAN** (decisão 194): a visão da paciente do T5 usa a definição aprovada ("Este eixo reúne…") e descarta
+   qualquer definição que cite exame/laboratório. Em produção, a v6 já tinha o Metabólico correto; a única menção a exame era a
+   frase final do Ácido Inflamatório, corrigida pela **HOLOS-V1 v7 (só texto)**, publicada no login do responsável metodológico.
+8. **Leitura dos pacotes paginada**: `PacoteMetodologico.carregar()` agora lê as tabelas filhas em páginas de 1000 (o PostgREST
+   corta em 1000). Em produção as associações somam 841 (994 com a v7); sem paginação, a próxima versão chegaria truncada.
+9. **Publicação no login**: a v7 é gravada e publicada logo após o login do responsável metodológico. Recarregar a página no meio
+   pode deixar um rascunho `em_revisao` incompleto, que o validador do servidor recusa (nada errado vai ao ar); por isso o passo
+   do deploy é: entrar, abrir a Metodologia, esperar "v7 no ar" e só então navegar.

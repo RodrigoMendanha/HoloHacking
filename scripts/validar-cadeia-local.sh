@@ -130,5 +130,8 @@ cd "$(dirname "$0")/.."
     grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
   done
   cat supabase/tests/resultado-direcao-harness.sql
+  # HOLOS-V1 v7 (so texto, 13/10): sem migration; gravada e publicada sobre a v6, so o texto do Acido muda, historico identico.
+  cat supabase/tests/pacote-v7-doc.sql
+  cat supabase/tests/pacote-v7-harness.sql
   echo "rollback;"
 } | psql -U postgres -d base -v ON_ERROR_STOP=1 -At | tr '|' '\n' | sed 's/^ //'
