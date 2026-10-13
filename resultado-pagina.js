@@ -115,21 +115,6 @@
     "</header>";
   }
 
-  function blocoConduta(cv) {
-    if (!cv) return "";
-    var c = cv.conduta;
-    var campos = CAMPOS_CONDUTA.filter(function (f) { return tem(c[f[0]]); });
-    var acordos = (cv.acordos || []).filter(function (g) { return tem(g.description); });
-    if (!campos.length && !acordos.length) return "";
-    return '<section class="rh-secao rp-conduta" aria-labelledby="rp-t-cond"><h3 id="rp-t-cond">Próximos passos combinados</h3>' +
-      '<p class="rh-intro">O que foi combinado com a sua nutricionista nesta etapa. Não é dieta nem prescrição: são passos do método, escritos por ela para você.</p>' +
-      campos.map(function (f) { return '<div class="rp-campo"><h4>' + escapar(f[1]) + "</h4><p>" + quebras(c[f[0]]) + "</p></div>"; }).join("") +
-      (acordos.length ? '<div class="rp-campo"><h4>Combinados</h4><ul class="rp-acordos">' + acordos.map(function (g) {
-        return "<li>" + escapar(g.description) + (tem(g.due_text) ? ' <small>(' + escapar(g.due_text) + ")</small>" : "") + "</li>";
-      }).join("") + "</ul></div>" : "") +
-    "</section>";
-  }
-
   function rodapeProfissional(eu, imagens) {
     var identidade = [eu.nome, eu.registro].filter(Boolean).map(escapar).join(" &middot; ");
     var contato = [eu.telefone, eu.instagram].filter(Boolean).map(escapar).join(" &middot; ");
@@ -144,13 +129,28 @@
     "</footer>";
   }
 
+  /* motor de resultados V1 (12/10, item 31): a Conduta entra DENTRO do documento da paciente, nos blocos
+     5 (nosso foco agora: objetivo, estrategia), 6 (o que ficou combinado: acoes, recursos, orientacoes, combinados)
+     e 7 (o que observar: retorno). Um so rodape, no fim (item 34). */
+  function campoConduta(c, f) { return tem(c[f]) ? '<div class="rp-campo"><h4>' + escapar((CAMPOS_CONDUTA.filter(function (x) { return x[0] === f; })[0] || [f, f])[1]) + "</h4><p>" + quebras(c[f]) + "</p></div>" : ""; }
+  function blocosConduta(cv) {
+    if (!cv) return {};
+    var c = cv.conduta || {};
+    var acordos = (cv.acordos || []).filter(function (g) { return tem(g.description); });
+    var combinado = ["actions", "resources", "professional_guidance"].map(function (f) { return campoConduta(c, f); }).join("") +
+      (acordos.length ? '<div class="rp-campo"><h4>Combinados</h4><ul class="rp-acordos">' + acordos.map(function (g) {
+        return "<li>" + escapar(g.description) + (tem(g.due_text) ? ' <small>(' + escapar(g.due_text) + ")</small>" : "") + "</li>";
+      }).join("") + "</ul></div>" : "");
+    return { foco: ["objective", "nutrition_strategy"].map(function (f) { return campoConduta(c, f); }).join("") || null,
+      combinado: combinado || null, observar: campoConduta(c, "return_plan") || null };
+  }
   function documentoHtml(pid, r, cv, eu, imagens) {
     var snap = r.content_snapshot;
-    var meta = { status: r.status, hash: r.content_hash };
+    var meta = { status: r.status, hash: r.content_hash, blocos: blocosConduta(cv), semRodape: true };
     var corpo = window.ResultadoHolos.documentoHtml(snap, "paciente", meta);
     return '<article class="rp-doc" id="rp-doc" aria-label="Resultado para a paciente">' +
       cabecalhoProfissional(eu, imagens) +
-      '<div class="rp-corpo">' + corpo + blocoConduta(cv) + "</div>" +
+      '<div class="rp-corpo">' + corpo + "</div>" +
       rodapeProfissional(eu, imagens) +
     "</article>";
   }

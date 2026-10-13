@@ -332,25 +332,6 @@
       (!paciente && x.derivado_agora ? '<p class="rh-nota-tec">Gerado com o motor de resultados atual a partir do registro histórico.</p>' : "") + "</article>";
   }
 
-  /* ---------- desenho: resumo de cada eixo (visao conjunta, sem conclusao) -- */
-  function resumoFerr(t) {
-    var r = t.respostas || {}, f = defFerr(t.ferramenta_id), linhas = [];
-    var add = function (rot, v) { if (tem(v)) linhas.push("<li><b>" + e(rot) + ":</b> " + e(String(valorTxt(v)).slice(0, 140)) + "</li>"); };
-    var visual = f.visualizacao;   // registros clinicos: timeline (rotina), fluxo (gatilhos), rede (conexao)
-    if (visual === "timeline") { add("Acorda", r.acorda); add("Dorme", r.dorme); if (Array.isArray(r.eventos)) add("Eventos do dia", r.eventos.length + " registrado(s)"); add("Espaços para mudança", r.espacos); }
-    else if (visual === "fluxo") { add("Gatilho", r.gatilho); add("Resposta", r.resposta); add("Necessidade", r.necessidade); }
-    else if (visual === "rede") { if (Array.isArray(r.vinculos)) add("Vínculos registrados", r.vinculos.length); add("Com quem pode contar", r.contar); }
-    else switch (t.ferramenta_id) {
-      case "oq3": add("Quer", r.quer); add("Precisa", r.precisa); add("Consegue", r.consegue); break;
-      case "linha_momentum": add("Estado registrado", r.estado_confirmado); add("O que sustenta", r.sustenta); add("O que limita", r.limita); break;
-      case "pqq": add("Objetivo", r.objetivo); add("Síntese construída com a paciente", r.verdadeiro); break;
-      case "mapa_crencas": add("Crenças", r.crencas); add("Alternativa", r.alternativa); break;
-      case "roda_vida": add("Área que puxa para baixo (registrada)", r.puxa); break;
-      case "carta_futuro": add("Para quando", r.para_quando); break;
-    }
-    return '<li class="rh-conj-ferr"><b>' + e(f.titulo) + "</b>" + (linhas.length ? "<ul>" + linhas.join("") + "</ul>" : "") + "</li>";
-  }
-
   /* ---------- documento (profissional | paciente) --------------------------- */
   /* texto da faixa para a PACIENTE: o que a nota quer dizer, sem instrucao tecnica nem leitura clinica */
   /* Motor de resultados V1 (12/10, item 4.1): junto do numero, onde quer que o Indice apareca */
@@ -359,28 +340,27 @@
      marcadores). So camada de comunicacao: a faixa salva e a matematica nao mudam. */
   var FAIXA_PACIENTE = { baixa: "Mais marcadores neste eixo", intermediaria: "Alguns marcadores neste eixo", alta: "Menos marcadores neste eixo" };
   function faixaPaciente(f) { return FAIXA_PACIENTE[f] || ""; }
-  function textoPacienteFaixa(s) {
-    if (!s || !s.avaliavel) return "Não houve respostas suficientes para dar nota a esta área nesta avaliação.";
-    if (s.faixa === "baixa") return "Esta área apareceu com mais sinais nas suas respostas e será conversada com a sua nutricionista.";
-    if (s.faixa === "intermediaria") return "Esta área apareceu com alguns sinais nas suas respostas e pode ser conversada com a sua nutricionista.";
-    if (s.faixa === "alta") return "Esta área apareceu com poucos sinais nas suas respostas.";
-    return "Esta área faz parte do seu mapa e é conversada com a sua nutricionista.";
-  }
 
   function documentoHtml(snap, visao, meta) {
     meta = meta || {};
     var paciente = visao === "paciente";
-    var h = snap.holoscan || {}, sis = h.sistemas || [], tri = h.triada || {}, triOk = h.triada_com_dado || {};
+    var h = snap.holoscan || {}, sis = h.sistemas || [];
     var ferr = (snap.ferramentas || []).filter(function (t) { return !paciente || t.mostrar_paciente; });
     var obs = snap.observacoes || meta.observacoes || {};
+    var S = window.ResultadoSintese, SF = window.SistemasFechamento;
+    var optsS = { moduloDe: moduloDe, nomeFerramenta: function (id) { return defFerr(id).titulo; }, observacoes: obs };
+    var fechs = SF ? SF.deResultado(snap, function (id) { return defFerr(id).titulo; }) : null;
+    var historico = !!(SF && SF.historico(snap));
+    var ppPac = paciente && snap.visibilidade && snap.visibilidade.proximos_passos === true;
     var html = '<article class="rh-doc rh-doc-' + (paciente ? "paciente" : "profissional") + '" id="rh-doc" aria-label="Resultado HOLOS — ' + (paciente ? "visão do paciente" : "visão profissional") + '">';
 
-    // 1. identificacao
+    // identificacao (paciente: 1. SEU MAPA HOLOS)
     html += '<header class="rh-doc-cab"><span class="eyebrow">' + (paciente ? "Resultado HOLOS" : "Resultado HOLOS · visão profissional") + "</span>" +
       "<h2>" + (paciente ? "Seu Mapa HOLOS" : "Resultado HOLOS") + (snap.paciente && snap.paciente.nome ? " &middot; " + e(snap.paciente.nome) : "") + "</h2>";
     if (meta.previa) html += '<p class="rh-previa-selo" role="status">PRÉVIA — ainda não salva. Nada aqui foi registrado.</p>';
     if (paciente) {
-      html += '<p class="rh-doc-sub">Avaliação de ' + e(dataBR(h.quando)) + (snap.profissional && snap.profissional.nome ? " · com " + e(snap.profissional.nome) : "") + "</p>";
+      html += '<p class="rh-doc-sub">Avaliação de ' + e(dataBR(h.quando)) + (snap.profissional && snap.profissional.nome ? " · com " + e(snap.profissional.nome) : "") + "</p>" +
+        '<p class="rh-intro">Nesta avaliação, as suas respostas ao HOLOSCAN e às ferramentas foram organizadas para mostrar por onde a conversa com a sua nutricionista pode seguir. O mapa não é um diagnóstico.</p>';
     } else {
       var r = snap.resultado || {};
       html += '<dl class="rh-ident">' +
@@ -392,105 +372,143 @@
         "<div><dt>Ferramentas incluídas</dt><dd>" + (snap.ferramentas || []).length + "</dd></div>" +
         "<div><dt>Versão do resultado</dt><dd>" + (r.revision_number ? "nº " + e(r.revision_number) + (meta.status ? " · " + e(ROTULO_STATUS[meta.status] || meta.status) : "") : "—") + "</dd></div>" +
         "<div><dt>Pacote metodológico</dt><dd>" + e(h.pacote ? h.pacote.code + " v" + h.pacote.version : "—") + "</dd></div>" +
+        "<div><dt>Motor de resultados</dt><dd>" + e(snap.motor_resultados || (SF ? SF.VERSAO + " (atual, sobre registro histórico)" : "—")) + "</dd></div>" +
         "</dl>";
     }
+    if (historico) html += '<p class="rh-nota-tec sf-historico">' + e(SF.ROTULO_HISTORICO) + "</p>";
     html += "</header>";
 
-    // 1b. resumo estruturado (09/10): fatos + regra oficial + pendencias metodologicas, so a partir do snapshot
-    if (window.ResultadoSintese) {
-      html += window.ResultadoSintese.html(snap, visao, { moduloDe: moduloDe, nomeFerramenta: function (id) { return defFerr(id).titulo; } });
-      /* Modelo B: Proximos Passos na visao da paciente SO quando a nutricionista compartilhou (padrao desligado) */
-      if (paciente) html += window.ResultadoSintese.htmlProximosPassosPaciente(snap, function (id) { return defFerr(id).titulo; });
-    }
+    if (paciente) return html + documentoPaciente(snap, meta, { h: h, sis: sis, ferr: ferr, obs: obs, S: S, SF: SF, fechs: fechs, ppPac: ppPac, optsS: optsS }) + "</article>";
 
-    // 2. visao geral HOLOSCAN
-    var cob = h.cobertura || {};
-    html += '<section class="rh-secao rh-geral" aria-labelledby="rh-t-geral"><h3 id="rh-t-geral">' + (paciente ? "Seu Mapa HOLOS" : "Visão geral HOLOSCAN") + "</h3>" +
-      (paciente ? '<p class="rh-intro">Nesta avaliação, as suas respostas ao HOLOSCAN foram organizadas em cinco sistemas. Notas mais baixas indicam onde mais sinais foram relatados. O mapa não é um diagnóstico: ele mostra por onde a conversa com a sua nutricionista pode seguir.</p>' : "") +
-      '<div class="rh-geral-grade"><div class="rh-radar-caixa">' + radarSvg(sis) + "</div>" +
+    /* ======================= VISAO PROFISSIONAL (item 30): conclusao primeiro, evidencia depois ======================= */
+    // 1. RESUMO PARA DECISAO
+    if (S && S.htmlResumoDecisao) html += S.htmlResumoDecisao(snap, optsS);
+
+    // 2. POR QUE O SISTEMA CHEGOU A ISSO
+    html += '<section class="rh-secao rh-porque" aria-labelledby="rh-t-porque"><h3 id="rh-t-porque">Por que o sistema chegou a isso</h3>' +
+      '<p class="rh-nota-tec">Resultado do método (' + e(SF ? SF.VERSAO : "") + '): cálculo salvo da aplicação HOLOSCAN (' + e(h.pacote ? h.pacote.code + " v" + h.pacote.version : "") +
+      ") e textos aprovados. Nada foi recalculado nesta página. Não é leitura profissional nem Conduta.</p>";
+    html += '<h4 class="rh-sub" id="rh-t-geral">Visão geral HOLOSCAN</h4>' + gradeGeral(h, false);
+    html += '<h4 class="rh-sub" id="rh-t-sis">Cinco sistemas</h4><div class="rh-sistemas">' + sis.map(function (s, i) { return cartaoSistema(s, fechs ? fechs[i] : null, false, false); }).join("") + "</div>" +
+      (h.interpretacao_texto ? '<div class="rh-interp"><span class="rh-tag">Interpretação registrada no HOLOSCAN (escrita pela nutricionista)</span><p>' + e(h.interpretacao_texto).replace(/\n/g, "<br>") + "</p></div>" : "") +
+      "</section>";
+
+    // 3. RESULTADOS DAS FERRAMENTAS (Corpo | Mente | Espirito) + PANORAMA (item 29, sem integracao)
+    html += '<section class="rh-secao rh-ferr-sec" aria-labelledby="rh-t-ferr"><h3 id="rh-t-ferr">Resultados das ferramentas</h3>';
+    EIXOS.forEach(function (x) {
+      var doEixo = ferr.filter(function (t) { return moduloDe(t.ferramenta_id) === x[0]; });
+      var mapa = x[0] === "espirito" ? mapaProposito(snap, false) : "";
+      html += '<div class="rh-eixo rh-eixo-' + x[0] + '"><h4 class="rh-sub" id="rh-t-' + x[0] + '">' + e(x[1]) + "</h4>" +
+        (doEixo.length || mapa ? '<div class="rh-ferrs">' + mapa + doEixo.map(function (t) { return cartaoFerramenta(t, false, snap.ferramentas || []); }).join("") + "</div>"
+          : '<p class="rh-vazio">Nenhuma ferramenta de ' + e(x[1]) + " selecionada para este resultado.</p>") + "</div>";
+    });
+    html += '<h4 class="rh-sub" id="rh-t-conj">Panorama das ferramentas aplicadas</h4>' +
+      '<p class="rh-nota-tec">Os resultados lado a lado, por eixo. O sistema não integra Corpo, Mente e Espírito numa conclusão (integração automática: pendência metodológica); a leitura do conjunto é sua.</p><div class="rh-conjunta">' +
+      EIXOS.map(function (x) {
+        var doEixo = (snap.ferramentas || []).filter(function (t) { return moduloDe(t.ferramenta_id) === x[0]; });
+        var tri = h.triada || {}, triOk = h.triada_com_dado || {};
+        return '<div class="rh-conj-col rh-eixo-' + x[0] + '"><h5>' + e(x[1]) + ' <small>Tríade ' + (triOk[x[2]] === false || tri[x[2]] === null || tri[x[2]] === undefined ? "—" : num(tri[x[2]])) + "</small></h5>" +
+          (doEixo.length ? '<ul class="rh-conj-lista">' + doEixo.map(function (t) { return panoramaFerr(t, snap.ferramentas || []); }).join("") + "</ul>" : '<p class="rh-vazio">Sem ferramentas aplicadas.</p>') + "</div>";
+      }).join("") + "</div></section>";
+
+    // 4. SINTESE HOLOS (5 blocos, item 28)
+    if (S) html += S.html(snap, "profissional", optsS);
+
+    // 5. LEITURA PROFISSIONAL (escrita pela nutricionista)
+    html += '<section class="rh-secao rh-obs" aria-labelledby="rh-t-obs"><h3 id="rh-t-obs">Leitura profissional — observações da nutricionista</h3>' +
+      '<p class="rh-nota-tec">Escrito pela nutricionista. Não é resultado do método nem é gerado pelo sistema.</p>' +
+      [["leitura_profissional", "Leitura profissional da nutricionista"], ["pontos_acompanhar", "Pontos para acompanhar"], ["questoes_aprofundar", "Questões para aprofundar"]].map(function (k) {
+        return '<div class="rh-obs-item"><h4>' + e(k[1]) + "</h4>" + (tem(obs[k[0]]) ? "<p>" + e(obs[k[0]]).replace(/\n/g, "<br>") + "</p>" : '<p class="rh-vazio">Não registrado.</p>') + "</div>";
+      }).join("") + "</section>";
+
+    // 6. CONDUTA (pagina propria, vinculo claro)
+    html += '<section class="rh-secao rh-conduta-link" aria-labelledby="rh-t-cond"><h3 id="rh-t-cond">Conduta</h3>' +
+      '<p>A Conduta é decisão da nutricionista e fica na página própria do atendimento' + (snap.atendimento ? " de " + e(dataHora(snap.atendimento.occurred_at)) : "") +
+      '. O sistema não escreve a Conduta: este resultado a informa, não a gera.</p>' +
+      '<button type="button" class="btn-borda-ouro rh-so-tela" data-rh-acao="ir-conduta">Abrir a Conduta</button></section>';
+
+    html += '<p class="rh-futuro">Exames e Leitura Integrada — não incluídos nesta versão do Resultado HOLOS.</p>';
+    html += '<footer class="rh-doc-rodape">Snapshot do Resultado HOLOS' + (meta.hash ? " · hash técnico " + e(String(meta.hash).slice(0, 16)) + "…" : "") + ". Documento organizado a partir de registros salvos; não é diagnóstico.</footer>";
+    return html + "</article>";
+  }
+
+  /* ======================= VISAO DA PACIENTE (item 31): 8 blocos, carga tecnica minima ======================= */
+  function documentoPaciente(snap, meta, c) {
+    var html = "", blocos = meta.blocos || {};
+    var investigar = c.fechs ? c.fechs.filter(function (f) { return f.resultado.prioridade; }).sort(function (a, b) { return a.resultado.posicao - b.resultado.posicao; }) : [];
+    // 2. O QUE ENTENDEMOS NESTA ETAPA
+    if (c.S) html += c.S.html(snap, "paciente", c.optsS);
+    // 3. AREAS PARA APROFUNDAR (fechamento por sistema, item 32)
+    if (investigar.length) {
+      html += '<section class="rh-secao rh-areas" aria-labelledby="rh-t-areas"><h3 id="rh-t-areas">Áreas para aprofundar</h3>' +
+        '<p class="rh-intro">Nesta aplicação, estas foram as primeiras áreas para aprofundar. Nota mais baixa quer dizer que mais itens apareceram nas suas respostas — não quer dizer doença nem gravidade.</p>' +
+        '<div class="rh-sistemas rh-sistemas-areas">' + investigar.map(function (f) { return c.SF.htmlSistema(f, "paciente", { faixaPaciente: faixaPaciente, mostrarPP: c.ppPac }); }).join("") + "</div></section>";
+    }
+    // 4. O QUE DESCOBRIMOS COM AS FERRAMENTAS (so as compartilhadas; so o resultado, item 33)
+    var mapa = mapaProposito(snap, true);
+    /* os Proximos Passos compartilhados ja aparecem uma vez, em "O que entendemos nesta etapa" (um so bloco, item 34) */
+    if (c.ferr.length || mapa) {
+      html += '<section class="rh-secao rh-descobertas" aria-labelledby="rh-t-desc"><h3 id="rh-t-desc">O que descobrimos com as ferramentas</h3>';
+      EIXOS.forEach(function (x) {
+        var doEixo = c.ferr.filter(function (t) { return moduloDe(t.ferramenta_id) === x[0]; });
+        var m = x[0] === "espirito" ? mapa : "";
+        if (!doEixo.length && !m) return;
+        html += '<div class="rh-eixo rh-eixo-' + x[0] + '"><h4 class="rh-sub">' + e(x[1]) + '</h4><div class="rh-ferrs">' + m + doEixo.map(function (t) { return cartaoFerramenta(t, true, snap.ferramentas || []); }).join("") + "</div></div>";
+      });
+      html += "</section>";
+    }
+    // 5. NOSSO FOCO AGORA (leitura da nutricionista + objetivo/estrategia da Conduta, quando a pagina Resultado entrega)
+    var leitura = tem(c.obs.leitura_profissional) ? '<div class="rh-obs-item"><h4>O que sua nutricionista observou</h4><p>' + e(c.obs.leitura_profissional).replace(/\n/g, "<br>") + "</p></div>" : "";
+    if (leitura || blocos.foco) html += '<section class="rh-secao rh-obs rh-foco" aria-labelledby="rh-t-foco"><h3 id="rh-t-foco">Nosso foco agora</h3>' + leitura + (blocos.foco || "") + "</section>";
+    // 6. O QUE FICOU COMBINADO (Conduta da nutricionista)
+    if (blocos.combinado) html += '<section class="rh-secao rp-conduta" aria-labelledby="rh-t-comb"><h3 id="rh-t-comb">O que ficou combinado</h3>' +
+      '<p class="rh-intro">O que foi combinado com a sua nutricionista nesta etapa. Não é dieta nem prescrição automática: são passos escritos por ela para você.</p>' + blocos.combinado + "</section>";
+    // 7. O QUE OBSERVAR ATE O PROXIMO ENCONTRO
+    var pontos = tem(c.obs.pontos_acompanhar) ? '<div class="rh-obs-item"><h4>Pontos que serão acompanhados</h4><p>' + e(c.obs.pontos_acompanhar).replace(/\n/g, "<br>") + "</p></div>" : "";
+    if (pontos || blocos.observar) html += '<section class="rh-secao rh-obs rh-observar" aria-labelledby="rh-t-pts"><h3 id="rh-t-pts">O que observar até o próximo encontro</h3>' + pontos + (blocos.observar || "") + "</section>";
+    // 8. DETALHES DO MAPA (conteudo secundario)
+    html += '<section class="rh-secao rh-detalhes" aria-labelledby="rh-t-det"><h3 id="rh-t-det">Detalhes do mapa</h3>' +
+      '<p class="rh-intro">As suas respostas ao HOLOSCAN organizadas em cinco sistemas. Notas mais baixas indicam onde mais itens foram relatados.</p>' +
+      gradeGeral(c.h, true) +
+      '<h4 class="rh-sub">Os cinco sistemas</h4><div class="rh-sistemas">' + c.sis.map(function (s, i) { return cartaoSistema(s, c.fechs ? c.fechs[i] : null, true, c.ppPac); }).join("") + "</div></section>";
+    if (!meta.semRodape) html += '<footer class="rh-doc-rodape">Este material organiza o que foi registrado na sua avaliação. Ele não é diagnóstico nem prescrição: os próximos passos são combinados com a sua nutricionista em consulta.</footer>';
+    return html;
+  }
+
+  /* radar + Indice (com o aviso) + Triade (+ cobertura so na profissional) */
+  function gradeGeral(h, paciente) {
+    var tri = h.triada || {}, triOk = h.triada_com_dado || {}, cob = h.cobertura || {};
+    return '<div class="rh-geral-grade"><div class="rh-radar-caixa">' + radarSvg(h.sistemas || []) + "</div>" +
       '<div class="rh-numeros">' +
         '<div class="rh-num rh-num-indice"><span>Índice HOLOS</span><b>' + (h.indice === null || h.indice === undefined ? "—" : num(h.indice)) + "</b><small>de " + e(h.indice_maximo || 100) + "</small>" +
           '<small class="rh-indice-aviso">' + e(AVISO_INDICE) + "</small></div>" +
         EIXOS.map(function (x) { return '<div class="rh-num"><span>' + e(x[1]) + "</span><b>" + (triOk[x[2]] === false || tri[x[2]] === null || tri[x[2]] === undefined ? "—" : num(tri[x[2]])) + "</b><small>Tríade</small></div>"; }).join("") +
         (paciente ? "" : '<div class="rh-num rh-num-cob"><span>Cobertura</span><b>' + (typeof cob.respondidos === "number" ? e(cob.respondidos + "/" + cob.total) : "—") + "</b><small>respostas</small></div>") +
-      "</div></div>" +
-      (paciente ? "" : '<p class="rh-nota-tec">Dados oficiais salvos da aplicação HOLOSCAN selecionada (' + e(h.pacote ? h.pacote.code + " v" + h.pacote.version : "") + '). Nada foi recalculado nesta página.</p>') +
-      "</section>";
-
-    // 3. cinco sistemas — motor de resultados V1 (12/10, itens 5-14): fechamento A-G de cada sistema (sistemas-fechamento.js),
-    //    so a partir do snapshot. Resultado anterior ao template 4: desenhado com o motor atual e rotulado (item 40).
+      "</div></div>";
+  }
+  /* cartao de um sistema: fechamento A-G (MR-V1); profissional com a mensagem do pacote e o registro completo */
+  function cartaoSistema(s, f, paciente, mostrarPP) {
     var SF = window.SistemasFechamento;
-    var fechs = SF ? SF.deResultado(snap, function (id) { return defFerr(id).titulo; }) : null;
-    var ppPac = paciente && snap.visibilidade && snap.visibilidade.proximos_passos === true;
-    html += '<section class="rh-secao" aria-labelledby="rh-t-sis"><h3 id="rh-t-sis">' + (paciente ? "Os cinco sistemas" : "Cinco sistemas") + "</h3>" +
-      (fechs && SF.historico(snap) ? '<p class="rh-nota-tec sf-historico">' + e(SF.ROTULO_HISTORICO) + "</p>" : "") +
-      (fechs && !paciente ? '<p class="rh-nota-tec">Resultado do método (' + e(SF.VERSAO) + '): textos aprovados e cálculo salvo. Não é leitura profissional nem Conduta.</p>' : "") +
-      '<div class="rh-sistemas">' +
-      sis.map(function (s, i) {
-        if (fechs) {
-          var art = SF.htmlSistema(fechs[i], visao, { faixaPaciente: faixaPaciente, faixaTxt: faixaTxt, mostrarPP: ppPac });
-          if (paciente) return art;
-          /* profissional: a mensagem aprovada do pacote para a faixa e o texto publico continuam, depois do fechamento */
-          return art.replace(/<\/article>$/, (s.mensagem_nutri ? '<p class="rh-sis-msg"><span class="sf-rot">Mensagem do pacote para a faixa</span>' + e(s.mensagem_nutri) + "</p>" : "") +
-            (s.texto_publico ? '<p class="rh-sis-pub">' + e(s.texto_publico) + "</p>" : "") + '<details class="rh-sis-det"><summary>Pontuou neste sistema (' + (s.pontuou || []).length + ")</summary>" + listaRespostas(s.pontuou) + "</details>" +
-            '<details class="rh-sis-det"><summary>Contexto, sem pontuar (' + (s.contexto || []).length + ")</summary>" +
-              ((s.contexto || []).length ? listaRespostas(s.contexto) : '<p class="rh-vazio">Nenhuma resposta de contexto neste sistema.</p>') + "</details></article>");
-        }
-        /* 12/10 (bug 3): a mensagem da faixa do pacote e escrita para a profissional ("Revise os itens..."). Na visao da
-           paciente, Resultado novo (template 3) usa linguagem simples; template 1/2 (ja emitidos) ficam como foram. */
-        var msg = paciente ? ((snap.template_version || 1) >= 3 ? textoPacienteFaixa(s) : s.mensagem_paciente) : s.mensagem_nutri;
-        return '<article class="rh-sis rh-faixa-' + e(s.faixa || "sem") + '"><header><h4>' + e(s.nome || s.sistema) + "</h4>" +
-          '<span class="rh-sis-nota">' + (s.avaliavel ? num(s.nota) : "—") + "</span></header>" +
-          '<p class="rh-sis-faixa">' + (s.avaliavel ? (paciente ? e(faixaPaciente(s.faixa)) : "faixa " + e(faixaTxt(s.faixa))) : "sem nota (menos respostas do que o mínimo)") +
-            (paciente ? "" : " · " + e(s.respondidos + " de " + s.total_marcadores) + " respondidas" + (s.avaliavel ? "" : " · não avaliável")) + "</p>" +
-          (msg ? '<p class="rh-sis-msg">' + e(msg) + "</p>" : "") +
-          (!paciente && s.texto_publico ? '<p class="rh-sis-pub">' + e(s.texto_publico) + "</p>" : "") +
-          (paciente ? "" :
-            '<details class="rh-sis-det"><summary>Pontuou neste sistema (' + (s.pontuou || []).length + ")</summary>" + listaRespostas(s.pontuou) + "</details>" +
-            '<details class="rh-sis-det"><summary>Contexto, sem pontuar (' + (s.contexto || []).length + ")</summary>" +
-              ((s.contexto || []).length ? listaRespostas(s.contexto) : '<p class="rh-vazio">Nenhuma resposta de contexto neste sistema.</p>') + "</details>") +
-          "</article>";
-      }).join("") + "</div>" +
-      (!paciente && h.interpretacao_texto ? '<div class="rh-interp"><span class="rh-tag">Interpretação registrada no HOLOSCAN</span><p>' + e(h.interpretacao_texto).replace(/\n/g, "<br>") + "</p></div>" : "") +
-      "</section>";
-
-    // 4-6. Corpo, Mente, Espirito
-    EIXOS.forEach(function (x) {
-      var doEixo = ferr.filter(function (t) { return moduloDe(t.ferramenta_id) === x[0]; });
-      var mapa = x[0] === "espirito" ? mapaProposito(snap, paciente) : "";
-      if (paciente && !doEixo.length && !mapa) return;
-      html += '<section class="rh-secao rh-eixo rh-eixo-' + x[0] + '" aria-labelledby="rh-t-' + x[0] + '"><h3 id="rh-t-' + x[0] + '">' + e(x[1]) + "</h3>" +
-        (paciente ? '<p class="rh-intro">Foi registrado nesta avaliação:</p>' : "") +
-        (doEixo.length || mapa ? '<div class="rh-ferrs">' + mapa + doEixo.map(function (t) { return cartaoFerramenta(t, paciente, snap.ferramentas || []); }).join("") + "</div>"
-          : '<p class="rh-vazio">Nenhuma ferramenta de ' + e(x[1]) + " selecionada para este resultado.</p>") + "</section>";
-    });
-
-    // 7. visao conjunta (so profissional)
-    if (!paciente) {
-      html += '<section class="rh-secao" aria-labelledby="rh-t-conj"><h3 id="rh-t-conj">Visão conjunta — Corpo | Mente | Espírito</h3>' +
-        '<p class="rh-nota-tec">Os registros lado a lado, como foram feitos. O sistema não tira conclusões: a leitura do conjunto é sua.</p><div class="rh-conjunta">' +
-        EIXOS.map(function (x) {
-          var doEixo = (snap.ferramentas || []).filter(function (t) { return moduloDe(t.ferramenta_id) === x[0]; });
-          return '<div class="rh-conj-col rh-eixo-' + x[0] + '"><h4>' + e(x[1]) + ' <small>Tríade ' + (tri[x[2]] === null || tri[x[2]] === undefined ? "—" : num(tri[x[2]])) + "</small></h4>" +
-            (doEixo.length ? '<ul class="rh-conj-lista">' + doEixo.map(resumoFerr).join("") + "</ul>" : '<p class="rh-vazio">Sem ferramentas selecionadas.</p>') + "</div>";
-        }).join("") + "</div></section>";
+    if (SF && f) {
+      var art = SF.htmlSistema(f, paciente ? "paciente" : "profissional", { faixaPaciente: faixaPaciente, faixaTxt: faixaTxt, mostrarPP: mostrarPP });
+      if (paciente) return art;
+      return art.replace(/<\/article>$/, (s.mensagem_nutri ? '<p class="rh-sis-msg"><span class="sf-rot">Mensagem do pacote para a faixa</span>' + e(s.mensagem_nutri) + "</p>" : "") +
+        (s.texto_publico ? '<p class="rh-sis-pub">' + e(s.texto_publico) + "</p>" : "") +
+        '<details class="rh-sis-det"><summary>Pontuou neste sistema (' + (s.pontuou || []).length + ")</summary>" + listaRespostas(s.pontuou) + "</details>" +
+        '<details class="rh-sis-det"><summary>Contexto, sem pontuar (' + (s.contexto || []).length + ")</summary>" +
+          ((s.contexto || []).length ? listaRespostas(s.contexto) : '<p class="rh-vazio">Nenhuma resposta de contexto neste sistema.</p>') + "</details></article>");
     }
-
-    // 8. observacoes
-    if (paciente) {
-      if (tem(obs.leitura_profissional)) html += '<section class="rh-secao rh-obs" aria-labelledby="rh-t-obs"><h3 id="rh-t-obs">O que sua nutricionista observou</h3><p>' + e(obs.leitura_profissional).replace(/\n/g, "<br>") + "</p></section>";
-      if (tem(obs.pontos_acompanhar)) html += '<section class="rh-secao rh-obs" aria-labelledby="rh-t-pts"><h3 id="rh-t-pts">Pontos que serão acompanhados</h3><p>' + e(obs.pontos_acompanhar).replace(/\n/g, "<br>") + "</p></section>";
-    } else {
-      html += '<section class="rh-secao rh-obs" aria-labelledby="rh-t-obs"><h3 id="rh-t-obs">Observações da nutricionista</h3>' +
-        [["leitura_profissional", "Leitura profissional da nutricionista"], ["pontos_acompanhar", "Pontos para acompanhar"], ["questoes_aprofundar", "Questões para aprofundar"]].map(function (k) {
-          return '<div class="rh-obs-item"><h4>' + e(k[1]) + "</h4>" + (tem(obs[k[0]]) ? "<p>" + e(obs[k[0]]).replace(/\n/g, "<br>") + "</p>" : '<p class="rh-vazio">Não registrado.</p>') + "</div>";
-        }).join("") + "</section>";
-      html += '<p class="rh-futuro">Exames e Leitura Integrada — não incluídos nesta versão do Resultado HOLOS.</p>';
-    }
-    html += '<footer class="rh-doc-rodape">' + (paciente
-      ? "Este material organiza o que foi registrado na sua avaliação. Ele não é diagnóstico nem prescrição: os próximos passos são combinados com a sua nutricionista em consulta."
-      : "Snapshot do Resultado HOLOS" + (meta.hash ? " · hash técnico " + e(String(meta.hash).slice(0, 16)) + "…" : "") + ". Documento organizado a partir de registros salvos; não é diagnóstico.") + "</footer>";
-    return html + "</article>";
+    return '<article class="rh-sis rh-faixa-' + e(s.faixa || "sem") + '"><header><h4>' + e(s.nome || s.sistema) + '</h4><span class="rh-sis-nota">' + (s.avaliavel ? num(s.nota) : "—") + "</span></header>" +
+      '<p class="rh-sis-faixa">' + (s.avaliavel ? (paciente ? e(faixaPaciente(s.faixa)) : "faixa " + e(faixaTxt(s.faixa))) : "sem nota") + "</p></article>";
+  }
+  /* panorama (item 29): ferramenta + resumo do resultado + estado/contexto */
+  function panoramaFerr(t, todas) {
+    var S = window.ResultadoSintese, FF = window.FerramentasFechamento;
+    var resumo = S && S.resumoResultado ? S.resumoResultado(t, todas, false) : "";
+    var res = FF && FF.resultado ? FF.resultado(t, todas) : null;
+    return '<li class="rh-conj-ferr"><b>' + e(defFerr(t.ferramenta_id).titulo) + "</b>" + (resumo ? "<p>" + e(resumo) + "</p>" : "") +
+      (res && res.estado ? '<p class="rh-nota-tec">Estado escolhido pela nutricionista: ' + e(res.estado) + "</p>" : "") +
+      (tem(t.leitura) ? '<p class="rh-nota-tec">Com leitura da nutricionista registrada.</p>' : "") + "</li>";
   }
   function listaRespostas(lista) {
     if (!(lista || []).length) return '<p class="rh-vazio">Nenhuma.</p>';
@@ -645,6 +663,7 @@
     if (nome === "ver") { vendo = { id: btn.dataset.rhId, visao: btn.dataset.rhVisao || "profissional" }; modo = "ver"; return pintar(); }
     if (nome === "nova-versao") { form = novoForm(pid, porId(vendo.id)); previa = null; vendo = null; modo = "editar"; return pintar(); }
     if (nome === "imprimir") return imprimir();
+    if (nome === "ir-conduta") { var ab = document.querySelector('[data-aba="conduta"]'); if (ab) ab.click(); return; }
     var travar = function (p) {
       ocupado = true; if (btn && window.travarBotao) window.travarBotao(btn, "Aguarde…");
       return p.finally(function () { ocupado = false; if (btn && window.destravarBotao) window.destravarBotao(btn); });

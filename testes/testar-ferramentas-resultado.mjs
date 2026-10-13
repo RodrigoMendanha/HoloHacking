@@ -124,8 +124,11 @@ const d = await P.evaluate((snap) => {
   div.innerHTML = window.ResultadoHolos.documentoHtml(snap, 'profissional', {});
   const prof = div.innerText, nRes = div.querySelectorAll('.rf-caixa').length, nReg = div.querySelectorAll('details.rh-registro').length;
   const leitura = !!div.querySelector('.rf-leitura');
+  const ordemProf = [...div.querySelectorAll('section > h3')].map(h => h.textContent.trim());
+  div.innerHTML = window.ResultadoHolos.documentoHtml(snap, 'paciente', { blocos: { foco: '<p>FOCO_CONDUTA</p>', combinado: '<p>COMBINADO_CONDUTA</p>', observar: '<p>RETORNO_CONDUTA</p>' }, semRodape: true });
+  const ordemPac = [...div.querySelectorAll('section > h3')].map(h => h.textContent.trim()), rodapes = div.querySelectorAll('footer').length;
   div.remove();
-  return { pac, pacHtml, prof, nRes, nReg, leitura };
+  return { pac, pacHtml, prof, nRes, nReg, leitura, ordemProf, ordemPac, rodapes };
 }, fx.resultado.content_snapshot);
 ok(d.nRes >= 9 && d.nReg >= 9 && /Resultado da ferramenta/i.test(d.prof) && /Registro da ferramenta/i.test(d.prof) && d.leitura && /Leitura da nutricionista/i.test(d.prof),
   'teste 17: "Resultado da ferramenta" separado do "Registro da ferramenta" (recolhido) e da "Leitura da nutricionista"');
@@ -134,6 +137,10 @@ ok(/Mapa do Propósito/.test(d.prof) && /derivado de OQ³/.test(d.prof) && /Gera
 ok(!/CARTA_INTIMA_NAO_MOSTRAR|Irmã Ficticia|Colega Ficticio|verdadeiro motivo|JUSTIFICATIVA_SO_PROFISSIONAL|OBS_SO_PROFISSIONAL|Pendências metodológicas|Registro da ferramenta/i.test(d.pac)
   && !/rh-visual|rh-registro/.test(d.pacHtml) && /Síntese construída com a paciente/.test(d.pac) && /A Carta ao Futuro Eu foi realizada como exercício/.test(d.pac),
   'paciente: só o resultado — sem formulário inteiro/desenho, sem nomes de terceiros, sem o texto da Carta, sem "verdadeiro motivo", sem pendências');
+ok(d.ordemProf.join(' | ') === 'Resumo para decisão | Por que o sistema chegou a isso | Resultados das ferramentas | Síntese HOLOS | Leitura profissional — observações da nutricionista | Conduta',
+  'item 30: visão profissional na ordem conclusão → evidência → ferramentas → síntese → leitura → Conduta (vínculo) — ' + d.ordemProf.join(' | '));
+ok(d.ordemPac.join(' | ') === 'O que entendemos nesta etapa | Áreas para aprofundar | O que descobrimos com as ferramentas | Nosso foco agora | O que ficou combinado | O que observar até o próximo encontro | Detalhes do mapa'
+  && d.rodapes === 0, 'item 31: visão da paciente em 8 blocos (Seu Mapa HOLOS no cabeçalho; detalhes do mapa por último) e sem rodapé no meio quando a página Resultado põe o seu — ' + d.ordemPac.join(' | '));
 ok(errosJS.length === 0, 'nenhum erro de JavaScript' + (errosJS.length ? ': ' + errosJS.join(' | ') : ''));
 await nav.close();
 console.log(falhou ? '\nFALHOU' : '\nresultado das ferramentas: tudo ok');

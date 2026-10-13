@@ -208,7 +208,7 @@
     }
     var autorizadas = f.fechamentos.filter(function (x) { return x.mostrar_paciente; }).map(function (x) { return x.nome; });
     if (autorizadas.length) out.push("Ferramentas que você fez e que a sua nutricionista compartilhou com você: " + lista(autorizadas) + ".");
-    if (f.compartilhar_pp && f.sugeridas.length) out.push("Próximos passos de aprofundamento: " + lista(f.sugeridas.map(function (s) { return s.nome; })) + ". A escolha e o momento são combinados com a sua nutricionista.");
+    if (f.compartilhar_pp && f.sugeridas.length) out.push("Próximos passos de aprofundamento: " + lista(f.sugeridas.map(function (s) { return s.nome; })) + ". Nenhuma é obrigatória; a escolha e o momento são combinados com a sua nutricionista.");
     else if (f.compartilhar_pp && f.todas_realizadas) out.push(MSG_TODAS_PACIENTE);
     return out;
   }

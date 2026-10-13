@@ -129,7 +129,7 @@ ok(cont.h === HA && cont.n === 4 && cont.m === 2 && cont.l === XSS, 'continuar r
 /* ----- 3: previa e salvar ----- */
 await clicar(A, '[data-rh-acao="previa"]'); await espera(800);
 const pv = await A.evaluate(() => ({ t: (document.getElementById('rh-doc') || {}).innerText || '', previa: !!document.querySelector('.rh-previa-selo') }));
-ok(pv.previa && /Visão geral HOLOSCAN/.test(pv.t) && /Cinco sistemas/.test(pv.t) && /Visão conjunta/.test(pv.t) && srv.linhas('holos_results')[0].status === 'rascunho', 'prévia (montada pelo servidor, marcada "PRÉVIA", nada gravado)');
+ok(pv.previa && /Visão geral HOLOSCAN/.test(pv.t) && /Cinco sistemas/i.test(pv.t) && /Panorama das ferramentas aplicadas/i.test(pv.t) && srv.linhas('holos_results')[0].status === 'rascunho', 'prévia (montada pelo servidor, marcada "PRÉVIA", nada gravado)');
 await shot(A, 'rh-previa', '#rh-doc');
 await clicar(A, '[data-rh-acao="salvar"]'); await confirmarModal(A);
 const salvo = srv.linhas('holos_results').find(r => r.status === 'salvo');
@@ -141,8 +141,8 @@ await A.evaluate(() => document.querySelectorAll('#rh-doc details.rh-registro').
 const prof = await A.evaluate(() => ({ t: document.getElementById('rh-doc').innerText, html: document.getElementById('rh-doc').innerHTML,
   sis: document.querySelectorAll('.rh-sis').length, det: document.querySelectorAll('.rh-sis-det').length, radar: !!document.querySelector('svg.rh-radar[role="img"][aria-label]'), xss: window.__xss === 1 }));
 ok(prof.sis === 5 && prof.det === 10 && prof.radar && /Identificação|Paciente/.test(prof.t) && /Corpo/.test(prof.t) && /Mente/.test(prof.t) && /Espírito/.test(prof.t) && /Mapa do Propósito/.test(prof.t)
-  && /Pontuou neste sistema/.test(prof.t) && /Contexto, sem pontuar/.test(prof.t) && /Observações da nutricionista/.test(prof.t) && /QUESTAO_SO_PROFISSIONAL/.test(prof.t) && /não incluídos nesta versão/.test(prof.t),
-  'visão profissional: identificação, radar, 5 sistemas (pontuou × contexto), Corpo/Mente/Espírito, Mapa do Propósito, visão conjunta, observações, nota de exames');
+  && /Pontuou neste sistema/.test(prof.t) && /Contexto, sem pontuar/.test(prof.t) && /observações da nutricionista/i.test(prof.t) && /Resumo para decisão/i.test(prof.t) && /Por que o sistema chegou a isso/i.test(prof.t) && /QUESTAO_SO_PROFISSIONAL/.test(prof.t) && /não incluídos nesta versão/.test(prof.t),
+  'visão profissional: identificação, radar, 5 sistemas (pontuou × contexto), Corpo/Mente/Espírito, Mapa do Propósito, panorama das ferramentas (motor de resultados 12/10: antes "visão conjunta"), observações, nota de exames; resumo para decisão primeiro');
 ok(!prof.xss && /&lt;img src=x/.test(prof.html) && !/<img src="?x/.test(prof.html), 'XSS nas observações: aparece como texto, não executa');
 ok(/romper o ciclo de autoabandono/.test(prof.t) && /PENSAMENTO_INTIMO/.test(prof.t) && /Irmã/.test(prof.t), 'ferramentas na visão profissional (PQQ, Gatilhos, Conexão)');
 await shot(A, 'rh-profissional', '#rh-doc');
