@@ -129,11 +129,15 @@ Leia o documento inteiro, inclusive tabelas e caixas. Seções esperadas (os nom
 
 **Estratégia** é o que será feito para seguir o direcionamento. Cada uma tem:
 - título;
+- origem (acordada ou nova);
+- território (Corpo, Mente ou Espírito);
 - direcionamento ligado;
-- tipo;
+- classificação;
+- decisão sugerida (só estratégia acordada);
 - o que fazer;
 - o que observar;
 - prazo;
+- critério de sucesso;
 - baseado em;
 - catálogo;
 - status.
