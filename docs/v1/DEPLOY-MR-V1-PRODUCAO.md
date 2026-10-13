@@ -1,6 +1,6 @@
 # DEPLOY MR-V1 — PRODUÇÃO (13/10)
 
-**Status: SQL APLICADO E CONFERIDO · FRONTEND PRONTO, AGUARDANDO O DEPLOY NA VPS · TESTE CARLA PENDENTE**
+**Status: SQL APLICADO E CONFERIDO · FRONTEND NO AR (46cab4e, 72/72 público) · TESTE CARLA PENDENTE**
 
 Este documento não tem senha, token, chave, connection string nem dado de paciente.
 
@@ -92,13 +92,22 @@ O script para sozinho em qualquer divergência e mantém o container anterior pa
 
 Uma emissão gerada nesse intervalo sai RF-2 e é desenhada com o front antigo até o deploy.
 
+### Deploy executado na VPS (Rodrigo, 13/10, imagem construída 03:32:33 UTC)
+
+| Passo | Resultado |
+|---|---|
+| 4–8 (temporário 8082) | 72 de 72; todos os scripts do index respondem 200; `TEMPORARIO VERDE` |
+| 9 (swap) | rollback preservado: `holohacking-web-antes-46cab4e` (imagem `holohacking-web:b12d6d6`) |
+| 10 (8080) | `version.json` `{"commit":"46cab4e"}`; 72 de 72 |
+| 11 (público) | `https://holohacking.com.br/version.json` `{"commit":"46cab4e"}`; `/`, `/app.js`, `/ferramentas-registro.js` e `/style.css` respondem 200; `no-cache`, `nosniff` e `Referrer-Policy` presentes; **72 de 72** |
+
 ## F. Hashes
 
 | Onde | Resultado |
 |---|---|
 | Local (`46cab4e`) | 72 de 72 batem com `docs/deploy.md` §3.5 |
 | Container `46cab4e` | 72 de 72 |
-| Produção pública | **pendente** (o próprio script de deploy confere no passo 11) |
+| Produção pública | **72 de 72** (passo 11 do script, em `https://holohacking.com.br`) |
 
 ## G–K. Teste Carla fictícia em produção
 
@@ -142,7 +151,7 @@ As capturas e os PDFs homologados (ambiente de teste, caso Carla) estão em `doc
 | Item | Status |
 |---|---|
 | MR-V1 (banco) | **APLICADO E CONFERIDO** |
-| MR-V1 (frontend) | **PRONTO; aguardando o deploy na VPS** |
+| MR-V1 (frontend) | **NO AR: 46cab4e, 72/72 no público; rollback em `holohacking-web-antes-46cab4e`** |
 | Validação em produção (Carla, PDF, smoke) | **PENDENTE** |
 | HOLOSCAN v3 | **NÃO PUBLICADO** |
 | PP-V2 | **NÃO INICIADO** |
