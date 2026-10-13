@@ -2,7 +2,7 @@
 
 Preparação da homologação metodológica, 13/10/2026. Esta matriz é para **Rodrigo e Daniel** decidirem as 84 perguntas antes de qualquer nova versão do HOLOSCAN.
 
-> **Nada foi decidido nem alterado.** Todas as 84 decisões estão **EM ABERTO**. Este documento não muda código, banco, o HOLOS-V1 v2, associação, peso nem pergunta. Não publica o v3 e não propõe PP-V2. Onde não há documentação, consta **"Justificativa não documentada"**. O "sistema alternativo" só aparece quando já está escrito num documento ou no próprio pacote; nos demais casos consta "a decidir".
+> **Situação em 13/10/2026: 2 decisões homologadas (SNT-210 e SNT-309: REMOVER, para a próxima versão) e 82 EM ABERTO.** Nada foi implementado: as decisões ficam registradas aqui e só entram num **novo pacote versionado**. Este documento não muda código, banco, o HOLOS-V1 v2, associação, peso nem pergunta. Não publica o v3 e não propõe PP-V2. Onde não há documentação, consta **"Justificativa não documentada"**. O "sistema alternativo" só aparece quando já está escrito num documento ou no próprio pacote; nos demais casos consta "a decidir".
 
 **Fontes**
 - `docs/v1/AUDITORIA-ASSOCIACOES-HOLOSCAN-V2.md`: classificação A/B/C/D, justificativas e fontes, linha a linha.
@@ -40,9 +40,25 @@ Efeitos comuns a MOVER, CONTEXTUAL e REMOVER (fonte: `AUDITORIA-ASSOCIACOES-HOLO
 - Qualquer mudança no pacote "**invalida** as aprovações vigentes daquela versão" (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`, seção 10). Por isso a nova versão é aprovada e publicada por inteiro.
 - **O v3 (82 perguntas) segue não publicado.** As decisões desta matriz devem ser conciliadas com ele antes de qualquer publicação.
 
+## 3A. Registro de decisões homologadas
+
+| lote | pergunta | decisão | justificativa | regras |
+|---|---|---|---|---|
+| 1 | SNT-210 — Seus exames costumam mostrar PCR ou VHS acima do normal? | **REMOVER** | Exames e documentos não participam do Resultado HOLOS. PCR/VHS não deve alterar notas, sistemas, Índice, prioridades, sinais dominantes ou Próximos Passos. | Somente para a próxima versão do pacote; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado; sem item substituto; a pergunta não é movida para outro sistema; nada implementado ainda. |
+| 1 | SNT-309 — Seus exames costumam mostrar triglicerídeos altos ou HDL baixo? | **REMOVER** | Exames e documentos não participam do Resultado HOLOS. Triglicerídeos/HDL não devem alterar notas, sistemas, Índice, prioridades, sinais dominantes ou Próximos Passos. | Somente para a próxima versão do pacote; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado; sem item substituto; a pergunta não é movida para outro sistema; nada implementado ainda. |
+
+Responsáveis: Rodrigo e Daniel. Registrada em 13/10/2026.
+
+**O que a decisão significa, sem implementar:**
+- na **próxima versão** do pacote, SNT-210 e SNT-309 **não fazem parte das novas aplicações**: não pontuam, não contam na cobertura, não entram no Índice nem na Tríade Corpo, não podem ser sinal dominante e não influenciam a prioridade dos sistemas nem a seleção do PP-V1;
+- **não há item substituto** e as perguntas **não são movidas** para outro sistema;
+- o **HOLOS-V1 v2 permanece imutável** e continua em produção, com os dois itens pontuando, até uma nova versão ser aprovada e publicada;
+- **nenhum histórico é recalculado**: aplicações, respostas, notas, Resultados HOLOS, Próximos Passos e emissões já salvos ficam como estão;
+- contagens da próxima versão, a partir da base v2 e se só esta decisão for aplicada: Ácido Inflamatório 16 → 15 (avaliaria com 12), Metabólico 14 → 13 (com 11), Tríade Corpo 49 → 47 (com 38), total 84 → 82. A base real será a versão que reunir todas as decisões homologadas.
+
 ## 4. GRUPO 1 — CONFLITO DIRETO (SNT-210, SNT-309)
 
-**Proposta para decisão humana: "Retirar da pontuação da próxima versão."** Não implementada; registrada aqui para Rodrigo e Daniel decidirem.
+**DECISÃO HOMOLOGADA (Lote 1, 13/10/2026): REMOVER as duas perguntas na próxima versão do pacote.** Ver o registro na seção 3A. Nada foi implementado; o HOLOS-V1 v2 continua igual e pontuando os dois itens até uma nova versão ser publicada.
 
 **Por que é conflito.** A decisão vigente é que **exames não participam do Resultado HOLOS**:
 - "Continuam fora de qualquer resultado: os exames" — `RESULTADO-FINAL-DECISOES-APROVADAS.md`;
@@ -85,7 +101,7 @@ Contagens por sistema fixadas em testes:
 
 Numa nova versão, esses arquivos seriam atualizados junto com o pacote.
 
-**Impacto no histórico.** **Nenhum.** Aplicações, respostas, notas, snapshots do Resultado HOLOS (com os dominantes) e dos Próximos Passos, e emissões RF-1/RF-2 já salvos ficam como estão, no v2. **Resultados HOLOS-V1 v2 históricos devem permanecer imutáveis**; nenhuma nota antiga é recalculada.
+**Impacto no histórico.** **Nenhum** (regra da decisão). Aplicações, respostas, notas, snapshots do Resultado HOLOS (com os dominantes) e dos Próximos Passos, e emissões RF-1/RF-2 já salvos ficam como estão, no v2. **Resultados HOLOS-V1 v2 históricos devem permanecer imutáveis**; nenhuma nota antiga é recalculada.
 
 **Impacto no PP-V1.** O catálogo sistema → ferramenta (30 regras) **não muda**: ele não cita perguntas. A **seleção** de uma nova aplicação pode mudar, porque depende dos dois sistemas de menor nota. Snapshots de Próximos Passos já registrados ficam congelados.
 
@@ -107,14 +123,16 @@ Numa nova versão, esses arquivos seriam atualizados junto com o pacote.
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:22)») |
 | fonte da justificativa | — |
 | classificação da auditoria | D — CONFLITO COM DECISÃO ATUAL: pergunta sobre resultado de exame laboratorial (PCR/VHS) pontua o Ácido Inflamatório; decisão vigente: exames não entram em nenhum resultado (ver §7). Pendência PM-15 aberta |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO HOMOLOGADA: REMOVER** |
+| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☒ **REMOVER** |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Ácido Inflamatório: 16 → 15 itens pontuados; hoje o item move a nota do sistema em até 0,625 (0–10) com todos respondidos e o Índice em até 1,25 (0–100); cobertura mínima passaria de 13/16 para 12/15; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Ácido Inflamatório, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Ácido Inflamatório for 1ª/2ª área, na da paciente. |
 | risco de interpretação | ALTO — dado laboratorial relatado pontua o Resultado HOLOS (conflito com a decisão de que exames não participam do resultado) |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | Exames e documentos não participam do Resultado HOLOS. PCR/VHS não deve alterar notas, sistemas, Índice, prioridades, sinais dominantes ou Próximos Passos. |
+| regras da decisão | Somente para a próxima versão do pacote; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado; sem item substituto; a pergunta não é movida para outro sistema; nada implementado ainda. |
+| decisão registrada | REMOVER · sem sistema de destino · Rodrigo e Daniel · registrada em 13/10/2026 · vale para a próxima versão do pacote |
 
 #### SNT-309 — Seus exames costumam mostrar triglicerídeos altos ou HDL baixo?
 
@@ -129,14 +147,50 @@ Numa nova versão, esses arquivos seriam atualizados junto com o pacote.
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:31)») |
 | fonte da justificativa | — |
 | classificação da auditoria | D — CONFLITO COM DECISÃO ATUAL: pergunta sobre resultado de exame laboratorial (triglicerídeos/HDL) pontua o Metabólico; decisão vigente: exames não entram em nenhum resultado (ver §7). Pendência PM-15 aberta. Nota: o texto oficial D13 do Metabólico cita «achados laboratoriais relatados no questionário» |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO HOMOLOGADA: REMOVER** |
+| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☒ **REMOVER** |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Metabólico: 14 → 13 itens pontuados; hoje o item move a nota do sistema em até 0,714 (0–10) com todos respondidos e o Índice em até 1,429 (0–100); cobertura mínima passaria de 12/14 para 11/13; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Metabólico, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Metabólico for 1ª/2ª área, na da paciente. |
 | risco de interpretação | ALTO — dado laboratorial relatado pontua o Resultado HOLOS (conflito com a decisão de que exames não participam do resultado) |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | Exames e documentos não participam do Resultado HOLOS. Triglicerídeos/HDL não devem alterar notas, sistemas, Índice, prioridades, sinais dominantes ou Próximos Passos. |
+| regras da decisão | Somente para a próxima versão do pacote; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado; sem item substituto; a pergunta não é movida para outro sistema; nada implementado ainda. |
+| decisão registrada | REMOVER · sem sistema de destino · Rodrigo e Daniel · registrada em 13/10/2026 · vale para a próxima versão do pacote |
+
+## 4A. LOTE 2 — ASSOCIAÇÕES MENTAIS/EMOCIONAIS/ESPIRITUAIS → SISTEMAS FÍSICOS (21 perguntas)
+
+**Em homologação. Decisão EM ABERTO para as 21 perguntas;** este documento não sugere decisão final. São as perguntas dos blocos Mental/Emocional e Espiritual que hoje pontuam um sistema físico (todas C na auditoria). As fichas completas, com impacto, sinal dominante e sistema alternativo documentado, estão na seção 5.
+
+| ID | texto | bloco | sistema atual | peso | justificativa documentada | risco interpretativo | MANTER | MOVER | CONTEXTUAL | REMOVER | decisão |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| EMO-101 | Você adia começar coisas mesmo sabendo que precisa fazer? | Mental/Emocional | Fúngico | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Fúngico: estagnação e desordem) (motor/bancos/emocoes.csv:2)») | conteúdo comportamental (adiar tarefas) pontua um sistema de nome fisiológico (Fúngico); o texto oficial D13 do Fúngico cita «sinais digestivos, mucosas, pele e padrões de desejo alimentar» e não cita comportamento ou emoção; o vínculo vem do padrão emocional legado «estagnação e desordem» (rascunho) | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
+| EMO-102 | Você sente que sua vida está desorganizada e não consegue pôr ordem? | Mental/Emocional | Fúngico | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Fúngico: estagnação e desordem) (motor/bancos/emocoes.csv:3)») | conteúdo comportamental/emocional (vida desorganizada) pontua o Fúngico; mesma situação de EMO-101 (padrão legado «estagnação e desordem», não coberto pelo texto oficial D13) | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
+| EMO-103 | Você sente um peso para sair do lugar mesmo querendo mudar? | Mental/Emocional | Fúngico | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Fúngico) (motor/bancos/emocoes.csv:4)») | conteúdo emocional («peso para sair do lugar») pontua o Fúngico; a associação pode sugerir ao leitor uma relação entre estado emocional e um eixo de nome fúngico; vínculo vem do padrão legado do Fúngico (rascunho). Já tem MEE como contextual (não pontua) | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
+| EMO-201 | Você se irrita com facilidade por coisas pequenas? | Mental/Emocional | Ácido Inflamatório | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Ácido-Inflamatório: irritação e reatividade) (motor/bancos/emocoes.csv:5)») | conteúdo emocional (irritação) pontua o Ácido Inflamatório; o texto oficial D13 cita «reatividade» sem dizer se é emocional; vínculo vem do padrão legado «irritação e reatividade». Já tem MEE como contextual (não pontua) | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
+| EMO-202 | Sua raiva sobe rápido e demora a passar? | Mental/Emocional | Ácido Inflamatório | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Ácido-Inflamatório) (motor/bancos/emocoes.csv:6)») | conteúdo emocional (raiva) pontua o Ácido Inflamatório; mesma situação de EMO-201 | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
+| EMO-203 | Você costuma aceitar o que não quer para evitar conflito? | Mental/Emocional | Ácido Inflamatório | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (impacto espiritual: bloqueio no plexo solar) (motor/bancos/emocoes.csv:7)») | conteúdo emocional/relacional pontua o Ácido Inflamatório; a proveniência registrada é «impacto espiritual: bloqueio no plexo solar», expressão que a Decisão 13 retirou do conteúdo oficial como termo causal («"bloqueio no plexo solar" … saem do conteúdo oficial»); a associação continua | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
+| EMO-204 | Você engole o que gostaria de dizer para não criar problema? | Mental/Emocional | Ácido Inflamatório | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (impacto espiritual: bloqueio no plexo solar) (motor/bancos/emocoes.csv:8)») | conteúdo emocional/relacional pontua o Ácido Inflamatório; proveniência «impacto espiritual: bloqueio no plexo solar» (termo retirado do conteúdo oficial pela Decisão 13); a associação continua | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
+| EMO-301 | Você sente um vazio que a comida parece tentar preencher? | Mental/Emocional | Metabólico | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Metabólico: vazio e falta de propósito) (motor/bancos/emocoes.csv:9)») | conteúdo emocional (vazio) pontua o Metabólico; o texto oficial D13 do Metabólico cita «comportamento alimentar», mas não emoção; vínculo vem do padrão legado «vazio e falta de propósito». Já tem MEE como contextual (não pontua) | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
+| EMO-302 | Você passa os dias no piloto automático sem perceber o que está fazendo? | Mental/Emocional | Metabólico | 1 | Justificativa não documentada (proveniência histórica: «livro p. 56 (Propósito de Vida e Nutrição) (motor/bancos/emocoes.csv:10)») | conteúdo de atenção/comportamento (piloto automático) pontua o Metabólico; no v2 o enunciado não menciona alimentação (o v3 acrescenta «em relação à alimentação»); MEE como contextual (não pontua) | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
+| EMO-303 | Você usa comida como recompensa depois de um dia difícil? | Mental/Emocional | Metabólico | 1 | Justificativa não documentada (proveniência histórica: «livro p. 90 (Trava da Resistência ao Prazer) (motor/bancos/emocoes.csv:11)») | comportamento alimentar emocional (comida como recompensa) do bloco Mente pontua o Metabólico; o texto oficial D13 do Metabólico inclui «comportamento alimentar», o que dá cobertura temática, mas não há justificativa do item | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
+| EMO-401 | Você se pega remoendo uma mágoa antiga? | Mental/Emocional | Detox e Linfático | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Detox: acúmulo de mágoas) (motor/bancos/emocoes.csv:12)») | conteúdo emocional (mágoa) pontua o Detox e Linfático; texto oficial D13 do Detox cita «inchaço, hábito intestinal, pele e sensibilidade relatada a substâncias»; vínculo vem do padrão legado «acúmulo de mágoas» (rascunho); pode sugerir leitura causal emoção→eliminação | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
+| EMO-402 | Você costuma guardar o que sente em vez de falar? | Mental/Emocional | Detox e Linfático | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Detox: emoções não processadas) (motor/bancos/emocoes.csv:13)») | conteúdo emocional (guardar o que sente) pontua o Detox e Linfático; padrão legado «emoções não processadas»; texto oficial D13 não cobre o tema. MEE como contextual (não pontua) | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
+| EMO-403 | Você tem dificuldade de aceitar ajuda ou cuidado das pessoas? | Mental/Emocional | Detox e Linfático | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Detox) (motor/bancos/emocoes.csv:14)») | conteúdo relacional (aceitar ajuda) pontua o Detox e Linfático; texto oficial D13 não cobre o tema | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
+| ESP-101 | Você sente que sua vida tem uma direção clara? | Espiritual | Metabólico | 1 | Justificativa não documentada (proveniência histórica: «livro p. 56 (Propósito de Vida e Nutrição) (motor/bancos/espiritual.csv:2)») | conteúdo de propósito (direção de vida, invertida) pontua o Metabólico; proveniência «Propósito de Vida e Nutrição» não menciona o sistema; texto oficial D13 não cobre o tema | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
+| ESP-103 | Sua rotina de hoje te afasta do que você quer para a sua vida? | Espiritual | Metabólico | 1 | Justificativa não documentada (proveniência histórica: «livro p. 57 (Avaliação de Alinhamento) (motor/bancos/espiritual.csv:4)») | conteúdo de propósito/rotina pontua o Metabólico; proveniência «Avaliação de Alinhamento» não menciona o sistema; texto oficial D13 não cobre o tema | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
+| ESP-203 | Você abre mão do que é inegociável para você só para agradar alguém? | Espiritual | Ácido Inflamatório | 1 | Justificativa não documentada (proveniência histórica: «livro p. 46 (princípios inegociáveis) (motor/bancos/espiritual.csv:7)») | conteúdo de valores/relacional (abrir mão do inegociável) pontua o Ácido Inflamatório; a proveniência registrada («princípios inegociáveis») não menciona o sistema; texto oficial D13 não cobre o tema | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
+| ESP-303 | Você começa a comer sem fazer nenhuma pausa antes? | Espiritual | Metabólico | 1 | Justificativa não documentada (proveniência histórica: «livro p. 62 (Pausa Consciente) (motor/bancos/espiritual.csv:10)») | comportamento alimentar (pausa antes de comer) do bloco Espírito pontua o Metabólico; o texto oficial D13 inclui «comportamento alimentar» (cobertura temática), mas não há justificativa do item; proveniência «Pausa Consciente» | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
+| ESP-404 | Você acredita que para ter saúde precisa sofrer ou se privar? | Espiritual | Ácido Inflamatório | 1 | Justificativa não documentada (proveniência histórica: «livro p. 90 (Trava da Resistência ao Prazer) (motor/bancos/espiritual.csv:14)») | crença («para ter saúde precisa sofrer») pontua o Ácido Inflamatório; redação + eixo podem sugerir causalidade; a revisão pública negou o item «por estar no Sistema Ácido Inflamatório» e a decisão de 12/10 (DECISOES-V1 item 183) o move para o MEE no v3 (não publicado); no v2 o vínculo continua | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
+| ESP-405 | Você carrega o peso de não ter conseguido perdoar alguém? | Espiritual | Detox e Linfático | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Detox: acúmulo de mágoas) (motor/bancos/espiritual.csv:15)») | conteúdo espiritual/relacional (perdão) pontua o Detox e Linfático; padrão legado «acúmulo de mágoas»; texto oficial D13 não cobre o tema; pode sugerir leitura causal | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
+| ESP-501 | Você passa algum tempo em contato com a natureza? | Espiritual | Fúngico | 1 | Justificativa não documentada (proveniência histórica: «livro p. 39 (alimentação como ato sagrado) (motor/bancos/espiritual.csv:16)») | hábito ambiental/espiritual (contato com a natureza, invertida) pontua o Fúngico; a proveniência registrada («alimentação como ato sagrado») não menciona o Fúngico; o texto oficial D13 do Fúngico não cobre o tema; a associação pode sugerir causalidade («pouco contato com a natureza» elevando um eixo fúngico) | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
+| ESP-502 | Você faz suas refeições sozinho e com pressa? | Espiritual | Detox e Linfático | 1 | Justificativa não documentada (proveniência histórica: «livro p. 63 (Comunhão Consciente) (motor/bancos/espiritual.csv:17)») | contexto social/comportamental da refeição (sozinho e com pressa) pontua o Detox e Linfático; proveniência «Comunhão Consciente» não menciona o sistema; texto oficial D13 não cobre o tema | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
+
+Pontos já registrados que Rodrigo e Daniel podem querer considerar (fatos, não sugestão):
+- **ESP-404:** a decisão de 12/10 para o v3 (não publicado) move a pergunta para o Mental Emocional Espiritual.
+- **Contextual MEE já vigente, sem pontuação:** EMO-101, EMO-103, EMO-201, EMO-203, EMO-301, EMO-302 e EMO-402 já têm o MEE como associação `secondary_contextual`.
+- **EMO-203 e EMO-204:** o vínculo nasceu do "impacto espiritual: bloqueio no plexo solar", termo que a Decisão 13 tirou do conteúdo oficial.
+- Perguntas 2 a 5 da seção 9 da auditoria.
 
 ## 5. GRUPO 2 — REVISÃO PRIORITÁRIA (26 perguntas classificadas C)
 
@@ -2163,9 +2217,9 @@ O enunciado menciona exame laboratorial, condição nomeada ou uso de medicament
 
 ### 8.6 Decisões que exigem Rodrigo e Daniel
 
-**Todas as 84 decisões estão EM ABERTO.** Em ordem de prioridade:
+**2 decisões homologadas (Lote 1) e 82 EM ABERTO.** Pendentes, em ordem de prioridade:
 
-1. **Grupo 1 — SNT-210 e SNT-309.** Aceitar ou não a proposta "Retirar da pontuação da próxima versão" e escolher o tratamento: CONTEXTUAL ou REMOVER. Junto, decidir o texto D13 do Metabólico e a opção "não se aplica" na tela.
+1. **Grupo 1 — SNT-210 e SNT-309: HOMOLOGADO (REMOVER, próxima versão).** Continuam em aberto, por consequência: o texto D13 do Metabólico ("achados laboratoriais relatados no questionário") e a opção "não se aplica" na tela.
 2. **Grupo 2 — 26 perguntas C**, por subgrupo:
    - 13 mental/emocional → físico;
    - 8 espiritual → físico;
