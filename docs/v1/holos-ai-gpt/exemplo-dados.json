@@ -1,0 +1,112 @@
+{
+  "meta": {
+    "titulo_atendimento": "Primeira consulta — Paciente fictícia M.A.",
+    "identificador": "PAC-EXEMPLO-001 / ATD-EXEMPLO-001",
+    "data_atendimento": "10/10/2026",
+    "tipo": "primeira consulta",
+    "data_analise": "10/10/2026",
+    "prompt_version": "HOLOS-AI-GPT 1.0",
+    "kb_version": "HOLOS-KB 0.1 (arquivos do GPT; catálogos ainda não homologados)"
+  },
+  "pacote": [
+    { "titulo": "Atendimento", "itens": [["Tipo", "Primeira consulta"], ["Data", "10/10/2026"], ["Modalidade", "Online"]] },
+    { "titulo": "Contexto mínimo da paciente", "itens": [["Identificação", "M.A. (fictícia)"], ["Idade", "38 anos"], ["Ocupação", "Trabalho em turnos alternados"]] },
+    { "titulo": "Mapeamento Holístico (relato da paciente)", "itens": [
+      ["Motivo da consulta", "Mais energia e disposição"],
+      ["O que quer melhorar agora", "Ter mais disposição à tarde"],
+      ["Dificuldades com a alimentação", "Comer à noite, Beliscar"],
+      ["Como percebe a fome", "Forte no fim da tarde"],
+      ["Sinais que tem percebido", "Azia ou refluxo, Cansaço"],
+      ["O que mais incomoda", "Cansaço"],
+      ["Como são os dias", "Corridos e imprevisíveis"],
+      ["Algo mais que quis contar", "Trabalho em turnos alternados."]] },
+    { "titulo": "HOLOSCAN (pacote HOLOS-V1 v7)", "itens": [
+      ["Cobertura", "81 de 81 perguntas respondidas"],
+      ["Índice HOLOS", "6,1 de 10,0"],
+      ["Sistema Metabólico", "4,2 · faixa intermediária · prioritário (1º)"],
+      ["Sistema Mental Emocional Espiritual", "5,4 · faixa intermediária · prioritário (2º)"],
+      ["Sistema Fúngico", "6,8 · faixa alta"],
+      ["Sistema Ácido Inflamatório", "7,0 · faixa alta"],
+      ["Sistema Detox e Linfático", "7,3 · faixa alta"],
+      ["Tríade (Físico / Mental / Espiritual)", "6,0 / 5,6 / 6,9"]] },
+    { "titulo": "Sinais relevantes (do HOLOSCAN)", "itens": [
+      ["Metabólico", "Fome intensa no fim da tarde (Frequente); Queda de energia após o almoço (Frequente)"],
+      ["Mental Emocional Espiritual", "Sono interrompido em dias de turno (Às vezes); Sensação de pressa constante (Frequente)"]] },
+    { "titulo": "Ferramentas aplicadas", "itens": [
+      ["Mapa da Rotina (concluída)", "Acorda 6h, dorme 23h30 em dias de turno da tarde; almoço às 13h em 15 minutos; intervalo de 6h sem comer entre 13h e 19h; jantar tardio às 21h30; mais fome e beliscos entre 18h e 20h; ponto de apoio: lanche levado de casa funciona quando planejado na noite anterior."],
+      ["PQQ — Escada dos Porquês (concluída)", "Objetivo declarado: ter mais disposição à tarde. Camadas: para render no trabalho, para chegar em casa com energia, para estar presente com a filha à noite. Pra quê construído com a paciente: estar presente com a filha."]] },
+    { "titulo": "Leitura profissional disponível", "texto": "Fome e cansaço concentrados no fim da tarde, com intervalo longo sem refeição. Escrito pela nutricionista." },
+    { "titulo": "Conduta", "itens": [["Objetivo", "Organizar o fim da tarde"], ["Acordo", "Preparar o lanche na noite anterior"]] },
+    { "titulo": "Direcionamentos e estratégias ativos", "texto": "Nenhum (primeira consulta)." },
+    { "titulo": "Histórico relevante", "texto": "Sem atendimentos anteriores." }
+  ],
+  "resultado": {
+    "sintese": "Primeira consulta. A paciente relata pouca disposição à tarde e fome forte no fim do dia. O Mapa da Rotina mostra um intervalo de cerca de 6 horas sem refeição entre 13h e 19h, seguido de beliscos e jantar tardio. O HOLOSCAN aponta o Sistema Metabólico como primeiro eixo para aprofundar e o Mental Emocional Espiritual como segundo. O PQQ conectou o objetivo a estar presente com a filha à noite.",
+    "convergencias": [
+      "Fome forte no fim da tarde aparece no Mapeamento, nos sinais do HOLOSCAN (Metabólico) e no Mapa da Rotina (18h–20h).",
+      "Pouca disposição à tarde aparece no Mapeamento e no sinal 'queda de energia após o almoço'; podem ser investigados em conjunto com o intervalo longo sem refeição.",
+      "Azia relatada e jantar tardio aparecem no mesmo período e podem ser investigados em conjunto (sem relação de causa estabelecida)."
+    ],
+    "padroes_observados": [
+      "Intervalo longo sem comer entre o almoço e o fim do dia nos dias de turno.",
+      "Quando o lanche é planejado na noite anterior, a paciente relata que funciona."
+    ],
+    "hipoteses_para_investigar": [
+      "O intervalo longo sem refeição pode estar relacionado à fome intensa do fim da tarde: hipótese a observar, não conclusão.",
+      "Os dias de turno podem mudar o padrão de fome e sono: vale comparar dias de turno e dias comuns."
+    ],
+    "questoes_para_aprofundar": [
+      "Em quais dias da semana a fome do fim da tarde é mais forte?",
+      "O que a paciente costuma comer quando belisca entre 18h e 20h?",
+      "Em que horário a azia aparece e com que refeições ela coincide?"
+    ],
+    "direcionamentos": [
+      {
+        "titulo": "Organizar o período da tarde para compreender fome e energia antes do jantar",
+        "sistema": "Sistema Metabólico",
+        "por_que": "O fim da tarde concentra fome forte, beliscos e queda de energia, e há um intervalo longo sem refeição.",
+        "objetivo": "Chegar ao jantar com menos fome e mais energia nos dias de turno.",
+        "baseado_em": ["Mapeamento: fome forte no fim da tarde; quer mais disposição à tarde", "HOLOSCAN: Sistema Metabólico prioritário (4,2)", "Mapa da Rotina: 6h sem comer entre 13h e 19h", "PQQ: estar presente com a filha à noite"],
+        "catalogo": "CANDIDATO NÃO CATALOGADO — requer validação profissional",
+        "status": "SUGERIDO"
+      }
+    ],
+    "estrategias": [
+      {
+        "titulo": "Lanche planejado no meio da tarde nos dias de turno",
+        "direcionamento": "Organizar o período da tarde",
+        "tipo": "Comportamental (dentro do acordo já registrado na Conduta)",
+        "o_que_fazer": "Levar um lanche preparado na noite anterior e comê-lo por volta das 16h. A escolha do que comer é decisão profissional na Conduta.",
+        "o_que_observar": "Fome e energia ao chegar em casa; beliscos entre 18h e 20h.",
+        "prazo": "Até o retorno",
+        "baseado_em": ["Mapa da Rotina: o lanche planejado funciona quando preparado na noite anterior", "Conduta: acordo 'Preparar o lanche na noite anterior'"],
+        "catalogo": "CANDIDATA NÃO CATALOGADA — requer validação profissional",
+        "status": "SUGERIDO"
+      },
+      {
+        "titulo": "Registro simples de fome e energia às 16h e às 19h",
+        "direcionamento": "Organizar o período da tarde",
+        "tipo": "Metodológica / auto-observação",
+        "o_que_fazer": "Anotar de 0 a 10 a fome e a energia em dois horários combinados.",
+        "o_que_observar": "Diferença entre dias de turno e dias comuns.",
+        "prazo": "Até o retorno",
+        "baseado_em": ["Mapeamento: dias corridos e imprevisíveis", "HOLOSCAN: sinais de fome e energia no Sistema Metabólico"],
+        "catalogo": "CANDIDATA NÃO CATALOGADA — requer validação profissional",
+        "status": "SUGERIDO"
+      }
+    ],
+    "corpo": "Organizar horários e o lanche da tarde nos dias de turno.",
+    "mente": "Observar a sensação de pressa e o momento em que os beliscos começam.",
+    "espirito": "Manter a mudança ligada ao motivo construído no PQQ: estar presente com a filha à noite.",
+    "observar": ["Fome e energia ao chegar em casa", "Beliscos entre 18h e 20h", "Horário em que a azia aparece"],
+    "proxima_etapa": "No retorno, revisar o registro de fome e energia e decidir se o lanche da tarde se mantém ou se ajusta. Requer decisão profissional na Conduta para qualquer mudança alimentar específica.",
+    "retorno": [],
+    "fontes_utilizadas": ["Pacote HOLOS AI do atendimento (Mapeamento, HOLOSCAN v7, Mapa da Rotina, PQQ, Conduta)", "02-SISTEMAS-E-FERRAMENTAS: Sistema Metabólico (texto oficial v7); Mapa da Rotina; PQQ"],
+    "alertas_metodologicos": [
+      "O Sistema Metabólico não diagnostica resistência à insulina, diabetes, alterações da tireoide ou outras condições metabólicas.",
+      "A azia relatada não foi interpretada; se persistir, requer avaliação profissional.",
+      "Direcionamentos e estratégias não pertencem a um catálogo homologado (ainda inexistente): validar antes de usar."
+    ],
+    "informacao_insuficiente": ["Não há registro de dias comuns (sem turno) para comparar."]
+  }
+}
