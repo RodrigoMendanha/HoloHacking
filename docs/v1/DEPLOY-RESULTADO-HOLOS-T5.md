@@ -3,7 +3,7 @@
 Uma operação coordenada, no mesmo HoloHacking: mesmo domínio, login, banco, pacientes, histórico e plataforma.
 **Nada aqui foi executado.** Executar só com autorização explícita de Rodrigo. Sem senha, chave ou token neste documento.
 
-- Commit do front: **`COMMIT_FINAL`** (branch `claude/admiring-mccarthy-jke2pf`)
+- Commit do front: **`b71edc6`** (`b71edc650b4370adffb57def9387b8a6dd6380b9`) (branch `claude/admiring-mccarthy-jke2pf`)
 - Migration: `supabase/migrations/20261021100000_resultado_holos_direcao.sql` (aditiva; ainda NÃO aplicada em produção)
 - Rollback do banco: `supabase/rollback/20261021100000_resultado_holos_direcao_rollback.sql` (provado no Postgres local: RB-01/RB-02)
 - Pacote HOLOSCAN: produção está na **HOLOS-V1 v6** (`2f746194…`, hash do servidor `545a594d…`); a **v7** (só texto) é
@@ -65,7 +65,7 @@ Se aparecer uma v7 `em_revisao` parada (página recarregada no meio), ela não v
 antes de qualquer correção.
 
 ### 4. Validar o front carregado
-- `https://holohacking.com.br/version.json` → commit `COMMIT_FINAL`; Perfil → Conta → Versão do app igual.
+- `https://holohacking.com.br/version.json` → commit `b71edc6`; Perfil → Conta → Versão do app igual.
 - `sh scripts/conferir-producao.sh` → 73 de 73.
 
 ### 5. Impressões digitais pós-deploy (só leitura)
@@ -77,14 +77,14 @@ passos **iguais** (antes do smoke); pacotes = 6 (v7 aprovada, v6 retirada); colu
 ## Rollback
 
 - **Front** (na VPS; o script imprime o comando exato):
-  `docker stop holohacking-web && docker rename holohacking-web holohacking-web-COMMIT_FINAL_CURTO-falhou && docker rename holohacking-web-antes-COMMIT_FINAL_CURTO holohacking-web && docker start holohacking-web`
+  `docker stop holohacking-web && docker rename holohacking-web holohacking-web-b71edc6-falhou && docker rename holohacking-web-antes-b71edc6 holohacking-web && docker start holohacking-web`
 - **Banco** (só se o front voltou e for preciso): SQL Editor → `supabase/rollback/20261021100000_resultado_holos_direcao_rollback.sql`.
   Devolve as 4 RPCs ao corpo de antes (md5 conferido); **não apaga** a coluna `direcao`, Resultados T5 nem emissões RF-3.
 - **v7**: não precisa de rollback (só texto; notas/Índice/Tríade/PP idênticos). Aplicações novas na v7 continuam válidas.
 
 ## Checklist pós-deploy
 - [ ] Migration conferida (passo 1)
-- [ ] version.json = COMMIT_FINAL; 73/73
+- [ ] version.json = b71edc6; 73/73
 - [ ] v7 aprovada, v6 retirada, nenhum `em_revisao`; texto do Ácido sem "exame"
 - [ ] Impressões digitais do histórico iguais às do passo 0
 - [ ] Resultado antigo (template 4) abre igual e emite pela regra histórica (RF-2)
