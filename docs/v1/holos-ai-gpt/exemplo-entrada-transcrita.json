@@ -1,0 +1,160 @@
+{
+ "titulo": "Resultado HOLOS — Paciente Teste T5 Fictícia (primeira consulta)",
+ "secoes": [
+  {
+   "titulo": "Identificação do documento",
+   "itens": [
+    [
+     "Documento",
+     "Resultado HOLOS (exportado pelo HoloHacking)"
+    ],
+    [
+     "Paciente",
+     "Paciente Teste T5 Fictícia"
+    ],
+    [
+     "Data do encontro",
+     "13/10/2026"
+    ],
+    [
+     "Evolução",
+     "Sem evolução registrada nesta etapa (ponto de partida)"
+    ]
+   ]
+  },
+  {
+   "titulo": "Foco atual",
+   "texto": "Organizar o fim da tarde."
+  },
+  {
+   "titulo": "Direcionamento",
+   "itens": [
+    [
+     "Direcionamento",
+     "Organizar o fim da tarde"
+    ],
+    [
+     "Território",
+     "Corpo"
+    ],
+    [
+     "Sistema ligado",
+     "Metabólico"
+    ]
+   ]
+  },
+  {
+   "titulo": "Estratégia acordada",
+   "itens": [
+    [
+     "Estratégia",
+     "Lanche planejado antes da fome forte"
+    ],
+    [
+     "O que fará",
+     "Levar um lanche planejado e comer por volta das 16h"
+    ],
+    [
+     "Acordo",
+     "Preparar o lanche na noite anterior"
+    ],
+    [
+     "O que observar",
+     "Intensidade da fome e disposição entre 16h e 18h"
+    ],
+    [
+     "Prazo",
+     "Até o próximo encontro (cerca de 2 semanas)"
+    ],
+    [
+     "Status",
+     "Acordada"
+    ]
+   ]
+  },
+  {
+   "titulo": "Corpo · Mente · Espírito",
+   "itens": [
+    [
+     "Corpo",
+     "Lanche planejado e observação de fome e disposição"
+    ],
+    [
+     "Mente",
+     "Ainda não aprofundado nesta etapa."
+    ],
+    [
+     "Espírito",
+     "Ainda não aprofundado nesta etapa."
+    ]
+   ]
+  },
+  {
+   "titulo": "HOLOSCAN (HOLOS-V1 v7)",
+   "itens": [
+    [
+     "Índice HOLOS",
+     "55,3 de 100"
+    ],
+    [
+     "Tríade",
+     "Corpo 5,6 · Mente 6,5 · Espírito 5,2"
+    ],
+    [
+     "Sistema Metabólico",
+     "2,4 · primeira área para aprofundar"
+    ],
+    [
+     "Sistema Fúngico",
+     "5,8 · segunda área para aprofundar"
+    ],
+    [
+     "Sistema Mental Emocional Espiritual",
+     "6,1"
+    ],
+    [
+     "Sistema Ácido Inflamatório",
+     "6,7"
+    ],
+    [
+     "Sistema Detox e Linfático",
+     "6,7"
+    ]
+   ]
+  },
+  {
+   "titulo": "Sinais que mais pesaram (do HOLOSCAN)",
+   "itens": [
+    [
+     "Metabólico",
+     "Muito sono logo depois do almoço; fome novamente pouco tempo depois de comer; comer depois do jantar mesmo sem fome percebida"
+    ],
+    [
+     "Fúngico",
+     "Vontade forte de doce ou pão quase todos os dias; barriga inchada ou gases depois das refeições; camada esbranquiçada na língua"
+    ]
+   ]
+  },
+  {
+   "titulo": "Ferramenta aplicada — Mapa da Rotina",
+   "itens": [
+    [
+     "Sono",
+     "Dorme bem e acorda razoavelmente disposta"
+    ],
+    [
+     "Trabalho",
+     "Escritório, das 9h às 18h, com reuniões à tarde"
+    ],
+    [
+     "Momento de maior dificuldade",
+     "16h–18h: fome forte e queda de disposição"
+    ],
+    [
+     "Espaço para mudança",
+     "Preparar o lanche na noite anterior"
+    ]
+   ]
+  }
+ ]
+}

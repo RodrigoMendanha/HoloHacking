@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "holohacking:holos-ai-result:1",
+  "title": "HOLOS_AI_RESULT (schema_version 1)",
+  "description": "Saída canônica da HOLOS AI, importável pelo HoloHacking. Tudo é SUGERIDO; a nutricionista confirma, edita ou descarta. Campos sem material: lista vazia, \"Sem dado\" ou \"Ainda não aprofundado nesta etapa.\" — nunca conteúdo inventado.",
+  "type": "object",
+  "required": ["schema_version", "tipo", "sintese_integrada", "o_que_apareceu", "convergencias", "padroes_observados", "pontos_para_aprofundar", "sistemas_prioritarios", "ferramentas_recomendadas", "direcionamentos", "estrategias", "corpo", "mente", "espirito", "o_que_observar", "roteiro_proxima_consulta", "proxima_etapa", "rascunho_paciente", "alertas_profissionais", "fontes_utilizadas"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "tipo": { "enum": ["primeira_consulta", "retorno"] },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "agente": { "type": "string" },
+        "kb_version": { "type": "string" },
+        "identificador": { "type": "string", "description": "Iniciais ou ID que vieram no documento. Nunca CPF, telefone ou endereço." },
+        "data_atendimento": { "type": "string", "description": "AAAA-MM-DD ou \"Sem dado\"" },
+        "data_analise": { "type": "string" }
+      }
+    },
+    "entrada": {
+      "type": "object",
+      "properties": {
+        "documentos": { "type": "array", "items": { "enum": ["pacote_holos_ai", "pdf_resultado_holos"] } },
+        "base_principal": { "enum": ["pacote_holos_ai", "pdf_resultado_holos"], "description": "Com os dois, sempre pacote_holos_ai." },
+        "observacao": { "type": "string" }
+      }
+    },
+    "sintese_integrada": { "type": "string" },
+    "o_que_apareceu": {
+      "type": "array",
+      "items": { "type": "object", "required": ["texto", "fonte"], "properties": { "texto": { "type": "string" }, "fonte": { "type": "string" } } }
+    },
+    "convergencias": {
+      "type": "array",
+      "items": {
+        "type": "object", "required": ["tipo", "texto"],
+        "properties": { "tipo": { "enum": ["convergencia", "conflito"] }, "texto": { "type": "string" }, "fontes": { "type": "array", "items": { "type": "string" } } }
+      }
+    },
+    "padroes_observados": { "type": "array", "items": { "type": "string" } },
+    "pontos_para_aprofundar": {
+      "type": "array",
+      "items": {
+        "type": "object", "required": ["tipo", "texto", "so_profissional"],
+        "properties": {
+          "tipo": { "enum": ["questao", "hipotese"] },
+          "texto": { "type": "string" },
+          "so_profissional": { "type": "boolean", "description": "Hipótese é sempre true: nunca vai para a paciente." }
+        }
+      }
+    },
+    "sistemas_prioritarios": {
+      "type": "array",
+      "description": "Como vieram no documento. Nunca recalcular nota, faixa ou ordem.",
+      "items": {
+        "type": "object", "required": ["ordem", "sistema", "nota", "posicao"],
+        "properties": {
+          "ordem": { "type": "integer", "minimum": 1 },
+          "sistema": { "type": "string" },
+          "nota": { "type": "string", "description": "Exatamente como no documento (ex.: \"2,4\")." },
+          "posicao": { "type": "string" },
+          "o_que_apareceu": { "type": "string" },
+          "o_que_observar": { "type": "string" },
+          "como_cuidar": { "type": "string", "description": "Texto oficial do arquivo 02 + limite do eixo." }
+        }
+      }
+    },
+    "ferramentas_ja_aplicadas": {
+      "type": "array",
+      "items": {
+        "type": "object", "required": ["ferramenta", "situacao", "o_que_esclareceu"],
+        "properties": {
+          "ferramenta": { "type": "string" },
+          "situacao": { "enum": ["concluida", "em_andamento", "aplicada_anteriormente"] },
+          "o_que_esclareceu": { "type": "string" }
+        }
+      }
+    },
+    "ferramentas_recomendadas": {
+      "type": "array", "maxItems": 3,
+      "description": "Até 3, pela regra PP-V1 do arquivo 05. Sem duplicatas; nunca uma ferramenta concluída no mesmo encontro enquanto houver alternativa.",
+      "items": {
+        "type": "object", "required": ["ordem", "papel", "regra_id", "ferramenta", "territorio", "sistema", "por_que", "status"],
+        "properties": {
+          "ordem": { "type": "integer", "minimum": 1, "maximum": 3 },
+          "papel": { "enum": ["principal", "complementar"] },
+          "regra_id": { "type": "string", "pattern": "^REC-(FUN|AIN|MET|DTL|MEE)-0[1-6]$" },
+          "ferramenta": { "type": "string" },
+          "territorio": { "enum": ["Corpo", "Mente", "Espírito"] },
+          "sistema": { "type": "string" },
+          "por_que": { "type": "string" },
+          "como_aplicar": { "type": "string" },
+          "o_que_procurar": { "type": "string" },
+          "status": { "const": "SUGERIDO" }
+        }
+      }
+    },
+    "direcionamentos": {
+      "type": "array",
+      "items": {
+        "type": "object", "required": ["id", "origem", "titulo", "por_que", "objetivo", "baseado_em", "catalogo", "status"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^D[0-9]+$" },
+          "origem": { "enum": ["existente", "nova"] },
+          "titulo": { "type": "string" },
+          "territorio": { "enum": ["Corpo", "Mente", "Espírito", null] },
+          "sistema": { "type": ["string", "null"], "description": "null quando não há vínculo. Nunca inventar vínculo." },
+          "por_que": { "type": "string" },
+          "objetivo": { "type": "string" },
+          "baseado_em": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+          "catalogo": { "type": "string" },
+          "status": { "const": "SUGERIDO" }
+        }
+      }
+    },
+    "estrategias": {
+      "type": "array",
+      "items": {
+        "type": "object", "required": ["id", "origem", "titulo", "territorio", "classificacao", "decisao_sugerida", "o_que_fazer", "baseado_em", "catalogo", "status"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^E[0-9]+$" },
+          "origem": { "enum": ["acordada", "nova"], "description": "acordada = já estava no documento; nova = sugerida pela HOLOS AI." },
+          "titulo": { "type": "string" },
+          "territorio": { "enum": ["Corpo", "Mente", "Espírito"] },
+          "direcionamento_id": { "type": ["string", "null"] },
+          "classificacao": { "enum": ["observacao", "comportamental_metodologica", "requer_decisao_profissional_na_conduta"] },
+          "decisao_sugerida": {
+            "enum": ["MANTER EM OBSERVAÇÃO — SUGERIDO", "MANTER", "AJUSTAR", "SUBSTITUIR", "CONCLUIR", "ENCERRAR", null],
+            "description": "Só para origem=acordada. Primeira consulta: MANTER EM OBSERVAÇÃO — SUGERIDO. Retorno com dado de evolução: MANTER/AJUSTAR/SUBSTITUIR/CONCLUIR/ENCERRAR. Retorno sem dado: MANTER EM OBSERVAÇÃO — SUGERIDO. origem=nova: null."
+          },
+          "motivo_decisao": { "type": ["string", "null"] },
+          "o_que_fazer": { "type": "string" },
+          "o_que_observar": { "type": "string" },
+          "prazo": { "type": "string" },
+          "criterio_sucesso": { "type": "string" },
+          "baseado_em": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+          "catalogo": { "type": "string" },
+          "status": { "const": "SUGERIDO" }
+        }
+      }
+    },
+    "corpo": { "$ref": "#/$defs/territorio" },
+    "mente": { "$ref": "#/$defs/territorio" },
+    "espirito": { "$ref": "#/$defs/territorio" },
+    "o_que_observar": { "type": "array", "items": { "type": "string" } },
+    "plano_acompanhamento": { "type": "array", "items": { "type": "string" } },
+    "roteiro_proxima_consulta": {
+      "type": "array",
+      "items": {
+        "type": "object", "required": ["tipo", "texto"],
+        "properties": {
+          "tipo": { "enum": ["ferramenta", "pergunta", "criterio_decisao"] },
+          "estrategia_id": { "type": "string" },
+          "texto": { "type": "string" }
+        }
+      }
+    },
+    "proxima_etapa": { "type": "string" },
+    "rascunho_paciente": { "type": "string", "description": "Rascunho para revisão. Linguagem simples, sem números do HOLOSCAN, sem nomes de sistemas, sem hipótese." },
+    "alertas_profissionais": {
+      "type": "array",
+      "items": {
+        "type": "object", "required": ["tipo", "texto"],
+        "properties": {
+          "tipo": { "enum": ["metodologico", "avaliacao_profissional", "exames", "conduta", "catalogo", "informacao_insuficiente"] },
+          "texto": { "type": "string" }
+        }
+      }
+    },
+    "fontes_utilizadas": { "type": "array", "items": { "type": "string" } }
+  },
+  "$defs": {
+    "territorio": {
+      "type": "object", "required": ["situacao", "resumo", "estrategias"],
+      "properties": {
+        "situacao": { "enum": ["com_material", "nao_aprofundado"] },
+        "resumo": { "type": "string", "description": "Sem material: exatamente \"Ainda não aprofundado nesta etapa.\" (pode vir seguido de uma frase sobre o que já há para observar)." },
+        "estrategias": { "type": "array", "items": { "type": "string", "pattern": "^E[0-9]+$" } }
+      }
+    }
+  }
+}

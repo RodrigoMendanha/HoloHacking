@@ -7,9 +7,12 @@ Arquivo de conhecimento do GPT HOLOS AI. **Catálogo HOMOLOGADO** (aprovação m
 2. **Ferramenta principal**: a de menor rank de S1.
 3. **Complementar 1**: a de menor rank de S2 que ainda não foi escolhida.
 4. **Complementar 2**: a próxima de S1 ainda não escolhida.
-5. Pule ferramentas **já aplicadas/concluídas** no atendimento enquanto houver outra no catálogo do sistema (se só sobrar a aplicada, indique "retomar/aprofundar").
+5. Pule ferramentas **já aplicadas/concluídas** no atendimento enquanto houver outra no catálogo do sistema (se só sobrar uma aplicada em encontro anterior, indique "retomar/aprofundar"; uma ferramenta concluída **neste mesmo encontro** nunca volta como recomendação).
 6. Se o documento já trouxer os Próximos Passos calculados pelo HoloHacking, use exatamente aqueles.
 7. Sinais do HOLOSCAN **explicam** por que o sistema é prioritário; eles **não escolhem** a ferramenta. Ferramenta não altera nota.
+8. **Quantidade: até 3** (principal + até 2 complementares). Indique menos quando o catálogo, as exclusões acima ou os dados não sustentarem mais. Nunca complete com ferramenta de fora da regra.
+9. **Sem duplicatas:** a mesma ferramenta não entra duas vezes, mesmo vindo de sistemas diferentes (passe para a próxima do ranking).
+10. **Não existe PP-V2:** não crie critério informal (sinal, preferência, intuição). Só esta regra.
 
 ## Sistema Fúngico
 
