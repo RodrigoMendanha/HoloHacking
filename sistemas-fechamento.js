@@ -89,8 +89,8 @@
   var RESSALVA_SINAIS = "Estes foram alguns dos itens que mais contribuíram para a pontuação deste eixo.";
   var SINAIS_FORA = "Os sinais que mais contribuíram não foram registrados neste resultado.";
   /* G: item 14, texto seguro */
-  var PP_POR_QUE = "Esta ferramenta é recomendada pelo catálogo metodológico para aprofundar este sistema.";
-  var PP_SINAIS = "Nesta aplicação, os sinais abaixo ajudam a contextualizar por que esta área apareceu como prioridade.";
+  var PP_POR_QUE = "A ferramenta é sugerida pelo catálogo para aprofundar este sistema.";
+  var PP_SINAIS = "Estes sinais mostram por que o sistema apareceu como prioridade. Não foram eles que escolheram a ferramenta: a ferramenta vem do catálogo, pelo sistema.";
 
   var NOME_FERRAMENTA = {
     oq3: "OQ³", linha_momentum: "Linha do Momentum", mapa_rotina_v1: "Mapa da Rotina",
@@ -139,7 +139,9 @@
   /* O fechamento de UM sistema. pos = 1, 2, ... na ordem de investigacao (null sem nota). */
   function fechamento(s, pos, pp, nomeF) {
     var def = SISTEMAS[s.sistema] || null, avaliavel = temNota(s);
-    var prioritario = avaliavel && (pos === 1 || pos === 2);
+    /* V6 (13/10): sistema sem carga (nota maxima, nenhum item pontuou) nao e "area prioritaria" mesmo na posicao 1-2 da ordem */
+    var semCarga = avaliavel && s.nota >= 10;
+    var prioritario = avaliavel && (pos === 1 || pos === 2) && !semCarga;
     var sinais = avaliavel ? sinaisDe(s, pp) : { origem: "nenhuma", lista: [] };
     var pend = [];
     var aprofundar = null, ressalva = null;
@@ -188,11 +190,11 @@
   function blocoPP(p, paciente) {
     if (paciente) return '<p class="sf-pp-pac"><b>Próximo aprofundamento sugerido:</b> ' + esc(p.nome) + "</p>";
     return '<div class="sf-pp" data-sf-pp="' + esc(p.tool_id) + '">' +
-      '<p class="sf-pp-tit"><span class="sf-rot">Ferramenta recomendada' + (p.papel === "principal" ? " (principal)" : "") + "</span> <b>" + esc(p.nome) + "</b></p>" +
-      '<p><span class="sf-rot">Por que esta ferramenta é usada neste sistema</span> ' + esc(p.por_que) + "</p>" +
+      '<p class="sf-pp-tit"><span class="sf-rot">Ferramenta sugerida pelo catálogo' + (p.papel === "principal" ? " (principal)" : "") + "</span> <b>" + esc(p.nome) + "</b></p>" +
+      '<p><span class="sf-rot">Por que esta ferramenta aparece aqui</span> ' + esc(p.por_que) + "</p>" +
       (p.investiga ? '<p><span class="sf-rot">O que ela ajuda a investigar</span> ' + esc(p.investiga) + "</p>" : "") +
       (p.fazer_agora ? '<p><span class="sf-rot">O que fazer agora</span> ' + esc(p.fazer_agora) + "</p>" : "") +
-      (p.sinais.length ? '<div><span class="sf-rot">Sinais deste sistema que merecem atenção</span><p class="sf-nota">' + esc(p.sinais_intro) + "</p>" + lista(p.sinais) + "</div>" : "") +
+      /* V6 (13/10): os sinais ficam so no bloco C ("Pontuou neste sistema"); aqui nao, para nao parecer que a pergunta escolheu a ferramenta */
       "</div>";
   }
   /* ---------- visao da PACIENTE: linguagem simples (rodada de UX de 13/10) — a profissional continua com o texto tecnico ---------- */

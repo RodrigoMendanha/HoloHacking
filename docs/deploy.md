@@ -134,7 +134,7 @@ Os comandos abaixo são a mesma conferência, arquivo por arquivo.
 
 ```sh
 curl -sI http://127.0.0.1:<PORTA>/app.js | grep -i cache-control   # Cache-Control: no-cache
-curl -s  http://127.0.0.1:<PORTA>/app.js | sha256sum               # c64e1e29f6ea...
+curl -s  http://127.0.0.1:<PORTA>/app.js | sha256sum               # 99d8d63860a1...
 curl -s  http://127.0.0.1:<PORTA>/arquivos.js | sha256sum          # 893f4113d3fa...
 curl -s  http://127.0.0.1:<PORTA>/index.html | sha256sum           # 41f9675a7b91...
 curl -s  https://holohacking.com.br/sincronizacao.js | sha256sum   # 2da5d29945a1...
@@ -171,7 +171,7 @@ inclui `metodologia.js`, `atendimento.js`, `anamnese.js`, `conduta.js`, `timelin
 592257d1d3f3992c5ecfc2888b7390bf84d3a3662369b2a6c4f3398703e6dd88  anamnese.html
 164e9ffa364fce1a4d8d30fd1961189bc8dbc0ab9a2f7970b7d68b2f21963a57  anamnese.js
 b1ea48449d74ba8427c7a59947ae73d55a4d88896ea1fcf4f9823dc4087bd049  aplicacoes.js
-c64e1e29f6ea31ddbeed71e97539e29ea72cdba13a05f74217eea8bc6a240d80  app.js
+99d8d63860a15e9a192a40a347cc77be7caea0040fbcb931865a4ce696232085  app.js
 d3efacba60b26bc2da2311a273881948882570773e4016f59ce2a0845661746c  armazenamento.js
 5bb2e258075f144c1ba48d99781919f8bc7be04900d6867cc7bd96fb8ebde6b4  arquivo-store.js
 893f4113d3facc54c9ec199d9fb7b676bc8e9dacd49f29a025b88f05bf8eab34  arquivos.js
@@ -212,13 +212,13 @@ deefdf358d21011b1e0479acccbb47338035cfa5282c5fabe652c88a11ae52a7  metodologia-de
 34241cadaa88ed07d47492ac681d31491f208e8e1790f78ea4449d3c573bfb15  metodologia-homologacao.js
 0d8ddbd3ab22d08460009f4ea703c902bec4ea65e3d52a42be8e020343cacdb0  metodologia-inventario.js
 ae87ad9c758f4ccf14cbb0404db8538b8705f4069049c4b002140ef1ec109bd8  metodologia-motor.js
-26e08efe910cae65733bc3ec5b71b284edeca3280c40f7e333e361b5533eff0e  metodologia-pacote.js
-cb48945086bf2402fb89c4d076eddfded9c2444e4dc737afdf50644122a49a2f  metodologia-revisao-v3.js
+c60639af7bd4d21a4cff5a46cecf79494641e3892d4f7e07276ec47b844cff8d  metodologia-pacote.js
+43ce2a6062de1776e1f9aecc2e0c3de3340f27527f5bceefb60ed4598dc475ff  metodologia-revisao-v3.js
 6125293ef79431419a3d416d9ccf1bab19ee77d6b7dde64a27c6a5399458708d  metodologia.js
 7f4aa281060e7fcc194a1414d148c8aa10c4cebf23413a6807d3f42e5326fff2  migracao-supa.js
 6af4f7cea9e0884963ecbcb583a7a468aaa332653133481df23f7dab1782f340  panorama.js
 324deef8274f0f336923cfae9358a895e47f870584a717417706a09815c70b5d  perfil.js
-c79a9c9a8e48f292bfb254f3e4e0689f4caf0fa68db84ea996f52696ec10d8a3  proximos-passos.js
+57ffa5ddaf17dc98a9536e65161e5572c3e7ae22ac751d62ce15bc3bfea35f19  proximos-passos.js
 e8e4288ff2a365495339ffe12fabf2971387db2e9a623dd492833b02862851d7  questionario.js
 010aa193d55030aabd2cb511022fb018765eace03d921ecacc884d1c3e04e2f8  relatorios.js
 8849e59a1d3fe76723aa1e59cc75213fc64172259c5bccd6d9b1151f21a9fb63  render-resultado.js
@@ -227,9 +227,9 @@ e8e4288ff2a365495339ffe12fabf2971387db2e9a623dd492833b02862851d7  questionario.j
 5af36210446ce18d896b910de3aca247803e392969ae7f42ee42c5482609dfcc  resultado-holos.js
 136d4aa2b204a3a791c432a3061b2abaf1f955cafe4eb036820ae9bfc89b04ac  resultado-legado-r3.js
 6de4959828dd056d5b8c2a63f7296773d92892af78f0466244ea1d7722261a04  resultado-pagina.js
-17b8af300238bae65fcbdcf933f79157a69df1964b1550478d139f547026a57b  resultado-sintese.js
+24b2ac521cb8e59c543c6c6d60dc5dd38e09e9835e5a9fe8c0763c2595986406  resultado-sintese.js
 2da5d29945a1f58cd9be4f9f3dcae01f879702ed2c841e860263a9576d7f1e8d  sincronizacao.js
-cc93f3f9335d9634164b408a9894ceca767322f2ae881ac8823fcb789778c862  sistemas-fechamento.js
+bca074b7976347585a852e7875ddf488b76b469cff1091440198ea65a2adaa0f  sistemas-fechamento.js
 c9e5815c8d0db5f0c0af7ed01b83a84ecdba6bb8e68c77253686bb1ae698addf  style.css
 482687b6663c97cfc92151da80a62ff0fdfa8f82fc3ff24a399ab583d3ff0d6d  supabase-client.js
 3d468040a16811adfa058aab6e57102c63472cd0f8c6932ff27c7f4591977043  timeline.js

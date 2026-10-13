@@ -172,4 +172,127 @@
       escalas: { frequencia: 71, intensidade: 11 }
     }
   };
+
+  /* ===========================================================================
+     FECHAMENTO DAS 61 PERGUNTAS ABERTAS (decisao de Rodrigo, 13/10/2026: "resolva
+     diretamente todas em que a decisao e sustentada pelas regras") -> HOLOS-V1 v6
+     Base: HOLOS-V1 v5 (no ar). Criterio, nesta ordem, para cada pergunta:
+       A. o conteudo investiga diretamente o dominio do sistema -> MANTER
+       B. o conteudo pertence claramente a outro dos cinco sistemas -> MOVER
+       C. util ao raciocinio, sem base para alterar matematicamente um sistema -> CONTEXTUAL
+       D. inadequada, redundante ou excessivamente diagnostica -> REMOVER
+     Regras vigentes (1) relacao simbolica emocao-corpo nao basta para pontuar sistema
+     fisico; (2) o bloco de origem nao define o sistema; (3) contextual nao pontua e nao
+     implica causalidade; (4) pergunta pode ser util sem pontuar; (5) na duvida entre
+     inventar associacao pontuavel e contexto, prefere-se CONTEXTUAL.
+     Condicoes nomeadas: "O HOLOSCAN pode registrar relato informado pela paciente, mas
+     nao pode confirmar condicao, etiologia ou mecanismo."
+     Pesos: todos os itens tem peso 1 (auditado); nenhum peso novo, nenhuma normalizacao.
+     Textos das perguntas: inalterados.
+     =========================================================================== */
+  raiz.MetodologiaRevisaoV6 = {
+    id: "HOLOS-V1-FECHAMENTO-61-2026-10-13",
+    decidido_em: "2026-10-13",
+    revisao_publica: "fechamento das 61 perguntas abertas pelas regras vigentes (decisão explícita de Rodrigo de resolver diretamente); base: HOLOS-V1 v5 ativo",
+    base: { code: "HOLOS-V1", version: 5 },
+    versao_nova: 6,
+
+    regra_metodologica: [
+      "Uma relação holística, simbólica ou contextual entre emoção e corpo não é suficiente, por si só, para justificar que uma resposta mental/emocional altere matematicamente a nota de um sistema físico.",
+      "O bloco de origem da pergunta não define automaticamente o sistema. A associação precisa ser sustentada pelo conteúdo investigado.",
+      "Associação contextual não altera nota, Índice, prioridade, sinais dominantes ou Próximos Passos e não implica causalidade.",
+      "Pergunta pode ser útil ao cuidado integral sem necessariamente pontuar um sistema.",
+      "Quando uma informação for relevante, mas não houver justificativa suficiente para alterar matematicamente um sistema, preferir CONTEXTUAL a inventar uma associação pontuável.",
+      "O HOLOSCAN pode registrar relato informado pela paciente, mas não pode confirmar condição, etiologia ou mecanismo."
+    ],
+
+    textos: {}, trocar: {},
+
+    remover: {
+      "SNT-110": "Redundante com SNT-406 (reação ao álcool já pontua no Detox + Linfático) e, dentro do Fúngico, sugeriria causa microbiológica que o HOLOSCAN não demonstra."
+    },
+
+    mover: {
+      "SNT-404": { de: "detox_linfatico", para: "fungico", motivo: "Desconforto digestivo depois de comida gordurosa é relato digestivo/alimentar (domínio do Fúngico); no Detox sugeriria função hepática, que o HOLOSCAN não mede." },
+      "SNT-501": { de: MEE, para: "metabolico", motivo: "Acordar cansado mesmo dormindo o suficiente é relato de energia (domínio do Metabólico); sono/alerta no MEE fica com as perguntas de pensamento acelerado e despertar." },
+      "SNT-507": { de: MEE, para: "metabolico", motivo: "Perceber fome e saciedade investiga diretamente fome/saciedade, domínio do Metabólico." }
+    },
+
+    /* SNT-501 tinha contextual no Metabolico: vira redundante com o primario novo */
+    remover_contextuais: { "SNT-501": ["metabolico"] },
+
+    contextualizar: {
+      "SNT-104": { de: "fungico", motivo: "Condição nomeada (candidíase/sapinho): dentro do Fúngico a pontuação pareceria confirmar a condição e sua causa. Fica como relato informado pela paciente, sem pontuar." },
+      "SNT-105": { de: "fungico", motivo: "Condição nomeada (micose): dentro do Fúngico a pontuação pareceria confirmar a condição e sua causa. Fica como relato, sem pontuar." },
+      "SNT-109": { de: "fungico", motivo: "Histórico de uso de antibiótico é informação de contexto (exposição ao longo da vida), não sinal atual; pontuar sugeriria mecanismo microbiológico." },
+      "SNT-206": { de: "acido_inflamatorio", motivo: "Condições nomeadas (acne inflamada, eczema, psoríase): pontuar no Ácido-Inflamatório pareceria confirmar doença inflamatória. Fica como relato, sem pontuar." },
+      "SNT-305": { de: "metabolico", motivo: "Distribuição de gordura é observação corporal que insinuaria diagnóstico metabólico; não é relato de energia, fome, saciedade ou comportamento alimentar." },
+      "SNT-306": { de: "metabolico", motivo: "Pele escurecida e aveludada é sinal clínico que pede avaliação específica; pontuar insinuaria resistência à insulina. Fica como contexto para a profissional." },
+      "SNT-308": { de: "metabolico", motivo: "Dificuldade percebida de perder peso não é relato direto de energia, fome, saciedade ou comportamento alimentar e insinuaria diagnóstico; fica como contexto." },
+      "SNT-408": { de: "detox_linfatico", motivo: "Pele opaca e olheiras têm muitas explicações (sono, rotina); no Detox sugeririam toxinas. Fica como contexto." },
+      "SNT-409": { de: "detox_linfatico", motivo: "Odor do suor no Detox sugeriria eliminação de toxinas, que o HOLOSCAN não mede. Fica como contexto." },
+      "SNT-410": { de: "detox_linfatico", motivo: "Celulite no Detox sugeriria alteração linfática, que o HOLOSCAN não mede. Fica como contexto." }
+    },
+
+    /* MANTER: a associacao atual e sustentada pelo conteudo (registro da justificativa; nada muda no pacote) */
+    manter: {
+      "SNT-101": "Fúngico — vontade frequente de doce/pão é relato alimentar (hábito e preferência); contextual no Metabólico mantido, sem pontuar.",
+      "SNT-102": "Fúngico — inchaço e gases depois das refeições são relato digestivo.",
+      "SNT-103": "Fúngico — camada esbranquiçada na língua é relato de mucosa; não confirma fungo.",
+      "SNT-106": "Fúngico — coceira íntima ou anal é relato de pele/mucosa; não confirma condição.",
+      "SNT-107": "Fúngico — cabeça pesada depois de massa ou doce é relato alimentar/vitalidade ligado à refeição.",
+      "SNT-108": "Fúngico — caspa ou coceira no couro cabeludo é relato de pele.",
+      "SNT-111": "Fúngico — nariz entupido é relato de mucosa; a palavra sinusite é o termo comum da paciente e não é confirmada.",
+      "SNT-201": "Ácido-Inflamatório — dor articular sem esforço é relato de dor.",
+      "SNT-202": "Ácido-Inflamatório — rigidez ao acordar é relato de rigidez.",
+      "SNT-203": "Ácido-Inflamatório — corpo dolorido sem causa clara é relato de dor/desconforto.",
+      "SNT-204": "Ácido-Inflamatório — azia ou queimação é relato de desconforto/irritação; não mede acidez corporal.",
+      "SNT-205": "Ácido-Inflamatório — dor de cabeça frequente é relato de dor.",
+      "SNT-207": "Ácido-Inflamatório — gengiva que sangra é relato de irritação de mucosa.",
+      "SNT-208": "Ácido-Inflamatório — piora percebida com ultraprocessados/açúcar é relato de reatividade percebida, não prova de inflamação.",
+      "SNT-209": "Ácido-Inflamatório — mãos que amanhecem inchadas é relato de rigidez/desconforto matinal.",
+      "SNT-301": "Metabólico — sono depois do almoço é resposta percebida à refeição.",
+      "SNT-303": "Metabólico — fome pouco depois de comer é relato de fome/saciedade.",
+      "SNT-304": "Metabólico — comer depois do jantar sem fome é comportamento alimentar.",
+      "SNT-307": "Metabólico — irritação ou tremor ao atrasar refeição é resposta percebida à rotina alimentar.",
+      "SNT-401": "Detox + Linfático — inchaço nas pernas no fim do dia é retenção percebida.",
+      "SNT-402": "Detox + Linfático — rosto inchado ao acordar é retenção percebida.",
+      "SNT-403": "Detox + Linfático — incômodo com cheiros fortes é sensibilidade relatada.",
+      "SNT-405": "Detox + Linfático — ficar um dia ou mais sem evacuar é relato de eliminação/funcionamento intestinal.",
+      "SNT-406": "Detox + Linfático — ressaca com pouca bebida é reação relatada ao álcool; não mede função hepática.",
+      "SNT-407": "Detox + Linfático — reação forte a medicamento ou café é sensibilidade relatada.",
+      "SNT-502": "Mental-Emocional-Espiritual — demora a dormir porque a cabeça não desliga (pensamento acelerado).",
+      "SNT-503": "Mental-Emocional-Espiritual — despertar de madrugada com dificuldade de voltar a dormir (sono/alerta previsto no MEE).",
+      "SNT-504": "Mental-Emocional-Espiritual — preocupação antecipatória.",
+      "SNT-505": "Mental-Emocional-Espiritual — comer para se acalmar é comportamento alimentar ligado ao estado emocional (mesma lógica de EMO-301/303).",
+      "SNT-506": "Mental-Emocional-Espiritual — estado de alerta constante.",
+      "SNT-508": "Mental-Emocional-Espiritual — dificuldade de foco.",
+      "SNT-509": "Mental-Emocional-Espiritual — perda de paciência (regulação emocional).",
+      "SNT-510": "Mental-Emocional-Espiritual — afastamento das pessoas (conexão/pertencimento).",
+      "EMO-501": "Mental-Emocional-Espiritual — diálogo interno autocrítico.",
+      "EMO-502": "Mental-Emocional-Espiritual — padrão tudo-ou-nada; contextual no Metabólico mantido, sem pontuar.",
+      "EMO-503": "Mental-Emocional-Espiritual — crenças fixas sobre si.",
+      "EMO-504": "Mental-Emocional-Espiritual — culpa ou vergonha depois de comer; contextual no Metabólico mantido, sem pontuar.",
+      "EMO-505": "Mental-Emocional-Espiritual — percepção de conflito com o próprio corpo.",
+      "EMO-507": "Mental-Emocional-Espiritual — reconhecer-se na própria vida (identidade).",
+      "ESP-102": "Mental-Emocional-Espiritual — sentido e propósito.",
+      "ESP-201": "Mental-Emocional-Espiritual — coerência entre escolhas e valores.",
+      "ESP-202": "Mental-Emocional-Espiritual — clareza de valores e limites.",
+      "ESP-301": "Mental-Emocional-Espiritual — sensação de sustentação/sentido.",
+      "ESP-302": "Mental-Emocional-Espiritual — prática de gratidão.",
+      "ESP-401": "Mental-Emocional-Espiritual — merecimento.",
+      "ESP-402": "Mental-Emocional-Espiritual — autossabotagem.",
+      "ESP-403": "Mental-Emocional-Espiritual — narrativas familiares sobre si."
+    },
+
+    esperado: {
+      total: 81,
+      por_bloco: { fisico: 46, mental_emocional: 19, espiritual: 16 },
+      por_sistema: { fungico: 8, acido_inflamatorio: 8, metabolico: 7, detox_linfatico: 6, mental_emocional_espiritual: 40 },
+      triade: { fisico: 36, mental: 19, espiritual: 14 },
+      so_contextuais: ["SNT-104", "SNT-105", "SNT-109", "SNT-206", "SNT-305", "SNT-306", "SNT-308", "SNT-408", "SNT-409", "SNT-410", "ESP-501", "ESP-502"],
+      invertidas: ["SNT-507", "EMO-507", "ESP-101", "ESP-102", "ESP-201", "ESP-202", "ESP-301", "ESP-302", "ESP-501"],
+      escalas: { frequencia: 70, intensidade: 11 }
+    }
+  };
 })();

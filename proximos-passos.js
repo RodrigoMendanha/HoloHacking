@@ -47,8 +47,8 @@
   var MSG_SEM_DADOS = "Não há dados suficientes para gerar Próximos Passos HOLOS nesta aplicação.";
   var EXPLICACAO = "Este sistema apareceu entre as áreas prioritárias desta aplicação. Estes foram alguns dos sinais que mais contribuíram para sua pontuação.";
   /* motor de resultados V1 (12/10, item 14): texto seguro — a ferramenta vem do catalogo pelo SISTEMA; os sinais so contextualizam */
-  var POR_QUE_CATALOGO = "Esta ferramenta é recomendada pelo catálogo metodológico para aprofundar este sistema.";
-  var SINAIS_CONTEXTO = "Nesta aplicação, os sinais abaixo ajudam a contextualizar por que esta área apareceu como prioridade.";
+  var POR_QUE_CATALOGO = "A ferramenta é sugerida pelo catálogo para aprofundar este sistema.";
+  var SINAIS_CONTEXTO = "Estes sinais mostram por que o sistema apareceu como prioridade. Não foram eles que escolheram a ferramenta: a ferramenta vem do catálogo, pelo sistema.";
 
   function num(v) { return typeof v === "number" && !isNaN(v); }
 
@@ -163,14 +163,14 @@
     var feita = (feitas || []).indexOf(item.tool_id) >= 0;
     return '<article class="pp-card' + (principal ? " pp-principal" : "") + (feita ? " pp-feita" : "") + '" data-pp-regra="' + esc(item.rule_id) + '"' + (feita ? ' data-pp-feita="1"' : "") + ">" +
       (feita ? '<span class="eyebrow pp-selo-feita">✓ Já realizada neste atendimento</span>' : principal ? '<span class="eyebrow">Próximo passo recomendado</span>' : "") +
-      '<p class="pp-rot">Ferramenta recomendada</p>' +
+      '<p class="pp-rot">Ferramenta sugerida pelo catálogo</p>' +
       '<h5 class="pp-ferramenta">' + esc(nome) + ' <small>' + esc(EIXO_FERRAMENTA[item.tool_id] || "") + '</small></h5>' +
-      '<div class="pp-porque"><b>Por que esta ferramenta é usada neste sistema</b>' +
+      '<div class="pp-porque"><b>Por que esta ferramenta aparece aqui</b>' +
         '<p class="pp-explica">' + esc(POR_QUE_CATALOGO) + '</p>' +
         '<p class="pp-sistema">Sistema relacionado: <b>' + esc(sis.nome || sis.system_id) + '</b></p></div>' +
       '<div class="pp-investiga"><b>O que ela ajuda a investigar</b><p class="pp-razao">' + esc(item.professional_reason) + '</p></div>' +
       '<div class="pp-acao"><b>O que fazer agora</b><p>' + esc(item.next_action) + '</p></div>' +
-      (dom.length ? '<div class="pp-sinais-bloco"><b>Sinais deste sistema que merecem atenção</b><p class="pp-sinais-tit">' + esc(SINAIS_CONTEXTO) + '</p><ul class="pp-sinais">' +
+      (dom.length ? '<div class="pp-sinais-bloco"><b>Sinais que mais pontuaram neste sistema</b><p class="pp-sinais-tit">' + esc(SINAIS_CONTEXTO) + '</p><ul class="pp-sinais">' +
         dom.map(function (d) { return "<li>" + esc(d.rotulo || d.question_id) + "</li>"; }).join("") + "</ul></div>" : "") +
       '<button type="button" class="' + (feita ? "btn-borda-ouro" : "btn-verde") + ' pp-iniciar" data-pp-abrir="' + esc(item.tool_id) + '">' + (feita ? "Abrir a ferramenta" : "Iniciar ferramenta") + "</button>" +
       "</article>";

@@ -199,4 +199,13 @@ Ao ser publicada, a v5 só muda o status da v4 para `retirado`, vigente até ont
 
 ## 9. Publicação em produção
 
-_(preenchido na publicação)_
+Feita em 13/10/2026, na ordem da seção 8:
+- migration `20261020100000` aplicada antes do login (md5 da função igual ao do repositório);
+- deploy do front; login do responsável metodológico com as abas antigas fechadas;
+- **HOLOS-V1 v5 aprovado** (hash do servidor `dc615afc…`, publicação direta); v2, v3 e v4 `retirado`.
+
+Conferência depois da publicação (só leitura, md5 agregados, sem dado clínico): as impressões digitais de aplicações, respostas, notas, Resultados HOLOS, emissões, relatórios e Próximos Passos anteriores ficaram iguais às de antes; os números novos vieram só da aplicação de smoke.
+
+Smoke test com paciente fictícia: aprovado. Uma primeira aplicação de smoke saiu com 81/82 respostas porque uma pergunta ficou sem resposta na tela (artefato do teste, sem bug); a conferência seguinte saiu 82/82.
+
+A versão seguinte é a **HOLOS-V1 v6** (fechamento das 61): `docs/v1/ALTERACOES-PACOTE-HOLOSCAN-V6.md`.

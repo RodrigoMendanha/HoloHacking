@@ -74,13 +74,18 @@
     return l.filter(temNota);
   }
 
+  var SEM_CARGA = "sem carga nesta aplicação: nenhum item pontuou; aparece aqui só pela ordem oficial de desempate";
+  function semCarga(s) { return num(s.nota) && s.nota >= 10; }
+
   /* moduloDe(ferramenta_id) -> "corpo" | "mente" | "espirito"; nomeFerramenta(id) -> nome */
   function fatos(snap, moduloDe, nomeFerramenta) {
     snap = snap || {};
     var nomeF = nomeFerramenta || function (id) { return (F && F.NOMES[id]) || id; };
     var h = snap.holoscan || {}, sis = h.sistemas || [];
     var tri = h.triada || {}, triOk = h.triada_com_dado || {};
-    var ordem = ordenar(sis).map(function (s) { return { sistema: s.sistema, nome: s.nome || s.sistema, nota: s.nota, faixa: s.faixa || null }; });
+    /* V6 (13/10): sem_carga = nota maxima (nenhum item pontuou). Um sistema assim so chega a 1a/2a area pela ordem de
+       desempate; isso e dito, e a paciente nao le que ele "aparece para aprofundar". A ordem e o PP-V1 nao mudam. */
+    var ordem = ordenar(sis).map(function (s) { return { sistema: s.sistema, nome: s.nome || s.sistema, nota: s.nota, faixa: s.faixa || null, sem_carga: semCarga(s) }; });
     var investigar = ordem.slice(0, 2);
     /* empate que decide a 2a area (ou a 1a): a ordem oficial do motor desempata — o fato e dito */
     var empateInvestigar = ordem.length > 2 && ordem[1].nota === ordem[2].nota ? ordem.filter(function (s) { return s.nota === ordem[1].nota; }).map(function (s) { return s.nome; }) : [];
@@ -156,6 +161,7 @@
     } else {
       add("investigar", "regra", quando + ", nenhum sistema teve nota: o HOLOSCAN não definiu área para investigar.");
     }
+    f.investigar.forEach(function (s, i) { if (s.sem_carga) add("sem_carga", "fato", (i + 1) + "ª área (" + s.nome + ", nota " + fmt(s.nota) + "): " + SEM_CARGA + "."); });
     if (f.empate_investigar.length) add("empate", "fato", "Empate na nota " + fmt(f.investigar[1].nota) + " entre " + lista(f.empate_investigar) + ": a ordem segue a ordem oficial do motor.");
     if (f.ordem.length > 2) add("ordem", "fato", "Ordem de investigação: " + f.ordem.map(function (s, i) { return (i + 1) + "ª " + s.nome + " (" + fmt(s.nota) + ")"; }).join(" · ") + ".");
     if (f.sem_nota.length) add("sem_nota", "fato", "Sem nota (respostas abaixo do mínimo): " + lista(f.sem_nota) + ".");
@@ -199,8 +205,10 @@
   /* As frases para a PACIENTE (linguagem simples; so o que a decisao permite). */
   function frasesPaciente(f) {
     var out = [];
-    if (f.investigar.length >= 2) out.push("Nesta avaliação, as áreas que aparecem primeiro para aprofundar com a sua nutricionista são " + f.investigar[0].nome + " e " + f.investigar[1].nome + ".");
-    else if (f.investigar.length === 1) out.push("Nesta avaliação, a área que aparece para aprofundar com a sua nutricionista é " + f.investigar[0].nome + ".");
+    var areas = f.investigar.filter(function (s) { return !s.sem_carga; });
+    if (areas.length >= 2) out.push("Nesta avaliação, as áreas que aparecem primeiro para aprofundar com a sua nutricionista são " + areas[0].nome + " e " + areas[1].nome + ".");
+    else if (areas.length === 1) out.push("Nesta avaliação, a área que aparece para aprofundar com a sua nutricionista é " + areas[0].nome + ".");
+    else if (f.investigar.length) out.push("Nesta avaliação, nenhuma área se destacou nas respostas ao HOLOSCAN. A conversa com a sua nutricionista define o que aprofundar.");
     /* rodada de UX 13/10: a Triade nao entra no resumo da paciente (continua em "Detalhes do mapa"); nada de "dimensao menor" */
     var autorizadas = f.fechamentos.filter(function (x) { return x.mostrar_paciente; }).map(function (x) { return x.nome; });
     if (autorizadas.length) out.push("Ferramentas que você fez e que a sua nutricionista compartilhou com você: " + lista(autorizadas) + ".");
@@ -260,7 +268,7 @@
     var h = '<section class="rh-secao rh-decisao" aria-labelledby="rh-t-decisao"><h3 id="rh-t-decisao">Resumo para decisão</h3>' +
       '<p class="rh-nota-tec">Resultado do método: cálculo salvo e catálogo aprovado. A leitura e a Conduta são da nutricionista.</p><dl class="rh-decisao-grade">';
     h += "<div><dt>1ª área para aprofundar</dt><dd>" + (f.investigar[0] ? "<b>" + esc(f.investigar[0].nome) + "</b> · nota " + fmt(f.investigar[0].nota) : "—") + "</dd></div>";
-    h += "<div><dt>2ª área para aprofundar</dt><dd>" + (f.investigar[1] ? "<b>" + esc(f.investigar[1].nome) + "</b> · nota " + fmt(f.investigar[1].nota) : "—") +
+    h += "<div><dt>2ª área para aprofundar</dt><dd>" + (f.investigar[1] ? "<b>" + esc(f.investigar[1].nome) + "</b> · nota " + fmt(f.investigar[1].nota) + (f.investigar[1].sem_carga ? ' <small class="rh-sem-carga">(' + esc(SEM_CARGA) + ")</small>" : "") : "—") +
       (f.empate_investigar.length ? ' <small>(empate: ' + esc(lista(f.empate_investigar)) + "; a ordem oficial do motor desempata)</small>" : "") + "</dd></div>";
     h += "<div><dt>Próximo passo principal</dt><dd>" + (f.principal ? "<b>" + esc(f.principal.nome) + "</b>" + (f.aplicadas.indexOf(f.principal.tool_id) >= 0 ? " · já aplicada neste resultado" : "") :
       esc(f.todas_realizadas ? "As ferramentas indicadas já foram realizadas neste atendimento." : f.proximos_passos === "registrado" ? "Sem recomendação para esta aplicação." : "Não registrado neste resultado.")) + "</dd></div>";
@@ -288,14 +296,14 @@
     /* bloco 1 */
     h += '<div class="rh-sint-bloco" data-sint-bloco="1"><h4>' + rotulo("regra") + " Onde aprofundar</h4>" +
       (f.investigar.length ? '<ol class="rh-resumo-lista rh-investigar">' + f.investigar.map(function (s, i) {
-        return "<li><b>" + (i + 1) + "ª área para aprofundar: " + esc(s.nome) + "</b> — nota " + fmt(s.nota) + "</li>";
+        return "<li><b>" + (i + 1) + "ª área para aprofundar: " + esc(s.nome) + "</b> — nota " + fmt(s.nota) + (s.sem_carga ? ' <small class="rh-sem-carga">(' + esc(SEM_CARGA) + ")</small>" : "") + "</li>";
       }).join("") + '</ol><p class="rh-nota-tec">Menor nota = maior prioridade de investigação dentro do HOLOSCAN. Não significa gravidade, doença ou prioridade clínica.</p>'
         : '<p class="rh-vazio">Nenhum sistema com nota.</p>') + "</div>";
     /* bloco 2 */
     h += '<div class="rh-sint-bloco" data-sint-bloco="2"><h4>' + rotulo("fato") + " Por que essas áreas apareceram</h4>" +
       (f.investigar.length ? f.investigar.map(function (s) {
         var sin = sinaisDoSistema(snap, s.sistema);
-        return '<p class="rh-sint-sis"><b>' + esc(s.nome) + "</b></p>" + (sin.length ? '<ul class="rh-resumo-lista">' + sin.map(function (t) { return li(esc(t)); }).join("") + "</ul>" : '<p class="rh-vazio">Sinais não registrados neste resultado.</p>');
+        return '<p class="rh-sint-sis"><b>' + esc(s.nome) + "</b></p>" + (sin.length ? '<ul class="rh-resumo-lista">' + sin.map(function (t) { return li(esc(t)); }).join("") + "</ul>" : '<p class="rh-vazio">' + (s.sem_carga ? "Nenhum sinal pontuou neste eixo nesta aplicação." : "Sinais não registrados neste resultado.") + "</p>");
       }).join("") + '<p class="rh-nota-tec">Estes foram alguns dos itens que mais contribuíram para a pontuação de cada eixo. Não são causa nem diagnóstico.</p>' : '<p class="rh-vazio">—</p>') + "</div>";
     /* bloco 3 */
     var prop = F && F.resultadoProposito ? F.resultadoProposito(ferr, snap.derivados ? snap.derivados.mapa_proposito : null) : null;
@@ -363,7 +371,7 @@
   }
 
   var api = { fatos: fatos, frases: frases, frasesPaciente: frasesPaciente, html: html, htmlFechamento: htmlFechamento, htmlResumoDecisao: htmlResumoDecisao, resumoResultado: resumoResultado,
-    htmlProximosPassosPaciente: htmlProximosPassosPaciente, PENDENCIAS: PENDENCIAS, SELO: SELO, LIMITE: LIMITE, ordenar: ordenar };
+    htmlProximosPassosPaciente: htmlProximosPassosPaciente, SEM_CARGA: SEM_CARGA, PENDENCIAS: PENDENCIAS, SELO: SELO, LIMITE: LIMITE, ordenar: ordenar };
   raiz.ResultadoSintese = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -1,8 +1,8 @@
-# MATRIZ DE HOMOLOGAÇÃO — 84 PERGUNTAS DO HOLOSCAN (HOLOS-V1 v2)
+# MATRIZ DE HOMOLOGAÇÃO — 84 PERGUNTAS DO HOLOSCAN (FECHADA no HOLOS-V1 v6)
 
 Preparação da homologação metodológica, 13/10/2026. Esta matriz é para **Rodrigo e Daniel** decidirem as 84 perguntas antes de qualquer nova versão do HOLOSCAN.
 
-> **Situação em 13/10/2026: 23 DECISÕES APLICADAS — 15 no HOLOS-V1 v4 (SNT-210 e SNT-309: REMOVER; 13 perguntas EMO: MOVER para o Mental Emocional Espiritual) e 8 no HOLOS-V1 v5, Lote 2B (ESP-101, 103, 203, 404 e 405: MOVER para o MEE; ESP-303: MANTER no Metabólico; ESP-501 e ESP-502: CONTEXTUAL, sem pontuação) — mais EMO-502 e EMO-504 como CONTEXTUAL MANTIDO; 61 EM ABERTO.** As decisões aplicadas estão no **novo pacote versionado HOLOS-V1 v4** (`metodologia-revisao-v3.js`; detalhes em `docs/v1/ALTERACOES-PACOTE-HOLOSCAN-NOVA-VERSAO.md`). O HOLOS-V1 v2 não muda. As colunas da matriz descrevem o **v2** (base da decisão). PP-V2 não foi iniciado. Onde não há documentação, consta **"Justificativa não documentada"**. O "sistema alternativo" só aparece quando já está escrito num documento ou no próprio pacote; nos demais casos consta "a decidir".
+> **MATRIZ FECHADA em 13/10/2026: as 84 perguntas têm decisão; 0 EM ABERTO.** HOLOS-V1 v4: 15 decisões (SNT-210 e SNT-309 REMOVER; 13 EMO MOVER para o MEE). HOLOS-V1 v5 (Lote 2B): 8 decisões (ESP-101, 103, 203, 404, 405 MOVER para o MEE; ESP-303 MANTER no Metabólico; ESP-501 e ESP-502 CONTEXTUAL) e EMO-502/504 CONTEXTUAL MANTIDO. **HOLOS-V1 v6 (fechamento das 61): SNT-110 REMOVER; SNT-404 MOVER para o Fúngico; SNT-501 e SNT-507 MOVER para o Metabólico; SNT-104, 105, 109, 206, 305, 306, 308, 408, 409, 410 CONTEXTUAL; 47 MANTER com justificativa** (`MetodologiaRevisaoV6` em `metodologia-revisao-v3.js`; detalhes em `docs/v1/ALTERACOES-PACOTE-HOLOSCAN-V6.md`; definições oficiais em `docs/v1/DEFINICOES-OFICIAIS-SISTEMAS-HOLOSCAN-V6.md`). As colunas "sistema atual", "peso" e "contextual" descrevem o **v2** (base da decisão); o resultado final está na seção 0. O v2 e todas as versões anteriores não mudam.
 
 **Fontes**
 - `docs/v1/AUDITORIA-ASSOCIACOES-HOLOSCAN-V2.md`: classificação A/B/C/D, justificativas e fontes, linha a linha.
@@ -11,6 +11,40 @@ Preparação da homologação metodológica, 13/10/2026. Esta matriz é para **R
 - `metodologia-revisao-v3.js`: as decisões de 13/10 que formam o HOLOS-V1 v4. O rascunho de 12/10 ficou arquivado em `docs/v1/metodologia/historico/` e não é fonte da v4 (foi publicado por engano como v3 em 13/10 e é retirado pela v4); é citado só quando já tratava o item.
 
 A matriz foi gerada por script a partir desses dados; nenhuma linha foi digitada. O CSV com os mesmos campos é `docs/v1/MATRIZ-HOMOLOGACAO-84-PERGUNTAS-HOLOSCAN.csv`.
+
+## 0. Resultado final (HOLOS-V1 v6)
+
+| | total |
+|---|---|
+| **TOTAL coletadas** | **81** (das 84 do inventário) |
+| **PONTUÁVEIS** | **69** |
+| **CONTEXTUAIS** (só contexto, sem pontuar) | **12** |
+| **REMOVIDAS** | **3** (SNT-210 e SNT-309 na v4; SNT-110 na v6) |
+
+Tríade (pontuáveis por eixo): Corpo 36 · Mente 19 · Espírito 14. Pesos: todos 1 (nenhum peso novo).
+
+| sistema | itens | IDs |
+|---|---|---|
+| Fúngico | 8 | SNT-101, SNT-102, SNT-103, SNT-106, SNT-107, SNT-108, SNT-111, SNT-404 |
+| Ácido Inflamatório | 8 | SNT-201, SNT-202, SNT-203, SNT-204, SNT-205, SNT-207, SNT-208, SNT-209 |
+| Metabólico | 7 | SNT-301, SNT-303, SNT-304, SNT-307, SNT-501, SNT-507, ESP-303 |
+| Detox e Linfático | 6 | SNT-401, SNT-402, SNT-403, SNT-405, SNT-406, SNT-407 |
+| Mental Emocional Espiritual | 40 | SNT-502, SNT-503, SNT-504, SNT-505, SNT-506, SNT-508, SNT-509, SNT-510, EMO-101, EMO-102, EMO-103, EMO-201, EMO-202, EMO-203, EMO-204, EMO-301, EMO-302, EMO-303, EMO-401, EMO-402, EMO-403, EMO-501, EMO-502, EMO-503, EMO-504, EMO-505, EMO-507, ESP-101, ESP-102, ESP-103, ESP-201, ESP-202, ESP-203, ESP-301, ESP-302, ESP-401, ESP-402, ESP-403, ESP-404, ESP-405 |
+
+| contextuais (sem pontuar) | contexto de |
+|---|---|
+| SNT-104 — Você tem candidíase ou sapinho com frequência? | Fúngico |
+| SNT-105 — Você tem micose de pele ou unha que volta sempre? | Fúngico |
+| SNT-109 — Você precisou tomar antibiótico ao longo da vida? | Fúngico |
+| SNT-206 — Sua pele tem crises de acne inflamada, eczema ou psoríase? | Ácido Inflamatório |
+| SNT-305 — Sua gordura se concentra na barriga? | Metabólico |
+| SNT-306 — A pele do seu pescoço ou axila está mais escura e aveludada? | Metabólico |
+| SNT-308 — Você tem dificuldade de perder peso mesmo comendo pouco? | Metabólico |
+| SNT-408 — Sua pele está opaca ou com olheiras marcadas? | Detox e Linfático |
+| SNT-409 — Seu suor tem odor forte? | Detox e Linfático |
+| SNT-410 — Você tem celulite acentuada? | Detox e Linfático |
+| ESP-501 — Você passa algum tempo em contato com a natureza? | Fúngico |
+| ESP-502 — Você faz suas refeições sozinho e com pressa? | Detox e Linfático |
 
 ## 1. Como usar
 
@@ -40,7 +74,7 @@ Efeitos comuns a MOVER, CONTEXTUAL e REMOVER (fonte: `AUDITORIA-ASSOCIACOES-HOLO
 - Qualquer mudança no pacote "**invalida** as aprovações vigentes daquela versão" (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`, seção 10). Por isso a nova versão é aprovada e publicada por inteiro.
 - **O HOLOS-V1 v4 (82 perguntas) contém só as 15 decisões de 13/10.** A v3 de produção é o rascunho de 12/10, publicado por engano em 13/10 (0 aplicações) e retirado pela v4. O rascunho não foi importado na v4. As decisões que ainda forem tomadas nesta matriz entram numa versão seguinte (v5), a partir da versão ativa.
 
-## 3A. Registro de decisões — DECISÃO APLICADA (HOLOS-V1 v4)
+## 3A. Registro de decisões — DECISÕES APLICADAS (HOLOS-V1 v4, v5 e v6)
 
 | lote | pergunta | decisão | justificativa oficial | status |
 |---|---|---|---|---|
@@ -69,6 +103,65 @@ Efeitos comuns a MOVER, CONTEXTUAL e REMOVER (fonte: `AUDITORIA-ASSOCIACOES-HOLO
 | 2B | ESP-502 — Você faz suas refeições sozinho e com pressa? | **CONTEXTUAL (sem pontuação) (antes: Detox e Linfático)** | Investiga contexto da refeição, ritmo, rotina e pertencimento, mas não há justificativa suficiente para alterar diretamente a nota do Sistema Detox + Linfático ou outro sistema físico. | **DECISÃO APLICADA** (v5) |
 | 2B | EMO-502 — Quando você sai da linha um dia você sente que perdeu tudo e abandona? | **CONTEXTUAL MANTIDO (Metabólico)** | Associação contextual com o Sistema Metabólico mantida, sem pontuação metabólica. | **CONTEXTUAL MANTIDO** (v5) |
 | 2B | EMO-504 — Você sente culpa ou vergonha depois de comer? | **CONTEXTUAL MANTIDO (Metabólico)** | Associação contextual com o Sistema Metabólico mantida, sem pontuação metabólica. | **CONTEXTUAL MANTIDO** (v5) |
+| 61 | SNT-110 — Você passa mal com pouca bebida alcoólica? | **REMOVER** | Redundante com SNT-406 (reação ao álcool já pontua no Detox + Linfático) e, dentro do Fúngico, sugeriria causa microbiológica que o HOLOSCAN não demonstra. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-404 — Comida gordurosa te faz passar mal ou pesa muito? | **MOVER → Fúngico (antes: Detox e Linfático)** | Desconforto digestivo depois de comida gordurosa é relato digestivo/alimentar (domínio do Fúngico); no Detox sugeriria função hepática, que o HOLOSCAN não mede. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-501 — Você acorda cansado mesmo dormindo as horas necessárias? | **MOVER → Metabólico (antes: Mental Emocional Espiritual)** | Acordar cansado mesmo dormindo o suficiente é relato de energia (domínio do Metabólico); sono/alerta no MEE fica com as perguntas de pensamento acelerado e despertar. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-507 — Você consegue perceber quando está com fome e quando já está satisfeito? | **MOVER → Metabólico (antes: Mental Emocional Espiritual)** | Perceber fome e saciedade investiga diretamente fome/saciedade, domínio do Metabólico. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-104 — Você tem candidíase ou sapinho com frequência? | **CONTEXTUAL (sem pontuação) (antes: Fúngico)** | Condição nomeada (candidíase/sapinho): dentro do Fúngico a pontuação pareceria confirmar a condição e sua causa. Fica como relato informado pela paciente, sem pontuar. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-105 — Você tem micose de pele ou unha que volta sempre? | **CONTEXTUAL (sem pontuação) (antes: Fúngico)** | Condição nomeada (micose): dentro do Fúngico a pontuação pareceria confirmar a condição e sua causa. Fica como relato, sem pontuar. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-109 — Você precisou tomar antibiótico ao longo da vida? | **CONTEXTUAL (sem pontuação) (antes: Fúngico)** | Histórico de uso de antibiótico é informação de contexto (exposição ao longo da vida), não sinal atual; pontuar sugeriria mecanismo microbiológico. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-206 — Sua pele tem crises de acne inflamada, eczema ou psoríase? | **CONTEXTUAL (sem pontuação) (antes: Ácido Inflamatório)** | Condições nomeadas (acne inflamada, eczema, psoríase): pontuar no Ácido-Inflamatório pareceria confirmar doença inflamatória. Fica como relato, sem pontuar. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-305 — Sua gordura se concentra na barriga? | **CONTEXTUAL (sem pontuação) (antes: Metabólico)** | Distribuição de gordura é observação corporal que insinuaria diagnóstico metabólico; não é relato de energia, fome, saciedade ou comportamento alimentar. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-306 — A pele do seu pescoço ou axila está mais escura e aveludada? | **CONTEXTUAL (sem pontuação) (antes: Metabólico)** | Pele escurecida e aveludada é sinal clínico que pede avaliação específica; pontuar insinuaria resistência à insulina. Fica como contexto para a profissional. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-308 — Você tem dificuldade de perder peso mesmo comendo pouco? | **CONTEXTUAL (sem pontuação) (antes: Metabólico)** | Dificuldade percebida de perder peso não é relato direto de energia, fome, saciedade ou comportamento alimentar e insinuaria diagnóstico; fica como contexto. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-408 — Sua pele está opaca ou com olheiras marcadas? | **CONTEXTUAL (sem pontuação) (antes: Detox e Linfático)** | Pele opaca e olheiras têm muitas explicações (sono, rotina); no Detox sugeririam toxinas. Fica como contexto. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-409 — Seu suor tem odor forte? | **CONTEXTUAL (sem pontuação) (antes: Detox e Linfático)** | Odor do suor no Detox sugeriria eliminação de toxinas, que o HOLOSCAN não mede. Fica como contexto. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-410 — Você tem celulite acentuada? | **CONTEXTUAL (sem pontuação) (antes: Detox e Linfático)** | Celulite no Detox sugeriria alteração linfática, que o HOLOSCAN não mede. Fica como contexto. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-101 — Você sente vontade forte de doce ou pão quase todo dia? | **MANTER (Fúngico)** | vontade frequente de doce/pão é relato alimentar (hábito e preferência); contextual no Metabólico mantido, sem pontuar. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-102 — Sua barriga incha ou dá gases depois das refeições? | **MANTER (Fúngico)** | inchaço e gases depois das refeições são relato digestivo. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-103 — Sua língua costuma ter uma camada esbranquiçada? | **MANTER (Fúngico)** | camada esbranquiçada na língua é relato de mucosa; não confirma fungo. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-106 — Você sente coceira na região íntima ou anal? | **MANTER (Fúngico)** | coceira íntima ou anal é relato de pele/mucosa; não confirma condição. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-107 — Sua cabeça fica pesada ou confusa depois de comer massa ou doce? | **MANTER (Fúngico)** | cabeça pesada depois de massa ou doce é relato alimentar/vitalidade ligado à refeição. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-108 — Você tem caspa ou coceira no couro cabeludo com frequência? | **MANTER (Fúngico)** | caspa ou coceira no couro cabeludo é relato de pele. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-111 — Você vive com nariz entupido ou sinusite? | **MANTER (Fúngico)** | nariz entupido é relato de mucosa; a palavra sinusite é o termo comum da paciente e não é confirmada. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-201 — Você sente dor nas articulações mesmo sem ter feito esforço? | **MANTER (Ácido-Inflamatório)** | dor articular sem esforço é relato de dor. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-202 — Você acorda com o corpo travado que leva um tempo para soltar? | **MANTER (Ácido-Inflamatório)** | rigidez ao acordar é relato de rigidez. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-203 — Você sente o corpo dolorido sem causa clara? | **MANTER (Ácido-Inflamatório)** | corpo dolorido sem causa clara é relato de dor/desconforto. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-204 — Você sente azia ou queimação no estômago? | **MANTER (Ácido-Inflamatório)** | azia ou queimação é relato de desconforto/irritação; não mede acidez corporal. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-205 — Você tem dor de cabeça mais de uma vez por semana? | **MANTER (Ácido-Inflamatório)** | dor de cabeça frequente é relato de dor. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-207 — Sua gengiva sangra ao escovar? | **MANTER (Ácido-Inflamatório)** | gengiva que sangra é relato de irritação de mucosa. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-208 — Você percebe que piora quando come ultraprocessado ou açúcar? | **MANTER (Ácido-Inflamatório)** | piora percebida com ultraprocessados/açúcar é relato de reatividade percebida, não prova de inflamação. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-209 — Suas mãos ou dedos amanhecem inchados? | **MANTER (Ácido-Inflamatório)** | mãos que amanhecem inchadas é relato de rigidez/desconforto matinal. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-301 — Você fica com muito sono logo depois do almoço? | **MANTER (Metabólico)** | sono depois do almoço é resposta percebida à refeição. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-303 — Você sente fome de novo pouco tempo depois de ter comido? | **MANTER (Metabólico)** | fome pouco depois de comer é relato de fome/saciedade. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-304 — Você come depois do jantar mesmo sem fome real? | **MANTER (Metabólico)** | comer depois do jantar sem fome é comportamento alimentar. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-307 — Você fica irritado ou trêmulo se atrasa uma refeição? | **MANTER (Metabólico)** | irritação ou tremor ao atrasar refeição é resposta percebida à rotina alimentar. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-401 — Você percebe inchaço nas pernas ou nos pés no fim do dia? | **MANTER (Detox + Linfático)** | inchaço nas pernas no fim do dia é retenção percebida. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-402 — Seu rosto amanhece inchado? | **MANTER (Detox + Linfático)** | rosto inchado ao acordar é retenção percebida. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-403 — Cheiros fortes te incomodam mais do que incomodam as outras pessoas? | **MANTER (Detox + Linfático)** | incômodo com cheiros fortes é sensibilidade relatada. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-405 — Você passa um dia ou mais sem evacuar? | **MANTER (Detox + Linfático)** | ficar um dia ou mais sem evacuar é relato de eliminação/funcionamento intestinal. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-406 — Uma taça já te dá ressaca no dia seguinte? | **MANTER (Detox + Linfático)** | ressaca com pouca bebida é reação relatada ao álcool; não mede função hepática. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-407 — Você reage muito forte a medicamento ou a café? | **MANTER (Detox + Linfático)** | reação forte a medicamento ou café é sensibilidade relatada. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-502 — Você demora a dormir porque a cabeça não desliga? | **MANTER (Mental-Emocional-Espiritual)** | demora a dormir porque a cabeça não desliga (pensamento acelerado). | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-503 — Você acorda de madrugada e custa a voltar a dormir? | **MANTER (Mental-Emocional-Espiritual)** | despertar de madrugada com dificuldade de voltar a dormir (sono/alerta previsto no MEE). | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-504 — Você se preocupa muito com coisas que ainda nem aconteceram? | **MANTER (Mental-Emocional-Espiritual)** | preocupação antecipatória. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-505 — Você come para se acalmar quando fica ansioso ou triste? | **MANTER (Mental-Emocional-Espiritual)** | comer para se acalmar é comportamento alimentar ligado ao estado emocional (mesma lógica de EMO-301/303). | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-506 — Você sente que está sempre em alerta esperando algo dar errado? | **MANTER (Mental-Emocional-Espiritual)** | estado de alerta constante. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-508 — Você tem dificuldade de manter o foco em uma tarefa? | **MANTER (Mental-Emocional-Espiritual)** | dificuldade de foco. | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-509 — Você perde a paciência com facilidade? | **MANTER (Mental-Emocional-Espiritual)** | perda de paciência (regulação emocional). | **DECISÃO APLICADA** (v6) |
+| 61 | SNT-510 — Você tem se afastado das pessoas? | **MANTER (Mental-Emocional-Espiritual)** | afastamento das pessoas (conexão/pertencimento). | **DECISÃO APLICADA** (v6) |
+| 61 | EMO-501 — Você fala consigo mesmo de um jeito que não falaria com um amigo? | **MANTER (Mental-Emocional-Espiritual)** | diálogo interno autocrítico. | **DECISÃO APLICADA** (v6) |
+| 61 | EMO-503 — Você se descreve com frases como sempre fui assim ou não tenho força de vontade? | **MANTER (Mental-Emocional-Espiritual)** | crenças fixas sobre si. | **DECISÃO APLICADA** (v6) |
+| 61 | EMO-505 — Você sente que seu corpo trabalha contra você? | **MANTER (Mental-Emocional-Espiritual)** | percepção de conflito com o próprio corpo. | **DECISÃO APLICADA** (v6) |
+| 61 | EMO-507 — Você olha para sua vida hoje e se reconhece nela? | **MANTER (Mental-Emocional-Espiritual)** | reconhecer-se na própria vida (identidade). | **DECISÃO APLICADA** (v6) |
+| 61 | ESP-102 — Você sabe dizer o que veio fazer nesta vida? | **MANTER (Mental-Emocional-Espiritual)** | sentido e propósito. | **DECISÃO APLICADA** (v6) |
+| 61 | ESP-201 — Suas escolhas alimentares combinam com aquilo que você diz valorizar? | **MANTER (Mental-Emocional-Espiritual)** | coerência entre escolhas e valores. | **DECISÃO APLICADA** (v6) |
+| 61 | ESP-202 — Você tem clareza sobre o que é inegociável para você? | **MANTER (Mental-Emocional-Espiritual)** | clareza de valores e limites. | **DECISÃO APLICADA** (v6) |
+| 61 | ESP-301 — Você sente que existe algo maior te sustentando? | **MANTER (Mental-Emocional-Espiritual)** | sensação de sustentação/sentido. | **DECISÃO APLICADA** (v6) |
+| 61 | ESP-302 — Você reserva um momento do dia para agradecer alguma coisa? | **MANTER (Mental-Emocional-Espiritual)** | prática de gratidão. | **DECISÃO APLICADA** (v6) |
+| 61 | ESP-401 — Você sente que não merece as coisas boas que conquista? | **MANTER (Mental-Emocional-Espiritual)** | merecimento. | **DECISÃO APLICADA** (v6) |
+| 61 | ESP-402 — Quando as coisas começam a dar certo você acaba boicotando? | **MANTER (Mental-Emocional-Espiritual)** | autossabotagem. | **DECISÃO APLICADA** (v6) |
+| 61 | ESP-403 — Você repete sobre si mesmo histórias que ouviu na família e nunca questionou? | **MANTER (Mental-Emocional-Espiritual)** | narrativas familiares sobre si. | **DECISÃO APLICADA** (v6) |
 
 **Lote 2B (13/10/2026) → HOLOS-V1 v5, montado a partir da v4.** Regras registradas:
 - "O bloco de origem da pergunta não define automaticamente o sistema. A associação deve ser sustentada pelo conteúdo investigado." — conteúdo da pergunta > bloco de origem para definição do sistema;
@@ -253,14 +346,16 @@ Numa nova versão, esses arquivos seriam atualizados junto com o pacote.
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:5)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — enunciado nomeia uma condição («candidíase») que o texto oficial do próprio sistema diz não diagnosticar («Não diagnostica candidíase, infecção fúngica…», D13); o termo «candid» está na lista de linguagem proibida do Fúngico em `sistemas-fechamento.js`, mas o enunciado pode aparecer literal como sinal dominante (§6.4 e §7.5) |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: CONTEXTUAL (sem pontuação)** (HOLOS-V1 v6) |
+| opções | ☐ MANTER  ☐ MOVER  ☒ **CONTEXTUAL**  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Fúngico: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Fúngico, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Fúngico for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Revisão prioritária — enunciado nomeia uma condição («candidíase») que o texto oficial do próprio sistema diz não diagnosticar («Não diagnostica candidíase, infecção fúngica…», D13); o termo «candid» está na lista de linguagem proibida do Fúngico em `sistemas-fechamento.js`, mas o enunciado pode aparecer literal como sinal dominante (§6.4 e §7.5) |
 | observações | v3 (não publicado) reescreve o texto: «Você tem candidíase com frequência (íntima ou na boca, o "sapinho")?»; o enunciado contém termo da lista de linguagem proibida do Fúngico em `sistemas-fechamento.js` e pode aparecer literal como sinal dominante |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | Condição nomeada (candidíase/sapinho): dentro do Fúngico a pontuação pareceria confirmar a condição e sua causa. Fica como relato informado pela paciente, sem pontuar. |
+| regras da decisão | Aplicada no HOLOS-V1 v6 (a partir da v5): continua coletada; a associação virou contextual (sem peso) e saiu da Tríade; não entra em denominador, nota, Índice, Tríade, dominantes, prioridade nem Próximos Passos; relato da paciente, sem confirmar condição. |
+| decisão registrada | CONTEXTUAL · sem pontuação (era primária de Fúngico) · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-105 — Você tem micose de pele ou unha que volta sempre?
 
@@ -275,14 +370,16 @@ Numa nova versão, esses arquivos seriam atualizados junto com o pacote.
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:6)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — enunciado nomeia micose (infecção fúngica de pele/unha) num eixo cujo texto oficial diz «Não diagnostica … infecção fúngica» (D13); leitura diagnóstica possível |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: CONTEXTUAL (sem pontuação)** (HOLOS-V1 v6) |
+| opções | ☐ MANTER  ☐ MOVER  ☒ **CONTEXTUAL**  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Fúngico: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Fúngico, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Fúngico for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Revisão prioritária — enunciado nomeia micose (infecção fúngica de pele/unha) num eixo cujo texto oficial diz «Não diagnostica … infecção fúngica» (D13); leitura diagnóstica possível |
 | observações | v3 (não publicado) reescreve o texto: «Você tem micose de pele ou unha que sempre volta?» |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | Condição nomeada (micose): dentro do Fúngico a pontuação pareceria confirmar a condição e sua causa. Fica como relato, sem pontuar. |
+| regras da decisão | Aplicada no HOLOS-V1 v6 (a partir da v5): continua coletada; a associação virou contextual (sem peso) e saiu da Tríade; não entra em denominador, nota, Índice, Tríade, dominantes, prioridade nem Próximos Passos; relato da paciente, sem confirmar condição. |
+| decisão registrada | CONTEXTUAL · sem pontuação (era primária de Fúngico) · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-206 — Sua pele tem crises de acne inflamada, eczema ou psoríase?
 
@@ -297,14 +394,16 @@ Numa nova versão, esses arquivos seriam atualizados junto com o pacote.
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:18)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — enunciado nomeia diagnósticos dermatológicos («acne inflamada, eczema ou psoríase») num eixo cujo texto oficial diz «O eixo não diagnostica inflamação» (D13); leitura diagnóstica possível |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: CONTEXTUAL (sem pontuação)** (HOLOS-V1 v6) |
+| opções | ☐ MANTER  ☐ MOVER  ☒ **CONTEXTUAL**  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Ácido Inflamatório: 16 → 15 itens pontuados; hoje o item move a nota do sistema em até 0,625 (0–10) com todos respondidos e o Índice em até 1,25 (0–100); cobertura mínima passaria de 13/16 para 12/15; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Ácido Inflamatório, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Ácido Inflamatório for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Revisão prioritária — enunciado nomeia diagnósticos dermatológicos («acne inflamada, eczema ou psoríase») num eixo cujo texto oficial diz «O eixo não diagnostica inflamação» (D13); leitura diagnóstica possível |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | Condições nomeadas (acne inflamada, eczema, psoríase): pontuar no Ácido-Inflamatório pareceria confirmar doença inflamatória. Fica como relato, sem pontuar. |
+| regras da decisão | Aplicada no HOLOS-V1 v6 (a partir da v5): continua coletada; a associação virou contextual (sem peso) e saiu da Tríade; não entra em denominador, nota, Índice, Tríade, dominantes, prioridade nem Próximos Passos; relato da paciente, sem confirmar condição. |
+| decisão registrada | CONTEXTUAL · sem pontuação (era primária de Ácido Inflamatório) · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-209 — Suas mãos ou dedos amanhecem inchados?
 
@@ -319,14 +418,16 @@ Numa nova versão, esses arquivos seriam atualizados junto com o pacote.
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:21)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — a revisão pública do v2 negou o item com o motivo «sem relação causal direta com o Sistema Ácido Inflamatório» (`docs/v1/REVISAO-PERGUNTAS-V3.md`); removido no v3 (item 183), que não está publicado; no v2 em produção o vínculo continua |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Ácido-Inflamatório)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Ácido Inflamatório: 16 → 15 itens pontuados; hoje o item move a nota do sistema em até 0,625 (0–10) com todos respondidos e o Índice em até 1,25 (0–100); cobertura mínima passaria de 13/16 para 12/15; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Ácido Inflamatório, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Ácido Inflamatório for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Revisão prioritária — a revisão pública do v2 negou o item com o motivo «sem relação causal direta com o Sistema Ácido Inflamatório» (`docs/v1/REVISAO-PERGUNTAS-V3.md`); removido no v3 (item 183), que não está publicado; no v2 em produção o vínculo continua |
 | observações | v3 (não publicado) remove: «negada na revisão: sem relação causal direta com o Sistema Ácido Inflamatório» |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | mãos que amanhecem inchadas é relato de rigidez/desconforto matinal. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Ácido-Inflamatório · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 ### Mental/emocional → sistema físico (13)
 
@@ -765,7 +866,7 @@ Numa nova versão, esses arquivos seriam atualizados junto com o pacote.
 | observações | — |
 | justificativa da decisão | Apesar de estar no bloco espiritual, o conteúdo da pergunta investiga diretamente comportamento alimentar e contexto da refeição. |
 | regras da decisão | Registrada no HOLOS-V1 v5; nada muda na associação (primária Metabólico, peso 1). Conteúdo da pergunta > bloco de origem. |
-| decisão registrada | MANTER · primária no Metabólico · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v5 (versões anteriores imutáveis) |
+| decisão registrada | MANTER · Metabólico · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v5 (versões anteriores imutáveis) |
 
 #### ESP-404 — Você acredita que para ter saúde precisa sofrer ou se privar?
 
@@ -882,14 +983,16 @@ Numa nova versão, esses arquivos seriam atualizados junto com o pacote.
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «livro p. 91 (Trava da Desconexão Corpo-Mente) (motor/bancos/sintomas.csv:49)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — conteúdo corporal/interoceptivo (perceber fome e saciedade, bloco Físico) pontua o MEE; o texto oficial do MEE (D13) lista «sono, alerta, foco, emoções, relação consigo e questões de sentido pessoal» e não cita sinais de fome/saciedade. Substituído no v3 por SNT-511 (não publicado) |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MOVER → Metabólico** (HOLOS-V1 v6) |
+| opções | ☐ MANTER  ☒ **MOVER**  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Mental Emocional Espiritual: 24 → 23 itens pontuados; hoje o item move a nota do sistema em até 0,417 (0–10) com todos respondidos e o Índice em até 0,833 (0–100); cobertura mínima passaria de 20/24 para 19/23; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Mental Emocional Espiritual, quando contribui > 0 (invertida: resposta ≤ 2) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Mental Emocional Espiritual for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Revisão prioritária — conteúdo corporal/interoceptivo (perceber fome e saciedade, bloco Físico) pontua o MEE; o texto oficial do MEE (D13) lista «sono, alerta, foco, emoções, relação consigo e questões de sentido pessoal» e não cita sinais de fome/saciedade. Substituído no v3 por SNT-511 (não publicado) |
 | observações | v3 (não publicado) substitui por SNT-511: «Você tem se sentido triste e insatisfeito com sua saúde como um todo?»; pergunta invertida (resposta baixa = carga) |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | Perceber fome e saciedade investiga diretamente fome/saciedade, domínio do Metabólico. |
+| regras da decisão | Aplicada no HOLOS-V1 v6 (a partir da v5); primária no sistema de destino, peso 1 preservado, Tríade Corpo; o sistema anterior não ficou como contexto; v2–v5 imutáveis; nenhum histórico recalculado. |
+| decisão registrada | MOVER · de Mental Emocional Espiritual para Metabólico · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 ### Outras associações cruzadas (0)
 
@@ -897,7 +1000,7 @@ _Nenhuma pergunta C neste subgrupo._
 
 ## 6. GRUPO 3 — JUSTIFICATIVA AUSENTE (54 perguntas classificadas B)
 
-Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificativa escrita item a item. A auditoria não apontou risco específico para elas; a decisão continua EM ABERTO e pode ser "MANTER em bloco" se Rodrigo e Daniel assim decidirem. Ficam agrupadas por sistema.
+Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificativa escrita item a item. A auditoria não apontou risco específico para elas; **decisão fechada no HOLOS-V1 v6**: cada uma tem a decisão e a justificativa registradas na ficha (MANTER, MOVER, CONTEXTUAL ou REMOVER). Ficam agrupadas por sistema.
 
 ### Fúngico (8)
 
@@ -925,14 +1028,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:3)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Fúngico)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Fúngico: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Fúngico, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Fúngico for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | v3 (não publicado) reescreve o texto: «Sua barriga incha/estufa ou fica com gases depois das refeições?» |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | inchaço e gases depois das refeições são relato digestivo. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Fúngico · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-103 — Sua língua costuma ter uma camada esbranquiçada?
 
@@ -947,14 +1052,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:4)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Fúngico)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Fúngico: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Fúngico, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Fúngico for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | v3 (não publicado) reescreve o texto: «Sua língua costuma ter uma camada esbranquiçada no dia a dia?» |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | camada esbranquiçada na língua é relato de mucosa; não confirma fungo. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Fúngico · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-106 — Você sente coceira na região íntima ou anal?
 
@@ -969,14 +1076,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:7)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item; substituído no v3 por SNT-112 (não publicado) |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Fúngico)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Fúngico: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Fúngico, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Fúngico for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | v3 (não publicado) substitui por SNT-112: «Você sente coceira no corpo sem motivo aparente?» |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | coceira íntima ou anal é relato de pele/mucosa; não confirma condição. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Fúngico · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-107 — Sua cabeça fica pesada ou confusa depois de comer massa ou doce?
 
@@ -991,14 +1100,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:8)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Fúngico)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Fúngico: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Fúngico, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Fúngico for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | cabeça pesada depois de massa ou doce é relato alimentar/vitalidade ligado à refeição. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Fúngico · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-108 — Você tem caspa ou coceira no couro cabeludo com frequência?
 
@@ -1013,14 +1124,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:9)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Fúngico)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Fúngico: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Fúngico, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Fúngico for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | caspa ou coceira no couro cabeludo é relato de pele. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Fúngico · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-109 — Você precisou tomar antibiótico ao longo da vida?
 
@@ -1035,14 +1148,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:10)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item; item de histórico de exposição («ao longo da vida») em escala de frequência |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: CONTEXTUAL (sem pontuação)** (HOLOS-V1 v6) |
+| opções | ☐ MANTER  ☐ MOVER  ☒ **CONTEXTUAL**  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Fúngico: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Fúngico, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Fúngico for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | v3 (não publicado) reescreve o texto: «Você precisou tomar antibióticos muitas vezes ao longo da vida?» |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | Histórico de uso de antibiótico é informação de contexto (exposição ao longo da vida), não sinal atual; pontuar sugeriria mecanismo microbiológico. |
+| regras da decisão | Aplicada no HOLOS-V1 v6 (a partir da v5): continua coletada; a associação virou contextual (sem peso) e saiu da Tríade; não entra em denominador, nota, Índice, Tríade, dominantes, prioridade nem Próximos Passos; relato da paciente, sem confirmar condição. |
+| decisão registrada | CONTEXTUAL · sem pontuação (era primária de Fúngico) · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-110 — Você passa mal com pouca bebida alcoólica?
 
@@ -1057,14 +1172,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:11)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item; sinal próximo de SNT-406 (álcool), que pontua outro sistema (Detox) |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: REMOVER** (HOLOS-V1 v6) |
+| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☒ **REMOVER** |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Fúngico: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Fúngico, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Fúngico for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | Redundante com SNT-406 (reação ao álcool já pontua no Detox + Linfático) e, dentro do Fúngico, sugeriria causa microbiológica que o HOLOSCAN não demonstra. |
+| regras da decisão | Aplicada no HOLOS-V1 v6 (a partir da v5); fora das novas aplicações; v2–v5 imutáveis; nenhum histórico recalculado; sem item substituto. |
+| decisão registrada | REMOVER · sem sistema de destino · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-111 — Você vive com nariz entupido ou sinusite?
 
@@ -1079,14 +1196,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:12)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Fúngico)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Fúngico: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Fúngico, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Fúngico for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | nariz entupido é relato de mucosa; a palavra sinusite é o termo comum da paciente e não é confirmada. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Fúngico · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 ### Ácido Inflamatório (7)
 
@@ -1113,14 +1232,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:13)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Ácido-Inflamatório)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Ácido Inflamatório: 16 → 15 itens pontuados; hoje o item move a nota do sistema em até 0,625 (0–10) com todos respondidos e o Índice em até 1,25 (0–100); cobertura mínima passaria de 13/16 para 12/15; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Ácido Inflamatório, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Ácido Inflamatório for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | dor articular sem esforço é relato de dor. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Ácido-Inflamatório · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-202 — Você acorda com o corpo travado que leva um tempo para soltar?
 
@@ -1135,14 +1256,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:14)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Ácido-Inflamatório)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Ácido Inflamatório: 16 → 15 itens pontuados; hoje o item move a nota do sistema em até 0,625 (0–10) com todos respondidos e o Índice em até 1,25 (0–100); cobertura mínima passaria de 13/16 para 12/15; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Ácido Inflamatório, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Ácido Inflamatório for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | rigidez ao acordar é relato de rigidez. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Ácido-Inflamatório · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-203 — Você sente o corpo dolorido sem causa clara?
 
@@ -1157,14 +1280,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:15)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Ácido-Inflamatório)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Ácido Inflamatório: 16 → 15 itens pontuados; hoje o item move a nota do sistema em até 0,625 (0–10) com todos respondidos e o Índice em até 1,25 (0–100); cobertura mínima passaria de 13/16 para 12/15; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Ácido Inflamatório, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Ácido Inflamatório for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | corpo dolorido sem causa clara é relato de dor/desconforto. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Ácido-Inflamatório · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-204 — Você sente azia ou queimação no estômago?
 
@@ -1179,14 +1304,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:16)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Ácido-Inflamatório)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Ácido Inflamatório: 16 → 15 itens pontuados; hoje o item move a nota do sistema em até 0,625 (0–10) com todos respondidos e o Índice em até 1,25 (0–100); cobertura mínima passaria de 13/16 para 12/15; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Ácido Inflamatório, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Ácido Inflamatório for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | azia ou queimação é relato de desconforto/irritação; não mede acidez corporal. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Ácido-Inflamatório · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-205 — Você tem dor de cabeça mais de uma vez por semana?
 
@@ -1201,14 +1328,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:17)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item; tema «dor» coberto pelo texto oficial D13 do Ácido Inflamatório |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Ácido-Inflamatório)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Ácido Inflamatório: 16 → 15 itens pontuados; hoje o item move a nota do sistema em até 0,625 (0–10) com todos respondidos e o Índice em até 1,25 (0–100); cobertura mínima passaria de 13/16 para 12/15; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Ácido Inflamatório, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Ácido Inflamatório for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | dor de cabeça frequente é relato de dor. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Ácido-Inflamatório · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-207 — Sua gengiva sangra ao escovar?
 
@@ -1223,14 +1352,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:19)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Ácido-Inflamatório)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Ácido Inflamatório: 16 → 15 itens pontuados; hoje o item move a nota do sistema em até 0,625 (0–10) com todos respondidos e o Índice em até 1,25 (0–100); cobertura mínima passaria de 13/16 para 12/15; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Ácido Inflamatório, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Ácido Inflamatório for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | v3 (não publicado) reescreve o texto: «Sua gengiva sangra ao escovar os dentes?» |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | gengiva que sangra é relato de irritação de mucosa. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Ácido-Inflamatório · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-208 — Você percebe que piora quando come ultraprocessado ou açúcar?
 
@@ -1245,14 +1376,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:20)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item; redação revisada no v3 («as dores no corpo ou de cabeça pioram…») |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Ácido-Inflamatório)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Ácido Inflamatório: 16 → 15 itens pontuados; hoje o item move a nota do sistema em até 0,625 (0–10) com todos respondidos e o Índice em até 1,25 (0–100); cobertura mínima passaria de 13/16 para 12/15; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Ácido Inflamatório, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Ácido Inflamatório for 1ª/2ª área, na da paciente. |
 | risco de interpretação | A auditoria (§6.3) anota que o enunciado pede ao paciente uma relação causal percebida («piora quando come…»); ficou B por ser relato do paciente; o v3 (não publicado) revisou a redação |
 | observações | v3 (não publicado) reescreve o texto: «Você percebe que as dores no corpo ou de cabeça pioram quando come alimentos ultraprocessados ou açúcar?» |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | piora percebida com ultraprocessados/açúcar é relato de reatividade percebida, não prova de inflamação. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Ácido-Inflamatório · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 ### Metabólico (7)
 
@@ -1279,14 +1412,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:23)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Metabólico)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Metabólico: 14 → 13 itens pontuados; hoje o item move a nota do sistema em até 0,714 (0–10) com todos respondidos e o Índice em até 1,429 (0–100); cobertura mínima passaria de 12/14 para 11/13; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Metabólico, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Metabólico for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | v3 (não publicado) reescreve o texto: «Você sente muito sono logo depois do almoço?» |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | sono depois do almoço é resposta percebida à refeição. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Metabólico · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-303 — Você sente fome de novo pouco tempo depois de ter comido?
 
@@ -1301,14 +1436,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:25)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Metabólico)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Metabólico: 14 → 13 itens pontuados; hoje o item move a nota do sistema em até 0,714 (0–10) com todos respondidos e o Índice em até 1,429 (0–100); cobertura mínima passaria de 12/14 para 11/13; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Metabólico, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Metabólico for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | v3 (não publicado) reescreve o texto: «Você fica com fome de novo pouco tempo depois de ter comido?» |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | fome pouco depois de comer é relato de fome/saciedade. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Metabólico · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-304 — Você come depois do jantar mesmo sem fome real?
 
@@ -1323,14 +1460,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:26)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Metabólico)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Metabólico: 14 → 13 itens pontuados; hoje o item move a nota do sistema em até 0,714 (0–10) com todos respondidos e o Índice em até 1,429 (0–100); cobertura mínima passaria de 12/14 para 11/13; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Metabólico, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Metabólico for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | comer depois do jantar sem fome é comportamento alimentar. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Metabólico · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-305 — Sua gordura se concentra na barriga?
 
@@ -1345,14 +1484,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:27)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: CONTEXTUAL (sem pontuação)** (HOLOS-V1 v6) |
+| opções | ☐ MANTER  ☐ MOVER  ☒ **CONTEXTUAL**  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Metabólico: 14 → 13 itens pontuados; hoje o item move a nota do sistema em até 0,714 (0–10) com todos respondidos e o Índice em até 1,429 (0–100); cobertura mínima passaria de 12/14 para 11/13; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Metabólico, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Metabólico for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | v3 (não publicado) reescreve o texto: «O principal local em que a gordura se concentra no seu corpo é a região da barriga?» |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | Distribuição de gordura é observação corporal que insinuaria diagnóstico metabólico; não é relato de energia, fome, saciedade ou comportamento alimentar. |
+| regras da decisão | Aplicada no HOLOS-V1 v6 (a partir da v5): continua coletada; a associação virou contextual (sem peso) e saiu da Tríade; não entra em denominador, nota, Índice, Tríade, dominantes, prioridade nem Próximos Passos; relato da paciente, sem confirmar condição. |
+| decisão registrada | CONTEXTUAL · sem pontuação (era primária de Metabólico) · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-306 — A pele do seu pescoço ou axila está mais escura e aveludada?
 
@@ -1367,14 +1508,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:28)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: CONTEXTUAL (sem pontuação)** (HOLOS-V1 v6) |
+| opções | ☐ MANTER  ☐ MOVER  ☒ **CONTEXTUAL**  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Metabólico: 14 → 13 itens pontuados; hoje o item move a nota do sistema em até 0,714 (0–10) com todos respondidos e o Índice em até 1,429 (0–100); cobertura mínima passaria de 12/14 para 11/13; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Metabólico, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Metabólico for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | v3 (não publicado) reescreve o texto: «A pele do seu pescoço ou axila está mais escura e com textura mais grossa ou aveludada?» |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | Pele escurecida e aveludada é sinal clínico que pede avaliação específica; pontuar insinuaria resistência à insulina. Fica como contexto para a profissional. |
+| regras da decisão | Aplicada no HOLOS-V1 v6 (a partir da v5): continua coletada; a associação virou contextual (sem peso) e saiu da Tríade; não entra em denominador, nota, Índice, Tríade, dominantes, prioridade nem Próximos Passos; relato da paciente, sem confirmar condição. |
+| decisão registrada | CONTEXTUAL · sem pontuação (era primária de Metabólico) · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-307 — Você fica irritado ou trêmulo se atrasa uma refeição?
 
@@ -1389,14 +1532,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:29)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Metabólico)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Metabólico: 14 → 13 itens pontuados; hoje o item move a nota do sistema em até 0,714 (0–10) com todos respondidos e o Índice em até 1,429 (0–100); cobertura mínima passaria de 12/14 para 11/13; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Metabólico, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Metabólico for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | v3 (não publicado) reescreve o texto: «Você fica irritado, nervoso ou trêmulo se atrasa uma refeição?» |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | irritação ou tremor ao atrasar refeição é resposta percebida à rotina alimentar. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Metabólico · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-308 — Você tem dificuldade de perder peso mesmo comendo pouco?
 
@@ -1411,14 +1556,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:30)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: CONTEXTUAL (sem pontuação)** (HOLOS-V1 v6) |
+| opções | ☐ MANTER  ☐ MOVER  ☒ **CONTEXTUAL**  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Metabólico: 14 → 13 itens pontuados; hoje o item move a nota do sistema em até 0,714 (0–10) com todos respondidos e o Índice em até 1,429 (0–100); cobertura mínima passaria de 12/14 para 11/13; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Metabólico, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Metabólico for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | Dificuldade percebida de perder peso não é relato direto de energia, fome, saciedade ou comportamento alimentar e insinuaria diagnóstico; fica como contexto. |
+| regras da decisão | Aplicada no HOLOS-V1 v6 (a partir da v5): continua coletada; a associação virou contextual (sem peso) e saiu da Tríade; não entra em denominador, nota, Índice, Tríade, dominantes, prioridade nem Próximos Passos; relato da paciente, sem confirmar condição. |
+| decisão registrada | CONTEXTUAL · sem pontuação (era primária de Metabólico) · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 ### Detox e Linfático (10)
 
@@ -1448,14 +1595,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:33)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Detox + Linfático)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Detox e Linfático: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Detox e Linfático, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Detox e Linfático for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | inchaço nas pernas no fim do dia é retenção percebida. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Detox + Linfático · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-402 — Seu rosto amanhece inchado?
 
@@ -1470,14 +1619,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:34)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Detox + Linfático)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Detox e Linfático: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Detox e Linfático, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Detox e Linfático for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | v3 (não publicado) reescreve o texto: «Seu rosto amanhece muito inchado logo ao acordar?» |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | rosto inchado ao acordar é retenção percebida. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Detox + Linfático · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-403 — Cheiros fortes te incomodam mais do que incomodam as outras pessoas?
 
@@ -1492,14 +1643,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:35)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Detox + Linfático)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Detox e Linfático: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Detox e Linfático, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Detox e Linfático for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | v3 (não publicado) reescreve o texto: «Cheiros fortes te incomodam mais do que geralmente incomodam as outras pessoas?» |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | incômodo com cheiros fortes é sensibilidade relatada. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Detox + Linfático · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-404 — Comida gordurosa te faz passar mal ou pesa muito?
 
@@ -1514,14 +1667,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:36)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MOVER → Fúngico** (HOLOS-V1 v6) |
+| opções | ☐ MANTER  ☒ **MOVER**  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Detox e Linfático: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Detox e Linfático, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Detox e Linfático for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | v3 (não publicado) reescreve o texto: «Comida gordurosa te faz passar mal ou ter uma sensação de enjoo?» |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | Desconforto digestivo depois de comida gordurosa é relato digestivo/alimentar (domínio do Fúngico); no Detox sugeriria função hepática, que o HOLOSCAN não mede. |
+| regras da decisão | Aplicada no HOLOS-V1 v6 (a partir da v5); primária no sistema de destino, peso 1 preservado, Tríade Corpo; o sistema anterior não ficou como contexto; v2–v5 imutáveis; nenhum histórico recalculado. |
+| decisão registrada | MOVER · de Detox e Linfático para Fúngico · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-405 — Você passa um dia ou mais sem evacuar?
 
@@ -1536,14 +1691,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:37)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Detox + Linfático)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Detox e Linfático: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Detox e Linfático, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Detox e Linfático for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | ficar um dia ou mais sem evacuar é relato de eliminação/funcionamento intestinal. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Detox + Linfático · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-406 — Uma taça já te dá ressaca no dia seguinte?
 
@@ -1558,14 +1715,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:38)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item; sinal próximo de SNT-110 (álcool), que pontua outro sistema (Fúngico) |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Detox + Linfático)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Detox e Linfático: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Detox e Linfático, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Detox e Linfático for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | v3 (não publicado) reescreve o texto: «Uma quantidade pequena de bebida alcoólica (ex.: 1 a 2 taças de vinho ou cerveja) já te dá ressaca no dia seguinte?» |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | ressaca com pouca bebida é reação relatada ao álcool; não mede função hepática. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Detox + Linfático · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-407 — Você reage muito forte a medicamento ou a café?
 
@@ -1580,14 +1739,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:39)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Detox + Linfático)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Detox e Linfático: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Detox e Linfático, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Detox e Linfático for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | v3 (não publicado) reescreve o texto: «Você tem fortes reações a medicamentos ou a café?» |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | reação forte a medicamento ou café é sensibilidade relatada. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Detox + Linfático · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-408 — Sua pele está opaca ou com olheiras marcadas?
 
@@ -1602,14 +1763,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:40)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: CONTEXTUAL (sem pontuação)** (HOLOS-V1 v6) |
+| opções | ☐ MANTER  ☐ MOVER  ☒ **CONTEXTUAL**  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Detox e Linfático: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Detox e Linfático, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Detox e Linfático for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | Pele opaca e olheiras têm muitas explicações (sono, rotina); no Detox sugeririam toxinas. Fica como contexto. |
+| regras da decisão | Aplicada no HOLOS-V1 v6 (a partir da v5): continua coletada; a associação virou contextual (sem peso) e saiu da Tríade; não entra em denominador, nota, Índice, Tríade, dominantes, prioridade nem Próximos Passos; relato da paciente, sem confirmar condição. |
+| decisão registrada | CONTEXTUAL · sem pontuação (era primária de Detox e Linfático) · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-409 — Seu suor tem odor forte?
 
@@ -1624,14 +1787,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:41)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: CONTEXTUAL (sem pontuação)** (HOLOS-V1 v6) |
+| opções | ☐ MANTER  ☐ MOVER  ☒ **CONTEXTUAL**  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Detox e Linfático: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Detox e Linfático, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Detox e Linfático for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | v3 (não publicado) reescreve o texto: «Seu suor tem um odor forte?» |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | Odor do suor no Detox sugeriria eliminação de toxinas, que o HOLOSCAN não mede. Fica como contexto. |
+| regras da decisão | Aplicada no HOLOS-V1 v6 (a partir da v5): continua coletada; a associação virou contextual (sem peso) e saiu da Tríade; não entra em denominador, nota, Índice, Tríade, dominantes, prioridade nem Próximos Passos; relato da paciente, sem confirmar condição. |
+| decisão registrada | CONTEXTUAL · sem pontuação (era primária de Detox e Linfático) · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-410 — Você tem celulite acentuada?
 
@@ -1646,14 +1811,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:42)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item; substituído no v3 por SNT-411 (não publicado) |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: CONTEXTUAL (sem pontuação)** (HOLOS-V1 v6) |
+| opções | ☐ MANTER  ☐ MOVER  ☒ **CONTEXTUAL**  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Detox e Linfático: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Detox e Linfático, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Detox e Linfático for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | v3 (não publicado) substitui por SNT-411: «Você costuma sentir gosto metálico na boca?» |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | Celulite no Detox sugeriria alteração linfática, que o HOLOSCAN não mede. Fica como contexto. |
+| regras da decisão | Aplicada no HOLOS-V1 v6 (a partir da v5): continua coletada; a associação virou contextual (sem peso) e saiu da Tríade; não entra em denominador, nota, Índice, Tríade, dominantes, prioridade nem Próximos Passos; relato da paciente, sem confirmar condição. |
+| decisão registrada | CONTEXTUAL · sem pontuação (era primária de Detox e Linfático) · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 ### Mental Emocional Espiritual (22)
 
@@ -1695,14 +1862,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:44)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item; sono: tema citado no texto oficial D13 do MEE; bloco Físico (Tríade Corpo) |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Mental-Emocional-Espiritual)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Mental Emocional Espiritual: 24 → 23 itens pontuados; hoje o item move a nota do sistema em até 0,417 (0–10) com todos respondidos e o Índice em até 0,833 (0–100); cobertura mínima passaria de 20/24 para 19/23; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Mental Emocional Espiritual, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Mental Emocional Espiritual for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Pergunta do bloco Físico (conta na Tríade Corpo) pontuando o Mental Emocional Espiritual; a auditoria não apontou risco causal específico (status B). Ver pergunta 8 da auditoria (Tríade por bloco). |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | demora a dormir porque a cabeça não desliga (pensamento acelerado). |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Mental-Emocional-Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-503 — Você acorda de madrugada e custa a voltar a dormir?
 
@@ -1717,14 +1886,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:45)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item; sono: tema citado no texto oficial D13 do MEE; bloco Físico (Tríade Corpo) |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Mental-Emocional-Espiritual)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Mental Emocional Espiritual: 24 → 23 itens pontuados; hoje o item move a nota do sistema em até 0,417 (0–10) com todos respondidos e o Índice em até 0,833 (0–100); cobertura mínima passaria de 20/24 para 19/23; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Mental Emocional Espiritual, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Mental Emocional Espiritual for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Pergunta do bloco Físico (conta na Tríade Corpo) pontuando o Mental Emocional Espiritual; a auditoria não apontou risco causal específico (status B). Ver pergunta 8 da auditoria (Tríade por bloco). |
 | observações | v3 (não publicado) reescreve o texto: «Você acorda de madrugada e tem dificuldade de voltar a dormir?» |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | despertar de madrugada com dificuldade de voltar a dormir (sono/alerta previsto no MEE). |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Mental-Emocional-Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-504 — Você se preocupa muito com coisas que ainda nem aconteceram?
 
@@ -1739,14 +1910,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:46)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item; conteúdo mental no bloco Físico (conta na Tríade Corpo) |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Mental-Emocional-Espiritual)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Mental Emocional Espiritual: 24 → 23 itens pontuados; hoje o item move a nota do sistema em até 0,417 (0–10) com todos respondidos e o Índice em até 0,833 (0–100); cobertura mínima passaria de 20/24 para 19/23; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Mental Emocional Espiritual, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Mental Emocional Espiritual for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Pergunta do bloco Físico (conta na Tríade Corpo) pontuando o Mental Emocional Espiritual; a auditoria não apontou risco causal específico (status B). Ver pergunta 8 da auditoria (Tríade por bloco). |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | preocupação antecipatória. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Mental-Emocional-Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-505 — Você come para se acalmar quando fica ansioso ou triste?
 
@@ -1761,14 +1934,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «livro p. 90 (Trava do Trauma Alimentar) (motor/bancos/sintomas.csv:47)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item; conteúdo emocional no bloco Físico (conta na Tríade Corpo) |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Mental-Emocional-Espiritual)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Mental Emocional Espiritual: 24 → 23 itens pontuados; hoje o item move a nota do sistema em até 0,417 (0–10) com todos respondidos e o Índice em até 0,833 (0–100); cobertura mínima passaria de 20/24 para 19/23; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Mental Emocional Espiritual, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Mental Emocional Espiritual for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Pergunta do bloco Físico (conta na Tríade Corpo) pontuando o Mental Emocional Espiritual; a auditoria não apontou risco causal específico (status B). Ver pergunta 8 da auditoria (Tríade por bloco). |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | comer para se acalmar é comportamento alimentar ligado ao estado emocional (mesma lógica de EMO-301/303). |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Mental-Emocional-Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-506 — Você sente que está sempre em alerta esperando algo dar errado?
 
@@ -1783,14 +1958,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:48)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item; conteúdo mental no bloco Físico (conta na Tríade Corpo) |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Mental-Emocional-Espiritual)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Mental Emocional Espiritual: 24 → 23 itens pontuados; hoje o item move a nota do sistema em até 0,417 (0–10) com todos respondidos e o Índice em até 0,833 (0–100); cobertura mínima passaria de 20/24 para 19/23; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Mental Emocional Espiritual, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Mental Emocional Espiritual for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Pergunta do bloco Físico (conta na Tríade Corpo) pontuando o Mental Emocional Espiritual; a auditoria não apontou risco causal específico (status B). Ver pergunta 8 da auditoria (Tríade por bloco). |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | estado de alerta constante. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Mental-Emocional-Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-508 — Você tem dificuldade de manter o foco em uma tarefa?
 
@@ -1805,14 +1982,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:50)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item; conteúdo mental no bloco Físico (conta na Tríade Corpo) |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Mental-Emocional-Espiritual)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Mental Emocional Espiritual: 24 → 23 itens pontuados; hoje o item move a nota do sistema em até 0,417 (0–10) com todos respondidos e o Índice em até 0,833 (0–100); cobertura mínima passaria de 20/24 para 19/23; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Mental Emocional Espiritual, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Mental Emocional Espiritual for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Pergunta do bloco Físico (conta na Tríade Corpo) pontuando o Mental Emocional Espiritual; a auditoria não apontou risco causal específico (status B). Ver pergunta 8 da auditoria (Tríade por bloco). |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | dificuldade de foco. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Mental-Emocional-Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-509 — Você perde a paciência com facilidade?
 
@@ -1827,14 +2006,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:51)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item; conteúdo emocional no bloco Físico (conta na Tríade Corpo) |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Mental-Emocional-Espiritual)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Mental Emocional Espiritual: 24 → 23 itens pontuados; hoje o item move a nota do sistema em até 0,417 (0–10) com todos respondidos e o Índice em até 0,833 (0–100); cobertura mínima passaria de 20/24 para 19/23; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Mental Emocional Espiritual, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Mental Emocional Espiritual for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Pergunta do bloco Físico (conta na Tríade Corpo) pontuando o Mental Emocional Espiritual; a auditoria não apontou risco causal específico (status B). Ver pergunta 8 da auditoria (Tríade por bloco). |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | perda de paciência (regulação emocional). |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Mental-Emocional-Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-510 — Você tem se afastado das pessoas?
 
@@ -1849,14 +2030,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:52)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item; conteúdo relacional no bloco Físico (conta na Tríade Corpo) |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Mental-Emocional-Espiritual)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Mental Emocional Espiritual: 24 → 23 itens pontuados; hoje o item move a nota do sistema em até 0,417 (0–10) com todos respondidos e o Índice em até 0,833 (0–100); cobertura mínima passaria de 20/24 para 19/23; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Mental Emocional Espiritual, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Mental Emocional Espiritual for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Pergunta do bloco Físico (conta na Tríade Corpo) pontuando o Mental Emocional Espiritual; a auditoria não apontou risco causal específico (status B). Ver pergunta 8 da auditoria (Tríade por bloco). |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | afastamento das pessoas (conexão/pertencimento). |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Mental-Emocional-Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### EMO-501 — Você fala consigo mesmo de um jeito que não falaria com um amigo?
 
@@ -1871,14 +2054,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «livro p. 92 (Reparentalização Nutricional) (motor/bancos/emocoes.csv:15)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Mental-Emocional-Espiritual)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Mental Emocional Espiritual: 24 → 23 itens pontuados; hoje o item move a nota do sistema em até 0,417 (0–10) com todos respondidos e o Índice em até 0,833 (0–100); cobertura mínima passaria de 20/24 para 19/23; Tríade Mente: 19 → 18 itens (hoje o item move essa Tríade em até 0,526). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Mental Emocional Espiritual, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Mental Emocional Espiritual for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | diálogo interno autocrítico. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Mental-Emocional-Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### EMO-502 — Quando você sai da linha um dia você sente que perdeu tudo e abandona?
 
@@ -1917,14 +2102,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «livro p. 89 (Trava da Identidade Limitante) (motor/bancos/emocoes.csv:17)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Mental-Emocional-Espiritual)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Mental Emocional Espiritual: 24 → 23 itens pontuados; hoje o item move a nota do sistema em até 0,417 (0–10) com todos respondidos e o Índice em até 0,833 (0–100); cobertura mínima passaria de 20/24 para 19/23; Tríade Mente: 19 → 18 itens (hoje o item move essa Tríade em até 0,526). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Mental Emocional Espiritual, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Mental Emocional Espiritual for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | crenças fixas sobre si. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Mental-Emocional-Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### EMO-504 — Você sente culpa ou vergonha depois de comer?
 
@@ -1963,14 +2150,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «livro p. 91 (Trava da Desconexão Corpo-Mente) (motor/bancos/emocoes.csv:19)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Mental-Emocional-Espiritual)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Mental Emocional Espiritual: 24 → 23 itens pontuados; hoje o item move a nota do sistema em até 0,417 (0–10) com todos respondidos e o Índice em até 0,833 (0–100); cobertura mínima passaria de 20/24 para 19/23; Tríade Mente: 19 → 18 itens (hoje o item move essa Tríade em até 0,526). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Mental Emocional Espiritual, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Mental Emocional Espiritual for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | percepção de conflito com o próprio corpo. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Mental-Emocional-Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### EMO-507 — Você olha para sua vida hoje e se reconhece nela?
 
@@ -1985,14 +2174,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Mental-Emocional: desconexão de si) (motor/bancos/emocoes.csv:20)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Mental-Emocional-Espiritual)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Mental Emocional Espiritual: 24 → 23 itens pontuados; hoje o item move a nota do sistema em até 0,417 (0–10) com todos respondidos e o Índice em até 0,833 (0–100); cobertura mínima passaria de 20/24 para 19/23; Tríade Mente: 19 → 18 itens (hoje o item move essa Tríade em até 0,526). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Mental Emocional Espiritual, quando contribui > 0 (invertida: resposta ≤ 2) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Mental Emocional Espiritual for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | pergunta invertida (resposta baixa = carga) |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | reconhecer-se na própria vida (identidade). |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Mental-Emocional-Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### ESP-102 — Você sabe dizer o que veio fazer nesta vida?
 
@@ -2007,14 +2198,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «livro p. 57 (Reconexão com o Propósito) (motor/bancos/espiritual.csv:3)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item; removido no v3 (revisão: «muito ampla, ambígua para interpretação»); a negação é de redação, não de vínculo |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Mental-Emocional-Espiritual)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Mental Emocional Espiritual: 24 → 23 itens pontuados; hoje o item move a nota do sistema em até 0,417 (0–10) com todos respondidos e o Índice em até 0,833 (0–100); cobertura mínima passaria de 20/24 para 19/23; Tríade Espírito: 16 → 15 itens (hoje o item move essa Tríade em até 0,625). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Mental Emocional Espiritual, quando contribui > 0 (invertida: resposta ≤ 2) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Mental Emocional Espiritual for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | v3 (não publicado) remove: «negada na revisão: muito ampla, ambígua para interpretação»; pergunta invertida (resposta baixa = carga) |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | sentido e propósito. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Mental-Emocional-Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### ESP-201 — Suas escolhas alimentares combinam com aquilo que você diz valorizar?
 
@@ -2029,14 +2222,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «livro p. 54 (A Nutrição como Expressão de Propósito e Valores) (motor/bancos/espiritual.csv:5)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Mental-Emocional-Espiritual)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Mental Emocional Espiritual: 24 → 23 itens pontuados; hoje o item move a nota do sistema em até 0,417 (0–10) com todos respondidos e o Índice em até 0,833 (0–100); cobertura mínima passaria de 20/24 para 19/23; Tríade Espírito: 16 → 15 itens (hoje o item move essa Tríade em até 0,625). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Mental Emocional Espiritual, quando contribui > 0 (invertida: resposta ≤ 2) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Mental Emocional Espiritual for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | pergunta invertida (resposta baixa = carga) |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | coerência entre escolhas e valores. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Mental-Emocional-Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### ESP-202 — Você tem clareza sobre o que é inegociável para você?
 
@@ -2051,14 +2246,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «livro p. 57 (Clarificação de Valores) (motor/bancos/espiritual.csv:6)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Mental-Emocional-Espiritual)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Mental Emocional Espiritual: 24 → 23 itens pontuados; hoje o item move a nota do sistema em até 0,417 (0–10) com todos respondidos e o Índice em até 0,833 (0–100); cobertura mínima passaria de 20/24 para 19/23; Tríade Espírito: 16 → 15 itens (hoje o item move essa Tríade em até 0,625). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Mental Emocional Espiritual, quando contribui > 0 (invertida: resposta ≤ 2) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Mental Emocional Espiritual for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | pergunta invertida (resposta baixa = carga) |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | clareza de valores e limites. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Mental-Emocional-Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### ESP-301 — Você sente que existe algo maior te sustentando?
 
@@ -2073,14 +2270,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «livro p. 38 (O Pilar Espiritual) (motor/bancos/espiritual.csv:8)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Mental-Emocional-Espiritual)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Mental Emocional Espiritual: 24 → 23 itens pontuados; hoje o item move a nota do sistema em até 0,417 (0–10) com todos respondidos e o Índice em até 0,833 (0–100); cobertura mínima passaria de 20/24 para 19/23; Tríade Espírito: 16 → 15 itens (hoje o item move essa Tríade em até 0,625). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Mental Emocional Espiritual, quando contribui > 0 (invertida: resposta ≤ 2) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Mental Emocional Espiritual for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | pergunta invertida (resposta baixa = carga) |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | sensação de sustentação/sentido. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Mental-Emocional-Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### ESP-302 — Você reserva um momento do dia para agradecer alguma coisa?
 
@@ -2095,14 +2294,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «livro p. 60 (Gratidão Consciente) (motor/bancos/espiritual.csv:9)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Mental-Emocional-Espiritual)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Mental Emocional Espiritual: 24 → 23 itens pontuados; hoje o item move a nota do sistema em até 0,417 (0–10) com todos respondidos e o Índice em até 0,833 (0–100); cobertura mínima passaria de 20/24 para 19/23; Tríade Espírito: 16 → 15 itens (hoje o item move essa Tríade em até 0,625). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Mental Emocional Espiritual, quando contribui > 0 (invertida: resposta ≤ 2) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Mental Emocional Espiritual for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | pergunta invertida (resposta baixa = carga) |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | prática de gratidão. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Mental-Emocional-Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### ESP-401 — Você sente que não merece as coisas boas que conquista?
 
@@ -2117,14 +2318,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «livro p. 86 (Investigação de Crenças Limitantes) (motor/bancos/espiritual.csv:11)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Mental-Emocional-Espiritual)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Mental Emocional Espiritual: 24 → 23 itens pontuados; hoje o item move a nota do sistema em até 0,417 (0–10) com todos respondidos e o Índice em até 0,833 (0–100); cobertura mínima passaria de 20/24 para 19/23; Tríade Espírito: 16 → 15 itens (hoje o item move essa Tríade em até 0,625). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Mental Emocional Espiritual, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Mental Emocional Espiritual for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | merecimento. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Mental-Emocional-Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### ESP-402 — Quando as coisas começam a dar certo você acaba boicotando?
 
@@ -2139,14 +2342,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «livro p. 89 (travas mentais e emocionais) (motor/bancos/espiritual.csv:12)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Mental-Emocional-Espiritual)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Mental Emocional Espiritual: 24 → 23 itens pontuados; hoje o item move a nota do sistema em até 0,417 (0–10) com todos respondidos e o Índice em até 0,833 (0–100); cobertura mínima passaria de 20/24 para 19/23; Tríade Espírito: 16 → 15 itens (hoje o item move essa Tríade em até 0,625). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Mental Emocional Espiritual, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Mental Emocional Espiritual for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | v3 (não publicado) reescreve o texto: «Quando as coisas começam a dar certo, você acaba se autossabotando ou boicotando?» |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | autossabotagem. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Mental-Emocional-Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### ESP-403 — Você repete sobre si mesmo histórias que ouviu na família e nunca questionou?
 
@@ -2161,18 +2366,20 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «livro p. 91 (Biografia Consciente) (motor/bancos/espiritual.csv:13)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Mental-Emocional-Espiritual)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Mental Emocional Espiritual: 24 → 23 itens pontuados; hoje o item move a nota do sistema em até 0,417 (0–10) com todos respondidos e o Índice em até 0,833 (0–100); cobertura mínima passaria de 20/24 para 19/23; Tríade Espírito: 16 → 15 itens (hoje o item move essa Tríade em até 0,625). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Mental Emocional Espiritual, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Mental Emocional Espiritual for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | narrativas familiares sobre si. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Mental-Emocional-Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 ## 7. GRUPO 4 — JÁ SUSTENTADAS (2 perguntas classificadas A)
 
-Associação decidida nominalmente pelas Decisões 5 e 6. Mesmo assim, o campo "Justificativa" da decisão diz só "Decisão metodológica V1 encerrada pela liderança do método", sem fundamento clínico escrito. A decisão de homologação também está EM ABERTO.
+Associação decidida nominalmente pelas Decisões 5 e 6. Mesmo assim, o campo "Justificativa" da decisão diz só "Decisão metodológica V1 encerrada pela liderança do método", sem fundamento clínico escrito. Decisão fechada no HOLOS-V1 v6 (ver a ficha).
 
 | id | texto | bloco | sistema atual | status |
 |---|---|---|---|---|
@@ -2192,14 +2399,16 @@ Associação decidida nominalmente pelas Decisões 5 e 6. Mesmo assim, o campo "
 | justificativa metodológica documentada | Decisão explícita do item: «"Você sente vontade forte de doce ou pão quase todo dia?" Primário: **Sistema Fúngico**, peso 1. Metabólico como `secondary_contextual`, sem contribuição» — `docs/v1/metodologia/PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md` (Decisão 5). Campo Justificativa da decisão: «Decisão metodológica V1 encerrada pela liderança do método» — `docs/v1/metodologia/PACOTE-DECISAO-HUMANA-V1.md` (sem fundamento clínico escrito) |
 | fonte da justificativa | docs/v1/metodologia/PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md; docs/v1/metodologia/PACOTE-DECISAO-HUMANA-V1.md; Decisão 5 |
 | classificação da auditoria | A — decisão nominal do vínculo deste item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Fúngico)** (HOLOS-V1 v6) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | Metabólico — já consta como associação contextual vigente, sem pontuação (pacote v2: Etapa 4.2 — Decisão 5 (decisao metodologica V1 fechada)) |
 | impacto se deixar de pontuar | Fúngico: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Fúngico, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Fúngico for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria |
 | observações | v3 (não publicado) reescreve o texto: «Você sente uma forte vontade de ingerir doces ou pães quase todo dia?» |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | vontade frequente de doce/pão é relato alimentar (hábito e preferência); contextual no Metabólico mantido, sem pontuar. |
+| regras da decisão | Registrada no HOLOS-V1 v6; nada muda na associação (peso 1). O conteúdo da pergunta investiga o domínio do sistema. |
+| decisão registrada | MANTER · Fúngico · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 #### SNT-501 — Você acorda cansado mesmo dormindo as horas necessárias?
 
@@ -2214,14 +2423,16 @@ Associação decidida nominalmente pelas Decisões 5 e 6. Mesmo assim, o campo "
 | justificativa metodológica documentada | Decisão explícita do item: «"Você acorda cansado mesmo dormindo as horas necessárias?" Primário: **Sistema Mental Emocional Espiritual**, peso 1. Metabólico como `secondary_contextual`, sem contribuição» — `docs/v1/metodologia/PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md` (Decisão 6). Campo Justificativa: «Decisão metodológica V1 encerrada pela liderança do método» — `PACOTE-DECISAO-HUMANA-V1.md` (sem fundamento clínico escrito) |
 | fonte da justificativa | docs/v1/metodologia/PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md; PACOTE-DECISAO-HUMANA-V1.md; Decisão 6 |
 | classificação da auditoria | A — decisão nominal do vínculo deste item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MOVER → Metabólico** (HOLOS-V1 v6) |
+| opções | ☐ MANTER  ☒ **MOVER**  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | Metabólico — já consta como associação contextual vigente, sem pontuação (pacote v2: Etapa 4.2 — Decisão 6 (decisao metodologica V1 fechada)) |
 | impacto se deixar de pontuar | Mental Emocional Espiritual: 24 → 23 itens pontuados; hoje o item move a nota do sistema em até 0,417 (0–10) com todos respondidos e o Índice em até 0,833 (0–100); cobertura mínima passaria de 20/24 para 19/23; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Mental Emocional Espiritual, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Mental Emocional Espiritual for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Pergunta do bloco Físico (conta na Tríade Corpo) pontuando o Mental Emocional Espiritual; a auditoria não apontou risco causal específico (status A). Ver pergunta 8 da auditoria (Tríade por bloco). |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | Acordar cansado mesmo dormindo o suficiente é relato de energia (domínio do Metabólico); sono/alerta no MEE fica com as perguntas de pensamento acelerado e despertar. |
+| regras da decisão | Aplicada no HOLOS-V1 v6 (a partir da v5); primária no sistema de destino, peso 1 preservado, Tríade Corpo; o sistema anterior não ficou como contexto; v2–v5 imutáveis; nenhum histórico recalculado. |
+| decisão registrada | MOVER · de Mental Emocional Espiritual para Metabólico · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v6 (versões anteriores imutáveis) |
 
 ## 8. Resumo para a homologação
 
@@ -2290,23 +2501,26 @@ O enunciado menciona exame laboratorial, condição nomeada ou uso de medicament
 | SNT-111 | Você vive com nariz entupido ou sinusite? | Fúngico | B | condição nomeada (sinusite) |
 | SNT-109 | Você precisou tomar antibiótico ao longo da vida? | Fúngico | B | histórico de medicamento (antibiótico) |
 
-### 8.6 Decisões que exigem Rodrigo e Daniel
+### 8.6 Situação final
 
-**23 DECISÕES APLICADAS (15 no HOLOS-V1 v4, 8 no HOLOS-V1 v5) e 61 EM ABERTO.** Pendentes, em ordem de prioridade:
+**Matriz fechada: as 84 perguntas têm decisão (0 EM ABERTO).**
 
-1. **Grupo 1 — SNT-210 e SNT-309: DECISÃO APLICADA (REMOVER, HOLOS-V1 v4).** Continuam em aberto, por consequência: o texto D13 do Metabólico ("achados laboratoriais relatados no questionário") e a opção "não se aplica" na tela.
-2. **Grupo 2 — 26 perguntas C**, por subgrupo:
-   - 13 mental/emocional → físico: **DECISÃO APLICADA** (MOVER para o MEE, HOLOS-V1 v4);
-   - 8 espiritual → físico: **DECISÃO APLICADA** (Lote 2B, HOLOS-V1 v5);
-   - 4 físico → físico com condição nomeada ou já negada na revisão (SNT-104, SNT-105, SNT-206, SNT-209);
-   - 1 físico → MEE (SNT-507).
-3. **ESP-404, SNT-209 e ESP-102.** O rascunho de 12/10 (publicado por engano como v3 em 13/10 e retirado pela v4) tinha decisão para eles (mover ESP-404 para o MEE; remover SNT-209 e ESP-102), mas ela **não** entrou no v4: os três seguem como no v2. Confirmar se vale para uma versão seguinte.
-4. **Enunciados com condição nomeada** (SNT-104, SNT-105, SNT-206, e também SNT-111 e SNT-109). Hoje aparecem literalmente como sinal dominante na visão da paciente; o termo "candid" está na lista de linguagem proibida do Fúngico.
-5. **Grupo 3 — 54 perguntas B.** Homologar uma a uma ou em bloco, e registrar a justificativa (autoral ou com fonte).
-6. **Grupo 4 — 2 perguntas A.** Confirmar e registrar o fundamento (hoje: "decisão encerrada pela liderança do método").
-7. **Questões transversais** (`AUDITORIA-ASSOCIACOES-HOLOSCAN-V2.md` §9):
-   - itens mentais na Tríade Corpo (SNT-504, 505, 506, 508, 509, 510);
-   - sinais parecidos em sistemas diferentes (SNT-110 e SNT-406);
-   - fundamento das associações aprovadas em bloco.
+| versão | decisões |
+|---|---|
+| HOLOS-V1 v4 | SNT-210 e SNT-309 REMOVER; 13 EMO MOVER para o MEE |
+| HOLOS-V1 v5 (Lote 2B) | ESP-101, 103, 203, 404, 405 MOVER para o MEE; ESP-303 MANTER; ESP-501, ESP-502 CONTEXTUAL; EMO-502, EMO-504 CONTEXTUAL MANTIDO |
+| HOLOS-V1 v6 (fechamento das 61) | SNT-110 REMOVER; SNT-404 MOVER para o Fúngico; SNT-501 e SNT-507 MOVER para o Metabólico; SNT-104, 105, 109, 206, 305, 306, 308, 408, 409, 410 CONTEXTUAL; 47 MANTER |
 
-As 15 decisões de 13/10 estão aplicadas no HOLOS-V1 v4 e as 8 do Lote 2B no HOLOS-V1 v5; EMO-502 e EMO-504 ficaram como CONTEXTUAL MANTIDO; as demais seguem EM ABERTO. O PP-V2 não foi iniciado.
+**Regras metodológicas registradas na v6:**
+- "Uma relação holística, simbólica ou contextual entre emoção e corpo não é suficiente, por si só, para justificar que uma resposta mental/emocional altere matematicamente a nota de um sistema físico."
+- "O bloco de origem da pergunta não define automaticamente o sistema. A associação precisa ser sustentada pelo conteúdo investigado."
+- "Associação contextual não altera nota, Índice, prioridade, sinais dominantes ou Próximos Passos e não implica causalidade."
+- "Pergunta pode ser útil ao cuidado integral sem necessariamente pontuar um sistema."
+- "Quando uma informação for relevante, mas não houver justificativa suficiente para alterar matematicamente um sistema, preferir CONTEXTUAL a inventar uma associação pontuável."
+- "O HOLOSCAN pode registrar relato informado pela paciente, mas não pode confirmar condição, etiologia ou mecanismo."
+
+**Pontos que ficam como observação (não bloqueiam a v6):**
+- O Detox e Linfático fica com 6 itens pontuáveis (o menor sistema): 5/6 respondidos (83%) mantém a nota; 4/6 não. Se quiserem mais itens, eles entram numa versão seguinte, com perguntas novas.
+- O nome "Fúngico" continua (nomenclatura autoral do método); a definição oficial diz o que ele organiza e o que não mede.
+- Os textos oficiais dos sistemas no pacote ainda citam temas que saíram da pontuação ("pele" no Detox e no Ácido-Inflamatório; "composição corporal percebida e achados laboratoriais" no Metabólico). Ajustar esses textos é uma mudança de pacote para uma versão seguinte; a definição oficial atualizada está em `docs/v1/DEFINICOES-OFICIAIS-SISTEMAS-HOLOSCAN-V6.md`.
+- O PP-V2 não foi iniciado. O PP-V1 (30 regras) não mudou.

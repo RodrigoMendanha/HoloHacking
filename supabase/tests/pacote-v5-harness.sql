@@ -73,12 +73,19 @@ insert into _logv5 (passo) select 'PV5-06 ' || case when
 select pg_temp.como_daniel();
 set local role authenticated;
 do $$
-declare d jsonb := (select doc from _pacote_v5); x uuid; val jsonb;
+declare d jsonb := (select doc from _pacote_v5); x uuid; val jsonb; cods text;
 begin
   d := jsonb_set(d, '{version}', to_jsonb((select max(version) + 1 from public.methodology_packages where code = 'HOLOS-V1' and nutritionist_id = auth.uid())));
   d := jsonb_set(d, '{associacoes}', (d->'associacoes') || jsonb_build_array(jsonb_build_object('question_stable_id', 'ESP-501', 'destination_type', 'triad', 'destination_id', 'espiritual', 'role', 'triade_por_bloco', 'weight', 1, 'status', 'aprovado', 'source', 'harness')));
-  x := pg_temp.gravar_pacote(d);
-  val := public.validar_pacote_metodologico(x);
+  /* subtransacao desfeita: o rascunho so existe para validar e nao fica no banco (o harness da v6 vem depois) */
+  begin
+    x := pg_temp.gravar_pacote(d);
+    val := public.validar_pacote_metodologico(x);
+    raise exception 'desfazer' using errcode = 'P0001', detail = val::text;
+  exception when sqlstate 'P0001' then
+    get stacked diagnostics cods = pg_exception_detail;
+    val := cods::jsonb;
+  end;
   insert into _logv5 (passo) select 'PV5-07 ' || case when exists (select 1 from jsonb_array_elements(val->'erros') e where e->>'codigo' = 'primaria_ausente' and e->>'onde' = 'ESP-501')
     then 'ok' else 'FALHOU: ' || left(val::text, 200) end || ': pergunta sem primaria e com Triade continua recusada pelo validador SQL';
 end $$;

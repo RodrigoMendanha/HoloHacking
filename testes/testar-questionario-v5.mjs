@@ -58,6 +58,9 @@ await A.setViewport({ width: 1366, height: 1000 });
 A.on('pageerror', e => errosJS.push(e.message));
 await ligarPagina(A, srv);
 await A.evaluateOnNewDocument(() => { setInterval(() => { if (window.BoasVindas && window.BoasVindas.aberta()) window.BoasVindas.fechar(); }, 80); });
+/* este teste e o registro da publicacao da v5: simula o front da epoca da v5 (sem a revisao do fechamento das 61, que
+   publicaria a v6 no mesmo login). A v6 tem o seu proprio teste: testar-questionario-v6.mjs */
+await A.evaluateOnNewDocument(() => { Object.defineProperty(window, 'MetodologiaRevisaoV6', { configurable: false, get: () => undefined, set: () => {} }); });
 await A.goto('http://127.0.0.1:5500/', { waitUntil: 'networkidle2' });
 await A.waitForSelector('#login-email', { visible: true });
 await A.type('#login-email', 'a@holo.test'); await A.type('#login-senha', 'senha-a-123'); await A.click('#btn-entrar');

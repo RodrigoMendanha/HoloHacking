@@ -121,5 +121,8 @@ cd "$(dirname "$0")/.."
     grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
   done
   cat supabase/tests/pacote-v5-harness.sql
+  # HOLOS-V1 v6 (fechamento das 61, 13/10): sem migration; gravada e publicada sobre a v5, historico identico.
+  cat supabase/tests/pacote-v6-doc.sql
+  cat supabase/tests/pacote-v6-harness.sql
   echo "rollback;"
 } | psql -U postgres -d base -v ON_ERROR_STOP=1 -At | tr '|' '\n' | sed 's/^ //'

@@ -104,6 +104,8 @@ export const SUITES = [
   'testar-questionario-v3.mjs',
   'testar-publicacao-guarda-v3.mjs',
   'testar-questionario-v5.mjs',
+  'testar-pacote-v6.mjs',
+  'testar-questionario-v6.mjs',
   'testar-dashboard-acompanhamento.mjs',
   'testar-v1-aprovador-unico.mjs',
   'testar-v1-etapa5-motor.mjs',

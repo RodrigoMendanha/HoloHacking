@@ -1074,6 +1074,18 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     - **v5:** 82 perguntas, 80 pontuáveis; Fúngico 11, Ácido Inflamatório 9, Metabólico 8, Detox 10, MEE 42; Tríade
       47/19/14. v2, v3, v4 e todo o histórico continuam imutáveis.
     Detalhes: `docs/v1/ALTERACOES-PACOTE-HOLOSCAN-V5.md`.
+191. **HOLOS-V1 v6 = fechamento das 61** (13/10, tarefa de Rodrigo "Fechamento do HOLOSCAN + Resultado HOLOS para
+    entrega"; base: v5 no ar). Critérios A→D: domínio do sistema → MANTER; outro sistema → MOVER; útil sem base para pontuar
+    → CONTEXTUAL; inadequada/redundante/diagnóstica → REMOVER.
+    - **REMOVER:** SNT-110. **MOVER:** SNT-404 → Fúngico; SNT-501 e SNT-507 → Metabólico.
+    - **CONTEXTUAL:** SNT-104, 105, 109, 206, 305, 306, 308, 408, 409, 410 (condição nomeada, histórico ou sinal que
+      insinuaria diagnóstico: relato da paciente, sem pontuar). **MANTER:** as outras 47, com justificativa registrada.
+    - **v6:** 81 coletadas, 69 pontuáveis, 12 só contextuais; Fúngico 8, Ácido Inflamatório 8, Metabólico 7, Detox 6,
+      MEE 40; Tríade 36/19/14; pesos todos 1. Matriz fechada (0 em aberto). Sem migration nova.
+    - **Resultado HOLOS:** PP-V1 diz "A ferramenta é sugerida pelo catálogo para aprofundar este sistema." (30 regras
+      iguais); os sinais não aparecem dentro do bloco da ferramenta; sistema sem carga (nota 10,0) não é apresentado como
+      área para aprofundar.
+    Detalhes: `docs/v1/ALTERACOES-PACOTE-HOLOSCAN-V6.md`; definições: `docs/v1/DEFINICOES-OFICIAIS-SISTEMAS-HOLOSCAN-V6.md`.
 
 ## Decisões pendentes (não decididas aqui)
 

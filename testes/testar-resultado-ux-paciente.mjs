@@ -94,7 +94,7 @@ const resumoPP = await P.evaluate(() => {
 });
 ok(resumoPP.includes('Próximo aprofundamento sugerido: Gatilhos & Respostas.') && resumoPP.includes('Outras possibilidades: OQ³ e Linha do Momentum. Nenhuma é obrigatória; a escolha e o momento são combinados com a sua nutricionista.'),
   'item 7: no resumo, "Próximo aprofundamento sugerido" = a principal do PP-V1 e "Outras possibilidades" = as complementares — ' + resumoPP.join(' | '));
-ok(/Próximo passo pelo catálogo/.test(pp.prof.txt) && /Ferramenta recomendada \(principal\)/.test(pp.prof.txt) && /POR_QUE_TECNICO/.test(pp.prof.txt) && /Categoria autoral que organiza/.test(pp.prof.txt),
+ok(/Próximo passo pelo catálogo/.test(pp.prof.txt) && /Ferramenta sugerida pelo catálogo \(principal\)/.test(pp.prof.txt) && /POR_QUE_TECNICO/.test(pp.prof.txt) && /Categoria autoral que organiza/.test(pp.prof.txt),
   'item 4: a visão profissional mantém o catálogo/rank e o texto técnico');
 /* 5 */
 const porque = Object.fromEntries(pac.porque.map(p => [p.ferr, p.antes]));

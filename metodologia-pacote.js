@@ -654,7 +654,7 @@
      poe a nova no ar hoje e retira a anterior. Para qualquer outra conta nao faz
      nada. Idempotente: se a versao nova ja esta no ar, nao grava de novo. */
   var publicando = null;
-  function revisoesDoCodigo() { return [raiz.MetodologiaRevisaoV3, raiz.MetodologiaRevisaoV5].filter(Boolean); }   // em ordem: v4 (decisoes de 13/10), depois v5 (Lote 2B)
+  function revisoesDoCodigo() { return [raiz.MetodologiaRevisaoV3, raiz.MetodologiaRevisaoV5, raiz.MetodologiaRevisaoV6].filter(Boolean); }   // em ordem: v4 (decisoes de 13/10), v5 (Lote 2B), v6 (fechamento das 61)
   function publicar(id) {
     return rpc("publicar_pacote_metodologico", { p_package_id: id }).then(function (d) { return carregar().then(function () { return d; }); });
   }

@@ -3049,7 +3049,7 @@
       const dom = (s.dominantes || []).slice(0, 3).map(d => "<li>" + esc(d.rotulo || d.marcador_id) + "</li>").join("");
       return '<div class="res-inv"><b>' + esc(s.nome || s.sistema) + '</b> <span class="res-nota-p">' + esc(A.notaTexto(s))
         + (s.faixa ? ' · faixa ' + esc(window.rotuloExibivel(s.faixa)) : '') + '</span>'
-        + (dom ? '<ul>' + dom + '</ul>' : '') + '</div>';
+        + (dom ? '<ul>' + dom + '</ul>' : (typeof s.nota === "number" && s.nota >= 10 ? '<p class="res-linha">Sem carga nesta aplicação: nenhum item pontuou; aparece aqui só pela ordem oficial de desempate.</p>' : '')) + '</div>';
     }).join("");
 
     const interp = window.interpretacaoDe ? window.interpretacaoDe(quando) : null;
