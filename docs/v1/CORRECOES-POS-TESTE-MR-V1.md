@@ -84,4 +84,6 @@ Arquivos em `docs/v1/motor-resultados/pos-teste/`:
 
 Ver `docs/v1/AUDITORIA-ASSOCIACOES-HOLOSCAN-V2.md`: só leitura, nenhuma associação alterada.
 
+**Suíte completa: VERDE — 147 suítes, 4428 asserções, 0 falhas; 72 de 72 arquivos batem com docs/deploy.md §3.5.**
+
 **PARE.** Nenhum SQL e nenhum deploy desta rodada. O frontend corrigido precisa de deploy autorizado (VPS, script com o commit novo).
