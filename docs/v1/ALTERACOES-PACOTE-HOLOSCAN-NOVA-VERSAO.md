@@ -147,7 +147,7 @@ O arquivo completo é `docs/v1/metodologia/COMPARATIVO-HOLOSCAN-V2-V3.md`. Ele �
 - PV01–PV09 ok, num total de 449 verificações ok.
 - O PV09 chama `resultado_holos_dominantes` (MR-V1) numa aplicação v3.
 
-**Suíte completa:** ver o resultado no relatório da entrega (seção 11).
+**Suíte completa:** VERDE (147 suítes, 4450 asserções, 0 falhas); ver 9.1.
 
 ## 7. Arquivos alterados
 
@@ -202,6 +202,24 @@ O arquivo completo é `docs/v1/metodologia/COMPARATIVO-HOLOSCAN-V2-V3.md`. Ele �
    - HOLOSCAN no v3;
    - Resultado HOLOS com os dominantes do MEE;
    - PP-V1.
+
+### 9.1 Impressões digitais pré-publicação (produção, só leitura, 13/10/2026)
+
+Contagens e md5 agregados por ID e hash, sem conteúdo clínico. Têm de ser idênticos depois da publicação. A única exceção é `pacotes`, que ganha o v3, e o v2 passa a `retirado`.
+
+| tabela | linhas | md5 |
+|---|---|---|
+| methodology_packages | 1 (só HOLOS-V1 v2 `aprovado`, `7af1dae6…`) | `fa22f9e0…` |
+| holoscan_applications | 6 | `cc9da75c…` |
+| holoscan_answers | 504 | `468f5044…` |
+| holoscan_system_scores | 30 | `118bd1ed…` |
+| holos_results | 3 | `b85977d6…` |
+| holos_result_emissions | 3 | `5871721f…` |
+| report_emissions | 2 | `5f50be5b…` |
+| holos_next_steps | 3 | `821a37ba…` |
+| `publicar_pacote_metodologico` | não existe (migration 20261018 não aplicada) | — |
+
+**Suíte completa no commit `74d0286`:** VERDE. Foram 147 suítes, 4450 asserções e 0 falhas, e os 72 de 72 arquivos batem com `docs/deploy.md` §3.5. A guarda nova e as suítes que carregam `metodologia-pacote.js` foram rodadas de novo depois da última mudança: todas ok.
 
 ## 10. Rollback
 
