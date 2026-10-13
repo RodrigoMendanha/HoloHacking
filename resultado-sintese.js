@@ -39,7 +39,7 @@
     { id: "PM-13", titulo: "Conduta automática", texto: "O resultado informa a Conduta; não a gera. Objetivo, estratégia, ações e combinados são da nutricionista." },
     { id: "PM-14", titulo: "Conteúdo da Carta ao Futuro Eu para a paciente", texto: "Não há regra de consentimento: na visão da paciente aparece só o texto aprovado de que a Carta foi realizada, nunca o conteúdo." },
     /* motor de resultados V1 (12/10) */
-    { id: "PM-15", titulo: "SNT-210 e SNT-309 (pacote HOLOSCAN)", texto: "Pendência metodológica do pacote HOLOSCAN, não resolvida nesta versão. Exames e documentos continuam fora do Resultado, do motor e dos Próximos Passos." },
+    /* PM-15 (SNT-210 e SNT-309) decidida em 13/10/2026: retiradas a partir do HOLOS-V1 v3 (exames nao participam do Resultado) */
     { id: "PM-16", titulo: "Recomendação por sinal → tema → ferramenta (PP-V2)", texto: "Não implementada: o motor vigente continua SISTEMA → CATÁLOGO → FERRAMENTA. O mapeamento necessário está pendente de homologação." },
     { id: "PM-17", titulo: "Textos ainda não aprovados do Resultado", texto: "\"O que significa\" de cada ferramenta, o texto de cada estado do Momentum, o \"ponto de intervenção\" de Gatilhos e a \"Direção desta etapa\" do Mapa do Propósito: aparecem como pendência só para a nutricionista, sem texto inventado. (O aprofundamento do Detox + Linfático foi homologado em 13/10.)" }
   ];

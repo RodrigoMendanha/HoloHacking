@@ -286,7 +286,7 @@
     var html = '<div class="mh-topo"><label class="evo-campo"><span>Pacote</span><select data-mh-pacote>' +
       '<option value="inventario"' + (!pacoteSel || pacoteSel === "inventario" ? " selected" : "") + '>Inventário recuperado (não gravado) — rascunho</option>' +
       (decisoes() ? '<option value="candidato"' + (pacoteSel === "candidato" ? " selected" : "") + '>Candidato V1 — decisões fechadas (não gravado) — em_revisao</option>' : "") +
-      (baseDaRevisao() ? '<option value="revisao-v3"' + (pacoteSel === "revisao-v3" ? " selected" : "") + '>' + escapar(revisao().base.code + " v" + revisao().versao_nova) + ' — revisão das perguntas (não gravado) — em_revisao</option>' : "") +
+      (baseDaRevisao() ? '<option value="revisao-v3"' + (pacoteSel === "revisao-v3" ? " selected" : "") + '>' + escapar(revisao().base.code + " v" + revisao().versao_nova) + ' — decisões de 13/10 (não gravado) — em_revisao</option>' : "") +
       pacotes.map(function (x) { return '<option value="' + escapar(x.id) + '"' + (x.id === pacoteSel ? " selected" : "") + ">" + escapar(x.code + " v" + x.version + " · " + x.status) + "</option>"; }).join("") + "</select></label>" +
       '<span class="rel-acoes"><button type="button" class="btn-fantasma" data-mh-acao="exportar-json">Exportar JSON</button>' +
       '<button type="button" class="btn-fantasma" data-mh-acao="exportar-csv">Exportar CSV</button>' +

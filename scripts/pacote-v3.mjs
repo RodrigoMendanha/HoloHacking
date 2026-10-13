@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Gera o HOLOS-V1 v3 (revisao das perguntas, 12/10) a partir do v2 candidato:
+ * Gera o HOLOS-V1 v3 (decisoes metodologicas de 13/10: SNT-210/309 removidas, 13 EMO no MEE) a partir do v2:
  * PacoteMetodologico.aplicarRevisao(v2, metodologia-revisao-v3.js) -> v3 em_revisao.
  * E o MESMO calculo que a tela de Homologacao faz sobre o v2 gravado no servidor.
  *
@@ -31,7 +31,9 @@ export function gerar() {
     textos: Object.keys(R.textos).map(id => ({ id, antes: v2.perguntas.find(q => q.stable_id === id).statement, depois: R.textos[id] })),
     trocadas: Object.keys(R.trocar).map(id => ({ antes: id, texto_antes: v2.perguntas.find(q => q.stable_id === id).statement, depois: R.trocar[id].novo_id, texto_depois: R.trocar[id].texto })),
     removidas: Object.keys(R.remover).map(id => ({ id, texto: v2.perguntas.find(q => q.stable_id === id).statement, motivo: R.remover[id] })),
-    sistema_mudado: Object.keys(R.mover).map(id => ({ id, de: R.mover[id].de, para: R.mover[id].para }))
+    sistema_mudado: Object.keys(R.mover).map(id => ({ id, de: R.mover[id].de, para: R.mover[id].para, justificativa: R.mover[id].motivo })),
+    contextuais_retiradas: Object.keys(R.remover_contextuais || {}).map(id => ({ id, sistemas: R.remover_contextuais[id] })),
+    regra_metodologica: R.regra_metodologica || []
   };
   const doc = {
     gerado_por: 'scripts/pacote-v3.mjs',
@@ -44,7 +46,7 @@ export function gerar() {
   const json = JSON.stringify(doc, null, 2) + '\n';
   const lit = (o) => { const t = JSON.stringify(o); if (t.includes('$PCT$')) throw new Error('delimitador no conteudo'); return '$PCT$' + t + '$PCT$'; };
   const sql = '-- GERADO por scripts/pacote-v3.mjs — NAO EDITAR A MAO.\n' +
-    '-- HOLOS-V1 v3 (revisao das perguntas) para o harness SQL local (BEGIN/ROLLBACK).\n' +
+    '-- HOLOS-V1 v3 (decisoes de 13/10) para o harness SQL local (BEGIN/ROLLBACK).\n' +
     'create temp table _pacote_v3 (doc jsonb not null) on commit drop;\n' +
     'grant select on _pacote_v3 to authenticated;\n' +
     'insert into _pacote_v3 values (' + lit(v3) + '::jsonb);\n';

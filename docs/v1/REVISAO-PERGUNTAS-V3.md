@@ -1,5 +1,10 @@
 # Revisão das perguntas do HOLOSCAN → HOLOS-V1 v3 (12/10)
 
+> **SUBSTITUÍDO em 13/10/2026.** O rascunho do v3 descrito aqui (12/10) **nunca foi publicado** e **não** é a base do
+> HOLOS-V1 v3. O v3 passou a ser só as decisões metodológicas de 13/10 (SNT-210 e SNT-309 removidas; 13 perguntas EMO
+> no Sistema Mental Emocional Espiritual), montado a partir do v2 ativo. O rascunho ficou arquivado em
+> `docs/v1/metodologia/historico/`. Ver `docs/v1/ALTERACOES-PACOTE-HOLOSCAN-NOVA-VERSAO.md`.
+
 A revisão pública das 84 perguntas do HOLOS-V1 v2 (`aprovacoes.html`) foi concluída em 11/10:
 **53 aprovadas, 28 com texto novo e 3 negadas**. Em 12/10 ficou decidido o que entra (DECISOES-V1 item 183).
 O resultado é o **HOLOS-V1 v3**, com **82 perguntas**.

@@ -1,104 +1,103 @@
 /* ===========================================================================
-   REVISAO DAS PERGUNTAS DO HOLOSCAN -> HOLOS-V1 v3 (12/10)
+   DECISOES METODOLOGICAS DE 13/10/2026 -> HOLOS-V1 v3
    ===========================================================================
 
-   Origem: a revisao publica das 84 perguntas do HOLOS-V1 v2 (aprovacoes.html),
-   concluida em 11/10 (53 aprovadas, 28 com texto novo, 3 negadas), mais as
-   decisoes de 12/10 sobre ela (DECISOES-V1 item 183).
+   Origem: decisoes explicitas de Rodrigo na revisao de 13/10/2026 (regra
+   operacional: decisao explicita de Rodrigo = autorizacao para implementar).
+   Base: o pacote ATIVO em producao, HOLOS-V1 v2. SO estas decisoes; o rascunho
+   de 12/10 (textos revisados, trocas, ESP-404, SNT-209, ESP-102) NAO entra —
+   ele ficou arquivado em docs/v1/metodologia/historico/ e nao e fonte desta
+   versao.
 
    Este arquivo e SO a lista de decisoes. Quem monta a versao nova e
-   PacoteMetodologico.aplicarRevisao(v2, esta revisao): copia o v2 aprovado,
-   aplica exatamente isto e devolve o v3 em_revisao. Nada aqui aprova nada: o
-   v3 so vale depois da Aprovacao (aprovador unico) e de Homologar.
+   PacoteMetodologico.aplicarRevisao(v2, esta revisao): copia o v2, aplica
+   exatamente isto e devolve o v3 em_revisao; a publicacao direta
+   (publicar_pacote_metodologico) poe o v3 no ar e retira o v2.
 
-   Regras:
-   - texto novo com o MESMO sentido: mesmo ID (as respostas continuam
-     comparaveis em leitura humana; a versao da pergunta sobe);
-   - pergunta trocada por OUTRO sinal: ID NOVO, nunca o antigo;
-   - remover: o ID sai da edicao (as aplicacoes antigas continuam no v2);
-   - mover: a pergunta passa a pontuar em outro sistema (peso e Triade iguais).
-   Pesos, faixas, escalas, Indice, Triade (regra), ausencia e cobertura minima
-   NAO mudam.
+   O HOLOS-V1 v2 NAO muda. Aplicacoes, respostas, notas, sinais dominantes,
+   Resultados HOLOS, Proximos Passos e emissoes (PDF) ja salvos continuam no v2.
+
+   Regra metodologica ativa (13/10/2026):
+   - "Uma relacao holistica, simbolica ou contextual entre emocao e corpo nao e
+     suficiente, por si so, para justificar que uma resposta mental/emocional
+     altere matematicamente a nota de um sistema fisico."
+   - "Perguntas mentais/emocionais devem pontuar sistema fisico somente quando
+     existir justificativa metodologica especifica, documentada e aprovada para
+     aquela associacao."
+
+   Pesos: as 13 perguntas movidas tem peso 1, escala 0-3, orientacao direta —
+   o mesmo de todos os itens primarios do MEE. O peso e preservado (nenhuma
+   inconsistencia: o denominador do sistema e recalculado pelos itens). Escalas,
+   faixas, Indice, Triade (regra), ausencia e cobertura minima (80%) NAO mudam;
+   as contagens sao recalculadas pela composicao nova.
    =========================================================================== */
 (function () {
   "use strict";
   var raiz = typeof window !== "undefined" ? window : globalThis;
 
+  var MOTIVO_EXAME = "Exames e documentos não participam do Resultado HOLOS.";
+  var MEE = "mental_emocional_espiritual";
+
   raiz.MetodologiaRevisaoV3 = {
-    id: "HOLOS-V1-REVISAO-PERGUNTAS-2026-10",
-    decidido_em: "2026-10-12",
-    revisao_publica: "concluida em 2026-10-11 (aprovacoes.html): 53 aprovadas, 28 com texto novo, 3 negadas",
+    id: "HOLOS-V1-DECISOES-2026-10-13",
+    decidido_em: "2026-10-13",
+    revisao_publica: "decisões explícitas de Rodrigo em 13/10/2026 (decisão explícita = autorização para implementar); base: HOLOS-V1 v2 ativo",
     base: { code: "HOLOS-V1", version: 2 },
     versao_nova: 3,
 
-    /* Texto novo, mesmo sentido (mesmo ID). Entre colchetes, o que mudou em
-       relacao ao que o revisor escreveu. */
-    textos: {
-      "SNT-101": "Você sente uma forte vontade de ingerir doces ou pães quase todo dia?",
-      "SNT-102": "Sua barriga incha/estufa ou fica com gases depois das refeições?",
-      "SNT-103": "Sua língua costuma ter uma camada esbranquiçada no dia a dia?",
-      // [detalhado na decisao de 12/10: o "sapinho" e a candidiase da boca, termo que a paciente reconhece]
-      "SNT-104": "Você tem candidíase com frequência (íntima ou na boca, o \"sapinho\")?",
-      "SNT-105": "Você tem micose de pele ou unha que sempre volta?",
-      "SNT-109": "Você precisou tomar antibióticos muitas vezes ao longo da vida?",
-      "SNT-207": "Sua gengiva sangra ao escovar os dentes?",
-      // [o texto do revisor ficou sem o verbo: "percebe que as dores ... quando come"]
-      "SNT-208": "Você percebe que as dores no corpo ou de cabeça pioram quando come alimentos ultraprocessados ou açúcar?",
-      "SNT-301": "Você sente muito sono logo depois do almoço?",
-      "SNT-303": "Você fica com fome de novo pouco tempo depois de ter comido?",
-      // [concordancia: "local em que"]
-      "SNT-305": "O principal local em que a gordura se concentra no seu corpo é a região da barriga?",
-      // [detalhado na decisao de 12/10: "aveludada" e o que caracteriza o sinal]
-      "SNT-306": "A pele do seu pescoço ou axila está mais escura e com textura mais grossa ou aveludada?",
-      // [detalhado na decisao de 12/10: o tremor e o sinal fisico]
-      "SNT-307": "Você fica irritado, nervoso ou trêmulo se atrasa uma refeição?",
-      "SNT-402": "Seu rosto amanhece muito inchado logo ao acordar?",
-      "SNT-403": "Cheiros fortes te incomodam mais do que geralmente incomodam as outras pessoas?",
-      "SNT-404": "Comida gordurosa te faz passar mal ou ter uma sensação de enjoo?",
-      "SNT-406": "Uma quantidade pequena de bebida alcoólica (ex.: 1 a 2 taças de vinho ou cerveja) já te dá ressaca no dia seguinte?",
-      "SNT-407": "Você tem fortes reações a medicamentos ou a café?",
-      "SNT-409": "Seu suor tem um odor forte?",
-      "SNT-503": "Você acorda de madrugada e tem dificuldade de voltar a dormir?",
-      // [digitacao: "alimentação l?"]
-      "EMO-302": "Você passa os dias no piloto automático sem perceber o que está fazendo em relação à alimentação?",
-      "EMO-401": "Você se pega remoendo uma raiva ou mágoa antiga?",
-      "EMO-502": "Quando você “sai da linha” na alimentação programada em um dia, sente que perdeu tudo e abandona?",
-      // [ortografia: "autossabotando"]
-      "ESP-402": "Quando as coisas começam a dar certo, você acaba se autossabotando ou boicotando?"
-    },
+    regra_metodologica: [
+      "Uma relação holística, simbólica ou contextual entre emoção e corpo não é suficiente, por si só, para justificar que uma resposta mental/emocional altere matematicamente a nota de um sistema físico.",
+      "Perguntas mentais/emocionais devem pontuar sistema físico somente quando existir justificativa metodológica específica, documentada e aprovada para aquela associação."
+    ],
 
-    /* Outro sinal: ID novo no lugar do antigo (mesmo bloco, mesmo sistema, mesma Triade). */
-    trocar: {
-      "SNT-106": { novo_id: "SNT-112", texto: "Você sente coceira no corpo sem motivo aparente?",
-        motivo: "revisor trocou \"coceira na região íntima ou anal\" por coceira no corpo sem motivo aparente" },
-      "SNT-410": { novo_id: "SNT-411", texto: "Você costuma sentir gosto metálico na boca?",
-        // "costuma" pede frequencia (a antiga, celulite, era intensidade/atualmente)
-        scale_code: "frequencia", temporal_context: "ultimos_30_dias",
-        motivo: "revisor trocou \"celulite acentuada\" por gosto metálico na boca" },
-      "SNT-507": { novo_id: "SNT-511", texto: "Você tem se sentido triste e insatisfeito com sua saúde como um todo?",
-        orientation: "direta",
-        motivo: "revisor trocou a percepção de fome e saciedade (invertida) por tristeza e insatisfação com a saúde (direta)" }
-    },
+    /* nada de texto revisado nem troca de pergunta nesta versao */
+    textos: {},
+    trocar: {},
 
-    /* Sai da edicao (negadas na revisao). */
+    /* removidas da versao nova: nem pontuavel, nem contextual, nem em outro sistema; sem item substituto */
     remover: {
-      "SNT-209": "negada na revisão: sem relação causal direta com o Sistema Ácido Inflamatório",
-      "ESP-102": "negada na revisão: muito ampla, ambígua para interpretação"
+      "SNT-210": MOTIVO_EXAME + " PCR/VHS não deve alterar notas, sistemas, Índice, prioridades, sinais dominantes ou Próximos Passos.",
+      "SNT-309": MOTIVO_EXAME + " Triglicerídeos/HDL não devem alterar notas, sistemas, Índice, prioridades, sinais dominantes ou Próximos Passos."
     },
 
-    /* Passa a pontuar em outro sistema. */
+    /* associacao PRIMARIA passa para o Sistema Mental Emocional Espiritual (peso e Triade iguais).
+       motivo = justificativa oficial da decisao. */
     mover: {
-      "ESP-404": { de: "acido_inflamatorio", para: "mental_emocional_espiritual",
-        motivo: "negada na revisão por estar no Sistema Ácido Inflamatório; decisão de 12/10: a pergunta fica, no Sistema Mental Emocional Espiritual" }
+      "EMO-101": { de: "fungico", para: MEE, motivo: "Procrastinação, prontidão e autorregulação comportamental." },
+      "EMO-102": { de: "fungico", para: MEE, motivo: "Organização pessoal e comportamento." },
+      "EMO-103": { de: "fungico", para: MEE, motivo: "Prontidão, dificuldade percebida para iniciar mudança e autorregulação." },
+      "EMO-201": { de: "acido_inflamatorio", para: MEE, motivo: "Irritabilidade e regulação emocional." },
+      "EMO-202": { de: "acido_inflamatorio", para: MEE, motivo: "Intensidade e duração percebida da raiva." },
+      "EMO-203": { de: "acido_inflamatorio", para: MEE, motivo: "Limites, comportamento interpessoal e evitação de conflito." },
+      "EMO-204": { de: "acido_inflamatorio", para: MEE, motivo: "Expressão emocional e comportamento interpessoal." },
+      "EMO-301": { de: "metabolico", para: MEE, motivo: "Relação entre estado emocional e alimentação." },
+      "EMO-302": { de: "metabolico", para: MEE, motivo: "Consciência, atenção ao comportamento e funcionamento em piloto automático." },
+      "EMO-303": { de: "metabolico", para: MEE, motivo: "Uso da comida como recompensa e comportamento alimentar associado ao estado emocional." },
+      "EMO-401": { de: "detox_linfatico", para: MEE, motivo: "Ruminação emocional." },
+      "EMO-402": { de: "detox_linfatico", para: MEE, motivo: "Expressão e regulação emocional." },
+      "EMO-403": { de: "detox_linfatico", para: MEE, motivo: "Apoio, vínculo e capacidade de receber cuidado." }
     },
 
-    /* O que o v3 tem de ter (conferido por aplicarRevisao e pelos testes). */
+    /* associacoes secundarias/contextuais (sem peso) que SAEM junto com a mudanca. Decisao: a relacao antiga
+       com sistema fisico nao fica automaticamente como contextual; e o contextual MEE vira redundante
+       (o MEE passa a ser o primario). */
+    remover_contextuais: {
+      "EMO-101": ["metabolico"],
+      "EMO-103": [MEE],
+      "EMO-201": [MEE],
+      "EMO-203": ["detox_linfatico"],
+      "EMO-301": [MEE],
+      "EMO-302": [MEE],
+      "EMO-402": [MEE]
+    },
+
+    /* o que a versao nova TEM de ter (aplicarRevisao recusa se nao bater) — recalculado pela composicao */
     esperado: {
       total: 82,
-      por_bloco: { fisico: 48, mental_emocional: 19, espiritual: 15 },
-      por_sistema: { fungico: 15, acido_inflamatorio: 14, metabolico: 14, detox_linfatico: 15, mental_emocional_espiritual: 24 },
-      invertidas: ["EMO-507", "ESP-101", "ESP-201", "ESP-202", "ESP-301", "ESP-302", "ESP-501"],
-      escalas: { frequencia: 73, intensidade: 9 }
+      por_bloco: { fisico: 47, mental_emocional: 19, espiritual: 16 },
+      por_sistema: { fungico: 12, acido_inflamatorio: 11, metabolico: 10, detox_linfatico: 12, mental_emocional_espiritual: 37 },
+      invertidas: ["SNT-507", "EMO-507", "ESP-101", "ESP-102", "ESP-201", "ESP-202", "ESP-301", "ESP-302", "ESP-501"],
+      escalas: { frequencia: 71, intensidade: 11 }
     }
   };
 })();

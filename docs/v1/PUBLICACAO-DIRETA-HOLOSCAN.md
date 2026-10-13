@@ -1,5 +1,9 @@
 # HOLOSCAN sem homologação: publicação direta (12/10)
 
+> **Atualização 13/10/2026.** O mecanismo de publicação direta descrito aqui continua o mesmo. A versão que ele vai
+> publicar mudou: o HOLOS-V1 v3 agora é só as decisões metodológicas de 13/10 (não mais o rascunho de 12/10, que ficou
+> arquivado e nunca foi publicado). Ver `docs/v1/ALTERACOES-PACOTE-HOLOSCAN-NOVA-VERSAO.md`.
+
 **Decisão da usuária (12/10):** "o sistema todo já está aprovado, essas perguntas já estão aprovadas... qualquer alteração que a gente faça no HOLOSCAN... deixar direto".
 
 Escolhas feitas por ela:

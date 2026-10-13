@@ -19,7 +19,7 @@ export function candidatoV1() {
   return P.aplicarDecisoesV1(P.importarInventario(inv, 'HOLOS-V1', 1), D);
 }
 
-/** HOLOS-V1 v3 (revisao das perguntas 12/10) montado sobre o candidato v2, como a tela de Homologacao o monta. */
+/** HOLOS-V1 v3 (decisoes metodologicas de 13/10: SNT-210/309 removidas, 13 EMO no MEE) montado sobre o candidato v2, como a tela de Homologacao o monta. */
 export function candidatoV3() {
   const v2 = candidatoV1(); v2.status = 'aprovado';
   return globalThis.PacoteMetodologico.aplicarRevisao(v2, globalThis.MetodologiaRevisaoV3);

@@ -1,8 +1,8 @@
 {
   "gerado_por": "scripts/pacote-v3.mjs",
-  "revisao": "HOLOS-V1-REVISAO-PERGUNTAS-2026-10",
-  "decidida_em": "2026-10-12",
-  "revisao_publica": "concluida em 2026-10-11 (aprovacoes.html): 53 aprovadas, 28 com texto novo, 3 negadas",
+  "revisao": "HOLOS-V1-DECISOES-2026-10-13",
+  "decidida_em": "2026-10-13",
+  "revisao_publica": "decisões explícitas de Rodrigo em 13/10/2026 (decisão explícita = autorização para implementar); base: HOLOS-V1 v2 ativo",
   "pacote_anterior": {
     "code": "HOLOS-V1",
     "version": 2,
@@ -12,7 +12,7 @@
     "code": "HOLOS-V1",
     "version": 3,
     "status": "em_revisao",
-    "content_hash": "33ccb2d7a5d3e2c51888fa28f9663b34077e254f940c89afe8161e83a40a2d39",
+    "content_hash": "cc62d5b81d5d621943787952c286298bec15d13f39c85be517a596a87c4768dd",
     "perguntas": 82,
     "erros_validador": 0,
     "referencias": [
@@ -31,166 +31,147 @@
     ]
   },
   "mudancas": {
-    "textos": [
-      {
-        "id": "SNT-101",
-        "antes": "Você sente vontade forte de doce ou pão quase todo dia?",
-        "depois": "Você sente uma forte vontade de ingerir doces ou pães quase todo dia?"
-      },
-      {
-        "id": "SNT-102",
-        "antes": "Sua barriga incha ou dá gases depois das refeições?",
-        "depois": "Sua barriga incha/estufa ou fica com gases depois das refeições?"
-      },
-      {
-        "id": "SNT-103",
-        "antes": "Sua língua costuma ter uma camada esbranquiçada?",
-        "depois": "Sua língua costuma ter uma camada esbranquiçada no dia a dia?"
-      },
-      {
-        "id": "SNT-104",
-        "antes": "Você tem candidíase ou sapinho com frequência?",
-        "depois": "Você tem candidíase com frequência (íntima ou na boca, o \"sapinho\")?"
-      },
-      {
-        "id": "SNT-105",
-        "antes": "Você tem micose de pele ou unha que volta sempre?",
-        "depois": "Você tem micose de pele ou unha que sempre volta?"
-      },
-      {
-        "id": "SNT-109",
-        "antes": "Você precisou tomar antibiótico ao longo da vida?",
-        "depois": "Você precisou tomar antibióticos muitas vezes ao longo da vida?"
-      },
-      {
-        "id": "SNT-207",
-        "antes": "Sua gengiva sangra ao escovar?",
-        "depois": "Sua gengiva sangra ao escovar os dentes?"
-      },
-      {
-        "id": "SNT-208",
-        "antes": "Você percebe que piora quando come ultraprocessado ou açúcar?",
-        "depois": "Você percebe que as dores no corpo ou de cabeça pioram quando come alimentos ultraprocessados ou açúcar?"
-      },
-      {
-        "id": "SNT-301",
-        "antes": "Você fica com muito sono logo depois do almoço?",
-        "depois": "Você sente muito sono logo depois do almoço?"
-      },
-      {
-        "id": "SNT-303",
-        "antes": "Você sente fome de novo pouco tempo depois de ter comido?",
-        "depois": "Você fica com fome de novo pouco tempo depois de ter comido?"
-      },
-      {
-        "id": "SNT-305",
-        "antes": "Sua gordura se concentra na barriga?",
-        "depois": "O principal local em que a gordura se concentra no seu corpo é a região da barriga?"
-      },
-      {
-        "id": "SNT-306",
-        "antes": "A pele do seu pescoço ou axila está mais escura e aveludada?",
-        "depois": "A pele do seu pescoço ou axila está mais escura e com textura mais grossa ou aveludada?"
-      },
-      {
-        "id": "SNT-307",
-        "antes": "Você fica irritado ou trêmulo se atrasa uma refeição?",
-        "depois": "Você fica irritado, nervoso ou trêmulo se atrasa uma refeição?"
-      },
-      {
-        "id": "SNT-402",
-        "antes": "Seu rosto amanhece inchado?",
-        "depois": "Seu rosto amanhece muito inchado logo ao acordar?"
-      },
-      {
-        "id": "SNT-403",
-        "antes": "Cheiros fortes te incomodam mais do que incomodam as outras pessoas?",
-        "depois": "Cheiros fortes te incomodam mais do que geralmente incomodam as outras pessoas?"
-      },
-      {
-        "id": "SNT-404",
-        "antes": "Comida gordurosa te faz passar mal ou pesa muito?",
-        "depois": "Comida gordurosa te faz passar mal ou ter uma sensação de enjoo?"
-      },
-      {
-        "id": "SNT-406",
-        "antes": "Uma taça já te dá ressaca no dia seguinte?",
-        "depois": "Uma quantidade pequena de bebida alcoólica (ex.: 1 a 2 taças de vinho ou cerveja) já te dá ressaca no dia seguinte?"
-      },
-      {
-        "id": "SNT-407",
-        "antes": "Você reage muito forte a medicamento ou a café?",
-        "depois": "Você tem fortes reações a medicamentos ou a café?"
-      },
-      {
-        "id": "SNT-409",
-        "antes": "Seu suor tem odor forte?",
-        "depois": "Seu suor tem um odor forte?"
-      },
-      {
-        "id": "SNT-503",
-        "antes": "Você acorda de madrugada e custa a voltar a dormir?",
-        "depois": "Você acorda de madrugada e tem dificuldade de voltar a dormir?"
-      },
-      {
-        "id": "EMO-302",
-        "antes": "Você passa os dias no piloto automático sem perceber o que está fazendo?",
-        "depois": "Você passa os dias no piloto automático sem perceber o que está fazendo em relação à alimentação?"
-      },
-      {
-        "id": "EMO-401",
-        "antes": "Você se pega remoendo uma mágoa antiga?",
-        "depois": "Você se pega remoendo uma raiva ou mágoa antiga?"
-      },
-      {
-        "id": "EMO-502",
-        "antes": "Quando você sai da linha um dia você sente que perdeu tudo e abandona?",
-        "depois": "Quando você “sai da linha” na alimentação programada em um dia, sente que perdeu tudo e abandona?"
-      },
-      {
-        "id": "ESP-402",
-        "antes": "Quando as coisas começam a dar certo você acaba boicotando?",
-        "depois": "Quando as coisas começam a dar certo, você acaba se autossabotando ou boicotando?"
-      }
-    ],
-    "trocadas": [
-      {
-        "antes": "SNT-106",
-        "texto_antes": "Você sente coceira na região íntima ou anal?",
-        "depois": "SNT-112",
-        "texto_depois": "Você sente coceira no corpo sem motivo aparente?"
-      },
-      {
-        "antes": "SNT-410",
-        "texto_antes": "Você tem celulite acentuada?",
-        "depois": "SNT-411",
-        "texto_depois": "Você costuma sentir gosto metálico na boca?"
-      },
-      {
-        "antes": "SNT-507",
-        "texto_antes": "Você consegue perceber quando está com fome e quando já está satisfeito?",
-        "depois": "SNT-511",
-        "texto_depois": "Você tem se sentido triste e insatisfeito com sua saúde como um todo?"
-      }
-    ],
+    "textos": [],
+    "trocadas": [],
     "removidas": [
       {
-        "id": "SNT-209",
-        "texto": "Suas mãos ou dedos amanhecem inchados?",
-        "motivo": "negada na revisão: sem relação causal direta com o Sistema Ácido Inflamatório"
+        "id": "SNT-210",
+        "texto": "Seus exames costumam mostrar PCR ou VHS acima do normal?",
+        "motivo": "Exames e documentos não participam do Resultado HOLOS. PCR/VHS não deve alterar notas, sistemas, Índice, prioridades, sinais dominantes ou Próximos Passos."
       },
       {
-        "id": "ESP-102",
-        "texto": "Você sabe dizer o que veio fazer nesta vida?",
-        "motivo": "negada na revisão: muito ampla, ambígua para interpretação"
+        "id": "SNT-309",
+        "texto": "Seus exames costumam mostrar triglicerídeos altos ou HDL baixo?",
+        "motivo": "Exames e documentos não participam do Resultado HOLOS. Triglicerídeos/HDL não devem alterar notas, sistemas, Índice, prioridades, sinais dominantes ou Próximos Passos."
       }
     ],
     "sistema_mudado": [
       {
-        "id": "ESP-404",
+        "id": "EMO-101",
+        "de": "fungico",
+        "para": "mental_emocional_espiritual",
+        "justificativa": "Procrastinação, prontidão e autorregulação comportamental."
+      },
+      {
+        "id": "EMO-102",
+        "de": "fungico",
+        "para": "mental_emocional_espiritual",
+        "justificativa": "Organização pessoal e comportamento."
+      },
+      {
+        "id": "EMO-103",
+        "de": "fungico",
+        "para": "mental_emocional_espiritual",
+        "justificativa": "Prontidão, dificuldade percebida para iniciar mudança e autorregulação."
+      },
+      {
+        "id": "EMO-201",
         "de": "acido_inflamatorio",
-        "para": "mental_emocional_espiritual"
+        "para": "mental_emocional_espiritual",
+        "justificativa": "Irritabilidade e regulação emocional."
+      },
+      {
+        "id": "EMO-202",
+        "de": "acido_inflamatorio",
+        "para": "mental_emocional_espiritual",
+        "justificativa": "Intensidade e duração percebida da raiva."
+      },
+      {
+        "id": "EMO-203",
+        "de": "acido_inflamatorio",
+        "para": "mental_emocional_espiritual",
+        "justificativa": "Limites, comportamento interpessoal e evitação de conflito."
+      },
+      {
+        "id": "EMO-204",
+        "de": "acido_inflamatorio",
+        "para": "mental_emocional_espiritual",
+        "justificativa": "Expressão emocional e comportamento interpessoal."
+      },
+      {
+        "id": "EMO-301",
+        "de": "metabolico",
+        "para": "mental_emocional_espiritual",
+        "justificativa": "Relação entre estado emocional e alimentação."
+      },
+      {
+        "id": "EMO-302",
+        "de": "metabolico",
+        "para": "mental_emocional_espiritual",
+        "justificativa": "Consciência, atenção ao comportamento e funcionamento em piloto automático."
+      },
+      {
+        "id": "EMO-303",
+        "de": "metabolico",
+        "para": "mental_emocional_espiritual",
+        "justificativa": "Uso da comida como recompensa e comportamento alimentar associado ao estado emocional."
+      },
+      {
+        "id": "EMO-401",
+        "de": "detox_linfatico",
+        "para": "mental_emocional_espiritual",
+        "justificativa": "Ruminação emocional."
+      },
+      {
+        "id": "EMO-402",
+        "de": "detox_linfatico",
+        "para": "mental_emocional_espiritual",
+        "justificativa": "Expressão e regulação emocional."
+      },
+      {
+        "id": "EMO-403",
+        "de": "detox_linfatico",
+        "para": "mental_emocional_espiritual",
+        "justificativa": "Apoio, vínculo e capacidade de receber cuidado."
       }
+    ],
+    "contextuais_retiradas": [
+      {
+        "id": "EMO-101",
+        "sistemas": [
+          "metabolico"
+        ]
+      },
+      {
+        "id": "EMO-103",
+        "sistemas": [
+          "mental_emocional_espiritual"
+        ]
+      },
+      {
+        "id": "EMO-201",
+        "sistemas": [
+          "mental_emocional_espiritual"
+        ]
+      },
+      {
+        "id": "EMO-203",
+        "sistemas": [
+          "detox_linfatico"
+        ]
+      },
+      {
+        "id": "EMO-301",
+        "sistemas": [
+          "mental_emocional_espiritual"
+        ]
+      },
+      {
+        "id": "EMO-302",
+        "sistemas": [
+          "mental_emocional_espiritual"
+        ]
+      },
+      {
+        "id": "EMO-402",
+        "sistemas": [
+          "mental_emocional_espiritual"
+        ]
+      }
+    ],
+    "regra_metodologica": [
+      "Uma relação holística, simbólica ou contextual entre emoção e corpo não é suficiente, por si só, para justificar que uma resposta mental/emocional altere matematicamente a nota de um sistema físico.",
+      "Perguntas mentais/emocionais devem pontuar sistema físico somente quando existir justificativa metodológica específica, documentada e aprovada para aquela associação."
     ]
   },
   "pacote": {
@@ -199,21 +180,21 @@
     "version": 3,
     "status": "em_revisao",
     "origin": "nova versao: revisao das perguntas aplicada sobre HOLOS-V1 v2",
-    "justification": "REVISAO DAS PERGUNTAS (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12): concluida em 2026-10-11 (aprovacoes.html): 53 aprovadas, 28 com texto novo, 3 negadas",
+    "justification": "REVISAO DAS PERGUNTAS (HOLOS-V1-DECISOES-2026-10-13, 2026-10-13): decisões explícitas de Rodrigo em 13/10/2026 (decisão explícita = autorização para implementar); base: HOLOS-V1 v2 ativo",
     "responsible": null,
     "reviewed_by": null,
     "reviewed_at": null,
     "effective_from": null,
     "effective_to": null,
-    "content_hash": "33ccb2d7a5d3e2c51888fa28f9663b34077e254f940c89afe8161e83a40a2d39",
+    "content_hash": "cc62d5b81d5d621943787952c286298bec15d13f39c85be517a596a87c4768dd",
     "created_at": null,
-    "notes": "Copia do HOLOS-V1 v2 com 24 textos revisados, 3 perguntas trocadas (ID novo), 2 removidas e 1 com sistema novo. Pesos, escalas, faixas, Indice e Triade sem mudanca. Aprovacao formal so pela RPC aprovar_pacote_metodologico.",
+    "notes": "Copia do HOLOS-V1 v2 com 0 textos revisados, 0 perguntas trocadas (ID novo), 2 removidas e 13 com sistema novo (7 associacoes contextuais retiradas). Pesos, escalas, faixas, Indice e Triade sem mudanca. Regra metodologica: Uma relação holística, simbólica ou contextual entre emoção e corpo não é suficiente, por si só, para justificar que uma resposta mental/emocional altere matematicamente a nota de um sistema físico. Perguntas mentais/emocionais devem pontuar sistema físico somente quando existir justificativa metodológica específica, documentada e aprovada para aquela associação.",
     "edicao": {
       "code": "HOLOSCAN-V1",
       "version": 2,
       "status": "aprovada",
       "item_count": 82,
-      "notes": "Edicao HOLOS-V1 v3: 82 perguntas (48/19/15); Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)"
+      "notes": "Edicao HOLOS-V1 v3: 82 perguntas (47/19/16); Revisão das perguntas (HOLOS-V1-DECISOES-2026-10-13, 2026-10-13)"
     },
     "escalas": [
       {
@@ -357,7 +338,7 @@
     "perguntas": [
       {
         "stable_id": "SNT-101",
-        "statement": "Você sente uma forte vontade de ingerir doces ou pães quase todo dia?",
+        "statement": "Você sente vontade forte de doce ou pão quase todo dia?",
         "block": "fisico",
         "scale_code": "frequencia",
         "response_labels": [
@@ -369,14 +350,14 @@
         "orientation": "direta",
         "temporal_context": "ultimos_30_dias",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "texto revisado (antes: Você sente vontade forte de doce ou pão quase todo dia?)",
-        "version": 2,
+        "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:2, motor/bancos/sintomas.csv:24)",
+        "notes": "vinculo resolvido pela Decisão 5 (linha historica SNT-302 fica so como contexto)",
+        "version": 1,
         "position": 1
       },
       {
         "stable_id": "SNT-102",
-        "statement": "Sua barriga incha/estufa ou fica com gases depois das refeições?",
+        "statement": "Sua barriga incha ou dá gases depois das refeições?",
         "block": "fisico",
         "scale_code": "frequencia",
         "response_labels": [
@@ -388,14 +369,14 @@
         "orientation": "direta",
         "temporal_context": "ultimos_30_dias",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "texto revisado (antes: Sua barriga incha ou dá gases depois das refeições?)",
-        "version": 2,
+        "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:3)",
+        "notes": null,
+        "version": 1,
         "position": 2
       },
       {
         "stable_id": "SNT-103",
-        "statement": "Sua língua costuma ter uma camada esbranquiçada no dia a dia?",
+        "statement": "Sua língua costuma ter uma camada esbranquiçada?",
         "block": "fisico",
         "scale_code": "frequencia",
         "response_labels": [
@@ -407,14 +388,14 @@
         "orientation": "direta",
         "temporal_context": "ultimos_30_dias",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "texto revisado (antes: Sua língua costuma ter uma camada esbranquiçada?)",
-        "version": 2,
+        "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:4)",
+        "notes": null,
+        "version": 1,
         "position": 3
       },
       {
         "stable_id": "SNT-104",
-        "statement": "Você tem candidíase com frequência (íntima ou na boca, o \"sapinho\")?",
+        "statement": "Você tem candidíase ou sapinho com frequência?",
         "block": "fisico",
         "scale_code": "frequencia",
         "response_labels": [
@@ -426,14 +407,14 @@
         "orientation": "direta",
         "temporal_context": "ultimos_3_meses",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "texto revisado (antes: Você tem candidíase ou sapinho com frequência?)",
-        "version": 2,
+        "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:5)",
+        "notes": null,
+        "version": 1,
         "position": 4
       },
       {
         "stable_id": "SNT-105",
-        "statement": "Você tem micose de pele ou unha que sempre volta?",
+        "statement": "Você tem micose de pele ou unha que volta sempre?",
         "block": "fisico",
         "scale_code": "frequencia",
         "response_labels": [
@@ -445,14 +426,14 @@
         "orientation": "direta",
         "temporal_context": "ultimos_3_meses",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "texto revisado (antes: Você tem micose de pele ou unha que volta sempre?)",
-        "version": 2,
+        "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:6)",
+        "notes": null,
+        "version": 1,
         "position": 5
       },
       {
-        "stable_id": "SNT-112",
-        "statement": "Você sente coceira no corpo sem motivo aparente?",
+        "stable_id": "SNT-106",
+        "statement": "Você sente coceira na região íntima ou anal?",
         "block": "fisico",
         "scale_code": "frequencia",
         "response_labels": [
@@ -464,8 +445,8 @@
         "orientation": "direta",
         "temporal_context": "ultimos_30_dias",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "substitui SNT-106 (revisor trocou \"coceira na região íntima ou anal\" por coceira no corpo sem motivo aparente)",
+        "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:7)",
+        "notes": null,
         "version": 1,
         "position": 6
       },
@@ -509,7 +490,7 @@
       },
       {
         "stable_id": "SNT-109",
-        "statement": "Você precisou tomar antibióticos muitas vezes ao longo da vida?",
+        "statement": "Você precisou tomar antibiótico ao longo da vida?",
         "block": "fisico",
         "scale_code": "frequencia",
         "response_labels": [
@@ -521,9 +502,9 @@
         "orientation": "direta",
         "temporal_context": "ao_longo_da_vida",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "texto revisado (antes: Você precisou tomar antibiótico ao longo da vida?)",
-        "version": 2,
+        "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:10)",
+        "notes": null,
+        "version": 1,
         "position": 9
       },
       {
@@ -680,7 +661,7 @@
       },
       {
         "stable_id": "SNT-207",
-        "statement": "Sua gengiva sangra ao escovar os dentes?",
+        "statement": "Sua gengiva sangra ao escovar?",
         "block": "fisico",
         "scale_code": "frequencia",
         "response_labels": [
@@ -692,14 +673,14 @@
         "orientation": "direta",
         "temporal_context": "ultimos_30_dias",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "texto revisado (antes: Sua gengiva sangra ao escovar?)",
-        "version": 2,
+        "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:19)",
+        "notes": null,
+        "version": 1,
         "position": 18
       },
       {
         "stable_id": "SNT-208",
-        "statement": "Você percebe que as dores no corpo ou de cabeça pioram quando come alimentos ultraprocessados ou açúcar?",
+        "statement": "Você percebe que piora quando come ultraprocessado ou açúcar?",
         "block": "fisico",
         "scale_code": "frequencia",
         "response_labels": [
@@ -711,14 +692,14 @@
         "orientation": "direta",
         "temporal_context": "ultimos_30_dias",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "texto revisado (antes: Você percebe que piora quando come ultraprocessado ou açúcar?)",
-        "version": 2,
+        "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:20)",
+        "notes": null,
+        "version": 1,
         "position": 19
       },
       {
-        "stable_id": "SNT-210",
-        "statement": "Seus exames costumam mostrar PCR ou VHS acima do normal?",
+        "stable_id": "SNT-209",
+        "statement": "Suas mãos ou dedos amanhecem inchados?",
         "block": "fisico",
         "scale_code": "frequencia",
         "response_labels": [
@@ -728,16 +709,16 @@
           "Sempre"
         ],
         "orientation": "direta",
-        "temporal_context": "sem_periodo_especifico",
+        "temporal_context": "ultimos_30_dias",
         "status": "aprovado",
-        "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:22)",
+        "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:21)",
         "notes": null,
         "version": 1,
         "position": 20
       },
       {
         "stable_id": "SNT-301",
-        "statement": "Você sente muito sono logo depois do almoço?",
+        "statement": "Você fica com muito sono logo depois do almoço?",
         "block": "fisico",
         "scale_code": "frequencia",
         "response_labels": [
@@ -749,14 +730,14 @@
         "orientation": "direta",
         "temporal_context": "ultimos_30_dias",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "texto revisado (antes: Você fica com muito sono logo depois do almoço?)",
-        "version": 2,
+        "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:23)",
+        "notes": null,
+        "version": 1,
         "position": 21
       },
       {
         "stable_id": "SNT-303",
-        "statement": "Você fica com fome de novo pouco tempo depois de ter comido?",
+        "statement": "Você sente fome de novo pouco tempo depois de ter comido?",
         "block": "fisico",
         "scale_code": "frequencia",
         "response_labels": [
@@ -768,9 +749,9 @@
         "orientation": "direta",
         "temporal_context": "ultimos_30_dias",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "texto revisado (antes: Você sente fome de novo pouco tempo depois de ter comido?)",
-        "version": 2,
+        "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:25)",
+        "notes": null,
+        "version": 1,
         "position": 22
       },
       {
@@ -794,7 +775,7 @@
       },
       {
         "stable_id": "SNT-305",
-        "statement": "O principal local em que a gordura se concentra no seu corpo é a região da barriga?",
+        "statement": "Sua gordura se concentra na barriga?",
         "block": "fisico",
         "scale_code": "intensidade",
         "response_labels": [
@@ -806,14 +787,14 @@
         "orientation": "direta",
         "temporal_context": "atualmente",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "texto revisado (antes: Sua gordura se concentra na barriga?)",
-        "version": 2,
+        "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:27)",
+        "notes": null,
+        "version": 1,
         "position": 24
       },
       {
         "stable_id": "SNT-306",
-        "statement": "A pele do seu pescoço ou axila está mais escura e com textura mais grossa ou aveludada?",
+        "statement": "A pele do seu pescoço ou axila está mais escura e aveludada?",
         "block": "fisico",
         "scale_code": "intensidade",
         "response_labels": [
@@ -825,14 +806,14 @@
         "orientation": "direta",
         "temporal_context": "atualmente",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "texto revisado (antes: A pele do seu pescoço ou axila está mais escura e aveludada?)",
-        "version": 2,
+        "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:28)",
+        "notes": null,
+        "version": 1,
         "position": 25
       },
       {
         "stable_id": "SNT-307",
-        "statement": "Você fica irritado, nervoso ou trêmulo se atrasa uma refeição?",
+        "statement": "Você fica irritado ou trêmulo se atrasa uma refeição?",
         "block": "fisico",
         "scale_code": "frequencia",
         "response_labels": [
@@ -844,9 +825,9 @@
         "orientation": "direta",
         "temporal_context": "ultimos_30_dias",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "texto revisado (antes: Você fica irritado ou trêmulo se atrasa uma refeição?)",
-        "version": 2,
+        "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:29)",
+        "notes": null,
+        "version": 1,
         "position": 26
       },
       {
@@ -869,25 +850,6 @@
         "position": 27
       },
       {
-        "stable_id": "SNT-309",
-        "statement": "Seus exames costumam mostrar triglicerídeos altos ou HDL baixo?",
-        "block": "fisico",
-        "scale_code": "frequencia",
-        "response_labels": [
-          "Nunca",
-          "Às vezes",
-          "Frequente",
-          "Sempre"
-        ],
-        "orientation": "direta",
-        "temporal_context": "sem_periodo_especifico",
-        "status": "aprovado",
-        "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:31)",
-        "notes": null,
-        "version": 1,
-        "position": 28
-      },
-      {
         "stable_id": "SNT-401",
         "statement": "Você percebe inchaço nas pernas ou nos pés no fim do dia?",
         "block": "fisico",
@@ -904,11 +866,11 @@
         "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:33)",
         "notes": null,
         "version": 1,
-        "position": 29
+        "position": 28
       },
       {
         "stable_id": "SNT-402",
-        "statement": "Seu rosto amanhece muito inchado logo ao acordar?",
+        "statement": "Seu rosto amanhece inchado?",
         "block": "fisico",
         "scale_code": "frequencia",
         "response_labels": [
@@ -920,14 +882,14 @@
         "orientation": "direta",
         "temporal_context": "ultimos_30_dias",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "texto revisado (antes: Seu rosto amanhece inchado?)",
-        "version": 2,
-        "position": 30
+        "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:34)",
+        "notes": null,
+        "version": 1,
+        "position": 29
       },
       {
         "stable_id": "SNT-403",
-        "statement": "Cheiros fortes te incomodam mais do que geralmente incomodam as outras pessoas?",
+        "statement": "Cheiros fortes te incomodam mais do que incomodam as outras pessoas?",
         "block": "fisico",
         "scale_code": "frequencia",
         "response_labels": [
@@ -939,14 +901,14 @@
         "orientation": "direta",
         "temporal_context": "habitualmente",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "texto revisado (antes: Cheiros fortes te incomodam mais do que incomodam as outras pessoas?)",
-        "version": 2,
-        "position": 31
+        "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:35)",
+        "notes": null,
+        "version": 1,
+        "position": 30
       },
       {
         "stable_id": "SNT-404",
-        "statement": "Comida gordurosa te faz passar mal ou ter uma sensação de enjoo?",
+        "statement": "Comida gordurosa te faz passar mal ou pesa muito?",
         "block": "fisico",
         "scale_code": "frequencia",
         "response_labels": [
@@ -958,10 +920,10 @@
         "orientation": "direta",
         "temporal_context": "ultimos_30_dias",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "texto revisado (antes: Comida gordurosa te faz passar mal ou pesa muito?)",
-        "version": 2,
-        "position": 32
+        "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:36)",
+        "notes": null,
+        "version": 1,
+        "position": 31
       },
       {
         "stable_id": "SNT-405",
@@ -980,11 +942,11 @@
         "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:37)",
         "notes": null,
         "version": 1,
-        "position": 33
+        "position": 32
       },
       {
         "stable_id": "SNT-406",
-        "statement": "Uma quantidade pequena de bebida alcoólica (ex.: 1 a 2 taças de vinho ou cerveja) já te dá ressaca no dia seguinte?",
+        "statement": "Uma taça já te dá ressaca no dia seguinte?",
         "block": "fisico",
         "scale_code": "frequencia",
         "response_labels": [
@@ -996,14 +958,14 @@
         "orientation": "direta",
         "temporal_context": "habitualmente",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "texto revisado (antes: Uma taça já te dá ressaca no dia seguinte?)",
-        "version": 2,
-        "position": 34
+        "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:38)",
+        "notes": null,
+        "version": 1,
+        "position": 33
       },
       {
         "stable_id": "SNT-407",
-        "statement": "Você tem fortes reações a medicamentos ou a café?",
+        "statement": "Você reage muito forte a medicamento ou a café?",
         "block": "fisico",
         "scale_code": "frequencia",
         "response_labels": [
@@ -1015,10 +977,10 @@
         "orientation": "direta",
         "temporal_context": "habitualmente",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "texto revisado (antes: Você reage muito forte a medicamento ou a café?)",
-        "version": 2,
-        "position": 35
+        "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:39)",
+        "notes": null,
+        "version": 1,
+        "position": 34
       },
       {
         "stable_id": "SNT-408",
@@ -1037,11 +999,11 @@
         "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:40)",
         "notes": null,
         "version": 1,
-        "position": 36
+        "position": 35
       },
       {
         "stable_id": "SNT-409",
-        "statement": "Seu suor tem um odor forte?",
+        "statement": "Seu suor tem odor forte?",
         "block": "fisico",
         "scale_code": "frequencia",
         "response_labels": [
@@ -1053,29 +1015,29 @@
         "orientation": "direta",
         "temporal_context": "ultimos_30_dias",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "texto revisado (antes: Seu suor tem odor forte?)",
-        "version": 2,
-        "position": 37
+        "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:41)",
+        "notes": null,
+        "version": 1,
+        "position": 36
       },
       {
-        "stable_id": "SNT-411",
-        "statement": "Você costuma sentir gosto metálico na boca?",
+        "stable_id": "SNT-410",
+        "statement": "Você tem celulite acentuada?",
         "block": "fisico",
-        "scale_code": "frequencia",
+        "scale_code": "intensidade",
         "response_labels": [
-          "Nunca",
-          "Às vezes",
-          "Frequente",
-          "Sempre"
+          "Nada",
+          "Um pouco",
+          "Bastante",
+          "Muito"
         ],
         "orientation": "direta",
-        "temporal_context": "ultimos_30_dias",
+        "temporal_context": "atualmente",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "substitui SNT-410 (revisor trocou \"celulite acentuada\" por gosto metálico na boca)",
+        "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:42)",
+        "notes": null,
         "version": 1,
-        "position": 38
+        "position": 37
       },
       {
         "stable_id": "SNT-501",
@@ -1094,7 +1056,7 @@
         "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:32, motor/bancos/sintomas.csv:43)",
         "notes": "vinculo resolvido pela Decisão 6 (linha historica SNT-310 fica so como contexto)",
         "version": 1,
-        "position": 39
+        "position": 38
       },
       {
         "stable_id": "SNT-502",
@@ -1113,11 +1075,11 @@
         "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:44)",
         "notes": null,
         "version": 1,
-        "position": 40
+        "position": 39
       },
       {
         "stable_id": "SNT-503",
-        "statement": "Você acorda de madrugada e tem dificuldade de voltar a dormir?",
+        "statement": "Você acorda de madrugada e custa a voltar a dormir?",
         "block": "fisico",
         "scale_code": "frequencia",
         "response_labels": [
@@ -1129,10 +1091,10 @@
         "orientation": "direta",
         "temporal_context": "ultimos_30_dias",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "texto revisado (antes: Você acorda de madrugada e custa a voltar a dormir?)",
-        "version": 2,
-        "position": 41
+        "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:45)",
+        "notes": null,
+        "version": 1,
+        "position": 40
       },
       {
         "stable_id": "SNT-504",
@@ -1151,7 +1113,7 @@
         "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:46)",
         "notes": null,
         "version": 1,
-        "position": 42
+        "position": 41
       },
       {
         "stable_id": "SNT-505",
@@ -1170,7 +1132,7 @@
         "source": "livro p. 90 (Trava do Trauma Alimentar) (motor/bancos/sintomas.csv:47)",
         "notes": null,
         "version": 1,
-        "position": 43
+        "position": 42
       },
       {
         "stable_id": "SNT-506",
@@ -1189,11 +1151,11 @@
         "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:48)",
         "notes": null,
         "version": 1,
-        "position": 44
+        "position": 43
       },
       {
-        "stable_id": "SNT-511",
-        "statement": "Você tem se sentido triste e insatisfeito com sua saúde como um todo?",
+        "stable_id": "SNT-507",
+        "statement": "Você consegue perceber quando está com fome e quando já está satisfeito?",
         "block": "fisico",
         "scale_code": "frequencia",
         "response_labels": [
@@ -1202,13 +1164,13 @@
           "Frequente",
           "Sempre"
         ],
-        "orientation": "direta",
+        "orientation": "invertida",
         "temporal_context": "ultimos_30_dias",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "substitui SNT-507 (revisor trocou a percepção de fome e saciedade (invertida) por tristeza e insatisfação com a saúde (direta))",
+        "source": "livro p. 91 (Trava da Desconexão Corpo-Mente) (motor/bancos/sintomas.csv:49)",
+        "notes": null,
         "version": 1,
-        "position": 45
+        "position": 44
       },
       {
         "stable_id": "SNT-508",
@@ -1227,7 +1189,7 @@
         "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:50)",
         "notes": null,
         "version": 1,
-        "position": 46
+        "position": 45
       },
       {
         "stable_id": "SNT-509",
@@ -1246,7 +1208,7 @@
         "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:51)",
         "notes": null,
         "version": 1,
-        "position": 47
+        "position": 46
       },
       {
         "stable_id": "SNT-510",
@@ -1265,7 +1227,7 @@
         "source": "rascunho-literatura-funcional (motor/bancos/sintomas.csv:52)",
         "notes": null,
         "version": 1,
-        "position": 48
+        "position": 47
       },
       {
         "stable_id": "EMO-101",
@@ -1282,9 +1244,9 @@
         "temporal_context": "ultimos_30_dias",
         "status": "aprovado",
         "source": "material 11/08 (padrão do Fúngico: estagnação e desordem) (motor/bancos/emocoes.csv:2)",
-        "notes": null,
+        "notes": "sistema: fungico -> mental_emocional_espiritual",
         "version": 1,
-        "position": 49
+        "position": 48
       },
       {
         "stable_id": "EMO-102",
@@ -1301,9 +1263,9 @@
         "temporal_context": "ultimos_30_dias",
         "status": "aprovado",
         "source": "material 11/08 (padrão do Fúngico: estagnação e desordem) (motor/bancos/emocoes.csv:3)",
-        "notes": null,
+        "notes": "sistema: fungico -> mental_emocional_espiritual",
         "version": 1,
-        "position": 50
+        "position": 49
       },
       {
         "stable_id": "EMO-103",
@@ -1320,9 +1282,9 @@
         "temporal_context": "ultimos_30_dias",
         "status": "aprovado",
         "source": "material 11/08 (padrão do Fúngico) (motor/bancos/emocoes.csv:4)",
-        "notes": null,
+        "notes": "sistema: fungico -> mental_emocional_espiritual",
         "version": 1,
-        "position": 51
+        "position": 50
       },
       {
         "stable_id": "EMO-201",
@@ -1339,9 +1301,9 @@
         "temporal_context": "ultimos_30_dias",
         "status": "aprovado",
         "source": "material 11/08 (padrão do Ácido-Inflamatório: irritação e reatividade) (motor/bancos/emocoes.csv:5)",
-        "notes": null,
+        "notes": "sistema: acido_inflamatorio -> mental_emocional_espiritual",
         "version": 1,
-        "position": 52
+        "position": 51
       },
       {
         "stable_id": "EMO-202",
@@ -1358,9 +1320,9 @@
         "temporal_context": "ultimos_30_dias",
         "status": "aprovado",
         "source": "material 11/08 (padrão do Ácido-Inflamatório) (motor/bancos/emocoes.csv:6)",
-        "notes": null,
+        "notes": "sistema: acido_inflamatorio -> mental_emocional_espiritual",
         "version": 1,
-        "position": 53
+        "position": 52
       },
       {
         "stable_id": "EMO-203",
@@ -1377,9 +1339,9 @@
         "temporal_context": "habitualmente",
         "status": "aprovado",
         "source": "material 11/08 (impacto espiritual: bloqueio no plexo solar) (motor/bancos/emocoes.csv:7)",
-        "notes": null,
+        "notes": "sistema: acido_inflamatorio -> mental_emocional_espiritual",
         "version": 1,
-        "position": 54
+        "position": 53
       },
       {
         "stable_id": "EMO-204",
@@ -1396,9 +1358,9 @@
         "temporal_context": "habitualmente",
         "status": "aprovado",
         "source": "material 11/08 (impacto espiritual: bloqueio no plexo solar) (motor/bancos/emocoes.csv:8)",
-        "notes": null,
+        "notes": "sistema: acido_inflamatorio -> mental_emocional_espiritual",
         "version": 1,
-        "position": 55
+        "position": 54
       },
       {
         "stable_id": "EMO-301",
@@ -1415,13 +1377,13 @@
         "temporal_context": "ultimos_30_dias",
         "status": "aprovado",
         "source": "material 11/08 (padrão do Metabólico: vazio e falta de propósito) (motor/bancos/emocoes.csv:9)",
-        "notes": null,
+        "notes": "sistema: metabolico -> mental_emocional_espiritual",
         "version": 1,
-        "position": 56
+        "position": 55
       },
       {
         "stable_id": "EMO-302",
-        "statement": "Você passa os dias no piloto automático sem perceber o que está fazendo em relação à alimentação?",
+        "statement": "Você passa os dias no piloto automático sem perceber o que está fazendo?",
         "block": "mental_emocional",
         "scale_code": "frequencia",
         "response_labels": [
@@ -1433,10 +1395,10 @@
         "orientation": "direta",
         "temporal_context": "ultimos_30_dias",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "texto revisado (antes: Você passa os dias no piloto automático sem perceber o que está fazendo?)",
-        "version": 2,
-        "position": 57
+        "source": "livro p. 56 (Propósito de Vida e Nutrição) (motor/bancos/emocoes.csv:10)",
+        "notes": "sistema: metabolico -> mental_emocional_espiritual",
+        "version": 1,
+        "position": 56
       },
       {
         "stable_id": "EMO-303",
@@ -1453,13 +1415,13 @@
         "temporal_context": "ultimos_30_dias",
         "status": "aprovado",
         "source": "livro p. 90 (Trava da Resistência ao Prazer) (motor/bancos/emocoes.csv:11)",
-        "notes": null,
+        "notes": "sistema: metabolico -> mental_emocional_espiritual",
         "version": 1,
-        "position": 58
+        "position": 57
       },
       {
         "stable_id": "EMO-401",
-        "statement": "Você se pega remoendo uma raiva ou mágoa antiga?",
+        "statement": "Você se pega remoendo uma mágoa antiga?",
         "block": "mental_emocional",
         "scale_code": "frequencia",
         "response_labels": [
@@ -1471,10 +1433,10 @@
         "orientation": "direta",
         "temporal_context": "ultimos_30_dias",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "texto revisado (antes: Você se pega remoendo uma mágoa antiga?)",
-        "version": 2,
-        "position": 59
+        "source": "material 11/08 (padrão do Detox: acúmulo de mágoas) (motor/bancos/emocoes.csv:12)",
+        "notes": "sistema: detox_linfatico -> mental_emocional_espiritual",
+        "version": 1,
+        "position": 58
       },
       {
         "stable_id": "EMO-402",
@@ -1491,9 +1453,9 @@
         "temporal_context": "habitualmente",
         "status": "aprovado",
         "source": "material 11/08 (padrão do Detox: emoções não processadas) (motor/bancos/emocoes.csv:13)",
-        "notes": null,
+        "notes": "sistema: detox_linfatico -> mental_emocional_espiritual",
         "version": 1,
-        "position": 60
+        "position": 59
       },
       {
         "stable_id": "EMO-403",
@@ -1510,9 +1472,9 @@
         "temporal_context": "habitualmente",
         "status": "aprovado",
         "source": "material 11/08 (padrão do Detox) (motor/bancos/emocoes.csv:14)",
-        "notes": null,
+        "notes": "sistema: detox_linfatico -> mental_emocional_espiritual",
         "version": 1,
-        "position": 61
+        "position": 60
       },
       {
         "stable_id": "EMO-501",
@@ -1531,11 +1493,11 @@
         "source": "livro p. 92 (Reparentalização Nutricional) (motor/bancos/emocoes.csv:15)",
         "notes": null,
         "version": 1,
-        "position": 62
+        "position": 61
       },
       {
         "stable_id": "EMO-502",
-        "statement": "Quando você “sai da linha” na alimentação programada em um dia, sente que perdeu tudo e abandona?",
+        "statement": "Quando você sai da linha um dia você sente que perdeu tudo e abandona?",
         "block": "mental_emocional",
         "scale_code": "frequencia",
         "response_labels": [
@@ -1547,10 +1509,10 @@
         "orientation": "direta",
         "temporal_context": "ultimos_30_dias",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "texto revisado (antes: Quando você sai da linha um dia você sente que perdeu tudo e abandona?)",
-        "version": 2,
-        "position": 63
+        "source": "livro p. 89 (Trava da Perfeição) (motor/bancos/emocoes.csv:16)",
+        "notes": null,
+        "version": 1,
+        "position": 62
       },
       {
         "stable_id": "EMO-503",
@@ -1569,7 +1531,7 @@
         "source": "livro p. 89 (Trava da Identidade Limitante) (motor/bancos/emocoes.csv:17)",
         "notes": null,
         "version": 1,
-        "position": 64
+        "position": 63
       },
       {
         "stable_id": "EMO-504",
@@ -1588,7 +1550,7 @@
         "source": "livro p. 90 (Trava do Trauma Alimentar) (motor/bancos/emocoes.csv:18)",
         "notes": null,
         "version": 1,
-        "position": 65
+        "position": 64
       },
       {
         "stable_id": "EMO-505",
@@ -1607,7 +1569,7 @@
         "source": "livro p. 91 (Trava da Desconexão Corpo-Mente) (motor/bancos/emocoes.csv:19)",
         "notes": null,
         "version": 1,
-        "position": 66
+        "position": 65
       },
       {
         "stable_id": "EMO-507",
@@ -1626,7 +1588,7 @@
         "source": "material 11/08 (padrão do Mental-Emocional: desconexão de si) (motor/bancos/emocoes.csv:20)",
         "notes": null,
         "version": 1,
-        "position": 67
+        "position": 66
       },
       {
         "stable_id": "ESP-101",
@@ -1643,6 +1605,25 @@
         "temporal_context": "atualmente",
         "status": "aprovado",
         "source": "livro p. 56 (Propósito de Vida e Nutrição) (motor/bancos/espiritual.csv:2)",
+        "notes": null,
+        "version": 1,
+        "position": 67
+      },
+      {
+        "stable_id": "ESP-102",
+        "statement": "Você sabe dizer o que veio fazer nesta vida?",
+        "block": "espiritual",
+        "scale_code": "intensidade",
+        "response_labels": [
+          "Nada",
+          "Um pouco",
+          "Bastante",
+          "Muito"
+        ],
+        "orientation": "invertida",
+        "temporal_context": "atualmente",
+        "status": "aprovado",
+        "source": "livro p. 57 (Reconexão com o Propósito) (motor/bancos/espiritual.csv:3)",
         "notes": null,
         "version": 1,
         "position": 68
@@ -1801,7 +1782,7 @@
       },
       {
         "stable_id": "ESP-402",
-        "statement": "Quando as coisas começam a dar certo, você acaba se autossabotando ou boicotando?",
+        "statement": "Quando as coisas começam a dar certo você acaba boicotando?",
         "block": "espiritual",
         "scale_code": "frequencia",
         "response_labels": [
@@ -1813,9 +1794,9 @@
         "orientation": "direta",
         "temporal_context": "habitualmente",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
-        "notes": "texto revisado (antes: Quando as coisas começam a dar certo você acaba boicotando?)",
-        "version": 2,
+        "source": "livro p. 89 (travas mentais e emocionais) (motor/bancos/espiritual.csv:12)",
+        "notes": null,
+        "version": 1,
         "position": 77
       },
       {
@@ -1852,7 +1833,7 @@
         "temporal_context": "atualmente",
         "status": "aprovado",
         "source": "livro p. 90 (Trava da Resistência ao Prazer) (motor/bancos/espiritual.csv:14)",
-        "notes": "sistema: acido_inflamatorio -> mental_emocional_espiritual",
+        "notes": null,
         "version": 1,
         "position": 79
       },
@@ -2008,16 +1989,22 @@
         }
       },
       {
-        "question_stable_id": "SNT-112",
+        "question_stable_id": "SNT-106",
         "destination_type": "system",
         "destination_id": "fungico",
         "weight": 1,
         "role": "primaria",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
+        "source": "Etapa 4.2 — Decisão 7 (decisao metodologica V1 fechada)",
         "conflict": false,
         "conflict_note": null,
-        "legacy": null
+        "legacy": {
+          "legacy_recovered_weight": 2,
+          "legacy_role": "primaria",
+          "legacy_source": "motor/bancos/sintomas.csv:7",
+          "legacy_conflict_note": null,
+          "pacote": "HOLOS-V1@1"
+        }
       },
       {
         "question_stable_id": "SNT-107",
@@ -2254,7 +2241,7 @@
         }
       },
       {
-        "question_stable_id": "SNT-210",
+        "question_stable_id": "SNT-209",
         "destination_type": "system",
         "destination_id": "acido_inflamatorio",
         "weight": 1,
@@ -2264,9 +2251,9 @@
         "conflict": false,
         "conflict_note": null,
         "legacy": {
-          "legacy_recovered_weight": 3,
+          "legacy_recovered_weight": 2,
           "legacy_role": "primaria",
-          "legacy_source": "motor/bancos/sintomas.csv:22",
+          "legacy_source": "motor/bancos/sintomas.csv:21",
           "legacy_conflict_note": null,
           "pacote": "HOLOS-V1@1"
         }
@@ -2413,24 +2400,6 @@
           "legacy_recovered_weight": 2,
           "legacy_role": "primaria",
           "legacy_source": "motor/bancos/sintomas.csv:30",
-          "legacy_conflict_note": null,
-          "pacote": "HOLOS-V1@1"
-        }
-      },
-      {
-        "question_stable_id": "SNT-309",
-        "destination_type": "system",
-        "destination_id": "metabolico",
-        "weight": 1,
-        "role": "primaria",
-        "status": "aprovado",
-        "source": "Etapa 4.2 — Decisão 7 (decisao metodologica V1 fechada)",
-        "conflict": false,
-        "conflict_note": null,
-        "legacy": {
-          "legacy_recovered_weight": 3,
-          "legacy_role": "primaria",
-          "legacy_source": "motor/bancos/sintomas.csv:31",
           "legacy_conflict_note": null,
           "pacote": "HOLOS-V1@1"
         }
@@ -2618,16 +2587,22 @@
         }
       },
       {
-        "question_stable_id": "SNT-411",
+        "question_stable_id": "SNT-410",
         "destination_type": "system",
         "destination_id": "detox_linfatico",
         "weight": 1,
         "role": "primaria",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
+        "source": "Etapa 4.2 — Decisão 7 (decisao metodologica V1 fechada)",
         "conflict": false,
         "conflict_note": null,
-        "legacy": null
+        "legacy": {
+          "legacy_recovered_weight": 1,
+          "legacy_role": "primaria",
+          "legacy_source": "motor/bancos/sintomas.csv:42",
+          "legacy_conflict_note": null,
+          "pacote": "HOLOS-V1@1"
+        }
       },
       {
         "question_stable_id": "SNT-501",
@@ -2740,16 +2715,22 @@
         }
       },
       {
-        "question_stable_id": "SNT-511",
+        "question_stable_id": "SNT-507",
         "destination_type": "system",
         "destination_id": "mental_emocional_espiritual",
         "weight": 1,
         "role": "primaria",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
+        "source": "Etapa 4.2 — Decisão 7 (decisao metodologica V1 fechada)",
         "conflict": false,
         "conflict_note": null,
-        "legacy": null
+        "legacy": {
+          "legacy_recovered_weight": 3,
+          "legacy_role": "primaria",
+          "legacy_source": "motor/bancos/sintomas.csv:49",
+          "legacy_conflict_note": null,
+          "pacote": "HOLOS-V1@1"
+        }
       },
       {
         "question_stable_id": "SNT-508",
@@ -2808,362 +2789,158 @@
       {
         "question_stable_id": "EMO-101",
         "destination_type": "system",
-        "destination_id": "fungico",
+        "destination_id": "mental_emocional_espiritual",
         "weight": 1,
         "role": "primaria",
         "status": "aprovado",
-        "source": "Etapa 4.2 — Decisão 7 (decisao metodologica V1 fechada)",
+        "source": "Revisão das perguntas (HOLOS-V1-DECISOES-2026-10-13, 2026-10-13)",
         "conflict": false,
-        "conflict_note": null,
-        "legacy": {
-          "legacy_recovered_weight": 3,
-          "legacy_role": "primaria",
-          "legacy_source": "motor/bancos/emocoes.csv:2",
-          "legacy_conflict_note": null,
-          "pacote": "HOLOS-V1@1"
-        }
-      },
-      {
-        "question_stable_id": "EMO-101",
-        "destination_type": "system",
-        "destination_id": "metabolico",
-        "weight": null,
-        "role": "secondary_contextual",
-        "status": "aprovado",
-        "source": "Etapa 4.2 — Decisão 4 (decisao metodologica V1 fechada)",
-        "conflict": false,
-        "conflict_note": null,
-        "legacy": {
-          "legacy_recovered_weight": 3,
-          "legacy_role": "secundaria",
-          "legacy_source": "motor/bancos/emocoes.csv:2 × config.csv peso_secundario_fator=1",
-          "legacy_conflict_note": "peso secundario derivado de peso_secundario_fator (\"decidido 27/08\", sem homologacao)",
-          "pacote": "HOLOS-V1@1"
-        }
+        "conflict_note": "sistema mudado na revisao (fungico -> mental_emocional_espiritual): Procrastinação, prontidão e autorregulação comportamental.",
+        "legacy": null
       },
       {
         "question_stable_id": "EMO-102",
         "destination_type": "system",
-        "destination_id": "fungico",
+        "destination_id": "mental_emocional_espiritual",
         "weight": 1,
         "role": "primaria",
         "status": "aprovado",
-        "source": "Etapa 4.2 — Decisão 7 (decisao metodologica V1 fechada)",
+        "source": "Revisão das perguntas (HOLOS-V1-DECISOES-2026-10-13, 2026-10-13)",
         "conflict": false,
-        "conflict_note": null,
-        "legacy": {
-          "legacy_recovered_weight": 2,
-          "legacy_role": "primaria",
-          "legacy_source": "motor/bancos/emocoes.csv:3",
-          "legacy_conflict_note": null,
-          "pacote": "HOLOS-V1@1"
-        }
-      },
-      {
-        "question_stable_id": "EMO-103",
-        "destination_type": "system",
-        "destination_id": "fungico",
-        "weight": 1,
-        "role": "primaria",
-        "status": "aprovado",
-        "source": "Etapa 4.2 — Decisão 7 (decisao metodologica V1 fechada)",
-        "conflict": false,
-        "conflict_note": null,
-        "legacy": {
-          "legacy_recovered_weight": 2,
-          "legacy_role": "primaria",
-          "legacy_source": "motor/bancos/emocoes.csv:4",
-          "legacy_conflict_note": null,
-          "pacote": "HOLOS-V1@1"
-        }
+        "conflict_note": "sistema mudado na revisao (fungico -> mental_emocional_espiritual): Organização pessoal e comportamento.",
+        "legacy": null
       },
       {
         "question_stable_id": "EMO-103",
         "destination_type": "system",
         "destination_id": "mental_emocional_espiritual",
-        "weight": null,
-        "role": "secondary_contextual",
-        "status": "aprovado",
-        "source": "Etapa 4.2 — Decisão 4 (decisao metodologica V1 fechada)",
-        "conflict": false,
-        "conflict_note": null,
-        "legacy": {
-          "legacy_recovered_weight": 2,
-          "legacy_role": "secundaria",
-          "legacy_source": "motor/bancos/emocoes.csv:4 × config.csv peso_secundario_fator=1",
-          "legacy_conflict_note": "peso secundario derivado de peso_secundario_fator (\"decidido 27/08\", sem homologacao)",
-          "pacote": "HOLOS-V1@1"
-        }
-      },
-      {
-        "question_stable_id": "EMO-201",
-        "destination_type": "system",
-        "destination_id": "acido_inflamatorio",
         "weight": 1,
         "role": "primaria",
         "status": "aprovado",
-        "source": "Etapa 4.2 — Decisão 7 (decisao metodologica V1 fechada)",
+        "source": "Revisão das perguntas (HOLOS-V1-DECISOES-2026-10-13, 2026-10-13)",
         "conflict": false,
-        "conflict_note": null,
-        "legacy": {
-          "legacy_recovered_weight": 3,
-          "legacy_role": "primaria",
-          "legacy_source": "motor/bancos/emocoes.csv:5",
-          "legacy_conflict_note": null,
-          "pacote": "HOLOS-V1@1"
-        }
+        "conflict_note": "sistema mudado na revisao (fungico -> mental_emocional_espiritual): Prontidão, dificuldade percebida para iniciar mudança e autorregulação.",
+        "legacy": null
       },
       {
         "question_stable_id": "EMO-201",
         "destination_type": "system",
         "destination_id": "mental_emocional_espiritual",
-        "weight": null,
-        "role": "secondary_contextual",
+        "weight": 1,
+        "role": "primaria",
         "status": "aprovado",
-        "source": "Etapa 4.2 — Decisão 4 (decisao metodologica V1 fechada)",
+        "source": "Revisão das perguntas (HOLOS-V1-DECISOES-2026-10-13, 2026-10-13)",
         "conflict": false,
-        "conflict_note": null,
-        "legacy": {
-          "legacy_recovered_weight": 3,
-          "legacy_role": "secundaria",
-          "legacy_source": "motor/bancos/emocoes.csv:5 × config.csv peso_secundario_fator=1",
-          "legacy_conflict_note": "peso secundario derivado de peso_secundario_fator (\"decidido 27/08\", sem homologacao)",
-          "pacote": "HOLOS-V1@1"
-        }
+        "conflict_note": "sistema mudado na revisao (acido_inflamatorio -> mental_emocional_espiritual): Irritabilidade e regulação emocional.",
+        "legacy": null
       },
       {
         "question_stable_id": "EMO-202",
         "destination_type": "system",
-        "destination_id": "acido_inflamatorio",
+        "destination_id": "mental_emocional_espiritual",
         "weight": 1,
         "role": "primaria",
         "status": "aprovado",
-        "source": "Etapa 4.2 — Decisão 7 (decisao metodologica V1 fechada)",
+        "source": "Revisão das perguntas (HOLOS-V1-DECISOES-2026-10-13, 2026-10-13)",
         "conflict": false,
-        "conflict_note": null,
-        "legacy": {
-          "legacy_recovered_weight": 3,
-          "legacy_role": "primaria",
-          "legacy_source": "motor/bancos/emocoes.csv:6",
-          "legacy_conflict_note": null,
-          "pacote": "HOLOS-V1@1"
-        }
+        "conflict_note": "sistema mudado na revisao (acido_inflamatorio -> mental_emocional_espiritual): Intensidade e duração percebida da raiva.",
+        "legacy": null
       },
       {
         "question_stable_id": "EMO-203",
         "destination_type": "system",
-        "destination_id": "acido_inflamatorio",
+        "destination_id": "mental_emocional_espiritual",
         "weight": 1,
         "role": "primaria",
         "status": "aprovado",
-        "source": "Etapa 4.2 — Decisão 7 (decisao metodologica V1 fechada)",
+        "source": "Revisão das perguntas (HOLOS-V1-DECISOES-2026-10-13, 2026-10-13)",
         "conflict": false,
-        "conflict_note": null,
-        "legacy": {
-          "legacy_recovered_weight": 2,
-          "legacy_role": "primaria",
-          "legacy_source": "motor/bancos/emocoes.csv:7",
-          "legacy_conflict_note": null,
-          "pacote": "HOLOS-V1@1"
-        }
-      },
-      {
-        "question_stable_id": "EMO-203",
-        "destination_type": "system",
-        "destination_id": "detox_linfatico",
-        "weight": null,
-        "role": "secondary_contextual",
-        "status": "aprovado",
-        "source": "Etapa 4.2 — Decisão 4 (decisao metodologica V1 fechada)",
-        "conflict": false,
-        "conflict_note": null,
-        "legacy": {
-          "legacy_recovered_weight": 2,
-          "legacy_role": "secundaria",
-          "legacy_source": "motor/bancos/emocoes.csv:7 × config.csv peso_secundario_fator=1",
-          "legacy_conflict_note": "peso secundario derivado de peso_secundario_fator (\"decidido 27/08\", sem homologacao)",
-          "pacote": "HOLOS-V1@1"
-        }
+        "conflict_note": "sistema mudado na revisao (acido_inflamatorio -> mental_emocional_espiritual): Limites, comportamento interpessoal e evitação de conflito.",
+        "legacy": null
       },
       {
         "question_stable_id": "EMO-204",
         "destination_type": "system",
-        "destination_id": "acido_inflamatorio",
+        "destination_id": "mental_emocional_espiritual",
         "weight": 1,
         "role": "primaria",
         "status": "aprovado",
-        "source": "Etapa 4.2 — Decisão 7 (decisao metodologica V1 fechada)",
+        "source": "Revisão das perguntas (HOLOS-V1-DECISOES-2026-10-13, 2026-10-13)",
         "conflict": false,
-        "conflict_note": null,
-        "legacy": {
-          "legacy_recovered_weight": 2,
-          "legacy_role": "primaria",
-          "legacy_source": "motor/bancos/emocoes.csv:8",
-          "legacy_conflict_note": null,
-          "pacote": "HOLOS-V1@1"
-        }
-      },
-      {
-        "question_stable_id": "EMO-301",
-        "destination_type": "system",
-        "destination_id": "metabolico",
-        "weight": 1,
-        "role": "primaria",
-        "status": "aprovado",
-        "source": "Etapa 4.2 — Decisão 7 (decisao metodologica V1 fechada)",
-        "conflict": false,
-        "conflict_note": null,
-        "legacy": {
-          "legacy_recovered_weight": 3,
-          "legacy_role": "primaria",
-          "legacy_source": "motor/bancos/emocoes.csv:9",
-          "legacy_conflict_note": null,
-          "pacote": "HOLOS-V1@1"
-        }
+        "conflict_note": "sistema mudado na revisao (acido_inflamatorio -> mental_emocional_espiritual): Expressão emocional e comportamento interpessoal.",
+        "legacy": null
       },
       {
         "question_stable_id": "EMO-301",
         "destination_type": "system",
         "destination_id": "mental_emocional_espiritual",
-        "weight": null,
-        "role": "secondary_contextual",
-        "status": "aprovado",
-        "source": "Etapa 4.2 — Decisão 4 (decisao metodologica V1 fechada)",
-        "conflict": false,
-        "conflict_note": null,
-        "legacy": {
-          "legacy_recovered_weight": 3,
-          "legacy_role": "secundaria",
-          "legacy_source": "motor/bancos/emocoes.csv:9 × config.csv peso_secundario_fator=1",
-          "legacy_conflict_note": "peso secundario derivado de peso_secundario_fator (\"decidido 27/08\", sem homologacao)",
-          "pacote": "HOLOS-V1@1"
-        }
-      },
-      {
-        "question_stable_id": "EMO-302",
-        "destination_type": "system",
-        "destination_id": "metabolico",
         "weight": 1,
         "role": "primaria",
         "status": "aprovado",
-        "source": "Etapa 4.2 — Decisão 7 (decisao metodologica V1 fechada)",
+        "source": "Revisão das perguntas (HOLOS-V1-DECISOES-2026-10-13, 2026-10-13)",
         "conflict": false,
-        "conflict_note": null,
-        "legacy": {
-          "legacy_recovered_weight": 3,
-          "legacy_role": "primaria",
-          "legacy_source": "motor/bancos/emocoes.csv:10",
-          "legacy_conflict_note": null,
-          "pacote": "HOLOS-V1@1"
-        }
+        "conflict_note": "sistema mudado na revisao (metabolico -> mental_emocional_espiritual): Relação entre estado emocional e alimentação.",
+        "legacy": null
       },
       {
         "question_stable_id": "EMO-302",
         "destination_type": "system",
         "destination_id": "mental_emocional_espiritual",
-        "weight": null,
-        "role": "secondary_contextual",
+        "weight": 1,
+        "role": "primaria",
         "status": "aprovado",
-        "source": "Etapa 4.2 — Decisão 4 (decisao metodologica V1 fechada)",
+        "source": "Revisão das perguntas (HOLOS-V1-DECISOES-2026-10-13, 2026-10-13)",
         "conflict": false,
-        "conflict_note": null,
-        "legacy": {
-          "legacy_recovered_weight": 3,
-          "legacy_role": "secundaria",
-          "legacy_source": "motor/bancos/emocoes.csv:10 × config.csv peso_secundario_fator=1",
-          "legacy_conflict_note": "peso secundario derivado de peso_secundario_fator (\"decidido 27/08\", sem homologacao)",
-          "pacote": "HOLOS-V1@1"
-        }
+        "conflict_note": "sistema mudado na revisao (metabolico -> mental_emocional_espiritual): Consciência, atenção ao comportamento e funcionamento em piloto automático.",
+        "legacy": null
       },
       {
         "question_stable_id": "EMO-303",
         "destination_type": "system",
-        "destination_id": "metabolico",
+        "destination_id": "mental_emocional_espiritual",
         "weight": 1,
         "role": "primaria",
         "status": "aprovado",
-        "source": "Etapa 4.2 — Decisão 7 (decisao metodologica V1 fechada)",
+        "source": "Revisão das perguntas (HOLOS-V1-DECISOES-2026-10-13, 2026-10-13)",
         "conflict": false,
-        "conflict_note": null,
-        "legacy": {
-          "legacy_recovered_weight": 2,
-          "legacy_role": "primaria",
-          "legacy_source": "motor/bancos/emocoes.csv:11",
-          "legacy_conflict_note": null,
-          "pacote": "HOLOS-V1@1"
-        }
+        "conflict_note": "sistema mudado na revisao (metabolico -> mental_emocional_espiritual): Uso da comida como recompensa e comportamento alimentar associado ao estado emocional.",
+        "legacy": null
       },
       {
         "question_stable_id": "EMO-401",
         "destination_type": "system",
-        "destination_id": "detox_linfatico",
+        "destination_id": "mental_emocional_espiritual",
         "weight": 1,
         "role": "primaria",
         "status": "aprovado",
-        "source": "Etapa 4.2 — Decisão 7 (decisao metodologica V1 fechada)",
+        "source": "Revisão das perguntas (HOLOS-V1-DECISOES-2026-10-13, 2026-10-13)",
         "conflict": false,
-        "conflict_note": null,
-        "legacy": {
-          "legacy_recovered_weight": 3,
-          "legacy_role": "primaria",
-          "legacy_source": "motor/bancos/emocoes.csv:12",
-          "legacy_conflict_note": null,
-          "pacote": "HOLOS-V1@1"
-        }
-      },
-      {
-        "question_stable_id": "EMO-402",
-        "destination_type": "system",
-        "destination_id": "detox_linfatico",
-        "weight": 1,
-        "role": "primaria",
-        "status": "aprovado",
-        "source": "Etapa 4.2 — Decisão 7 (decisao metodologica V1 fechada)",
-        "conflict": false,
-        "conflict_note": null,
-        "legacy": {
-          "legacy_recovered_weight": 3,
-          "legacy_role": "primaria",
-          "legacy_source": "motor/bancos/emocoes.csv:13",
-          "legacy_conflict_note": null,
-          "pacote": "HOLOS-V1@1"
-        }
+        "conflict_note": "sistema mudado na revisao (detox_linfatico -> mental_emocional_espiritual): Ruminação emocional.",
+        "legacy": null
       },
       {
         "question_stable_id": "EMO-402",
         "destination_type": "system",
         "destination_id": "mental_emocional_espiritual",
-        "weight": null,
-        "role": "secondary_contextual",
+        "weight": 1,
+        "role": "primaria",
         "status": "aprovado",
-        "source": "Etapa 4.2 — Decisão 4 (decisao metodologica V1 fechada)",
+        "source": "Revisão das perguntas (HOLOS-V1-DECISOES-2026-10-13, 2026-10-13)",
         "conflict": false,
-        "conflict_note": null,
-        "legacy": {
-          "legacy_recovered_weight": 3,
-          "legacy_role": "secundaria",
-          "legacy_source": "motor/bancos/emocoes.csv:13 × config.csv peso_secundario_fator=1",
-          "legacy_conflict_note": "peso secundario derivado de peso_secundario_fator (\"decidido 27/08\", sem homologacao)",
-          "pacote": "HOLOS-V1@1"
-        }
+        "conflict_note": "sistema mudado na revisao (detox_linfatico -> mental_emocional_espiritual): Expressão e regulação emocional.",
+        "legacy": null
       },
       {
         "question_stable_id": "EMO-403",
         "destination_type": "system",
-        "destination_id": "detox_linfatico",
+        "destination_id": "mental_emocional_espiritual",
         "weight": 1,
         "role": "primaria",
         "status": "aprovado",
-        "source": "Etapa 4.2 — Decisão 7 (decisao metodologica V1 fechada)",
+        "source": "Revisão das perguntas (HOLOS-V1-DECISOES-2026-10-13, 2026-10-13)",
         "conflict": false,
-        "conflict_note": null,
-        "legacy": {
-          "legacy_recovered_weight": 2,
-          "legacy_role": "primaria",
-          "legacy_source": "motor/bancos/emocoes.csv:14",
-          "legacy_conflict_note": null,
-          "pacote": "HOLOS-V1@1"
-        }
+        "conflict_note": "sistema mudado na revisao (detox_linfatico -> mental_emocional_espiritual): Apoio, vínculo e capacidade de receber cuidado.",
+        "legacy": null
       },
       {
         "question_stable_id": "EMO-501",
@@ -3323,6 +3100,24 @@
           "legacy_recovered_weight": 3,
           "legacy_role": "primaria",
           "legacy_source": "motor/bancos/espiritual.csv:2",
+          "legacy_conflict_note": null,
+          "pacote": "HOLOS-V1@1"
+        }
+      },
+      {
+        "question_stable_id": "ESP-102",
+        "destination_type": "system",
+        "destination_id": "mental_emocional_espiritual",
+        "weight": 1,
+        "role": "primaria",
+        "status": "aprovado",
+        "source": "Etapa 4.2 — Decisão 7 (decisao metodologica V1 fechada)",
+        "conflict": false,
+        "conflict_note": null,
+        "legacy": {
+          "legacy_recovered_weight": 2,
+          "legacy_role": "primaria",
+          "legacy_source": "motor/bancos/espiritual.csv:3",
           "legacy_conflict_note": null,
           "pacote": "HOLOS-V1@1"
         }
@@ -3510,13 +3305,13 @@
       {
         "question_stable_id": "ESP-404",
         "destination_type": "system",
-        "destination_id": "mental_emocional_espiritual",
+        "destination_id": "acido_inflamatorio",
         "weight": 1,
         "role": "primaria",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
+        "source": "Etapa 4.2 — Decisão 7 (decisao metodologica V1 fechada)",
         "conflict": false,
-        "conflict_note": "sistema mudado na revisao: negada na revisão por estar no Sistema Ácido Inflamatório; decisão de 12/10: a pergunta fica, no Sistema Mental Emocional Espiritual",
+        "conflict_note": null,
         "legacy": {
           "legacy_recovered_weight": 2,
           "legacy_role": "primaria",
@@ -3670,16 +3465,22 @@
         }
       },
       {
-        "question_stable_id": "SNT-112",
+        "question_stable_id": "SNT-106",
         "destination_type": "triad",
         "destination_id": "fisico",
         "weight": 1,
         "role": "triade_por_bloco",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
+        "source": "Etapa 4.2 — Decisão 11 (decisao metodologica V1 fechada)",
         "conflict": false,
         "conflict_note": null,
-        "legacy": null
+        "legacy": {
+          "legacy_recovered_weight": 2,
+          "legacy_role": "derivada",
+          "legacy_source": "motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",
+          "legacy_conflict_note": "vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)",
+          "pacote": "HOLOS-V1@1"
+        }
       },
       {
         "question_stable_id": "SNT-107",
@@ -3916,7 +3717,7 @@
         }
       },
       {
-        "question_stable_id": "SNT-210",
+        "question_stable_id": "SNT-209",
         "destination_type": "triad",
         "destination_id": "fisico",
         "weight": 1,
@@ -3926,7 +3727,7 @@
         "conflict": false,
         "conflict_note": null,
         "legacy": {
-          "legacy_recovered_weight": 3,
+          "legacy_recovered_weight": 2,
           "legacy_role": "derivada",
           "legacy_source": "motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",
           "legacy_conflict_note": "vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)",
@@ -4053,24 +3854,6 @@
         "conflict_note": null,
         "legacy": {
           "legacy_recovered_weight": 2,
-          "legacy_role": "derivada",
-          "legacy_source": "motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",
-          "legacy_conflict_note": "vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)",
-          "pacote": "HOLOS-V1@1"
-        }
-      },
-      {
-        "question_stable_id": "SNT-309",
-        "destination_type": "triad",
-        "destination_id": "fisico",
-        "weight": 1,
-        "role": "triade_por_bloco",
-        "status": "aprovado",
-        "source": "Etapa 4.2 — Decisão 11 (decisao metodologica V1 fechada)",
-        "conflict": false,
-        "conflict_note": null,
-        "legacy": {
-          "legacy_recovered_weight": 3,
           "legacy_role": "derivada",
           "legacy_source": "motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",
           "legacy_conflict_note": "vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)",
@@ -4258,16 +4041,22 @@
         }
       },
       {
-        "question_stable_id": "SNT-411",
+        "question_stable_id": "SNT-410",
         "destination_type": "triad",
         "destination_id": "fisico",
         "weight": 1,
         "role": "triade_por_bloco",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
+        "source": "Etapa 4.2 — Decisão 11 (decisao metodologica V1 fechada)",
         "conflict": false,
         "conflict_note": null,
-        "legacy": null
+        "legacy": {
+          "legacy_recovered_weight": 1,
+          "legacy_role": "derivada",
+          "legacy_source": "motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",
+          "legacy_conflict_note": "vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)",
+          "pacote": "HOLOS-V1@1"
+        }
       },
       {
         "question_stable_id": "SNT-502",
@@ -4360,16 +4149,22 @@
         }
       },
       {
-        "question_stable_id": "SNT-511",
+        "question_stable_id": "SNT-507",
         "destination_type": "triad",
         "destination_id": "fisico",
         "weight": 1,
         "role": "triade_por_bloco",
         "status": "aprovado",
-        "source": "Revisão das perguntas (HOLOS-V1-REVISAO-PERGUNTAS-2026-10, 2026-10-12)",
+        "source": "Etapa 4.2 — Decisão 11 (decisao metodologica V1 fechada)",
         "conflict": false,
         "conflict_note": null,
-        "legacy": null
+        "legacy": {
+          "legacy_recovered_weight": 3,
+          "legacy_role": "derivada",
+          "legacy_source": "motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",
+          "legacy_conflict_note": "vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)",
+          "pacote": "HOLOS-V1@1"
+        }
       },
       {
         "question_stable_id": "SNT-508",
@@ -4779,6 +4574,24 @@
         "conflict_note": null,
         "legacy": {
           "legacy_recovered_weight": 3,
+          "legacy_role": "derivada",
+          "legacy_source": "motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",
+          "legacy_conflict_note": "vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)",
+          "pacote": "HOLOS-V1@1"
+        }
+      },
+      {
+        "question_stable_id": "ESP-102",
+        "destination_type": "triad",
+        "destination_id": "espiritual",
+        "weight": 1,
+        "role": "triade_por_bloco",
+        "status": "aprovado",
+        "source": "Etapa 4.2 — Decisão 11 (decisao metodologica V1 fechada)",
+        "conflict": false,
+        "conflict_note": null,
+        "legacy": {
+          "legacy_recovered_weight": 2,
           "legacy_role": "derivada",
           "legacy_source": "motor/src/motor.ts EIXO_POR_ORIGEM (origem do bloco; peso da primeira linha primaria)",
           "legacy_conflict_note": "vinculo com a Triada implementado por derivacao da origem, nao por tabela aprovada (Mestre §17)",
@@ -5525,7 +5338,7 @@
             "mental_emocional": "mental",
             "espiritual": "espiritual"
           },
-          "itens": 48,
+          "itens": 47,
           "peso": 1,
           "nota_global": false,
           "faixas": false,
@@ -5573,7 +5386,7 @@
             "mental_emocional": "mental",
             "espiritual": "espiritual"
           },
-          "itens": 15,
+          "itens": 16,
           "peso": 1,
           "nota_global": false,
           "faixas": false,
@@ -5640,7 +5453,7 @@
               "SNT-103": 0,
               "SNT-104": 0,
               "SNT-105": 0,
-              "SNT-112": 0,
+              "SNT-106": 0,
               "SNT-107": 0,
               "SNT-108": 0,
               "SNT-109": 0,
@@ -5654,7 +5467,7 @@
               "SNT-206": 0,
               "SNT-207": 0,
               "SNT-208": 0,
-              "SNT-210": 0,
+              "SNT-209": 0,
               "SNT-301": 0,
               "SNT-303": 0,
               "SNT-304": 0,
@@ -5662,7 +5475,6 @@
               "SNT-306": 0,
               "SNT-307": 0,
               "SNT-308": 0,
-              "SNT-309": 0,
               "SNT-401": 0,
               "SNT-402": 0,
               "SNT-403": 0,
@@ -5672,14 +5484,14 @@
               "SNT-407": 0,
               "SNT-408": 0,
               "SNT-409": 0,
-              "SNT-411": 0,
+              "SNT-410": 0,
               "SNT-501": 0,
               "SNT-502": 0,
               "SNT-503": 0,
               "SNT-504": 0,
               "SNT-505": 0,
               "SNT-506": 0,
-              "SNT-511": 0,
+              "SNT-507": 3,
               "SNT-508": 0,
               "SNT-509": 0,
               "SNT-510": 0,
@@ -5703,6 +5515,7 @@
               "EMO-505": 0,
               "EMO-507": 3,
               "ESP-101": 3,
+              "ESP-102": 3,
               "ESP-103": 0,
               "ESP-201": 3,
               "ESP-202": 3,
@@ -5767,7 +5580,7 @@
               "SNT-103": 3,
               "SNT-104": 3,
               "SNT-105": 3,
-              "SNT-112": 3,
+              "SNT-106": 3,
               "SNT-107": 3,
               "SNT-108": 3,
               "SNT-109": 3,
@@ -5781,7 +5594,7 @@
               "SNT-206": 3,
               "SNT-207": 3,
               "SNT-208": 3,
-              "SNT-210": 3,
+              "SNT-209": 3,
               "SNT-301": 3,
               "SNT-303": 3,
               "SNT-304": 3,
@@ -5789,7 +5602,6 @@
               "SNT-306": 3,
               "SNT-307": 3,
               "SNT-308": 3,
-              "SNT-309": 3,
               "SNT-401": 3,
               "SNT-402": 3,
               "SNT-403": 3,
@@ -5799,14 +5611,14 @@
               "SNT-407": 3,
               "SNT-408": 3,
               "SNT-409": 3,
-              "SNT-411": 3,
+              "SNT-410": 3,
               "SNT-501": 3,
               "SNT-502": 3,
               "SNT-503": 3,
               "SNT-504": 3,
               "SNT-505": 3,
               "SNT-506": 3,
-              "SNT-511": 3,
+              "SNT-507": 0,
               "SNT-508": 3,
               "SNT-509": 3,
               "SNT-510": 3,
@@ -5830,6 +5642,7 @@
               "EMO-505": 3,
               "EMO-507": 0,
               "ESP-101": 0,
+              "ESP-102": 0,
               "ESP-103": 3,
               "ESP-201": 0,
               "ESP-202": 0,
@@ -5894,7 +5707,7 @@
               "SNT-103": 1,
               "SNT-104": 1,
               "SNT-105": 1,
-              "SNT-112": 1,
+              "SNT-106": 1,
               "SNT-107": 1,
               "SNT-108": 1,
               "SNT-109": 1,
@@ -5908,7 +5721,7 @@
               "SNT-206": 1,
               "SNT-207": 1,
               "SNT-208": 1,
-              "SNT-210": 1,
+              "SNT-209": 1,
               "SNT-301": 1,
               "SNT-303": 1,
               "SNT-304": 1,
@@ -5916,7 +5729,6 @@
               "SNT-306": 1,
               "SNT-307": 1,
               "SNT-308": 1,
-              "SNT-309": 1,
               "SNT-401": 1,
               "SNT-402": 1,
               "SNT-403": 1,
@@ -5926,14 +5738,14 @@
               "SNT-407": 1,
               "SNT-408": 1,
               "SNT-409": 1,
-              "SNT-411": 1,
+              "SNT-410": 1,
               "SNT-501": 1,
               "SNT-502": 1,
               "SNT-503": 1,
               "SNT-504": 1,
               "SNT-505": 1,
               "SNT-506": 1,
-              "SNT-511": 1,
+              "SNT-507": 2,
               "SNT-508": 1,
               "SNT-509": 1,
               "SNT-510": 1,
@@ -5957,6 +5769,7 @@
               "EMO-505": 1,
               "EMO-507": 2,
               "ESP-101": 2,
+              "ESP-102": 2,
               "ESP-103": 1,
               "ESP-201": 2,
               "ESP-202": 2,
@@ -6015,8 +5828,8 @@
       "parent_version": 2,
       "parent_status": "aprovado",
       "parent_content_hash": "3593d782f1cd3a35b05ecae36836ab71746064cc99960853705dd3e2ac3f24c4",
-      "revisao": "HOLOS-V1-REVISAO-PERGUNTAS-2026-10",
-      "decididas_em": "2026-10-12"
+      "revisao": "HOLOS-V1-DECISOES-2026-10-13",
+      "decididas_em": "2026-10-13"
     }
   }
 }

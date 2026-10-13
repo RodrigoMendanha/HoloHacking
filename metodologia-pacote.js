@@ -386,7 +386,7 @@
     var falhas = [];
     var ids = base.perguntas.map(function (q) { return q.stable_id; });
     var tem = function (id) { return ids.indexOf(id) >= 0; };
-    var textos = R.textos || {}, trocar = R.trocar || {}, remover = R.remover || {}, mover = R.mover || {};
+    var textos = R.textos || {}, trocar = R.trocar || {}, remover = R.remover || {}, mover = R.mover || {}, semCtx = R.remover_contextuais || {};
     var tocados = {};
     [textos, trocar, remover, mover].forEach(function (m) { Object.keys(m).forEach(function (id) {
       if (!tem(id)) falhas.push(id + " nao existe no pacote base");
@@ -400,6 +400,19 @@
       if (prim.length !== 1 || prim[0].destination_id !== mover[id].de) falhas.push(id + ": primario atual nao e " + mover[id].de);
       if ((base.sistemas || []).every(function (s) { return s.code !== mover[id].para; })) falhas.push(id + ": sistema " + mover[id].para + " nao existe");
     });
+    /* contextuais que saem (13/10): cada uma tem de existir; e nenhuma pergunta movida pode ficar com contextual
+       igual ao primario novo (redundancia) sem estar listada */
+    Object.keys(semCtx).forEach(function (id) {
+      if (!tem(id)) { falhas.push(id + " nao existe no pacote base"); return; }
+      semCtx[id].forEach(function (sis) {
+        var existe = (base.associacoes || []).some(function (a) { return a.question_stable_id === id && a.destination_type === "system" && a.role === "secondary_contextual" && a.destination_id === sis; });
+        if (!existe) falhas.push(id + ": contextual " + sis + " nao existe para remover");
+      });
+    });
+    Object.keys(mover).forEach(function (id) {
+      var dup = (base.associacoes || []).some(function (a) { return a.question_stable_id === id && a.destination_type === "system" && a.role === "secondary_contextual" && a.destination_id === mover[id].para; });
+      if (dup && (semCtx[id] || []).indexOf(mover[id].para) < 0) falhas.push(id + ": contextual igual ao sistema novo (" + mover[id].para + ") — liste em remover_contextuais");
+    });
     if (falhas.length) throw new Error("revisao nao bate com o pacote base: " + falhas.join("; "));
 
     var A = "aprovado", fonte = "Revisão das perguntas (" + R.id + ", " + R.decidido_em + ")";
@@ -408,7 +421,8 @@
       origin: "nova versao: revisao das perguntas aplicada sobre " + base.code + " v" + base.version,
       justification: "REVISAO DAS PERGUNTAS (" + R.id + ", " + R.decidido_em + "): " + R.revisao_publica,
       notes: "Copia do " + base.code + " v" + base.version + " com " + Object.keys(textos).length + " textos revisados, " + Object.keys(trocar).length + " perguntas trocadas (ID novo), " +
-        Object.keys(remover).length + " removidas e " + Object.keys(mover).length + " com sistema novo. Pesos, escalas, faixas, Indice e Triade sem mudanca. Aprovacao formal so pela RPC aprovar_pacote_metodologico.",
+        Object.keys(remover).length + " removidas e " + Object.keys(mover).length + " com sistema novo" + (Object.keys(semCtx).length ? " (" + Object.keys(semCtx).reduce(function (n, k) { return n + semCtx[k].length; }, 0) + " associacoes contextuais retiradas)" : "") + ". Pesos, escalas, faixas, Indice e Triade sem mudanca." +
+        (R.regra_metodologica && R.regra_metodologica.length ? " Regra metodologica: " + R.regra_metodologica.join(" ") : ""),
       lineage: { parent_code: base.code, parent_version: base.version, parent_status: base.status, parent_content_hash: base.content_hash || hashConteudo(base), revisao: R.id, decididas_em: R.decidido_em }
     });
     p.escalas = copiaSemIds(base.escalas);
@@ -443,10 +457,11 @@
     (base.associacoes || []).forEach(function (a) {
       var id = a.question_stable_id;
       if (remover[id]) return;
+      if (a.destination_type === "system" && a.role === "secondary_contextual" && (semCtx[id] || []).indexOf(a.destination_id) >= 0) return;
       var c = copiaSemIds(a);
       if (novoId[id]) { c.question_stable_id = novoId[id]; c.source = fonte; c.legacy = null; }
       if (mover[id] && a.destination_type === "system" && a.role === "primaria") {
-        c.destination_id = mover[id].para; c.source = fonte; c.conflict_note = "sistema mudado na revisao: " + mover[id].motivo;
+        c.destination_id = mover[id].para; c.source = fonte; c.conflict_note = "sistema mudado na revisao (" + mover[id].de + " -> " + mover[id].para + "): " + mover[id].motivo; c.legacy = null;
       }
       p.associacoes.push(c);
     });
@@ -638,9 +653,16 @@
         var base = doCodigo.filter(function (x) { return x.version === R.base.version && (x.status === "aprovado" || x.status === "retirado"); })[0];
         if (!base || base.nutritionist_id !== u.id) return;          // so o responsavel metodologico publica
         if (nova && nova.nutritionist_id !== u.id) return;
+        var montada = aplicarRevisao(base, R);
+        /* 13/10: uma versao em revisao ja gravada so vai ao ar se for EXATAMENTE esta revisao (mesma revisao e mesmo
+           hash); um rascunho de outra revisao (ex.: o de 12/10, gravado por um front antigo) nunca e publicado */
+        if (nova && (!nova.lineage || nova.lineage.revisao !== R.id || nova.content_hash !== montada.content_hash)) {
+          console.error("[pacote] publicacao direta: " + R.base.code + " v" + R.versao_nova + " em revisao no banco nao e a revisao " + R.id + " — nada publicado");
+          return;
+        }
         return papel.then(function (pode) {
           if (!pode) return;
-          var gravar = nova ? Promise.resolve(nova.id) : salvarRascunho(aplicarRevisao(base, R));
+          var gravar = nova ? Promise.resolve(nova.id) : salvarRascunho(montada);
           return gravar.then(publicar).then(function (d) { feitas.push(d); });
         });
       });

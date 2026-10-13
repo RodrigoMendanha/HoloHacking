@@ -1,14 +1,15 @@
--- Harness HOLOS-V1 v3 (revisao das perguntas, 12/10): roda DENTRO da transacao do scripts/validar-cadeia-local.sh
+-- Harness HOLOS-V1 v3 (decisoes metodologicas de 13/10: SNT-210/309 removidas, 13 EMO no MEE): roda DENTRO da transacao do scripts/validar-cadeia-local.sh
 -- (BEGIN ... ROLLBACK), depois de supabase/tests/pacote-v3-doc.sql (o v3 gerado por scripts/pacote-v3.mjs em _pacote_v3).
 -- Prova, com as regras REAIS do banco (RLS, gatilhos de imutabilidade, validador SQL, RPCs de aprovacao e de gravacao):
 --   PV01 a dona do pacote grava o v3 em_revisao (82 perguntas) pela API, como a tela de Homologacao faz
 --   PV02 validador SQL sem erros; hash do servidor calculado
 --   PV03 Aprovacao (Daniel) + aprovar: v3 aprovado e vigente; o v2 continua intacto (hash)
---   PV04 HOLOSCAN novo no v3: aceito; Acido Inflamatorio sobre 14, Mental sobre 24; Proximos Passos registrados
---   PV05 resposta para pergunta que saiu (SNT-209) e recusada no v3
+--   PV04 HOLOSCAN novo no v3: aceito; denominadores 12/11/10/12/37; Proximos Passos registrados
+--   PV05 resposta para pergunta que saiu (SNT-210, SNT-309) e recusada no v3
 --   PV06 v2 retirado pela dona: HOLOSCAN novo no v2 recusado
 --   PV07 v3 aprovado e imutavel (texto nao muda sem versao nova)
 --   PV08 aplicacoes antigas do v2, de todas as contas, identicas
+--   PV09 MR-V1 (resultado_holos_dominantes) na aplicacao v3: nenhuma EMO nem SNT-210/309 nos sistemas fisicos
 -- Nada persiste.
 reset role;
 select set_config('request.jwt.claims', '{}', true);
@@ -35,9 +36,16 @@ begin
   select count(*) into n from public.methodology_questions where package_id = v3;
   insert into _logpv (passo) select 'PV01 ' || case when (select status from public.methodology_packages where id = v3) = 'em_revisao' and n = 82
       and (select count(*) from public.methodology_associations where package_id = v3 and destination_type = 'system' and role = 'primaria') = 82
-      and exists (select 1 from public.methodology_associations where package_id = v3 and question_stable_id = 'ESP-404' and role = 'primaria' and destination_id = 'mental_emocional_espiritual')
-      and not exists (select 1 from public.methodology_questions where package_id = v3 and stable_id in ('SNT-209', 'ESP-102', 'SNT-106', 'SNT-410', 'SNT-507'))
-    then 'ok' else 'FALHOU (' || n || ')' end || ': a dona grava o v3 em_revisao pela API (82 perguntas, ESP-404 no Mental, removidas e trocadas fora)';
+      and (select count(*) from public.methodology_associations where package_id = v3 and role = 'primaria' and destination_id = 'mental_emocional_espiritual' and weight = 1
+             and question_stable_id in ('EMO-101','EMO-102','EMO-103','EMO-201','EMO-202','EMO-203','EMO-204','EMO-301','EMO-302','EMO-303','EMO-401','EMO-402','EMO-403')) = 13
+      and not exists (select 1 from public.methodology_associations where package_id = v3 and destination_type = 'system'
+             and question_stable_id in ('EMO-101','EMO-102','EMO-103','EMO-201','EMO-202','EMO-203','EMO-204','EMO-301','EMO-302','EMO-303','EMO-401','EMO-402','EMO-403')
+             and destination_id in ('fungico', 'acido_inflamatorio', 'metabolico', 'detox_linfatico'))
+      and not exists (select 1 from public.methodology_associations where package_id = v3 and destination_type = 'system' and role = 'primaria' and question_stable_id like 'EMO-%'
+             and destination_id in ('fungico', 'acido_inflamatorio', 'metabolico', 'detox_linfatico'))
+      and not exists (select 1 from public.methodology_questions where package_id = v3 and stable_id in ('SNT-210', 'SNT-309'))
+      and not exists (select 1 from public.methodology_associations where package_id = v3 and question_stable_id in ('SNT-210', 'SNT-309'))
+    then 'ok' else 'FALHOU (' || n || ')' end || ': a dona grava o v3 em_revisao pela API (82 perguntas; 13 EMO no MEE com peso 1, sem vinculo com sistema fisico; nenhuma EMO pontua sistema fisico; SNT-210/309 fora)';
 end $$;
 
 do $$
@@ -67,26 +75,28 @@ begin
   insert into public.encounters (nutritionist_id, patient_id, occurred_at) values (auth.uid(), p, now()) returning id into e;
   insert into _pv values ('p', p::text), ('e', e::text);
   h := public.salvar_holoscan_completo(pg_temp.ho_payload(v3, p, e, current_date));
+  insert into _pv values ('h3', h::text);
   reg := public.registrar_proximos_passos(h);
-  select (select total_marcadores from public.holoscan_system_scores where application_id = h and sistema = 'acido_inflamatorio') = 14
-     and (select total_marcadores from public.holoscan_system_scores where application_id = h and sistema = 'mental_emocional_espiritual') = 24
+  select (select string_agg(sistema || ':' || total_marcadores, ',' order by sistema) from public.holoscan_system_scores where application_id = h)
+       = 'acido_inflamatorio:11,detox_linfatico:12,fungico:12,mental_emocional_espiritual:37,metabolico:10'
      and (select count(*) from public.holoscan_answers where application_id = h) = 82 into ok_n;
   insert into _logpv (passo) select 'PV04 ' || case when h is not null and ok_n and (select methodology_package_id from public.holoscan_applications where id = h) = v3
       and jsonb_array_length(reg->'selection') between 1 and 3
-    then 'ok' else 'FALHOU' end || ': HOLOSCAN novo no v3 aceito (82 respostas; Acido Inflamatorio sobre 14, Mental sobre 24); Proximos Passos registrados';
+    then 'ok' else 'FALHOU' end || ': HOLOSCAN novo no v3 aceito (82 respostas; Fungico 12, Acido Inflamatorio 11, Metabolico 10, Detox 12, MEE 37); Proximos Passos registrados';
 end $$;
 
 do $$
-declare v3 uuid := (select v::uuid from _pv where k = 'v3'); r text;
+declare v3 uuid := (select v::uuid from _pv where k = 'v3'); r text; r2 text;
 begin
-  r := pg_temp.ho_tenta(jsonb_set(pg_temp.ho_payload(v3, (select v::uuid from _pv where k = 'p'), (select v::uuid from _pv where k = 'e'), current_date), '{answers,0,marcador_id}', '"SNT-209"'));
-  insert into _logpv (passo) select 'PV05 ' || case when r = 'resposta_invalida' then 'ok' else 'FALHOU: ' || r end || ': resposta para pergunta que saiu (SNT-209) recusada no v3';
+  r := pg_temp.ho_tenta(jsonb_set(pg_temp.ho_payload(v3, (select v::uuid from _pv where k = 'p'), (select v::uuid from _pv where k = 'e'), current_date), '{answers,0,marcador_id}', '"SNT-210"'));
+  r2 := pg_temp.ho_tenta(jsonb_set(pg_temp.ho_payload(v3, (select v::uuid from _pv where k = 'p'), (select v::uuid from _pv where k = 'e'), current_date), '{answers,0,marcador_id}', '"SNT-309"'));
+  insert into _logpv (passo) select 'PV05 ' || case when r = 'resposta_invalida' and r2 = 'resposta_invalida' then 'ok' else 'FALHOU: ' || r || ' / ' || r2 end || ': resposta para pergunta que saiu (SNT-210, SNT-309) recusada no v3';
 end $$;
 
 do $$
 declare v2 uuid := (select v::uuid from _pv where k = 'v2'); r text;
 begin
-  perform public.retirar_pacote_metodologico(v2, 'substituido pelo HOLOS-V1 v3 (revisao das perguntas)', 'Daniel');
+  perform public.retirar_pacote_metodologico(v2, 'substituido pelo HOLOS-V1 v3 (decisoes de 13/10)', 'Daniel');
   r := pg_temp.ho_tenta(pg_temp.ho_payload(v2, (select v::uuid from _pv where k = 'p'), (select v::uuid from _pv where k = 'e'), current_date));
   insert into _logpv (passo) select 'PV06 ' || case when (select status from public.methodology_packages where id = v2) = 'retirado' and r not like 'ACEITO:%'
     then 'ok' else 'FALHOU: ' || r end || ': v2 retirado pela dona; HOLOSCAN novo no v2 recusado (' || r || ')';
@@ -108,4 +118,16 @@ reset role;
 insert into _logpv (passo) select 'PV08 ' || case when (select coalesce(md5(string_agg(a.id::text || a.methodology_content_hash || coalesce(a.indice::text, ''), ',' order by a.id)), '')
     from public.holoscan_applications a where a.methodology_package_id = (select v::uuid from _pv where k = 'v2')) = (select v from _pv where k = 'apps_v2')
   then 'ok' else 'FALHOU' end || ': aplicacoes antigas do v2 (todas as contas) identicas depois do v3 e da retirada';
+-- MR-V1 na aplicacao v3 (funcao interna, chamada como dono): todas as respostas = 1; nenhuma EMO nos fisicos (as ESP do Lote 2 seguem como no v2);
+-- no MEE as invertidas (contribuicao 2) vem primeiro, empate pelo ID
+insert into _logpv (passo) select 'PV09 ' || case when
+    not exists (select 1 from (values ('fungico'), ('acido_inflamatorio'), ('metabolico'), ('detox_linfatico')) s(sis),
+                jsonb_array_elements(public.resultado_holos_dominantes((select v::uuid from _pv where k = 'h3'), (select v::uuid from _pv where k = 'v3'), s.sis)) d
+                where d->>'question_id' like 'EMO-%' or d->>'question_id' in ('SNT-210', 'SNT-309'))
+    and (select count(*) from (values ('fungico'), ('acido_inflamatorio'), ('metabolico'), ('detox_linfatico')) s(sis)
+         where jsonb_array_length(public.resultado_holos_dominantes((select v::uuid from _pv where k = 'h3'), (select v::uuid from _pv where k = 'v3'), s.sis)) = 3) = 4
+    and (select string_agg(d->>'question_id', ',') from jsonb_array_elements(public.resultado_holos_dominantes((select v::uuid from _pv where k = 'h3'), (select v::uuid from _pv where k = 'v3'), 'mental_emocional_espiritual')) d)
+        = 'EMO-507,ESP-102,ESP-201'
+  then 'ok' else 'FALHOU [' || (select string_agg(s.sis || '=' || public.resultado_holos_dominantes((select v::uuid from _pv where k = 'h3'), (select v::uuid from _pv where k = 'v3'), s.sis)::text, ' ')
+    from (values ('fungico'), ('acido_inflamatorio'), ('metabolico'), ('detox_linfatico'), ('mental_emocional_espiritual')) s(sis)) || ']' end || ': MR-V1 na aplicacao v3: dominantes dos sistemas fisicos sem EMO e sem SNT-210/309; MEE pela regra (contribuicao, depois ID)';
 select passo from _logpv order by n;

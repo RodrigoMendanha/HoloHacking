@@ -623,7 +623,7 @@
       '<button type="button" class="btn-verde" data-ir="holoscan">' +
         (d.pontuacao ? "Reaplicação integral" : "Iniciar HOLOSCAN") +
       "</button>" +
-      (d.pontuacao ? '<span class="fic-topo-nota">Cada reaplicação refaz todas as 84 perguntas para gerar um novo Mapa HOLOS comparável.</span>' : "") +
+      (d.pontuacao ? '<span class="fic-topo-nota">Cada reaplicação refaz todas as perguntas da versão vigente do HOLOSCAN para gerar um novo Mapa HOLOS.</span>' : "") +
       "</div>";
 
     if (!d.historico.length) {
@@ -823,7 +823,7 @@
       {
         id: "holoscan",
         nome: "HOLOSCAN &mdash; questionário integral",
-        sub: "84 perguntas em três blocos: raízes físicas, padrões emocionais e " +
+        sub: "Perguntas em três blocos (versão vigente do pacote): raízes físicas, padrões emocionais e " +
              "Terreno Espiritual. É dele que sai o Índice e os cinco sistemas.",
         /* teste real 07/10: depois de salvo, o rascunho do questionario e
            esvaziado (reaplicar comeca vazio) — o estado lia "nao iniciado"

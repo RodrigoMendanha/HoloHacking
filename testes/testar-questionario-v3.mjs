@@ -1,11 +1,14 @@
 /**
- * HOLOS-V1 v3 PELA TELA (revisao das perguntas 12/10), servidor falso com os contratos das migrations:
- *   PUBLICACAO   (12/10, sem homologacao) o responsavel metodologico entra e o v3 do codigo e gravado e publicado
- *                sozinho (validador + hash do servidor), o v2 sai do ar; outra conta nao publica; a tela so consulta
- *   QUESTIONARIO a tela mostra as perguntas do pacote vigente: 82 (48/19/15), textos novos, IDs trocados, removidas fora;
+ * HOLOS-V1 v3 PELA TELA (decisoes de 13/10: SNT-210/SNT-309 removidas, 13 EMO no Sistema Mental Emocional Espiritual),
+ * servidor falso com os contratos das migrations:
+ *   PUBLICACAO   o responsavel metodologico entra e o v3 do codigo e gravado e publicado sozinho (validador + hash do
+ *                servidor), o v2 sai do ar; outra conta nao publica; a tela so consulta
+ *   QUESTIONARIO a tela mostra as perguntas do pacote vigente: 82 (47/19/16), mesmos textos do v2, SNT-210/309 fora;
  *                o botao diz "82 perguntas"
- *   SALVAR       aplicacao nova no v3 (82 respostas; Acido Inflamatorio sobre 14, Mental sobre 24)
- *   ANTIGO       a aplicacao feita no v2 continua no v2, intacta
+ *   SALVAR       aplicacao nova no v3 (82 respostas; Fungico 12, Acido Inflamatorio 11, Metabolico 10, Detox 12, MEE 37)
+ *   MR-V1        (teste 24) o Resultado HOLOS de uma aplicacao v3 mostra as EMO movidas nos sinais dominantes do MEE e
+ *                nenhuma EMO nem SNT-210/309 nos sistemas fisicos
+ *   ANTIGO       (testes 22 e 25) a aplicacao, o Resultado HOLOS e a emissao RF (PDF) feitos no v2 continuam identicos
  */
 import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
@@ -27,8 +30,17 @@ const ins = (tabela, dados) => { const r = q(tabela, 'insert', { dados }); if (r
 const PV = ins('patients', { nome: 'Paciente V2 Ficticia' }).id;
 const EV = ins('encounters', { patient_id: PV, occurred_at: new Date(Date.now() - 86400000 * 5).toISOString(), timezone: 'America/Sao_Paulo', type: 'consulta', modality: 'presencial' }).id;
 const HV = rpc('salvar_holoscan_completo', { payload: payloadOficial(srv, v2.id, { patient_id: PV, encounter_id: EV, quando: new Date(Date.now() - 86400000 * 5).toISOString().slice(0, 10) }) }).data;
-const digitalV2 = JSON.stringify([srv.linhas('holoscan_applications').find(a => a.id === HV), srv.linhas('holoscan_answers').filter(a => a.application_id === HV).length,
-  srv.linhas('methodology_questions').filter(x => x.package_id === v2.id).map(x => x.stable_id + x.statement).join('|')]);
+/* ... com Resultado HOLOS salvo e Resultado Final emitido (RF) no v2 */
+const RV = rpc('salvar_resultado_holos', { payload: { patient_id: PV, encounter_id: EV, holoscan_application_id: HV, tool_application_ids: [], operation_id: 'op-v2-ficticia' } });
+if (RV.error) throw new Error('salvar_resultado_holos v2: ' + RV.error.message);
+const EMV = rpc('emitir_resultado_final', { payload: { holos_result_id: RV.data, operation_id: 'em-v2-ficticia' } });
+if (EMV.error) throw new Error('emitir_resultado_final v2: ' + EMV.error.message);
+const digitalV2 = JSON.stringify([srv.linhas('holoscan_applications').find(a => a.id === HV), srv.linhas('holoscan_answers').filter(a => a.application_id === HV),
+  srv.linhas('holoscan_system_scores').filter(x => x.application_id === HV),
+  srv.linhas('methodology_questions').filter(x => x.package_id === v2.id).map(x => x.stable_id + x.statement).join('|'),
+  srv.linhas('methodology_associations').filter(x => x.package_id === v2.id).map(x => x.question_stable_id + '>' + x.destination_id + ':' + x.role + ':' + x.weight).join('|')]);
+const digitalResultadoV2 = JSON.stringify([srv.linhas('holos_results').find(r => r.id === RV.data), srv.linhas('holos_result_emissions').find(e => e.id === EMV.data.id)]);
+const dominantesV2 = srv.linhas('holos_results').find(r => r.id === RV.data).content_snapshot.holoscan.sistemas;
 
 const nav = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const errosJS = [];
@@ -90,15 +102,13 @@ const tela = await A.evaluate(async (pid) => {
   const itens = [...document.querySelectorAll('.q-item')];
   const texto = (id) => ((document.querySelector('.q-item[data-marcador="' + id + '"] .q-pergunta') || {}).textContent || null);
   return { botao, n: itens.length, porBloco: [...document.querySelectorAll('.q-bloco')].map(b => b.querySelectorAll('.q-item').length).join('/'),
-    snt101: texto('SNT-101'), snt104: texto('SNT-104'), snt112: texto('SNT-112'), snt411: texto('SNT-411'), snt511: texto('SNT-511'),
-    snt209: texto('SNT-209'), esp102: texto('ESP-102'), snt106: texto('SNT-106'), esp404: texto('ESP-404'),
-    botoes411: [...(document.querySelectorAll('.q-item[data-marcador="SNT-411"] .q-btn'))].map(b => b.textContent.replace(/^\d/, '')).join('/') };
+    snt210: texto('SNT-210'), snt309: texto('SNT-309'), emo101: texto('EMO-101'), emo403: texto('EMO-403'), snt101: texto('SNT-101'), snt209: texto('SNT-209'), esp102: texto('ESP-102'), snt106: texto('SNT-106'), snt112: texto('SNT-112') };
 }, PN);
-ok(tela.n === 82 && tela.porBloco === '48/19/15' && /82 perguntas/.test(tela.botao), '82 perguntas na tela (48/19/15) e o botão diz "' + tela.botao.trim() + '"');
-ok(tela.snt101 === 'Você sente uma forte vontade de ingerir doces ou pães quase todo dia?' && /sapinho/.test(tela.snt104), 'textos revisados na tela (SNT-101, SNT-104 com "sapinho")');
-ok(/coceira no corpo/.test(tela.snt112) && /gosto metálico/.test(tela.snt411) && /triste e insatisfeito/.test(tela.snt511), 'perguntas trocadas com ID novo: SNT-112, SNT-411, SNT-511');
-ok(tela.snt209 === null && tela.esp102 === null && tela.snt106 === null && tela.esp404 !== null, 'SNT-209 e ESP-102 não são mais perguntadas; SNT-106 saiu (virou SNT-112); ESP-404 continua');
-ok(tela.botoes411 === 'Nunca/Às vezes/Frequente/Sempre', 'SNT-411 com a escala de frequência: ' + tela.botoes411);
+ok(tela.n === 82 && tela.porBloco === '47/19/16' && /82 perguntas/.test(tela.botao), '82 perguntas na tela (47/19/16) e o botão diz "' + tela.botao.trim() + '"');
+const v2q = (id) => (srv.linhas('methodology_questions').find(x => x.package_id === v2.id && x.stable_id === id) || {}).statement;
+ok(tela.snt210 === null && tela.snt309 === null, 'SNT-210 (PCR/VHS) e SNT-309 (triglicerídeos/HDL) não são mais perguntadas');
+ok(['EMO-101', 'EMO-403', 'SNT-101'].every(id => tela[id.toLowerCase().replace('-', '')] === v2q(id)), 'as perguntas movidas e as demais têm o mesmo texto do v2 (nenhum texto revisado nesta versão)');
+ok(tela.snt209 !== null && tela.esp102 !== null && tela.snt106 !== null && tela.snt112 === null, 'nada do rascunho de 12/10: SNT-209, ESP-102 e SNT-106 continuam; SNT-112 não existe');
 
 titulo('SALVAR NO v3');
 await A.evaluate(async () => {
@@ -109,15 +119,37 @@ await A.evaluate(async () => {
 const appN = srv.linhas('holoscan_applications').find(a => a.patient_id === PN);
 const resp = appN ? srv.linhas('holoscan_answers').filter(a => a.application_id === appN.id) : [];
 const notas = appN ? srv.linhas('holoscan_system_scores').filter(s => s.application_id === appN.id) : [];
-ok(appN && appN.methodology_package_id === v3.id && appN.methodology_package_version === 3 && resp.length === 82 && !resp.some(r => ['SNT-209', 'ESP-102', 'SNT-106', 'SNT-410', 'SNT-507'].includes(r.marcador_id)),
-  'HOLOSCAN novo salvo no v3: 82 respostas, nenhuma de pergunta removida ou trocada');
-ok(notas.find(s => s.sistema === 'acido_inflamatorio')?.total_marcadores === 14 && notas.find(s => s.sistema === 'mental_emocional_espiritual')?.total_marcadores === 24,
-  'notas do v3: Ácido Inflamatório sobre 14 perguntas, Mental Emocional Espiritual sobre 24');
+ok(appN && appN.methodology_package_id === v3.id && appN.methodology_package_version === 3 && resp.length === 82 && !resp.some(r => ['SNT-210', 'SNT-309'].includes(r.marcador_id)),
+  'HOLOSCAN novo salvo no v3: 82 respostas, nenhuma de SNT-210/SNT-309');
+const den = Object.fromEntries(notas.map(s => [s.sistema, s.total_marcadores]));
+ok(den.fungico === 12 && den.acido_inflamatorio === 11 && den.metabolico === 10 && den.detox_linfatico === 12 && den.mental_emocional_espiritual === 37,
+  'notas do v3 com os denominadores novos: Fúngico 12, Ácido Inflamatório 11, Metabólico 10, Detox 12, MEE 37 (' + JSON.stringify(den) + ')');
+
+titulo('MR-V1 NO v3 (teste 24)');
+const MOVIDAS = ['EMO-101', 'EMO-102', 'EMO-103', 'EMO-201', 'EMO-202', 'EMO-203', 'EMO-204', 'EMO-301', 'EMO-302', 'EMO-303', 'EMO-401', 'EMO-402', 'EMO-403'];
+/* as 13 com resposta maxima, o resto zerado: os dominantes do MEE tem de vir delas */
+srv.tabelas.holoscan_answers.filter(r => r.application_id === appN.id).forEach(r => { const q3 = srv.linhas('methodology_questions').find(x => x.package_id === v3.id && x.stable_id === r.marcador_id); r.valor = MOVIDAS.includes(r.marcador_id) ? 3 : (q3.orientation === 'invertida' ? 3 : 0); });
+const RN = rpc('previa_resultado_holos', { payload: { patient_id: PN, encounter_id: appN.encounter_id, holoscan_application_id: appN.id, tool_application_ids: [] } });
+const sis = RN.data ? Object.fromEntries(RN.data.holoscan.sistemas.map(s => [s.sistema, s])) : {};
+const domIds = (s) => (sis[s] ? sis[s].dominantes : []).map(d => d.question_id);
+ok(!RN.error && domIds('mental_emocional_espiritual').join(',') === 'EMO-101,EMO-102,EMO-103',
+  'Resultado HOLOS (MR-V1) de uma aplicação v3: sinais dominantes do MEE são as EMO movidas (empate pelo ID: ' + domIds('mental_emocional_espiritual').join(', ') + ')');
+ok(['fungico', 'acido_inflamatorio', 'metabolico', 'detox_linfatico'].every(s => sis[s] && !domIds(s).some(id => /^EMO-/.test(id) || id === 'SNT-210' || id === 'SNT-309')
+  && !sis[s].pontuou.some(x => /^EMO-/.test(x.question_id)) && !sis[s].contexto.some(x => MOVIDAS.includes(x.question_id))),
+  'sistemas físicos: nenhuma EMO (nem como pontuada, nem como contexto) e nenhuma SNT-210/309 nos dominantes');
+ok(sis.mental_emocional_espiritual && MOVIDAS.every(id => sis.mental_emocional_espiritual.pontuou.some(x => x.question_id === id)),
+  'as 13 EMO aparecem como pontuadas no MEE');
+ok(dominantesV2.some(s => s.sistema !== 'mental_emocional_espiritual' && s.pontuou.some(x => /^EMO-/.test(x.question_id))),
+  'o Resultado HOLOS antigo (v2) continua com a composição do v2 (EMO nos sistemas físicos): histórico não recalculado');
 
 titulo('APLICACAO ANTIGA NO v2');
-ok(JSON.stringify([srv.linhas('holoscan_applications').find(a => a.id === HV), srv.linhas('holoscan_answers').filter(a => a.application_id === HV).length,
-  srv.linhas('methodology_questions').filter(x => x.package_id === v2.id).map(x => x.stable_id + x.statement).join('|')]) === digitalV2,
-  'a aplicação feita no v2 e as 84 perguntas do v2 continuam idênticas (o v2 só foi retirado para aplicações novas)');
+ok(JSON.stringify([srv.linhas('holoscan_applications').find(a => a.id === HV), srv.linhas('holoscan_answers').filter(a => a.application_id === HV),
+  srv.linhas('holoscan_system_scores').filter(x => x.application_id === HV),
+  srv.linhas('methodology_questions').filter(x => x.package_id === v2.id).map(x => x.stable_id + x.statement).join('|'),
+  srv.linhas('methodology_associations').filter(x => x.package_id === v2.id).map(x => x.question_stable_id + '>' + x.destination_id + ':' + x.role + ':' + x.weight).join('|')]) === digitalV2,
+  '22. a aplicação feita no v2 (respostas e notas) e as 84 perguntas e associações do v2 continuam idênticas (o v2 só foi retirado para aplicações novas)');
+ok(JSON.stringify([srv.linhas('holos_results').find(r => r.id === RV.data), srv.linhas('holos_result_emissions').find(e => e.id === EMV.data.id)]) === digitalResultadoV2,
+  '25. o Resultado HOLOS e a emissão RF (PDF) feitos no v2 continuam idênticos, byte a byte (snapshot e hash)');
 
 ok(errosJS.length === 0, 'nenhum erro de JavaScript' + (errosJS.length ? ': ' + errosJS.join(' | ') : ''));
 await nav.close();

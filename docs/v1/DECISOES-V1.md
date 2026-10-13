@@ -1005,6 +1005,8 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     de Homologação; aprovação pelo aprovador único; o v2 é retirado para aplicações novas e as antigas ficam nele.
     A tela do questionário passa a mostrar as perguntas do pacote vigente (antes vinham do `holoscan.js`).
     Detalhes: `docs/v1/REVISAO-PERGUNTAS-V3.md`. PENDENTE: deploy, gravar/aprovar o v3 e retirar o v2 pela Homologação.
+    **SUBSTITUÍDO em 13/10 (item 188):** este rascunho nunca foi publicado; ficou arquivado em
+    `docs/v1/metodologia/historico/` e **não** é a base do HOLOS-V1 v3.
 184. **Dashboard: "Acompanhamento dos pacientes" no lugar de "Pendências"** (12/10, pedido da usuária). O fluxo não
     trabalha com tarefas atrasadas: ferramenta não aplicada, opcional ou complementar não é pendência. O Dashboard mostra
     em que etapa cada paciente ativo está, só a partir de dados que já existem: Aguardando anamnese e Anamnese recebida
@@ -1036,6 +1038,23 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     versão nova no ar e retira a anterior. Isso substitui a Aprovação e a Homologação (itens da Etapa 4.2 e do aprovador
     único). Continuam: quem publica (só o responsável), versão seguinte, imutabilidade e auditoria. A página pública de
     revisão das perguntas (`aprovacoes.html`) saiu do ar. Nada foi apagado. Detalhes: `docs/v1/PUBLICACAO-DIRETA-HOLOSCAN.md`.
+188. **HOLOS-V1 v3 = decisões metodológicas de 13/10** (decisões explícitas de Rodrigo; regra operacional: decisão
+    explícita de Rodrigo = autorização para implementar, preservando versionamento, testes, histórico, auditoria e
+    rollback). Base: o pacote ativo, HOLOS-V1 v2. Entram **só** estas decisões; o rascunho de 12/10 (item 183) não entra.
+    - **REMOVER SNT-210 e SNT-309** (PM-15): "Exames e documentos não participam do Resultado HOLOS." Não pontuam,
+      não são contextuais, não vão para outro sistema; sem substituto.
+    - **MOVER para o Sistema Mental Emocional Espiritual** a associação primária de EMO-101, 102, 103, 201, 202, 203,
+      204, 301, 302, 303, 401, 402 e 403, cada uma com a justificativa oficial. Peso preservado (1, igual a todos os
+      itens primários do MEE). A relação antiga com sistema físico não fica como contextual.
+    - **Regra metodológica ativa:** "Uma relação holística, simbólica ou contextual entre emoção e corpo não é
+      suficiente, por si só, para justificar que uma resposta mental/emocional altere matematicamente a nota de um
+      sistema físico." "Perguntas mentais/emocionais devem pontuar sistema físico somente quando existir justificativa
+      metodológica específica, documentada e aprovada para aquela associação."
+    - v3 = 82 perguntas (47/19/16); Fúngico 12, Ácido Inflamatório 11, Metabólico 10, Detox e Linfático 12, MEE 37.
+      Escalas, faixas, Índice, Tríade (regra), cobertura mínima (80%) e PP-V1 (30 regras) iguais.
+    - O HOLOS-V1 v2 e todo o histórico (aplicações, notas, dominantes, Resultados, Próximos Passos, emissões/PDF)
+      ficam imutáveis. Publicação pela publicação direta (item 187).
+    Detalhes: `docs/v1/ALTERACOES-PACOTE-HOLOSCAN-NOVA-VERSAO.md`; matriz: `docs/v1/MATRIZ-HOMOLOGACAO-84-PERGUNTAS-HOLOSCAN.md`.
 
 ## Decisões pendentes (não decididas aqui)
 

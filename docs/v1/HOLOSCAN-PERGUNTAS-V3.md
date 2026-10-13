@@ -1,5 +1,10 @@
 # HOLOSCAN — as 82 perguntas da versão nova (HOLOS-V1 v3)
 
+> **SUBSTITUÍDO em 13/10/2026.** O rascunho do v3 descrito aqui (12/10) **nunca foi publicado** e **não** é a base do
+> HOLOS-V1 v3. O v3 passou a ser só as decisões metodológicas de 13/10 (SNT-210 e SNT-309 removidas; 13 perguntas EMO
+> no Sistema Mental Emocional Espiritual), montado a partir do v2 ativo. O rascunho ficou arquivado em
+> `docs/v1/metodologia/historico/`. Ver `docs/v1/ALTERACOES-PACOTE-HOLOSCAN-NOVA-VERSAO.md`.
+
 Revisão de 12/10. Escala: Nunca · Às vezes · Frequente · Sempre (frequência), ou a escala de intensidade quando indicada.
 
 Legenda: **[texto novo]** mesmo sentido, texto revisado · **[nova]** pergunta trocada por outra · **[movida]** passou para outro sistema · *(invertida)* pontua ao contrário.

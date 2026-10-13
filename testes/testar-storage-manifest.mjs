@@ -291,7 +291,7 @@ ok(ordem.manifesto < ordem.dados,
    na Etapa 10 (migracao-supa.js, o migrador localStorage→Supabase), e na
    correcao P0 pos-deploy 6.4 (holoscan-oficial.js: o questionario no motor oficial). */
 // ajuste 07/10: + ajuda.js (pagina de Ajuda); 08/10: + contas.js (cadastro)
-// 12/10: + metodologia-revisao-v3.js (revisao das perguntas -> HOLOS-V1 v3)
+// 12/10: + metodologia-revisao-v3.js (revisao -> HOLOS-V1 v3; desde 13/10 so as decisoes de 13/10)
 // 09/10 (prontuario): -laboratorio-catalogo.js -laboratorio-motor.js -leitura-integrada-motor.js -laboratorio.js (exames so como arquivo) +resultado-pagina.js
 // 12/10 (motor de resultados V1): + resultado-legado-r3.js (desenho congelado das emissoes RF-1)
 // 12/10 (motor de resultados V1, commit 2): + sistemas-fechamento.js (fechamento dos cinco sistemas)
