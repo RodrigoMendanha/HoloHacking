@@ -14,6 +14,7 @@
  */
 import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
+import { fixarRelogio, INSTANTE_JANELA } from './relogio.mjs';
 
 const nav = await puppeteer.launch({
   executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
@@ -21,6 +22,8 @@ const nav = await puppeteer.launch({
 const p = await nav.newPage();
 await p.setViewport({ width: 1400, height: 1100 });
 const ruim = []; p.on('pageerror', e => ruim.push(e.message));
+/* 13/10: navegador no fuso da clinica, relogio fixado ontem 22:30 de Brasilia (UTC ja no dia seguinte) — ver relogio.mjs */
+await fixarRelogio(p, INSTANTE_JANELA());
 await p.goto('http://127.0.0.1:5500/', { waitUntil: 'networkidle2' });
 await p.addStyleTag({ content: '*{transition:none!important;animation:none!important}' });
 await p.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados());

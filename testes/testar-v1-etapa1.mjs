@@ -27,6 +27,7 @@
 import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { criarServidor, ligarPagina } from './supabase-falso.mjs';
+import { fixarRelogio, diaNoFuso, INSTANTE_JANELA } from './relogio.mjs';
 import { semearHolosAprovado } from './holos-aprovado.mjs';
 
 let falhou = false;
@@ -48,6 +49,9 @@ const A = await ctx.newPage();
 await A.setViewport({ width: 1366, height: 900 });
 A.on('pageerror', e => errosJS.push(e.message));
 await ligarPagina(A, srv);
+/* 13/10: navegador no fuso da clinica, relogio fixado ontem 22:30 de Brasilia (UTC ja no dia seguinte) — ver relogio.mjs */
+const AGORA = INSTANTE_JANELA();
+await fixarRelogio(A, AGORA);
 await A.goto('http://127.0.0.1:5500/', { waitUntil: 'networkidle2' });
 await A.waitForSelector('#login-email', { visible: true });
 await A.type('#login-email', 'a@holo.test');
@@ -76,8 +80,8 @@ async function cadastrar(nome) {
   await esperar(200);
   return id;
 }
-const diaISO = (n) => { const d = new Date(); d.setDate(d.getDate() + n);
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+/* "hoje" e o dia de PAREDE no fuso da clinica, no relogio do navegador (nunca o relogio UTC do container) */
+const diaISO = (n) => diaNoFuso(AGORA, n);
 const encounters = (pid) => srv.linhas('encounters').filter(e => !pid || e.patient_id === pid);
 const marcar = (pid, dia, hora) => A.evaluate(async (pid, dia, hora) => {
   const r = await window.supabaseClient.from('consultations').insert([{ patient_id: pid, data: dia, hora, tipo: 'retorno', duracao_min: 60 }]).select();
