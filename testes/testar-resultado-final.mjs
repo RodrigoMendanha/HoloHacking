@@ -1,6 +1,6 @@
 /**
  * RESULTADO FINAL HOLOS na tela (decisoes aprovadas 10/10, DECISOES-V1 item 180), servidor falso:
- *   PROF      Sintese HOLOS (1a/2a area, Triade, catalogo congelado, aplicadas, limite), "Resultado estruturado" por ferramenta
+ *   PROF      Sintese HOLOS (1a/2a area, Triade, catalogo congelado, aplicadas, limite), "Resultado da ferramenta" por ferramenta (motor de resultados 12/10)
  *   PACIENTE  resumo simples; ferramentas so autorizadas; Carta so "realizada"; Proximos Passos OFF por padrao; ON aparece
  *   FORM      "Compartilhar Proximos Passos com a paciente" desligado por padrao; ligado vai para o snapshot (template 2)
  *   ANTIGO    resultado template 1: nada buscado ao vivo (nenhuma leitura de holos_next_steps ao abrir)
@@ -73,8 +73,9 @@ let t = await docTxt(A);
 ok(/Síntese HOLOS/.test(t) && /1ª área para investigar/.test(t) && /2ª área para investigar/.test(t) && /Pelo catálogo vigente \(HOLOS-RECOMENDACOES-V1 v1\)/i.test(t) && /Na Tríade|Tríade sem dado/.test(t)
   && /foram aplicadas: OQ³, Gatilhos & Respostas e Carta ao Futuro Eu/.test(t) && /não possui regra homologada para afirmar gravidade, diagnóstico ou causa/.test(t),
   'visão profissional: Síntese HOLOS (1ª/2ª área, Tríade, catálogo congelado, aplicadas, limite explícito)');
-ok((t.match(/Resultado estruturado/gi) || []).length >= 3 && /O que quer\s*\n?\s*ter energia/i.test(t) && /Carta ao Futuro Eu\s*\n?\s*realizada/i.test(t) && !/CARTA_INTIMA_NAO_MOSTRAR/.test(t),
-  'cada ferramenta com "Resultado estruturado" (o registro completo fica recolhido); Carta: "realizada"');
+ok((t.match(/Resultado da ferramenta/gi) || []).length >= 3 && /O que a pessoa quer\s*\n?\s*ter energia/i.test(t)
+  && /A Carta ao Futuro Eu foi realizada como exercício de reflexão sobre identidade, direção e cuidado futuro\./.test(t) && !/CARTA_INTIMA_NAO_MOSTRAR/.test(t),
+  'cada ferramenta com "Resultado da ferramenta" (motor de resultados 12/10; o registro completo fica recolhido); Carta: texto aprovado, sem o conteúdo');
 if (SHOT) { await espera(400); const el = await A.$('#aba-resultado-holos .rh-sintese'); if (el) await el.screenshot({ path: SHOT + '/sintese-profissional.png' }); }
 await A.evaluate(() => document.querySelector('#aba-resultado-holos [data-rh-visao-troca="paciente"]').click()); await espera(700);
 t = await docTxt(A);

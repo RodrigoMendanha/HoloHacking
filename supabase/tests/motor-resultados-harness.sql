@@ -6,6 +6,7 @@
 --   MR04 emissao RF-2: a Conduta e a do ATENDIMENTO DO RESULTADO, mesmo havendo Conduta mais recente em outro atendimento
 --   MR05 emissao RF-2 sem Conduta no atendimento do resultado: sai sem Conduta (nunca a de outro atendimento)
 --   MR06 relatorio emitido: texto da metodologia pelo estado real do pacote (sem "nao homologado")
+--   MR07 Mapa do Proposito derivado (OQ3 + PQQ) no snapshot, em 'derivados', com as aplicacoes fonte; so OQ3 -> nada
 reset role;
 select set_config('request.jwt.claims', '{}', true);
 create temp table _mr (k text primary key, v text) on commit drop;
@@ -91,6 +92,32 @@ begin
   select content_snapshot->>'metodologia' into met from public.report_emissions where id = rel;
   insert into _logmr (passo) select 'MR06 ' || case when met like 'Aplicações HOLOSCAN calculadas pelo pacote metodológico oficial aprovado (HOLOS-V1 v%' and met not like '%não homologado%'
     then 'ok' else 'FALHOU: ' || coalesce(met, '') end || ': relatorio emitido diz o estado real do pacote (aprovado), sem "nao homologado"';
+end $$;
+
+do $$
+declare uid uuid := auth.uid(); mp uuid := (select v::uuid from _ho where k = 'mp'); p uuid; e uuid; h uuid; t1 uuid; t2 uuid; r1 uuid; r2 uuid; s1 jsonb; s2 jsonb;
+begin
+  insert into public.patients (nutritionist_id, nome) values (uid, 'MR TESTE FICTICIO 3') returning id into p;
+  insert into public.encounters (nutritionist_id, patient_id, occurred_at) values (uid, p, now() - interval '2 days') returning id into e;
+  h := public.salvar_holoscan_completo(pg_temp.ho_payload(mp, p, e, current_date));
+  insert into public.tool_applications (nutritionist_id, patient_id, encounter_id, ferramenta_id, versao_ferramenta, status, respostas, iniciada_em, concluida_em)
+    values (uid, p, e, 'oq3', '1', 'concluida', '{"quer":"QUER_FICTICIO","precisa":"PRECISA_FICTICIO","consegue":"CONSEGUE_FICTICIO"}', now(), now()) returning id into t1;
+  r1 := public.salvar_resultado_holos(jsonb_build_object('patient_id', p, 'encounter_id', e, 'holoscan_application_id', h, 'tool_application_ids', jsonb_build_array(t1),
+    'visao_paciente', jsonb_build_object('ferramentas', '{}'::jsonb, 'proximos_passos', false)));
+  select content_snapshot into s1 from public.holos_results where id = r1;
+  insert into public.tool_applications (nutritionist_id, patient_id, encounter_id, ferramenta_id, versao_ferramenta, status, respostas, iniciada_em, concluida_em)
+    values (uid, p, e, 'pqq', '1', 'concluida', '{"objetivo":"OBJETIVO_FICTICIO","r1":"N1","verdadeiro":"SINTESE_FICTICIA"}', now(), now()) returning id into t2;
+  r2 := public.salvar_resultado_holos(jsonb_build_object('patient_id', p, 'encounter_id', e, 'holoscan_application_id', h, 'tool_application_ids', jsonb_build_array(t1, t2),
+    'visao_paciente', jsonb_build_object('ferramentas', '{}'::jsonb, 'proximos_passos', false), 'base_result_id', r1));
+  select content_snapshot into s2 from public.holos_results where id = r2;
+  insert into _logmr (passo) select 'MR07 ' || case when s1#>'{derivados,mapa_proposito}' = 'null'::jsonb
+      and s2#>>'{derivados,mapa_proposito,motor}' = 'MR-V1' and s2#>>'{derivados,mapa_proposito,regra}' = 'OQ3+PQQ'
+      and s2#>>'{derivados,mapa_proposito,fontes,0,id}' = t1::text and s2#>>'{derivados,mapa_proposito,fontes,1,id}' = t2::text
+      and s2#>>'{derivados,mapa_proposito,campos,quer}' = 'QUER_FICTICIO' and s2#>>'{derivados,mapa_proposito,campos,importa}' = 'SINTESE_FICTICIA'
+      and s2#>>'{derivados,mapa_proposito,campos,sustenta}' = 'CONSEGUE_FICTICIO' and s2#>>'{derivados,mapa_proposito,campos,direcao}' = 'OBJETIVO_FICTICIO'
+      and not (s2->'ferramentas' @> '[{"ferramenta_id":"mapa"}]')
+    then 'ok' else 'FALHOU: ' || coalesce(left((s1->'derivados')::text, 100), 'sem derivados') || ' | ' || coalesce(left((s2->'derivados')::text, 300), '') end
+    || ': Mapa do Proposito derivado de OQ3 + PQQ no snapshot (derivados, motor MR-V1, fontes = as duas aplicacoes); so OQ3 -> sem mapa; respostas intactas';
 end $$;
 
 reset role;

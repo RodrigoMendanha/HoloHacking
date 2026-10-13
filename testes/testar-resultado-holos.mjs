@@ -136,7 +136,7 @@ const salvo = srv.linhas('holos_results').find(r => r.status === 'salvo');
 ok(!!salvo && salvo.id === r0.id && salvo.content_hash && /^[0-9a-f]{64}$/.test(salvo.content_hash) && salvo.content_snapshot.holoscan.id === HA && salvo.content_snapshot.ferramentas.length === 4,
   'salvo: o rascunho vira resultado salvo, com snapshot do servidor e hash sha256');
 ok(salvo.content_hash === createHash('sha256').update(JSON.stringify(salvo.content_snapshot), 'utf8').digest('hex'), 'hash confere com o snapshot gravado');
-/* 10/10: o registro completo de cada ferramenta fica recolhido sob o "Resultado estruturado"; abre para ler */
+/* 10/10: o registro completo de cada ferramenta fica recolhido sob o "Resultado da ferramenta" (12/10: "Registro da ferramenta"); abre para ler */
 await A.evaluate(() => document.querySelectorAll('#rh-doc details.rh-registro').forEach(d => { d.open = true; }));
 const prof = await A.evaluate(() => ({ t: document.getElementById('rh-doc').innerText, html: document.getElementById('rh-doc').innerHTML,
   sis: document.querySelectorAll('.rh-sis').length, det: document.querySelectorAll('.rh-sis-det').length, radar: !!document.querySelector('svg.rh-radar[role="img"][aria-label]'), xss: window.__xss === 1 }));

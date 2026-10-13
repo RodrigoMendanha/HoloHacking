@@ -135,6 +135,6 @@ export const SUITES = [
   'testar-prontuario.mjs',
   'testar-proximos-passos-motor.mjs', 'testar-proximos-passos.mjs',
   'testar-perfil-robustez.mjs', 'testar-conta-pendente.mjs',
-  'testar-resultado-sintese.mjs', 'testar-anamnese-pre-consulta.mjs', 'testar-mapeamento-holistico.mjs', 'testar-mapeamento-enxuto.mjs', 'testar-pacientes-redesign.mjs', 'testar-boas-vindas.mjs', 'testar-resultado-final.mjs', 'testar-admin.mjs', 'testar-admin-usuarios.mjs', 'testar-correcoes-jornada.mjs', 'testar-emissao-imutavel.mjs', 'testar-motor-resultados.mjs', 'testar-sistemas-fechamento.mjs',
+  'testar-resultado-sintese.mjs', 'testar-anamnese-pre-consulta.mjs', 'testar-mapeamento-holistico.mjs', 'testar-mapeamento-enxuto.mjs', 'testar-pacientes-redesign.mjs', 'testar-boas-vindas.mjs', 'testar-resultado-final.mjs', 'testar-admin.mjs', 'testar-admin-usuarios.mjs', 'testar-correcoes-jornada.mjs', 'testar-emissao-imutavel.mjs', 'testar-motor-resultados.mjs', 'testar-sistemas-fechamento.mjs', 'testar-ferramentas-resultado.mjs',
   'testar-conferir-producao.mjs',
 ];

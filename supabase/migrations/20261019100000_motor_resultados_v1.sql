@@ -40,7 +40,7 @@ returns jsonb language plpgsql stable security definer set search_path = '' as $
 declare
   v_pid uuid; v_eid uuid; v_hid uuid; pac record; enc record; app record; pk record;
   v_pp_vis jsonb := coalesce(payload#>'{visao_paciente,proximos_passos}', 'false'::jsonb);
-  v_sistemas jsonb; v_ferr jsonb; v_prof text; v_pp jsonb; v_pend jsonb;
+  v_sistemas jsonb; v_ferr jsonb; v_prof text; v_pp jsonb; v_pend jsonb; v_oq3 jsonb; v_pqq jsonb; v_mapa jsonb;
 begin
   if uid is null then raise exception 'sessao obrigatoria' using errcode = '42501'; end if;
   begin
@@ -73,6 +73,22 @@ begin
   end if;
   v_ferr := public.resultado_holos_ferramentas(uid, v_pid, payload);
   v_sistemas := public.resultado_holos_sistemas(app.id, pk.id);
+  -- MR-V1 (item 23): Mapa do Proposito DERIVADO de OQ3 + PQQ (a unica relacao ferramenta -> ferramenta homologada),
+  -- com a referencia das aplicacoes fonte. Mesmo criterio de FerramentasFechamento.propositoDisponivel: OQ3 com quer,
+  -- precisa ou consegue; PQQ com objetivo, algum nivel ou a sintese. Fica em 'derivados', separado das respostas.
+  select t into v_oq3 from jsonb_array_elements(v_ferr->'ferramentas') t where t->>'ferramenta_id' = 'oq3' limit 1;
+  select t into v_pqq from jsonb_array_elements(v_ferr->'ferramentas') t where t->>'ferramenta_id' = 'pqq' limit 1;
+  if v_oq3 is not null and v_pqq is not null
+     and (coalesce(btrim(v_oq3#>>'{respostas,quer}'), '') <> '' or coalesce(btrim(v_oq3#>>'{respostas,precisa}'), '') <> '' or coalesce(btrim(v_oq3#>>'{respostas,consegue}'), '') <> '')
+     and (coalesce(btrim(v_pqq#>>'{respostas,objetivo}'), '') <> '' or coalesce(btrim(v_pqq#>>'{respostas,verdadeiro}'), '') <> ''
+          or exists (select 1 from unnest(array['r1','r2','r3','r4','r5']) k where coalesce(btrim(v_pqq->'respostas'->>k), '') <> '')) then
+    v_mapa := jsonb_build_object('ferramenta_id', 'mapa', 'motor', 'MR-V1', 'regra', 'OQ3+PQQ', 'opcional', true,
+      'fontes', jsonb_build_array(
+        jsonb_build_object('ferramenta_id', 'oq3', 'id', v_oq3->'id', 'concluida_em', v_oq3->'concluida_em'),
+        jsonb_build_object('ferramenta_id', 'pqq', 'id', v_pqq->'id', 'concluida_em', v_pqq->'concluida_em')),
+      'campos', jsonb_build_object('quer', v_oq3#>'{respostas,quer}', 'importa', v_pqq#>'{respostas,verdadeiro}',
+        'sustenta', v_oq3#>'{respostas,consegue}', 'direcao', v_pqq#>'{respostas,objetivo}'));
+  end if;
   -- template 4: os sinais dominantes reais de cada sistema (texto aprovado da pergunta)
   select coalesce(jsonb_agg(x.s || jsonb_build_object('dominantes', public.resultado_holos_dominantes(app.id, pk.id, x.s->>'sistema')) order by x.n), '[]'::jsonb)
     into v_sistemas from jsonb_array_elements(v_sistemas) with ordinality as x(s, n);
@@ -96,6 +112,7 @@ begin
         'nota_media', app.nota_media, 'triada', app.triada, 'triada_com_dado', app.triada_com_dado,
         'interpretacao_texto', app.interpretacao_texto, 'sistemas', v_sistemas),
       'ferramentas', v_ferr->'ferramentas',
+      'derivados', jsonb_build_object('mapa_proposito', v_mapa),
       'proximos_passos', v_pp,
       'visibilidade', jsonb_build_object('proximos_passos', v_pp_vis),
       'exames', jsonb_build_object('incluidos', false, 'nota', 'Exames e Leitura Integrada nao fazem parte desta versao do Resultado HOLOS.')

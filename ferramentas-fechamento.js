@@ -24,6 +24,10 @@
      Conexao            mapa contextual, sem score nem classificacao; na
                         sintese, so contagens (minimiza dado de terceiros)
 
+   Motor de resultados V1 (12/10, itens 16-26): resultado() e o RESULTADO DA FERRAMENTA (contrato: o que apareceu /
+   o que significa / o que pode mudar / proximo passo), versionado (MR-V1); de() continua sendo o REGISTRO DA
+   FERRAMENTA (a reorganizacao do que foi preenchido).
+
    Funciona no navegador (window.FerramentasFechamento) e no Node (testes).
    =========================================================================== */
 (function (raiz) {
@@ -180,8 +184,156 @@
   /* As relacoes ferramenta -> ferramenta que o sistema gera sozinho: so esta. */
   var RELACOES_AUTOMATICAS = [{ de: ["oq3", "pqq"], para: "mapa", obrigatoria: false }];
 
+  /* ===========================================================================
+     RESULTADO DA FERRAMENTA — motor de resultados V1 (12/10, itens 16-26)
+     Contrato universal: 1. O QUE APARECEU · 2. O QUE ISSO SIGNIFICA NESTA FERRAMENTA · 3. O QUE ISSO PODE MUDAR NO
+     ACOMPANHAMENTO · 4. PROXIMO PASSO POSSIVEL. So textos do pedido de 12/10 (literais). Onde o metodo nao sustenta
+     2-4, o campo fica null e a pendencia e marcada (so a nutricionista ve). Nada de IA, score, classificacao, causa,
+     conduta. "apareceu" so reorganiza o que foi registrado (cada item: rotulo, valor, so_profissional, sensivel).
+     =========================================================================== */
+  var VERSAO_RESULTADO = "MR-V1";
+  var PROPOSITO_OPCIONAL = "Mapa do Propósito disponível como aprofundamento opcional.";
+  var MUDA = {
+    oq3: "O planejamento da etapa deve considerar simultaneamente desejo, necessidade e capacidade atual.",
+    linha_momentum: "Este estado ajuda a calibrar a exigência e a quantidade de mudanças propostas nesta etapa.",
+    mapa_rotina_v1: "Essas informações ajudam a escolher mudanças que realmente caibam na rotina atual.",
+    pqq: "Essa síntese pode ajudar a manter as mudanças conectadas ao significado que a própria paciente atribui ao objetivo.",
+    mapa_crencas: "Esse registro ajuda a tornar visíveis ideias que podem estar influenciando escolhas alimentares e permite observá-las em situações reais.",
+    gatilhos_respostas_v1: "A sequência ajuda a tornar observável o que acontece antes e depois de determinado comportamento.",
+    roda_vida: "Essa percepção ajuda a escolher quais áreas merecem atenção neste momento.",
+    conexao_pertencimento_v1: "Essas informações ajudam a compreender quais recursos de apoio estão disponíveis durante o processo."
+  };
+  var CARTA_PACIENTE = "A Carta ao Futuro Eu foi realizada como exercício de reflexão sobre identidade, direção e cuidado futuro.";
+  var PEND = {
+    significa: "Não há texto aprovado sobre o que este registro significa nesta ferramenta.",
+    muda: "Não há texto aprovado sobre o que este registro pode mudar no acompanhamento.",
+    estado: "O texto do que cada estado do Momentum representa ainda não está aprovado (banco de estados em rascunho).",
+    intervencao: "\"Ponto de intervenção\" em Gatilhos & Respostas: não há regra homologada.",
+    direcao: "\"Direção desta etapa\" no Mapa do Propósito: não há regra além do objetivo declarado no PQQ.",
+    proximo: "Não há próximo passo automático homologado para esta ferramenta."
+  };
+
+  function item(rotulo, valor, extra) { var o = { rotulo: rotulo, valor: txt(valor), so_profissional: false, sensivel: false }; if (extra) for (var k in extra) o[k] = extra[k]; return o; }
+  function campos(r, pares) { return pares.filter(function (p) { return tem(r[p[0]]); }).map(function (p) { return item(p[1], r[p[0]], p[2]); }); }
+  function acha(fs, id) { return (fs || []).filter(function (t) { return t.ferramenta_id === id; })[0] || null; }
+
+  var RESULTADO = {
+    oq3: function (r, fs) {
+      return { apareceu: campos(r, [["quer", "O que a pessoa quer"], ["precisa", "O que precisa ser considerado"], ["consegue", "O que ela consegue sustentar agora"], ["alavancas", "Possíveis alavancas"]]),
+        proximo: propositoDisponivel(fs) ? PROPOSITO_OPCIONAL : null };
+    },
+    linha_momentum: function (r) {
+      var est = r.estado_confirmado ? (ESTADOS_MOMENTUM[r.estado_confirmado] || String(r.estado_confirmado)) : null;
+      var ap = [item("Estado atual (escolhido pela nutricionista)", est || "não registrado")];
+      if (tem(r.justificativa_estado)) ap.push(item("Justificativa da nutricionista", r.justificativa_estado, { so_profissional: true }));
+      ap = ap.concat(campos(r, [["sustenta", "Fatores que sustentam"], ["limita", "Fatores que limitam"], ["nao_pedir", "O que evitar nesta etapa"]]));
+      return { apareceu: ap, estado: est, pendencias: est ? [PEND.estado] : [] };
+    },
+    mapa_rotina_v1: function (r, fs, t) {
+      var atual = [];
+      if (tem(r.acorda) || tem(r.dorme)) atual.push([tem(r.acorda) ? "acorda " + r.acorda : "", tem(r.dorme) ? "dorme " + r.dorme : ""].filter(Boolean).join(", "));
+      if (tem(r.sono)) atual.push("sono: " + txt(r.sono));
+      if (tem(r.trabalho)) atual.push("trabalho: " + txt(r.trabalho));
+      var ev = Array.isArray(r.eventos) ? r.eventos : [];
+      if (ev.length) atual.push(ev.length + (ev.length === 1 ? " momento do dia registrado" : " momentos do dia registrados"));
+      var ap = atual.length ? [item("Rotina atual", atual.join(" · "))] : [];
+      ap = ap.concat(campos(r, [["dificuldade", "Momentos de maior dificuldade"], ["disponiveis", "Momentos disponíveis"], ["espacos", "Oportunidades / espaços para mudança"]]));
+      return { apareceu: ap, leitura_nutri: t && tem(t.leitura) ? txt(t.leitura) : null };
+    },
+    pqq: function (r, fs) {
+      var ap = campos(r, [["objetivo", "Objetivo declarado"]]);
+      var niveis = ["r1", "r2", "r3", "r4", "r5"].filter(function (k) { return tem(r[k]); }).map(function (k) { return txt(r[k]); });
+      if (niveis.length) ap.push(item("O que foi ganhando importância ao longo do PQQ", niveis.join(" → ")));
+      if (tem(r.verdadeiro)) ap.push(item("Síntese construída com a paciente", r.verdadeiro));
+      return { apareceu: ap, proximo: propositoDisponivel(fs) ? PROPOSITO_OPCIONAL : null };
+    },
+    mapa_crencas: function (r) {
+      return { apareceu: campos(r, [["crencas", "Crença registrada"], ["origem", "Origem percebida"], ["mais_atrapalha", "Crença que mais dificulta"], ["alternativa", "Alternativa construída"]]) };
+    },
+    gatilhos_respostas_v1: function (r) {
+      var quando = [r.data, r.horario].filter(tem).join(" ");
+      var cadeia = [];
+      if (quando || tem(r.contexto)) cadeia.push(item("Situação", [quando, tem(r.contexto) ? txt(r.contexto) : ""].filter(Boolean).join(" · ")));
+      cadeia = cadeia.concat(campos(r, [["gatilho", "Gatilho"]]));
+      var pe = [tem(r.pensamento) ? txt(r.pensamento) : "", tem(r.emocao) ? txt(r.emocao) + (num(r.intensidade) !== null ? " (intensidade " + num(r.intensidade) + ")" : "") : ""].filter(Boolean);
+      if (pe.length) cadeia.push(item("Pensamento / emoção relatada", pe.join(" · ")));
+      cadeia = cadeia.concat(campos(r, [["resposta", "Resposta / comportamento"]]));
+      var cons = [r.consequencia_imediata, r.consequencia_posterior].filter(tem).map(txt);
+      if (cons.length) cadeia.push(item("Consequência percebida", cons.join(" · ")));
+      cadeia = cadeia.concat(campos(r, [["necessidade", "Necessidade / recurso"], ["alternativa", "Alternativa"]]));
+      cadeia.forEach(function (c) { c.elo = true; });
+      cadeia = cadeia.concat(campos(r, [["observacao_nutri", "Observação da nutricionista", { so_profissional: true }]]));
+      return { apareceu: cadeia, pendencias: [PEND.intervencao] };
+    },
+    mapa: function () { return { apareceu: [] }; },
+    roda_vida: function (r) {
+      var areas = AREAS_RODA.filter(function (a) { return num(r[a[0]]) !== null; }).map(function (a) { return { nome: a[1], valor: num(r[a[0]]) }; });
+      var ap = [];
+      if (areas.length) {
+        var max = Math.max.apply(null, areas.map(function (a) { return a.valor; })), min = Math.min.apply(null, areas.map(function (a) { return a.valor; }));
+        if (max !== min) {
+          ap.push(item("Áreas percebidas como mais cuidadas", areas.filter(function (a) { return a.valor === max; }).map(function (a) { return a.nome; })));
+          ap.push(item("Áreas percebidas como menos cuidadas", areas.filter(function (a) { return a.valor === min; }).map(function (a) { return a.nome; })));
+        } else ap.push(item("Percepção por área", "todas as áreas registradas com a mesma nota"));
+        ap.push(item("Notas percebidas por área", areas.map(function (a) { return a.nome + " " + a.valor; }).join(" · "), { so_profissional: true }));
+      }
+      return { apareceu: ap };
+    },
+    carta_futuro: function (r) {
+      return { apareceu: [item("Carta ao Futuro Eu", CARTA_PACIENTE)].concat(tem(r.para_quando) ? [item("Para quando", r.para_quando, { so_profissional: true })] : []) };
+    },
+    conexao_pertencimento_v1: function (r) {
+      var v = Array.isArray(r.vinculos) ? r.vinculos : [];
+      var apoio = v.filter(function (x) { return x && x.papel === "apoia"; }).length;
+      var ap = [];
+      /* fontes de apoio: na paciente, so contagem (sem nome de terceiro); a nutricionista ve o que foi escrito */
+      if (v.length) ap.push(item("Fontes de apoio registradas", apoio + " de " + v.length + (v.length === 1 ? " vínculo registrado" : " vínculos registrados") + " apontado(s) como apoio"));
+      ap = ap.concat(campos(r, [["contar", "Com quem pode contar", { so_profissional: true, sensivel: true }]]));
+      ap = ap.concat(campos(r, [["pertence", "Contextos de pertencimento", { sensivel: true }]]));
+      var esp = [["espiritualidade", "Espiritualidade"], ["comunidade_religiosa", "Comunidade"], ["pratica_espiritual", "Prática"], ["algo_maior", "Algo maior"], ["conexao_consigo", "Conexão consigo"]]
+        .filter(function (p) { return tem(r[p[0]]); }).map(function (p) { return p[1] + ": " + txt(r[p[0]]); });
+      /* "somente se a paciente respondeu e autorizou os campos pertinentes": nao ha campo de autorizacao no registro ->
+         a nutricionista ve; a paciente nao (ate existir a regra) */
+      if (esp.length) ap.push(item("Conexão / espiritualidade", esp.join(" · "), { so_profissional: true, sensivel: true }));
+      return { apareceu: ap, pendencias: esp.length ? ["Conexão / espiritualidade na visão da paciente: não há campo de autorização no registro; fica só na visão profissional."] : [] };
+    }
+  };
+
+  /** Resultado de UMA ferramenta (t = item do snapshot); fs = todas as ferramentas do mesmo resultado. */
+  function resultado(t, fs) {
+    if (!t) return null;
+    var fn = RESULTADO[t.ferramenta_id];
+    if (!fn) return { motor: VERSAO_RESULTADO, ferramenta_id: t.ferramenta_id, nome: NOMES[t.ferramenta_id] || t.ferramenta_id, apareceu: [], significa: null, muda: null, proximo: null, pendencias: [PEND.significa, PEND.muda] };
+    var x = fn(t.respostas || {}, fs || [], t);
+    var pend = [PEND.significa].concat(MUDA[t.ferramenta_id] ? [] : [PEND.muda]).concat(x.pendencias || []);
+    if (!x.proximo) pend.push(PEND.proximo);
+    return { motor: VERSAO_RESULTADO, ferramenta_id: t.ferramenta_id, nome: NOMES[t.ferramenta_id] || t.ferramenta_id,
+      apareceu: x.apareceu || [], significa: null, muda: MUDA[t.ferramenta_id] || null, proximo: x.proximo || null,
+      estado: x.estado || null, leitura_nutri: x.leitura_nutri || null, pendencias: pend };
+  }
+
+  /** Mapa do Proposito (item 23): versao derivada de OQ3 + PQQ, com a referencia das aplicacoes fonte. */
+  function resultadoProposito(fs, derivado) {
+    var c, fontes, historico = false;
+    if (derivado && derivado.campos) {          // template 4: a versao derivada congelada no snapshot (servidor)
+      c = derivado.campos; fontes = derivado.fontes || [];
+    } else {                                    // resultado anterior: derivado agora, pela mesma regra (proposito())
+      if (!proposito(fs)) return null;
+      var a = acha(fs, "oq3"), b = acha(fs, "pqq"), ra = a.respostas || {}, rb = b.respostas || {};
+      c = { quer: ra.quer, importa: rb.verdadeiro, sustenta: ra.consegue, direcao: rb.objetivo };
+      fontes = [{ ferramenta_id: "oq3", id: a.id || null, concluida_em: a.concluida_em || null }, { ferramenta_id: "pqq", id: b.id || null, concluida_em: b.concluida_em || null }];
+      historico = true;
+    }
+    var ap = campos(c,
+      [["quer", "O que eu quero"], ["importa", "Por que isso importa"], ["sustenta", "O que consigo sustentar agora"], ["direcao", "Direção desta etapa (objetivo declarado no PQQ)"]]);
+    return { motor: VERSAO_RESULTADO, ferramenta_id: "mapa", nome: NOMES.mapa, derivado: true, derivado_agora: historico, fontes: fontes,
+      apareceu: ap, significa: null, muda: null, proximo: null, pendencias: [PEND.significa, PEND.muda, PEND.direcao] };
+  }
+
   var api = { de: de, proposito: proposito, propositoDisponivel: propositoDisponivel, RELACOES_AUTOMATICAS: RELACOES_AUTOMATICAS,
-    ESTADOS_MOMENTUM: ESTADOS_MOMENTUM, NOMES: NOMES, AREAS_RODA: AREAS_RODA };
+    ESTADOS_MOMENTUM: ESTADOS_MOMENTUM, NOMES: NOMES, AREAS_RODA: AREAS_RODA,
+    resultado: resultado, resultadoProposito: resultadoProposito, VERSAO_RESULTADO: VERSAO_RESULTADO, MUDA: MUDA,
+    CARTA_PACIENTE: CARTA_PACIENTE, PROPOSITO_OPCIONAL: PROPOSITO_OPCIONAL, PENDENCIAS_RESULTADO: PEND };
   raiz.FerramentasFechamento = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

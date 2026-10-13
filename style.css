@@ -4583,6 +4583,20 @@ tr.mh-conflito td{background:rgba(201,138,122,.08)}
 .pp-investiga b,.pp-sinais-bloco b{display:block;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--dourado-claro);margin-bottom:4px}
 .pp-investiga .pp-razao{margin:0}
 @media print{.sf-bloco,.sf-pp{break-inside:avoid}}
+/* motor de resultados V1: RESULTADO DA FERRAMENTA (contrato em 4 partes), separado do registro e da leitura da nutricionista */
+.rf-caixa{border:1px solid var(--borda-suave);border-left:3px solid var(--dourado);border-radius:10px;padding:10px 12px;margin:6px 0 8px}
+.rf-tag{color:var(--titulo)}
+.rf-bloco{margin:8px 0 0;font-size:.88rem;line-height:1.5}
+.rf-bloco p{margin:2px 0 0}
+.rf-cadeia{list-style:none;margin:4px 0;padding:0}
+.rf-cadeia li{border:1px solid var(--borda-suave);border-radius:8px;padding:6px 10px;margin:0;position:relative}
+.rf-cadeia li+li{margin-top:18px}
+.rf-cadeia li+li::before{content:"↓";position:absolute;top:-17px;left:14px;color:var(--texto-suave)}
+.rf-cadeia b{font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--texto-suave)}
+.rf-cadeia p{margin:2px 0 0}
+.rf-pend summary{cursor:pointer;font-size:.8rem;color:#c0714f;margin-top:8px}
+.rf-pend ul{margin:4px 0 0 18px;padding:0;font-size:.8rem}
+@media print{.rf-caixa,.rf-cadeia li{break-inside:avoid}}
 .rh-respostas{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:4px;font-size:.82rem}
 .rh-respostas li{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dotted var(--borda-suave);padding:3px 0}
 .rh-resp{white-space:nowrap;color:var(--titulo)}

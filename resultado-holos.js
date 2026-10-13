@@ -250,7 +250,7 @@
       var degraus = ["r1", "r2", "r3", "r4", "r5"].filter(function (k) { return tem(r[k]); });
       html = (tem(r.objetivo) ? linhaCampo("Objetivo declarado", r.objetivo) : "") +
         (degraus.length ? '<ol class="rh-escada">' + degraus.map(function (k) { return "<li>" + e(r[k]) + "</li>"; }).join("") + "</ol>" : "") +
-        (tem(r.verdadeiro) ? linhaCampo("O verdadeiro motivo, nas palavras registradas", r.verdadeiro) : "");
+        (tem(r.verdadeiro) ? linhaCampo("Síntese construída com a paciente", r.verdadeiro) : "");
     } else {
       if (f.visualizacao && window.RegistroVisual) html += '<div class="rh-visual">' + window.RegistroVisual.desenhar(f, r) + "</div>";
       if (!f.visualizacao) html += corpoGenerico(f, r, paciente);
@@ -271,19 +271,43 @@
   /* Resultado estruturado da ferramenta (decisao 2, item 180): organiza o registro, sem score nem interpretacao.
      Profissional: o fechamento + o registro completo (recolhido). Paciente: so o fechamento (sem o que e so da
      profissional; a Carta ao Futuro Eu aparece so como "realizada") e, nos registros visuais, o desenho. */
+  /* 12/10 (motor de resultados, item 27): o que so reorganiza o preenchido e REGISTRO DA FERRAMENTA */
   function fechamentoHtml(t, paciente) {
     var FF = window.FerramentasFechamento, S = window.ResultadoSintese;
     if (!FF || !S) return "";
     var x = FF.de(t); x.nome = defFerr(t.ferramenta_id).titulo;
-    return '<div class="rh-fech-caixa"><span class="rh-tag">Resultado estruturado</span>' + S.htmlFechamento(x, paciente) + "</div>";
+    return '<div class="rh-fech-caixa"><span class="rh-tag">Registro da ferramenta</span>' + S.htmlFechamento(x, paciente) + "</div>";
   }
-  function cartaoFerramenta(t, paciente) {
-    var f = defFerr(t.ferramenta_id);
+  /* RESULTADO DA FERRAMENTA (motor de resultados V1, itens 16-26): 1. o que apareceu · 2. o que significa (so com texto
+     aprovado) · 3. o que pode mudar no acompanhamento · 4. proximo passo possivel. Paciente: sem os itens so da
+     profissional (nomes de terceiros, justificativa, notas, observacoes) e sem pendencias. */
+  function htmlResultadoFerr(x, paciente) {
+    if (!x) return "";
+    var ap = (x.apareceu || []).filter(function (i) { return !paciente || !i.so_profissional; });
+    var elos = ap.filter(function (i) { return i.elo; }), soltos = ap.filter(function (i) { return !i.elo; });
+    var h = '<div class="rf-caixa" data-rf-motor="' + e(x.motor) + '"><span class="rh-tag rf-tag">Resultado da ferramenta</span>';
+    h += '<div class="rf-bloco"><span class="sf-rot">O que apareceu</span>' +
+      (elos.length ? '<ol class="rf-cadeia">' + elos.map(function (i) { return "<li><b>" + e(i.rotulo) + "</b><p>" + e(i.valor) + "</p></li>"; }).join("") + "</ol>" : "") +
+      (soltos.length ? soltos.map(function (i) { return '<div class="rh-campo"><span>' + e(i.rotulo) + "</span><p>" + e(i.valor).replace(/\n/g, "<br>") + "</p></div>"; }).join("") : "") +
+      (!ap.length ? '<p class="rh-vazio">Nada registrado para mostrar aqui.</p>' : "") + "</div>";
+    if (x.significa) h += '<div class="rf-bloco"><span class="sf-rot">O que isso significa nesta ferramenta</span><p>' + e(x.significa) + "</p></div>";
+    if (x.muda) h += '<div class="rf-bloco"><span class="sf-rot">O que isso pode mudar no acompanhamento</span><p>' + e(x.muda) + "</p></div>";
+    if (x.proximo) h += '<div class="rf-bloco"><span class="sf-rot">Próximo passo possível</span><p>' + e(x.proximo) + "</p></div>";
+    if (!paciente && (x.pendencias || []).length) h += '<details class="rf-pend"><summary>Pendências metodológicas (' + x.pendencias.length + ")</summary><ul>" + x.pendencias.map(function (p) { return "<li>" + e(p) + "</li>"; }).join("") + "</ul></details>";
+    return h + "</div>";
+  }
+  function cartaoFerramenta(t, paciente, todas) {
+    var f = defFerr(t.ferramenta_id), FF = window.FerramentasFechamento;
+    var res = FF && FF.resultado ? FF.resultado(t, todas || []) : null;
+    if (res) res.nome = f.titulo;
     var fech = fechamentoHtml(t, paciente);
     var corpo;
-    if (!fech) corpo = corpoFerramenta(t, paciente);
-    else if (paciente) corpo = fech + (t.ferramenta_id !== "carta_futuro" && f.visualizacao && window.RegistroVisual ? '<div class="rh-visual">' + window.RegistroVisual.desenhar(f, t.respostas || {}) + "</div>" : "");
-    else corpo = fech + '<details class="rh-registro"><summary>Registro completo da aplicação</summary>' + corpoFerramenta(t, false) + "</details>";
+    if (!res && !fech) corpo = corpoFerramenta(t, paciente);
+    /* paciente: so o RESULTADO (sem formulario inteiro, sem desenho com nomes de terceiros, sem a Carta) — itens 31-33 */
+    else if (paciente) corpo = res ? htmlResultadoFerr(res, true) : fech;
+    else corpo = htmlResultadoFerr(res, false) +
+      (tem(t.leitura) ? '<div class="rh-leitura-ferr rf-leitura"><span class="rh-tag">Leitura da nutricionista</span><p>' + e(t.leitura) + "</p></div>" : "") +
+      '<details class="rh-registro"><summary>Registro da ferramenta (como foi preenchido)</summary>' + fech + corpoFerramenta(t, false) + "</details>";
     return '<article class="rh-ferr' + (f.visualizacao ? " rh-ferr-largo" : "") + '" data-rh-ferr-snap="' + e(t.ferramenta_id) + '">' +
       '<header class="rh-ferr-topo"><h5>' + e(f.titulo) + "</h5>" +
       '<span class="rh-ferr-meta">' + e(dataBR(t.concluida_em || t.iniciada_em)) + (paciente ? "" : " · " + e(t.status === "revisada" ? "revisada" : "concluída") +
@@ -293,16 +317,19 @@
   function mapaProposito(snap, paciente) {
     var fs = snap.ferramentas || [], oq3 = fs.filter(function (t) { return t.ferramenta_id === "oq3"; })[0], pqq = fs.filter(function (t) { return t.ferramenta_id === "pqq"; })[0];
     if (!oq3 || !pqq) return "";
-    /* OQ3 + PQQ -> Mapa do Proposito: a unica relacao ferramenta -> ferramenta homologada (opcional, item 180) */
-    if (window.FerramentasFechamento && !window.FerramentasFechamento.propositoDisponivel(fs)) return "";
+    /* OQ3 + PQQ -> Mapa do Proposito: a unica relacao ferramenta -> ferramenta homologada (opcional, item 180).
+       Motor de resultados V1 (item 23): FerramentasFechamento.resultadoProposito (= proposito() aprovado); no template 4
+       a versao derivada vem congelada do servidor (snapshot.derivados.mapa_proposito, com as aplicacoes fonte). */
+    var FF = window.FerramentasFechamento;
+    if (!FF) return "";
     if (paciente && !(oq3.mostrar_paciente && pqq.mostrar_paciente)) return "";
-    var a = oq3.respostas || {}, b = pqq.respostas || {};
+    var x = FF.resultadoProposito(fs, snap.derivados ? snap.derivados.mapa_proposito : null);
+    if (!x) return "";
+    var fontes = (x.fontes || []).map(function (f) { return (f.ferramenta_id === "oq3" ? "OQ³" : "PQQ") + (f.concluida_em ? " de " + dataBR(f.concluida_em) : ""); }).join(" + ");
     return '<article class="rh-ferr rh-ferr-mapa" data-rh-ferr-snap="mapa_proposito"><header class="rh-ferr-topo"><h5>Mapa do Propósito</h5>' +
-      '<span class="rh-ferr-meta">montado a partir do OQ³ e do PQQ selecionados · aprofundamento opcional</span></header>' +
-      '<div class="rh-mapa-grade">' +
-      [["Quer", a.quer], ["Precisa", a.precisa], ["Consegue", a.consegue], ["Objetivo", b.objetivo], ["Propósito registrado", b.verdadeiro]]
-        .map(function (k) { return '<div class="rh-mapa-item"><span>' + e(k[0]) + "</span><p>" + (tem(k[1]) ? e(k[1]) : "—") + "</p></div>"; }).join("") +
-      "</div></article>";
+      '<span class="rh-ferr-meta">derivado de ' + e(fontes || "OQ³ + PQQ") + " · aprofundamento opcional</span></header>" +
+      htmlResultadoFerr(x, paciente) +
+      (!paciente && x.derivado_agora ? '<p class="rh-nota-tec">Gerado com o motor de resultados atual a partir do registro histórico.</p>' : "") + "</article>";
   }
 
   /* ---------- desenho: resumo de cada eixo (visao conjunta, sem conclusao) -- */
@@ -316,7 +343,7 @@
     else switch (t.ferramenta_id) {
       case "oq3": add("Quer", r.quer); add("Precisa", r.precisa); add("Consegue", r.consegue); break;
       case "linha_momentum": add("Estado registrado", r.estado_confirmado); add("O que sustenta", r.sustenta); add("O que limita", r.limita); break;
-      case "pqq": add("Objetivo", r.objetivo); add("Verdadeiro motivo", r.verdadeiro); break;
+      case "pqq": add("Objetivo", r.objetivo); add("Síntese construída com a paciente", r.verdadeiro); break;
       case "mapa_crencas": add("Crenças", r.crencas); add("Alternativa", r.alternativa); break;
       case "roda_vida": add("Área que puxa para baixo (registrada)", r.puxa); break;
       case "carta_futuro": add("Para quando", r.para_quando); break;
@@ -434,7 +461,7 @@
       if (paciente && !doEixo.length && !mapa) return;
       html += '<section class="rh-secao rh-eixo rh-eixo-' + x[0] + '" aria-labelledby="rh-t-' + x[0] + '"><h3 id="rh-t-' + x[0] + '">' + e(x[1]) + "</h3>" +
         (paciente ? '<p class="rh-intro">Foi registrado nesta avaliação:</p>' : "") +
-        (doEixo.length || mapa ? '<div class="rh-ferrs">' + mapa + doEixo.map(function (t) { return cartaoFerramenta(t, paciente); }).join("") + "</div>"
+        (doEixo.length || mapa ? '<div class="rh-ferrs">' + mapa + doEixo.map(function (t) { return cartaoFerramenta(t, paciente, snap.ferramentas || []); }).join("") + "</div>"
           : '<p class="rh-vazio">Nenhuma ferramenta de ' + e(x[1]) + " selecionada para este resultado.</p>") + "</section>";
     });
 

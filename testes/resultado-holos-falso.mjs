@@ -102,6 +102,16 @@ export function criarResultadoHolos(s, ctx) {
       slots.forEach(sx => { const e = PPm.escolher(regras, sx, usadas, concluidas); if (e) { usadas.push(e.tool_id); sel.push(Object.assign(e, { papel: sel.length ? 'complementar' : 'principal', slot: sel.length + 1 })); } });
       pp.pendentes = { concluidas_no_atendimento: concluidas, selection: sel, todas_realizadas: sel.length === 0 && sis.length > 0 };
     }
+    /* MR-V1 (item 23, migration 20261019100000): Mapa do Proposito DERIVADO de OQ3 + PQQ, com as aplicacoes fonte */
+    const temTxt = v => typeof v === 'string' ? v.trim() !== '' : v !== null && v !== undefined;
+    const fOq3 = ferramentas.find(t => t.ferramenta_id === 'oq3'), fPqq = ferramentas.find(t => t.ferramenta_id === 'pqq');
+    const ro = (fOq3 && fOq3.respostas) || {}, rp = (fPqq && fPqq.respostas) || {};
+    const mapaProposito = fOq3 && fPqq && (temTxt(ro.quer) || temTxt(ro.precisa) || temTxt(ro.consegue))
+      && (temTxt(rp.objetivo) || temTxt(rp.verdadeiro) || ['r1', 'r2', 'r3', 'r4', 'r5'].some(k => temTxt(rp[k])))
+      ? { ferramenta_id: 'mapa', motor: 'MR-V1', regra: 'OQ3+PQQ', opcional: true,
+          fontes: [{ ferramenta_id: 'oq3', id: fOq3.id, concluida_em: fOq3.concluida_em ?? null }, { ferramenta_id: 'pqq', id: fPqq.id, concluida_em: fPqq.concluida_em ?? null }],
+          campos: { quer: ro.quer ?? null, importa: rp.verdadeiro ?? null, sustenta: ro.consegue ?? null, direcao: rp.objetivo ?? null } }
+      : null;
     return {
       conteudo: {
         template_version: 4,
@@ -115,6 +125,7 @@ export function criarResultadoHolos(s, ctx) {
           indice: app.indice ?? null, indice_maximo: app.indice_maximo ?? null, avaliavel: app.avaliavel, nota_media: app.nota_media ?? null,
           triada: copia(app.triada ?? null), triada_com_dado: copia(app.triada_com_dado ?? null), interpretacao_texto: app.interpretacao_texto ?? null, sistemas },
         ferramentas,
+        derivados: { mapa_proposito: mapaProposito },
         proximos_passos: pp,
         visibilidade: { proximos_passos: ppVis },
         exames: { incluidos: false, nota: 'Exames e Leitura Integrada nao fazem parte desta versao do Resultado HOLOS.' }
