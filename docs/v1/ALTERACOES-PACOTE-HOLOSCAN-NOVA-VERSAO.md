@@ -1,6 +1,6 @@
 # ALTERAÇÕES DO PACOTE HOLOSCAN — HOLOS-V1 v4 (decisões de 13/10/2026)
 
-**Status:** PUBLICADO EM PRODUÇÃO como **HOLOS-V1 v4** em 13/10/2026 (seção 9.2). Falta o smoke test com paciente fictícia.
+**Status:** PUBLICADO EM PRODUÇÃO como **HOLOS-V1 v4** em 13/10/2026 (seção 9.2). Smoke test em produção feito (seção 9.3).
 
 > **Por que v4 e não v3 (incidente de 13/10, 05:37 UTC).** Depois do deploy do front `74d0286` e da migration da publicação direta, o login do responsável metodológico rodou num navegador que ainda tinha o **front antigo** (`46cab4e`) carregado. Esse front trazia o **rascunho de 12/10** e o publicou como **HOLOS-V1 v3**.
 > - Conteúdo da v3 publicada: 82 perguntas, com textos revisados, trocas e ESP-404. **Não** tem as decisões de 13/10.
@@ -262,6 +262,36 @@ Front `4065f57` no ar (72/72). Todas as abas foram fechadas e o responsável met
   - emissões 3 `5871721f…`;
   - relatórios 2 `5f50be5b…`;
   - Próximos Passos 3 `821a37ba…`.
+
+### 9.3 Smoke test em produção (13/10/2026, paciente fictícia, depois arquivada)
+
+Feito pela tela (Cowork) e conferido no banco, só por leitura.
+
+**Tela**
+- botão "Aplicar HOLOSCAN" sem número;
+- nenhuma quantidade de perguntas na tela de preenchimento;
+- sem as perguntas de PCR/VHS e de triglicerídeos/HDL;
+- HOLOSCAN salvo, Resultado HOLOS salvo;
+- sem Resultado Final, PDF ou WhatsApp.
+
+**Banco**
+- 1 aplicação na v4, com 82 respostas;
+- 0 respostas de SNT-210/309;
+- denominadores 12/11/10/12/37;
+- 1 Resultado HOLOS e 1 registro de Próximos Passos.
+
+**Sinais dominantes (MR-V1)**
+- Fúngico: ESP-501, SNT-101, SNT-102;
+- Ácido Inflamatório: ESP-203, ESP-404, SNT-201;
+- Metabólico: ESP-101, ESP-103, ESP-303;
+- Detox e Linfático: ESP-405, ESP-502, SNT-401;
+- Mental Emocional Espiritual: EMO-101, EMO-102, EMO-103.
+
+Batem com o caso F2 do comparativo. Nenhuma EMO aparece em sistema físico.
+
+**PP-V1:** PQQ (principal), Mapa da Rotina e Mapa de Crenças Alimentares.
+
+**Observação.** As perguntas ESP que aparecem nos sistemas físicos são as 8 do Lote 2, ainda EM ABERTO. As decisões de 13/10 não as moveram. As contextuais EMO-502 e EMO-504 com o Metabólico (sem pontuar) também ficaram como na v2. Mudar isso exige decisão nova e uma v5.
 
 ## 10. Rollback
 
