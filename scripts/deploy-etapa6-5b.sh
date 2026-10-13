@@ -1,12 +1,12 @@
 #!/bin/sh
-# HOLOHACKING — deploy do front na VPS (passos 4 a 11). Versao atual: 4065f57 = HOLOS-V1 v4 (decisoes de 13/10; retira a v3 publicada por engano) + HOLOSCAN sem quantidade de perguntas. Depois do deploy: FECHAR TODAS AS ABAS e entrar numa aba nova.
+# HOLOHACKING — deploy do front na VPS (passos 4 a 11). Versao atual: b45536a = HOLOS-V1 v5 (Lote 2B). Antes do deploy: migration 20261020100000 (pergunta so contextual). Depois: FECHAR TODAS AS ABAS e entrar numa aba nova.
 # SQL do MR-V1 (MOTOR-RESULTADOS-PARTE1..3) JA APLICADO no banco em 13/10 03:24-03:29 UTC. Imagem conferida antes (72/72). Rodar NA VPS:
 #   sh deploy-etapa6-5b.sh            -> passos 4-8 (estado, codigo, build, container temporario 8082). NAO troca producao.
 #   sh deploy-etapa6-5b.sh swap       -> passos 9-11 (troca 8080, valida local e publico). So depois de conferir o 1o.
 # Para sozinho em qualquer divergencia. Nunca apaga container. Nao usa credencial.
 set -eu
-ESPERADO=4065f576f35b15e9e8d7beaa7e8fa056ea5952c3
-CURTO=4065f57
+ESPERADO=b45536a43e352e80c35fbc1aa43a7f0beab2e962
+CURTO=b45536a
 DIR=/opt/holohacking
 IMG=holohacking-web:$CURTO
 PROD=holohacking-web
