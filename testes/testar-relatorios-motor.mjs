@@ -14,6 +14,7 @@ import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 import { criarServidor, ligarPagina } from './supabase-falso.mjs';
 import { semearHolosAprovado, payloadOficial } from './holos-aprovado.mjs';
+import { comFoco } from './fixture-direcao.mjs';
 
 let falhou = false;
 const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
@@ -37,8 +38,8 @@ const T = [tool('oq3', { quer: 'QUER_FICT', precisa: 'PRECISA_FICT', consegue: '
   tool('linha_momentum', { energia: 4, carga: 6, controle: 5, suporte: 6, espaco: 4, estabilidade: 5, sustenta: 'S', limita: 'L', nao_pedir: 'N', estado_confirmado: 'reorganizar', justificativa_estado: 'J' }),
   tool('gatilhos_respostas_v1', { gatilho: 'g', pensamento: 'p', emocao: 'e', resposta: 'r', alternativa: 'a' })];
 const vis = {}; T.forEach(id => { vis[id] = { mostrar: true }; });
-const R = rpc('salvar_resultado_holos', { payload: { patient_id: PA, encounter_id: EA, holoscan_application_id: HA, tool_application_ids: T, visao_paciente: { ferramentas: vis, proximos_passos: true },
-  leitura_profissional: 'LEITURA_FICT', pontos_acompanhar: 'PONTOS_FICT', questoes_aprofundar: 'QUESTAO_SO_NUTRI' } });
+const R = rpc('salvar_resultado_holos', comFoco({ payload: { patient_id: PA, encounter_id: EA, holoscan_application_id: HA, tool_application_ids: T, visao_paciente: { ferramentas: vis, proximos_passos: true },
+  leitura_profissional: 'LEITURA_FICT', pontos_acompanhar: 'PONTOS_FICT', questoes_aprofundar: 'QUESTAO_SO_NUTRI' } }));
 if (R.error) throw new Error(R.error.message);
 const C1 = ins('conducts', { patient_id: PA, encounter_id: EA, status: 'salvo', revision_number: 1, objective: 'OBJETIVO_COND', nutrition_strategy: 'ESTRATEGIA_COND', actions: 'ACOES_COND', return_plan: 'RETORNO_COND', monitoring: 'MONITORAMENTO_COND' }).id;
 ins('agreements', { patient_id: PA, conduct_id: C1, description: 'ACORDO_COND', due_text: 'diário', status: 'acordado', position: 1 });
@@ -70,8 +71,8 @@ ok(nut.secoes.join() === '1,2,3,4,5,6,7,8,9,10' && !/A\. HOLOSCAN|G\. Resultado 
 ok(/OBJETIVO_COND/.test(nut.t) && /ACORDO_COND/.test(nut.t) && /MONITORAMENTO_COND/.test(nut.t) && /RETORNO_COND/.test(nut.t) && /LEITURA_FICT/.test(nut.t) && /QUESTAO_SO_NUTRI/.test(nut.t)
   && /Decisão da nutricionista/.test(nut.t) && nut.editor, 'Conduta do atendimento (decisão da nutricionista), monitoramento/retorno, leitura; o editor da interpretação continua');
 ok(/Proveniência técnica/.test(nut.t) && /HOLOS-V1 v/.test(nut.t) && /MR-V1/.test(nut.t), 'seção 10: proveniência técnica em rodapé discreto (pacote, motor, catálogo)');
-ok(/O que entendemos nesta etapa/i.test(pac.t) && /Nosso foco agora/i.test(pac.t) && /O que ficou combinado/i.test(pac.t) && /ACORDO_COND/.test(pac.t) && !/QUESTAO_SO_NUTRI|MONITORAMENTO_COND|Proveniência/.test(pac.t)
-  && !/CARTA_INTIMA_NAO_ENVIAR|Irmã Terceira Ficticia/.test(pac.t), 'relatório "para o paciente" = arquitetura da visão da paciente, sem Carta, terceiros ou campos internos');
+ok(/Sua direção nesta etapa/i.test(pac.t) && /Foco atual/i.test(pac.t) && /Foco ficticio de teste/.test(pac.t) && !/QUESTAO_SO_NUTRI|MONITORAMENTO_COND|Proveniência|LEITURA_FICT/.test(pac.t)
+  && !/CARTA_INTIMA_NAO_ENVIAR|Irmã Terceira Ficticia/.test(pac.t), 'relatório "para o paciente" = a visão da paciente (template 5: direção e foco), sem Carta, terceiros ou campos internos');
 
 /* --- pagina Resultado (o PDF da paciente) --- */
 await A.evaluate((pid) => { window.definirPacienteAtivo(pid); document.querySelector('.nav-item[data-secao="resultado"]').click(); }, PA);
@@ -82,7 +83,7 @@ const rp = await A.evaluate(() => { const d = document.getElementById('rp-doc');
 ok(rp.rodapes === 1 && rp.ultimo === 'FOOTER', 'item 34: PDF da paciente com um rodapé só, no fim (antes: rodapé do Resultado HOLOS no meio, antes da Conduta)');
 ok(!/[0-9a-f]{8}-[0-9a-f]{4}-|hash|REC-|rule|PENDÊNCIA|Pendências metodológicas|homologa|MR-V1|HOLOS-V1/i.test(rp.t) && !/data-pp-regra|rh-pendencias/.test(rp.html),
   'item 34: PDF sem IDs, hash, regra, governança nem pendências');
-ok(rp.pp <= 1 && !/Próximos passos combinados/i.test(rp.t) && /O que ficou combinado/i.test(rp.t), 'item 34: nenhum segundo título "Próximos passos" (os compartilhados ficam numa linha de "O que entendemos"; a Conduta é "O que ficou combinado")');
+ok(rp.pp <= 1 && !/Próximos passos combinados/i.test(rp.t) && /Foco atual/i.test(rp.t), 'item 34: nenhum segundo título "Próximos passos" (template 5: a direção vem do que a nutricionista confirmou)');
 ok(!/CARTA_INTIMA_NAO_ENVIAR|Irmã Terceira Ficticia|verdadeiro motivo/i.test(rp.t) && /A Carta ao Futuro Eu foi realizada como exercício/.test(rp.t),
   'testes 26/27/31: PDF da paciente sem o texto da Carta e sem nomes de terceiros (snapshot do Resultado salvo)');
 ok(!/exame|laborat/i.test(rp.semRodape), 'teste 30: exames continuam fora do documento da paciente (só a negação do rodapé: "não é exame")');

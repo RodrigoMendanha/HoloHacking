@@ -5641,3 +5641,108 @@ body.escuro #secao-pacientes .pac-dado.atraso{color:var(--dourado-claro)}
 .mh-anterior summary,.mh-antigos summary{cursor:pointer;font-size:.86rem;color:var(--realce)}
 .pc-sub-tit{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--texto-suave);margin:0}
 @media (max-width:700px){.mh-lista{grid-template-columns:1fr}.mh-item dt{padding-bottom:0}.mh-item dd{border-top:none;padding-top:2px}}
+
+/* ===========================================================================
+   RESULTADO HOLOS TEMPLATE 5 — direcionamento + estrategias + acompanhamento
+   (resultado-direcao.js). Visao da paciente, PDF e editor profissional.
+   =========================================================================== */
+.rd-doc .rd-cab h2{margin-bottom:.2rem}
+.rd-pilar{margin:1.6rem 0 0;padding:0}
+.rd-pilar-cab{display:flex;flex-wrap:wrap;align-items:baseline;gap:.2rem .8rem;border-bottom:2px solid var(--dourado);padding:0 0 .35rem;margin:0 0 .8rem}
+.rd-pilar-tit{font-family:var(--fonte-display);font-size:1.45rem;font-weight:600;color:var(--titulo);letter-spacing:.01em}
+.rd-pilar-sub{font-size:.85rem;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.08em}
+.rd-secao{background:var(--sup-card);border:1px solid var(--borda-suave);border-radius:14px;padding:.9rem 1.1rem;margin:0 0 .75rem;break-inside:avoid}
+.rd-secao h3{font-family:var(--fonte-display);font-size:1.2rem;color:var(--titulo);margin:0 0 .45rem}
+.rd-lista{list-style:none;margin:0;padding:0;display:grid;gap:.45rem}
+.rd-lista li{border-left:3px solid var(--dourado);padding:.15rem 0 .15rem .7rem;break-inside:avoid}
+.rd-lista p{margin:0;color:var(--texto);line-height:1.5}
+.rd-de{display:block;font-size:.75rem;color:var(--texto-suave);margin-top:.1rem}
+.rd-vazio{margin:0;color:var(--texto-suave);font-style:italic}
+.rd-foco{border:2px solid var(--dourado);background:var(--dourado-bg)}
+.rd-foco-txt{margin:0;font-size:1.15rem;font-weight:500;color:var(--titulo);line-height:1.45}
+.rd-construcao{color:#8a3b12;font-weight:600;letter-spacing:.04em}
+.rd-construcao-selo{display:inline-block;border:1px solid #c2703a;border-radius:999px;padding:.15rem .7rem;font-size:.8rem;background:#fff4ec}
+.rd-cme{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.7rem}
+.rd-territorio{border:1px solid var(--borda-suave);border-radius:12px;padding:.7rem .8rem;background:var(--sup-fundo);break-inside:avoid}
+.rd-territorio h4{margin:0;font-family:var(--fonte-display);font-size:1.1rem;color:var(--titulo)}
+.rd-pergunta{margin:.1rem 0 .5rem;font-size:.85rem;color:var(--texto-suave);font-style:italic}
+.rd-terr-corpo{border-top:4px solid #6f9a6a}.rd-terr-mente{border-top:4px solid #5b7fa3}.rd-terr-espirito{border-top:4px solid var(--dourado)}
+.rd-caminho{list-style:none;margin:0;padding:0 0 0 .9rem;border-left:2px dashed var(--linha);display:grid;gap:.55rem}
+.rd-etapa{position:relative;padding-left:.4rem;break-inside:avoid}
+.rd-etapa::before{content:"";position:absolute;left:-1.3rem;top:.35rem;width:.7rem;height:.7rem;border-radius:50%;background:var(--dourado)}
+.rd-etapa-agora::before{background:var(--realce)}
+.rd-etapa-data{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-suave)}
+.rd-etapa p{margin:.15rem 0 0}
+.rd-antes-agora{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.rd-antes,.rd-agora{border-radius:12px;padding:.6rem .8rem;break-inside:avoid}
+.rd-antes{background:var(--sup-fundo);border:1px dashed var(--linha)}
+.rd-agora{background:var(--dourado-bg);border:1px solid var(--linha)}
+.rd-antes h4,.rd-agora h4{margin:0 0 .3rem;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--texto-suave)}
+.rd-antes p{margin:0}
+.rd-proxima{margin:0;font-weight:500}
+.rd-detalhes{margin-top:1.6rem}
+@media (max-width:720px){.rd-cme,.rd-antes-agora{grid-template-columns:1fr}.rd-secao{padding:.75rem .8rem}}
+
+/* editor profissional */
+.rd-editor{border:2px solid var(--dourado)}
+.rd-editor>legend{font-weight:700;letter-spacing:.06em}
+.rd-status{border-radius:10px;padding:.55rem .8rem;margin:.2rem 0 .7rem;font-weight:600}
+.rd-status-construcao{background:#fff4ec;color:#8a3b12;border:1px solid #c2703a}
+.rd-status-ok{background:rgba(20,80,59,.08);color:var(--realce);border:1px solid rgba(20,80,59,.3)}
+.rd-tipo{display:flex;flex-wrap:wrap;gap:.4rem 1rem;align-items:center;margin:0 0 .5rem}
+.rd-tipo label{display:flex;gap:.3rem;align-items:center}
+.rd-ed-acoes{display:flex;flex-wrap:wrap;gap:.5rem 1rem;align-items:center;margin:.4rem 0 .8rem}
+.rd-sug-msg{font-size:.85rem;color:var(--texto-suave)}
+.rd-ed-pilar{margin:1rem 0 0;padding:.6rem .7rem;border-radius:12px;background:var(--halo)}
+.rd-ed-pilar-tit{margin:0 0 .5rem;font-family:var(--fonte-display);font-size:1.25rem;color:var(--titulo)}
+.rd-ed-pilar-tit small{font-family:var(--fonte-corpo);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--texto-suave);margin-left:.4rem}
+.rd-ed-bloco{background:var(--sup-card);border:1px solid var(--borda-suave);border-radius:10px;padding:.6rem .7rem;margin:0 0 .6rem}
+.rd-ed-bloco h5{margin:0 0 .3rem;font-size:.95rem;color:var(--titulo)}
+.rd-pend,.rd-obrig{font-weight:600;color:#8a3b12;font-size:.75rem;margin-left:.3rem}
+.rd-ed-lista{list-style:none;margin:0 0 .4rem;padding:0;display:grid;gap:.45rem}
+.rd-ed-item{border:1px solid var(--borda-suave);border-radius:9px;padding:.45rem .55rem;background:var(--input-fundo)}
+.rd-ed-sugerido{border-style:dashed;background:var(--sup-fundo)}
+.rd-ed-compartilhado{border-left:4px solid var(--realce)}
+.rd-ed-so_profissional{border-left:4px solid var(--texto-suave)}
+.rd-ed-topo{display:flex;flex-wrap:wrap;gap:.3rem .6rem;align-items:center;margin-bottom:.3rem}
+.rd-estado,.rd-sug-selo{font-size:.68rem;font-weight:700;letter-spacing:.06em;border-radius:999px;padding:.1rem .5rem}
+.rd-estado-sugerido,.rd-sug-selo{background:#eee6d3;color:#5c4a1e}
+.rd-estado-confirmado,.rd-estado-so_profissional{background:#e3e9e6;color:#2b4a3d}
+.rd-estado-compartilhado{background:var(--realce);color:#fff}
+.rd-origem{font-size:.75rem;color:var(--texto-suave)}
+.rd-texto{width:100%;box-sizing:border-box;border:1px solid var(--input-borda);border-radius:7px;padding:.35rem .5rem;font:inherit;background:var(--input-fundo);color:var(--texto);resize:vertical}
+.rd-orig{margin:.2rem 0 0;font-size:.75rem;color:var(--texto-suave)}
+.rd-alerta{margin:.3rem 0;font-size:.8rem;color:#8a3b12;font-weight:600}
+.rd-ed-botoes{display:flex;flex-wrap:wrap;gap:.4rem .8rem;align-items:center;margin-top:.35rem}
+.rd-ed-botoes button{padding:.25rem .7rem;font-size:.82rem}
+.rd-compartilhar{display:flex;gap:.3rem;align-items:center;font-size:.85rem}
+.rd-so-prof{font-size:.8rem;color:var(--texto-suave);font-style:italic}
+.rd-add{display:flex;gap:.4rem;align-items:flex-start}
+.rd-add textarea{flex:1;border:1px solid var(--input-borda);border-radius:7px;padding:.35rem .5rem;font:inherit;background:var(--input-fundo);color:var(--texto)}
+.rd-candidatos{border:1px dashed var(--linha);border-radius:9px;padding:.4rem .55rem;margin:0 0 .4rem;display:grid;gap:.3rem}
+.rd-cand{display:flex;flex-wrap:wrap;gap:.3rem .7rem;align-items:center;justify-content:space-between}
+.rd-cand p{margin:0;flex:1 1 16rem}
+.rd-so-profissional{border:1px dashed var(--texto-suave);border-radius:10px;padding:.55rem .65rem;margin:0 0 .7rem}
+.rd-hist-foco{display:block}
+/* visao profissional do que foi montado */
+.rd-pro-pilar{margin:.6rem 0}
+.rd-pro-pilar h4{margin:.2rem 0 .4rem;font-family:var(--fonte-display);font-size:1.15rem}
+.rd-pro-bloco h5{margin:.4rem 0 .25rem;font-size:.9rem}
+.rd-pro-lista{list-style:none;margin:0;padding:0;display:grid;gap:.35rem}
+.rd-pro-item{border:1px solid var(--borda-suave);border-radius:8px;padding:.35rem .5rem}
+.rd-pro-item p{margin:.2rem 0 .1rem}
+@media print{.rd-secao,.rd-territorio,.rd-lista li,.rd-etapa{break-inside:avoid}.rd-pilar-cab{break-after:avoid}}
+/* no documento da paciente (tela Resultado, PDF, impressao) as cores sao fixas e claras, em qualquer tema */
+.rp-doc .rd-secao{background:#fff;border-color:rgba(29,58,46,.14)}
+.rp-doc .rd-foco{background:#fbf5e8;border-color:#c9a35a}
+.rp-doc .rd-territorio,.rp-doc .rd-antes{background:#faf7ee;border-color:rgba(29,58,46,.14)}
+.rp-doc .rd-agora{background:#fbf5e8}
+.rp-doc .rd-pilar-tit,.rp-doc .rd-secao h3,.rp-doc .rd-territorio h4,.rp-doc .rd-foco-txt{color:#0b3325}
+.rp-doc .rd-lista p,.rp-doc .rd-etapa p,.rp-doc .rd-antes p,.rp-doc .rd-proxima{color:#1d3a2e}
+.rp-doc .rd-pilar-sub,.rp-doc .rd-de,.rp-doc .rd-vazio,.rp-doc .rd-pergunta,.rp-doc .rd-etapa-data,.rp-doc .rd-antes h4,.rp-doc .rd-agora h4{color:#55705f}
+/* editor template 5: contraste dos rotulos e botoes (tema claro e escuro) */
+.rd-editor label,.rd-editor .rd-tipo span,.rd-compartilhar{color:var(--texto)}
+.rd-editor .btn-borda-ouro,.rd-so-prof-grupo .btn-borda-ouro{color:var(--titulo);border-color:var(--dourado-escuro);background:var(--dourado-bg)}
+.rd-editor .btn-borda-ouro:hover,.rd-so-prof-grupo .btn-borda-ouro:hover{background:var(--dourado-suave)}
+.rd-editor .btn-fantasma,.rd-so-prof-grupo .btn-fantasma{color:var(--texto)}
+.rd-sug-origem{background:transparent;border:1px solid #c9b58a;color:#5c4a1e;font-weight:600;text-transform:none;letter-spacing:0}

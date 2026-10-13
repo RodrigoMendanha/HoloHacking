@@ -13,6 +13,7 @@ import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { criarServidor, ligarPagina } from './supabase-falso.mjs';
 import { semearHolosAprovado, payloadOficial } from './holos-aprovado.mjs';
+import { comFoco, comoTemplate4 } from './fixture-direcao.mjs';
 
 let falhou = false;
 const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
@@ -36,11 +37,13 @@ const T_CAR = tool('carta_futuro', { carta: 'CARTA_INTIMA_NAO_MOSTRAR', para_qua
 const reg = rpc('registrar_proximos_passos', { p_application_id: HA });
 const base = { patient_id: PA, encounter_id: EA, holoscan_application_id: HA, tool_application_ids: [T_OQ3, T_GAT, T_CAR],
   visao_paciente: { ferramentas: { [T_OQ3]: { mostrar: true }, [T_GAT]: { mostrar: false }, [T_CAR]: { mostrar: true } } } };
-const R1 = rpc('salvar_resultado_holos', { payload: base });
+const R1 = rpc('salvar_resultado_holos', comFoco({ payload: base }));
+/* template 5 (20261021100000): R1 cobre o desenho dos templates 1-4 (que nao mudou): vira registro historico template 4 */
+comoTemplate4(srv, R1.data);
 const linha1 = srv.linhas('holos_results').find(r => r.id === R1.data);
 ok(!reg.error && !R1.error && linha1.template_version === 4 && linha1.content_snapshot.motor_resultados === 'MR-V1' && linha1.content_snapshot.proximos_passos.registrado === true && linha1.content_snapshot.visibilidade.proximos_passos === false,
   'Resultado HOLOS (template 4 desde o motor de resultados V1: + dominantes por sistema, motor MR-V1): Próximos Passos congelados no snapshot; compartilhar com a paciente DESLIGADO por padrão');
-ok(rpc('salvar_resultado_holos', { payload: Object.assign({}, base, { visao_paciente: { ferramentas: {}, proximos_passos: 'sim' } }) }).error?.hint === 'payload_invalido', 'compartilhamento que não é true/false: recusado');
+ok(rpc('salvar_resultado_holos', comFoco({ payload: Object.assign({}, base, { visao_paciente: { ferramentas: {}, proximos_passos: 'sim' } }) })).error?.hint === 'payload_invalido', 'compartilhamento que não é true/false: recusado');
 
 const nav = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const errosJS = [];
@@ -100,13 +103,16 @@ await A.evaluate((ha, ids, ea) => {
   document.getElementById('rh-compartilhar-pp').click();
 }, HA, [T_OQ3], EA);
 await espera(200);
+/* template 5: finalizar exige o Foco atual confirmado (aqui com XSS de proposito: tem de sair escapado na emissao) */
+await A.evaluate(() => { const x = document.querySelector('[data-rd-novo="foco_atual"]'); x.value = 'Foco Antes <img src=x onerror="window.__xss=1">'; document.querySelector('[data-rd-acao="adicionar"][data-rd-sec="foco_atual"]').click(); });
+await espera(200);
 await A.evaluate(() => document.querySelector('[data-rh-acao="salvar"]').click()); await espera(300);
 await A.evaluate(() => { const b = document.getElementById('modal-confirmar-ok'); if (b) b.click(); }); await espera(1200);
 const R2 = srv.linhas('holos_results').filter(r => r.status !== 'rascunho').sort((a, b) => String(b.saved_at).localeCompare(String(a.saved_at)))[0];
 ok(R2 && R2.id !== R1.data && R2.content_snapshot.visibilidade.proximos_passos === true && R2.selected_sources.visao_paciente.proximos_passos === true, 'switch ligado → snapshot congela visibilidade.proximos_passos = true');
 await A.evaluate(() => document.querySelector('#aba-resultado-holos [data-rh-visao-troca="paciente"]').click()); await espera(700);
 t = await docTxt(A);
-ok(/Próximo aprofundamento sugerido/.test(t) && /Nenhuma é obrigatória/.test(t) && !/Ajuda a localizar|REC-|Aplique o/.test(t), 'Próximos Passos ON: aparecem para a paciente em linguagem simples (só nomes de ferramentas)');
+ok(/O que ainda pode ser aprofundado/.test(t) && /Nenhuma é obrigatória/.test(t) && !/Ajuda a localizar|REC-|Aplique o/.test(t), 'Próximos Passos ON: aparecem para a paciente (template 5: nos Detalhes do mapa) em linguagem simples (só nomes de ferramentas)');
 if (SHOT) { await espera(400); const el = await A.$('#aba-resultado-holos .rh-pp-paciente'); if (el) await el.screenshot({ path: SHOT + '/paciente-pp-on.png' }); }
 
 /* RESULTADO ANTIGO (template 1): nada buscado ao vivo */
@@ -132,10 +138,10 @@ ok(previa.acoes.join(',') === 'Gerar Resultado Final,Abrir na ficha' && previa.s
 await A.evaluate(async () => { document.querySelector('[data-rp-acao="emitir"]').click(); for (let i = 0; i < 50 && !document.querySelector('[data-rp-acao="pdf"]'); i++) await new Promise(r => setTimeout(r, 100)); });
 const em1 = srv.linhas('holos_result_emissions')[0];
 const html1 = await A.evaluate(() => document.getElementById('rp-doc').outerHTML);
-ok(em1 && em1.emission_number === 1 && em1.template_version === 'RF-2' && em1.holos_result_id === R2.id && em1.result_content_hash === R2.content_hash && em1.content_snapshot.conduta.campos.objective === 'Objetivo Antes'
-  && em1.content_snapshot.profissional.nome === 'Nutri Ficticia Antes' && /Nutri Ficticia Antes/.test(html1) && /Objetivo Antes/.test(html1),
-  'emissão gerada: congela Resultado (id + hash), Conduta do atendimento do resultado, nome, CRN e template RF-2');
-ok(!(await A.evaluate(() => window.__xss === 1)) && html1.includes('&lt;img src=x'), 'XSS no texto da Conduta: escapado na emissão');
+ok(em1 && em1.emission_number === 1 && em1.template_version === 'RF-3' && em1.holos_result_id === R2.id && em1.result_content_hash === R2.content_hash && em1.content_snapshot.conduta.campos.objective === 'Objetivo Antes'
+  && em1.content_snapshot.profissional.nome === 'Nutri Ficticia Antes' && /Nutri Ficticia Antes/.test(html1) && /Foco Antes/.test(html1),
+  'emissão gerada (RF-3): congela Resultado (id + hash), foco, Conduta do atendimento do resultado, nome e CRN');
+ok(!(await A.evaluate(() => window.__xss === 1)) && html1.includes('&lt;img src=x') && !/Ação &lt;img|Ação <img/.test(html1), 'XSS no foco: escapado na emissão; a Conduta não vai sozinha para a paciente');
 if (SHOT) { await espera(400); await A.screenshot({ path: SHOT + '/emissao-desktop.png' }); }
 await A.evaluate(() => {
   window.__pdfs = [];
@@ -154,7 +160,7 @@ ok(html1b === html1 && pdfs.length === 2 && pdfs[0] === pdfs[1] && pdfs[0] === h
 await A.evaluate(async () => { document.querySelector('[data-rp-acao="emitir"]').click(); for (let i = 0; i < 50 && !/Depois/.test((document.getElementById('rp-doc') || {}).innerText || ''); i++) await new Promise(r => setTimeout(r, 100)); });
 const em2 = srv.linhas('holos_result_emissions').find(e => e.emission_number === 2);
 const html2 = await A.evaluate(() => document.getElementById('rp-doc').outerHTML);
-ok(em2 && em2.content_snapshot.profissional.nome === 'Nutri Ficticia Depois' && em2.content_snapshot.conduta.campos.objective === 'Objetivo Depois' && /Objetivo Depois/.test(html2) && /CRN-9 9999/.test(html2),
+ok(em2 && em2.content_snapshot.profissional.nome === 'Nutri Ficticia Depois' && em2.content_snapshot.conduta.campos.objective === 'Objetivo Depois' && /Nutri Ficticia Depois/.test(html2) && /CRN-9 9999/.test(html2),
   'nova emissão usa os dados novos (nome, CRN, Conduta)');
 await A.evaluate(async (id) => { document.querySelector('.rp-emissoes').open = true; document.querySelector('[data-rp-acao="ver-emissao"][data-rp-em="' + id + '"]').click(); await new Promise(r => setTimeout(r, 600)); }, em1.id);
 const html1c = await A.evaluate(() => document.getElementById('rp-doc').outerHTML);

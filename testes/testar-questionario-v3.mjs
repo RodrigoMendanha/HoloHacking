@@ -16,6 +16,7 @@ import puppeteer from 'puppeteer-core';
 import { criarServidor, ligarPagina } from './supabase-falso.mjs';
 import { semearHolosAprovado, payloadOficial, candidatoV1 } from './holos-aprovado.mjs';
 import { readFileSync } from 'node:fs';
+import { comFoco } from './fixture-direcao.mjs';
 
 let falhou = false;
 const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
@@ -33,7 +34,7 @@ const PV = ins('patients', { nome: 'Paciente V2 Ficticia' }).id;
 const EV = ins('encounters', { patient_id: PV, occurred_at: new Date(Date.now() - 86400000 * 5).toISOString(), timezone: 'America/Sao_Paulo', type: 'consulta', modality: 'presencial' }).id;
 const HV = rpc('salvar_holoscan_completo', { payload: payloadOficial(srv, v2.id, { patient_id: PV, encounter_id: EV, quando: new Date(Date.now() - 86400000 * 5).toISOString().slice(0, 10) }) }).data;
 /* ... com Resultado HOLOS salvo e Resultado Final emitido (RF) no v2 */
-const RV = rpc('salvar_resultado_holos', { payload: { patient_id: PV, encounter_id: EV, holoscan_application_id: HV, tool_application_ids: [], operation_id: 'op-v2-ficticia' } });
+const RV = rpc('salvar_resultado_holos', comFoco({ payload: { patient_id: PV, encounter_id: EV, holoscan_application_id: HV, tool_application_ids: [], operation_id: 'op-v2-ficticia' } }));
 if (RV.error) throw new Error('salvar_resultado_holos v2: ' + RV.error.message);
 const EMV = rpc('emitir_resultado_final', { payload: { holos_result_id: RV.data, operation_id: 'em-v2-ficticia' } });
 if (EMV.error) throw new Error('emitir_resultado_final v2: ' + EMV.error.message);

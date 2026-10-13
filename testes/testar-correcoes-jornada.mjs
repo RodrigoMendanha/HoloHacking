@@ -9,6 +9,7 @@ import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { criarServidor, ligarPagina } from './supabase-falso.mjs';
 import { semearHolosAprovado, payloadOficial } from './holos-aprovado.mjs';
+import { comFoco, comoTemplate4 } from './fixture-direcao.mjs';
 
 let falhou = false;
 const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
@@ -36,8 +37,11 @@ const original = sel(REG.selection);
 titulo('B1 — PROXIMOS PASSOS SEM AS FERRAMENTAS JA FEITAS');
 /* as duas primeiras sugeridas feitas no atendimento (como PQQ + Mapa da Rotina no teste real) */
 const T1 = ferramenta(PA, EA, original[0]).id, T2 = ferramenta(PA, EA, original[1]).id;
-const R1 = rpc('salvar_resultado_holos', { payload: { patient_id: PA, encounter_id: EA, holoscan_application_id: HA, tool_application_ids: [T1, T2],
-  visao_paciente: { ferramentas: { [T1]: { mostrar: true }, [T2]: { mostrar: true } }, proximos_passos: true } } });
+const R1 = rpc('salvar_resultado_holos', comFoco({ payload: { patient_id: PA, encounter_id: EA, holoscan_application_id: HA, tool_application_ids: [T1, T2],
+  visao_paciente: { ferramentas: { [T1]: { mostrar: true }, [T2]: { mostrar: true } }, proximos_passos: true } } }));
+/* template 5 (20261021100000): este teste cobre o desenho dos templates 1-4 (que nao mudou); o Resultado vira um registro
+   historico template 4, como os que ja existem em producao */
+comoTemplate4(srv, R1.data);
 const snap = srv.linhas('holos_results').find(r => r.id === R1.data).content_snapshot;
 const pend = sel(snap.proximos_passos.pendentes.selection);
 ok(snap.template_version === 4 && pend.length >= 1 && !pend.includes(original[0]) && !pend.includes(original[1]),
@@ -78,7 +82,8 @@ ok(/sem as já realizadas neste atendimento/.test(t) && t.includes(NOME[pend[0]]
 /* tudo feito: mensagem neutra */
 const todas = ['oq3', 'pqq', 'linha_momentum', 'mapa_crencas', 'roda_vida', 'carta_futuro', 'mapa_rotina_v1', 'gatilhos_respostas_v1', 'conexao_pertencimento_v1'];
 todas.filter(f => !srv.linhas('tool_applications').some(x => x.encounter_id === EA && x.ferramenta_id === f)).forEach(f => ferramenta(PA, EA, f));
-const R2 = rpc('salvar_resultado_holos', { payload: { patient_id: PA, encounter_id: EA, holoscan_application_id: HA, tool_application_ids: [], visao_paciente: { ferramentas: {}, proximos_passos: true } } });
+const R2 = rpc('salvar_resultado_holos', comFoco({ payload: { patient_id: PA, encounter_id: EA, holoscan_application_id: HA, tool_application_ids: [], visao_paciente: { ferramentas: {}, proximos_passos: true } } }));
+comoTemplate4(srv, R2.data);
 const snap2 = srv.linhas('holos_results').find(r => r.id === R2.data).content_snapshot;
 const sobra = sel(snap2.proximos_passos.pendentes.selection);
 ok(sobra.every(x => x === 'mapa') && (sobra.length || snap2.proximos_passos.pendentes.todas_realizadas === true),

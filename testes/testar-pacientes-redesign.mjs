@@ -15,6 +15,7 @@ import puppeteer from 'puppeteer-core';
 import { createHash } from 'node:crypto';
 import { criarServidor, ligarPagina } from './supabase-falso.mjs';
 import { semearHolosAprovado, payloadOficial } from './holos-aprovado.mjs';
+import { comFoco } from './fixture-direcao.mjs';
 
 let falhou = false;
 const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
@@ -38,7 +39,7 @@ srv.tabelas.patients.find(p => p.id === PA).status = 'inativo';
 /* Helena: HOLOSCAN salvo + Resultado HOLOS + Resultado Final emitido; consulta marcada a frente */
 const eH = enc(PH, 10);
 const h1 = rpc('salvar_holoscan_completo', { payload: payloadOficial(srv, pk.id, { patient_id: PH, encounter_id: eH, quando: dia(-10) }) }).data;
-const rH = rpc('salvar_resultado_holos', { payload: { patient_id: PH, encounter_id: eH, holoscan_application_id: h1, tool_application_ids: [] } }).data;
+const rH = rpc('salvar_resultado_holos', comFoco({ payload: { patient_id: PH, encounter_id: eH, holoscan_application_id: h1, tool_application_ids: [] } })).data;
 rpc('emitir_resultado_final', { payload: { holos_result_id: rH } });
 ins('consultations', { patient_id: PH, data: dia(5), hora: '14:00:00', tipo: 'retorno' });
 const digitais = () => createHash('sha256').update(JSON.stringify(['holoscan_applications', 'holoscan_system_scores', 'holoscan_answers', 'tool_applications',

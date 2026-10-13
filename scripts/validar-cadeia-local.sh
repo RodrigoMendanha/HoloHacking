@@ -124,5 +124,11 @@ cd "$(dirname "$0")/.."
   # HOLOS-V1 v6 (fechamento das 61, 13/10): sem migration; gravada e publicada sobre a v5, historico identico.
   cat supabase/tests/pacote-v6-doc.sql
   cat supabase/tests/pacote-v6-harness.sql
+  # Resultado HOLOS template 5 (20261021100000): direcao (direcionamento + estrategias + acompanhamento da evolucao),
+  # projecao da paciente no servidor (hipotese nunca), foco obrigatorio para finalizar/emitir, emissao RF-3, caminho do retorno.
+  for f in supabase/migrations/2026102110*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/resultado-direcao-harness.sql
   echo "rollback;"
 } | psql -U postgres -d base -v ON_ERROR_STOP=1 -At | tr '|' '\n' | sed 's/^ //'

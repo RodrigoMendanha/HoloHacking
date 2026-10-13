@@ -10,6 +10,7 @@ import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { criarServidor, ligarPagina } from './supabase-falso.mjs';
 import { semearHolosAprovado, payloadOficial } from './holos-aprovado.mjs';
+import { comFoco } from './fixture-direcao.mjs';
 
 let falhou = false;
 const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
@@ -31,14 +32,14 @@ rpc('registrar_proximos_passos', { p_application_id: HA });
 const conc = new Date(Date.now() - 86400000 + 3600000).toISOString();
 const tool = (id, r) => ins('tool_applications', { patient_id: PA, encounter_id: EA, ferramenta_id: id, versao_ferramenta: '1', status: 'concluida', respostas: r, iniciada_em: conc, concluida_em: conc }).id;
 const T_OQ3 = tool('oq3', { quer: 'ter energia', precisa: 'dormir melhor', consegue: 'caminhar 10 min' });
-const R = rpc('salvar_resultado_holos', { payload: { patient_id: PA, encounter_id: EA, holoscan_application_id: HA, tool_application_ids: [T_OQ3],
-  visao_paciente: { ferramentas: { [T_OQ3]: { mostrar: true } }, proximos_passos: false } } });
+const R = rpc('salvar_resultado_holos', comFoco({ payload: { patient_id: PA, encounter_id: EA, holoscan_application_id: HA, tool_application_ids: [T_OQ3],
+  visao_paciente: { ferramentas: { [T_OQ3]: { mostrar: true } }, proximos_passos: false } } }));
 /* a Conduta do atendimento do resultado e uma Conduta MAIS RECENTE de outro atendimento */
 ins('conducts', { patient_id: PA, encounter_id: EA, status: 'salvo', revision_number: 1, objective: 'OBJETIVO_DO_ATENDIMENTO_DO_RESULTADO' });
 ins('conducts', { patient_id: PA, encounter_id: E_DEPOIS, status: 'salvo', revision_number: 1, objective: 'OBJETIVO_DE_OUTRO_ATENDIMENTO' });
 const linhaR = srv.linhas('holos_results').find(r => r.id === R.data);
-ok(!R.error && linhaR.template_version === 4 && linhaR.content_snapshot.motor_resultados === 'MR-V1' && linhaR.content_snapshot.holoscan.sistemas.every(s => Array.isArray(s.dominantes) && s.dominantes.length <= 3),
-  'Resultado HOLOS novo: template 4, motor MR-V1, até 3 sinais dominantes por sistema no snapshot');
+ok(!R.error && linhaR.template_version === 5 && linhaR.content_snapshot.motor_resultados === 'MR-V1' && linhaR.content_snapshot.holoscan.sistemas.every(s => Array.isArray(s.dominantes) && s.dominantes.length <= 3),
+  'Resultado HOLOS novo: template 5 (20261021100000; o template 4 acrescido da direção), motor MR-V1, até 3 sinais dominantes por sistema no snapshot');
 const pkQ = Object.fromEntries(srv.linhas('methodology_questions').filter(x => x.package_id === pk.id).map(x => [x.stable_id, x.statement]));
 ok(linhaR.content_snapshot.holoscan.sistemas.every(s => s.dominantes.every(d => d.enunciado === pkQ[d.question_id] && d.pontos > 0)),
   'sinais dominantes do snapshot com o texto APROVADO da pergunta no pacote (e contribuição real > 0)');
@@ -103,12 +104,12 @@ ok(dom.todos && !/marcador inflamatório alterado no exame/i.test(dom.lista), '4
 titulo('CONDUTA DA PREVIA E DA EMISSAO (item 4.6)');
 await A.evaluate(async (pid) => { window.definirPacienteAtivo(pid); document.querySelector('.nav-item[data-secao="resultado"]').click(); for (let i = 0; i < 60 && !document.getElementById('rp-doc'); i++) await new Promise(r => setTimeout(r, 100)); }, PA);
 let pg = await A.evaluate(() => (document.getElementById('resultado-pagina-corpo') || {}).innerText || '');
-ok(/OBJETIVO_DO_ATENDIMENTO_DO_RESULTADO/.test(pg) && !/OBJETIVO_DE_OUTRO_ATENDIMENTO/.test(pg), 'prévia da página Resultado: a Conduta do atendimento do resultado (não a mais recente de outro atendimento)');
+ok(/Foco ficticio de teste/.test(pg) && !/OBJETIVO_DE_OUTRO_ATENDIMENTO/.test(pg), 'prévia da página Resultado (template 5): o foco confirmado; nada da Conduta de outro atendimento');
 await A.evaluate(async () => { document.querySelector('[data-rp-acao="emitir"]').click(); for (let i = 0; i < 60 && !/Resultado Final nº/.test(document.getElementById('resultado-pagina-corpo').innerText); i++) await new Promise(r => setTimeout(r, 100)); });
 const em = (srv.linhas('holos_result_emissions') || [])[0];
 pg = await A.evaluate(() => (document.getElementById('rp-doc') || {}).innerText || '');
-ok(em && em.template_version === 'RF-2' && em.content_snapshot.conduta.campos.objective === 'OBJETIVO_DO_ATENDIMENTO_DO_RESULTADO' && /OBJETIVO_DO_ATENDIMENTO_DO_RESULTADO/.test(pg) && !/OBJETIVO_DE_OUTRO_ATENDIMENTO/.test(pg),
-  'emissão RF-2: congela e mostra a Conduta do atendimento do resultado');
+ok(em && em.template_version === 'RF-3' && em.content_snapshot.conduta.campos.objective === 'OBJETIVO_DO_ATENDIMENTO_DO_RESULTADO' && !/OBJETIVO_DE_OUTRO_ATENDIMENTO/.test(pg),
+  'emissão RF-3: congela a Conduta do atendimento do resultado (regra RF-2 mantida), nunca a de outro atendimento');
 
 titulo('RELATORIO (item 4.4)');
 const rel = rpc('emitir_relatorio', { payload: { patient_id: PA, title: 'Relatório fictício', selected_sources: { holoscan_application_ids: [HA] } } });
@@ -119,8 +120,8 @@ ok(!rel.error && /pacote metodológico oficial aprovado \(HOLOS-V1 v2\)/.test(re
 /* commit 2 (itens 5-14): o fechamento dos cinco sistemas no documento do Resultado HOLOS */
 ok(/1ª área para aprofundar/.test(doc.prof) && /2ª área para aprofundar/.test(doc.prof) && /O que este eixo organiza/i.test(doc.prof) && /O que isso significa dentro do HOLOSCAN/i.test(doc.prof)
   && /O que isso não significa/i.test(doc.prof) && /Alguns dos sinais que mais contribuíram para este eixo nesta aplicação/.test(doc.prof) && /Pontuou neste sistema/.test(doc.prof)
-  && /O que este eixo reúne/i.test(doc.pac) && /Este eixo reúne/.test(doc.pac) && !/Categoria autoral|Não possui significado clínico independente/.test(doc.pac) && /Essa nota, sozinha, não indica uma condição de saúde/.test(doc.pac) && !/PENDÊNCIA|respondidas/.test(doc.pac),
-  'fechamento A-G de cada sistema no Resultado (profissional com o registro completo; paciente sem pendência nem cobertura)');
+  && /Detalhes do mapa/.test(doc.pac) && /Este eixo reúne/.test(doc.pac) && /1ª área para aprofundar/.test(doc.pac) && !/Categoria autoral|Não possui significado clínico independente/.test(doc.pac) && /não representa doença, gravidade ou diagnóstico/.test(doc.pac) && !/PENDÊNCIA|respondidas/.test(doc.pac),
+  'fechamento A-G de cada sistema no Resultado (profissional com o registro completo); paciente (template 5): sistemas compactos nos Detalhes do mapa, sem pendência nem cobertura');
 ok(errosJS.length === 0, 'nenhum erro de JavaScript' + (errosJS.length ? ': ' + errosJS.join(' | ') : ''));
 await nav.close();
 console.log(falhou ? '\nFALHOU' : '\nmotor de resultados: tudo ok');

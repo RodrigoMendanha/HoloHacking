@@ -102,7 +102,7 @@ const COLUNAS = {
   /* Resultado HOLOS (migration 20261009100000): leitura so da propria; escrita SO pelas RPCs (resultado-holos-falso.mjs) */
   holos_results: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'status', 'revision_number', 'supersedes_id', 'superseded_at', 'holoscan_application_id',
     'selected_sources', 'leitura_profissional', 'pontos_acompanhar', 'questoes_aprofundar', 'content_snapshot', 'source_snapshot', 'content_hash', 'template_version',
-    'methodology_package_id', 'methodology_package_version', 'methodology_content_hash', 'operation_id', 'saved_at', 'reviewed_at', 'reviewed_by', 'created_at', 'updated_at'],
+    'methodology_package_id', 'methodology_package_version', 'methodology_content_hash', 'operation_id', 'saved_at', 'reviewed_at', 'reviewed_by', 'created_at', 'updated_at', 'direcao'],
   /* Emissao do Resultado Final (migration 20261015100000): leitura so da propria; escrita SO pela RPC emitir_resultado_final */
   holos_result_emissions: ['id', 'nutritionist_id', 'patient_id', 'holos_result_id', 'result_content_hash', 'conduct_id', 'emission_number', 'template_version',
     'content_snapshot', 'content_hash', 'operation_id', 'created_at']

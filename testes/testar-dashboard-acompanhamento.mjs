@@ -12,6 +12,7 @@ import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { criarServidor, ligarPagina } from './supabase-falso.mjs';
 import { semearHolosAprovado, payloadOficial } from './holos-aprovado.mjs';
+import { comFoco } from './fixture-direcao.mjs';
 
 let falhou = false;
 const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
@@ -33,7 +34,7 @@ const convite = (pid, extra) => srv.tabelas.anamnesis_invites.push(Object.assign
   created_at: new Date(Date.now() - 86400000).toISOString(), started_at: null, last_saved_at: null, submitted_at: null, revoked_at: null }, extra || {}));
 const resultado = (pid, eid) => {
   const h = rpc('salvar_holoscan_completo', { payload: payloadOficial(srv, pk.id, { patient_id: pid, encounter_id: eid, quando: dia(-3) }) }).data;
-  const r = rpc('salvar_resultado_holos', { payload: { patient_id: pid, encounter_id: eid, holoscan_application_id: h, tool_application_ids: [] } });
+  const r = rpc('salvar_resultado_holos', comFoco({ payload: { patient_id: pid, encounter_id: eid, holoscan_application_id: h, tool_application_ids: [] } }));
   if (r.error) throw new Error('resultado: ' + r.error.message);
   return r.data;
 };

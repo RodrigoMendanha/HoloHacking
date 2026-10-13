@@ -18,6 +18,7 @@ import puppeteer from 'puppeteer-core';
 import { readFileSync } from 'node:fs';
 import { criarServidor, ligarPagina } from './supabase-falso.mjs';
 import { semearHolosAprovado, semearHistorica, payloadOficial } from './holos-aprovado.mjs';
+import { comFoco } from './fixture-direcao.mjs';
 
 let falhou = false;
 const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
@@ -208,7 +209,7 @@ ok(['regraIns', 'regraUpd', 'regraDel', 'catUpd', 'regIns', 'regUpd', 'regDel'].
   'insert/update/delete no catalogo e nos registros: 42501; o frontend so le (30 regras)');
 
 titulo('17-18. RESULTADO DA PACIENTE, PDF E WHATSAPP: RECOMENDACAO SO QUANDO COMPARTILHADA (item 180, padrao desligado)');
-const RES = rpc('salvar_resultado_holos', { payload: { patient_id: P1, encounter_id: E1, holoscan_application_id: A1, tool_application_ids: [], visao_paciente: { ferramentas: {} }, leitura_profissional: 'Leitura da nutri', pontos_acompanhar: 'sono', questoes_aprofundar: 'x' } });
+const RES = rpc('salvar_resultado_holos', comFoco({ payload: { patient_id: P1, encounter_id: E1, holoscan_application_id: A1, tool_application_ids: [], visao_paciente: { ferramentas: {} }, leitura_profissional: 'Leitura da nutri', pontos_acompanhar: 'sono', questoes_aprofundar: 'x' } }));
 ok(!RES.error, 'fixture: Resultado HOLOS salvo para a paciente (' + (RES.error ? RES.error.message : 'ok') + ')');
 const rp = await A.evaluate(async (pid) => {
   window.definirPacienteAtivo(pid); document.querySelector('.nav-item[data-secao="resultado"]').click();
@@ -220,7 +221,7 @@ const rp = await A.evaluate(async (pid) => {
 ok(rp.texto.length > 100 && !/Próximos Passos|Mapa da Rotina|REC-FUN|Ajuda a localizar alimentação/.test(rp.texto) && !/pp-card|pp-principal/.test(rp.html), 'a pagina Resultado da paciente nao mostra os Proximos Passos');
 ok(!/Próximos|REC-/.test(rp.whats), 'a mensagem do WhatsApp nao muda');
 const snapR = srv.linhas('holos_results')[0].content_snapshot;
-ok(snapR.template_version === 4 && snapR.visibilidade && snapR.visibilidade.proximos_passos === false && snapR.proximos_passos && typeof snapR.proximos_passos.registrado === 'boolean',
+ok(snapR.template_version === 5 && snapR.visibilidade && snapR.visibilidade.proximos_passos === false && snapR.proximos_passos && typeof snapR.proximos_passos.registrado === 'boolean',
   'o snapshot do Resultado HOLOS congela os Proximos Passos (registrados ou nao) com o compartilhamento DESLIGADO por padrao')
 
 titulo('RESULTADO AINDA NAO SALVO: PREVIA; AO SALVAR O HOLOSCAN, O REGISTRO');

@@ -1089,6 +1089,15 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
       (exames não participam do HOLOSCAN); Fúngico, Ácido Inflamatório e Detox deixam de citar pele. Só o texto muda.
     Detalhes: `docs/v1/ALTERACOES-PACOTE-HOLOSCAN-V6.md`; definições: `docs/v1/DEFINICOES-OFICIAIS-SISTEMAS-HOLOSCAN-V6.md`.
 
+192. **Resultado HOLOS template 5 = Direcionamento + Estratégias + Acompanhamento da evolução** (13/10, "APROVADO PARA
+     IMPLEMENTAÇÃO, COM AJUSTES" + atualização de escopo de Rodrigo). `holos_results.direcao jsonb` (schema_version 1, sem
+     tabela nova); itens com origem/ref/sugestão/confirmado/compartilhado; projeção da paciente montada no servidor (hipótese
+     nunca, nem com mostrar_paciente = true); Foco atual opcional no rascunho e obrigatório para finalizar, emitir (RF-3), PDF e
+     WhatsApp ("RESULTADO EM CONSTRUÇÃO" sem foco); retorno lê os Resultados anteriores (caminho) sem recalcular nem comparar notas;
+     HOLOSCAN no fim ("Detalhes do mapa"). "O que já está mudando" passou para o pilar Acompanhamento da evolução. Templates 1–4,
+     emissões RF-1/RF-2, HOLOSCAN, pacotes e PP-V1 intactos. Migration 20261021100000; detalhes em
+     `docs/v1/IMPLEMENTACAO-RESULTADO-HOLOS-T5.md`.
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`

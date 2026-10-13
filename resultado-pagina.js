@@ -34,6 +34,15 @@
    assinatura depois nao altera uma emissao antiga. Sem emissao, a tela mostra
    uma PREVIA (dados atuais) e o botao "Gerar Resultado Final".
 
+   TEMPLATE 5 (13/10, migration 20261021100000): o documento da paciente e a
+   DIRECAO do acompanhamento (direcionamento, estrategias, acompanhamento da
+   evolucao), lido SO da projecao montada pelo servidor; HOLOSCAN no fim. A
+   emissao RF-3 congela essa projecao. SEM FOCO ATUAL CONFIRMADO NAO HA
+   EMISSAO, PDF NEM WHATSAPP ("RESULTADO EM CONSTRUCAO"); Resultados de
+   templates 1-4 continuam visiveis como foram salvos, e para enviar cria-se
+   uma nova versao com o foco. Emissoes RF-1/RF-2 ja feitas continuam
+   visiveis (e imprimiveis como registro), sem PDF/WhatsApp novos.
+
    PDF: gerado no navegador (html2pdf.js, versao fixa, carregado so no clique);
    nenhum link publico, nada sobe para lugar nenhum. WhatsApp: no celular,
    compartilha o PDF pelo menu nativo; no computador, baixa o PDF e abre a
@@ -68,6 +77,20 @@
       String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
   }
   function primeiroNome(nome) { return String(nome || "").trim().split(/\s+/)[0] || ""; }
+  function RD() { return window.ResultadoDirecao; }
+  /* foco atual confirmado no Resultado salvo (template 5) — exigido para emitir */
+  function focoDoResultado(r) {
+    var s = r && r.content_snapshot;
+    if (!s || Number(s.template_version || r.template_version || 1) < 5) return null;
+    return ((s.direcao_paciente || {}).foco_atual || {}).texto || null;
+  }
+  /* foco congelado numa emissao RF-3 — exigido para PDF e WhatsApp */
+  function focoDaEmissao(em) {
+    var s = em && em.content_snapshot;
+    if (!s || (em.template_version || s.template) !== "RF-3") return null;
+    return ((s.direcao_paciente || {}).foco_atual || {}).texto || null;
+  }
+  var emAtual = null;   // emissao na tela (PDF/WhatsApp so dela)
 
   /* ---------- fontes (so leitura) ------------------------------------------ */
 
@@ -144,9 +167,9 @@
     return { foco: ["objective", "nutrition_strategy"].map(function (f) { return campoConduta(c, f); }).join("") || null,
       combinado: combinado || null, observar: campoConduta(c, "return_plan") || null };
   }
-  function documentoHtml(pid, r, cv, eu, imagens) {
+  function documentoHtml(pid, r, cv, eu, imagens, extra) {
     var snap = r.content_snapshot;
-    var meta = { status: r.status, hash: r.content_hash, blocos: blocosConduta(cv), semRodape: true };
+    var meta = Object.assign({ status: r.status, hash: r.content_hash, blocos: blocosConduta(cv), semRodape: true }, extra || {});
     var corpo = window.ResultadoHolos.documentoHtml(snap, "paciente", meta);
     return '<article class="rp-doc" id="rp-doc" aria-label="Resultado para a paciente">' +
       cabecalhoProfissional(eu, imagens) +
@@ -167,12 +190,16 @@
     var eu = Object.assign({}, s.profissional || {});
     var im = s.imagens || {};
     eu.assinatura_id = im.assinatura ? "congelada" : null; eu.carimbo_id = im.carimbo ? "congelada" : null;
-    return documentoHtml(null, r, cv, eu, im);
+    /* RF-3: o documento da paciente sai da projecao CONGELADA na emissao (snapshot publico), nunca da direcao completa */
+    var extra = (em.template_version || s.template) === "RF-3" ? { direcaoPaciente: s.direcao_paciente || null, caminho: s.caminho || [] } : null;
+    return documentoHtml(null, r, cv, eu, im, extra);
   }
 
   function avisoTermos(r, cv) {
     var obs = (r.content_snapshot && r.content_snapshot.observacoes) || {};
-    var textos = [obs.leitura_profissional, obs.pontos_acompanhar];
+    var t5 = Number((r.content_snapshot || {}).template_version || 1) >= 5;
+    var textos = t5 ? [] : [obs.leitura_profissional, obs.pontos_acompanhar];
+    if (t5 && RD()) RD().todos(RD().normalizar(r.content_snapshot.direcao_paciente)).forEach(function (it) { textos.push(it.texto); });
     if (cv) { CAMPOS_CONDUTA.forEach(function (f) { textos.push(cv.conduta[f[0]]); }); (cv.acordos || []).forEach(function (g) { textos.push(g.description); }); }
     var achados = termosFora(textos);
     if (!achados.length) return "";
@@ -193,6 +220,14 @@
           '<button type="button" class="btn-fantasma" data-rp-acao="ficha">Abrir na ficha</button>' +
         "</div></div>";
     }
+    if (!em && !focoDoResultado(r)) {
+      var t5 = Number((r.content_snapshot || {}).template_version || 1) >= 5;
+      return '<div class="rp-acoes rp-so-tela" id="rp-acoes">' +
+        '<div class="rp-estado"><span class="rh-tag rd-construcao">RESULTADO EM CONSTRUÇÃO</span>' +
+          '<span class="rp-previa">' + (t5 ? "Este Resultado HOLOS não tem Foco atual confirmado." : "Este Resultado HOLOS é de um formato anterior, sem Foco atual.") +
+          " Sem foco não há Resultado Final, PDF nem WhatsApp: crie uma nova versão na ficha e confirme o foco.</span></div>" +
+        '<div class="rp-botoes"><button type="button" class="btn-verde" data-rp-acao="ficha">Abrir Resultado HOLOS na ficha</button></div></div>';
+    }
     if (!em) {
       return '<div class="rp-acoes rp-so-tela" id="rp-acoes">' +
         '<div class="rp-estado"><span class="rh-tag">Resultado HOLOS nº ' + escapar(r.revision_number || 1) + "</span>" +
@@ -201,6 +236,13 @@
           '<button type="button" class="btn-verde" data-rp-acao="emitir">Gerar Resultado Final</button>' +
           '<button type="button" class="btn-fantasma" data-rp-acao="ficha">Abrir na ficha</button>' +
         "</div></div>";
+    }
+    if (!focoDaEmissao(em)) {
+      return '<div class="rp-acoes rp-so-tela" id="rp-acoes">' +
+        '<div class="rp-estado"><span class="rh-tag">Resultado Final nº ' + escapar(em.emission_number) + " · registro histórico</span>" +
+          "<span>Emitido em " + escapar(dataHora(em.created_at)) + " &middot; formato anterior, sem Foco atual. Fica aqui como foi emitido; para enviar de novo, gere um Resultado com foco.</span></div>" +
+        '<div class="rp-botoes"><button type="button" class="btn-fantasma" data-rp-acao="imprimir">Imprimir registro</button>' +
+          '<button type="button" class="btn-fantasma" data-rp-acao="ficha">Abrir na ficha</button></div></div>';
     }
     return '<div class="rp-acoes rp-so-tela" id="rp-acoes">' +
       '<div class="rp-estado"><span class="rh-tag">Resultado Final nº ' + escapar(em.emission_number) + "</span>" +
@@ -271,7 +313,7 @@
       });
     });
   }
-  var MSG_EMISSAO = { resultado_substituido: "Este Resultado HOLOS foi substituído: emita a versão atual.", resultado_nao_finalizado: "Só Resultado HOLOS salvo pode ser emitido.",
+  var MSG_EMISSAO = { foco_obrigatorio: "Sem Foco atual confirmado não há Resultado Final: crie uma nova versão na ficha e confirme o foco.", resultado_substituido: "Este Resultado HOLOS foi substituído: emita a versão atual.", resultado_nao_finalizado: "Só Resultado HOLOS salvo pode ser emitido.",
     paciente_arquivado: "Paciente arquivado: reative antes de emitir.", conta_inativa: "Sua conta ainda aguarda liberação.", imagem_invalida: "Uma imagem do Perfil não pôde ser usada." };
 
   /* ---------- desenhar ----------------------------------------------------------- */
@@ -305,6 +347,7 @@
         a.innerHTML = '<div class="lista-vazia" id="rp-vazio"><strong>A emissão nº ' + escapar(em.emission_number) + " não confere com o Resultado HOLOS salvo.</strong><span>Nada foi mostrado.</span></div>";
         return;
       }
+      emAtual = em;
       if (em) {
         a.innerHTML = barraAcoes(pid, rEm, p, em) + listaEmissoes(emissoes.linhas, em) + documentoEmissao(em, rEm);
         return;
@@ -351,6 +394,8 @@
   function gerarPdf() {
     var doc = document.getElementById("rp-doc");
     if (!doc) return Promise.reject(new Error("Nenhum resultado na tela."));
+    /* template 5: PDF da paciente so de emissao com Foco atual confirmado */
+    if (!focoDaEmissao(emAtual)) return Promise.reject(new Error("Sem Foco atual confirmado não há PDF para a paciente"));
     var p = pacienteObj(pacienteId());
     var nome = nomeArquivo(p);
     return carregarHtml2pdf().then(function (h2p) {
@@ -377,9 +422,10 @@
      (4) bloco maior que a pagina nao e mexido. */
   var ATOMOS = [".rp-cab", ".rh-doc-cab", ".rh-resumo-lista > li", ".rh-intro", "h3", "h4", "h5", ".rh-sis > header",
     ".sf-bloco:not(.sf-c)", ".sf-c > .sf-rot", ".sf-c > .sf-nota", ".sf-c li", ".rh-ferr-topo", ".rf-caixa > .rh-tag", ".rf-bloco",
-    ".rh-obs-item", ".rp-campo", ".rp-acordos > li", ".rh-geral-grade", ".rh-sistemas-compactos", ".rp-rodape", ".rh-mapa-grade", ".rh-visual"].join(",");
-  var TITULOS = "h3,h4,h5,.rh-intro,.sf-rot,.rh-tag,.rh-sis > header,.rh-ferr-topo,.rh-junto";
-  var CARTOES = ".rh-sis,.rh-ferr,.rf-caixa,.rp-conduta,.rh-eixo,.rh-junto,.rh-obs-item,.rp-campo";
+    ".rh-obs-item", ".rp-campo", ".rp-acordos > li", ".rh-geral-grade", ".rh-sistemas-compactos", ".rp-rodape", ".rh-mapa-grade", ".rh-visual",
+    ".rd-pilar-cab", ".rd-secao", ".rd-lista > li", ".rd-territorio", ".rd-foco-txt", ".rd-caminho > li", ".rd-antes", ".rd-agora", ".rd-proxima", ".rd-vazio", ".rd-construcao"].join(",");
+  var TITULOS = "h3,h4,h5,.rh-intro,.sf-rot,.rh-tag,.rh-sis > header,.rh-ferr-topo,.rh-junto,.rd-pilar-cab,.rd-secao > header";
+  var CARTOES = ".rh-sis,.rh-ferr,.rf-caixa,.rp-conduta,.rh-eixo,.rh-junto,.rh-obs-item,.rp-campo,.rd-secao,.rd-territorio";
   function paginar(caixa, alturaPagina) {
     if (!caixa || !alturaPagina) return;
     var topo = function (el) { return el.getBoundingClientRect().top - caixa.getBoundingClientRect().top; };
@@ -489,9 +535,17 @@
     var w = window.open(url, "_blank", "noopener");
     if (!w) toast("O navegador bloqueou a janela do WhatsApp. Permita pop-ups para este site.");
   }
+  /* template 5: a mensagem cita o FOCO congelado na emissao (nunca hipotese nem outro texto profissional) */
+  function mensagemWhatsAppEmissao(p, em) {
+    var foco = focoDaEmissao(em); if (!foco || !RD()) return null;
+    var s = em.content_snapshot || {};
+    var quando = dataBR(String((s.resultado && s.resultado.salvo_em) || em.created_at || "").slice(0, 10));
+    return RD().mensagemWhatsApp((p && p.nome) || (s.paciente && s.paciente.nome), quando, foco);
+  }
   function enviarWhatsApp() {
-    var pid = pacienteId(), p = pacienteObj(pid), r = resultadoFinal(pid), eu = perfil();
-    var msg = mensagemWhatsApp(p, r, eu);
+    var pid = pacienteId(), p = pacienteObj(pid);
+    var msg = mensagemWhatsAppEmissao(p, emAtual);
+    if (!msg) { toast("Sem Foco atual confirmado não há envio pelo WhatsApp. Crie uma nova versão do Resultado HOLOS com o foco."); return Promise.resolve({ modo: "bloqueado" }); }
     var ocupado = travar(true);
     return gerarPdf().then(function (res) {
       var file = null;
@@ -558,7 +612,8 @@
   window.ResultadoPagina = {
     desenhar: desenhar, gerarPdf: gerarPdf, paginar: paginar, ATOMOS: ATOMOS, enviarWhatsApp: enviarWhatsApp, imprimir: imprimir,
     resultadoFinal: resultadoFinal, condutaVigente: condutaVigente, condutaDoResultado: condutaDoResultado, blocosConduta: blocosConduta, documentoEmissao: documentoEmissao, emissoes: function () { return emissoes.linhas.slice(); },
-    numeroWhatsApp: numeroWhatsApp, linkWhatsApp: linkWhatsApp, mensagemWhatsApp: mensagemWhatsApp, termosFora: termosFora,
+    numeroWhatsApp: numeroWhatsApp, linkWhatsApp: linkWhatsApp, mensagemWhatsApp: mensagemWhatsApp, mensagemWhatsAppEmissao: mensagemWhatsAppEmissao, termosFora: termosFora,
+    focoDoResultado: focoDoResultado, focoDaEmissao: focoDaEmissao, emissaoAtual: function () { return emAtual; },
     CAMPOS_CONDUTA: CAMPOS_CONDUTA, HTML2PDF_URL: HTML2PDF_URL
   };
 })();

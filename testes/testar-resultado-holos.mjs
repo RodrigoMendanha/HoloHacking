@@ -72,6 +72,8 @@ const abrirAba = (P, pid) => P.evaluate(async (pid) => {
 const esperarDados = (P) => P.waitForFunction((pid) => window.Aplicacoes && window.Aplicacoes.doPaciente(pid).filter(a => a.status !== 'rascunho').length >= 5 &&
   (window.historicoPontuacao(pid) || []).some(h => h._supa_id), { timeout: 15000 }, PA);
 const clicar = (P, sel) => P.evaluate((s) => { const b = document.querySelector(s); if (!b) return false; b.click(); return true; }, sel);
+/* template 5 (20261021100000): finalizar exige o Foco atual confirmado — escrito pela nutricionista e adicionado */
+const definirFoco = (P, t) => P.evaluate((t) => { const x = document.querySelector('[data-rd-novo="foco_atual"]'); x.value = t; document.querySelector('[data-rd-acao="adicionar"][data-rd-sec="foco_atual"]').click(); }, t);
 const confirmarModal = async (P) => { await espera(250); await clicar(P, '#modal-confirmar-ok'); await espera(700); };
 const texto = (P, sel) => P.evaluate((s) => { const e = document.querySelector(s); return e ? e.innerText : ''; }, sel);
 const shot = async (P, nome, sel) => { if (!process.env.SHOT_DIR) return; await P.addStyleTag({ content: '.topo,#toast{display:none!important}' }); const el = sel ? await P.$(sel) : null; if (el) await el.screenshot({ path: process.env.SHOT_DIR + '/' + nome + '.png' }); else await P.screenshot({ path: process.env.SHOT_DIR + '/' + nome + '.png', fullPage: true }); };
@@ -84,7 +86,7 @@ await abrirAba(A, PA);
 ok(/Nenhum Resultado HOLOS ainda/.test(await texto(A, '#aba-resultado-holos')), 'histórico vazio no começo');
 await clicar(A, '[data-rh-acao="novo"]'); await espera(200);
 const sel0 = await A.evaluate(() => ({
-  radios: document.querySelectorAll('input[name="rh-holoscan"]').length, marcados: document.querySelectorAll('#rh-form input:checked').length,
+  radios: document.querySelectorAll('input[name="rh-holoscan"]').length, marcados: document.querySelectorAll('#rh-form input:checked:not([name="rd-tipo"])').length,
   historicaOff: [...document.querySelectorAll('input[name="rh-holoscan"]')].filter(r => r.disabled).length,
   mostrarOff: [...document.querySelectorAll('[data-rh-mostrar]')].every(c => c.disabled && !c.checked),
   rascunhoListado: !!document.querySelector('[data-rh-ferr="mapa_crencas"]'),
@@ -131,6 +133,9 @@ await clicar(A, '[data-rh-acao="previa"]'); await espera(800);
 const pv = await A.evaluate(() => ({ t: (document.getElementById('rh-doc') || {}).innerText || '', previa: !!document.querySelector('.rh-previa-selo') }));
 ok(pv.previa && /Visão geral HOLOSCAN/.test(pv.t) && /Cinco sistemas/i.test(pv.t) && /Panorama das ferramentas aplicadas/i.test(pv.t) && srv.linhas('holos_results')[0].status === 'rascunho', 'prévia (montada pelo servidor, marcada "PRÉVIA", nada gravado)');
 await shot(A, 'rh-previa', '#rh-doc');
+await clicar(A, '[data-rh-acao="salvar"]'); await espera(300);
+ok(/Foco atual/.test(await texto(A, '#rh-erro')) && !srv.linhas('holos_results').some(r => r.status === 'salvo'), 'template 5: sem Foco atual confirmado não finaliza');
+await definirFoco(A, 'FOCO_FICTICIO organizar a rotina da noite'); await espera(200);
 await clicar(A, '[data-rh-acao="salvar"]'); await confirmarModal(A);
 const salvo = srv.linhas('holos_results').find(r => r.status === 'salvo');
 ok(!!salvo && salvo.id === r0.id && salvo.content_hash && /^[0-9a-f]{64}$/.test(salvo.content_hash) && salvo.content_snapshot.holoscan.id === HA && salvo.content_snapshot.ferramentas.length === 4,
@@ -150,14 +155,14 @@ await shot(A, 'rh-profissional', '#rh-doc');
 /* ----- 4: paciente ----- */
 await clicar(A, '[data-rh-visao-troca="paciente"]'); await espera(300);
 const pac = await A.evaluate(() => ({ t: document.getElementById('rh-doc').innerText }));
-ok(/Seu Mapa HOLOS/.test(pac.t) && /ter mais energia/.test(pac.t) && /romper o ciclo/.test(pac.t) && /Mapa do Propósito/.test(pac.t), 'visão do paciente: mapa e as ferramentas com "Mostrar ao paciente" ligado (OQ³, PQQ e o Mapa do Propósito)');
+ok(/Sua direção nesta etapa/.test(pac.t) && /FOCO_FICTICIO/.test(pac.t) && /Detalhes do mapa/.test(pac.t) && /ter mais energia/.test(pac.t) && /romper o ciclo/.test(pac.t) && /Mapa do Propósito/.test(pac.t), 'visão do paciente (template 5): direção e foco; nos Detalhes do mapa as ferramentas com "Mostrar ao paciente" ligado (OQ³, PQQ e o Mapa do Propósito)');
 ok(!/PENSAMENTO_INTIMO|discussão em casa/.test(pac.t) && !/Irmã/.test(pac.t), 'ferramenta com "Mostrar ao paciente" desligado (Gatilhos, Conexão) não aparece');
 ok(!/cód\.|hash|[0-9a-f]{8}-[0-9a-f]{4}|Pontuou|Contexto, sem pontuar|HOLOS-V1@|QUESTAO_SO_PROFISSIONAL|respondidas/.test(pac.t), 'sem ids, hash, pacote, "pontuou", cobertura técnica nem questões para aprofundar');
 /* motor de resultados 12/10 (item 32): a paciente ve os enunciados aprovados das perguntas que mais contribuiram ("Voce tem...?");
    a guarda e contra AFIRMACAO sobre a paciente, entao as linhas que sao pergunta (terminam em "?") ficam fora dela */
 const semPerguntas = t => t.split('\n').filter(x => !/\?\s*$/.test(x)).join('\n');
-ok(/O que sua nutricionista observou/.test(pac.t) && /leitura da nutri/.test(pac.t) && /Pontos que serão acompanhados/.test(pac.t) && /Nesta avaliação/.test(pac.t) && !/você tem|seu problema é|isso causa/i.test(semPerguntas(pac.t)),
-  'observação e pontos da nutricionista; linguagem "nesta avaliação", sem "você tem" / "seu problema é"');
+ok(!/leitura da nutri/.test(pac.t) && !/sono e rotina da noite/.test(pac.t) && /não é diagnóstico/.test(pac.t) && !/você tem|seu problema é|isso causa/i.test(semPerguntas(pac.t)),
+  'template 5: leitura técnica e observações ficam SÓ PARA A PROFISSIONAL (não aparecem para a paciente); sem "você tem" / "seu problema é"');
 await shot(A, 'rh-paciente', '#rh-doc');
 
 /* ----- 5: imutabilidade ----- */

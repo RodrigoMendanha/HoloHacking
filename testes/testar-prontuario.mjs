@@ -23,6 +23,7 @@ import { createHash } from 'node:crypto';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { criarServidor, ligarPagina } from './supabase-falso.mjs';
 import { semearHolosAprovado, payloadOficial } from './holos-aprovado.mjs';
+import { comFoco } from './fixture-direcao.mjs';
 
 mkdirSync('amostras', { recursive: true });
 writeFileSync('amostras/receita-prontuario.pdf', '%PDF-1.4\n1 0 obj<</Type/Catalog>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n');
@@ -55,8 +56,8 @@ ok(!COND.error, 'fixture: conduta salva (' + (COND.error ? COND.error.message : 
 const condRow = srv.linhas('conducts')[0];
 ok(condRow && condRow.dietary_prescription === null && condRow.nutrition_diagnosis === null && condRow.referrals === null && condRow.objective === 'Reorganizar a rotina da noite',
   'servidor: conduta nova nao guarda prescricao dietetica, diagnostico nutricional nem encaminhamentos');
-const RES = rpc('salvar_resultado_holos', { payload: { patient_id: PA, encounter_id: EA, holoscan_application_id: HA, tool_application_ids: [T_OQ3, T_ROD],
-  visao_paciente: { ferramentas: { [T_OQ3]: { mostrar: true }, [T_ROD]: { mostrar: false } } }, leitura_profissional: 'Leitura da nutri para a paciente', pontos_acompanhar: 'sono e rotina da noite', questoes_aprofundar: 'QUESTAO_SO_PROFISSIONAL' } });
+const RES = rpc('salvar_resultado_holos', comFoco({ payload: { patient_id: PA, encounter_id: EA, holoscan_application_id: HA, tool_application_ids: [T_OQ3, T_ROD],
+  visao_paciente: { ferramentas: { [T_OQ3]: { mostrar: true }, [T_ROD]: { mostrar: false } } }, leitura_profissional: 'Leitura da nutri para a paciente', pontos_acompanhar: 'sono e rotina da noite', questoes_aprofundar: 'QUESTAO_SO_PROFISSIONAL' } }));
 ok(!RES.error, 'fixture: Resultado HOLOS salvo (' + (RES.error ? RES.error.message : 'ok') + ')');
 const digitais = () => createHash('sha256').update(JSON.stringify(['holoscan_applications', 'holoscan_system_scores', 'holoscan_answers', 'tool_applications', 'integrated_readings', 'lab_collections', 'lab_results',
   'methodology_packages', 'methodology_questions', 'methodology_associations', 'methodology_ranges', 'methodology_systems', 'integrated_reading_rule_packages', 'holos_results'].map(t => srv.linhas(t)))).digest('hex');
@@ -166,10 +167,10 @@ const rp = await A.evaluate(() => {
   return { texto: doc.innerText, html: doc.innerHTML, paciente: !!doc.querySelector('.rh-doc-paciente'), aviso: document.getElementById('rp-aviso-termos')?.innerText || '',
     botoes: [...document.querySelectorAll('#rp-acoes button')].map(b => b.textContent.trim()), cab: document.querySelector('.rp-cab')?.innerText || '', rodape: document.querySelector('.rp-rodape')?.innerText || '' };
 });
-ok(rp.paciente && /Seu Mapa HOLOS/.test(rp.texto) && /Os cinco sistemas/.test(rp.texto) && /Leitura da nutri para a paciente/.test(rp.texto) && /OQ³/.test(rp.texto) && !/Roda Holística/.test(rp.texto),
-  'Resultado: visão da paciente do Resultado HOLOS salvo (só as ferramentas marcadas para a paciente)');
+ok(rp.paciente && /Sua direção nesta etapa/.test(rp.texto) && /Foco ficticio de teste/.test(rp.texto) && /Os cinco sistemas/.test(rp.texto) && !/Leitura da nutri para a paciente/.test(rp.texto) && /OQ³/.test(rp.texto) && !/Roda Holística/.test(rp.texto),
+  'Resultado (template 5): visão da paciente com a direção e o foco; leitura técnica só profissional; só as ferramentas marcadas para a paciente');
 ok(/Nutri Teste Ficticia/.test(rp.cab) && /CRN-3 00000/.test(rp.cab) && /Nutri Teste Ficticia · CRN-3 00000/.test(rp.rodape) && /não é diagnóstico/.test(rp.rodape), 'identidade profissional no cabeçalho e no rodapé (nome e registro)');
-ok(/O que ficou combinado/i.test(rp.texto) && !/Próximos passos combinados/.test(rp.texto) && /Caminhar 20 minutos de manhã/.test(rp.texto) && /Avisar como foi a semana/.test(rp.texto) && /Retorno em 30 dias/.test(rp.texto), 'Conduta: orientações, ações, retorno e combinados em "O que ficou combinado" / "O que observar" (motor de resultados 12/10: sem dois blocos "Próximos passos")');
+ok(!/Caminhar 20 minutos de manhã/.test(rp.texto) && !/Avisar como foi a semana/.test(rp.texto) && !/Próximos passos combinados/.test(rp.texto), 'template 5: a Conduta não vai sozinha para a paciente — ações e combinados só aparecem se a nutricionista confirmar e compartilhar');
 const semRodape = rp.texto.replace(/Não é exame, não é diagnóstico e não é prescrição\./, '');   /* a frase de fronteira do rodapé é a única menção legítima */
 ok(!/DIETA_NAO|DIAG_NAO|ENCAMINHA_NAO|QUESTAO_SO_PROFISSIONAL|Pontuou neste sistema|hash|exame|Exame/.test(semRodape), 'nada profissional/interno vai para a paciente: sem prescrição, diagnóstico, encaminhamento, questões só profissionais, "pontuou", hash ou exames');
 ok(/termos fora do método/.test(rp.aviso) && /cardápio/.test(rp.aviso), 'aviso SÓ NA TELA sobre termo fora do método no texto da nutri: ' + rp.aviso.slice(0, 60));
@@ -192,7 +193,7 @@ ok(pdf.baixados.length === 1 && /^Resultado-HOLOS-Paciente-Prontuario-Ficticia\.
 await A.evaluate(async () => { document.querySelector('[data-rp-acao="whatsapp"]').click(); await new Promise(r => setTimeout(r, 800)); });
 const wa = await A.evaluate(() => ({ baixados: window.__baixados.slice(), abertos: window.__abertos.slice() }));
 const url = wa.abertos[0] || '';
-ok(wa.baixados.length === 2 && /^https:\/\/wa\.me\/5511988887777\?text=/.test(url) && /Resultado%20HOLOS/.test(url) && /Paciente/.test(decodeURIComponent(url)) && /Nutri%20Teste/.test(url),
+ok(wa.baixados.length === 2 && /^https:\/\/wa\.me\/5511988887777\?text=/.test(url) && /Resultado%20HOLOS/.test(url) && /Paciente/.test(decodeURIComponent(url)) && /nosso foco é: Foco ficticio de teste/.test(decodeURIComponent(url)),
   'WhatsApp (computador): baixa o PDF e abre a conversa da paciente (número do cadastro) com a mensagem pronta');
 await A.setViewport({ width: 390, height: 800 }); await espera(300);
 ok(await A.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 2), 'celular (390 px): sem rolagem lateral');

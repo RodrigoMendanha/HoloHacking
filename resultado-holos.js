@@ -47,7 +47,9 @@
     conflito: "Esta versão já tem uma versão seguinte (ou o rascunho mudou em outra sessão). Recarregue a aba.",
     paciente_arquivado: window.MSG_ARQUIVADO || "Paciente arquivado: reative antes de registrar novas informações.",
     conta_inativa: "Sua conta ainda aguarda liberação.",
-    payload_invalido: "Seleção inválida. Recarregue a aba e tente de novo."
+    payload_invalido: "Seleção inválida. Recarregue a aba e tente de novo.",
+    foco_obrigatorio: "Defina e confirme o Foco atual antes de finalizar o Resultado HOLOS. O rascunho pode ser salvo sem foco.",
+    direcao_invalida: "Algum item do resultado para a paciente está em formato inválido. Revise os itens e tente de novo."
   };
 
   var cache = { pid: null, linhas: [], erro: null, carregado: false };
@@ -56,6 +58,8 @@
   var vendo = null;         // { id, visao: "profissional" | "paciente" }
   var previa = null;        // snapshot devolvido pelo servidor (nao gravado)
   var ocupado = false;
+  var sugMsg = "";          // retorno do "Trazer sugestoes do sistema"
+  function RD() { return window.ResultadoDirecao; }
 
   /* ---------- utilitarios -------------------------------------------------- */
   function temSupa() { return !!(window.supabaseClient && window.HoloAuth && window.HoloAuth.sessaoAtiva()); }
@@ -144,7 +148,7 @@
       if (ult) at = ult.id;
     }
     var f = { pid: pid, id: null, supersedes_id: null, encounter_id: at || "", holoscan_application_id: "", tools: [], mostrar: {}, compartilhar_pp: false,
-      leitura_profissional: "", pontos_acompanhar: "", questoes_aprofundar: "", expected_updated_at: null };
+      leitura_profissional: "", pontos_acompanhar: "", questoes_aprofundar: "", expected_updated_at: null, direcao: null };
     if (base) {
       var s = base.selected_sources || {};
       f.id = base.status === "rascunho" ? base.id : null;
@@ -158,7 +162,48 @@
       f.compartilhar_pp = !!(s.visao_paciente && s.visao_paciente.proximos_passos === true);
       f.leitura_profissional = base.leitura_profissional || ""; f.pontos_acompanhar = base.pontos_acompanhar || ""; f.questoes_aprofundar = base.questoes_aprofundar || "";
     }
+    /* template 5: a direcao do rascunho (ou da versao anterior, para a nova versao); senao, uma nova — retorno quando a
+       anamnese do atendimento e de retorno ou ja ha Resultado salvo de atendimento anterior */
+    if (RD()) f.direcao = RD().normalizar(base ? base.direcao : null, tipoEncontro(pid, f.encounter_id));
+    if (RD()) RD().definirCandidatos(null);
+    sugMsg = "";
     return f;
+  }
+  function anteriorDe(pid, eid) {
+    var A = window.AtendimentoAtual, atual = A && eid ? A.porId(eid) : null, ref = atual ? String(atual.occurred_at) : "";
+    return doPaciente(pid).filter(function (r) {
+      if (r.status === "rascunho" || r.superseded_at || !r.content_snapshot || r.encounter_id === eid) return false;
+      var e = A ? A.porId(r.encounter_id) : null;
+      return !ref || !e || String(e.occurred_at) < ref;
+    }).sort(function (a, b) { return String(b.saved_at || "").localeCompare(String(a.saved_at || "")); })[0] || null;
+  }
+  function tipoEncontro(pid, eid) {
+    var An = window.Anamnese, an = An && eid ? (An.vigente(eid) || An.rascunhoDe(eid)) : null;
+    if (an && an.content && an.content.tipo === "retorno") return "retorno";
+    return anteriorDe(pid, eid) ? "retorno" : "primeira";
+  }
+  /* contexto das sugestoes: SO registros existentes (anamnese e Conduta do atendimento, acordos, ferramentas e HOLOSCAN
+     escolhidos — vindos da previa do servidor —, Resultado anterior). Nada e calculado aqui. */
+  function contextoSugestoes(pid, f, snap) {
+    var An = window.Anamnese, Cd = window.Conduta, SF = window.SistemasFechamento;
+    var an = An ? (An.vigente(f.encounter_id) || An.rascunhoDe(f.encounter_id)) : null;
+    var cd = Cd ? (Cd.vigente(f.encounter_id) || Cd.rascunhoDe(f.encounter_id)) : null;
+    var cdAnt = Cd && Cd.anteriorDe ? Cd.anteriorDe(pid, f.encounter_id) : null;
+    var h = (snap && snap.holoscan) || {}, sis = h.sistemas || [];
+    var fechs = SF && snap ? SF.deResultado(snap, function (id) { return defFerr(id).titulo; }) : [];
+    var areas = fechs.map(function (x, i) { return { x: x, s: sis[i] }; }).filter(function (o) { return o.x && o.x.resultado && o.x.resultado.prioridade; })
+      .sort(function (a, b) { return a.x.resultado.posicao - b.x.resultado.posicao; })
+      .map(function (o) { return { nome: abreviar(o.x.nome), dominantes: (o.s && o.s.dominantes) || [] }; });
+    var ant = anteriorDe(pid, f.encounter_id);
+    return {
+      tipo: f.direcao ? f.direcao.tipo : "primeira",
+      anamnese: an ? { id: an.id, content: an.content } : null,
+      conduta: cd, acordos: cd && Cd.acordosDe ? Cd.acordosDe(cd.id) : [],
+      acordosAnteriores: cdAnt && Cd.acordosDe ? Cd.acordosDe(cdAnt.id) : [],
+      ferramentas: ((snap && snap.ferramentas) || []).map(function (t) { return { id: t.id, ferramenta_id: t.ferramenta_id, modulo: moduloDe(t.ferramenta_id), respostas: t.respostas || {}, proximo_passo: t.proximo_passo }; }),
+      holoscan: h.id ? { id: h.id, areas: areas } : null,
+      anterior: ant && ant.content_snapshot && ant.content_snapshot.direcao_paciente ? { id: ant.id, direcao_paciente: ant.content_snapshot.direcao_paciente } : null
+    };
   }
   function payloadDe(f) {
     var vis = {};
@@ -166,7 +211,7 @@
     return { id: f.id || null, supersedes_id: f.supersedes_id || null, patient_id: f.pid, encounter_id: f.encounter_id || null,
       holoscan_application_id: f.holoscan_application_id || null, tool_application_ids: f.tools.slice(), visao_paciente: { ferramentas: vis, proximos_passos: !!f.compartilhar_pp },
       leitura_profissional: f.leitura_profissional, pontos_acompanhar: f.pontos_acompanhar, questoes_aprofundar: f.questoes_aprofundar,
-      expected_updated_at: f.expected_updated_at || null };
+      expected_updated_at: f.expected_updated_at || null, direcao: f.direcao && RD() ? RD().paraGravar(f.direcao) : null };
   }
   function lerForm() {
     var a = alvo(); if (!a || !form) return;
@@ -176,6 +221,7 @@
     [].slice.call(a.querySelectorAll("[data-rh-mostrar]")).forEach(function (c) { form.mostrar[c.dataset.rhMostrar] = c.checked; });
     var cpp = a.querySelector("#rh-compartilhar-pp"); if (cpp) form.compartilhar_pp = cpp.checked;
     ["leitura_profissional", "pontos_acompanhar", "questoes_aprofundar"].forEach(function (k) { var t = a.querySelector("#rh-" + k); if (t) form[k] = t.value; });
+    if (RD() && form.direcao) RD().lerEditor(a, form.direcao);
   }
 
   /* ---------- desenho: radar ----------------------------------------------- */
@@ -345,6 +391,8 @@
   function documentoHtml(snap, visao, meta) {
     meta = meta || {};
     var paciente = visao === "paciente";
+    var t5 = Number(snap.template_version || 1) >= 5;
+    if (t5 && paciente && RD()) return documentoPaciente5(snap, meta);
     var h = snap.holoscan || {}, sis = h.sistemas || [];
     var ferr = (snap.ferramentas || []).filter(function (t) { return !paciente || t.mostrar_paciente; });
     var obs = snap.observacoes || meta.observacoes || {};
@@ -380,6 +428,8 @@
     html += "</header>";
 
     if (paciente) return html + documentoPaciente(snap, meta, { h: h, sis: sis, ferr: ferr, obs: obs, S: S, SF: SF, fechs: fechs, ppPac: ppPac, optsS: optsS }) + "</article>";
+    // template 5: o que foi montado para a paciente (estado, origem, referencia), antes da leitura tecnica
+    if (t5 && RD()) html += RD().htmlProfissional(snap.direcao, snap.direcao_paciente);
 
     /* ======================= VISAO PROFISSIONAL (item 30): conclusao primeiro, evidencia depois ======================= */
     // 1. RESUMO PARA DECISAO
@@ -431,6 +481,38 @@
     html += '<p class="rh-futuro">Exames e Leitura Integrada — não incluídos nesta versão do Resultado HOLOS.</p>';
     html += '<footer class="rh-doc-rodape">Snapshot do Resultado HOLOS' + (meta.hash ? " · hash técnico " + e(String(meta.hash).slice(0, 16)) + "…" : "") + ". Documento organizado a partir de registros salvos; não é diagnóstico.</footer>";
     return html + "</article>";
+  }
+
+  /* ======================= VISAO DA PACIENTE, TEMPLATE 5: direcionamento + estrategias + acompanhamento; HOLOSCAN no fim =======================
+     So a projecao montada pelo SERVIDOR (direcao_paciente; numa emissao RF-3, a congelada nela). Nunca a direcao completa. */
+  function documentoPaciente5(snap, meta) {
+    var h = snap.holoscan || {}, dp = meta.direcaoPaciente || snap.direcao_paciente, caminho = meta.caminho || snap.caminho || [];
+    var dataEnc = snap.atendimento ? dataBR(snap.atendimento.occurred_at) : dataBR(h.quando);
+    var html = '<article class="rh-doc rh-doc-paciente rd-doc" id="rh-doc" aria-label="Resultado HOLOS — visão do paciente">' +
+      RD().htmlPaciente(dp, caminho, { nome: snap.paciente && snap.paciente.nome, data: dataEnc, profissional: snap.profissional && snap.profissional.nome,
+        previa: !!meta.previa, detalhes: detalhesMapa(snap) });
+    if (!meta.semRodape) html += '<footer class="rh-doc-rodape">Este material organiza o que foi registrado e combinado no seu acompanhamento. Ele não é diagnóstico nem prescrição: os próximos passos são combinados com a sua nutricionista em consulta.</footer>';
+    return html + "</article>";
+  }
+  /* DETALHES DO MAPA (fim do documento): HOLOSCAN (radar, Indice, Triade, cinco sistemas compactos) + registros de ferramentas compartilhados */
+  function detalhesMapa(snap) {
+    var h = snap.holoscan || {}, sis = h.sistemas || [], SF = window.SistemasFechamento;
+    var fechs = SF ? SF.deResultado(snap, function (id) { return defFerr(id).titulo; }) : null;
+    var ferr = (snap.ferramentas || []).filter(function (t) { return t.mostrar_paciente; });
+    var html = '<section class="rh-secao rh-detalhes rd-detalhes" aria-labelledby="rh-t-det"><div class="rh-junto"><h3 id="rh-t-det">Detalhes do mapa</h3>' +
+      '<p class="rh-intro">As suas respostas ao HOLOSCAN organizadas em cinco sistemas. Notas mais baixas indicam maior carga dos marcadores considerados neste eixo nesta aplicação. Isso ajuda a mostrar onde pode valer a pena aprofundar a conversa e não representa doença, gravidade ou diagnóstico.</p></div>' +
+      gradeGeral(h, true) +
+      '<div class="rh-junto rh-junto-sub"><h4 class="rh-sub">Os cinco sistemas</h4></div><div class="rh-sistemas rh-sistemas-compactos">' + sis.map(function (s, i) {
+        return fechs && SF.htmlSistemaCompacto ? SF.htmlSistemaCompacto(fechs[i], { faixaPaciente: faixaPaciente }) : cartaoSistema(s, null, true, false); }).join("") + "</div>";
+    var mapa = mapaProposito(snap, true);
+    if (ferr.length || mapa) {
+      html += '<div class="rh-junto rh-junto-sub"><h4 class="rh-sub">Registros das ferramentas</h4></div><div class="rh-ferrs">' + mapa + ferr.map(function (t) { return cartaoFerramenta(t, true, snap.ferramentas || []); }).join("") + "</div>";
+    }
+    /* Proximos Passos so quando a nutricionista ligou "Compartilhar com a paciente" (o mesmo bloco do template 4) */
+    var S = window.ResultadoSintese;
+    if (S && S.htmlProximosPassosPaciente && snap.visibilidade && snap.visibilidade.proximos_passos === true)
+      html += S.htmlProximosPassosPaciente(snap, function (id) { return defFerr(id).titulo; }, true);
+    return html + "</section>";
   }
 
   /* ======================= VISAO DA PACIENTE (item 31): 8 blocos, carga tecnica minima ======================= */
@@ -601,6 +683,12 @@
     return '<div class="rh-topo"><div><span class="eyebrow">Integração</span><h3 class="rh-titulo">Resultado HOLOS</h3>' +
       '<p class="dash-sub">A visão integrada final: o HOLOSCAN oficial, as ferramentas de Corpo, Mente e Espírito e a sua leitura profissional — escolhidos um a um. Sem interpretação automática.</p></div></div>';
   }
+  function linhaFoco(r) {
+    var tv = r.status === "rascunho" ? 5 : Number((r.content_snapshot || {}).template_version || r.template_version || 1);
+    if (tv < 5) return '<span class="rh-hist-meta rd-hist-foco">Formato anterior (sem Foco atual): para emitir, crie uma nova versão.</span>';
+    var f = r.status === "rascunho" ? (RD() && RD().focoConfirmado(r.direcao) ? r.direcao.foco_atual.texto : null) : (((r.content_snapshot || {}).direcao_paciente || {}).foco_atual || {}).texto;
+    return f ? '<span class="rh-hist-meta rd-hist-foco"><b>Foco:</b> ' + e(f) + "</span>" : '<span class="rh-hist-meta rd-hist-foco rd-construcao">' + e(RD() ? RD().EM_CONSTRUCAO : "RESULTADO EM CONSTRUÇÃO") + "</span>";
+  }
   function htmlLista(pid) {
     var linhas = doPaciente(pid);
     var arq = arquivado();
@@ -618,7 +706,7 @@
       return '<li class="rh-hist-item rh-st-' + e(r.status) + '" data-rh-id="' + e(r.id) + '">' +
         '<div class="rh-hist-info"><b>' + (r.status === "rascunho" ? "Rascunho" : e(dataHora(r.saved_at))) + "</b>" +
         '<span class="rh-hist-meta">versão nº ' + e(r.revision_number) + " · " + e(ROTULO_STATUS[r.status] || r.status) + (r.superseded_at ? " · substituída por versão mais nova" : "") +
-        " · atendimento " + e(rotuloAtendimento(r.encounter_id)) + " · HOLOSCAN " + e(hq) + " · " + nF + (nF === 1 ? " ferramenta" : " ferramentas") + "</span></div>" +
+        " · atendimento " + e(rotuloAtendimento(r.encounter_id)) + " · HOLOSCAN " + e(hq) + " · " + nF + (nF === 1 ? " ferramenta" : " ferramentas") + "</span>" + linhaFoco(r) + "</div>" +
         '<div class="rh-hist-botoes">' + (r.status === "rascunho"
           ? '<button type="button" class="btn-borda-ouro" data-rh-acao="continuar" data-rh-id="' + e(r.id) + '"' + (arq ? " disabled" : "") + '>Continuar rascunho</button>' +
             '<button type="button" class="btn-fantasma" data-rh-acao="descartar" data-rh-id="' + e(r.id) + '"' + (arq ? " disabled" : "") + ">Descartar</button>"
@@ -667,17 +755,20 @@
       "Compartilhar Próximos Passos HOLOS com a paciente</label>" +
       '<p class="dash-sub">Desligado: os Próximos Passos ficam só na visão profissional. Ligado: aparecem para a paciente com linguagem simples (só os nomes das ferramentas). Cada ferramenta continua com o seu "Mostrar ao paciente".</p></fieldset>';
 
-    // observacoes
-    html += '<fieldset class="rh-grupo"><legend>Observações da nutricionista</legend>' +
-      [["leitura_profissional", "Leitura profissional da nutricionista", 5], ["pontos_acompanhar", "Pontos para acompanhar", 3], ["questoes_aprofundar", "Questões para aprofundar (só na visão profissional)", 3]].map(function (k) {
+    // template 5: MONTAR RESULTADO PARA A PACIENTE (direcionamento, estrategias, acompanhamento da evolucao)
+    if (RD() && f.direcao) html += RD().htmlEditor(f.direcao, { sugMsg: sugMsg });
+
+    // SO PARA A PROFISSIONAL: hipoteses, leitura tecnica, questoes, observacoes (nada daqui vai para a paciente)
+    html += '<fieldset class="rh-grupo rd-so-prof-grupo"><legend>SÓ PARA A PROFISSIONAL</legend>' + (RD() && f.direcao ? RD().htmlSoProfissional(f.direcao) : "") +
+      [["leitura_profissional", "Leitura técnica da nutricionista", 5], ["questoes_aprofundar", "Questões para aprofundar", 3], ["pontos_acompanhar", "Observações que não vão para a paciente", 3]].map(function (k) {
         return '<label class="rh-texto"><span>' + e(k[1]) + '</span><textarea id="rh-' + k[0] + '" rows="' + k[2] + '" maxlength="' + (k[0] === "leitura_profissional" ? 20000 : 10000) + '">' + e(f[k[0]]) + "</textarea></label>";
-      }).join("") + '<p class="dash-sub">"Leitura profissional" e "Pontos para acompanhar" aparecem na visão do paciente. Depois de salvo, nada disso muda.</p></fieldset>';
+      }).join("") + '<p class="dash-sub">Ficam só no registro e na visão profissional. A paciente vê apenas o que você confirmou e compartilhou acima. Depois de finalizado, nada disso muda.</p></fieldset>';
 
     html += '<div class="rh-form-acoes"><span class="rh-contagem" id="rh-contagem" aria-live="polite"></span>' +
       '<button type="button" class="btn-fantasma" data-rh-acao="cancelar">Cancelar</button>' +
       '<button type="button" class="btn-borda-ouro" data-rh-acao="previa">Pré-visualizar</button>' +
       '<button type="button" class="btn-borda-ouro" data-rh-acao="rascunho">Salvar rascunho</button>' +
-      '<button type="button" class="btn-verde" data-rh-acao="salvar">Salvar Resultado HOLOS</button></div>' +
+      '<button type="button" class="btn-verde" data-rh-acao="salvar">Finalizar Resultado HOLOS</button></div>' +
       '<p class="rh-erro q-erro" id="rh-erro" role="alert"></p></form>' +
       '<div id="rh-previa">' + (previa ? '<div class="rh-visao-troca">' + trocaVisao(vendo ? vendo.visao : "profissional") + "</div>" + documentoHtml(previa, vendo ? vendo.visao : "profissional", { previa: true }) : "") + "</div>";
     return html;
@@ -758,6 +849,8 @@
     }
     var problema = validarLocal();
     if (problema) return mostrarErro(problema);
+    /* template 5: finalizar exige o Foco atual confirmado (o rascunho nao) */
+    if (nome === "salvar" && RD() && form && form.direcao && !RD().focoConfirmado(form.direcao)) return mostrarErro(MSG_HINT.foco_obrigatorio);
     mostrarErro("");
     if (nome === "previa") {
       return travar(rpc("previa_resultado_holos", { payload: payloadDe(form) }).then(function (snap) {
@@ -769,17 +862,41 @@
     }
     if (nome === "rascunho") {
       return travar(rpc("salvar_rascunho_resultado_holos", { payload: Object.assign(payloadDe(form), { operation_id: form.id ? null : uuid() }) }).then(function (id) {
-        return carregar(pid).then(function () { var r = porId(id); form = novoForm(pid, r); pintar(); toast("Rascunho salvo no servidor."); });
+        /* o rascunho salvo continua na tela com as mesmas sugestoes de foco e proxima etapa a mao */
+        var cand = RD() ? RD().candidatos() : null;
+        return carregar(pid).then(function () { var r = porId(id); form = novoForm(pid, r); if (RD()) RD().definirCandidatos(cand); pintar(); toast("Rascunho salvo no servidor."); });
       }, function (err) { mostrarErro(mensagemErro(err)); }));
     }
     if (nome === "salvar") {
-      return confirmar("Salvar Resultado HOLOS", "<p>Depois de salvo, as fontes, a visibilidade para o paciente e as observações <b>não mudam</b>. Para corrigir, cria-se uma nova versão — esta continua no histórico.</p>", "Salvar").then(function (ok) {
+      return confirmar("Finalizar Resultado HOLOS", "<p>Depois de finalizado, as fontes, o foco, o que foi compartilhado com a paciente e as observações <b>não mudam</b>. Para corrigir, cria-se uma nova versão — esta continua no histórico.</p>", "Finalizar").then(function (ok) {
         if (!ok) return;
         return travar(rpc("salvar_resultado_holos", { payload: Object.assign(payloadDe(form), { operation_id: uuid() }) }).then(function (id) {
-          return carregar(pid).then(function () { form = null; previa = null; vendo = { id: id, visao: "profissional" }; modo = "ver"; pintar(); toast("Resultado HOLOS salvo."); });
+          return carregar(pid).then(function () { form = null; previa = null; vendo = { id: id, visao: "profissional" }; modo = "ver"; pintar(); toast("Resultado HOLOS finalizado."); });
         }, function (err) { mostrarErro(mensagemErro(err)); }));
       });
     }
+  }
+
+  /* acoes do bloco "Montar resultado para a paciente" */
+  function acaoDirecao(el) {
+    var pid = pacienteId(), a = alvo();
+    lerForm();
+    if (el.dataset.rdAcao === "sugerir") {
+      var problema = validarLocal();
+      if (problema) return mostrarErro(problema);
+      if (ocupado) return;
+      ocupado = true;
+      /* a previa do servidor traz o HOLOSCAN (areas e sinais) e as ferramentas escolhidas, como serao congelados */
+      return rpc("previa_resultado_holos", { payload: payloadDe(form) }).then(function (snap) {
+        var S = RD().sugestoes(contextoSugestoes(pid, form, snap));
+        var n = RD().mesclar(form.direcao, S);
+        RD().definirCandidatos(S);
+        var nU = (S.foco_atual || []).length + (S.proxima_etapa || []).length;
+        sugMsg = n || nU ? (n + nU) + " sugestões encontradas. Revise, edite, confirme ou exclua cada uma." : "Nenhuma sugestão nova: não há registro de origem para sugerir.";
+        previa = null; pintar();
+      }, function (err) { mostrarErro(mensagemErro(err)); }).then(function () { ocupado = false; }, function () { ocupado = false; });
+    }
+    if (RD().acao(form.direcao, el, a)) { previa = null; pintar(); }
   }
 
   function confirmar(titulo, corpo, botao) {
@@ -805,6 +922,8 @@
     var a = alvo(); if (!a || !a.contains(ev.target)) return;
     var b = ev.target.closest("[data-rh-acao]");
     if (b) { ev.preventDefault(); acao(b.dataset.rhAcao, b); return; }
+    var rd = ev.target.closest("[data-rd-acao]");
+    if (rd && modo === "editar" && form && RD() && rd.tagName !== "INPUT") { ev.preventDefault(); acaoDirecao(rd); return; }
     var v = ev.target.closest("[data-rh-visao-troca]");
     if (v) {
       if (modo === "editar") lerForm();
@@ -815,6 +934,8 @@
   document.addEventListener("change", function (ev) {
     var a = alvo(); if (!a || !a.contains(ev.target) || modo !== "editar") return;
     var t = ev.target;
+    if (form && RD() && t.matches('[data-rd-acao="compartilhar"]')) { lerForm(); RD().acao(form.direcao, t, a); previa = null; return pintar(); }
+    if (form && RD() && t.matches('input[name="rd-tipo"]')) { lerForm(); previa = null; return pintar(); }
     if (t.matches("[data-rh-ferr]")) {
       // uma aplicacao por ferramenta: marcar outra da MESMA ferramenta desmarca a anterior (escolha explicita, visivel)
       if (t.checked) [].slice.call(a.querySelectorAll('[data-rh-ferr="' + t.dataset.rhFerr + '"]')).forEach(function (o) { if (o !== t && o.checked) { o.checked = false; var m = a.querySelector('[data-rh-mostrar="' + o.value + '"]'); if (m) { m.checked = false; m.disabled = true; } } });
@@ -830,7 +951,7 @@
 
   window.ResultadoHolos = {
     desenhar: desenhar, carregar: carregar, doPaciente: doPaciente, porId: porId,
-    documentoHtml: documentoHtml, radarSvg: radarSvg, AVISO_INDICE: AVISO_INDICE, FAIXA_PACIENTE: FAIXA_PACIENTE, relatorioProfissionalHtml: relatorioProfissionalHtml,
+    documentoHtml: documentoHtml, radarSvg: radarSvg, contextoSugestoes: contextoSugestoes, formAtual: function () { return form; }, AVISO_INDICE: AVISO_INDICE, FAIXA_PACIENTE: FAIXA_PACIENTE, relatorioProfissionalHtml: relatorioProfissionalHtml,
     /** para o Relatorio e, no futuro, a HOLOS AI: o snapshot salvo, estruturado (nunca a ficha viva) */
     snapshotSalvo: function (id) { var r = porId(id); return r && r.status !== "rascunho" ? JSON.parse(JSON.stringify(r.content_snapshot)) : null; },
     esquecer: function () { cache = { pid: null, linhas: [], erro: null, carregado: false }; modo = "lista"; form = null; vendo = null; previa = null; }

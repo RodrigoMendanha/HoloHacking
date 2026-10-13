@@ -14,6 +14,7 @@ import { readFileSync } from 'node:fs';
 import { criarServidor, ligarPagina } from './supabase-falso.mjs';
 import { semearHolosAprovado, payloadOficial, candidatoV1 } from './holos-aprovado.mjs';
 import { construir } from '../scripts/pacote-v5.mjs';
+import { comFoco } from './fixture-direcao.mjs';
 
 let falhou = false;
 const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
@@ -39,7 +40,7 @@ const v4 = publicar(Object.assign(JSON.parse(JSON.stringify(v4doc)), { status: '
 const PV = ins('patients', { nome: 'Paciente V4 Ficticia' }).id;
 const EV = ins('encounters', { patient_id: PV, occurred_at: new Date(Date.now() - 3600000).toISOString(), timezone: 'America/Sao_Paulo', type: 'consulta', modality: 'presencial' }).id;
 const HV = rpc('salvar_holoscan_completo', { payload: payloadOficial(srv, v4.id, { patient_id: PV, encounter_id: EV, quando: new Date().toISOString().slice(0, 10) }) }).data;
-const RV = rpc('salvar_resultado_holos', { payload: { patient_id: PV, encounter_id: EV, holoscan_application_id: HV, tool_application_ids: [], operation_id: 'op-v4-ficticia' } });
+const RV = rpc('salvar_resultado_holos', comFoco({ payload: { patient_id: PV, encounter_id: EV, holoscan_application_id: HV, tool_application_ids: [], operation_id: 'op-v4-ficticia' } }));
 if (RV.error) throw new Error('resultado v4: ' + RV.error.message);
 const EMV = rpc('emitir_resultado_final', { payload: { holos_result_id: RV.data, operation_id: 'em-v4-ficticia' } });
 if (EMV.error) throw new Error('emissao v4: ' + EMV.error.message);
