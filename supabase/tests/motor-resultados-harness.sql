@@ -2,7 +2,7 @@
 -- (BEGIN ... ROLLBACK), DEPOIS da migration. Paciente, atendimentos, HOLOSCAN e Conduta ficticios. Nada persiste.
 --   MR01 Resultado HOLOS novo: template 4, motor de resultados MR-V1, sinais dominantes em cada sistema (ate 3, texto aprovado)
 --   MR02 os dominantes do Resultado = os dos Proximos Passos registrados (mesma conta, mesma ordem)
---   MR03 a montagem nao muda HOLOSCAN, notas, respostas, catalogo nem Proximos Passos; resultados antigos intactos
+--   MR03 a montagem nao muda HOLOSCAN (notas, faixas, Indice, Triade, cobertura), catalogo nem Proximos Passos; resultados antigos intactos
 --   MR04 emissao RF-2: a Conduta e a do ATENDIMENTO DO RESULTADO, mesmo havendo Conduta mais recente em outro atendimento
 --   MR05 emissao RF-2 sem Conduta no atendimento do resultado: sai sem Conduta (nunca a de outro atendimento)
 --   MR06 relatorio emitido: texto da metodologia pelo estado real do pacote (sem "nao homologado")
@@ -15,6 +15,7 @@ grant select, insert, update on _mr, _logmr to authenticated;
 grant usage on sequence _logmr_n_seq to authenticated;
 insert into _mr values
   ('holo_antes', (select coalesce(md5(string_agg(s.application_id::text || s.sistema || coalesce(s.nota::text, '') || coalesce(s.faixa, ''), ',' order by s.application_id, s.sistema)), '') from public.holoscan_system_scores s)),
+  ('app_antes', (select coalesce(md5(string_agg(a.id::text || coalesce(a.indice::text, '') || coalesce(a.triada::text, '') || coalesce(a.cobertura::text, '') || coalesce(a.triada_com_dado::text, ''), ',' order by a.id)), '') from public.holoscan_applications a)),
   ('pp_antes', (select coalesce(md5(string_agg(id::text || content_hash, ',' order by id)), '') from public.holos_next_steps)),
   ('rh_antes', (select coalesce(md5(string_agg(id::text || coalesce(content_hash, '') || template_version, ',' order by id)), '') from public.holos_results)),
   ('cat_antes', (select coalesce(md5(string_agg(system_id || rank || tool_id, ',' order by system_id, rank)), '') from public.holos_recommendation_rules));
@@ -57,9 +58,11 @@ insert into _logmr (passo) select 'MR03 ' || case when
     (select coalesce(md5(string_agg(s.application_id::text || s.sistema || coalesce(s.nota::text, '') || coalesce(s.faixa, ''), ',' order by s.application_id, s.sistema)), '') from public.holoscan_system_scores s
       where s.application_id <> (select v::uuid from _mr where k = 'h')) = (select v from _mr where k = 'holo_antes')
     and (select coalesce(md5(string_agg(system_id || rank || tool_id, ',' order by system_id, rank)), '') from public.holos_recommendation_rules) = (select v from _mr where k = 'cat_antes')
+    and (select coalesce(md5(string_agg(a.id::text || coalesce(a.indice::text, '') || coalesce(a.triada::text, '') || coalesce(a.cobertura::text, '') || coalesce(a.triada_com_dado::text, ''), ',' order by a.id)), '') from public.holoscan_applications a
+      where a.patient_id not in (select p.id from public.patients p where p.nome like 'MR TESTE FICTICIO%')) = (select v from _mr where k = 'app_antes')
     and (select coalesce(md5(string_agg(id::text || content_hash, ',' order by id)), '') from public.holos_next_steps where holoscan_application_id <> (select v::uuid from _mr where k = 'h')) = (select v from _mr where k = 'pp_antes')
     and (select coalesce(md5(string_agg(id::text || coalesce(content_hash, '') || template_version, ',' order by id)), '') from public.holos_results where patient_id <> (select v::uuid from _mr where k = 'p')) = (select v from _mr where k = 'rh_antes')
-  then 'ok' else 'FALHOU' end || ': HOLOSCAN (notas/faixas), catalogo, Proximos Passos e Resultados HOLOS anteriores intactos';
+  then 'ok' else 'FALHOU' end || ': HOLOSCAN (notas/faixas, Indice, Triade, cobertura), catalogo, Proximos Passos e Resultados HOLOS anteriores intactos';
 
 select pg_temp.como_daniel();
 set local role authenticated;
