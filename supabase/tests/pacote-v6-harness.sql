@@ -59,7 +59,9 @@ begin
       and not exists (select 1 from public.methodology_questions where package_id = v6 and stable_id = 'SNT-110')
       and ctx = 'ESP-501,ESP-502,SNT-104,SNT-105,SNT-109,SNT-206,SNT-305,SNT-306,SNT-308,SNT-408,SNT-409,SNT-410'
       and a404 = 'fungico:primaria fisico:triade_por_bloco' and a501 = 'metabolico:primaria fisico:triade_por_bloco'
-    then 'ok' else 'FALHOU (' || coalesce(por,'') || ' | ' || coalesce(tri,'') || ' | ' || coalesce(ctx,'') || ')' end || ': no banco 81 perguntas, 69 pontuaveis 8/8/7/6/40, Triade 36/19/14, SNT-110 fora, 12 so contextuais, SNT-404 no Fungico, SNT-501 no Metabolico';
+      and (select public_text from public.methodology_systems where package_id = v6 and code = 'metabolico') not ilike '%laborat%'
+      and (select count(*) from public.methodology_systems where package_id = v6 and public_text ~* '(laborat|composi|\mpele\M)') = 0
+    then 'ok' else 'FALHOU (' || coalesce(por,'') || ' | ' || coalesce(tri,'') || ' | ' || coalesce(ctx,'') || ')' end || ': no banco 81 perguntas, 69 pontuaveis 8/8/7/6/40, Triade 36/19/14, SNT-110 fora, 12 so contextuais, SNT-404 no Fungico, SNT-501 no Metabolico; textos oficiais sem exames/pele/composicao';
 end $$;
 
 do $$

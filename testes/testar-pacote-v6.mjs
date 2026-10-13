@@ -73,6 +73,16 @@ ok(v6.perguntas.every(q => JSON.stringify(Object.assign({}, q, { notes: 0, posit
   'textos, escalas e orientações iguais aos da v5');
 ok(['SNT-101', 'EMO-502', 'EMO-504', 'ESP-303', 'ESP-501', 'ESP-502'].every(id => sem(v5, id) === sem(v6, id)), 'decisões anteriores preservadas (SNT-101, EMO-502/504, ESP-303, ESP-501/502)');
 
+console.log('\n  textos oficiais dos sistemas (correcao final de coerencia)\n');
+const pt = (p, c) => p.sistemas.find(x => x.code === c).public_text;
+ok(!/laborat|exame|marcador/i.test(pt(v6, 'metabolico')) && /laborat/i.test(pt(v5, 'metabolico'))
+  && pt(v6, 'metabolico') === 'O Sistema Metabólico organiza relatos relacionados a energia, fome, saciedade, comportamento alimentar, refeições, resposta percebida à alimentação e rotina. Esse eixo não diagnostica resistência à insulina, diabetes, alterações da tireoide ou outras condições metabólicas.',
+  'Metabólico: texto oficial sem exames/achados laboratoriais (a v5 continua com o texto antigo)');
+ok(['fungico', 'acido_inflamatorio', 'detox_linfatico', MEE].every(c => !/\bpele\b|composi|laborat/i.test(pt(v6, c))), 'Fúngico, Ácido, Detox e MEE: o texto oficial não descreve como pontuável o que hoje é só contexto (pele, composição corporal, exames)');
+ok(JSON.stringify(v6.sistemas.map(x => Object.assign({}, x, { public_text: 0, source: 0 }))) === JSON.stringify(v5.sistemas.map(x => Object.assign({}, x, { public_text: 0, source: 0 }))) && pt(v6, MEE) === pt(v5, MEE),
+  'só o texto oficial muda nos sistemas (nome, cor, posição iguais); MEE sem mudança');
+ok(JSON.stringify(v6.faixas) === JSON.stringify(v5.faixas), 'faixas e mensagens por faixa iguais às da v5');
+
 console.log('\n  contextual nao pontua\n');
 const baixo = roda(uniforme(v6a, 1, r => CTX.forEach(id => { r[id] = carga(v6a, id, 0); }))), alto = roda(uniforme(v6a, 1, r => CTX.forEach(id => { r[id] = carga(v6a, id, 3); })));
 ok(SIS.every(s => baixo.r.system_results[s].nota === alto.r.system_results[s].nota) && baixo.r.index_result.valor === alto.r.index_result.valor && ['fisico', 'mental', 'espiritual'].every(k => baixo.r.triad_result[k].nota === alto.r.triad_result[k].nota),
@@ -142,6 +152,7 @@ const recusa = (mod, re) => { const R2 = JSON.parse(JSON.stringify(R)); mod(R2);
 ok(recusa(r => { r.base.version = 4; }, /revisao e do HOLOS-V1 v4/), 'revisão para outra versão: recusada');
 ok(recusa(r => { r.esperado.por_sistema.detox_linfatico = 7; }, /detox_linfatico: 6 \(esperado 7\)/), 'contagem por sistema diferente do esperado: recusada');
 ok(recusa(r => { delete r.remover_contextuais; }, /.+/), 'mover SNT-501 sem tirar o contextual redundante: recusado');
+ok(recusa(r => { r.textos_sistemas.metabolico = pt(v5, 'metabolico'); }, /metabolico: texto oficial novo vazio ou igual/) && recusa(r => { r.textos_sistemas.inexistente = 'x'; }, /sistema inexistente nao existe/), 'texto oficial de sistema igual ao atual ou de sistema inexistente: recusado');
 
 console.log('\n  artefatos\n');
 const chk = (s) => { try { return execFileSync('node', [RAIZ + 'scripts/' + s, '--check'], { encoding: 'utf8' }); } catch (e) { return ''; } };

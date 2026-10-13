@@ -74,6 +74,9 @@ ok(v6.content_hash === rpc('metodologia_hash_conteudo', { p_package_id: v6.id })
 const a6 = (id) => srv.linhas('methodology_associations').filter(a => a.package_id === v6.id && a.question_stable_id === id).map(a => a.destination_type[0] + ':' + a.destination_id + ':' + a.role + ':' + a.weight).sort().join(' ');
 ok(a6('SNT-110') === '' && a6('SNT-404') === 's:fungico:primaria:1 t:fisico:triade_por_bloco:1' && a6('SNT-501') === 's:metabolico:primaria:1 t:fisico:triade_por_bloco:1' && a6('SNT-104') === 's:fungico:secondary_contextual:null' && a6('SNT-410') === 's:detox_linfatico:secondary_contextual:null',
   'no banco: SNT-110 fora; SNT-404 no Fúngico; SNT-501 no Metabólico; SNT-104 e SNT-410 só contextuais (sem Tríade)');
+const txt6 = Object.fromEntries(srv.linhas('methodology_systems').filter(x => x.package_id === v6.id).map(x => [x.code, x.public_text || '']));
+ok(/^O Sistema Metabólico organiza relatos relacionados a energia, fome, saciedade/.test(txt6.metabolico) && Object.values(txt6).every(t => !/laborat|composi|\bpele\b/i.test(t)),
+  'no banco: textos oficiais da v6 sem exames, achados laboratoriais, pele ou composição corporal');
 
 titulo('QUESTIONARIO E SALVAR NA v6');
 const PN = ins('patients', { nome: 'Paciente V6 Ficticia' }).id;

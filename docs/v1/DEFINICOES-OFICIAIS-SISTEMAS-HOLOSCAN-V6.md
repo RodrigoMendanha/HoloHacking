@@ -80,5 +80,5 @@
 
 **Onde estas definições aparecem**
 - O sistema mostra a definição curta de cada eixo (`sistemas-fechamento.js`, bloco "O que este eixo organiza") e a ressalva do que ele não significa.
-- O texto oficial antigo de cada sistema, gravado no pacote, continua na visão profissional até uma versão seguinte do pacote. Ele cita temas que saíram da pontuação: "pele" no Detox e no Ácido-Inflamatório; "composição corporal percebida e achados laboratoriais" no Metabólico.
+- O texto oficial de cada sistema gravado no pacote v6 está alinhado a estas definições (sem exames, achados laboratoriais, pele ou composição corporal); ver `ALTERACOES-PACOTE-HOLOSCAN-V6.md` §4A. Resultados feitos em versões anteriores continuam com o texto da sua versão.
 - Este documento é a referência atual.

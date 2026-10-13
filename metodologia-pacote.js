@@ -401,6 +401,13 @@
     Object.keys(tocados).forEach(function (id) { if (tocados[id] > 1 && !(textos[id] && mover[id])) falhas.push(id + " aparece em mais de uma decisao incompativel"); });
     Object.keys(trocar).forEach(function (id) { var n = trocar[id].novo_id; if (!n || tem(n)) falhas.push(id + ": ID novo " + n + " ausente ou ja usado"); if (!trocar[id].texto) falhas.push(id + ": troca sem texto"); });
     Object.keys(textos).forEach(function (id) { var q = base.perguntas.filter(function (x) { return x.stable_id === id; })[0]; if (q && q.statement === textos[id]) falhas.push(id + ": texto novo igual ao atual"); });
+    /* 13/10 (v6): texto oficial de sistema (public_text) revisado; so o texto, nada de associacao */
+    var textosSis = R.textos_sistemas || {};
+    Object.keys(textosSis).forEach(function (code) {
+      var sx = (base.sistemas || []).filter(function (x) { return x.code === code; })[0];
+      if (!sx) falhas.push("sistema " + code + " nao existe");
+      else if (!textosSis[code] || sx.public_text === textosSis[code]) falhas.push(code + ": texto oficial novo vazio ou igual ao atual");
+    });
     Object.keys(mover).forEach(function (id) {
       var prim = (base.associacoes || []).filter(function (a) { return a.question_stable_id === id && a.destination_type === "system" && a.role === "primaria"; });
       if (prim.length !== 1 || prim[0].destination_id !== mover[id].de) falhas.push(id + ": primario atual nao e " + mover[id].de);
@@ -438,6 +445,7 @@
     });
     p.escalas = copiaSemIds(base.escalas);
     p.sistemas = copiaSemIds(base.sistemas);
+    p.sistemas.forEach(function (sx) { if (textosSis[sx.code]) { sx.public_text = textosSis[sx.code]; sx.source = fonte; } });
     p.faixas = copiaSemIds(base.faixas);
     var rotulosEscala = function (code) { var e = p.escalas.filter(function (x) { return x.code === code; })[0]; return e && e.labels ? e.labels.slice() : null; };
 

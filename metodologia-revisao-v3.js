@@ -208,6 +208,16 @@
 
     textos: {}, trocar: {},
 
+    /* Correcao final de coerencia textual (13/10, antes do deploy): o texto oficial de cada sistema descreve so o que
+       PONTUA na v6. Exames nao participam do HOLOSCAN (SNT-210/309 removidas); pele, composicao corporal e condicoes
+       nomeadas sao so contexto. Perguntas, associacoes, notas, pesos e PP-V1 nao mudam. */
+    textos_sistemas: {
+      fungico: "Eixo autoral do HOLOSCAN que organiza relatos digestivos e alimentares, de mucosas e de couro cabeludo agrupados pelo método. Não diagnostica candidíase, infecção fúngica, disbiose ou qualquer outra doença.",
+      acido_inflamatorio: "Eixo autoral que organiza relatos de dor, rigidez, desconforto, mucosas e reatividade percebida presentes no questionário. O termo 'ácido' faz parte da nomenclatura autoral e não representa medição do pH corporal. O eixo não diagnostica inflamação nem substitui avaliação ou exames clínicos.",
+      metabolico: "O Sistema Metabólico organiza relatos relacionados a energia, fome, saciedade, comportamento alimentar, refeições, resposta percebida à alimentação e rotina. Esse eixo não diagnostica resistência à insulina, diabetes, alterações da tireoide ou outras condições metabólicas.",
+      detox_linfatico: "Eixo autoral que organiza relatos de retenção percebida, hábito intestinal e sensibilidade relatada a substâncias presentes no questionário. 'Detox' é nomenclatura do método; a pontuação não mede toxinas, função hepática ou função linfática."
+    },
+
     remover: {
       "SNT-110": "Redundante com SNT-406 (reação ao álcool já pontua no Detox + Linfático) e, dentro do Fúngico, sugeriria causa microbiológica que o HOLOSCAN não demonstra."
     },

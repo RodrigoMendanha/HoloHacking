@@ -1085,6 +1085,8 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     - **Resultado HOLOS:** PP-V1 diz "A ferramenta é sugerida pelo catálogo para aprofundar este sistema." (30 regras
       iguais); os sinais não aparecem dentro do bloco da ferramenta; sistema sem carga (nota 10,0) não é apresentado como
       área para aprofundar.
+    - **Textos oficiais dos sistemas (antes do deploy):** o Metabólico deixa de citar exames/achados laboratoriais
+      (exames não participam do HOLOSCAN); Fúngico, Ácido Inflamatório e Detox deixam de citar pele. Só o texto muda.
     Detalhes: `docs/v1/ALTERACOES-PACOTE-HOLOSCAN-V6.md`; definições: `docs/v1/DEFINICOES-OFICIAIS-SISTEMAS-HOLOSCAN-V6.md`.
 
 ## Decisões pendentes (não decididas aqui)

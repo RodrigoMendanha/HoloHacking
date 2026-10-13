@@ -6,7 +6,7 @@
 
 **Base:** **HOLOS-V1 v5**, a versão no ar (hash do servidor `dc615afc…`, hash JS `6523b8e7…`).
 
-**Versão nova:** **HOLOS-V1 v6**, hash JS `2377713f9cd373a0f518b268d6c6f0f1c60bfa45660310980448199660a352c9`. O hash do servidor é calculado na publicação.
+**Versão nova:** **HOLOS-V1 v6**, hash JS `05b03b02412f00b161d72b873bad02d6f511593c773b2ac127f044b85d2a8d28`. O hash do servidor é calculado na publicação.
 
 **Preservados sem alteração:** v2, v3, v4 e v5; aplicações, respostas, notas, snapshots, Resultados HOLOS, Próximos Passos, emissões e relatórios. Nada é recalculado.
 
@@ -79,9 +79,24 @@ O PP-V1 escolheu as mesmas ferramentas nos cinco casos.
   A ordem e a seleção do PP-V1 não mudam.
 - **Profissional:** "Pontuou neste sistema" e "Contexto, sem pontuar" continuam separados em cada sistema (o snapshot já separava). **Paciente:** a visão da paciente não mostra o contexto, então ele não aparece como motivo da nota.
 
+## 4A. Textos oficiais dos sistemas (correção final de coerência, antes do deploy)
+
+Pedido de Rodrigo (13/10): o texto oficial não pode descrever como pontuável o que hoje é só contexto ou o que saiu do HOLOSCAN. Exames não participam do HOLOSCAN (SNT-210 e SNT-309 removidas); exame não altera sistema, nota, Índice, prioridade, sinais nem PP. Só o `public_text` dos sistemas muda (campo `textos_sistemas` da revisão). Perguntas, associações, notas, pesos, faixas e PP-V1 não mudam. A v5 e as anteriores ficam com o texto antigo.
+
+| sistema | texto oficial na v6 |
+|---|---|
+| Metabólico | "O Sistema Metabólico organiza relatos relacionados a energia, fome, saciedade, comportamento alimentar, refeições, resposta percebida à alimentação e rotina. Esse eixo não diagnostica resistência à insulina, diabetes, alterações da tireoide ou outras condições metabólicas." (sai "composição corporal percebida e achados laboratoriais relatados") |
+| Fúngico | "Eixo autoral do HOLOSCAN que organiza relatos digestivos e alimentares, de mucosas e de couro cabeludo agrupados pelo método. Não diagnostica candidíase, infecção fúngica, disbiose ou qualquer outra doença." (sai "pele") |
+| Ácido Inflamatório | "Eixo autoral que organiza relatos de dor, rigidez, desconforto, mucosas e reatividade percebida presentes no questionário. O termo 'ácido' faz parte da nomenclatura autoral e não representa medição do pH corporal. O eixo não diagnostica inflamação nem substitui avaliação ou exames clínicos." (sai "pele") |
+| Detox e Linfático | "Eixo autoral que organiza relatos de retenção percebida, hábito intestinal e sensibilidade relatada a substâncias presentes no questionário. 'Detox' é nomenclatura do método; a pontuação não mede toxinas, função hepática ou função linfática." (sai "pele") |
+| Mental Emocional Espiritual | sem mudança (já descreve só o que pontua) |
+
+O texto oficial aparece na visão profissional ("Mensagem do pacote"/texto do eixo), nos relatórios e no snapshot dos Resultados novos. Resultados já salvos ficam com o texto da versão com que foram feitos. As faixas e mensagens por faixa já não citavam exames (conferido).
+
 ## 5. Testes
 
 - `testes/testar-pacote-v6.mjs` (novo):
+  - textos oficiais sem exames/achados laboratoriais/pele/composição; só o texto muda; recusa de texto igual ou de sistema inexistente;
   - decisões e contagens;
   - contextual não pontua;
   - bordas: 100%; exatamente 80% (MEE 32/40); abaixo de 80%; Detox com 6 itens; Metabólico com 7; invertida (SNT-507); empate entre sistemas; empate na Tríade; respostas quase todas baixas e quase todas altas; contextuais respondidas e em branco;
@@ -120,7 +135,7 @@ Duas pacientes fictícias (casos C e E), pelo fluxo real com servidor falso: Res
 | P1 | 2ª área com nota 10,0 (sem carga) apresentada como "área para aprofundar" e "concentrou mais marcadores" (já existia na v5) | **corrigido** (seção 4) |
 | P1 | PP-V1 com sinais dentro do bloco da ferramenta, dando a entender que a pergunta escolheu a ferramenta | **corrigido** (seção 4) |
 | P2 | A ressalva homologada do Detox, que a paciente também lê, diz "não mede toxinas…" | **mantida**: é texto literal homologado em 13/10 e é uma negação. Para tirar a palavra da visão da paciente, Rodrigo decide o texto novo. |
-| P2 | Os textos oficiais dos sistemas no pacote (só na visão profissional) citam temas que saíram da pontuação: Detox e Ácido-Inflamatório citam "pele"; Metabólico cita "composição corporal percebida e achados laboratoriais" | para uma versão seguinte do pacote (texto de pacote publicado não se edita); a definição oficial nova está em `DEFINICOES-OFICIAIS-SISTEMAS-HOLOSCAN-V6.md` |
+| P2 | Os textos oficiais dos sistemas no pacote citavam temas que saíram da pontuação (Metabólico: "achados laboratoriais"; Detox e Ácido-Inflamatório: "pele") | **corrigido antes do deploy** (seção 4A) |
 | P3 | Detox com 6 itens (o menor); nome "Fúngico" mantido | registrado na matriz (8.6) |
 
 ## 9. Ordem da publicação

@@ -2522,5 +2522,5 @@ O enunciado menciona exame laboratorial, condição nomeada ou uso de medicament
 **Pontos que ficam como observação (não bloqueiam a v6):**
 - O Detox e Linfático fica com 6 itens pontuáveis (o menor sistema): 5/6 respondidos (83%) mantém a nota; 4/6 não. Se quiserem mais itens, eles entram numa versão seguinte, com perguntas novas.
 - O nome "Fúngico" continua (nomenclatura autoral do método); a definição oficial diz o que ele organiza e o que não mede.
-- Os textos oficiais dos sistemas no pacote ainda citam temas que saíram da pontuação ("pele" no Detox e no Ácido-Inflamatório; "composição corporal percebida e achados laboratoriais" no Metabólico). Ajustar esses textos é uma mudança de pacote para uma versão seguinte; a definição oficial atualizada está em `docs/v1/DEFINICOES-OFICIAIS-SISTEMAS-HOLOSCAN-V6.md`.
+- Os textos oficiais dos sistemas no pacote v6 foram alinhados ao que pontua (o Metabólico não cita mais exames nem achados laboratoriais; Fúngico, Ácido Inflamatório e Detox não citam mais pele): `docs/v1/ALTERACOES-PACOTE-HOLOSCAN-V6.md` §4A.
 - O PP-V2 não foi iniciado. O PP-V1 (30 regras) não mudou.
