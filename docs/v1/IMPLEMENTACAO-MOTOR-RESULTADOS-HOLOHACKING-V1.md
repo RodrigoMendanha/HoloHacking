@@ -734,4 +734,6 @@ Arquivos em `docs/v1/motor-resultados/ux-final/`:
   - `testar-ferramentas-resultado`
 - **Hashes:** `docs/deploy.md` §3.5 regenerado (6 arquivos mudaram).
 
+**Suíte completa: VERDE — 147 suítes, 4424 asserções, 0 falhas; 72 de 72 arquivos batem com docs/deploy.md §3.5.** Banco e SQL não mudaram nesta rodada.
+
 **PARE PARA HOMOLOGAÇÃO VISUAL FINAL.** Nenhum SQL foi aplicado e não houve deploy.
