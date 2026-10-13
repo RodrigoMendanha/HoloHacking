@@ -32,7 +32,10 @@ rpc('registrar_proximos_passos', { p_application_id: HA });
 const tool = (id, r) => ins('tool_applications', { patient_id: PA, encounter_id: EA, ferramenta_id: id, versao_ferramenta: '1', status: 'concluida', respostas: r, iniciada_em: agora, concluida_em: agora }).id;
 const T = [tool('oq3', { quer: 'QUER_FICT', precisa: 'PRECISA_FICT', consegue: 'CONSEGUE_FICT' }), tool('pqq', { objetivo: 'OBJ_FICT', r1: 'N1', verdadeiro: 'SINTESE_FICT' }),
   tool('carta_futuro', { carta: 'CARTA_INTIMA_NAO_ENVIAR', para_quando: '2027-01-01' }),
-  tool('conexao_pertencimento_v1', { contar: 'Irmã Terceira Ficticia', pertence: 'grupo de corrida', vinculos: [{ rotulo: 'Irmã Terceira Ficticia', natureza: 'pessoa', papel: 'apoia', proximidade: 'próxima' }] })];
+  tool('conexao_pertencimento_v1', { contar: 'Irmã Terceira Ficticia', pertence: 'grupo de corrida', vinculos: [{ rotulo: 'Irmã Terceira Ficticia', natureza: 'pessoa', papel: 'apoia', proximidade: 'próxima' }] }),
+  /* 13/10: ferramentas que SEMPRE carregam pendencia metodologica (estado do Momentum, ponto de intervencao) */
+  tool('linha_momentum', { energia: 4, carga: 6, controle: 5, suporte: 6, espaco: 4, estabilidade: 5, sustenta: 'S', limita: 'L', nao_pedir: 'N', estado_confirmado: 'reorganizar', justificativa_estado: 'J' }),
+  tool('gatilhos_respostas_v1', { gatilho: 'g', pensamento: 'p', emocao: 'e', resposta: 'r', alternativa: 'a' })];
 const vis = {}; T.forEach(id => { vis[id] = { mostrar: true }; });
 const R = rpc('salvar_resultado_holos', { payload: { patient_id: PA, encounter_id: EA, holoscan_application_id: HA, tool_application_ids: T, visao_paciente: { ferramentas: vis, proximos_passos: true },
   leitura_profissional: 'LEITURA_FICT', pontos_acompanhar: 'PONTOS_FICT', questoes_aprofundar: 'QUESTAO_SO_NUTRI' } });
@@ -83,6 +86,20 @@ ok(rp.pp <= 1 && !/Próximos passos combinados/i.test(rp.t) && /O que ficou comb
 ok(!/CARTA_INTIMA_NAO_ENVIAR|Irmã Terceira Ficticia|verdadeiro motivo/i.test(rp.t) && /A Carta ao Futuro Eu foi realizada como exercício/.test(rp.t),
   'testes 26/27/31: PDF da paciente sem o texto da Carta e sem nomes de terceiros (snapshot do Resultado salvo)');
 ok(!/exame|laborat/i.test(rp.semRodape), 'teste 30: exames continuam fora do documento da paciente (só a negação do rodapé: "não é exame")');
+
+/* --- 13/10: PENDENCIA METODOLOGICA e informacao INTERNA da visao profissional: nunca em superficie da paciente --- */
+const PEND = /pend[eê]ncia|PM-\d|aguardando rodrigo|sem texto aprovado|não há texto aprovado|não há regra homologada/i;
+const sup = await A.evaluate(async (pid) => {
+  const R = window.ResultadoHolos; await R.carregar(pid);
+  const r = R.doPaciente(pid).filter(x => x.status !== 'rascunho' && x.content_snapshot)[0];
+  const d = document.createElement('div'); d.innerHTML = R.documentoHtml(r.content_snapshot, 'paciente', {});
+  const prof = document.createElement('div'); prof.innerHTML = R.documentoHtml(r.content_snapshot, 'profissional', {});
+  const RP = window.ResultadoPagina;
+  return { pac: d.textContent, prof: prof.textContent, wa: RP.mensagemWhatsApp({ nome: 'Paciente Relatorio Ficticia' }, r, { nome: 'Nutri' }) };
+}, PA);
+ok(!PEND.test(sup.pac) && !PEND.test(rp.t) && !PEND.test(pac.t) && !PEND.test(sup.wa),
+  'item 4 (13/10): nenhuma pendência metodológica na visão da paciente, no Resultado/PDF da paciente, no WhatsApp nem no relatório para o paciente');
+ok(/Pendências metodológicas/.test(sup.prof), 'a nutricionista continua vendo as pendências, marcadas e recolhidas');
 
 /* --- HOLOS AI --- */
 const ia = await A.evaluate(async (pid) => {

@@ -77,8 +77,9 @@ ok(xg.apareceu.filter(i => i.elo).map(i => i.rotulo).join(' ↓ ') === 'Situaç�
 
 /* 24. Proposito */
 ok(FF.resultadoProposito(so) === null && FF.resultadoProposito([pqq]) === null && FF.resultadoProposito(ambos).fontes.map(f => f.id).join() === 'id-oq3,id-pqq'
-  && rotulos(FF.resultadoProposito(ambos)).join('|') === 'O que eu quero|Por que isso importa|O que consigo sustentar agora|Direção desta etapa (objetivo declarado no PQQ)',
-  'teste 24: Mapa do Propósito só deriva de OQ³ + PQQ, com a referência das duas aplicações fonte');
+  && rotulos(FF.resultadoProposito(ambos)).join('|') === 'O que eu quero|Por que isso importa|O que consigo sustentar agora'
+  && !/Direção/.test(JSON.stringify(FF.resultadoProposito(ambos).apareceu)),
+  'teste 24: Mapa do Propósito só deriva de OQ³ + PQQ, com a referência das duas aplicações fonte; sem bloco "Direção desta etapa" (13/10)');
 const der = { motor: 'MR-V1', fontes: [{ ferramenta_id: 'oq3', id: 'X1' }, { ferramenta_id: 'pqq', id: 'X2' }], campos: { quer: 'Q_CONGELADO', importa: 'I', sustenta: 'S', direcao: 'D' } };
 const xpr = FF.resultadoProposito(ambos, der);
 ok(xpr.apareceu[0].valor === 'Q_CONGELADO' && xpr.fontes[0].id === 'X1' && xpr.derivado_agora === false && FF.resultadoProposito(ambos).derivado_agora === true,

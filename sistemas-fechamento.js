@@ -48,14 +48,16 @@
     },
     detox_linfatico: {
       definicao: "Categoria autoral que organiza determinados relatos ligados a eliminação, funcionamento intestinal, retenção percebida, rotina e outros elementos previstos no questionário.",
-      prioritario: null   // o pedido nao traz o texto "se prioritario" deste sistema: PENDENCIA METODOLOGICA
+      /* homologado em 13/10 (fechamento de homologacao do MR-V1), literal; a ressalva vai sempre junto */
+      prioritario: "Quando este eixo aparece entre as primeiras áreas para aprofundar, vale observar como funcionamento intestinal, retenção percebida, alimentação, hidratação, movimento e organização da rotina aparecem no contexto real da paciente.",
+      ressalva: "Esse resultado não mede toxinas, capacidade de detoxificação, função hepática ou fluxo linfático."
     },
     mental_emocional_espiritual: {
       definicao: "Organiza relatos relacionados a pensamentos, emoções, comportamento, autorregulação, identidade, conexão, pertencimento, valores e sentido.",
       prioritario: "Este domínio concentrou marcadores que merecem aprofundamento dentro dos limites da atuação nutricional."
     }
   };
-  /* item 7, "se nao prioritario": frase factual (relativa as areas prioritarias), usada nos cinco sistemas */
+  /* item 7, "se nao prioritario": frase transversal HOMOLOGADA em 13/10 para os cinco sistemas (fora das 2 primeiras areas) */
   var NAO_PRIORITARIO = "Este eixo apresentou relativamente menos marcadores do que as áreas prioritárias desta aplicação.";
   var PENDENCIA_PRIORITARIO = "Não há texto aprovado de aprofundamento para este sistema quando ele aparece como área prioritária.";
 
@@ -140,11 +142,11 @@
     var prioritario = avaliavel && (pos === 1 || pos === 2);
     var sinais = avaliavel ? sinaisDe(s, pp) : { origem: "nenhuma", lista: [] };
     var pend = [];
-    var aprofundar = null;
+    var aprofundar = null, ressalva = null;
     if (!def) pend.push("Sistema sem definição aprovada no motor de resultados (" + s.sistema + ").");
     if (avaliavel && def) {
       if (prioritario) {
-        if (def.prioritario) aprofundar = def.prioritario;
+        if (def.prioritario) { aprofundar = def.prioritario; ressalva = def.ressalva || null; }
         else pend.push(PENDENCIA_PRIORITARIO);
       } else aprofundar = NAO_PRIORITARIO;
     }
@@ -162,6 +164,7 @@
       significado: avaliavel ? (SIGNIFICADO[s.faixa] || null) : SEM_NOTA,    // D
       nao_significa: avaliavel ? (NAO_SIGNIFICA[s.faixa] || null) : null,    // E
       aprofundamento: aprofundar,                                            // F
+      ressalva_aprofundamento: ressalva,
       proximo_passo: prioritario ? proximoPasso(s, pp, sinais, nomeF) : [],  // G
       pendencias: pend
     };
@@ -209,7 +212,8 @@
     }
     if (f.significado) h += '<div class="sf-bloco sf-d"><span class="sf-rot">O que isso significa dentro do HOLOSCAN</span><p>' + esc(f.significado) + "</p></div>";
     if (f.nao_significa) h += '<div class="sf-bloco sf-e"><span class="sf-rot">O que isso não significa</span><p>' + esc(f.nao_significa) + " O HOLOSCAN não é diagnóstico.</p></div>";
-    if (f.aprofundamento) h += '<div class="sf-bloco sf-f"><span class="sf-rot">O que pode merecer aprofundamento</span><p>' + esc(f.aprofundamento) + "</p></div>";
+    if (f.aprofundamento) h += '<div class="sf-bloco sf-f"><span class="sf-rot">O que pode merecer aprofundamento</span><p>' + esc(f.aprofundamento) + "</p>" +
+      (f.ressalva_aprofundamento ? '<p class="sf-ressalva">' + esc(f.ressalva_aprofundamento) + "</p>" : "") + "</div>";
     if (!paciente && f.pendencias.length) h += '<div class="sf-bloco sf-f sf-pend"><span class="sf-rot">' + SELO_PENDENCIA + "</span>" + f.pendencias.map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("") + "</div>";
     if (f.proximo_passo.length && (!paciente || extras.mostrarPP)) {
       h += '<div class="sf-bloco sf-g"><span class="sf-rot">Próximo passo pelo catálogo</span>' + f.proximo_passo.map(function (p) { return blocoPP(p, paciente); }).join("") + "</div>";

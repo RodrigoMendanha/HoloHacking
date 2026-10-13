@@ -177,7 +177,7 @@
     var a = (fs.filter(function (t) { return t.ferramenta_id === "oq3"; })[0].respostas) || {}, b = (fs.filter(function (t) { return t.ferramenta_id === "pqq"; })[0].respostas) || {};
     return { ferramenta_id: "mapa", nome: NOMES.mapa,
       itens: itens({ quer: a.quer, importa: b.verdadeiro, direcao: b.objetivo, sustenta: a.consegue },
-        [["quer", "O que quer"], ["importa", "Por que importa"], ["direcao", "Direção"], ["sustenta", "O que consegue sustentar"]]),
+        [["quer", "O que quer"], ["importa", "Por que importa"], ["sustenta", "O que consegue sustentar"]]),
       linha: "organizado a partir do OQ³ e do PQQ (opcional)." };
   }
 
@@ -209,7 +209,7 @@
     muda: "Não há texto aprovado sobre o que este registro pode mudar no acompanhamento.",
     estado: "O texto do que cada estado do Momentum representa ainda não está aprovado (banco de estados em rascunho).",
     intervencao: "\"Ponto de intervenção\" em Gatilhos & Respostas: não há regra homologada.",
-    direcao: "\"Direção desta etapa\" no Mapa do Propósito: não há regra além do objetivo declarado no PQQ.",
+    direcao: "\"Direção desta etapa\" no Mapa do Propósito: não há regra homologada; o bloco não é mostrado.",
     proximo: "Não há próximo passo automático homologado para esta ferramenta."
   };
 
@@ -325,7 +325,8 @@
       historico = true;
     }
     var ap = campos(c,
-      [["quer", "O que eu quero"], ["importa", "Por que isso importa"], ["sustenta", "O que consigo sustentar agora"], ["direcao", "Direção desta etapa (objetivo declarado no PQQ)"]]);
+      /* 13/10 (fechamento de homologacao): sem bloco "Direcao desta etapa" — nao ha regra homologada; so o factual de OQ3 + PQQ */
+      [["quer", "O que eu quero"], ["importa", "Por que isso importa"], ["sustenta", "O que consigo sustentar agora"]]);
     return { motor: VERSAO_RESULTADO, ferramenta_id: "mapa", nome: NOMES.mapa, derivado: true, derivado_agora: historico, fontes: fontes,
       apareceu: ap, significa: null, muda: null, proximo: null, pendencias: [PEND.significa, PEND.muda, PEND.direcao] };
   }

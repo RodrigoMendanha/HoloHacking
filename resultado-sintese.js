@@ -41,7 +41,7 @@
     /* motor de resultados V1 (12/10) */
     { id: "PM-15", titulo: "SNT-210 e SNT-309 (pacote HOLOSCAN)", texto: "Pendência metodológica do pacote HOLOSCAN, não resolvida nesta versão. Exames e documentos continuam fora do Resultado, do motor e dos Próximos Passos." },
     { id: "PM-16", titulo: "Recomendação por sinal → tema → ferramenta (PP-V2)", texto: "Não implementada: o motor vigente continua SISTEMA → CATÁLOGO → FERRAMENTA. O mapeamento necessário está pendente de homologação." },
-    { id: "PM-17", titulo: "Textos ainda não aprovados do Resultado", texto: "\"O que significa\" de cada ferramenta, o texto de cada estado do Momentum, o \"ponto de intervenção\" de Gatilhos e o aprofundamento do Detox + Linfático como área prioritária: aparecem como pendência, sem texto inventado." }
+    { id: "PM-17", titulo: "Textos ainda não aprovados do Resultado", texto: "\"O que significa\" de cada ferramenta, o texto de cada estado do Momentum, o \"ponto de intervenção\" de Gatilhos e a \"Direção desta etapa\" do Mapa do Propósito: aparecem como pendência só para a nutricionista, sem texto inventado. (O aprofundamento do Detox + Linfático foi homologado em 13/10.)" }
   ];
   var SELO = "PENDÊNCIA METODOLÓGICA — AGUARDANDO RODRIGO/DANIEL";
   var LIMITE = "O sistema não possui regra homologada para afirmar gravidade, diagnóstico ou causa, nem para dizer que o mapeamento está concluído. A leitura do conjunto e a Conduta são da nutricionista.";

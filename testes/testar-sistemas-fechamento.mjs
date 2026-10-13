@@ -5,7 +5,7 @@
  *   - "1a/2a area para aprofundar" (nunca gravidade/risco), significado comum das notas
  *   - sinais = os dominantes reais do snapshot (ate 3), com a ressalva de contribuicao (nunca "causou")
  *   - Proximo passo SO do catalogo congelado; trocar os sinais nao troca a ferramenta
- *   - linguagem proibida por sistema; Detox prioritario sem texto aprovado = PENDENCIA (so profissional)
+ *   - linguagem proibida por sistema; Detox prioritario com o texto homologado em 13/10 + ressalva; pendencia so profissional
  */
 import './guarda-falhas.mjs';
 import { createRequire } from 'node:module';
@@ -56,7 +56,8 @@ ok(por('mental_emocional_espiritual').resultado.prioridade === '1ª área para a
 ok(IDS.every(id => por(id).organiza === SF.SISTEMAS[id].definicao) && por('fungico').organiza.startsWith('Categoria autoral que organiza determinados relatos digestivos'),
   'A: definição segura aprovada de cada sistema (itens 7-11, literal)');
 ok(por('metabolico').aprofundamento === SF.SISTEMAS.metabolico.prioritario && por('mental_emocional_espiritual').aprofundamento === SF.SISTEMAS.mental_emocional_espiritual.prioritario
-  && por('fungico').aprofundamento === SF.NAO_PRIORITARIO && por('acido_inflamatorio').aprofundamento === SF.NAO_PRIORITARIO,
+  && por('fungico').aprofundamento === SF.NAO_PRIORITARIO && por('acido_inflamatorio').aprofundamento === SF.NAO_PRIORITARIO
+  && SF.NAO_PRIORITARIO === 'Este eixo apresentou relativamente menos marcadores do que as áreas prioritárias desta aplicação.',
   'F: texto "se prioritário" nas duas primeiras áreas; "relativamente menos marcadores" nas demais');
 ok(por('acido_inflamatorio').significado === SF.SIGNIFICADO.alta && por('metabolico').significado === SF.SIGNIFICADO.intermediaria && /Não significa ausência de doença/.test(por('acido_inflamatorio').nao_significa),
   'D/E: significado comum das notas pela faixa salva (item 6), com o que NÃO significa');
@@ -88,7 +89,9 @@ ok(sel.length === 3, 'teste 6: a seleção do catálogo congelada não é altera
 const casos = [carla, snapCom({ fungico: 1, acido_inflamatorio: 1.5, metabolico: 2, detox_linfatico: 2.5, mental_emocional_espiritual: 9 }),
   snapCom({ fungico: 9, acido_inflamatorio: 9, metabolico: 9, detox_linfatico: 1, mental_emocional_espiritual: 2 })];
 const todoHtml = casos.map(c => { const f = SF.deResultado(c); return htmlDe(f, 'profissional') + htmlDe(f, 'paciente'); }).join('');
-const baixo = texto(todoHtml).toLowerCase(), baixoSemE = texto(semBlocoE(todoHtml)).toLowerCase();
+/* a ressalva homologada do Detox (13/10) NEGA toxinas/detoxificacao/funcao hepatica: fica fora da busca, como o bloco E */
+const semRessalva = h => h.replace(/<p class="sf-ressalva">[\s\S]*?<\/p>/g, '');
+const baixo = texto(semRessalva(todoHtml)).toLowerCase(), baixoSemE = texto(semBlocoE(semRessalva(todoHtml))).toLowerCase();
 const nomeTeste = { fungico: 'teste 9: Fúngico nunca diz candidíase/fungos/infecção', acido_inflamatorio: 'teste 10: Ácido-Inflamatório nunca afirma inflamação sistêmica/acidose/pH',
   metabolico: 'teste 11: Metabólico nunca diz diabetes/resistência à insulina/tireoide', detox_linfatico: 'teste 12: Detox nunca afirma toxinas/detoxificação/falha linfática',
   mental_emocional_espiritual: 'teste 13: MEE nunca diz transtorno/doença psicológica/trauma' };
@@ -99,12 +102,18 @@ IDS.forEach(id => {
 const geral = SF.PROIBIDOS.todos.filter(t => baixoSemE.includes(t));
 ok(!geral.length, 'item 13: nunca "mais grave", "pior sistema", "prioridade clínica", "risco" (fora da negação do item 6)' + (geral.length ? ' [' + geral.join(', ') + ']' : ''));
 
-/* Detox prioritario: sem texto aprovado -> PENDENCIA, so na visao profissional */
+/* Detox prioritario: texto homologado em 13/10 + ressalva, nas duas visoes; sem pendencia */
 const fd = SF.deResultado(casos[2]).find(f => f.sistema === 'detox_linfatico');
-ok(fd.resultado.posicao === 1 && fd.aprofundamento === null && fd.pendencias[0] === SF.PENDENCIA_PRIORITARIO,
-  'Detox + Linfático prioritário: sem texto aprovado de aprofundamento → PENDÊNCIA METODOLÓGICA (nada inventado)');
-const fdProf = SF.htmlSistema(fd, 'profissional'), fdPac = SF.htmlSistema(fd, 'paciente');
-ok(fdProf.includes(SF.SELO_PENDENCIA) && !fdPac.includes('PENDÊNCIA') && !/REC-|rule|respondidas/.test(fdPac),
+const TXT_DTL = 'Quando este eixo aparece entre as primeiras áreas para aprofundar, vale observar como funcionamento intestinal, retenção percebida, alimentação, hidratação, movimento e organização da rotina aparecem no contexto real da paciente.';
+const RES_DTL = 'Esse resultado não mede toxinas, capacidade de detoxificação, função hepática ou fluxo linfático.';
+ok(fd.resultado.posicao === 1 && fd.aprofundamento === TXT_DTL && fd.ressalva_aprofundamento === RES_DTL && fd.pendencias.length === 0
+  && SF.htmlSistema(fd, 'paciente').includes(RES_DTL) && SF.htmlSistema(fd, 'profissional').includes(TXT_DTL),
+  'Detox + Linfático prioritário: texto homologado (13/10) com a ressalva junto, nas duas visões; a pendência saiu');
+ok(!/acúmulo de toxinas|detox ruim|disfunção linfática|coma|beba|inclua|reduza/i.test(TXT_DTL + RES_DTL), 'Detox: sem "acúmulo de toxinas", "detox ruim", disfunção nem recomendação nutricional');
+const fn = SF.fechamento({ sistema: 'sistema_desconhecido', nome: 'X', nota: 1, faixa: 'baixa', avaliavel: true }, 1, null, x => x);
+ok(SF.deResultado(casos[2]).every(f => !f.pendencias.length) && SF.deResultado(carla).every(f => f.aprofundamento) , 'os cinco sistemas têm aprofundamento homologado (prioritário ou frase transversal), sem pendência');
+const fdProf = SF.htmlSistema(fn, 'profissional'), fdPac = SF.htmlSistema(fn, 'paciente');
+ok(fn.pendencias.length && fdProf.includes(SF.SELO_PENDENCIA) && !/PENDÊNCIA|Pendência/i.test(fdPac) && !/REC-|rule|respondidas/.test(fdPac),
   'a pendência aparece só para a nutricionista; a paciente não vê pendência, regra nem cobertura');
 
 /* paciente: faixa em linguagem de comunicacao; proximo passo so quando compartilhado */
