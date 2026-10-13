@@ -119,7 +119,7 @@ ok(!rel.error && /pacote metodológico oficial aprovado \(HOLOS-V1 v2\)/.test(re
 /* commit 2 (itens 5-14): o fechamento dos cinco sistemas no documento do Resultado HOLOS */
 ok(/1ª área para aprofundar/.test(doc.prof) && /2ª área para aprofundar/.test(doc.prof) && /O que este eixo organiza/i.test(doc.prof) && /O que isso significa dentro do HOLOSCAN/i.test(doc.prof)
   && /O que isso não significa/i.test(doc.prof) && /Alguns dos sinais que mais contribuíram para este eixo nesta aplicação/.test(doc.prof) && /Pontuou neste sistema/.test(doc.prof)
-  && /O que este eixo organiza/i.test(doc.pac) && !/PENDÊNCIA|respondidas/.test(doc.pac),
+  && /O que este eixo reúne/i.test(doc.pac) && /Este eixo reúne/.test(doc.pac) && !/Categoria autoral|Não possui significado clínico independente/.test(doc.pac) && /Essa nota, sozinha, não indica uma condição de saúde/.test(doc.pac) && !/PENDÊNCIA|respondidas/.test(doc.pac),
   'fechamento A-G de cada sistema no Resultado (profissional com o registro completo; paciente sem pendência nem cobertura)');
 ok(errosJS.length === 0, 'nenhum erro de JavaScript' + (errosJS.length ? ': ' + errosJS.join(' | ') : ''));
 await nav.close();

@@ -203,6 +203,11 @@
     roda_vida: "Essa percepção ajuda a escolher quais áreas merecem atenção neste momento.",
     conexao_pertencimento_v1: "Essas informações ajudam a compreender quais recursos de apoio estão disponíveis durante o processo."
   };
+  /* "Por que usamos esta ferramenta" (rodada de UX de 13/10): SO os textos homologados; as demais ferramentas ficam sem o bloco */
+  var POR_QUE_USAMOS = {
+    mapa_rotina_v1: "Para entender onde as dificuldades e as possibilidades de mudança aparecem na rotina real, antes de combinar mudanças que talvez não caibam no dia a dia.",
+    pqq: "Para compreender o que o objetivo desejado representa para a paciente e conectar a mudança a significados que façam sentido para ela."
+  };
   var CARTA_PACIENTE = "A Carta ao Futuro Eu foi realizada como exercício de reflexão sobre identidade, direção e cuidado futuro.";
   var PEND = {
     significa: "Não há texto aprovado sobre o que este registro significa nesta ferramenta.",
@@ -308,6 +313,7 @@
     var pend = [PEND.significa].concat(MUDA[t.ferramenta_id] ? [] : [PEND.muda]).concat(x.pendencias || []);
     if (!x.proximo) pend.push(PEND.proximo);
     return { motor: VERSAO_RESULTADO, ferramenta_id: t.ferramenta_id, nome: NOMES[t.ferramenta_id] || t.ferramenta_id,
+      por_que_usamos: POR_QUE_USAMOS[t.ferramenta_id] || null,
       apareceu: x.apareceu || [], significa: null, muda: MUDA[t.ferramenta_id] || null, proximo: x.proximo || null,
       estado: x.estado || null, leitura_nutri: x.leitura_nutri || null, pendencias: pend };
   }
@@ -334,7 +340,7 @@
   var api = { de: de, proposito: proposito, propositoDisponivel: propositoDisponivel, RELACOES_AUTOMATICAS: RELACOES_AUTOMATICAS,
     ESTADOS_MOMENTUM: ESTADOS_MOMENTUM, NOMES: NOMES, AREAS_RODA: AREAS_RODA,
     resultado: resultado, resultadoProposito: resultadoProposito, VERSAO_RESULTADO: VERSAO_RESULTADO, MUDA: MUDA,
-    CARTA_PACIENTE: CARTA_PACIENTE, PROPOSITO_OPCIONAL: PROPOSITO_OPCIONAL, PENDENCIAS_RESULTADO: PEND };
+    CARTA_PACIENTE: CARTA_PACIENTE, POR_QUE_USAMOS: POR_QUE_USAMOS, PROPOSITO_OPCIONAL: PROPOSITO_OPCIONAL, PENDENCIAS_RESULTADO: PEND };
   raiz.FerramentasFechamento = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

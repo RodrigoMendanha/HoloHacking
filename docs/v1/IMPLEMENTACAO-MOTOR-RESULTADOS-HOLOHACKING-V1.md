@@ -665,3 +665,73 @@ Conferido nas capturas e, de forma automática, no texto das duas visões:
 3. teste da Carla fictícia no ambiente real;
 4. homologação visual;
 5. PP-V2.
+
+---
+
+## U. RODADA FINAL DE UX E CONTEÚDO DO RESULTADO DA PACIENTE (13/10, antes do deploy)
+
+Nesta rodada mudaram só a apresentação, a linguagem e o PDF. **Não mudaram:**
+- cálculo do HOLOSCAN, notas, faixas, Índice e Tríade;
+- sinais dominantes, PP-V1, catálogo e ferramentas;
+- Conduta, banco e metodologia.
+
+Também não houve SQL nem deploy.
+
+| # | Pedido | Feito |
+|---|---|---|
+| 1 | Frase das notas baixas | "Notas mais baixas indicam maior carga dos marcadores considerados neste eixo nesta aplicação. Isso ajuda a mostrar onde pode valer a pena aprofundar a conversa e não representa doença, gravidade ou diagnóstico." Aparece em "Áreas para aprofundar" e em "Detalhes do mapa". |
+| 2 | Aviso antes dos sinais dominantes (paciente) | Texto literal antes da lista. Na visão profissional, nada mudou. |
+| 3 | Tríade fora de "O que entendemos nesta etapa" | Saiu do resumo da paciente e continua em "Detalhes do mapa". |
+| 4 | Próximos aprofundamentos | Título "Possíveis próximos aprofundamentos", com "Principal:" em negrito e "Outra possibilidade:" em tamanho menor, mais "A escolha do que aplicar e em qual momento é feita com sua nutricionista." A visão profissional mantém o catálogo/rank. |
+| 5 | "Por que usamos esta ferramenta" | Aparece antes de "O que apareceu", só no Mapa da Rotina e no PQQ, com os textos homologados (`FerramentasFechamento.POR_QUE_USAMOS`). As outras ferramentas ficam sem o bloco. |
+| 6 | Linguagem | "Este eixo reúne…" e "Essa nota, sozinha, não indica uma condição de saúde." A visão profissional mantém o texto técnico. |
+| 7 | Menos repetição | Cartão completo só nas 2 áreas prioritárias. "Detalhes do mapa" mostra os 5 sistemas em cartão compacto: nome, nota, marcadores e definição curta. |
+| 8 | PDF | Ver abaixo. |
+| 9 | 5–6 páginas | **5 páginas** nos dois caminhos (antes, 10). |
+
+### Correções do PDF
+
+**Imprimir**
+- **Causa da sobreposição no fim (o rodapé da nutricionista caindo sobre o cartão MEE):** o app ficava invisível (`visibility:hidden`), mas continuava ocupando espaço, e o documento era posto por cima com `position:absolute`.
+- **Correção:** o documento é copiado, sem ids, para `#rp-impressao`, filho direto do `body`. O resto do app sai com `display:none`.
+
+**Baixar PDF (html2pdf)**
+- **PDF em branco quando a página estava rolada:** corrigido com `scrollX/scrollY: 0`.
+- **Radar ausente:** html2canvas desenha o SVG sem o CSS da página. As cores e o tamanho agora vão na cópia que ele monta (`onclone`); o documento da tela e o HTML da emissão não mudam.
+- **Cartões desalinhados:** o espaçador de quebra de página do html2pdf não pode cair dentro de uma grade. Por isso as grades inteiras são o elemento evitado, e as listas de cartões viram fluxo comum só durante a geração.
+- **Moldura grossa:** os cantos ficam retos só no PDF baixado.
+- **Marcadores de lista:** viram um caractere comum.
+
+**Regras comuns aos dois caminhos**
+- Seções e cartões grandes podem quebrar entre blocos; só blocos pequenos ficam inteiros.
+- A lista "o que mais contribuiu" quebra entre itens.
+- O título fica com o primeiro bloco.
+- No papel, o Índice ocupa uma linha e as três notas da Tríade ficam lado a lado.
+- O radar ficou maior, com rótulos legíveis.
+
+**Conferência manual de todas as páginas.** Os dois PDFs da Carla fictícia foram rasterizados e conferidos página a página:
+- 5 páginas em cada caminho;
+- sem sobreposição;
+- sem título sozinho no fim de página;
+- sem página quase vazia;
+- rodapé só no final.
+
+Arquivos em `docs/v1/motor-resultados/ux-final/`:
+- `pdf-paciente-baixado.pdf`
+- `pdf-paciente-impresso.pdf`
+- `pdf-*-todas-as-paginas.png`
+- capturas 1–8
+
+### Testes
+- **Novo:** `testes/testar-resultado-ux-paciente.mjs`. Cobre os itens 1–8 e 11, com a visão profissional inalterada; a impressão real gera o documento inteiro.
+- **Ajustados aos textos novos:**
+  - `testar-correcoes-jornada`
+  - `testar-motor-resultados`
+  - `testar-relatorios-motor`
+  - `testar-resultado-final`
+  - `testar-resultado-sintese`
+  - `testar-sistemas-fechamento`
+  - `testar-ferramentas-resultado`
+- **Hashes:** `docs/deploy.md` §3.5 regenerado (6 arquivos mudaram).
+
+**PARE PARA HOMOLOGAÇÃO VISUAL FINAL.** Nenhum SQL foi aplicado e não houve deploy.

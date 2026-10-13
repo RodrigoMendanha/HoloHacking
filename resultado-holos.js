@@ -202,7 +202,7 @@
     }).join("");
     var desc = sistemas.map(function (s) { return (s.nome || s.sistema) + " " + (s.avaliavel ? num(s.nota) : "sem nota"); }).join("; ");
     /* margem lateral no viewBox: os nomes dos sistemas nas pontas nao sao cortados */
-    return '<svg class="rh-radar" viewBox="-95 -6 ' + (tam + 190) + " " + (tam + 12) + '" role="img" aria-label="Radar dos cinco sistemas: ' + e(desc) + '">' + grade + eixos + area + pontos + rot + "</svg>";
+    return '<svg class="rh-radar" viewBox="-120 -6 ' + (tam + 240) + " " + (tam + 12) + '" role="img" aria-label="Radar dos cinco sistemas: ' + e(desc) + '">' + grade + eixos + area + pontos + rot + "</svg>";
   }
   function abreviar(nome) {
     return String(nome).replace(/^Sistema\s+/i, "").replace(/Mental[- ]Emocional[- ]Espiritual/i, "Mental-Emocional").replace(/Detox (e )?Linf[aá]tico/i, "Detox").replace(/[ÁA]cido[- ]Inflamat[oó]rio/i, "Ácido-Inflam.");
@@ -286,6 +286,7 @@
     var ap = (x.apareceu || []).filter(function (i) { return !paciente || !i.so_profissional; });
     var elos = ap.filter(function (i) { return i.elo; }), soltos = ap.filter(function (i) { return !i.elo; });
     var h = '<div class="rf-caixa" data-rf-motor="' + e(x.motor) + '"><span class="rh-tag rf-tag">Resultado da ferramenta</span>';
+    if (x.por_que_usamos) h += '<div class="rf-bloco rf-porque"><span class="sf-rot">Por que usamos esta ferramenta</span><p>' + e(x.por_que_usamos) + "</p></div>";
     h += '<div class="rf-bloco"><span class="sf-rot">O que apareceu</span>' +
       (elos.length ? '<ol class="rf-cadeia">' + elos.map(function (i) { return "<li><b>" + e(i.rotulo) + "</b><p>" + e(i.valor) + "</p></li>"; }).join("") + "</ol>" : "") +
       (soltos.length ? soltos.map(function (i) { return '<div class="rh-campo"><span>' + e(i.rotulo) + "</span><p>" + e(i.valor).replace(/\n/g, "<br>") + "</p></div>"; }).join("") : "") +
@@ -441,7 +442,7 @@
     // 3. AREAS PARA APROFUNDAR (fechamento por sistema, item 32)
     if (investigar.length) {
       html += '<section class="rh-secao rh-areas" aria-labelledby="rh-t-areas"><h3 id="rh-t-areas">Áreas para aprofundar</h3>' +
-        '<p class="rh-intro">Nesta aplicação, estas foram as primeiras áreas para aprofundar. Nota mais baixa quer dizer que mais itens apareceram nas suas respostas — não quer dizer doença nem gravidade.</p>' +
+        '<p class="rh-intro">Nesta aplicação, estas foram as primeiras áreas para aprofundar. Notas mais baixas indicam maior carga dos marcadores considerados neste eixo nesta aplicação. Isso ajuda a mostrar onde pode valer a pena aprofundar a conversa e não representa doença, gravidade ou diagnóstico.</p>' +
         '<div class="rh-sistemas rh-sistemas-areas">' + investigar.map(function (f) { return c.SF.htmlSistema(f, "paciente", { faixaPaciente: faixaPaciente, mostrarPP: c.ppPac }); }).join("") + "</div></section>";
     }
     // 4. O QUE DESCOBRIMOS COM AS FERRAMENTAS (so as compartilhadas; so o resultado, item 33)
@@ -468,11 +469,15 @@
     if (pontos || blocos.observar) html += '<section class="rh-secao rh-obs rh-observar" aria-labelledby="rh-t-pts"><h3 id="rh-t-pts">O que observar até o próximo encontro</h3>' + pontos + (blocos.observar || "") + "</section>";
     // 8. DETALHES DO MAPA (conteudo secundario)
     html += '<section class="rh-secao rh-detalhes" aria-labelledby="rh-t-det"><h3 id="rh-t-det">Detalhes do mapa</h3>' +
-      '<p class="rh-intro">As suas respostas ao HOLOSCAN organizadas em cinco sistemas. Notas mais baixas indicam onde mais itens foram relatados.</p>' +
+      '<p class="rh-intro">As suas respostas ao HOLOSCAN organizadas em cinco sistemas. Notas mais baixas indicam maior carga dos marcadores considerados neste eixo nesta aplicação. Isso ajuda a mostrar onde pode valer a pena aprofundar a conversa e não representa doença, gravidade ou diagnóstico.</p>' +
       gradeGeral(c.h, true) +
-      '<h4 class="rh-sub">Os cinco sistemas</h4><div class="rh-sistemas">' + c.sis.map(function (s, i) { return cartaoSistema(s, c.fechs ? c.fechs[i] : null, true, c.ppPac); }).join("") + "</div></section>";
+      /* rodada de UX 13/10: na paciente os cinco sistemas aparecem COMPACTOS aqui (as duas areas prioritarias ja estao completas acima) */
+      '<h4 class="rh-sub">Os cinco sistemas</h4><div class="rh-sistemas rh-sistemas-compactos">' + c.sis.map(function (s, i) {
+        return c.fechs && c.SF.htmlSistemaCompacto ? c.SF.htmlSistemaCompacto(c.fechs[i], { faixaPaciente: faixaPaciente }) : cartaoSistema(s, null, true, false); }).join("") + "</div></section>";
     if (!meta.semRodape) html += '<footer class="rh-doc-rodape">Este material organiza o que foi registrado na sua avaliação. Ele não é diagnóstico nem prescrição: os próximos passos são combinados com a sua nutricionista em consulta.</footer>';
-    return html;
+    /* rodada de UX 13/10 (PDF): titulo de secao + texto de abertura ficam juntos, e titulo de subsecao fica com o que vem depois */
+    return html.replace(/(<h3 id="rh-t-[^"]+">[^<]*<\/h3>)(<p class="rh-intro">[\s\S]*?<\/p>)?/g, '<div class="rh-junto">$1$2</div>')
+      .replace(/(<h4 class="rh-sub">[^<]*<\/h4>)/g, '<div class="rh-junto rh-junto-sub">$1</div>');
   }
 
   /* radar + Indice (com o aviso) + Triade (+ cobertura so na profissional) */

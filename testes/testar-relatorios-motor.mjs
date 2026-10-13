@@ -115,7 +115,8 @@ ok(/Exames e documentos do prontuário \(arquivos e valores\) também NÃO estã
 
 /* --- CSS de impressao --- */
 const css = readFileSync(new URL('../style.css', import.meta.url), 'utf8');
-ok(/body\.rh-imprimindo \.rh-secao\{break-inside:auto\}/.test(css) && /body\.rp-imprimindo \.rh-secao\{break-inside:auto\}/.test(css) && !/body\.rp-imprimindo \.rh-secao,[^{]*\{break-inside:avoid\}/.test(css),
+/* rodada de UX 13/10: a impressao da pagina Resultado usa a copia em #rp-impressao; as regras de pagina valem para .rp-doc */
+ok(/body\.rh-imprimindo \.rh-secao\{break-inside:auto\}/.test(css) && /\.rp-doc \.rh-secao,\.rp-doc \.rh-sis,\.rp-doc \.rh-ferr,\.rp-doc \.rf-caixa\{break-inside:auto\}/.test(css) && !/\.rp-doc \.rh-secao,[^{]*\{break-inside:avoid\}/.test(css),
   'item 34: seção inteira deixou de ser indivisível na impressão (sem páginas meio vazias); só cartões pequenos e títulos ficam juntos');
 ok(errosJS.length === 0, 'nenhum erro de JavaScript' + (errosJS.length ? ': ' + errosJS.join(' | ') : ''));
 await nav.close();

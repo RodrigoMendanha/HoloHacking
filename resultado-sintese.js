@@ -201,14 +201,10 @@
     var out = [];
     if (f.investigar.length >= 2) out.push("Nesta avaliação, as áreas que aparecem primeiro para aprofundar com a sua nutricionista são " + f.investigar[0].nome + " e " + f.investigar[1].nome + ".");
     else if (f.investigar.length === 1) out.push("Nesta avaliação, a área que aparece para aprofundar com a sua nutricionista é " + f.investigar[0].nome + ".");
-    if (f.triade_com_valor >= 2) {
-      if (f.triade_menor) out.push("Entre Corpo, Mente e Espírito, " + f.triade_menor + " foi a dimensão com a menor nota.");
-      else if (f.triade_empate[0] === "todas") out.push("Corpo, Mente e Espírito ficaram com a mesma nota.");
-      else out.push(lista(f.triade_empate) + " ficaram com a mesma nota, a menor entre as três dimensões.");
-    }
+    /* rodada de UX 13/10: a Triade nao entra no resumo da paciente (continua em "Detalhes do mapa"); nada de "dimensao menor" */
     var autorizadas = f.fechamentos.filter(function (x) { return x.mostrar_paciente; }).map(function (x) { return x.nome; });
     if (autorizadas.length) out.push("Ferramentas que você fez e que a sua nutricionista compartilhou com você: " + lista(autorizadas) + ".");
-    if (f.compartilhar_pp && f.sugeridas.length) out.push("Próximos passos de aprofundamento: " + lista(f.sugeridas.map(function (s) { return s.nome; })) + ". Nenhuma é obrigatória; a escolha e o momento são combinados com a sua nutricionista.");
+    if (f.compartilhar_pp && f.sugeridas.length) out.push("Possíveis próximos aprofundamentos: " + lista(f.sugeridas.map(function (s) { return s.nome; })) + ". Nenhuma é obrigatória; a escolha e o momento são combinados com a sua nutricionista.");
     else if (f.compartilhar_pp && f.todas_realizadas) out.push(MSG_TODAS_PACIENTE);
     return out;
   }
@@ -351,11 +347,11 @@
         '<ul class="rh-resumo-lista">' + f.sugeridas.map(function (s) { return "<li>" + esc(s.nome) + "</li>"; }).join("") + "</ul></div>";
     }
     if (f.compartilhar_pp && !f.sugeridas.length && f.todas_realizadas) {
-      return '<section class="rh-secao rh-pp-paciente" aria-labelledby="rh-t-pp-pac"><h3 id="rh-t-pp-pac">Próximos passos de aprofundamento</h3>' +
+      return '<section class="rh-secao rh-pp-paciente" aria-labelledby="rh-t-pp-pac"><h3 id="rh-t-pp-pac">Possíveis próximos aprofundamentos</h3>' +
         '<p class="rh-intro">' + esc(MSG_TODAS_PACIENTE) + "</p></section>";
     }
     if (!f.compartilhar_pp || !f.sugeridas.length) return "";
-    return '<section class="rh-secao rh-pp-paciente" aria-labelledby="rh-t-pp-pac"><h3 id="rh-t-pp-pac">Próximos passos de aprofundamento</h3>' +
+    return '<section class="rh-secao rh-pp-paciente" aria-labelledby="rh-t-pp-pac"><h3 id="rh-t-pp-pac">Possíveis próximos aprofundamentos</h3>' +
       '<p class="rh-intro">Ferramentas do método que podem ajudar a aprofundar a conversa com a sua nutricionista. Nenhuma é obrigatória; a escolha e o momento são combinados em consulta.</p>' +
       '<ul class="rh-resumo-lista">' + f.sugeridas.map(function (s) { return "<li>" + esc(s.nome) + "</li>"; }).join("") + "</ul></section>";
   }

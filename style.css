@@ -4544,7 +4544,7 @@ tr.mh-conflito td{background:rgba(201,138,122,.08)}
 .rh-radar-eixo{stroke:var(--borda-suave);stroke-width:1}
 .rh-radar-area{fill:var(--dourado-suave);fill-opacity:.55;stroke:var(--dourado);stroke-width:2}
 .rh-radar-ponto{fill:var(--dourado-escuro)}
-.rh-radar-rotulo{font-size:10.5px;fill:var(--texto)}
+.rh-radar-rotulo{font-size:13px;fill:var(--texto)}
 .rh-radar-nota{font-weight:700;fill:var(--titulo)}
 .rh-numeros{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
 .rh-num{border:1px solid var(--borda-suave);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:2px;background:var(--sup-fundo)}
@@ -4848,15 +4848,60 @@ body.rp-gerando .rp-doc{border-radius:0;border:0}
   .rp-cab{grid-template-columns:1fr}
   .rp-botoes button{flex:1 1 auto}
 }
+/* PDF / impressao da paciente (rodada de UX 13/10). Antes: o resto do app ficava so invisivel (ocupando espaco) e o
+   documento ia por cima em position:absolute — o Chrome fragmentava mal e o rodape caia sobre o ultimo cartao.
+   Agora o documento e copiado para #rp-impressao, filho direto do body, e o resto do app sai com display:none. */
+#rp-impressao{display:none}
 @media print{
-  body.rp-imprimindo *{visibility:hidden!important}
-  body.rp-imprimindo #rp-doc,body.rp-imprimindo #rp-doc *{visibility:visible!important}
-  body.rp-imprimindo #rp-doc{position:absolute;left:0;top:0;width:100%;border:0;padding:0;background:#fff!important}
+  body.rp-imprimindo > *:not(#rp-impressao){display:none!important}
+  body.rp-imprimindo #rp-impressao{display:block;position:static}
+  body.rp-imprimindo #rp-impressao .rp-doc{border:0;padding:0;background:#fff!important;box-shadow:none}
   body.rp-imprimindo .rp-so-tela{display:none!important}
-  body.rp-imprimindo .rh-secao{break-inside:auto}
-  body.rp-imprimindo .rh-sis,body.rp-imprimindo .rh-ferr,body.rp-imprimindo .rp-campo,body.rp-imprimindo .rp-rodape,body.rp-imprimindo .rh-obs-item{break-inside:avoid}
-  body.rp-imprimindo .rh-secao h3,body.rp-imprimindo .rh-sub{break-after:avoid}
 }
+/* regras de pagina comuns ao PDF baixado (rp-gerando, html2pdf) e a impressao: cartoes grandes podem quebrar entre blocos;
+   so blocos pequenos ficam inteiros; titulo fica com o primeiro bloco */
+@media print{
+  .rp-doc .rh-secao,.rp-doc .rh-sis,.rp-doc .rh-ferr,.rp-doc .rf-caixa{break-inside:auto}
+  .rp-doc .sf-bloco,.rp-doc .rf-bloco,.rp-doc .rp-campo,.rp-doc .rh-obs-item,.rp-doc .sf-compacto,.rp-doc .rh-num,.rp-doc .rp-rodape,.rp-doc .rh-junto,.rp-doc .rh-sis header,.rp-doc .rh-ferr-topo{break-inside:avoid}
+  .rp-doc h3,.rp-doc h4,.rp-doc .rh-sub,.rp-doc .rh-intro{break-after:avoid}
+  .rp-doc .sf-c{break-inside:auto}
+  .rp-doc .sf-c > .sf-rot,.rp-doc .sf-c > .sf-nota{break-after:avoid}
+  .rp-doc .sf-c li,.rp-doc .rh-geral-grade{break-inside:avoid}
+  .rp-doc .rh-secao{margin-top:14px}
+}
+.rp-doc .rh-radar-caixa svg{max-width:300px}
+/* html2pdf nao entende "manter com o proximo": o bloco do titulo reserva espaco invisivel abaixo de si (padding desfeito
+   por margem negativa) — se nao couber titulo + comeco do conteudo, o titulo vai inteiro para a proxima pagina */
+body.rp-gerando .rp-doc .rh-junto{padding-bottom:150px;margin-bottom:-150px}
+body.rp-gerando .rp-doc .rh-junto-sub{padding-bottom:110px;margin-bottom:-110px}
+body.rp-gerando .rp-doc .rh-geral-grade,body.rp-imprimindo .rp-doc .rh-geral-grade{grid-template-columns:330px 1fr;gap:14px;align-items:start}
+body.rp-gerando .rp-doc .rh-radar-caixa svg,body.rp-imprimindo .rp-doc .rh-radar-caixa svg{max-width:330px}
+body.rp-gerando .rp-doc .rh-radar-rotulo,body.rp-imprimindo .rp-doc .rh-radar-rotulo{font-size:13px}
+/* no papel: Indice numa linha e as tres notas da Triade lado a lado (sem o Espirito sozinho numa segunda linha) */
+body.rp-gerando .rp-doc .rh-numeros,body.rp-imprimindo .rp-doc .rh-numeros{grid-template-columns:repeat(3,1fr);gap:8px}
+body.rp-gerando .rp-doc .rh-num-indice,body.rp-imprimindo .rp-doc .rh-num-indice{grid-column:1/-1}
+body.rp-gerando .rp-doc .rh-num,body.rp-imprimindo .rp-doc .rh-num{padding:8px 10px}
+/* areas para aprofundar: um cartao por linha no papel (dois lado a lado quebravam juntos entre paginas) */
+body.rp-imprimindo .rp-doc .rh-sistemas-areas{grid-template-columns:1fr}
+/* no PDF baixado as listas de cartoes viram fluxo comum (o espacador do html2pdf nao pode cair dentro de uma grade) */
+body.rp-gerando .rp-doc .rh-sistemas-areas,body.rp-gerando .rp-doc .rh-ferrs{display:block}
+body.rp-gerando .rp-doc .rh-sistemas-areas > * + *,body.rp-gerando .rp-doc .rh-ferrs > * + *{margin-top:12px}
+/* html2canvas desenha errado borda de larguras diferentes com canto arredondado (moldura grossa): canto reto so no PDF */
+body.rp-gerando .rp-doc .rh-sis,body.rp-gerando .rp-doc .rh-ferr,body.rp-gerando .rp-doc .rf-caixa{border-radius:0}
+.rh-radar{overflow:visible}
+/* paciente: Indice numa linha e as tres notas da Triade lado a lado */
+.rh-doc-paciente .rh-numeros{grid-template-columns:repeat(3,minmax(0,1fr))}
+.rh-doc-paciente .rh-num-indice{grid-column:1/-1}
+/* html2canvas desenha o marcador de lista como um risco minusculo: no PDF baixado o marcador e um caractere comum */
+body.rp-gerando .rp-doc ul > li{list-style:none;position:relative}
+body.rp-gerando .rp-doc ul > li::before{content:"\2022";position:absolute;left:-14px;top:0}
+.rh-sistemas-compactos{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.sf-compacto{padding:10px 12px}
+.sf-compacto .rh-sis-faixa{margin:0 0 4px}
+.sf-def-curta{font-size:.82rem;line-height:1.4;margin:0;color:var(--texto-suave)}
+.sf-g-pac .sf-pp-principal{font-weight:700;margin:2px 0}
+.sf-g-pac .sf-pp-outra{font-size:.84rem;margin:2px 0;color:var(--texto-suave)}
+.sf-pp-rot{font-weight:600}
 
 /* ---------- Proximos Passos HOLOS (bloco profissional do Resultado HOLOSCAN, 09/10) ---------- */
 .holo-resumo .res-passos{margin-top:22px;padding-top:18px;border-top:1px solid var(--borda-suave)}

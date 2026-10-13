@@ -195,6 +195,32 @@
       (p.sinais.length ? '<div><span class="sf-rot">Sinais deste sistema que merecem atenção</span><p class="sf-nota">' + esc(p.sinais_intro) + "</p>" + lista(p.sinais) + "</div>" : "") +
       "</div>";
   }
+  /* ---------- visao da PACIENTE: linguagem simples (rodada de UX de 13/10) — a profissional continua com o texto tecnico ---------- */
+  var INTRO_SINAIS_PACIENTE = "Os itens abaixo são alguns dos que mais contribuíram matematicamente para este eixo dentro da organização autoral do HOLOSCAN. Essa associação ajuda a orientar a investigação e não significa que um desses fatores cause os outros.";
+  var PP_PACIENTE_TITULO = "Possíveis próximos aprofundamentos";
+  var PP_PACIENTE_ESCOLHA = "A escolha do que aplicar e em qual momento é feita com sua nutricionista.";
+  /* "Categoria autoral que organiza..." / "Organiza..." -> "Este eixo reune..." (mesmo conteudo, sem jargao) */
+  function definicaoPaciente(t) { return String(t || "").replace(/^(Categoria autoral que organiza|Organiza)\s+/, "Este eixo reúne "); }
+  function significadoPaciente(t) { return String(t || "").replace("Não possui significado clínico independente.", "Essa nota, sozinha, não indica uma condição de saúde."); }
+  /* ferramentas do mesmo sistema: a principal (papel/rank do catalogo) em destaque; as outras como "outra possibilidade" */
+  function ppPaciente(lista) {
+    var l = lista.slice().sort(function (a, b) { return (a.papel === "principal" ? 0 : 1) - (b.papel === "principal" ? 0 : 1); });
+    var h = '<div class="sf-bloco sf-g sf-g-pac"><span class="sf-rot">' + PP_PACIENTE_TITULO + "</span>";
+    if (l.length === 1) h += '<p class="sf-pp-principal">' + esc(l[0].nome) + "</p>";
+    else h += '<p class="sf-pp-principal"><span class="sf-pp-rot">Principal:</span> ' + esc(l[0].nome) + "</p>" +
+      l.slice(1).map(function (p) { return '<p class="sf-pp-outra"><span class="sf-pp-rot">Outra possibilidade:</span> ' + esc(p.nome) + "</p>"; }).join("");
+    return h + '<p class="sf-nota">' + PP_PACIENTE_ESCOLHA + "</p></div>";
+  }
+  /* versao COMPACTA (paciente, "Detalhes do mapa"): nome, nota, marcadores, definicao curta */
+  function htmlSistemaCompacto(f, extras) {
+    var r = f.resultado; extras = extras || {};
+    return '<article class="rh-sis sf-sis sf-compacto rh-faixa-' + esc(r.faixa || "sem") + '" data-sf-sistema="' + esc(f.sistema) + '">' +
+      "<header><h4>" + esc(f.nome) + '</h4><span class="rh-sis-nota">' + (r.avaliavel ? fmt(r.nota) : "—") + "</span></header>" +
+      '<p class="rh-sis-faixa">' + (r.prioridade ? '<b class="sf-prioridade">' + esc(r.prioridade) + "</b> · " : "") +
+        esc(r.avaliavel ? (extras.faixaPaciente ? extras.faixaPaciente(r.faixa) : "") : "sem nota") + "</p>" +
+      (f.organiza ? '<p class="sf-def-curta">' + esc(definicaoPaciente(f.organiza)) + "</p>" : "") + "</article>";
+  }
+
   /* visao: "profissional" | "paciente". Paciente: sem faixa tecnica, sem cobertura, sem pendencia, sem regra. */
   function htmlSistema(f, visao, extras) {
     var paciente = visao === "paciente", r = f.resultado;
@@ -204,18 +230,20 @@
       "<header><h4>" + esc(f.nome) + '</h4><span class="rh-sis-nota">' + (r.avaliavel ? fmt(r.nota) : "—") + "</span></header>" +
       '<p class="rh-sis-faixa">' + (r.prioridade ? '<b class="sf-prioridade">' + esc(r.prioridade) + "</b> · " : "") + esc(faixaTxt) +
         (!paciente && r.total !== null ? " · " + esc(r.respondidos + " de " + r.total) + " respondidas" : "") + "</p>";
-    if (f.organiza) h += '<div class="sf-bloco sf-a"><span class="sf-rot">O que este eixo organiza</span><p>' + esc(f.organiza) + "</p></div>";
+    if (f.organiza) h += '<div class="sf-bloco sf-a"><span class="sf-rot">O que este eixo ' + (paciente ? "reúne" : "organiza") + "</span><p>" + esc(paciente ? definicaoPaciente(f.organiza) : f.organiza) + "</p></div>";
     if (r.avaliavel) {
       h += '<div class="sf-bloco sf-c"><span class="sf-rot">O que mais contribuiu para este resultado</span>' +
-        (f.contribuiu.sinais.length ? '<p class="sf-nota">' + esc(f.contribuiu.intro) + "</p>" + lista(f.contribuiu.sinais) + '<p class="sf-nota">' + esc(f.contribuiu.ressalva) + "</p>"
+        (f.contribuiu.sinais.length ? (paciente ? '<p class="sf-nota">' + esc(INTRO_SINAIS_PACIENTE) + "</p>" + lista(f.contribuiu.sinais)
+            : '<p class="sf-nota">' + esc(f.contribuiu.intro) + "</p>" + lista(f.contribuiu.sinais) + '<p class="sf-nota">' + esc(f.contribuiu.ressalva) + "</p>")
           : '<p class="sf-nota">' + esc(f.contribuiu.origem === "nenhuma" && !paciente ? SINAIS_FORA : "Nenhum sinal pontuou neste eixo nesta aplicação.") + "</p>") + "</div>";
     }
-    if (f.significado) h += '<div class="sf-bloco sf-d"><span class="sf-rot">O que isso significa dentro do HOLOSCAN</span><p>' + esc(f.significado) + "</p></div>";
+    if (f.significado) h += '<div class="sf-bloco sf-d"><span class="sf-rot">O que isso significa dentro do HOLOSCAN</span><p>' + esc(paciente ? significadoPaciente(f.significado) : f.significado) + "</p></div>";
     if (f.nao_significa) h += '<div class="sf-bloco sf-e"><span class="sf-rot">O que isso não significa</span><p>' + esc(f.nao_significa) + " O HOLOSCAN não é diagnóstico.</p></div>";
     if (f.aprofundamento) h += '<div class="sf-bloco sf-f"><span class="sf-rot">O que pode merecer aprofundamento</span><p>' + esc(f.aprofundamento) + "</p>" +
       (f.ressalva_aprofundamento ? '<p class="sf-ressalva">' + esc(f.ressalva_aprofundamento) + "</p>" : "") + "</div>";
     if (!paciente && f.pendencias.length) h += '<div class="sf-bloco sf-f sf-pend"><span class="sf-rot">' + SELO_PENDENCIA + "</span>" + f.pendencias.map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("") + "</div>";
-    if (f.proximo_passo.length && (!paciente || extras.mostrarPP)) {
+    if (f.proximo_passo.length && paciente && extras.mostrarPP) h += ppPaciente(f.proximo_passo);
+    else if (f.proximo_passo.length && !paciente) {
       h += '<div class="sf-bloco sf-g"><span class="sf-rot">Próximo passo pelo catálogo</span>' + f.proximo_passo.map(function (p) { return blocoPP(p, paciente); }).join("") + "</div>";
     }
     return h + "</article>";
@@ -225,7 +253,8 @@
     VERSAO: VERSAO, SISTEMAS: SISTEMAS, NAO_PRIORITARIO: NAO_PRIORITARIO, SIGNIFICADO: SIGNIFICADO, NAO_SIGNIFICA: NAO_SIGNIFICA,
     PROIBIDOS: PROIBIDOS, PP_POR_QUE: PP_POR_QUE, PP_SINAIS: PP_SINAIS, INTRO_SINAIS: INTRO_SINAIS, RESSALVA_SINAIS: RESSALVA_SINAIS,
     ROTULO_HISTORICO: ROTULO_HISTORICO, SELO_PENDENCIA: SELO_PENDENCIA, PENDENCIA_PRIORITARIO: PENDENCIA_PRIORITARIO,
-    fechamento: fechamento, deResultado: deResultado, historico: historico, htmlSistema: htmlSistema
+    fechamento: fechamento, deResultado: deResultado, historico: historico, htmlSistema: htmlSistema, htmlSistemaCompacto: htmlSistemaCompacto,
+    INTRO_SINAIS_PACIENTE: INTRO_SINAIS_PACIENTE, PP_PACIENTE_TITULO: PP_PACIENTE_TITULO, PP_PACIENTE_ESCOLHA: PP_PACIENTE_ESCOLHA, definicaoPaciente: definicaoPaciente
   };
   raiz.SistemasFechamento = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;

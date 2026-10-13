@@ -361,10 +361,29 @@
       return Promise.resolve(h2p().set({
         margin: [12, 12, 14, 12], filename: nome,
         image: { type: "jpeg", quality: 0.95 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false, scrollX: 0, scrollY: 0, onclone: svgComEstiloProprio },
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-        pagebreak: { mode: ["css", "legacy"], avoid: [".rh-sis", ".rh-ferr", ".rp-campo", ".rh-num", ".rp-rodape"] }
+        /* rodada de UX 13/10: cartoes altos (sistema, ferramenta) PODEM quebrar entre blocos — inteiros so os blocos pequenos.
+           A lista "o que mais contribuiu" quebra entre itens. O html2pdf poe um espacador ANTES do elemento evitado: dentro de
+           grade ele vira celula — por isso as grades inteiras (cinco sistemas compactos, radar + numeros) sao o elemento evitado */
+        pagebreak: { mode: ["css", "legacy"], avoid: [".sf-bloco:not(.sf-c)", ".sf-c > .sf-rot", ".sf-c li", ".rf-bloco", ".rp-campo", ".rh-obs-item", ".rh-sistemas-compactos", ".rp-rodape", ".rh-junto", ".rh-sis > header", ".rh-ferr-topo", ".rh-geral-grade"] }
       }).from(doc).outputPdf("blob")).then(function (blob) { limpar(); return { blob: blob, nome: nome }; }, function (e) { limpar(); throw e; });
+    });
+  }
+  /* html2canvas desenha o SVG como imagem isolada: sem o CSS da pagina (classes) e sem tamanho ele sai em branco.
+     Na COPIA que o html2canvas monta (onclone) cada SVG recebe largura/altura e as cores calculadas em estilo proprio;
+     o documento da tela (e o HTML da emissao) nao muda. */
+  function svgComEstiloProprio(copia) {
+    var janela = copia.defaultView || window;
+    var PROPS = ["fill", "fill-opacity", "stroke", "stroke-width", "font-size", "font-weight", "font-family"];
+    [].slice.call(copia.querySelectorAll(".rp-doc svg")).forEach(function (svg) {
+      var r = svg.getBoundingClientRect(); if (!r.width) return;
+      [].slice.call(svg.querySelectorAll("*")).forEach(function (el) {
+        var cs = janela.getComputedStyle(el), st = [];
+        PROPS.forEach(function (k) { var v = cs.getPropertyValue(k); if (v) st.push(k + ":" + v); });
+        el.setAttribute("style", (el.getAttribute("style") ? el.getAttribute("style") + ";" : "") + st.join(";"));
+      });
+      svg.setAttribute("width", String(r.width)); svg.setAttribute("height", String(r.height));
     });
   }
   function baixar(blob, nome) {
@@ -374,12 +393,18 @@
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
   }
+  /* rodada de UX 13/10: o documento e COPIADO para #rp-impressao (filho direto do body) e so ele imprime — sem
+     position:absolute por cima do app (que fazia o rodape cair sobre o ultimo cartao). Os ids da copia saem. */
   function imprimir() {
     var doc = document.getElementById("rp-doc"); if (!doc) return;
+    var antigo = document.getElementById("rp-impressao"); if (antigo) antigo.remove();
+    var caixa = document.createElement("div"); caixa.id = "rp-impressao";
+    var copia = doc.cloneNode(true); copia.removeAttribute("id");
+    [].slice.call(copia.querySelectorAll("[id]")).forEach(function (el) { el.removeAttribute("id"); });
+    [].slice.call(copia.querySelectorAll("details")).forEach(function (d) { d.open = true; });
+    caixa.appendChild(copia); document.body.appendChild(caixa);
     document.body.classList.add("rp-imprimindo");
-    var fechados = [].slice.call(doc.querySelectorAll("details:not([open])"));
-    fechados.forEach(function (d) { d.open = true; });
-    var limpar = function () { document.body.classList.remove("rp-imprimindo"); fechados.forEach(function (d) { d.open = false; }); fechados = []; window.removeEventListener("afterprint", limpar); };
+    var limpar = function () { document.body.classList.remove("rp-imprimindo"); var c = document.getElementById("rp-impressao"); if (c) c.remove(); window.removeEventListener("afterprint", limpar); };
     window.addEventListener("afterprint", limpar);
     window.print();
     setTimeout(limpar, 1500);

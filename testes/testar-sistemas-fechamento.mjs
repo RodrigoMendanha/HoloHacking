@@ -118,7 +118,8 @@ ok(fn.pendencias.length && fdProf.includes(SF.SELO_PENDENCIA) && !/PENDÊNCIA|Pe
 
 /* paciente: faixa em linguagem de comunicacao; proximo passo so quando compartilhado */
 ok(!/faixa (baixa|intermediaria|intermediária|alta)/i.test(pac) && /(Mais|Alguns|Menos) marcadores neste eixo/.test(pac), 'paciente: "Mais/Alguns/Menos marcadores neste eixo", nunca "faixa baixa"');
-ok(!pac.includes('sf-pp') && SF.htmlSistema(por('mental_emocional_espiritual'), 'paciente', { mostrarPP: true }).includes('Próximo aprofundamento sugerido'),
+const ppPac = SF.htmlSistema(por('mental_emocional_espiritual'), 'paciente', { mostrarPP: true });
+ok(!pac.includes('sf-pp') && !pac.includes(SF.PP_PACIENTE_TITULO) && ppPac.includes(SF.PP_PACIENTE_TITULO) && ppPac.includes(SF.PP_PACIENTE_ESCOLHA) && !/Próximo passo pelo catálogo/.test(ppPac),
   'paciente: próximo aprofundamento só quando a nutricionista compartilhou os Próximos Passos');
 
 /* sem nota / sem dominantes (resultado antigo) */

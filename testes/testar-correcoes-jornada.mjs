@@ -68,7 +68,7 @@ const abrirResultado = async (rid, visao) => {
 };
 const NOME = await A.evaluate(() => window.ProximosPassos.NOME_FERRAMENTA);
 let t = await abrirResultado(R1.data, 'paciente');
-const linhaPP = (t.match(/Próximos passos de aprofundamento:[^\n]*/) || [''])[0];
+const linhaPP = (t.match(/Possíveis próximos aprofundamentos:[^\n]*/) || [''])[0];
 ok(linhaPP && !linhaPP.includes(NOME[original[0]]) && !linhaPP.includes(NOME[original[1]]) && linhaPP.includes(NOME[pend[0]]),
   'visão da paciente: "Próximos passos" sem as que ela já fez — ' + linhaPP.slice(0, 140));
 t = await abrirResultado(R1.data, 'profissional');
@@ -84,7 +84,7 @@ ok(sobra.every(x => x === 'mapa') && (sobra.length || snap2.proximos_passos.pend
   'todas as ferramentas do catálogo feitas: nada volta (só o Mapa do Propósito, que é derivado, pode sobrar)');
 if (!sobra.length) {
   t = await abrirResultado(R2.data, 'paciente');
-  ok(/As ferramentas sugeridas para esta etapa já foram feitas/.test(t) && !/Próximos passos de aprofundamento:/.test(t), 'paciente vê a mensagem neutra em vez da lista');
+  ok(/As ferramentas sugeridas para esta etapa já foram feitas/.test(t) && !/Possíveis próximos aprofundamentos:/.test(t), 'paciente vê a mensagem neutra em vez da lista');
 }
 
 /* Resultado antigo (template 2): continua exatamente como foi congelado */
@@ -93,7 +93,7 @@ Object.assign(antigo, { id: '00000000-0000-4000-8000-0000000000b2', template_ver
 delete antigo.content_snapshot.proximos_passos.pendentes; antigo.content_snapshot.template_version = 2;
 srv.tabelas.holos_results.push(antigo);
 t = await abrirResultado(antigo.id, 'paciente');
-ok(((t.match(/Próximos passos de aprofundamento:[^\n]*/) || [''])[0]).includes(NOME[original[0]]), 'Resultado antigo (template 2, já emitido): mostra o que foi congelado, sem mudança');
+ok(((t.match(/Possíveis próximos aprofundamentos:[^\n]*/) || [''])[0]).includes(NOME[original[0]]), 'Resultado antigo (template 2, já emitido): mostra o que foi congelado, sem mudança');
 
 /* tela do HOLOSCAN: o cartao da ferramenta feita no atendimento e marcado */
 await A.evaluate(async (pid) => { window.definirPacienteAtivo(pid); document.querySelector('.nav-item[data-secao="holoscan"]').click(); await new Promise(r => setTimeout(r, 300)); }, PA);
@@ -105,7 +105,7 @@ ok(cartoes.length >= 2 && cartoes.slice(0, 2).every(c => c.feita && /Já realiza
 
 titulo('B3 — TEXTO DA FAIXA PARA A PACIENTE');
 t = await abrirResultado(R1.data, 'paciente');
-ok(!/Revise os itens respondidos|interpretação profissional|cobertura/i.test(t) && /(Mais|Alguns|Menos) marcadores neste eixo/.test(t) && /O que este eixo organiza/i.test(t),
+ok(!/Revise os itens respondidos|interpretação profissional|cobertura/i.test(t) && /(Mais|Alguns|Menos) marcadores neste eixo/.test(t) && /O que este eixo reúne/i.test(t) && !/O que este eixo organiza|Categoria autoral/i.test(t),
   'visão da paciente (Resultado novo): fechamento do sistema em linguagem simples (motor de resultados 12/10), sem "Revise os itens… interpretação profissional"');
 t = await abrirResultado(R1.data, 'profissional');
 ok(/Revise os itens respondidos/.test(t), 'visão profissional: continua com a mensagem técnica do pacote');
