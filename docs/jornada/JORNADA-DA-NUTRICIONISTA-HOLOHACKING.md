@@ -94,7 +94,7 @@ O HoloHacking é esse lugar. Ele guarda a ficha da paciente, os atendimentos, o 
 ## O que o HoloHacking não é
 
 - Não é um sistema de diagnóstico.
-- Não é inteligência artificial que decide tratamento. O HOLOSCAN é um cálculo determinístico: as mesmas respostas dão sempre o mesmo resultado.
+- Não é inteligência artificial que decide tratamento. O HOLOSCAN segue uma regra fixa do método: o resultado depende só das respostas da paciente. Se ela responde diferente, o resultado muda; se as respostas forem exatamente as mesmas, a conta chega sempre ao mesmo resultado, sem sorteio e sem "opinião" do sistema.
 - Não substitui a conversa clínica, a avaliação profissional nem o julgamento da nutricionista.
 - Não prescreve dieta nem conduta automaticamente.
 
@@ -326,7 +326,7 @@ Nem tudo precisa acontecer no primeiro encontro. Em consultas curtas, é comum a
 
 # HOLOSCAN
 
-<p class="abre">O HOLOSCAN é o questionário estruturado do método. Ele organiza o que a paciente relata em cinco sistemas e ajuda a decidir por onde começar a conversa. Ele não é diagnóstico, não é exame e não é inteligência artificial: é um cálculo determinístico, sempre igual para as mesmas respostas.</p>
+<p class="abre">O HOLOSCAN é o questionário estruturado do método. Ele organiza o que a paciente relata em cinco sistemas e ajuda a decidir por onde começar a conversa. Ele não é diagnóstico, não é exame e não é inteligência artificial: é uma regra fixa do método. O resultado depende só das respostas; respostas iguais levam sempre ao mesmo cálculo, e respostas diferentes mostram um momento diferente.</p>
 
 ## O que é, em uma frase
 
@@ -718,7 +718,7 @@ Para cada sistema, por exemplo, o Resultado mostra: o que o eixo organiza; a not
 <div class="box sistema" markdown="1">
 **Resultado do método**
 
-Notas, Índice, Tríade, áreas para aprofundar, sinais e ferramentas sugeridas. É calculado e sempre igual para as mesmas respostas.
+Notas, Índice, Tríade, áreas para aprofundar, sinais e ferramentas sugeridas. É calculado pela regra do método a partir das respostas da paciente: muda quando as respostas mudam.
 </div>
 <div class="box decide" markdown="1">
 **Leitura profissional**
