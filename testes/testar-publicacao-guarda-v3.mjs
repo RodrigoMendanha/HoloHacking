@@ -1,8 +1,8 @@
 /**
  * PUBLICACAO DIRETA — GUARDA DA REVISAO (13/10)
- * O front antigo (46cab4e) trazia o rascunho de 12/10 como MetodologiaRevisaoV3. Se ele chegou a gravar esse rascunho
- * como HOLOS-V1 v3 em_revisao, o front novo NAO pode publica-lo: so publica uma versao em revisao que seja exatamente
- * a revisao do codigo (mesma revisao na linhagem e mesmo hash). Nada e publicado e o v2 continua no ar.
+ * O front antigo (46cab4e) trazia o rascunho de 12/10 como MetodologiaRevisaoV3 e o publicou como v3 em producao
+ * (13/10 05:37 UTC). A versao nova do codigo e a v4. Se houver no banco uma v4 em_revisao que NAO seja exatamente a
+ * revisao do codigo (mesma revisao na linhagem e mesmo hash), o front novo nao a publica: nada muda e o v3 continua.
  */
 import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
@@ -22,8 +22,14 @@ const caixa = {};
 new Function('window', 'globalThis', readFileSync(new URL('../docs/v1/metodologia/historico/rascunho-revisao-v3-2026-10-12.js', import.meta.url), 'utf8'))(caixa, caixa);
 const base = candidatoV1(); base.status = 'aprovado';
 const velho = globalThis.PacoteMetodologico.aplicarRevisao(base, caixa.MetodologiaRevisaoV3);
-const rasc = semearHolosAprovado(srv, UA, { pacote: velho, aprovar: false });
-ok(rasc.version === 3 && rasc.status === 'em_revisao' && rasc.lineage.revisao === 'HOLOS-V1-REVISAO-PERGUNTAS-2026-10', 'cenário: o rascunho de 12/10 está gravado como HOLOS-V1 v3 em_revisao');
+const v3errado = semearHolosAprovado(srv, UA, { pacote: velho, aprovar: false });
+const rpcA = (nome, args) => srv.tratar({ op: 'rpc', uid: UA, nome, args });
+if (rpcA('publicar_pacote_metodologico', { p_package_id: v3errado.id }).error) throw new Error('fixture: publicar o v3 errado');
+/* uma v4 em_revisao com conteudo que NAO e o da revisao do codigo (o rascunho de 12/10 renumerado) */
+const falsa = JSON.parse(JSON.stringify(velho)); falsa.version = 4; falsa.content_hash = globalThis.PacoteMetodologico.hashConteudo(falsa);
+const rasc = semearHolosAprovado(srv, UA, { pacote: falsa, aprovar: false });
+ok(rasc.version === 4 && rasc.status === 'em_revisao' && rasc.lineage.revisao === 'HOLOS-V1-REVISAO-PERGUNTAS-2026-10' && srv.linhas('methodology_packages').find(x => x.id === v3errado.id).status === 'aprovado',
+  'cenário: v3 errado no ar (como em produção) e uma v4 em_revisao que não é a revisão do código');
 
 const nav = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', headless: 'new', args: ['--no-sandbox'] });
 const P = await (await nav.createBrowserContext()).newPage();
@@ -35,13 +41,13 @@ await P.evaluateOnNewDocument(() => { setInterval(() => { if (window.BoasVindas 
 await P.goto('http://127.0.0.1:5500/', { waitUntil: 'networkidle2' });
 await P.waitForSelector('#login-email', { visible: true });
 await P.type('#login-email', 'a@holo.test'); await P.type('#login-senha', 'senha-a-123'); await P.click('#btn-entrar');
-await P.waitForFunction(() => window.PacoteMetodologico && window.PacoteMetodologico.todos().length >= 2, { timeout: 15000 });
+await P.waitForFunction(() => window.PacoteMetodologico && window.PacoteMetodologico.todos().length >= 3, { timeout: 15000 });
 const feitas = await P.evaluate(() => window.PacoteMetodologico.publicarRevisoesPendentes());
 await new Promise(r => setTimeout(r, 800));
 const pk = (v) => srv.linhas('methodology_packages').find(x => x.code === 'HOLOS-V1' && x.version === v);
-ok(Array.isArray(feitas) && feitas.length === 0 && pk(3).status === 'em_revisao' && pk(3).id === rasc.id, 'o responsável entra: o rascunho de 12/10 NÃO é publicado (continua em_revisao)');
-ok(pk(2).status === 'aprovado' && pk(2).id === v2.id && srv.linhas('methodology_packages').length === 2, 'o v2 continua no ar e nenhuma outra versão é gravada');
-ok(consoleErros.some(t => /nao e a revisao HOLOS-V1-DECISOES-2026-10-13/.test(t)), 'o motivo fica registrado no console');
+ok(Array.isArray(feitas) && feitas.length === 0 && pk(4).status === 'em_revisao' && pk(4).id === rasc.id, 'o responsável entra: a v4 que não é a revisão do código NÃO é publicada (continua em_revisao)');
+ok(pk(3).status === 'aprovado' && pk(2).status === 'retirado' && pk(2).id === v2.id && srv.linhas('methodology_packages').length === 3, 'nada muda no ar e nenhuma outra versão é gravada');
+ok(consoleErros.some(t => /v4 em revisao no banco nao e a revisao HOLOS-V1-DECISOES-2026-10-13/.test(t)), 'o motivo fica registrado no console');
 ok(erros.length === 0, 'nenhum erro de JavaScript' + (erros.length ? ': ' + erros.join(' | ') : ''));
 await nav.close();
 console.log(falhou ? '\nFALHOU' : '\nguarda da publicacao: tudo ok');

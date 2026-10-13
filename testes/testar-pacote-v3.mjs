@@ -55,8 +55,8 @@ const dominantes = (p, resp, sis) => {
 };
 
 console.log('\n  identidade (so as decisoes de 13/10)\n');
-ok(v3.code === 'HOLOS-V1' && v3.version === 3 && v3.status === 'em_revisao' && v3.lineage.parent_version === 2 && v3.lineage.revisao === 'HOLOS-V1-DECISOES-2026-10-13',
-  'HOLOS-V1 v3 em_revisao, linhagem do v2 ativo e das decisões de 13/10');
+ok(v3.code === 'HOLOS-V1' && v3.version === 4 && v3.status === 'em_revisao' && v3.lineage.parent_version === 2 && v3.lineage.revisao === 'HOLOS-V1-DECISOES-2026-10-13',
+  'HOLOS-V1 v4 em_revisao (o v3 de produção é o rascunho de 12/10, publicado por engano), linhagem do v2 e das decisões de 13/10');
 ok(Object.keys(R.textos).length === 0 && Object.keys(R.trocar).length === 0 && Object.keys(R.remover).join(',') === 'SNT-210,SNT-309' && Object.keys(R.mover).join(',') === MOVIDAS.join(','),
   'a revisão tem só as decisões de 13/10: 2 removidas e 13 com sistema novo; nenhum texto novo nem troca');
 ok(['SNT-209', 'ESP-102', 'SNT-106', 'SNT-410', 'SNT-507', 'ESP-404'].every(id => q3(id) && JSON.stringify(q3(id)) === JSON.stringify(Object.assign({}, q2(id), { position: q3(id).position }))) && !q3('SNT-112') && !q3('SNT-411') && !q3('SNT-511') && prim(v3, 'ESP-404') === prim(v2, 'ESP-404'),

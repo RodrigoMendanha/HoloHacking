@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * COMPARATIVO HOLOS-V1 v2 x v3 (decisoes de 13/10): MESMAS respostas, as duas versoes do pacote.
+ * COMPARATIVO HOLOS-V1 v2 x v4 (decisoes de 13/10; o v4 e a versao publicada com elas — o v3 de producao e o rascunho de 12/10): MESMAS respostas, as duas versoes do pacote.
  * Para cada fixture mostra: nota dos 5 sistemas, Indice, Triade, prioridade (1a/2a area), sinais dominantes
  * (ate 3 por sistema, mesma regra da funcao SQL resultado_holos_dominantes do MR-V1) e as ferramentas do PP-V1
  * (ProximosPassos.selecionar sobre as 30 regras do catalogo HOLOS-RECOMENDACOES-V1, ordem de "Por onde investigar").
@@ -32,7 +32,7 @@ export function pacotes() {
   return { v2, v3 };
 }
 
-/* respostas ficticias deterministicas (sempre sobre as 84 perguntas do v2; no v3 entram so as que existem) */
+/* respostas ficticias deterministicas (sempre sobre as 84 perguntas do v2; no v4 entram so as que existem) */
 export function fixtures(v2) {
   const ids = v2.perguntas.map(q => q.stable_id);
   const orient = Object.fromEntries(v2.perguntas.map(q => [q.stable_id, q.orientation]));
@@ -77,13 +77,13 @@ const n1 = (v) => v === null || v === undefined ? '—' : (Math.round(v * 10) / 
 export function gerar() {
   const { v2, v3 } = pacotes();
   const L = [];
-  L.push('# COMPARATIVO HOLOSCAN — HOLOS-V1 v2 × v3 (mesmas respostas)\n');
-  L.push('Gerado por `scripts/comparar-v2-v3.mjs` (determinístico; `--check` no teste). O v3 é o das decisões de 13/10/2026: SNT-210 e SNT-309 removidas e 13 perguntas EMO movidas para o Sistema Mental Emocional Espiritual. As respostas são fictícias. No v3 entram só as 82 perguntas que existem nele.\n');
+  L.push('# COMPARATIVO HOLOSCAN — HOLOS-V1 v2 × v4 (mesmas respostas)\n');
+  L.push('Gerado por `scripts/comparar-v2-v3.mjs` (determinístico; `--check` no teste). O v4 é o das decisões de 13/10/2026 (o v3 que ficou no histórico de produção é o rascunho de 12/10, publicado por engano e retirado pelo v4): SNT-210 e SNT-309 removidas e 13 perguntas EMO movidas para o Sistema Mental Emocional Espiritual. As respostas são fictícias. No v4 entram só as 82 perguntas que existem nele.\n');
   L.push('Regras usadas: as notas, o Índice e a Tríade vêm do `MotorMetodologico.calcular` (o mesmo motor da aplicação). Os sinais dominantes seguem a regra de `resultado_holos_dominantes` (MR-V1): até 3 por sistema, a contribuição tem de ser maior que 0, a maior vem primeiro e o empate é decidido pelo ID. As ferramentas vêm de `ProximosPassos.selecionar` sobre as 30 regras do PP-V1, na ordem de "Por onde investigar", sem ferramentas concluídas.\n');
   fixtures(v2).forEach(f => {
     const a = calcular(v2, f.respostas), b = calcular(v3, f.respostas);
     L.push('## ' + f.id + ' — ' + f.nome + '\n');
-    L.push('| | v2 | v3 |\n|---|---|---|');
+    L.push('| | v2 | v4 |\n|---|---|---|');
     SIS.forEach(s => {
       const x = a.r.system_results[s], y = b.r.system_results[s];
       L.push('| ' + NOME[s] + ' (nota · itens) | ' + n1(x.nota) + ' · ' + x.total + ' | ' + n1(y.nota) + ' · ' + y.total + ' |');
@@ -106,7 +106,7 @@ if (import.meta.url === 'file://' + process.argv[1]) {
   const texto = gerar();
   if (process.argv.includes('--check')) {
     const atual = existsSync(SAIDA) ? readFileSync(SAIDA, 'utf8') : '';
-    if (atual !== texto) { console.error('comparativo v2 x v3 DESATUALIZADO: rode node scripts/comparar-v2-v3.mjs'); process.exit(1); }
-    console.log('comparativo v2 x v3 em dia');
+    if (atual !== texto) { console.error('comparativo v2 x v4 DESATUALIZADO: rode node scripts/comparar-v2-v3.mjs'); process.exit(1); }
+    console.log('comparativo v2 x v4 em dia');
   } else { writeFileSync(SAIDA, texto); console.log('gravado', SAIDA); }
 }

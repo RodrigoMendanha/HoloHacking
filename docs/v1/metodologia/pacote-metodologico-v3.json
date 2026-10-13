@@ -10,9 +10,9 @@
   },
   "versao_nova": {
     "code": "HOLOS-V1",
-    "version": 3,
+    "version": 4,
     "status": "em_revisao",
-    "content_hash": "cc62d5b81d5d621943787952c286298bec15d13f39c85be517a596a87c4768dd",
+    "content_hash": "7e7d02e8813d71e95309e41f2b7b1c588e673a0c298e3d865b60ee92ee5ab98a",
     "perguntas": 82,
     "erros_validador": 0,
     "referencias": [
@@ -177,7 +177,7 @@
   "pacote": {
     "id": null,
     "code": "HOLOS-V1",
-    "version": 3,
+    "version": 4,
     "status": "em_revisao",
     "origin": "nova versao: revisao das perguntas aplicada sobre HOLOS-V1 v2",
     "justification": "REVISAO DAS PERGUNTAS (HOLOS-V1-DECISOES-2026-10-13, 2026-10-13): decisões explícitas de Rodrigo em 13/10/2026 (decisão explícita = autorização para implementar); base: HOLOS-V1 v2 ativo",
@@ -186,7 +186,7 @@
     "reviewed_at": null,
     "effective_from": null,
     "effective_to": null,
-    "content_hash": "cc62d5b81d5d621943787952c286298bec15d13f39c85be517a596a87c4768dd",
+    "content_hash": "7e7d02e8813d71e95309e41f2b7b1c588e673a0c298e3d865b60ee92ee5ab98a",
     "created_at": null,
     "notes": "Copia do HOLOS-V1 v2 com 0 textos revisados, 0 perguntas trocadas (ID novo), 2 removidas e 13 com sistema novo (7 associacoes contextuais retiradas). Pesos, escalas, faixas, Indice e Triade sem mudanca. Regra metodologica: Uma relação holística, simbólica ou contextual entre emoção e corpo não é suficiente, por si só, para justificar que uma resposta mental/emocional altere matematicamente a nota de um sistema físico. Perguntas mentais/emocionais devem pontuar sistema físico somente quando existir justificativa metodológica específica, documentada e aprovada para aquela associação.",
     "edicao": {
@@ -194,7 +194,7 @@
       "version": 2,
       "status": "aprovada",
       "item_count": 82,
-      "notes": "Edicao HOLOS-V1 v3: 82 perguntas (47/19/16); Revisão das perguntas (HOLOS-V1-DECISOES-2026-10-13, 2026-10-13)"
+      "notes": "Edicao HOLOS-V1 v4: 82 perguntas (47/19/16); Revisão das perguntas (HOLOS-V1-DECISOES-2026-10-13, 2026-10-13)"
     },
     "escalas": [
       {

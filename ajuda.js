@@ -47,7 +47,7 @@
     ]},
     { grupo: "HOLOSCAN", itens: [
       ["Como aplico o HOLOSCAN?",
-       "Com o atendimento ativo, vá em <b>HOLOSCAN → Aplicar questionário</b>, marque as respostas (clicar de novo na marcada desmarca) e clique em <b>Gerar o mapa</b>. Depois, <b>Salvar HOLOSCAN</b>: só assim ele vai para o servidor, ligado ao atendimento mostrado na tela."],
+       "Com o atendimento ativo, vá em <b>HOLOSCAN → Aplicar HOLOSCAN</b>, marque as respostas (clicar de novo na marcada desmarca) e clique em <b>Gerar o mapa</b>. Depois, <b>Salvar HOLOSCAN</b>: só assim ele vai para o servidor, ligado ao atendimento mostrado na tela."],
       ["O que o resultado mostra?",
        "O quadro <b>Resultado desta aplicação</b> traz os cinco sistemas do mais baixo ao mais alto (nota de 0 a 10 e faixa baixa / intermediária / alta), a Tríade (Corpo / Mente / Espírito), quantas perguntas foram respondidas e <b>Por onde investigar</b>: os dois sistemas de nota mais baixa e os sinais que mais pesaram neles. Abaixo ficam o radar, os cartões e o aprofundamento com a definição oficial de cada sistema."],
       ["Por que o sistema não escreve uma conclusão?",
@@ -110,7 +110,7 @@
     ["Paciente", "Pacientes → Novo paciente."],
     ["Consulta", "Agenda → clique no horário → escolha o paciente."],
     ["Atendimento", "No dia: abra a consulta → Iniciar atendimento."],
-    ["HOLOSCAN", "Aplicar questionário → Gerar o mapa → Salvar HOLOSCAN → Sua interpretação."],
+    ["HOLOSCAN", "Aplicar HOLOSCAN → Gerar o mapa → Salvar HOLOSCAN → Sua interpretação."],
     ["Ferramentas", "Corpo, Mente, Espírito: preencher → Concluir → leitura profissional."],
     ["Resultado HOLOS", "Ficha → Resultado HOLOS → escolher o que entra → Finalizar."],
     ["Conduta", "Ficha → Conduta → objetivo, ações, orientações, acordos → Salvar."],

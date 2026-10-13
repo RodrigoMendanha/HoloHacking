@@ -1,5 +1,13 @@
 /* ===========================================================================
-   DECISOES METODOLOGICAS DE 13/10/2026 -> HOLOS-V1 v3
+   DECISOES METODOLOGICAS DE 13/10/2026 -> HOLOS-V1 v4
+   (o arquivo mantem o nome e a variavel MetodologiaRevisaoV3 porque a tela de
+   Homologacao, os scripts e a publicacao direta leem esse nome)
+
+   POR QUE v4 (13/10, 05:37 UTC): um navegador com o front antigo (46cab4e) ainda
+   carregado publicou o RASCUNHO de 12/10 como HOLOS-V1 v3 em producao. Um pacote
+   publicado e imutavel e nao e apagado: o v3 fica no historico (0 aplicacoes) e
+   estas decisoes entram como v4, que ao ser publicada retira o v3. O conteudo e o
+   mesmo testado como "v3"; so o numero da versao muda.
    ===========================================================================
 
    Origem: decisoes explicitas de Rodrigo na revisao de 13/10/2026 (regra
@@ -11,8 +19,8 @@
 
    Este arquivo e SO a lista de decisoes. Quem monta a versao nova e
    PacoteMetodologico.aplicarRevisao(v2, esta revisao): copia o v2, aplica
-   exatamente isto e devolve o v3 em_revisao; a publicacao direta
-   (publicar_pacote_metodologico) poe o v3 no ar e retira o v2.
+   exatamente isto e devolve o v4 em_revisao; a publicacao direta
+   (publicar_pacote_metodologico) poe o v4 no ar e retira a versao no ar (o v3).
 
    O HOLOS-V1 v2 NAO muda. Aplicacoes, respostas, notas, sinais dominantes,
    Resultados HOLOS, Proximos Passos e emissoes (PDF) ja salvos continuam no v2.
@@ -43,7 +51,7 @@
     decidido_em: "2026-10-13",
     revisao_publica: "decisões explícitas de Rodrigo em 13/10/2026 (decisão explícita = autorização para implementar); base: HOLOS-V1 v2 ativo",
     base: { code: "HOLOS-V1", version: 2 },
-    versao_nova: 3,
+    versao_nova: 4,
 
     regra_metodologica: [
       "Uma relação holística, simbólica ou contextual entre emoção e corpo não é suficiente, por si só, para justificar que uma resposta mental/emocional altere matematicamente a nota de um sistema físico.",

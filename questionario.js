@@ -1,5 +1,5 @@
 /* ===========================================================================
-   QUESTIONARIO DO HOLOSCAN — as 84 perguntas
+   QUESTIONARIO DO HOLOSCAN — as perguntas do pacote vigente
    ===========================================================================
 
    As perguntas NAO estao escritas aqui. Desde 12/10 vem do pacote metodologico
@@ -203,7 +203,7 @@
       html += '<div class="q-bloco" data-bloco="' + bloco.origem + '"><div class="q-bloco-cabeca">' +
         "<b>" + bloco.sigla + "</b><span>" + bloco.titulo + " &middot; " + bloco.sub + "</span>" +
         '<em class="q-bloco-conta" data-bloco-conta="' + bloco.origem + '">' +
-        respondidas + " de " + doBloco.length + "</em></div>";
+        contaBloco(respondidas, doBloco.length) + "</em></div>";
 
       for (var i = 0; i < doBloco.length; i++) {
         var q = doBloco[i];
@@ -235,6 +235,8 @@
     atualizarProgresso();
   }
 
+  function contaBloco(resp, total) { return resp === total ? "completo" : (resp ? "em andamento" : ""); }
+
   function atualizarProgresso() {
     if (!perguntas) return;
     var dadas = respostasValidas();
@@ -244,8 +246,8 @@
     if (barra) barra.style.width = pc + "%";
     var conta = caixa.querySelector(".q-conta");
     if (conta) {
-      conta.innerHTML = "<b>" + n + "</b> de " + perguntas.length + " respondidas" +
-        (n === perguntas.length ? " &middot; completo" : "");
+      /* 13/10: a tela de aplicacao nao mostra quantas perguntas o HOLOSCAN tem (so a barra e o estado) */
+      conta.innerHTML = n === perguntas.length ? "<b>Todas respondidas</b> &middot; completo" : (n ? "Em andamento" : "Nenhuma resposta ainda");
     }
     for (var b = 0; b < BLOCOS.length; b++) {
       var bloco = BLOCOS[b];
@@ -256,7 +258,7 @@
       }
       var el = caixa.querySelector('[data-bloco-conta="' + bloco.origem + '"]');
       if (el) {
-        el.textContent = resp + " de " + doBloco.length;
+        el.textContent = contaBloco(resp, doBloco.length);
         if (resp === doBloco.length) el.classList.add("q-bloco-completo");
         else el.classList.remove("q-bloco-completo");
       }
@@ -439,12 +441,12 @@
   }
 
   /* O botao anunciava "87 perguntas" escrito na mao no HTML, e continuou
-     anunciando 87 depois que passaram a ser 84. Quem sabe quantas sao e o
-     motor. */
+     anunciando 87 depois que passaram a ser 84. 13/10: o botao nao mostra mais
+     a quantidade de perguntas (decisao de Rodrigo): so "Aplicar HOLOSCAN". */
   function rotularBotao(botao) {
     if (!botao || !motorPronto()) return;
     perguntas = lista();
-    botao.innerHTML = "Aplicar question\u00e1rio &mdash; " + perguntas.length + " perguntas";
+    botao.innerHTML = "Aplicar HOLOSCAN";
   }
 
   /* ---------- encerrar uma aplicacao (rodada 08) -------------------------

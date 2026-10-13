@@ -275,7 +275,7 @@
       quadro: function (p) { animarLinhas(p, .04, .2); } },
 
     /* 3 — o questionario, respondendo de verdade */
-    { dur: 13, legenda: "84 perguntas · 15 minutos",
+    { dur: 13, legenda: "O questionário do HOLOSCAN",
       entrar: function () {
         mostrarPainel(false);
         try { localStorage.removeItem("holohacking.questionario"); } catch (e) {}

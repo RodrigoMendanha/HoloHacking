@@ -2,13 +2,13 @@
 
 Preparação da homologação metodológica, 13/10/2026. Esta matriz é para **Rodrigo e Daniel** decidirem as 84 perguntas antes de qualquer nova versão do HOLOSCAN.
 
-> **Situação em 13/10/2026: 15 DECISÕES APLICADAS no HOLOS-V1 v3 (SNT-210 e SNT-309: REMOVER; 13 perguntas EMO: MOVER para o Mental Emocional Espiritual) e 69 EM ABERTO.** As decisões aplicadas estão no **novo pacote versionado HOLOS-V1 v3** (`metodologia-revisao-v3.js`; detalhes em `docs/v1/ALTERACOES-PACOTE-HOLOSCAN-NOVA-VERSAO.md`). O HOLOS-V1 v2 não muda. As colunas da matriz descrevem o **v2** (base da decisão). PP-V2 não foi iniciado. Onde não há documentação, consta **"Justificativa não documentada"**. O "sistema alternativo" só aparece quando já está escrito num documento ou no próprio pacote; nos demais casos consta "a decidir".
+> **Situação em 13/10/2026: 15 DECISÕES APLICADAS no HOLOS-V1 v4 (SNT-210 e SNT-309: REMOVER; 13 perguntas EMO: MOVER para o Mental Emocional Espiritual) e 69 EM ABERTO.** As decisões aplicadas estão no **novo pacote versionado HOLOS-V1 v4** (`metodologia-revisao-v3.js`; detalhes em `docs/v1/ALTERACOES-PACOTE-HOLOSCAN-NOVA-VERSAO.md`). O HOLOS-V1 v2 não muda. As colunas da matriz descrevem o **v2** (base da decisão). PP-V2 não foi iniciado. Onde não há documentação, consta **"Justificativa não documentada"**. O "sistema alternativo" só aparece quando já está escrito num documento ou no próprio pacote; nos demais casos consta "a decidir".
 
 **Fontes**
 - `docs/v1/AUDITORIA-ASSOCIACOES-HOLOSCAN-V2.md`: classificação A/B/C/D, justificativas e fontes, linha a linha.
 - Pacote oficial HOLOS-V1 v2: gerado por `scripts/pacote-candidato-v1.mjs` a partir de `docs/v1/metodologia/inventario-metodologico-v1.json` + `metodologia-decisoes-v1.js`, com as mesmas funções da auditoria. Hash de servidor em produção: `7af1dae6…`.
 - `docs/v1/DECISOES-V1.md`, `docs/v1/RESULTADO-FINAL-DECISOES-APROVADAS.md`, `docs/v1/metodologia/PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`.
-- `metodologia-revisao-v3.js`: as decisões de 13/10 que formam o HOLOS-V1 v3. O rascunho de 12/10 (nunca publicado) ficou arquivado em `docs/v1/metodologia/historico/` e não é fonte do v3; é citado só quando já tratava o item.
+- `metodologia-revisao-v3.js`: as decisões de 13/10 que formam o HOLOS-V1 v4. O rascunho de 12/10 ficou arquivado em `docs/v1/metodologia/historico/` e não é fonte da v4 (foi publicado por engano como v3 em 13/10 e é retirado pela v4); é citado só quando já tratava o item.
 
 A matriz foi gerada por script a partir desses dados; nenhuma linha foi digitada. O CSV com os mesmos campos é `docs/v1/MATRIZ-HOMOLOGACAO-84-PERGUNTAS-HOLOSCAN.csv`.
 
@@ -35,46 +35,46 @@ Efeitos comuns a MOVER, CONTEXTUAL e REMOVER (fonte: `AUDITORIA-ASSOCIACOES-HOLO
 
 ## 3. Regra de versão
 
-- O **HOLOS-V1 v2 não é alterado.** Qualquer decisão desta matriz entra num **novo pacote versionado** (como foi feito com o v3: um objeto de revisão separado, sem editar as decisões V1).
+- O **HOLOS-V1 v2 não é alterado.** Qualquer decisão desta matriz entra num **novo pacote versionado** (como foi feito com a v4: um objeto de revisão separado, sem editar as decisões V1).
 - **Resultados históricos nunca são recalculados silenciosamente.** Aplicações, respostas, notas, Resultados HOLOS, Próximos Passos e emissões (RF-1/RF-2) já salvos continuam com o pacote com que foram calculados ("HOLOSCANs, Resultados HOLOS e emissões já salvos continuam no v2, congelados" — `docs/v1/REVISAO-PERGUNTAS-V3.md`).
 - Qualquer mudança no pacote "**invalida** as aprovações vigentes daquela versão" (`PACOTE-METODOLOGICO-V1-DECISOES-FINAIS.md`, seção 10). Por isso a nova versão é aprovada e publicada por inteiro.
-- **O HOLOS-V1 v3 (82 perguntas) contém só as 15 decisões de 13/10** e substitui o rascunho de 12/10, que não foi publicado e não foi importado. As decisões que ainda forem tomadas nesta matriz entram numa versão seguinte (v4), também a partir da versão ativa.
+- **O HOLOS-V1 v4 (82 perguntas) contém só as 15 decisões de 13/10.** A v3 de produção é o rascunho de 12/10, publicado por engano em 13/10 (0 aplicações) e retirado pela v4. O rascunho não foi importado na v4. As decisões que ainda forem tomadas nesta matriz entram numa versão seguinte (v5), a partir da versão ativa.
 
-## 3A. Registro de decisões — DECISÃO APLICADA (HOLOS-V1 v3)
+## 3A. Registro de decisões — DECISÃO APLICADA (HOLOS-V1 v4)
 
 | lote | pergunta | decisão | justificativa oficial | status |
 |---|---|---|---|---|
-| 1 | SNT-210 — Seus exames costumam mostrar PCR ou VHS acima do normal? | **REMOVER** | Exames e documentos não participam do Resultado HOLOS. PCR/VHS não deve alterar notas, sistemas, Índice, prioridades, sinais dominantes ou Próximos Passos. | **DECISÃO APLICADA** (v3) |
-| 1 | SNT-309 — Seus exames costumam mostrar triglicerídeos altos ou HDL baixo? | **REMOVER** | Exames e documentos não participam do Resultado HOLOS. Triglicerídeos/HDL não devem alterar notas, sistemas, Índice, prioridades, sinais dominantes ou Próximos Passos. | **DECISÃO APLICADA** (v3) |
-| 2 | EMO-101 — Você adia começar coisas mesmo sabendo que precisa fazer? | **MOVER → Mental Emocional Espiritual (antes: Fúngico)** | Procrastinação, prontidão e autorregulação comportamental. | **DECISÃO APLICADA** (v3) |
-| 2 | EMO-102 — Você sente que sua vida está desorganizada e não consegue pôr ordem? | **MOVER → Mental Emocional Espiritual (antes: Fúngico)** | Organização pessoal e comportamento. | **DECISÃO APLICADA** (v3) |
-| 2 | EMO-103 — Você sente um peso para sair do lugar mesmo querendo mudar? | **MOVER → Mental Emocional Espiritual (antes: Fúngico)** | Prontidão, dificuldade percebida para iniciar mudança e autorregulação. | **DECISÃO APLICADA** (v3) |
-| 2 | EMO-201 — Você se irrita com facilidade por coisas pequenas? | **MOVER → Mental Emocional Espiritual (antes: Ácido Inflamatório)** | Irritabilidade e regulação emocional. | **DECISÃO APLICADA** (v3) |
-| 2 | EMO-202 — Sua raiva sobe rápido e demora a passar? | **MOVER → Mental Emocional Espiritual (antes: Ácido Inflamatório)** | Intensidade e duração percebida da raiva. | **DECISÃO APLICADA** (v3) |
-| 2 | EMO-203 — Você costuma aceitar o que não quer para evitar conflito? | **MOVER → Mental Emocional Espiritual (antes: Ácido Inflamatório)** | Limites, comportamento interpessoal e evitação de conflito. | **DECISÃO APLICADA** (v3) |
-| 2 | EMO-204 — Você engole o que gostaria de dizer para não criar problema? | **MOVER → Mental Emocional Espiritual (antes: Ácido Inflamatório)** | Expressão emocional e comportamento interpessoal. | **DECISÃO APLICADA** (v3) |
-| 2 | EMO-301 — Você sente um vazio que a comida parece tentar preencher? | **MOVER → Mental Emocional Espiritual (antes: Metabólico)** | Relação entre estado emocional e alimentação. | **DECISÃO APLICADA** (v3) |
-| 2 | EMO-302 — Você passa os dias no piloto automático sem perceber o que está fazendo? | **MOVER → Mental Emocional Espiritual (antes: Metabólico)** | Consciência, atenção ao comportamento e funcionamento em piloto automático. | **DECISÃO APLICADA** (v3) |
-| 2 | EMO-303 — Você usa comida como recompensa depois de um dia difícil? | **MOVER → Mental Emocional Espiritual (antes: Metabólico)** | Uso da comida como recompensa e comportamento alimentar associado ao estado emocional. | **DECISÃO APLICADA** (v3) |
-| 2 | EMO-401 — Você se pega remoendo uma mágoa antiga? | **MOVER → Mental Emocional Espiritual (antes: Detox e Linfático)** | Ruminação emocional. | **DECISÃO APLICADA** (v3) |
-| 2 | EMO-402 — Você costuma guardar o que sente em vez de falar? | **MOVER → Mental Emocional Espiritual (antes: Detox e Linfático)** | Expressão e regulação emocional. | **DECISÃO APLICADA** (v3) |
-| 2 | EMO-403 — Você tem dificuldade de aceitar ajuda ou cuidado das pessoas? | **MOVER → Mental Emocional Espiritual (antes: Detox e Linfático)** | Apoio, vínculo e capacidade de receber cuidado. | **DECISÃO APLICADA** (v3) |
+| 1 | SNT-210 — Seus exames costumam mostrar PCR ou VHS acima do normal? | **REMOVER** | Exames e documentos não participam do Resultado HOLOS. PCR/VHS não deve alterar notas, sistemas, Índice, prioridades, sinais dominantes ou Próximos Passos. | **DECISÃO APLICADA** (v4) |
+| 1 | SNT-309 — Seus exames costumam mostrar triglicerídeos altos ou HDL baixo? | **REMOVER** | Exames e documentos não participam do Resultado HOLOS. Triglicerídeos/HDL não devem alterar notas, sistemas, Índice, prioridades, sinais dominantes ou Próximos Passos. | **DECISÃO APLICADA** (v4) |
+| 2 | EMO-101 — Você adia começar coisas mesmo sabendo que precisa fazer? | **MOVER → Mental Emocional Espiritual (antes: Fúngico)** | Procrastinação, prontidão e autorregulação comportamental. | **DECISÃO APLICADA** (v4) |
+| 2 | EMO-102 — Você sente que sua vida está desorganizada e não consegue pôr ordem? | **MOVER → Mental Emocional Espiritual (antes: Fúngico)** | Organização pessoal e comportamento. | **DECISÃO APLICADA** (v4) |
+| 2 | EMO-103 — Você sente um peso para sair do lugar mesmo querendo mudar? | **MOVER → Mental Emocional Espiritual (antes: Fúngico)** | Prontidão, dificuldade percebida para iniciar mudança e autorregulação. | **DECISÃO APLICADA** (v4) |
+| 2 | EMO-201 — Você se irrita com facilidade por coisas pequenas? | **MOVER → Mental Emocional Espiritual (antes: Ácido Inflamatório)** | Irritabilidade e regulação emocional. | **DECISÃO APLICADA** (v4) |
+| 2 | EMO-202 — Sua raiva sobe rápido e demora a passar? | **MOVER → Mental Emocional Espiritual (antes: Ácido Inflamatório)** | Intensidade e duração percebida da raiva. | **DECISÃO APLICADA** (v4) |
+| 2 | EMO-203 — Você costuma aceitar o que não quer para evitar conflito? | **MOVER → Mental Emocional Espiritual (antes: Ácido Inflamatório)** | Limites, comportamento interpessoal e evitação de conflito. | **DECISÃO APLICADA** (v4) |
+| 2 | EMO-204 — Você engole o que gostaria de dizer para não criar problema? | **MOVER → Mental Emocional Espiritual (antes: Ácido Inflamatório)** | Expressão emocional e comportamento interpessoal. | **DECISÃO APLICADA** (v4) |
+| 2 | EMO-301 — Você sente um vazio que a comida parece tentar preencher? | **MOVER → Mental Emocional Espiritual (antes: Metabólico)** | Relação entre estado emocional e alimentação. | **DECISÃO APLICADA** (v4) |
+| 2 | EMO-302 — Você passa os dias no piloto automático sem perceber o que está fazendo? | **MOVER → Mental Emocional Espiritual (antes: Metabólico)** | Consciência, atenção ao comportamento e funcionamento em piloto automático. | **DECISÃO APLICADA** (v4) |
+| 2 | EMO-303 — Você usa comida como recompensa depois de um dia difícil? | **MOVER → Mental Emocional Espiritual (antes: Metabólico)** | Uso da comida como recompensa e comportamento alimentar associado ao estado emocional. | **DECISÃO APLICADA** (v4) |
+| 2 | EMO-401 — Você se pega remoendo uma mágoa antiga? | **MOVER → Mental Emocional Espiritual (antes: Detox e Linfático)** | Ruminação emocional. | **DECISÃO APLICADA** (v4) |
+| 2 | EMO-402 — Você costuma guardar o que sente em vez de falar? | **MOVER → Mental Emocional Espiritual (antes: Detox e Linfático)** | Expressão e regulação emocional. | **DECISÃO APLICADA** (v4) |
+| 2 | EMO-403 — Você tem dificuldade de aceitar ajuda ou cuidado das pessoas? | **MOVER → Mental Emocional Espiritual (antes: Detox e Linfático)** | Apoio, vínculo e capacidade de receber cuidado. | **DECISÃO APLICADA** (v4) |
 
-Decisões explícitas de Rodrigo em 13/10/2026 (regra operacional: decisão explícita de Rodrigo = autorização para implementar). Aplicadas no **HOLOS-V1 v3**, montado a partir do **HOLOS-V1 v2 ativo** com só estas decisões.
+Decisões explícitas de Rodrigo em 13/10/2026 (regra operacional: decisão explícita de Rodrigo = autorização para implementar). Aplicadas no **HOLOS-V1 v4**, montado a partir do **HOLOS-V1 v2 ativo** com só estas decisões.
 
 **Regra metodológica ativa (13/10/2026):**
 - "Uma relação holística, simbólica ou contextual entre emoção e corpo não é suficiente, por si só, para justificar que uma resposta mental/emocional altere matematicamente a nota de um sistema físico."
 - "Perguntas mentais/emocionais devem pontuar sistema físico somente quando existir justificativa metodológica específica, documentada e aprovada para aquela associação."
 
 **Como foi aplicada:**
-- **REMOVER (SNT-210, SNT-309):** fora do v3 — não pontuam, não são contextuais, não estão em outro sistema, sem item substituto. O motor do v3 recusa resposta para elas; não contam na cobertura, no Índice, na Tríade Corpo, nos sinais dominantes nem na prioridade do PP-V1.
+- **REMOVER (SNT-210, SNT-309):** fora do v4 — não pontuam, não são contextuais, não estão em outro sistema, sem item substituto. O motor do v4 recusa resposta para elas; não contam na cobertura, no Índice, na Tríade Corpo, nos sinais dominantes nem na prioridade do PP-V1.
 - **MOVER (13 EMO):** a associação primária passou para o Mental Emocional Espiritual. Peso preservado (1, escala 0–3, orientação direta, igual a todos os itens primários do MEE; nenhum peso inventado). Tríade Mente, texto e escala iguais. A relação antiga com sistema físico **não** ficou como contextual: saíram as contextuais EMO-101 → Metabólico e EMO-203 → Detox e Linfático, e as contextuais MEE de EMO-103, 201, 301, 302 e 402 (redundantes, porque o MEE virou o primário).
 - **HOLOS-V1 v2 imutável; nenhum histórico recalculado:** aplicações, respostas, notas, sinais dominantes, Resultados HOLOS, Próximos Passos e emissões (PDF) já salvos continuam no v2.
-- **Contagens do v3 (recalculadas):** total 84 → 82; Corpo 49 → 47, Mente 19, Espírito 16; Fúngico 15 → 12, Ácido Inflamatório 16 → 11, Metabólico 14 → 10, Detox e Linfático 15 → 12, Mental Emocional Espiritual 24 → 37. Cobertura mínima (80%) igual, sobre os denominadores novos.
+- **Contagens do v4 (recalculadas):** total 84 → 82; Corpo 49 → 47, Mente 19, Espírito 16; Fúngico 15 → 12, Ácido Inflamatório 16 → 11, Metabólico 14 → 10, Detox e Linfático 15 → 12, Mental Emocional Espiritual 24 → 37. Cobertura mínima (80%) igual, sobre os denominadores novos.
 
 ## 4. GRUPO 1 — CONFLITO DIRETO (SNT-210, SNT-309)
 
-**DECISÃO APLICADA (Lote 1, 13/10/2026): REMOVER as duas perguntas — fora do HOLOS-V1 v3.** Ver o registro na seção 3A. O HOLOS-V1 v2 continua imutável (os dois itens continuam pontuando nas aplicações já feitas no v2). O texto abaixo descreve o conflito no v2.
+**DECISÃO APLICADA (Lote 1, 13/10/2026): REMOVER as duas perguntas — fora do HOLOS-V1 v4.** Ver o registro na seção 3A. O HOLOS-V1 v2 continua imutável (os dois itens continuam pontuando nas aplicações já feitas no v2). O texto abaixo descreve o conflito no v2.
 
 **Por que é conflito.** A decisão vigente é que **exames não participam do Resultado HOLOS**:
 - "Continuam fora de qualquer resultado: os exames" — `RESULTADO-FINAL-DECISOES-APROVADAS.md`;
@@ -124,7 +124,7 @@ Numa nova versão, esses arquivos seriam atualizados junto com o pacote.
 **Outros pontos a decidir junto**
 - O texto oficial do Metabólico (D13) cita "achados laboratoriais relatados no questionário".
 - A tela não oferece "não se aplica" para quem não fez exame, embora o motor aceite esse estado.
-- O v3 também não resolveu os dois itens: estão listados como "pendências do v3 para revisão metodológica separada" (`PUBLICACAO-DIRETA-HOLOSCAN.md`).
+- O rascunho de 12/10 (a v3 publicada por engano) também não resolvia os dois itens: estavam listados como "pendências do v3 para revisão metodológica separada" (`PUBLICACAO-DIRETA-HOLOSCAN.md`).
 
 #### SNT-210 — Seus exames costumam mostrar PCR ou VHS acima do normal?
 
@@ -139,7 +139,7 @@ Numa nova versão, esses arquivos seriam atualizados junto com o pacote.
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:22)») |
 | fonte da justificativa | — |
 | classificação da auditoria | D — CONFLITO COM DECISÃO ATUAL: pergunta sobre resultado de exame laboratorial (PCR/VHS) pontua o Ácido Inflamatório; decisão vigente: exames não entram em nenhum resultado (ver §7). Pendência PM-15 aberta |
-| decisão metodológica | **DECISÃO APLICADA: REMOVER** (HOLOS-V1 v3) |
+| decisão metodológica | **DECISÃO APLICADA: REMOVER** (HOLOS-V1 v4) |
 | opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☒ **REMOVER** |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Ácido Inflamatório: 16 → 15 itens pontuados; hoje o item move a nota do sistema em até 0,625 (0–10) com todos respondidos e o Índice em até 1,25 (0–100); cobertura mínima passaria de 13/16 para 12/15; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
@@ -147,8 +147,8 @@ Numa nova versão, esses arquivos seriam atualizados junto com o pacote.
 | risco de interpretação | ALTO — dado laboratorial relatado pontua o Resultado HOLOS (conflito com a decisão de que exames não participam do resultado) |
 | observações | — |
 | justificativa da decisão | Exames e documentos não participam do Resultado HOLOS. PCR/VHS não deve alterar notas, sistemas, Índice, prioridades, sinais dominantes ou Próximos Passos. |
-| regras da decisão | Aplicada no HOLOS-V1 v3; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado; sem item substituto; não é pontuável, nem contextual, nem movida para outro sistema. |
-| decisão registrada | REMOVER · sem sistema de destino · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v3 (o v2 continua imutável) |
+| regras da decisão | Aplicada no HOLOS-V1 v4; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado; sem item substituto; não é pontuável, nem contextual, nem movida para outro sistema. |
+| decisão registrada | REMOVER · sem sistema de destino · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
 
 #### SNT-309 — Seus exames costumam mostrar triglicerídeos altos ou HDL baixo?
 
@@ -163,7 +163,7 @@ Numa nova versão, esses arquivos seriam atualizados junto com o pacote.
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «rascunho-literatura-funcional (motor/bancos/sintomas.csv:31)») |
 | fonte da justificativa | — |
 | classificação da auditoria | D — CONFLITO COM DECISÃO ATUAL: pergunta sobre resultado de exame laboratorial (triglicerídeos/HDL) pontua o Metabólico; decisão vigente: exames não entram em nenhum resultado (ver §7). Pendência PM-15 aberta. Nota: o texto oficial D13 do Metabólico cita «achados laboratoriais relatados no questionário» |
-| decisão metodológica | **DECISÃO APLICADA: REMOVER** (HOLOS-V1 v3) |
+| decisão metodológica | **DECISÃO APLICADA: REMOVER** (HOLOS-V1 v4) |
 | opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☒ **REMOVER** |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Metabólico: 14 → 13 itens pontuados; hoje o item move a nota do sistema em até 0,714 (0–10) com todos respondidos e o Índice em até 1,429 (0–100); cobertura mínima passaria de 12/14 para 11/13; Tríade Corpo: 49 → 48 itens (hoje o item move essa Tríade em até 0,204). Resultados v2 já salvos não mudam. |
@@ -171,12 +171,12 @@ Numa nova versão, esses arquivos seriam atualizados junto com o pacote.
 | risco de interpretação | ALTO — dado laboratorial relatado pontua o Resultado HOLOS (conflito com a decisão de que exames não participam do resultado) |
 | observações | — |
 | justificativa da decisão | Exames e documentos não participam do Resultado HOLOS. Triglicerídeos/HDL não devem alterar notas, sistemas, Índice, prioridades, sinais dominantes ou Próximos Passos. |
-| regras da decisão | Aplicada no HOLOS-V1 v3; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado; sem item substituto; não é pontuável, nem contextual, nem movida para outro sistema. |
-| decisão registrada | REMOVER · sem sistema de destino · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v3 (o v2 continua imutável) |
+| regras da decisão | Aplicada no HOLOS-V1 v4; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado; sem item substituto; não é pontuável, nem contextual, nem movida para outro sistema. |
+| decisão registrada | REMOVER · sem sistema de destino · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
 
 ## 4A. LOTE 2 — ASSOCIAÇÕES MENTAIS/EMOCIONAIS/ESPIRITUAIS → SISTEMAS FÍSICOS (21 perguntas)
 
-**13 DECISÕES APLICADAS (as perguntas EMO: MOVER para o Mental Emocional Espiritual, no HOLOS-V1 v3); as 8 perguntas ESP continuam EM ABERTO** — este documento não sugere decisão para elas. São as perguntas dos blocos Mental/Emocional e Espiritual que no v2 pontuam um sistema físico (todas C na auditoria). As colunas "sistema atual" e "peso" descrevem o v2. As fichas completas estão na seção 5.
+**13 DECISÕES APLICADAS (as perguntas EMO: MOVER para o Mental Emocional Espiritual, no HOLOS-V1 v4); as 8 perguntas ESP continuam EM ABERTO** — este documento não sugere decisão para elas. São as perguntas dos blocos Mental/Emocional e Espiritual que no v2 pontuam um sistema físico (todas C na auditoria). As colunas "sistema atual" e "peso" descrevem o v2. As fichas completas estão na seção 5.
 
 | ID | texto | bloco | sistema atual | peso | justificativa documentada | risco interpretativo | MANTER | MOVER | CONTEXTUAL | REMOVER | decisão |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -203,7 +203,7 @@ Numa nova versão, esses arquivos seriam atualizados junto com o pacote.
 | ESP-502 | Você faz suas refeições sozinho e com pressa? | Espiritual | Detox e Linfático | 1 | Justificativa não documentada (proveniência histórica: «livro p. 63 (Comunhão Consciente) (motor/bancos/espiritual.csv:17)») | contexto social/comportamental da refeição (sozinho e com pressa) pontua o Detox e Linfático; proveniência «Comunhão Consciente» não menciona o sistema; texto oficial D13 não cobre o tema | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
 
 Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
-- **ESP-404:** o rascunho de 12/10 (nunca publicado, arquivado) movia a pergunta para o Mental Emocional Espiritual. Não entrou no v3.
+- **ESP-404:** o rascunho de 12/10 (v3 publicada por engano, retirada pela v4) movia a pergunta para o Mental Emocional Espiritual. Não entrou no v4.
 - **Regra metodológica ativa (13/10):** vale para perguntas mentais/emocionais; para as espirituais não há decisão.
 - Perguntas 2 a 5 da seção 9 da auditoria.
 
@@ -345,7 +345,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Fúngico: estagnação e desordem) (motor/bancos/emocoes.csv:2)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — conteúdo comportamental (adiar tarefas) pontua um sistema de nome fisiológico (Fúngico); o texto oficial D13 do Fúngico cita «sinais digestivos, mucosas, pele e padrões de desejo alimentar» e não cita comportamento ou emoção; o vínculo vem do padrão emocional legado «estagnação e desordem» (rascunho) |
-| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v3) |
+| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v4) |
 | opções | ☐ MANTER  ☒ **MOVER**  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | Metabólico — já consta como associação contextual vigente, sem pontuação (pacote v2: Etapa 4.2 — Decisão 4 (decisao metodologica V1 fechada)) |
 | impacto se deixar de pontuar | Fúngico: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Mente: 19 → 18 itens (hoje o item move essa Tríade em até 0,526). Resultados v2 já salvos não mudam. |
@@ -353,8 +353,8 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | risco de interpretação | Revisão prioritária — conteúdo comportamental (adiar tarefas) pontua um sistema de nome fisiológico (Fúngico); o texto oficial D13 do Fúngico cita «sinais digestivos, mucosas, pele e padrões de desejo alimentar» e não cita comportamento ou emoção; o vínculo vem do padrão emocional legado «estagnação e desordem» (rascunho) |
 | observações | — |
 | justificativa da decisão | Procrastinação, prontidão e autorregulação comportamental. |
-| regras da decisão | Aplicada no HOLOS-V1 v3; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Fúngico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v3 (o v2 continua imutável) |
+| regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
+| decisão registrada | MOVER · de Fúngico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
 
 #### EMO-102 — Você sente que sua vida está desorganizada e não consegue pôr ordem?
 
@@ -369,7 +369,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Fúngico: estagnação e desordem) (motor/bancos/emocoes.csv:3)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — conteúdo comportamental/emocional (vida desorganizada) pontua o Fúngico; mesma situação de EMO-101 (padrão legado «estagnação e desordem», não coberto pelo texto oficial D13) |
-| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v3) |
+| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v4) |
 | opções | ☐ MANTER  ☒ **MOVER**  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Fúngico: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Mente: 19 → 18 itens (hoje o item move essa Tríade em até 0,526). Resultados v2 já salvos não mudam. |
@@ -377,8 +377,8 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | risco de interpretação | Revisão prioritária — conteúdo comportamental/emocional (vida desorganizada) pontua o Fúngico; mesma situação de EMO-101 (padrão legado «estagnação e desordem», não coberto pelo texto oficial D13) |
 | observações | — |
 | justificativa da decisão | Organização pessoal e comportamento. |
-| regras da decisão | Aplicada no HOLOS-V1 v3; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Fúngico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v3 (o v2 continua imutável) |
+| regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
+| decisão registrada | MOVER · de Fúngico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
 
 #### EMO-103 — Você sente um peso para sair do lugar mesmo querendo mudar?
 
@@ -393,7 +393,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Fúngico) (motor/bancos/emocoes.csv:4)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — conteúdo emocional («peso para sair do lugar») pontua o Fúngico; a associação pode sugerir ao leitor uma relação entre estado emocional e um eixo de nome fúngico; vínculo vem do padrão legado do Fúngico (rascunho). Já tem MEE como contextual (não pontua) |
-| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v3) |
+| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v4) |
 | opções | ☐ MANTER  ☒ **MOVER**  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | Mental Emocional Espiritual — já consta como associação contextual vigente, sem pontuação (pacote v2: Etapa 4.2 — Decisão 4 (decisao metodologica V1 fechada)) |
 | impacto se deixar de pontuar | Fúngico: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Mente: 19 → 18 itens (hoje o item move essa Tríade em até 0,526). Resultados v2 já salvos não mudam. |
@@ -401,8 +401,8 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | risco de interpretação | Revisão prioritária — conteúdo emocional («peso para sair do lugar») pontua o Fúngico; a associação pode sugerir ao leitor uma relação entre estado emocional e um eixo de nome fúngico; vínculo vem do padrão legado do Fúngico (rascunho). Já tem MEE como contextual (não pontua) |
 | observações | — |
 | justificativa da decisão | Prontidão, dificuldade percebida para iniciar mudança e autorregulação. |
-| regras da decisão | Aplicada no HOLOS-V1 v3; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Fúngico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v3 (o v2 continua imutável) |
+| regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
+| decisão registrada | MOVER · de Fúngico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
 
 #### EMO-201 — Você se irrita com facilidade por coisas pequenas?
 
@@ -417,7 +417,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Ácido-Inflamatório: irritação e reatividade) (motor/bancos/emocoes.csv:5)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — conteúdo emocional (irritação) pontua o Ácido Inflamatório; o texto oficial D13 cita «reatividade» sem dizer se é emocional; vínculo vem do padrão legado «irritação e reatividade». Já tem MEE como contextual (não pontua) |
-| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v3) |
+| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v4) |
 | opções | ☐ MANTER  ☒ **MOVER**  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | Mental Emocional Espiritual — já consta como associação contextual vigente, sem pontuação (pacote v2: Etapa 4.2 — Decisão 4 (decisao metodologica V1 fechada)) |
 | impacto se deixar de pontuar | Ácido Inflamatório: 16 → 15 itens pontuados; hoje o item move a nota do sistema em até 0,625 (0–10) com todos respondidos e o Índice em até 1,25 (0–100); cobertura mínima passaria de 13/16 para 12/15; Tríade Mente: 19 → 18 itens (hoje o item move essa Tríade em até 0,526). Resultados v2 já salvos não mudam. |
@@ -425,8 +425,8 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | risco de interpretação | Revisão prioritária — conteúdo emocional (irritação) pontua o Ácido Inflamatório; o texto oficial D13 cita «reatividade» sem dizer se é emocional; vínculo vem do padrão legado «irritação e reatividade». Já tem MEE como contextual (não pontua) |
 | observações | — |
 | justificativa da decisão | Irritabilidade e regulação emocional. |
-| regras da decisão | Aplicada no HOLOS-V1 v3; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Ácido Inflamatório para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v3 (o v2 continua imutável) |
+| regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
+| decisão registrada | MOVER · de Ácido Inflamatório para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
 
 #### EMO-202 — Sua raiva sobe rápido e demora a passar?
 
@@ -441,7 +441,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Ácido-Inflamatório) (motor/bancos/emocoes.csv:6)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — conteúdo emocional (raiva) pontua o Ácido Inflamatório; mesma situação de EMO-201 |
-| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v3) |
+| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v4) |
 | opções | ☐ MANTER  ☒ **MOVER**  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Ácido Inflamatório: 16 → 15 itens pontuados; hoje o item move a nota do sistema em até 0,625 (0–10) com todos respondidos e o Índice em até 1,25 (0–100); cobertura mínima passaria de 13/16 para 12/15; Tríade Mente: 19 → 18 itens (hoje o item move essa Tríade em até 0,526). Resultados v2 já salvos não mudam. |
@@ -449,8 +449,8 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | risco de interpretação | Revisão prioritária — conteúdo emocional (raiva) pontua o Ácido Inflamatório; mesma situação de EMO-201 |
 | observações | — |
 | justificativa da decisão | Intensidade e duração percebida da raiva. |
-| regras da decisão | Aplicada no HOLOS-V1 v3; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Ácido Inflamatório para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v3 (o v2 continua imutável) |
+| regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
+| decisão registrada | MOVER · de Ácido Inflamatório para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
 
 #### EMO-203 — Você costuma aceitar o que não quer para evitar conflito?
 
@@ -465,7 +465,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «material 11/08 (impacto espiritual: bloqueio no plexo solar) (motor/bancos/emocoes.csv:7)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — conteúdo emocional/relacional pontua o Ácido Inflamatório; a proveniência registrada é «impacto espiritual: bloqueio no plexo solar», expressão que a Decisão 13 retirou do conteúdo oficial como termo causal («"bloqueio no plexo solar" … saem do conteúdo oficial»); a associação continua |
-| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v3) |
+| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v4) |
 | opções | ☐ MANTER  ☒ **MOVER**  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | Detox e Linfático — já consta como associação contextual vigente, sem pontuação (pacote v2: Etapa 4.2 — Decisão 4 (decisao metodologica V1 fechada)) |
 | impacto se deixar de pontuar | Ácido Inflamatório: 16 → 15 itens pontuados; hoje o item move a nota do sistema em até 0,625 (0–10) com todos respondidos e o Índice em até 1,25 (0–100); cobertura mínima passaria de 13/16 para 12/15; Tríade Mente: 19 → 18 itens (hoje o item move essa Tríade em até 0,526). Resultados v2 já salvos não mudam. |
@@ -473,8 +473,8 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | risco de interpretação | Revisão prioritária — conteúdo emocional/relacional pontua o Ácido Inflamatório; a proveniência registrada é «impacto espiritual: bloqueio no plexo solar», expressão que a Decisão 13 retirou do conteúdo oficial como termo causal («"bloqueio no plexo solar" … saem do conteúdo oficial»); a associação continua |
 | observações | — |
 | justificativa da decisão | Limites, comportamento interpessoal e evitação de conflito. |
-| regras da decisão | Aplicada no HOLOS-V1 v3; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Ácido Inflamatório para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v3 (o v2 continua imutável) |
+| regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
+| decisão registrada | MOVER · de Ácido Inflamatório para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
 
 #### EMO-204 — Você engole o que gostaria de dizer para não criar problema?
 
@@ -489,7 +489,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «material 11/08 (impacto espiritual: bloqueio no plexo solar) (motor/bancos/emocoes.csv:8)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — conteúdo emocional/relacional pontua o Ácido Inflamatório; proveniência «impacto espiritual: bloqueio no plexo solar» (termo retirado do conteúdo oficial pela Decisão 13); a associação continua |
-| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v3) |
+| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v4) |
 | opções | ☐ MANTER  ☒ **MOVER**  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Ácido Inflamatório: 16 → 15 itens pontuados; hoje o item move a nota do sistema em até 0,625 (0–10) com todos respondidos e o Índice em até 1,25 (0–100); cobertura mínima passaria de 13/16 para 12/15; Tríade Mente: 19 → 18 itens (hoje o item move essa Tríade em até 0,526). Resultados v2 já salvos não mudam. |
@@ -497,8 +497,8 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | risco de interpretação | Revisão prioritária — conteúdo emocional/relacional pontua o Ácido Inflamatório; proveniência «impacto espiritual: bloqueio no plexo solar» (termo retirado do conteúdo oficial pela Decisão 13); a associação continua |
 | observações | — |
 | justificativa da decisão | Expressão emocional e comportamento interpessoal. |
-| regras da decisão | Aplicada no HOLOS-V1 v3; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Ácido Inflamatório para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v3 (o v2 continua imutável) |
+| regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
+| decisão registrada | MOVER · de Ácido Inflamatório para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
 
 #### EMO-301 — Você sente um vazio que a comida parece tentar preencher?
 
@@ -513,7 +513,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Metabólico: vazio e falta de propósito) (motor/bancos/emocoes.csv:9)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — conteúdo emocional (vazio) pontua o Metabólico; o texto oficial D13 do Metabólico cita «comportamento alimentar», mas não emoção; vínculo vem do padrão legado «vazio e falta de propósito». Já tem MEE como contextual (não pontua) |
-| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v3) |
+| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v4) |
 | opções | ☐ MANTER  ☒ **MOVER**  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | Mental Emocional Espiritual — já consta como associação contextual vigente, sem pontuação (pacote v2: Etapa 4.2 — Decisão 4 (decisao metodologica V1 fechada)) |
 | impacto se deixar de pontuar | Metabólico: 14 → 13 itens pontuados; hoje o item move a nota do sistema em até 0,714 (0–10) com todos respondidos e o Índice em até 1,429 (0–100); cobertura mínima passaria de 12/14 para 11/13; Tríade Mente: 19 → 18 itens (hoje o item move essa Tríade em até 0,526). Resultados v2 já salvos não mudam. |
@@ -521,8 +521,8 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | risco de interpretação | Revisão prioritária — conteúdo emocional (vazio) pontua o Metabólico; o texto oficial D13 do Metabólico cita «comportamento alimentar», mas não emoção; vínculo vem do padrão legado «vazio e falta de propósito». Já tem MEE como contextual (não pontua) |
 | observações | — |
 | justificativa da decisão | Relação entre estado emocional e alimentação. |
-| regras da decisão | Aplicada no HOLOS-V1 v3; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Metabólico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v3 (o v2 continua imutável) |
+| regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
+| decisão registrada | MOVER · de Metabólico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
 
 #### EMO-302 — Você passa os dias no piloto automático sem perceber o que está fazendo?
 
@@ -537,7 +537,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «livro p. 56 (Propósito de Vida e Nutrição) (motor/bancos/emocoes.csv:10)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — conteúdo de atenção/comportamento (piloto automático) pontua o Metabólico; no v2 o enunciado não menciona alimentação (o v3 acrescenta «em relação à alimentação»); MEE como contextual (não pontua) |
-| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v3) |
+| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v4) |
 | opções | ☐ MANTER  ☒ **MOVER**  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | Mental Emocional Espiritual — já consta como associação contextual vigente, sem pontuação (pacote v2: Etapa 4.2 — Decisão 4 (decisao metodologica V1 fechada)) |
 | impacto se deixar de pontuar | Metabólico: 14 → 13 itens pontuados; hoje o item move a nota do sistema em até 0,714 (0–10) com todos respondidos e o Índice em até 1,429 (0–100); cobertura mínima passaria de 12/14 para 11/13; Tríade Mente: 19 → 18 itens (hoje o item move essa Tríade em até 0,526). Resultados v2 já salvos não mudam. |
@@ -545,8 +545,8 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | risco de interpretação | Revisão prioritária — conteúdo de atenção/comportamento (piloto automático) pontua o Metabólico; no v2 o enunciado não menciona alimentação (o v3 acrescenta «em relação à alimentação»); MEE como contextual (não pontua) |
 | observações | v3 (não publicado) reescreve o texto: «Você passa os dias no piloto automático sem perceber o que está fazendo em relação à alimentação?» |
 | justificativa da decisão | Consciência, atenção ao comportamento e funcionamento em piloto automático. |
-| regras da decisão | Aplicada no HOLOS-V1 v3; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Metabólico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v3 (o v2 continua imutável) |
+| regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
+| decisão registrada | MOVER · de Metabólico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
 
 #### EMO-303 — Você usa comida como recompensa depois de um dia difícil?
 
@@ -561,7 +561,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «livro p. 90 (Trava da Resistência ao Prazer) (motor/bancos/emocoes.csv:11)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — comportamento alimentar emocional (comida como recompensa) do bloco Mente pontua o Metabólico; o texto oficial D13 do Metabólico inclui «comportamento alimentar», o que dá cobertura temática, mas não há justificativa do item |
-| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v3) |
+| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v4) |
 | opções | ☐ MANTER  ☒ **MOVER**  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Metabólico: 14 → 13 itens pontuados; hoje o item move a nota do sistema em até 0,714 (0–10) com todos respondidos e o Índice em até 1,429 (0–100); cobertura mínima passaria de 12/14 para 11/13; Tríade Mente: 19 → 18 itens (hoje o item move essa Tríade em até 0,526). Resultados v2 já salvos não mudam. |
@@ -569,8 +569,8 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | risco de interpretação | Revisão prioritária — comportamento alimentar emocional (comida como recompensa) do bloco Mente pontua o Metabólico; o texto oficial D13 do Metabólico inclui «comportamento alimentar», o que dá cobertura temática, mas não há justificativa do item |
 | observações | — |
 | justificativa da decisão | Uso da comida como recompensa e comportamento alimentar associado ao estado emocional. |
-| regras da decisão | Aplicada no HOLOS-V1 v3; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Metabólico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v3 (o v2 continua imutável) |
+| regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
+| decisão registrada | MOVER · de Metabólico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
 
 #### EMO-401 — Você se pega remoendo uma mágoa antiga?
 
@@ -585,7 +585,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Detox: acúmulo de mágoas) (motor/bancos/emocoes.csv:12)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — conteúdo emocional (mágoa) pontua o Detox e Linfático; texto oficial D13 do Detox cita «inchaço, hábito intestinal, pele e sensibilidade relatada a substâncias»; vínculo vem do padrão legado «acúmulo de mágoas» (rascunho); pode sugerir leitura causal emoção→eliminação |
-| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v3) |
+| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v4) |
 | opções | ☐ MANTER  ☒ **MOVER**  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Detox e Linfático: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Mente: 19 → 18 itens (hoje o item move essa Tríade em até 0,526). Resultados v2 já salvos não mudam. |
@@ -593,8 +593,8 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | risco de interpretação | Revisão prioritária — conteúdo emocional (mágoa) pontua o Detox e Linfático; texto oficial D13 do Detox cita «inchaço, hábito intestinal, pele e sensibilidade relatada a substâncias»; vínculo vem do padrão legado «acúmulo de mágoas» (rascunho); pode sugerir leitura causal emoção→eliminação |
 | observações | v3 (não publicado) reescreve o texto: «Você se pega remoendo uma raiva ou mágoa antiga?» |
 | justificativa da decisão | Ruminação emocional. |
-| regras da decisão | Aplicada no HOLOS-V1 v3; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Detox e Linfático para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v3 (o v2 continua imutável) |
+| regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
+| decisão registrada | MOVER · de Detox e Linfático para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
 
 #### EMO-402 — Você costuma guardar o que sente em vez de falar?
 
@@ -609,7 +609,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Detox: emoções não processadas) (motor/bancos/emocoes.csv:13)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — conteúdo emocional (guardar o que sente) pontua o Detox e Linfático; padrão legado «emoções não processadas»; texto oficial D13 não cobre o tema. MEE como contextual (não pontua) |
-| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v3) |
+| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v4) |
 | opções | ☐ MANTER  ☒ **MOVER**  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | Mental Emocional Espiritual — já consta como associação contextual vigente, sem pontuação (pacote v2: Etapa 4.2 — Decisão 4 (decisao metodologica V1 fechada)) |
 | impacto se deixar de pontuar | Detox e Linfático: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Mente: 19 → 18 itens (hoje o item move essa Tríade em até 0,526). Resultados v2 já salvos não mudam. |
@@ -617,8 +617,8 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | risco de interpretação | Revisão prioritária — conteúdo emocional (guardar o que sente) pontua o Detox e Linfático; padrão legado «emoções não processadas»; texto oficial D13 não cobre o tema. MEE como contextual (não pontua) |
 | observações | — |
 | justificativa da decisão | Expressão e regulação emocional. |
-| regras da decisão | Aplicada no HOLOS-V1 v3; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Detox e Linfático para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v3 (o v2 continua imutável) |
+| regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
+| decisão registrada | MOVER · de Detox e Linfático para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
 
 #### EMO-403 — Você tem dificuldade de aceitar ajuda ou cuidado das pessoas?
 
@@ -633,7 +633,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Detox) (motor/bancos/emocoes.csv:14)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — conteúdo relacional (aceitar ajuda) pontua o Detox e Linfático; texto oficial D13 não cobre o tema |
-| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v3) |
+| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v4) |
 | opções | ☐ MANTER  ☒ **MOVER**  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Detox e Linfático: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Mente: 19 → 18 itens (hoje o item move essa Tríade em até 0,526). Resultados v2 já salvos não mudam. |
@@ -641,8 +641,8 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | risco de interpretação | Revisão prioritária — conteúdo relacional (aceitar ajuda) pontua o Detox e Linfático; texto oficial D13 não cobre o tema |
 | observações | — |
 | justificativa da decisão | Apoio, vínculo e capacidade de receber cuidado. |
-| regras da decisão | Aplicada no HOLOS-V1 v3; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Detox e Linfático para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v3 (o v2 continua imutável) |
+| regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
+| decisão registrada | MOVER · de Detox e Linfático para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
 
 ### Espiritual → sistema físico (8)
 
@@ -2258,15 +2258,15 @@ O enunciado menciona exame laboratorial, condição nomeada ou uso de medicament
 
 ### 8.6 Decisões que exigem Rodrigo e Daniel
 
-**15 DECISÕES APLICADAS (HOLOS-V1 v3) e 69 EM ABERTO.** Pendentes, em ordem de prioridade:
+**15 DECISÕES APLICADAS (HOLOS-V1 v4) e 69 EM ABERTO.** Pendentes, em ordem de prioridade:
 
-1. **Grupo 1 — SNT-210 e SNT-309: DECISÃO APLICADA (REMOVER, HOLOS-V1 v3).** Continuam em aberto, por consequência: o texto D13 do Metabólico ("achados laboratoriais relatados no questionário") e a opção "não se aplica" na tela.
+1. **Grupo 1 — SNT-210 e SNT-309: DECISÃO APLICADA (REMOVER, HOLOS-V1 v4).** Continuam em aberto, por consequência: o texto D13 do Metabólico ("achados laboratoriais relatados no questionário") e a opção "não se aplica" na tela.
 2. **Grupo 2 — 26 perguntas C**, por subgrupo:
-   - 13 mental/emocional → físico: **DECISÃO APLICADA** (MOVER para o MEE, HOLOS-V1 v3);
+   - 13 mental/emocional → físico: **DECISÃO APLICADA** (MOVER para o MEE, HOLOS-V1 v4);
    - 8 espiritual → físico: EM ABERTO;
    - 4 físico → físico com condição nomeada ou já negada na revisão (SNT-104, SNT-105, SNT-206, SNT-209);
    - 1 físico → MEE (SNT-507).
-3. **ESP-404, SNT-209 e ESP-102.** O rascunho de 12/10 (arquivado, nunca publicado) tinha decisão para eles (mover ESP-404 para o MEE; remover SNT-209 e ESP-102), mas ela **não** entrou no v3: os três seguem como no v2. Confirmar se vale para uma versão seguinte.
+3. **ESP-404, SNT-209 e ESP-102.** O rascunho de 12/10 (publicado por engano como v3 em 13/10 e retirado pela v4) tinha decisão para eles (mover ESP-404 para o MEE; remover SNT-209 e ESP-102), mas ela **não** entrou no v4: os três seguem como no v2. Confirmar se vale para uma versão seguinte.
 4. **Enunciados com condição nomeada** (SNT-104, SNT-105, SNT-206, e também SNT-111 e SNT-109). Hoje aparecem literalmente como sinal dominante na visão da paciente; o termo "candid" está na lista de linguagem proibida do Fúngico.
 5. **Grupo 3 — 54 perguntas B.** Homologar uma a uma ou em bloco, e registrar a justificativa (autoral ou com fonte).
 6. **Grupo 4 — 2 perguntas A.** Confirmar e registrar o fundamento (hoje: "decisão encerrada pela liderança do método").
@@ -2275,4 +2275,4 @@ O enunciado menciona exame laboratorial, condição nomeada ou uso de medicament
    - sinais parecidos em sistemas diferentes (SNT-110 e SNT-406);
    - fundamento das associações aprovadas em bloco.
 
-As 15 decisões de 13/10 estão aplicadas no HOLOS-V1 v3; as demais seguem EM ABERTO. O PP-V2 não foi iniciado.
+As 15 decisões de 13/10 estão aplicadas no HOLOS-V1 v4; as demais seguem EM ABERTO. O PP-V2 não foi iniciado.

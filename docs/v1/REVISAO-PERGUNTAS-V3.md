@@ -1,7 +1,7 @@
 # Revisão das perguntas do HOLOSCAN → HOLOS-V1 v3 (12/10)
 
-> **SUBSTITUÍDO em 13/10/2026.** O rascunho do v3 descrito aqui (12/10) **nunca foi publicado** e **não** é a base do
-> HOLOS-V1 v3. O v3 passou a ser só as decisões metodológicas de 13/10 (SNT-210 e SNT-309 removidas; 13 perguntas EMO
+> **SUBSTITUÍDO em 13/10/2026.** O rascunho descrito aqui (12/10) foi publicado **por engano** como v3 em 13/10
+> (0 aplicações) e é retirado pelo HOLOS-V1 v4, que é só as decisões metodológicas de 13/10 (SNT-210 e SNT-309 removidas; 13 perguntas EMO
 > no Sistema Mental Emocional Espiritual), montado a partir do v2 ativo. O rascunho ficou arquivado em
 > `docs/v1/metodologia/historico/`. Ver `docs/v1/ALTERACOES-PACOTE-HOLOSCAN-NOVA-VERSAO.md`.
 

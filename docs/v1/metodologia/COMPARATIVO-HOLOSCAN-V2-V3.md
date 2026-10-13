@@ -1,12 +1,12 @@
-# COMPARATIVO HOLOSCAN — HOLOS-V1 v2 × v3 (mesmas respostas)
+# COMPARATIVO HOLOSCAN — HOLOS-V1 v2 × v4 (mesmas respostas)
 
-Gerado por `scripts/comparar-v2-v3.mjs` (determinístico; `--check` no teste). O v3 é o das decisões de 13/10/2026: SNT-210 e SNT-309 removidas e 13 perguntas EMO movidas para o Sistema Mental Emocional Espiritual. As respostas são fictícias. No v3 entram só as 82 perguntas que existem nele.
+Gerado por `scripts/comparar-v2-v3.mjs` (determinístico; `--check` no teste). O v4 é o das decisões de 13/10/2026 (o v3 que ficou no histórico de produção é o rascunho de 12/10, publicado por engano e retirado pelo v4): SNT-210 e SNT-309 removidas e 13 perguntas EMO movidas para o Sistema Mental Emocional Espiritual. As respostas são fictícias. No v4 entram só as 82 perguntas que existem nele.
 
 Regras usadas: as notas, o Índice e a Tríade vêm do `MotorMetodologico.calcular` (o mesmo motor da aplicação). Os sinais dominantes seguem a regra de `resultado_holos_dominantes` (MR-V1): até 3 por sistema, a contribuição tem de ser maior que 0, a maior vem primeiro e o empate é decidido pelo ID. As ferramentas vêm de `ProximosPassos.selecionar` sobre as 30 regras do PP-V1, na ordem de "Por onde investigar", sem ferramentas concluídas.
 
 ## F1 — Carla fictícia (padrão determinístico)
 
-| | v2 | v3 |
+| | v2 | v4 |
 |---|---|---|
 | Fúngico (nota · itens) | 6,4 · 15 | 6,4 · 12 |
 | Ácido Inflamatório (nota · itens) | 5,2 · 16 | 5,2 · 11 |
@@ -25,7 +25,7 @@ Regras usadas: as notas, o Índice e a Tríade vêm do `MotorMetodologico.calcul
 
 ## F2 — carga emocional alta (EMO = 3), físico baixo (SNT = 1), espiritual 1
 
-| | v2 | v3 |
+| | v2 | v4 |
 |---|---|---|
 | Fúngico (nota · itens) | 5,3 · 15 | 6,7 · 12 |
 | Ácido Inflamatório (nota · itens) | 5,0 · 16 | 6,7 · 11 |
@@ -44,7 +44,7 @@ Regras usadas: as notas, o Índice e a Tríade vêm do `MotorMetodologico.calcul
 
 ## F3 — carga física alta (SNT = 3), emocional e espiritual 0
 
-| | v2 | v3 |
+| | v2 | v4 |
 |---|---|---|
 | Fúngico (nota · itens) | 2,7 · 15 | 0,8 · 12 |
 | Ácido Inflamatório (nota · itens) | 3,8 · 16 | 1,8 · 11 |
@@ -63,7 +63,7 @@ Regras usadas: as notas, o Índice e a Tríade vêm do `MotorMetodologico.calcul
 
 ## F4 — carga uniforme 2
 
-| | v2 | v3 |
+| | v2 | v4 |
 |---|---|---|
 | Fúngico (nota · itens) | 3,3 · 15 | 3,3 · 12 |
 | Ácido Inflamatório (nota · itens) | 3,3 · 16 | 3,3 · 11 |
@@ -82,7 +82,7 @@ Regras usadas: as notas, o Índice e a Tríade vêm do `MotorMetodologico.calcul
 
 ## F5 — só exames altos (SNT-210 e SNT-309 = 3), resto 1
 
-| | v2 | v3 |
+| | v2 | v4 |
 |---|---|---|
 | Fúngico (nota · itens) | 6,7 · 15 | 6,7 · 12 |
 | Ácido Inflamatório (nota · itens) | 6,3 · 16 | 6,7 · 11 |
@@ -101,7 +101,7 @@ Regras usadas: as notas, o Índice e a Tríade vêm do `MotorMetodologico.calcul
 
 ## F6 — as 13 EMO movidas = 3, resto 1
 
-| | v2 | v3 |
+| | v2 | v4 |
 |---|---|---|
 | Fúngico (nota · itens) | 5,3 · 15 | 6,7 · 12 |
 | Ácido Inflamatório (nota · itens) | 5,0 · 16 | 6,7 · 11 |
