@@ -181,11 +181,13 @@ await N.type('#login-email', 'a@holo.test'); await N.type('#login-senha', 'senha
 await N.waitForFunction(() => window.HoloAuth && window.HoloAuth.sessaoAtiva() && window.pacientesCarregados && window.pacientesCarregados(), { timeout: 15000 });
 await N.evaluate(async (pid, eid) => { window.definirPacienteAtivo(pid); await window.Anamnese.carregar(); window.AtendimentoAtual.selecionarPorId(eid);
   window.levarParaFicha('aba:anamnese', pid); await new Promise(r => setTimeout(r, 900)); }, PN, EN);
+/* Fase 1 (13/10): etapas Link gerado -> Link enviado -> Mapeamento recebido -> Revisado; resposta completa atras de "Abrir Mapeamento completo" */
+await N.evaluate(() => document.querySelector('#an-preconsulta [data-pc-acao="ver"]').click()); await espera(300);
 const f = await N.evaluate(() => ({ card: document.getElementById('an-preconsulta').innerText, reg: document.getElementById('anamnese-registro').innerHTML,
   botoes: [...document.querySelectorAll('#an-preconsulta [data-pc-acao]')].map(b => b.textContent.trim()) }));
 ok(/Mapeamento recebido/.test(f.card) && /O que te traz aqui/.test(f.card) && /Qual é o principal motivo para buscar acompanhamento\?/.test(f.card) && /Mais energia e disposição, Outro: Preparar para uma cirurgia/.test(f.card)
   && /Azia ou refluxo/.test(f.card) && /Vesícula, 2020/.test(f.card), 'ficha: "Mapeamento recebido" com a resposta completa por etapa, nas perguntas que o paciente viu');
-ok(f.botoes.join('|') === 'Esconder resposta|Levar para o atendimento|Enviar novo Mapeamento' && !/textarea|an2-form/.test(f.reg), 'ações Ver/Esconder resposta, Levar para o atendimento; sem formulário profissional vazio');
+ok(f.botoes.join('|') === 'Fechar Mapeamento completo|Levar para o atendimento|Enviar novo Mapeamento' && !/textarea|an2-form/.test(f.reg), 'ações Abrir/Fechar Mapeamento completo, Levar para o atendimento; sem formulário profissional vazio');
 if (SHOT) { const el = await N.$('#an-preconsulta'); if (el) await el.screenshot({ path: SHOT + '/enxuto-ficha-recebido.png' }); }
 await N.evaluate(() => document.querySelector('#an-preconsulta [data-pc-acao="usar"]').click()); await espera(1500);
 const an = srv.linhas('anamneses').find(a => a.patient_id === PN && a.encounter_id === EN) || { content: {} };

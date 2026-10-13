@@ -5017,6 +5017,34 @@ body.conta-pendente #secao-perfil{display:block}
 .pc-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .pc-acoes{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
 .pc-resposta{margin-top:16px;padding-top:14px;border-top:1px solid var(--borda-suave)}
+/* Mapeamento — fluxo (Plano mestre, Fase 1, 13/10): caminho de 4 passos, resumo, historico */
+.pc-caminho{list-style:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:14px 0 0;padding:0;counter-reset:none}
+.pc-passo{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:10px;border:1px solid var(--borda-suave);color:var(--texto-suave);font-size:.78rem;line-height:1.35;min-width:0}
+.pc-passo-n{flex:none;display:inline-grid;place-items:center;width:1.45rem;height:1.45rem;border-radius:50%;border:1px solid currentColor;font-size:.72rem;font-weight:600}
+.pc-passo-txt{min-width:0;overflow-wrap:anywhere}
+.pc-passo-txt small{display:block;font-size:.7rem;font-variant-numeric:tabular-nums;opacity:.85}
+.pc-passo.feito{color:var(--movimento-sobe,#1f6b47);border-color:color-mix(in srgb,var(--movimento-sobe,#1f6b47) 35%,transparent)}
+.pc-passo.feito .pc-passo-n{background:var(--movimento-sobe,#1f6b47);color:#fff;border-color:transparent}
+.pc-passo.atual{color:var(--titulo);border-color:var(--dourado,#a07a2c);background:color-mix(in srgb,var(--dourado,#a07a2c) 8%,transparent);font-weight:600}
+.pc-passo.atual .pc-passo-n{background:var(--dourado,#a07a2c);color:#fff;border-color:transparent}
+.pc-caminho-fora .pc-passo{opacity:.55}
+.pc-detalhe{margin:10px 0 0;font-weight:600;color:var(--dourado,#a07a2c)}
+.pc-resumo{margin-top:14px;padding:14px 16px;border-radius:12px;background:var(--input-fundo,rgba(0,0,0,.03));border:1px solid var(--borda-suave)}
+.pc-resumo-tipo{margin-left:6px;font-size:.66rem;letter-spacing:.1em;padding:2px 8px;border-radius:999px;border:1px solid var(--borda-suave)}
+.pc-resumo-lista{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 22px;margin:10px 0 0}
+.pc-resumo-item dt{font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--texto-suave)}
+.pc-resumo-item dd{margin:3px 0 0;font-size:.9rem;line-height:1.5;color:var(--texto);overflow-wrap:anywhere}
+.pc-nota{margin:10px 0 0;font-size:.74rem;color:var(--texto-suave)}
+.pc-acoes-sec{margin-top:10px;padding-top:10px;border-top:1px dashed var(--borda-suave)}
+.pc-historico{margin-top:4px}
+.pc-hist-lista{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:8px}
+.pc-hist-lista>li{padding:10px 12px;border:1px solid var(--borda-suave);border-radius:10px;font-size:.85rem;line-height:1.5}
+.pc-hist-lista small{color:var(--texto-suave);font-size:.76rem}
+.pc-hist-etapa{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--texto-suave)}
+.pc-hist-etapa.pc-et-recebido,.pc-hist-etapa.pc-et-revisado{color:var(--movimento-sobe,#1f6b47)}
+.pc-hist-atual{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--dourado,#a07a2c)}
+.pc-status.pc-concluido{color:var(--movimento-sobe)}
+@media (max-width:640px){.pc-caminho{grid-template-columns:repeat(2,minmax(0,1fr))}.pc-resumo-lista{grid-template-columns:1fr}}
 
 /* ===== Boas-vindas (boas-vindas.js, 09/10): cadastro, primeira entrada pendente, conta liberada ===== */
 .bv-janela{position:fixed;inset:0;margin:auto;height:fit-content;border:0;padding:0;background:transparent;max-width:min(580px,calc(100vw - 32px));width:100%;color:var(--texto);overflow:visible}
@@ -5788,3 +5816,6 @@ body.escuro #secao-pacientes .pac-dado.atraso{color:var(--dourado-claro)}
 .rp-doc .rd-sis{background:#fff;border-color:rgba(29,58,46,.14)}
 .rp-doc .rd-sis-voce{background:#fbf5e8}
 .rp-doc .rd-sis-foco{color:#7a5a1e}
+/* Fase 1 (13/10): o historico do Mapeamento e um cartao proprio (o fundo da ficha e escuro) */
+.pc-historico .mh-anterior{padding:0;margin:0;background:transparent}
+.pc-historico .mh-anterior summary{color:var(--texto)}

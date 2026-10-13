@@ -129,8 +129,17 @@
     var ler = function (t, cols) {
       return Promise.resolve(sb().from(t).select(cols)).then(function (r) { return r && !r.error && Array.isArray(r.data) ? r.data : []; }, function () { return []; });
     };
+    /* Fase 1 (13/10): com as colunas do "Link enviado" (migration 20261022100000); banco sem elas -> le sem */
+    var PC = window.PreConsulta;
+    var colsConvite = PC && PC.colunasEstado ? PC.colunasEstado() : "id,patient_id,status,expires_at,created_at,submitted_at,imported_at,revoked_at";
+    var lerConvites = function () {
+      return Promise.resolve(sb().from("anamnesis_invites").select(colsConvite)).then(function (r) {
+        if (r && r.error && PC && PC.semColunaEnvio && PC.semColunaEnvio(r.error)) return Promise.resolve(sb().from("anamnesis_invites").select(PC.colunasEstado()));
+        return r;
+      }).then(function (r) { return r && !r.error && Array.isArray(r.data) ? r.data : []; }, function () { return []; });
+    };
     Promise.all([
-      ler("anamnesis_invites", "id,patient_id,status,expires_at,created_at,submitted_at,imported_at,revoked_at"),
+      lerConvites(),
       ler("holos_results", "id,patient_id,status,superseded_at,saved_at,created_at"),
       ler("holos_result_emissions", "id,patient_id,holos_result_id,emission_number,created_at")
     ]).then(function (rs) {
@@ -160,7 +169,11 @@
     }
     var conv = maisRecente(jornada.convites.filter(function (c) { return c.patient_id === pid && c.status !== "revogado"; }), "created_at");
     if (conv && (conv.status === "enviado" || conv.status === "iniciado") && !(Date.parse(conv.expires_at) < Date.now())) {
-      return { chave: "aguardando_anamnese", sub: conv.status === "iniciado" ? "O paciente começou a responder" : "Mapeamento Holístico enviado", data: conv.created_at, destino: "aba:anamnese" };
+      /* Fase 1 (13/10): a mesma etapa da ficha (Link gerado / Link enviado / o paciente comecou) */
+      var etc = window.PreConsulta && window.PreConsulta.etapa ? window.PreConsulta.etapa(conv) : null;
+      var subc = etc ? (conv.status === "iniciado" ? etc.rotulo + " · " + etc.detalhe : etc.chave === "link_gerado" ? "Link gerado · ainda não enviado" : etc.rotulo)
+        : (conv.status === "iniciado" ? "O paciente começou a responder" : "Mapeamento Holístico enviado");
+      return { chave: "aguardando_anamnese", sub: subc, data: etc && etc.quando ? etc.quando : conv.created_at, destino: "aba:anamnese" };
     }
     /* recebido e a consulta ainda nao aconteceu (nenhum atendimento depois do envio) */
     var ATd = window.AtendimentoAtual;
@@ -457,6 +470,8 @@
   var ouvintes = [];
   window.JornadaPaciente = {
     carregar: function () { carregarJornada(false); },
+    /** releitura ja (a ficha viu o Mapeamento chegar / o link sair) */
+    recarregar: function () { carregarJornada(true); },
     carregado: function () { return jornada.carregadoEm > 0; },
     aoCarregar: function (fn) { if (typeof fn === "function" && ouvintes.indexOf(fn) < 0) ouvintes.push(fn); },
     /** etapa atual do paciente (rotulo do Dashboard) ou null */

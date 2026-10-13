@@ -54,8 +54,9 @@ const explicita = q('anamnesis_invites', 'select', { colunas: 'id,patient_id,sta
 ok(estrela.error && estrela.error.code === '42501' && hashCol.error && hashCol.error.code === '42501' && !explicita.error,
   'servidor falso como o banco real: select("*") e token_hash recusados (42501); colunas explícitas aceitas');
 const fonte = readFileSync(new URL('../anamnese-convite.js', import.meta.url), 'utf8');
-const colunas = (/var COLUNAS = "([^"]+)"/.exec(fonte) || [])[1] || '';
-ok(!/select\(\s*["']\*["']\s*\)/.test(fonte) && /select\(COLUNAS\)/.test(fonte) && colunas && !/token_hash/.test(colunas),
+/* Fase 1 (13/10): as colunas viraram BASE (+ sent_at/sent_via quando o banco tem a migration 20261022100000) e ESTADO (leitura leve) */
+const colunas = ((/var BASE = "([^"]+)"/.exec(fonte) || [])[1] || '') + ',' + ((/var ESTADO = "([^"]+)"/.exec(fonte) || [])[1] || '');
+ok(!/select\(\s*["']\*["']\s*\)/.test(fonte) && /select\(colunas\(estado\)\)/.test(fonte) && colunas.length > 20 && !/token_hash/.test(colunas),
   'anamnese-convite.js: sem select("*"); lê só COLUNAS, sem token_hash');
 
 const nav = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
@@ -116,8 +117,9 @@ ok(convites(PA).length === 1 && cA.status === 'enviado' && cA.patient_id === PA 
 ok(Array.isArray(chaves) && ['expires_at', 'id', 'token'].every(k => chaves.includes(k)), 'a RPC devolve id, token e expires_at para a tela (' + (chaves || []).join(',') + ')');
 ok(!!tokA && tokA.length === 43 && s.link === 'http://127.0.0.1:5500/anamnese.html#t=' + tokA && srv.convitesAnamnese.hashes.get(cA.id) === createHash('sha256').update(tokA).digest('hex')
   && !JSON.stringify(convites()).includes(tokA), 'URL montada: <origem>/anamnese.html#t=<token de 43>; o banco guarda só o hash, nunca o token');
-ok(/Enviado/.test(s.status) && /Link gerado com sucesso/.test(s.txt) && /Criado em/i.test(s.txt) && /Validade/i.test(s.txt) && /7 dias/.test(s.txt) && /Expira em/i.test(s.txt),
-  'logo após enviar: "Link gerado com sucesso", status "Enviado", data de criação, validade (7 dias) e expiração');
+/* Fase 1 (13/10): etapas Link gerado -> Link enviado -> Mapeamento recebido -> Revisado; resposta completa atras de "Abrir Mapeamento completo" */
+ok(/Link gerado/.test(s.status) && /Link gerado com sucesso/.test(s.txt) && /Link gerado em/i.test(s.txt) && /Validade/i.test(s.txt) && /7 dias/.test(s.txt) && /Expira em/i.test(s.txt),
+  'logo após enviar: "Link gerado com sucesso", status "Link gerado", data de criação, validade (7 dias) e expiração');
 ok(s.botoes.join('|') === 'copiar:Copiar link|whatsapp:Enviar pelo WhatsApp|revogar:Revogar link', 'botões: Copiar link, Enviar pelo WhatsApp, Revogar link');
 if (SHOT) { await espera(600); const el = await N.$('#an-preconsulta'); if (el) await el.screenshot({ path: SHOT + '/mapeamento-link-gerado.png' }); }
 
@@ -163,7 +165,7 @@ await N.evaluate(() => {
 await clicarPc(N, 'revogar'); await espera(250); await N.evaluate(() => { const b = document.getElementById('modal-confirmar-ok'); if (b) b.click(); }); await espera(700);
 await clicarPc(N, 'gerar'); await espera(900);
 s = await pc(N);
-ok(/Enviado/.test(s.status) && !!tokenDe(s.link) && /Link gerado com sucesso/.test(s.txt) && s.botoes.some(b => b.startsWith('copiar')),
+ok(/Link (gerado|enviado)/.test(s.status) && !!tokenDe(s.link) && /Link gerado com sucesso/.test(s.txt) && s.botoes.some(b => b.startsWith('copiar')),
   'se a releitura falhar depois de criar, o convite novo continua na tela com o link (não volta para "Não enviado")');
 await N.evaluate(() => { window.supabaseClient.from = window.__fromOrig; });
 
@@ -171,7 +173,7 @@ await N.evaluate(() => { window.supabaseClient.from = window.__fromOrig; });
 await abrirFicha(N, PA, EA);
 await recarregarCartao(N, PA);
 s = await pc(N);
-ok(/Enviado/.test(s.status) && !s.link && !s.botoes.some(b => /^(copiar|whatsapp)/.test(b)) && s.botoes.some(b => b === 'novo:Gerar novo link'),
+ok(/Link (gerado|enviado)/.test(s.status) && !s.link && !s.botoes.some(b => /^(copiar|whatsapp)/.test(b)) && s.botoes.some(b => b === 'novo:Gerar novo link'),
   'recarregou a ficha: o link não volta (só o hash no banco); sem botão de copiar/WhatsApp, com "Gerar novo link"');
 
 /* ===== 6 — estados ===== */
@@ -179,13 +181,13 @@ ok(rpc('anamnese_publica_abrir', { p_token: tokA }, null).data.estado === 'abert
 const salvo = rpc('anamnese_publica_salvar', { p_token: tokA, p_conteudo: { formulario: { retorno: { melhorou: 'Sono' } } } }, null);
 await recarregarCartao(N, PA);
 s = await pc(N);
-ok(!salvo.error && /Iniciado/.test(s.status) && /Iniciado em/i.test(s.txt), 'paciente abriu e escreveu: ao recarregar, a ficha mostra "Iniciado" com a data');
+ok(!salvo.error && /Link (gerado|enviado)/.test(s.status) && /começou a responder/.test(s.txt) && /Paciente começou em/i.test(s.txt), 'paciente abriu e escreveu: ao recarregar, a ficha mostra "o paciente começou a responder" com a data');
 const enviado = rpc('anamnese_publica_enviar', { p_token: tokA, p_conteudo: { formulario: { retorno: { melhorou: 'Sono', dificuldade: 'Lanches' } } } }, null);
 await recarregarCartao(N, PA);
 s = await pc(N);
-ok(!enviado.error && /Concluído/.test(s.status) && /Mapeamento recebido/.test(s.txt) && /Recebido em/i.test(s.txt)
-  && s.botoes.join('|') === 'ver:Esconder resposta|usar:Levar para o atendimento|novo:Enviar novo Mapeamento',
-  'paciente enviou: "Mapeamento recebido", status "Concluído", data, resposta aberta (Esconder resposta) e "Levar para o atendimento"');
+ok(!enviado.error && /Mapeamento recebido/.test(s.status) && /Resumo do que o paciente trouxe/i.test(s.txt) && /Recebido em/i.test(s.txt)
+  && s.botoes.join('|') === 'ver:Abrir Mapeamento completo|usar:Levar para o atendimento|novo:Enviar novo Mapeamento',
+  'paciente enviou: "Mapeamento recebido", resumo, data, "Abrir Mapeamento completo" e "Levar para o atendimento"');
 const recebido = JSON.stringify(convites(PA).find(c => c.status === 'concluido').submitted_content);
 if (SHOT) { await clicarPc(N, 'ver'); await espera(500); const el = await N.$('#an-preconsulta'); if (el) await el.screenshot({ path: SHOT + '/mapeamento-recebido.png' }); await clicarPc(N, 'ver'); }
 
@@ -213,7 +215,7 @@ ok(/já tem Mapeamento Holístico/.test(outraVez) && nAn() === n0 + 1, 'levar de
 await abrirFicha(N, PD, null);
 await recarregarCartao(N, PD);
 s = await pc(N);
-ok(convites(PD).every(c => c.patient_id === PD) && !/Concluído|Mapeamento recebido/.test(s.txt), 'outro paciente: a ficha dele mostra só os convites dele');
+ok(convites(PD).every(c => c.patient_id === PD) && !/Mapeamento recebido/.test(s.status) && !/Resumo do que/i.test(s.txt), 'outro paciente: a ficha dele mostra só os convites dele');
 const lidoB = q('anamnesis_invites', 'select', { colunas: 'id,patient_id,status' }, UB);
 const criaB = rpc('criar_convite_anamnese', { p_patient_id: PA }, UB);
 const abertoD = convites(PD).find(c => c.status === 'enviado');

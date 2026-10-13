@@ -133,5 +133,10 @@ cd "$(dirname "$0")/.."
   # HOLOS-V1 v7 (so texto, 13/10): sem migration; gravada e publicada sobre a v6, so o texto do Acido muda, historico identico.
   cat supabase/tests/pacote-v7-doc.sql
   cat supabase/tests/pacote-v7-harness.sql
+  # Mapeamento Holistico "Link enviado" (20261022100000, Plano mestre Fase 1): sent_at/sent_via + RPC de marcacao.
+  for f in supabase/migrations/2026102210*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/mapeamento-link-enviado-harness.sql
   echo "rollback;"
 } | psql -U postgres -d base -v ON_ERROR_STOP=1 -At | tr '|' '\n' | sed 's/^ //'

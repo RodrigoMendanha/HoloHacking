@@ -94,7 +94,8 @@ const COLUNAS = {
   holos_recommendation_rules: ['id', 'catalog_id', 'rule_id', 'catalog_code', 'catalog_version', 'system_id', 'rank', 'tool_id', 'professional_reason', 'next_action', 'status', 'provenance', 'approved_at', 'approved_by', 'created_at'],
   /* Anamnese pre-consulta (migration 20261014100000): leitura so dos proprios convites (sem o hash); escrita so por RPC */
   anamnesis_invites: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'status', 'form_version', 'form_tipo', 'expires_at', 'draft_content', 'submitted_content',
-    'save_count', 'professional_snapshot', 'imported_anamnesis_id', 'imported_at', 'created_at', 'started_at', 'last_saved_at', 'submitted_at', 'revoked_at'],
+    'save_count', 'professional_snapshot', 'imported_anamnesis_id', 'imported_at', 'created_at', 'started_at', 'last_saved_at', 'submitted_at', 'revoked_at',
+    'sent_at', 'sent_via'],   // + migration 20261022100000 (Link enviado)
   holos_next_steps: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'holoscan_application_id', 'catalog_id', 'catalog_code', 'catalog_version', 'catalog_hash', 'engine_version', 'systems_order', 'selection', 'content_snapshot', 'content_hash', 'created_at'],
   profiles: null,          // nao estrito: o perfil nao e o assunto destes testes
   ai_threads: ['id', 'nutritionist_id', 'patient_id', 'titulo', 'created_at', 'updated_at'],
@@ -773,6 +774,9 @@ export function criarServidor() {
        da tabela, inclusive token_hash, e o banco recusa a leitura inteira (provado no PG local: harness AP18). */
     if (t === 'anamnesis_invites' && q.acao === 'select' && uid
         && (!q.colunas || q.colunas.trim() === '*' || q.colunas.split(',').some(c => c.trim() === 'token_hash'))) return erro('permission denied for table anamnesis_invites', '42501');
+    /* para os testes: banco SEM uma migration recente (s.semMigracao = { colunas: { tabela: [..] }, rpcs: [..] }) */
+    if (s.semMigracao && q.acao === 'select' && q.colunas && ((s.semMigracao.colunas || {})[t] || []).some(c => q.colunas.split(',').map(x => x.trim()).includes(c)))
+      return erro('column ' + t + '.' + s.semMigracao.colunas[t].join('/') + ' does not exist', '42703');
     /* Prontuario (20261011100000): a API perdeu a escrita nas tabelas lab_* (revoke) e o DELETE em documents */
     if (['lab_collections', 'lab_results', 'lab_result_components', 'lab_custom_exams'].includes(t) && q.acao !== 'select' && uid) return erro('permission denied for table ' + t, '42501');
     if (t === 'documents' && q.acao === 'delete' && uid) return erro('permission denied for table documents', '42501');
@@ -1016,6 +1020,7 @@ export function criarServidor() {
   const administracao = criarAdministracao(s, { statusConta: (u) => statusConta(u), agora });
   s.administracao = administracao;
   function rpc(uid, nome, args) {
+    if (s.semMigracao && (s.semMigracao.rpcs || []).includes(nome)) return erro('Could not find the function public.' + nome + ' in the schema cache', 'PGRST202');
     if (revisaoPerguntas.NOMES.includes(nome)) return revisaoPerguntas.rpc(uid, nome, args);   // publicas (sem login)
     if (preConsulta.PUBLICAS.includes(nome)) return preConsulta.rpc(uid, nome, args);           // anamnese pre-consulta: publicas (so o token)
     if (nome === 'minha_conta_status') return uid ? { data: statusConta(uid), error: null } : erro('permission denied for function minha_conta_status', '42501');

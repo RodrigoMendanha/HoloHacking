@@ -95,7 +95,8 @@ export function criarAnamnesePreConsulta(s, ctx) {
         expires_at: new Date(Date.parse(t) + dias * 86400000).toISOString(), draft_content: null, submitted_content: null, save_count: 0,
         professional_snapshot: { nome: pr.nome || null, profissao: pr.profissao || null, registro: pr.registro || null, cor_primaria: pr.cor_primaria || null,
           cor_secundaria: pr.cor_secundaria || null, logo: a.p_logo || null },
-        imported_anamnesis_id: null, imported_at: null, created_at: t, started_at: null, last_saved_at: null, submitted_at: null, revoked_at: null };
+        imported_anamnesis_id: null, imported_at: null, created_at: t, started_at: null, last_saved_at: null, submitted_at: null, revoked_at: null,
+        sent_at: null, sent_via: null };
       T.anamnesis_invites.push(c);
       hashes.set(c.id, sha(tok));
       return { data: { id: c.id, token: tok, expires_at: c.expires_at, status: c.status, form_tipo: c.form_tipo }, error: null };
@@ -106,6 +107,14 @@ export function criarAnamnesePreConsulta(s, ctx) {
       if (c.status === 'concluido') return recusa('convite ja respondido nao e revogado', 'convite_concluido');
       if (c.status !== 'revogado') { c.status = 'revogado'; c.revoked_at = agora(); }
       return { data: { id: c.id, status: c.status, revoked_at: c.revoked_at }, error: null };
+    }
+    /* migration 20261022100000: marca o 1o envio do link (copiar / WhatsApp); idempotente; nao muda o status */
+    if (nome === 'marcar_convite_anamnese_enviado') {
+      if (!['whatsapp', 'copiado'].includes(a.p_via)) return recusa('meio de envio invalido', 'via_invalida', '22023');
+      if (!c) return recusa('convite nao encontrado', 'convite_invalido', 'P0002');
+      if (!['enviado', 'iniciado'].includes(c.status) || Date.parse(c.expires_at) < Date.parse(agora())) return recusa('link nao esta aberto', 'convite_fechado');
+      if (!c.sent_at) { c.sent_at = agora(); c.sent_via = a.p_via; }
+      return { data: { id: c.id, sent_at: c.sent_at, sent_via: c.sent_via }, error: null };
     }
     if (nome === 'marcar_convite_anamnese_usado') {
       if (!c) return recusa('convite nao encontrado', 'convite_invalido', 'P0002');
@@ -120,7 +129,7 @@ export function criarAnamnesePreConsulta(s, ctx) {
   return {
     rpc,
     PUBLICAS: ['anamnese_publica_abrir', 'anamnese_publica_salvar', 'anamnese_publica_enviar'],
-    NOMES: ['anamnese_publica_abrir', 'anamnese_publica_salvar', 'anamnese_publica_enviar', 'criar_convite_anamnese', 'revogar_convite_anamnese', 'marcar_convite_anamnese_usado'],
+    NOMES: ['anamnese_publica_abrir', 'anamnese_publica_salvar', 'anamnese_publica_enviar', 'criar_convite_anamnese', 'revogar_convite_anamnese', 'marcar_convite_anamnese_usado', 'marcar_convite_anamnese_enviado'],
     /** para os testes: vencer um convite */
     vencer(id) { const c = T.anamnesis_invites.find(x => x.id === id); if (c) c.expires_at = new Date(Date.parse(agora()) - 60000).toISOString(); }
   };

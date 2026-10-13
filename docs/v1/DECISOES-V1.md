@@ -1117,6 +1117,15 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
      metodológico) troca só essa frase pelo limite aprovado ("não mede inflamação sistêmica, pH ou 'acidez corporal'").
      Prova de equivalência v6 × v7 em 12 casos (`docs/v1/metodologia/COMPARATIVO-HOLOSCAN-V6-V7.md`) e no Postgres (PV7-00..05).
      O vínculo direcionamento → sistema do Resultado HOLOS T5 continua opcional (`sistemas`); sugestões nunca inventam sistema.
+195. **Plano mestre de revisão — Fase 1: fluxo do Mapeamento Holístico** (13/10). Etapas únicas para a aba, a Visão geral e o
+     Dashboard: NÃO ENVIADO → LINK GERADO → LINK ENVIADO → MAPEAMENTO RECEBIDO → REVISADO (fora do caminho: link expirado/revogado).
+     "Gerar link" não é mais "Enviado": o envio é registrado quando a nutricionista copia o link ou abre o WhatsApp (colunas
+     `sent_at`/`sent_via`, RPC `marcar_convite_anamnese_enviado`, migration aditiva 20261022100000). "Revisado" = a resposta foi
+     levada para o atendimento e a anamnese desse atendimento foi concluída (sem coluna nova). A resposta já era salva no
+     servidor no envio do paciente; a ficha aberta passa a conferir o estado (leitura leve, só colunas de estado, a cada 20 s,
+     ao voltar para a aba e ao abrir a aba) e mostra a resposta sozinha. Depois de recebido: resumo nas palavras do paciente,
+     "Abrir Mapeamento completo" e histórico; enviar outro Mapeamento é ação secundária. Nada disso altera HOLOSCAN, notas,
+     sistemas, Índice, Tríade, PP-V1 nem a resposta original (`docs/v1/FASE1-MAPEAMENTO-FLUXO.md`).
 
 ## Decisões pendentes (não decididas aqui)
 

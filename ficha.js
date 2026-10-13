@@ -201,7 +201,9 @@
     if (!mh && PC && PC.carregar && window.HoloAuth && window.HoloAuth.sessaoAtiva && window.HoloAuth.sessaoAtiva()) {
       PC.carregar(pid).then(function () { if (paciente() === pid) redesenharVisaoSeAberta(); });
     }
-    linhas.push(["Mapeamento Holístico", mh ? mh.rotulo + (mh.quando && mh.estado !== "nao_enviada" ? " · " + dataBR(String(mh.quando).slice(0, 10)) : "") : "carregando…"]);
+    /* Fase 1 (13/10): a mesma etapa da aba e do Dashboard (Link gerado / Link enviado / Mapeamento recebido / Revisado) */
+    linhas.push(["Mapeamento Holístico", mh ? mh.rotulo + (mh.detalhe && mh.etapa !== "recebido" && mh.etapa !== "revisado" ? " · " + mh.detalhe : "") +
+      (mh.quando && mh.estado !== "nao_enviada" ? " · " + dataBR(String(mh.quando).slice(0, 10)) : "") : "carregando…"]);
     if (foco) {
       var cd = Cd.vigente(foco.id), cdR = Cd.rascunhoDe(foco.id);
       /* teste real 07/10: a conduta vigente e a mais recente DA PESSOA; o
@@ -1193,6 +1195,8 @@
   }
   window.addEventListener("load", function () {
     if (window.Anamnese && window.Anamnese.aoMudar) window.Anamnese.aoMudar(redesenharVisaoSeAberta);
+    /* Fase 1 (13/10): o paciente respondeu / o link saiu -> a linha do Mapeamento na Visao se corrige sozinha */
+    if (window.PreConsulta && window.PreConsulta.aoMudar) window.PreConsulta.aoMudar(redesenharVisaoSeAberta);
     if (window.Conduta && window.Conduta.aoMudar) window.Conduta.aoMudar(redesenharVisaoSeAberta);
     if (window.AtendimentoAtual && window.AtendimentoAtual.aoMudar) window.AtendimentoAtual.aoMudar(redesenharVisaoSeAberta);
     /* a lista de anamneses chega do servidor depois do login: a Visao desenhada antes disso se corrige */

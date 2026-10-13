@@ -265,7 +265,34 @@
     return '<div class="mh-resposta">' + html + "</div>";
   }
 
+  /* RESUMO (Plano mestre, Fase 1, 13/10): o essencial do que o paciente respondeu, para ler em segundos na ficha
+     (e, na Fase 2, no atendimento/HOLOSCAN). So as respostas, com as palavras do paciente; nada e interpretado,
+     pontuado nem vira sistema. A resposta completa continua em respostaHtml. */
+  var RESUMO = {
+    primeira: [["Motivo da consulta", "motivo.motivos"], ["O que quer melhorar agora", "motivo.objetivo"],
+      ["Dificuldades com a alimentação", "alimentar.dificuldades"], ["Como percebe a fome", "alimentar.fome_percebida"],
+      ["Sinais que tem percebido", "saude.sinais"], ["O que mais incomoda", "saude.sinal_principal"],
+      ["Como são os dias", "estilo.previsibilidade"], ["O que dificulta cuidar de si", "estilo.dificulta_opcoes"],
+      ["Algo mais que quis contar", "contexto.obs"]],
+    retorno: [["O que melhorou", "retorno.melhorou_opcoes"], ["O que piorou", "retorno.piorou_opcoes"],
+      ["Quanto colocou em prática", "retorno.praticou_nivel"], ["O que facilitou", "retorno.facilitou_opcoes"],
+      ["O que dificultou", "retorno.dificultou_opcoes"], ["Mudança importante", "retorno.mudanca_geral"],
+      ["Questão nova", "retorno.nova_questao"], ["Algo mais que quis contar", "retorno.obs"]]
+  };
+  /** [{ chave, rotulo, texto }] so com o que foi respondido (e visivel pela regra condicional) */
+  function resumo(conteudo) {
+    var tipo = conteudo && conteudo.tipo === "retorno" ? "retorno" : "primeira";
+    var form = (conteudo && conteudo.formulario) || {};
+    return RESUMO[tipo].map(function (r) {
+      var b = r[1].split(".")[0], id = r[1].split(".")[1], f = campoDef(tipo, b, id);
+      if (!f || !visivel(form, b, f)) return null;
+      var t = valorTexto(f, form[b] || {}, b);
+      return tem(t) ? { chave: r[1], rotulo: r[0], texto: String(t) } : null;
+    }).filter(Boolean);
+  }
+
   raiz.MapeamentoHolistico = {
+    RESUMO: RESUMO, resumo: resumo,
     ETAPAS_PRIMEIRA: ETAPAS_PRIMEIRA, ETAPAS_RETORNO: ETAPAS_RETORNO, FINAL: FINAL, TXT_FINAL: TXT_FINAL, ROTULO: ROTULO, REGRAS: REGRAS,
     SENSIVEIS: SENSIVEIS, TXT_SENSIVEL: TXT_SENSIVEL, NENHUM: NENHUM,
     etapasDe: etapasDe, camposDa: camposDa, campoDef: campoDef, regra: regra, rotuloDe: rotuloDe, visivel: visivel, opcoesDe: opcoesDe,
