@@ -87,7 +87,7 @@ Por sistema (`sistemas-fechamento.js`):
 - **F. Aprofundamento:**
   - texto "se prioritário" de cada sistema;
   - a frase factual "relativamente menos marcadores…" para os não prioritários;
-  - **Detox + Linfático prioritário: PENDÊNCIA** (o pedido não traz o texto).
+  - **Detox + Linfático prioritário:** texto homologado em 13/10, com a ressalva junto (seção T).
 - **G. Próximo passo:** só o que o catálogo congelou para aquele sistema.
   - Ferramenta recomendada.
   - Por que é usada neste sistema (texto seguro do §14).
@@ -123,7 +123,7 @@ Ele fica separado do "Registro da ferramenta" (o preenchimento, recolhido) e da 
 | PQQ | Objetivo; o que foi ganhando importância (os níveis registrados); "Síntese construída com a paciente". Nunca "verdadeiro motivo". Sem PQQ→Crenças/Gatilhos |
 | Crenças | Crença registrada / origem percebida / a que mais dificulta / alternativa. Sem classificação nem próximo passo |
 | Gatilhos | Cadeia SITUAÇÃO ↓ GATILHO ↓ PENSAMENTO/EMOÇÃO ↓ RESPOSTA ↓ CONSEQUÊNCIA ↓ NECESSIDADE/RECURSO ↓ ALTERNATIVA. Sem elo corporal. "Ponto de intervenção" = **PENDÊNCIA** |
-| Mapa do Propósito | `resultadoProposito()`, igual a `proposito()` aprovado. Template 4 usa a versão derivada congelada (`derivados.mapa_proposito`, com fontes). Direção = objetivo do PQQ (regra do `proposito()`); nada além disso |
+| Mapa do Propósito | `resultadoProposito()`, igual a `proposito()` aprovado. Template 4 usa a versão derivada congelada (`derivados.mapa_proposito`, com fontes). Sem bloco "Direção desta etapa" (fechamento de 13/10, seção T): só o factual de OQ³ + PQQ |
 | Roda | Mais e menos cuidadas; as notas só para a profissional. Sem média global |
 | Carta | "A Carta ao Futuro Eu foi realizada como exercício de reflexão sobre identidade, direção e cuidado futuro." O texto nunca vai para a paciente nem para a IA |
 | Conexão | Paciente: contagem de apoios e contextos de pertencimento. Nomes de terceiros e espiritualidade só para a profissional, porque não existe campo de autorização |
@@ -268,7 +268,7 @@ O que não aparece para a paciente:
 | 34 | sem "não homologado" | MR06, testar-motor-resultados, testar-v1-etapa4-barreira |
 | 35 | suíte completa | ver abaixo |
 
-**Item 35.** 143 de 145 suítes passam. As 3 asserções que falham estão em duas suítes **pré-existentes e alheias** a esta tarefa:
+**Item 35.** Situação da rodada de 12/10 (corrigida no fechamento de 13/10, seção T: suíte com zero falhas). Na época, 143 de 145 suítes passavam; as 3 asserções que falhavam estavam em duas suítes pré-existentes:
 - `testar-v1-etapa1` e `testar-auditoria-agenda` falham **só entre 21h e 24h de Brasília**, quando a data UTC já é o dia seguinte;
 - as asserções são de data/hora sugerida de atendimento;
 - falham igual no commit base, com as mudanças desta tarefa removidas (conferido com `git stash`);
@@ -362,8 +362,9 @@ Textos de PM-17:
 - "o que significa" de cada uma das 10 ferramentas;
 - texto do que cada estado do Momentum representa (o banco de estados está em rascunho);
 - "ponto de intervenção" de Gatilhos;
-- aprofundamento do **Detox + Linfático** quando prioritário;
-- "Direção desta etapa" além do objetivo do PQQ.
+- "Direção desta etapa" no Mapa do Propósito (o bloco não é mostrado).
+
+O aprofundamento do **Detox + Linfático** prioritário saiu desta lista: foi homologado em 13/10 (seção T).
 
 ## R. PP-V2 — MAPEAMENTO NECESSÁRIO (PENDENTE_DE_HOMOLOGACAO)
 
@@ -496,3 +497,171 @@ As 6 perguntas de aceite da paciente:
 1. Revisar os textos e as pendências (Q).
 2. Aplicar as 3 partes SQL no banco real.
 3. Fazer o deploy do front e conferir os hashes.
+
+---
+
+## T. FECHAMENTO DE HOMOLOGAÇÃO (13/10)
+
+Rodada curta, antes do SQL e do deploy.
+
+O que **não** mudou nesta rodada:
+- HOLOS-V1 v2, as 84 perguntas, pesos, associações, cálculo, Índice, Tríade, faixas e cobertura;
+- HOLOSCAN v3;
+- PP-V1 e as 30 regras;
+- exames, SNT-210 e SNT-309 (continuam pendentes para a revisão do pacote);
+- Conduta como entidade;
+- HOLOS AI (além das minimizações já feitas);
+- dados históricos.
+
+Também não houve SQL no banco real nem deploy.
+
+### Decisões homologadas
+
+| Decisão | Comportamento final |
+|---|---|
+| Detox + Linfático prioritário | Texto homologado, com a ressalva sempre junto, nas visões profissional e da paciente. A pendência saiu |
+| Sistemas não prioritários | Frase transversal homologada para os cinco sistemas quando o sistema não está entre as duas primeiras áreas. Cálculo e prioridade não mudam |
+| Mapa do Propósito | Só "O que eu quero" (OQ³), "Por que isso importa" (PQQ) e "O que consigo sustentar agora" (OQ³), mais as referências às aplicações fonte. **Sem bloco "Direção desta etapa"** |
+| Pendências metodológicas | Informação interna da visão profissional. Nunca aparecem para a paciente |
+
+**Mapa do Propósito.** Não há regra homologada para "Direção desta etapa", então o bloco não é mostrado. A ausência continua como pendência interna. O dado `derivados.mapa_proposito.campos.direcao` (o objetivo do PQQ) continua no snapshot só como dado de origem: não é exibido nem interpretado.
+
+**Pendências metodológicas.** Na visão profissional ficam recolhidas e marcadas ("PENDÊNCIA METODOLÓGICA", "Pendências metodológicas"). O teste varre as superfícies da paciente com Momentum e Gatilhos, que sempre carregam pendência:
+- visão da paciente;
+- Resultado e PDF da paciente;
+- mensagem do WhatsApp;
+- relatório para o paciente.
+
+**Texto final Detox + Linfático:**
+
+> "Quando este eixo aparece entre as primeiras áreas para aprofundar, vale observar como funcionamento intestinal, retenção percebida, alimentação, hidratação, movimento e organização da rotina aparecem no contexto real da paciente."
+>
+> "Esse resultado não mede toxinas, capacidade de detoxificação, função hepática ou fluxo linfático."
+
+O teste confirma que o texto não usa "acúmulo de toxinas" nem "detox ruim", não infere disfunção e não traz recomendação nutricional. A ressalva é uma negação homologada, por isso fica fora da busca de linguagem proibida, como o bloco E.
+
+**Frase dos sistemas não prioritários:**
+
+> "Este eixo apresentou relativamente menos marcadores do que as áreas prioritárias desta aplicação."
+
+**Continuam pendentes, sem texto genérico:**
+- significado das 10 ferramentas;
+- estados do Momentum;
+- ponto de intervenção de Gatilhos;
+- PP-V2;
+- ferramenta → ferramenta;
+- integração Corpo/Mente/Espírito;
+- resultado → Conduta.
+
+### Arquivos alterados
+
+**Commit A (textos):**
+- `sistemas-fechamento.js`
+- `ferramentas-fechamento.js`
+- `resultado-sintese.js` (texto da PM-17)
+- `style.css` (`.sf-ressalva`)
+- `docs/deploy.md` (hashes)
+- `testes/testar-sistemas-fechamento.mjs`
+- `testes/testar-ferramentas-resultado.mjs`
+- `testes/testar-relatorios-motor.mjs`
+
+**Commit B (timezone):**
+- `testes/relogio.mjs` (novo)
+- `testes/testar-fuso-virada.mjs` (novo)
+- `testes/testar-v1-etapa1.mjs`
+- `testes/testar-auditoria-agenda.mjs`
+- `testes/suites.mjs`
+
+**Commit C:**
+- este documento
+- `docs/v1/motor-resultados/final/` (capturas e PDF)
+
+### Correção de timezone (commit B, só testes)
+
+**Causa.** O app interpreta a data e a hora do atendimento no fuso de quem atende (`profiles.fuso`, padrão America/Sao_Paulo, em `atendimento.js`), e esse comportamento está correto. As duas suítes:
+- rodavam o Chrome no fuso do container (UTC);
+- calculavam "hoje" com o relógio UTC do Node.
+
+Entre 21h e 24h de Brasília a data UTC já é o dia seguinte. O app sugeria 12/10 (certo) e o teste esperava 13/10.
+
+**Correção.** O código de produção não mudou, porque não havia defeito nele.
+- O navegador do teste roda no fuso da clínica.
+- O relógio fica fixado num instante conhecido: ontem, 22h30 de Brasília, quando o UTC já está no dia seguinte.
+- Assim a janela 21h–24h é exercitada em toda execução, a qualquer hora.
+- Não há horas fixas somadas e nenhuma falha é mascarada.
+
+**Teste novo `testar-fuso-virada` (15 asserções):**
+- 20h59, 21h00, 21h30, 23h59 e 00h30 de Brasília;
+- "hoje" da agenda e a data/hora sugerida para o atendimento são o dia local;
+- `occurred_at` é guardado como instante absoluto (21h30 = 00h30Z do dia seguinte) e lido de volta no dia e na hora locais;
+- com o navegador em UTC e o perfil em Brasília, o atendimento continua no dia local da clínica.
+
+**Observação, sem mudança.** O "hoje" da Agenda (`hojeISO`) segue o relógio do navegador. A data do atendimento segue o fuso do perfil. Os dois coincidem quando o navegador da nutricionista está no fuso do perfil, que é o caso padrão.
+
+### Suíte e cadeia
+
+| Verificação | Resultado |
+|---|---|
+| Suíte completa JS/browser | **VERDE: 146 suítes, 4406 asserções, 0 falhas, 0 reprovadas.** Rodada às 23h de Brasília, dentro da janela que antes falhava |
+| Incluídos na suíte | testes do MR-V1, emissão imutável, Resultado da paciente e profissional, PDF/relatórios, Conduta por atendimento e timezone |
+| Cadeia Postgres local | **449 ok, 0 FALHOU** (MR01–MR07) |
+
+### Capturas finais
+
+Caso fictício "Carla Ficticia", gerado pelo fluxo real no servidor falso:
+- as respostas fictícias do HOLOSCAN seguem uma regra determinística única para as 84 perguntas;
+- notas, Índice e Tríade foram **calculados pelo motor oficial**, sem nada ajustado à mão: Detox 4,7 · Ácido-Inflamatório 5,2 · Metabólico 5,2 · MEE 5,3 · Fúngico 6,4 · Índice 53,7;
+- PQQ e Mapa da Rotina foram feitos;
+- o Resultado foi salvo pela RPC;
+- há uma Conduta fictícia no atendimento.
+
+| # | Captura |
+|---|---|
+| 1 | ![](motor-resultados/final/1-profissional-topo.png) Profissional — topo (resumo para decisão primeiro) |
+| 2 | ![](motor-resultados/final/2-profissional-cinco-sistemas.png) Profissional — cinco sistemas |
+| 3 | ![](motor-resultados/final/3-profissional-ferramentas.png) Profissional — ferramentas |
+| 4 | ![](motor-resultados/final/4-paciente-topo.png) Paciente — topo |
+| 5 | ![](motor-resultados/final/5-paciente-areas-para-aprofundar.png) Paciente — áreas para aprofundar (Detox com o texto homologado e a ressalva) |
+| 6 | ![](motor-resultados/final/6-paciente-ferramentas.png) Paciente — ferramentas |
+| 7 | ![](motor-resultados/final/7-paciente-conduta-combinado.png) Paciente — Conduta / combinado |
+| 8 | ![](motor-resultados/final/8-pdf-paciente-visao-geral.png) PDF da paciente — visão geral (o arquivo está em `final/8-pdf-paciente.pdf`) |
+
+### Checklist de homologação visual
+
+Conferido nas capturas e, de forma automática, no texto das duas visões:
+
+| Item | Situação |
+|---|---|
+| Conclusão antes da evidência | ok |
+| 1ª e 2ª área claras | ok |
+| O que cada sistema representa | ok |
+| Nota não é diagnóstico | ok |
+| Índice com aviso anti-percentual | ok |
+| Sem "faixa baixa" como mensagem | ok |
+| Sinais com as perguntas oficiais | ok |
+| Ferramenta sugerida com motivo | ok |
+| Resultado ≠ registro da ferramenta | ok |
+| Leitura da nutricionista separada | ok |
+| Conduta separada | ok |
+| Nenhuma pendência para a paciente | ok |
+| Sem nomes de terceiros | ok |
+| Sem a Carta integral | ok |
+| PDF sem grandes vazios | ok |
+| Rodapé só no final | ok |
+
+### Commits
+
+| Commit | Conteúdo |
+|---|---|
+| `99182b6` | A: homologação textual |
+| `78f23f5` | B: timezone e testes (técnico, separado) |
+| (este) | C: capturas e documentação final |
+
+**git diff --stat `cb72230..HEAD` (A e B):** 13 arquivos, +173 / −27. O commit C soma este documento e `docs/v1/motor-resultados/final/`.
+
+**PARE PARA HOMOLOGAÇÃO.** Nada foi aplicado no banco real e não houve deploy. A ordem autorizada depois da revisão:
+1. SQL PARTE 1 → 2 → 3;
+2. deploy;
+3. teste da Carla fictícia no ambiente real;
+4. homologação visual;
+5. PP-V2.
