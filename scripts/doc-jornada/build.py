@@ -45,7 +45,7 @@ corpo = re.sub(r'<div class="box ([^"]+)">', rotular, corpo)
 # sumário: só os capítulos (h1 numerados) e as partes
 toc = []
 for tok in md.toc_tokens:
-    if tok['level'] == 1 and not tok['name'].startswith('Sumário'):
+    if tok['level'] == 1 and not tok['name'].startswith(('Sumário', 'Jornada da Nutricionista')):
         toc.append(f'<li><a href="#{tok["id"]}">{tok["name"]}</a></li>')
 corpo = corpo.replace('<p>[[SUMARIO]]</p>', '<ol class="sumario">' + ''.join(toc) + '</ol>')
 
