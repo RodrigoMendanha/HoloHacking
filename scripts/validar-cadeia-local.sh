@@ -113,5 +113,13 @@ cd "$(dirname "$0")/.."
     grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
   done
   cat supabase/tests/publicacao-direta-harness.sql
+  # HOLOS-V1 v5 (Lote 2B, 13/10): a v5 gravada ANTES da migration nova e recusada so pelas perguntas so contextuais;
+  # depois de 20261020100000 (pergunta so contextual) ela valida, e publicada e o historico fica identico.
+  cat supabase/tests/pacote-v5-doc.sql
+  cat supabase/tests/pacote-v5-harness-pre.sql
+  for f in supabase/migrations/2026102010*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/pacote-v5-harness.sql
   echo "rollback;"
 } | psql -U postgres -d base -v ON_ERROR_STOP=1 -At | tr '|' '\n' | sed 's/^ //'

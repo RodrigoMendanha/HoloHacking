@@ -1060,6 +1060,20 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
 189. **HOLOSCAN sem quantidade de perguntas na aplicação** (13/10, decisão de Rodrigo). O botão diz só "Aplicar
     HOLOSCAN" e a tela de preenchimento não mostra quantas perguntas existem (só a barra de progresso e "Em andamento" /
     "Todas respondidas · completo"). A cobertura continua nos resultados profissionais.
+190. **HOLOS-V1 v5 = Lote 2B** (13/10, decisões explícitas de Rodrigo; base: v4 no ar).
+    - **MOVER para o MEE:** ESP-101 e ESP-103 (do Metabólico), ESP-203 e ESP-404 (do Ácido Inflamatório) e ESP-405 (do
+      Detox e Linfático), com as justificativas oficiais. Peso 1 preservado; o sistema físico anterior não fica como contexto.
+    - **MANTER:** ESP-303 no Metabólico (o conteúdo é comportamento alimentar).
+    - **CONTEXTUAL:** ESP-501 (Fúngico) e ESP-502 (Detox) continuam coletadas, mas só como contexto: sem pontuação, sem
+      denominador e sem Tríade, e não vão para outro sistema pontuável. EMO-502 e EMO-504: contextual no Metabólico mantido.
+    - **Regras:** "O bloco de origem da pergunta não define automaticamente o sistema. A associação deve ser sustentada
+      pelo conteúdo investigado." "Associação contextual não altera nota, Índice, prioridade, sinais dominantes ou
+      Próximos Passos e não implica causalidade."
+    - **Contrato:** pergunta só contextual (sem primária, sem Tríade, com associação contextual) passa a ser aceita pelo
+      validador JS e SQL (migration `20261020100000`).
+    - **v5:** 82 perguntas, 80 pontuáveis; Fúngico 11, Ácido Inflamatório 9, Metabólico 8, Detox 10, MEE 42; Tríade
+      47/19/14. v2, v3, v4 e todo o histórico continuam imutáveis.
+    Detalhes: `docs/v1/ALTERACOES-PACOTE-HOLOSCAN-V5.md`.
 
 ## Decisões pendentes (não decididas aqui)
 

@@ -2,7 +2,7 @@
 
 Preparação da homologação metodológica, 13/10/2026. Esta matriz é para **Rodrigo e Daniel** decidirem as 84 perguntas antes de qualquer nova versão do HOLOSCAN.
 
-> **Situação em 13/10/2026: 15 DECISÕES APLICADAS no HOLOS-V1 v4 (SNT-210 e SNT-309: REMOVER; 13 perguntas EMO: MOVER para o Mental Emocional Espiritual) e 69 EM ABERTO.** As decisões aplicadas estão no **novo pacote versionado HOLOS-V1 v4** (`metodologia-revisao-v3.js`; detalhes em `docs/v1/ALTERACOES-PACOTE-HOLOSCAN-NOVA-VERSAO.md`). O HOLOS-V1 v2 não muda. As colunas da matriz descrevem o **v2** (base da decisão). PP-V2 não foi iniciado. Onde não há documentação, consta **"Justificativa não documentada"**. O "sistema alternativo" só aparece quando já está escrito num documento ou no próprio pacote; nos demais casos consta "a decidir".
+> **Situação em 13/10/2026: 23 DECISÕES APLICADAS — 15 no HOLOS-V1 v4 (SNT-210 e SNT-309: REMOVER; 13 perguntas EMO: MOVER para o Mental Emocional Espiritual) e 8 no HOLOS-V1 v5, Lote 2B (ESP-101, 103, 203, 404 e 405: MOVER para o MEE; ESP-303: MANTER no Metabólico; ESP-501 e ESP-502: CONTEXTUAL, sem pontuação) — mais EMO-502 e EMO-504 como CONTEXTUAL MANTIDO; 61 EM ABERTO.** As decisões aplicadas estão no **novo pacote versionado HOLOS-V1 v4** (`metodologia-revisao-v3.js`; detalhes em `docs/v1/ALTERACOES-PACOTE-HOLOSCAN-NOVA-VERSAO.md`). O HOLOS-V1 v2 não muda. As colunas da matriz descrevem o **v2** (base da decisão). PP-V2 não foi iniciado. Onde não há documentação, consta **"Justificativa não documentada"**. O "sistema alternativo" só aparece quando já está escrito num documento ou no próprio pacote; nos demais casos consta "a decidir".
 
 **Fontes**
 - `docs/v1/AUDITORIA-ASSOCIACOES-HOLOSCAN-V2.md`: classificação A/B/C/D, justificativas e fontes, linha a linha.
@@ -59,6 +59,22 @@ Efeitos comuns a MOVER, CONTEXTUAL e REMOVER (fonte: `AUDITORIA-ASSOCIACOES-HOLO
 | 2 | EMO-401 — Você se pega remoendo uma mágoa antiga? | **MOVER → Mental Emocional Espiritual (antes: Detox e Linfático)** | Ruminação emocional. | **DECISÃO APLICADA** (v4) |
 | 2 | EMO-402 — Você costuma guardar o que sente em vez de falar? | **MOVER → Mental Emocional Espiritual (antes: Detox e Linfático)** | Expressão e regulação emocional. | **DECISÃO APLICADA** (v4) |
 | 2 | EMO-403 — Você tem dificuldade de aceitar ajuda ou cuidado das pessoas? | **MOVER → Mental Emocional Espiritual (antes: Detox e Linfático)** | Apoio, vínculo e capacidade de receber cuidado. | **DECISÃO APLICADA** (v4) |
+| 2B | ESP-101 — Você sente que sua vida tem uma direção clara? | **MOVER → Mental Emocional Espiritual (antes: Metabólico)** | Direção, propósito e sentido pertencem diretamente ao eixo Mental-Emocional-Espiritual. | **DECISÃO APLICADA** (v5) |
+| 2B | ESP-103 — Sua rotina de hoje te afasta do que você quer para a sua vida? | **MOVER → Mental Emocional Espiritual (antes: Metabólico)** | Investiga alinhamento entre rotina, escolhas e direção de vida. | **DECISÃO APLICADA** (v5) |
+| 2B | ESP-203 — Você abre mão do que é inegociável para você só para agradar alguém? | **MOVER → Mental Emocional Espiritual (antes: Ácido Inflamatório)** | Investiga valores, limites e comportamento interpessoal. Não deve pontuar um sistema físico por associação simbólica. | **DECISÃO APLICADA** (v5) |
+| 2B | ESP-404 — Você acredita que para ter saúde precisa sofrer ou se privar? | **MOVER → Mental Emocional Espiritual (antes: Ácido Inflamatório)** | Investiga crença sobre saúde, sofrimento e privação. Não deve pontuar um sistema físico. | **DECISÃO APLICADA** (v5) |
+| 2B | ESP-405 — Você carrega o peso de não ter conseguido perdoar alguém? | **MOVER → Mental Emocional Espiritual (antes: Detox e Linfático)** | Investiga conteúdo emocional/simbólico relacionado a perdão. Não deve sugerir relação automática entre mágoa, detoxificação ou fluxo linfático. | **DECISÃO APLICADA** (v5) |
+| 2B | ESP-303 — Você começa a comer sem fazer nenhuma pausa antes? | **MANTER (Metabólico)** | Apesar de estar no bloco espiritual, o conteúdo da pergunta investiga diretamente comportamento alimentar e contexto da refeição. | **DECISÃO APLICADA** (v5) |
+| 2B | ESP-501 — Você passa algum tempo em contato com a natureza? | **CONTEXTUAL (sem pontuação) (antes: Fúngico)** | É informação holística potencialmente útil, mas não há justificativa metodológica suficiente para alterar matematicamente a nota do Sistema Fúngico ou de outro sistema. | **DECISÃO APLICADA** (v5) |
+| 2B | ESP-502 — Você faz suas refeições sozinho e com pressa? | **CONTEXTUAL (sem pontuação) (antes: Detox e Linfático)** | Investiga contexto da refeição, ritmo, rotina e pertencimento, mas não há justificativa suficiente para alterar diretamente a nota do Sistema Detox + Linfático ou outro sistema físico. | **DECISÃO APLICADA** (v5) |
+| 2B | EMO-502 — Quando você sai da linha um dia você sente que perdeu tudo e abandona? | **CONTEXTUAL MANTIDO (Metabólico)** | Associação contextual com o Sistema Metabólico mantida, sem pontuação metabólica. | **CONTEXTUAL MANTIDO** (v5) |
+| 2B | EMO-504 — Você sente culpa ou vergonha depois de comer? | **CONTEXTUAL MANTIDO (Metabólico)** | Associação contextual com o Sistema Metabólico mantida, sem pontuação metabólica. | **CONTEXTUAL MANTIDO** (v5) |
+
+**Lote 2B (13/10/2026) → HOLOS-V1 v5, montado a partir da v4.** Regras registradas:
+- "O bloco de origem da pergunta não define automaticamente o sistema. A associação deve ser sustentada pelo conteúdo investigado." — conteúdo da pergunta > bloco de origem para definição do sistema;
+- "Associação contextual não altera nota, Índice, prioridade, sinais dominantes ou Próximos Passos e não implica causalidade." — contextual não pontua e não implica causalidade.
+
+Contagens da v5: 82 perguntas coletadas, 80 pontuáveis; Fúngico 12 → 11, Ácido Inflamatório 11 → 9, Metabólico 10 → 8, Detox e Linfático 12 → 10, Mental Emocional Espiritual 37 → 42; Tríade 47 / 19 / 14 (ESP-501 e ESP-502 saem da Tríade Espírito). Pesos preservados (todos 1). Detalhes: `docs/v1/ALTERACOES-PACOTE-HOLOSCAN-V5.md`.
 
 Decisões explícitas de Rodrigo em 13/10/2026 (regra operacional: decisão explícita de Rodrigo = autorização para implementar). Aplicadas no **HOLOS-V1 v4**, montado a partir do **HOLOS-V1 v2 ativo** com só estas decisões.
 
@@ -148,7 +164,7 @@ Numa nova versão, esses arquivos seriam atualizados junto com o pacote.
 | observações | — |
 | justificativa da decisão | Exames e documentos não participam do Resultado HOLOS. PCR/VHS não deve alterar notas, sistemas, Índice, prioridades, sinais dominantes ou Próximos Passos. |
 | regras da decisão | Aplicada no HOLOS-V1 v4; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado; sem item substituto; não é pontuável, nem contextual, nem movida para outro sistema. |
-| decisão registrada | REMOVER · sem sistema de destino · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
+| decisão registrada | REMOVER · sem sistema de destino · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (versões anteriores imutáveis) |
 
 #### SNT-309 — Seus exames costumam mostrar triglicerídeos altos ou HDL baixo?
 
@@ -172,39 +188,37 @@ Numa nova versão, esses arquivos seriam atualizados junto com o pacote.
 | observações | — |
 | justificativa da decisão | Exames e documentos não participam do Resultado HOLOS. Triglicerídeos/HDL não devem alterar notas, sistemas, Índice, prioridades, sinais dominantes ou Próximos Passos. |
 | regras da decisão | Aplicada no HOLOS-V1 v4; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado; sem item substituto; não é pontuável, nem contextual, nem movida para outro sistema. |
-| decisão registrada | REMOVER · sem sistema de destino · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
+| decisão registrada | REMOVER · sem sistema de destino · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (versões anteriores imutáveis) |
 
 ## 4A. LOTE 2 — ASSOCIAÇÕES MENTAIS/EMOCIONAIS/ESPIRITUAIS → SISTEMAS FÍSICOS (21 perguntas)
 
-**13 DECISÕES APLICADAS (as perguntas EMO: MOVER para o Mental Emocional Espiritual, no HOLOS-V1 v4); as 8 perguntas ESP continuam EM ABERTO** — este documento não sugere decisão para elas. São as perguntas dos blocos Mental/Emocional e Espiritual que no v2 pontuam um sistema físico (todas C na auditoria). As colunas "sistema atual" e "peso" descrevem o v2. As fichas completas estão na seção 5.
+**21 DECISÕES APLICADAS:** as 13 perguntas EMO (MOVER para o Mental Emocional Espiritual, HOLOS-V1 v4) e as 8 perguntas ESP (Lote 2B, HOLOS-V1 v5: 5 MOVER para o MEE, ESP-303 MANTER, ESP-501 e ESP-502 CONTEXTUAL). São as perguntas dos blocos Mental/Emocional e Espiritual que no v2 pontuam um sistema físico (todas C na auditoria). As colunas "sistema atual" e "peso" descrevem o v2. As fichas completas estão na seção 5.
 
 | ID | texto | bloco | sistema atual | peso | justificativa documentada | risco interpretativo | MANTER | MOVER | CONTEXTUAL | REMOVER | decisão |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| EMO-101 | Você adia começar coisas mesmo sabendo que precisa fazer? | Mental/Emocional | Fúngico | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Fúngico: estagnação e desordem) (motor/bancos/emocoes.csv:2)») | conteúdo comportamental (adiar tarefas) pontua um sistema de nome fisiológico (Fúngico); o texto oficial D13 do Fúngico cita «sinais digestivos, mucosas, pele e padrões de desejo alimentar» e não cita comportamento ou emoção; o vínculo vem do padrão emocional legado «estagnação e desordem» (rascunho) | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA**: MOVER → Mental Emocional Espiritual — Procrastinação, prontidão e autorregulação comportamental. |
-| EMO-102 | Você sente que sua vida está desorganizada e não consegue pôr ordem? | Mental/Emocional | Fúngico | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Fúngico: estagnação e desordem) (motor/bancos/emocoes.csv:3)») | conteúdo comportamental/emocional (vida desorganizada) pontua o Fúngico; mesma situação de EMO-101 (padrão legado «estagnação e desordem», não coberto pelo texto oficial D13) | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA**: MOVER → Mental Emocional Espiritual — Organização pessoal e comportamento. |
-| EMO-103 | Você sente um peso para sair do lugar mesmo querendo mudar? | Mental/Emocional | Fúngico | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Fúngico) (motor/bancos/emocoes.csv:4)») | conteúdo emocional («peso para sair do lugar») pontua o Fúngico; a associação pode sugerir ao leitor uma relação entre estado emocional e um eixo de nome fúngico; vínculo vem do padrão legado do Fúngico (rascunho). Já tem MEE como contextual (não pontua) | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA**: MOVER → Mental Emocional Espiritual — Prontidão, dificuldade percebida para iniciar mudança e autorregulação. |
-| EMO-201 | Você se irrita com facilidade por coisas pequenas? | Mental/Emocional | Ácido Inflamatório | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Ácido-Inflamatório: irritação e reatividade) (motor/bancos/emocoes.csv:5)») | conteúdo emocional (irritação) pontua o Ácido Inflamatório; o texto oficial D13 cita «reatividade» sem dizer se é emocional; vínculo vem do padrão legado «irritação e reatividade». Já tem MEE como contextual (não pontua) | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA**: MOVER → Mental Emocional Espiritual — Irritabilidade e regulação emocional. |
-| EMO-202 | Sua raiva sobe rápido e demora a passar? | Mental/Emocional | Ácido Inflamatório | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Ácido-Inflamatório) (motor/bancos/emocoes.csv:6)») | conteúdo emocional (raiva) pontua o Ácido Inflamatório; mesma situação de EMO-201 | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA**: MOVER → Mental Emocional Espiritual — Intensidade e duração percebida da raiva. |
-| EMO-203 | Você costuma aceitar o que não quer para evitar conflito? | Mental/Emocional | Ácido Inflamatório | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (impacto espiritual: bloqueio no plexo solar) (motor/bancos/emocoes.csv:7)») | conteúdo emocional/relacional pontua o Ácido Inflamatório; a proveniência registrada é «impacto espiritual: bloqueio no plexo solar», expressão que a Decisão 13 retirou do conteúdo oficial como termo causal («"bloqueio no plexo solar" … saem do conteúdo oficial»); a associação continua | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA**: MOVER → Mental Emocional Espiritual — Limites, comportamento interpessoal e evitação de conflito. |
-| EMO-204 | Você engole o que gostaria de dizer para não criar problema? | Mental/Emocional | Ácido Inflamatório | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (impacto espiritual: bloqueio no plexo solar) (motor/bancos/emocoes.csv:8)») | conteúdo emocional/relacional pontua o Ácido Inflamatório; proveniência «impacto espiritual: bloqueio no plexo solar» (termo retirado do conteúdo oficial pela Decisão 13); a associação continua | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA**: MOVER → Mental Emocional Espiritual — Expressão emocional e comportamento interpessoal. |
-| EMO-301 | Você sente um vazio que a comida parece tentar preencher? | Mental/Emocional | Metabólico | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Metabólico: vazio e falta de propósito) (motor/bancos/emocoes.csv:9)») | conteúdo emocional (vazio) pontua o Metabólico; o texto oficial D13 do Metabólico cita «comportamento alimentar», mas não emoção; vínculo vem do padrão legado «vazio e falta de propósito». Já tem MEE como contextual (não pontua) | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA**: MOVER → Mental Emocional Espiritual — Relação entre estado emocional e alimentação. |
-| EMO-302 | Você passa os dias no piloto automático sem perceber o que está fazendo? | Mental/Emocional | Metabólico | 1 | Justificativa não documentada (proveniência histórica: «livro p. 56 (Propósito de Vida e Nutrição) (motor/bancos/emocoes.csv:10)») | conteúdo de atenção/comportamento (piloto automático) pontua o Metabólico; no v2 o enunciado não menciona alimentação (o v3 acrescenta «em relação à alimentação»); MEE como contextual (não pontua) | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA**: MOVER → Mental Emocional Espiritual — Consciência, atenção ao comportamento e funcionamento em piloto automático. |
-| EMO-303 | Você usa comida como recompensa depois de um dia difícil? | Mental/Emocional | Metabólico | 1 | Justificativa não documentada (proveniência histórica: «livro p. 90 (Trava da Resistência ao Prazer) (motor/bancos/emocoes.csv:11)») | comportamento alimentar emocional (comida como recompensa) do bloco Mente pontua o Metabólico; o texto oficial D13 do Metabólico inclui «comportamento alimentar», o que dá cobertura temática, mas não há justificativa do item | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA**: MOVER → Mental Emocional Espiritual — Uso da comida como recompensa e comportamento alimentar associado ao estado emocional. |
-| EMO-401 | Você se pega remoendo uma mágoa antiga? | Mental/Emocional | Detox e Linfático | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Detox: acúmulo de mágoas) (motor/bancos/emocoes.csv:12)») | conteúdo emocional (mágoa) pontua o Detox e Linfático; texto oficial D13 do Detox cita «inchaço, hábito intestinal, pele e sensibilidade relatada a substâncias»; vínculo vem do padrão legado «acúmulo de mágoas» (rascunho); pode sugerir leitura causal emoção→eliminação | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA**: MOVER → Mental Emocional Espiritual — Ruminação emocional. |
-| EMO-402 | Você costuma guardar o que sente em vez de falar? | Mental/Emocional | Detox e Linfático | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Detox: emoções não processadas) (motor/bancos/emocoes.csv:13)») | conteúdo emocional (guardar o que sente) pontua o Detox e Linfático; padrão legado «emoções não processadas»; texto oficial D13 não cobre o tema. MEE como contextual (não pontua) | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA**: MOVER → Mental Emocional Espiritual — Expressão e regulação emocional. |
-| EMO-403 | Você tem dificuldade de aceitar ajuda ou cuidado das pessoas? | Mental/Emocional | Detox e Linfático | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Detox) (motor/bancos/emocoes.csv:14)») | conteúdo relacional (aceitar ajuda) pontua o Detox e Linfático; texto oficial D13 não cobre o tema | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA**: MOVER → Mental Emocional Espiritual — Apoio, vínculo e capacidade de receber cuidado. |
-| ESP-101 | Você sente que sua vida tem uma direção clara? | Espiritual | Metabólico | 1 | Justificativa não documentada (proveniência histórica: «livro p. 56 (Propósito de Vida e Nutrição) (motor/bancos/espiritual.csv:2)») | conteúdo de propósito (direção de vida, invertida) pontua o Metabólico; proveniência «Propósito de Vida e Nutrição» não menciona o sistema; texto oficial D13 não cobre o tema | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
-| ESP-103 | Sua rotina de hoje te afasta do que você quer para a sua vida? | Espiritual | Metabólico | 1 | Justificativa não documentada (proveniência histórica: «livro p. 57 (Avaliação de Alinhamento) (motor/bancos/espiritual.csv:4)») | conteúdo de propósito/rotina pontua o Metabólico; proveniência «Avaliação de Alinhamento» não menciona o sistema; texto oficial D13 não cobre o tema | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
-| ESP-203 | Você abre mão do que é inegociável para você só para agradar alguém? | Espiritual | Ácido Inflamatório | 1 | Justificativa não documentada (proveniência histórica: «livro p. 46 (princípios inegociáveis) (motor/bancos/espiritual.csv:7)») | conteúdo de valores/relacional (abrir mão do inegociável) pontua o Ácido Inflamatório; a proveniência registrada («princípios inegociáveis») não menciona o sistema; texto oficial D13 não cobre o tema | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
-| ESP-303 | Você começa a comer sem fazer nenhuma pausa antes? | Espiritual | Metabólico | 1 | Justificativa não documentada (proveniência histórica: «livro p. 62 (Pausa Consciente) (motor/bancos/espiritual.csv:10)») | comportamento alimentar (pausa antes de comer) do bloco Espírito pontua o Metabólico; o texto oficial D13 inclui «comportamento alimentar» (cobertura temática), mas não há justificativa do item; proveniência «Pausa Consciente» | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
-| ESP-404 | Você acredita que para ter saúde precisa sofrer ou se privar? | Espiritual | Ácido Inflamatório | 1 | Justificativa não documentada (proveniência histórica: «livro p. 90 (Trava da Resistência ao Prazer) (motor/bancos/espiritual.csv:14)») | crença («para ter saúde precisa sofrer») pontua o Ácido Inflamatório; redação + eixo podem sugerir causalidade; a revisão pública negou o item «por estar no Sistema Ácido Inflamatório» e a decisão de 12/10 (DECISOES-V1 item 183) o move para o MEE no v3 (não publicado); no v2 o vínculo continua | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
-| ESP-405 | Você carrega o peso de não ter conseguido perdoar alguém? | Espiritual | Detox e Linfático | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Detox: acúmulo de mágoas) (motor/bancos/espiritual.csv:15)») | conteúdo espiritual/relacional (perdão) pontua o Detox e Linfático; padrão legado «acúmulo de mágoas»; texto oficial D13 não cobre o tema; pode sugerir leitura causal | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
-| ESP-501 | Você passa algum tempo em contato com a natureza? | Espiritual | Fúngico | 1 | Justificativa não documentada (proveniência histórica: «livro p. 39 (alimentação como ato sagrado) (motor/bancos/espiritual.csv:16)») | hábito ambiental/espiritual (contato com a natureza, invertida) pontua o Fúngico; a proveniência registrada («alimentação como ato sagrado») não menciona o Fúngico; o texto oficial D13 do Fúngico não cobre o tema; a associação pode sugerir causalidade («pouco contato com a natureza» elevando um eixo fúngico) | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
-| ESP-502 | Você faz suas refeições sozinho e com pressa? | Espiritual | Detox e Linfático | 1 | Justificativa não documentada (proveniência histórica: «livro p. 63 (Comunhão Consciente) (motor/bancos/espiritual.csv:17)») | contexto social/comportamental da refeição (sozinho e com pressa) pontua o Detox e Linfático; proveniência «Comunhão Consciente» não menciona o sistema; texto oficial D13 não cobre o tema | ☐ | ☐ | ☐ | ☐ | EM ABERTO |
+| EMO-101 | Você adia começar coisas mesmo sabendo que precisa fazer? | Mental/Emocional | Fúngico | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Fúngico: estagnação e desordem) (motor/bancos/emocoes.csv:2)») | conteúdo comportamental (adiar tarefas) pontua um sistema de nome fisiológico (Fúngico); o texto oficial D13 do Fúngico cita «sinais digestivos, mucosas, pele e padrões de desejo alimentar» e não cita comportamento ou emoção; o vínculo vem do padrão emocional legado «estagnação e desordem» (rascunho) | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA** (v4): MOVER → Mental Emocional Espiritual — Procrastinação, prontidão e autorregulação comportamental. |
+| EMO-102 | Você sente que sua vida está desorganizada e não consegue pôr ordem? | Mental/Emocional | Fúngico | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Fúngico: estagnação e desordem) (motor/bancos/emocoes.csv:3)») | conteúdo comportamental/emocional (vida desorganizada) pontua o Fúngico; mesma situação de EMO-101 (padrão legado «estagnação e desordem», não coberto pelo texto oficial D13) | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA** (v4): MOVER → Mental Emocional Espiritual — Organização pessoal e comportamento. |
+| EMO-103 | Você sente um peso para sair do lugar mesmo querendo mudar? | Mental/Emocional | Fúngico | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Fúngico) (motor/bancos/emocoes.csv:4)») | conteúdo emocional («peso para sair do lugar») pontua o Fúngico; a associação pode sugerir ao leitor uma relação entre estado emocional e um eixo de nome fúngico; vínculo vem do padrão legado do Fúngico (rascunho). Já tem MEE como contextual (não pontua) | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA** (v4): MOVER → Mental Emocional Espiritual — Prontidão, dificuldade percebida para iniciar mudança e autorregulação. |
+| EMO-201 | Você se irrita com facilidade por coisas pequenas? | Mental/Emocional | Ácido Inflamatório | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Ácido-Inflamatório: irritação e reatividade) (motor/bancos/emocoes.csv:5)») | conteúdo emocional (irritação) pontua o Ácido Inflamatório; o texto oficial D13 cita «reatividade» sem dizer se é emocional; vínculo vem do padrão legado «irritação e reatividade». Já tem MEE como contextual (não pontua) | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA** (v4): MOVER → Mental Emocional Espiritual — Irritabilidade e regulação emocional. |
+| EMO-202 | Sua raiva sobe rápido e demora a passar? | Mental/Emocional | Ácido Inflamatório | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Ácido-Inflamatório) (motor/bancos/emocoes.csv:6)») | conteúdo emocional (raiva) pontua o Ácido Inflamatório; mesma situação de EMO-201 | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA** (v4): MOVER → Mental Emocional Espiritual — Intensidade e duração percebida da raiva. |
+| EMO-203 | Você costuma aceitar o que não quer para evitar conflito? | Mental/Emocional | Ácido Inflamatório | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (impacto espiritual: bloqueio no plexo solar) (motor/bancos/emocoes.csv:7)») | conteúdo emocional/relacional pontua o Ácido Inflamatório; a proveniência registrada é «impacto espiritual: bloqueio no plexo solar», expressão que a Decisão 13 retirou do conteúdo oficial como termo causal («"bloqueio no plexo solar" … saem do conteúdo oficial»); a associação continua | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA** (v4): MOVER → Mental Emocional Espiritual — Limites, comportamento interpessoal e evitação de conflito. |
+| EMO-204 | Você engole o que gostaria de dizer para não criar problema? | Mental/Emocional | Ácido Inflamatório | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (impacto espiritual: bloqueio no plexo solar) (motor/bancos/emocoes.csv:8)») | conteúdo emocional/relacional pontua o Ácido Inflamatório; proveniência «impacto espiritual: bloqueio no plexo solar» (termo retirado do conteúdo oficial pela Decisão 13); a associação continua | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA** (v4): MOVER → Mental Emocional Espiritual — Expressão emocional e comportamento interpessoal. |
+| EMO-301 | Você sente um vazio que a comida parece tentar preencher? | Mental/Emocional | Metabólico | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Metabólico: vazio e falta de propósito) (motor/bancos/emocoes.csv:9)») | conteúdo emocional (vazio) pontua o Metabólico; o texto oficial D13 do Metabólico cita «comportamento alimentar», mas não emoção; vínculo vem do padrão legado «vazio e falta de propósito». Já tem MEE como contextual (não pontua) | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA** (v4): MOVER → Mental Emocional Espiritual — Relação entre estado emocional e alimentação. |
+| EMO-302 | Você passa os dias no piloto automático sem perceber o que está fazendo? | Mental/Emocional | Metabólico | 1 | Justificativa não documentada (proveniência histórica: «livro p. 56 (Propósito de Vida e Nutrição) (motor/bancos/emocoes.csv:10)») | conteúdo de atenção/comportamento (piloto automático) pontua o Metabólico; no v2 o enunciado não menciona alimentação (o v3 acrescenta «em relação à alimentação»); MEE como contextual (não pontua) | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA** (v4): MOVER → Mental Emocional Espiritual — Consciência, atenção ao comportamento e funcionamento em piloto automático. |
+| EMO-303 | Você usa comida como recompensa depois de um dia difícil? | Mental/Emocional | Metabólico | 1 | Justificativa não documentada (proveniência histórica: «livro p. 90 (Trava da Resistência ao Prazer) (motor/bancos/emocoes.csv:11)») | comportamento alimentar emocional (comida como recompensa) do bloco Mente pontua o Metabólico; o texto oficial D13 do Metabólico inclui «comportamento alimentar», o que dá cobertura temática, mas não há justificativa do item | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA** (v4): MOVER → Mental Emocional Espiritual — Uso da comida como recompensa e comportamento alimentar associado ao estado emocional. |
+| EMO-401 | Você se pega remoendo uma mágoa antiga? | Mental/Emocional | Detox e Linfático | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Detox: acúmulo de mágoas) (motor/bancos/emocoes.csv:12)») | conteúdo emocional (mágoa) pontua o Detox e Linfático; texto oficial D13 do Detox cita «inchaço, hábito intestinal, pele e sensibilidade relatada a substâncias»; vínculo vem do padrão legado «acúmulo de mágoas» (rascunho); pode sugerir leitura causal emoção→eliminação | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA** (v4): MOVER → Mental Emocional Espiritual — Ruminação emocional. |
+| EMO-402 | Você costuma guardar o que sente em vez de falar? | Mental/Emocional | Detox e Linfático | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Detox: emoções não processadas) (motor/bancos/emocoes.csv:13)») | conteúdo emocional (guardar o que sente) pontua o Detox e Linfático; padrão legado «emoções não processadas»; texto oficial D13 não cobre o tema. MEE como contextual (não pontua) | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA** (v4): MOVER → Mental Emocional Espiritual — Expressão e regulação emocional. |
+| EMO-403 | Você tem dificuldade de aceitar ajuda ou cuidado das pessoas? | Mental/Emocional | Detox e Linfático | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Detox) (motor/bancos/emocoes.csv:14)») | conteúdo relacional (aceitar ajuda) pontua o Detox e Linfático; texto oficial D13 não cobre o tema | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA** (v4): MOVER → Mental Emocional Espiritual — Apoio, vínculo e capacidade de receber cuidado. |
+| ESP-101 | Você sente que sua vida tem uma direção clara? | Espiritual | Metabólico | 1 | Justificativa não documentada (proveniência histórica: «livro p. 56 (Propósito de Vida e Nutrição) (motor/bancos/espiritual.csv:2)») | conteúdo de propósito (direção de vida, invertida) pontua o Metabólico; proveniência «Propósito de Vida e Nutrição» não menciona o sistema; texto oficial D13 não cobre o tema | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA** (v5): MOVER → Mental Emocional Espiritual — Direção, propósito e sentido pertencem diretamente ao eixo Mental-Emocional-Espiritual. |
+| ESP-103 | Sua rotina de hoje te afasta do que você quer para a sua vida? | Espiritual | Metabólico | 1 | Justificativa não documentada (proveniência histórica: «livro p. 57 (Avaliação de Alinhamento) (motor/bancos/espiritual.csv:4)») | conteúdo de propósito/rotina pontua o Metabólico; proveniência «Avaliação de Alinhamento» não menciona o sistema; texto oficial D13 não cobre o tema | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA** (v5): MOVER → Mental Emocional Espiritual — Investiga alinhamento entre rotina, escolhas e direção de vida. |
+| ESP-203 | Você abre mão do que é inegociável para você só para agradar alguém? | Espiritual | Ácido Inflamatório | 1 | Justificativa não documentada (proveniência histórica: «livro p. 46 (princípios inegociáveis) (motor/bancos/espiritual.csv:7)») | conteúdo de valores/relacional (abrir mão do inegociável) pontua o Ácido Inflamatório; a proveniência registrada («princípios inegociáveis») não menciona o sistema; texto oficial D13 não cobre o tema | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA** (v5): MOVER → Mental Emocional Espiritual — Investiga valores, limites e comportamento interpessoal. Não deve pontuar um sistema físico por associação simbólica. |
+| ESP-303 | Você começa a comer sem fazer nenhuma pausa antes? | Espiritual | Metabólico | 1 | Justificativa não documentada (proveniência histórica: «livro p. 62 (Pausa Consciente) (motor/bancos/espiritual.csv:10)») | comportamento alimentar (pausa antes de comer) do bloco Espírito pontua o Metabólico; o texto oficial D13 inclui «comportamento alimentar» (cobertura temática), mas não há justificativa do item; proveniência «Pausa Consciente» | ☒ | ☐ | ☐ | ☐ | **DECISÃO APLICADA** (v5): MANTER (Metabólico) — Apesar de estar no bloco espiritual, o conteúdo da pergunta investiga diretamente comportamento alimentar e contexto da refeição. |
+| ESP-404 | Você acredita que para ter saúde precisa sofrer ou se privar? | Espiritual | Ácido Inflamatório | 1 | Justificativa não documentada (proveniência histórica: «livro p. 90 (Trava da Resistência ao Prazer) (motor/bancos/espiritual.csv:14)») | crença («para ter saúde precisa sofrer») pontua o Ácido Inflamatório; redação + eixo podem sugerir causalidade; a revisão pública negou o item «por estar no Sistema Ácido Inflamatório» e a decisão de 12/10 (DECISOES-V1 item 183) o move para o MEE no v3 (não publicado); no v2 o vínculo continua | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA** (v5): MOVER → Mental Emocional Espiritual — Investiga crença sobre saúde, sofrimento e privação. Não deve pontuar um sistema físico. |
+| ESP-405 | Você carrega o peso de não ter conseguido perdoar alguém? | Espiritual | Detox e Linfático | 1 | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Detox: acúmulo de mágoas) (motor/bancos/espiritual.csv:15)») | conteúdo espiritual/relacional (perdão) pontua o Detox e Linfático; padrão legado «acúmulo de mágoas»; texto oficial D13 não cobre o tema; pode sugerir leitura causal | ☐ | ☒ | ☐ | ☐ | **DECISÃO APLICADA** (v5): MOVER → Mental Emocional Espiritual — Investiga conteúdo emocional/simbólico relacionado a perdão. Não deve sugerir relação automática entre mágoa, detoxificação ou fluxo linfático. |
+| ESP-501 | Você passa algum tempo em contato com a natureza? | Espiritual | Fúngico | 1 | Justificativa não documentada (proveniência histórica: «livro p. 39 (alimentação como ato sagrado) (motor/bancos/espiritual.csv:16)») | hábito ambiental/espiritual (contato com a natureza, invertida) pontua o Fúngico; a proveniência registrada («alimentação como ato sagrado») não menciona o Fúngico; o texto oficial D13 do Fúngico não cobre o tema; a associação pode sugerir causalidade («pouco contato com a natureza» elevando um eixo fúngico) | ☐ | ☐ | ☒ | ☐ | **DECISÃO APLICADA** (v5): CONTEXTUAL (sem pontuação) — É informação holística potencialmente útil, mas não há justificativa metodológica suficiente para alterar matematicamente a nota do Sistema Fúngico ou de outro sistema. |
+| ESP-502 | Você faz suas refeições sozinho e com pressa? | Espiritual | Detox e Linfático | 1 | Justificativa não documentada (proveniência histórica: «livro p. 63 (Comunhão Consciente) (motor/bancos/espiritual.csv:17)») | contexto social/comportamental da refeição (sozinho e com pressa) pontua o Detox e Linfático; proveniência «Comunhão Consciente» não menciona o sistema; texto oficial D13 não cobre o tema | ☐ | ☐ | ☒ | ☐ | **DECISÃO APLICADA** (v5): CONTEXTUAL (sem pontuação) — Investiga contexto da refeição, ritmo, rotina e pertencimento, mas não há justificativa suficiente para alterar diretamente a nota do Sistema Detox + Linfático ou outro sistema físico. |
 
-Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
-- **ESP-404:** o rascunho de 12/10 (v3 publicada por engano, retirada pela v4) movia a pergunta para o Mental Emocional Espiritual. Não entrou no v4.
-- **Regra metodológica ativa (13/10):** vale para perguntas mentais/emocionais; para as espirituais não há decisão.
+**EMO-502 e EMO-504:** CONTEXTUAL MANTIDO — a associação contextual com o Sistema Metabólico continua, sem pontuação metabólica (HOLOS-V1 v5).
 - Perguntas 2 a 5 da seção 9 da auditoria.
 
 ## 5. GRUPO 2 — REVISÃO PRIORITÁRIA (26 perguntas classificadas C)
@@ -354,7 +368,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | observações | — |
 | justificativa da decisão | Procrastinação, prontidão e autorregulação comportamental. |
 | regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Fúngico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
+| decisão registrada | MOVER · de Fúngico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (versões anteriores imutáveis) |
 
 #### EMO-102 — Você sente que sua vida está desorganizada e não consegue pôr ordem?
 
@@ -378,7 +392,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | observações | — |
 | justificativa da decisão | Organização pessoal e comportamento. |
 | regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Fúngico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
+| decisão registrada | MOVER · de Fúngico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (versões anteriores imutáveis) |
 
 #### EMO-103 — Você sente um peso para sair do lugar mesmo querendo mudar?
 
@@ -402,7 +416,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | observações | — |
 | justificativa da decisão | Prontidão, dificuldade percebida para iniciar mudança e autorregulação. |
 | regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Fúngico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
+| decisão registrada | MOVER · de Fúngico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (versões anteriores imutáveis) |
 
 #### EMO-201 — Você se irrita com facilidade por coisas pequenas?
 
@@ -426,7 +440,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | observações | — |
 | justificativa da decisão | Irritabilidade e regulação emocional. |
 | regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Ácido Inflamatório para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
+| decisão registrada | MOVER · de Ácido Inflamatório para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (versões anteriores imutáveis) |
 
 #### EMO-202 — Sua raiva sobe rápido e demora a passar?
 
@@ -450,7 +464,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | observações | — |
 | justificativa da decisão | Intensidade e duração percebida da raiva. |
 | regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Ácido Inflamatório para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
+| decisão registrada | MOVER · de Ácido Inflamatório para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (versões anteriores imutáveis) |
 
 #### EMO-203 — Você costuma aceitar o que não quer para evitar conflito?
 
@@ -474,7 +488,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | observações | — |
 | justificativa da decisão | Limites, comportamento interpessoal e evitação de conflito. |
 | regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Ácido Inflamatório para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
+| decisão registrada | MOVER · de Ácido Inflamatório para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (versões anteriores imutáveis) |
 
 #### EMO-204 — Você engole o que gostaria de dizer para não criar problema?
 
@@ -498,7 +512,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | observações | — |
 | justificativa da decisão | Expressão emocional e comportamento interpessoal. |
 | regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Ácido Inflamatório para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
+| decisão registrada | MOVER · de Ácido Inflamatório para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (versões anteriores imutáveis) |
 
 #### EMO-301 — Você sente um vazio que a comida parece tentar preencher?
 
@@ -522,7 +536,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | observações | — |
 | justificativa da decisão | Relação entre estado emocional e alimentação. |
 | regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Metabólico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
+| decisão registrada | MOVER · de Metabólico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (versões anteriores imutáveis) |
 
 #### EMO-302 — Você passa os dias no piloto automático sem perceber o que está fazendo?
 
@@ -546,7 +560,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | observações | v3 (não publicado) reescreve o texto: «Você passa os dias no piloto automático sem perceber o que está fazendo em relação à alimentação?» |
 | justificativa da decisão | Consciência, atenção ao comportamento e funcionamento em piloto automático. |
 | regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Metabólico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
+| decisão registrada | MOVER · de Metabólico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (versões anteriores imutáveis) |
 
 #### EMO-303 — Você usa comida como recompensa depois de um dia difícil?
 
@@ -570,7 +584,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | observações | — |
 | justificativa da decisão | Uso da comida como recompensa e comportamento alimentar associado ao estado emocional. |
 | regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Metabólico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
+| decisão registrada | MOVER · de Metabólico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (versões anteriores imutáveis) |
 
 #### EMO-401 — Você se pega remoendo uma mágoa antiga?
 
@@ -594,7 +608,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | observações | v3 (não publicado) reescreve o texto: «Você se pega remoendo uma raiva ou mágoa antiga?» |
 | justificativa da decisão | Ruminação emocional. |
 | regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Detox e Linfático para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
+| decisão registrada | MOVER · de Detox e Linfático para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (versões anteriores imutáveis) |
 
 #### EMO-402 — Você costuma guardar o que sente em vez de falar?
 
@@ -618,7 +632,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | observações | — |
 | justificativa da decisão | Expressão e regulação emocional. |
 | regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Detox e Linfático para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
+| decisão registrada | MOVER · de Detox e Linfático para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (versões anteriores imutáveis) |
 
 #### EMO-403 — Você tem dificuldade de aceitar ajuda ou cuidado das pessoas?
 
@@ -642,7 +656,7 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | observações | — |
 | justificativa da decisão | Apoio, vínculo e capacidade de receber cuidado. |
 | regras da decisão | Aplicada no HOLOS-V1 v4; associação primária no Mental Emocional Espiritual (peso 1, Tríade Mente, texto e escala iguais); a associação física antiga foi retirada e não ficou como contextual; HOLOS-V1 v2 permanece imutável; nenhum histórico é recalculado. |
-| decisão registrada | MOVER · de Detox e Linfático para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (o v2 continua imutável) |
+| decisão registrada | MOVER · de Detox e Linfático para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v4 (versões anteriores imutáveis) |
 
 ### Espiritual → sistema físico (8)
 
@@ -670,14 +684,16 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «livro p. 56 (Propósito de Vida e Nutrição) (motor/bancos/espiritual.csv:2)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — conteúdo de propósito (direção de vida, invertida) pontua o Metabólico; proveniência «Propósito de Vida e Nutrição» não menciona o sistema; texto oficial D13 não cobre o tema |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v5) |
+| opções | ☐ MANTER  ☒ **MOVER**  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Metabólico: 14 → 13 itens pontuados; hoje o item move a nota do sistema em até 0,714 (0–10) com todos respondidos e o Índice em até 1,429 (0–100); cobertura mínima passaria de 12/14 para 11/13; Tríade Espírito: 16 → 15 itens (hoje o item move essa Tríade em até 0,625). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Metabólico, quando contribui > 0 (invertida: resposta ≤ 2) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Metabólico for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Revisão prioritária — conteúdo de propósito (direção de vida, invertida) pontua o Metabólico; proveniência «Propósito de Vida e Nutrição» não menciona o sistema; texto oficial D13 não cobre o tema |
 | observações | pergunta invertida (resposta baixa = carga) |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | Direção, propósito e sentido pertencem diretamente ao eixo Mental-Emocional-Espiritual. |
+| regras da decisão | Aplicada no HOLOS-V1 v5 (a partir da v4); primária no Mental Emocional Espiritual (peso 1 preservado, Tríade Espírito); o sistema físico anterior não ficou como contexto; v2, v3 e v4 imutáveis; nenhum histórico recalculado. |
+| decisão registrada | MOVER · de Metabólico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v5 (versões anteriores imutáveis) |
 
 #### ESP-103 — Sua rotina de hoje te afasta do que você quer para a sua vida?
 
@@ -692,14 +708,16 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «livro p. 57 (Avaliação de Alinhamento) (motor/bancos/espiritual.csv:4)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — conteúdo de propósito/rotina pontua o Metabólico; proveniência «Avaliação de Alinhamento» não menciona o sistema; texto oficial D13 não cobre o tema |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v5) |
+| opções | ☐ MANTER  ☒ **MOVER**  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Metabólico: 14 → 13 itens pontuados; hoje o item move a nota do sistema em até 0,714 (0–10) com todos respondidos e o Índice em até 1,429 (0–100); cobertura mínima passaria de 12/14 para 11/13; Tríade Espírito: 16 → 15 itens (hoje o item move essa Tríade em até 0,625). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Metabólico, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Metabólico for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Revisão prioritária — conteúdo de propósito/rotina pontua o Metabólico; proveniência «Avaliação de Alinhamento» não menciona o sistema; texto oficial D13 não cobre o tema |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | Investiga alinhamento entre rotina, escolhas e direção de vida. |
+| regras da decisão | Aplicada no HOLOS-V1 v5 (a partir da v4); primária no Mental Emocional Espiritual (peso 1 preservado, Tríade Espírito); o sistema físico anterior não ficou como contexto; v2, v3 e v4 imutáveis; nenhum histórico recalculado. |
+| decisão registrada | MOVER · de Metabólico para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v5 (versões anteriores imutáveis) |
 
 #### ESP-203 — Você abre mão do que é inegociável para você só para agradar alguém?
 
@@ -714,14 +732,16 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «livro p. 46 (princípios inegociáveis) (motor/bancos/espiritual.csv:7)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — conteúdo de valores/relacional (abrir mão do inegociável) pontua o Ácido Inflamatório; a proveniência registrada («princípios inegociáveis») não menciona o sistema; texto oficial D13 não cobre o tema |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v5) |
+| opções | ☐ MANTER  ☒ **MOVER**  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Ácido Inflamatório: 16 → 15 itens pontuados; hoje o item move a nota do sistema em até 0,625 (0–10) com todos respondidos e o Índice em até 1,25 (0–100); cobertura mínima passaria de 13/16 para 12/15; Tríade Espírito: 16 → 15 itens (hoje o item move essa Tríade em até 0,625). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Ácido Inflamatório, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Ácido Inflamatório for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Revisão prioritária — conteúdo de valores/relacional (abrir mão do inegociável) pontua o Ácido Inflamatório; a proveniência registrada («princípios inegociáveis») não menciona o sistema; texto oficial D13 não cobre o tema |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | Investiga valores, limites e comportamento interpessoal. Não deve pontuar um sistema físico por associação simbólica. |
+| regras da decisão | Aplicada no HOLOS-V1 v5 (a partir da v4); primária no Mental Emocional Espiritual (peso 1 preservado, Tríade Espírito); o sistema físico anterior não ficou como contexto; v2, v3 e v4 imutáveis; nenhum histórico recalculado. |
+| decisão registrada | MOVER · de Ácido Inflamatório para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v5 (versões anteriores imutáveis) |
 
 #### ESP-303 — Você começa a comer sem fazer nenhuma pausa antes?
 
@@ -736,14 +756,16 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «livro p. 62 (Pausa Consciente) (motor/bancos/espiritual.csv:10)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — comportamento alimentar (pausa antes de comer) do bloco Espírito pontua o Metabólico; o texto oficial D13 inclui «comportamento alimentar» (cobertura temática), mas não há justificativa do item; proveniência «Pausa Consciente» |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MANTER (Metabólico)** (HOLOS-V1 v5) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Metabólico: 14 → 13 itens pontuados; hoje o item move a nota do sistema em até 0,714 (0–10) com todos respondidos e o Índice em até 1,429 (0–100); cobertura mínima passaria de 12/14 para 11/13; Tríade Espírito: 16 → 15 itens (hoje o item move essa Tríade em até 0,625). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Metabólico, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Metabólico for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Revisão prioritária — comportamento alimentar (pausa antes de comer) do bloco Espírito pontua o Metabólico; o texto oficial D13 inclui «comportamento alimentar» (cobertura temática), mas não há justificativa do item; proveniência «Pausa Consciente» |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | Apesar de estar no bloco espiritual, o conteúdo da pergunta investiga diretamente comportamento alimentar e contexto da refeição. |
+| regras da decisão | Registrada no HOLOS-V1 v5; nada muda na associação (primária Metabólico, peso 1). Conteúdo da pergunta > bloco de origem. |
+| decisão registrada | MANTER · primária no Metabólico · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v5 (versões anteriores imutáveis) |
 
 #### ESP-404 — Você acredita que para ter saúde precisa sofrer ou se privar?
 
@@ -758,14 +780,16 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «livro p. 90 (Trava da Resistência ao Prazer) (motor/bancos/espiritual.csv:14)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — crença («para ter saúde precisa sofrer») pontua o Ácido Inflamatório; redação + eixo podem sugerir causalidade; a revisão pública negou o item «por estar no Sistema Ácido Inflamatório» e a decisão de 12/10 (DECISOES-V1 item 183) o move para o MEE no v3 (não publicado); no v2 o vínculo continua |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v5) |
+| opções | ☐ MANTER  ☒ **MOVER**  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | Mental Emocional Espiritual — decisão de 12/10 para o v3 NÃO publicado (`metodologia-revisao-v3.js`): «negada na revisão por estar no Sistema Ácido Inflamatório; decisão de 12/10: a pergunta fica, no Sistema Mental Emocional Espiritual» |
 | impacto se deixar de pontuar | Ácido Inflamatório: 16 → 15 itens pontuados; hoje o item move a nota do sistema em até 0,625 (0–10) com todos respondidos e o Índice em até 1,25 (0–100); cobertura mínima passaria de 13/16 para 12/15; Tríade Espírito: 16 → 15 itens (hoje o item move essa Tríade em até 0,625). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Ácido Inflamatório, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Ácido Inflamatório for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Revisão prioritária — crença («para ter saúde precisa sofrer») pontua o Ácido Inflamatório; redação + eixo podem sugerir causalidade; a revisão pública negou o item «por estar no Sistema Ácido Inflamatório» e a decisão de 12/10 (DECISOES-V1 item 183) o move para o MEE no v3 (não publicado); no v2 o vínculo continua |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | Investiga crença sobre saúde, sofrimento e privação. Não deve pontuar um sistema físico. |
+| regras da decisão | Aplicada no HOLOS-V1 v5 (a partir da v4); primária no Mental Emocional Espiritual (peso 1 preservado, Tríade Espírito); o sistema físico anterior não ficou como contexto; v2, v3 e v4 imutáveis; nenhum histórico recalculado. |
+| decisão registrada | MOVER · de Ácido Inflamatório para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v5 (versões anteriores imutáveis) |
 
 #### ESP-405 — Você carrega o peso de não ter conseguido perdoar alguém?
 
@@ -780,14 +804,16 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «material 11/08 (padrão do Detox: acúmulo de mágoas) (motor/bancos/espiritual.csv:15)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — conteúdo espiritual/relacional (perdão) pontua o Detox e Linfático; padrão legado «acúmulo de mágoas»; texto oficial D13 não cobre o tema; pode sugerir leitura causal |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: MOVER → Mental Emocional Espiritual** (HOLOS-V1 v5) |
+| opções | ☐ MANTER  ☒ **MOVER**  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Detox e Linfático: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Espírito: 16 → 15 itens (hoje o item move essa Tríade em até 0,625). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Detox e Linfático, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Detox e Linfático for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Revisão prioritária — conteúdo espiritual/relacional (perdão) pontua o Detox e Linfático; padrão legado «acúmulo de mágoas»; texto oficial D13 não cobre o tema; pode sugerir leitura causal |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | Investiga conteúdo emocional/simbólico relacionado a perdão. Não deve sugerir relação automática entre mágoa, detoxificação ou fluxo linfático. |
+| regras da decisão | Aplicada no HOLOS-V1 v5 (a partir da v4); primária no Mental Emocional Espiritual (peso 1 preservado, Tríade Espírito); o sistema físico anterior não ficou como contexto; v2, v3 e v4 imutáveis; nenhum histórico recalculado. |
+| decisão registrada | MOVER · de Detox e Linfático para Mental Emocional Espiritual · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v5 (versões anteriores imutáveis) |
 
 #### ESP-501 — Você passa algum tempo em contato com a natureza?
 
@@ -802,14 +828,16 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «livro p. 39 (alimentação como ato sagrado) (motor/bancos/espiritual.csv:16)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — hábito ambiental/espiritual (contato com a natureza, invertida) pontua o Fúngico; a proveniência registrada («alimentação como ato sagrado») não menciona o Fúngico; o texto oficial D13 do Fúngico não cobre o tema; a associação pode sugerir causalidade («pouco contato com a natureza» elevando um eixo fúngico) |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: CONTEXTUAL (sem pontuação)** (HOLOS-V1 v5) |
+| opções | ☐ MANTER  ☐ MOVER  ☒ **CONTEXTUAL**  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Fúngico: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Espírito: 16 → 15 itens (hoje o item move essa Tríade em até 0,625). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Fúngico, quando contribui > 0 (invertida: resposta ≤ 2) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Fúngico for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Revisão prioritária — hábito ambiental/espiritual (contato com a natureza, invertida) pontua o Fúngico; a proveniência registrada («alimentação como ato sagrado») não menciona o Fúngico; o texto oficial D13 do Fúngico não cobre o tema; a associação pode sugerir causalidade («pouco contato com a natureza» elevando um eixo fúngico) |
 | observações | pergunta invertida (resposta baixa = carga) |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | É informação holística potencialmente útil, mas não há justificativa metodológica suficiente para alterar matematicamente a nota do Sistema Fúngico ou de outro sistema. |
+| regras da decisão | Aplicada no HOLOS-V1 v5: continua coletada; a associação com o sistema físico virou contextual (sem peso) e saiu da Tríade; não entra em denominador, score, Índice, Tríade, dominantes nem Próximos Passos; não vai para outro sistema pontuável. |
+| decisão registrada | CONTEXTUAL · sem pontuação (era primária de Fúngico) · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v5 (versões anteriores imutáveis) |
 
 #### ESP-502 — Você faz suas refeições sozinho e com pressa?
 
@@ -824,14 +852,16 @@ Pontos já registrados para as 8 ESP em aberto (fatos, não sugestão):
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «livro p. 63 (Comunhão Consciente) (motor/bancos/espiritual.csv:17)») |
 | fonte da justificativa | — |
 | classificação da auditoria | C — contexto social/comportamental da refeição (sozinho e com pressa) pontua o Detox e Linfático; proveniência «Comunhão Consciente» não menciona o sistema; texto oficial D13 não cobre o tema |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **DECISÃO APLICADA: CONTEXTUAL (sem pontuação)** (HOLOS-V1 v5) |
+| opções | ☐ MANTER  ☐ MOVER  ☒ **CONTEXTUAL**  ☐ REMOVER |
 | sistema alternativo possível | a decidir |
 | impacto se deixar de pontuar | Detox e Linfático: 15 → 14 itens pontuados; hoje o item move a nota do sistema em até 0,667 (0–10) com todos respondidos e o Índice em até 1,333 (0–100); cobertura mínima passaria de 12/15 para 12/14; Tríade Espírito: 16 → 15 itens (hoje o item move essa Tríade em até 0,625). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Detox e Linfático, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Detox e Linfático for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Revisão prioritária — contexto social/comportamental da refeição (sozinho e com pressa) pontua o Detox e Linfático; proveniência «Comunhão Consciente» não menciona o sistema; texto oficial D13 não cobre o tema |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | Investiga contexto da refeição, ritmo, rotina e pertencimento, mas não há justificativa suficiente para alterar diretamente a nota do Sistema Detox + Linfático ou outro sistema físico. |
+| regras da decisão | Aplicada no HOLOS-V1 v5: continua coletada; a associação com o sistema físico virou contextual (sem peso) e saiu da Tríade; não entra em denominador, score, Índice, Tríade, dominantes nem Próximos Passos; não vai para outro sistema pontuável. |
+| decisão registrada | CONTEXTUAL · sem pontuação (era primária de Detox e Linfático) · Rodrigo · decidida em 13/10/2026 · **DECISÃO APLICADA** no HOLOS-V1 v5 (versões anteriores imutáveis) |
 
 ### Físico → MEE (1)
 
@@ -1863,14 +1893,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «livro p. 89 (Trava da Perfeição) (motor/bancos/emocoes.csv:16)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **CONTEXTUAL MANTIDO (Metabólico)** (HOLOS-V1 v5) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | Metabólico — já consta como associação contextual vigente, sem pontuação (pacote v2: Etapa 4.2 — Decisão 4 (decisao metodologica V1 fechada)) |
 | impacto se deixar de pontuar | Mental Emocional Espiritual: 24 → 23 itens pontuados; hoje o item move a nota do sistema em até 0,417 (0–10) com todos respondidos e o Índice em até 0,833 (0–100); cobertura mínima passaria de 20/24 para 19/23; Tríade Mente: 19 → 18 itens (hoje o item move essa Tríade em até 0,526). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Mental Emocional Espiritual, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Mental Emocional Espiritual for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | v3 (não publicado) reescreve o texto: «Quando você “sai da linha” na alimentação programada em um dia, sente que perdeu tudo e abandona?» |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | Associação contextual com o Sistema Metabólico mantida, sem pontuação metabólica. |
+| regras da decisão | Registrada no HOLOS-V1 v5; continua secondary_contextual sem peso. Contextual não pontua e não implica causalidade. |
+| decisão registrada | CONTEXTUAL MANTIDO · Metabólico, sem pontuação · Rodrigo · decidida em 13/10/2026 · **CONTEXTUAL MANTIDO** no HOLOS-V1 v5 (versões anteriores imutáveis) |
 
 #### EMO-503 — Você se descreve com frases como sempre fui assim ou não tenho força de vontade?
 
@@ -1907,14 +1939,16 @@ Associações vigentes aprovadas **em bloco** (Decisões 4 e 7), sem justificati
 | justificativa metodológica documentada | Justificativa não documentada (proveniência histórica: «livro p. 90 (Trava do Trauma Alimentar) (motor/bancos/emocoes.csv:18)») |
 | fonte da justificativa | — |
 | classificação da auditoria | B — vínculo vigente (aprovado em bloco pelas Decisões 4 e 7), sem justificativa escrita para este item |
-| decisão metodológica | **EM ABERTO** — decisão de Rodrigo e Daniel |
-| opções | ☐ MANTER  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
+| decisão metodológica | **CONTEXTUAL MANTIDO (Metabólico)** (HOLOS-V1 v5) |
+| opções | ☒ **MANTER**  ☐ MOVER  ☐ CONTEXTUAL  ☐ REMOVER |
 | sistema alternativo possível | Metabólico — já consta como associação contextual vigente, sem pontuação (pacote v2: Etapa 4.2 — Decisão 4 (decisao metodologica V1 fechada)) |
 | impacto se deixar de pontuar | Mental Emocional Espiritual: 24 → 23 itens pontuados; hoje o item move a nota do sistema em até 0,417 (0–10) com todos respondidos e o Índice em até 0,833 (0–100); cobertura mínima passaria de 20/24 para 19/23; Tríade Mente: 19 → 18 itens (hoje o item move essa Tríade em até 0,526). Resultados v2 já salvos não mudam. |
 | pode aparecer como sinal dominante hoje? | Sim — em Mental Emocional Espiritual, quando contribui > 0 (resposta ≥ 1) e está entre as 3 maiores contribuições do sistema; texto da pergunta aparece na visão profissional e, se Mental Emocional Espiritual for 1ª/2ª área, na da paciente. |
 | risco de interpretação | Sem risco específico apontado na auditoria (associação sem justificativa escrita) |
 | observações | — |
-| decisão registrada | _(preencher na homologação: opção · sistema, se MOVER · responsável · data)_ |
+| justificativa da decisão | Associação contextual com o Sistema Metabólico mantida, sem pontuação metabólica. |
+| regras da decisão | Registrada no HOLOS-V1 v5; continua secondary_contextual sem peso. Contextual não pontua e não implica causalidade. |
+| decisão registrada | CONTEXTUAL MANTIDO · Metabólico, sem pontuação · Rodrigo · decidida em 13/10/2026 · **CONTEXTUAL MANTIDO** no HOLOS-V1 v5 (versões anteriores imutáveis) |
 
 #### EMO-505 — Você sente que seu corpo trabalha contra você?
 
@@ -2258,12 +2292,12 @@ O enunciado menciona exame laboratorial, condição nomeada ou uso de medicament
 
 ### 8.6 Decisões que exigem Rodrigo e Daniel
 
-**15 DECISÕES APLICADAS (HOLOS-V1 v4) e 69 EM ABERTO.** Pendentes, em ordem de prioridade:
+**23 DECISÕES APLICADAS (15 no HOLOS-V1 v4, 8 no HOLOS-V1 v5) e 61 EM ABERTO.** Pendentes, em ordem de prioridade:
 
 1. **Grupo 1 — SNT-210 e SNT-309: DECISÃO APLICADA (REMOVER, HOLOS-V1 v4).** Continuam em aberto, por consequência: o texto D13 do Metabólico ("achados laboratoriais relatados no questionário") e a opção "não se aplica" na tela.
 2. **Grupo 2 — 26 perguntas C**, por subgrupo:
    - 13 mental/emocional → físico: **DECISÃO APLICADA** (MOVER para o MEE, HOLOS-V1 v4);
-   - 8 espiritual → físico: EM ABERTO;
+   - 8 espiritual → físico: **DECISÃO APLICADA** (Lote 2B, HOLOS-V1 v5);
    - 4 físico → físico com condição nomeada ou já negada na revisão (SNT-104, SNT-105, SNT-206, SNT-209);
    - 1 físico → MEE (SNT-507).
 3. **ESP-404, SNT-209 e ESP-102.** O rascunho de 12/10 (publicado por engano como v3 em 13/10 e retirado pela v4) tinha decisão para eles (mover ESP-404 para o MEE; remover SNT-209 e ESP-102), mas ela **não** entrou no v4: os três seguem como no v2. Confirmar se vale para uma versão seguinte.
@@ -2275,4 +2309,4 @@ O enunciado menciona exame laboratorial, condição nomeada ou uso de medicament
    - sinais parecidos em sistemas diferentes (SNT-110 e SNT-406);
    - fundamento das associações aprovadas em bloco.
 
-As 15 decisões de 13/10 estão aplicadas no HOLOS-V1 v4; as demais seguem EM ABERTO. O PP-V2 não foi iniciado.
+As 15 decisões de 13/10 estão aplicadas no HOLOS-V1 v4 e as 8 do Lote 2B no HOLOS-V1 v5; EMO-502 e EMO-504 ficaram como CONTEXTUAL MANTIDO; as demais seguem EM ABERTO. O PP-V2 não foi iniciado.

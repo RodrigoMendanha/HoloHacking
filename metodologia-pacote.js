@@ -86,10 +86,15 @@
       var doItem = assoc.filter(function (a) { return a.question_stable_id === q.stable_id; });
       var sistemasDoItem = doItem.filter(function (a) { return a.destination_type === "system"; });
       var primarias = sistemasDoItem.filter(function (a) { return a.role === "primaria"; }).length;
-      if (!sistemasDoItem.length) erro("associacao_orfa", q.stable_id, "pergunta sem associacao a sistema");
-      else if (primarias === 0) erro("primaria_ausente", q.stable_id, "pergunta sem sistema primario pontuavel");
-      else if (primarias > 1) erro("primaria_multipla", q.stable_id, primarias + " sistemas primarios pontuaveis (o contrato exige exatamente um)");
       var triades = doItem.filter(function (a) { return a.destination_type === "triad"; });
+      /* 13/10 (Lote 2B): PERGUNTA SO CONTEXTUAL — coletada, sem sistema primario e sem Triade, com pelo menos uma
+         associacao secondary_contextual. Nao pontua, nao entra em denominador, Indice, Triade, dominantes nem
+         Proximos Passos. Qualquer outra pergunta sem primaria continua sendo erro. */
+      var soContextual = primarias === 0 && sistemasDoItem.length > 0 && !triades.length;
+      if (!sistemasDoItem.length) erro("associacao_orfa", q.stable_id, "pergunta sem associacao a sistema");
+      else if (primarias === 0 && !soContextual) erro("primaria_ausente", q.stable_id, "pergunta sem sistema primario pontuavel (pergunta so contextual nao pode ter eixo da Triada)");
+      else if (primarias > 1) erro("primaria_multipla", q.stable_id, primarias + " sistemas primarios pontuaveis (o contrato exige exatamente um)");
+      if (soContextual) return;
       if (!triades.length) erro("triade_ausente", q.stable_id, "pergunta sem eixo da Triada");
       else if (triades.length > 1) erro("triade_multipla", q.stable_id, triades.length + " vinculos de Triada (o contrato exige exatamente um)");
       else if (EIXO_DO_BLOCO[q.block] && triades[0].destination_id !== EIXO_DO_BLOCO[q.block]) erro("triade_eixo_divergente", q.stable_id, "bloco " + q.block + " exige eixo " + EIXO_DO_BLOCO[q.block] + ", nao " + triades[0].destination_id);
@@ -387,8 +392,9 @@
     var ids = base.perguntas.map(function (q) { return q.stable_id; });
     var tem = function (id) { return ids.indexOf(id) >= 0; };
     var textos = R.textos || {}, trocar = R.trocar || {}, remover = R.remover || {}, mover = R.mover || {}, semCtx = R.remover_contextuais || {};
+    var ctxOnly = R.contextualizar || {};   // 13/10 (Lote 2B): primaria vira secondary_contextual (sem peso) e sai da Triade
     var tocados = {};
-    [textos, trocar, remover, mover].forEach(function (m) { Object.keys(m).forEach(function (id) {
+    [textos, trocar, remover, mover, ctxOnly].forEach(function (m) { Object.keys(m).forEach(function (id) {
       if (!tem(id)) falhas.push(id + " nao existe no pacote base");
       tocados[id] = (tocados[id] || 0) + 1;
     }); });
@@ -399,6 +405,11 @@
       var prim = (base.associacoes || []).filter(function (a) { return a.question_stable_id === id && a.destination_type === "system" && a.role === "primaria"; });
       if (prim.length !== 1 || prim[0].destination_id !== mover[id].de) falhas.push(id + ": primario atual nao e " + mover[id].de);
       if ((base.sistemas || []).every(function (s) { return s.code !== mover[id].para; })) falhas.push(id + ": sistema " + mover[id].para + " nao existe");
+    });
+    Object.keys(ctxOnly).forEach(function (id) {
+      var prim = (base.associacoes || []).filter(function (a) { return a.question_stable_id === id && a.destination_type === "system" && a.role === "primaria"; });
+      if (prim.length !== 1 || prim[0].destination_id !== ctxOnly[id].de) falhas.push(id + ": primario atual nao e " + ctxOnly[id].de);
+      if (!ctxOnly[id].motivo) falhas.push(id + ": contextualizacao sem justificativa");
     });
     /* contextuais que saem (13/10): cada uma tem de existir; e nenhuma pergunta movida pode ficar com contextual
        igual ao primario novo (redundancia) sem estar listada */
@@ -421,7 +432,7 @@
       origin: "nova versao: revisao das perguntas aplicada sobre " + base.code + " v" + base.version,
       justification: "REVISAO DAS PERGUNTAS (" + R.id + ", " + R.decidido_em + "): " + R.revisao_publica,
       notes: "Copia do " + base.code + " v" + base.version + " com " + Object.keys(textos).length + " textos revisados, " + Object.keys(trocar).length + " perguntas trocadas (ID novo), " +
-        Object.keys(remover).length + " removidas e " + Object.keys(mover).length + " com sistema novo" + (Object.keys(semCtx).length ? " (" + Object.keys(semCtx).reduce(function (n, k) { return n + semCtx[k].length; }, 0) + " associacoes contextuais retiradas)" : "") + ". Pesos, escalas, faixas, Indice e Triade sem mudanca." +
+        Object.keys(remover).length + " removidas e " + Object.keys(mover).length + " com sistema novo" + (Object.keys(ctxOnly).length ? ", " + Object.keys(ctxOnly).length + " so contextuais (sem pontuacao)" : "") + (Object.keys(semCtx).length ? " (" + Object.keys(semCtx).reduce(function (n, k) { return n + semCtx[k].length; }, 0) + " associacoes contextuais retiradas)" : "") + ". Pesos, escalas, faixas, Indice e Triade sem mudanca." +
         (R.regra_metodologica && R.regra_metodologica.length ? " Regra metodologica: " + R.regra_metodologica.join(" ") : ""),
       lineage: { parent_code: base.code, parent_version: base.version, parent_status: base.status, parent_content_hash: base.content_hash || hashConteudo(base), revisao: R.id, decididas_em: R.decidido_em }
     });
@@ -449,6 +460,7 @@
         c.statement = textos[id]; c.version = (q.version || 1) + 1; c.source = fonte; c.notes = "texto revisado (antes: " + q.statement + ")"; c.status = A;
       }
       if (mover[id]) c.notes = (c.notes ? c.notes + "; " : "") + "sistema: " + mover[id].de + " -> " + mover[id].para;
+      if (ctxOnly[id]) c.notes = (c.notes ? c.notes + "; " : "") + "so contextual (" + ctxOnly[id].de + "): coletada, nao pontua";
       c.position = p.perguntas.length + 1;
       p.perguntas.push(c);
     });
@@ -458,7 +470,12 @@
       var id = a.question_stable_id;
       if (remover[id]) return;
       if (a.destination_type === "system" && a.role === "secondary_contextual" && (semCtx[id] || []).indexOf(a.destination_id) >= 0) return;
+      if (ctxOnly[id] && a.destination_type === "triad") return;    // pergunta so contextual nao entra na Triade
       var c = copiaSemIds(a);
+      if (ctxOnly[id] && a.destination_type === "system" && a.role === "primaria") {
+        c.role = "secondary_contextual"; c.weight = null; c.source = fonte; c.legacy = null;
+        c.conflict_note = "so contextual na revisao (era primaria de " + ctxOnly[id].de + ", peso " + a.weight + "): " + ctxOnly[id].motivo;
+      }
       if (novoId[id]) { c.question_stable_id = novoId[id]; c.source = fonte; c.legacy = null; }
       if (mover[id] && a.destination_type === "system" && a.role === "primaria") {
         c.destination_id = mover[id].para; c.source = fonte; c.conflict_note = "sistema mudado na revisao (" + mover[id].de + " -> " + mover[id].para + "): " + mover[id].motivo; c.legacy = null;
@@ -497,6 +514,11 @@
       [["bloco", E.por_bloco, porBloco], ["sistema", E.por_sistema, porSistema], ["escala", E.escalas, porEscala]].forEach(function (t) {
         if (t[1]) Object.keys(t[1]).forEach(function (k) { if ((t[2][k] || 0) !== t[1][k]) dif.push(t[0] + " " + k + ": " + (t[2][k] || 0) + " (esperado " + t[1][k] + ")"); });
       });
+      if (E.so_contextuais) {
+        var soCtx = p.perguntas.filter(function (q) { return !p.associacoes.some(function (a) { return a.question_stable_id === q.stable_id && (a.role === "primaria" || a.destination_type === "triad"); }); }).map(function (q) { return q.stable_id; }).sort();
+        if (soCtx.join(",") !== E.so_contextuais.slice().sort().join(",")) dif.push("so contextuais " + soCtx.join(",") + " (esperado " + E.so_contextuais.join(",") + ")");
+      }
+      if (E.triade) Object.keys(E.triade).forEach(function (k) { if ((porEixo[k] || 0) !== E.triade[k]) dif.push("triade " + k + ": " + (porEixo[k] || 0) + " (esperado " + E.triade[k] + ")"); });
       if (E.invertidas && invertidas.join(",") !== E.invertidas.slice().sort().join(",")) dif.push("invertidas " + invertidas.join(",") + " (esperado " + E.invertidas.join(",") + ")");
       if (dif.length) throw new Error("versao nova nao bate com o esperado da revisao: " + dif.join("; "));
     }
@@ -632,7 +654,7 @@
      poe a nova no ar hoje e retira a anterior. Para qualquer outra conta nao faz
      nada. Idempotente: se a versao nova ja esta no ar, nao grava de novo. */
   var publicando = null;
-  function revisoesDoCodigo() { return [raiz.MetodologiaRevisaoV3].filter(Boolean); }
+  function revisoesDoCodigo() { return [raiz.MetodologiaRevisaoV3, raiz.MetodologiaRevisaoV5].filter(Boolean); }   // em ordem: v4 (decisoes de 13/10), depois v5 (Lote 2B)
   function publicar(id) {
     return rpc("publicar_pacote_metodologico", { p_package_id: id }).then(function (d) { return carregar().then(function () { return d; }); });
   }

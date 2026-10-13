@@ -60,6 +60,9 @@ async function entrar(url, email, senha, comPacote) {
   P.on('pageerror', e => errosJS.push(e.message));
   await ligarPagina(P, srv);
   await P.evaluateOnNewDocument(() => { setInterval(() => { if (window.BoasVindas && window.BoasVindas.aberta()) window.BoasVindas.fechar(); }, 80); });
+  /* este teste e o registro da publicacao da v4: simula o front da epoca da v4 (sem a revisao do Lote 2B, que
+     publicaria a v5 no mesmo login). A v5 tem o seu proprio teste: testar-questionario-v5.mjs */
+  await P.evaluateOnNewDocument(() => { Object.defineProperty(window, 'MetodologiaRevisaoV5', { configurable: false, get: () => undefined, set: () => {} }); });
   await P.goto(url, { waitUntil: 'networkidle2' });
   await P.waitForSelector('#login-email', { visible: true });
   await P.type('#login-email', email || 'a@holo.test'); await P.type('#login-senha', senha || 'senha-a-123'); await P.click('#btn-entrar');
