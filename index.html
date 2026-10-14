@@ -289,7 +289,8 @@
           Espírito <span class="nav-tag" title="Ferramentas de Espírito (Mapa do Propósito, Roda Holística da Vida, Carta ao Futuro Eu, Conexão &amp; Pertencimento)">QE</span>
         </button>
         <!-- rodada UX 14/10: o fim da jornada e INVESTIGAR (Corpo, Mente, Espirito) -> HOLOS IA interpreta -> RESULTADO -->
-        <button class="nav-item" data-secao="holusia">
+        <!-- 14/10: Holos IA escondida (o Resultado sai pelo Playbook HOLOS); o codigo continua -->
+        <button class="nav-item hidden" hidden data-secao="holusia">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.6L18.5 9l-4.7 1.6L12 15l-1.8-4.4L5.5 9l4.7-1.4z"/><path d="M18 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>
           Holos IA
         </button>
@@ -394,7 +395,7 @@
         <button type="button" class="bpctx-btn" data-bpctx="aba:holoscan" title="HOLOSCAN">HOLOSCAN</button>
         <button type="button" class="bpctx-btn" data-bpctx="aba:ferramentas" title="Ferramentas">Ferramentas</button>
         <button type="button" class="bpctx-btn" data-bpctx="aba:documentos" title="Documentos">Documentos</button>
-        <button type="button" class="bpctx-btn" data-bpctx="holusia" title="Holos IA">Holos IA</button>
+        <button type="button" class="bpctx-btn hidden" hidden data-bpctx="holusia" title="Holos IA">Holos IA</button>
       </div>
     </div>
 
@@ -503,7 +504,7 @@
           <p>O HOLOSCAN reúne, numa leitura só, o que o paciente relata sobre corpo, emoção e propósito — e organiza o resultado pelos cinco sistemas, o Índice HOLOS e a Tríade do pacote metodológico homologado. A interpretação e a conduta são da nutricionista.</p>
           <!-- Fluxo clinico do metodo, so como referencia visual — nao e um
                wizard, nenhuma etapa bloqueia a seguinte. -->
-          <p class="fluxo-clinico">Mapeamento Holístico &rarr; <b>HOLOSCAN</b> &rarr; Ferramentas &rarr; Holos IA &rarr; Resultado &rarr; Evolução</p>
+          <p class="fluxo-clinico">Mapeamento Holístico &rarr; <b>HOLOSCAN</b> &rarr; Ferramentas &rarr; Resultado (Playbook) &rarr; Evolução</p>
         </div>
 
         <div class="barra-paciente">
@@ -930,7 +931,7 @@
                 <button class="aba" data-aba="anamnese" role="tab" id="tab-anamnese" aria-controls="aba-anamnese" aria-selected="false">Mapeamento Holístico</button>
                 <button class="aba" data-aba="holoscan" role="tab" id="tab-holoscan" aria-controls="aba-holoscan" aria-selected="false">HOLOSCAN</button>
                 <button class="aba" data-aba="ferramentas" role="tab" id="tab-ferramentas" aria-controls="aba-ferramentas" aria-selected="false">Ferramentas</button>
-                <button class="aba" data-aba="holos-ai" role="tab" id="tab-holos-ai" aria-controls="aba-holos-ai" aria-selected="false">Holos IA</button>
+                <button class="aba hidden" hidden data-aba="holos-ai" role="tab" id="tab-holos-ai" aria-controls="aba-holos-ai" aria-selected="false">Holos IA</button>
                 <button class="aba" data-aba="resultado-holos" role="tab" id="tab-resultado-holos" aria-controls="aba-resultado-holos" aria-selected="false">Resultado HOLOS</button>
                 <button class="aba" data-aba="documentos" role="tab" id="tab-documentos" aria-controls="aba-documentos" aria-selected="false">Documentos</button>
                 <!-- 14/10: aba Conduta escondida (o fluxo e HOLOSCAN -> ferramentas -> Holos IA -> Resultado); o codigo continua -->

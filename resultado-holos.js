@@ -737,16 +737,16 @@
     var arq = arquivado();
     var html = cabecalho() + '<div class="rh-acoes-topo">' +
       /* simplificacao 14/10: o Resultado nasce da aba HOLOS AI (importar e gerar); a montagem manual fica como recurso avancado */
-      '<button type="button" class="btn-verde" data-rh-acao="ir-holos-ai"' + (arq || !temSupa() ? " disabled" : "") + ">Gerar pela HOLOS AI</button>" +
+      (window.HOLOS_IA_VISIVEL === false ? "" : '<button type="button" class="btn-verde" data-rh-acao="ir-holos-ai"' + (arq || !temSupa() ? " disabled" : "") + ">Gerar pela HOLOS AI</button>") +
       /* Playbook HOLOS (PB-V1): o Resultado sem depender da IA — a nutricionista escolhe foco e estrategias do playbook */
       '<button type="button" class="btn-verde" data-rh-acao="playbook"' + (arq || !temSupa() || !window.ResultadoPlaybook ? " disabled" : "") + ">Montar com o Playbook</button>" +
       (arq ? '<span class="dash-sub">' + e(MSG_HINT.paciente_arquivado) + "</span>" : "") +
-      '<details class="rh-manual"><summary>Montar manualmente (avançado)</summary><p class="dash-sub">Sem a HOLOS AI: você escolhe as fontes e monta cada parte.</p>' +
+      '<details class="rh-manual"><summary>Montar manualmente (avançado)</summary><p class="dash-sub">Sem o Playbook: você escolhe as fontes e escreve cada parte.</p>' +
       '<button type="button" class="btn-fantasma" data-rh-acao="novo"' + (arq || !temSupa() ? " disabled" : "") + ">Montar Resultado HOLOS manualmente</button></details></div>";
     if (!temSupa()) return html + '<p class="dash-vazio">O Resultado HOLOS fica no servidor: entre com a sua conta para gerar e consultar.</p>';
     if (cache.erro) return html + '<p class="q-erro">Não foi possível carregar os Resultados HOLOS: ' + e(mensagemErro(cache.erro)) + "</p>";
     html += '<section class="rh-historico" aria-labelledby="rh-t-hist"><h4 id="rh-t-hist" class="dash-titulo">Histórico de Resultados HOLOS</h4>';
-    if (!linhas.length) return html + '<p class="dash-vazio">Nenhum Resultado HOLOS ainda. Monte com o Playbook (você escolhe o foco e as estratégias, em poucos minutos) ou gere pela HOLOS AI.</p></section>';
+    if (!linhas.length) return html + '<p class="dash-vazio">Nenhum Resultado HOLOS ainda. Monte com o Playbook: você escolhe o foco e as estratégias, em poucos minutos.</p></section>';
     html += '<ul class="rh-hist-lista">' + linhas.map(function (r) {
       var s = r.content_snapshot || {}, sel = r.selected_sources || {};
       var nF = r.status === "rascunho" ? (sel.tool_application_ids || []).length : (s.ferramentas || []).length;

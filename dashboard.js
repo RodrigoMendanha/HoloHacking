@@ -527,11 +527,11 @@
         { id: "pre", feito: mh },
         { id: "mapear", feito: salvos >= 1 },
         { id: "integrar", feito: ferramentas >= 1 },
-        { id: "holosia", feito: hai || !!res },
+        { id: "holosia", feito: hai || !!res, oculto: window.HOLOS_IA_VISIVEL === false },
         { id: "consolidar", feito: !!res },
         { id: "apresentar", feito: !!emis },
         { id: "acompanhar", feito: salvos >= 2 }
-      ];
+      ].filter(function (p) { return !p.oculto; });
     }
   };
 })();

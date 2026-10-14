@@ -29,7 +29,7 @@
       ["Por onde eu começo?",
        "Complete o seu <b>Perfil</b> (nome completo, registro profissional e, se quiser, assinatura e marca): é isso que aparece nos relatórios. Depois cadastre o paciente em <b>Pacientes → Novo paciente</b>, agende a consulta na <b>Agenda</b> e, no dia, inicie o atendimento a partir da consulta."],
       ["Qual é o caminho de um atendimento completo?",
-       "Cadastro → <b>Mapeamento Holístico</b> (link que o paciente preenche antes da consulta) → no atendimento, HOLOSCAN e ferramentas de Corpo, Mente e Espírito → <b>Holos IA</b> → Resultado HOLOS → Resultado para a paciente (PDF ou WhatsApp). Nenhuma etapa trava a seguinte: você usa o que fizer sentido para a pessoa."],
+       "Cadastro → <b>Mapeamento Holístico</b> (link que o paciente preenche antes da consulta) → no atendimento, HOLOSCAN e ferramentas de Corpo, Mente e Espírito → <b>Resultado HOLOS</b> montado com o Playbook → Resultado para a paciente (PDF ou WhatsApp). Nenhuma etapa trava a seguinte: você usa o que fizer sentido para a pessoa."],
       ["Meus dados ficam salvos onde?",
        "Com a conta conectada, tudo vai para o servidor da sua conta (só você vê). A mensagem de sucesso só aparece depois que o servidor confirmou. Se aparecer “não salvo no servidor”, o dado está só neste navegador: abra a tela indicada e salve de novo."],
       ["Posso usar em mais de um computador ou no celular?",
@@ -104,10 +104,9 @@
     ["Atendimento", "No dia: abra a consulta → Iniciar atendimento."],
     ["HOLOSCAN", "Aplicar HOLOSCAN → Gerar o mapa → Salvar HOLOSCAN → Sua interpretação."],
     ["Ferramentas", "Corpo, Mente, Espírito: preencher → Concluir → leitura profissional."],
-    ["Resultado HOLOS", "Ficha → Resultado HOLOS → escolher o que entra → Finalizar."],
+    ["Resultado HOLOS", "Ficha → Resultado HOLOS → Montar com o Playbook → foco → estratégias → Gerar Resultado."],
     ["Resultado para a paciente", "Menu Resultado → Baixar PDF ou Enviar pelo WhatsApp."],
-    ["Documentos e exames", "Ficha → Documentos → + Adicionar arquivo → tipo, título, data, arquivo → Guardar."],
-    ["Holos IA", "Menu Holos IA → escolher o paciente → Copiar Pacote → resposta da Holos IA → Importar e gerar resultado."]
+    ["Documentos e exames", "Ficha → Documentos → + Adicionar arquivo → tipo, título, data, arquivo → Guardar."]
   ];
 
   var GLOSSARIO = [

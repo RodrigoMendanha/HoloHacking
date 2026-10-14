@@ -219,6 +219,8 @@
     { id: "apresentar", mov: "APRESENTAR", nome: "Resultado", atalho: "resultado" },
     { id: "acompanhar", mov: "RETORNOS", nome: "Evolução", ir: "aba:evolucao" }
   ];
+  /* 14/10: Holos IA escondida -> o passo sai da jornada (o Resultado HOLOS e montado com o Playbook) */
+  if (window.HOLOS_IA_VISIVEL === false) PASSOS = PASSOS.filter(function (p) { return p.id !== "holosia"; });
   /* 14/10: o HOLOSCAN e aplicado no atendimento, com o paciente presente. Paciente novo, sem
      Mapeamento Holistico e sem HOLOSCAN: a acao principal e enviar o link; o HOLOSCAN fica secundario. */
   /* 14/10 (auditoria Cowork): o botao principal acompanha a proxima acao real da jornada (antes ficava
@@ -227,7 +229,7 @@
     mapear: { txt: "Aplicar HOLOSCAN", atalho: "holoscan" },
     integrar: { txt: "Ir para Ferramentas", ir: "aba:ferramentas" },
     holosia: { txt: "Abrir Holos IA", ir: "aba:holos-ai" },
-    consolidar: { txt: "Ver Resultado HOLOS", ir: "aba:resultado-holos" },
+    consolidar: { txt: window.HOLOS_IA_VISIVEL === false ? "Montar Resultado HOLOS" : "Ver Resultado HOLOS", ir: "aba:resultado-holos" },
     apresentar: { txt: "Ver Resultado", atalho: "resultado" },
     acompanhar: { txt: "Reaplicar HOLOSCAN", atalho: "holoscan" }
   };
@@ -576,6 +578,9 @@
     ["Resultado", "O que é apresentado ao paciente (PDF e WhatsApp).", "", "resultado"],
     ["Retornos", "Novo HOLOSCAN e a Evolução ao longo do acompanhamento.", "aba:evolucao", ""]
   ];
+  if (window.HOLOS_IA_VISIVEL === false) FLUXO = FLUXO.filter(function (f) { return f[0] !== "Holos IA"; }).map(function (f) {
+    return f[0] === "Resultado HOLOS" ? ["Resultado HOLOS", "Montado com o Playbook HOLOS: você escolhe o foco e as estratégias a partir do HOLOSCAN e das ferramentas.", f[2], f[3]] : f;
+  });
   function blocoContinuidade() {
     return '<div class="fic-fluxo">' +
       '<span class="fic-rot">Fluxo do atendimento</span>' +

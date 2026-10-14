@@ -1,4 +1,7 @@
 "use strict";
+/* 14/10: a Holos IA fica ESCONDIDA (menu, aba, botoes e passo da jornada); o Resultado sai pelo Playbook HOLOS.
+   O codigo da Holos IA continua: para religar, basta true aqui. */
+window.HOLOS_IA_VISIVEL = false;
 (function () {
   window.escapar = function (s) {
     return String(s == null ? "" : s)
