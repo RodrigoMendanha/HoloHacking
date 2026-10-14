@@ -4017,7 +4017,7 @@
   $("#btn-salvar-holoscan").addEventListener("click", async function () {
     const btn = this;
     if(pontuacaoNaTela && pontuacaoNaTela._supa_id){
-      toast("Este HOLOSCAN já está salvo. Para uma nova aplicação, use Reaplicar HOLOSCAN.");
+      toast("Este HOLOSCAN já está salvo e sincronizado. Para uma nova aplicação, use Reaplicar HOLOSCAN.");
       estadoSalvarHolo();
       return;
     }
