@@ -189,7 +189,7 @@ const errosJS = [];
 const espera = ms => new Promise(r => setTimeout(r, ms));
 async function sessao() {
   const P = await (await nav.createBrowserContext()).newPage();
-  await P.setViewport({ width: 1280, height: 1000 });
+  await P.setViewport({ width: Number(process.env.VW || 1280), height: 1000, deviceScaleFactor: Number(process.env.DPR || 1) });
   await P.emulateTimezone('America/Sao_Paulo');
   P.on('pageerror', e => errosJS.push(e.message));
   await ligarPagina(P, srv);
@@ -324,6 +324,11 @@ if (pdf.semLib) {
   const { existsSync } = await import('node:fs');
   const local = '/tmp/claude-0/-home-user-HoloHacking/2536f0de-9516-5291-b095-34b766c5940f/scratchpad/h2p/node_modules/html2pdf.js/dist/html2pdf.bundle.min.js';
   if (existsSync(local)) { await P.addScriptTag({ path: local }); pdf = await P.evaluate(async () => { try { const r = await window.ResultadoPagina.gerarPdf(); return { tam: r.blob.size, nome: r.nome }; } catch (e) { return { erro: e.message }; } }); }
+}
+if (process.env.PDF_OUT && !pdf.semLib) {
+  if (process.env.FONTE) await P.addStyleTag({ content: 'html{font-size:' + process.env.FONTE + '}' });   /* simula a fonte padrao maior do navegador */   /* ferramenta de conferencia: grava o PDF gerado para inspecao visual */
+  const b64 = await P.evaluate(async () => { const r = await window.ResultadoPagina.gerarPdf(); const buf = new Uint8Array(await r.blob.arrayBuffer()); let s = ''; for (let i = 0; i < buf.length; i += 32768) s += String.fromCharCode.apply(null, buf.subarray(i, i + 32768)); return btoa(s); });
+  (await import('node:fs')).writeFileSync(process.env.PDF_OUT, Buffer.from(b64, 'base64'));
 }
 ok(pdf.semLib || (pdf.tam > 20000 && /\.pdf$/.test(pdf.nome)), 'T14 PDF da emissão RF-3 gerado' + (pdf.semLib ? ' (gerador indisponível offline: só o bloqueio testado)' : ' (' + pdf.tam + ' bytes)'));
 const bloqueio = await P.evaluate(async () => { const orig = window.ResultadoPagina.emissaoAtual(); return window.ResultadoPagina.focoDaEmissao({ template_version: 'RF-3', content_snapshot: { direcao_paciente: { foco_atual: null } } }) === null

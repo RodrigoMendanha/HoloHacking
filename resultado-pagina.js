@@ -435,7 +435,13 @@
         /* pos-teste MR-V1 13/10: a quebra de pagina e feita por paginar() na copia do html2pdf (a regra automatica dele
            deixava titulo sozinho, moldura de cartao vazia e pagina quase vazia) */
         pagebreak: { mode: [] }
-      }).from(doc).toContainer().then(function () { paginar(this.prop.container, this.prop.pageSize.inner.px.height); });
+      }).from(doc).toContainer().then(function () {
+        /* 14/10: o html2pdf centraliza a copia (margin:auto); a "foto" mede o centro de outro jeito e saia deslocada
+           ~10px para a direita, cortando a borda direita (marca, data da emissao, cartoes). A copia fica presa a esquerda. */
+        var c = this.prop.container;
+        c.style.margin = "0"; c.style.left = "0"; c.style.right = "auto";
+        paginar(c, this.prop.pageSize.inner.px.height);
+      });
       return Promise.resolve(w.outputPdf("blob")).then(function (blob) { limpar(); return { blob: blob, nome: nome }; }, function (e) { limpar(); throw e; });
     });
   }

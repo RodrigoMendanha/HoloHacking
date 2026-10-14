@@ -6252,3 +6252,5 @@ body:not(.escuro) #secao-consultas .at-metricas .at-alerta b{color:#9a4a26}
   #secao-consultas .at-tabela td.at-c-baixos{flex-basis:100%;font-size:.8rem}
   #secao-consultas .at-tabela td.at-col-acao{position:absolute;right:14px;top:50%;transform:translateY(-50%)}
 }
+/* PDF: folga igual dos dois lados (nada encosta na borda da pagina, mesmo com fonte maior no navegador) */
+body.rp-gerando .rp-doc{padding:8px 18px 4px}
