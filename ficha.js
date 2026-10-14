@@ -885,6 +885,13 @@
     } catch (e) { return []; }
   }
 
+  /* 14/10 (auditoria Cowork): o numero de perguntas sai do pacote VIGENTE (81 no v7), nunca do numero antigo fixo */
+  function totalVigente() {
+    var H = window.HoloscanOficial;
+    var n = H && H.perguntas ? (H.perguntas() || []).length : 0;
+    return n ? String(n) : "as";
+  }
+
   function temConteudo(o) {
     return window.Panorama.temConteudo(o);
   }
@@ -994,7 +1001,7 @@
       })()
     ];
 
-    var html = '<p class="dash-sub">No método, o HOLOSCAN é um formulário: 84 ' +
+    var html = '<p class="dash-sub">No método, o HOLOSCAN é um formulário: ' + totalVigente() + ' ' +
       "respostas numa escala de 0 a 3. Aqui estão os quatro do método e o que " +
       "já foi respondido em cada um.</p>";
 
@@ -1019,7 +1026,10 @@
       return ativas.indexOf(id) >= 0;
     });
     /* o Mapa do Propósito nao tem aplicacao propria: conta como aplicado quando OQ³ e PQQ existem */
-    if (aplicadasAtivas.indexOf("mapa") < 0 && temConteudo(p.oq3) && temConteudo(p.pqq)) aplicadasAtivas.push("mapa");
+    var mapaDerivado = aplicadasAtivas.indexOf("mapa") < 0 && temConteudo(p.oq3) && temConteudo(p.pqq);
+    if (mapaDerivado) aplicadasAtivas.push("mapa");
+    /* 14/10 (auditoria Cowork): a contagem e os chips saem da MESMA lista — antes o Mapa entrava no "X de 10" sem chip */
+    var chips = d.ferramentas.concat(mapaDerivado ? ["mapa"] : []);
 
     html += '<div class="fic-forms-rodape">' +
       '<div class="fic-form-topo"><span class="fic-form-quem">' +
@@ -1028,8 +1038,8 @@
         '<span class="fic-form-estado">' +
           (aplicadasAtivas.length === 0 ? "nenhuma aplicada"
             : aplicadasAtivas.length + " de " + ativas.length + " aplicadas") + "</span></div>" +
-      (d.ferramentas.length > 0
-        ? '<div class="fic-ferramentas">' + d.ferramentas.map(function (id) {
+      (chips.length > 0
+        ? '<div class="fic-ferramentas">' + chips.map(function (id) {
             var legada = ativas.indexOf(id) < 0;
             return '<button type="button" class="fic-chip' +
               (legada ? " fic-chip-legado" : "") + '"' +

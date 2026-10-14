@@ -138,8 +138,8 @@ ok(/Mapa do Propósito/.test(d.prof) && /derivado de OQ³/.test(d.prof) && /Gera
 ok(!/CARTA_INTIMA_NAO_MOSTRAR|Irmã Ficticia|Colega Ficticio|verdadeiro motivo|JUSTIFICATIVA_SO_PROFISSIONAL|OBS_SO_PROFISSIONAL|Pendências metodológicas|Registro da ferramenta/i.test(d.pac)
   && !/rh-visual|rh-registro/.test(d.pacHtml) && /Síntese construída com a paciente/.test(d.pac) && /A Carta ao Futuro Eu foi realizada como exercício/.test(d.pac),
   'paciente: só o resultado — sem formulário inteiro/desenho, sem nomes de terceiros, sem o texto da Carta, sem "verdadeiro motivo", sem pendências');
-ok(d.ordemProf.join(' | ') === 'Resumo para decisão | Por que o sistema chegou a isso | Resultados das ferramentas | Síntese HOLOS | Leitura profissional — observações da nutricionista | Conduta',
-  'item 30: visão profissional na ordem conclusão → evidência → ferramentas → síntese → leitura → Conduta (vínculo) — ' + d.ordemProf.join(' | '));
+ok(d.ordemProf.join(' | ') === 'Resumo para decisão | Por que o sistema chegou a isso | Resultados das ferramentas | Síntese HOLOS | Leitura profissional — observações da nutricionista',
+  'item 30 (14/10: a Conduta saiu do Resultado HOLOS): visão profissional na ordem conclusão → evidência → ferramentas → síntese → leitura — ' + d.ordemProf.join(' | '));
 ok(d.ordemPac.join(' | ') === 'O que entendemos nesta etapa | Áreas para aprofundar | O que descobrimos com as ferramentas | Nosso foco agora | O que ficou combinado | O que observar até o próximo encontro | Detalhes do mapa'
   && d.rodapes === 0, 'item 31: visão da paciente em 8 blocos (Seu Mapa HOLOS no cabeçalho; detalhes do mapa por último) e sem rodapé no meio quando a página Resultado põe o seu — ' + d.ordemPac.join(' | '));
 ok(errosJS.length === 0, 'nenhum erro de JavaScript' + (errosJS.length ? ': ' + errosJS.join(' | ') : ''));

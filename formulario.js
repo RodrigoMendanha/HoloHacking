@@ -260,7 +260,7 @@
     }
     var vinculo = at ? " Atendimento: <b>" + escapar(A.rotuloQuando(at)) + "</b>."
       : (app && app.id ? " Sem atendimento vinculado." : " Sem atendimento selecionado — a aplicação fica sem vínculo com atendimento.");
-    return '<p class="form-sub">Preenchendo para <b class="form-paciente">' +
+    return '<p class="form-sub form-faixa">Preenchendo para <b class="form-paciente">' +
            escapar(nome) + "</b>." + consulta + vinculo + "</p>";
   }
 
@@ -864,10 +864,31 @@
     selo.className = "ferr-status " + (precisa ? "reaplicar" : CLASSE[estado] || "disponivel");
   }
 
+  /* 14/10 (auditoria Cowork): OQ³, PQQ e Mapa do Proposito tem tela propria (data-vista) e o selo era fixo
+     "Disponível" mesmo depois de aplicados. OQ³/PQQ leem a aplicacao real; o Mapa e derivado das duas metades. */
+  function marcarAncoras() {
+    if (!window.Aplicacoes) return;
+    var pinta = function (vista, texto, classe) {
+      var selo = document.querySelector('[data-vista="' + vista + '"] .ferr-status');
+      if (!selo) return;
+      selo.textContent = texto; selo.className = "ferr-status " + classe;
+    };
+    var est = {};
+    ["oq3", "pqq"].forEach(function (id) {
+      var e = window.Aplicacoes.statusDe(id);
+      est[id] = e === "concluida" || e === "revisada";
+      pinta("vista-" + id, window.Aplicacoes.rotulo(e), CLASSE[e] || "disponivel");
+    });
+    if (est.oq3 && est.pqq) pinta("vista-mapa", "Montado", "preenchida");
+    else if (est.oq3 || est.pqq) pinta("vista-mapa", est.oq3 ? "Falta o PQQ" : "Falta o OQ³", "rascunho");
+    else pinta("vista-mapa", "Disponível", "disponivel");
+  }
+
   function marcarTodos() {
     document.querySelectorAll("[data-ferramenta]").forEach(function (c) {
       marcarCard(c.dataset.ferramenta);
     });
+    marcarAncoras();
   }
 
   /* ---------- abrir --------------------------------------------------------- */
@@ -892,6 +913,17 @@
     marcarTodos();
     if (aberta && !aberta.alvo.classList.contains("hidden")) abrirFerramenta(aberta.f);
   };
+
+  /* 14/10 (auditoria Cowork): "Soltar" ou trocar o atendimento atualiza a linha "Atendimento: …" da ferramenta
+     aberta que ainda nao foi gravada (a que ja foi gravada mostra o atendimento gravado, que nao muda) */
+  document.addEventListener("DOMContentLoaded", function () {
+    if (!window.AtendimentoAtual || !window.AtendimentoAtual.aoMudar) return;
+    window.AtendimentoAtual.aoMudar(function () {
+      if (!aberta || !aberta.alvo || (aberta.app && aberta.app.id)) return;
+      var faixa = aberta.alvo.querySelector(".form-faixa");
+      if (faixa) faixa.outerHTML = faixaPaciente(aberta.app);
+    });
+  });
 
   /* Abre uma ferramenta de qualquer lugar do app — é o que permite o mapa
      mandar direto para a conduta, sem a pessoa procurar na galeria. */

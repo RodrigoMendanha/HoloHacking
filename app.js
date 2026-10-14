@@ -2069,9 +2069,29 @@
     };
   }
 
+  /* 14/10 (auditoria Cowork): a data da consulta de uma aplicacao NOVA do OQ³ vem do atendimento ativo
+     (nao do dia de hoje nem do atendimento anterior); "Soltar" o atendimento limpa a sugestao. A data que
+     quem atende digitou, ou a de uma aplicacao ja salva, nunca e trocada. */
+  function dataDoAtendimentoOQ3(){
+    const A = window.AtendimentoAtual, at = A && A.atual ? A.atual() : null;
+    const pid = window.pacienteAtivoId ? window.pacienteAtivoId() : null;
+    if(!at || at.patient_id !== pid) return "";
+    const dia = diaLocalOQ3(at.occurred_at);
+    return dia && dia <= hojeISO() ? dia : "";
+  }
+  function sugerirDataOQ3(){
+    const campo = $("#oq3-data");
+    if(!campo || !aplicacaoOQ3 || aplicacaoOQ3.status !== "rascunho") return;
+    if((aplicacaoOQ3.respostas || {}).data_consulta) return;
+    if(campo.value && campo.dataset.auto !== "1") return;
+    campo.value = dataDoAtendimentoOQ3();
+    campo.dataset.auto = "1";
+  }
+
   function pintarOQ3(r){
     const v = r || vazioOQ3();
     $("#oq3-data").value = v.data_consulta || "";
+    $("#oq3-data").dataset.auto = "";
     $("#oq3-quer").value = v.quer || "";
     $("#oq3-precisa").value = v.precisa || "";
     $("#oq3-consegue").value = v.consegue || "";
@@ -2160,6 +2180,7 @@
     }
     aplicacaoOQ3 = await window.Aplicacoes.abrir(FERR_OQ3);
     pintarOQ3(aplicacaoOQ3.respostas);
+    sugerirDataOQ3();
     notaDeQuandoOQ3();
     desenharHistoricoOQ3();
   }
@@ -2193,6 +2214,7 @@
     }
     sincronizarOQ3();
     renderPacientes();
+    if(window.remarcarCardsDeFerramenta) window.remarcarCardsDeFerramenta();
     notaDeQuandoOQ3();
     desenharHistoricoOQ3();
     toast("OQ³ salvo na ficha de " + p.nome + ".");
@@ -2204,6 +2226,10 @@
     descartar: () => { if(aplicacaoOQ3) pintarOQ3(aplicacaoOQ3.respostas || vazioOQ3()); }
   });
 
+  $("#oq3-data").addEventListener("input", function () { this.dataset.auto = ""; });
+  document.addEventListener("DOMContentLoaded", function () {
+    if(window.AtendimentoAtual && window.AtendimentoAtual.aoMudar) window.AtendimentoAtual.aoMudar(sugerirDataOQ3);
+  });
   $("#btn-salvar-oq3").addEventListener("click", async function () {
     const btn = this;
     if(!travarBotao(btn, "Salvando…")) return;
@@ -2222,6 +2248,7 @@
     try { aplicacaoOQ3 = await window.Aplicacoes.nova(FERR_OQ3); }
     catch(e) { return; }   // arquivado: nova() ja avisou
     pintarOQ3(vazioOQ3());
+    sugerirDataOQ3();
     notaDeQuandoOQ3();
     desenharHistoricoOQ3();
     toast("Nova aplicação do OQ³ — ela entra no histórico quando for salva. A anterior continua lá.");
@@ -2408,6 +2435,7 @@
     }
     sincronizarPQQ();
     renderPacientes();
+    if(window.remarcarCardsDeFerramenta) window.remarcarCardsDeFerramenta();
     notaDeQuandoPQQ();
     desenharHistoricoPQQ();
     toast("PQQ salvo na ficha de " + p.nome + ".");
