@@ -1203,6 +1203,20 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
        resposta é "Sim"; textos e exemplos ajustados. Visual: o título das perguntas de escolha (legend do fieldset) era
        desenhado em cima da borda do cartão; agora fica dentro, com o mesmo espaçamento das perguntas de texto. Total: 27
        perguntas principais.
+202. **Fluxo do atendimento enxuto na ficha** (14/10, decisões de Rodrigo, mesmo deploy):
+     - fluxo: cadastro → Mapeamento Holístico (link antes da consulta, no celular ou no computador) → no atendimento,
+       HOLOSCAN e ferramentas → Holos IA → Resultado HOLOS → Resultado (PDF/WhatsApp) → retornos (Evolução);
+     - jornada da ficha com 7 passos, cada um marcado só com dado real (Mapeamento "OK" quando recebido);
+       paciente novo: a ação principal é "Enviar Mapeamento Holístico" (o HOLOSCAN fica secundário);
+     - aba Atendimentos: "Fluxo do atendimento" no lugar de "Depois da consulta"; menu lateral Atendimentos escondido;
+     - abas Conduta e Relatório escondidas (o código e os dados continuam): o Resultado HOLOS é o lugar único dos
+       resultados (HOLOSCAN, ferramentas e análise da Holos IA); o aviso "mapa sem conduta" vira "mapa sem ferramentas";
+     - Documentos: sem documento, a lista vazia não aparece;
+     - Mapeamento: desconfortos como opções para marcar (relato opcional); botão "Marcar como revisado"
+       (migration aditiva 20261025100000: `reviewed_at` + RPC `marcar_convite_anamnese_revisado`);
+     - Resultado Final: PDF com a identidade HoloHacking (logo, faixa dourada), dados completos da nutricionista e
+       bloco de assinatura (assinatura sobre a linha, nome, registro, carimbo, data da emissão); WhatsApp envia o PDF
+       (anexado no celular; no computador, baixado com a conversa aberta).
 
 ## Decisões pendentes (não decididas aqui)
 
