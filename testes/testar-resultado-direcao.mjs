@@ -282,14 +282,14 @@ ok(/Ainda não aprofundado nesta etapa/.test(pv) && /O que vamos colocar em prá
   'T08 território sem item mostra "Ainda não aprofundado nesta etapa." com as perguntas aprovadas de Corpo, Mente e Espírito');
 ok(!/HIPOTESE_DA_TELA/.test(pv) && /PADRAO_DA_TELA/.test(pv) && !/Períodos de maior fome/.test(pv) && !/Dificuldades com a alimentação/.test(pv),
   'prévia da paciente: hipótese fora; padrão confirmado dentro; sugestão excluída e sugestão não confirmada fora');
-const ordem = await P.evaluate(() => [...document.querySelectorAll('#rh-doc .rd-secao h3, #rh-doc .rd-pilar-tit, #rh-doc #rh-t-det')].map(h => h.textContent.trim()));
-const idx = (t) => ordem.indexOf(t);
-const ORDEM = ['Seu momento agora', 'O que está pesando agora', 'O que você quer construir', 'O que estamos compreendendo', 'Foco atual', 'Direcionamentos desta fase', 'Estratégias combinadas',
-  'Caminho Corpo · Mente · Espírito', 'O que combinamos', 'Até o próximo encontro, observe', 'Acompanhamento da evolução', 'Próxima etapa', 'Detalhes do mapa', 'Os cinco sistemas'];
-const posicoes = ORDEM.map(t => ordem.lastIndexOf(t));
-ok(posicoes.every(i => i >= 0) && posicoes.every((v, i) => i === 0 || v > posicoes[i - 1]) && !ordem.includes('Como vamos caminhar'),
-  'visão da paciente na ordem aprovada (1 Seu momento … 14 Os cinco sistemas), sem "Como vamos caminhar": ' + ordem.join(' / '));
-ok(/ponto de partida/.test(pv), '1ª consulta sem avanço: "ponto de partida"');
+/* PDF da paciente refinado (15/10): compreensão e ação primeiro, mapa no fim; sem a página dos cinco sistemas */
+const ordem = await P.evaluate(() => [...document.querySelectorAll('#rh-doc .pf-tit')].map(h => h.textContent.trim()));
+const ORDEM = ['Seu momento agora', 'O que estamos compreendendo', 'Foco desta fase', 'O que vamos trabalhar agora', 'Seu plano até a próxima consulta',
+  'Corpo · Mente · Espírito', 'Até o próximo encontro, observe', 'Próxima etapa', 'Seu mapa HOLOS'];
+const posicoes = ORDEM.map(t => ordem.indexOf(t));
+ok(posicoes.every(i => i >= 0) && posicoes.every((v, i) => i === 0 || v > posicoes[i - 1]) && !/Os cinco sistemas|Detalhes do mapa|Como vamos caminhar/.test(pv),
+  'visão da paciente na ordem do refino (momento → compreendendo → foco → trabalhar → plano → C/M/E → observe → próxima etapa → mapa), sem a página dos cinco sistemas: ' + ordem.join(' / '));
+ok(/O plano pode evoluir/.test(pv), '1ª consulta: a próxima etapa deixa claro que o plano pode evoluir');
 await shot('t5-previa-paciente', '#rh-doc');
 await clicar('[data-rh-acao="salvar"]'); await confirmarModal();
 const salvoTela = srv.linhas('holos_results').filter(r => r.status === 'salvo' && r.encounter_id === E1 && r.id !== r1.data).pop();
@@ -311,7 +311,7 @@ ok(!/HIPOTESE_DA_TELA/.test(docPac) && /Organizar o fim da tarde/.test(docPac), 
 const msg = await P.evaluate(() => window.ResultadoPagina.mensagemWhatsAppEmissao({ nome: 'Marina Ficticia' }, window.ResultadoPagina.emissaoAtual()));
 ok(/^Olá, Marina! Segue seu Resultado HOLOS de \d\d\/\d\d\/\d{4}\. Nesta fase, nosso principal direcionamento é: Organizar o fim da tarde, que concentra fome forte e cansaço\. No documento estão as estratégias que combinamos, o que observar até o próximo encontro e como vamos acompanhar a evolução\.$/.test(msg || '') && !/HIPOTESE/.test(msg),
   'W01 WhatsApp: mensagem aprovada, com o direcionamento congelado na emissão, sem hipótese');
-ok(/Foco atual/.test(docPac) && /Direcionamentos desta fase/.test(docPac) && /Estratégias combinadas/.test(docPac) && /Levar um lanche e comer às 16h/.test(docPac) && !/SUGESTÃO DO SISTEMA/.test(docPac),
+ok(/Foco desta fase/.test(docPac) && /O que vamos trabalhar agora/.test(docPac) && /Seu plano até a próxima consulta/.test(docPac) && /Levar um lanche e comer às 16h/.test(docPac) && !/SUGESTÃO DO SISTEMA/.test(docPac),
   'P01 documento emitido (base do PDF): foco, direcionamento e estratégias compartilhadas presentes; nada de sugestão');
 /* B: emissao HISTORICA (template 4 / RF-2) continua abrindo pelo desenho historico */
 const hist = await P.evaluate((em, r) => { try { const h = window.ResultadoPagina.documentoEmissao(em, r); return { ok: true, tam: h.length, construcao: /EM CONSTRUÇÃO/.test(h), foco: window.ResultadoPagina.focoDaEmissao(em) }; } catch (e) { return { erro: e.message }; } },
@@ -374,10 +374,11 @@ ok(!!r2 && cam.length >= 1 && cam[cam.length - 1].foco && /Organizar o fim da ta
   'T10 retorno lê o Resultado anterior (foco e avanços compartilhados do snapshot imutável), sem hipótese e sem nota');
 await P.evaluate(() => { const b = document.querySelector('[data-rh-visao-troca="paciente"]'); if (b) b.click(); }); await espera(400);
 const pr = await texto('#rh-doc');
-ok(/Seu caminho até aqui/.test(pr) && /Antes \/ Agora/.test(pr) && /Avanços/.test(pr) && /O que permaneceu/.test(pr) && /Novo foco/.test(pr) && /Manter o lanche da tarde/.test(pr) && /Detalhes do mapa/.test(pr),
-  'R04 retorno na visão da paciente: caminho até aqui, antes/agora, avanços, o que permaneceu, novo foco, … detalhes do mapa');
-ok(/Estratégias testadas/.test(pr) && /Conseguiu em 4 de 6 dias/.test(pr) && /PERCEPCAO_DA_PACIENTE/.test(pr) && /decisão: manter/i.test(pr) && !/OBS_INTERNA_DA_NUTRI/.test(pr),
-  'R05 retorno: "Estratégias testadas" com o que aconteceu, o que a paciente percebeu e a decisão; observação da nutricionista fica só profissional');
+const prL = pr.toLowerCase(), FALTAM_R04 = ['O que mudou desde o último encontro', 'Foco do encontro anterior', 'Organizar o fim da tarde', 'Avanços', 'O que ainda pesa', 'Novo foco desta fase', 'Manter o lanche da tarde', 'O que manter e o que ajustar', 'Seu mapa HOLOS'].filter(x => !prL.includes(x.toLowerCase()));
+ok(!FALTAM_R04.length,
+  'R04 retorno na visão da paciente (refino 15/10): o que mudou (foco anterior, avanços, o que ainda pesa), o que manter/ajustar, novo foco, … mapa — faltam: ' + JSON.stringify(FALTAM_R04));
+ok(/O que foi possível fazer/.test(pr) && /Conseguiu em 4 de 6 dias/.test(pr) && /PERCEPCAO_DA_PACIENTE/.test(pr) && /decisão: manter/i.test(pr) && !/OBS_INTERNA_DA_NUTRI/.test(pr),
+  'R05 retorno: "O que foi possível fazer" com o que aconteceu, o que a paciente percebeu e a decisão; observação da nutricionista fica só profissional');
 const rr = r2.content_snapshot.direcao_paciente;
 ok(rr.acompanhamento_estrategias.length === 1 && rr.acompanhamento_estrategias[0].decisao === 'manter' && !('observacao' in rr.acompanhamento_estrategias[0])
   && rr.estrategias.some(e => e.status === 'manter' && e.anterior && e.anterior.estrategia_id), 'R06 servidor: acompanhamento com decisão na projeção (sem a observação interna); estratégia continuada com o vínculo "anterior"');

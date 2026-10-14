@@ -705,33 +705,127 @@
         '<ul class="rd-lista">' + es.map(function (x) { return "<li><p>" + esc(x.texto) + (x.observar ? " — <i>observar: " + esc(x.observar) + "</i>" : "") + "</p></li>"; }).join("") + "</ul>" : "");
     return secao("evolucao", "Acompanhamento da evolução", corpo, "rd-evolucao rd-grande");
   }
+  /* ======================= PDF / VISAO DA PACIENTE — REFINO FINAL (15/10) =======================
+     O documento da paciente e o PRODUTO FINAL da consulta: simples, humano e facil de aplicar. Ordem fixa:
+     1 Seu momento agora · 2 O que estamos compreendendo · 3 Foco desta fase · 4 O que vamos trabalhar agora (1-3) ·
+     5 Seu plano ate a proxima consulta (+ Nesta fase, combinamos) · 6 Corpo · Mente · Espirito · 7 Ate o proximo encontro,
+     observe (3-5) · 8 Proxima etapa · [9 Seu mapa HOLOS · 10 Ferramentas utilizadas: opts.detalhes, montado pelo Resultado HOLOS].
+     Regra: o que nao ajuda a paciente a compreender, agir, observar ou acompanhar NAO entra (por que tecnico, classificacao,
+     status, criterio de sucesso, origem, IDs). Tudo continua salvo no Resultado (visao profissional e Holos IA). */
+  var LIM = { momento: 3, dores: 3, desejos: 2, padroes: 4, direcionamentos: 3, estrategias: 6, observar: 5, territorio: 2, combinamos: 6, avancos: 4, permaneceu: 3 };
+  var EST_COMBINADA = { acordada: 1, em_teste: 1, manter: 1, ajustar: 1 };
+  var PROXIMA_PADRAO = "Na próxima consulta vamos revisar o que aconteceu com essas estratégias e decidir o que vale manter, ajustar ou substituir.";
+  function txt(t) { return esc(String(t || "").trim()).replace(/\n/g, "<br>"); }
+  function primeiraFrase(t, max) {
+    t = String(t || "").trim(); if (!t) return "";
+    var m = t.match(/^[\s\S]*?[.!?](\s|$)/); var f = m ? m[0].trim() : t;
+    max = max || 220; return f.length > max ? f.slice(0, max - 1).replace(/\s+\S*$/, "") + "…" : f;
+  }
+  function pfBloco(id, titulo, corpo, cls) {
+    if (!corpo) return "";
+    return '<section class="pf-bloco' + (cls ? " " + cls : "") + '" id="pf-' + id + '" aria-labelledby="pf-t-' + id + '"><h3 class="pf-tit" id="pf-t-' + id + '">' + esc(titulo) + "</h3>" + corpo + "</section>";
+  }
+  function pfLista(itens, n) {
+    var l = (itens || []).filter(function (x) { return x && tem(x.texto); }).slice(0, n || 99);
+    return l.length ? '<ul class="pf-lista">' + l.map(function (x) { return '<li><i aria-hidden="true">•</i><span>' + txt(x.texto) + "</span></li>"; }).join("") + "</ul>" : "";
+  }
+  function pfGrupo(rot, itens, n) { var l = pfLista(itens, n); return l ? '<div class="pf-grupo"><p class="pf-rot">' + esc(rot) + "</p>" + l + "</div>" : ""; }
+  function pfMomento(dp) {
+    return pfGrupo(dp.tipo === "retorno" ? "Como você chegou hoje" : "O que você trouxe", dp.momento, LIM.momento) + pfGrupo("O que mais incomoda", dp.dores, LIM.dores) + pfGrupo("O que você quer mudar", dp.desejos, LIM.desejos);
+  }
+  function pfCompreendendo(dp) {
+    var l = pfLista(dp.padroes, LIM.padroes);
+    return l ? '<p class="pf-intro">Na consulta apareceram alguns pontos que parecem acontecer juntos. Nesta fase, vamos observar como eles se relacionam no seu dia a dia.</p>' + l : "";
+  }
+  function pfFoco(dp, titulo) {
+    var f = dp.foco_atual;
+    return pfBloco("foco", titulo, f ? '<p class="pf-foco-txt">' + txt(f.texto) + "</p>" : '<p class="pf-vazio">O foco desta fase ainda vai ser definido com a sua nutricionista.</p>', "pf-foco");
+  }
+  function pfDirecionamentos(dp, titulo) {
+    var ds = (dp.direcionamentos || []).slice(0, LIM.direcionamentos);
+    if (!ds.length) return "";
+    return pfBloco("trabalhar", titulo, '<div class="pf-dirs">' + ds.map(function (x) {
+      var frase = primeiraFrase(x.objetivo) || primeiraFrase(x.porque);
+      return '<div class="pf-dir"><p class="pf-dir-tit">' + txt(x.texto) + "</p>" + (frase ? '<p class="pf-dir-txt">' + esc(frase) + "</p>" : "") + "</div>";
+    }).join("") + "</div>");
+  }
+  function freqDe(x) { return x.contexto && !CLASSIFICACAO_TECNICA.test(String(x.contexto).trim()) ? x.contexto : null; }
+  function pfEstrategia(x) {
+    var linha = function (rot, v) { return tem(v) ? '<div class="pf-campo"><span class="pf-campo-rot">' + esc(rot) + '</span><p>' + txt(v) + "</p></div>" : ""; };
+    return '<li class="pf-card"><p class="pf-card-tit">' + txt(x.texto) + "</p>" +
+      linha("O que fazer", x.acao) + linha("Quando / com que frequência", freqDe(x)) + linha("O que observar", x.observar) + linha("Até quando", x.prazo) + "</li>";
+  }
+  function pfPlano(dp, titulo) {
+    var es = (dp.estrategias || []).slice(0, LIM.estrategias);
+    var plano = es.length ? pfBloco("plano", titulo, '<ul class="pf-cards">' + es.map(pfEstrategia).join("") + "</ul>", "pf-plano") : "";
+    /* "Nesta fase, combinamos": so o que foi ACORDADO (estrategia acordada/em teste/mantida/ajustada e acordos compartilhados) —
+       nunca uma proposta nova da Holos IA como se ja estivesse combinada */
+    var comb = (dp.estrategias || []).filter(function (x) { return EST_COMBINADA[x.status]; }).map(function (x) { return { texto: x.acao ? primeiraFrase(x.acao, 160) : x.texto }; })
+      .concat((dp.acordos_compartilhados || []).map(function (a) { return { texto: a.texto }; }));
+    var vistos = {}; comb = comb.filter(function (c) { var k = String(c.texto || "").toLowerCase(); if (!k || vistos[k]) return false; vistos[k] = 1; return true; });
+    return plano + (comb.length ? pfBloco("combinamos", "Nesta fase, combinamos", pfLista(comb, LIM.combinamos), "pf-combinamos") : "");
+  }
+  function pfTerritorios(dp) {
+    return pfBloco("cme", "Corpo · Mente · Espírito", '<div class="pf-cme">' + TERRITORIOS.map(function (t) {
+      var it = ((dp[t] || {}).itens) || [];
+      return '<div class="pf-terr pf-terr-' + t + '"><p class="pf-terr-nome">' + esc(NOME_TERR[t]) + '</p><p class="pf-terr-perg">' + esc(PERGUNTA[t]) + "</p>" +
+        (it.length ? pfLista(it, LIM.territorio) : '<p class="pf-vazio">' + esc(VAZIO_TERR) + "</p>") + "</div>";
+    }).join("") + "</div>");
+  }
+  function pfObservar(dp) {
+    var l = pfLista(dp.observar, LIM.observar);
+    return l ? pfBloco("observar", "Até o próximo encontro, observe", l, "pf-observar") : "";
+  }
+  function pfProxima(dp) {
+    var t = dp.proxima_etapa && tem(dp.proxima_etapa.texto) ? dp.proxima_etapa.texto : PROXIMA_PADRAO;
+    return pfBloco("proxima", "Próxima etapa", '<p class="pf-proxima">' + txt(t) + '</p><p class="pf-nota">O plano pode evoluir: ele é revisto a cada encontro.</p>', "pf-proxima-bloco");
+  }
+  /* RETORNO: o que mudou, o que foi possivel fazer, o que manter/ajustar — sem repetir o primeiro documento */
+  function pfAcompanhamento(dp) {
+    var as = dp.acompanhamento_estrategias || [];
+    if (!as.length) return "";
+    var linha = function (rot, v) { return tem(v) ? '<div class="pf-campo"><span class="pf-campo-rot">' + esc(rot) + '</span><p>' + txt(v) + "</p></div>" : ""; };
+    return pfBloco("testadas", "O que foi possível fazer", '<ul class="pf-cards">' + as.map(function (x) {
+      return '<li class="pf-card"><p class="pf-card-tit">' + txt(x.texto) + (x.decisao ? ' <span class="pf-decisao">Decisão: ' + esc(DECISAO[x.decisao] || x.decisao) + "</span>" : "") + "</p>" +
+        linha("O que aconteceu", x.aplicou) + linha("O que ajudou", x.facilitou) + linha("O que dificultou", x.dificultou) + linha("O que você percebeu", x.percepcao || x.mudanca) + "</li>";
+    }).join("") + "</ul>");
+  }
+  /* retorno: o que manter / ajustar / substituir / concluir, numa linha por decisao */
+  function pfDecisoes(dp) {
+    var as = dp.acompanhamento_estrategias || [], ord = ["manter", "ajustar", "substituir", "concluir", "encerrar"];
+    var rot = { manter: "Vamos manter", ajustar: "Vamos ajustar", substituir: "Vamos substituir", concluir: "Concluído", encerrar: "Encerrado" };
+    var h = ord.map(function (d) { var l = as.filter(function (x) { return x.decisao === d; }).map(function (x) { return { texto: x.texto }; }); return pfGrupo(rot[d], l); }).join("");
+    return h ? pfBloco("decisoes", "O que manter e o que ajustar", h) : "";
+  }
   function htmlPaciente(dp, caminho, opts) {
     opts = opts || {};
     dp = dp || projecaoPaciente(null);
     var retorno = dp.tipo === "retorno";
-    var proxima = dp.proxima_etapa ? secao("proxima", "Próxima etapa", '<p class="rd-proxima">' + esc(dp.proxima_etapa.texto) + "</p>") : "";
-    var html = '<header class="rh-doc-cab rd-cab"><span class="eyebrow">Resultado HOLOS</span><h2>' + (retorno ? "Seu acompanhamento" : "Sua direção nesta etapa") +
+    var html = '<header class="rh-doc-cab rd-cab pf-cab"><span class="eyebrow">Resultado HOLOS</span><h2>' + (retorno ? "Seu acompanhamento" : "Sua direção nesta fase") +
       (opts.nome ? " &middot; " + esc(opts.nome) : "") + "</h2>" +
-      (opts.data || opts.profissional ? '<p class="rh-doc-sub">' + (opts.data ? "Encontro de " + esc(opts.data) : "") + (opts.profissional ? " · com " + esc(opts.profissional) : "") + "</p>" : "") +
+      (opts.data || opts.profissional ? '<p class="rh-doc-sub">' + (opts.data ? "Consulta de " + esc(opts.data) : "") + (opts.profissional ? " · com " + esc(opts.profissional) : "") + "</p>" : "") +
       (opts.previa ? '<p class="rh-previa-selo" role="status">PRÉVIA — ainda não salva. Nada aqui foi registrado.</p>' : "") +
-      (dp.foco_atual ? "" : '<p class="rd-construcao rd-construcao-selo" role="status">' + esc(EM_CONSTRUCAO) + "</p>") +
-      '<p class="rh-intro">Este documento reúne a direção do seu acompanhamento: para onde vamos nesta fase (direcionamentos), como vamos trabalhar na prática (estratégias) e como vamos acompanhar o que acontece (evolução). O mapa do HOLOSCAN fica no fim. Ele não é diagnóstico nem prescrição.</p></header>';
+      (dp.foco_atual ? "" : '<p class="rd-construcao rd-construcao-selo" role="status">' + esc(EM_CONSTRUCAO) + "</p>") + "</header>";
     if (retorno) {
-      html += pilarPac("evolucao_retorno", caminhoHtml(caminho, opts.data) + antesAgora(caminho, dp) +
-        secaoLista("avancos", "Avanços", dp.avancos, "", "Ainda não há avanço registrado nesta etapa.") +
-        secaoLista("permaneceu", "O que permaneceu", dp.permaneceu) + acompanhamentoHtml(dp) + secaoLista("padroes", "O que ficou mais claro", dp.padroes));
-      html += pilarPac("direcionamento", foco(dp, "Novo foco") + direcionamentosHtml(dp, "Novo direcionamento") + secaoLista("desejos", "O que você quer construir", dp.desejos));
-      html += pilarPac("estrategias", estrategiasHtml(dp, "Novas estratégias") + territorios(dp) + secaoLista("combinamos", "O que combinamos", dp.acordos_compartilhados));
-      html += pilarPac("proximo", secaoLista("observar", "Até o próximo encontro, observe", dp.observar) + proxima);
+      var agora = pfMomento(dp), ult = (caminho || [])[(caminho || []).length - 1];
+      var antes = ult && ult.foco && tem(ult.foco.texto) ? pfGrupo("Foco do encontro anterior" + (ult.atendimento_em ? " (" + dataCurta(ult.atendimento_em) + ")" : ""), [{ texto: ult.foco.texto }]) : "";
+      html += pfBloco("mudou", "O que mudou desde o último encontro", (antes + pfGrupo("Avanços", dp.avancos, LIM.avancos) + pfGrupo("O que ainda pesa", dp.permaneceu, LIM.permaneceu) + agora) ||
+        '<p class="pf-vazio">Ainda não registrado.</p>');
+      html += pfAcompanhamento(dp) + pfDecisoes(dp);
+      html += pfBloco("compreendendo", "O que estamos compreendendo", pfCompreendendo(dp));
+      html += pfFoco(dp, "Novo foco desta fase");
+      html += pfDirecionamentos(dp, "O que vamos trabalhar agora");
+      html += pfPlano(dp, "Seu plano até a próxima consulta");
     } else {
-      html += pilarPac("direcionamento", secaoLista("momento", "Seu momento agora", dp.momento) + secaoLista("dores", "O que está pesando agora", dp.dores) +
-        secaoLista("desejos", "O que você quer construir", dp.desejos) + secaoLista("padroes", "O que estamos compreendendo", dp.padroes) + foco(dp, "Foco atual") +
-        direcionamentosHtml(dp, "Direcionamentos desta fase"));
-      html += pilarPac("estrategias", estrategiasHtml(dp, "Estratégias combinadas") + territorios(dp) + secaoLista("combinamos", "O que combinamos", dp.acordos_compartilhados));
-      html += pilarPac("evolucao", secaoLista("observar", "Até o próximo encontro, observe", dp.observar) + evolucaoPrimeira(dp) + proxima);
+      html += pfBloco("momento", "Seu momento agora", pfMomento(dp));
+      html += pfBloco("compreendendo", "O que estamos compreendendo", pfCompreendendo(dp));
+      html += pfFoco(dp, "Foco desta fase");
+      html += pfDirecionamentos(dp, "O que vamos trabalhar agora");
+      html += pfPlano(dp, "Seu plano até a próxima consulta");
     }
+    html += pfTerritorios(dp) + pfObservar(dp) + pfProxima(dp);
     if (opts.detalhes) html += opts.detalhes;
-    return html;
+    return '<div class="pf-doc">' + html + "</div>";
   }
 
   /* OS CINCO SISTEMAS (visao da paciente, template 5): explicam POR QUE OLHAMOS. Prioritario: o que apareceu, o que vale

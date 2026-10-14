@@ -495,10 +495,43 @@
     var dataEnc = snap.atendimento ? dataBR(snap.atendimento.occurred_at) : dataBR(h.quando);
     var html = '<article class="rh-doc rh-doc-paciente rd-doc" id="rh-doc" aria-label="Resultado HOLOS — visão do paciente">' +
       RD().htmlPaciente(dp, caminho, { nome: snap.paciente && snap.paciente.nome, data: dataEnc, profissional: snap.profissional && snap.profissional.nome,
-        previa: !!meta.previa, detalhes: detalhesMapa(Object.assign({}, snap, { __dp: dp })) });
+        previa: !!meta.previa, detalhes: seuMapaPaciente(snap) });
     if (!meta.semRodape) html += '<footer class="rh-doc-rodape">Este material organiza o que foi registrado e combinado no seu acompanhamento. Ele não é diagnóstico nem prescrição: os próximos passos são combinados com a sua nutricionista em consulta.</footer>';
     return html + "</article>";
   }
+  /* PDF da paciente — refino final (15/10): SEU MAPA HOLOS compacto, depois de toda a parte pratica (radar, Indice, Triade e as
+     areas que merecem mais atencao, sem repetir direcionamentos/estrategias e sem a pagina dos cinco sistemas) + FERRAMENTAS
+     UTILIZADAS em uma frase (as respostas e leituras das ferramentas ficam no sistema, nao no PDF). */
+  function seuMapaPaciente(snap) {
+    var h = snap.holoscan || {}, SF = window.SistemasFechamento;
+    var html = "";
+    if (h && (h.sistemas || []).length) {
+      var fechs = SF ? SF.deResultado(snap, function (id) { return defFerr(id).titulo; }) : [];
+      var areas = (fechs || []).filter(function (f) { return f && f.resultado && f.resultado.prioridade; })
+        .sort(function (a, b) { return a.resultado.posicao - b.resultado.posicao; }).slice(0, 2);
+      html += '<section class="pf-bloco pf-mapa" id="pf-mapa" aria-labelledby="pf-t-mapa"><h3 class="pf-tit" id="pf-t-mapa">Seu mapa HOLOS</h3>' +
+        '<p class="pf-intro">O HOLOSCAN organiza os marcadores desta aplicação e ajuda a definir áreas para aprofundamento. Ele não é diagnóstico.</p>' +
+        gradeGeral(h, true) +
+        (areas.length ? '<div class="pf-areas"><p class="pf-rot">Áreas que merecem mais atenção nesta fase</p><ol class="pf-lista pf-lista-num">' + areas.map(function (f, i) {
+          var nome = String(f.nome || f.sistema).replace(/^Sistema\s+/i, "");
+          var def = f.organiza && SF && SF.definicaoPaciente ? primeiraFraseH(SF.definicaoPaciente(f.organiza)) : "";
+          return '<li><i aria-hidden="true">' + (i + 1) + "</i><span><b>" + e(nome) + "</b>" + (def ? " — " + e(def) : "") + "</span></li>";
+        }).join("") + "</ol></div>" : "") + "</section>";
+    }
+    var nomes = [], vistos = {};
+    (snap.ferramentas || []).forEach(function (t) { var n = defFerr(t.ferramenta_id).titulo; if (n && !vistos[n]) { vistos[n] = 1; nomes.push(n); } });
+    if (nomes.length) {
+      var lista = nomes.length > 1 ? nomes.slice(0, -1).join(", ") + " e " + nomes[nomes.length - 1] : nomes[0];
+      html += '<section class="pf-bloco pf-ferr" id="pf-ferramentas" aria-labelledby="pf-t-ferr"><h3 class="pf-tit" id="pf-t-ferr">Ferramentas utilizadas</h3>' +
+        "<p>Para aprofundar a sua consulta, foram utilizadas ferramentas do método HOLOS: " + e(lista) + ". As respostas ficam guardadas com a sua nutricionista.</p></section>";
+    }
+    /* Proximos Passos so quando a nutricionista ligou "Compartilhar com a paciente" (so nomes de ferramentas, linguagem simples) */
+    var S = window.ResultadoSintese;
+    if (S && S.htmlProximosPassosPaciente && snap.visibilidade && snap.visibilidade.proximos_passos === true)
+      html += '<section class="pf-bloco pf-pp" id="pf-pp">' + S.htmlProximosPassosPaciente(snap, function (id) { return defFerr(id).titulo; }, true) + "</section>";
+    return html;
+  }
+  function primeiraFraseH(t) { t = String(t || "").trim(); var m = t.match(/^[\s\S]*?[.!?](\s|$)/); t = m ? m[0].trim() : t; return t.length > 160 ? t.slice(0, 159).replace(/\s+\S*$/, "") + "…" : t; }
   /* DETALHES DO MAPA (fim do documento): HOLOSCAN (radar, Indice, Triade, cinco sistemas compactos) + registros de ferramentas compartilhados */
   function dpDe(snap) { return snap.__dp || snap.direcao_paciente || {}; }
   function detalhesMapa(snap) {

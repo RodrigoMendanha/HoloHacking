@@ -6301,3 +6301,63 @@ body.rp-gerando .rp-doc{padding:8px 18px 4px}
 #secao-pacientes .abas-ficha-caixa.grudada .abas-ctx-nome{display:block;flex:0 0 auto;max-width:16rem;padding:0 12px 0 14px;font-family:var(--fonte-titulo,inherit);color:var(--pc-ouro,#c9a35a);font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-right:1px solid rgba(201,163,90,.25)}
 #secao-pacientes .abas-ficha-caixa.grudada .abas{flex:1 1 auto;min-width:0}
 @media (max-width:700px){#secao-pacientes .abas-ficha-caixa.grudada .abas-ctx-nome{max-width:7rem;font-size:.82rem;padding:0 8px}}
+
+/* ======================= PDF / visão da paciente — refino final (15/10) =======================
+   Documento curto e aplicável: foco em destaque, plano em cartões, listas curtas; o mapa só no fim. */
+.pf-doc{display:flex;flex-direction:column;gap:.65rem}
+.pf-cab h2{margin-bottom:.15rem}
+.pf-bloco{background:var(--sup-card);border:1px solid var(--borda-suave);border-radius:14px;padding:.8rem 1.05rem;break-inside:avoid}
+.pf-tit{font-family:var(--fonte-display);font-size:1.22rem;color:var(--titulo);margin:0 0 .55rem;line-height:1.25}
+.pf-intro{margin:0 0 .55rem;color:var(--texto-suave);font-size:.92rem;line-height:1.5}
+.pf-rot{margin:.1rem 0 .3rem;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ouro-texto,#8a6f32);font-weight:600}
+.pf-grupo + .pf-grupo{margin-top:.6rem}
+.pf-lista{list-style:none;margin:0;padding:0;display:grid;gap:.35rem}
+/* display:grid (nao list-item): o html2canvas desenhava um marcador solto na margem do PDF */
+.pf-lista > li{display:flex;align-items:baseline;gap:.45rem;line-height:1.5;break-inside:avoid}
+.pf-cards > li{display:block}
+.pf-lista > li > i{flex:0 0 auto;font-style:normal;font-weight:700;color:var(--dourado)}
+.pf-lista > li > span{flex:1 1 auto;min-width:0}
+.pf-lista-num > li > i{color:var(--ouro-texto,#8a6f32)}
+.pf-vazio{margin:0;color:var(--texto-suave);font-style:italic;font-size:.9rem}
+.pf-nota{margin:.4rem 0 0;color:var(--texto-suave);font-size:.84rem}
+/* foco: uma frase, visualmente forte */
+.pf-foco{border:2px solid var(--dourado);background:var(--dourado-bg,#fbf5e8)}
+.pf-foco-txt{margin:0;font-family:var(--fonte-display);font-size:1.4rem;line-height:1.35;color:var(--titulo)}
+/* o que vamos trabalhar: titulo + 1 frase */
+.pf-dirs{display:grid;gap:.55rem}
+.pf-dir{border-left:4px solid var(--dourado);padding:.15rem 0 .15rem .8rem;break-inside:avoid}
+.pf-dir-tit{margin:0;font-weight:700;color:var(--titulo);letter-spacing:.02em;text-transform:uppercase;font-size:.88rem}
+.pf-dir-txt{margin:.2rem 0 0;line-height:1.5}
+/* plano: o bloco mais importante */
+.pf-plano{border-color:var(--realce,#2c6a51);border-width:2px}
+.pf-cards{list-style:none;margin:0;padding:0;display:grid;gap:.6rem}
+.pf-card{border:1px solid var(--borda-suave);border-radius:12px;padding:.65rem .85rem;background:var(--sup-fundo);break-inside:avoid}
+.pf-card-tit{margin:0 0 .35rem;font-weight:700;color:var(--titulo);text-transform:uppercase;letter-spacing:.03em;font-size:.88rem}
+.pf-campo{display:grid;grid-template-columns:11.5rem 1fr;gap:.6rem;align-items:baseline;padding:.12rem 0}
+.pf-campo-rot{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--texto-suave);font-weight:600}
+.pf-campo p{margin:0;line-height:1.45}
+.pf-decisao{display:inline-block;margin-left:.4rem;font-size:.68rem;padding:.1rem .5rem;border-radius:999px;border:1px solid var(--dourado);text-transform:uppercase;letter-spacing:.06em}
+/* corpo mente espirito */
+.pf-cme{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.6rem}
+.pf-terr{border:1px solid var(--borda-suave);border-radius:12px;padding:.65rem .75rem;background:var(--sup-fundo);break-inside:avoid}
+.pf-terr-nome{margin:0;font-family:var(--fonte-display);font-size:1.08rem;color:var(--titulo)}
+.pf-terr-perg{margin:.1rem 0 .45rem;font-size:.8rem;color:var(--texto-suave);font-style:italic}
+.pf-proxima{margin:0;font-size:1.02rem;line-height:1.5;color:var(--titulo);font-weight:500}
+/* mapa compacto */
+.pf-mapa .rh-geral-grade{margin:.3rem 0 .6rem}
+.pf-areas{margin-top:.4rem}
+@media (max-width:720px){.pf-cme{grid-template-columns:1fr}.pf-campo{grid-template-columns:1fr;gap:.1rem}.pf-bloco{padding:.8rem .85rem}.pf-foco-txt{font-size:1.2rem}}
+/* PDF (fundo branco, cores fixas para a impressão) */
+.rp-doc .pf-bloco{background:#fff;border-color:rgba(29,58,46,.14)}
+.rp-doc .pf-foco{background:#fbf5e8;border-color:#c9a35a}
+.rp-doc .pf-plano{border-color:#2c6a51}
+.rp-doc .pf-card,.rp-doc .pf-terr{background:#f7f4ec;border-color:rgba(29,58,46,.12)}
+.rp-doc .pf-tit,.rp-doc .pf-foco-txt,.rp-doc .pf-dir-tit,.rp-doc .pf-card-tit,.rp-doc .pf-terr-nome,.rp-doc .pf-proxima{color:#0b3325}
+.rp-doc .pf-campo-rot,.rp-doc .pf-intro,.rp-doc .pf-terr-perg,.rp-doc .pf-nota,.rp-doc .pf-vazio{color:#4c6357}
+.rp-doc .pf-rot,.rp-doc .pf-lista > li > i{color:#8a6f32}
+.rp-doc .pf-lista > li,.rp-doc .pf-dir-txt,.rp-doc .pf-campo p{color:#1d2a20}
+body.escuro .pf-foco{background:rgba(201,163,90,.10)}
+
+body.rp-gerando .pf-doc{gap:.5rem}
+body.rp-gerando .pf-mapa .rh-radar-caixa svg{max-height:190px}
+body.rp-gerando .rp-doc .pf-doc ul > li::before{content:none;display:none}

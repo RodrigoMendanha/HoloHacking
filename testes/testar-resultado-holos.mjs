@@ -155,7 +155,8 @@ await shot(A, 'rh-profissional', '#rh-doc');
 /* ----- 4: paciente ----- */
 await clicar(A, '[data-rh-visao-troca="paciente"]'); await espera(300);
 const pac = await A.evaluate(() => ({ t: document.getElementById('rh-doc').innerText }));
-ok(/Sua direção nesta etapa/.test(pac.t) && /FOCO_FICTICIO/.test(pac.t) && /Detalhes do mapa/.test(pac.t) && /ter mais energia/.test(pac.t) && /romper o ciclo/.test(pac.t) && /Mapa do Propósito/.test(pac.t), 'visão do paciente (template 5): direção e foco; nos Detalhes do mapa as ferramentas com "Mostrar ao paciente" ligado (OQ³, PQQ e o Mapa do Propósito)');
+/* PDF da paciente refinado (15/10): as respostas das ferramentas ficam no sistema; o documento só cita as ferramentas usadas */
+ok(/Sua direção nesta fase/.test(pac.t) && /FOCO_FICTICIO/.test(pac.t) && /Seu mapa HOLOS/.test(pac.t) && /Ferramentas utilizadas/.test(pac.t) && /OQ³/.test(pac.t) && /PQQ/.test(pac.t) && !/ter mais energia/.test(pac.t) && !/romper o ciclo/.test(pac.t) && !/Os cinco sistemas|Detalhes do mapa/.test(pac.t), 'visão do paciente (template 5, refino 15/10): direção e foco; ferramentas só citadas em "Ferramentas utilizadas" (respostas ficam no sistema); sem a página dos cinco sistemas');
 ok(!/PENSAMENTO_INTIMO|discussão em casa/.test(pac.t) && !/Irmã/.test(pac.t), 'ferramenta com "Mostrar ao paciente" desligado (Gatilhos, Conexão) não aparece');
 ok(!/cód\.|hash|[0-9a-f]{8}-[0-9a-f]{4}|Pontuou|Contexto, sem pontuar|HOLOS-V1@|QUESTAO_SO_PROFISSIONAL|respondidas/.test(pac.t), 'sem ids, hash, pacote, "pontuou", cobertura técnica nem questões para aprofundar');
 /* motor de resultados 12/10 (item 32): a paciente ve os enunciados aprovados das perguntas que mais contribuiram ("Voce tem...?");

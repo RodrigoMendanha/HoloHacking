@@ -203,9 +203,9 @@ const res = await P.evaluate(() => {
     { id: 'e1', texto: 'Estrategia ficticia A', contexto: 'Comportamental/metodológica', prazo: '2 semanas' },
     { id: 'e2', texto: 'Estrategia ficticia B', contexto: '3 vezes por semana' }] };
   const div = document.createElement('div'); div.innerHTML = window.ResultadoDirecao.htmlPaciente(dp, [], {});
-  return [...div.querySelectorAll('.rd-est')].map(li => li.innerText.replace(/\s+/g, ' '));
+  return [...div.querySelectorAll('.pf-card')].map(li => li.textContent.replace(/\s+/g, ' '));
 });
-ok(res.length === 2 && !/Comportamental\/metodológica/.test(res[0]) && !/com que frequência/.test(res[0]) && /Prazo 2 semanas/.test(res[0]) && /com que frequência 3 vezes por semana/.test(res[1]),
+ok(res.length === 2 && !/Comportamental\/metodológica/.test(res[0]) && !/com que frequência/.test(res[0]) && /Até quando ?2 semanas/.test(res[0]) && /com que frequência ?3 vezes por semana/.test(res[1]),
   'Resultado: a classificação técnica não aparece em "Quando / com que frequência"; frequência de verdade continua — ' + res.join(' || '));
 const contrato = readFileSync(new URL('../holos-ai-contrato.js', import.meta.url), 'utf8');
 ok(!/contexto: CLASSIFICACOES\[/.test(contrato), 'importação da Holos IA não grava mais a classificação no campo de frequência');

@@ -89,7 +89,7 @@ const tela = await P.evaluate(async () => {
   for (let i = 0; i < 40 && !document.querySelector('#aba-resultado-holos #rh-doc'); i++) await new Promise(r => setTimeout(r, 100));
   const d = document.querySelector('#aba-resultado-holos #rh-doc'); return d ? d.innerText : '';
 });
-ok(/Seu momento agora/.test(tela) && /O que você quer construir/.test(tela) && /O que estamos compreendendo|Foco atual/.test(tela), 'M3 na visão da paciente: "Seu momento agora" e "O que você quer construir" aparecem');
+ok(/Seu momento agora/.test(tela) && /O que você quer mudar/i.test(tela) && /Ter mais disposição à tarde/.test(tela) && /Foco desta fase/.test(tela), 'M3 na visão da paciente: "Seu momento agora" com o que a paciente trouxe e o que quer mudar (do Mapeamento)');
 
 /* M4 */
 ok(JSON.stringify(srv.linhas('anamnesis_invites').find(c => c.patient_id === PA).submitted_content) === original, 'M4 a resposta original do Mapeamento não mudou');

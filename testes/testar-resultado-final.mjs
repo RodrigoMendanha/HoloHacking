@@ -112,7 +112,7 @@ const R2 = srv.linhas('holos_results').filter(r => r.status !== 'rascunho').sort
 ok(R2 && R2.id !== R1.data && R2.content_snapshot.visibilidade.proximos_passos === true && R2.selected_sources.visao_paciente.proximos_passos === true, 'switch ligado → snapshot congela visibilidade.proximos_passos = true');
 await A.evaluate(() => document.querySelector('#aba-resultado-holos [data-rh-visao-troca="paciente"]').click()); await espera(700);
 t = await docTxt(A);
-ok(/O que ainda pode ser aprofundado/.test(t) && /Nenhuma é obrigatória/.test(t) && !/Ajuda a localizar|REC-|Aplique o/.test(t), 'Próximos Passos ON: aparecem para a paciente (template 5: nos Detalhes do mapa) em linguagem simples (só nomes de ferramentas)');
+ok(/O que ainda pode ser aprofundado/.test(t) && /Nenhuma é obrigatória/.test(t) && !/Ajuda a localizar|REC-|Aplique o/.test(t), 'Próximos Passos ON: aparecem para a paciente (15/10: depois de "Ferramentas utilizadas") em linguagem simples (só nomes de ferramentas)');
 if (SHOT) { await espera(400); const el = await A.$('#aba-resultado-holos .rh-pp-paciente'); if (el) await el.screenshot({ path: SHOT + '/paciente-pp-on.png' }); }
 
 /* RESULTADO ANTIGO (template 1): nada buscado ao vivo */

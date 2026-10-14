@@ -459,9 +459,9 @@
   var ATOMOS = [".rp-cab", ".rh-doc-cab", ".rh-resumo-lista > li", ".rh-intro", "h3", "h4", "h5", ".rh-sis > header",
     ".sf-bloco:not(.sf-c)", ".sf-c > .sf-rot", ".sf-c > .sf-nota", ".sf-c li", ".rh-ferr-topo", ".rf-caixa > .rh-tag", ".rf-bloco",
     ".rh-obs-item", ".rp-campo", ".rp-acordos > li", ".rh-geral-grade", ".rh-sistemas-compactos", ".rp-rodape", ".rh-mapa-grade", ".rh-visual",
-    ".rd-pilar-cab", ".rd-secao:not(.rd-grande)", ".rd-grande > header", ".rd-dir", ".rd-est-dir", ".rd-est", ".rd-sis > header", ".rd-sis-bloco", ".rd-sis-def", ".rd-sis-nota", ".rd-sis-limite", ".rd-h4", ".rd-texto-p", ".rd-lista > li", ".rd-territorio", ".rd-foco-txt", ".rd-caminho > li", ".rd-antes", ".rd-agora", ".rd-proxima", ".rd-vazio", ".rd-construcao"].join(",");
-  var TITULOS = "h3,h4,h5,.rh-intro,.sf-rot,.rh-tag,.rh-sis > header,.rh-ferr-topo,.rh-junto,.rd-pilar-cab,.rd-secao > header,.rd-sis > header,.rd-est-dir,.rd-h4";
-  var CARTOES = ".rh-sis,.rh-ferr,.rf-caixa,.rp-conduta,.rh-eixo,.rh-junto,.rh-obs-item,.rp-campo,.rd-secao,.rd-territorio,.rd-sis,.rd-dir,.rd-est";
+    ".pf-cab", ".pf-tit", ".pf-intro", ".pf-grupo", ".pf-lista > li", ".pf-foco", ".pf-dir", ".pf-card", ".pf-terr", ".pf-proxima-bloco", ".pf-ferr", ".pf-areas", ".pf-rot", ".rd-pilar-cab", ".rd-secao:not(.rd-grande)", ".rd-grande > header", ".rd-dir", ".rd-est-dir", ".rd-est", ".rd-sis > header", ".rd-sis-bloco", ".rd-sis-def", ".rd-sis-nota", ".rd-sis-limite", ".rd-h4", ".rd-texto-p", ".rd-lista > li", ".rd-territorio", ".rd-foco-txt", ".rd-caminho > li", ".rd-antes", ".rd-agora", ".rd-proxima", ".rd-vazio", ".rd-construcao"].join(",");
+  var TITULOS = ".pf-tit,.pf-rot,.pf-intro,h3,h4,h5,.rh-intro,.sf-rot,.rh-tag,.rh-sis > header,.rh-ferr-topo,.rh-junto,.rd-pilar-cab,.rd-secao > header,.rd-sis > header,.rd-est-dir,.rd-h4";
+  var CARTOES = ".pf-bloco,.pf-card,.pf-terr,.rh-sis,.rh-ferr,.rf-caixa,.rp-conduta,.rh-eixo,.rh-junto,.rh-obs-item,.rp-campo,.rd-secao,.rd-territorio,.rd-sis,.rd-dir,.rd-est";
   function paginar(caixa, alturaPagina) {
     if (!caixa || !alturaPagina) return;
     var topo = function (el) { return el.getBoundingClientRect().top - caixa.getBoundingClientRect().top; };

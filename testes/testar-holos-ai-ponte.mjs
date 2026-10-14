@@ -219,7 +219,7 @@ await clicarDeVerdade('[data-hai-acao="ver-resultado"]');
 await P.waitForFunction(() => !!document.querySelector('#aba-resultado-holos #rh-doc'), { timeout: 15000 }); await espera(400);
 const ver = await P.evaluate(() => ({ aba: (document.querySelector('[data-aba].ativa') || { dataset: {} }).dataset.aba, txt: document.getElementById('rh-doc').innerText,
   h: [...document.querySelectorAll('#rh-doc h3, #rh-doc h4')].map(h => h.textContent.trim()) }));
-const secoesPac = ['Seu momento agora', 'O que estamos compreendendo', 'Foco atual', 'Direcionamentos', 'Estratégias', 'Corpo', 'Até o próximo encontro, observe', 'Próxima etapa', 'Detalhes do mapa'];
+const secoesPac = ['Seu momento agora', 'O que estamos compreendendo', 'Foco desta fase', 'O que vamos trabalhar agora', 'Seu plano até a próxima consulta', 'Corpo · Mente · Espírito', 'Até o próximo encontro, observe', 'Próxima etapa', 'Seu mapa HOLOS', 'Ferramentas utilizadas'];
 const faltam = secoesPac.filter(s => !ver.h.some(h => h.indexOf(s) === 0) && ver.txt.indexOf(s) < 0);
 ok(ver.aba === 'resultado-holos' && !faltam.length && (await cliques()) === 1, 'V05 "Ver resultado" (1 clique): visão da paciente com as seções do método' + (faltam.length ? ' — faltam: ' + faltam.join(', ') : ''));
 ok(!/SUGESTÃO|HOLOS AI|hipótese|not_catalogued|REC-/.test(ver.txt), 'V05 visão da paciente sem marca de sugestão, sem HOLOS AI, sem hipótese, sem catálogo');
