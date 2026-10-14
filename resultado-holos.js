@@ -56,7 +56,7 @@
   };
 
   var cache = { pid: null, linhas: [], erro: null, carregado: false };
-  var modo = "lista";       // lista | editar | ver
+  var modo = "lista";       // lista | editar | ver | playbook
   var form = null;          // rascunho em edicao
   var vendo = null;         // { id, visao: "profissional" | "paciente" }
   var previa = null;        // snapshot devolvido pelo servidor (nao gravado)
@@ -738,13 +738,15 @@
     var html = cabecalho() + '<div class="rh-acoes-topo">' +
       /* simplificacao 14/10: o Resultado nasce da aba HOLOS AI (importar e gerar); a montagem manual fica como recurso avancado */
       '<button type="button" class="btn-verde" data-rh-acao="ir-holos-ai"' + (arq || !temSupa() ? " disabled" : "") + ">Gerar pela HOLOS AI</button>" +
+      /* Playbook HOLOS (PB-V1): o Resultado sem depender da IA — a nutricionista escolhe foco e estrategias do playbook */
+      '<button type="button" class="btn-verde" data-rh-acao="playbook"' + (arq || !temSupa() || !window.ResultadoPlaybook ? " disabled" : "") + ">Montar com o Playbook</button>" +
       (arq ? '<span class="dash-sub">' + e(MSG_HINT.paciente_arquivado) + "</span>" : "") +
       '<details class="rh-manual"><summary>Montar manualmente (avançado)</summary><p class="dash-sub">Sem a HOLOS AI: você escolhe as fontes e monta cada parte.</p>' +
       '<button type="button" class="btn-fantasma" data-rh-acao="novo"' + (arq || !temSupa() ? " disabled" : "") + ">Montar Resultado HOLOS manualmente</button></details></div>";
     if (!temSupa()) return html + '<p class="dash-vazio">O Resultado HOLOS fica no servidor: entre com a sua conta para gerar e consultar.</p>';
     if (cache.erro) return html + '<p class="q-erro">Não foi possível carregar os Resultados HOLOS: ' + e(mensagemErro(cache.erro)) + "</p>";
     html += '<section class="rh-historico" aria-labelledby="rh-t-hist"><h4 id="rh-t-hist" class="dash-titulo">Histórico de Resultados HOLOS</h4>';
-    if (!linhas.length) return html + '<p class="dash-vazio">Nenhum Resultado HOLOS ainda. Ele é gerado na aba HOLOS AI: copie o Pacote, traga a resposta da HOLOS AI e importe — o Resultado fica pronto.</p></section>';
+    if (!linhas.length) return html + '<p class="dash-vazio">Nenhum Resultado HOLOS ainda. Monte com o Playbook (você escolhe o foco e as estratégias, em poucos minutos) ou gere pela HOLOS AI.</p></section>';
     html += '<ul class="rh-hist-lista">' + linhas.map(function (r) {
       var s = r.content_snapshot || {}, sel = r.selected_sources || {};
       var nF = r.status === "rascunho" ? (sel.tool_application_ids || []).length : (s.ferramentas || []).length;
@@ -852,6 +854,7 @@
   function pintar() {
     var a = alvo(); if (!a) return;
     var pid = pacienteId();
+    if (modo === "playbook" && window.ResultadoPlaybook) { window.ResultadoPlaybook.pintar(a, pid); return; }
     a.innerHTML = modo === "editar" && form ? htmlEditar(pid) : modo === "ver" && vendo ? htmlVer() : htmlLista(pid);
     if (modo === "editar") atualizarContagem();
   }
@@ -879,6 +882,7 @@
     if (nome === "ver") { vendo = { id: btn.dataset.rhId, visao: btn.dataset.rhVisao || "profissional" }; modo = "ver"; return pintar(); }
     if (nome === "nova-versao") { form = novoForm(pid, porId(vendo.id)); previa = null; vendo = null; modo = "editar"; return pintar(); }
     if (nome === "imprimir") return imprimir();
+    if (nome === "playbook") return abrirPlaybook();
     if (nome === "ir-holos-ai") { var ah = document.querySelector('[data-aba="holos-ai"]'); if (ah) ah.click(); return; }
     if (nome === "ir-conduta") { var ab = document.querySelector('[data-aba="conduta"]'); if (ab) ab.click(); return; }
     var travar = function (p) {
@@ -1098,6 +1102,105 @@
       });
     }).catch(function (err) { return { salvo: false, motivo: "erro", erro: err, mensagem: mensagemErro(err) }; });
   }
+  /* PLAYBOOK HOLOS (PB-V1, 14/10): o Resultado sem depender da IA. prepararPlaybook le as MESMAS fontes do caminho automatico
+     (atendimento, HOLOSCAN oficial, ferramentas concluidas do atendimento, Mapeamento/anamnese, Resultado anterior) e devolve
+     o que o assistente precisa mostrar; gerarPorPlaybook grava o Resultado com o que a NUTRICIONISTA escolheu
+     (resultado-playbook.js). Nada e escolhido sozinho; o servidor valida a direcao como em qualquer Resultado. */
+  function prepararPlaybook(pid) {
+    pid = pid || pacienteId();
+    if (!RD() || !temSupa()) return Promise.resolve({ erro: "O Resultado HOLOS fica no servidor: entre com a sua conta." });
+    return carregar(pid).then(function () {
+      var f = novoForm(pid, null);
+      if (!f.encounter_id) return { erro: MSG_HINT.atendimento_obrigatorio };
+      var hs = aplicacoesHoloscan(pid).filter(function (h) { return h.oficial; });
+      var h = hs.filter(function (x) { return x.encounter_id === f.encounter_id; })[0] || hs[0];
+      if (!h) return { erro: MSG_HINT.holoscan_obrigatorio };
+      f.holoscan_application_id = h.id;
+      var visto = {};
+      f.tools = aplicacoesFerramentas(pid).filter(function (a) {
+        if (a.encounter_id !== f.encounter_id || visto[a.ferramenta_id]) return false;
+        visto[a.ferramenta_id] = true; return true;
+      }).map(function (a) { return a.id; });
+      f.compartilhar_pp = false;
+      var finais = doPaciente(pid).filter(function (r) { return r.status !== "rascunho" && r.encounter_id === f.encounter_id && !r.superseded_at; })
+        .filter(function (r) { return !cache.linhas.some(function (x) { return x.supersedes_id === r.id; }); })
+        .sort(function (a, b) { return String(b.saved_at || "").localeCompare(String(a.saved_at || "")); });
+      f.supersedes_id = finais[0] ? finais[0].id : null;
+      return rpc("previa_resultado_holos", { payload: payloadDe(f) }).then(function (snap) {
+        var SF = window.SistemasFechamento;
+        var prio = (SF && snap ? SF.deResultado(snap, function (id) { return defFerr(id).titulo; }) : [])
+          .filter(function (x) { return x && x.resultado && x.resultado.prioridade; })
+          .sort(function (a, b) { return a.resultado.posicao - b.resultado.posicao; }).map(function (x) { return x.sistema; });
+        var ferr = (snap && snap.ferramentas) || [];
+        var mom = ferr.filter(function (t) { return t.ferramenta_id === "linha_momentum"; })[0];
+        var ctx = contextoSugestoes(pid, f, snap), S = RD().sugestoes(ctx), relato = {};
+        LISTAS_RELATO.forEach(function (k) {
+          relato[k] = (S[k] || []).filter(function (it) { return it && ORIGENS_RELATO.indexOf(it.origem) >= 0 && !RD().termosFora(it.texto).length; });
+        });
+        var A = window.AtendimentoAtual, at = A && A.porId ? A.porId(f.encounter_id) : null;
+        return { form: f, snap: snap, tipo: f.direcao.tipo, prioritarios: prio, ferramentas: ferr.map(function (t) { return t.ferramenta_id; }),
+          nomesFerramentas: ferr.map(function (t) { return defFerr(t.ferramenta_id).titulo || t.ferramenta_id; }),
+          momentum: mom && mom.respostas ? mom.respostas.estado_confirmado || mom.respostas.estado || null : null, relato: relato, anterior: ctx.anterior,
+          anteriorDirecao: ctx.anterior && porId(ctx.anterior.id) ? porId(ctx.anterior.id).direcao || null : null,
+          anteriorEm: ctx.anterior && porId(ctx.anterior.id) ? (function (r) { var e = A && A.porId ? A.porId(r.encounter_id) : null; return e ? e.occurred_at : r.saved_at; })(porId(ctx.anterior.id)) : null,
+          atendimento: at ? (A.rotuloQuando ? A.rotuloQuando(at) : String(at.occurred_at || "").slice(0, 10)) : "", holoscanEm: h.quando || h.criado || "" };
+      });
+    }).catch(function (err) { return { erro: mensagemErro(err) }; });
+  }
+  /* escolha = { relato: [itens marcados], direcao: saida de PlaybookHolos.montarDirecao (ou parte dela),
+     acompanhamento: [itens do retorno], continuadas: [estrategias mantidas/ajustadas], focoAnterior: item, direcionamentosAnteriores: [itens], resumo: texto } */
+  function direcaoPorPlaybook(pb, escolha) {
+    var f = Object.assign({}, pb.form), m = escolha.direcao || {};
+    f.direcao = RD().normalizar(null, pb.tipo);
+    var d = f.direcao, S = {};
+    LISTAS_RELATO.forEach(function (k) { S[k] = []; });
+    (escolha.relato || []).forEach(function (it) { if (S[it.lista]) S[it.lista].push(Object.assign({}, it.item, { confirmado: true, mostrar_paciente: true, descartado: false })); });
+    RD().mesclar(d, S);
+    d.acompanhamento_estrategias = (escolha.acompanhamento || []).slice();
+    d.foco_atual = escolha.focoAnterior || m.foco_atual || null;
+    d.direcionamentos = (escolha.direcionamentosAnteriores || []).concat(m.direcionamentos || []);
+    d.estrategias = (escolha.continuadas || []).concat(m.estrategias || []).slice(0, (window.PlaybookHolos && window.PlaybookHolos.MAX_ESTRATEGIAS) || 6);
+    ["corpo", "mente", "espirito"].forEach(function (t) { d[t].itens = (m[t] || []).slice(); });
+    (escolha.continuadas || []).forEach(function (e) {
+      var PB = window.PlaybookHolos, def = PB ? PB.porId(PB.origemPlaybook(e.anterior && e.anterior.estrategia_id)) : null;
+      if (def && d[def.territorio]) d[def.territorio].itens.push({ id: "pb1-" + def.id + "-t-" + Math.random().toString(36).slice(2, 8), texto: e.texto, texto_sugerido: e.texto,
+        origem: "nutricionista", ref: null, sugestao: false, confirmado: true, mostrar_paciente: true, descartado: false });
+    });
+    d.observar = (m.observar || []).slice();
+    d.proxima_etapa = m.proxima_etapa || null;
+    f.leitura_profissional = escolha.resumo || "";
+    return f;
+  }
+  function gerarPorPlaybook(pb, escolha) {
+    if (!pb || !pb.form || !RD()) return Promise.resolve({ salvo: false, mensagem: "Prepare o Playbook de novo." });
+    var f = direcaoPorPlaybook(pb, escolha), d = f.direcao, pid = f.pid;
+    if (!RD().focoConfirmado(d)) return Promise.resolve({ salvo: false, mensagem: MSG_HINT.foco_obrigatorio });
+    if (!d.estrategias.length) return Promise.resolve({ salvo: false, mensagem: "Escolha pelo menos 1 estratégia." });
+    return rpc("salvar_resultado_holos", { payload: Object.assign(payloadDe(f), { operation_id: uuid() }) }).then(function (id) {
+      return carregar(pid).then(function () { form = null; previa = null; vendo = { id: id, visao: "paciente" }; modo = "ver"; return { salvo: true, id: id }; });
+    }, function (err) { return { salvo: false, mensagem: mensagemErro(err), erro: err }; });
+  }
+  /* previa: o mesmo Resultado que seria gravado, projetado para a paciente (nada salvo) */
+  function previaPlaybook(pb, escolha) {
+    if (!pb || !pb.form || !RD()) return "";
+    var f = direcaoPorPlaybook(pb, escolha);
+    var dp = RD().projecaoPaciente(f.direcao);
+    var ant = pb.anterior && pb.anterior.direcao_paciente ? [{ foco: pb.anterior.direcao_paciente.foco_atual, atendimento_em: pb.anteriorEm || null }] : [];
+    return RD().htmlPaciente(dp, ant, { previa: true });
+  }
+  /* o assistente desenha dentro da aba Resultado HOLOS (modo "playbook") */
+  function abrirPlaybook() {
+    form = null; previa = null; vendo = null; modo = "playbook";
+    if (window.ResultadoPlaybook) window.ResultadoPlaybook.reiniciar();
+    var ab = document.querySelector('[data-aba="resultado-holos"]');
+    if (ab && !(ab.classList.contains("ativa") || ab.getAttribute("aria-selected") === "true")) ab.click(); else pintar();
+  }
+  function sairPlaybook(id) {
+    if (id) { form = null; previa = null; vendo = { id: id, visao: "paciente" }; modo = "ver"; }
+    else { modo = "lista"; }
+    pintar();
+  }
+
   /* abre a aba Resultado HOLOS ja na versao pedida (visao da paciente por padrao) ou no editor de nova versao */
   function abrirResultado(id, visao, editar) {
     var r = porId(id);
@@ -1112,6 +1215,7 @@
 
   window.ResultadoHolos = {
     receberHolosAI: receberHolosAI, gerarAutomatico: gerarAutomatico, abrirResultado: abrirResultado,
+    prepararPlaybook: prepararPlaybook, gerarPorPlaybook: gerarPorPlaybook, previaPlaybook: previaPlaybook, abrirPlaybook: abrirPlaybook, sairPlaybook: sairPlaybook,
     desenhar: desenhar, carregar: carregar, doPaciente: doPaciente, porId: porId,
     documentoHtml: documentoHtml, radarSvg: radarSvg, contextoSugestoes: contextoSugestoes, formAtual: function () { return form; }, AVISO_INDICE: AVISO_INDICE, FAIXA_PACIENTE: FAIXA_PACIENTE, relatorioProfissionalHtml: relatorioProfissionalHtml,
     /** para o Relatorio e, no futuro, a HOLOS AI: o snapshot salvo, estruturado (nunca a ficha viva) */

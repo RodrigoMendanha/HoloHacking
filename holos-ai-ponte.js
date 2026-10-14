@@ -341,6 +341,8 @@
     }
     if (cache.erro) html += '<p class="hai-erro" role="alert">Não foi possível carregar as análises da Holos IA. Recarregue a página.</p>';
     if (bloq) html += '<p class="hai-aviso">' + e(MSG.paciente_arquivado) + "</p>";
+    /* Playbook HOLOS (PB-V1): o caminho sem IA, a nutricionista escolhe foco e estrategias */
+    if (!bloq && window.ResultadoPlaybook) html += '<p class="hai-playbook">Sem IA? <button type="button" class="btn-link" data-hai-acao="playbook">Monte o Resultado com o Playbook</button> — você escolhe o foco e as estratégias em poucos minutos.</p>';
     var texto = tela.texto[eid] || "";
     html += '<ol class="hai-passos">' +
       passo(1, "Copiar Pacote Holos IA", "Mapeamento, HOLOSCAN, ferramentas e o resultado anterior. Sem nome, contatos ou exames.",
@@ -424,6 +426,10 @@
       var campo = q("#hai-url-campo"), H = window.HolosAI;
       if (!H || !H.guardarUrl || !H.guardarUrl(campo ? campo.value : "")) { toast("Use o link completo da Holos IA, começando com https://"); return; }
       tela.editandoUrl = false; toast(campo && campo.value.trim() ? "Link da Holos IA salvo neste navegador." : "Link removido."); desenhar(); return;
+    }
+    if (nome === "playbook") {
+      if (naPagina() && window.levarParaFicha) { window.levarParaFicha("aba:resultado-holos", pacienteId()); setTimeout(function () { if (R && R.abrirPlaybook) R.abrirPlaybook(); }, 300); return; }
+      if (R && R.abrirPlaybook) R.abrirPlaybook(); return;
     }
     if (nome === "importar") return importar(el);
     if (nome === "gerar") return travar(aceitarEGerar(pacienteId(), el.getAttribute("data-hai-import")), el).then(null, function (err) { tela.falha = msgErro(err); desenhar(); });
