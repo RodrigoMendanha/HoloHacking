@@ -69,6 +69,15 @@
 
   /* `prefixo` distingue o mesmo campo em linhas diferentes de uma lista:
      `eventos-2-fome` é a fome do terceiro evento. */
+  /* 14/10: a ferramenta que esta sendo desenhada (para o "?" e o exemplo em cinza de cada pergunta) */
+  var ferrAtual = null;
+  function ajudaCampo(campo) { var A = window.AjudaFerramentas; return A && ferrAtual ? A.botaoCampo(ferrAtual, campo.id, campo.rotulo) : ""; }
+  function exemploAttr(campo) {
+    var A = window.AjudaFerramentas, e = A && ferrAtual && A.exemplo ? A.exemplo(ferrAtual, campo.id) : "";
+    return e ? ' placeholder="' + escapar(e) + '"' : "";
+  }
+  function ajudaLeitura(id, rot) { var A = window.AjudaFerramentas, h = A ? A.botaoCampo("_leitura", id, rot) : ""; return h ? " " + h : ""; }
+  function exemploLeitura(id) { var A = window.AjudaFerramentas, e = A && A.exemplo ? A.exemplo("_leitura", id) : ""; return e ? ' placeholder="' + escapar(e) + '"' : ""; }
   function campoHTML(campo, valor, prefixo) {
     var nome = "campo-" + (prefixo ? prefixo + "-" : "") + campo.id;
     var dica = campo.dica ? '<span class="dica">' + escapar(campo.dica) + "</span>" : "";
@@ -78,7 +87,7 @@
     var i;
 
     if (campo.tipo === "textarea") {
-      ctrl = '<textarea id="' + nome + '" rows="' + (campo.grande ? 12 : 4) + '">' +
+      ctrl = '<textarea id="' + nome + '" rows="' + (campo.grande ? 12 : 4) + '"' + exemploAttr(campo) + '>' +
              escapar(vazio ? "" : valor) + "</textarea>";
 
     } else if (campo.tipo === "escala") {
@@ -138,11 +147,11 @@
       ctrl = '<input type="number" id="' + nome + '" value="' + escapar(vazio ? "" : valor) + '">';
 
     } else {
-      ctrl = '<input type="text" id="' + nome + '" value="' + escapar(vazio ? "" : valor) + '">';
+      ctrl = '<input type="text" id="' + nome + '" value="' + escapar(vazio ? "" : valor) + '"' + exemploAttr(campo) + '>';
     }
 
     return '<div class="grupo tipo-' + campo.tipo + '">' +
-           '<label for="' + nome + '">' + escapar(campo.rotulo) + "</label>" +
+           '<label for="' + nome + '">' + escapar(campo.rotulo) + (ajudaCampo(campo) ? " " + ajudaCampo(campo) : "") + "</label>" +
            dica + ctrl + "</div>";
   }
 
@@ -315,6 +324,7 @@
     if (window.limpaSuja) window.limpaSuja("ferramenta");
     if (bloqueada(f, app)) return desenharRegistroFechado(f, alvo, app);
     var r = (app && app.respostas) || {};
+    ferrAtual = f.id;
     var resultado = !f.registro && window.ResultadoCorpo
       ? window.ResultadoCorpo.derivar(f, r) : null;
 
@@ -374,17 +384,17 @@
       '<h4 class="ferr-grupo-titulo">Leitura profissional</h4>' +
       '<p class="perf-ajuda">O que o sistema mostra acima é observação. ' +
       "A interpretação é sua, e é ela que fecha a aplicação.</p>" +
-      '<div class="grupo"><label for="leit-texto">O que chamou atenção</label>' +
-        '<textarea id="leit-texto" rows="3"' + off + '>' + escapar(app.leitura || "") + "</textarea></div>" +
+      '<div class="grupo"><label for="leit-texto">O que chamou atenção' + ajudaLeitura("texto", "O que chamou atenção") + '</label>' +
+        '<textarea id="leit-texto" rows="3"' + exemploLeitura("texto") + off + '>' + escapar(app.leitura || "") + "</textarea></div>" +
       '<div class="perf-grade">' +
-        '<div class="grupo"><label for="leit-prioridade">Prioridade</label>' +
+        '<div class="grupo"><label for="leit-prioridade">Prioridade' + ajudaLeitura("prioridade", "Prioridade") + '</label>' +
           '<div class="grupo-opcoes" data-campo="leit-prioridade">' +
             prioridades.map(function (p) {
               return '<button type="button" class="btn-opcao' +
                 (app.prioridade === p ? " marcado" : "") +
                 '" data-valor="' + escapar(p) + '"' + off + '>' + escapar(p) + "</button>";
             }).join("") + "</div></div>" +
-        '<div class="grupo"><label for="leit-passo">Próximo passo</label>' +
+        '<div class="grupo"><label for="leit-passo">Próximo passo' + ajudaLeitura("passo", "Próximo passo") + '</label>' +
           '<input type="text" id="leit-passo" value="' + escapar(app.proximo_passo || "") +
           '" placeholder="ação, investigação, monitoramento ou encaminhamento"' + off + '></div>' +
       "</div>" +

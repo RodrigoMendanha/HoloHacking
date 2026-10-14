@@ -6097,3 +6097,12 @@ body.rh-imprimindo #rh-doc .eyebrow,body.rh-imprimindo #rh-doc .rd-sis-foco,body
 }
 /* MH-2 (14/10): versao do questionario no fim da resposta do Mapeamento na ficha */
 .mh-versao{margin:10px 0 0;font-size:.74rem;color:var(--texto-suave);letter-spacing:.02em}
+/* 14/10: "?" de cada pergunta das ferramentas (menor e mais discreto que o do titulo) e exemplo em cinza */
+.ajuda-campo{margin-left:4px}
+.ajuda-campo .ajuda-ferr-btn{width:18px;height:18px;font-size:.66rem;opacity:.85}
+.ajuda-campo .ajuda-ferr-btn:hover,.ajuda-campo.aberta .ajuda-ferr-btn{opacity:1}
+.card-ferr .ajuda-ferr{margin-left:6px}
+.card-ferr span.ajuda-ferr-btn{display:inline-flex;align-items:center;justify-content:center;cursor:help}
+.card-ferr .ajuda-ferr-pop{font-weight:400;text-transform:none;letter-spacing:normal;text-align:left}
+#secao-corpo textarea::placeholder,#secao-corpo input::placeholder,#secao-mente textarea::placeholder,#secao-mente input::placeholder,
+#secao-espirito textarea::placeholder,#secao-espirito input::placeholder{color:var(--texto-suave);opacity:.75;font-style:italic}

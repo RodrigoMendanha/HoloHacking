@@ -143,9 +143,30 @@ for (const id of ids) {
 }
 ok(ajuda.every(a => /:ok$/.test(a)), '"?" nas 10 ferramentas: O que é / Por que usar / Quando usar ("Pode ser especialmente útil quando..."), dentro da janela — ' + ajuda.filter(a => !/:ok$/.test(a)).join(' ') );
 await P.evaluate(() => document.activeElement && document.activeElement.blur());
-await P.focus('.ajuda-ferr[data-ajuda-ferr="conexao_pertencimento_v1"] .ajuda-ferr-btn').catch(() => null);
+await P.evaluate(() => { const b = [...document.querySelectorAll('.ajuda-ferr[data-ajuda-ferr="conexao_pertencimento_v1"] .ajuda-ferr-btn')].find(x => x.offsetParent); if (b) b.focus(); });
 ok(await P.evaluate(() => !!document.querySelector('.ajuda-ferr.aberta')), '"?" abre pelo teclado (foco)');
 await P.keyboard.press('Escape');
+/* 14/10: "?" ao lado do nome na LISTA de ferramentas, "?" em CADA pergunta e exemplo em cinza nos campos de texto */
+await P.evaluate((pid) => { window.definirPacienteAtivo(pid); window.irParaSecao('corpo'); }, PA); await espera(500);
+const cardsAj = await P.evaluate(() => [...document.querySelectorAll('.card-ferr')].filter(c => c.querySelector('.ajuda-ferr')).length);
+ok(cardsAj === 10, 'lista de ferramentas: "?" ao lado do nome das 10 ferramentas (' + cardsAj + ')');
+await (await P.$('#secao-corpo .card-ferr[data-ferramenta="linha_momentum"] .ajuda-ferr-btn')).click(); await espera(150);
+ok(await P.evaluate(() => !!document.querySelector('.card-ferr .ajuda-ferr.aberta') && (document.querySelector('.secao.ativa') || {}).id === 'secao-corpo' && !document.querySelector('#secao-corpo .ferr-form, #vista-ferramenta:not(.hidden) .ferr-form')),
+  'o "?" do cartão abre a explicação sem abrir a ferramenta');
+await P.keyboard.press('Escape');
+const porCampo = [];
+for (const id of ['linha_momentum', 'mapa_crencas', 'gatilhos_respostas_v1', 'roda_vida', 'carta_futuro', 'conexao_pertencimento_v1']) {
+  await P.evaluate((id) => window.abrirFerramentaPorId(id), id); await espera(400);
+  porCampo.push(await P.evaluate((id) => { const ls = [...document.querySelectorAll('.grupo label')].filter(l => l.offsetParent);
+    const ts = [...document.querySelectorAll('.grupo textarea, .grupo input[type=text]')].filter(e => e.offsetParent);
+    return id + ':' + ls.filter(l => l.querySelector('.ajuda-campo')).length + '/' + ls.length + ' ex:' + ts.filter(e => e.placeholder).length + '/' + ts.length; }, id));
+}
+ok(porCampo.every(x => { const m = x.match(/:(\d+)\/(\d+) ex:(\d+)\/(\d+)/); return m && m[1] === m[2] && Number(m[3]) >= Number(m[4]) - 1; }), '"?" em cada pergunta e exemplo em cinza nos campos de texto: ' + porCampo.join(' '));
+const pop = await P.evaluate(() => { const w = document.querySelector('.ajuda-campo'); w.querySelector('button').click(); const t = w.querySelector('.ajuda-ferr-pop').innerText; document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })); return t; });
+ok(/O que preencher/i.test(pop) && /Para que serve/i.test(pop), 'o "?" da pergunta explica O que preencher e Para que serve');
+await P.evaluate((pid) => window.levarParaFicha('corpo', pid), PA); await espera(400);
+ok(await P.evaluate(() => ['oq3-quer', 'oq3-precisa', 'oq3-consegue', 'oq3-alavancas'].every(id => document.querySelector('label[for="' + id + '"] .ajuda-campo') && document.getElementById(id).placeholder)),
+  'OQ³: "?" e exemplo em cada pergunta');
 
 /* ===== 8. COWORK ===== */
 await P.evaluate((pid) => window.levarParaFicha('aba:ferramentas', pid), PB); await espera(700);
