@@ -79,7 +79,7 @@ conferir(/Inicie um atendimento/.test(vazio.texto) && /Marcar na agenda não cri
   'texto do estado vazio: ' + vazio.texto);
 conferir(!vazio.temProxima, 'sem consulta, nenhum bloco "Próxima consulta" aparece');
 /* 14/10: no lugar de "Depois da consulta", o fluxo completo do atendimento */
-conferir(vazio.continuidade.join(',') === 'Mapeamento Holístico,HOLOSCAN,Ferramentas,Holos IA,Resultado HOLOS,Resultado,Retornos',
+conferir(vazio.continuidade.join(',') === 'Mapeamento Holístico,HOLOSCAN,Ferramentas,Resultado HOLOS,Resultado,Retornos',
   'o fluxo do atendimento aparece mesmo vazio: ' + vazio.continuidade.join(' · '));
 
 /* -------------------------------- "Nova consulta" pre-seleciona a pessoa - */

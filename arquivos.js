@@ -196,7 +196,7 @@
       "</div>" +
 
       '<p class="arq-intro">Exames, laudos, receitas e outros documentos do paciente ficam guardados aqui para você consultar. ' +
-      "O sistema <b>não lê nem interpreta</b> os arquivos: eles não entram no HOLOSCAN, no Resultado, em relatórios nem no HOLOS AI. " +
+      "O sistema <b>não lê nem interpreta</b> os arquivos: eles não entram no HOLOSCAN, no Resultado nem em relatórios. " +
       (temSupa()
         ? "O arquivo vai para o <b>armazenamento privado da sua conta</b> e abre em qualquer aparelho em que você entrar.</p>"
         : "<b>Sem login, o arquivo fica só neste navegador.</b></p>") +

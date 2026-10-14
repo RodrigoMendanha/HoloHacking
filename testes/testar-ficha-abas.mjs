@@ -131,7 +131,7 @@ conferir(/42 anos/.test(topo.sobre) && /Feminino/.test(topo.sobre),
 conferir(topo.detalhesFechados, 'os detalhes do cadastro começam fechados');
 /* redesign 12/10: Aplicar HOLOSCAN em destaque, Nova consulta, e o resto em "Mais ações" (as mesmas acoes de antes) */
 /* 14/10 (auditoria Cowork): o botao principal acompanha a proxima acao da jornada (Aplicar HOLOSCAN -> Ferramentas -> Holos IA -> ...) */
-conferir(/^(Aplicar HOLOSCAN|Ir para Ferramentas|Abrir Holos IA|Ver Resultado HOLOS|Ver Resultado|Reaplicar HOLOSCAN),Nova consulta,Mais ações ▾,Editar cadastro,Adicionar arquivo,Exportar dados$/.test(topo.acoes.join(',')),
+conferir(/^(Aplicar HOLOSCAN|Ir para Ferramentas|Abrir Holos IA|Montar Resultado HOLOS|Ver Resultado HOLOS|Ver Resultado|Reaplicar HOLOSCAN),Nova consulta,Mais ações ▾,Editar cadastro,Adicionar arquivo,Exportar dados$/.test(topo.acoes.join(',')),
   'as ações ficam no topo, não no fim da página: ' + topo.acoes.join(' · '));
 
 // "Registrar exames" e "Novo documento" iam para "aba:documentos" — o clique
@@ -156,9 +156,10 @@ const jornada = await p.evaluate(() => ({
   passos: [...document.querySelectorAll('#ficha-jornada .fic-step-nome')]
     .map(b => b.textContent),
 }));
-/* 14/10: o fluxo completo comeca no Mapeamento Holistico e passa pela Holos IA */
-conferir(jornada.passos.join(',') === 'Mapeamento Holístico,Abrir atendimento + HOLOSCAN,Ferramentas,Holos IA,Resultado HOLOS,Resultado,Evolução',
-  'a jornada clínica mostra o fluxo completo (7 passos, 14/10): ' + jornada.passos.join(' · '));
+/* 14/10: o fluxo completo comeca no Mapeamento Holistico; com a Holos IA escondida (HOLOS_IA_VISIVEL=false), o Resultado HOLOS
+   e montado com o Playbook e o passo Holos IA sai da jornada (6 passos) */
+conferir(jornada.passos.join(',') === 'Mapeamento Holístico,Abrir atendimento + HOLOSCAN,Ferramentas,Resultado HOLOS,Resultado,Evolução',
+  'a jornada clínica mostra o fluxo completo (6 passos, Holos IA escondida): ' + jornada.passos.join(' · '));
 
 const detalhes = await p.evaluate(async () => {
   document.getElementById('ficha-ver-detalhes').click();
