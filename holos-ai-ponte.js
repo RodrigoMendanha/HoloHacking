@@ -408,22 +408,71 @@
     if (window.HoloAuth && window.HoloAuth.aoMudarEstado) window.HoloAuth.aoMudarEstado(function () { cache = { pid: null, imports: [], itens: [], carregado: false, erro: null }; });
   });
 
-  /* PAGINA HOLOS IA (rodada UX 14/10): a mesma ponte, para a paciente selecionada */
+  /* PAGINA HOLOS IA (rodada UX 14/10): a mesma ponte, para a paciente selecionada.
+     14/10: sem paciente (ou ao clicar "Trocar paciente"), a lista abre AQUI, com busca; escolher define o
+     paciente ativo (mesma troca do resto do app: os dados sincronizados dele carregam) e a pagina continua aqui. */
+  var escolhendo = false, buscaPaciente = "";
+  function semAcento(t) { return String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }
+  function pacientesAtivos() {
+    return ((window.pacientesTodos && window.pacientesTodos()) || []).filter(function (p) { return p.status !== "inativo"; })
+      .sort(function (a, b) { return String(a.nome || "").localeCompare(String(b.nome || ""), "pt-BR"); });
+  }
+  function listaPacientesHtml() {
+    var q = semAcento(buscaPaciente);
+    var l = pacientesAtivos().filter(function (p) { return !q || semAcento(p.nome).indexOf(q) >= 0; });
+    if (!l.length) return '<p class="dash-vazio">' + (pacientesAtivos().length ? "Nenhum paciente com esse nome." : "Nenhum paciente ativo cadastrado.") + "</p>";
+    return '<ul class="hai-pac-lista" role="listbox" aria-label="Pacientes">' + l.map(function (p) {
+      return '<li><button type="button" class="hai-pac-item" role="option" data-hai-paciente="' + e(p.id) + '">' +
+        '<span class="pac-avatar" aria-hidden="true">' + e(String(p.nome || "?").trim().charAt(0).toUpperCase()) + "</span>" +
+        '<span class="hai-pac-nome">' + e(p.nome || "Paciente") + "</span></button></li>";
+    }).join("") + "</ul>";
+  }
+  function desenharEscolha(barra, alvo, temAtual) {
+    barra.innerHTML = "";
+    alvo.innerHTML = '<div class="hai-escolha">' +
+      '<div class="hai-escolha-cab"><strong>' + (temAtual ? "Trocar paciente" : "Nenhum paciente selecionado") + "</strong>" +
+        "<span>A Holos IA trabalha com o atendimento de um paciente. Escolha abaixo: os dados dele carregam e você continua nesta página.</span></div>" +
+      '<input type="search" id="hai-busca-paciente" class="hai-busca" placeholder="Buscar paciente pelo nome" autocomplete="off" value="' + e(buscaPaciente) + '">' +
+      '<div id="hai-pac-resultado">' + listaPacientesHtml() + "</div>" +
+      (temAtual ? '<button type="button" class="btn-fantasma" data-hai-acao="cancelar-troca">Cancelar</button>' : "") +
+    "</div>";
+  }
   function desenharPagina() {
     var alvo = document.getElementById("holusia-alvo"); if (!alvo) return;
+    var barra = document.getElementById("holusia-paciente") || document.createElement("div");
     var pid = pacienteId();
-    if (!pid || pid === "_sem_paciente") {
+    var sem = !pid || pid === "_sem_paciente";
+    if (sem || escolhendo) {
       host = alvo;
       var f = document.getElementById("hai-ponte"); if (f) f.innerHTML = "";
-      alvo.innerHTML = '<div class="lista-vazia hai-sem-paciente"><strong>Nenhum paciente selecionado</strong><span>A Holos IA trabalha com o atendimento de um paciente. Escolha o paciente para começar.</span>' +
-        '<button type="button" class="btn-verde" data-hai-acao="ir-pacientes">Escolher paciente</button></div>';
+      desenharEscolha(barra, alvo, !sem);
       return;
     }
+    var p = ((window.pacientesTodos && window.pacientesTodos()) || []).filter(function (x) { return x.id === pid; })[0];
+    barra.innerHTML = '<span class="hai-paciente-rot">Paciente</span><b>' + e((p && p.nome) || "Paciente") + "</b>" +
+      '<button type="button" class="btn-fantasma" data-hai-acao="trocar-paciente">Trocar paciente</button>';
     desenhar(alvo);
   }
   document.addEventListener("click", function (ev) {
-    var b = ev.target.closest && ev.target.closest('#holusia-alvo [data-hai-acao="ir-pacientes"]');
-    if (b && window.irParaSecao) window.irParaSecao("pacientes");
+    if (!ev.target.closest) return;
+    var sec = ev.target.closest("#secao-holusia"); if (!sec) return;
+    var esc = ev.target.closest("[data-hai-paciente]");
+    if (esc) {
+      escolhendo = false; buscaPaciente = "";
+      var id = esc.getAttribute("data-hai-paciente");
+      if (window.definirPacienteAtivo) window.definirPacienteAtivo(id);
+      desenharPagina();
+      return;
+    }
+    var b = ev.target.closest("[data-hai-acao]"); if (!b) return;
+    var a = b.getAttribute("data-hai-acao");
+    if (a === "trocar-paciente") { escolhendo = true; buscaPaciente = ""; desenharPagina(); var i = document.getElementById("hai-busca-paciente"); if (i) i.focus(); }
+    else if (a === "cancelar-troca") { escolhendo = false; desenharPagina(); }
+  });
+  document.addEventListener("input", function (ev) {
+    if (!ev.target || ev.target.id !== "hai-busca-paciente") return;
+    buscaPaciente = ev.target.value;
+    var r = document.getElementById("hai-pac-resultado"); if (r) r.innerHTML = listaPacientesHtml();
   });
   document.addEventListener("DOMContentLoaded", function () {
     var anterior = window.aoTrocarPaciente;

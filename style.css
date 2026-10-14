@@ -6167,3 +6167,26 @@ body.rp-gerando .rp-doc,body.rp-imprimindo .rp-doc{border-top:5px solid #c9a35a;
 .rp-assina{flex:0 1 280px;min-width:220px}
 .rp-emissao{margin-left:auto}
 @media (max-width:720px){ .rp-cab .rp-marca,.rp-emissao{margin-left:0} }
+
+/* 14/10: Holos IA — escolher o paciente na propria pagina */
+.hai-paciente{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px}
+.hai-paciente:empty{display:none}
+.hai-paciente-rot{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--texto-suave)}
+.hai-paciente b{font-weight:500}
+.hai-escolha{display:grid;gap:12px;padding:20px;border:1px solid var(--borda,rgba(255,255,255,.12));border-radius:16px}
+.hai-escolha-cab{display:grid;gap:4px}
+.hai-escolha-cab span{color:var(--texto-suave);font-size:.9rem}
+.hai-busca{width:100%;max-width:420px}
+.hai-pac-lista{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;max-height:420px;overflow:auto}
+.hai-pac-item{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--borda,rgba(255,255,255,.12))}
+.hai-pac-item:hover{background:var(--dourado-bg,rgba(201,163,90,.12))}
+.hai-pac-item:focus-visible{outline:2px solid var(--dourado);outline-offset:2px}
+.hai-pac-nome{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* 14/10 — listas suspensas (select): a lista aberta e desenhada pelo navegador com fundo branco, mas as opcoes
+   herdavam o texto claro do tema escuro (texto claro sobre branco, ilegivel). As opcoes agora tem fundo e texto
+   proprios, em TODOS os selects: escuro no tema escuro, claro no tema claro (inclusive nas superficies escuras). */
+option,optgroup{background-color:#fff;color:#1d3a2e}
+option:disabled{color:#7a8d82}
+body.escuro option,body.escuro optgroup{background-color:#0c3225;color:#ede8da}
+body.escuro option:disabled{color:rgba(237,232,218,.55)}

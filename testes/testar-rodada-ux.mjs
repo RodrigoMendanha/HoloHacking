@@ -196,6 +196,26 @@ await shot('ficha-390', null);
 await P.setViewport({ width: 1440, height: 1000 });
 
 ok(errosJS.length === 0, 'sem erro de JavaScript' + (errosJS.length ? ': ' + errosJS.slice(0, 3).join(' | ') : ''));
+/* 14/10: listas suspensas — as opcoes de TODOS os selects legiveis (contraste >= 4.5) nos dois temas.
+   Antes: no tema escuro a opcao herdava o texto claro e o navegador desenhava a lista aberta com fundo branco. */
+const opcoes = await P.evaluate(() => {
+  const rgb = c => (c.match(/[\d.]+/g) || []).map(Number);
+  const lum = ([r, g, b]) => { const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
+  const contraste = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  const ruins = [];
+  for (const escuro of [false, true]) {
+    document.body.classList.toggle('escuro', escuro);
+    for (const o of document.querySelectorAll('select option')) {
+      const cs = getComputedStyle(o), fundo = rgb(cs.backgroundColor), texto = rgb(cs.color);
+      if (fundo.length >= 4 && fundo[3] === 0) { ruins.push((escuro ? 'escuro ' : 'claro ') + 'fundo transparente: ' + (o.parentElement.id || o.parentElement.name || '?')); continue; }
+      const c = contraste(texto, fundo);
+      if (c < 4.5) ruins.push((escuro ? 'escuro ' : 'claro ') + (o.parentElement.id || o.parentElement.name || '?') + ' "' + o.textContent.trim().slice(0, 20) + '" ' + c.toFixed(2));
+    }
+  }
+  document.body.classList.remove('escuro');
+  return { total: document.querySelectorAll('select option').length, ruins: ruins.slice(0, 8) };
+});
+ok(opcoes.total > 0 && opcoes.ruins.length === 0, 'listas suspensas: as ' + opcoes.total + ' opções legíveis nos dois temas ' + JSON.stringify(opcoes.ruins));
 await nav.close();
 console.log(falhou ? '\nFALHOU' : '\nOK: rodada UX');
 process.exit(falhou ? 1 : 0);

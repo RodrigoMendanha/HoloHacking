@@ -328,6 +328,16 @@ await P.evaluate(() => window.limparPacienteAtivo()); await espera(400);
 await P.evaluate(() => window.irParaSecao('holusia')); await espera(500);
 const semPac = await P.evaluate(() => ({ txt: document.getElementById('holusia-alvo').innerText, barra: document.getElementById('barra-paciente-ctx').hidden, pid: window.pacienteAtivoId() }));
 ok(semPac.pid === null && /Nenhum paciente selecionado/.test(semPac.txt) && semPac.barra, 'V10 X da barra: paciente desselecionado; Holos IA mostra "Nenhum paciente selecionado" (nada oculto), barra some');
+/* 14/10: sem paciente, a lista abre na propria pagina; escolher carrega o paciente e fica na Holos IA */
+const escolha = await P.evaluate(async () => {
+  const itens = [...document.querySelectorAll('#holusia-alvo [data-hai-paciente]')];
+  const antes = itens.length; if (!antes) return { antes };
+  itens[0].click(); await new Promise(r => setTimeout(r, 900));
+  return { antes, pid: window.pacienteAtivoId(), naPagina: document.getElementById('secao-holusia').classList.contains('ativa'),
+    barra: document.getElementById('holusia-paciente').innerText, passos: !!document.querySelector('#holusia-alvo [data-hai-acao]') };
+});
+ok(escolha.antes > 0 && !!escolha.pid && escolha.naPagina && /Trocar paciente/i.test(escolha.barra) && escolha.passos,
+  'Holos IA sem paciente: lista na página; escolher define o paciente e continua na Holos IA (' + JSON.stringify(escolha) + ')');
 await P.evaluate((pid) => window.definirPacienteAtivo(pid), PA); await espera(300);
 
 /* ===================== V09 recarregar + celular ===================== */
