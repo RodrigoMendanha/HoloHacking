@@ -278,6 +278,7 @@
       return '<li class="fic-step ' + st + '"' + (st === "atual" ? ' aria-current="step"' : "") + '>' +
         '<button type="button" data-passo-jornada="' + p.id + '"' +
           (p.atalho ? ' data-jornada-atalho="' + p.atalho + '"' : ' data-jornada-ir="' + p.ir + '"') +
+          ' title="' + p.nome + " (" + rot + ')"' +
           ' aria-label="' + (i + 1) + ". " + p.mov + " — " + p.nome + ": " + rot + '">' +
           '<span class="fic-step-no" aria-hidden="true">' + (st === "feito" ? "&#10003;" : String(i + 1)) + "</span>" +
           '<span class="fic-step-txt"><span class="fic-step-mov">' + p.mov + "</span>" +
@@ -1309,8 +1310,21 @@
     /* teclado (setas, Home, End) e roving tabindex ja sao do arquivos.js */
     /* o topo global e fixo: as abas grudam logo abaixo dele */
     var topo = document.querySelector(".topo");
-    var medir = function () { if (topo) document.documentElement.style.setProperty("--topo-altura", topo.offsetHeight + "px"); atualizarSetasAbas(); };
+    /* 14/10 (auditoria Cowork): a altura era medida uma vez, com o topo ainda escondido (tela de login) = 0px, e as abas
+       grudavam ATRAS do topo — para trocar de aba era preciso voltar ao inicio. Agora mede sempre que o topo muda. */
+    var medir = function () { if (topo && topo.offsetHeight) document.documentElement.style.setProperty("--topo-altura", topo.offsetHeight + "px"); atualizarSetasAbas(); };
     window.addEventListener("resize", medir); medir();
+    if (topo && window.ResizeObserver) new ResizeObserver(medir).observe(topo);
+    /* nome da paciente na barra grudada (so quando a barra esta grudada: sem segundo cabecalho) */
+    var caixaAbas = t.parentNode;
+    window.addEventListener("scroll", function () {
+      var grudada = caixaAbas.getBoundingClientRect().top <= (topo ? topo.offsetHeight : 0) + 1 && window.scrollY > 120;
+      if (grudada !== caixaAbas.classList.contains("grudada")) {
+        caixaAbas.classList.toggle("grudada", grudada);
+        var n = document.getElementById("abas-ctx-nome"), nome = document.getElementById("ficha-nome");
+        if (n && nome) n.textContent = nome.textContent;
+      }
+    }, { passive: true });
   });
   window.atualizarSetasAbasFicha = atualizarSetasAbas;
 

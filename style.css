@@ -5969,7 +5969,7 @@ input[type="search"]::-webkit-search-cancel-button,input[type="search"]::-webkit
 #secao-pacientes .pac-sub a.pac-dado{min-width:0;max-width:16rem}
 #secao-pacientes .pac-sub .pac-txt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* Cowork K: nome longo na ficha quebra entre palavras, sem estourar */
-#ficha-nome{overflow-wrap:anywhere;min-width:0;hyphens:auto}
+#ficha-nome{overflow-wrap:break-word;min-width:0;hyphens:manual}
 #secao-pacientes .fic-nome-linha{min-width:0;flex-wrap:wrap}
 /* Cowork L: rotulos da leitura profissional nao encostam no conteudo */
 .ferr-leitura .grupo>label{display:block;margin-bottom:8px;line-height:1.5}
@@ -6263,3 +6263,41 @@ body.rp-gerando .rp-doc{padding:8px 18px 4px}
 .hai-url input{flex:1 1 260px;min-width:0;padding:9px 12px;border-radius:10px;border:1px solid var(--input-borda);background:var(--input-fundo);color:var(--texto);font:inherit}
 .citacao[hidden]{display:none}
 #btn-salvar-holoscan.holo-ja-salvo{background:transparent;color:var(--verde,#3f5f4f);border:1px solid currentColor;box-shadow:none;cursor:default}
+
+/* 14/10 (auditoria Cowork): ficha recem-cadastrada — a coluna do nome era espremida pelos botoes (4 acoes numa linha so)
+   e o nome quebrava silaba a silaba ("Re-beca"), o e-mail saia cortado. O nome tem no minimo 18rem; os botoes quebram
+   linha (alinhados a direita) em vez de tomar a largura; e-mail longo quebra em qualquer ponto, sem cortar. */
+#secao-pacientes .fic-topo{grid-template-columns:auto minmax(min(18rem,100%),1fr) auto}
+#secao-pacientes .fic-acoes-topo{flex-wrap:wrap;justify-content:flex-end;max-width:36rem}
+#secao-pacientes .fic-contato a[href^="mailto:"]{overflow-wrap:anywhere}
+@media (max-width:1100px){#secao-pacientes .fic-topo{grid-template-columns:auto 1fr}#secao-pacientes .fic-acoes-topo{max-width:none;justify-content:flex-start}}
+
+/* 14/10 (auditoria Cowork): o aviso (toast) cobria "Copiar link" e "Enviar pelo WhatsApp" no rodape da tela.
+   Agora aparece no alto, a direita, abaixo do topo; no celular, no alto e na largura da tela. Nunca recebe clique. */
+#toast{top:104px;bottom:auto;left:auto;right:24px;transform:translateY(-12px);max-width:min(26rem,calc(100vw - 32px));border-radius:14px;text-align:left}
+#toast.visivel{transform:translateY(0)}
+@media (max-width:700px){#toast{top:12px;left:16px;right:16px;max-width:none;text-align:center}}
+
+/* 14/10 (auditoria Cowork): nomes das etapas cortados ("Mapea…", "Ferram…") — cada passo tem largura minima;
+   faltando espaco, a jornada rola para o lado em vez de cortar a palavra */
+#secao-pacientes .fic-stepper{grid-template-columns:repeat(7,minmax(7.6rem,1fr));overflow-x:auto;scrollbar-width:thin}
+#secao-pacientes .fic-step-nome{overflow:visible;text-overflow:clip;overflow-wrap:normal;hyphens:manual}
+
+/* 14/10 (auditoria Cowork): cards do Acompanhamento — nome ficava "R." / "Pa…" (5 colunas numa linha) e a data invadia a
+   seta. Agora: nome e motivo usam a largura toda; etapa e data empilhadas a direita; a seta tem coluna propria. */
+@media (min-width:761px){
+  #secao-dashboard .dash-acomp{grid-template-columns:auto minmax(0,1fr) auto 16px;grid-template-areas:"av quem status seta" "av quem data seta";row-gap:4px;column-gap:14px}
+  #secao-dashboard .dash-acomp .pac-avatar{grid-area:av}
+  #secao-dashboard .dash-acomp .dash-quem{grid-area:quem;min-width:0}
+  #secao-dashboard .dash-status{grid-area:status;justify-self:end}
+  #secao-dashboard .dash-acomp-data{grid-area:data;justify-self:end}
+  #secao-dashboard .dash-acomp-seta{grid-area:seta;justify-self:end}
+}
+#secao-dashboard .dash-acomp .dash-quem b{display:block;overflow:hidden;text-overflow:ellipsis}
+
+/* 14/10 (auditoria Cowork): barra das abas grudada mostra o nome da paciente, sem criar outro cabecalho */
+#secao-pacientes .abas-ficha-caixa .abas-ctx-nome{display:none}
+#secao-pacientes .abas-ficha-caixa.grudada{display:flex;align-items:center;box-shadow:0 8px 18px rgba(6,35,26,.25)}
+#secao-pacientes .abas-ficha-caixa.grudada .abas-ctx-nome{display:block;flex:0 0 auto;max-width:16rem;padding:0 12px 0 14px;font-family:var(--fonte-titulo,inherit);color:var(--pc-ouro,#c9a35a);font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-right:1px solid rgba(201,163,90,.25)}
+#secao-pacientes .abas-ficha-caixa.grudada .abas{flex:1 1 auto;min-width:0}
+@media (max-width:700px){#secao-pacientes .abas-ficha-caixa.grudada .abas-ctx-nome{max-width:7rem;font-size:.82rem;padding:0 8px}}

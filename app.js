@@ -1055,10 +1055,19 @@
 
   /* O cabeçalho da ficha. O resumo clínico, a linha do tempo e os formulários
      são desenhados por ficha.js; aqui fica só o que vem do cadastro. */
+  /* 14/10 (auditoria Cowork): a ficha de OUTRA paciente abre na Visão geral — a aba ficava a da paciente
+     anterior (ex.: paciente recem-cadastrada abria no Resultado HOLOS, que e a saida final, nao a primeira tela).
+     Quem chega por um destino ("aba:x") e levado a aba pedida logo depois (levarPara). */
+  let fichaAbertaDe = null;
   function abrirFicha(id){
     definirAtivo(id);
     const p = pacienteAtivo();
     if(!p) return;
+    if(fichaAbertaDe !== p.id){
+      fichaAbertaDe = p.id;
+      const visao = document.querySelector('#ficha-arquivos .aba[data-aba="visao"]');
+      if(visao && !visao.classList.contains("ativa")) visao.click();
+    }
 
     $("#ficha-avatar").textContent = p.nome.charAt(0).toUpperCase();
     $("#ficha-nome").textContent = p.nome;
