@@ -1,12 +1,12 @@
 #!/bin/sh
-# HOLOHACKING — deploy do front na VPS (passos 4 a 11). Versao atual: a8326a5 = fluxo enxuto da ficha (jornada de 7 passos, Enviar Mapeamento, abas Conduta/Relatorio escondidas), Mapeamento (desconfortos em opcoes, Marcar como revisado) e PDF do Resultado com a identidade HoloHacking. ANTES: migration 20261024100000 (aceite automatico) aplicada no Supabase.
+# HOLOHACKING — deploy do front na VPS (passos 4 a 11). Versao atual: 04cdcb5 = Holos IA escolhe o paciente na pagina, listas suspensas legiveis, fluxo enxuto da ficha (jornada de 7 passos, Enviar Mapeamento, abas Conduta/Relatorio escondidas), Mapeamento (desconfortos em opcoes, Marcar como revisado) e PDF do Resultado com a identidade HoloHacking. ANTES: migration 20261024100000 (aceite automatico) aplicada no Supabase.
 # Plano completo, conferencias SQL, rollback do banco e smoke: docs/v1/DEPLOY-RESULTADO-HOLOS-T5.md. Rodar NA VPS:
 #   sh deploy-etapa6-5b.sh            -> passos 4-8 (estado, codigo, build, container temporario 8082). NAO troca producao.
 #   sh deploy-etapa6-5b.sh swap       -> passos 9-11 (troca 8080, valida local e publico). So depois de conferir o 1o.
 # Para sozinho em qualquer divergencia. Nunca apaga container. Nao usa credencial.
 set -eu
-ESPERADO=a8326a5fca3e8aacc4b4b3b8a470d08cde4e9ef7
-CURTO=a8326a5
+ESPERADO=04cdcb5f901782ccb6ffc7321c918bf9a5128ea6
+CURTO=04cdcb5
 DIR=/opt/holohacking
 IMG=holohacking-web:$CURTO
 PROD=holohacking-web
