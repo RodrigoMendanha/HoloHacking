@@ -177,7 +177,10 @@
       "</article>";
   }
   /* 14/10 (PB-V2): onde ler a ferramenta no PDF oficial do Playbook (capitulo Ferramentas): abrir, ler e aplicar */
+  /* 14/10: desligado por enquanto (decisao da usuaria); religar com PLAYBOOK_PAGINAS_VISIVEL = true */
+  var PLAYBOOK_PAGINAS_VISIVEL = false;
   function htmlPlaybookPagina(id) {
+    if (!PLAYBOOK_PAGINAS_VISIVEL) return "";
     var PB = raiz.PlaybookHolos, n = PB && PB.paginaPdf ? PB.paginaPdf(id) : null;
     return n ? '<p class="pp-playbook" data-pp-pagina="' + n + '">Como aplicar: <b>Playbook de Estratégias HOLOS, p. ' + n + '</b> (capítulo Ferramentas)</p>' : "";
   }
