@@ -367,9 +367,12 @@ const SECOES = ['secao-dashboard', 'secao-holoscan', 'secao-resultado', 'secao-p
                 // Etapa 4: secao interna Metodologia / Homologacao (consulta, so com ?homologacao=1)
                 'secao-metodologia',
                 // 07/10: Ajuda; 08/10: Contas (liberar cadastros, so administradoras)
-                'secao-contas', 'secao-ajuda'];
+                'secao-contas', 'secao-ajuda',
+                // rodada UX 14/10: pagina Holusia (a ponte HOLOS AI -> Resultado HOLOS fora da ficha)
+                'secao-holusia'];
 const MENU = ['dashboard', 'pacientes', 'consultas', 'agenda',   // 09/10: Documentos saiu do menu (so na ficha)
-              'holoscan', 'resultado', 'corpo', 'mente', 'espirito', 'metodologia', 'contas', 'perfil', 'ajuda'];
+              // rodada UX 14/10: CORPO -> MENTE -> ESPIRITO -> HOLUSIA -> RESULTADO HOLOS
+              'holoscan', 'corpo', 'mente', 'espirito', 'holusia', 'resultado', 'metodologia', 'contas', 'perfil', 'ajuda'];
 const faltando = SECOES.filter(s => !app.secoes.includes(s));
 const sobrando = app.secoes.filter(s => !SECOES.includes(s));
 

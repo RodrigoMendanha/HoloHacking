@@ -45,7 +45,7 @@ if [ "${1:-}" != "swap" ]; then
   docker run -d --name "$TEMP" -p 127.0.0.1:8082:80 "$IMG" >/dev/null
   sleep 2
   curl -s http://127.0.0.1:8082/version.json; echo
-  for p in / /index.html /app.js /ferramentas-registro.js /metodologia.js /metodologia-revisao-v3.js /dashboard.js /ficha.js /formulario.js /holoscan-oficial.js /proximos-passos.js /ajuda.js /contas.js /login.js /resultado-direcao.js /resultado-holos.js /ferramentas-fechamento.js /resultado-sintese.js /resultado-pagina.js /resultado-legado-r3.js /sistemas-fechamento.js /anamnese-v2.js /anamnese-convite.js /anamnese-publica.js /anamnese.html /mapeamento-holistico.js /holos-ai.js /holos-ai-contrato.js /holos-ai-ponte.js /boas-vindas.js /arquivos.js /style.css /favicon.svg /logo-holohacking.png /version.json; do
+  for p in / /index.html /app.js /ferramentas-registro.js /metodologia.js /metodologia-revisao-v3.js /dashboard.js /ficha.js /formulario.js /holoscan-oficial.js /proximos-passos.js /ajuda.js /contas.js /login.js /resultado-direcao.js /resultado-holos.js /ferramentas-fechamento.js /resultado-sintese.js /resultado-pagina.js /resultado-legado-r3.js /sistemas-fechamento.js /anamnese-v2.js /anamnese-convite.js /anamnese-publica.js /anamnese.html /mapeamento-holistico.js /holos-ai.js /holos-ai-contrato.js /holos-ai-ponte.js /ajuda-ferramentas.js /boas-vindas.js /arquivos.js /style.css /favicon.svg /logo-holohacking.png /version.json; do
     c=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:8082$p"); echo "$c $p"; [ "$c" = 200 ] || pare "$p devolveu $c no temporario"
   done
   curl -sI http://127.0.0.1:8082/app.js | grep -iE 'cache-control|x-content-type|referrer-policy|content-type'

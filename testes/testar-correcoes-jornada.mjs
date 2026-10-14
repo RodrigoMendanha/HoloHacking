@@ -231,7 +231,9 @@ const b10 = await A.evaluate(async (pid, eid) => {
   window.levarParaFicha('aba:conduta', pid); await new Promise(r => setTimeout(r, 600));
   const n = document.querySelector('[data-cd-acao="nova"]'); if (n) n.click(); await new Promise(r => setTimeout(r, 400));
   const ta = document.querySelector('[data-cd-campo="objective"]'), inp = document.querySelector('.perf-campo input, .perf-campo select');
-  out.ta = ta ? getComputedStyle(ta).backgroundColor : null; out.inp = inp ? getComputedStyle(inp).backgroundColor : null;
+  out.ta = ta ? getComputedStyle(ta).backgroundColor : null;
+  /* rodada UX 14/10: a ficha e superficie escura nos dois temas — o campo de referencia e o da MESMA superficie */
+  if (ta) { const ref = document.createElement('input'); ref.className = 'perf-campo-ref'; ref.style.background = 'var(--input-fundo)'; ta.parentElement.appendChild(ref); out.inp = getComputedStyle(ref).backgroundColor; ref.remove(); } else out.inp = inp ? getComputedStyle(inp).backgroundColor : null;
   document.querySelector('.nav-item[data-secao="dashboard"]').click(); await new Promise(r => setTimeout(r, 600));
   out.dash = (document.querySelector('.dash-resumo') || {}).innerText || '';
   return out;

@@ -6076,3 +6076,8 @@ body:not(.escuro) #secao-pacientes .lista-pac .pac-status.ativo,body:not(.escuro
 body:not(.escuro) .pp-selo-feita{color:var(--movimento-sobe)!important}
 #secao-pacientes .ficha .fic-ir-min{opacity:.92}
 body.rh-imprimindo #rh-doc .eyebrow,body.rh-imprimindo #rh-doc .rd-sis-foco,body.rh-imprimindo #rh-doc .rh-tag{color:#7a5f22!important}
+/* rodada UX 14/10: no celular a barra empilha (coluna, alinhada a esquerda) e o "X" nao pode empurrar a pagina —
+   o bloco do nome fica limitado a largura da barra e o nome longo termina em reticencias */
+.bpctx-quem{max-width:100%}
+.bpctx-nome{min-width:0}
+.bpctx-fechar{flex-shrink:0}

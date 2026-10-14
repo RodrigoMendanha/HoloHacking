@@ -35,8 +35,8 @@ const base = await p.evaluate(() => {
   };
 });
 ok(base.visivel, 'a secao Arquivos abre');
-ok(base.abas.join(',') === 'Visão geral,Atendimentos,Mapeamento Holístico,HOLOSCAN,Ferramentas,HOLOS AI,Resultado HOLOS,Documentos,Conduta,Evolução,Relatório',
-   'as abas (Anamnese e Conduta na Etapa 2; Resultado HOLOS em 09/10, entre Ferramentas e Conduta; 14/10: HOLOS AI logo antes do Resultado HOLOS, ponte HOLOS AI): ' + base.abas.join(' · '));
+ok(base.abas.join(',') === 'Visão geral,Atendimentos,Mapeamento Holístico,HOLOSCAN,Ferramentas,Holusiá,Resultado HOLOS,Documentos,Conduta,Evolução,Relatório',
+   'as abas (Anamnese e Conduta na Etapa 2; Resultado HOLOS em 09/10, entre Ferramentas e Conduta; 14/10: HOLOS AI logo antes do Resultado HOLOS, ponte HOLOS AI; rodada UX 14/10: a aba se chama Holusiá): ' + base.abas.join(' · '));
 ok(base.cartoes.join(' / ') === 'Adicionar arquivo / Documentos e exames', 'a aba e a biblioteca do prontuario: ' + base.cartoes.join(' · '));
 ok(base.painelExames === 0, 'nenhum painel de valores de exame (nem V1 nem legado)');
 ok(/não lê nem interpreta/.test(base.texto) && !/Leitura Integrada|Lançar valores|Painel legado/.test(base.texto), 'a tela diz que o sistema nao le nem interpreta os arquivos');
