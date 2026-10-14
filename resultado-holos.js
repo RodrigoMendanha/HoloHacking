@@ -49,7 +49,10 @@
     conta_inativa: "Sua conta ainda aguarda liberação.",
     payload_invalido: "Seleção inválida. Recarregue a aba e tente de novo.",
     foco_obrigatorio: "Defina e confirme o Foco atual antes de finalizar o Resultado HOLOS. O rascunho pode ser salvo sem foco.",
-    direcao_invalida: "Algum item do resultado para a paciente está em formato inválido. Revise os itens e tente de novo."
+    direcao_invalida: "Algum item do resultado para a paciente está em formato inválido. Revise os itens e tente de novo.",
+    holos_ai_nao_concluida: "A revisão desta análise da HOLOS AI ainda não foi concluída. Conclua a revisão na aba HOLOS AI.",
+    holos_ai_item_nao_aceito: "Um item da HOLOS AI foi descartado (ou não revisado) e não pode entrar confirmado. Exclua-o do resultado.",
+    holos_ai_so_profissional: "Um item da HOLOS AI é só profissional (hipótese, alerta, fonte ou raciocínio) e não pode ir para a paciente."
   };
 
   var cache = { pid: null, linhas: [], erro: null, carregado: false };
@@ -953,7 +956,44 @@
     if (window.HoloAuth && window.HoloAuth.aoMudarEstado) window.HoloAuth.aoMudarEstado(function () { cache = { pid: null, linhas: [], erro: null, carregado: false }; modo = "lista"; form = null; vendo = null; previa = null; });
   });
 
+  /* PONTE HOLOS AI (14/10): o que a nutricionista CONFIRMOU na aba HOLOS AI entra no Resultado HOLOS deste atendimento.
+     Continua o rascunho do mesmo atendimento (se houver) ou abre um novo; acrescenta os itens (origem "holos_ai", com a
+     referencia ao item importado) sem tocar no que ja existe; o foco entra so como SUGESTAO (quem confirma e a nutricionista).
+     Com HOLOSCAN escolhido (rascunho existente), grava o rascunho; senao abre o editor pedindo a escolha do HOLOSCAN. */
+  function receberHolosAI(imp, itens) {
+    var C = window.HolosAIContrato, pid = pacienteId();
+    if (!C || !RD() || !imp || imp.status !== "confirmado") return Promise.resolve({ salvo: false, motivo: "importacao_nao_confirmada" });
+    var m = C.paraDirecao(imp, itens);
+    return carregar(pid).then(function () {
+      var rasc = doPaciente(pid).filter(function (r) { return r.status === "rascunho" && r.encounter_id === imp.encounter_id; })
+        .sort(function (a, b) { return String(b.updated_at || "").localeCompare(String(a.updated_at || "")); })[0] || null;
+      form = novoForm(pid, rasc);
+      form.encounter_id = imp.encounter_id;
+      if (!rasc) form.direcao = RD().normalizar(null, tipoEncontro(pid, imp.encounter_id));
+      var n = RD().mesclar(form.direcao, m.S);
+      var temTexto = function (it) { return !!(it && typeof it.texto === "string" && it.texto.trim()); };
+      if (m.foco && !temTexto(form.direcao.foco_atual)) { form.direcao.foco_atual = m.foco; n++; }
+      if (m.proxima_etapa && !temTexto(form.direcao.proxima_etapa)) { form.direcao.proxima_etapa = m.proxima_etapa; n++; }
+      if (m.leitura) {
+        var bloco = "Síntese HOLOS AI (revisada pela nutricionista, importação v" + imp.versao + "): " + m.leitura;
+        if ((form.leitura_profissional || "").indexOf(m.leitura) < 0) { form.leitura_profissional = (form.leitura_profissional ? form.leitura_profissional + "\n\n" : "") + bloco; n++; }
+      }
+      modo = "editar"; vendo = null; previa = null;
+      sugMsg = n ? n + " itens confirmados da HOLOS AI entraram no Resultado. Revise, confirme o Foco atual e finalize." : "Os itens confirmados da HOLOS AI já estavam no Resultado.";
+      var abrir = function () { var ab = document.querySelector('[data-aba="resultado-holos"]'); if (ab) ab.click(); else pintar(); };
+      if (!form.holoscan_application_id) {
+        abrir();
+        mostrarErro(MSG_HINT.holoscan_obrigatorio + " Depois, salve o rascunho.");
+        return { salvo: false, motivo: "holoscan_obrigatorio", itens: n };
+      }
+      return rpc("salvar_rascunho_resultado_holos", { payload: Object.assign(payloadDe(form), { operation_id: form.id ? null : uuid() }) }).then(function (id) {
+        return carregar(pid).then(function () { var msg = sugMsg; form = novoForm(pid, porId(id)); sugMsg = msg; abrir(); toast("Resultado HOLOS atualizado com a análise confirmada."); return { salvo: true, id: id, itens: n }; });
+      }, function (err) { abrir(); mostrarErro(mensagemErro(err)); return { salvo: false, motivo: "erro", erro: err }; });
+    });
+  }
+
   window.ResultadoHolos = {
+    receberHolosAI: receberHolosAI,
     desenhar: desenhar, carregar: carregar, doPaciente: doPaciente, porId: porId,
     documentoHtml: documentoHtml, radarSvg: radarSvg, contextoSugestoes: contextoSugestoes, formAtual: function () { return form; }, AVISO_INDICE: AVISO_INDICE, FAIXA_PACIENTE: FAIXA_PACIENTE, relatorioProfissionalHtml: relatorioProfissionalHtml,
     /** para o Relatorio e, no futuro, a HOLOS AI: o snapshot salvo, estruturado (nunca a ficha viva) */

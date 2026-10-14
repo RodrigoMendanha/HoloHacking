@@ -25,6 +25,7 @@
 
 import { randomUUID, createHash } from 'node:crypto';
 import { criarResultadoHolos } from './resultado-holos-falso.mjs';
+import { criarHolosAI } from './holos-ai-falso.mjs';   // ponte HOLOS AI (migration 20261023100000)
 import { criarProximosPassos } from './proximos-passos-falso.mjs';   // Proximos Passos HOLOS (migration 20261012100000)
 import '../proximos-passos.js';   // o MESMO motor de selecao do navegador
 import { CATALOGO as PP_CATALOGO, REGRAS as PP_REGRAS, canonico as ppCanonico } from './proximos-passos-catalogo-v1.mjs';
@@ -106,7 +107,12 @@ const COLUNAS = {
     'methodology_package_id', 'methodology_package_version', 'methodology_content_hash', 'operation_id', 'saved_at', 'reviewed_at', 'reviewed_by', 'created_at', 'updated_at', 'direcao'],
   /* Emissao do Resultado Final (migration 20261015100000): leitura so da propria; escrita SO pela RPC emitir_resultado_final */
   holos_result_emissions: ['id', 'nutritionist_id', 'patient_id', 'holos_result_id', 'result_content_hash', 'conduct_id', 'emission_number', 'template_version',
-    'content_snapshot', 'content_hash', 'operation_id', 'created_at']
+    'content_snapshot', 'content_hash', 'operation_id', 'created_at'],
+  /* Ponte HOLOS AI (migration 20261023100000): leitura so da propria; escrita SO pelas RPCs (holos-ai-falso.mjs) */
+  holos_ai_imports: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'versao', 'schema_version', 'tipo', 'origem', 'agente', 'kb_version', 'entrada',
+    'texto_original', 'json_original', 'texto_sha256', 'status', 'operation_id', 'imported_at', 'revisao_iniciada_em', 'concluida_em', 'descartada_em', 'updated_at'],
+  holos_ai_import_items: ['id', 'import_id', 'nutritionist_id', 'patient_id', 'secao', 'ordem', 'chave', 'valor_ia', 'so_profissional', 'estado',
+    'valor_profissional', 'compartilhar', 'revisado_em', 'created_at']
 };
 
 const METODOLOGIA = ['methodology_packages', 'methodology_questionnaire_editions', 'methodology_scales', 'methodology_systems', 'methodology_questions', 'methodology_associations', 'methodology_ranges', 'methodology_rules', 'methodology_homologation_records'];
@@ -114,7 +120,8 @@ const FILHAS_PACOTE = METODOLOGIA.filter(t => t !== 'methodology_packages');
 const GLOBAIS_SO_LEITURA = ['holos_recommendation_catalogs', 'holos_recommendation_rules', 'lab_exam_catalog', 'lab_method_references', 'lab_unit_conversion_rules', 'lab_derived_calculations', 'integrated_reading_rule_packages', 'integrated_reading_domains', 'integrated_reading_exam_domain_links', 'integrated_reading_rules',
   'integrated_reading_package_dependencies', 'integrated_reading_package_approvals', 'integrated_reading_package_snapshots'];   // Etapa 5.2: aprovacoes so pela RPC
 const DONO_DIRETO = [...METODOLOGIA, 'methodology_package_approvals', 'lab_custom_exams', 'integrated_readings', 'holos_next_steps', 'patients', 'consultations', 'encounters', 'anamneses', 'conducts', 'agreements', 'report_emissions', 'schedule_blocks', 'holoscan_applications',
-  'lab_collections', 'tool_applications', 'documents', 'professional_assets', 'ai_threads', 'holos_results', 'anamnesis_invites', 'holos_result_emissions'];
+  'lab_collections', 'tool_applications', 'documents', 'professional_assets', 'ai_threads', 'holos_results', 'anamnesis_invites', 'holos_result_emissions',
+  'holos_ai_imports', 'holos_ai_import_items'];
 const FILHAS = {           // tabela -> [coluna, mae]
   holoscan_answers: ['application_id', 'holoscan_applications'],
   holoscan_system_scores: ['application_id', 'holoscan_applications'],
@@ -161,7 +168,7 @@ const erro = (message, code) => ({ data: null, error: { message, code: code || '
 /* Conta pendente = somente Perfil (migration 20261013100000): gatilho exigir_conta_ativa em toda tabela com
    nutritionist_id (menos professional_assets) e nas filhas; dispara tambem dentro das RPCs. */
 const FILHAS_TRAVADAS = ['ai_messages', 'holoscan_answers', 'holoscan_system_scores', 'lab_results', 'lab_result_components'];
-const RPC_GRAVA = /^(salvar_|registrar_|criar_|emitir_|reagendar_|marcar_|revisar_|descartar_|aprovar_|retirar_|homologar_|finalizar_|arquivar_)/;
+const RPC_GRAVA = /^(salvar_|registrar_|criar_|emitir_|reagendar_|marcar_|revisar_|descartar_|aprovar_|retirar_|homologar_|finalizar_|arquivar_|importar_|concluir_)/;
 const erroContaNaoLiberada = (t) => ({ data: null, error: { message: 'conta ainda nao liberada: so o Perfil pode ser editado ate a equipe HoloHacking liberar o acesso (' + t + ')', code: '42501', hint: 'conta_nao_liberada' } });
 const agora = () => new Date().toISOString();
 const copia = (x) => JSON.parse(JSON.stringify(x));
@@ -769,7 +776,7 @@ export function criarServidor() {
     const t = q.tabela;
     if (t === 'methodology_package_approvals' && q.acao !== 'select') return erro('permission denied for table methodology_package_approvals', '42501');
     if (t === 'methodology_approvers' && q.acao !== 'select') return erro('permission denied for table methodology_approvers', '42501');
-    if ((GLOBAIS_SO_LEITURA.includes(t) || t === 'integrated_readings' || t === 'holos_results' || t === 'holos_next_steps' || t === 'anamnesis_invites' || t === 'holos_result_emissions') && q.acao !== 'select' && uid) return erro('permission denied for table ' + t, '42501');
+    if ((GLOBAIS_SO_LEITURA.includes(t) || t === 'integrated_readings' || t === 'holos_results' || t === 'holos_next_steps' || t === 'anamnesis_invites' || t === 'holos_result_emissions' || t === 'holos_ai_imports' || t === 'holos_ai_import_items') && q.acao !== 'select' && uid) return erro('permission denied for table ' + t, '42501');
     /* Anamnese pre-consulta: grant de SELECT por COLUNA (token_hash fora). O PostgREST expande "*" para TODAS as colunas
        da tabela, inclusive token_hash, e o banco recusa a leitura inteira (provado no PG local: harness AP18). */
     if (t === 'anamnesis_invites' && q.acao === 'select' && uid
@@ -1012,6 +1019,7 @@ export function criarServidor() {
 
   const resultadoHolos = criarResultadoHolos(s, { statusConta: (u) => statusConta(u), carimbo: () => carimbo() });
 
+  const holosAI = criarHolosAI(s, { statusConta: (u) => statusConta(u) });
   const proximosPassos = criarProximosPassos(s, { statusConta: (u) => statusConta(u), carimbo: () => carimbo() });
   const revisaoPerguntas = criarRevisaoPerguntas(s, {});
   const preConsulta = criarAnamnesePreConsulta(s, {});
@@ -1046,6 +1054,7 @@ export function criarServidor() {
     if (deveFalhar('rpc:' + nome, 'rpc') || deveFalhar(null, 'rpc')) return erro('falha simulada em rpc ' + nome, 'SIMULADA');
     const p = args && args.payload;
     if (resultadoHolos.NOMES.includes(nome)) return resultadoHolos.rpc(uid, nome, args);
+    if (holosAI.NOMES.includes(nome)) return holosAI.rpc(uid, nome, args);
     if (proximosPassos.NOMES.includes(nome)) return proximosPassos.rpc(uid, nome, args);
     if (preConsulta.NOMES.includes(nome)) return preConsulta.rpc(uid, nome, args);
     if (nome === 'salvar_holoscan_completo') {

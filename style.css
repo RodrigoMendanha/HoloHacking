@@ -5819,3 +5819,78 @@ body.escuro #secao-pacientes .pac-dado.atraso{color:var(--dourado-claro)}
 /* Fase 1 (13/10): o historico do Mapeamento e um cartao proprio (o fundo da ficha e escuro) */
 .pc-historico .mh-anterior{padding:0;margin:0;background:transparent}
 .pc-historico .mh-anterior summary{color:var(--texto)}
+
+/* ===========================================================================
+   PONTE HOLOS AI (14/10): aba HOLOS AI do atendimento — 5 passos, importacao, revisao por item
+   =========================================================================== */
+.hai-ponte{background:var(--sup-card);border:1px solid var(--linha);border-radius:var(--raio);padding:1.25rem 1.4rem;margin:0 0 1.5rem;color:var(--texto)}
+.hai-cab{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:1rem;margin-bottom:1rem}
+.hai-cab h3{font-family:var(--fonte-display);font-size:1.55rem;color:var(--titulo);margin:0}
+.hai-sub{margin:.25rem 0 0;color:var(--texto-suave);font-size:.92rem;max-width:44rem}
+.hai-at{display:flex;flex-direction:column;gap:.25rem;font-size:.78rem;color:var(--texto-suave)}
+.hai-at select{min-width:14rem;padding:.45rem .6rem;border:1px solid var(--input-borda);border-radius:8px;background:var(--input-fundo);color:var(--texto);font:inherit}
+.hai-passos{list-style:none;margin:0;padding:0;display:grid;gap:.75rem}
+.hai-passo{display:grid;grid-template-columns:2.2rem 1fr;gap:.85rem;padding:.9rem 1rem;border:1px solid var(--borda-suave);border-radius:12px;background:var(--sup-fundo)}
+.hai-passo-num{width:2.2rem;height:2.2rem;border-radius:50%;display:grid;place-items:center;font-weight:600;background:var(--realce);color:#fff}
+.hai-passo-feito .hai-passo-num{background:var(--dash-barra)}
+.hai-passo-bloqueado{opacity:.72}
+.hai-passo-bloqueado .hai-passo-num{background:var(--input-borda);color:var(--texto)}
+.hai-passo h4{margin:.1rem 0 .15rem;font-size:1rem;color:var(--titulo)}
+.hai-passo-sub{margin:0 0 .6rem;color:var(--texto-suave);font-size:.86rem}
+.hai-acoes{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem .9rem;margin-top:.5rem}
+.hai-acoes .btn-verde,.hai-acoes .btn-fantasma{padding:.6rem 1.1rem}
+.hai-indisp{opacity:.65;cursor:not-allowed}
+.hai-indisp small{letter-spacing:0;text-transform:none}
+.hai-nota{font-size:.82rem;color:var(--texto-suave)}
+.hai-pacote{max-height:18rem;overflow:auto;white-space:pre-wrap;word-break:break-word;font-size:.76rem;background:var(--input-fundo);border:1px solid var(--input-borda);border-radius:8px;padding:.7rem}
+.hai-colar{display:flex;flex-direction:column;gap:.35rem;font-size:.85rem;font-weight:500}
+.hai-colar textarea{width:100%;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.78rem;padding:.6rem;border:1px solid var(--input-borda);border-radius:8px;background:var(--input-fundo);color:var(--texto);resize:vertical;box-sizing:border-box}
+.hai-erro{margin:.6rem 0;padding:.7rem .9rem;border-radius:10px;border:1px solid rgba(168,68,44,.45);background:rgba(168,68,44,.08);color:var(--texto);font-size:.86rem}
+.hai-erro ul,.hai-aviso ul{margin:.35rem 0 .2rem 1.1rem;padding:0}
+.hai-aviso{margin:.6rem 0;padding:.6rem .85rem;border-radius:10px;background:var(--halo);border:1px solid var(--linha);font-size:.86rem}
+.hai-chip{display:inline-block;font-size:.66rem;font-weight:700;letter-spacing:.06em;border-radius:999px;padding:.12rem .55rem;margin-right:.3rem;vertical-align:middle}
+.hai-chip-sug,.hai-chip-importado{background:#eee6d3;color:#5c4a1e}
+.hai-chip-em_revisao{background:#f3e4c4;color:#5c4a1e}
+.hai-chip-ok,.hai-chip-confirmado{background:#e3e9e6;color:#2b4a3d}
+.hai-chip-ed{background:#dde7f0;color:#24425c}
+.hai-chip-desc,.hai-chip-descartado{background:#f0dfda;color:#7a3322}
+.hai-chip-prof{background:#e9e4f0;color:#46355e}
+.hai-chip-pac{background:var(--realce);color:#fff}
+.hai-revisao{margin-top:1.25rem;border-top:1px solid var(--linha);padding-top:1rem}
+.hai-rev-topo h4{margin:0 0 .3rem;font-size:1.1rem;color:var(--titulo)}
+.hai-rev-resumo{margin:0 0 .4rem;font-size:.85rem;color:var(--texto-suave)}
+.hai-secao{border:1px solid var(--borda-suave);border-radius:12px;padding:.6rem .9rem .8rem;margin:.9rem 0;background:var(--sup-fundo)}
+.hai-secao legend{font-weight:600;color:var(--titulo);padding:0 .35rem}
+.hai-secao-lote{display:flex;gap:1rem;font-size:.8rem;margin:.1rem 0 .4rem}
+.hai-itens{list-style:none;margin:0;padding:0;display:grid;gap:.55rem}
+.hai-item{border:1px solid var(--borda-suave);border-left:3px solid var(--dash-barra);border-radius:10px;padding:.6rem .8rem;background:var(--sup-card)}
+.hai-item-ok{border-left-color:var(--realce)}
+.hai-item-ed{border-left-color:#3d6f95}
+.hai-item-desc{border-left-color:#a8442c;opacity:.7}
+.hai-item-desc .hai-item-texto{text-decoration:line-through}
+.hai-item-topo{display:flex;flex-wrap:wrap;align-items:center;gap:.25rem;margin-bottom:.3rem}
+.hai-chave{font-size:.72rem;color:var(--texto-suave);font-weight:600}
+.hai-item-texto{margin:.15rem 0 .3rem;font-size:.92rem;line-height:1.45}
+.hai-campos{display:grid;grid-template-columns:max-content 1fr;gap:.15rem .7rem;margin:.2rem 0 .3rem;font-size:.8rem}
+.hai-campos dt{color:var(--texto-suave);font-weight:600}
+.hai-campos dd{margin:0}
+.hai-original{font-size:.8rem;color:var(--texto-suave);margin:.2rem 0}
+.hai-compartilhar{display:inline-flex;align-items:center;gap:.35rem;font-size:.82rem;font-weight:500}
+.hai-so-prof{font-size:.78rem;color:#46355e}
+.hai-btn-desc:hover{border-color:#a8442c;color:#a8442c}
+.hai-editor{display:grid;gap:.5rem}
+.hai-ed-campo{display:flex;flex-direction:column;gap:.2rem;font-size:.8rem;font-weight:500}
+.hai-ed-campo textarea{font:inherit;font-size:.88rem;padding:.45rem .55rem;border:1px solid var(--input-borda);border-radius:8px;background:var(--input-fundo);color:var(--texto);resize:vertical}
+.hai-rev-fim{display:flex;flex-wrap:wrap;align-items:center;gap:.8rem;margin-top:1rem}
+.hai-pend{font-size:.82rem;color:#7a3322}
+.hai-hist{margin-top:1.25rem}
+.hai-hist h4{margin:0 0 .5rem;color:var(--titulo)}
+.hai-tabela{width:100%;border-collapse:collapse;font-size:.84rem}
+.hai-tabela th,.hai-tabela td{text-align:left;padding:.4rem .5rem;border-bottom:1px solid var(--borda-suave)}
+@media (max-width:640px){
+  .hai-ponte{padding:1rem}
+  .hai-passo{grid-template-columns:1.8rem 1fr;padding:.75rem}
+  .hai-passo-num{width:1.8rem;height:1.8rem}
+  .hai-campos{grid-template-columns:1fr}
+  .hai-tabela th:nth-child(4),.hai-tabela td:nth-child(4){display:none}
+}

@@ -138,5 +138,11 @@ cd "$(dirname "$0")/.."
     grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
   done
   cat supabase/tests/mapeamento-link-enviado-harness.sql
+  # Ponte HOLOS AI -> HoloHacking (20261023100000): importacao imutavel do JSON HOLOS_AI_RESULT, revisao por item,
+  # itens da HOLOS AI no Resultado HOLOS (template 5) so quando aceitos; so profissional nunca para a paciente.
+  for f in supabase/migrations/2026102310*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/holos-ai-ponte-harness.sql
   echo "rollback;"
 } | psql -U postgres -d base -v ON_ERROR_STOP=1 -At | tr '|' '\n' | sed 's/^ //'

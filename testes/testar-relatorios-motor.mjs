@@ -106,7 +106,7 @@ ok(/Pendências metodológicas/.test(sup.prof), 'a nutricionista continua vendo 
 const ia = await A.evaluate(async (pid) => {
   window.definirPacienteAtivo(pid); window.levarParaFicha('aba:holos-ai', pid); await new Promise(r => setTimeout(r, 900));
   const b = document.querySelector('.ai-atalho-ctx[data-ctx="completo"]'); if (b) b.click(); await new Promise(r => setTimeout(r, 400));
-  const ta = document.querySelector('#aba-holos-ai textarea'); return ta ? ta.value : document.getElementById('aba-holos-ai').innerText;
+  const ta = document.querySelector('#aba-holos-ai .ai-hub textarea'); return ta ? ta.value : document.querySelector('#aba-holos-ai .ai-hub').innerText;   /* 14/10: o campo da ponte HOLOS AI (#hai-json) nao e o contexto */
 }, PA);
 ok(!/CARTA_INTIMA_NAO_ENVIAR/.test(ia) && /Carta ao Futuro Eu foi realizada/.test(ia) && /O conteúdo não é incluído/.test(ia), 'item 37: HOLOS AI recebe a Carta só como realizada (o texto não vai)');
 ok(!/Irmã Terceira Ficticia/.test(ia) && /Nomes de pessoas da rede não são incluídos/.test(ia), 'item 37: HOLOS AI sem nomes de terceiros da Conexão & Pertencimento');

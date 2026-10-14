@@ -11,6 +11,7 @@
  * obrigatorio para finalizar e emitir; emissao RF-3 congela direcao_paciente + caminho.
  */
 import { createHash, randomUUID } from 'node:crypto';
+import { conferirItensHolosAI } from './holos-ai-falso.mjs';   // ponte HOLOS AI (migration 20261023100000)
 
 const FERR_OK = ['oq3', 'pqq', 'linha_momentum', 'mapa_crencas', 'roda_vida', 'carta_futuro', 'mapa_rotina_v1', 'gatilhos_respostas_v1', 'conexao_pertencimento_v1'];
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -31,8 +32,9 @@ const PUBLICAS_D = { direcionamentos: ['id', 'territorio', 'porque', 'objetivo',
   acompanhamento_estrategias: ['estrategia', 'aplicou', 'facilitou', 'dificultou', 'percepcao', 'mudanca', 'decisao'] };
 const TEXTOS_ITEM = ['texto_sugerido', 'porque', 'objetivo', 'direcionamento_id', 'finalidade', 'acao', 'observar', 'contexto', 'prazo', 'responsavel',
   'aplicou', 'facilitou', 'dificultou', 'percepcao', 'observacao', 'mudanca'];
-const ORIGENS_D = ['relato_paciente', 'observacao_profissional', 'holoscan', 'ferramenta', 'conduta', 'acordo', 'nutricionista', 'resultado_anterior'];
-const REF_TAB = { anamnese: 'anamneses', conduta: 'conducts', acordo: 'agreements', ferramenta: 'tool_applications', holoscan: 'holoscan_applications', resultado: 'holos_results', atendimento: 'encounters' };
+const ORIGENS_D = ['relato_paciente', 'observacao_profissional', 'holoscan', 'ferramenta', 'conduta', 'acordo', 'nutricionista', 'resultado_anterior', 'holos_ai'];
+const REF_TAB = { anamnese: 'anamneses', conduta: 'conducts', acordo: 'agreements', ferramenta: 'tool_applications', holoscan: 'holoscan_applications', resultado: 'holos_results', atendimento: 'encounters',
+  holos_ai: 'holos_ai_imports' };
 const ehObj = (x) => x !== null && typeof x === 'object' && !Array.isArray(x);
 export function itensDirecao(d) {
   if (!ehObj(d)) return [];
@@ -146,7 +148,10 @@ export function criarResultadoHolos(s, ctx) {
         if (r !== undefined && r !== null) {
           if (!ehObj(r) || !REF_TAB[r.tipo] || !UUID.test(String(r.id || '')) || ('campo' in r && r.campo !== null && typeof r.campo !== 'string') || String(r.campo || '').length > 80
             || Object.keys(r).some(k => !['tipo', 'id', 'campo'].includes(k))) invalida('referencia do item invalida');
-        } else if (it.sugestao === true) invalida('sugestao sem referencia de origem');
+          if ((it.origem === 'holos_ai') !== (r.tipo === 'holos_ai') || (r.tipo === 'holos_ai' && !UUID.test(String(r.campo || ''))))
+            invalida('item da HOLOS AI precisa da referencia ao item importado');
+        } else if (it.origem === 'holos_ai') invalida('item da HOLOS AI precisa da referencia ao item importado');
+        else if (it.sugestao === true) invalida('sugestao sem referencia de origem');
         if (padrao && !['padrao_observado', 'hipotese'].includes(it.tipo)) invalida('padrao precisa do tipo padrao_observado ou hipotese');
       };
       LISTAS_D.forEach(k => { if (k in d) { if (!Array.isArray(d[k]) || d[k].length > 40) invalida('direcao: ' + k + ' deve ser lista (ate 40 itens)'); d[k].forEach(it => item(it, k)); } });
@@ -159,6 +164,7 @@ export function criarResultadoHolos(s, ctx) {
         const tab = T[REF_TAB[it.ref.tipo]] || [];
         if (!tab.some(x => x.id === it.ref.id && x.patient_id === pid && x.nutritionist_id === uid)) falha('referencia de outra paciente ou inexistente', 'referencia_cruzada');
       } });
+      conferirItensHolosAI(T, uid, pid, d, itensDirecao(d), falha);
       /* estrategia anterior / acompanhada: Resultado SALVO desta paciente */
       itensDirecao(d).forEach(it => { const r = ehObj(it.anterior) ? it.anterior : ehObj(it.estrategia) ? it.estrategia : null; if (!r) return;
         if (!T.holos_results.some(h => h.id === r.resultado_id && h.patient_id === pid && h.nutritionist_id === uid && h.status !== 'rascunho'))

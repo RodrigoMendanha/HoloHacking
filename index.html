@@ -900,12 +900,12 @@
                 <button class="aba" data-aba="anamnese" role="tab" id="tab-anamnese" aria-controls="aba-anamnese" aria-selected="false">Mapeamento Holístico</button>
                 <button class="aba" data-aba="holoscan" role="tab" id="tab-holoscan" aria-controls="aba-holoscan" aria-selected="false">HOLOSCAN</button>
                 <button class="aba" data-aba="ferramentas" role="tab" id="tab-ferramentas" aria-controls="aba-ferramentas" aria-selected="false">Ferramentas</button>
+                <button class="aba" data-aba="holos-ai" role="tab" id="tab-holos-ai" aria-controls="aba-holos-ai" aria-selected="false">HOLOS AI</button>
                 <button class="aba" data-aba="resultado-holos" role="tab" id="tab-resultado-holos" aria-controls="aba-resultado-holos" aria-selected="false">Resultado HOLOS</button>
                 <button class="aba" data-aba="documentos" role="tab" id="tab-documentos" aria-controls="aba-documentos" aria-selected="false">Documentos</button>
                 <button class="aba" data-aba="conduta" role="tab" id="tab-conduta" aria-controls="aba-conduta" aria-selected="false">Conduta</button>
                 <button class="aba" data-aba="evolucao" role="tab" id="tab-evolucao" aria-controls="aba-evolucao" aria-selected="false">Evolução</button>
                 <button class="aba" data-aba="relatorio" role="tab" id="tab-relatorio" aria-controls="aba-relatorio" aria-selected="false">Relatório</button>
-                <button class="aba" data-aba="holos-ai" role="tab" id="tab-holos-ai" aria-controls="aba-holos-ai" aria-selected="false">HOLOS AI</button>
               </div>
               <button type="button" class="abas-seta dir" data-abas-seta="1" aria-label="Mais abas" hidden>&rsaquo;</button>
               </div>
@@ -1398,6 +1398,9 @@
 <script src="/contas.js"></script>
 <script src="/caso-marina.js"></script>
 <script src="/demo.js"></script>
+<!-- Ponte HOLOS AI -> Resultado HOLOS (contrato do JSON HOLOS_AI_RESULT v1 + tela de importacao e revisao). Antes de holos-ai.js, que desenha a aba. -->
+<script src="/holos-ai-contrato.js"></script>
+<script src="/holos-ai-ponte.js"></script>
 <script src="/holos-ai.js"></script>
 <!-- Por ultimo: a tela de entrada nao depende de nada do app, e o app nao
      depende dela. O dia em que a autenticacao real chegar, e este arquivo que

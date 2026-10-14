@@ -338,9 +338,11 @@
      nenhum texto assistido existe para ser incluido. */
   function atendimentoDeContexto() {
     var pid = pacienteId(); var A = window.AtendimentoAtual; if (!pid || !A) return null;
+    if (eidPacote && A.porId) { var fixo = A.porId(eidPacote); if (fixo && fixo.patient_id === pid) return fixo; }
     var ativo = A.atual(); if (ativo && ativo.patient_id === pid) return ativo;
     return A.doPaciente(pid).sort(function (a, b) { return String(b.occurred_at).localeCompare(String(a.occurred_at)); })[0] || null;
   }
+  var eidPacote = null;   // Pacote HOLOS AI: o atendimento escolhido na ponte (holos-ai-ponte.js)
   function dadosAnamnese() {
     var e = atendimentoDeContexto(); var An = window.Anamnese; if (!e || !An) return "";
     var v = An.vigente(e.id); if (!v) return "";
@@ -475,7 +477,9 @@
     var p = pacienteAtivo();
     var nomeP = p ? p.nome : "paciente";
 
-    var html =
+    /* Ponte HOLOS AI (14/10): os 5 passos (Pacote, abrir, importar, revisar, gerar Resultado) vem primeiro;
+       o contexto em texto livre continua abaixo, como antes */
+    var html = '<div id="hai-ponte"></div>' +
       '<div class="ai-hub">' +
         '<div class="ai-hub-intro">' +
           '<div class="ai-hub-icone" aria-hidden="true">&#9670;</div>' +
@@ -527,6 +531,9 @@
     alvo.innerHTML = html;
     atualizarLinksAgentes();
     ligarEventos();
+    /* a ponte nunca derruba o contexto em texto: falha dela fica so no bloco dela */
+    try { if (window.HolosAIPonte) window.HolosAIPonte.desenhar(document.getElementById("hai-ponte")); }
+    catch (e) { var hp = document.getElementById("hai-ponte"); if (hp) hp.innerHTML = '<p class="hai-erro" role="alert">Não foi possível abrir a importação da HOLOS AI. Recarregue a página.</p>'; }
   }
 
   /* Rodada 08: sem URL configurada, o botao nao pode parecer que funciona.
@@ -622,6 +629,15 @@
     },
     urls: function () {
       return { chatgpt: HOLOS_AI_URLS.chatgpt, gemini: HOLOS_AI_URLS.gemini };
+    },
+    /** Pacote HOLOS AI: as mesmas secoes do contexto (so registros salvos/aprovados, sem exames), SEM o cadastro
+        (nome, contatos): a ponte monta o pacote com iniciais, idade e sexo. eid fixa o atendimento do pacote. */
+    secoesPacote: function (eid) {
+      eidPacote = eid || null;
+      try {
+        return { holoscan: dadosHoloscan(), evolucao: dadosEvolucao(), ferramentas: dadosFerramentas(), anamnese: dadosAnamnese(),
+          conduta: dadosConduta(), resultado: dadosResultadoHolos(), atendimentos: dadosAtendimentos() };
+      } finally { eidPacote = null; }
     }
   };
 

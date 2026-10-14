@@ -203,7 +203,7 @@ titulo('B8 — HOLOS AI: TODAS AS FERRAMENTAS CONCLUIDAS E O RESULTADO HOLOS');
 const ia = await A.evaluate(async (pid) => {
   window.definirPacienteAtivo(pid); window.levarParaFicha('aba:holos-ai', pid); await new Promise(r => setTimeout(r, 900));
   const b = document.querySelector('.ai-atalho-ctx[data-ctx="completo"]'); if (b) b.click(); await new Promise(r => setTimeout(r, 400));
-  const ta = document.querySelector('#aba-holos-ai textarea'); return ta ? ta.value : document.getElementById('aba-holos-ai').innerText;
+  const ta = document.querySelector('#aba-holos-ai .ai-hub textarea'); return ta ? ta.value : document.querySelector('#aba-holos-ai .ai-hub').innerText;   /* 14/10: o campo da ponte HOLOS AI (#hai-json) nao e o contexto */
 }, PA);
 ok(/### Mapa da Rotina/.test(ia) && /### Gatilhos & Respostas/.test(ia) && /### Conexão & Pertencimento/.test(ia) && /### Linha do Momentum/.test(ia),
   'Caso completo inclui as ferramentas estruturadas concluídas (Mapa da Rotina, Gatilhos & Respostas, Conexão & Pertencimento) e as demais');

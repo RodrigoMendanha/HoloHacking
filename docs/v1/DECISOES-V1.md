@@ -1126,6 +1126,16 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
      ao voltar para a aba e ao abrir a aba) e mostra a resposta sozinha. Depois de recebido: resumo nas palavras do paciente,
      "Abrir Mapeamento completo" e histórico; enviar outro Mapeamento é ação secundária. Nada disso altera HOLOSCAN, notas,
      sistemas, Índice, Tríade, PP-V1 nem a resposta original (`docs/v1/FASE1-MAPEAMENTO-FLUXO.md`).
+196. **Ponte HOLOS AI → Resultado HOLOS** (14/10, "MUDANÇA DE PRIORIDADE"). A aba HOLOS AI do atendimento (logo antes do
+     Resultado HOLOS) tem 5 passos: Copiar Pacote HOLOS AI (só dados registrados, sem nome/contatos/exames) → Abrir HOLOS AI →
+     Importar Resultado HOLOS AI (JSON HOLOS_AI_RESULT schema_version 1; inválido = nada salvo e texto preservado) → Revisar
+     análise (cada item começa como SUGESTÃO HOLOS AI; confirmar / editar só texto / descartar; compartilhar só o que não é só
+     profissional) → Gerar Resultado HOLOS (o confirmado entra na direção do template 5 com origem `holos_ai` e referência ao
+     item importado; foco atual entra só como sugestão). Importação imutável e versionada (`holos_ai_imports` +
+     `holos_ai_import_items`, migration aditiva 20261023100000); o servidor recusa no Resultado item descartado, item só
+     profissional para a paciente e importação não concluída. A HOLOS AI não substitui o Resultado HOLOS; PDF, emissão e
+     WhatsApp continuam saindo só da projeção do servidor. Nada muda em HOLOSCAN, PP-V1, sistemas, Tríade, ferramentas,
+     pacotes, scores ou exames (`docs/v1/PONTE-HOLOS-AI.md`).
 
 ## Decisões pendentes (não decididas aqui)
 

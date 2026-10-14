@@ -75,11 +75,11 @@
     hipoteses: ["", "Hipóteses (só profissional)", "profissional"]
   };
   var ORIGEM_PROF = { relato_paciente: "Relato da paciente", observacao_profissional: "Observação profissional", holoscan: "HOLOSCAN",
-    ferramenta: "Ferramenta", conduta: "Conduta", acordo: "Acordo", nutricionista: "Escrito pela nutricionista", resultado_anterior: "Resultado anterior" };
+    ferramenta: "Ferramenta", conduta: "Conduta", acordo: "Acordo", nutricionista: "Escrito pela nutricionista", resultado_anterior: "Resultado anterior", holos_ai: "HOLOS AI (revisado pela nutricionista)" };
   var ORIGEM_PAC = { relato_paciente: "você contou", observacao_profissional: "registrado pela sua nutricionista", holoscan: "do HOLOSCAN",
     ferramenta: "de uma ferramenta", conduta: "registrado pela sua nutricionista", acordo: "combinado com a sua nutricionista",
-    nutricionista: "registrado pela sua nutricionista", resultado_anterior: "do encontro anterior" };
-  var REF_ROT = { anamnese: "Anamnese", conduta: "Conduta", acordo: "Acordo", ferramenta: "Ferramenta", holoscan: "HOLOSCAN", resultado: "Resultado anterior", atendimento: "Atendimento" };
+    nutricionista: "registrado pela sua nutricionista", resultado_anterior: "do encontro anterior", holos_ai: "registrado pela sua nutricionista" };
+  var REF_ROT = { anamnese: "Anamnese", conduta: "Conduta", acordo: "Acordo", ferramenta: "Ferramenta", holoscan: "HOLOSCAN", resultado: "Resultado anterior", atendimento: "Atendimento", holos_ai: "HOLOS AI" };
   var ESTADO = {
     sugerido: "SUGESTÃO DO SISTEMA",
     confirmado: "CONFIRMADO PELA NUTRICIONISTA",
