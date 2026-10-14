@@ -160,7 +160,7 @@ O texto dessas funções em produção foi conferido em 14/10, só em leitura: �
 
 **Contrato** (`testar-holos-ai-contrato.mjs`): **19 ok**.
 
-**Suíte completa** (`npm run teste`, 14/10): **VERDE — 158 suítes, 4803 asserções, 0 falhas**. Três testes antigos ganharam expectativa nova: `testar-arquivos.mjs` (ordem das abas), `testar-storage-manifest.mjs` (65 scripts) e o seletor do contexto em texto em `testar-correcoes-jornada.mjs` e `testar-relatorios-motor.mjs` (o `#hai-json` não é o contexto).
+**Suíte completa** (`npm run teste`, 14/10): **VERDE — 158 suítes, 4803 asserções, 0 falhas**. Quatro testes antigos ganharam expectativa nova: `testar-arquivos.mjs` (ordem das abas), `testar-storage-manifest.mjs` (65 scripts) e o seletor do contexto em texto em `testar-correcoes-jornada.mjs` e `testar-relatorios-motor.mjs` (o `#hai-json` não é o contexto).
 
 ## 6. Riscos
 
