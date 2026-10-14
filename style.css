@@ -6081,3 +6081,17 @@ body.rh-imprimindo #rh-doc .eyebrow,body.rh-imprimindo #rh-doc .rd-sis-foco,body
 .bpctx-quem{max-width:100%}
 .bpctx-nome{min-width:0}
 .bpctx-fechar{flex-shrink:0}
+/* 14/10 (pos-deploy) — DASHBOARD NA MESMA REGUA: o topo marfim deixa de ir de borda a borda (cantos so a esquerda)
+   e fica alinhado com Agenda de Hoje / Acompanhamento: mesma margem lateral, mesma largura maxima, cantos nos 4 lados,
+   respiro em cima. Vale para os tres blocos do Dashboard. */
+.conteudo:has(#secao-dashboard.ativa){padding-top:28px}
+#secao-dashboard{--dash-margem:max(48px, calc((100% - 1360px) / 2))}
+#secao-dashboard .dash-hero{border-radius:22px;margin:0 var(--dash-margem) 24px;padding:28px 34px 24px}
+#secao-dashboard .dash-colunas{margin-left:var(--dash-margem);margin-right:var(--dash-margem)}
+#secao-dashboard #dash-metodo{padding:0;margin-left:var(--dash-margem);margin-right:var(--dash-margem)}
+#secao-dashboard .dash-hero-citacao{right:34px}
+@media (max-width:960px){
+  .conteudo:has(#secao-dashboard.ativa){padding-top:16px}
+  #secao-dashboard{--dash-margem:16px}
+  #secao-dashboard .dash-hero{border-radius:18px;padding:20px 18px 18px}
+}
