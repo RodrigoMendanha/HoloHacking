@@ -36,8 +36,8 @@
     { bloco: "saude", titulo: "Sua saúde", intro: "Para a sua nutricionista cuidar de você com segurança. Responda o que souber.",
       campos: ["condicoes_tem", "condicoes", "med_sup_tem", "med_sup_quais", "alergia_tem", "alergia_qual", "desconforto_tem", "desconforto_qual",
         "contexto.familiar_tem", "contexto.familiar_saude", "exames_tem"] },
-    { bloco: "estilo", titulo: "Seus hábitos e seu momento", intro: "Quase tudo aqui é de tocar. As perguntas abertas são opcionais.",
-      campos: ["atividade", "atividade_qual", "alimentar.alcool", "tabagismo", "rotina", "contexto.momento_agora"] }
+    { bloco: "estilo", titulo: "Seus hábitos e seu momento", intro: "Quase tudo aqui é rápido de responder. As perguntas abertas ajudam sua nutricionista a conhecer melhor sua rotina.",
+      campos: ["atividade", "atividade_qual", "alimentar.alcool", "tabagismo", "rotina", "sono_atual", "dificulta_hoje", "contexto.momento_agora"] }
   ];
   /* MH-2 (14/10, nao publicado): mantido para ler o que tiver sido respondido nele */
   var ETAPAS_PRIMEIRA_MH2 = [
@@ -83,7 +83,9 @@
     "motivo.mudar_primeiro": "Daqui a alguns meses, o que você gostaria que estivesse diferente?",
     "alimentar.dia_comum": "Como é a sua alimentação num dia comum, do café ao jantar?",
     "estilo.dias_diferentes": "E no fim de semana, o que muda?",
-    "alimentar.preferencias": "Quais alimentos você mais gosta? E quais não come de jeito nenhum?",
+    "alimentar.preferencias": "Quais alimentos você mais gosta? E quais evita ou prefere não comer?",
+    "estilo.sono_atual": "Como está seu sono atualmente?",
+    "estilo.dificulta_hoje": "O que mais dificulta cuidar da sua alimentação e da sua saúde hoje?",
     "alimentar.dificuldade": "Hoje, qual é a sua maior dificuldade com a alimentação?",
     "estilo.rotina": "Em poucas palavras, como é a sua rotina de trabalho ou estudo?",
     "contexto.momento_agora": "Está acontecendo algo na sua vida agora que influencia o seu cuidado com a saúde?",
@@ -170,18 +172,20 @@
   var REGRAS = {
     "motivo.motivos": { outro: "Qual motivo?" },
     /* MH-2 */
-    "motivo.melhorar": { obrigatorio: true, outro: "O quê?" },
+    "motivo.melhorar": { obrigatorio: true, outro: "O que você busca?" },
     /* MH-3: perguntas abertas com exemplo em cinza (so mostra o tamanho da resposta; nunca e gravado) */
-    "motivo.motivo": { obrigatorio: true, exemplo: "Ex.: ando muito cansada, sem tempo para comer direito e quero me sentir melhor" },
-    "motivo.ha_quanto_tempo": { curto: true, exemplo: "Ex.: uns 2 anos, desde que mudei de emprego" },
-    "motivo.ja_tentou": { exemplo: "Ex.: dieta da internet; funcionou no começo, mas não consegui manter" },
-    "motivo.mudar_primeiro": { exemplo: "Ex.: ter mais disposição à tarde e comer sem culpa" },
-    "alimentar.dia_comum": { exemplo: "Ex.: café com pão às 7h; almoço no trabalho por volta das 13h; lanche às 16h; jantar às 20h" },
-    "estilo.dias_diferentes": { exemplo: "Ex.: acordo mais tarde, pulo o café e almoço na casa da família" },
-    "alimentar.preferencias": { exemplo: "Ex.: amo arroz, feijão e frutas; não como fígado nem quiabo" },
-    "alimentar.dificuldade": { exemplo: "Ex.: beliscar à noite" },
-    "estilo.rotina": { exemplo: "Ex.: trabalho das 8h às 17h, sentada; estudo duas noites por semana" },
-    "contexto.momento_agora": { exemplo: "Ex.: mudei de cidade há pouco tempo" },
+    "motivo.motivo": { obrigatorio: true, exemplo: "Ex.: ando muito cansada, sem tempo para comer direito e quero me sentir melhor." },
+    "motivo.ha_quanto_tempo": { curto: true, exemplo: "Ex.: há uns 2 anos / desde que mudei de trabalho." },
+    "motivo.ja_tentou": { linhas: 2, exemplo: "Ex.: fiz algumas dietas; funcionaram no começo, mas não consegui manter." },
+    "motivo.mudar_primeiro": { exemplo: "Ex.: ter mais disposição à tarde, comer com mais calma e me sentir melhor com a minha rotina." },
+    "alimentar.dia_comum": { exemplo: "Ex.: café com pão às 7h; almoço no trabalho por volta das 13h; lanche às 16h; jantar às 20h." },
+    "estilo.dias_diferentes": { exemplo: "Ex.: acordo mais tarde, pulo o café e almoço na casa da família." },
+    "alimentar.preferencias": { linhas: 2, exemplo: "Ex.: gosto de arroz, feijão e frutas; evito fígado e quiabo." },
+    "alimentar.dificuldade": { exemplo: "Ex.: beliscar à noite / falta de rotina / comer rápido demais." },
+    "estilo.rotina": { linhas: 2, exemplo: "Ex.: trabalho das 8h às 17h sentada; estudo duas noites por semana." },
+    "contexto.momento_agora": { exemplo: "Ex.: mudei de cidade há pouco tempo / estou numa fase de muito estresse / comecei um trabalho novo." },
+    "estilo.dificulta_hoje": { outro: "O que mais dificulta hoje?" },
+    /* diagnostico "Sim": o "qual" tambem e obrigatorio */
     "motivo.expectativa": { curto: true },
     "motivo.acomp_anterior": { opcoes: [["Nunca"], ["Sim, e foi uma experiência positiva", "Sim, e foi positivo"], ["Sim, mas tive dificuldade para manter", "Sim, mas tive dificuldade de seguir"],
       ["Sim, mas não me senti compreendido(a)"]] },
@@ -204,7 +208,7 @@
     "saude.sinal_relacao_obs": { se: { campo: "saude.sinal_relacao", igual: "Sim" }, curto: true },
     /* MH-2: faixas de agua ate "mais de 3 litros"; "Mais de 2 L" (MH-1) continua legivel nas respostas antigas */
     "alimentar.agua": { opcoes: [["Menos de 1 L", "Menos de 1 litro"], ["1–2 L", "Entre 1 e 2 litros"], ["2–3 L", "Entre 2 e 3 litros"], ["Mais de 3 L", "Mais de 3 litros"], ["Não sei dizer", "Não sei"]] },
-    "saude.condicoes": { se: { campo: "saude.condicoes_tem", igual: "Sim" }, curto: true },
+    "saude.condicoes": { se: { campo: "saude.condicoes_tem", igual: "Sim" }, curto: true, obrigatorio: true },
     "saude.cirurgias": { se: { campo: "saude.cirurgias_tem", igual: "Sim" }, curto: true },
     "restricoes.evita_desconforto": { se: { campo: "restricoes.evita_tem", igual: "Sim" }, curto: true },
     "estilo.dorme": { hora: true, par: "estilo.acorda" },

@@ -110,7 +110,7 @@
     r = r || {};
     var id = idCampo(b, f.id), d = dados(b);
     var inp = r.hora ? el("input", { type: "time", id: id, step: 300 })
-      : (f.tipo === "area" && !r.curto) ? el("textarea", { id: id, rows: 3 }) : el("input", { type: "text", id: id, autocomplete: "off" });
+      : (f.tipo === "area" && !r.curto) ? el("textarea", { id: id, rows: r.linhas || 3, class: r.linhas ? "curta" : "" }) : el("input", { type: "text", id: id, autocomplete: "off" });
     inp.value = d[f.id] || "";
     if (r.exemplo) inp.setAttribute("placeholder", r.exemplo);   // MH-3: exemplo em cinza, nunca gravado
     inp.addEventListener("input", function () { d[f.id] = inp.value; mudou(); });

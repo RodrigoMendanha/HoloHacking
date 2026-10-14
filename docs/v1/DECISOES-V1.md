@@ -1198,6 +1198,11 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
      - obrigatórias: o que busca, o porquê com as palavras da pessoa e se tem diagnóstico;
      - continuam fora: sono, fome, emoções, estresse, apoio e propósito (HOLOSCAN e ferramentas), CPF/RG, medidas e anexo de exames;
      - versão gravada na resposta (`MH-3`); MH-1 e MH-2 continuam legíveis como foram respondidas.
+     - **redesenho final (mesmo dia, antes de publicar):** entram "Como está seu sono atualmente?" e "O que mais dificulta
+       cuidar da sua alimentação e da sua saúde hoje?" (só toque); "Qual condição ou diagnóstico?" vira obrigatória quando a
+       resposta é "Sim"; textos e exemplos ajustados. Visual: o título das perguntas de escolha (legend do fieldset) era
+       desenhado em cima da borda do cartão; agora fica dentro, com o mesmo espaçamento das perguntas de texto. Total: 27
+       perguntas principais.
 
 ## Decisões pendentes (não decididas aqui)
 

@@ -130,6 +130,10 @@ await escrever(M, 'pa-estilo-atividade_qual', 'Caminhada');
 await marcar(M, 'pa-alimentar-alcool', 'Ocasional');
 await marcar(M, 'pa-estilo-tabagismo', '');   // Prefiro nao responder
 await escrever(M, 'pa-estilo-rotina', 'Trabalho das 8h às 17h, sentada');
+await marcar(M, 'pa-estilo-sono_atual', 'Durmo, mas acordo cansado(a)');
+await marcar(M, 'pa-estilo-dificulta_hoje', 'Falta de tempo'); await marcar(M, 'pa-estilo-dificulta_hoje', 'Outro');
+ok((await tela(M)).ids.includes('pa-estilo-dificulta_hoje-outro'), 'B: "Outro" no que dificulta abre "O que mais dificulta hoje?"');
+await escrever(M, 'pa-estilo-dificulta_hoje-outro', 'Plantões');
 await escrever(M, 'pa-contexto-momento_agora', 'Mudei de cidade há pouco tempo');
 if (SHOT) await M.screenshot({ path: SHOT + '/mh3-etapa4-390.png', fullPage: true });
 await seguir(M);
@@ -138,9 +142,9 @@ t = await tela(M);
 ok(/Revisar e enviar/.test(t.h2) && /Etapa 5 de 5/.test(t.passo) && t.btn === 'Enviar Mapeamento' && !/Para enviar, falta/.test(t.txt), 'revisar: resumo, pergunta final e "Enviar Mapeamento" (nada obrigatório faltando)');
 ok(titulos.join('|') === 'O que te traz aqui|Sua alimentação hoje|Sua saúde|Seus hábitos e seu momento', 'as 4 etapas na ordem: ' + titulos.join(' · '));
 const perguntas = await M.evaluate(() => window.MapeamentoHolistico.etapasDe('primeira').reduce((n, et) => n + window.MapeamentoHolistico.camposDa('primeira', et).filter(c => !c.r.se).length, 0) + 1);
-ok(perguntas === 25, '25 perguntas principais (as outras só abrem quando a resposta pede): ' + perguntas);
+ok(perguntas === 27, '27 perguntas principais (as outras só abrem quando a resposta pede): ' + perguntas);
 const tudo = todos.join('\n');
-ok(!/que horas|dorme bem|sono|fome|estresse|ansiedade|emoç|apoio|propósito|sentido/i.test(tudo), 'sem repetir HOLOSCAN e ferramentas (sono, fome, emoções, estresse, apoio, propósito)');
+ok(!/que horas|fome|emoç|propósito|sentido da vida/i.test(tudo), 'sem repetir HOLOSCAN e ferramentas (horários, fome, emoções, propósito); sono e o que dificulta entram só como toque');
 ok(!/peso|altura|circunfer|CPF|RG\b|caso clínico/i.test(tudo) && !v3.some(frase => tudo.includes(frase)), 'sem peso, medidas, CPF/RG, caso clínico e sem frase do HOLOSCAN');
 await espera(2600);
 const rasc = srv.linhas('anamnesis_invites').find(c => c.id === cN.id);
@@ -159,6 +163,11 @@ if (SHOT) await M.screenshot({ path: SHOT + '/mh3-falta-390.png', fullPage: true
 await M.evaluate(() => [...document.querySelectorAll('.faltam .btn-link')][0].click()); await espera(300);
 ok(/Sua saúde/.test((await tela(M)).h2), 'F: o atalho leva à etapa da pergunta');
 await marcar(M, 'pa-saude-condicoes_tem', 'Sim');
+await M.evaluate(() => { window.AnamnesePublica.estado().formulario.saude.condicoes = ''; });
+await seguir(M); await seguir(M);
+ok(/Para enviar, falta responder/.test((await tela(M)).txt) && /Qual condição ou diagnóstico\?/.test((await tela(M)).txt), 'F: diagnóstico "Sim" torna "Qual condição ou diagnóstico?" obrigatória');
+await M.evaluate(() => [...document.querySelectorAll('.faltam .btn-link')][0].click()); await espera(300);
+await escrever(M, 'pa-saude-condicoes', 'Hipotireoidismo');
 await seguir(M); await seguir(M);
 await escrever(M, 'pa-contexto-obs', 'Trabalho em turnos alternados');
 if (SHOT) await M.screenshot({ path: SHOT + '/mh3-revisar-390.png', fullPage: true });
@@ -170,7 +179,7 @@ ok(fim.status === 'concluido' && /Mapeamento enviado com sucesso/.test(t.txt) &&
 ok(await M.evaluate(() => document.querySelector('#cabeca .topo-instrucao').hidden), 'depois de enviar, o topo não diz mais que dá para continuar pelo link');
 const sf = fim.submitted_content.formulario;
 ok(sf.motivo.melhorar_outro === 'Preparar para uma cirurgia' && sf.saude.med_sup_quais === 'Levotiroxina 50 mcg; vitamina D' && sf.alimentar.preferencias === 'Gosto de frutas; não como fígado'
-  && sf.estilo.tabagismo_prefiro_nao === true && sf.motivo.motivo === 'Ando muito cansada e sem tempo para comer direito' && sf.alimentar.dia_comum.startsWith('Café com pão') && sf.contexto.obs === 'Trabalho em turnos alternados', 'D: respostas abertas e "Prefiro não responder" guardados com as palavras do paciente');
+  && sf.estilo.tabagismo_prefiro_nao === true && sf.estilo.sono_atual === 'Durmo, mas acordo cansado(a)' && sf.estilo.dificulta_hoje_outro === 'Plantões' && sf.motivo.motivo === 'Ando muito cansada e sem tempo para comer direito' && sf.alimentar.dia_comum.startsWith('Café com pão') && sf.contexto.obs === 'Trabalho em turnos alternados', 'D: respostas abertas e "Prefiro não responder" guardados com as palavras do paciente');
 const original = JSON.stringify(fim.submitted_content);
 ok(rpc('anamnese_publica_salvar', { p_token: cN.token, p_conteudo: { formulario: { motivo: { motivo: 'X' } } } }, null).error?.hint === 'ja_enviada', 'E: depois de enviar, o link não altera a resposta');
 const env2 = rpc('anamnese_publica_enviar', { p_token: cN.token, p_conteudo: JSON.parse(original) }, null);

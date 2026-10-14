@@ -144,7 +144,12 @@
       C("trabalho_tipo", "Trabalho / atividade principal", "rotina_acesso", ["Horário comercial", "Turnos", "Período noturno", "Horários variáveis", "Em casa", "Não estou trabalhando atualmente", "Outro"]),
       C("dificulta_opcoes", "O que mais dificulta cuidar de si", "rotina_acesso", ["Tempo", "Trabalho", "Cansaço", "Filhos / família", "Organização", "Questões financeiras", "Saúde", "Falta de apoio", "Outro"], { multi: true }),
       C("funciona_tem", "Algo na rotina funciona bem", "rotina_acesso", ["Sim", "Não", "Não sei"]),
-      T("atividade_qual", "Qual atividade física", "atividade_fisica")] },
+      T("atividade_qual", "Qual atividade física", "atividade_fisica"),
+      /* Mapeamento Holistico (redesenho final, 14/10): sono e o que dificulta, por toque */
+      C("sono_atual", "Como está o sono atualmente", "sono", ["Durmo bem e acordo disposto(a)", "Durmo, mas acordo cansado(a)", "Demoro para dormir",
+        "Acordo durante a noite", "Durmo poucas horas", "Varia bastante"]),
+      C("dificulta_hoje", "O que mais dificulta cuidar da alimentação e da saúde hoje", "rotina_acesso", ["Trabalho", "Falta de tempo", "Cansaço", "Organização",
+        "Família", "Estudos", "Questões financeiras", "Falta de apoio", "Estresse / ansiedade percebida", "Outro"], { multi: true })] },
     { id: "contexto", titulo: "Histórico e contexto", campos: [
       A("familiar_saude", "Histórico familiar relevante", "antecedentes"), A("familiar", "Contexto familiar", "contexto_familiar"),
       A("social", "Contexto social", "contexto_social"), A("financeiro", "Condições financeiras/alimentares relevantes (se necessário)", "contexto_social"),

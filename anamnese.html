@@ -95,6 +95,25 @@ main h3.secao { font-family: var(--display); font-size: 19px; margin: 22px 0 8px
 .faltam { margin: 0; padding-left: 20px; }
 .btn-link { font: inherit; font-size: 15px; background: none; border: 0; padding: 6px 0; min-height: 40px; color: var(--primaria); text-decoration: underline; cursor: pointer; text-align: left; }
 .btn-link:focus-visible { outline: 2px solid var(--secundaria); outline-offset: 2px; }
+/* Mapeamento (redesenho final, 14/10) — CARTOES: a pergunta de escolha usava <legend> do <fieldset>, que o navegador
+   desenha EM CIMA da borda (o titulo "vazava" pelo topo do cartao). A legenda agora flutua dentro do cartao, com a
+   mesma composicao das perguntas de texto: padding igual, titulo dentro, espaco igual ate as opcoes. */
+fieldset.campo { margin-inline: 0; padding: 16px 16px 18px; }
+.campo > label, .campo legend { font-size: 16px; line-height: 1.4; overflow-wrap: anywhere; }
+.campo legend { float: left; width: 100%; margin: 0 0 10px; }
+.campo legend + * { clear: both; }
+.campo > label { margin-bottom: 10px; }
+.campo { padding: 16px 16px 18px; margin-bottom: 14px; }
+.campo .ajuda { margin: -2px 0 10px; clear: both; }
+.chips { gap: 8px 8px; }
+.chip span { line-height: 1.3; max-width: 100%; overflow-wrap: anywhere; }
+textarea { min-height: 96px; }
+textarea.curta { min-height: 64px; }
+textarea, input[type=text] { max-width: 100%; box-sizing: border-box; }
+input::placeholder, textarea::placeholder { color: #8a978f; opacity: 1; }
+main h2 { overflow-wrap: anywhere; }
+.revisao dd { overflow-wrap: anywhere; }
+@media (min-width: 900px) { .envolve { max-width: 720px; } }
 </style>
 </head>
 <body>
