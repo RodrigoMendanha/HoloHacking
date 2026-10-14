@@ -176,8 +176,8 @@ ok(ma.aberto && ma.exp === 'true' && ma.foco === 'Editar cadastro' && ma.fechou,
 
 /* jornada */
 const jor = await A.evaluate(() => [...document.querySelectorAll('#ficha-jornada .fic-step')].map(s => ({ st: s.className.replace('fic-step', '').trim(), nome: s.querySelector('.fic-step-mov').textContent, atual: s.getAttribute('aria-current') })));
-ok(jor.map(j => j.nome).join('|') === 'ANTES|ATENDIMENTO|ATENDIMENTO|DEPOIS|DEPOIS|APRESENTAR|RETORNOS', 'jornada: o fluxo completo, 7 passos na ordem (14/10)');
-ok(jor[0].st === 'futuro' && jor[1].st === 'feito' && jor[2].st === 'atual' && jor[2].atual === 'step' && jor[4].st === 'feito' && jor[5].st === 'feito' && jor[6].st === 'futuro',
+ok(jor.map(j => j.nome).join('|') === 'ANTES|ATENDIMENTO|ATENDIMENTO|DEPOIS|APRESENTAR|RETORNOS', 'jornada: o fluxo completo, 6 passos na ordem (Holos IA escondida)');
+ok(jor[0].st === 'futuro' && jor[1].st === 'feito' && jor[2].st === 'atual' && jor[2].atual === 'step' && jor[3].st === 'feito' && jor[4].st === 'feito' && jor[5].st === 'futuro',
   'estado real: Mapeamento não recebido (não volta a ser o atual), HOLOSCAN ✓, Ferramentas atual (nenhuma), Resultado HOLOS ✓, Resultado ✓ (emitido), Retornos futuro (1 HOLOSCAN): ' + jor.map(j => j.st).join(','));
 ok(await A.evaluate(() => !/%|pendente|atrasad|grave/i.test(document.getElementById('ficha-jornada').innerText)), 'jornada sem porcentagem, pendência ou gravidade');
 await A.evaluate(() => document.querySelector('[data-passo-jornada="acompanhar"]').click()); await espera(400);

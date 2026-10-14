@@ -128,7 +128,7 @@ const c8 = await P.evaluate(async (eid) => {
   return { solto, reaberto: (window.AtendimentoAtual.atual() || {}).id === eid, etapa: document.getElementById('fic-faixa-etapa').innerText, cta: window.ctaFicha().txt };
 }, EID);
 ok(c8.solto && c8.reaberto, '8 Soltar limpa a seleção; reabrir o mesmo atendimento volta ao contexto');
-ok(/Holos IA/.test(c8.etapa) && c8.cta === 'Abrir Holos IA', '8 etapa atual e botão principal acompanham a jornada: ' + c8.etapa.replace(/\s+/g, ' ') + ' / ' + c8.cta);
+ok(/Resultado HOLOS/.test(c8.etapa) && c8.cta === 'Montar Resultado HOLOS', '8 etapa atual e botão principal acompanham a jornada: ' + c8.etapa.replace(/\s+/g, ' ') + ' / ' + c8.cta);
 
 /* 9-11. Pacote → Holos IA → importar → Resultado HOLOS */
 await clicar('#btn-aplicar-holoscan'); await espera(1300);

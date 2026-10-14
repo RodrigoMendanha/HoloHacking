@@ -129,7 +129,8 @@
     if (!pp || !pp.registrado) return [];
     var pend = pp.pendentes && Array.isArray(pp.pendentes.selection) ? pp.pendentes.selection : null;
     var sel = pend || (Array.isArray(pp.selection) ? pp.selection : []);
-    return sel.filter(function (x) { return x.system_id === s.sistema; }).map(function (x) {
+    var A = raiz.FERRAMENTAS_ATIVAS, vis = function (id) { return !A || ["oq3", "pqq", "mapa"].concat(A).indexOf(id) >= 0; };
+    return sel.filter(function (x) { return x.system_id === s.sistema && vis(x.tool_id); }).map(function (x) {
       return { tool_id: x.tool_id, nome: nomeF(x.tool_id), papel: x.papel, rule_id: x.rule_id || null,
         por_que: PP_POR_QUE, investiga: x.professional_reason || null, fazer_agora: x.next_action || null,
         sinais_intro: PP_SINAIS, sinais: sinais.lista.slice() };

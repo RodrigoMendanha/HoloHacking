@@ -175,8 +175,11 @@
       '<button type="button" class="' + (feita ? "btn-borda-ouro" : "btn-verde") + ' pp-iniciar" data-pp-abrir="' + esc(item.tool_id) + '">' + (feita ? "Abrir a ferramenta" : "Iniciar ferramenta") + "</button>" +
       "</article>";
   }
+  /* 14/10: ferramenta fora das ativas (ex.: Conexao & Pertencimento) nao aparece como recomendacao; a seguinte sobe */
+  function visivel(id) { var A = raiz.FERRAMENTAS_ATIVAS; return !A || ["oq3", "pqq", "mapa"].concat(A).indexOf(id) >= 0; }
   function htmlBloco(saida, meta, feitas) {
-    var sel = saida.selection || [];
+    var sel = (saida.selection || []).filter(function (x) { return visivel(x.tool_id); });
+    if (sel.length && !sel.some(function (x) { return x.papel === "principal"; })) sel = [Object.assign({}, sel[0], { papel: "principal" })].concat(sel.slice(1));
     var principal = sel.filter(function (x) { return x.papel === "principal"; })[0];
     var comps = sel.filter(function (x) { return x.papel === "complementar"; }).slice(0, 2);
     var h = '<h4 class="res-tit">Próximos Passos HOLOS</h4>' +

@@ -118,7 +118,7 @@ dd{margin:0}
 <div class="trilha"><span>Mapeamento Holístico</span><i>→</i><span>HOLOSCAN</span><i>→</i><span>Ferramentas</span><i>→</i><span>Resultado HOLOS (Playbook)</span><i>→</i><span>PDF e WhatsApp</span><i>→</i><span>Retornos e Evolução</span></div>
 <div class="col3">
 <div><h4>HOLOSCAN</h4><p>Questionário do método que organiza os relatos do paciente em cinco sistemas: Fúngico, Ácido Inflamatório, Metabólico, Detox e Linfático e Mental Emocional Espiritual. Indica as 2 áreas prioritárias da fase.</p></div>
-<div><h4>Ferramentas</h4><p><b>Corpo:</b> OQ³, Linha do Momentum, Mapa da Rotina. <b>Mente:</b> Escada dos Porquês, Mapa de Crenças, Gatilhos &amp; Respostas. <b>Espírito:</b> Mapa do Propósito, Roda Holística da Vida, Carta ao Futuro Eu, Conexão &amp; Pertencimento.</p></div>
+<div><h4>Ferramentas</h4><p><b>Corpo:</b> OQ³, Linha do Momentum, Mapa da Rotina. <b>Mente:</b> Escada dos Porquês, Mapa de Crenças, Gatilhos &amp; Respostas. <b>Espírito:</b> Mapa do Propósito, Roda Holística da Vida, Carta ao Futuro Eu.</p></div>
 <div><h4>Resultado HOLOS</h4><p>O documento do paciente: o momento, o foco desta fase, o plano de estratégias, o que observar e a próxima etapa, junto com o mapa do HOLOSCAN e as ferramentas utilizadas.</p></div>
 </div>
 <p class="rot">Princípios do método</p>

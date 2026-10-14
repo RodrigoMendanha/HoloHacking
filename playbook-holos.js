@@ -162,7 +162,7 @@
     E("ME-M4", "metabolico", "M", "Resposta combinada", "Usar a resposta alternativa que combinamos para o gatilho mais frequente.", "Sempre que o gatilho aparecer.", "Se você conseguiu usar a resposta e o que mudou.", ["GAT"]),
     E("ME-E1", "metabolico", "E", "Energia para o que importa", "Escolher uma atividade para a qual você quer ter mais energia e observar como a alimentação ajuda.", "Durante a semana.", "Sua energia nos dias dessa atividade.", ["PQQ", "RODA"]),
     E("ME-E2", "metabolico", "E", "Intenção do dia", "Ao acordar, escolher uma intenção simples para o dia (por exemplo: comer com calma no almoço).", "Todas as manhãs.", "Em quantos dias você lembrou da intenção.", ["PRO"]),
-    E("ME-E3", "metabolico", "E", "Refeição com presença", "Fazer uma refeição na semana com alguém importante, com tempo e atenção.", "1 vez na semana.", "Como você se sentiu nessa refeição.", ["CON"]),
+    E("ME-E3", "metabolico", "E", "Refeição com presença", "Fazer uma refeição na semana com alguém importante, com tempo e atenção.", "1 vez na semana.", "Como você se sentiu nessa refeição.", []),
     E("ME-E4", "metabolico", "E", "Ritmo que respeita você", "Identificar um compromisso que atropela as refeições e pensar numa forma de proteger esse horário.", "Durante a semana.", "Se você conseguiu proteger o horário.", ["ROT", "RODA"]),
     /* FUNGICO */
     E("FU-C1", "fungico", "C", "Diário do conforto digestivo", "Anotar como você se sentiu depois das refeições principais (estufamento, desconforto ou bem-estar).", "No almoço e no jantar.", "Em quais refeições o desconforto aparece.", ["ROT"]),
@@ -201,8 +201,8 @@
     E("DL-M4", "detox_linfatico", "M", "Plano para os dias corridos", "Usar o mínimo que combinamos para os dias mais corridos.", "Nos dias corridos.", "Se você conseguiu manter o mínimo.", ["GAT", "ROT"]),
     E("DL-E1", "detox_linfatico", "E", "Manhã sem pressa", "Criar alguns minutos tranquilos no começo do dia.", "Todas as manhãs.", "Como o seu dia começa.", ["ROT"]),
     E("DL-E2", "detox_linfatico", "E", "Tempo ao ar livre", "Ter um momento ao ar livre, com calma.", "1 a 2 vezes na semana.", "Sua disposição e seu humor.", ["RODA"]),
-    E("DL-E3", "detox_linfatico", "E", "Um “não” que protege", "Identificar um compromisso que pode ser recusado para cuidar do seu ritmo.", "Durante a semana.", "Como você se sentiu.", ["RODA", "CON"]),
-    E("DL-E4", "detox_linfatico", "E", "Ajuda na rotina", "Combinar com alguém da casa uma ajuda concreta (por exemplo, dividir uma tarefa).", "Durante a semana.", "Se sobrou mais espaço para o seu cuidado.", ["CON"]),
+    E("DL-E3", "detox_linfatico", "E", "Um “não” que protege", "Identificar um compromisso que pode ser recusado para cuidar do seu ritmo.", "Durante a semana.", "Como você se sentiu.", ["RODA"]),
+    E("DL-E4", "detox_linfatico", "E", "Ajuda na rotina", "Combinar com alguém da casa uma ajuda concreta (por exemplo, dividir uma tarefa).", "Durante a semana.", "Se sobrou mais espaço para o seu cuidado.", []),
     /* MENTAL EMOCIONAL ESPIRITUAL */
     E("MEE-C1", "mental_emocional_espiritual", "C", "Ritual de desacelerar", "Nos 30 minutos antes de dormir, ficar sem telas e repetir a mesma sequência (por exemplo: banho, luz baixa, leitura).", "Todas as noites.", "O tempo para pegar no sono e como você acorda.", ["ROT"]),
     E("MEE-C2", "mental_emocional_espiritual", "C", "Hora de acordar regular", "Manter um horário parecido para acordar, inclusive no fim de semana.", "Todos os dias.", "Sua disposição pela manhã.", ["ROT"]),
@@ -213,8 +213,8 @@
     E("MEE-M3", "mental_emocional_espiritual", "M", "Trocar a frase dura", "Anotar uma frase dura que você diz a si mesma e reescrever de forma mais gentil.", "1 vez na semana.", "Como você se sente com a nova frase.", ["CRE"]),
     E("MEE-M4", "mental_emocional_espiritual", "M", "Esvaziar a mente", "Escrever num papel o que está na cabeça antes de dormir.", "Nas noites agitadas.", "Se o sono fica mais tranquilo.", []),
     E("MEE-E1", "mental_emocional_espiritual", "E", "Um passo alinhado ao propósito", "Escolher uma ação da semana ligada ao que dá sentido à sua vida.", "1 vez na semana.", "Como você se sentiu.", ["PRO", "PQQ"]),
-    E("MEE-E2", "mental_emocional_espiritual", "E", "Contato que nutre", "Ter um contato significativo com alguém de apoio.", "1 vez na semana.", "Como você se sentiu depois.", ["CON"]),
-    E("MEE-E3", "mental_emocional_espiritual", "E", "Prática de sentido", "Se fizer parte da sua vida, reservar um tempo para a sua prática (oração, meditação, contemplação).", "No ritmo combinado com você.", "Como fica o seu dia.", ["CON"]),
+    E("MEE-E2", "mental_emocional_espiritual", "E", "Contato que nutre", "Ter um contato significativo com alguém de apoio.", "1 vez na semana.", "Como você se sentiu depois.", []),
+    E("MEE-E3", "mental_emocional_espiritual", "E", "Prática de sentido", "Se fizer parte da sua vida, reservar um tempo para a sua prática (oração, meditação, contemplação).", "No ritmo combinado com você.", "Como fica o seu dia.", []),
     E("MEE-E4", "mental_emocional_espiritual", "E", "Olhar para o caminho", "No fim da semana, anotar o que te aproximou de quem você quer ser.", "1 vez na semana.", "O que já está mudando.", ["CARTA"]),
     /* GERAIS */
     E("G01", "geral", "C", "Registro de 3 dias", "Anotar o que comeu, o horário e como se sentiu.", "3 dias (2 dias úteis e 1 de fim de semana).", "Os horários, a fome e a energia.", ["ROT"]),
@@ -229,7 +229,7 @@
     E("G10", "geral", "M", "Um avanço por semana", "Anotar uma coisa que deu certo.", "1 vez na semana.", "O que está mudando.", []),
     E("G11", "geral", "E", "Lembrar o seu “pra quê”", "Reler a síntese da Escada dos Porquês ou o seu motivo principal.", "2 vezes na semana.", "Se isso ajuda nos momentos difíceis.", ["PQQ", "PRO"]),
     E("G12", "geral", "E", "Uma área da vida com cuidado", "Escolher uma área da Roda da Vida e um pequeno gesto semanal para ela.", "1 vez na semana.", "Como você se sentiu.", ["RODA"]),
-    E("G13", "geral", "E", "Pessoa de apoio", "Combinar com alguém de confiança como essa pessoa pode te apoiar nesta fase.", "Durante a semana.", "Se você se sentiu apoiada.", ["CON"]),
+    E("G13", "geral", "E", "Pessoa de apoio", "Combinar com alguém de confiança como essa pessoa pode te apoiar nesta fase.", "Durante a semana.", "Se você se sentiu apoiada.", []),
     E("G14", "geral", "E", "Pausa de gratidão", "Fazer um momento de pausa e gratidão antes de uma refeição.", "1 vez por dia.", "Como fica a refeição.", []),
     E("G15", "geral", "E", "Frase da Carta", "Escolher uma frase da Carta ao Futuro Eu para lembrar durante a semana.", "Todos os dias.", "Se a frase ajudou.", ["CARTA"])
   ];

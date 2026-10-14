@@ -140,13 +140,13 @@ const cta = (pid) => P.evaluate(async (pid) => {
   return { cta: window.ctaFicha(), etapa: pil ? pil.querySelector('b').textContent : '', jornada: atual ? atual.textContent : null };
 }, pid);
 const cH = await cta(PH), cT = await cta(PT), c0 = await cta(P0);
-ok(c0.cta.txt === 'Aplicar HOLOSCAN' && cH.cta.txt === 'Ir para Ferramentas' && cH.cta.ir === 'aba:ferramentas' && cT.cta.txt === 'Abrir Holos IA' && cT.cta.ir === 'aba:holos-ai',
+ok(c0.cta.txt === 'Aplicar HOLOSCAN' && cH.cta.txt === 'Ir para Ferramentas' && cH.cta.ir === 'aba:ferramentas' && cT.cta.txt === 'Montar Resultado HOLOS' && cT.cta.ir === 'aba:resultado-holos',
   'botão principal pela etapa: sem HOLOSCAN "' + c0.cta.txt + '" → HOLOSCAN salvo "' + cH.cta.txt + '" → com ferramenta "' + cT.cta.txt + '"');
-ok(cH.etapa === cH.jornada && cH.etapa === 'Ferramentas' && cT.etapa === 'Holos IA' && c0.etapa && c0.etapa !== '—',
+ok(cH.etapa === cH.jornada && cH.etapa === 'Ferramentas' && cT.etapa === 'Resultado HOLOS' && c0.etapa && c0.etapa !== '—',
   '"Etapa atual" = etapa atual da jornada (nunca "—" com a jornada andando): ' + [c0.etapa, cH.etapa, cT.etapa].join(' / '));
 await cta(PT);
 const clique = await P.evaluate(async () => { document.getElementById('btn-aplicar-holoscan').click(); await new Promise(r => setTimeout(r, 400)); const a = document.querySelector('#ficha-arquivos .aba.ativa'); return a ? a.dataset.aba : ''; });
-ok(clique === 'holos-ai', 'o botão "Abrir Holos IA" leva à aba Holos IA da ficha (' + clique + ')');
+ok(clique === 'resultado-holos', 'o botão "Montar Resultado HOLOS" leva à aba Resultado HOLOS da ficha (Holos IA escondida) (' + clique + ')');
 
 /* ============================ ABA inicial ============================ */
 const aba = await P.evaluate(async (a, b) => {
@@ -169,7 +169,7 @@ const dash = await P.evaluate(async (ph) => {
   return { linhas, rotulo, atendimento: at ? at.id : null, ativo: window.pacienteAtivoId() };
 }, PH);
 const lh = dash.linhas.find(l => l.pid === PH), lt = dash.linhas.find(l => l.pid === PT);
-ok(lh && lh.etapa === 'em_atendimento' && /Próximo passo: Ferramentas/.test(lh.porque) && lt && /Próximo passo: Holos IA/.test(lt.porque),
+ok(lh && lh.etapa === 'em_atendimento' && /Próximo passo: Ferramentas/.test(lh.porque) && lt && /Próximo passo: Resultado HOLOS/.test(lt.porque),
   'Dashboard: pacientes ativas com HOLOSCAN/ferramentas aparecem no Acompanhamento como "Em atendimento" (antes sumiam) — ' + (lh ? lh.porque : '—'));
 ok(!dash.linhas.some(l => l.pid === P0), 'quem ainda não começou nenhuma etapa não entra (nenhuma etapa inventada)');
 ok(/Abrir atendimento/.test(dash.rotulo) && dash.ativo === PH && dash.atendimento === EH, '"Abrir atendimento" (Agenda de Hoje) abre a ficha COM o atendimento selecionado');
