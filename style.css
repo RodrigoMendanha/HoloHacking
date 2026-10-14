@@ -6106,3 +6106,23 @@ body.rh-imprimindo #rh-doc .eyebrow,body.rh-imprimindo #rh-doc .rd-sis-foco,body
 .card-ferr .ajuda-ferr-pop{font-weight:400;text-transform:none;letter-spacing:normal;text-align:left}
 #secao-corpo textarea::placeholder,#secao-corpo input::placeholder,#secao-mente textarea::placeholder,#secao-mente input::placeholder,
 #secao-espirito textarea::placeholder,#secao-espirito input::placeholder{color:var(--texto-suave);opacity:.75;font-style:italic}
+
+/* 14/10: jornada com o fluxo completo (7 passos) e o bloco "Fluxo do atendimento" na aba Atendimentos */
+#secao-pacientes .fic-stepper{grid-template-columns:repeat(7,minmax(0,1fr))}
+#secao-pacientes .fic-step button{padding:10px 10px;gap:8px}
+#secao-pacientes .fic-step-no{flex-basis:24px;height:24px}
+#secao-pacientes .fic-step-nome{white-space:normal;line-height:1.2}
+.fic-fluxo{margin-top:18px;padding-top:14px;border-top:1px solid var(--pc-linha,rgba(255,255,255,.1))}
+.fic-fluxo .fic-rot{display:block;margin-bottom:10px}
+.fic-fluxo-lista{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.fic-fluxo-lista li{display:grid;grid-template-columns:24px auto 1fr;align-items:center;gap:10px}
+.fic-fluxo-no{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;border:1px solid var(--dourado);color:var(--ouro-texto)}
+.fic-fluxo-nome{font-weight:500;font-size:.85rem;color:var(--pc-claro,inherit);padding:0 4px}
+.fic-fluxo-txt{font-size:.82rem;color:var(--texto-suave);min-width:0}
+@media (max-width:640px){
+  .fic-fluxo-lista li{grid-template-columns:24px 1fr}
+  .fic-fluxo-txt{grid-column:2}
+}
+@media (max-width:1100px){
+  #secao-pacientes .fic-stepper{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(130px,1fr);overflow-x:auto}
+}

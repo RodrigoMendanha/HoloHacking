@@ -273,7 +273,7 @@
       "</div>" +
       '<div class="dash-numeros dash-resumo">' +
         tile("pessoa", nPac, "Pacientes ativos", "pacientes") +
-        tile("documento", h.total, "Atendimentos hoje", "consultas", h.semAgenda.length ? h.consultas.length + " agendado" + (h.consultas.length === 1 ? "" : "s") + " · " + h.semAgenda.length + " sem agendamento" : "") +
+        tile("documento", h.total, "Atendimentos hoje", "agenda", h.semAgenda.length ? h.consultas.length + " agendado" + (h.consultas.length === 1 ? "" : "s") + " · " + h.semAgenda.length + " sem agendamento" : "") +
         tile("calendario", proxLabel, "Próxima consulta", "agenda") +
         tile("pessoas", nAcomp, "Em acompanhamento", "acompanhamento") +
       "</div>" +
@@ -483,7 +483,14 @@
       var e = null; try { e = etapaDe(p, consultasFuturas()); } catch (err) { e = null; }
       return e ? { chave: e.chave, rotulo: ETAPAS[e.chave].rotulo, sub: e.sub } : null;
     },
-    /** os 5 passos da jornada, feitos so com dado real */
+    /** 14/10: situacao do Mapeamento Holistico (null = ainda nao lido; "nenhum" | "enviado" | "recebido") */
+    mapeamento: function (pid) {
+      if (!jornada.carregadoEm) return null;
+      var cs = jornada.convites.filter(function (c) { return c.patient_id === pid && c.status !== "revogado"; });
+      if (!cs.length) return "nenhum";
+      return cs.some(function (c) { return !!c.submitted_at; }) ? "recebido" : "enviado";
+    },
+    /** os passos da jornada (fluxo completo do atendimento), feitos so com dado real */
     passos: function (pid) {
       var hist = window.historicoPontuacao ? (window.historicoPontuacao(pid) || []) : [];
       var comSessao = temSupa();
@@ -492,9 +499,14 @@
       var ferramentas = Ap && Ap.doPaciente ? Ap.doPaciente(pid).filter(function (a) { return a.status === "concluida" || a.status === "revisada"; }).length : 0;
       var res = maisRecente(jornada.resultados.filter(function (r) { return r.patient_id === pid && !r.superseded_at && (r.status === "salvo" || r.status === "revisado"); }), "saved_at");
       var emis = res ? jornada.emissoes.some(function (e) { return e.holos_result_id === res.id; }) : false;
+      /* 14/10: o fluxo comeca no Mapeamento Holistico (link que o paciente preenche antes da consulta) */
+      var mh = jornada.convites.some(function (c) { return c.patient_id === pid && c.status !== "revogado" && !!c.submitted_at; });
+      var hai = jornada.resultados.some(function (r) { return r.patient_id === pid; });
       return [
+        { id: "pre", feito: mh },
         { id: "mapear", feito: salvos >= 1 },
         { id: "integrar", feito: ferramentas >= 1 },
+        { id: "holosia", feito: hai || !!res },
         { id: "consolidar", feito: !!res },
         { id: "apresentar", feito: !!emis },
         { id: "acompanhar", feito: salvos >= 2 }

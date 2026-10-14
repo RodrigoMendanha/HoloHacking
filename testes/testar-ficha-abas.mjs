@@ -155,8 +155,9 @@ const jornada = await p.evaluate(() => ({
   passos: [...document.querySelectorAll('#ficha-jornada .fic-step-nome')]
     .map(b => b.textContent),
 }));
-conferir(jornada.passos.join(',') === 'HOLOSCAN,Ferramentas,Resultado HOLOS,Resultado,Evolução',
-  'a jornada clínica mostra os 5 movimentos (APRESENTAR: Resultado no lugar da Leitura Integrada, 09/10): ' + jornada.passos.join(' · '));
+/* 14/10: o fluxo completo comeca no Mapeamento Holistico e passa pela Holos IA */
+conferir(jornada.passos.join(',') === 'Mapeamento Holístico,Abrir atendimento + HOLOSCAN,Ferramentas,Holos IA,Resultado HOLOS,Resultado,Evolução',
+  'a jornada clínica mostra o fluxo completo (7 passos, 14/10): ' + jornada.passos.join(' · '));
 
 const detalhes = await p.evaluate(async () => {
   document.getElementById('ficha-ver-detalhes').click();

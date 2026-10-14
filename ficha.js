@@ -155,13 +155,31 @@
      Consolidar = Resultado HOLOS vigente salvo/revisado; Apresentar = Resultado
      Final emitido; Acompanhar = 2+ HOLOSCANs salvos. Sem porcentagem, sem
      pendencia: o primeiro passo nao feito e o "atual", os outros sao futuros. */
+  /* 14/10: o fluxo completo do atendimento. Antes da consulta, o paciente preenche o Mapeamento
+     Holistico pelo link; no atendimento, HOLOSCAN e ferramentas; depois, a Holos IA gera o Resultado
+     HOLOS, que e apresentado ao paciente; nos retornos, a Evolucao. */
   var PASSOS = [
-    { id: "mapear", mov: "MAPEAR", nome: "HOLOSCAN", atalho: "holoscan" },
-    { id: "integrar", mov: "INTEGRAR", nome: "Ferramentas", atalho: "corpo" },
-    { id: "consolidar", mov: "CONSOLIDAR", nome: "Resultado HOLOS", ir: "aba:resultado-holos" },
+    { id: "pre", mov: "ANTES", nome: "Mapeamento Holístico", ir: "aba:anamnese" },
+    { id: "mapear", mov: "ATENDIMENTO", nome: "Abrir atendimento + HOLOSCAN", atalho: "holoscan" },
+    { id: "integrar", mov: "ATENDIMENTO", nome: "Ferramentas", atalho: "corpo" },
+    { id: "holosia", mov: "DEPOIS", nome: "Holos IA", ir: "aba:holos-ai" },
+    { id: "consolidar", mov: "DEPOIS", nome: "Resultado HOLOS", ir: "aba:resultado-holos" },
     { id: "apresentar", mov: "APRESENTAR", nome: "Resultado", atalho: "resultado" },
-    { id: "acompanhar", mov: "ACOMPANHAR", nome: "Evolução", ir: "aba:evolucao" }
+    { id: "acompanhar", mov: "RETORNOS", nome: "Evolução", ir: "aba:evolucao" }
   ];
+  /* 14/10: o HOLOSCAN e aplicado no atendimento, com o paciente presente. Paciente novo, sem
+     Mapeamento Holistico e sem HOLOSCAN: a acao principal e enviar o link; o HOLOSCAN fica secundario. */
+  function acaoPrincipal(pid, feitos) {
+    var enviar = document.getElementById("btn-enviar-mapeamento");
+    var holo = document.getElementById("btn-aplicar-holoscan");
+    if (!enviar || !holo) return;
+    var J = window.JornadaPaciente, mh = null;
+    try { mh = J && J.mapeamento ? J.mapeamento(pid) : null; } catch (e) { mh = null; }
+    var primeiro = mh === "nenhum" && !feitos.mapear;
+    enviar.classList.toggle("hidden", !primeiro);
+    holo.classList.toggle("btn-verde", !primeiro);
+    holo.classList.toggle("perf-botao", primeiro);
+  }
   function desenharJornada() {
     var alvo = document.getElementById("ficha-jornada");
     if (!alvo) return;
@@ -170,6 +188,7 @@
     try { (J ? J.passos(pid) : []).forEach(function (p) { feitos[p.id] = !!p.feito; }); } catch (e) { feitos = {}; }
     var atual = null;
     PASSOS.forEach(function (p) { if (!atual && !feitos[p.id]) atual = p.id; });
+    acaoPrincipal(pid, feitos);
     alvo.innerHTML = '<ol class="fic-stepper">' + PASSOS.map(function (p, i) {
       var st = feitos[p.id] ? "feito" : p.id === atual ? "atual" : "futuro";
       var rot = st === "feito" ? "concluído" : st === "atual" ? "etapa atual" : "ainda não";
@@ -461,15 +480,27 @@
   /* Continuidade discreta: o mesmo encadeamento do bloco Jornada clinica (ja
      visivel acima das abas), so que como uma linha fina — nao repete o
      bloco inteiro, so lembra o proximo passo depois da consulta. */
+  /* 14/10: o fluxo completo do atendimento, cada passo com o que ele e */
+  var FLUXO = [
+    ["Cadastro", "Você cadastra o paciente.", "", ""],
+    ["Mapeamento Holístico", "Antes da consulta: você envia o link e o paciente preenche no celular ou no computador.", "aba:anamnese", ""],
+    ["HOLOSCAN", "No atendimento, com o paciente: o mapa dos cinco sistemas.", "", "holoscan"],
+    ["Ferramentas", "No atendimento: as ferramentas de Corpo, Mente e Espírito.", "", "corpo"],
+    ["Holos IA", "Depois do atendimento: o sistema monta o Pacote, a Holos IA analisa e a resposta volta para o sistema.", "aba:holos-ai", ""],
+    ["Resultado HOLOS", "Gerado a partir da resposta da Holos IA, para a sua revisão.", "aba:resultado-holos", ""],
+    ["Resultado", "O que é apresentado ao paciente (PDF e WhatsApp).", "", "resultado"],
+    ["Retornos", "Novo HOLOSCAN e a Evolução ao longo do acompanhamento.", "aba:evolucao", ""]
+  ];
   function blocoContinuidade() {
-    return '<div class="fic-continuidade">' +
-      '<span class="fic-rot">Depois da consulta</span>' +
-      '<button type="button" class="fic-chip" data-ir="holoscan">HOLOSCAN</button>' +
-      '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span>' +
-      '<button type="button" class="fic-chip" data-ir="aba:conduta">Conduta</button>' +
-      '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span>' +
-      '<button type="button" class="fic-chip" data-ir="aba:documentos">Documentos</button>' +
-    "</div>";
+    return '<div class="fic-fluxo">' +
+      '<span class="fic-rot">Fluxo do atendimento</span>' +
+      '<ol class="fic-fluxo-lista">' + FLUXO.map(function (f, i) {
+        var nome = f[2] ? '<button type="button" class="fic-chip" data-ir="' + f[2] + '">' + f[0] + "</button>"
+          : f[3] ? '<button type="button" class="fic-chip" data-ir="' + f[3] + '">' + f[0] + "</button>"
+          : '<b class="fic-fluxo-nome">' + f[0] + "</b>";
+        return '<li><span class="fic-fluxo-no" aria-hidden="true">' + (i + 1) + "</span>" + nome +
+          '<span class="fic-fluxo-txt">' + f[1] + "</span></li>";
+      }).join("") + "</ol></div>";
   }
 
   function linhaConsulta(c, destaque) {

@@ -259,7 +259,8 @@
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><path d="M16.5 11.2A2.8 2.8 0 1 0 16 5.7M18 19.5c0-2-.6-3.4-1.7-4.4"/></svg>
           Pacientes <span class="nav-tag" id="nav-total-pac">0</span>
         </button>
-        <button class="nav-item" data-secao="consultas">
+        <!-- 14/10: a pagina Atendimentos fica escondida do menu ate ser redesenhada (a secao continua no codigo) -->
+        <button class="nav-item hidden" data-secao="consultas" hidden>
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9.5 4V2.8h5V4M9.5 10.5h5M9.5 14.5h3"/></svg>
           Atendimentos
         </button>
@@ -885,7 +886,9 @@
                 <div class="fic-contato" id="ficha-contato"></div>
               </div>
               <div class="fic-acoes-topo">
-                <button type="button" class="btn-verde" data-atalho="holoscan">Aplicar HOLOSCAN</button>
+                <!-- 14/10: paciente novo, sem Mapeamento: o proximo passo e enviar o link (ficha.js alterna) -->
+                <button type="button" class="btn-verde hidden" id="btn-enviar-mapeamento" data-ir="aba:anamnese">Enviar Mapeamento Holístico</button>
+                <button type="button" class="btn-verde" id="btn-aplicar-holoscan" data-atalho="holoscan">Aplicar HOLOSCAN</button>
                 <button type="button" class="btn-verde hidden" id="btn-reativar-paciente">Reativar paciente</button>
                 <button type="button" class="perf-botao" data-atalho="agenda">Nova consulta</button>
                 <span class="fic-mais">

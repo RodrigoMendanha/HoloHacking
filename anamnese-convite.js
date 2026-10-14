@@ -391,8 +391,8 @@
       secundarias = bt("novo", "Enviar novo Mapeamento", "btn-fantasma pc-novo");
     }
     var sub = recebido ? "Resposta salva automaticamente quando o paciente enviou." + (c.imported_anamnesis_id ? "" : " Leia o resumo e leve para o atendimento.")
-      : aberto ? "O paciente preenche pelo celular, sem criar conta. Quando ele enviar, a resposta aparece aqui sozinha."
-      : "O paciente preenche pelo celular, sem criar conta, e a resposta aparece aqui antes da consulta.";
+      : aberto ? "O paciente preenche pelo link, no celular ou no computador, sem criar conta. Quando ele enviar, a resposta aparece aqui sozinha."
+      : "Você envia um link e o paciente preenche no celular ou no computador, sem criar conta. A resposta aparece aqui antes da consulta.";
     alvo.innerHTML = '<section class="pc-cartao pc-et-' + et.chave + '" aria-labelledby="pc-titulo">' +
       '<div class="pc-topo"><h3 id="pc-titulo" class="pc-titulo">' + TITULO + "</h3>" +
       '<span class="pc-status pc-' + escapar(st) + '"><span class="pc-sr">Status: </span>' + escapar(et.rotulo) + "</span></div>" +

@@ -221,7 +221,7 @@
         '<div id="doc-aviso"></div>' +
       "</section>" +
 
-      '<section class="arq-cartao" aria-label="Documentos e exames do paciente">' +
+      '<section class="arq-cartao" id="doc-lista-cartao" aria-label="Documentos e exames do paciente">' +
         '<div class="bib-cab"><h4 class="arq-titulo" id="doc-lista-titulo">Documentos e exames</h4>' +
           '<button type="button" class="btn-fantasma bib-ver-arq" data-acao="ver-arquivados" aria-pressed="false">Ver arquivados</button></div>' +
         '<p class="dash-sub" id="doc-total"></p>' +
@@ -271,6 +271,9 @@
     window.ArquivoStore.listar(pid, { arquivados: verArquivados }).then(function (itens) {
       if (pid !== paciente()) return;
       var total = document.getElementById("doc-total");
+      /* 14/10: sem nenhum documento, a lista vazia nao aparece (so o formulario de adicionar) */
+      var cartao = document.getElementById("doc-lista-cartao");
+      if (cartao) cartao.classList.toggle("hidden", itens.length === 0 && !verArquivados && !itens.falhaServidor);
       if (itens.length === 0) {
         if (total) total.textContent = "";
         alvo.innerHTML = itens.falhaServidor
