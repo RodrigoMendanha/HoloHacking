@@ -109,8 +109,13 @@
     holoscan_andamento:    { rotulo: "HOLOSCAN em andamento", tom: "andamento",  ordem: 3 },
     resultado_pronto:      { rotulo: "Resultado pronto",      tom: "pronto",     ordem: 4 },
     resultado_apresentado: { rotulo: "Resultado apresentado", tom: "neutro",     ordem: 5 },
-    aguardando_retorno:    { rotulo: "Aguardando retorno",    tom: "aguardando", ordem: 6 }
+    aguardando_retorno:    { rotulo: "Aguardando retorno",    tom: "aguardando", ordem: 6 },
+    /* 14/10 (auditoria Cowork): toda paciente ATIVA aparece — a que esta entre etapas (HOLOSCAN salvo, ferramentas,
+       Holos IA) ou que ainda nao comecou nao sumia mais do painel; a etapa vem da mesma jornada da ficha */
+    em_atendimento:        { rotulo: "Em atendimento",        tom: "andamento",  ordem: 3.5 }
   };
+  var NOME_PASSO = { pre: "Mapeamento Holístico", mapear: "HOLOSCAN", integrar: "Ferramentas", holosia: "Holos IA",
+    consolidar: "Resultado HOLOS", apresentar: "Resultado", acompanhar: "Evolução" };
   var LIMITE_LISTA = 6;
   var verTodos = false;
 
@@ -195,7 +200,13 @@
     if (res && emis) {
       return { chave: "resultado_apresentado", sub: "Resultado Final emitido", data: emis.created_at, destino: "resultado" };
     }
-    return null;
+    var ps = []; try { ps = window.JornadaPaciente.passos(pid); } catch (err) { ps = []; }
+    var feitos = ps.filter(function (x) { return x.feito; }).map(function (x) { return x.id; });
+    var adiante = feitos.some(function (id) { return id !== "pre"; });
+    var prox = ps.filter(function (x, i) { return !x.feito && !(adiante && i === 0); })[0];
+    /* paciente que ainda nao comecou nada nao entra (nenhuma etapa inventada) — o painel diz isso */
+    if (!feitos.length) return null;
+    return { chave: "em_atendimento", sub: prox ? "Próximo passo: " + NOME_PASSO[prox.id] : "Jornada em dia", data: null, destino: "ficha" };
   }
 
   function emAcompanhamento(futuras) {
@@ -233,7 +244,7 @@
     var t = tam || 20;
     return '<svg width="' + t + '" height="' + t + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICONES[nome] + "</svg>";
   }
-  var ICONE_ETAPA = { aguardando_anamnese: "relogio", anamnese_recebida: "documento", holoscan_andamento: "barras", resultado_pronto: "check", resultado_apresentado: "barras", aguardando_retorno: "retorno" };
+  var ICONE_ETAPA = { aguardando_anamnese: "relogio", anamnese_recebida: "documento", holoscan_andamento: "barras", resultado_pronto: "check", resultado_apresentado: "barras", aguardando_retorno: "retorno", em_atendimento: "barras" };
 
   /* ---------- os blocos --------------------------------------------------- */
 
@@ -314,7 +325,8 @@
           var p = pacientePorId(e.patient_id); if (!p) return "";
           return '<li class="dash-pendente"><span class="pac-avatar">' + escapar(inicial(p.nome)) + "</span>" +
             '<span class="dash-quem"><b>' + escapar(p.nome) + '</b><span class="dash-porque">' + escapar(AT && AT.rotuloQuando ? AT.rotuloQuando(e) : "hoje") + " &middot; atendimento sem agendamento" + etiquetaArquivado(p) + "</span></span>" +
-            '<button type="button" class="dash-ir" data-paciente="' + escapar(p.id) + '" data-destino="ficha">Abrir <span aria-hidden="true">&rarr;</span></button></li>';
+            /* 14/10 (auditoria Cowork): "Abrir atendimento" abre a ficha COM este atendimento selecionado */
+            '<button type="button" class="dash-ir" data-paciente="' + escapar(p.id) + '" data-atendimento="' + escapar(e.id) + '" data-destino="ficha">Abrir atendimento <span aria-hidden="true">&rarr;</span></button></li>';
         }).join("") + "</ul>";
     }
     return '<div class="dash-bloco dash-painel dash-agenda-hoje" id="dash-agenda-hoje">' + topo + corpo + "</div>";
@@ -325,7 +337,7 @@
     var lista = verTodos ? acomp : acomp.slice(0, LIMITE_LISTA);
     var topo = '<div class="dash-bloco-topo">' +
       '<span class="dash-bloco-icone">' + icone("pessoas", 26) + "</span>" +
-      '<div class="dash-bloco-titulos"><h3 class="dash-titulo">Acompanhamento dos pacientes</h3><p class="dash-sub">Acompanhe o progresso dos seus pacientes em cada etapa da jornada.</p></div>' +
+      '<div class="dash-bloco-titulos"><h3 class="dash-titulo">Acompanhamento dos pacientes</h3><p class="dash-sub">Acompanhe o progresso dos seus pacientes em cada etapa da jornada. Pacientes ativos que ainda não começaram nenhuma etapa não aparecem aqui.</p></div>' +
       (n > LIMITE_LISTA ? '<button type="button" class="dash-botao-contorno" data-acao="ver-todos" aria-expanded="' + verTodos + '">' + (verTodos ? "Mostrar menos" : "Ver todos (" + n + ")") + ' <span aria-hidden="true">&rarr;</span></button>' : "") +
       "</div>";
     var corpo;
@@ -431,6 +443,7 @@
         if (destino === "ficha") {
           if (window.irParaSecao) window.irParaSecao("pacientes");
           if (pid && window.abrirFichaDe) window.abrirFichaDe(pid);
+          if (b.dataset.atendimento && window.AtendimentoAtual && window.AtendimentoAtual.selecionarPorId) window.AtendimentoAtual.selecionarPorId(b.dataset.atendimento);
           return;
         }
 

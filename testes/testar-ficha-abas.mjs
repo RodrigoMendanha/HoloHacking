@@ -130,7 +130,8 @@ conferir(/42 anos/.test(topo.sobre) && /Feminino/.test(topo.sobre),
   'e a linha "sobre" resume quem é: ' + topo.sobre);
 conferir(topo.detalhesFechados, 'os detalhes do cadastro começam fechados');
 /* redesign 12/10: Aplicar HOLOSCAN em destaque, Nova consulta, e o resto em "Mais ações" (as mesmas acoes de antes) */
-conferir(topo.acoes.join(',') === 'Aplicar HOLOSCAN,Nova consulta,Mais ações ▾,Editar cadastro,Adicionar arquivo,Exportar dados',
+/* 14/10 (auditoria Cowork): o botao principal acompanha a proxima acao da jornada (Aplicar HOLOSCAN -> Ferramentas -> Holos IA -> ...) */
+conferir(/^(Aplicar HOLOSCAN|Ir para Ferramentas|Abrir Holos IA|Ver Resultado HOLOS|Ver Resultado|Reaplicar HOLOSCAN),Nova consulta,Mais ações ▾,Editar cadastro,Adicionar arquivo,Exportar dados$/.test(topo.acoes.join(',')),
   'as ações ficam no topo, não no fim da página: ' + topo.acoes.join(' · '));
 
 // "Registrar exames" e "Novo documento" iam para "aba:documentos" — o clique

@@ -93,7 +93,9 @@ const cheio = await p.evaluate(() => {
       nome: l.querySelector('b').textContent,
       porque: l.querySelector('.dash-porque').textContent,
       etapa: l.querySelector('.dash-status').textContent.trim(),
+      temMapa: !!window.Panorama.doPaciente(l.dataset.paciente).pontuacao,
     })),
+    semProgresso: window.pacientesTodos().filter(p => p.status !== 'inativo' && !window.JornadaPaciente.passos(p.id).some(x => x.feito) && !(window.Panorama.doPaciente(p.id).respondidas > 0)).map(p => p.nome),
     texto: document.getElementById('dash-trabalho').innerText,
     tiles: [...document.querySelectorAll('.dash-tile')].map(t =>
       t.querySelector('b').textContent + ' ' + t.querySelector('span').textContent),
@@ -107,7 +109,10 @@ const cheio = await p.evaluate(() => {
 });
 
 ok(!cheio.metodo, 'com paciente cadastrado, a apresentação do método sai da frente');
-ok(cheio.pendentes.length === 1, cheio.pendentes.length + ' paciente em acompanhamento (só o HOLOSCAN em andamento da Helena; sem servidor não há convite, Resultado nem emissão)');
+/* 14/10 (auditoria Cowork): paciente ATIVA com etapa feita (HOLOSCAN salvo, ferramentas) entra como "Em atendimento" —
+   antes sumia do painel; so quem ainda nao comecou nada fica de fora (e a tela diz isso) */
+ok(cheio.pendentes.filter(x => !/Helena/.test(x.nome)).every(x => x.etapa === 'Em atendimento' && x.temMapa && /^Próximo passo: |Jornada em dia/.test(x.porque)),
+   cheio.pendentes.length + ' pacientes em acompanhamento: Helena (HOLOSCAN em andamento) e quem já tem mapa, como "Em atendimento" com o próximo passo');
 console.log(cheio.pendentes.map(x => '          ' + x.nome + ' — ' + x.porque).join('\n'));
 
 /* Etapa 0 da V1: "reavaliação vencida" (28 dias) foi neutralizada — prazo de acompanhamento é da profissional
@@ -116,7 +121,7 @@ ok(!/reavalia|pendênc|Precisa de você|sem HOLOSCAN|mapa sem conduta|mapa sem f
 const helena = cheio.pendentes.find(x => /Helena/.test(x.nome));
 ok(helena && /12 de 84/.test(helena.porque) && helena.etapa === 'HOLOSCAN em andamento',
    'o questionário parado da Helena aparece como etapa: ' + (helena ? helena.etapa + ' · ' + helena.porque : '—'));
-ok(!cheio.pendentes.some(x => /Sofia|Marina|Carla|Beatriz/.test(x.nome)), 'quem não tem etapa em andamento não entra (nada é cobrado da paciente sem mapa)');
+ok(cheio.semProgresso.length > 0 && !cheio.pendentes.some(x => cheio.semProgresso.includes(x.nome)) && /ainda não começaram nenhuma etapa não aparecem/.test(cheio.texto), 'quem não começou nenhuma etapa não entra, e o painel diz isso (' + cheio.semProgresso.join(', ') + ')');
 
 /* Correcao do dashboard (pos-6.5): o bloco "N pacientes / N com HOLOSCAN"
    saiu (repetia o cabecalho com outro numero) e "O terreno da sua carteira"

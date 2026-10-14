@@ -641,8 +641,35 @@
 
   /* ---------- desenhar ----------------------------------------------------- */
 
+  /* 14/10 (auditoria Cowork): um redesenho no meio do preenchimento (troca de paciente, carga da agenda) refazia o
+     formulario com os valores padrao e apagava o que tinha sido digitado — a 1a tentativa "voltava ao padrao" sem
+     mensagem. O que esta digitado fica no rascunho em edicao antes de redesenhar. */
+  var seqForm = 0;
+  function guardarDigitado() {
+    /* so o formulario DESTE rascunho (abrir outro rascunho nao herda o que estava no anterior) */
+    if (!editando || !alvo || !editando._t || alvo.dataset.formDe !== String(editando._t)) return;
+    var d = editando.dado, v = function (id) { var el = document.getElementById(id); return el ? el : null; };
+    /* registro ja salvo: mudar dia/hora e REAGENDAR (comparado com o original na hora de salvar) — nao mexe */
+    if (d.id) return;
+    if (editando.tipo === "consulta") {
+      if (v("cf-paciente") && !d.id && v("cf-paciente").value) d.paciente_id = v("cf-paciente").value;
+      if (v("cf-tipo")) d.tipo = v("cf-tipo").value;
+      if (v("cf-data")) d.data = v("cf-data").value;
+      if (v("cf-hora")) d.hora = v("cf-hora").value;
+      if (v("cf-duracao")) d.duracao = Number(v("cf-duracao").value) || d.duracao;
+      if (v("cf-nota")) d.nota = v("cf-nota").value;
+    } else {
+      if (v("bf-data")) d.data = v("bf-data").value;
+      if (v("bf-dia-todo")) d.dia_todo = v("bf-dia-todo").checked;
+      if (v("bf-inicio")) d.inicio = v("bf-inicio").value;
+      if (v("bf-fim")) d.fim = v("bf-fim").value;
+      if (v("bf-motivo")) d.motivo = v("bf-motivo").value;
+    }
+  }
+
   function desenhar() {
     if (!alvo) return;
+    guardarDigitado();
     var dias = diasDoPeriodo();
 
     var corpo;
@@ -651,6 +678,8 @@
     else corpo = grade(dias);
 
     alvo.innerHTML = cabecalho() + navegacao() + chips() + resumoHoje() + formulario() + corpo;
+    if (editando && !editando._t) editando._t = ++seqForm;
+    alvo.dataset.formDe = editando ? String(editando._t) : "";
 
     marcarNoMenu();
     ligar();
@@ -717,10 +746,14 @@
     desenhar();
   }
 
+  /* erro de agenda nunca fica so num paragrafo fora da vista: aparece no formulario (que rola ate ele) e no aviso */
   function avisar(texto) {
     var el = document.getElementById("cal-aviso");
-    if (el) { el.textContent = texto; el.className = "perf-aviso ruim"; }
-    else if (window.avisar) window.avisar(texto);
+    if (el) {
+      el.textContent = texto; el.className = "perf-aviso ruim"; el.setAttribute("role", "alert");
+      if (el.scrollIntoView) el.scrollIntoView({ block: "nearest" });
+    }
+    if (window.avisar) window.avisar(texto);
   }
 
   /* ---------- salvar -------------------------------------------------------- */
@@ -802,9 +835,9 @@
     decidir.then(function (resp) {
       if (resp !== "confirmar") return null;
       return gravarConsulta(d).then(function (r) {
-        if (r && r.error) {
-          avisar(window.mensagemHumana ? window.mensagemHumana(r.error)
-                                       : "Não foi possível salvar a consulta. Nada foi gravado; tente de novo.");
+        if (!r || r.error || (!d.id && !(r.data && r.data.id))) {
+          avisar(r && r.error && window.mensagemHumana ? window.mensagemHumana(r.error)
+                                       : "Não foi possível salvar a consulta. Nada foi gravado; o que você preencheu continua aqui — tente de novo.");
           return;
         }
         editando = null;
@@ -814,6 +847,9 @@
           if (window.avisar) window.avisar("Consulta marcada para " + dataBR(d.data) + " às " + d.hora + ".");
         });
       });
+    }).catch(function (e) {
+      console.error("[agenda] salvar consulta:", e && e.message ? e.message : e);
+      avisar("Não foi possível salvar a consulta (sem conexão ou erro do servidor). Nada foi gravado; o que você preencheu continua aqui — tente de novo.");
     }).finally(function () { if (btnSalvar) window.destravarBotao(btnSalvar); });
   }
 

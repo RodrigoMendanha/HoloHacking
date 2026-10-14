@@ -174,9 +174,11 @@
       ? dataBR(prox.data) + " às " + String(prox.hora || "").slice(0, 5) + " &middot; " + emQuantoTempo(-diasDesde(prox.data))
       : null;
 
-    /* Redesign 12/10: "Em aberto" (pendencias) virou ETAPA ATUAL, com a mesma regra do Dashboard */
-    var J = window.JornadaPaciente;
-    var et = J ? J.etapa(pid) : null;
+    /* Redesign 12/10: "Em aberto" (pendencias) virou ETAPA ATUAL. 14/10 (auditoria Cowork): sai da MESMA conta da
+       jornada desenhada logo abaixo (antes vinha de outra regra e ficava "—" com a jornada ja na etapa 4) */
+    var ej = estadoJornada(pid);
+    var passoAtual = PASSOS.filter(function (p) { return p.id === ej.atual; })[0];
+    var et = passoAtual ? { rotulo: passoAtual.nome } : (ej.algumFeito ? { rotulo: "Acompanhamento" } : null);
 
     var itens = [
       { rot: "Próxima consulta", valor: proxTexto, vazio: "não agendada", acao: "agenda" },
@@ -219,7 +221,18 @@
   ];
   /* 14/10: o HOLOSCAN e aplicado no atendimento, com o paciente presente. Paciente novo, sem
      Mapeamento Holistico e sem HOLOSCAN: a acao principal e enviar o link; o HOLOSCAN fica secundario. */
-  function acaoPrincipal(pid, feitos) {
+  /* 14/10 (auditoria Cowork): o botao principal acompanha a proxima acao real da jornada (antes ficava
+     "Aplicar HOLOSCAN" para sempre). So muda rotulo e destino; nao cria etapa nova. */
+  var CTA = {
+    mapear: { txt: "Aplicar HOLOSCAN", atalho: "holoscan" },
+    integrar: { txt: "Ir para Ferramentas", ir: "aba:ferramentas" },
+    holosia: { txt: "Abrir Holos IA", ir: "aba:holos-ai" },
+    consolidar: { txt: "Ver Resultado HOLOS", ir: "aba:resultado-holos" },
+    apresentar: { txt: "Ver Resultado", atalho: "resultado" },
+    acompanhar: { txt: "Reaplicar HOLOSCAN", atalho: "holoscan" }
+  };
+  function ctaDe(atual) { return CTA[atual] || (atual ? CTA.mapear : CTA.acompanhar); }
+  function acaoPrincipal(pid, feitos, atual) {
     var enviar = document.getElementById("btn-enviar-mapeamento");
     var holo = document.getElementById("btn-aplicar-holoscan");
     if (!enviar || !holo) return;
@@ -229,18 +242,36 @@
     enviar.classList.toggle("hidden", !primeiro);
     holo.classList.toggle("btn-verde", !primeiro);
     holo.classList.toggle("perf-botao", primeiro);
+    var c = primeiro ? CTA.mapear : ctaDe(atual === "pre" ? "mapear" : atual);
+    holo.textContent = c.txt;
+    holo.dataset.atalho = c.atalho || "holoscan";
+    if (c.ir) holo.dataset.cta = c.ir; else delete holo.dataset.cta;
   }
-  function desenharJornada() {
-    var alvo = document.getElementById("ficha-jornada");
-    if (!alvo) return;
-    var J = window.JornadaPaciente, pid = paciente();
+  /* o botao tem data-atalho (ligado no app.js); quando o destino e uma aba da ficha, este clique vem antes */
+  document.addEventListener("click", function (ev) {
+    var b = ev.target.closest && ev.target.closest("#btn-aplicar-holoscan[data-cta]");
+    if (!b || b.disabled) return;
+    ev.preventDefault(); ev.stopImmediatePropagation();
+    if (window.levarParaFicha) window.levarParaFicha(b.dataset.cta, paciente());
+  }, true);
+  window.ctaFicha = function () { var b = document.getElementById("btn-aplicar-holoscan"); return b ? { txt: b.textContent, atalho: b.dataset.atalho, ir: b.dataset.cta || null } : null; };
+
+  function estadoJornada(pid) {
+    var J = window.JornadaPaciente;
     var feitos = {};
     try { (J ? J.passos(pid) : []).forEach(function (p) { feitos[p.id] = !!p.feito; }); } catch (e) { feitos = {}; }
     /* o Mapeamento so e o passo atual enquanto nada depois dele foi feito (paciente antigo, sem link, nao volta para o comeco) */
     var adiante = PASSOS.slice(1).some(function (p) { return feitos[p.id]; });
     var atual = null;
     PASSOS.forEach(function (p, i) { if (!atual && !feitos[p.id] && !(adiante && i === 0)) atual = p.id; });
-    acaoPrincipal(pid, feitos);
+    return { feitos: feitos, atual: atual, algumFeito: PASSOS.some(function (p) { return feitos[p.id]; }) };
+  }
+  function desenharJornada() {
+    var alvo = document.getElementById("ficha-jornada");
+    if (!alvo) return;
+    var pid = paciente();
+    var ej = estadoJornada(pid), feitos = ej.feitos, atual = ej.atual;
+    acaoPrincipal(pid, feitos, atual);
     alvo.innerHTML = '<ol class="fic-stepper">' + PASSOS.map(function (p, i) {
       var st = feitos[p.id] ? "feito" : p.id === atual ? "atual" : "futuro";
       var rot = st === "feito" ? "concluído" : st === "atual" ? "etapa atual" : "ainda não";

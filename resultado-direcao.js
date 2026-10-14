@@ -667,10 +667,13 @@
     }).join("") + "</ol>", "rd-direcionamentos rd-grande");
   }
   /* ESTRATEGIAS COMBINADAS, agrupadas pelo direcionamento a que pertencem */
+  /* Resultados gerados antes de 14/10 guardaram a CLASSIFICACAO da Holos IA no campo de frequencia: ela nao e mostrada */
+  var CLASSIFICACAO_TECNICA = /^(Observação|Comportamental\/metodológica|Requer decisão profissional na Conduta)$/;
   function estrategiaCartao(x) {
     var linha = function (rot, v) { return v ? '<p><span class="rd-rot">' + esc(rot) + "</span> " + esc(v) + "</p>" : ""; };
+    var freq = x.contexto && !CLASSIFICACAO_TECNICA.test(String(x.contexto).trim()) ? x.contexto : null;
     return '<li class="rd-est"><div class="rd-dir-topo"><b>' + esc(x.texto) + "</b>" + (x.status ? '<span class="rd-chip">' + esc(STATUS_EST[x.status] || x.status) + "</span>" : "") + "</div>" +
-      linha("Para que", x.finalidade) + linha("O que você vai fazer", x.acao) + linha("O que observar", x.observar) + linha("Quando / com que frequência", x.contexto) + linha("Prazo", x.prazo) + "</li>";
+      linha("Para que", x.finalidade) + linha("O que você vai fazer", x.acao) + linha("O que observar", x.observar) + linha("Quando / com que frequência", freq) + linha("Prazo", x.prazo) + "</li>";
   }
   function estrategiasHtml(dp, titulo) {
     var es = dp.estrategias || [];

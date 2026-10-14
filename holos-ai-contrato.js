@@ -406,7 +406,9 @@
           direcionamento_id: v.direcionamento_id && idDir[v.direcionamento_id] ? idDir[v.direcionamento_id] : null,
           acao: v.o_que_fazer ? corte(v.o_que_fazer) : null, observar: v.o_que_observar ? corte(v.o_que_observar) : null,
           prazo: v.prazo ? corte(v.prazo) : null, finalidade: v.criterio_sucesso ? corte("Critério de sucesso: " + v.criterio_sucesso) : null,
-          contexto: CLASSIFICACOES[v.classificacao] || null,
+          /* 14/10 (auditoria Cowork): a classificacao e metadado tecnico da estrategia, NAO frequencia; ela ia para
+             "Quando / com que frequência" no Resultado da paciente. O HOLOS_AI_RESULT nao tem campo de frequencia: fica vazio. */
+          contexto: null,
           responsavel: v.classificacao === "requer_decisao_profissional_na_conduta" ? "Nutricionista (Conduta)" : null,
           /* retorno: a decisao sugerida antes x agora vira o estado da estrategia (MANTER / AJUSTAR / SUBSTITUIR / CONCLUIR / ENCERRAR) */
           status: STATUS_DECISAO[v.decisao_sugerida] || (v.origem === "acordada" ? "acordada" : "proposta") }));

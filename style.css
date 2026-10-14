@@ -6261,3 +6261,5 @@ body.rp-gerando .rp-doc{padding:8px 18px 4px}
 .hai-url{display:grid;gap:6px}
 .hai-url label{font-size:.85rem;color:var(--texto-suave)}
 .hai-url input{flex:1 1 260px;min-width:0;padding:9px 12px;border-radius:10px;border:1px solid var(--input-borda);background:var(--input-fundo);color:var(--texto);font:inherit}
+.citacao[hidden]{display:none}
+#btn-salvar-holoscan.holo-ja-salvo{background:transparent;color:var(--verde,#3f5f4f);border:1px solid currentColor;box-shadow:none;cursor:default}

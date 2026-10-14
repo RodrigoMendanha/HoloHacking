@@ -138,13 +138,14 @@ const f = await A.evaluate(() => {
   return { acoes: [...document.querySelectorAll('.fic-acoes-topo > button:not(.hidden), .fic-acoes-topo > .fic-mais > button')].map(b => b.textContent.trim()),
     mais: [...document.querySelectorAll('#fic-mais-menu button')].map(b => b.textContent.trim()),
     faixa: [...document.querySelectorAll('#ficha-faixa .fic-pilula')].map(p => p.innerText.replace(/\s+/g, ' ').trim()),
+    etapaJornada: (() => { const c = document.querySelector('#ficha-jornada .fic-step.atual .fic-step-nome'); return c ? c.textContent.trim() : (document.querySelector('#ficha-jornada .fic-step.atual') ? '' : 'Acompanhamento'); })(),
     alturaTopo: topo.height, alturaAt: at.height, alturaJor: jor.height, abasY: abas.top + window.scrollY,
     contato: document.getElementById('ficha-contato').innerText, sobre: document.getElementById('ficha-sobre').innerText };
 });
-ok(f.acoes.join('|') === 'Aplicar HOLOSCAN|Nova consulta|Mais ações ▾' && f.mais.join('|') === 'Editar cadastro|Adicionar arquivo|Exportar dados',
-  'cabeçalho: Aplicar HOLOSCAN (principal), Nova consulta e "Mais ações" (Editar, Adicionar arquivo, Exportar)');
-ok(f.faixa.length === 4 && /Peso e altura/i.test(f.faixa[3]) && /PRÓXIMA CONSULTA|Próxima consulta/i.test(f.faixa[0]) && /às 14:00 ·/.test(f.faixa[0]) && !/14:00:00/.test(f.faixa[0]) && /HOLOSCAN/i.test(f.faixa[1]) && /Resultado apresentado|Aguardando retorno/.test(f.faixa[2]),
-  'faixa: próxima consulta (sem segundos), último HOLOSCAN e etapa atual (regra do Dashboard): ' + f.faixa.join(' | '));
+ok(/^(Aplicar HOLOSCAN|Ir para Ferramentas|Abrir Holos IA|Ver Resultado HOLOS|Ver Resultado|Reaplicar HOLOSCAN)\|Nova consulta\|Mais ações ▾$/.test(f.acoes.join('|')) && f.mais.join('|') === 'Editar cadastro|Adicionar arquivo|Exportar dados',
+  'cabeçalho: ação principal pela etapa (' + f.acoes[0] + '), Nova consulta e "Mais ações" (Editar, Adicionar arquivo, Exportar)');
+ok(f.faixa.length === 4 && /Peso e altura/i.test(f.faixa[3]) && /PRÓXIMA CONSULTA|Próxima consulta/i.test(f.faixa[0]) && /às 14:00 ·/.test(f.faixa[0]) && !/14:00:00/.test(f.faixa[0]) && /HOLOSCAN/i.test(f.faixa[1]) && f.etapaJornada && f.faixa[2].indexOf(f.etapaJornada) >= 0,
+  'faixa: próxima consulta (sem segundos), último HOLOSCAN e etapa atual = a etapa atual da jornada (' + f.etapaJornada + '): ' + f.faixa.join(' | '));
 ok(/helena@ficticio\.test/.test(f.contato) && /anos/.test(f.sobre), 'contato e idade no cabeçalho');
 /* 14/10: peso e altura — registrados no atendimento ativo pela faixa da ficha; IMC so como conta */
 const med = await A.evaluate(async () => {

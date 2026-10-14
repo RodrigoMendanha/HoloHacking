@@ -1969,7 +1969,7 @@
         fecharFormularioPaciente();
         abrirFicha(editado);
         renderPacientes();
-        toast(campos.nome + " atualizado com sucesso.");
+        toast("Cadastro atualizado com sucesso.");   /* 14/10: sem concordancia de genero pelo nome */
       } else {
         /* nome igual ignorando acento, caixa e espacos: quase sempre e o
            mesmo paciente cadastrado duas vezes. Avisa e deixa decidir —
@@ -2002,7 +2002,7 @@
         definirAtivo(data.id);
         renderPacientes();
         abrirFicha(data.id);
-        toast(campos.nome + " cadastrado com sucesso.");
+        toast("Cadastro realizado com sucesso.");
       }
     } finally {
       destravarBotao(btn);
@@ -3578,6 +3578,7 @@
   }
   window.desenharPontuacao = function(r, restaurando){
     pontuacaoNaTela = r;        // e daqui que "Salvar HOLOSCAN" tira os decimais
+    setTimeout(estadoSalvarHolo, 0);
     modoHoloscan(true);
     // as notas na ordem que a tela usa
     const porSistema = {};
@@ -3653,6 +3654,7 @@
     const rel = $("#btn-repontuar");
     if(rel) rel.addEventListener("click", () => {
       pontuacaoNaTela = null;   // a partir daqui quem manda e a regua
+      setTimeout(estadoSalvarHolo, 0);
       sistemas.forEach(s => {
         const el = $("#holo-" + s);
         el.disabled = false;
@@ -3906,6 +3908,7 @@
     const p = pacienteAtivo();
     const h = p ? p.holoscan : vazioHolo();
     pontuacaoNaTela = null;                 // trocou de paciente, trocou o mapa
+    setTimeout(estadoSalvarHolo, 0);
 
     /* Tudo o que a tela mostrava pertencia ao paciente anterior. A Triada e a
        linha de origem nao eram apagadas aqui: abrir a Carla logo depois da
@@ -3962,6 +3965,7 @@
     const valEl = $("#val-" + s);
     input.addEventListener("input", () => {
       pontuacaoNaTela = null;   // mexeu na regua, o mapa nao e mais o do motor
+      estadoSalvarHolo();
       valEl.textContent = input.value;
       const scores = sistemas.map(s2 => parseInt($("#holo-" + s2).value) || 0);
       updateRadar(scores);
@@ -3984,8 +3988,30 @@
   }
   window.pontuacaoManualLiberada = () => MANUAL_LIBERADA;
 
+  /* 14/10 (auditoria Cowork): "Salvar HOLOSCAN" e idempotente — o mapa na tela que ja foi salvo no servidor
+     nao vira outra aplicacao por um segundo clique. Nova aplicacao e gesto separado (Reaplicar / Nova aplicacao).
+     O aviso "HOLOSCAN concluído" so aparece depois de salvo (antes ficava fixo na pagina, mesmo sem resposta). */
+  function estadoSalvarHolo(){
+    const btn = $("#btn-salvar-holoscan"), aviso = $("#holo-concluido");
+    const salvo = !!(pontuacaoNaTela && pontuacaoNaTela._supa_id);
+    if(btn && btn.textContent !== "Salvando…"){
+      /* continua clicavel: o clique so avisa que ja esta salvo (nunca grava de novo) */
+      btn.classList.toggle("holo-ja-salvo", salvo);
+      btn.setAttribute("aria-disabled", salvo ? "true" : "false");
+      btn.textContent = salvo ? "HOLOSCAN salvo ✓" : "Salvar HOLOSCAN";
+      btn.title = salvo ? "Esta aplicação já está salva. Para uma nova, use Reaplicar HOLOSCAN." : "";
+    }
+    if(aviso) aviso.hidden = !salvo;
+  }
+  window.estadoSalvarHolo = estadoSalvarHolo;
+
   $("#btn-salvar-holoscan").addEventListener("click", async function () {
     const btn = this;
+    if(pontuacaoNaTela && pontuacaoNaTela._supa_id){
+      toast("Este HOLOSCAN já está salvo. Para uma nova aplicação, use Reaplicar HOLOSCAN.");
+      estadoSalvarHolo();
+      return;
+    }
     if(!travarBotao(btn, "Salvando…")) return;
     try {
     const p = pacienteAtivo();
@@ -4198,7 +4224,7 @@
     toast(pontuacaoNaTela
       ? "HOLOSCAN salvo na ficha de " + p.nome + ". Score: " + total
       : MSG_SO_NESTE_APARELHO);
-    } finally { destravarBotao(btn); }
+    } finally { destravarBotao(btn); estadoSalvarHolo(); }
   });
 
   /* O "Limpar" do resultado saiu (auditoria HOLOSCAN): zerava so as reguas

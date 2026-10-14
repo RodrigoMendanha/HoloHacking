@@ -294,9 +294,9 @@
     var main = $("conteudo"); main.textContent = "";
     var txt = {
       invalido: ["Link não encontrado", "Este link não é válido. Confira se ele foi copiado inteiro ou peça um novo à sua nutricionista."],
-      revogado: ["Este link foi substituído", "A sua nutricionista gerou um novo link. Use o mais recente que ela enviou."],
+      revogado: ["Este link foi substituído", "A sua nutricionista gerou um novo link. Use o link mais recente que você recebeu."],
       expirado: ["Este link venceu", "O prazo para responder terminou. Peça um novo link à sua nutricionista."],
-      concluido: ["Mapeamento enviado com sucesso!", "Obrigada! Suas respostas foram para a sua nutricionista e vão apoiar a sua consulta" + (quando ? " (enviado em " + new Date(quando).toLocaleString("pt-BR") + ")" : "") + ". Se quiser corrigir alguma coisa, fale com ela: o envio não pode ser alterado por este link."],
+      concluido: ["Mapeamento enviado com sucesso!", "Obrigada! Suas respostas foram para a sua nutricionista e vão apoiar a sua consulta" + (quando ? " (enviado em " + new Date(quando).toLocaleString("pt-BR") + ")" : "") + ". Se quiser corrigir alguma coisa, fale com sua nutricionista: o envio não pode ser alterado por este link."],
       erro: ["Não foi possível abrir", "Confira a sua internet e tente de novo em instantes."]
     }[qual] || ["", ""];
     if (qual === "concluido") apagarLocal();
