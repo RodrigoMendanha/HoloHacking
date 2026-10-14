@@ -170,10 +170,16 @@
         '<p class="pp-sistema">Sistema relacionado: <b>' + esc(sis.nome || sis.system_id) + '</b></p></div>' +
       '<div class="pp-investiga"><b>O que ela ajuda a investigar</b><p class="pp-razao">' + esc(item.professional_reason) + '</p></div>' +
       '<div class="pp-acao"><b>O que fazer agora</b><p>' + esc(item.next_action) + '</p></div>' +
+      htmlPlaybookPagina(item.tool_id) +
       (dom.length ? '<div class="pp-sinais-bloco"><b>Sinais que mais pontuaram neste sistema</b><p class="pp-sinais-tit">' + esc(SINAIS_CONTEXTO) + '</p><ul class="pp-sinais">' +
         dom.map(function (d) { return "<li>" + esc(d.rotulo || d.question_id) + "</li>"; }).join("") + "</ul></div>" : "") +
       '<button type="button" class="' + (feita ? "btn-borda-ouro" : "btn-verde") + ' pp-iniciar" data-pp-abrir="' + esc(item.tool_id) + '">' + (feita ? "Abrir a ferramenta" : "Iniciar ferramenta") + "</button>" +
       "</article>";
+  }
+  /* 14/10 (PB-V2): onde ler a ferramenta no PDF oficial do Playbook (capitulo Ferramentas): abrir, ler e aplicar */
+  function htmlPlaybookPagina(id) {
+    var PB = raiz.PlaybookHolos, n = PB && PB.paginaPdf ? PB.paginaPdf(id) : null;
+    return n ? '<p class="pp-playbook" data-pp-pagina="' + n + '">Como aplicar: <b>Playbook de Estratégias HOLOS, p. ' + n + '</b> (capítulo Ferramentas)</p>' : "";
   }
   /* 14/10: ferramenta fora das ativas (ex.: Conexao & Pertencimento) nao aparece como recomendacao; a seguinte sobe */
   function visivel(id) { return (raiz.FERRAMENTAS_OCULTAS || []).indexOf(id) < 0; }

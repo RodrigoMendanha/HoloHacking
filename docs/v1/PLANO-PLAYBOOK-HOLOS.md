@@ -474,3 +474,23 @@ Esses campos são **os mesmos que o Resultado já guarda hoje** (foco_atual, dir
 | Celular 390 px sem rolagem lateral | ok |
 
 Exemplo de PDF gerado pelo Playbook: `docs/v1/capturas/playbook-1410/pdf-playbook-primeira-consulta.pdf`.
+
+## 13. PB-V2 (revisão metodológica de 14/10) — fonte oficial do "Montar com o Playbook"
+
+- **Linguagem:** "Por que pode ajudar" (não causal), "O que a nutricionista investiga", "O que buscamos facilitar" (não promessa).
+- **Cada estratégia** tem tipo (Ação / Observação / Reflexão), nível de sustentação (N1–N4) e, quando cabe, um **cuidado** ("não usar automaticamente"). Tudo isso aparece no assistente e no PDF.
+- **Quantidade:** de 2 a 4 estratégias por fase; 5 ou mais só com um motivo concreto (o assistente avisa, máximo 6). Não é obrigatório preencher Corpo, Mente e Espírito.
+- **Linha do Momentum:** Preservar 1–2 · Reorganizar 2–3 · Construir 3–4 · Expandir 4–5.
+- **Retorno:** manter · ajustar · substituir · concluir · encerrar.
+- **Ferramentas obrigatórias:** G12 só aparece com a Roda da Vida aplicada; G15, só com a Carta ao Futuro Eu.
+- **Encaminhamento:** o PDF traz a caixa "Quando não usar automaticamente / encaminhar".
+
+### Ferramentas no PDF e no sistema
+- O PDF ganhou o capítulo **Ferramentas**, com as 9 em uso. Cada uma traz: o que é, por que pode ajudar, quando usar, em quais sistemas é indicada, como aplicar e o que leva ao Resultado.
+- Cada sistema tem o quadro **"Ferramentas indicadas para este sistema"**. A ordem é a do catálogo HOLOS-RECOMENDACOES-V1, sem Conexão & Pertencimento, e cada ferramenta traz a sua **página**.
+- Na página "Como usar", uma tabela reúne sistema → ferramentas → página.
+- O gerador (`scripts/gerar-pdf-playbook-estrategias.mjs`) roda em duas passagens:
+  1. a primeira descobre a página de cada ferramenta;
+  2. a segunda imprime os números e grava `PAGINAS_PDF` em `playbook-holos.js`.
+- Nos **Próximos Passos HOLOS** (depois do HOLOSCAN), cada ferramenta sugerida mostra "Como aplicar: Playbook de Estratégias HOLOS, p. N (capítulo Ferramentas)". A nutricionista abre o PDF, lê e aplica.
+- **Ao mudar o conteúdo, regere o PDF:** `node scripts/gerar-pdf-playbook-estrategias.mjs`. Isso atualiza as páginas no sistema; depois, refaça os hashes do deploy.

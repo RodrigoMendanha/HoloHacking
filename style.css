@@ -4943,6 +4943,7 @@ body.rp-gerando .rp-doc ul > li::before{content:"\2022";position:absolute;left:-
 .pp-sinais{margin:0 0 6px 18px;padding:0;opacity:.9}
 .pp-explica{opacity:.8;font-size:.8rem}
 .pp-acao p{margin:0}
+.pp-playbook{margin:.5rem 0 0;font-size:.85rem;color:var(--texto-suave);border-left:3px solid #c9a959;padding:.2rem .6rem}
 .pp-iniciar{margin-top:10px}
 .pp-outras{font-family:var(--fonte-display);font-size:.95rem;color:var(--dourado-claro);margin:16px 0 4px}
 .pp-comps{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -6419,3 +6420,7 @@ body.rp-gerando .rp-doc .pf-doc ul > li::before{content:none;display:none}
 @media (max-width:480px){.pb-wiz{padding:1rem .8rem}.pb-linha b{min-width:0;width:100%}}
 .pb-onde{color:var(--texto-suave);font-size:.78rem;white-space:nowrap}
 .pb-rel-ferr{border-color:var(--dourado-suave)}
+.pb-est-cuidado{margin:.25rem 0 .3rem 1.55rem;font-size:.8rem;color:var(--texto-suave);border-left:2px solid var(--dourado);padding-left:.45rem}
+.pb-chip-tipo{font-weight:700}
+.pb-tipo-observacao{border-style:dashed}
+.pb-alerta{margin:-.2rem 0 .6rem;padding:.45rem .7rem;border-radius:8px;background:var(--halo);border:1px solid var(--dourado-suave);font-size:.85rem}

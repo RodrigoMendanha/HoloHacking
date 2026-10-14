@@ -81,12 +81,13 @@ async function bloco(pid) {
     const a0 = document.getElementById('holo-proximos-passos'); const v0 = document.getElementById('holo-proximos-passos-vazio');
     const b = (a0 && a0.innerText) ? a0 : (v0 && !v0.classList.contains('hidden') && v0.innerText) ? v0 : null;
     const card = (el) => ({ regra: el.dataset.ppRegra, ferramenta: el.querySelector('.pp-ferramenta').childNodes[0].textContent.trim(), tool: el.querySelector('[data-pp-abrir]').dataset.ppAbrir,
-      sistema: (el.querySelector('.pp-sistema b') || {}).textContent, sinais: [...el.querySelectorAll('.pp-sinais li')].map(x => x.textContent), razao: el.querySelector('.pp-razao').textContent, acao: el.querySelector('.pp-acao p').textContent });
+      sistema: (el.querySelector('.pp-sistema b') || {}).textContent, sinais: [...el.querySelectorAll('.pp-sinais li')].map(x => x.textContent), razao: el.querySelector('.pp-razao').textContent, acao: el.querySelector('.pp-acao p').textContent, playbook: (el.querySelector('.pp-playbook') || {}).textContent || '' });
     return { texto: b ? b.innerText : '(sem bloco)', principal: b && b.querySelector('.pp-principal') ? card(b.querySelector('.pp-principal')) : null,
       comps: b ? [...b.querySelectorAll('.pp-comps .pp-card')].map(card) : [], meta: b ? (b.querySelector('.pp-meta') || {}).textContent : '', botaoAtual: !!(b && b.querySelector('#pp-ver-atual')),
       posicao: (() => { const inv = [...document.querySelectorAll('#holo-resumo .res-tit')].map(t => t.textContent); return inv.indexOf('Por onde investigar') >= 0 && inv.indexOf('Próximos Passos HOLOS') === inv.indexOf('Por onde investigar') + 1; })() };
   });
 }
+await import('../playbook-holos.js'); globalThis.__pag = globalThis.PlaybookHolos.PAGINAS_PDF;
 const PROIBIDO = /tratamento|prescri[çc][ãa]o|diagn[óo]stico|\bcura\b|protocolo indicado|conduta obrigat[óo]ria/i;
 
 titulo('1-2. SISTEMA 1 + SISTEMA 2: PRINCIPAL + 2 COMPLEMENTARES, SEM REPETIR');
@@ -99,6 +100,8 @@ ok(b1.principal.sistema === nomeSis.fungico && b1.comps[0].sistema === nomeSis.m
 ok(/A ferramenta é sugerida pelo catálogo para aprofundar este sistema\./.test(b1.texto) && /Não foram eles que escolheram a ferramenta: a ferramenta vem do catálogo, pelo sistema\./.test(b1.texto)
   && /Por que esta ferramenta aparece aqui/i.test(b1.texto) && /O que ela ajuda a investigar/i.test(b1.texto) && /O que fazer agora/i.test(b1.texto) && /Sinais que mais pontuaram neste sistema/i.test(b1.texto),
   'explicacao sem causalidade (motor de resultados 12/10, item 14): ferramenta recomendada, por que neste sistema, o que ajuda a investigar, o que fazer agora, sinais que contextualizam');
+ok([b1.principal].concat(b1.comps).every(c => new RegExp('Playbook de Estratégias HOLOS, p\\. ' + globalThis.__pag[c.tool] + '\\b').test(c.playbook)),
+  'cada card indica a página da ferramenta no PDF do Playbook (capítulo Ferramentas): ' + [b1.principal].concat(b1.comps).map(c => c.playbook).join(' | '));
 ok(b1.principal.razao === 'Ajuda a localizar alimentação, horários, sinais percebidos e hábitos dentro do cotidiano real.' && /Aplique o Mapa da Rotina/.test(b1.principal.acao), 'professional_reason e next_action vem do catalogo, sem alteracao');
 ok(!PROIBIDO.test(b1.texto), 'linguagem: sem tratamento, prescrição, diagnóstico, cura, protocolo indicado, conduta obrigatória');
 ok(/registrado em/.test(b1.meta) && regs(A1).length === 1 && regs(A1)[0].catalog_version === 1 && regs(A1)[0].selection.map(s => s.rule_id).join(',') === 'REC-FUN-01,REC-MET-02,REC-FUN-03', 'aplicacao salva depois do catalogo: registrada automaticamente no servidor (1 snapshot, catalogo v1, mesma selecao)');

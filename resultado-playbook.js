@@ -33,7 +33,7 @@
   var TIT_REL = { momento: "Seu momento agora", dores: "O que está pesando", desejos: "O que você quer mudar", avancos: "O que já está mudando",
     permaneceu: "O que ainda pesa", acordos_compartilhados: "O que combinamos (acordos)" };
   var APLICOU = { sim: "Conseguiu aplicar.", parte: "Conseguiu aplicar em parte.", nao: "Não conseguiu aplicar." };
-  var DECISOES = [["manter", "Manter"], ["ajustar", "Ajustar"], ["substituir", "Substituir"], ["concluir", "Concluir"]];
+  var DECISOES = [["manter", "Manter"], ["ajustar", "Ajustar"], ["substituir", "Substituir"], ["concluir", "Concluir"], ["encerrar", "Encerrar"]];
 
   var st = null;
   function novo(pid) {
@@ -228,7 +228,8 @@
     var grupo = { foco: "Sistema do foco", prioritario: "Outra área prioritária", geral: "Geral" }[e.grupo] || "";
     return '<div class="pb-est' + (sel ? " pb-sel" : "") + '"><label class="pb-check"><input type="checkbox" data-pb-est="' + esc(e.id) + '"' + (sel ? " checked" : "") + (bloq ? " disabled" : "") + "> <b>" + esc(e.titulo) + "</b></label>" +
       '<p class="pb-est-acao">' + esc(e.acao) + "</p>" +
-      '<p class="pb-est-meta">' + (grupo ? chip(grupo, "pb-chip-" + e.grupo) : "") + (e.combina.length ? chip("Combina com " + e.combina.join(", "), "pb-chip-combina") : "") + "</p>" +
+      (e.cuidado ? '<p class="pb-est-cuidado"><b>Cuidado:</b> ' + esc(e.cuidado) + "</p>" : "") +
+      '<p class="pb-est-meta">' + chip(PB().TIPO[e.tipo] || "Ação", "pb-chip-tipo pb-tipo-" + e.tipo) + (grupo ? chip(grupo, "pb-chip-" + e.grupo) : "") + (e.combina.length ? chip("Combina com " + e.combina.join(", "), "pb-chip-combina") : "") + "</p>" +
       (sel ? '<div class="pb-est-campos">' +
         '<label class="pb-campo"><span>O que fazer</span><input type="text" maxlength="600" data-pb-campo="' + esc(e.id) + ':acao" value="' + esc(sel.acao) + '"></label>' +
         '<label class="pb-campo"><span>Quando / com que frequência</span><input type="text" maxlength="300" data-pb-campo="' + esc(e.id) + ':contexto" value="' + esc(sel.contexto) + '"></label>' +
@@ -244,13 +245,15 @@
   function htmlEstrategias() {
     var op = opcoes(), P = PB(), n = totalEst(), cheio = n >= P.MAX_ESTRATEGIAS, mo = op.momentum;
     var cont = continuadasN();
-    var topo = '<p class="pb-contador" role="status"><b>' + n + "</b> de até " + P.MAX_ESTRATEGIAS + " estratégias" + (cont ? " (" + cont + " continuada" + (cont > 1 ? "s" : "") + " do encontro anterior)" : "") +
-      (mo ? ' · <span class="pb-momentum">Linha do Momentum em <b>' + esc(mo.rotulo) + "</b>: o método orienta " + mo.min + " a " + mo.max + " estratégias nesta etapa.</span>" : "") + "</p>";
+    var rec = P.RECOMENDADO || { min: 2, max: 4 };
+    var topo = '<p class="pb-contador" role="status"><b>' + n + "</b> " + (n === 1 ? "estratégia escolhida" : "estratégias escolhidas") + " · recomendado " + rec.min + " a " + rec.max + (cont ? " (" + cont + " continuada" + (cont > 1 ? "s" : "") + " do encontro anterior)" : "") +
+      (mo ? ' · <span class="pb-momentum">Linha do Momentum em <b>' + esc(mo.rotulo) + "</b>: o método orienta " + mo.min + " a " + mo.max + " nesta etapa.</span>" : "") + "</p>" +
+      (n > rec.max ? '<p class="pb-alerta" role="note">Mais de ' + rec.max + ' estratégias: use só quando houver um motivo concreto. Poucas mudanças por vez cabem melhor na rotina.</p>' : "");
     var principais = op.estrategias.filter(function (e) { return e.grupo !== "geral"; }), gerais = op.estrategias.filter(function (e) { return e.grupo === "geral"; });
     var corpo = topo + (principais.length ? colunas(principais, cheio) : '<p class="dash-vazio">Sem área prioritária no HOLOSCAN: use as estratégias gerais ou escolha um foco de outro sistema.</p>') +
       '<button type="button" class="btn-link pb-mais" data-pb-acao="gerais" aria-expanded="' + (st.gerais ? "true" : "false") + '">' + (st.gerais ? "Esconder" : "Ver") + " estratégias gerais (" + gerais.length + ")</button>" +
       (st.gerais ? colunas(gerais, cheio) : "");
-    return passo(3, "Estratégias", "Marque de 1 a " + P.MAX_ESTRATEGIAS + ". Ao marcar, os campos já vêm preenchidos: ajuste o que quiser.", corpo);
+    return passo(3, "Estratégias", "Escolha normalmente 2 a 4, de preferência 1 ou 2 ações e 1 ou 2 observações. Não é obrigatório preencher Corpo, Mente e Espírito: escolha só o que o atendimento sustentou. Ao marcar, os campos já vêm preenchidos.", corpo);
   }
   function htmlGerar() {
     var corpo = '<div class="pb-acoes"><button type="button" class="btn-borda-ouro" data-pb-acao="previa">Ver prévia</button>' +

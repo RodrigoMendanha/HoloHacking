@@ -23,8 +23,8 @@
 (function (raiz) {
   "use strict";
 
-  var VERSAO = "PB-V1";
-  var PREFIXO = "pb1-";
+  var VERSAO = "PB-V2";
+  var PREFIXO = "pb1-";   /* o prefixo dos ids continua "pb1-": Resultados antigos seguem rastreaveis */
   var SISTEMAS = [
     ["metabolico", "Metabólico"], ["fungico", "Fúngico"], ["acido_inflamatorio", "Ácido Inflamatório"],
     ["detox_linfatico", "Detox e Linfático"], ["mental_emocional_espiritual", "Mental Emocional Espiritual"]
@@ -40,6 +40,10 @@
     carta_futuro: "Carta ao Futuro Eu", conexao_pertencimento_v1: "Conexão & Pertencimento" };
   var PRAZO_PADRAO = "Até o próximo encontro.";
   var MAX_ESTRATEGIAS = 6;
+  /* PB-V2: o padrao e 2 a 4 estrategias por fase (5 ou mais so com motivo concreto); nao e obrigatorio preencher Corpo, Mente e Espirito */
+  var RECOMENDADO = { min: 2, max: 4 };
+  /* pagina de cada ferramenta no PDF oficial (docs/v1/PLAYBOOK-ESTRATEGIAS-HOLOS.pdf, capitulo Ferramentas) */
+  /* paginas-pdf:inicio (gerado por scripts/gerar-pdf-playbook-estrategias.mjs) */ var PAGINAS_PDF = {"oq3":28,"linha_momentum":28,"mapa_rotina_v1":29,"pqq":29,"mapa_crencas":29,"gatilhos_respostas_v1":30,"mapa":30,"roda_vida":30,"carta_futuro":31}; /* paginas-pdf:fim */
 
   /* ---------- conteudo ------------------------------------------------------ */
   function F(id, sistema, texto, porque, dirs, observar, proxima) {
@@ -47,10 +51,14 @@
       direcionamentos: dirs.map(function (d) { return { territorio: TERR[d[0]], titulo: d[1], objetivo: d[2] }; }),
       observar: observar, proxima_etapa: proxima };
   }
-  function E(id, sistema, t, titulo, acao, contexto, observar, ferr) {
+  function E(id, sistema, t, titulo, acao, contexto, observar, ferr, meta) {
+    meta = meta || {};
     return { id: id, sistema: sistema, territorio: TERR[t], titulo: titulo, acao: acao, contexto: contexto, observar: observar,
-      ferramentas: (ferr || []).map(function (k) { return FERR[k]; }) };
+      ferramentas: (ferr || []).map(function (k) { return FERR[k]; }), tipo: meta.tipo || "acao", nivel: meta.nivel || "N2",
+      cuidado: meta.cuidado || "", requer: meta.requer || "" };
   }
+  var TIPO = { acao: "Ação", observacao: "Observação", reflexao: "Reflexão" };
+  var NIVEL = { N1: "Prática bem estabelecida", N2: "Estratégia comportamental com suporte de literatura", N3: "Experimento individual (hipótese a testar)", N4: "Prática de sentido, autoral ou simbólica" };
 
   var FOCOS = [
     /* METABOLICO */
@@ -150,88 +158,109 @@
       "Revisar o que trouxe mais sentido e dar o próximo passo.")
   ];
 
+  /* PB-V2 (revisao metodologica de 14/10): cada estrategia tem TIPO (acao: o paciente faz; observacao: o paciente acompanha;
+     reflexao: algo para perceber e trazer ao retorno), NIVEL de sustentacao (N1 pratica/fisiologia bem estabelecida; N2
+     estrategia comportamental com suporte de literatura; N3 experimento individual / hipotese a testar; N4 pratica autoral,
+     simbolica ou de sentido), CUIDADO (quando nao usar automaticamente) e REQUER (ferramenta que precisa ter sido aplicada). */
+  var A = "acao", O = "observacao", R = "reflexao";
   var ESTRATEGIAS = [
     /* METABOLICO */
-    E("ME-C1", "metabolico", "C", "Horários âncora", "Combinar 2 ou 3 horários de refeição e tentar mantê-los.", "Todos os dias.", "Sua energia e sua fome entre as refeições.", ["ROT", "OQ3"]),
-    E("ME-C2", "metabolico", "C", "Fome de 0 a 10", "Antes de comer, dar uma nota para a fome; ao terminar, uma nota para a saciedade.", "Em pelo menos 1 refeição por dia.", "Se você começa a comer com a fome muito alta.", ["GAT"]),
-    E("ME-C3", "metabolico", "C", "Energia depois de comer", "Anotar como está a sua energia 1 a 2 horas depois das refeições principais.", "3 dias na semana.", "Em quais refeições a energia cai ou se mantém.", ["ROT"]),
-    E("ME-C4", "metabolico", "C", "Preparar o horário difícil", "Deixar planejado o que fazer no horário em que a fome mais aperta.", "Nos dias úteis.", "Se você chega com menos fome à refeição seguinte.", ["ROT", "GAT"]),
-    E("ME-M1", "metabolico", "M", "Fome ou vontade?", "Quando surgir vontade de comer fora de hora, perguntar a si mesma: é fome do corpo ou outra coisa? E anotar.", "Sempre que acontecer.", "O que você estava sentindo ou fazendo antes.", ["GAT"]),
-    E("ME-M2", "metabolico", "M", "Comer sem fome: o que veio antes", "Registrar a situação, o pensamento e a emoção quando comer sem fome.", "Sempre que acontecer.", "As situações que se repetem.", ["GAT"]),
-    E("ME-M3", "metabolico", "M", "Sem compensação", "Notar se, depois de comer mais, aparece a vontade de pular a refeição seguinte, e trazer isso para a próxima conversa.", "Durante a semana.", "Quando isso aparece e como você se sente.", ["CRE"]),
-    E("ME-M4", "metabolico", "M", "Resposta combinada", "Usar a resposta alternativa que combinamos para o gatilho mais frequente.", "Sempre que o gatilho aparecer.", "Se você conseguiu usar a resposta e o que mudou.", ["GAT"]),
-    E("ME-E1", "metabolico", "E", "Energia para o que importa", "Escolher uma atividade para a qual você quer ter mais energia e observar como a alimentação ajuda.", "Durante a semana.", "Sua energia nos dias dessa atividade.", ["PQQ", "RODA"]),
-    E("ME-E2", "metabolico", "E", "Intenção do dia", "Ao acordar, escolher uma intenção simples para o dia (por exemplo: comer com calma no almoço).", "Todas as manhãs.", "Em quantos dias você lembrou da intenção.", ["PRO"]),
-    E("ME-E3", "metabolico", "E", "Refeição com presença", "Fazer uma refeição na semana com alguém importante, com tempo e atenção.", "1 vez na semana.", "Como você se sentiu nessa refeição.", []),
-    E("ME-E4", "metabolico", "E", "Ritmo que respeita você", "Identificar um compromisso que atropela as refeições e pensar numa forma de proteger esse horário.", "Durante a semana.", "Se você conseguiu proteger o horário.", ["ROT", "RODA"]),
+    E("ME-C1", "metabolico", "C", "Horários âncora", "Combinar 2 ou 3 horários de refeição e tentar mantê-los.", "Todos os dias.", "Sua energia e sua fome entre as refeições.", ["ROT", "OQ3"], { tipo: A, nivel: "N2" }),
+    E("ME-C2", "metabolico", "C", "Fome de 0 a 10", "Antes de comer, dar uma nota para a fome; ao terminar, uma nota para a saciedade.", "Em pelo menos 1 refeição por dia.", "Se você começa a comer com a fome muito alta.", ["GAT"], { tipo: O, nivel: "N2",
+      cuidado: "Evitar uso rígido ou controlador; adaptar ou não usar com histórico ou suspeita de transtorno alimentar, ou quando monitorar aumenta o sofrimento." }),
+    E("ME-C3", "metabolico", "C", "Energia depois de comer", "Anotar como está a sua energia 1 a 2 horas depois das refeições principais.", "3 dias na semana.", "Em quais refeições a energia cai ou se mantém.", ["ROT"], { tipo: O, nivel: "N3" }),
+    E("ME-C4", "metabolico", "C", "Preparar o horário difícil", "Deixar planejado o que fazer no horário em que a fome mais aperta.", "Nos dias úteis.", "Se você chega com menos fome à refeição seguinte.", ["ROT", "GAT"], { tipo: A, nivel: "N2" }),
+    E("ME-M1", "metabolico", "M", "O que está pedindo comida agora?", "Antes de comer fora do habitual, observar: há fome física? Vontade de algo específico? Cansaço? Emoção? Hábito? Mais de uma dessas coisas?", "Sempre que acontecer.", "O que apareceu com mais frequência.", ["GAT"], { tipo: R, nivel: "N2" }),
+    E("ME-M2", "metabolico", "M", "Comer sem fome: o que veio antes", "Registrar a situação, o pensamento percebido e a emoção quando comer sem fome.", "Sempre que acontecer.", "As situações que se repetem.", ["GAT"], { tipo: O, nivel: "N2",
+      cuidado: "A nutricionista mapeia a situação; não aprofunda conteúdo emocional. Sofrimento intenso: acompanhamento especializado." }),
+    E("ME-M3", "metabolico", "M", "Sem compensação", "Notar se, depois de comer mais, aparece a vontade de pular a refeição seguinte, e trazer isso para a próxima conversa.", "Durante a semana.", "Quando isso aparece e como você se sente.", ["CRE"], { tipo: R, nivel: "N2",
+      cuidado: "Restrição e compensação frequentes podem sinalizar transtorno alimentar: avaliar e encaminhar quando houver suspeita." }),
+    E("ME-M4", "metabolico", "M", "Resposta combinada", "Usar a resposta alternativa que combinamos para o gatilho mais frequente.", "Sempre que o gatilho aparecer.", "Se você conseguiu usar a resposta e o que mudou.", ["GAT"], { tipo: A, nivel: "N2" }),
+    E("ME-E1", "metabolico", "E", "Energia para o que importa", "Escolher uma atividade para a qual você quer ter mais energia e observar como a alimentação aparece nesses dias.", "Durante a semana.", "Sua energia nos dias dessa atividade.", ["PQQ", "RODA"], { tipo: R, nivel: "N4" }),
+    E("ME-E2", "metabolico", "E", "Intenção do dia", "Ao acordar, escolher uma intenção simples para o dia (por exemplo: comer com calma no almoço).", "Todas as manhãs.", "Em quantos dias você lembrou da intenção.", ["PRO"], { tipo: A, nivel: "N2" }),
+    E("ME-E3", "metabolico", "E", "Refeição com presença", "Fazer uma refeição na semana com tempo e atenção, sozinha ou acompanhada.", "1 vez na semana.", "Como você se sentiu nessa refeição.", [], { tipo: A, nivel: "N2" }),
+    E("ME-E4", "metabolico", "E", "Ritmo que respeita você", "Identificar um compromisso que atropela as refeições e pensar numa forma de proteger esse horário.", "Durante a semana.", "Se você conseguiu proteger o horário.", ["ROT", "RODA"], { tipo: A, nivel: "N2" }),
     /* FUNGICO */
-    E("FU-C1", "fungico", "C", "Diário do conforto digestivo", "Anotar como você se sentiu depois das refeições principais (estufamento, desconforto ou bem-estar).", "No almoço e no jantar.", "Em quais refeições o desconforto aparece.", ["ROT"]),
-    E("FU-C2", "fungico", "C", "Mastigar com calma", "Em uma refeição do dia, comer sentada e mastigar com calma, sem pressa.", "1 refeição por dia.", "A diferença no conforto depois dessa refeição.", ["ROT"]),
-    E("FU-C3", "fungico", "C", "Mapa dos doces e beliscos", "Anotar quando come doce ou belisca e o que estava acontecendo.", "Sempre que acontecer.", "Os horários e as situações que se repetem.", ["GAT", "ROT"]),
-    E("FU-C4", "fungico", "C", "Pausa antes do belisco", "Quando vier a vontade de beliscar fora de hora, esperar alguns minutos (beber água, respirar) e depois decidir.", "Sempre que acontecer.", "Se a vontade muda depois da pausa.", ["GAT"]),
-    E("FU-M1", "fungico", "M", "Emoção e digestão", "Nos dias de mais desconforto, anotar também como estava o seu dia emocionalmente.", "Nos dias de desconforto.", "Se dias tensos e desconforto andam juntos.", ["GAT"]),
-    E("FU-M2", "fungico", "M", "O que a vontade de doce está pedindo", "Perguntar a si mesma se é cansaço, recompensa, tédio ou fome.", "Sempre que aparecer.", "Qual necessidade aparece mais.", ["GAT"]),
-    E("FU-M3", "fungico", "M", "Comida sem culpa", "Escolher uma ideia sobre comida que traz culpa e trazer para a próxima conversa.", "Durante a semana.", "Quando essa ideia aparece.", ["CRE"]),
-    E("FU-M4", "fungico", "M", "Plano para o momento difícil", "Usar o que combinamos para o horário em que a vontade de doce mais aparece.", "No horário combinado.", "Se você conseguiu seguir o plano.", ["GAT", "ROT"]),
-    E("FU-E1", "fungico", "E", "Refeição como cuidado", "Preparar ou montar uma refeição na semana com atenção e carinho por você.", "1 vez na semana.", "Como você se sentiu ao cuidar de si.", ["PRO"]),
-    E("FU-E2", "fungico", "E", "Um momento antes de comer", "Fazer uma pausa de três respirações antes da refeição principal.", "1 vez por dia.", "Se a refeição fica mais tranquila.", []),
-    E("FU-E3", "fungico", "E", "Cuidar do ambiente da refeição", "Deixar o lugar da refeição mais agradável (mesa arrumada, sem telas).", "Quando possível.", "Se isso muda a forma de comer.", ["RODA"]),
-    E("FU-E4", "fungico", "E", "Gentileza com o processo", "Anotar uma pequena conquista do cuidado com a alimentação na semana.", "1 vez na semana.", "O que já está mudando.", ["CARTA"]),
+    E("FU-C1", "fungico", "C", "Diário do conforto digestivo", "Anotar como você se sentiu depois das refeições principais (estufamento, desconforto ou bem-estar).", "No almoço e no jantar.", "Em quais refeições o desconforto aparece.", ["ROT"], { tipo: O, nivel: "N3",
+      cuidado: "Sintomas digestivos importantes, persistentes ou com sinais de alarme pedem avaliação clínica adequada." }),
+    E("FU-C2", "fungico", "C", "Mastigar com calma", "Em uma refeição do dia, comer sentada e mastigar com calma, sem pressa.", "1 refeição por dia.", "Se o conforto muda depois dessa refeição.", ["ROT"], { tipo: A, nivel: "N2" }),
+    E("FU-C3", "fungico", "C", "Mapa dos doces e beliscos", "Anotar quando come doce ou belisca e o que estava acontecendo.", "Sempre que acontecer.", "Os horários e as situações que se repetem.", ["GAT", "ROT"], { tipo: O, nivel: "N3" }),
+    E("FU-C4", "fungico", "C", "Pausa antes do belisco", "Quando vier a vontade de beliscar fora de hora, fazer uma pequena pausa, respirar e observar a vontade antes de decidir.", "Sempre que acontecer.", "Se a vontade muda depois da pausa.", ["GAT"], { tipo: A, nivel: "N2" }),
+    E("FU-M1", "fungico", "M", "Emoção e digestão", "Nos dias de mais desconforto, anotar também como estava o seu dia emocionalmente.", "Nos dias de desconforto.", "Se dias tensos e desconforto variam juntos.", ["GAT"], { tipo: O, nivel: "N3" }),
+    E("FU-M2", "fungico", "M", "O que a vontade de doce está pedindo", "Perguntar a si mesma se é cansaço, recompensa, tédio, fome ou outra coisa.", "Sempre que aparecer.", "O que aparece com mais frequência.", ["GAT"], { tipo: R, nivel: "N2",
+      cuidado: "A resposta é da paciente: a nutricionista não interpreta por ela." }),
+    E("FU-M3", "fungico", "M", "Comida sem culpa", "Escolher uma ideia sobre comida que traz culpa e trazer para a próxima conversa.", "Durante a semana.", "Quando essa ideia aparece.", ["CRE"], { tipo: R, nivel: "N2" }),
+    E("FU-M4", "fungico", "M", "Plano para o momento difícil", "Usar o que combinamos para o horário em que a vontade de doce mais aparece.", "No horário combinado.", "Se você conseguiu seguir o plano.", ["GAT", "ROT"], { tipo: A, nivel: "N2" }),
+    E("FU-E1", "fungico", "E", "Refeição como cuidado", "Preparar ou montar uma refeição na semana com atenção e carinho por você.", "1 vez na semana.", "Como você se sentiu ao cuidar de si.", ["PRO"], { tipo: A, nivel: "N4" }),
+    E("FU-E2", "fungico", "E", "Um momento antes de comer", "Fazer uma pausa de três respirações antes da refeição principal.", "1 vez por dia.", "Se a refeição fica mais tranquila.", [], { tipo: A, nivel: "N2" }),
+    E("FU-E3", "fungico", "E", "Cuidar do ambiente da refeição", "Deixar o lugar da refeição mais agradável (mesa arrumada, sem telas).", "Quando possível.", "Se isso muda a forma de comer.", ["RODA"], { tipo: A, nivel: "N2" }),
+    E("FU-E4", "fungico", "E", "Gentileza com o processo", "Anotar uma pequena conquista do cuidado com a alimentação na semana.", "1 vez na semana.", "O que já está mudando.", ["CARTA"], { tipo: R, nivel: "N2" }),
     /* ACIDO INFLAMATORIO */
-    E("AI-C1", "acido_inflamatorio", "C", "Diário do desconforto", "Dar uma nota de 0 a 10 para o desconforto e anotar o momento do dia.", "1 vez por dia.", "Os padrões de horário e de dia.", ["ROT"]),
-    E("AI-C2", "acido_inflamatorio", "C", "Movimento possível", "Escolher um movimento leve que já faz parte da sua vida (caminhar, alongar), dentro do que é seguro para você.", "Na frequência combinada no atendimento.", "Como o corpo responde nas horas seguintes.", ["MOM", "OQ3"]),
-    E("AI-C3", "acido_inflamatorio", "C", "Dias bons e dias difíceis", "Anotar o que comeu e como foi o dia em 2 dias de mais e 2 dias de menos desconforto.", "4 dias na semana.", "As diferenças entre esses dias.", ["ROT"]),
-    E("AI-C4", "acido_inflamatorio", "C", "Hora regular para deitar", "Escolher um horário para deitar e tentar mantê-lo.", "Todas as noites.", "A rigidez e a disposição ao acordar.", ["ROT"]),
-    E("AI-M1", "acido_inflamatorio", "M", "Tensão e desconforto", "Anotar o nível de tensão do dia (0 a 10) ao lado da nota do desconforto.", "1 vez por dia.", "Se tensão e desconforto andam juntos.", ["GAT"]),
-    E("AI-M2", "acido_inflamatorio", "M", "Pausas de soltar o corpo", "Fazer pausas curtas para respirar e soltar ombros e mandíbula.", "3 vezes por dia.", "Se o desconforto muda depois das pausas.", []),
-    E("AI-M3", "acido_inflamatorio", "M", "Pensamentos no desconforto", "Notar o pensamento que aparece quando o desconforto vem e anotar.", "Quando acontecer.", "Os pensamentos que se repetem.", ["CRE", "GAT"]),
-    E("AI-M4", "acido_inflamatorio", "M", "Proteger-se da sobrecarga", "Identificar uma situação que sobrecarrega e uma forma possível de se proteger.", "Durante a semana.", "Se você conseguiu usar essa proteção.", ["ROT"]),
-    E("AI-E1", "acido_inflamatorio", "E", "Prazer que cabe no corpo de hoje", "Escolher uma atividade prazerosa que respeite o seu ritmo atual.", "1 vez na semana.", "Como você se sentiu depois.", ["RODA"]),
-    E("AI-E2", "acido_inflamatorio", "E", "Descanso sem culpa", "Reservar um momento da semana sem obrigações.", "1 vez na semana.", "Se você conseguiu descansar de verdade.", ["MOM"]),
-    E("AI-E3", "acido_inflamatorio", "E", "Gratidão ao corpo", "Anotar uma coisa que o seu corpo permitiu fazer no dia.", "3 vezes na semana.", "Como muda a sua relação com o corpo.", ["CARTA"]),
-    E("AI-E4", "acido_inflamatorio", "E", "Ritmo com sentido", "Ligar o cuidado com o corpo a algo que você quer continuar fazendo.", "Durante a semana.", "Se isso ajuda a manter o cuidado.", ["PQQ", "PRO"]),
+    E("AI-C1", "acido_inflamatorio", "C", "Diário do desconforto", "Dar uma nota de 0 a 10 para o desconforto e anotar o momento do dia.", "1 vez por dia.", "Os padrões de horário e de dia.", ["ROT"], { tipo: O, nivel: "N3",
+      cuidado: "Dor persistente, intensa ou que piora pede avaliação de quem acompanha a saúde do paciente." }),
+    E("AI-C2", "acido_inflamatorio", "C", "Movimento possível", "Retomar ou manter um movimento já considerado seguro para você (caminhar, alongar).", "Na frequência combinada no atendimento.", "Como o corpo responde nas horas seguintes.", ["MOM", "OQ3"], { tipo: A, nivel: "N1",
+      cuidado: "Não é prescrição de exercício: com dor, limitação ou condição clínica, respeitar a orientação do profissional responsável." }),
+    E("AI-C3", "acido_inflamatorio", "C", "Dias bons e dias difíceis", "Anotar o que comeu e como foi o dia em 2 dias de mais e 2 dias de menos desconforto.", "4 dias na semana.", "As diferenças entre esses dias.", ["ROT"], { tipo: O, nivel: "N3" }),
+    E("AI-C4", "acido_inflamatorio", "C", "Hora regular para deitar", "Escolher um horário para deitar e tentar mantê-lo.", "Todas as noites.", "A rigidez e a disposição ao acordar.", ["ROT"], { tipo: A, nivel: "N1" }),
+    E("AI-M1", "acido_inflamatorio", "M", "Tensão e desconforto", "Anotar o nível de tensão do dia (0 a 10) ao lado da nota do desconforto.", "1 vez por dia.", "Se tensão e desconforto variam juntos.", ["GAT"], { tipo: O, nivel: "N3" }),
+    E("AI-M2", "acido_inflamatorio", "M", "Pausa breve de respiração e percepção corporal", "Fazer pausas curtas para respirar e perceber o corpo.", "3 vezes por dia.", "Se algo muda depois das pausas.", [], { tipo: A, nivel: "N2" }),
+    E("AI-M3", "acido_inflamatorio", "M", "Como o desconforto muda o seu cuidado?", "Quando o desconforto aparecer, anotar o que muda na sua alimentação, no descanso ou na rotina.", "Quando acontecer.", "O que muda no cuidado nos dias de desconforto.", ["ROT"], { tipo: R, nivel: "N3" }),
+    E("AI-M4", "acido_inflamatorio", "M", "Proteger uma pausa de cuidado", "Identificar uma parte da rotina que está impedindo alimentação, descanso ou autocuidado e testar uma proteção possível.", "Durante a semana.", "Se você conseguiu proteger essa pausa.", ["ROT"], { tipo: A, nivel: "N2" }),
+    E("AI-E1", "acido_inflamatorio", "E", "Prazer que cabe no corpo de hoje", "Escolher uma atividade prazerosa que respeite o seu ritmo atual.", "1 vez na semana.", "Como você se sentiu depois.", ["RODA"], { tipo: A, nivel: "N4",
+      cuidado: "Se a atividade envolver esforço físico e houver dor, respeitar a orientação do profissional responsável." }),
+    E("AI-E2", "acido_inflamatorio", "E", "Reservar espaço para descanso", "Reservar um momento da semana para descansar.", "1 vez na semana.", "Se foi possível descansar.", ["MOM"], { tipo: A, nivel: "N1" }),
+    E("AI-E3", "acido_inflamatorio", "E", "Reconhecer o que o corpo permitiu hoje", "Anotar uma coisa que o seu corpo permitiu fazer no dia, sem obrigação de sentir gratidão.", "3 vezes na semana.", "O que você percebeu ao anotar.", ["CARTA"], { tipo: R, nivel: "N4",
+      cuidado: "Opcional: com relação difícil com o corpo, pode soar artificial. Use só se fizer sentido para a pessoa." }),
+    E("AI-E4", "acido_inflamatorio", "E", "Ritmo com sentido", "Ligar o cuidado com o corpo a algo que você quer continuar fazendo.", "Durante a semana.", "Se isso ajuda a manter o cuidado.", ["PQQ", "PRO"], { tipo: R, nivel: "N4" }),
     /* DETOX E LINFATICO */
-    E("DL-C1", "detox_linfatico", "C", "Registro do intestino", "Anotar como foi o funcionamento intestinal (frequência e conforto).", "Todos os dias.", "O que muda nos dias diferentes.", ["ROT"]),
-    E("DL-C2", "detox_linfatico", "C", "Água em momentos fixos", "Ligar a água a momentos do dia: ao acordar, nas pausas e nas refeições.", "Todos os dias.", "Se a sede e o inchaço mudam.", ["ROT"]),
-    E("DL-C3", "detox_linfatico", "C", "Pausas de movimento", "Levantar e se movimentar alguns minutos nos períodos longos sentada.", "Várias vezes ao dia.", "O inchaço no fim do dia.", ["ROT", "MOM"]),
-    E("DL-C4", "detox_linfatico", "C", "Diário do inchaço", "Anotar em que momento o inchaço aparece e o que veio antes.", "Quando acontecer.", "A relação com alimentação, tempo sentada e sono.", ["ROT"]),
-    E("DL-M1", "detox_linfatico", "M", "Sem adiar", "Notar se a rotina corrida faz você adiar a ida ao banheiro.", "Durante a semana.", "Quando isso acontece.", ["ROT"]),
-    E("DL-M2", "detox_linfatico", "M", "Tensão e intestino", "Anotar os dias de mais tensão ao lado do registro do intestino.", "Todos os dias.", "Se tensão e intestino andam juntos.", ["GAT"]),
-    E("DL-M3", "detox_linfatico", "M", "Ideias sobre “limpar o corpo”", "Observar ideias que levam a restrições ou a “compensar” e trazer para a próxima conversa.", "Durante a semana.", "Quando essas ideias aparecem.", ["CRE"]),
-    E("DL-M4", "detox_linfatico", "M", "Plano para os dias corridos", "Usar o mínimo que combinamos para os dias mais corridos.", "Nos dias corridos.", "Se você conseguiu manter o mínimo.", ["GAT", "ROT"]),
-    E("DL-E1", "detox_linfatico", "E", "Manhã sem pressa", "Criar alguns minutos tranquilos no começo do dia.", "Todas as manhãs.", "Como o seu dia começa.", ["ROT"]),
-    E("DL-E2", "detox_linfatico", "E", "Tempo ao ar livre", "Ter um momento ao ar livre, com calma.", "1 a 2 vezes na semana.", "Sua disposição e seu humor.", ["RODA"]),
-    E("DL-E3", "detox_linfatico", "E", "Um “não” que protege", "Identificar um compromisso que pode ser recusado para cuidar do seu ritmo.", "Durante a semana.", "Como você se sentiu.", ["RODA"]),
-    E("DL-E4", "detox_linfatico", "E", "Ajuda na rotina", "Combinar com alguém da casa uma ajuda concreta (por exemplo, dividir uma tarefa).", "Durante a semana.", "Se sobrou mais espaço para o seu cuidado.", []),
+    E("DL-C1", "detox_linfatico", "C", "Registro do intestino", "Anotar como foi o funcionamento intestinal (frequência e conforto).", "Todos os dias.", "O que muda nos dias diferentes.", ["ROT"], { tipo: O, nivel: "N3",
+      cuidado: "Mudança importante do hábito intestinal, dor, sangue ou outros sinais de alarme pedem avaliação clínica." }),
+    E("DL-C2", "detox_linfatico", "C", "Água em momentos fixos", "Ligar a água a momentos do dia: ao acordar, nas pausas e nas refeições.", "Todos os dias.", "A facilidade de lembrar da água, a sede e a rotina.", ["ROT"], { tipo: A, nivel: "N1" }),
+    E("DL-C3", "detox_linfatico", "C", "Pausas de movimento", "Levantar e se movimentar alguns minutos nos períodos longos sentada.", "Várias vezes ao dia.", "Como você se sente no fim do dia.", ["ROT", "MOM"], { tipo: A, nivel: "N1" }),
+    E("DL-C4", "detox_linfatico", "C", "Diário do inchaço", "Anotar em que momento o inchaço aparece e o que veio antes.", "Quando acontecer.", "A relação com alimentação, tempo sentada e sono.", ["ROT"], { tipo: O, nivel: "N3",
+      cuidado: "Inchaço novo, importante, de um lado só, doloroso ou persistente precisa de avaliação clínica." }),
+    E("DL-M1", "detox_linfatico", "M", "Sem adiar", "Notar se a rotina corrida faz você adiar a ida ao banheiro.", "Durante a semana.", "Quando isso acontece.", ["ROT"], { tipo: O, nivel: "N2" }),
+    E("DL-M2", "detox_linfatico", "M", "Tensão e intestino", "Anotar os dias de mais tensão ao lado do registro do intestino.", "Todos os dias.", "Se tensão e intestino variam juntos.", ["GAT"], { tipo: O, nivel: "N3" }),
+    E("DL-M3", "detox_linfatico", "M", "Ideias sobre “limpar o corpo”", "Observar ideias que levam a restrições ou a “compensar” e trazer para a próxima conversa.", "Durante a semana.", "Quando essas ideias aparecem.", ["CRE"], { tipo: R, nivel: "N2" }),
+    E("DL-M4", "detox_linfatico", "M", "Plano para os dias corridos", "Usar o mínimo que combinamos para os dias mais corridos.", "Nos dias corridos.", "Se você conseguiu manter o mínimo.", ["GAT", "ROT"], { tipo: A, nivel: "N2" }),
+    E("DL-E1", "detox_linfatico", "E", "Manhã sem pressa", "Criar alguns minutos tranquilos no começo do dia.", "Todas as manhãs.", "Como o seu dia começa.", ["ROT"], { tipo: A, nivel: "N2" }),
+    E("DL-E2", "detox_linfatico", "E", "Tempo ao ar livre", "Ter um momento ao ar livre, com calma.", "1 a 2 vezes na semana.", "Sua disposição e seu humor.", ["RODA"], { tipo: A, nivel: "N2" }),
+    E("DL-E3", "detox_linfatico", "E", "Proteger um horário de cuidado", "Escolher um horário de refeição, pausa ou cuidado que costuma ser tomado por outras demandas e testar protegê-lo nesta semana.", "Durante a semana.", "Se você conseguiu proteger o horário.", ["ROT", "RODA"], { tipo: A, nivel: "N2" }),
+    E("DL-E4", "detox_linfatico", "E", "Ajuda na rotina", "Combinar com alguém da casa uma ajuda concreta (por exemplo, dividir uma tarefa).", "Durante a semana.", "Se sobrou mais espaço para o seu cuidado.", [], { tipo: A, nivel: "N2" }),
     /* MENTAL EMOCIONAL ESPIRITUAL */
-    E("MEE-C1", "mental_emocional_espiritual", "C", "Ritual de desacelerar", "Nos 30 minutos antes de dormir, ficar sem telas e repetir a mesma sequência (por exemplo: banho, luz baixa, leitura).", "Todas as noites.", "O tempo para pegar no sono e como você acorda.", ["ROT"]),
-    E("MEE-C2", "mental_emocional_espiritual", "C", "Hora de acordar regular", "Manter um horário parecido para acordar, inclusive no fim de semana.", "Todos os dias.", "Sua disposição pela manhã.", ["ROT"]),
-    E("MEE-C3", "mental_emocional_espiritual", "C", "Última refeição e sono", "Observar o intervalo entre a última refeição e a hora de dormir.", "Todas as noites.", "Como você dorme em cada situação.", ["ROT"]),
-    E("MEE-C4", "mental_emocional_espiritual", "C", "Luz da manhã", "Ter alguns minutos de luz natural ou de caminhada pela manhã.", "Quando possível.", "Sua disposição e seu humor no dia.", ["ROT", "MOM"]),
-    E("MEE-M1", "mental_emocional_espiritual", "M", "Nomear a emoção", "Antes de comer fora do combinado, dar nome ao que está sentindo.", "Sempre que acontecer.", "As emoções que se repetem.", ["GAT"]),
-    E("MEE-M2", "mental_emocional_espiritual", "M", "Três respirações", "Fazer três respirações lentas antes de decidir o que comer quando estiver tensa.", "Sempre que acontecer.", "Se a decisão muda depois da pausa.", ["GAT"]),
-    E("MEE-M3", "mental_emocional_espiritual", "M", "Trocar a frase dura", "Anotar uma frase dura que você diz a si mesma e reescrever de forma mais gentil.", "1 vez na semana.", "Como você se sente com a nova frase.", ["CRE"]),
-    E("MEE-M4", "mental_emocional_espiritual", "M", "Esvaziar a mente", "Escrever num papel o que está na cabeça antes de dormir.", "Nas noites agitadas.", "Se o sono fica mais tranquilo.", []),
-    E("MEE-E1", "mental_emocional_espiritual", "E", "Um passo alinhado ao propósito", "Escolher uma ação da semana ligada ao que dá sentido à sua vida.", "1 vez na semana.", "Como você se sentiu.", ["PRO", "PQQ"]),
-    E("MEE-E2", "mental_emocional_espiritual", "E", "Contato que nutre", "Ter um contato significativo com alguém de apoio.", "1 vez na semana.", "Como você se sentiu depois.", []),
-    E("MEE-E3", "mental_emocional_espiritual", "E", "Prática de sentido", "Se fizer parte da sua vida, reservar um tempo para a sua prática (oração, meditação, contemplação).", "No ritmo combinado com você.", "Como fica o seu dia.", []),
-    E("MEE-E4", "mental_emocional_espiritual", "E", "Olhar para o caminho", "No fim da semana, anotar o que te aproximou de quem você quer ser.", "1 vez na semana.", "O que já está mudando.", ["CARTA"]),
+    E("MEE-C1", "mental_emocional_espiritual", "C", "Ritual de desacelerar", "Nos 30 minutos antes de dormir, ficar sem telas e repetir a mesma sequência (por exemplo: banho, luz baixa, leitura).", "Todas as noites.", "O tempo para pegar no sono e como você acorda.", ["ROT"], { tipo: A, nivel: "N1" }),
+    E("MEE-C2", "mental_emocional_espiritual", "C", "Hora de acordar regular", "Manter um horário parecido para acordar, inclusive no fim de semana.", "Todos os dias.", "Sua disposição pela manhã.", ["ROT"], { tipo: A, nivel: "N1" }),
+    E("MEE-C3", "mental_emocional_espiritual", "C", "Última refeição e sono", "Observar o horário, o volume e o contexto da última refeição e como foi o sono.", "Todas as noites.", "Se há diferença no sono conforme a última refeição.", ["ROT"], { tipo: O, nivel: "N3" }),
+    E("MEE-C4", "mental_emocional_espiritual", "C", "Luz da manhã", "Ter alguns minutos de luz natural ou de caminhada pela manhã.", "Quando possível.", "Sua disposição e seu humor no dia.", ["ROT", "MOM"], { tipo: A, nivel: "N1" }),
+    E("MEE-M1", "mental_emocional_espiritual", "M", "Nomear a emoção", "Antes de comer fora do combinado, dar nome ao que está sentindo e ao que o corpo está sinalizando.", "Sempre que acontecer.", "As emoções e os sinais que se repetem.", ["GAT"], { tipo: R, nivel: "N2" }),
+    E("MEE-M2", "mental_emocional_espiritual", "M", "Três respirações", "Fazer três respirações lentas antes de decidir o que comer quando estiver tensa.", "Sempre que acontecer.", "Se a decisão muda depois da pausa.", ["GAT"], { tipo: A, nivel: "N2",
+      cuidado: "É uma pausa de decisão, não tratamento de ansiedade. Sofrimento intenso: acompanhamento especializado." }),
+    E("MEE-M3", "mental_emocional_espiritual", "M", "Trocar a frase dura", "Quando surgir uma frase dura sobre a alimentação (“comi fora do planejado, estraguei tudo”), anotar e reescrever de forma mais gentil (“uma escolha não define o meu dia”).", "Quando acontecer.", "Como você se sente com a nova frase.", ["CRE"], { tipo: R, nivel: "N2",
+      cuidado: "Só frases ligadas à alimentação e ao autocuidado. Não trabalhar crenças centrais, traumas ou autoestima global." }),
+    E("MEE-M4", "mental_emocional_espiritual", "M", "Tirar as pendências da cabeça", "Antes de dormir, anotar pendências ou coisas que não quer esquecer e deixá-las para o dia seguinte.", "Nas noites agitadas.", "Se o sono fica mais tranquilo.", [], { tipo: A, nivel: "N2" }),
+    E("MEE-E1", "mental_emocional_espiritual", "E", "Um passo alinhado ao propósito", "Escolher uma ação da semana ligada ao que dá sentido à sua vida.", "1 vez na semana.", "Como você se sentiu.", ["PRO", "PQQ"], { tipo: A, nivel: "N4" }),
+    E("MEE-E2", "mental_emocional_espiritual", "E", "Contato que nutre", "Ter um contato significativo com alguém de apoio.", "1 vez na semana.", "Como você se sentiu depois.", [], { tipo: A, nivel: "N2" }),
+    E("MEE-E3", "mental_emocional_espiritual", "E", "Prática de sentido", "Se já fizer parte da sua vida, reservar um tempo para a sua prática (oração, meditação, contemplação).", "No ritmo combinado com você.", "Como fica o seu dia.", [], { tipo: A, nivel: "N4",
+      cuidado: "Somente quando espiritualidade, oração ou meditação já fizerem sentido para o paciente. A nutricionista não indica crença nem prática religiosa." }),
+    E("MEE-E4", "mental_emocional_espiritual", "E", "Olhar para o caminho", "No fim da semana, anotar o que te aproximou do cuidado que você deseja manter.", "1 vez na semana.", "O que já está mudando.", ["CARTA"], { tipo: R, nivel: "N4" }),
     /* GERAIS */
-    E("G01", "geral", "C", "Registro de 3 dias", "Anotar o que comeu, o horário e como se sentiu.", "3 dias (2 dias úteis e 1 de fim de semana).", "Os horários, a fome e a energia.", ["ROT"]),
-    E("G02", "geral", "C", "Uma refeição com atenção", "Fazer uma refeição por dia sentada e sem telas.", "Todos os dias.", "O sabor, a saciedade e a calma.", []),
-    E("G03", "geral", "C", "Planejar a semana", "Reservar um tempo curto para pensar nas refeições da semana.", "1 vez na semana.", "Se os dias ficaram mais fáceis.", ["ROT", "OQ3"]),
-    E("G04", "geral", "C", "Sono regular", "Manter horários parecidos para deitar e acordar.", "Todos os dias.", "Sua disposição.", ["ROT"]),
-    E("G05", "geral", "C", "Movimento de que você gosta", "Escolher um movimento prazeroso, dentro do que é seguro para você.", "Na frequência combinada no atendimento.", "Sua disposição e seu humor.", ["MOM"]),
-    E("G06", "geral", "C", "Água à vista", "Deixar água por perto e beber ao longo do dia.", "Todos os dias.", "A sede e a disposição.", []),
-    E("G07", "geral", "M", "O momento mais difícil do dia", "Identificar o horário mais difícil e o que acontece antes dele.", "Durante a semana.", "O que se repete.", ["ROT", "GAT"]),
-    E("G08", "geral", "M", "Pausa antes de decidir", "Antes de comer fora do combinado, esperar alguns minutos.", "Sempre que acontecer.", "Se a vontade muda.", ["GAT"]),
-    E("G09", "geral", "M", "Sem tudo ou nada", "Quando algo sair do plano, seguir na próxima refeição como combinado, sem “chutar o balde”.", "Sempre que acontecer.", "Como você lidou com o deslize.", ["CRE"]),
-    E("G10", "geral", "M", "Um avanço por semana", "Anotar uma coisa que deu certo.", "1 vez na semana.", "O que está mudando.", []),
-    E("G11", "geral", "E", "Lembrar o seu “pra quê”", "Reler a síntese da Escada dos Porquês ou o seu motivo principal.", "2 vezes na semana.", "Se isso ajuda nos momentos difíceis.", ["PQQ", "PRO"]),
-    E("G12", "geral", "E", "Uma área da vida com cuidado", "Escolher uma área da Roda da Vida e um pequeno gesto semanal para ela.", "1 vez na semana.", "Como você se sentiu.", ["RODA"]),
-    E("G13", "geral", "E", "Pessoa de apoio", "Combinar com alguém de confiança como essa pessoa pode te apoiar nesta fase.", "Durante a semana.", "Se você se sentiu apoiada.", []),
-    E("G14", "geral", "E", "Pausa de gratidão", "Fazer um momento de pausa e gratidão antes de uma refeição.", "1 vez por dia.", "Como fica a refeição.", []),
-    E("G15", "geral", "E", "Frase da Carta", "Escolher uma frase da Carta ao Futuro Eu para lembrar durante a semana.", "Todos os dias.", "Se a frase ajudou.", ["CARTA"])
+    E("G01", "geral", "C", "Registro de 3 dias", "Anotar o que comeu, o horário e como se sentiu.", "3 dias (2 dias úteis e 1 de fim de semana).", "Os horários, a fome e a energia.", ["ROT"], { tipo: O, nivel: "N2",
+      cuidado: "Evitar quando registrar aumenta obsessão, culpa ou sofrimento." }),
+    E("G02", "geral", "C", "Uma refeição com atenção", "Fazer uma refeição por dia sentada e sem telas.", "Todos os dias.", "O sabor, a saciedade e a calma.", [], { tipo: A, nivel: "N2" }),
+    E("G03", "geral", "C", "Planejar a semana", "Reservar um tempo curto para pensar nas refeições da semana.", "1 vez na semana.", "Se os dias ficaram mais fáceis.", ["ROT", "OQ3"], { tipo: A, nivel: "N2" }),
+    E("G04", "geral", "C", "Sono regular", "Manter horários parecidos para deitar e acordar.", "Todos os dias.", "Sua disposição.", ["ROT"], { tipo: A, nivel: "N1" }),
+    E("G05", "geral", "C", "Movimento de que você gosta", "Escolher um movimento prazeroso, dentro do que é seguro para você.", "Na frequência combinada no atendimento.", "Sua disposição e seu humor.", ["MOM"], { tipo: A, nivel: "N1",
+      cuidado: "Incentivo geral, não prescrição de exercício. Com dor ou limitação, respeitar o profissional responsável." }),
+    E("G06", "geral", "C", "Água à vista", "Deixar água por perto e beber ao longo do dia.", "Todos os dias.", "A sede e a facilidade de lembrar.", [], { tipo: A, nivel: "N1" }),
+    E("G07", "geral", "M", "O momento mais difícil do dia", "Identificar o horário mais difícil e o que acontece antes dele.", "Durante a semana.", "O que se repete.", ["ROT", "GAT"], { tipo: O, nivel: "N3" }),
+    E("G08", "geral", "M", "Pausa antes de decidir", "Antes de comer fora do combinado, esperar alguns minutos.", "Sempre que acontecer.", "Se a vontade muda.", ["GAT"], { tipo: A, nivel: "N2" }),
+    E("G09", "geral", "M", "Sem tudo ou nada", "Quando algo sair do plano, seguir na próxima refeição como combinado, sem “chutar o balde”.", "Sempre que acontecer.", "Como você lidou com o deslize.", ["CRE"], { tipo: A, nivel: "N2" }),
+    E("G10", "geral", "M", "Um avanço por semana", "Anotar uma coisa que deu certo.", "1 vez na semana.", "O que está mudando.", [], { tipo: R, nivel: "N2" }),
+    E("G11", "geral", "E", "Lembrar o seu “pra quê”", "Reler a síntese da Escada dos Porquês ou o seu motivo principal.", "2 vezes na semana.", "Se isso ajuda nos momentos difíceis.", ["PQQ", "PRO"], { tipo: R, nivel: "N4" }),
+    E("G12", "geral", "E", "Uma área da vida com cuidado", "Escolher uma área da Roda da Vida e um pequeno gesto semanal para ela.", "1 vez na semana.", "Como você se sentiu.", ["RODA"], { tipo: A, nivel: "N4", requer: "roda_vida" }),
+    E("G13", "geral", "E", "Pessoa de apoio", "Combinar com alguém de confiança como essa pessoa pode te apoiar nesta fase.", "Durante a semana.", "Se você se sentiu apoiada.", [], { tipo: A, nivel: "N2" }),
+    E("G14", "geral", "E", "Pausa de presença", "Antes de uma refeição, fazer uma pequena pausa para chegar àquele momento. Se gratidão fizer sentido para você, ela pode fazer parte da pausa.", "1 vez por dia.", "Como fica a refeição.", [], { tipo: A, nivel: "N2" }),
+    E("G15", "geral", "E", "Frase da Carta", "Escolher uma frase da Carta ao Futuro Eu para lembrar durante a semana.", "Todos os dias.", "Se a frase ajudou.", ["CARTA"], { tipo: R, nivel: "N4", requer: "carta_futuro" })
   ];
 
   var POR_ID = {};
@@ -240,8 +269,8 @@
 
   /* Linha do Momentum: orientacao de QUANTIDADE (decisao D2 do plano; so orienta, nunca trava) */
   var MOMENTUM = {
-    preservar: { min: 2, max: 3, rotulo: "Preservar" }, reorganizar: { min: 3, max: 4, rotulo: "Reorganizar" },
-    construir: { min: 4, max: 5, rotulo: "Construir" }, expandir: { min: 5, max: 6, rotulo: "Expandir" }
+    preservar: { min: 1, max: 2, rotulo: "Preservar" }, reorganizar: { min: 2, max: 3, rotulo: "Reorganizar" },
+    construir: { min: 3, max: 4, rotulo: "Construir" }, expandir: { min: 4, max: 5, rotulo: "Expandir" }
   };
   function chaveMomentum(v) {
     var s = String(v || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
@@ -265,7 +294,7 @@
     var grupo = function (e) { return e.sistema === sisFoco ? "foco" : ordemSis.indexOf(e.sistema) >= 0 ? "prioritario" : e.sistema === "geral" ? "geral" : "outro"; };
     var peso = { foco: 0, prioritario: 1, geral: 2, outro: 3 };
     var est = ESTRATEGIAS.map(function (e, i) { return { e: e, i: i, g: grupo(e), c: combina(e) }; })
-      .filter(function (o) { return o.g !== "outro"; })
+      .filter(function (o) { return o.g !== "outro" && (!o.e.requer || aplicadas.indexOf(o.e.requer) >= 0); })   /* PB-V2: "requer" = so quando a ferramenta foi aplicada */
       .sort(function (a, b) { return peso[a.g] - peso[b.g] || (b.c.length ? 1 : 0) - (a.c.length ? 1 : 0) || a.i - b.i; })
       .map(function (o) { return Object.assign({}, o.e, { grupo: o.g, combina: o.c }); });
     return { versao: VERSAO, focos: focos, focosOutros: focosOutros, sistemaFoco: sisFoco, estrategias: est,
@@ -335,7 +364,7 @@
   }
 
   var api = { VERSAO: VERSAO, PREFIXO: PREFIXO, SISTEMAS: SISTEMAS, NOME_SISTEMA: NOME_SISTEMA, NOME_TERR: NOME_TERR, NOME_FERR: NOME_FERR,
-    FOCOS: FOCOS, ESTRATEGIAS: ESTRATEGIAS, porId: function (id) { return POR_ID[id] || null; }, MAX_ESTRATEGIAS: MAX_ESTRATEGIAS, PRAZO_PADRAO: PRAZO_PADRAO,
+    FOCOS: FOCOS, ESTRATEGIAS: ESTRATEGIAS, porId: function (id) { return POR_ID[id] || null; }, MAX_ESTRATEGIAS: MAX_ESTRATEGIAS, RECOMENDADO: RECOMENDADO, PAGINAS_PDF: PAGINAS_PDF, paginaPdf: function (f) { return PAGINAS_PDF[f] || null; }, TIPO: TIPO, NIVEL: NIVEL, PRAZO_PADRAO: PRAZO_PADRAO,
     opcoes: opcoes, montarDirecao: montarDirecao, resumo: resumo, textos: textos, origemPlaybook: origemPlaybook, orientacaoMomentum: orientacaoMomentum };
   raiz.PlaybookHolos = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;

@@ -1,5 +1,5 @@
 /**
- * PLAYBOOK HOLOS (PB-V1) — conteudo e selecao, sem navegador.
+ * PLAYBOOK HOLOS (PB-V2) — conteudo e selecao, sem navegador.
  *   P1  conteudo: 3 focos por sistema, 12 estrategias por sistema (4 Corpo, 4 Mente, 4 Espirito), 15 gerais, ids unicos
  *   P2  nenhum texto do playbook usa termo fora do metodo (a mesma lista do Resultado) nem quantidade (g, ml, kcal)
  *   P3  etiquetas so das 10 ferramentas oficiais
@@ -8,7 +8,8 @@
  *   P5  montarDirecao: itens da nutricionista, confirmados e compartilhados; no maximo 6 estrategias; ligacao ao
  *       direcionamento; a projecao da paciente traz foco, direcionamentos, plano, C/M/E, observe e proxima etapa
  *   P6  rastreabilidade: o id do item devolve o id do playbook; resumo com versao
- *   P7  Linha do Momentum so orienta a quantidade
+ *   P7  Linha do Momentum so orienta a quantidade (PB-V2: Preservar 1-2 ... Expandir 4-5); recomendado 2 a 4
+ *   P8  PB-V2: tipo, nivel e cuidado; G12/G15 so com a ferramenta aplicada; pagina de cada ferramenta no PDF oficial
  */
 import './guarda-falhas.mjs';
 await import('../resultado-direcao.js');
@@ -52,7 +53,7 @@ const primeiraSem = doFoco.findIndex(e => !e.combina.length);
 ok(doFoco.length === 12 && doFoco.slice(0, primeiraSem).every(e => e.combina.includes('Gatilhos & Respostas')) && doFoco.slice(primeiraSem).every(e => !e.combina.length),
   'P4 dentro do sistema do foco, primeiro as que combinam com as ferramentas aplicadas');
 ok(!op.estrategias.some(e => ['fungico', 'acido_inflamatorio', 'detox_linfatico'].includes(e.sistema)), 'P4 nenhum sistema não prioritário entra nas estratégias');
-ok(op.estrategias.length === 12 + 12 + 15, 'P4 39 opções (12 + 12 + 15 gerais)');
+ok(op.estrategias.length === 12 + 12 + 13, 'P4 37 opções (12 + 12 + 13 gerais: sem Roda e sem Carta aplicadas, G12 e G15 ficam de fora)');
 const op2 = PB.opcoes({ prioritarios: ['metabolico', 'mental_emocional_espiritual'], ferramentas: [], foco: 'MEE-F1' });
 ok(op2.sistemaFoco === 'mental_emocional_espiritual' && op2.estrategias[0].sistema === 'mental_emocional_espiritual', 'P4 trocar o foco muda o sistema que vem primeiro');
 
@@ -84,10 +85,20 @@ ok(livre.foco_atual.texto === 'Foco escrito pela nutricionista' && livre.direcio
 /* P6 */
 ok(PB.origemPlaybook(m.estrategias[0].id) === 'ME-C1' && PB.origemPlaybook(m.direcionamentos[0].id) === 'ME-F1' && PB.origemPlaybook(m.foco_atual.id) === 'ME-F1' &&
   PB.origemPlaybook(m.corpo[0].id) === 'ME-C1' && PB.origemPlaybook('abc') === null, 'P6 o id do item devolve o id do playbook');
-ok(PB.resumo(escolha) === 'Montado com o Playbook HOLOS PB-V1 · Foco ME-F1 · Estratégias ME-C1, ME-C4, ME-M1, MEE-C1, G10, G11, G12.', 'P6 resumo com versão e ids');
+ok(PB.resumo(escolha) === 'Montado com o Playbook HOLOS PB-V2 · Foco ME-F1 · Estratégias ME-C1, ME-C4, ME-M1, MEE-C1, G10, G11, G12.', 'P6 resumo com versão e ids');
 
 /* P7 */
-ok(PB.orientacaoMomentum('Reorganizar').max === 4 && PB.orientacaoMomentum('preservar').min === 2 && PB.orientacaoMomentum('') === null, 'P7 Momentum orienta a quantidade');
+ok(PB.orientacaoMomentum('Reorganizar').max === 3 && PB.orientacaoMomentum('preservar').min === 1 && PB.orientacaoMomentum('') === null, 'P7 Momentum orienta a quantidade');
+ok(PB.RECOMENDADO.min === 2 && PB.RECOMENDADO.max === 4 && PB.MAX_ESTRATEGIAS === 6, 'P7 recomendado 2 a 4 (máximo 6)');
+
+/* P8 */
+ok(PB.VERSAO === 'PB-V2' && PB.ESTRATEGIAS.every(e => PB.TIPO[e.tipo] && PB.NIVEL[e.nivel]), 'P8 toda estratégia tem tipo (Ação/Observação/Reflexão) e nível N1–N4');
+ok(['ME-C2', 'ME-M3', 'FU-C1', 'MEE-M2'].every(id => PB.porId(id).cuidado.length > 20), 'P8 as estratégias sensíveis trazem o cuidado');
+const semFerr = PB.opcoes({ prioritarios: ['metabolico', 'fungico'], ferramentas: [] }).estrategias.map(x => x.id);
+const comFerr = PB.opcoes({ prioritarios: ['metabolico', 'fungico'], ferramentas: ['roda_vida', 'carta_futuro'] }).estrategias.map(x => x.id);
+ok(!semFerr.includes('G12') && !semFerr.includes('G15') && comFerr.includes('G12') && comFerr.includes('G15'), 'P8 G12 (Roda) e G15 (Carta) só aparecem com a ferramenta aplicada');
+const usadas = Object.keys(PB.NOME_FERR).filter(f => f !== 'conexao_pertencimento_v1');
+ok(usadas.every(f => Number.isInteger(PB.paginaPdf(f)) && PB.paginaPdf(f) > 3) && PB.paginaPdf('conexao_pertencimento_v1') === null, 'P8 página de cada uma das 9 ferramentas no PDF oficial: ' + JSON.stringify(PB.PAGINAS_PDF));
 
 console.log(falhou ? '\nFALHOU' : '\nOK');
 process.exit(falhou ? 1 : 0);

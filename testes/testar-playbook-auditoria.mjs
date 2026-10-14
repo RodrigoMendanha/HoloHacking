@@ -101,7 +101,7 @@ ok(ests.length === 12, 'A1 12 estratégias do sistema do foco no topo');
 const doSistema = ests.slice(0, 3);
 for (const id of doSistema) { await marcar('[data-pb-est="' + id + '"]'); await espera(120); }
 await clicar('[data-pb-acao="gerais"]'); await espera(200);
-ok((await P.$$('[data-pb-est^="G"]')).length === 15, 'A3 "Ver estratégias gerais" mostra as 15');
+ok((await P.$$('[data-pb-est^="G"]')).length === 13 && !(await P.$('[data-pb-est="G12"]')) && !(await P.$('[data-pb-est="G15"]')), 'A3 "Ver estratégias gerais" mostra 13 (G12 e G15 só com a Roda da Vida / Carta aplicadas)');
 await marcar('[data-pb-est="G10"]'); await espera(120);
 /* desmarcar um relato: nao pode ir para o Resultado */
 const desmarcado = await P.evaluate(() => { const c = [...document.querySelectorAll('[data-pb-rel]')].find(x => x.checked && /Belisco quando chego em casa/.test(x.closest('label').innerText)); if (!c) return null; c.click(); return c.closest('label').innerText.trim(); });

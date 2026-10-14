@@ -84,7 +84,7 @@ const ests = await P.evaluate(() => [...document.querySelectorAll('[data-pb-pass
 ok(ests.length === 3 && ests[0][0].startsWith('ME-') && ests[1][0].startsWith('ME-') && ests[2][0].startsWith('ME-'), 'W4 em Corpo, Mente e Espírito, primeiro as do sistema do foco: ' + ests.map(c => c[0]).join(', '));
 const combina = await P.evaluate(() => { const el = document.querySelector('[data-pb-est="ME-C1"]').closest('.pb-est'); return el.innerText; });
 ok(/Combina com .*Mapa da Rotina/.test(combina), 'W4 selo "combina com" a ferramenta aplicada');
-ok(/Reorganizar/.test(await txt('.pb-contador')) && /3 a 4/.test(await txt('.pb-contador')), 'W4 orientação da Linha do Momentum (3 a 4 estratégias)');
+ok(/Reorganizar/.test(await txt('.pb-contador')) && /2 a 3/.test(await txt('.pb-contador')), 'W4 orientação da Linha do Momentum (Reorganizar: 2 a 3 estratégias)');
 for (const id of ['ME-C1', 'ME-C4', 'ME-M1']) { await marcar('[data-pb-est="' + id + '"]'); await espera(150); }
 await P.evaluate(() => { const i = document.querySelector('[data-pb-campo="ME-C4:acao"]'); i.value = 'Levar um lanche pronto para as 16h.'; i.dispatchEvent(new Event('input', { bubbles: true })); });
 const campos = await P.evaluate(() => ({ c: document.querySelector('[data-pb-campo="ME-C1:contexto"]').value, o: document.querySelector('[data-pb-campo="ME-C1:observar"]').value }));
@@ -112,7 +112,7 @@ ok(d1 && d1.estrategias.length === 3 && d1.estrategias.map(e => window_origem(e.
 ok(dp1 && dp1.estrategias.some(e => e.acao === 'Levar um lanche pronto para as 16h.') && dp1.direcionamentos.length === 2 && dp1.observar.length === 3 && dp1.proxima_etapa,
   'W5 visão do paciente: edição, 2 direcionamentos, observe e próxima etapa');
 ok(dp1 && dp1.momento.some(m => /Cansaço no fim da tarde/.test(m.texto)), 'W5 o relato marcado entra em "Seu momento agora"');
-ok(/Playbook HOLOS PB-V1 · Foco ME-F1 · Estratégias ME-C1, ME-C4, ME-M1/.test(r1.leitura_profissional || ''), 'W5 leitura profissional registra versão e ids do playbook');
+ok(/Playbook HOLOS PB-V2 · Foco ME-F1 · Estratégias ME-C1, ME-C4, ME-M1/.test(r1.leitura_profissional || ''), 'W5 leitura profissional registra versão e ids do playbook');
 const doc1 = await txt('#aba-resultado-holos #rh-doc');
 ok(/Foco desta fase/.test(doc1) && /Seu plano até a próxima consulta/.test(doc1) && /Corpo · Mente · Espírito/.test(doc1) && !/RESULTADO EM CONSTRUÇÃO/.test(doc1), 'W5 o Resultado abre pronto na visão do paciente');
 await capturar('playbook-3-resultado-gerado');
@@ -140,7 +140,7 @@ for (let i = 0; i < idsAnt.length; i++) {
 }
 await P.evaluate((id) => { const i = document.querySelector('[data-pb-ajuste="' + id + '"]'); i.value = 'Levar o lanche também nos dias de reunião.'; i.dispatchEvent(new Event('input', { bubbles: true })); }, idsAnt[1]);
 await marcar('[data-pb-est="ME-M2"]'); await espera(150);
-ok(/3<\/b> de até 6|3 de até 6/.test(await P.evaluate(() => document.querySelector('.pb-contador').innerHTML)) || /\b3\b de até 6/.test(await txt('.pb-contador')), 'W6 contador soma as continuadas (2) e a nova (1)');
+ok(/<b>3<\/b> estratégias escolhidas · recomendado 2 a 4 \(2 continuadas/.test(await P.evaluate(() => document.querySelector('.pb-contador').innerHTML)), 'W6 contador soma as continuadas (2) e a nova (1)');
 await capturar('playbook-4-retorno');
 await clicar('[data-pb-acao="gerar"]');
 await P.waitForFunction(() => !document.querySelector('#aba-resultado-holos .pb-wiz') && !!document.querySelector('#aba-resultado-holos #rh-doc'), { timeout: 15000 }).catch(() => null);
