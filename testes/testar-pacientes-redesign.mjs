@@ -147,7 +147,7 @@ ok(f.faixa.length === 3 && /PRÓXIMA CONSULTA|Próxima consulta/i.test(f.faixa[0
   'faixa: próxima consulta (sem segundos), último HOLOSCAN e etapa atual (regra do Dashboard): ' + f.faixa.join(' | '));
 ok(/helena@ficticio\.test/.test(f.contato) && /anos/.test(f.sobre), 'contato e idade no cabeçalho');
 ok(f.alturaAt < 64, 'atendimento ativo numa barra só (' + Math.round(f.alturaAt) + 'px)');
-ok(f.alturaJor < 90, 'jornada horizontal compacta (' + Math.round(f.alturaJor) + 'px)');
+ok(f.alturaJor < 130, 'jornada horizontal compacta, 7 passos (14/10) (' + Math.round(f.alturaJor) + 'px)');
 ok(f.abasY < 700, 'as abas começam acima da dobra em 1440×1000 (y=' + Math.round(f.abasY) + ')');
 if (SHOT) { await shot(A, 'ficha-topo-1440'); await shot(A, 'ficha-atendimento', '#ficha-atendimento'); await shot(A, 'ficha-jornada', '#ficha-jornada'); await shot(A, 'ficha-abas', '.abas-ficha-caixa'); }
 
@@ -159,9 +159,9 @@ ok(ma.aberto && ma.exp === 'true' && ma.foco === 'Editar cadastro' && ma.fechou,
 
 /* jornada */
 const jor = await A.evaluate(() => [...document.querySelectorAll('#ficha-jornada .fic-step')].map(s => ({ st: s.className.replace('fic-step', '').trim(), nome: s.querySelector('.fic-step-mov').textContent, atual: s.getAttribute('aria-current') })));
-ok(jor.map(j => j.nome).join('|') === 'MAPEAR|INTEGRAR|CONSOLIDAR|APRESENTAR|ACOMPANHAR', 'jornada: os 5 passos na ordem');
-ok(jor[0].st === 'feito' && jor[1].st === 'atual' && jor[1].atual === 'step' && jor[2].st === 'feito' && jor[3].st === 'feito' && jor[4].st === 'futuro',
-  'estado real: Mapear ✓ (HOLOSCAN salvo), Integrar atual (nenhuma ferramenta), Consolidar ✓ (Resultado HOLOS), Apresentar ✓ (emitido), Acompanhar futuro (1 HOLOSCAN): ' + jor.map(j => j.st).join(','));
+ok(jor.map(j => j.nome).join('|') === 'ANTES|ATENDIMENTO|ATENDIMENTO|DEPOIS|DEPOIS|APRESENTAR|RETORNOS', 'jornada: o fluxo completo, 7 passos na ordem (14/10)');
+ok(jor[0].st === 'futuro' && jor[1].st === 'feito' && jor[2].st === 'atual' && jor[2].atual === 'step' && jor[4].st === 'feito' && jor[5].st === 'feito' && jor[6].st === 'futuro',
+  'estado real: Mapeamento não recebido (não volta a ser o atual), HOLOSCAN ✓, Ferramentas atual (nenhuma), Resultado HOLOS ✓, Resultado ✓ (emitido), Retornos futuro (1 HOLOSCAN): ' + jor.map(j => j.st).join(','));
 ok(await A.evaluate(() => !/%|pendente|atrasad|grave/i.test(document.getElementById('ficha-jornada').innerText)), 'jornada sem porcentagem, pendência ou gravidade');
 await A.evaluate(() => document.querySelector('[data-passo-jornada="acompanhar"]').click()); await espera(400);
 ok(await A.evaluate(() => document.querySelector('#ficha-arquivos .aba.ativa').dataset.aba) === 'evolucao', 'Acompanhar abre a aba Evolução');

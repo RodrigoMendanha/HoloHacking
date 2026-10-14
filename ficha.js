@@ -186,8 +186,10 @@
     var J = window.JornadaPaciente, pid = paciente();
     var feitos = {};
     try { (J ? J.passos(pid) : []).forEach(function (p) { feitos[p.id] = !!p.feito; }); } catch (e) { feitos = {}; }
+    /* o Mapeamento so e o passo atual enquanto nada depois dele foi feito (paciente antigo, sem link, nao volta para o comeco) */
+    var adiante = PASSOS.slice(1).some(function (p) { return feitos[p.id]; });
     var atual = null;
-    PASSOS.forEach(function (p) { if (!atual && !feitos[p.id]) atual = p.id; });
+    PASSOS.forEach(function (p, i) { if (!atual && !feitos[p.id] && !(adiante && i === 0)) atual = p.id; });
     acaoPrincipal(pid, feitos);
     alvo.innerHTML = '<ol class="fic-stepper">' + PASSOS.map(function (p, i) {
       var st = feitos[p.id] ? "feito" : p.id === atual ? "atual" : "futuro";
