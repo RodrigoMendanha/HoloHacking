@@ -39,7 +39,7 @@ await P.waitForSelector('#login-email', { visible: true });
 await P.type('#login-email', 'a@holo.test'); await P.type('#login-senha', 'senha-a-123'); await P.click('#btn-entrar');
 await P.waitForFunction(() => window.HoloAuth && window.HoloAuth.sessaoAtiva() && window.pacientesCarregados && window.pacientesCarregados(), { timeout: 15000 });
 await P.evaluate(async () => { if (window.Sincronizacao && window.Sincronizacao.aguardar) await window.Sincronizacao.aguardar(); });
-await P.addStyleTag({ content: '*{transition:none!important;animation:none!important}' });
+await P.addStyleTag({ content: '*{transition:none!important;animation:none!important;scroll-behavior:auto!important}' });
 /* analise HOLOS AI importada e Resultado pronto (o mesmo caminho da tela) */
 await P.evaluate(async (pid, eid, t) => {
   window.definirPacienteAtivo(pid); try { await window.AtendimentoAtual.selecionarPorId(eid); } catch (e) { /* */ }
@@ -72,15 +72,23 @@ async function medir() {
     const textos = await P.evaluate(() => {
       const parse = (c) => { const m = String(c).match(/rgba?\(([^)]+)\)/); if (!m) return null; const p = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 }; };
       const out = [];
+      document.querySelectorAll('[data-aud-i]').forEach(e => e.removeAttribute('data-aud-i'));
       document.querySelectorAll('body *').forEach((el) => {
         if (['SCRIPT', 'STYLE', 'svg', 'SVG', 'path', 'OPTION', 'TEXTAREA', 'INPUT', 'SELECT'].includes(el.tagName)) return;
         const txt = [...el.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim();
         if (!txt || txt.length < 2) return;
-        const r = el.getBoundingClientRect();
+        const r0 = el.getBoundingClientRect();
+        /* recorta pela area visivel dos ancestrais com overflow (faixa de abas/filtros com rolagem lateral) */
+        let L = r0.left, T = r0.top, R = r0.right, B = r0.bottom;
+        for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
+          const sa = getComputedStyle(a); if (sa.overflowX === 'visible' && sa.overflowY === 'visible') continue;
+          const ra = a.getBoundingClientRect(); L = Math.max(L, ra.left); T = Math.max(T, ra.top); R = Math.min(R, ra.right); B = Math.min(B, ra.bottom);
+        }
+        const r = { left: L, top: T, right: R, bottom: B, width: R - L, height: B - T };
         if (r.width < 4 || r.height < 6 || r.bottom <= 0 || r.right <= 0 || r.top >= innerHeight || r.left >= innerWidth) return;
         /* encoberto (topo fixo, barra de abas grudada, modal): nao e o texto que a pessoa esta lendo agora */
         const topo = document.elementFromPoint(r.left + Math.min(r.width, innerWidth) / 2, r.top + r.height / 2);
-        if (!topo || !(topo === el || el.contains(topo) || topo.contains(el))) return;
+        if (!topo || !(topo === el || el.contains(topo))) return;
         const s = getComputedStyle(el);
         if (s.visibility === 'hidden') return;
         if (el.closest('[aria-hidden="true"], .sr-only, .hai-sr, [disabled], [aria-disabled="true"], details:not([open]) > :not(summary)')) return;
@@ -89,6 +97,7 @@ async function medir() {
         const c = parse(s.color); if (!c) return;
         const tam = parseFloat(s.fontSize), negrito = Number(s.fontWeight) >= 700;
         const id = el.tagName.toLowerCase() + (typeof el.className === 'string' && el.className.trim() ? '.' + el.className.trim().split(/\s+/).slice(0, 2).join('.') : '');
+        el.setAttribute('data-aud-i', out.length);
         out.push({ id, txt: txt.slice(0, 40), cor: s.color, c: { ...c, a: c.a * op }, x: Math.max(0, r.left), y: Math.max(0, r.top), w: Math.min(r.width, innerWidth - Math.max(0, r.left)), h: Math.min(r.height, innerHeight - Math.max(0, r.top)), limite: tam >= 24 || (tam >= 18.66 && negrito) ? 3 : 4.5 });
       });
       return out;
@@ -98,6 +107,11 @@ async function medir() {
     const foto = await P.screenshot({ encoding: 'base64', captureBeyondViewport: false });
     if (process.env.FOTO_SEM_TEXTO) (await import('node:fs')).writeFileSync(process.env.FOTO_SEM_TEXTO + '/' + Date.now() + '.png', Buffer.from(foto, 'base64'));
     await P.evaluate(() => { const e = document.getElementById('__aud_estilo'); if (e) e.remove(); });
+    /* faixa com rolagem lateral (abas, filtros) pode se mover entre a medida e a foto: o texto que mudou de lugar
+       nao tem o fundo certo na foto — fica de fora desta passada (nao e o que a pessoa ve) */
+    const movidos = await P.evaluate((textos) => textos.map((t, i) => { const el = document.querySelector('[data-aud-i="' + i + '"]'); if (!el) return true;
+      const r = el.getBoundingClientRect(); return Math.abs(Math.max(0, r.left) - t.x) > 2 || Math.abs(Math.max(0, r.top) - t.y) > 2; }), textos);
+    for (let i = textos.length - 1; i >= 0; i--) if (movidos[i]) textos.splice(i, 1);
     const res = await P.evaluate(async (foto, textos) => {
       const img = new Image(); img.src = 'data:image/png;base64,' + foto; await img.decode();
       const cv = document.createElement('canvas'); cv.width = img.width; cv.height = img.height; const cx = cv.getContext('2d'); cx.drawImage(img, 0, 0);
@@ -126,13 +140,14 @@ for (const tema of ['claro', 'escuro']) {
   for (const larg of [1440, 390]) {
     await P.setViewport({ width: larg, height: larg > 500 ? 1000 : 860 });
     for (const [nome, abrir] of TELAS) {
+      if (process.env.TELAS && !new RegExp(process.env.TELAS).test(nome)) continue;   // so para depurar
       await abrir();
       const m = await medir();
       if (SHOT) await P.screenshot({ path: SHOT + '/' + nome + '-' + tema + '-' + larg + '.png', fullPage: false });
       resumo.push({ nome, tema, larg, ruins: m.ruins, lateral: m.larg > m.janela + 1 });
       if (SO_RELATA) {
         console.log('\n[' + tema + ' ' + larg + '] ' + nome + (m.larg > m.janela + 1 ? '  ROLAGEM LATERAL ' + m.larg + 'px' : '') + ' — ' + m.ruins.length + ' com contraste baixo');
-        m.ruins.slice(0, 14).forEach(r => console.log('    ' + r.razao + ' (<' + r.limite + ')  ' + r.id + '  "' + r.txt + '"  ' + r.cor + ' sobre ' + r.fundo));
+        m.ruins.slice(0, 14).forEach(r => console.log('    ' + r.razao + ' (<' + r.limite + ')  ' + r.id + '  "' + r.txt + '"  ' + r.cor + ' sobre ' + r.fundo + (process.env.TELAS ? ' @' + [r.x, r.y, r.w, r.h].map(Math.round).join(',') : '')));
       }
     }
   }

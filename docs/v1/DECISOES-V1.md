@@ -1162,6 +1162,21 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
      Sem mudança em HOLOSCAN, fórmula, cinco sistemas, Índice, Tríade, PP-V1, ferramentas, schema v1 e regras clínicas
      (`docs/v1/PONTE-HOLOS-AI.md` §0).
 
+199. **Rodada UX — visual, navegação, Holusiá e ferramentas** (14/10, decisão de Rodrigo). Só interface:
+     - réguas sem resposta mostram o marcador vazado e "—"; tocar no ponto parado passa a contar;
+     - modo claro com contraste medido (token `--ouro-texto`; as superfícies sempre escuras usam os tokens do tema escuro);
+     - menu: CORPO (QF) → MENTE (QM) → ESPÍRITO (QE) → HOLUSIÁ → RESULTADO HOLOS; os selos são só visuais e os ids não mudam;
+     - a página Holusiá é a mesma ponte da HOLOS AI (copiar Pacote → colar → "Importar e gerar resultado");
+     - o "X" da barra do paciente só tira a seleção;
+     - o HOLOSCAN sem aplicação mostra cartões de demonstração; com resultado, só o resultado;
+     - o bloco 6 (Aprofundamento) sai da tela;
+     - a Tríade ganha "Por quê" com as respostas reais da dimensão mais baixa, sem diagnóstico;
+     - o PQQ novo tem 3 perguntas, e o histórico com 5 continua legível;
+     - as 10 ferramentas têm "?" (O que é · Por que usar · Quando usar), nunca como bloqueio.
+
+     Sem mudança em HOLOSCAN, fórmula, scoring, cinco sistemas, Índice, cálculo da Tríade, PP-V1, schema da HOLOS AI ou
+     regras clínicas.
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`

@@ -17,19 +17,19 @@
       nome: "OQ³",
       oque: "Três perguntas que separam o que a pessoa quer, o que precisa de atenção e o que consegue sustentar agora.",
       porque: "Ajuda a planejar a etapa considerando ao mesmo tempo desejo, necessidade e capacidade atual.",
-      quando: "Pode ser especialmente útil no começo do acompanhamento ou quando o objetivo e a realidade parecem não conversar."
+      quando: "Pode ser especialmente útil quando o acompanhamento está começando ou quando o objetivo e a realidade parecem não conversar."
     },
     linha_momentum: {
       nome: "Linha do Momentum",
       oque: "Leitura da capacidade atual da pessoa de mobilizar recursos físicos, mentais e práticos para sustentar mudança — não é força de vontade nem motivação.",
       porque: "Ajuda a calibrar a exigência e a quantidade de mudanças propostas nesta etapa.",
-      quando: "Pode ser especialmente útil antes de montar a conduta e quando a vida muda de fase."
+      quando: "Pode ser especialmente útil quando a conduta vai ser montada ou quando a vida muda de fase."
     },
     mapa_rotina_v1: {
       nome: "Mapa da Rotina",
       oque: "Registro de como o dia e a semana acontecem de verdade, e de onde uma mudança pode caber.",
       porque: "Ajuda a escolher mudanças que realmente caibam na rotina atual, em vez de um plano que não cabe no dia a dia.",
-      quando: "Pode ser especialmente útil na primeira consulta e quando a rotina muda de forma relevante."
+      quando: "Pode ser especialmente útil quando é a primeira consulta ou quando a rotina muda de forma relevante."
     },
     pqq: {
       nome: "PQQ — Escada dos Porquês",
@@ -53,7 +53,7 @@
       nome: "Mapa do Propósito",
       oque: "Reunião do que o OQ³ e o PQQ trouxeram — objetivo, alavancas e o “pra que” verdadeiro — numa visão só.",
       porque: "Ajuda a manter a direção do acompanhamento ligada ao que a própria pessoa disse que importa.",
-      quando: "Pode ser especialmente útil depois do OQ³ e do PQQ, como aprofundamento opcional."
+      quando: "Pode ser especialmente útil quando o OQ³ e o PQQ já foram feitos, como aprofundamento opcional."
     },
     roda_vida: {
       nome: "Roda Holística da Vida",

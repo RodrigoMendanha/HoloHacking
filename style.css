@@ -6064,3 +6064,15 @@ body:not(.escuro) #secao-pacientes .lista-pac .pac-status.ativo,body:not(.escuro
 .ajuda-ferr-tit{font-family:var(--fonte-display);font-size:1rem;color:var(--titulo);margin-bottom:4px}
 .ajuda-ferr-rot{font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--ouro-texto);margin-top:6px}
 .ajuda-ferr-txt{color:var(--texto)}
+/* rodada UX 14/10 — contraste, ultimos pares (auditoria estrita): o .rh-doc e o .rh-tag ficam sobre a superficie da
+   tela (escura na ficha e no tema escuro) — usam o token, que ja se adapta; so o papel (.rp-doc) fixa o ouro escuro */
+.rh-tag,.rh-doc .eyebrow{color:var(--ouro-texto)}
+.rh-doc .rd-sis-foco{color:var(--ouro-texto)!important}
+.rp-doc .eyebrow,.rp-doc .rd-sis-foco{color:#7a5f22!important}
+.rp-doc .rh-tag{color:#55705f}
+#secao-pacientes .ficha .fic-topo .pac-status.ativo{color:#a6d8b9}
+#secao-pacientes .ficha .fic-ir-min{color:#e2c98a}
+.ficha .rel-btn.ativo,.painel-escuro .rel-btn.ativo{color:#e2c98a}
+body:not(.escuro) .pp-selo-feita{color:var(--movimento-sobe)!important}
+#secao-pacientes .ficha .fic-ir-min{opacity:.92}
+body.rh-imprimindo #rh-doc .eyebrow,body.rh-imprimindo #rh-doc .rd-sis-foco,body.rh-imprimindo #rh-doc .rh-tag{color:#7a5f22!important}
