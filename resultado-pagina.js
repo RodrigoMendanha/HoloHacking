@@ -345,6 +345,9 @@
     var a = alvo(); if (!a) return;
     var pid = pacienteId();
     var vez = ++desenhoAtual;
+    /* 14/10 (auditoria Cowork, P0): nada da paciente anterior sobrevive ao redesenho — emissao, documento, PDF, WhatsApp */
+    emAtual = null; delete a.dataset.rpPid;
+    if (emissoes.pid !== pid) { emissoes = { pid: null, linhas: [] }; emissaoAberta = null; }
     if (!pid) { a.innerHTML = '<div class="dash-vazio" id="rp-vazio">Escolha uma paciente para ver o resultado dela.</div>'; return; }
     if (!temSupa()) { a.innerHTML = '<div class="dash-vazio" id="rp-vazio">Entre na sua conta para ver o Resultado: ele é montado a partir do Resultado HOLOS finalizado no servidor.</div>'; return; }
     var p = pacienteObj(pid);
@@ -353,7 +356,7 @@
     var R = window.ResultadoHolos;
     if (!R) { a.innerHTML = '<div class="dash-vazio" id="rp-vazio">O módulo do Resultado HOLOS não carregou.</div>'; return; }
     return Promise.all([R.carregar(pid), carregarEmissoes(pid)]).then(function () {
-      if (vez !== desenhoAtual || pacienteId() !== pid) return;
+      if (vez !== desenhoAtual || pacienteId() !== pid || emissoes.pid !== pid) return;
       var r = resultadoFinal(pid);
       if (!r) {
         a.innerHTML = '<div class="lista-vazia" id="rp-vazio"><strong>Nenhum Resultado HOLOS finalizado para ' + escapar(p ? primeiroNome(p.nome) : "esta paciente") + "</strong>" +
@@ -362,20 +365,22 @@
         return;
       }
       /* a emissao a mostrar: a escolhida na lista, ou a mais recente DESTE resultado */
-      var em = emissoes.linhas.filter(function (x) { return x.id === emissaoAberta; })[0] ||
-        emissoes.linhas.filter(function (x) { return x.holos_result_id === r.id; })[0] || null;
+      var daPac = emissoes.linhas.filter(function (x) { return !x.patient_id || x.patient_id === pid; });
+      var em = daPac.filter(function (x) { return x.id === emissaoAberta; })[0] ||
+        daPac.filter(function (x) { return x.holos_result_id === r.id; })[0] || null;
       var rEm = em ? (R.porId(em.holos_result_id) || null) : null;
       if (em && (!rEm || !rEm.content_snapshot || rEm.content_hash !== em.result_content_hash)) {
         a.innerHTML = '<div class="lista-vazia" id="rp-vazio"><strong>A emissão nº ' + escapar(em.emission_number) + " não confere com o Resultado HOLOS salvo.</strong><span>Nada foi mostrado.</span></div>";
         return;
       }
       emAtual = em;
+      a.dataset.rpPid = pid;
       if (em) {
-        a.innerHTML = barraAcoes(pid, rEm, p, em) + listaEmissoes(emissoes.linhas, em) + documentoEmissao(em, rEm);
+        a.innerHTML = barraAcoes(pid, rEm, p, em) + listaEmissoes(daPac, em) + documentoEmissao(em, rEm);
         return;
       }
       var cv = condutaDoResultado(r), eu = perfil();
-      a.innerHTML = barraAcoes(pid, r, p, null) + avisoTermos(r, cv) + listaEmissoes(emissoes.linhas, null) +
+      a.innerHTML = barraAcoes(pid, r, p, null) + avisoTermos(r, cv) + listaEmissoes(daPac, null) +
         (emissoes.indisponivel ? "" : '<p class="rp-previa-selo rp-so-tela" role="status">PRÉVIA com os dados atuais. Ela ainda não foi emitida.</p>') + documentoHtml(pid, r, cv, eu);
       pintarImagens(eu);
     }, function (err) {
@@ -416,6 +421,7 @@
   function gerarPdf() {
     var doc = document.getElementById("rp-doc");
     if (!doc) return Promise.reject(new Error("Nenhum resultado na tela."));
+    if (!documentoEDaPaciente()) return Promise.reject(new Error("O resultado na tela não é da paciente selecionada. Abra o Resultado de novo."));
     /* template 5: PDF da paciente so de emissao com Foco atual confirmado */
     if (ehRF3(emAtual) && !focoDaEmissao(emAtual)) return Promise.reject(new Error("Sem Foco atual confirmado não há PDF para a paciente"));
     var rTela = resultadoFinal(pacienteId());
@@ -524,6 +530,7 @@
      position:absolute por cima do app (que fazia o rodape cair sobre o ultimo cartao). Os ids da copia saem. */
   function imprimir() {
     var doc = document.getElementById("rp-doc"); if (!doc) return;
+    if (!documentoEDaPaciente()) { toast("O resultado na tela não é da paciente selecionada. Abra o Resultado de novo."); return; }
     var antigo = document.getElementById("rp-impressao"); if (antigo) antigo.remove();
     var caixa = document.createElement("div"); caixa.id = "rp-impressao";
     var copia = doc.cloneNode(true); copia.removeAttribute("id");
@@ -573,8 +580,16 @@
     var dir = (((s.direcao_paciente || {}).direcionamentos || [])[0] || {}).texto || null;
     return RD().mensagemWhatsApp((p && p.nome) || (s.paciente && s.paciente.nome), quando, foco, dir);
   }
+  /* o documento na tela (e a emissao em memoria) pertencem a paciente selecionada agora? */
+  function documentoEDaPaciente() {
+    var a = alvo(), pid = pacienteId();
+    if (!a || !pid || a.dataset.rpPid !== pid) return false;
+    if (emAtual && emAtual.patient_id && emAtual.patient_id !== pid) return false;
+    return true;
+  }
   function enviarWhatsApp() {
     var pid = pacienteId(), p = pacienteObj(pid);
+    if (!documentoEDaPaciente()) { toast("O resultado na tela não é da paciente selecionada. Abra o Resultado de novo."); return Promise.resolve({ modo: "bloqueado" }); }
     /* RF-3: mensagem com direcionamento/foco congelados; RF-1/RF-2 (historicas): a mensagem de sempre */
     var msg = ehRF3(emAtual) ? mensagemWhatsAppEmissao(p, emAtual) : mensagemWhatsApp(p, resultadoFinal(pid), perfil());
     if (!msg) { toast("Sem Foco atual confirmado não há envio pelo WhatsApp. Crie uma nova versão do Resultado HOLOS com o foco."); return Promise.resolve({ modo: "bloqueado" }); }
@@ -635,9 +650,11 @@
     var anterior = window.aoTrocarPaciente;
     window.aoTrocarPaciente = function () {
       if (typeof anterior === "function") anterior();
-      emissaoAberta = null;
-      var sec = document.getElementById("secao-resultado");
+      emissaoAberta = null; emAtual = null; emissoes = { pid: null, linhas: [] };
+      desenhoAtual++;   // um carregamento ainda em curso da paciente anterior nao desenha mais
+      var sec = document.getElementById("secao-resultado"), a = alvo();
       if (sec && sec.classList.contains("ativa")) desenhar();
+      else if (a) { a.innerHTML = ""; delete a.dataset.rpPid; }
     };
   });
 
@@ -666,7 +683,7 @@
     desenhar: desenhar, emitirEPdf: emitirEPdf, gerarPdf: gerarPdf, paginar: paginar, ATOMOS: ATOMOS, enviarWhatsApp: enviarWhatsApp, imprimir: imprimir,
     resultadoFinal: resultadoFinal, condutaVigente: condutaVigente, condutaDoResultado: condutaDoResultado, blocosConduta: blocosConduta, documentoEmissao: documentoEmissao, emissoes: function () { return emissoes.linhas.slice(); },
     numeroWhatsApp: numeroWhatsApp, linkWhatsApp: linkWhatsApp, mensagemWhatsApp: mensagemWhatsApp, mensagemWhatsAppEmissao: mensagemWhatsAppEmissao, termosFora: termosFora,
-    focoDoResultado: focoDoResultado, focoDaEmissao: focoDaEmissao, emissaoAtual: function () { return emAtual; },
+    focoDoResultado: focoDoResultado, focoDaEmissao: focoDaEmissao, emissaoAtual: function () { return emAtual; }, documentoEDaPaciente: documentoEDaPaciente,
     CAMPOS_CONDUTA: CAMPOS_CONDUTA, HTML2PDF_URL: HTML2PDF_URL
   };
 })();

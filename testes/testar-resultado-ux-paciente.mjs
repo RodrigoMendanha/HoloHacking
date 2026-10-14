@@ -121,13 +121,15 @@ ok(/body\.rp-imprimindo > \*:not\(#rp-impressao\)\{display:none!important\}/.tes
   'item 8: a impressão usa a cópia em #rp-impressao (o resto do app sai com display:none; sem position:absolute por cima — o rodapé não cai sobre o último cartão)');
 ok(/\.rp-doc \.rh-secao,\.rp-doc \.rh-sis,\.rp-doc \.rh-ferr,\.rp-doc \.rf-caixa\{break-inside:auto\}/.test(css) && /\.rp-doc h3,\.rp-doc h4,\.rp-doc \.rh-sub,\.rp-doc \.rh-intro\{break-after:avoid\}/.test(css),
   'item 8: cartões grandes podem quebrar entre blocos; título fica com o primeiro bloco');
-ok(/onclone: svgComEstiloProprio/.test(js) && /scrollY: 0/.test(js) && /paginar\(this\.prop\.container, this\.prop\.pageSize\.inner\.px\.height\)/.test(js) && /pagebreak: \{ mode: \[\] \}/.test(js) && /"\.rh-sistemas-compactos"/.test(js),
+ok(/onclone: svgComEstiloProprio/.test(js) && /scrollY: 0/.test(js) && /paginar\(c, this\.prop\.pageSize\.inner\.px\.height\)/.test(js) && /c\.style\.margin = \"0\"; c\.style\.left = \"0\"/.test(js) && /pagebreak: \{ mode: \[\] \}/.test(js) && /"\.rh-sistemas-compactos"/.test(js),
   'item 8: PDF baixado — radar desenhado na cópia (onclone), página rolada não sai em branco, espaçador do html2pdf nunca dentro de grade');
 
 /* impressao real do documento da paciente pela pagina Resultado */
 const imp = await P.evaluate(async (snap) => {
   const sec = document.createElement('div'); sec.innerHTML = '<article class="rp-doc" id="rp-doc">' + window.ResultadoHolos.documentoHtml(snap, 'paciente', { semRodape: true }) +
     '<footer class="rp-rodape"><p class="rp-emitiu">Nutri Ficticia</p></footer></article>'; document.body.appendChild(sec);
+  /* 14/10: Imprimir so sai do documento da paciente selecionada (isolamento A/B): o documento de teste e marcado como dela */
+  const corpo = document.getElementById('resultado-pagina-corpo'); const pidT = (window.pacienteAtivoId && window.pacienteAtivoId()) || 'pac-teste'; if (!window.pacienteAtivoId || !window.pacienteAtivoId()) window.pacienteAtivoId = () => pidT; corpo.dataset.rpPid = pidT;
   const antes = document.getElementById('rp-doc').outerHTML;
   window.print = () => {}; window.ResultadoPagina.imprimir();
   const copia = document.getElementById('rp-impressao');
