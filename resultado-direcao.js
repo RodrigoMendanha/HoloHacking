@@ -276,7 +276,7 @@
     var retorno = ctx.tipo === "retorno";
     var an = ctx.anamnese, f = an && an.content && an.content.formulario || {};
     var g = function (b, c) { return (f[b] || {})[c]; };
-    var aR = function (k, rotulo, campo, bloco, txt) { var v = g(bloco, campo); if (tem(v)) add(k, sug(txt ? txt(lista(v)) : rotulo + lista(v) + ".", "relato_paciente", "anamnese", an.id, bloco + "." + campo)); };
+    var aR = function (k, rotulo, campo, bloco, txt) { var v = g(bloco, campo); if (tem(v)) add(k, sug(txt ? txt(lista(v)) : rotulo + lista(v) + ".", "relato_paciente", an.refTipo || "anamnese", an.id, (an.refTipo ? "mapeamento." : "") + bloco + "." + campo)); };
     var ponto = function (s) { s = String(s).trim(); return /[.!?…]$/.test(s) ? s : s + "."; };
     var h = ctx.holoscan;
 
@@ -288,6 +288,7 @@
       aR("dores", "", "dificuldade", "alimentar", function (v) { return "Maior dificuldade alimentar: " + ponto(v); });
       aR("dores", "", "maior_fome", "alimentar", function (v) { return "Períodos de maior fome: " + ponto(v); });
       aR("desejos", "", "objetivo", "motivo", function (v) { return "Seu principal objetivo: " + ponto(v); });
+      aR("desejos", "", "melhorar", "motivo", function (v) { return "O que você busca no acompanhamento: " + ponto(v); });   /* MH-3 */
       aR("desejos", "", "mudar_primeiro", "motivo", function (v) { return "O que você gostaria de mudar primeiro: " + ponto(v); });
       aR("desejos", "", "expectativa", "motivo", function (v) { return "O que você espera do acompanhamento: " + ponto(v); });
       aR("avancos", "", "ajudou", "motivo", function (v) { return "O que já ajudou antes: " + ponto(v); });

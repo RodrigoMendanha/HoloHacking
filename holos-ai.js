@@ -17,6 +17,11 @@
     chatgpt: "",
     gemini:  ""
   };
+  /* 14/10 (auditoria Cowork): sem link no codigo, a nutricionista cola o link da SUA Holos IA uma vez, na propria
+     pagina; fica guardado neste navegador. So https. O link do codigo (quando existir) continua tendo precedencia. */
+  var CHAVE_URL = "holohacking.holosAiUrl";
+  function urlGuardada() { try { return localStorage.getItem(CHAVE_URL) || ""; } catch (e) { return ""; } }
+  function urlValida(u) { return /^https:\/\/[^\s"'<>]+$/i.test(String(u || "").trim()); }
 
   var escapar = window.escapar;
 
@@ -632,7 +637,15 @@
       atualizarLinksAgentes();
     },
     urls: function () {
-      return { chatgpt: HOLOS_AI_URLS.chatgpt, gemini: HOLOS_AI_URLS.gemini };
+      return { chatgpt: HOLOS_AI_URLS.chatgpt || urlGuardada(), gemini: HOLOS_AI_URLS.gemini, guardada: !HOLOS_AI_URLS.chatgpt && !!urlGuardada() };
+    },
+    /** guarda (ou apaga, com "") o link da Holos IA neste navegador; devolve false se nao for https */
+    guardarUrl: function (u) {
+      u = String(u || "").trim();
+      if (u && !urlValida(u)) return false;
+      try { if (u) localStorage.setItem(CHAVE_URL, u); else localStorage.removeItem(CHAVE_URL); } catch (e) { return false; }
+      atualizarLinksAgentes();
+      return true;
     },
     /** Pacote HOLOS AI: as mesmas secoes do contexto (so registros salvos/aprovados, sem exames), SEM o cadastro
         (nome, contatos): a ponte monta o pacote com iniciais, idade e sexo. eid fixa o atendimento do pacote. */

@@ -528,6 +528,15 @@
       var c = atual(), st = estadoDe(c), et = etapa(c);
       return { estado: st, etapa: et.chave, rotulo: et.rotulo, detalhe: et.detalhe, quando: et.quando };
     },
+    /** 14/10: a resposta ORIGINAL do Mapeamento recebido mais recente deste paciente (so do que ja foi lido; null se nao ha) */
+    respostaRecebida: function (id) {
+      if (cache.pid !== id || !cache.carregado) return null;
+      var c = cache.linhas.filter(function (x) { return x.status === "concluido" && x.submitted_content; })[0];
+      if (!c) return null;
+      var sc = c.submitted_content || {};
+      return { formulario: sc.formulario || sc, tipo: sc.tipo || c.form_tipo || "primeira", submitted_at: c.submitted_at, reviewed_at: c.reviewed_at || revisadoLocal[c.id] || null, convite_id: c.id };
+    },
+    carregado: function (id) { return cache.pid === id && cache.carregado; },
     esquecer: function () { cache = { pid: null, linhas: [], carregado: false, erro: null, lidoEm: 0 }; links = {}; vendoResposta = {}; enviadoLocal = {}; revisadoLocal = {}; }
   };
 })();

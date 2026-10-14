@@ -114,14 +114,35 @@ const passos = await P.evaluate(() => [...document.querySelectorAll('.hai-passo 
 ok(JSON.stringify(passos) === JSON.stringify(['Copiar Pacote Holos IA', 'Abrir Holos IA', 'Colar resultado da Holos IA']), 'V01 3 passos: ' + passos.join(' · '));
 const telaV1 = await P.evaluate(() => {
   const r = document.querySelector('.hai-ponte'), fora = (el) => !el.closest('details:not([open])');
-  return { botoes: [...r.querySelectorAll('button, a.btn-fantasma, .hai-indisp')].filter(fora).map(b => b.textContent.trim()),
+  return { botoes: [...r.querySelectorAll('button:not(.btn-link), a.btn-fantasma, .hai-indisp')].filter(fora).map(b => b.textContent.trim()), campoUrl: !!r.querySelector('#hai-url-campo'),
     revisao: !!r.querySelector('[data-hai-acao="confirmar"], [data-hai-acao="descartar"], [data-hai-acao="concluir"], [data-hai-acao="confirmar-secao"], [data-hai-acao="compartilhar"], #hai-revisao'),
     detalhes: !!r.querySelector('details#hai-detalhes:not([open])'), legado: !!document.querySelector('details#ai-hub-legado:not([open])') };
 });
-ok(telaV1.botoes.length === 3 && /Copiar Pacote Holos IA/.test(telaV1.botoes[0]) && /Abrir Holos IA/.test(telaV1.botoes[1]) && /Importar e gerar resultado/.test(telaV1.botoes[2]),
-  'V01 à vista só 3 ações: ' + telaV1.botoes.map(b => b.replace(/\s+/g, ' ')).join(' | '));
+ok(telaV1.botoes.length === 3 && /Copiar Pacote Holos IA/.test(telaV1.botoes[0]) && /Salvar link/.test(telaV1.botoes[1]) && telaV1.campoUrl && /Importar e gerar resultado/.test(telaV1.botoes[2]),
+  'V01 à vista só 3 ações (sem link configurado: campo para colar o link, nunca botão morto): ' + telaV1.botoes.map(b => b.replace(/\s+/g, ' ')).join(' | '));
 ok(!telaV1.revisao && telaV1.detalhes && telaV1.legado, 'V01 sem Revisar/Confirmar/Descartar/Compartilhar/Concluir; "Detalhes técnicos da análise" e o contexto antigo recolhidos');
 await shot('hai-1-passos', '.hai-ponte');
+/* 14/10 (auditoria Cowork): link da Holos IA — recusa o que nao e https; com link salvo vira "Abrir Holos IA" de verdade */
+const linkHai = await P.evaluate(async () => {
+  const c = document.getElementById('hai-url-campo'); c.value = 'javascript:alert(1)';
+  document.querySelector('[data-hai-acao="guardar-url"]').click(); await new Promise(r => setTimeout(r, 100));
+  const recusou = !document.getElementById('hai-abrir');
+  document.getElementById('hai-url-campo').value = 'https://chatgpt.com/g/exemplo-ficticio';
+  document.querySelector('[data-hai-acao="guardar-url"]').click(); await new Promise(r => setTimeout(r, 100));
+  const a = document.getElementById('hai-abrir');
+  const r = { recusou, href: a && a.getAttribute('href'), alvo: a && a.target };
+  window.HolosAI.guardarUrl(''); return r;
+});
+ok(linkHai.recusou && linkHai.href === 'https://chatgpt.com/g/exemplo-ficticio' && linkHai.alvo === '_blank', 'link da Holos IA: só https; salvo, o botão "Abrir Holos IA" abre o endereço (' + JSON.stringify(linkHai) + ')');
+/* "Ver o Pacote" abre o Pacote na tela, com o conteudo do paciente selecionado */
+const verPac = await P.evaluate(async () => {
+  window.HolosAIPonte.desenhar(); await new Promise(r => setTimeout(r, 100));
+  document.querySelector('.hai-ponte [data-hai-acao="ver-pacote"]').click(); await new Promise(r => setTimeout(r, 300));
+  const pre = document.getElementById('hai-pacote'); const visivel = !!pre && !pre.closest('details:not([open])');
+  return { visivel, txt: pre ? pre.textContent : '' };
+});
+ok(verPac.visivel && /HOLOS_AI_PACOTE/.test(verPac.txt) && /"mapeamento"/.test(verPac.txt), '"Ver o Pacote" abre o Pacote na tela (antes não fazia nada visível)');
+await P.evaluate(() => document.querySelector('.hai-ponte [data-hai-acao="ver-pacote"]').click());
 
 /* ===================== V02 Pacote ===================== */
 await zerarCliques();

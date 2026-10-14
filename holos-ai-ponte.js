@@ -156,12 +156,27 @@
   }
   /* Mapeamento Holistico V2 do atendimento em texto: as respostas da paciente, por etapa, com as palavras dela
      (o mesmo criterio da resposta completa da ficha; nada interpretado). Formato antigo: o texto da anamnese. */
-  function mapeamentoTexto(eid, legado) {
+  /* 14/10 (auditoria Cowork, P0): o Mapeamento recebido e revisado SEM ser levado ao atendimento nao virava anamnese
+     do atendimento, e o Pacote dizia "Sem dado". Agora: 1) anamnese do atendimento (se houver); 2) senao, a resposta
+     ORIGINAL recebida da paciente (convite respondido mais recente), com a origem e as datas. Nada e inferido. */
+  function mapeamentoTexto(eid, legado, pid) {
     var An = window.Anamnese, M = window.MapeamentoHolistico;
     var v = An && eid ? (An.vigente(eid) || (An.rascunhoDe ? An.rascunhoDe(eid) : null)) : null;
     var c = v && v.content;
+    if ((!c || !c.formulario) && M) {
+      var PC = window.PreConsulta, rec = PC && PC.respostaRecebida && pid ? PC.respostaRecebida(pid) : null;
+      if (rec && rec.formulario) {
+        var dt = function (iso) { return iso ? String(iso).slice(0, 10).split("-").reverse().join("/") : null; };
+        var cab = "Origem: Mapeamento Holístico (respostas originais da paciente" + (dt(rec.submitted_at) ? ", recebido em " + dt(rec.submitted_at) : "") +
+          (dt(rec.reviewed_at) ? "; revisado pela nutricionista em " + dt(rec.reviewed_at) : "") + ")\n";
+        return cab + formularioTexto(rec.tipo === "retorno" ? "retorno" : "primeira", rec.formulario, null);
+      }
+    }
     if (!c || !c.formulario || !M) return legado || "";
-    var tipo = c.tipo === "retorno" ? "retorno" : "primeira", form = c.formulario, out = [];
+    return formularioTexto(c.tipo === "retorno" ? "retorno" : "primeira", c.formulario, v);
+  }
+  function formularioTexto(tipo, form, v) {
+    var M = window.MapeamentoHolistico, out = [];
     var tem = function (x) { return x !== null && x !== undefined && String(x).trim() !== ""; };
     M.etapasDe(tipo, form).forEach(function (et) {
       var l = [];
@@ -188,7 +203,8 @@
     });
     if (outros.length) out.push("### Outras respostas\n" + outros.join("\n"));
     var ver = tipo === "primeira" && M.versaoDe ? "Questionário " + M.versaoDe(form) + "\n" : "";
-    return (v.status ? "Revisão " + (v.revision_number || 1) + " · " + v.status + "\n" : "") + ver + (v.status || ver ? "\n" : "") + out.join("\n\n");
+    var rev = v && v.status ? "Revisão " + (v.revision_number || 1) + " · " + v.status + "\n" : "";
+    return rev + ver + (rev || ver ? "\n" : "") + out.join("\n\n");
   }
   function medidasTexto(at, pid) {
     var A = window.AtendimentoAtual;
@@ -210,7 +226,7 @@
       paciente_contexto_minimo: { identificador: p ? iniciais(p.nome) : "Sem dado", idade: p ? idade(p.nascimento) : null, sexo: p && p.sexo ? p.sexo : null },
       /* 14/10: medidas da consulta (pela nutricionista); so os numeros, sem classificacao */
       medidas_do_atendimento: medidasTexto(at, pid),
-      mapeamento: t(mapeamentoTexto(eid, sec.anamnese)),
+      mapeamento: t(mapeamentoTexto(eid, sec.anamnese, pid)),
       holoscan: t(sec.holoscan),
       evolucao_holoscan: t(sec.evolucao),
       ferramentas_aplicadas: t(sec.ferramentas),
@@ -246,7 +262,7 @@
   }
   /* DETALHES TECNICOS (fechado por padrao, so leitura): o que a IA devolveu, item a item, com a regra aplicada */
   function htmlDetalhes(imps, atual) {
-    var html = '<details class="hai-detalhes" id="hai-detalhes"><summary>Ver detalhes técnicos</summary><p class="hai-det-sub">Detalhes técnicos da análise</p>' +
+    var html = '<details class="hai-detalhes" id="hai-detalhes"' + (tela.pacoteTxt ? " open" : "") + '><summary>Ver detalhes técnicos</summary><p class="hai-det-sub">Detalhes técnicos da análise</p>' +
       '<p class="hai-nota">Registro interno (só profissional). O JSON original de cada importação fica guardado sem alteração; a regra fixa do método marca o que pode ir para a paciente. Hipóteses, conflitos, alertas, fontes, raciocínio, sistemas, ferramentas, roteiro e IDs nunca vão para a paciente.</p>' +
       '<div class="hai-acoes"><button type="button" class="btn-link" data-hai-acao="ver-pacote">' + (tela.pacoteTxt ? "Esconder o Pacote" : "Ver o Pacote enviado") + "</button></div>" +
       (tela.pacoteTxt ? '<pre class="hai-pacote" id="hai-pacote" tabindex="0">' + e(tela.pacoteTxt) + "</pre>" : "");
@@ -301,7 +317,9 @@
       if (cache.pid !== pid) tela = { eid: null, texto: {}, erros: [], avisos: [], ocupado: false, pacoteTxt: "", falha: "" };
       alvo.innerHTML = '<section class="hai-ponte"><p class="dash-vazio">Carregando a Holos IA…</p></section>';
       var R = window.ResultadoHolos;
-      Promise.all([carregar(pid), R && R.carregar ? Promise.resolve(R.carregar(pid)).catch(function () {}) : null]).then(function () { if (pacienteId() === pid) desenhar(); });
+      var PC = window.PreConsulta;   /* 14/10: a resposta do Mapeamento recebido entra no Pacote mesmo sem levar ao atendimento */
+      Promise.all([carregar(pid), R && R.carregar ? Promise.resolve(R.carregar(pid)).catch(function () {}) : null,
+        PC && PC.carregar && !(PC.carregado && PC.carregado(pid)) ? Promise.resolve(PC.carregar(pid)).catch(function () {}) : null]).then(function () { if (pacienteId() === pid) desenhar(); });
       return;
     }
     var eid = atendimentoEscolhido(pid), lista = atendimentos(pid);
@@ -326,10 +344,17 @@
     var texto = tela.texto[eid] || "";
     html += '<ol class="hai-passos">' +
       passo(1, "Copiar Pacote Holos IA", "Mapeamento, HOLOSCAN, ferramentas e o resultado anterior. Sem nome, contatos ou exames.",
-        '<div class="hai-acoes"><button type="button" class="btn-verde" data-hai-acao="copiar-pacote">Copiar Pacote Holos IA</button></div>', "pronto") +
+        '<div class="hai-acoes"><button type="button" class="btn-verde" data-hai-acao="copiar-pacote">Copiar Pacote Holos IA</button>' +
+          '<button type="button" class="btn-link" data-hai-acao="ver-pacote" aria-expanded="' + (tela.pacoteTxt ? "true" : "false") + '">' + (tela.pacoteTxt ? "Esconder o Pacote" : "Ver o Pacote") + "</button></div>" +
+          (tela.pacoteTxt && !vigente ? '<pre class="hai-pacote" id="hai-pacote" tabindex="0">' + e(tela.pacoteTxt) + "</pre>" : ""), "pronto") +
       passo(2, "Abrir Holos IA", "Cole o Pacote na Holos IA e copie a resposta inteira.",
-        '<div class="hai-acoes">' + (urls.chatgpt ? '<a class="btn-fantasma" id="hai-abrir" href="' + e(urls.chatgpt) + '" target="_blank" rel="noopener noreferrer">Abrir Holos IA</a>'
-          : '<span class="btn-fantasma hai-indisp" aria-disabled="true" title="O endereço da Holos IA ainda não foi configurado">Abrir Holos IA <small>(endereço não configurado — abra a sua Holos IA)</small></span>') + "</div>", "pronto") +
+        (urls.chatgpt && !tela.editandoUrl
+          ? '<div class="hai-acoes"><a class="btn-fantasma" id="hai-abrir" href="' + e(urls.chatgpt) + '" target="_blank" rel="noopener noreferrer">Abrir Holos IA</a>' +
+            (urls.guardada ? '<button type="button" class="btn-link" data-hai-acao="trocar-url">Trocar o link</button>' : "") + "</div>"
+          : '<div class="hai-url"><label for="hai-url-campo">Link da sua Holos IA</label>' +
+            '<div class="hai-acoes"><input type="url" id="hai-url-campo" placeholder="https://chatgpt.com/g/..." value="' + e(urls.guardada ? urls.chatgpt : "") + '">' +
+            '<button type="button" class="btn-fantasma" data-hai-acao="guardar-url">Salvar link</button></div>' +
+            '<p class="hai-nota">Cole uma vez o link da Holos IA (ChatGPT → o GPT → Compartilhar → Copiar link). Fica guardado neste navegador. Até lá, abra a Holos IA por conta própria e cole o Pacote.</p></div>'), "pronto") +
       passo(3, "Colar resultado da Holos IA", "Cole a resposta inteira (o bloco ```json``` é usado). Se o JSON estiver inválido, nada é salvo.",
         '<label class="hai-colar"><span class="hai-sr">Cole aqui o resultado da Holos IA</span><textarea id="hai-json" rows="7" spellcheck="false" aria-label="Cole aqui o resultado da Holos IA" placeholder="Cole aqui o resultado da Holos IA">' + e(texto) + "</textarea></label>" +
         (tela.erros.length ? '<div class="hai-erro" role="alert"><b>Não importado.</b><ul>' + tela.erros.slice(0, 15).map(function (x) { return "<li>" + e(x) + "</li>"; }).join("") +
@@ -382,10 +407,23 @@
     if (tela.ocupado) return;
     var R = window.ResultadoHolos;
     if (nome === "copiar-pacote" || nome === "ver-pacote") {
-      var txt = JSON.stringify(montarPacote(pacienteId(), tela.eid), null, 2);
-      if (nome === "ver-pacote") { tela.pacoteTxt = tela.pacoteTxt ? "" : txt; lerTexto(); desenhar(); var d = q("#hai-detalhes"); if (d) d.open = true; return; }
+      var PC = window.PreConsulta, pidP = pacienteId();
+      if (PC && PC.carregado && PC.carregar && !PC.carregado(pidP)) return Promise.resolve(PC.carregar(pidP)).then(function () { acao(nome, el); }, function () { acao(nome, el); });
+      var txt = JSON.stringify(montarPacote(pidP, tela.eid), null, 2);
+      /* 14/10 (auditoria): "Ver o Pacote" abre/fecha o Pacote na propria tela (antes ficava dentro dos detalhes fechados e parecia nao fazer nada) */
+      if (nome === "ver-pacote") {
+        tela.pacoteTxt = tela.pacoteTxt ? "" : txt; lerTexto(); desenhar();
+        var pre = q("#hai-pacote"); if (pre) { pre.scrollIntoView({ block: "nearest" }); toast("Pacote aberto abaixo."); }
+        return;
+      }
       tela.pacoteTxt = txt; lerTexto();
       return copiar(txt, el, "Copiar Pacote Holos IA");
+    }
+    if (nome === "trocar-url") { tela.editandoUrl = true; desenhar(); var cu = q("#hai-url-campo"); if (cu) cu.focus(); return; }
+    if (nome === "guardar-url") {
+      var campo = q("#hai-url-campo"), H = window.HolosAI;
+      if (!H || !H.guardarUrl || !H.guardarUrl(campo ? campo.value : "")) { toast("Use o link completo da Holos IA, começando com https://"); return; }
+      tela.editandoUrl = false; toast(campo && campo.value.trim() ? "Link da Holos IA salvo neste navegador." : "Link removido."); desenhar(); return;
     }
     if (nome === "importar") return importar(el);
     if (nome === "gerar") return travar(aceitarEGerar(pacienteId(), el.getAttribute("data-hai-import")), el).then(null, function (err) { tela.falha = msgErro(err); desenhar(); });

@@ -6258,3 +6258,6 @@ body.rp-gerando .rp-doc{padding:8px 18px 4px}
 .fic-medidas-form{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
 .fic-medidas-form label{display:grid;gap:6px;font-size:.85rem}
 .fic-medidas-form input{padding:9px 12px;border-radius:10px;border:1px solid var(--input-borda);background:var(--input-fundo);color:var(--texto);font:inherit}
+.hai-url{display:grid;gap:6px}
+.hai-url label{font-size:.85rem;color:var(--texto-suave)}
+.hai-url input{flex:1 1 260px;min-width:0;padding:9px 12px;border-radius:10px;border:1px solid var(--input-borda);background:var(--input-fundo);color:var(--texto);font:inherit}

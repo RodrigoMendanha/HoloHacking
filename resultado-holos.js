@@ -190,6 +190,12 @@
   function contextoSugestoes(pid, f, snap) {
     var An = window.Anamnese, Cd = window.Conduta, SF = window.SistemasFechamento;
     var an = An ? (An.vigente(f.encounter_id) || An.rascunhoDe(f.encounter_id)) : null;
+    /* 14/10 (auditoria Cowork, P0): Mapeamento recebido/revisado sem levar ao atendimento -> as respostas ORIGINAIS da
+       paciente entram como relato, referenciando o atendimento (o servidor confere que e desta paciente). */
+    if (!an) {
+      var PC = window.PreConsulta, rec = PC && PC.respostaRecebida ? PC.respostaRecebida(pid) : null;
+      if (rec && rec.formulario && f.encounter_id) an = { id: f.encounter_id, refTipo: "atendimento", content: { tipo: rec.tipo, formulario: rec.formulario } };
+    }
     var cd = Cd ? (Cd.vigente(f.encounter_id) || Cd.rascunhoDe(f.encounter_id)) : null;
     var cdAnt = Cd && Cd.anteriorDe ? Cd.anteriorDe(pid, f.encounter_id) : null;
     var h = (snap && snap.holoscan) || {}, sis = h.sistemas || [];
@@ -200,7 +206,7 @@
     var ant = anteriorDe(pid, f.encounter_id);
     return {
       tipo: f.direcao ? f.direcao.tipo : "primeira",
-      anamnese: an ? { id: an.id, content: an.content } : null,
+      anamnese: an ? { id: an.id, refTipo: an.refTipo || null, content: an.content } : null,
       conduta: cd, acordos: cd && Cd.acordosDe ? Cd.acordosDe(cd.id) : [],
       acordosAnteriores: cdAnt && Cd.acordosDe ? Cd.acordosDe(cdAnt.id) : [],
       ferramentas: ((snap && snap.ferramentas) || []).map(function (t) { return { id: t.id, ferramenta_id: t.ferramenta_id, modulo: moduloDe(t.ferramenta_id), respostas: t.respostas || {}, proximo_passo: t.proximo_passo, prioridade: t.prioridade }; }),

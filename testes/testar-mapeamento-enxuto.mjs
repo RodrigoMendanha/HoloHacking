@@ -215,6 +215,10 @@ const rev = await N.evaluate(() => { const b = document.querySelector('#an-preco
 const revTela = await N.evaluate(() => ({ status: document.querySelector('#an-preconsulta .pc-status')?.textContent || '', botao: !!document.querySelector('#an-preconsulta [data-pc-acao="revisado"]') }));
 ok(rev && /Revisado/.test(revTela.status) && !revTela.botao && !!srv.linhas('anamnesis_invites').find(c => c.id === cN.id).reviewed_at,
   'Marcar como revisado: status vira "Revisado", o botão some e o servidor guarda reviewed_at');
+/* 14/10 (auditoria Cowork, P0): recebido e revisado SEM levar ao atendimento -> o Pacote Holos IA ja leva as respostas originais */
+const pacRev = await N.evaluate((pid, eid) => (window.HolosAIPonte.montarPacote(pid, eid) || {}).mapeamento, PN, EN);
+ok(!/^Sem dado$/.test(pacRev || '') && /Origem: Mapeamento Holístico/.test(pacRev) && /Refluxo depois do almoço/.test(pacRev) && /revisado pela nutricionista/.test(pacRev) && /Questionário MH-3/.test(pacRev),
+  'P0: Mapeamento revisado (sem levar ao atendimento) chega ao Pacote com as respostas originais, origem e datas');
 const temUsar = await N.evaluate(() => { const b = document.querySelector('#an-preconsulta [data-pc-acao="usar"]'); if (b) b.click(); return !!b; }); await espera(1500);
 const an = srv.linhas('anamneses').find(a => a.patient_id === PN && a.encounter_id === EN) || { content: {} };
 ok(temUsar && an.status === 'rascunho' && an.content.formulario.saude.med_sup_quais === 'Levotiroxina 50 mcg; vitamina D' && (an.content.meta || {})['saude.desconforto_qual']?.origem === 'relato_paciente',
