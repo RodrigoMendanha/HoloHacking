@@ -181,8 +181,9 @@ conferir(cartao.carol.passo === 'Aplicar agora',
   'quem não tem mapa: ' + cartao.carol.passo);
 /* Correcao do dashboard (pos-6.5): "mapa sem conduta" leva a Conduta da
    ficha (era "Ver por onde começar", que abria o HOLOSCAN). */
-conferir(cartao.helena.passo === 'Abrir conduta',
-  'quem tem mapa e nenhuma conduta: ' + cartao.helena.passo);
+/* 14/10: a aba Conduta saiu; o proximo passo de quem tem mapa e aplicar as ferramentas */
+conferir(cartao.helena.passo === 'Abrir ferramentas',
+  'quem tem mapa e nenhuma ferramenta: ' + cartao.helena.passo);
 
 /* -------------------------------------------------------- a busca -------- */
 

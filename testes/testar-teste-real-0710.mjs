@@ -89,7 +89,7 @@ const alerta = await A.evaluate(async (pid) => {
   const comConduta = window.Panorama.alertas(Object.assign(window.Panorama.doPaciente(pid), { pontuacao: { quando: '2026-10-07' }, ferramentas: [] })).map(a => a.curto);
   return { antes, comConduta };
 }, PA);
-ok(alerta.antes.includes('mapa sem conduta') && !alerta.comConduta.includes('mapa sem conduta'), 'com conduta registrada, o alerta "mapa sem conduta" some');
+ok(alerta.antes.includes('mapa sem ferramentas') && !alerta.comConduta.includes('mapa sem ferramentas'), 'com conduta registrada, o alerta "mapa sem ferramentas" some');
 
 /* ----- 6: proxima consulta e Ver ----- */
 const ag = await A.evaluate(async (pid) => {

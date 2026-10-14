@@ -112,7 +112,7 @@ console.log(cheio.pendentes.map(x => '          ' + x.nome + ' — ' + x.porque)
 
 /* Etapa 0 da V1: "reavaliação vencida" (28 dias) foi neutralizada — prazo de acompanhamento é da profissional
    (Mestre §33). 12/10: "sem HOLOSCAN" e "mapa sem conduta" também não aparecem mais como pendência. */
-ok(!/reavalia|pendênc|Precisa de você|sem HOLOSCAN|mapa sem conduta|Aplicar agora/i.test(cheio.texto), 'nenhuma "reavaliação vencida", pendência ou "sem HOLOSCAN" no dashboard');
+ok(!/reavalia|pendênc|Precisa de você|sem HOLOSCAN|mapa sem conduta|mapa sem ferramentas|Aplicar agora/i.test(cheio.texto), 'nenhuma "reavaliação vencida", pendência ou "sem HOLOSCAN" no dashboard');
 const helena = cheio.pendentes.find(x => /Helena/.test(x.nome));
 ok(helena && /12 de 84/.test(helena.porque) && helena.etapa === 'HOLOSCAN em andamento',
    'o questionário parado da Helena aparece como etapa: ' + (helena ? helena.etapa + ' · ' + helena.porque : '—'));
