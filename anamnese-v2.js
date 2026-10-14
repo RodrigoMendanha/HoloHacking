@@ -159,7 +159,9 @@
       C("apoio_nivel", "Apoio para cuidar da saúde", "contexto_social", ["Sim", "Em parte", "Não"]),
       C("pessoal_tem", "Questão pessoal importante para a nutricionista saber", "emocional", ["Não", "Sim"], { intimo: true }),
       A("pessoal", "Questão pessoal (relato)", "emocional", { intimo: true }),
-      C("familiar_tem", "Doenças comuns na família", "antecedentes", ["Não", "Sim"])] },
+      C("familiar_tem", "Doenças comuns na família", "antecedentes", ["Não", "Sim"]),
+      /* Mapeamento Holistico MH-3 (14/10) */
+      A("momento_agora", "Algo acontecendo na vida agora que influencia o cuidado (relato)", "contexto_social")] },
     { id: "objetiva", titulo: "Avaliação objetiva", campos: [
       M("peso", "Peso", ["kg"]), M("altura", "Altura", ["cm", "m"]),
       L("circunferencias", "Circunferências", "medidas", COL_MEDIDA, { medida: true, item: "circunferência", padrao: "cm" }),

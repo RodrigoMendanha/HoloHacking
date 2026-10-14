@@ -112,6 +112,7 @@
     var inp = r.hora ? el("input", { type: "time", id: id, step: 300 })
       : (f.tipo === "area" && !r.curto) ? el("textarea", { id: id, rows: 3 }) : el("input", { type: "text", id: id, autocomplete: "off" });
     inp.value = d[f.id] || "";
+    if (r.exemplo) inp.setAttribute("placeholder", r.exemplo);   // MH-3: exemplo em cinza, nunca gravado
     inp.addEventListener("input", function () { d[f.id] = inp.value; mudou(); });
     var bloco = el("div", { class: "campo" + (r.hora ? " campo-hora" : "") }, [el("label", { for: id }, [rotuloDe(b, f), r.obrigatorio ? el("span", { class: "obrig", texto: " (obrigatória)" }) : null])]);
     if (SENSIVEIS[b + "." + f.id]) {
@@ -280,7 +281,7 @@
     c.appendChild(el("h1", { texto: nome ? "Olá, " + nome + "!" : "Olá!" }));
     c.appendChild(el("p", { class: "topo-instrucao", texto: estado.tipo === "retorno" || (info && info.tipo === "retorno")
       ? "Antes da consulta de retorno, conte como foram os últimos dias. Leva poucos minutos e tudo é salvo sozinho: você pode parar e continuar depois por este mesmo link."
-      : "Este é um mapeamento rápido para a sua nutricionista te conhecer antes da consulta. Ele faz parte do método HoloHacking, que olha para você como um todo: corpo, mente e espírito. Não é diagnóstico. Leva cerca de 5 minutos e salva sozinho: você pode parar e continuar depois por este mesmo link." }));
+      : "Este é um mapeamento rápido para a sua nutricionista te conhecer antes da consulta. Ele faz parte do método HoloHacking, que olha para você como um todo: corpo, mente e espírito. Não é diagnóstico. Leva cerca de 10 minutos e salva sozinho: você pode parar e continuar depois por este mesmo link." }));
   }
   function telaEstado(qual, quando) {
     estado.enviado = qual === "concluido";

@@ -25,8 +25,22 @@
   /* MH-2 (pre-consulta, 14/10): so o que NENHUM outro instrumento coleta e que a nutricionista precisa saber ANTES da
      consulta. Sono, fome, sinais com frequencia, rotina, apoio, emocoes e proposito ja estao no HOLOSCAN e nas
      ferramentas (Mapa da Rotina, Linha do Momentum, Gatilhos, Conexao, OQ3, PQQ, Roda) — aqui nao se repetem. */
-  var VERSAO = "MH-2";
+  /* MH-3 (14/10, pedido de Rodrigo): volta o que faz a nutricionista CONHECER a pessoa, com as palavras dela (o que
+     busca, ha quanto tempo, o que ja tentou, um dia comum de alimentacao); o objetivo fica em toque (sim/nao, opcoes). */
+  var VERSAO = "MH-3";
   var ETAPAS_PRIMEIRA = [
+    { bloco: "motivo", titulo: "O que te traz aqui", intro: "Para a sua nutricionista entender o que você busca. Escreva do seu jeito.",
+      campos: ["melhorar", "motivo", "ha_quanto_tempo", "ja_tentou", "mudar_primeiro", "acomp_anterior", "acomp_experiencia"] },
+    { bloco: "alimentar", titulo: "Sua alimentação hoje", intro: "Não precisa ser exato: conte como costuma ser.",
+      campos: ["dia_comum", "estilo.dias_diferentes", "preferencias", "escolha", "refeicoes_como", "agua", "dificuldade"] },
+    { bloco: "saude", titulo: "Sua saúde", intro: "Para a sua nutricionista cuidar de você com segurança. Responda o que souber.",
+      campos: ["condicoes_tem", "condicoes", "med_sup_tem", "med_sup_quais", "alergia_tem", "alergia_qual", "desconforto_tem", "desconforto_qual",
+        "contexto.familiar_tem", "contexto.familiar_saude", "exames_tem"] },
+    { bloco: "estilo", titulo: "Seus hábitos e seu momento", intro: "Quase tudo aqui é de tocar. As perguntas abertas são opcionais.",
+      campos: ["atividade", "atividade_qual", "alimentar.alcool", "tabagismo", "rotina", "contexto.momento_agora"] }
+  ];
+  /* MH-2 (14/10, nao publicado): mantido para ler o que tiver sido respondido nele */
+  var ETAPAS_PRIMEIRA_MH2 = [
     { bloco: "motivo", titulo: "O que te traz aqui", intro: "Para a sua nutricionista entender o que você busca.",
       campos: ["melhorar", "expectativa", "acomp_anterior", "acomp_experiencia"] },
     { bloco: "saude", titulo: "Sua saúde", intro: "Para a sua nutricionista cuidar de você com segurança. Responda o que souber.",
@@ -61,7 +75,18 @@
   var ROTULO = {
     "motivo.motivos": "Qual é o principal motivo para buscar acompanhamento?",
     /* MH-2 */
-    "motivo.melhorar": "O que você mais gostaria de melhorar neste momento?",
+    "motivo.melhorar": "O que você busca no acompanhamento?",
+    /* MH-3 */
+    "motivo.motivo": "Conte com as suas palavras: o que te fez procurar uma nutricionista agora?",
+    "motivo.ha_quanto_tempo": "Há quanto tempo isso te incomoda ou chama a sua atenção?",
+    "motivo.ja_tentou": "O que você já tentou antes? O que ajudou e o que não funcionou?",
+    "motivo.mudar_primeiro": "Daqui a alguns meses, o que você gostaria que estivesse diferente?",
+    "alimentar.dia_comum": "Como é a sua alimentação num dia comum, do café ao jantar?",
+    "estilo.dias_diferentes": "E no fim de semana, o que muda?",
+    "alimentar.preferencias": "Quais alimentos você mais gosta? E quais não come de jeito nenhum?",
+    "alimentar.dificuldade": "Hoje, qual é a sua maior dificuldade com a alimentação?",
+    "estilo.rotina": "Em poucas palavras, como é a sua rotina de trabalho ou estudo?",
+    "contexto.momento_agora": "Está acontecendo algo na sua vida agora que influencia o seu cuidado com a saúde?",
     "motivo.expectativa": "O que faria você sentir que o acompanhamento está funcionando?",
     "saude.med_sup_tem": "Você usa algum medicamento ou suplemento?",
     "saude.med_sup_quais": "Quais medicamentos ou suplementos?",
@@ -146,6 +171,17 @@
     "motivo.motivos": { outro: "Qual motivo?" },
     /* MH-2 */
     "motivo.melhorar": { obrigatorio: true, outro: "O quê?" },
+    /* MH-3: perguntas abertas com exemplo em cinza (so mostra o tamanho da resposta; nunca e gravado) */
+    "motivo.motivo": { obrigatorio: true, exemplo: "Ex.: ando muito cansada, sem tempo para comer direito e quero me sentir melhor" },
+    "motivo.ha_quanto_tempo": { curto: true, exemplo: "Ex.: uns 2 anos, desde que mudei de emprego" },
+    "motivo.ja_tentou": { exemplo: "Ex.: dieta da internet; funcionou no começo, mas não consegui manter" },
+    "motivo.mudar_primeiro": { exemplo: "Ex.: ter mais disposição à tarde e comer sem culpa" },
+    "alimentar.dia_comum": { exemplo: "Ex.: café com pão às 7h; almoço no trabalho por volta das 13h; lanche às 16h; jantar às 20h" },
+    "estilo.dias_diferentes": { exemplo: "Ex.: acordo mais tarde, pulo o café e almoço na casa da família" },
+    "alimentar.preferencias": { exemplo: "Ex.: amo arroz, feijão e frutas; não como fígado nem quiabo" },
+    "alimentar.dificuldade": { exemplo: "Ex.: beliscar à noite" },
+    "estilo.rotina": { exemplo: "Ex.: trabalho das 8h às 17h, sentada; estudo duas noites por semana" },
+    "contexto.momento_agora": { exemplo: "Ex.: mudei de cidade há pouco tempo" },
     "motivo.expectativa": { curto: true },
     "motivo.acomp_anterior": { opcoes: [["Nunca"], ["Sim, e foi uma experiência positiva", "Sim, e foi positivo"], ["Sim, mas tive dificuldade para manter", "Sim, mas tive dificuldade de seguir"],
       ["Sim, mas não me senti compreendido(a)"]] },
@@ -206,11 +242,12 @@
   function versaoDe(form) {
     if (!form) return VERSAO;
     if (form.motivo && form.motivo.versao_mapeamento) return String(form.motivo.versao_mapeamento);
-    return SO_MH2.some(function (k) { var p = k.split("."); return form[p[0]] && form[p[0]][p[1]] !== undefined; }) ? "MH-2" : "MH-1";
+    return SO_MH2.some(function (k) { var p = k.split("."); return form[p[0]] && form[p[0]][p[1]] !== undefined; }) ? VERSAO : "MH-1";
   }
   function etapasDe(tipo, form) {
     if (tipo === "retorno") return ETAPAS_RETORNO;
-    return versaoDe(form) === "MH-1" ? ETAPAS_PRIMEIRA_MH1 : ETAPAS_PRIMEIRA;
+    var v = versaoDe(form);
+    return v === "MH-1" ? ETAPAS_PRIMEIRA_MH1 : v === "MH-2" ? ETAPAS_PRIMEIRA_MH2 : ETAPAS_PRIMEIRA;
   }
   /** campos obrigatorios ainda sem resposta (so os do questionario atual): [{ b, f }] */
   function faltando(form, tipo) {
@@ -340,7 +377,12 @@
      pontuado nem vira sistema. A resposta completa continua em respostaHtml. */
   var RESUMO = {
     /* MH-2 (pre-consulta, 14/10) */
-    primeira: [["O que quer melhorar", "motivo.melhorar"], ["O que mostraria que está funcionando", "motivo.expectativa"],
+    primeira: [["O que busca", "motivo.melhorar"], ["Por que procurou agora", "motivo.motivo"], ["Há quanto tempo", "motivo.ha_quanto_tempo"],
+      ["O que gostaria que estivesse diferente", "motivo.mudar_primeiro"], ["Maior dificuldade com a alimentação", "alimentar.dificuldade"],
+      ["Condição ou diagnóstico informado", "saude.condicoes"], ["Medicamentos / suplementos", "saude.med_sup_quais"],
+      ["Alergia ou intolerância", "saude.alergia_qual"], ["Desconforto que mais incomoda", "saude.desconforto_qual"],
+      ["Escolha alimentar", "alimentar.escolha"], ["Não come ou evita", "alimentar.evita_qual"], ["Algo mais que quis contar", "contexto.obs"]],
+    primeira_mh2: [["O que quer melhorar", "motivo.melhorar"], ["O que mostraria que está funcionando", "motivo.expectativa"],
       ["Condição ou diagnóstico informado", "saude.condicoes"], ["Medicamentos / suplementos", "saude.med_sup_quais"],
       ["Alergia ou intolerância", "saude.alergia_qual"], ["Desconforto que mais incomoda", "saude.desconforto_qual"],
       ["Escolha alimentar", "alimentar.escolha"], ["Não come ou evita", "alimentar.evita_qual"], ["Algo mais que quis contar", "contexto.obs"]],
@@ -358,7 +400,8 @@
   function resumo(conteudo) {
     var tipo = conteudo && conteudo.tipo === "retorno" ? "retorno" : "primeira";
     var form = (conteudo && conteudo.formulario) || {};
-    var lista = tipo === "primeira" && versaoDe(form) === "MH-1" ? RESUMO.primeira_mh1 : RESUMO[tipo];
+    var vv = tipo === "primeira" ? versaoDe(form) : "";
+    var lista = vv === "MH-1" ? RESUMO.primeira_mh1 : vv === "MH-2" ? RESUMO.primeira_mh2 : RESUMO[tipo];
     return lista.map(function (r) {
       var b = r[1].split(".")[0], id = r[1].split(".")[1], f = campoDef(tipo, b, id);
       if (!f || !visivel(form, b, f)) return null;
@@ -368,7 +411,7 @@
   }
 
   raiz.MapeamentoHolistico = {
-    RESUMO: RESUMO, resumo: resumo, VERSAO: VERSAO, versaoDe: versaoDe, faltando: faltando, ETAPAS_PRIMEIRA_MH1: ETAPAS_PRIMEIRA_MH1,
+    RESUMO: RESUMO, resumo: resumo, VERSAO: VERSAO, versaoDe: versaoDe, faltando: faltando, ETAPAS_PRIMEIRA_MH1: ETAPAS_PRIMEIRA_MH1, ETAPAS_PRIMEIRA_MH2: ETAPAS_PRIMEIRA_MH2,
     ETAPAS_PRIMEIRA: ETAPAS_PRIMEIRA, ETAPAS_RETORNO: ETAPAS_RETORNO, FINAL: FINAL, TXT_FINAL: TXT_FINAL, ROTULO: ROTULO, REGRAS: REGRAS,
     SENSIVEIS: SENSIVEIS, TXT_SENSIVEL: TXT_SENSIVEL, NENHUM: NENHUM,
     etapasDe: etapasDe, camposDa: camposDa, campoDef: campoDef, regra: regra, rotuloDe: rotuloDe, visivel: visivel, opcoesDe: opcoesDe,

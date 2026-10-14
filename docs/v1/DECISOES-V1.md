@@ -1190,6 +1190,15 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
 
      Sem mudança em HOLOSCAN, ferramentas, retorno, registro profissional, Resultado HOLOS ou schema da Holos IA.
 
+201. **Mapeamento Holístico MH-3 — conhecer a pessoa com as palavras dela** (14/10, decisão de Rodrigo). A MH-2 (não
+     publicada) cortou o que fazia a nutricionista conhecer a pessoa. A MH-3 recupera as perguntas abertas da versão de 7
+     etapas e mantém em toque (sim/não, opções) o que é objetivo.
+     - 4 etapas + revisar: O que te traz aqui · Sua alimentação hoje · Sua saúde · Seus hábitos e seu momento;
+     - 25 perguntas principais (7 condicionais), 18 para escrever, com exemplo em cinza, cerca de 10 minutos;
+     - obrigatórias: o que busca, o porquê com as palavras da pessoa e se tem diagnóstico;
+     - continuam fora: sono, fome, emoções, estresse, apoio e propósito (HOLOSCAN e ferramentas), CPF/RG, medidas e anexo de exames;
+     - versão gravada na resposta (`MH-3`); MH-1 e MH-2 continuam legíveis como foram respondidas.
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`
