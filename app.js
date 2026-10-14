@@ -266,7 +266,7 @@
     agenda:"Agenda", documentos:"Documentos",
     holoscan:"HOLOSCAN", resultado:"Resultado",
     corpo:"Módulo Corpo", mente:"Módulo Mente",
-    espirito:"Módulo Espírito", holusia:"Holusiá", perfil:"Perfil", ajuda:"Ajuda", contas:"Administração", metodologia:"Metodologia / Homologação"
+    espirito:"Módulo Espírito", holusia:"Holos IA", perfil:"Perfil", ajuda:"Ajuda", contas:"Administração", metodologia:"Metodologia / Homologação"
   };
   function irPara(secao){
     /* Prontuario (09/10): a Leitura Integrada saiu do fluxo e a secao virou a pagina RESULTADO.

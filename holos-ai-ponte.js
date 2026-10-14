@@ -55,7 +55,7 @@
     return (err && err.message) || "Não foi possível concluir. Tente de novo.";
   }
 
-  /* ---------- onde a ponte esta desenhada: a aba "Holusiá" da ficha (#hai-ponte) ou a pagina Holusiá (#holusia-alvo).
+  /* ---------- onde a ponte esta desenhada: a aba "Holos IA" da ficha (#hai-ponte) ou a pagina Holos IA (#holusia-alvo).
      Uma de cada vez: desenhar numa esvazia a outra (os ids internos sao unicos). ---------- */
   var host = null;
   function raiz() { return host && document.body.contains(host) ? host : document.getElementById("hai-ponte"); }
@@ -213,7 +213,7 @@
     };
   }
   function copiar(texto, btn, rotulo) {
-    var ok = function () { if (btn) { btn.textContent = "Copiado!"; setTimeout(function () { btn.textContent = rotulo; }, 2000); } toast("Pacote Holusiá copiado. Cole na Holusiá."); };
+    var ok = function () { if (btn) { btn.textContent = "Copiado!"; setTimeout(function () { btn.textContent = rotulo; }, 2000); } toast("Pacote Holos IA copiado. Cole na Holos IA."); };
     if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(texto).then(ok, function () { toast("Não foi possível copiar: selecione o texto do pacote e copie."); });
     var ta = document.createElement("textarea"); ta.value = texto; ta.style.cssText = "position:fixed;left:-9999px";
     document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); } catch (x) { /* sem copia */ } document.body.removeChild(ta); ok();
@@ -288,7 +288,7 @@
     if (!pid || pid === "_sem_paciente") { alvo.innerHTML = ""; return; }
     if (cache.pid !== pid || !cache.carregado) {
       if (cache.pid !== pid) tela = { eid: null, texto: {}, erros: [], avisos: [], ocupado: false, pacoteTxt: "", falha: "" };
-      alvo.innerHTML = '<section class="hai-ponte"><p class="dash-vazio">Carregando a Holusiá…</p></section>';
+      alvo.innerHTML = '<section class="hai-ponte"><p class="dash-vazio">Carregando a Holos IA…</p></section>';
       var R = window.ResultadoHolos;
       Promise.all([carregar(pid), R && R.carregar ? Promise.resolve(R.carregar(pid)).catch(function () {}) : null]).then(function () { if (pacienteId() === pid) desenhar(); });
       return;
@@ -301,26 +301,26 @@
     var bloq = arquivado();
 
     var html = '<section class="hai-ponte" aria-labelledby="hai-titulo">' +
-      '<div class="hai-cab"><div><h3 id="hai-titulo">' + (naPagina() ? "Atendimento" : "Holusiá do atendimento") + '</h3>' +
-      '<p class="hai-sub">Transforme os dados da consulta em uma leitura integrada: copie o Pacote, leve à Holusiá, traga a resposta e o Resultado HOLOS fica pronto.</p></div>' +
+      '<div class="hai-cab"><div><h3 id="hai-titulo">' + (naPagina() ? "Atendimento" : "Holos IA do atendimento") + '</h3>' +
+      '<p class="hai-sub">Transforme os dados da consulta em uma leitura integrada: copie o Pacote, leve à Holos IA, traga a resposta e o Resultado HOLOS fica pronto.</p></div>' +
       (lista.length ? '<label class="hai-at"><span>Atendimento</span><select id="hai-atendimento">' + lista.map(function (x) {
         return '<option value="' + e(x.id) + '"' + (x.id === eid ? " selected" : "") + ">" + e(rotuloAt(x)) + "</option>";
       }).join("") + "</select></label>" : "") + "</div>";
     if (!lista.length) {
-      html += '<p class="hai-aviso">Inicie um atendimento para usar a Holusiá (a análise fica ligada a um atendimento).</p></section>';
+      html += '<p class="hai-aviso">Inicie um atendimento para usar a Holos IA (a análise fica ligada a um atendimento).</p></section>';
       alvo.innerHTML = html; return;
     }
-    if (cache.erro) html += '<p class="hai-erro" role="alert">Não foi possível carregar as análises da Holusiá. Recarregue a página.</p>';
+    if (cache.erro) html += '<p class="hai-erro" role="alert">Não foi possível carregar as análises da Holos IA. Recarregue a página.</p>';
     if (bloq) html += '<p class="hai-aviso">' + e(MSG.paciente_arquivado) + "</p>";
     var texto = tela.texto[eid] || "";
     html += '<ol class="hai-passos">' +
-      passo(1, "Copiar Pacote Holusiá", "Mapeamento, HOLOSCAN, ferramentas, Conduta e o resultado anterior. Sem nome, contatos ou exames.",
-        '<div class="hai-acoes"><button type="button" class="btn-verde" data-hai-acao="copiar-pacote">Copiar Pacote Holusiá</button></div>', "pronto") +
-      passo(2, "Abrir Holusiá", "Cole o Pacote na Holusiá e copie a resposta inteira.",
-        '<div class="hai-acoes">' + (urls.chatgpt ? '<a class="btn-fantasma" id="hai-abrir" href="' + e(urls.chatgpt) + '" target="_blank" rel="noopener noreferrer">Abrir Holusiá</a>'
-          : '<span class="btn-fantasma hai-indisp" aria-disabled="true" title="O endereço da Holusiá ainda não foi configurado">Abrir Holusiá <small>(endereço não configurado — abra a sua Holusiá)</small></span>') + "</div>", "pronto") +
-      passo(3, "Colar resultado da Holusiá", "Cole a resposta inteira (o bloco ```json``` é usado). Se o JSON estiver inválido, nada é salvo.",
-        '<label class="hai-colar"><span class="hai-sr">Cole aqui o resultado da Holusiá</span><textarea id="hai-json" rows="7" spellcheck="false" aria-label="Cole aqui o resultado da Holusiá" placeholder="Cole aqui o resultado da Holusiá">' + e(texto) + "</textarea></label>" +
+      passo(1, "Copiar Pacote Holos IA", "Mapeamento, HOLOSCAN, ferramentas, Conduta e o resultado anterior. Sem nome, contatos ou exames.",
+        '<div class="hai-acoes"><button type="button" class="btn-verde" data-hai-acao="copiar-pacote">Copiar Pacote Holos IA</button></div>', "pronto") +
+      passo(2, "Abrir Holos IA", "Cole o Pacote na Holos IA e copie a resposta inteira.",
+        '<div class="hai-acoes">' + (urls.chatgpt ? '<a class="btn-fantasma" id="hai-abrir" href="' + e(urls.chatgpt) + '" target="_blank" rel="noopener noreferrer">Abrir Holos IA</a>'
+          : '<span class="btn-fantasma hai-indisp" aria-disabled="true" title="O endereço da Holos IA ainda não foi configurado">Abrir Holos IA <small>(endereço não configurado — abra a sua Holos IA)</small></span>') + "</div>", "pronto") +
+      passo(3, "Colar resultado da Holos IA", "Cole a resposta inteira (o bloco ```json``` é usado). Se o JSON estiver inválido, nada é salvo.",
+        '<label class="hai-colar"><span class="hai-sr">Cole aqui o resultado da Holos IA</span><textarea id="hai-json" rows="7" spellcheck="false" aria-label="Cole aqui o resultado da Holos IA" placeholder="Cole aqui o resultado da Holos IA">' + e(texto) + "</textarea></label>" +
         (tela.erros.length ? '<div class="hai-erro" role="alert"><b>Não importado.</b><ul>' + tela.erros.slice(0, 15).map(function (x) { return "<li>" + e(x) + "</li>"; }).join("") +
           (tela.erros.length > 15 ? "<li>… e mais " + (tela.erros.length - 15) + "</li>" : "") + "</ul><p>O texto colado continua acima para você corrigir.</p></div>" : "") +
         '<div class="hai-acoes"><button type="button" class="btn-verde" data-hai-acao="importar"' + (bloq ? " disabled" : "") + ">Importar e gerar resultado</button>" +
@@ -374,12 +374,12 @@
       var txt = JSON.stringify(montarPacote(pacienteId(), tela.eid), null, 2);
       if (nome === "ver-pacote") { tela.pacoteTxt = tela.pacoteTxt ? "" : txt; lerTexto(); desenhar(); var d = q("#hai-detalhes"); if (d) d.open = true; return; }
       tela.pacoteTxt = txt; lerTexto();
-      return copiar(txt, el, "Copiar Pacote Holusiá");
+      return copiar(txt, el, "Copiar Pacote Holos IA");
     }
     if (nome === "importar") return importar(el);
     if (nome === "gerar") return travar(aceitarEGerar(pacienteId(), el.getAttribute("data-hai-import")), el).then(null, function (err) { tela.falha = msgErro(err); desenhar(); });
     if (nome === "ver-resultado") {
-      /* na pagina Holusia: a saida da jornada (pagina Resultado); na ficha: a aba Resultado HOLOS, visao da paciente */
+      /* na pagina Holos IA: a saida da jornada (pagina Resultado); na ficha: a aba Resultado HOLOS, visao da paciente */
       if (naPagina() && window.irParaSecao) { window.irParaSecao("resultado"); return; }
       if (R && R.abrirResultado) R.abrirResultado(el.getAttribute("data-hai-res"), "paciente"); return;
     }
@@ -407,14 +407,14 @@
     if (window.HoloAuth && window.HoloAuth.aoMudarEstado) window.HoloAuth.aoMudarEstado(function () { cache = { pid: null, imports: [], itens: [], carregado: false, erro: null }; });
   });
 
-  /* PAGINA HOLUSIA (rodada UX 14/10): a mesma ponte, para a paciente selecionada */
+  /* PAGINA HOLOS IA (rodada UX 14/10): a mesma ponte, para a paciente selecionada */
   function desenharPagina() {
     var alvo = document.getElementById("holusia-alvo"); if (!alvo) return;
     var pid = pacienteId();
     if (!pid || pid === "_sem_paciente") {
       host = alvo;
       var f = document.getElementById("hai-ponte"); if (f) f.innerHTML = "";
-      alvo.innerHTML = '<div class="lista-vazia hai-sem-paciente"><strong>Nenhum paciente selecionado</strong><span>A Holusiá trabalha com o atendimento de um paciente. Escolha o paciente para começar.</span>' +
+      alvo.innerHTML = '<div class="lista-vazia hai-sem-paciente"><strong>Nenhum paciente selecionado</strong><span>A Holos IA trabalha com o atendimento de um paciente. Escolha o paciente para começar.</span>' +
         '<button type="button" class="btn-verde" data-hai-acao="ir-pacientes">Escolher paciente</button></div>';
       return;
     }

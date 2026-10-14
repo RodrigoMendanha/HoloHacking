@@ -1162,11 +1162,11 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
      Sem mudança em HOLOSCAN, fórmula, cinco sistemas, Índice, Tríade, PP-V1, ferramentas, schema v1 e regras clínicas
      (`docs/v1/PONTE-HOLOS-AI.md` §0).
 
-199. **Rodada UX — visual, navegação, Holusiá e ferramentas** (14/10, decisão de Rodrigo). Só interface:
+199. **Rodada UX — visual, navegação, Holos IA e ferramentas** (14/10, decisão de Rodrigo). Só interface:
      - réguas sem resposta mostram o marcador vazado e "—"; tocar no ponto parado passa a contar;
      - modo claro com contraste medido (token `--ouro-texto`; as superfícies sempre escuras usam os tokens do tema escuro);
-     - menu: CORPO (QF) → MENTE (QM) → ESPÍRITO (QE) → HOLUSIÁ → RESULTADO HOLOS; os selos são só visuais e os ids não mudam;
-     - a página Holusiá é a mesma ponte da HOLOS AI (copiar Pacote → colar → "Importar e gerar resultado");
+     - menu: CORPO (QF) → MENTE (QM) → ESPÍRITO (QE) → HOLOS IA → RESULTADO HOLOS; os selos são só visuais e os ids não mudam;
+     - a página Holos IA é a mesma ponte da HOLOS AI (copiar Pacote → colar → "Importar e gerar resultado");
      - o "X" da barra do paciente só tira a seleção;
      - o HOLOSCAN sem aplicação mostra cartões de demonstração; com resultado, só o resultado;
      - o bloco 6 (Aprofundamento) sai da tela;

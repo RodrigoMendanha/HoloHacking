@@ -1,6 +1,6 @@
 /**
  * RODADA UX 14/10 — testes focais (paciente FICTICIA, servidor falso). Cada item da rodada com clique de verdade quando
- * e botao: reguas (Linha do Momentum / Roda), X do paciente, navegacao Holusia, HOLOSCAN antes/depois, bloco 6, Triade
+ * e botao: reguas (Linha do Momentum / Roda), X do paciente, navegacao Holos IA, HOLOSCAN antes/depois, bloco 6, Triade
  * "Por que", PQQ 3 perguntas + historico de 5, "?" das 10 ferramentas, selos QF/QM/QE, bugs de clique do Cowork.
  * SHOT_DIR=<pasta> grava capturas.
  */
@@ -69,7 +69,7 @@ await P.evaluate(() => window.irParaSecao('resultado')); await espera(700);
 const resVazio = await P.evaluate(() => (document.getElementById('rp-vazio') || {}).textContent || '');
 await P.evaluate(() => window.irParaSecao('holusia')); await espera(400);
 const holVazio = await P.evaluate(() => document.getElementById('holusia-alvo').innerText);
-ok(/Escolha uma paciente/.test(resVazio) && /Nenhum paciente selecionado/.test(holVazio), 'X: Resultado e Holusiá mostram estado vazio (nenhum contexto antigo)');
+ok(/Escolha uma paciente/.test(resVazio) && /Nenhum paciente selecionado/.test(holVazio), 'X: Resultado e Holos IA mostram estado vazio (nenhum contexto antigo)');
 await P.evaluate((pid) => window.definirPacienteAtivo(pid), PB); await espera(300);
 await P.evaluate(() => window.irParaSecao('holusia')); await espera(600);
 ok(await P.evaluate(() => window.pacienteAtivoId()) === PB && !(await P.evaluate(() => sessionStorage.getItem('holohacking.semPaciente'))), 'X: escolher outro paciente volta a funcionar (contexto novo, sem reload)');
@@ -80,7 +80,7 @@ ok(await P.evaluate(() => document.getElementById('barra-paciente-ctx').hidden),
 const menu = await P.evaluate(() => ({ ordem: [...document.querySelectorAll('.nav-item[data-secao]')].map(b => b.dataset.secao),
   tags: ['corpo', 'mente', 'espirito'].map(s => (document.querySelector('.nav-item[data-secao="' + s + '"] .nav-tag') || {}).textContent) }));
 const iC = menu.ordem.indexOf('corpo');
-ok(menu.ordem.slice(iC, iC + 5).join(' > ') === 'corpo > mente > espirito > holusia > resultado', 'menu: Corpo → Mente → Espírito → Holusiá → Resultado HOLOS');
+ok(menu.ordem.slice(iC, iC + 5).join(' > ') === 'corpo > mente > espirito > holusia > resultado', 'menu: Corpo → Mente → Espírito → Holos IA → Resultado HOLOS');
 ok(menu.tags.join(',') === 'QF,QM,QE', 'selos do menu: QF / QM / QE (só visual)');
 
 /* ===== 14/15/16. HOLOSCAN antes x depois ===== */

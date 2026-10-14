@@ -111,14 +111,14 @@ await P.waitForFunction(() => !!document.querySelector('.hai-passos'), { timeout
 const abas = await P.evaluate(() => [...document.querySelectorAll('.abas [data-aba], [role="tablist"] [data-aba]')].map(b => b.dataset.aba));
 ok(abas.indexOf('holos-ai') >= 0 && abas.indexOf('holos-ai') === abas.indexOf('resultado-holos') - 1, 'V01 aba HOLOS AI logo antes do Resultado HOLOS (' + abas.join(' > ') + ')');
 const passos = await P.evaluate(() => [...document.querySelectorAll('.hai-passo h4')].map(h => h.textContent.trim()));
-ok(JSON.stringify(passos) === JSON.stringify(['Copiar Pacote Holusiá', 'Abrir Holusiá', 'Colar resultado da Holusiá']), 'V01 3 passos: ' + passos.join(' · '));
+ok(JSON.stringify(passos) === JSON.stringify(['Copiar Pacote Holos IA', 'Abrir Holos IA', 'Colar resultado da Holos IA']), 'V01 3 passos: ' + passos.join(' · '));
 const telaV1 = await P.evaluate(() => {
   const r = document.querySelector('.hai-ponte'), fora = (el) => !el.closest('details:not([open])');
   return { botoes: [...r.querySelectorAll('button, a.btn-fantasma, .hai-indisp')].filter(fora).map(b => b.textContent.trim()),
     revisao: !!r.querySelector('[data-hai-acao="confirmar"], [data-hai-acao="descartar"], [data-hai-acao="concluir"], [data-hai-acao="confirmar-secao"], [data-hai-acao="compartilhar"], #hai-revisao'),
     detalhes: !!r.querySelector('details#hai-detalhes:not([open])'), legado: !!document.querySelector('details#ai-hub-legado:not([open])') };
 });
-ok(telaV1.botoes.length === 3 && /Copiar Pacote Holusiá/.test(telaV1.botoes[0]) && /Abrir Holusiá/.test(telaV1.botoes[1]) && /Importar e gerar resultado/.test(telaV1.botoes[2]),
+ok(telaV1.botoes.length === 3 && /Copiar Pacote Holos IA/.test(telaV1.botoes[0]) && /Abrir Holos IA/.test(telaV1.botoes[1]) && /Importar e gerar resultado/.test(telaV1.botoes[2]),
   'V01 à vista só 3 ações: ' + telaV1.botoes.map(b => b.replace(/\s+/g, ' ')).join(' | '));
 ok(!telaV1.revisao && telaV1.detalhes && telaV1.legado, 'V01 sem Revisar/Confirmar/Descartar/Compartilhar/Concluir; "Detalhes técnicos da análise" e o contexto antigo recolhidos');
 await shot('hai-1-passos', '.hai-ponte');
@@ -129,7 +129,7 @@ await clicarDeVerdade('[data-hai-acao="copiar-pacote"]'); await espera(500);
 const pacTxt = await P.evaluate(() => window.__copiado);
 let pac = null; try { pac = JSON.parse(pacTxt); } catch (e) { pac = null; }
 ok(!!pac && pac.pacote === 'HOLOS_AI_PACOTE' && pac.pacote_version === 1 && pac.atendimento.tipo === 'primeira_consulta' && pac.resultado_anterior === 'Sem dado',
-  'V02 "Copiar Pacote Holusiá" copia um JSON (pacote_version 1, primeira consulta, sem resultado anterior)');
+  'V02 "Copiar Pacote Holos IA" copia um JSON (pacote_version 1, primeira consulta, sem resultado anterior)');
 ok(!!pac && !/Marina|62900000000/.test(pacTxt) && pac.paciente_contexto_minimo.identificador === 'M.F.', 'V02 pacote sem nome e sem telefone (identificador por iniciais)');
 ok(!!pac && /Cansaço no fim da tarde/.test(pac.mapeamento) && /Sistemas/.test(pac.holoscan) && /Rotina/.test(pac.ferramentas_aplicadas) && /Organizar o fim da tarde/.test(pac.conduta)
   && !/laborat|hemograma|glicemia/i.test(pacTxt), 'V02 pacote com Mapeamento, HOLOSCAN, ferramentas e Conduta reais; sem exames');
@@ -309,7 +309,7 @@ const semH = await (async () => {
 ok(semH.imp && semH.imp.status === 'confirmado' && semH.res === 0 && /RESULTADO AINDA NÃO GERADO/.test(semH.r.txt) && /HOLOSCAN/.test(semH.r.txt) && semH.r.gerar,
   'N10 sem HOLOSCAN salvo: análise guardada e aceita, Resultado não gerado com o motivo e "Gerar resultado" (1 clique depois de salvar o HOLOSCAN)');
 
-/* ===================== V10 PAGINA HOLUSIA (rodada UX 14/10) ===================== */
+/* ===================== V10 PAGINA HOLOS IA (rodada UX 14/10) ===================== */
 await P.evaluate((pid) => { window.definirPacienteAtivo(pid); window.irParaSecao('holusia'); }, PA); await espera(1200);
 const pag = await P.evaluate(() => {
   const nav = [...document.querySelectorAll('.nav-item[data-secao]')].map(b => b.dataset.secao);
@@ -319,15 +319,15 @@ const pag = await P.evaluate(() => {
     fichaVazia: !(document.getElementById('hai-ponte') || { innerHTML: '' }).innerHTML.trim() };
 });
 const iE = pag.nav.indexOf('espirito');
-ok(pag.nav.slice(iE, iE + 3).join(' > ') === 'espirito > holusia > resultado', 'V10 navegação: Corpo → Mente → Espírito → Holusiá → Resultado (' + pag.nav.join(' > ') + ')');
-ok(pag.ativa === 'secao-holusia' && /Holusiá/.test(pag.cab) && /Transforme os dados da consulta em uma leitura integrada/.test(pag.cab) && pag.passos.length === 3
-  && /ANÁLISE IMPORTADA/.test(pag.pronto) && pag.fichaVazia, 'V10 página Holusiá: cabeçalho, 3 passos e o Resultado pronto do atendimento (a mesma ponte; a aba da ficha fica vazia enquanto isso)');
+ok(pag.nav.slice(iE, iE + 3).join(' > ') === 'espirito > holusia > resultado', 'V10 navegação: Corpo → Mente → Espírito → Holos IA → Resultado (' + pag.nav.join(' > ') + ')');
+ok(pag.ativa === 'secao-holusia' && /Holos IA/.test(pag.cab) && /Transforme os dados da consulta em uma leitura integrada/.test(pag.cab) && pag.passos.length === 3
+  && /ANÁLISE IMPORTADA/.test(pag.pronto) && pag.fichaVazia, 'V10 página Holos IA: cabeçalho, 3 passos e o Resultado pronto do atendimento (a mesma ponte; a aba da ficha fica vazia enquanto isso)');
 await P.evaluate(() => document.querySelector('#holusia-alvo [data-hai-acao="ver-resultado"]').click()); await espera(900);
-ok(await P.evaluate(() => (document.querySelector('.secao.ativa') || {}).id === 'secao-resultado'), 'V10 "Ver resultado" na página Holusiá leva à página Resultado (a saída da jornada)');
+ok(await P.evaluate(() => (document.querySelector('.secao.ativa') || {}).id === 'secao-resultado'), 'V10 "Ver resultado" na página Holos IA leva à página Resultado (a saída da jornada)');
 await P.evaluate(() => window.limparPacienteAtivo()); await espera(400);
 await P.evaluate(() => window.irParaSecao('holusia')); await espera(500);
 const semPac = await P.evaluate(() => ({ txt: document.getElementById('holusia-alvo').innerText, barra: document.getElementById('barra-paciente-ctx').hidden, pid: window.pacienteAtivoId() }));
-ok(semPac.pid === null && /Nenhum paciente selecionado/.test(semPac.txt) && semPac.barra, 'V10 X da barra: paciente desselecionado; Holusiá mostra "Nenhum paciente selecionado" (nada oculto), barra some');
+ok(semPac.pid === null && /Nenhum paciente selecionado/.test(semPac.txt) && semPac.barra, 'V10 X da barra: paciente desselecionado; Holos IA mostra "Nenhum paciente selecionado" (nada oculto), barra some');
 await P.evaluate((pid) => window.definirPacienteAtivo(pid), PA); await espera(300);
 
 /* ===================== V09 recarregar + celular ===================== */
