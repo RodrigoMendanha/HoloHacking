@@ -225,7 +225,8 @@ ok(ver.aba === 'resultado-holos' && !faltam.length && (await cliques()) === 1, '
 ok(!/SUGESTÃO|HOLOS AI|hipótese|not_catalogued|REC-/.test(ver.txt), 'V05 visão da paciente sem marca de sugestão, sem HOLOS AI, sem hipótese, sem catálogo');
 await shot('hai-5-resultado-paciente', '#rh-doc');
 const lista = await P.evaluate(() => { document.querySelector('[data-rh-acao="voltar"]').click(); return new Promise(r => setTimeout(() => r({ prim: (document.querySelector('.rh-acoes-topo .btn-verde') || {}).textContent, manual: !!document.querySelector('details.rh-manual:not([open]) [data-rh-acao="novo"]') }), 300)); });
-ok(/Gerar pela HOLOS AI/.test(lista.prim || '') && lista.manual, 'V05 Resultado HOLOS: ação principal "Gerar pela HOLOS AI"; montagem manual recolhida em "avançado"');
+/* 14/10: Holos IA escondida (HOLOS_IA_VISIVEL=false) -> a acao principal do Resultado HOLOS e "Montar com o Playbook" */
+ok(/Montar com o Playbook/.test(lista.prim || '') && lista.manual, 'V05 Resultado HOLOS: ação principal "Montar com o Playbook" (Holos IA escondida); montagem manual recolhida em "avançado"');
 
 /* ===================== V06 gerar PDF ===================== */
 await abrirAba('holos-ai');
