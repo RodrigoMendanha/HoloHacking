@@ -1,7 +1,7 @@
 /**
  * Ponte HOLOS AI no Supabase falso — o mesmo contrato da migration 20261023100000 (provada no Postgres local,
  * supabase/tests/holos-ai-ponte-harness.sql): importar_holos_ai, revisar_item_holos_ai, concluir_revisao_holos_ai,
- * descartar_importacao_holos_ai. A validacao do JSON e a do holos-ai-contrato.js (o servidor real tem a copia em SQL,
+ * descartar_importacao_holos_ai e aceitar_importacao_holos_ai (20261024100000: aceite pela regra fixa, sem revisao item a item). A validacao do JSON e a do holos-ai-contrato.js (o servidor real tem a copia em SQL,
  * holos_ai_problemas). Importacao nunca sobrescreve outra (versao 1, 2...); valor da IA imutavel; so profissional nunca
  * compartilhavel. A conferencia dos itens da HOLOS AI no Resultado HOLOS fica em resultado-holos-falso.mjs.
  */
@@ -46,7 +46,7 @@ export function criarHolosAI(s, ctx) {
       kb_version: ehObj(j.meta) && typeof j.meta.kb_version === 'string' ? j.meta.kb_version.slice(0, 400) : null,
       entrada: ehObj(j.entrada) ? copia(j.entrada) : null, texto_original: texto, json_original: copia(j),
       texto_sha256: createHash('sha256').update(texto, 'utf8').digest('hex'), status: 'importado', operation_id: a.p_operation_id || null,
-      imported_at: t, revisao_iniciada_em: null, concluida_em: null, descartada_em: null, updated_at: t };
+      imported_at: t, revisao_iniciada_em: null, concluida_em: null, descartada_em: null, updated_at: t, aceite: null };
     T.holos_ai_imports.push(imp);
     const itens = C.explodir(j);
     itens.forEach(it => T.holos_ai_import_items.push({ id: randomUUID(), import_id: imp.id, nutritionist_id: uid, patient_id: enc.patient_id,
@@ -98,6 +98,22 @@ export function criarHolosAI(s, ctx) {
       if (ctx.statusConta && ctx.statusConta(uid) !== 'ativo') falha('conta aguardando liberacao', 'conta_nao_liberada', '42501');
       if (nome === 'importar_holos_ai') return { data: importar(uid, a), error: null };
       if (nome === 'revisar_item_holos_ai') return { data: revisar(uid, a), error: null };
+      if (nome === 'aceitar_importacao_holos_ai') {
+        const imp = T.holos_ai_imports.find(x => x.id === a.p_import_id && x.nutritionist_id === uid);
+        if (!imp) falha('importacao nao encontrada', 'referencia_cruzada');
+        const itens = T.holos_ai_import_items.filter(x => x.import_id === imp.id);
+        const conta = () => ({ aceitos: itens.filter(x => ['confirmado', 'editado'].includes(x.estado)).length, compartilhados: itens.filter(x => x.compartilhar).length });
+        if (imp.status === 'confirmado') return { data: Object.assign({ id: imp.id, status: 'confirmado', aceite: imp.aceite, repetida: true }, conta()), error: null };
+        if (!['importado', 'em_revisao'].includes(imp.status)) falha('a importacao ja esta ' + imp.status, 'holos_ai_revisao_encerrada');
+        if (arquivado(imp.patient_id)) falha('paciente arquivado: reative antes de registrar novas informacoes', 'paciente_arquivado');
+        const t = agora();
+        itens.filter(x => x.estado === 'sugerido').forEach(x => Object.assign(x, { estado: 'confirmado', valor_profissional: null,
+          compartilhar: C.elegivelPaciente(x.secao, x.valor_ia), revisado_em: t }));
+        const c = conta();
+        if (!c.aceitos) falha('nenhum item para aceitar: descarte a importacao', 'holos_ai_nada_confirmado');
+        Object.assign(imp, { status: 'confirmado', aceite: 'automatico', concluida_em: t, revisao_iniciada_em: imp.revisao_iniciada_em || t, updated_at: t });
+        return { data: Object.assign({ id: imp.id, status: 'confirmado', aceite: 'automatico', repetida: false }, c), error: null };
+      }
       if (nome === 'concluir_revisao_holos_ai' || nome === 'descartar_importacao_holos_ai') {
         const imp = T.holos_ai_imports.find(x => x.id === a.p_import_id && x.nutritionist_id === uid);
         if (!imp) falha('importacao nao encontrada', 'referencia_cruzada');
@@ -117,7 +133,7 @@ export function criarHolosAI(s, ctx) {
     }
     return null;
   }
-  return { rpc, NOMES: ['importar_holos_ai', 'revisar_item_holos_ai', 'concluir_revisao_holos_ai', 'descartar_importacao_holos_ai'] };
+  return { rpc, NOMES: ['importar_holos_ai', 'revisar_item_holos_ai', 'aceitar_importacao_holos_ai', 'concluir_revisao_holos_ai', 'descartar_importacao_holos_ai'] };
 }
 
 /* conferencia dos itens da HOLOS AI dentro da direcao do Resultado HOLOS (espelho do trecho novo de resultado_holos_validar_direcao) */

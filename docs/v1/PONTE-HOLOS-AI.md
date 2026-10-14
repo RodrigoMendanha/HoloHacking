@@ -8,7 +8,101 @@
 - pacotes metodológicos e scores;
 - exames.
 
-**Status:** pronto, testado localmente, **sem deploy** (parado antes, como pedido).
+**Status:** ponte (20261023100000) aplicada em produção em 14/10. Simplificação definitiva (20261024100000 + front): pronta e testada localmente, **sem deploy**.
+
+## 0. SIMPLIFICAÇÃO DEFINITIVA (14/10/2026) — fluxo vigente
+
+> "Fiz a consulta, mandei os dados para a HOLOS AI, trouxe a resposta e o Resultado ficou pronto."
+
+Esta seção **substitui** os passos 4 e 5 da seção 1 (revisão item a item e montagem manual). O resto deste documento continua valendo como registro do backend: contrato, validação, imutabilidade, versões, segregação e RLS.
+
+**Fluxo principal:** Paciente → Mapeamento → Consulta → HOLOSCAN → Ferramentas → **Copiar Pacote → Abrir HOLOS AI → Colar → Importar e gerar resultado** → Resultado pronto → **Gerar PDF**.
+
+**O que acontece em "Importar e gerar resultado" (1 clique):**
+1. Valida o schema (tela e servidor). Se for inválido, nada é salvo e o texto colado continua no campo.
+2. Guarda o original (texto e JSON imutáveis, com sha256) como nova versão.
+3. Chama `aceitar_importacao_holos_ai`, que aplica a **regra fixa** do método (migration `20261024100000`, aditiva):
+   - todo item fica confirmado, com o valor da IA intacto;
+   - `compartilhar` = `holos_ai_elegivel_paciente`: nunca o que é só profissional, nem a estratégia "requer decisão profissional na Conduta";
+   - a importação fica `confirmado` com `aceite = 'automatico'`, gravado uma única vez.
+4. `ResultadoHolos.gerarAutomatico` monta e **finaliza** o Resultado HOLOS do atendimento:
+   - **HOLOSCAN:** o oficial do mesmo atendimento; se não houver, o oficial mais recente.
+   - **Ferramentas concluídas do atendimento:** entram como fonte, sem "mostrar à paciente".
+   - **Para a paciente:** o relato do Mapeamento e os acordos, mais o que é elegível na análise.
+   - **Foco:** o 1º direcionamento elegível, já confirmado.
+   - **Síntese integrada:** só na leitura profissional.
+   - **Limite por lista** para a paciente (PDF de 2 a 4 páginas). O excedente fica no registro, interno.
+   - **Termo fora do método** no texto: o item fica interno.
+   - **Nova análise no mesmo atendimento:** cria um novo Resultado que substitui o anterior. O anterior continua no histórico, idêntico.
+5. A aba mostra **RESULTADO PRONTO** com **Ver resultado · Gerar PDF · Editar resultado** (editar é opcional e abre uma nova versão).
+
+**Regra fixa:**
+
+| Pode ir para a paciente | Nunca vai |
+|---|---|
+| Seu momento agora e o que está pesando (Mapeamento) | Hipóteses e conflitos/convergências |
+| O que estamos compreendendo (padrões observados) | Alertas profissionais e fontes |
+| Foco atual e direcionamentos | Síntese integrada (raciocínio) |
+| Estratégias (menos as que pedem decisão na Conduta) | Sistemas prioritários, ferramentas aplicadas e recomendadas (catálogo) |
+| Corpo, Mente e Espírito (só territórios com material) | Pontos para aprofundar |
+| O que combinamos (acordos da Conduta) | Roteiro da próxima consulta e rascunho de mensagem |
+| O que observar, plano de acompanhamento, próxima etapa | IDs, regras REC-…, validações, flags técnicas |
+| Mapa HOLOSCAN (radar, Índice, Tríade, áreas para aprofundar) | |
+
+**Gerar PDF (1 clique):**
+- Emite o Resultado Final (RF-3, congelado) se o Resultado vigente ainda não tem emissão, e baixa o PDF.
+- No PDF, o mapa HOLOSCAN (radar e notas) representa os cinco sistemas. Os cartões longos ficam só nas áreas prioritárias e só com "Para você, nesta fase". A lista repetida "Como vamos acompanhar" e a legenda de origem de cada item saem do PDF, mas continuam na tela.
+- Caso fictício: **4 páginas** (antes: 7).
+
+**Retorno:**
+- O Pacote ganha `resultado_anterior`: foco, direcionamentos, estratégias, o que observar, acordos e próxima etapa do Resultado salvo do atendimento anterior, para a HOLOS AI comparar antes × agora.
+- A decisão sugerida (MANTER / AJUSTAR / SUBSTITUIR / CONCLUIR / ENCERRAR) vira o estado da estratégia no Resultado.
+
+**O que saiu do fluxo:**
+- Revisar análise.
+- Confirmar, Editar, Descartar, Voltar a sugestão e Compartilhar por item.
+- Ações em lote por seção.
+- Concluir revisão e o modal de confirmação.
+- Gerar Resultado HOLOS (rascunho), escolha manual do HOLOSCAN, confirmação manual do foco, Finalizar e o modal.
+- Gerar Resultado Final e Baixar PDF na outra página.
+
+**O que ficou recolhido:**
+- "Detalhes técnicos da análise" (fechado, só leitura): cada item aparece marcado INTERNO ou PACIENTE, junto com o Pacote enviado e o histórico das versões.
+- "Contexto em texto livre (modo antigo)".
+- No Resultado HOLOS, "Montar manualmente (avançado)".
+
+**Cliques no caso fictício (Cowork, depois do HOLOSCAN e das ferramentas):**
+
+| | Antes | Agora |
+|---|---|---|
+| Copiar Pacote + Abrir HOLOS AI | 2 | 2 |
+| Importar | 1 | 1 (importa **e** gera) |
+| Revisão (62 itens, 20 seções) | ≈ 20 (lote por seção) a 62+ (item a item), mais ≈ 5 de "compartilhar" | 0 |
+| Concluir + modal | 2 | 0 |
+| Gerar Resultado HOLOS + escolher HOLOSCAN + confirmar foco + Finalizar + modal | 5 | 0 |
+| Ir à página Resultado + Gerar Resultado Final + Baixar PDF | 3 | 1 (Gerar PDF) |
+| **Total** | **≈ 38 a 80** | **4** |
+| Telas | aba HOLOS AI (revisão longa) → editor do Resultado → página Resultado | aba HOLOS AI → (opcional) Ver resultado |
+
+**RPCs mantidas para compatibilidade:** `revisar_item_holos_ai` e `concluir_revisao_holos_ai` continuam no banco, sem botão na tela, para importações antigas. Uma importação antiga ainda em revisão aparece com "Aceitar análise e gerar resultado" (1 clique).
+
+**Deploy da simplificação (quando autorizado; a ponte 20261023100000 já está em produção):**
+1. **Banco antes do front:** colar `supabase/migrations/20261024100000_holos_ai_resultado_automatico.sql` inteiro no SQL Editor e rodar (aditiva: coluna `aceite`, gatilho com o aceite imutável, `holos_ai_elegivel_paciente`, `aceitar_importacao_holos_ai`).
+2. **Conferência (só leitura):**
+   ```sql
+   select (select count(*) from information_schema.columns where table_name = 'holos_ai_imports' and column_name = 'aceite') = 1 as coluna_aceite,
+          has_function_privilege('authenticated', 'public.aceitar_importacao_holos_ai(uuid)', 'execute') as rpc_autenticado,
+          not has_function_privilege('anon', 'public.aceitar_importacao_holos_ai(uuid)', 'execute') as anon_fechado,
+          not has_function_privilege('authenticated', 'public.holos_ai_elegivel_paciente(text, jsonb)', 'execute') as regra_interna;
+   -- esperado: true, true, true, true
+   ```
+3. **Front** (`scripts/deploy-etapa6-5b.sh`, com o commit indicado no relatório).
+4. **Se o front for publicado sem a migration:** "Importar e gerar resultado" importa, mas para no aceite com um erro ("função não encontrada"). A importação fica guardada e o botão "Aceitar análise e gerar resultado" funciona assim que a migration entrar.
+5. **Rollback da migration** (antes de existir aceite automático real):
+   ```sql
+   drop function public.aceitar_importacao_holos_ai(uuid); drop function public.holos_ai_elegivel_paciente(text, jsonb);
+   ```
+   Para o gatilho, recolar `proteger_holos_ai_import` da 20261023100000. A coluna `aceite` pode ficar (nula).
 
 ## 1. Fluxo na tela (aba HOLOS AI do atendimento, logo antes do Resultado HOLOS)
 

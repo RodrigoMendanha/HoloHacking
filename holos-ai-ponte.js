@@ -2,14 +2,16 @@
    HOLOS AI — PONTE PARA O RESULTADO HOLOS (aba HOLOS AI do atendimento)
    ===========================================================================
 
-   1. Copiar Pacote HOLOS AI   so dados reais ja registrados, sem nome/contatos, sem exames
-   2. Abrir HOLOS AI           o agente externo (a nutricionista leva o Pacote)
-   3. Importar Resultado       cola o JSON HOLOS_AI_RESULT (schema_version 1) -> validar e importar
-                               (invalido: nada e salvo e o texto colado fica na tela para corrigir)
-   4. Revisar analise          cada item comeca como SUGESTAO HOLOS AI: confirmar, editar ou descartar;
-                               compartilhar com a paciente so o que pode (so profissional nunca)
-   5. Gerar Resultado HOLOS    o que foi CONFIRMADO entra no Resultado HOLOS deste atendimento
-                               (ResultadoHolos.receberHolosAI); quem finaliza e emite e a nutricionista
+   SIMPLIFICACAO DEFINITIVA (14/10): "Fiz a consulta, mandei os dados para a HOLOS AI, trouxe a resposta e o
+   Resultado ficou pronto."
+   1. Copiar Pacote HOLOS AI     so dados reais ja registrados, sem nome/contatos, sem exames
+   2. Abrir HOLOS AI             o agente externo
+   3. Colar + Importar e gerar   valida o schema (invalido: nada e salvo), guarda o original imutavel e versionado,
+                                 aceita pela REGRA FIXA do metodo (aceitar_importacao_holos_ai: so profissional fica
+                                 interno; o elegivel vai para a paciente) e monta o Resultado HOLOS FINALIZADO
+                                 (ResultadoHolos.gerarAutomatico). Nenhuma confirmacao item a item.
+   Depois: Ver resultado · Gerar PDF (emite o Resultado Final e baixa o PDF) · Editar resultado (nova versao, opcional).
+   A revisao item a item saiu do fluxo: o registro da IA fica so em "Detalhes tecnicos da analise" (fechado, so leitura).
 
    Dados: holos_ai_imports / holos_ai_import_items (migration 20261023100000). Escrita so por RPC; cada
    importacao e uma versao nova (nunca sobrescreve). Contrato do JSON: holos-ai-contrato.js.
@@ -55,13 +57,13 @@
 
   /* ---------- estado da tela ---------- */
   var cache = { pid: null, imports: [], itens: [], carregado: false, erro: null };
-  var tela = { eid: null, texto: {}, erros: [], avisos: [], aberto: null, editando: null, ocupado: false, pacoteTxt: "" };
+  var tela = { eid: null, texto: {}, erros: [], avisos: [], ocupado: false, pacoteTxt: "", falha: "" };
 
   function carregar(pid) {
     if (!pid || !temSupa()) { cache = { pid: pid, imports: [], itens: [], carregado: true, erro: null }; return Promise.resolve(); }
     var sb = window.supabaseClient;
     return new Promise(function (ok) { ok(); }).then(function () { return Promise.all([
-      Promise.resolve(sb.from("holos_ai_imports").select("id, patient_id, encounter_id, versao, schema_version, tipo, origem, agente, kb_version, entrada, texto_sha256, status, imported_at, revisao_iniciada_em, concluida_em, descartada_em, updated_at")
+      Promise.resolve(sb.from("holos_ai_imports").select("id, patient_id, encounter_id, versao, schema_version, tipo, origem, agente, kb_version, entrada, texto_sha256, status, aceite, imported_at, revisao_iniciada_em, concluida_em, descartada_em, updated_at")
         .eq("patient_id", pid).order("imported_at", { ascending: false })),
       Promise.resolve(sb.from("holos_ai_import_items").select("id, import_id, secao, ordem, chave, valor_ia, so_profissional, estado, valor_profissional, compartilhar, revisado_em")
         .eq("patient_id", pid))
@@ -117,7 +119,23 @@
     var txt = function (l) { return (l || []).filter(ok).map(function (it) { return it.texto; }); };
     return { resultado: r.status === "rascunho" ? "rascunho deste atendimento" : "Resultado HOLOS salvo",
       foco_atual: ok(d.foco_atual) ? d.foco_atual.texto : null, direcionamentos: txt(d.direcionamentos), estrategias: txt(d.estrategias),
-      acordos: txt(d.acordos_compartilhados), observar: txt(d.observar) };
+      acordos: txt(d.acordos_compartilhados), observar: txt(d.observar), proxima_etapa: ok(d.proxima_etapa) ? d.proxima_etapa.texto : null };
+  }
+  /* RETORNO: o Resultado HOLOS salvo do atendimento ANTERIOR (foco, estrategias, o que observar, proxima etapa) para a
+     HOLOS AI comparar antes x agora (MANTER / AJUSTAR / SUBSTITUIR / CONCLUIR / ENCERRAR). So o que foi para a paciente. */
+  function resultadoAnterior(pid, eid) {
+    var R = window.ResultadoHolos, A = window.AtendimentoAtual; if (!R || !R.doPaciente) return null;
+    var atual = A && A.porId ? A.porId(eid) : null;
+    var r = R.doPaciente(pid).filter(function (x) {
+      if (x.status === "rascunho" || x.superseded_at || x.encounter_id === eid || !x.content_snapshot) return false;
+      var y = A && A.porId ? A.porId(x.encounter_id) : null;
+      return !atual || !y || String(y.occurred_at) < String(atual.occurred_at);
+    }).sort(function (a, b) { return String(b.saved_at || "").localeCompare(String(a.saved_at || "")); })[0];
+    var dp = r && r.content_snapshot.direcao_paciente; if (!dp) return null;
+    var tx = function (l) { return (l || []).map(function (it) { return it && it.texto; }).filter(Boolean); };
+    return { salvo_em: String(r.saved_at || "").slice(0, 10), foco_atual: dp.foco_atual ? dp.foco_atual.texto : null,
+      direcionamentos: tx(dp.direcionamentos), estrategias: (dp.estrategias || []).map(function (x) { return { id: x.id, texto: x.texto, acao: x.acao || null, status: x.status || null }; }),
+      o_que_observar: tx(dp.observar), acordos: tx(dp.acordos_compartilhados), proxima_etapa: dp.proxima_etapa ? dp.proxima_etapa.texto : null };
   }
   function tipoAtendimento(pid, eid) {
     var R = window.ResultadoHolos, A = window.AtendimentoAtual;
@@ -181,6 +199,7 @@
       conduta: t(sec.conduta),
       resultado_holos: t(sec.resultado),
       direcao_atual: direcaoVigente(pid, eid) || "Sem dado",
+      resultado_anterior: resultadoAnterior(pid, eid) || "Sem dado",
       historico_atendimentos: t(sec.atendimentos),
       fora_do_pacote: ["nome, telefone, e-mail, CPF e endereço da paciente", "exames e documentos (não participam do HOLOSCAN nem desta análise)",
         "conteúdo da Carta ao Futuro Eu e nomes de terceiros", "hipóteses e observações só profissionais de Resultados anteriores"]
@@ -200,79 +219,56 @@
     return '<li class="hai-passo hai-passo-' + estado + '" data-hai-passo="' + n + '"><div class="hai-passo-num" aria-hidden="true">' + n + '</div>' +
       '<div class="hai-passo-corpo"><h4>' + e(titulo) + '</h4><p class="hai-passo-sub">' + e(sub) + "</p>" + corpo + "</div></li>";
   }
-  function htmlCampos(secao, v) {
-    if (typeof v === "string") return "";
-    if (!v || typeof v !== "object") return "";
-    var principal = { direcionamentos: "titulo", estrategias: "titulo", corpo: "resumo", mente: "resumo", espirito: "resumo" }[secao] || "texto";
-    var rot = { por_que: "Por que", objetivo: "Objetivo desta etapa", o_que_fazer: "O que fazer", o_que_observar: "O que observar", prazo: "Prazo",
-      criterio_sucesso: "Critério de sucesso", baseado_em: "Baseado em", classificacao: "Classificação", decisao_sugerida: "Decisão sugerida",
-      motivo_decisao: "Motivo", territorio: "Território", sistema: "Sistema", origem: "Origem", nota: "Nota", posicao: "Posição", o_que_apareceu: "O que apareceu",
-      como_cuidar: "Como cuidar", como_aplicar: "Como aplicar", o_que_procurar: "O que procurar", regra_id: "Regra", fonte: "Fonte", fontes: "Fontes",
-      situacao: "Situação", estrategias: "Estratégias", tipo: "Tipo", papel: "Papel", ferramenta: "Ferramenta", direcionamento_id: "Direcionamento", catalogo: "Catálogo",
-      estrategia_id: "Estratégia", o_que_esclareceu: "O que esclareceu" };
-    /* catalogo ("not_catalogued") fica so no JSON: na tela, o rotulo unico da secao (SUGESTAO HOLOS AI — REQUER REVISAO PROFISSIONAL) */
-    var fora = [principal, "id", "status", "ordem", "so_profissional", "catalogo"];
-    var linhas = Object.keys(v).filter(function (k) { return fora.indexOf(k) < 0 && v[k] !== null && v[k] !== "" && !(Array.isArray(v[k]) && !v[k].length); }).map(function (k) {
-      var val = Array.isArray(v[k]) ? v[k].join("; ") : k === "classificacao" ? (C().CLASSIFICACOES[v[k]] || v[k]) : typeof v[k] === "object" ? JSON.stringify(v[k]) : String(v[k]);
-      return "<dt>" + e(rot[k] || k) + "</dt><dd>" + e(val) + "</dd>";
-    }).join("");
-    return linhas ? '<dl class="hai-campos">' + linhas + "</dl>" : "";
+  /* o Resultado HOLOS gerado a partir desta importacao (o vigente: uma edicao vira versao nova, com as mesmas referencias) */
+  function resultadoDaImportacao(pid, imp) {
+    var R = window.ResultadoHolos; if (!R || !R.doPaciente || !imp) return null;
+    return R.doPaciente(pid).filter(function (r) {
+      return r.status !== "rascunho" && !r.superseded_at && r.encounter_id === imp.encounter_id && r.direcao && JSON.stringify(r.direcao).indexOf(imp.id) >= 0;
+    }).sort(function (a, b) { return String(b.saved_at || "").localeCompare(String(a.saved_at || "")); })[0] || null;
   }
-  function htmlItem(imp, it, aberta) {
-    var v = C().valorFinal(it), txt = C().textoDe(it.secao, v), editavel = aberta && tela.editando === it.id;
-    var est = it.estado, cls = { sugerido: "sug", confirmado: "ok", editado: "ed", descartado: "desc" }[est];
-    var h = '<li class="hai-item hai-item-' + cls + '" data-hai-item="' + e(it.id) + '">' +
-      '<div class="hai-item-topo">' + chip(ESTADO[est], cls) + (it.so_profissional ? chip("SÓ PROFISSIONAL", "prof") : "") +
-      (it.compartilhar ? chip("COMPARTILHAR COM A PACIENTE", "pac") : "") + (it.chave ? '<span class="hai-chave">' + e(it.chave) + "</span>" : "") + "</div>";
-    if (editavel) {
-      var campos = C().camposEditaveis(it.secao, it.valor_ia);
-      h += '<div class="hai-editor">' + campos.map(function (c) {
-        var atual = c === null ? (typeof v === "string" ? v : "") : (v && v[c]) || "";
-        return '<label class="hai-ed-campo"><span>' + e(c === null ? "Texto" : ({ titulo: "Título", texto: "Texto", resumo: "Resumo", por_que: "Por que", objetivo: "Objetivo", o_que_fazer: "O que fazer",
-          o_que_observar: "O que observar", prazo: "Prazo", criterio_sucesso: "Critério de sucesso" }[c] || c)) + '</span><textarea rows="' + (String(atual).length > 120 ? 4 : 2) + '" data-hai-campo="' + e(c === null ? "" : c) + '">' + e(atual) + "</textarea></label>";
-      }).join("") + '<div class="hai-acoes"><button type="button" class="btn-verde" data-hai-acao="salvar-edicao">Salvar edição</button>' +
-        '<button type="button" class="btn-fantasma" data-hai-acao="cancelar-edicao">Cancelar</button></div></div>';
-    } else {
-      h += '<p class="hai-item-texto">' + e(txt) + "</p>" + htmlCampos(it.secao, v);
-      if (est === "editado") h += '<details class="hai-original"><summary>Ver o original da HOLOS AI</summary><p>' + e(C().textoDe(it.secao, it.valor_ia)) + "</p>" + htmlCampos(it.secao, it.valor_ia) + "</details>";
+  /* DETALHES TECNICOS (fechado por padrao, so leitura): o que a IA devolveu, item a item, com a regra aplicada */
+  function htmlDetalhes(imps, atual) {
+    var html = '<details class="hai-detalhes" id="hai-detalhes"><summary>Detalhes técnicos da análise</summary>' +
+      '<p class="hai-nota">Registro interno (só profissional). O JSON original de cada importação fica guardado sem alteração; a regra fixa do método marca o que pode ir para a paciente. Hipóteses, conflitos, alertas, fontes, raciocínio, sistemas, ferramentas, roteiro e IDs nunca vão para a paciente.</p>' +
+      '<div class="hai-acoes"><button type="button" class="btn-link" data-hai-acao="ver-pacote">' + (tela.pacoteTxt ? "Esconder o Pacote" : "Ver o Pacote enviado") + "</button></div>" +
+      (tela.pacoteTxt ? '<pre class="hai-pacote" id="hai-pacote" tabindex="0">' + e(tela.pacoteTxt) + "</pre>" : "");
+    if (atual) {
+      var itens = itensDe(atual.id), cont = C().contagem(itens);
+      html += '<h5 class="hai-det-tit">Importação v' + e(atual.versao) + " " + chip(STATUS[atual.status], atual.status) +
+        (atual.aceite === "automatico" ? " " + chip("ACEITE AUTOMÁTICO", "ok") : atual.aceite === "revisao" || (atual.status === "confirmado" && !atual.aceite) ? " " + chip("REVISÃO MANUAL", "ed") : "") + "</h5>" +
+        '<p class="hai-rev-resumo">' + cont.total + " itens · " + cont.compartilhar + " elegíveis para a paciente · " + (cont.total - cont.compartilhar) + " internos</p>";
+      C().SECOES.forEach(function (sec) {
+        var doSec = itens.filter(function (x) { return x.secao === sec; });
+        if (!doSec.length) return;
+        html += '<div class="hai-det-secao" data-hai-secao="' + sec + '"><b>' + e(C().TITULO[sec] || sec) + "</b> " + (C().soProfissional(sec) ? chip("SÓ PROFISSIONAL", "prof") : "") +
+          '<ul class="hai-det-itens">' + doSec.map(function (it) {
+            return '<li data-hai-item="' + e(it.id) + '">' + (it.compartilhar ? chip("PACIENTE", "pac") : chip("INTERNO", "prof")) + " " + e(C().textoDe(it.secao, C().valorFinal(it))) + "</li>";
+          }).join("") + "</ul></div>";
+      });
     }
-    if (aberta && !editavel) {
-      h += '<div class="hai-acoes">' +
-        (est !== "confirmado" ? '<button type="button" class="btn-fantasma" data-hai-acao="confirmar">Confirmar</button>' : "") +
-        (C().camposEditaveis(it.secao, it.valor_ia).length ? '<button type="button" class="btn-fantasma" data-hai-acao="editar">Editar</button>' : "") +
-        (est !== "descartado" ? '<button type="button" class="btn-fantasma hai-btn-desc" data-hai-acao="descartar">Descartar</button>' : "") +
-        (est !== "sugerido" ? '<button type="button" class="btn-link" data-hai-acao="desfazer">Voltar a sugestão</button>' : "") +
-        (!it.so_profissional && (est === "confirmado" || est === "editado")
-          ? '<label class="hai-compartilhar"><input type="checkbox" data-hai-acao="compartilhar"' + (it.compartilhar ? " checked" : "") + "> Compartilhar com a paciente</label>"
-          : it.so_profissional ? '<span class="hai-so-prof">Só profissional: nunca vai para a paciente</span>' : "") +
-        "</div>";
+    if (imps.length) {
+      html += '<table class="hai-tabela"><thead><tr><th>Versão</th><th>Importada em</th><th>Status</th><th>Itens</th></tr></thead><tbody>' +
+        imps.map(function (i) { return "<tr><td>v" + i.versao + "</td><td>" + e(dataHora(i.imported_at)) + "</td><td>" + chip(STATUS[i.status], i.status) + "</td><td>" + itensDe(i.id).length + "</td></tr>"; }).join("") +
+        '</tbody></table><p class="hai-nota">sha256 da mais recente: ' + e(String(imps[0].texto_sha256 || "").slice(0, 12)) + "…</p>";
     }
-    return h + "</li>";
+    return html + "</details>";
   }
-  function htmlRevisao(imp) {
-    var itens = itensDe(imp.id), aberta = imp.status === "importado" || imp.status === "em_revisao";
-    var cont = C().contagem(itens);
-    var html = '<section class="hai-revisao" id="hai-revisao" data-hai-import="' + e(imp.id) + '">' +
-      '<div class="hai-rev-topo"><h4>Revisar análise · importação v' + e(imp.versao) + " " + chip(STATUS[imp.status], imp.status) + "</h4>" +
-      '<p class="hai-rev-resumo">' + cont.total + " itens · " + (cont.sugerido || 0) + " sugestões a revisar · " + ((cont.confirmado || 0) + (cont.editado || 0)) + " aceitos (" + (cont.editado || 0) +
-      " editados) · " + (cont.descartado || 0) + " descartados · " + cont.compartilhar + " para a paciente</p>" +
-      '<p class="hai-aviso">Tudo começa como SUGESTÃO HOLOS AI. Só o que você confirmar entra no Resultado HOLOS, e só o que você marcar para compartilhar chega à paciente. Hipóteses, alertas, fontes e o raciocínio da IA ficam só com você.</p></div>';
-    C().SECOES.forEach(function (sec) {
-      var doSec = itens.filter(function (x) { return x.secao === sec; });
-      if (!doSec.length) return;
-      var prof = C().soProfissional(sec);
-      html += '<fieldset class="hai-secao" data-hai-secao="' + sec + '"><legend>' + e(C().TITULO[sec] || sec) + (prof ? " " + chip("SÓ PROFISSIONAL", "prof") : "") +
-        (sec === "direcionamentos" || sec === "estrategias" ? " " + chip("SUGESTÃO HOLOS AI — REQUER REVISÃO PROFISSIONAL", "sug") : "") + "</legend>" +
-        (aberta ? '<div class="hai-secao-lote"><button type="button" class="btn-link" data-hai-acao="confirmar-secao">Confirmar todos desta seção</button>' +
-          '<button type="button" class="btn-link" data-hai-acao="descartar-secao">Descartar todos desta seção</button></div>' : "") +
-        '<ul class="hai-itens">' + doSec.map(function (it) { return htmlItem(imp, it, aberta); }).join("") + "</ul></fieldset>";
-    });
-    if (aberta) {
-      html += '<div class="hai-rev-fim"><button type="button" class="btn-verde" data-hai-acao="concluir"' + (cont.sugerido ? ' disabled title="Revise todos os itens antes de concluir"' : "") + ">Concluir revisão</button>" +
-        '<button type="button" class="btn-fantasma hai-btn-desc" data-hai-acao="descartar-import">Descartar esta importação</button>' +
-        (cont.sugerido ? '<span class="hai-pend">' + cont.sugerido + " itens ainda como sugestão</span>" : "") + "</div>";
+  function htmlPronto(pid, imp, res) {
+    var bloq = arquivado();
+    if (res) {
+      return '<section class="hai-pronto" id="hai-pronto" aria-labelledby="hai-pronto-t"><h4 id="hai-pronto-t">' + chip("RESULTADO PRONTO", "ok") + " Resultado HOLOS deste atendimento</h4>" +
+        '<p class="hai-nota">Montado automaticamente a partir da análise v' + e(imp.versao) + " (" + e(dataHora(res.saved_at)) + "). Só o que a regra do método permite chega à paciente.</p>" +
+        (tela.avisos.length ? '<div class="hai-aviso"><b>Avisos da análise (não impedem):</b><ul>' + tela.avisos.map(function (x) { return "<li>" + e(x) + "</li>"; }).join("") + "</ul></div>" : "") +
+        '<div class="hai-acoes"><button type="button" class="btn-verde" data-hai-acao="ver-resultado" data-hai-res="' + e(res.id) + '">Ver resultado</button>' +
+        '<button type="button" class="btn-verde" data-hai-acao="pdf"' + (bloq ? " disabled" : "") + ">Gerar PDF</button>" +
+        '<button type="button" class="btn-fantasma" data-hai-acao="editar-resultado" data-hai-res="' + e(res.id) + '"' + (bloq ? " disabled" : "") + ">Editar resultado</button></div></section>";
     }
-    return html + "</section>";
+    /* importacao aceita sem Resultado (ex.: faltava o HOLOSCAN salvo) ou importacao antiga ainda em revisao: um clique resolve */
+    var antiga = imp.status === "importado" || imp.status === "em_revisao";
+    return '<section class="hai-pronto hai-pronto-pendente" id="hai-pronto"><h4>' + chip("RESULTADO AINDA NÃO GERADO", "sug") + " Análise v" + e(imp.versao) + "</h4>" +
+      (tela.falha ? '<p class="hai-erro" role="alert">' + e(tela.falha) + "</p>" : "") +
+      '<div class="hai-acoes"><button type="button" class="btn-verde" data-hai-acao="gerar" data-hai-import="' + e(imp.id) + '"' + (bloq ? " disabled" : "") + ">" +
+      (antiga ? "Aceitar análise e gerar resultado" : "Gerar resultado") + "</button></div></section>";
   }
   function desenhar(alvo) {
     alvo = alvo || document.getElementById("hai-ponte");
@@ -280,23 +276,22 @@
     var pid = pacienteId();
     if (!pid || pid === "_sem_paciente") { alvo.innerHTML = ""; return; }
     if (cache.pid !== pid || !cache.carregado) {
-      if (cache.pid !== pid) tela = { eid: null, texto: {}, erros: [], avisos: [], aberto: null, editando: null, ocupado: false, pacoteTxt: "" };
+      if (cache.pid !== pid) tela = { eid: null, texto: {}, erros: [], avisos: [], ocupado: false, pacoteTxt: "", falha: "" };
       alvo.innerHTML = '<section class="hai-ponte"><p class="dash-vazio">Carregando a HOLOS AI…</p></section>';
       var R = window.ResultadoHolos;
       Promise.all([carregar(pid), R && R.carregar ? Promise.resolve(R.carregar(pid)).catch(function () {}) : null]).then(function () { if (pacienteId() === pid) desenhar(); });
       return;
     }
     var eid = atendimentoEscolhido(pid), lista = atendimentos(pid);
-    var imps = eid ? importsDoAtendimento(eid) : [], atual = imps[0] || null;
-    if (tela.aberto && !importPorId(tela.aberto)) tela.aberto = null;
-    var revisando = tela.aberto ? importPorId(tela.aberto) : (atual && (atual.status === "importado" || atual.status === "em_revisao" || atual.status === "confirmado") ? atual : null);
-    var confirmada = imps.filter(function (i) { return i.status === "confirmado"; })[0] || null;
+    var imps = eid ? importsDoAtendimento(eid) : [];
+    var vigente = imps.filter(function (i) { return i.status !== "descartado"; })[0] || null;
+    var res = vigente && vigente.status === "confirmado" ? resultadoDaImportacao(pid, vigente) : null;
     var urls = window.HolosAI && window.HolosAI.urls ? window.HolosAI.urls() : {};
     var bloq = arquivado();
 
     var html = '<section class="hai-ponte" aria-labelledby="hai-titulo">' +
       '<div class="hai-cab"><div><h3 id="hai-titulo">HOLOS AI do atendimento</h3>' +
-      '<p class="hai-sub">A HOLOS AI sugere. Você revisa e decide. O que você confirmar vira o Resultado HOLOS — a HOLOS AI não o substitui.</p></div>' +
+      '<p class="hai-sub">Mande os dados da consulta para a HOLOS AI, traga a resposta e o Resultado HOLOS fica pronto.</p></div>' +
       (lista.length ? '<label class="hai-at"><span>Atendimento</span><select id="hai-atendimento">' + lista.map(function (x) {
         return '<option value="' + e(x.id) + '"' + (x.id === eid ? " selected" : "") + ">" + e(rotuloAt(x)) + "</option>";
       }).join("") + "</select></label>" : "") + "</div>";
@@ -304,42 +299,25 @@
       html += '<p class="hai-aviso">Inicie um atendimento para usar a HOLOS AI (a análise fica ligada a um atendimento).</p></section>';
       alvo.innerHTML = html; return;
     }
-    if (cache.erro) html += '<p class="hai-erro" role="alert">Não foi possível carregar as importações da HOLOS AI. Recarregue a aba.</p>';
+    if (cache.erro) html += '<p class="hai-erro" role="alert">Não foi possível carregar as análises da HOLOS AI. Recarregue a aba.</p>';
     if (bloq) html += '<p class="hai-aviso">' + e(MSG.paciente_arquivado) + "</p>";
     var texto = tela.texto[eid] || "";
     html += '<ol class="hai-passos">' +
-      passo(1, "Copiar Pacote HOLOS AI", "Só dados já registrados: Mapeamento, HOLOSCAN, ferramentas, leitura profissional, Conduta, direção atual e histórico. Sem nome, contatos ou exames.",
-        '<div class="hai-acoes"><button type="button" class="btn-verde" data-hai-acao="copiar-pacote">Copiar Pacote HOLOS AI</button>' +
-        '<button type="button" class="btn-link" data-hai-acao="ver-pacote">' + (tela.pacoteTxt ? "Esconder o pacote" : "Ver o pacote") + "</button></div>" +
-        (tela.pacoteTxt ? '<pre class="hai-pacote" id="hai-pacote" tabindex="0">' + e(tela.pacoteTxt) + "</pre>" : ""), "pronto") +
-      passo(2, "Abrir HOLOS AI", "Abra o agente HOLOS AI, cole o Pacote e peça a análise. Ele devolve um texto e um bloco JSON.",
+      passo(1, "Copiar Pacote HOLOS AI", "Mapeamento, HOLOSCAN, ferramentas, Conduta e o resultado anterior. Sem nome, contatos ou exames.",
+        '<div class="hai-acoes"><button type="button" class="btn-verde" data-hai-acao="copiar-pacote">Copiar Pacote HOLOS AI</button></div>', "pronto") +
+      passo(2, "Abrir HOLOS AI", "Cole o Pacote no agente HOLOS AI e copie a resposta inteira.",
         '<div class="hai-acoes">' + (urls.chatgpt ? '<a class="btn-fantasma" id="hai-abrir" href="' + e(urls.chatgpt) + '" target="_blank" rel="noopener noreferrer">Abrir HOLOS AI</a>'
           : '<span class="btn-fantasma hai-indisp" aria-disabled="true" title="O endereço do agente ainda não foi configurado">Abrir HOLOS AI <small>(endereço não configurado — abra o seu GPT HOLOS AI)</small></span>') + "</div>", "pronto") +
-      passo(3, "Importar Resultado HOLOS AI", "Cole o JSON HOLOS_AI_RESULT (pode colar a resposta inteira: o primeiro bloco ```json``` é usado). Nada é salvo se o JSON estiver inválido.",
-        '<label class="hai-colar"><span>Cole aqui o JSON HOLOS_AI_RESULT</span><textarea id="hai-json" rows="9" spellcheck="false" placeholder="{ &quot;schema_version&quot;: 1, &quot;tipo&quot;: &quot;primeira_consulta&quot;, … }">' + e(texto) + "</textarea></label>" +
+      passo(3, "Colar resultado HOLOS AI", "Cole a resposta inteira (o bloco ```json``` é usado). Se o JSON estiver inválido, nada é salvo.",
+        '<label class="hai-colar"><span class="hai-sr">Colar resultado HOLOS AI</span><textarea id="hai-json" rows="7" spellcheck="false" aria-label="Colar resultado HOLOS AI" placeholder="Cole aqui a resposta da HOLOS AI">' + e(texto) + "</textarea></label>" +
         (tela.erros.length ? '<div class="hai-erro" role="alert"><b>Não importado.</b><ul>' + tela.erros.slice(0, 15).map(function (x) { return "<li>" + e(x) + "</li>"; }).join("") +
           (tela.erros.length > 15 ? "<li>… e mais " + (tela.erros.length - 15) + "</li>" : "") + "</ul><p>O texto colado continua acima para você corrigir.</p></div>" : "") +
-        (tela.avisos.length ? '<div class="hai-aviso"><b>Avisos (não impedem):</b><ul>' + tela.avisos.map(function (x) { return "<li>" + e(x) + "</li>"; }).join("") + "</ul></div>" : "") +
-        '<div class="hai-acoes"><button type="button" class="btn-verde" data-hai-acao="importar"' + (bloq ? " disabled" : "") + ">Validar e importar</button>" +
-        (atual && atual.status !== "descartado" ? '<span class="hai-nota">Já existe a importação v' + atual.versao + " (" + STATUS[atual.status] + "). Uma nova vira v" + (atual.versao + 1) + "; a anterior fica no histórico.</span>" : "") + "</div>",
-        atual ? "feito" : "pronto") +
-      passo(4, "Revisar análise", "Confirme, edite ou descarte cada sugestão; marque o que pode ir para a paciente. Depois, conclua a revisão.",
-        revisando ? '<p class="hai-nota">Importação v' + revisando.versao + " " + chip(STATUS[revisando.status], revisando.status) + "</p>" : '<p class="hai-nota">Importe um resultado para revisar.</p>',
-        revisando ? (revisando.status === "confirmado" ? "feito" : "pronto") : "bloqueado") +
-      passo(5, "Gerar Resultado HOLOS", "O que você confirmou entra no Resultado HOLOS deste atendimento (rascunho). Lá você confirma o Foco atual, finaliza e emite o PDF oficial.",
-        '<div class="hai-acoes"><button type="button" class="btn-verde" data-hai-acao="gerar"' + (confirmada && !bloq ? ' data-hai-import="' + e(confirmada.id) + '"' : " disabled") + ">Gerar Resultado HOLOS</button>" +
-        (confirmada ? '<span class="hai-nota">Usa a importação v' + confirmada.versao + " (confirmada em " + e(dataHora(confirmada.concluida_em)) + ").</span>" : '<span class="hai-nota">Disponível depois de concluir a revisão.</span>') + "</div>",
-        confirmada ? "pronto" : "bloqueado") +
+        '<div class="hai-acoes"><button type="button" class="btn-verde" data-hai-acao="importar"' + (bloq ? " disabled" : "") + ">Importar e gerar resultado</button>" +
+        (vigente ? '<span class="hai-nota">Uma nova análise vira a versão ' + (imps[0].versao + 1) + " e um Resultado novo; o anterior fica no histórico.</span>" : "") + "</div>",
+        vigente ? "feito" : "pronto") +
       "</ol>";
-    if (revisando) html += htmlRevisao(revisando);
-    if (imps.length) {
-      html += '<section class="hai-hist"><h4>Importações deste atendimento</h4><table class="hai-tabela"><thead><tr><th>Versão</th><th>Importada em</th><th>Status</th><th>Itens</th><th></th></tr></thead><tbody>' +
-        imps.map(function (i) {
-          var c = C().contagem(itensDe(i.id));
-          return "<tr><td>v" + i.versao + "</td><td>" + e(dataHora(i.imported_at)) + "</td><td>" + chip(STATUS[i.status], i.status) + "</td><td>" + c.total + " (" + ((c.confirmado || 0) + (c.editado || 0)) + " aceitos)</td>" +
-            '<td><button type="button" class="btn-link" data-hai-acao="abrir" data-hai-import="' + e(i.id) + '">' + (revisando && revisando.id === i.id ? "Aberta" : "Abrir") + "</button></td></tr>";
-        }).join("") + "</tbody></table><p class=\"hai-nota\">O JSON original de cada importação fica guardado sem alteração (sha256 " + e(String(imps[0].texto_sha256 || "").slice(0, 12)) + "… na mais recente).</p></section>";
-    }
+    if (vigente) html += htmlPronto(pid, vigente, res);
+    html += htmlDetalhes(imps, vigente || imps[0] || null);
     alvo.innerHTML = html + "</section>";
   }
 
@@ -349,85 +327,53 @@
     tela.ocupado = true; if (btn && window.travarBotao) window.travarBotao(btn, "Aguarde…");
     return Promise.resolve(p).then(function (x) { tela.ocupado = false; return x; }, function (err) { tela.ocupado = false; throw err; });
   }
-  function recarregar() { var pid = pacienteId(); return carregar(pid).then(function () { desenhar(); }); }
-  function revisarItem(id, estado, valor, compartilhar) {
-    return rpc("revisar_item_holos_ai", { p_item_id: id, p_estado: estado, p_valor: valor === undefined ? null : valor, p_compartilhar: !!compartilhar });
+  /* aceitar (regra fixa) + montar o Resultado HOLOS finalizado. Sem nenhuma confirmacao item a item. */
+  function aceitarEGerar(pid, importId) {
+    var R = window.ResultadoHolos;
+    tela.falha = "";
+    return rpc("aceitar_importacao_holos_ai", { p_import_id: importId }).then(function () { return carregar(pid); }).then(function () {
+      var imp = importPorId(importId);
+      if (!R || !R.gerarAutomatico) return { salvo: false, mensagem: "O módulo do Resultado HOLOS não carregou." };
+      return R.gerarAutomatico(imp, itensDe(importId));
+    }).then(function (r) {
+      if (!r || !r.salvo) tela.falha = (r && r.mensagem) || "Não foi possível montar o Resultado agora.";
+      else toast("Resultado HOLOS pronto.");
+      desenhar();
+      if (r && r.salvo) { var p = document.getElementById("hai-pronto"); if (p && p.scrollIntoView) p.scrollIntoView({ block: "center" }); }
+      return r;
+    });
   }
   function importar(btn) {
     var pid = pacienteId(), eid = tela.eid, texto = lerTexto();
-    tela.erros = []; tela.avisos = [];
+    tela.erros = []; tela.avisos = []; tela.falha = "";
     var x = C().extrairJson(texto);
     if (!x.json) { tela.erros = [x.erro]; return desenhar(); }
     var v = C().validar(x.json);
     if (v.erros.length) { tela.erros = (v.incompativel ? [MSG.schema_incompativel] : [MSG.resultado_invalido]).concat(v.erros); return desenhar(); }
     tela.avisos = v.avisos;
-    return travar(rpc("importar_holos_ai", { p_encounter_id: eid, p_texto: texto, p_operation_id: uuid() }), btn).then(function (r) {
-      tela.texto[eid] = ""; tela.aberto = r && r.id ? r.id : null; tela.editando = null;
-      toast("Resultado HOLOS AI importado (v" + (r && r.versao) + "). Revise cada item.");
-      return carregar(pid).then(function () { desenhar(); var rv = document.getElementById("hai-revisao"); if (rv && rv.scrollIntoView) rv.scrollIntoView({ block: "start" }); });
-    }, function (err) { tela.erros = [msgErro(err)]; desenhar(); });
+    return travar(rpc("importar_holos_ai", { p_encounter_id: eid, p_texto: texto, p_operation_id: uuid() }).then(function (r) {
+      tela.texto[eid] = "";
+      return carregar(pid).then(function () { return aceitarEGerar(pid, r.id); });
+    }), btn).then(null, function (err) { tela.erros = [msgErro(err)]; desenhar(); });
   }
   function acao(nome, el) {
     if (tela.ocupado) return;
-    var li = el.closest("[data-hai-item]"), itemId = li ? li.getAttribute("data-hai-item") : null;
-    var it = itemId ? cache.itens.filter(function (x) { return x.id === itemId; })[0] : null;
-    var falhou = function (err) { toast(msgErro(err)); return recarregar(); };
+    var R = window.ResultadoHolos;
     if (nome === "copiar-pacote" || nome === "ver-pacote") {
       var txt = JSON.stringify(montarPacote(pacienteId(), tela.eid), null, 2);
-      if (nome === "ver-pacote") { tela.pacoteTxt = tela.pacoteTxt ? "" : txt; lerTexto(); return desenhar(); }
+      if (nome === "ver-pacote") { tela.pacoteTxt = tela.pacoteTxt ? "" : txt; lerTexto(); desenhar(); var d = document.getElementById("hai-detalhes"); if (d) d.open = true; return; }
       tela.pacoteTxt = txt; lerTexto();
       return copiar(txt, el, "Copiar Pacote HOLOS AI");
     }
     if (nome === "importar") return importar(el);
-    if (nome === "abrir") { tela.aberto = el.getAttribute("data-hai-import"); tela.editando = null; lerTexto(); return desenhar(); }
-    if (nome === "editar") { tela.editando = itemId; lerTexto(); return desenhar(); }
-    if (nome === "cancelar-edicao") { tela.editando = null; return desenhar(); }
-    if (nome === "salvar-edicao" && it) {
-      var areas = [].slice.call(li.querySelectorAll("[data-hai-campo]")), valor;
-      if (typeof it.valor_ia === "string") valor = areas[0] ? areas[0].value : "";
-      else { valor = {}; areas.forEach(function (a) { var c = a.getAttribute("data-hai-campo"), orig = (C().valorFinal(it) || {})[c]; if (a.value !== (orig || "")) valor[c] = a.value; }); }
-      if (valor && typeof valor === "object" && !Object.keys(valor).length) { tela.editando = null; return desenhar(); }
-      return travar(revisarItem(it.id, "editado", valor, it.compartilhar), el).then(function () { tela.editando = null; return recarregar(); }, falhou);
+    if (nome === "gerar") return travar(aceitarEGerar(pacienteId(), el.getAttribute("data-hai-import")), el).then(null, function (err) { tela.falha = msgErro(err); desenhar(); });
+    if (nome === "ver-resultado") { if (R && R.abrirResultado) R.abrirResultado(el.getAttribute("data-hai-res"), "paciente"); return; }
+    if (nome === "editar-resultado") { if (R && R.abrirResultado) R.abrirResultado(el.getAttribute("data-hai-res"), null, true); return; }
+    if (nome === "pdf") {
+      var P = window.ResultadoPagina;
+      if (!P || !P.emitirEPdf) return toast("A página do Resultado não carregou.");
+      return travar(P.emitirEPdf(), el).then(null, function () { /* a pagina ja avisou */ });
     }
-    if ((nome === "confirmar" || nome === "descartar" || nome === "desfazer") && it) {
-      var est = { confirmar: "confirmado", descartar: "descartado", desfazer: "sugerido" }[nome];
-      return travar(revisarItem(it.id, est, null, false), el).then(recarregar, falhou);
-    }
-    if (nome === "compartilhar" && it) {
-      return travar(revisarItem(it.id, it.estado, it.estado === "editado" ? diffEditado(it) : null, el.checked), null).then(recarregar, falhou);
-    }
-    if (nome === "confirmar-secao" || nome === "descartar-secao") {
-      var sec = el.closest("[data-hai-secao]").getAttribute("data-hai-secao"), iid = el.closest("[data-hai-import]").getAttribute("data-hai-import");
-      var alvos = itensDe(iid).filter(function (x) { return x.secao === sec && x.estado === "sugerido"; });
-      var estS = nome === "confirmar-secao" ? "confirmado" : "descartado";
-      return travar(alvos.reduce(function (p, x) { return p.then(function () { return revisarItem(x.id, estS, null, false); }); }, Promise.resolve()), el).then(recarregar, falhou);
-    }
-    if (nome === "concluir" || nome === "descartar-import") {
-      var imp = importPorId(el.closest("[data-hai-import]").getAttribute("data-hai-import"));
-      var rp = nome === "concluir" ? "concluir_revisao_holos_ai" : "descartar_importacao_holos_ai";
-      var pergunta = nome === "concluir" ? "Concluir a revisão? Depois disso os itens não mudam mais. O que foi confirmado pode entrar no Resultado HOLOS."
-        : "Descartar esta importação? Ela fica no histórico, mas nada dela entra no Resultado HOLOS.";
-      return confirmar(nome === "concluir" ? "Concluir revisão" : "Descartar importação", pergunta).then(function (ok) {
-        if (!ok) return;
-        return travar(rpc(rp, { p_import_id: imp.id }), el).then(function () { toast(nome === "concluir" ? "Revisão concluída. Agora gere o Resultado HOLOS." : "Importação descartada."); return recarregar(); }, falhou);
-      });
-    }
-    if (nome === "gerar") {
-      var impG = importPorId(el.getAttribute("data-hai-import"));
-      var R = window.ResultadoHolos;
-      if (!impG || !R || !R.receberHolosAI) return;
-      return travar(R.receberHolosAI(impG, itensDe(impG.id)), el).then(function (r) { return r; }, falhou);
-    }
-  }
-  /* compartilhar um item editado reenvia so os campos editados (o servidor junta com o original da IA) */
-  function diffEditado(it) {
-    if (typeof it.valor_ia === "string") return it.valor_profissional;
-    var o = {}; (C().camposEditaveis(it.secao, it.valor_ia) || []).forEach(function (c) { if (c && it.valor_profissional && it.valor_profissional[c] !== it.valor_ia[c]) o[c] = it.valor_profissional[c]; });
-    return Object.keys(o).length ? o : (function () { var c = C().camposEditaveis(it.secao, it.valor_ia)[0]; var x = {}; x[c] = it.valor_profissional[c]; return x; })();
-  }
-  function confirmar(titulo, texto) {
-    if (window.abrirModalConfirmar) return Promise.resolve(window.abrirModalConfirmar({ titulo: titulo, corpo: "<p>" + e(texto) + "</p>", botaoConfirmar: titulo })).then(function (r) { return r === "confirmar"; });
-    return Promise.resolve(window.confirm(texto));
   }
 
   document.addEventListener("click", function (ev) {
@@ -439,8 +385,7 @@
   });
   document.addEventListener("change", function (ev) {
     var raiz = document.getElementById("hai-ponte"); if (!raiz || !raiz.contains(ev.target)) return;
-    if (ev.target.id === "hai-atendimento") { lerTexto(); tela.eid = ev.target.value; tela.aberto = null; tela.editando = null; tela.erros = []; tela.avisos = []; return desenhar(); }
-    if (ev.target.matches('input[data-hai-acao="compartilhar"]')) acao("compartilhar", ev.target);
+    if (ev.target.id === "hai-atendimento") { lerTexto(); tela.eid = ev.target.value; tela.erros = []; tela.avisos = []; tela.falha = ""; return desenhar(); }
   });
   document.addEventListener("input", function (ev) { if (ev.target && ev.target.id === "hai-json") lerTexto(); });
   document.addEventListener("DOMContentLoaded", function () {
@@ -448,7 +393,7 @@
   });
 
   window.HolosAIPonte = {
-    desenhar: desenhar, carregar: carregar, montarPacote: montarPacote, importsDoAtendimento: importsDoAtendimento, itensDe: itensDe,
+    desenhar: desenhar, carregar: carregar, montarPacote: montarPacote, importsDoAtendimento: importsDoAtendimento, itensDe: itensDe, resultadoDaImportacao: resultadoDaImportacao,
     esquecer: function () { cache = { pid: null, imports: [], itens: [], carregado: false, erro: null }; },
     estado: function () { return { cache: cache, tela: tela }; }
   };

@@ -700,12 +700,15 @@
     var linhas = doPaciente(pid);
     var arq = arquivado();
     var html = cabecalho() + '<div class="rh-acoes-topo">' +
-      '<button type="button" class="btn-verde" data-rh-acao="novo"' + (arq || !temSupa() ? " disabled" : "") + ">Gerar Resultado HOLOS</button>" +
-      (arq ? '<span class="dash-sub">' + e(MSG_HINT.paciente_arquivado) + "</span>" : "") + "</div>";
+      /* simplificacao 14/10: o Resultado nasce da aba HOLOS AI (importar e gerar); a montagem manual fica como recurso avancado */
+      '<button type="button" class="btn-verde" data-rh-acao="ir-holos-ai"' + (arq || !temSupa() ? " disabled" : "") + ">Gerar pela HOLOS AI</button>" +
+      (arq ? '<span class="dash-sub">' + e(MSG_HINT.paciente_arquivado) + "</span>" : "") +
+      '<details class="rh-manual"><summary>Montar manualmente (avançado)</summary><p class="dash-sub">Sem a HOLOS AI: você escolhe as fontes e monta cada parte.</p>' +
+      '<button type="button" class="btn-fantasma" data-rh-acao="novo"' + (arq || !temSupa() ? " disabled" : "") + ">Montar Resultado HOLOS manualmente</button></details></div>";
     if (!temSupa()) return html + '<p class="dash-vazio">O Resultado HOLOS fica no servidor: entre com a sua conta para gerar e consultar.</p>';
     if (cache.erro) return html + '<p class="q-erro">Não foi possível carregar os Resultados HOLOS: ' + e(mensagemErro(cache.erro)) + "</p>";
     html += '<section class="rh-historico" aria-labelledby="rh-t-hist"><h4 id="rh-t-hist" class="dash-titulo">Histórico de Resultados HOLOS</h4>';
-    if (!linhas.length) return html + '<p class="dash-vazio">Nenhum Resultado HOLOS ainda. Ele é gerado depois do HOLOSCAN e das ferramentas, antes da Conduta e do Relatório.</p></section>';
+    if (!linhas.length) return html + '<p class="dash-vazio">Nenhum Resultado HOLOS ainda. Ele é gerado na aba HOLOS AI: copie o Pacote, traga a resposta da HOLOS AI e importe — o Resultado fica pronto.</p></section>';
     html += '<ul class="rh-hist-lista">' + linhas.map(function (r) {
       var s = r.content_snapshot || {}, sel = r.selected_sources || {};
       var nF = r.status === "rascunho" ? (sel.tool_application_ids || []).length : (s.ferramentas || []).length;
@@ -840,6 +843,7 @@
     if (nome === "ver") { vendo = { id: btn.dataset.rhId, visao: btn.dataset.rhVisao || "profissional" }; modo = "ver"; return pintar(); }
     if (nome === "nova-versao") { form = novoForm(pid, porId(vendo.id)); previa = null; vendo = null; modo = "editar"; return pintar(); }
     if (nome === "imprimir") return imprimir();
+    if (nome === "ir-holos-ai") { var ah = document.querySelector('[data-aba="holos-ai"]'); if (ah) ah.click(); return; }
     if (nome === "ir-conduta") { var ab = document.querySelector('[data-aba="conduta"]'); if (ab) ab.click(); return; }
     var travar = function (p) {
       ocupado = true; if (btn && window.travarBotao) window.travarBotao(btn, "Aguarde…");
@@ -992,8 +996,86 @@
     });
   }
 
+  /* SIMPLIFICACAO DEFINITIVA (14/10): importacao HOLOS AI ACEITA pela regra fixa (aceitar_importacao_holos_ai) vira o
+     Resultado HOLOS FINALIZADO deste atendimento, sem montagem manual:
+       - HOLOSCAN: a aplicacao oficial salva do mesmo atendimento; senao a oficial mais recente (o servidor confere);
+       - ferramentas concluidas do atendimento entram como fonte (registro), nunca como conteudo da paciente (mostrar = nao);
+       - Mapeamento/anamnese (momento, o que pesa, o que quer, avancos, o que permaneceu) e acordos da Conduta entram
+         confirmados e para a paciente (sao o relato dela e o combinado), menos texto com termo fora do metodo;
+       - da HOLOS AI: o que a regra fixa marcou como elegivel vai para a paciente; o resto fica interno (registro);
+       - foco = 1o direcionamento elegivel, confirmado; a sintese integrada fica so na leitura profissional.
+     Nova importacao no mesmo atendimento = nova versao do Resultado (a anterior continua no historico). */
+  var LISTAS_RELATO = ["momento", "dores", "desejos", "avancos", "permaneceu", "acordos_compartilhados"];
+  var ORIGENS_RELATO = ["relato_paciente", "acordo", "resultado_anterior"];
+  var LIMITE_PACIENTE = { momento: 2, dores: 3, desejos: 2, avancos: 3, permaneceu: 3, padroes: 3, direcionamentos: 3, estrategias: 4,
+    corpo: 2, mente: 2, espirito: 2, acordos_compartilhados: 3, observar: 4 };
+  function gerarAutomatico(imp, itens) {
+    var C = window.HolosAIContrato, pid = imp && imp.patient_id || pacienteId();
+    if (!C || !RD() || !imp || imp.status !== "confirmado") return Promise.resolve({ salvo: false, motivo: "importacao_nao_confirmada" });
+    return carregar(pid).then(function () {
+      var f = novoForm(pid, null);
+      f.encounter_id = imp.encounter_id;
+      var hs = aplicacoesHoloscan(pid).filter(function (h) { return h.oficial; });
+      var h = hs.filter(function (x) { return x.encounter_id === imp.encounter_id; })[0] || hs[0];
+      if (!h) return { salvo: false, motivo: "holoscan_obrigatorio", mensagem: MSG_HINT.holoscan_obrigatorio };
+      f.holoscan_application_id = h.id;
+      var visto = {};
+      f.tools = aplicacoesFerramentas(pid).filter(function (a) {
+        if (a.encounter_id !== imp.encounter_id || visto[a.ferramenta_id]) return false;
+        visto[a.ferramenta_id] = true; return true;
+      }).map(function (a) { return a.id; });
+      f.compartilhar_pp = false;
+      f.direcao = RD().normalizar(null, imp.tipo === "retorno" ? "retorno" : tipoEncontro(pid, imp.encounter_id));
+      var finais = doPaciente(pid).filter(function (r) { return r.status !== "rascunho" && r.encounter_id === imp.encounter_id && !r.superseded_at; })
+        .filter(function (r) { return !cache.linhas.some(function (x) { return x.supersedes_id === r.id; }); })
+        .sort(function (a, b) { return String(b.saved_at || "").localeCompare(String(a.saved_at || "")); });
+      f.supersedes_id = finais[0] ? finais[0].id : null;
+      return rpc("previa_resultado_holos", { payload: payloadDe(f) }).then(function (snap) {
+        /* 1. o relato da paciente e o combinado (registros existentes, com referencia) */
+        var Ssis = RD().sugestoes(contextoSugestoes(pid, f, snap)), Srel = {}, nRel = 0;
+        LISTAS_RELATO.forEach(function (k) {
+          Srel[k] = (Ssis[k] || []).filter(function (it) { return it && ORIGENS_RELATO.indexOf(it.origem) >= 0; }).map(function (it) {
+            nRel++;
+            return Object.assign({}, it, { confirmado: true, mostrar_paciente: !RD().termosFora(it.texto).length, descartado: false });
+          });
+        });
+        RD().mesclar(f.direcao, Srel);
+        /* 2. a analise da HOLOS AI pela regra fixa */
+        var m = C.paraDirecao(imp, itens, { automatico: true });
+        RD().mesclar(f.direcao, m.S);
+        /* PDF simples (2 a 4 paginas): cada lista da paciente leva no maximo LIMITE_PACIENTE itens, na ordem da analise
+           (o_que_observar antes do plano de acompanhamento). O excedente fica no registro, interno — nada se perde. */
+        Object.keys(LIMITE_PACIENTE).forEach(function (k) {
+          var l = k === "corpo" || k === "mente" || k === "espirito" ? (f.direcao[k] || {}).itens : f.direcao[k], n = 0;
+          (l || []).forEach(function (it) { if (it.mostrar_paciente && ++n > LIMITE_PACIENTE[k]) it.mostrar_paciente = false; });
+        });
+        if (m.foco) f.direcao.foco_atual = m.foco;
+        if (m.proxima_etapa) f.direcao.proxima_etapa = m.proxima_etapa;
+        f.leitura_profissional = m.leitura ? "Síntese HOLOS AI (importação v" + imp.versao + ", aceite automático): " + m.leitura : "";
+        if (!RD().focoConfirmado(f.direcao)) return { salvo: false, motivo: "sem_foco", mensagem: "A análise da HOLOS AI não trouxe nenhum direcionamento: sem foco, o Resultado não fica pronto. Gere a análise de novo." };
+        return rpc("salvar_resultado_holos", { payload: Object.assign(payloadDe(f), { operation_id: uuid() }) }).then(function (id) {
+          return carregar(pid).then(function () {
+            form = null; previa = null; vendo = { id: id, visao: "paciente" }; modo = "ver";
+            return { salvo: true, id: id, relato: nRel, retidos: m.retidos.length, substituiu: f.supersedes_id };
+          });
+        });
+      });
+    }).catch(function (err) { return { salvo: false, motivo: "erro", erro: err, mensagem: mensagemErro(err) }; });
+  }
+  /* abre a aba Resultado HOLOS ja na versao pedida (visao da paciente por padrao) ou no editor de nova versao */
+  function abrirResultado(id, visao, editar) {
+    var r = porId(id);
+    if (!r) return false;
+    previa = null;
+    if (editar) { form = novoForm(pacienteId(), r); vendo = null; modo = "editar"; }
+    else { form = null; vendo = { id: id, visao: visao || "paciente" }; modo = "ver"; }
+    var ab = document.querySelector('[data-aba="resultado-holos"]');
+    if (ab) ab.click(); else pintar();
+    return true;
+  }
+
   window.ResultadoHolos = {
-    receberHolosAI: receberHolosAI,
+    receberHolosAI: receberHolosAI, gerarAutomatico: gerarAutomatico, abrirResultado: abrirResultado,
     desenhar: desenhar, carregar: carregar, doPaciente: doPaciente, porId: porId,
     documentoHtml: documentoHtml, radarSvg: radarSvg, contextoSugestoes: contextoSugestoes, formAtual: function () { return form; }, AVISO_INDICE: AVISO_INDICE, FAIXA_PACIENTE: FAIXA_PACIENTE, relatorioProfissionalHtml: relatorioProfissionalHtml,
     /** para o Relatorio e, no futuro, a HOLOS AI: o snapshot salvo, estruturado (nunca a ficha viva) */

@@ -144,5 +144,10 @@ cd "$(dirname "$0")/.."
     grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
   done
   cat supabase/tests/holos-ai-ponte-harness.sql
+  # HOLOS AI -> Resultado automatico (20261024100000): aceite pela regra fixa do metodo, sem revisao item a item.
+  for f in supabase/migrations/2026102410*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/holos-ai-automatico-harness.sql
   echo "rollback;"
 } | psql -U postgres -d base -v ON_ERROR_STOP=1 -At | tr '|' '\n' | sed 's/^ //'

@@ -5,6 +5,7 @@ raiz = pathlib.Path(__file__).resolve().parent.parent
 ex = (raiz / 'docs/v1/holos-ai-gpt/exemplo-resultado.json').read_text(encoding='utf-8')
 assert '$J$' not in ex
 json.loads(ex)
-modelo = (raiz / 'scripts/holos-ai-ponte-harness.modelo.sql').read_text(encoding='utf-8')
-(raiz / 'supabase/tests/holos-ai-ponte-harness.sql').write_text(modelo.replace('__EXEMPLO_JSON__', ex), encoding='utf-8')
+for nome in ('holos-ai-ponte-harness', 'holos-ai-automatico-harness'):
+    modelo = (raiz / ('scripts/%s.modelo.sql' % nome)).read_text(encoding='utf-8')
+    (raiz / ('supabase/tests/%s.sql' % nome)).write_text(modelo.replace('__EXEMPLO_JSON__', ex), encoding='utf-8')
 print('ok')

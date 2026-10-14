@@ -110,7 +110,7 @@ const COLUNAS = {
     'content_snapshot', 'content_hash', 'operation_id', 'created_at'],
   /* Ponte HOLOS AI (migration 20261023100000): leitura so da propria; escrita SO pelas RPCs (holos-ai-falso.mjs) */
   holos_ai_imports: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'versao', 'schema_version', 'tipo', 'origem', 'agente', 'kb_version', 'entrada',
-    'texto_original', 'json_original', 'texto_sha256', 'status', 'operation_id', 'imported_at', 'revisao_iniciada_em', 'concluida_em', 'descartada_em', 'updated_at'],
+    'texto_original', 'json_original', 'texto_sha256', 'status', 'operation_id', 'imported_at', 'revisao_iniciada_em', 'concluida_em', 'descartada_em', 'updated_at', 'aceite'],
   holos_ai_import_items: ['id', 'import_id', 'nutritionist_id', 'patient_id', 'secao', 'ordem', 'chave', 'valor_ia', 'so_profissional', 'estado',
     'valor_profissional', 'compartilhar', 'revisado_em', 'created_at']
 };

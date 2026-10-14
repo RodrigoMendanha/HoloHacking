@@ -5894,3 +5894,26 @@ body.escuro #secao-pacientes .pac-dado.atraso{color:var(--dourado-claro)}
   .hai-campos{grid-template-columns:1fr}
   .hai-tabela th:nth-child(4),.hai-tabela td:nth-child(4){display:none}
 }
+
+/* SIMPLIFICACAO HOLOS AI -> Resultado (14/10): resultado pronto, detalhes tecnicos recolhidos, montagem manual avancada */
+.hai-pronto{border:1px solid var(--linha);border-left:4px solid var(--verde, #2f6b4f);border-radius:var(--raio);padding:1rem 1.2rem;margin:1rem 0;background:var(--sup-card)}
+.hai-pronto h4{margin:0 0 .4rem;font-size:1.05rem;color:var(--titulo);display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.hai-pronto-pendente{border-left-color:var(--ouro, #b08d3c)}
+.hai-pronto .hai-acoes{margin-top:.6rem}
+.hai-detalhes{margin-top:1.25rem;border-top:1px solid var(--linha);padding-top:.75rem;color:var(--texto-suave);font-size:.88rem}
+.hai-detalhes>summary{cursor:pointer;font-weight:600;color:var(--texto)}
+.hai-det-tit{margin:.8rem 0 .3rem;font-size:.95rem;color:var(--texto);display:flex;flex-wrap:wrap;gap:.4rem;align-items:center}
+.hai-det-secao{margin:.55rem 0}
+.hai-det-itens{margin:.25rem 0 0;padding-left:1.1rem}
+.hai-det-itens li{margin:.2rem 0;overflow-wrap:anywhere}
+.hai-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.rh-manual{margin-left:auto;font-size:.88rem;color:var(--texto-suave)}
+.rh-manual>summary{cursor:pointer}
+.rh-manual[open]{flex-basis:100%;margin-left:0}
+@media (max-width:640px){.hai-pronto .hai-acoes{display:flex;flex-direction:column;align-items:stretch}.hai-pronto .hai-acoes>*{width:100%}}
+.ai-hub-legado{margin-top:1rem;font-size:.9rem;color:var(--texto-suave)}
+.ai-hub-legado>summary{cursor:pointer;font-weight:600;margin-bottom:.75rem}
+/* PDF simples (14/10): no PDF baixado, o mapa HOLOSCAN (radar + notas) ja mostra os cinco sistemas; os cartoes longos
+   ficam so nas areas prioritarias, sem a lista repetida de "Como vamos acompanhar" e sem a legenda de origem de cada item.
+   A tela e a emissao (snapshot) nao mudam. */
+body.rp-gerando .rd-cinco .rd-sis-compacto,body.rp-gerando .rd-cinco > .rh-intro,body.rp-gerando .rd-sis-prioritario:not(:has(.rd-sis-voce)),body.rp-gerando .rd-secao.rd-evolucao,body.rp-gerando .rd-sis-limite,body.rp-gerando .rd-evolucao .rd-lista,body.rp-gerando .rd-lista .rd-de,body.rp-gerando .rd-sis-prioritario .rd-sis-bloco:not(.rd-sis-voce){display:none!important}

@@ -340,9 +340,16 @@
   function valorFinal(item) {
     return item.estado === "editado" && item.valor_profissional !== null && item.valor_profissional !== undefined ? item.valor_profissional : item.valor_ia;
   }
+  /* REGRA FIXA do metodo (aceite automatico, migration 20261024100000 holos_ai_elegivel_paciente): pode ir para a paciente
+     tudo o que NAO e so profissional, menos a estrategia que "requer decisao profissional na Conduta" (fica interna). */
+  function elegivelPaciente(secao, valor) {
+    if (soProfissional(secao)) return false;
+    return !(secao === "estrategias" && ehObj(valor) && valor.classificacao === "requer_decisao_profissional_na_conduta");
+  }
   function aceito(item) { return item && (item.estado === "confirmado" || item.estado === "editado"); }
 
   /* ---------- 4. o que foi CONFIRMADO vira Resultado HOLOS (template 5) ---------- */
+  var STATUS_DECISAO = { MANTER: "manter", AJUSTAR: "ajustar", SUBSTITUIR: "substituir", CONCLUIR: "concluida", ENCERRAR: "encerrada" };
   var TERR_DIRECAO = { "Corpo": "corpo", "Mente": "mente", "Espírito": "espirito" };
   var SISTEMA_CHAVE = [[/f[uú]ngico/i, "fungico"], [/[aá]cido/i, "acido_inflamatorio"], [/metab[oó]lico/i, "metabolico"], [/detox|linf[aá]tico/i, "detox_linfatico"],
     [/mental|emocional|espiritual/i, "mental_emocional_espiritual"]];
@@ -364,7 +371,13 @@
   /* Devolve { S (sugestoes por lista, para ResultadoDirecao.mesclar), foco, proxima_etapa, leitura } so com itens ACEITOS.
      Nunca: descartado, so sugerido (sem revisao), so profissional marcado para a paciente. Ferramentas recomendadas, sistemas,
      roteiro, alertas e fontes ficam no registro da HOLOS AI (nao entram no documento da paciente). */
-  function paraDirecao(importacao, itens) {
+  /* termo fora do metodo no texto que iria para a paciente: no aceite automatico o item fica INTERNO (nunca some do registro) */
+  function termoProibido(t) {
+    var x = String(t || "").toLowerCase();
+    return PROIBIDOS_PACIENTE.filter(function (p) { return x.indexOf(p) >= 0; });
+  }
+  function paraDirecao(importacao, itens, opts) {
+    opts = opts || {};
     var S = { padroes: [], direcionamentos: [], estrategias: [], observar: [], corpo: [], mente: [], espirito: [] };
     var res = { S: S, foco: null, proxima_etapa: null, leitura: null };
     if (!importacao || importacao.status !== "confirmado") return res;
@@ -395,12 +408,25 @@
           prazo: v.prazo ? corte(v.prazo) : null, finalidade: v.criterio_sucesso ? corte("Critério de sucesso: " + v.criterio_sucesso) : null,
           contexto: CLASSIFICACOES[v.classificacao] || null,
           responsavel: v.classificacao === "requer_decisao_profissional_na_conduta" ? "Nutricionista (Conduta)" : null,
-          status: v.origem === "acordada" ? "acordada" : "proposta" }));
+          /* retorno: a decisao sugerida antes x agora vira o estado da estrategia (MANTER / AJUSTAR / SUBSTITUIR / CONCLUIR / ENCERRAR) */
+          status: STATUS_DECISAO[v.decisao_sugerida] || (v.origem === "acordada" ? "acordada" : "proposta") }));
       }
     });
-    /* foco atual: o primeiro direcionamento aceito entra como SUGESTAO (nao confirmada): quem confirma o foco e a nutricionista, no Resultado */
-    var d0 = S.direcionamentos[0];
-    if (d0) res.foco = { id: d0.id + "-foco", texto: d0.texto, texto_sugerido: d0.texto, origem: "holos_ai", ref: copia(d0.ref), sugestao: true, confirmado: false, mostrar_paciente: false, descartado: false };
+    /* aceite automatico (simplificacao 14/10): a regra fixa ja decidiu o que e elegivel (compartilhar); aqui so se segura,
+       por precaucao, o texto com termo fora do metodo (fica interno, marcado em "retidos") */
+    var retidos = [];
+    if (opts.automatico) {
+      Object.keys(S).forEach(function (k) { S[k].forEach(function (it) {
+        if (it.mostrar_paciente && termoProibido(it.texto + " " + (it.acao || "") + " " + (it.porque || "") + " " + (it.objetivo || "")).length) { it.mostrar_paciente = false; retidos.push(it.id); }
+      }); });
+      if (res.proxima_etapa && res.proxima_etapa.mostrar_paciente && termoProibido(res.proxima_etapa.texto).length) { res.proxima_etapa.mostrar_paciente = false; retidos.push(res.proxima_etapa.id); }
+    }
+    res.retidos = retidos;
+    /* foco atual: o primeiro direcionamento aceito. Revisao manual: entra como SUGESTAO (quem confirma e a nutricionista).
+       Aceite automatico: entra confirmado e, se o direcionamento e elegivel, para a paciente (o Resultado fica pronto). */
+    var d0 = opts.automatico ? S.direcionamentos.filter(function (d) { return d.mostrar_paciente; })[0] || S.direcionamentos[0] : S.direcionamentos[0];
+    if (d0) res.foco = { id: d0.id + "-foco", texto: d0.texto, texto_sugerido: d0.texto, origem: "holos_ai", ref: copia(d0.ref), sugestao: true,
+      confirmado: !!opts.automatico, mostrar_paciente: !!opts.automatico && d0.mostrar_paciente === true, descartado: false };
     return res;
   }
 
@@ -416,7 +442,7 @@
     OBRIGATORIAS: OBRIGATORIAS, SECOES: SECOES, SEC_TEXTO: SEC_TEXTO, SEC_TERR: SEC_TERR, SEC_LISTA: SEC_LISTA, OPCIONAIS: OPCIONAIS,
     SO_PROFISSIONAL: SO_PROFISSIONAL, TITULO: TITULO, CLASSIFICACOES: CLASSIFICACOES, EDITAVEIS: EDITAVEIS,
     trechoJson: trechoJson, extrairJson: extrairJson, validar: validar, avisosClinicos: avisosClinicos, explodir: explodir, soProfissional: soProfissional,
-    textoDe: textoDe, camposEditaveis: camposEditaveis, valorFinal: valorFinal, aceito: aceito, paraDirecao: paraDirecao,
+    textoDe: textoDe, camposEditaveis: camposEditaveis, valorFinal: valorFinal, aceito: aceito, elegivelPaciente: elegivelPaciente, termoProibido: termoProibido, paraDirecao: paraDirecao,
     sistemaChave: sistemaChave, contagem: contagem
   };
   raiz.HolosAIContrato = api;

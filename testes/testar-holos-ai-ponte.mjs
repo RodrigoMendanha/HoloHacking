@@ -1,29 +1,30 @@
 /**
- * PONTE HOLOS AI -> HOLOHACKING (14/10, migration 20261023100000). Servidor falso com as regras da migration (provada no
- * Postgres local, supabase/tests/holos-ai-ponte-harness.sql) + tela. Paciente FICTICIA (fixture do Resultado template 5:
- * Mapeamento, HOLOSCAN, ferramentas aplicadas, Conduta) e o JSON canonico ficticio docs/v1/holos-ai-gpt/exemplo-resultado.json.
- * TESTE VERTICAL:
- *   V01 aba HOLOS AI antes do Resultado HOLOS; 5 passos
- *   V02 Copiar Pacote HOLOS AI: so dados reais, sem nome/telefone, sem exames, com Mapeamento, HOLOSCAN e ferramentas
- *   V03 importar (resposta inteira do GPT colada) -> versao 1, 62 itens, tudo SUGESTAO HOLOS AI
- *   V04 revisar: editar uma estrategia (IA + editado guardados), confirmar, descartar, compartilhar; so profissional sem "compartilhar"
- *   V05 concluir revisao (bloqueado com pendencia) -> CONFIRMADO
- *   V06 Gerar Resultado HOLOS -> editor com os itens confirmados (origem HOLOS AI); rascunho salvo
- *   V07 confirmar o foco, finalizar (template 5): para a paciente so o confirmado e compartilhado, com o texto EDITADO
- *   V08 emitir (RF-3) -> documento oficial / PDF; WhatsApp "Nesta fase, nosso principal direcionamento é: ..."
- *   V09 reabrir o atendimento (recarregar): historico e revisao persistidos
- * NEGATIVOS:
- *   N01 JSON invalido: erro claro, nada salvo, texto preservado     N02 schema_version incompativel
- *   N03 estrutura invalida (MANTER na 1a consulta)                  N04 nova importacao nao sobrescreve a anterior
- *   N05 descartado nao aparece no PDF/emissao                        N06 so profissional nunca para a paciente (tela + servidor)
- *   N07 nao interferencia: HOLOSCAN, ferramentas, pacotes intactos   N08 outra conta nao le nem revisa
- *   N09 fechamento 14/10: sem plano_acompanhamento / estrategia em territorio "nao_aprofundado" -> recusado, nada salvo;
- *       Plano B a partir de hipotese, Composicao como estrategia e rascunho "que combinamos" -> AVISO visivel (nao bloqueia)
- * SHOT_DIR=<pasta> grava capturas.
+ * HOLOS AI -> RESULTADO HOLOS AUTOMATICO (simplificacao definitiva 14/10; migrations 20261023100000 + 20261024100000).
+ * Servidor falso com as regras das migrations (provadas no Postgres local: holos-ai-ponte-harness.sql e
+ * holos-ai-automatico-harness.sql) + tela. Paciente FICTICIA (fixture do template 5: Mapeamento, HOLOSCAN, ferramentas,
+ * Conduta) e o JSON canonico ficticio docs/v1/holos-ai-gpt/exemplo-resultado.json.
+ * "Fiz a consulta, mandei os dados para a HOLOS AI, trouxe a resposta e o Resultado ficou pronto."
+ * TESTE VERTICAL (contando cliques):
+ *   V01 aba HOLOS AI antes do Resultado HOLOS; 3 passos; nenhuma revisao item a item na tela
+ *   V02 Copiar Pacote HOLOS AI: so dados reais, sem nome/telefone, sem exames
+ *   V03 colar + "Importar e gerar resultado" (1 clique): valida, guarda o original (sha256), versiona, aceita pela regra fixa
+ *       e monta o Resultado HOLOS FINALIZADO; "Ver resultado", "Gerar PDF", "Editar resultado"
+ *   V04 regra fixa: so profissional interno; para a paciente o elegivel (foco, direcionamentos, estrategias, C/M/E, observar,
+ *       proxima etapa, o relato do Mapeamento); sem hipotese, alerta, fonte, sintese, IDs, catalogo
+ *   V05 Ver resultado: visao da paciente com as secoes do metodo e o mapa HOLOSCAN no fim
+ *   V06 Gerar PDF (1 clique): emite o Resultado Final (RF-3) e baixa o PDF; nº de paginas
+ *   V07 Editar resultado (opcional): abre a nova versao no editor
+ *   V08 RETORNO: o Pacote traz o resultado anterior; a decisao da IA (AJUSTAR) vira o estado da estrategia; novo Resultado
+ *   V09 recarregar: Resultado pronto continua; detalhes tecnicos fechados; celular sem rolagem lateral
+ * NEGATIVOS: N01 JSON invalido · N02 schema 2 · N03 estrutura invalida · N09 obrigatorias/territorio (nada salvo, texto preservado)
+ *   N04 nova importacao = nova versao + novo Resultado (o anterior fica no historico) · N06 so profissional nunca para a paciente
+ *   N07 nao interferencia (HOLOSCAN, ferramentas, pacotes, Mapeamento, Conduta) · N08 outra conta nao le nem aceita
+ *   N10 sem HOLOSCAN salvo: importacao guardada e aceita, Resultado nao gerado com aviso claro e "Gerar resultado" (1 clique)
+ * SHOT_DIR=<pasta> grava capturas. PDF_OUT=<arquivo> grava o PDF da paciente.
  */
 import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { criarServidor, ligarPagina } from './supabase-falso.mjs';
 import { montarFixture } from './fixture-direcao.mjs';
@@ -38,6 +39,8 @@ const agora = new Date().toISOString();
 [UA, UB].forEach((id, i) => srv.tabelas.profiles.push({ id, nome: 'Nutri Ficticia ' + (i + 1), registro: 'CRN-0 0000', profissao: 'Nutricionista', status: 'ativo', created_at: agora, updated_at: agora }));
 const fx = await montarFixture(srv, UA);
 const { PA, E1, H } = fx;
+fx.retorno();                       // 2o atendimento (retorno, hoje), sem HOLOSCAN proprio
+const E2 = fx.E2;
 const EXEMPLO = readFileSync(new URL('../docs/v1/holos-ai-gpt/exemplo-resultado.json', import.meta.url), 'utf8');
 const RESPOSTA_GPT = 'Segue a análise.\n\n=== HOLOS_AI_RESULT ===\nTIPO: primeira_consulta\n(...)\n=== FIM_HOLOS_AI_RESULT ===\n\n```json\n' + EXEMPLO + '\n```\n\nTudo acima é SUGERIDO.';
 const digitais = () => createHash('sha256').update(JSON.stringify(['holoscan_applications', 'holoscan_system_scores', 'holoscan_answers', 'tool_applications',
@@ -45,10 +48,12 @@ const digitais = () => createHash('sha256').update(JSON.stringify(['holoscan_app
 const antes = digitais();
 const imps = () => srv.linhas('holos_ai_imports');
 const itens = (iid) => srv.linhas('holos_ai_import_items').filter(x => !iid || x.import_id === iid);
+const finais = (eid) => srv.linhas('holos_results').filter(r => r.status !== 'rascunho' && r.encounter_id === eid);
 
 const nav = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const errosJS = [];
 const espera = ms => new Promise(r => setTimeout(r, ms));
+const H2P_LOCAL = '/tmp/claude-0/-home-user-HoloHacking/2536f0de-9516-5291-b095-34b766c5940f/scratchpad/h2p/node_modules/html2pdf.js/dist/html2pdf.bundle.min.js';
 async function sessao(email, senha) {
   const P = await (await nav.createBrowserContext()).newPage();
   await P.setViewport({ width: 1280, height: 1000 });
@@ -61,34 +66,44 @@ async function sessao(email, senha) {
   await P.type('#login-email', email); await P.type('#login-senha', senha); await P.click('#btn-entrar');
   await P.waitForFunction(() => window.HoloAuth && window.HoloAuth.sessaoAtiva() && window.pacientesCarregados && window.pacientesCarregados(), { timeout: 15000 });
   await P.evaluate(async () => { if (window.Sincronizacao && window.Sincronizacao.aguardar) await window.Sincronizacao.aguardar(); });
+  await preparar(P);
+  return P;
+}
+async function preparar(P) {
   await P.addStyleTag({ content: '*{transition:none!important;animation:none!important}' });
+  /* gerador de PDF: o da CDN; offline, a copia local (a mesma versao) */
+  if (existsSync(H2P_LOCAL)) await P.addScriptTag({ path: H2P_LOCAL }).catch(() => null);
   await P.evaluate(() => {
     window.__toasts = []; const av = window.avisar; window.avisar = (m) => { window.__toasts.push(m); if (av) av(m); };
-    window.__copiado = null;
+    window.__copiado = null; window.__baixados = [];
     try { Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: (t) => { window.__copiado = t; return Promise.resolve(); } } }); } catch (e) { /* sem clipboard */ }
+    /* conta os cliques de verdade da nutricionista (botoes e links) */
+    window.__cliques = 0; document.addEventListener('click', (ev) => { if (ev.isTrusted && ev.target.closest('button, a, summary')) window.__cliques++; }, true);
+    const cria = URL.createObjectURL; URL.createObjectURL = (b) => { window.__baixados.push(b); return cria.call(URL, b); };
   });
-  return P;
 }
 const P = await sessao('a@holo.test', 'senha-a-123');
 const clicar = (s) => P.evaluate((s) => { const b = document.querySelector(s); if (!b) return false; b.click(); return true; }, s);
+const clicarDeVerdade = async (s) => { const b = await P.$(s); if (!b) return false; await b.click(); return true; };
 const texto = (s) => P.evaluate((s) => { const e = document.querySelector(s); return e ? e.innerText : ''; }, s);
-const confirmarModal = async () => { await espera(300); await clicar('#modal-confirmar-ok'); await espera(900); };
 const shot = async (nome, sel) => { if (!SHOT) return; const e = await P.$(sel); if (e) await e.screenshot({ path: SHOT + '/' + nome + '.png' }); };
-async function abrirAba(aba) {
+async function abrirAba(aba, eid) {
   await P.evaluate(async (pid, eid, aba) => { window.definirPacienteAtivo(pid); try { await window.AtendimentoAtual.selecionarPorId(eid); } catch (e) { /* sem atendimento */ }
-    window.levarParaFicha('aba:' + aba, pid); }, PA, E1, aba);
+    window.levarParaFicha('aba:' + aba, pid); }, PA, eid || E1, aba);
   await espera(900);
 }
-async function colarEImportar(t) {
-  await P.evaluate((t) => { const a = document.getElementById('hai-json'); a.value = t; a.dispatchEvent(new Event('input', { bubbles: true })); }, t);
-  await clicar('[data-hai-acao="importar"]'); await espera(900);
+async function escolherAtendimento(eid) {
+  await P.evaluate((eid) => { const s = document.getElementById('hai-atendimento'); s.value = eid; s.dispatchEvent(new Event('change', { bubbles: true })); }, eid); await espera(400);
 }
-const noItem = (sec, re, acao) => P.evaluate((sec, re, acao) => {
-  const li = [...document.querySelectorAll('[data-hai-secao="' + sec + '"] .hai-item')].find(l => new RegExp(re).test(l.querySelector('.hai-item-texto') ? l.querySelector('.hai-item-texto').textContent : l.textContent));
-  if (!li) return false; const b = li.querySelector('[data-hai-acao="' + acao + '"]'); if (!b) return false; b.click(); return true; }, sec, re, acao);
-const doItem = (sec, re) => P.evaluate((sec, re) => {
-  const li = [...document.querySelectorAll('[data-hai-secao="' + sec + '"] .hai-item')].find(l => new RegExp(re).test(l.textContent));
-  return li ? { texto: li.innerText, compartilhar: !!li.querySelector('input[data-hai-acao="compartilhar"]'), marcado: !!(li.querySelector('input[data-hai-acao="compartilhar"]') || {}).checked } : null; }, sec, re);
+async function colar(t) { await P.evaluate((t) => { const a = document.getElementById('hai-json'); a.value = t; a.dispatchEvent(new Event('input', { bubbles: true })); }, t); }
+async function colarEImportar(t, real) {
+  await colar(t);
+  if (real) await clicarDeVerdade('[data-hai-acao="importar"]'); else await clicar('[data-hai-acao="importar"]');
+  await espera(1600);
+}
+const cliques = () => P.evaluate(() => window.__cliques);
+const zerarCliques = () => P.evaluate(() => { window.__cliques = 0; });
+const t0 = Date.now();
 
 /* ===================== V01 aba e passos ===================== */
 await abrirAba('holos-ai');
@@ -96,33 +111,40 @@ await P.waitForFunction(() => !!document.querySelector('.hai-passos'), { timeout
 const abas = await P.evaluate(() => [...document.querySelectorAll('.abas [data-aba], [role="tablist"] [data-aba]')].map(b => b.dataset.aba));
 ok(abas.indexOf('holos-ai') >= 0 && abas.indexOf('holos-ai') === abas.indexOf('resultado-holos') - 1, 'V01 aba HOLOS AI logo antes do Resultado HOLOS (' + abas.join(' > ') + ')');
 const passos = await P.evaluate(() => [...document.querySelectorAll('.hai-passo h4')].map(h => h.textContent.trim()));
-ok(JSON.stringify(passos) === JSON.stringify(['Copiar Pacote HOLOS AI', 'Abrir HOLOS AI', 'Importar Resultado HOLOS AI', 'Revisar análise', 'Gerar Resultado HOLOS']),
-  'V01 os 5 passos: ' + passos.join(' · '));
-ok(await P.evaluate(() => document.querySelector('[data-hai-acao="gerar"]').disabled) && /Cole aqui o JSON HOLOS_AI_RESULT/.test(await texto('.hai-colar')),
-  'V01 "Gerar Resultado HOLOS" desabilitado antes de uma revisão concluída; campo "Cole aqui o JSON HOLOS_AI_RESULT"');
+ok(JSON.stringify(passos) === JSON.stringify(['Copiar Pacote HOLOS AI', 'Abrir HOLOS AI', 'Colar resultado HOLOS AI']), 'V01 3 passos: ' + passos.join(' · '));
+const telaV1 = await P.evaluate(() => {
+  const r = document.querySelector('.hai-ponte'), fora = (el) => !el.closest('details:not([open])');
+  return { botoes: [...r.querySelectorAll('button, a.btn-fantasma, .hai-indisp')].filter(fora).map(b => b.textContent.trim()),
+    revisao: !!r.querySelector('[data-hai-acao="confirmar"], [data-hai-acao="descartar"], [data-hai-acao="concluir"], [data-hai-acao="confirmar-secao"], [data-hai-acao="compartilhar"], #hai-revisao'),
+    detalhes: !!r.querySelector('details#hai-detalhes:not([open])'), legado: !!document.querySelector('details#ai-hub-legado:not([open])') };
+});
+ok(telaV1.botoes.length === 3 && /Copiar Pacote/.test(telaV1.botoes[0]) && /Abrir HOLOS AI/.test(telaV1.botoes[1]) && /Importar e gerar resultado/.test(telaV1.botoes[2]),
+  'V01 à vista só 3 ações: ' + telaV1.botoes.map(b => b.replace(/\s+/g, ' ')).join(' | '));
+ok(!telaV1.revisao && telaV1.detalhes && telaV1.legado, 'V01 sem Revisar/Confirmar/Descartar/Compartilhar/Concluir; "Detalhes técnicos da análise" e o contexto antigo recolhidos');
 await shot('hai-1-passos', '.hai-ponte');
 
 /* ===================== V02 Pacote ===================== */
-await clicar('[data-hai-acao="copiar-pacote"]'); await espera(500);
+await zerarCliques();
+await clicarDeVerdade('[data-hai-acao="copiar-pacote"]'); await espera(500);
 const pacTxt = await P.evaluate(() => window.__copiado);
 let pac = null; try { pac = JSON.parse(pacTxt); } catch (e) { pac = null; }
-ok(!!pac && pac.pacote === 'HOLOS_AI_PACOTE' && pac.pacote_version === 1 && pac.atendimento.tipo === 'primeira_consulta', 'V02 "Copiar Pacote HOLOS AI" copia um JSON (pacote_version 1, primeira consulta)');
+ok(!!pac && pac.pacote === 'HOLOS_AI_PACOTE' && pac.pacote_version === 1 && pac.atendimento.tipo === 'primeira_consulta' && pac.resultado_anterior === 'Sem dado',
+  'V02 "Copiar Pacote HOLOS AI" copia um JSON (pacote_version 1, primeira consulta, sem resultado anterior)');
 ok(!!pac && !/Marina|62900000000/.test(pacTxt) && pac.paciente_contexto_minimo.identificador === 'M.F.', 'V02 pacote sem nome e sem telefone (identificador por iniciais)');
-ok(!!pac && /Cansaço no fim da tarde/.test(pac.mapeamento) && /Belisco quando chego em casa/.test(pac.mapeamento) && /Sistemas/.test(pac.holoscan) && /Mapa da Rotina|Rotina/.test(pac.ferramentas_aplicadas) && /Organizar o fim da tarde/.test(pac.conduta),
-  'V02 pacote com Mapeamento, HOLOSCAN (sistemas), ferramentas aplicadas e Conduta reais');
-ok(!!pac && !/laborat|hemograma|glicemia/i.test(pacTxt) && pac.fora_do_pacote.some(x => /exames/.test(x)), 'V02 exames fora do pacote');
+ok(!!pac && /Cansaço no fim da tarde/.test(pac.mapeamento) && /Sistemas/.test(pac.holoscan) && /Rotina/.test(pac.ferramentas_aplicadas) && /Organizar o fim da tarde/.test(pac.conduta)
+  && !/laborat|hemograma|glicemia/i.test(pacTxt), 'V02 pacote com Mapeamento, HOLOSCAN, ferramentas e Conduta reais; sem exames');
 
-/* ===================== N01..N03 importacao invalida ===================== */
+/* ===================== N01..N03, N09 importacao invalida ===================== */
 await colarEImportar('{"schema_version": 1, "tipo": ');
 const n1 = { erro: await texto('.hai-erro'), cola: await P.evaluate(() => document.getElementById('hai-json').value) };
-ok(/Não importado/.test(n1.erro) && /JSON inválido/.test(n1.erro) && n1.cola === '{"schema_version": 1, "tipo": ' && imps().length === 0, 'N01 JSON inválido: erro claro, nada salvo, texto colado preservado');
+ok(/Não importado/.test(n1.erro) && /JSON inválido/.test(n1.erro) && n1.cola === '{"schema_version": 1, "tipo": ' && imps().length === 0 && finais(E1).length === 0,
+  'N01 JSON inválido: erro claro, nada salvo (nem Resultado), texto colado preservado');
 await shot('hai-n1-json-invalido', '.hai-ponte');
 await colarEImportar(EXEMPLO.replace('"schema_version": 1', '"schema_version": 2'));
 ok(/schema_version 2 não é compatível/.test(await texto('.hai-erro')) && imps().length === 0, 'N02 schema_version incompatível: recusado, nada salvo');
 const ruim = JSON.parse(EXEMPLO); ruim.estrategias[0].decisao_sugerida = 'MANTER';
 await colarEImportar(JSON.stringify(ruim));
-ok(/MANTER EM OBSERVAÇÃO/.test(await texto('.hai-erro')) && imps().length === 0 && itens().length === 0, 'N03 estrutura inválida (MANTER na 1ª consulta): recusada, nada salvo (nem parcial)');
-/* o servidor recusa sozinho (a tela nao e a unica barreira) */
+ok(/MANTER EM OBSERVAÇÃO/.test(await texto('.hai-erro')) && imps().length === 0 && itens().length === 0, 'N03 estrutura inválida (MANTER na 1ª consulta): recusada, nada salvo');
 const srvRuim = srv.tratar({ op: 'rpc', uid: UA, nome: 'importar_holos_ai', args: { p_encounter_id: E1, p_texto: JSON.stringify(ruim) } });
 const srvSch = srv.tratar({ op: 'rpc', uid: UA, nome: 'importar_holos_ai', args: { p_encounter_id: E1, p_texto: EXEMPLO.replace('"schema_version": 1', '"schema_version": 2') } });
 const srvJs = srv.tratar({ op: 'rpc', uid: UA, nome: 'importar_holos_ai', args: { p_encounter_id: E1, p_texto: '{oops' } });
@@ -134,167 +156,186 @@ const errPlano = await texto('.hai-erro');
 const menteEst = JSON.parse(EXEMPLO); menteEst.mente.estrategias = ['E2'];
 await colarEImportar(JSON.stringify(menteEst));
 const errMente = await texto('.hai-erro');
-const srvMente = srv.tratar({ op: 'rpc', uid: UA, nome: 'importar_holos_ai', args: { p_encounter_id: E1, p_texto: JSON.stringify(menteEst) } });
-ok(/falta a chave "plano_acompanhamento"/.test(errPlano) && /mente está "nao_aprofundado"/.test(errMente) && srvMente.error && srvMente.error.hint === 'resultado_invalido'
-  && imps().length === 0 && itens().length === 0, 'N09 sem plano_acompanhamento e estratégia em Mente "nao_aprofundado": recusados na tela e no servidor, nada salvo');
+ok(/falta a chave "plano_acompanhamento"/.test(errPlano) && /mente está "nao_aprofundado"/.test(errMente) && imps().length === 0 && itens().length === 0,
+  'N09 sem plano_acompanhamento e estratégia em Mente "nao_aprofundado": recusados, nada salvo');
 
-/* ===================== V03 importar ===================== */
-await colarEImportar(RESPOSTA_GPT);
+/* ===================== V03 importar e gerar (1 clique) ===================== */
+await zerarCliques();
+const tImp = Date.now();
+await colarEImportar(RESPOSTA_GPT, true);
+await P.waitForFunction(() => !!document.querySelector('#hai-pronto [data-hai-acao="pdf"]'), { timeout: 15000 }).catch(() => null);
+const msImport = Date.now() - tImp;
+const cliquesImport = await cliques();
 const i1 = imps()[0];
-ok(!!i1 && i1.versao === 1 && i1.status === 'importado' && i1.texto_original === RESPOSTA_GPT && i1.schema_version === 1 && i1.encounter_id === E1 && i1.agente === 'HOLOS-AI-GPT 1.2'
-  && i1.texto_sha256 === createHash('sha256').update(RESPOSTA_GPT, 'utf8').digest('hex'), 'V03 importado: versão 1, texto colado e JSON originais guardados (sha256), agente, atendimento');
-ok(itens(i1.id).length === 62 && new Set(itens(i1.id).map(x => x.secao)).size === 20 && itens(i1.id).every(x => x.estado === 'sugerido' && !x.compartilhar),
-  'V03 62 itens separados em 20 seções (não um textão), todos SUGESTÃO, nenhum compartilhado');
-const tela3 = await P.evaluate(() => ({ chips: document.querySelectorAll('.hai-item .hai-chip-sug').length, secoes: document.querySelectorAll('.hai-secao').length, campo: document.getElementById('hai-json').value }));
-ok(tela3.chips === 62 && tela3.secoes === 20 && tela3.campo === '', 'V03 tela: revisão aberta com 20 seções e 62 "SUGESTÃO HOLOS AI"; campo de colar limpo');
-await shot('hai-3-revisao', '#hai-revisao');
+ok(!!i1 && i1.versao === 1 && i1.status === 'confirmado' && i1.aceite === 'automatico' && i1.texto_original === RESPOSTA_GPT && i1.encounter_id === E1
+  && i1.texto_sha256 === createHash('sha256').update(RESPOSTA_GPT, 'utf8').digest('hex'), 'V03 importado e aceito pela regra fixa: versão 1, original guardado (sha256), aceite automático');
+ok(itens(i1.id).length === 62 && itens(i1.id).every(x => x.estado === 'confirmado' && x.valor_profissional === null), 'V03 62 itens confirmados de uma vez, valor da IA intacto (nenhuma edição)');
+const r1 = finais(E1).pop();
+ok(!!r1 && r1.status === 'salvo' && r1.template_version === 5 && r1.content_snapshot.direcao_paciente.foco_atual && r1.selected_sources.holoscan_application_id === H,
+  'V03 Resultado HOLOS FINALIZADO montado sozinho (template 5, foco confirmado, HOLOSCAN do atendimento)');
+const pronto = await P.evaluate(() => { const s = document.getElementById('hai-pronto'); return s ? { txt: s.innerText, bot: [...s.querySelectorAll('button')].map(b => b.textContent.trim()) } : null; });
+ok(!!pronto && /RESULTADO PRONTO/.test(pronto.txt) && JSON.stringify(pronto.bot) === JSON.stringify(['Ver resultado', 'Gerar PDF', 'Editar resultado']) && cliquesImport === 1,
+  'V03 tela: "RESULTADO PRONTO" com Ver resultado · Gerar PDF · Editar resultado — 1 clique (' + msImport + ' ms)');
+await shot('hai-3-pronto', '.hai-ponte');
 
-/* ===================== V04 revisar ===================== */
-const hip = await doItem('pontos_para_aprofundar', 'reuniões da tarde');
-const ale = await doItem('alertas_profissionais', 'nota maior = menos marcadores');
-ok(!!hip && !hip.compartilhar && /Só profissional/.test(hip.texto) && !!ale && !ale.compartilhar, 'V04/N06 hipótese e alertas: "Só profissional", sem opção de compartilhar');
-await noItem('estrategias', '^Lanche planejado', 'editar'); await espera(300);
-await P.evaluate(() => { const li = document.querySelector('.hai-item .hai-editor').closest('.hai-item'); const t = li.querySelector('textarea[data-hai-campo="o_que_fazer"]');
-  t.value = 'Preparar o lanche na noite anterior e comer entre 15h30 e 16h, conforme a Conduta.'; li.querySelector('[data-hai-acao="salvar-edicao"]').click(); });
-await espera(800);
-const e1 = itens(i1.id).find(x => x.secao === 'estrategias' && x.chave === 'E1');
-ok(e1.estado === 'editado' && /15h30 e 16h/.test(e1.valor_profissional.o_que_fazer) && e1.valor_ia.o_que_fazer === 'Preparar o lanche na noite anterior e comer por volta das 16h.'
-  && imps().find(x => x.id === i1.id).status === 'em_revisao', 'V04 estratégia EDITADA: valor da IA preservado + valor da nutricionista; importação EM REVISÃO');
-ok(/Ver o original da HOLOS AI/.test((await doItem('estrategias', '^Lanche planejado|EDITADO')) ? (await doItem('estrategias', 'Lanche planejado')).texto : ''), 'V04 tela mostra o editado e o original da IA');
-/* descartar E2 (sugestao nova); confirmar e compartilhar D1 e E1; o que observar "reunioes" confirmado sem compartilhar */
-await noItem('estrategias', '^Registro rápido', 'descartar'); await espera(600);
-await noItem('o_que_observar', 'reuniões da tarde atrapalham', 'confirmar'); await espera(600);
-await noItem('direcionamentos', '^Organizar o fim da tarde', 'confirmar'); await espera(600);
-const marcar = (sec, re) => P.evaluate((sec, re) => { const li = [...document.querySelectorAll('[data-hai-secao="' + sec + '"] .hai-item')].find(l => new RegExp(re).test(l.textContent));
-  const c = li && li.querySelector('input[data-hai-acao="compartilhar"]'); if (!c) return false; c.click(); return true; }, sec, re);
-ok(await marcar('direcionamentos', 'Organizar o fim da tarde'), 'V04 direcionamento confirmado ganha "Compartilhar com a paciente"'); await espera(600);
-ok(await marcar('estrategias', 'Lanche planejado'), 'V04 estratégia editada pode ser compartilhada'); await espera(700);
+/* ===================== V04 regra fixa ===================== */
 const it = (sec, chave) => itens(i1.id).find(x => x.secao === sec && x.chave === chave);
-ok(it('direcionamentos', 'D1').compartilhar && it('estrategias', 'E1').compartilhar && it('estrategias', 'E1').estado === 'editado' && /15h30/.test(it('estrategias', 'E1').valor_profissional.o_que_fazer)
-  && it('estrategias', 'E2').estado === 'descartado' && itens(i1.id).find(x => x.secao === 'o_que_observar' && x.ordem === 1).estado === 'confirmado'
-  && !itens(i1.id).find(x => x.secao === 'o_que_observar' && x.ordem === 1).compartilhar,
-  'V04 banco: D1 e E1 compartilhados (E1 continua editado), E2 descartado, observação das reuniões confirmada só profissional');
-const tela4 = await P.evaluate(() => ({ cat: document.getElementById('hai-revisao').innerText, leg: [...document.querySelectorAll('[data-hai-secao="estrategias"] legend, [data-hai-secao="direcionamentos"] legend')].map(l => l.innerText) }));
-ok(!/not_catalogued|NÃO CATALOGAD|CANDIDAT[OA] NÃO/.test(tela4.cat) && tela4.leg.length === 2 && tela4.leg.every(t => /SUGESTÃO HOLOS AI — REQUER REVISÃO PROFISSIONAL/.test(t)),
-  'V04 rótulo único "SUGESTÃO HOLOS AI — REQUER REVISÃO PROFISSIONAL" por seção; "not_catalogued" não aparece na tela');
-const hipId = itens(i1.id).find(x => x.secao === 'pontos_para_aprofundar' && x.valor_ia.tipo === 'hipotese').id;
-const tenta = srv.tratar({ op: 'rpc', uid: UA, nome: 'revisar_item_holos_ai', args: { p_item_id: hipId, p_estado: 'confirmado', p_compartilhar: true } });
-ok(tenta.error && tenta.error.hint === 'holos_ai_so_profissional', 'N06 servidor recusa compartilhar hipótese (holos_ai_so_profissional)');
-await shot('hai-4-revisando', '#hai-revisao');
+const soProf = itens(i1.id).filter(x => x.so_profissional);
+ok(soProf.length > 20 && soProf.every(x => !x.compartilhar) && it('direcionamentos', 'D1').compartilhar && it('estrategias', 'E1').compartilhar,
+  'V04 regra fixa: ' + soProf.length + ' itens só profissionais internos; direcionamento e estratégias elegíveis marcados para a paciente');
+const dp = r1.content_snapshot.direcao_paciente, dpTxt = JSON.stringify(dp);
+ok(dp.foco_atual.texto === 'Organizar o fim da tarde' && dp.direcionamentos.some(d => d.texto === 'Organizar o fim da tarde') && dp.estrategias.length >= 1
+  && dp.observar.length >= 1 && dp.proxima_etapa && dp.corpo.itens.length >= 1 && (dp.momento || []).some(m => /Cansaço no fim da tarde/.test(m.texto)),
+  'V04 para a paciente: momento (Mapeamento), foco, direcionamentos, estratégias, Corpo, o que observar e próxima etapa');
+ok(!/reuniões da tarde podem dificultar|nota maior = menos marcadores|Síntese HOLOS AI|REC-MET|REC-FUN|sha256|not_catalogued|hipótese|candid|"ref"/i.test(dpTxt),
+  'V04/N06 para a paciente: sem hipótese, alerta, síntese/raciocínio, fontes, regras do catálogo, IDs/referências');
+ok(/^Síntese HOLOS AI \(importação v1, aceite automático\)/.test(r1.leitura_profissional || '') && /Organizar o fim da tarde/.test(JSON.stringify(r1.direcao)),
+  'V04 síntese integrada só na leitura profissional; registro completo (com o interno) guardado no Resultado');
 
-/* ===================== V05 concluir ===================== */
-ok(await P.evaluate(() => document.querySelector('[data-hai-acao="concluir"]').disabled), 'V05 "Concluir revisão" bloqueado enquanto há sugestão pendente');
-const secs = await P.evaluate(() => [...document.querySelectorAll('.hai-secao')].map(s => s.dataset.haiSecao));
-for (const s of secs) { await P.evaluate((s) => { const b = document.querySelector('[data-hai-secao="' + s + '"] [data-hai-acao="confirmar-secao"]'); if (b) b.click(); }, s); await espera(450); }
-await marcar('corpo', 'Lanche planejado'); await espera(500);
-await marcar('proxima_etapa', 'Retorno'); await espera(500);
-ok(itens(i1.id).every(x => x.estado !== 'sugerido') && it('estrategias', 'E2').estado === 'descartado', 'V05 "Confirmar todos desta seção" decide o restante sem reverter o descartado');
-await clicar('[data-hai-acao="concluir"]'); await confirmarModal();
-ok(imps().find(x => x.id === i1.id).status === 'confirmado' && /CONFIRMADO/.test(await texto('.hai-rev-topo')) && !(await P.evaluate(() => !!document.querySelector('.hai-item [data-hai-acao="confirmar"]'))),
-  'V05 revisão concluída: CONFIRMADO; itens sem ações de revisão');
-const tarde = srv.tratar({ op: 'rpc', uid: UA, nome: 'revisar_item_holos_ai', args: { p_item_id: it('estrategias', 'E2').id, p_estado: 'confirmado' } });
-ok(tarde.error && tarde.error.hint === 'holos_ai_revisao_encerrada', 'V05 depois de concluída, nenhum item muda (revisao_encerrada)');
+/* ===================== V05 ver resultado ===================== */
+await zerarCliques();
+await clicarDeVerdade('[data-hai-acao="ver-resultado"]');
+await P.waitForFunction(() => !!document.querySelector('#aba-resultado-holos #rh-doc'), { timeout: 15000 }); await espera(400);
+const ver = await P.evaluate(() => ({ aba: (document.querySelector('[data-aba].ativa') || { dataset: {} }).dataset.aba, txt: document.getElementById('rh-doc').innerText,
+  h: [...document.querySelectorAll('#rh-doc h3, #rh-doc h4')].map(h => h.textContent.trim()) }));
+const secoesPac = ['Seu momento agora', 'O que estamos compreendendo', 'Foco atual', 'Direcionamentos', 'Estratégias', 'Corpo', 'Até o próximo encontro, observe', 'Próxima etapa', 'Detalhes do mapa'];
+const faltam = secoesPac.filter(s => !ver.h.some(h => h.indexOf(s) === 0) && ver.txt.indexOf(s) < 0);
+ok(ver.aba === 'resultado-holos' && !faltam.length && (await cliques()) === 1, 'V05 "Ver resultado" (1 clique): visão da paciente com as seções do método' + (faltam.length ? ' — faltam: ' + faltam.join(', ') : ''));
+ok(!/SUGESTÃO|HOLOS AI|hipótese|not_catalogued|REC-/.test(ver.txt), 'V05 visão da paciente sem marca de sugestão, sem HOLOS AI, sem hipótese, sem catálogo');
+await shot('hai-5-resultado-paciente', '#rh-doc');
+const lista = await P.evaluate(() => { document.querySelector('[data-rh-acao="voltar"]').click(); return new Promise(r => setTimeout(() => r({ prim: (document.querySelector('.rh-acoes-topo .btn-verde') || {}).textContent, manual: !!document.querySelector('details.rh-manual:not([open]) [data-rh-acao="novo"]') }), 300)); });
+ok(/Gerar pela HOLOS AI/.test(lista.prim || '') && lista.manual, 'V05 Resultado HOLOS: ação principal "Gerar pela HOLOS AI"; montagem manual recolhida em "avançado"');
 
-/* ===================== N04 nova importacao (com AVISOS do fechamento) ===================== */
-const comAviso = JSON.parse(EXEMPLO);
-comAviso.estrategias.push({ id: 'E3', origem: 'nova', titulo: 'Plano B para dias de reunião às 16h', territorio: 'Corpo', direcionamento_id: 'D1', classificacao: 'comportamental_metodologica',
-  decisao_sugerida: null, motivo_decisao: null, o_que_fazer: 'Combinar um horário alternativo para os dias de reunião.', o_que_observar: 'Se a reunião impediu o lanche.',
-  prazo: 'Até o retorno', criterio_sucesso: 'Aplicar com frequência suficiente para permitir avaliação no retorno.', baseado_em: ['Mapa da Rotina: reuniões à tarde'], catalogo: 'not_catalogued', status: 'SUGERIDO' });
-comAviso.corpo.estrategias.push('E3');
-comAviso.rascunho_paciente += ' Nos dias de reunião, use o horário alternativo que combinamos.';
-const EXEMPLO_AVISO = JSON.stringify(comAviso, null, 2);
-await colarEImportar(EXEMPLO_AVISO);
-const avisoTela = await texto('.hai-aviso');
-ok(/Avisos \(não impedem\)/.test(avisoTela) && /E3 repete uma hipótese/.test(avisoTela) && /sugestão nova E3 como combinada/.test(avisoTela),
-  'N09 hipótese virando estratégia e sugestão nova "combinada" no rascunho: AVISO visível na revisão (não bloqueia; a nutricionista decide)');
-const v1 = imps().find(x => x.id === i1.id), v2 = imps().find(x => x.versao === 2);
-ok(!!v2 && v2.status === 'importado' && v1.status === 'confirmado' && v1.texto_original === RESPOSTA_GPT && itens(v1.id).filter(x => x.estado === 'editado').length === 1,
-  'N04 nova importação vira versão 2; a versão 1 (confirmada, com a edição) continua idêntica');
-await clicar('[data-hai-acao="descartar-import"]'); await confirmarModal();
-ok(imps().find(x => x.versao === 2).status === 'descartado' && itens(v2.id).length === 63, 'N04 versão 2 descartada fica no histórico (nada apagado)');
-const hist = await P.evaluate(() => [...document.querySelectorAll('.hai-tabela tbody tr')].map(r => r.innerText.replace(/\s+/g, ' ')));
-ok(hist.length === 2 && /v2.*DESCARTADO/.test(hist[0]) && /v1.*CONFIRMADO/.test(hist[1]), 'N04 tela: histórico com v2 DESCARTADO e v1 CONFIRMADO');
-await shot('hai-5-historico', '.hai-ponte');
-
-/* ===================== V06 gerar Resultado HOLOS ===================== */
-await P.evaluate(() => { const b = document.querySelector('[data-hai-acao="gerar"]'); b.click(); });
-await P.waitForFunction(() => !!document.getElementById('rd-editor'), { timeout: 15000 }); await espera(500);
-const ed = await P.evaluate(() => ({ aba: (document.querySelector('[data-aba].ativa') || {}).dataset ? document.querySelector('[data-aba].ativa').dataset.aba : '', erro: (document.getElementById('rh-erro') || {}).textContent || '',
-  itens: [...document.querySelectorAll('.rd-ed-item')].map(l => (l.querySelector('textarea') || {}).value || ''), html: document.getElementById('rd-editor').innerText }));
-ok(ed.aba === 'resultado-holos' && /HOLOSCAN/.test(ed.erro), 'V06 "Gerar Resultado HOLOS" abre o Resultado HOLOS do atendimento (pede a escolha do HOLOSCAN, sem pré-marcação)');
-ok(ed.itens.some(t => /^Organizar o fim da tarde/.test(t)) && ed.itens.some(t => /^Lanche planejado/.test(t)) && !ed.itens.some(t => /^Plano B|^Registro rápido/.test(t))
-  && !ed.itens.some(t => /reuniões da tarde podem dificultar/.test(t)) && /HOLOS AI/.test(ed.html), 'V06 editor com direcionamento e estratégias confirmados (origem HOLOS AI); sem o descartado; sem hipótese');
-await P.evaluate((h) => { document.querySelector('input[name="rh-holoscan"][value="' + h + '"]').click(); }, H); await espera(200);
-await clicar('[data-rh-acao="rascunho"]'); await espera(1200);
-const rasc = srv.linhas('holos_results').filter(r => r.status === 'rascunho' && r.encounter_id === E1).pop();
-const dHai = rasc ? [].concat(rasc.direcao.direcionamentos, rasc.direcao.estrategias, rasc.direcao.padroes, rasc.direcao.observar, rasc.direcao.corpo.itens).filter(x => x.origem === 'holos_ai') : [];
-const eRasc = rasc && rasc.direcao.estrategias.find(x => /^Lanche planejado/.test(x.texto));
-ok(!!rasc && dHai.length > 5 && dHai.every(x => x.ref && x.ref.tipo === 'holos_ai' && x.ref.id === i1.id && x.confirmado === true) && /15h30/.test(eRasc.acao)
-  && /^Síntese HOLOS AI/.test(rasc.leitura_profissional || '') && rasc.direcao.foco_atual && rasc.direcao.foco_atual.confirmado === false && rasc.direcao.foco_atual.origem === 'holos_ai',
-  'V06 rascunho salvo: itens da HOLOS AI com referência à importação v1, estratégia com o texto EDITADO, síntese na leitura profissional, foco só como sugestão');
-ok(!JSON.stringify(rasc.direcao).includes('Registro rápido') && !JSON.stringify(rasc.direcao).includes('Plano B') && !JSON.stringify(rasc.direcao).includes(v2.id)
-  && eRasc.status === 'acordada' && !/combinamos|horário alternativo/.test(JSON.stringify(rasc.direcao)) && !/nosso foco é organizar o fim da tarde/.test(JSON.stringify(rasc)),
-  'N05 descartado (E2) e a importação v2 descartada fora do Resultado; só a estratégia acordada entra como acordada; o rascunho de mensagem da IA não entra');
-
-/* ===================== V07 foco + finalizar ===================== */
-await P.evaluate(() => { const li = [...document.querySelectorAll('[data-rd-bloco="foco_atual"] .rd-ed-item')][0]; const b = li && li.querySelector('[data-rd-acao="confirmar"]'); if (b) b.click(); }); await espera(300);
-await clicar('[data-rh-acao="salvar"]'); await confirmarModal(); await espera(500);
-const fin = srv.linhas('holos_results').filter(r => r.status === 'salvo' && r.encounter_id === E1).pop();
-const dp = fin && fin.content_snapshot.direcao_paciente;
-ok(!!fin && fin.template_version === 5 && dp.foco_atual && dp.foco_atual.texto === 'Organizar o fim da tarde', 'V07 Resultado HOLOS finalizado (template 5) com o foco confirmado');
-ok(dp.direcionamentos.length === 1 && dp.direcionamentos[0].texto === 'Organizar o fim da tarde' && dp.estrategias.length === 1 && /15h30/.test(dp.estrategias[0].acao)
-  && dp.corpo.itens.length === 1 && dp.proxima_etapa && /Retorno/.test(dp.proxima_etapa.texto), 'V07 para a paciente: direcionamento, estratégia EDITADA, Corpo e próxima etapa compartilhados');
-const dpTxt = JSON.stringify(dp);
-ok(!/Registro rápido|Plano B|reuniões da tarde podem dificultar|reuniões da tarde atrapalham|nota maior = menos marcadores|Síntese HOLOS AI|REC-MET|REC-FUN|Linha do Momentum|sha256|not_catalogued|composição do lanche/i.test(dpTxt) && dp.mente.itens.length === 0 && dp.espirito.itens.length === 0,
-  'N05/N06 para a paciente: sem o confirmado não compartilhado, sem descartado, sem hipótese, sem alerta, sem síntese/raciocínio, sem ferramentas recomendadas; Mente/Espírito vazios');
-
-/* ===================== V08 emitir, PDF, WhatsApp ===================== */
-await P.evaluate((pid) => { window.definirPacienteAtivo(pid); document.querySelector('.nav-item[data-secao="resultado"]').click(); }, PA);
-await P.waitForFunction(() => !!document.getElementById('rp-doc'), { timeout: 15000 }); await espera(600);
-await clicar('[data-rp-acao="emitir"]'); await espera(1800);
-await P.waitForFunction(() => !!document.querySelector('[data-rp-acao="pdf"]'), { timeout: 15000 });
-const em = srv.linhas('holos_result_emissions').filter(e => e.holos_result_id === fin.id).pop();
+/* ===================== V06 gerar PDF ===================== */
+await abrirAba('holos-ai');
+await P.waitForFunction(() => !!document.querySelector('#hai-pronto [data-hai-acao="pdf"]'), { timeout: 15000 });
+await zerarCliques();
+const temLib = await P.evaluate(() => typeof window.html2pdf === 'function');
+await clicarDeVerdade('[data-hai-acao="pdf"]');
+await P.waitForFunction(() => (window.__toasts || []).some(t => /PDF gerado|Não foi possível gerar o PDF/.test(t)), { timeout: 30000 }).catch(() => null);
+const em = srv.linhas('holos_result_emissions').filter(e => e.holos_result_id === r1.id).pop();
+const pdfInfo = await P.evaluate(async () => {
+  const b = (window.__baixados || []).filter(x => x && x.type === 'application/pdf').pop();
+  if (!b) return { toasts: window.__toasts.slice(-3) };
+  const t = await b.text();
+  const u8 = new Uint8Array(await b.arrayBuffer()); let s = ''; for (let i = 0; i < u8.length; i += 32768) s += String.fromCharCode.apply(null, u8.subarray(i, i + 32768));
+  return { tam: b.size, paginas: (t.match(/\/Type\s*\/Page[^s]/g) || []).length, b64: btoa(s), sec: document.querySelector('.nav-item.ativo, .nav-item[aria-current="page"]') ? 1 : 0 };
+});
+ok(!!em && em.template_version === 'RF-3' && /Organizar o fim da tarde/.test(JSON.stringify(em.content_snapshot)) && (await cliques()) === 1,
+  'V06 "Gerar PDF" (1 clique): Resultado Final emitido (RF-3, congelado) a partir do Resultado pronto');
+ok(!temLib || (pdfInfo.tam > 20000 && pdfInfo.paginas >= 2 && pdfInfo.paginas <= 4),
+  'V06 PDF da paciente baixado' + (temLib ? ': ' + pdfInfo.paginas + ' páginas, ' + pdfInfo.tam + ' bytes (meta 2–4)' : ' (gerador indisponível offline)') + (pdfInfo.toasts ? ' ' + JSON.stringify(pdfInfo.toasts) : ''));
+if (process.env.PDF_OUT && pdfInfo.b64) writeFileSync(process.env.PDF_OUT, Buffer.from(pdfInfo.b64, 'base64'));
 const docPac = await texto('#rp-doc');
-ok(!!em && em.template_version === 'RF-3' && /Organizar o fim da tarde/.test(docPac) && /15h30 e 16h/.test(docPac), 'V08 emissão RF-3: documento oficial com o direcionamento e a estratégia editada');
-ok(!/Registro rápido|Plano B|reuniões da tarde podem dificultar|reuniões da tarde atrapalham|nota maior = menos marcadores|SUGESTÃO|HOLOS AI|not_catalogued|combinamos/.test(docPac) && !JSON.stringify(em.content_snapshot).includes('Plano B'),
-  'N05/N06 documento oficial (base do PDF): sem descartado, sem só profissional, sem não compartilhado, sem marca de sugestão');
-await shot('hai-8-documento', '#rp-doc');
+ok(!/reuniões da tarde podem dificultar|nota maior = menos marcadores|SUGESTÃO|HOLOS AI|not_catalogued|hipótese/.test(docPac) && /Organizar o fim da tarde/.test(docPac),
+  'N06 documento oficial (base do PDF): sem só profissional, sem marca de sugestão');
+await shot('hai-6-documento', '#rp-doc');
 const msg = await P.evaluate(() => window.ResultadoPagina.mensagemWhatsAppEmissao({ nome: 'Marina Ficticia' }, window.ResultadoPagina.emissaoAtual()));
-ok(/Nesta fase, nosso principal direcionamento é: Organizar o fim da tarde\./.test(msg || '') && !/Plano B|hipótese|HOLOS AI/.test(msg), 'V08 WhatsApp: "Nesta fase, nosso principal direcionamento é: Organizar o fim da tarde." (só o confirmado)');
-await P.addScriptTag({ url: 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js' }).catch(() => null);
-let pdf = await P.evaluate(async () => { if (typeof window.html2pdf !== 'function') return { semLib: true }; try { const r = await window.ResultadoPagina.gerarPdf(); return { tam: r.blob.size, nome: r.nome }; } catch (e) { return { erro: e.message }; } });
-if (pdf.semLib) {
-  const local = '/tmp/claude-0/-home-user-HoloHacking/2536f0de-9516-5291-b095-34b766c5940f/scratchpad/h2p/node_modules/html2pdf.js/dist/html2pdf.bundle.min.js';
-  if (existsSync(local)) { await P.addScriptTag({ path: local }); pdf = await P.evaluate(async () => { try { const r = await window.ResultadoPagina.gerarPdf(); return { tam: r.blob.size, nome: r.nome }; } catch (e) { return { erro: e.message }; } }); }
-}
-ok(pdf.semLib || (pdf.tam > 20000 && /\.pdf$/.test(pdf.nome)), 'V08 PDF oficial gerado pelo HoloHacking a partir da emissão' + (pdf.semLib ? ' (gerador indisponível offline: documento conferido acima)' : ' (' + pdf.tam + ' bytes)'));
+ok(/Nesta fase, nosso principal direcionamento é: Organizar o fim da tarde\./.test(msg || '') && !/hipótese|HOLOS AI/.test(msg), 'V06 WhatsApp da emissão com o foco');
 
-/* ===================== V09 reabrir ===================== */
+/* ===================== V07 editar (opcional) ===================== */
+await abrirAba('holos-ai');
+await P.waitForFunction(() => !!document.querySelector('[data-hai-acao="editar-resultado"]'), { timeout: 15000 });
+await clicar('[data-hai-acao="editar-resultado"]');
+await P.waitForFunction(() => !!document.getElementById('rd-editor'), { timeout: 15000 });
+const ed = await P.evaluate(() => ({ aviso: (document.querySelector('#rh-form .rh-aviso') || {}).textContent || '', foco: (document.querySelector('[data-rd-bloco="foco_atual"] textarea') || {}).value || '' }));
+ok(/Nova versão a partir do resultado nº 1/.test(ed.aviso) && /Organizar o fim da tarde/.test(ed.foco), 'V07 "Editar resultado" abre a nova versão no editor (a versão pronta continua no histórico)');
+await clicar('[data-rh-acao="cancelar"]'); await espera(300);
+
+/* ===================== N04 nova importacao no mesmo atendimento ===================== */
+await abrirAba('holos-ai');
+await P.waitForFunction(() => !!document.getElementById('hai-json'), { timeout: 15000 });
+const v2json = JSON.parse(EXEMPLO); v2json.direcionamentos[0].titulo = 'Organizar o fim da tarde com calma';
+await colarEImportar(JSON.stringify(v2json, null, 2));
+await P.waitForFunction(() => /v2/.test((document.getElementById('hai-pronto') || {}).innerText || ''), { timeout: 15000 }).catch(() => null);
+const i2 = imps().find(x => x.versao === 2), r2 = finais(E1).find(r => r.id !== r1.id);
+const r1agora = srv.linhas('holos_results').find(r => r.id === r1.id);
+ok(!!i2 && i2.status === 'confirmado' && imps().find(x => x.id === i1.id).texto_original === RESPOSTA_GPT && !!r2 && r2.supersedes_id === r1.id && !!r1agora.superseded_at
+  && r1agora.content_hash === r1.content_hash && r2.content_snapshot.direcao_paciente.foco_atual.texto === 'Organizar o fim da tarde com calma',
+  'N04 nova importação = versão 2 + Resultado nº 2 (substitui o nº 1, que fica no histórico idêntico); importação v1 intacta');
+
+/* ===================== N06 / N08 servidor ===================== */
+const hip = itens(i1.id).find(x => x.secao === 'pontos_para_aprofundar' && x.valor_ia.tipo === 'hipotese');
+const tentaHip = srv.tratar({ op: 'rpc', uid: UA, nome: 'salvar_rascunho_resultado_holos', args: { payload: { patient_id: PA, encounter_id: E1, holoscan_application_id: H, tool_application_ids: [],
+  visao_paciente: { ferramentas: {}, proximos_passos: false }, direcao: { schema_version: 1, tipo: 'primeira', padroes: [{ texto: 'HIPOTESE', origem: 'holos_ai', tipo: 'hipotese',
+    ref: { tipo: 'holos_ai', id: i1.id, campo: hip.id }, sugestao: true, confirmado: true, mostrar_paciente: true }] } } } });
+ok(tentaHip.error && tentaHip.error.hint === 'holos_ai_so_profissional', 'N06 servidor: hipótese da HOLOS AI marcada para a paciente é recusada mesmo com aceite automático');
+const outra = srv.tratar({ op: 'query', uid: UB, q: { tabela: 'holos_ai_imports', acao: 'select', filtros: [], ordem: [], range: null, colunas: '*', single: null, opcoes: {}, retornar: true } });
+const outraAc = srv.tratar({ op: 'rpc', uid: UB, nome: 'aceitar_importacao_holos_ai', args: { p_import_id: i1.id } });
+const outraImp = srv.tratar({ op: 'rpc', uid: UB, nome: 'importar_holos_ai', args: { p_encounter_id: E1, p_texto: EXEMPLO } });
+const direto = srv.tratar({ op: 'query', uid: UA, q: { tabela: 'holos_ai_imports', acao: 'update', dados: { aceite: 'revisao' }, filtros: [{ col: 'id', op: 'eq', val: i1.id }], ordem: [], range: null, colunas: '*', single: null, opcoes: {}, retornar: true } });
+const deNovo = srv.tratar({ op: 'rpc', uid: UA, nome: 'aceitar_importacao_holos_ai', args: { p_import_id: i1.id } });
+ok((outra.data || []).length === 0 && outraAc.error.hint === 'referencia_cruzada' && outraImp.error.hint === 'atendimento_obrigatorio' && direto.error && direto.error.code === '42501'
+  && deNovo.data && deNovo.data.repetida === true, 'N08 outra conta não lê, não aceita nem importa; a dona não grava direto; aceitar de novo não muda nada');
+
+/* ===================== V08 RETORNO ===================== */
+await escolherAtendimento(E2);
+await P.evaluate(() => { window.__copiado = null; document.querySelector('[data-hai-acao="copiar-pacote"]').click(); }); await espera(500);
+const pacR = JSON.parse(await P.evaluate(() => window.__copiado) || 'null');
+ok(!!pacR && pacR.atendimento.tipo === 'retorno' && pacR.resultado_anterior && pacR.resultado_anterior.foco_atual === 'Organizar o fim da tarde com calma'
+  && pacR.resultado_anterior.estrategias.length >= 1 && pacR.resultado_anterior.o_que_observar.length >= 1 && !!pacR.resultado_anterior.proxima_etapa,
+  'V08 retorno: o Pacote traz o resultado anterior (foco, estratégias, o que observar, próxima etapa) para a HOLOS AI comparar');
+const ret = JSON.parse(EXEMPLO); ret.tipo = 'retorno'; ret.estrategias[0].decisao_sugerida = 'AJUSTAR'; ret.estrategias[0].motivo_decisao = 'Aplicou em 3 de 5 dias.';
+await colarEImportar(JSON.stringify(ret, null, 2));
+await P.waitForFunction(() => !!document.querySelector('#hai-pronto [data-hai-acao="pdf"]'), { timeout: 15000 }).catch(() => null);
+const rR = finais(E2).pop();
+const eR = rR && rR.content_snapshot.direcao_paciente.estrategias.find(x => /^Lanche planejado/.test(x.texto));
+ok(!!rR && rR.content_snapshot.direcao_paciente.tipo === 'retorno' && !!eR && eR.status === 'ajustar' && rR.selected_sources.holoscan_application_id === H,
+  'V08 retorno importado → Resultado pronto (tipo retorno); a decisão da IA (AJUSTAR) vira o estado da estratégia; HOLOSCAN mais recente');
+
+/* ===================== N10 sem HOLOSCAN salvo ===================== */
+const semH = await (async () => {
+  const s2 = criarServidor(); const U = s2.criarConta('c@holo.test', 'senha-c-123');
+  s2.tabelas.profiles.push({ id: U, nome: 'Nutri C', registro: 'CRN-0 0000', profissao: 'Nutricionista', status: 'ativo', created_at: agora, updated_at: agora });
+  const q = (tabela, acao, extra) => s2.tratar({ op: 'query', uid: U, q: Object.assign({ tabela, acao, filtros: [], ordem: [], range: null, colunas: '*', single: null, opcoes: {}, retornar: true }, extra) });
+  const p = q('patients', 'insert', { dados: { nome: 'Paciente Sem Mapa Ficticia' } }).data[0].id;
+  const e = q('encounters', 'insert', { dados: { patient_id: p, occurred_at: new Date(Date.now() - 3600000).toISOString(), timezone: 'America/Sao_Paulo', type: 'consulta', modality: 'presencial' } }).data[0].id;
+  const P2 = await (await nav.createBrowserContext()).newPage();
+  await P2.setViewport({ width: 1280, height: 1000 }); P2.on('pageerror', x => errosJS.push(x.message));
+  await ligarPagina(P2, s2);
+  await P2.evaluateOnNewDocument(() => { setInterval(() => { if (window.BoasVindas && window.BoasVindas.aberta()) window.BoasVindas.fechar(); }, 80); });
+  await P2.goto('http://127.0.0.1:5500/', { waitUntil: 'networkidle2' });
+  await P2.waitForSelector('#login-email', { visible: true });
+  await P2.type('#login-email', 'c@holo.test'); await P2.type('#login-senha', 'senha-c-123'); await P2.click('#btn-entrar');
+  await P2.waitForFunction(() => window.HoloAuth && window.HoloAuth.sessaoAtiva() && window.pacientesCarregados && window.pacientesCarregados(), { timeout: 15000 });
+  await P2.evaluate(async (p, e) => { window.definirPacienteAtivo(p); try { await window.AtendimentoAtual.selecionarPorId(e); } catch (x) { /* */ } window.levarParaFicha('aba:holos-ai', p); }, p, e);
+  await P2.waitForFunction(() => !!document.getElementById('hai-json'), { timeout: 15000 });
+  await P2.evaluate((t) => { const a = document.getElementById('hai-json'); a.value = t; a.dispatchEvent(new Event('input', { bubbles: true })); document.querySelector('[data-hai-acao="importar"]').click(); }, EXEMPLO);
+  await espera(1800);
+  const r = await P2.evaluate(() => ({ txt: (document.getElementById('hai-pronto') || {}).innerText || '', gerar: !!document.querySelector('#hai-pronto [data-hai-acao="gerar"]') }));
+  await P2.close();
+  return { r, imp: s2.linhas('holos_ai_imports')[0], res: s2.linhas('holos_results').length };
+})();
+ok(semH.imp && semH.imp.status === 'confirmado' && semH.res === 0 && /RESULTADO AINDA NÃO GERADO/.test(semH.r.txt) && /HOLOSCAN/.test(semH.r.txt) && semH.r.gerar,
+  'N10 sem HOLOSCAN salvo: análise guardada e aceita, Resultado não gerado com o motivo e "Gerar resultado" (1 clique depois de salvar o HOLOSCAN)');
+
+/* ===================== V09 recarregar + celular ===================== */
 await P.reload({ waitUntil: 'networkidle2' });
 await P.waitForFunction(() => window.HoloAuth && window.HoloAuth.sessaoAtiva() && window.pacientesCarregados && window.pacientesCarregados(), { timeout: 15000 });
 await P.evaluate(async () => { if (window.Sincronizacao && window.Sincronizacao.aguardar) await window.Sincronizacao.aguardar(); });
+await preparar(P);
 await abrirAba('holos-ai');
-await P.waitForFunction(() => !!document.querySelector('.hai-tabela'), { timeout: 15000 });
-await P.evaluate(() => { const b = [...document.querySelectorAll('[data-hai-acao="abrir"]')].find(x => x.closest('tr').innerText.includes('v1')); if (b) b.click(); }); await espera(500);
-const reab = await P.evaluate(() => ({ hist: [...document.querySelectorAll('.hai-tabela tbody tr')].map(r => r.innerText.replace(/\s+/g, ' ')), topo: (document.querySelector('.hai-rev-topo') || {}).innerText || '',
-  editado: [...document.querySelectorAll('.hai-item-ed')].length, gerar: !document.querySelector('[data-hai-acao="gerar"]').disabled }));
-ok(reab.hist.length === 2 && /v1/.test(reab.topo) && /CONFIRMADO/.test(reab.topo) && reab.editado === 1 && reab.gerar, 'V09 reaberto: histórico (v1 CONFIRMADO, v2 DESCARTADO), a revisão com o item EDITADO e "Gerar" disponível');
-ok(srv.linhas('holos_results').some(r => r.id === fin.id && r.status === 'salvo') && srv.linhas('holos_result_emissions').some(e => e.id === em.id), 'V09 Resultado HOLOS e emissão persistidos');
+await P.waitForFunction(() => !!document.getElementById('hai-pronto'), { timeout: 15000 });
+const reab = await P.evaluate(() => ({ pronto: document.getElementById('hai-pronto').innerText, fechado: !!document.querySelector('details#hai-detalhes:not([open])'),
+  hist: [...document.querySelectorAll('#hai-detalhes .hai-tabela tbody tr')].length }));
+ok(/RESULTADO PRONTO/.test(reab.pronto) && /v2/.test(reab.pronto) && reab.fechado && reab.hist === 2, 'V09 recarregado: Resultado pronto (análise v2); detalhes técnicos fechados, com as 2 versões');
+await P.evaluate(() => { document.getElementById('hai-detalhes').open = true; }); await espera(200);
+const det = await texto('#hai-detalhes');
+ok(/ACEITE AUTOMÁTICO/.test(det) && /INTERNO/.test(det) && /PACIENTE/.test(det) && !(await P.evaluate(() => !!document.querySelector('#hai-detalhes button[data-hai-acao="confirmar"], #hai-detalhes input'))),
+  'V09 "Detalhes técnicos da análise": só leitura, cada item marcado INTERNO ou PACIENTE, aceite automático');
+await shot('hai-9-detalhes', '#hai-detalhes');
+await P.evaluate(() => { document.getElementById('hai-detalhes').open = false; });
 await P.setViewport({ width: 390, height: 900 }); await espera(400);
 ok(!(await P.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)), 'celular (390 px): aba HOLOS AI sem rolagem lateral');
 await shot('hai-9-celular', '.hai-ponte');
 await P.setViewport({ width: 1280, height: 1000 });
 
-/* ===================== N07 / N08 ===================== */
+/* ===================== N07 ===================== */
 ok(digitais() === antes, 'N07 HOLOSCAN (aplicações, respostas, notas), Próximos Passos, ferramentas, pacotes, Mapeamento e Conduta idênticos');
-const outra = srv.tratar({ op: 'query', uid: UB, q: { tabela: 'holos_ai_imports', acao: 'select', filtros: [], ordem: [], range: null, colunas: '*', single: null, opcoes: {}, retornar: true } });
-const outraRev = srv.tratar({ op: 'rpc', uid: UB, nome: 'revisar_item_holos_ai', args: { p_item_id: it('estrategias', 'E1').id, p_estado: 'descartado' } });
-const outraImp = srv.tratar({ op: 'rpc', uid: UB, nome: 'importar_holos_ai', args: { p_encounter_id: E1, p_texto: EXEMPLO } });
-const direto = srv.tratar({ op: 'query', uid: UA, q: { tabela: 'holos_ai_import_items', acao: 'update', dados: { estado: 'confirmado' }, filtros: [{ col: 'id', op: 'eq', val: it('estrategias', 'E2').id }], ordem: [], range: null, colunas: '*', single: null, opcoes: {}, retornar: true } });
-ok((outra.data || []).length === 0 && outraRev.error.hint === 'referencia_cruzada' && outraImp.error.hint === 'atendimento_obrigatorio' && direto.error && direto.error.code === '42501',
-  'N08 outra conta não lê, não revisa nem importa; a dona não grava direto na tabela (só pelas RPCs)');
 ok(errosJS.length === 0, 'sem erro de JavaScript na página' + (errosJS.length ? ': ' + errosJS.slice(0, 3).join(' | ') : ''));
+console.log('\n  MEDIDAS (caso fictício): copiar 1 + abrir 1 + importar e gerar ' + cliquesImport + ' + gerar PDF 1 = ' + (3 + cliquesImport) + ' cliques; importar→resultado ' + msImport + ' ms; PDF '
+  + (pdfInfo.paginas || '?') + ' páginas; teste total ' + Math.round((Date.now() - t0) / 1000) + ' s');
 
 await nav.close();
-console.log(falhou ? '\nFALHOU' : '\nOK: ponte HOLOS AI -> Resultado HOLOS');
+console.log(falhou ? '\nFALHOU' : '\nOK: HOLOS AI -> Resultado HOLOS automático');
 process.exit(falhou ? 1 : 0);

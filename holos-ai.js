@@ -480,9 +480,10 @@
     var p = pacienteAtivo();
     var nomeP = p ? p.nome : "paciente";
 
-    /* Ponte HOLOS AI (14/10): os 5 passos (Pacote, abrir, importar, revisar, gerar Resultado) vem primeiro;
-       o contexto em texto livre continua abaixo, como antes */
+    /* simplificacao 14/10: o fluxo e o da ponte (3 passos). O contexto em texto livre e os atalhos antigos ficam
+       recolhidos, como recurso secundario (nao sao mais um passo do fluxo). */
     var html = '<div id="hai-ponte"></div>' +
+      '<details class="ai-hub-legado" id="ai-hub-legado"><summary>Contexto em texto livre (modo antigo)</summary>' +
       '<div class="ai-hub">' +
         '<div class="ai-hub-intro">' +
           '<div class="ai-hub-icone" aria-hidden="true">&#9670;</div>' +
@@ -529,7 +530,7 @@
         '<p class="ai-hub-privacidade">Os dados permanecem neste navegador. ' +
           'Nenhuma informação é enviada automaticamente para serviços externos. ' +
           'A ação de copiar e usar o contexto parte de você.</p>' +
-      '</div>';
+      '</div></details>';
 
     alvo.innerHTML = html;
     atualizarLinksAgentes();

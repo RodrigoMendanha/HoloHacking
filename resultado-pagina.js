@@ -332,7 +332,7 @@
     a.innerHTML = '<div class="dash-vazio" id="rp-carregando">Carregando o resultado…</div>';
     var R = window.ResultadoHolos;
     if (!R) { a.innerHTML = '<div class="dash-vazio" id="rp-vazio">O módulo do Resultado HOLOS não carregou.</div>'; return; }
-    Promise.all([R.carregar(pid), carregarEmissoes(pid)]).then(function () {
+    return Promise.all([R.carregar(pid), carregarEmissoes(pid)]).then(function () {
       if (vez !== desenhoAtual || pacienteId() !== pid) return;
       var r = resultadoFinal(pid);
       if (!r) {
@@ -615,8 +615,29 @@
     };
   });
 
+  /* SIMPLIFICACAO 14/10 (aba HOLOS AI → "Gerar PDF"): abre a pagina Resultado, emite o Resultado Final do Resultado HOLOS
+     vigente se ele ainda nao tem emissao (a emissao e o registro imutavel do que a paciente recebeu) e baixa o PDF dela.
+     Nada novo e calculado: e o mesmo emitir + PDF dos botoes da pagina. */
+  function emitirEPdf() {
+    var pid = pacienteId();
+    if (!pid) return Promise.reject(new Error("Escolha uma paciente."));
+    emissaoAberta = null;
+    if (window.irParaSecao) window.irParaSecao("resultado");
+    return Promise.resolve(desenhar()).then(function () {
+      var r = resultadoFinal(pid);
+      if (!r) throw new Error("Nenhum Resultado HOLOS finalizado");
+      if (emAtual && emAtual.holos_result_id === r.id) return null;
+      return emitir(pid, r).then(function () { return desenhar(); });
+    }).then(function () { return gerarPdf(); }).then(function (res) {
+      baixar(res.blob, res.nome); toast("PDF gerado: " + res.nome); return res;
+    }, function (e) {
+      var m = (e && e.hint && MSG_EMISSAO[e.hint]) || (e && e.message) || "erro";
+      toast("Não foi possível gerar o PDF agora (" + m + ")."); throw e;
+    });
+  }
+
   window.ResultadoPagina = {
-    desenhar: desenhar, gerarPdf: gerarPdf, paginar: paginar, ATOMOS: ATOMOS, enviarWhatsApp: enviarWhatsApp, imprimir: imprimir,
+    desenhar: desenhar, emitirEPdf: emitirEPdf, gerarPdf: gerarPdf, paginar: paginar, ATOMOS: ATOMOS, enviarWhatsApp: enviarWhatsApp, imprimir: imprimir,
     resultadoFinal: resultadoFinal, condutaVigente: condutaVigente, condutaDoResultado: condutaDoResultado, blocosConduta: blocosConduta, documentoEmissao: documentoEmissao, emissoes: function () { return emissoes.linhas.slice(); },
     numeroWhatsApp: numeroWhatsApp, linkWhatsApp: linkWhatsApp, mensagemWhatsApp: mensagemWhatsApp, mensagemWhatsAppEmissao: mensagemWhatsAppEmissao, termosFora: termosFora,
     focoDoResultado: focoDoResultado, focoDaEmissao: focoDaEmissao, emissaoAtual: function () { return emAtual; },

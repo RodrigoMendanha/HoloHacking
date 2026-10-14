@@ -1147,6 +1147,21 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
      mantendo `schema_version: 1`. Na ponte, as regras estruturais são erro (JS + SQL `holos_ai_problemas`) e as de linguagem,
      aviso. PP-V1, catálogo, HOLOSCAN e versões publicadas sem mudança (`docs/v1/holos-ai-gpt/`, `docs/v1/PONTE-HOLOS-AI.md`).
 
+198. **Simplificação definitiva HOLOS AI → Resultado** (14/10, decisão de Rodrigo). Importar um HOLOS_AI_RESULT válido gera o
+     Resultado HOLOS final **sem confirmação item a item**:
+     - valida o schema;
+     - guarda o original imutável e versionado;
+     - aceita pela **regra fixa** (`aceitar_importacao_holos_ai`, `aceite = 'automatico'`): o só profissional fica interno e o elegível vai para a paciente; a estratégia que requer decisão na Conduta fica interna;
+     - monta e finaliza o Resultado (HOLOSCAN do atendimento, foco = 1º direcionamento elegível, relato do Mapeamento e acordos);
+     - libera "Gerar PDF".
+
+     A aba HOLOS AI tem 3 passos e o cartão "Resultado pronto" (Ver · Gerar PDF · Editar). A revisão e a montagem manual saem do
+     fluxo: os detalhes técnicos ficam recolhidos e só de leitura, e a montagem manual fica em "avançado". O PDF fica simples
+     (lista limitada por seção; no PDF, os cinco sistemas são resumidos ao mapa e às áreas prioritárias): 4 páginas no caso
+     fictício. No retorno, o Pacote traz o resultado anterior e a decisão MANTER/AJUSTAR/… vira o estado da estratégia.
+     Sem mudança em HOLOSCAN, fórmula, cinco sistemas, Índice, Tríade, PP-V1, ferramentas, schema v1 e regras clínicas
+     (`docs/v1/PONTE-HOLOS-AI.md` §0).
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`

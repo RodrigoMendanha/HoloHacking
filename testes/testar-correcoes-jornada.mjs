@@ -202,6 +202,7 @@ ok(/Mapeamento Holístico\s*\n?\s*Não enviado/i.test(b7.antes || '') && /Não e
 titulo('B8 — HOLOS AI: TODAS AS FERRAMENTAS CONCLUIDAS E O RESULTADO HOLOS');
 const ia = await A.evaluate(async (pid) => {
   window.definirPacienteAtivo(pid); window.levarParaFicha('aba:holos-ai', pid); await new Promise(r => setTimeout(r, 900));
+  const lg = document.getElementById('ai-hub-legado'); if (lg) lg.open = true;   /* 14/10 simplificacao: o contexto antigo fica recolhido */
   const b = document.querySelector('.ai-atalho-ctx[data-ctx="completo"]'); if (b) b.click(); await new Promise(r => setTimeout(r, 400));
   const ta = document.querySelector('#aba-holos-ai .ai-hub textarea'); return ta ? ta.value : document.querySelector('#aba-holos-ai .ai-hub').innerText;   /* 14/10: o campo da ponte HOLOS AI (#hai-json) nao e o contexto */
 }, PA);
