@@ -519,6 +519,7 @@
         }).join("") + "</ol></div>" : "") + "</section>";
     }
     var nomes = [], vistos = {};
+    /* so o NOME das ferramentas aplicadas (as respostas e resultados ficam no sistema, inclusive as nao marcadas para a paciente) */
     (snap.ferramentas || []).forEach(function (t) { var n = defFerr(t.ferramenta_id).titulo; if (n && !vistos[n]) { vistos[n] = 1; nomes.push(n); } });
     if (nomes.length) {
       var lista = nomes.length > 1 ? nomes.slice(0, -1).join(", ") + " e " + nomes[nomes.length - 1] : nomes[0];

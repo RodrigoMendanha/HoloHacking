@@ -71,7 +71,7 @@ ok(nut.secoes.join() === '1,2,3,4,5,6,7,8,9,10' && !/A\. HOLOSCAN|G\. Resultado 
 ok(/OBJETIVO_COND/.test(nut.t) && /ACORDO_COND/.test(nut.t) && /MONITORAMENTO_COND/.test(nut.t) && /RETORNO_COND/.test(nut.t) && /LEITURA_FICT/.test(nut.t) && /QUESTAO_SO_NUTRI/.test(nut.t)
   && /Decisão da nutricionista/.test(nut.t) && nut.editor, 'Conduta do atendimento (decisão da nutricionista), monitoramento/retorno, leitura; o editor da interpretação continua');
 ok(/Proveniência técnica/.test(nut.t) && /HOLOS-V1 v/.test(nut.t) && /MR-V1/.test(nut.t), 'seção 10: proveniência técnica em rodapé discreto (pacote, motor, catálogo)');
-ok(/Sua direção nesta etapa/i.test(pac.t) && /Foco atual/i.test(pac.t) && /Foco ficticio de teste/.test(pac.t) && !/QUESTAO_SO_NUTRI|MONITORAMENTO_COND|Proveniência|LEITURA_FICT/.test(pac.t)
+ok(/Sua direção nesta fase/i.test(pac.t) && /Foco desta fase/i.test(pac.t) && /Foco ficticio de teste/.test(pac.t) && !/QUESTAO_SO_NUTRI|MONITORAMENTO_COND|Proveniência|LEITURA_FICT/.test(pac.t)
   && !/CARTA_INTIMA_NAO_ENVIAR|Irmã Terceira Ficticia/.test(pac.t), 'relatório "para o paciente" = a visão da paciente (template 5: direção e foco), sem Carta, terceiros ou campos internos');
 
 /* --- pagina Resultado (o PDF da paciente) --- */
@@ -83,8 +83,9 @@ const rp = await A.evaluate(() => { const d = document.getElementById('rp-doc');
 ok(rp.rodapes === 1 && rp.ultimo === 'FOOTER', 'item 34: PDF da paciente com um rodapé só, no fim (antes: rodapé do Resultado HOLOS no meio, antes da Conduta)');
 ok(!/[0-9a-f]{8}-[0-9a-f]{4}-|hash|REC-|rule|PENDÊNCIA|Pendências metodológicas|homologa|MR-V1|HOLOS-V1/i.test(rp.t) && !/data-pp-regra|rh-pendencias/.test(rp.html),
   'item 34: PDF sem IDs, hash, regra, governança nem pendências');
-ok(rp.pp <= 1 && !/Próximos passos combinados/i.test(rp.t) && /Foco atual/i.test(rp.t), 'item 34: nenhum segundo título "Próximos passos" (template 5: a direção vem do que a nutricionista confirmou)');
-ok(!/CARTA_INTIMA_NAO_ENVIAR|Irmã Terceira Ficticia|verdadeiro motivo/i.test(rp.t) && /A Carta ao Futuro Eu foi realizada como exercício/.test(rp.t),
+ok(rp.pp <= 1 && !/Próximos passos combinados/i.test(rp.t) && /Foco desta fase/i.test(rp.t), 'item 34: nenhum segundo título "Próximos passos" (template 5: a direção vem do que a nutricionista confirmou)');
+/* PDF refinado 15/10: as respostas das ferramentas ficam no sistema (o PDF só cita as ferramentas) */
+ok(!/CARTA_INTIMA_NAO_ENVIAR|Irmã Terceira Ficticia|verdadeiro motivo/i.test(rp.t),
   'testes 26/27/31: PDF da paciente sem o texto da Carta e sem nomes de terceiros (snapshot do Resultado salvo)');
 ok(!/exame|laborat/i.test(rp.semRodape), 'teste 30: exames continuam fora do documento da paciente (só a negação do rodapé: "não é exame")');
 

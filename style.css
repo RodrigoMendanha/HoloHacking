@@ -6145,7 +6145,7 @@ body.rh-imprimindo #rh-doc .eyebrow,body.rh-imprimindo #rh-doc .rd-sis-foco,body
 .rp-carimbo{align-self:center}
 .rp-emissao{display:flex;flex-direction:column;align-items:flex-end;text-align:right;gap:2px;font-size:.8rem;color:#55705f}
 .rp-emissao b{color:#0b3325;font-weight:500}
-.rp-gerado{margin:8px 0 0;display:flex;align-items:center;gap:6px;font-size:.72rem;color:#7a8d82;letter-spacing:.04em}
+.rp-gerado{margin:8px 0 0;display:flex;align-items:center;gap:6px;font-size:.72rem;color:#4c6357;letter-spacing:.04em}
 .rp-gerado img{width:14px;height:14px;object-fit:contain}
 body.rp-gerando .rp-doc .rp-rodape,body.rp-imprimindo .rp-doc .rp-rodape{display:grid;grid-template-columns:1fr;row-gap:6px}
 body.rp-gerando .rp-doc .rp-rodape > *,body.rp-imprimindo .rp-doc .rp-rodape > *{grid-column:auto}
