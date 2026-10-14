@@ -5,6 +5,7 @@
 --   HA00 estrutura: RLS, sem escrita direta, funcoes internas fechadas, RPCs so para authenticated
 --   HA01 JSON invalido -> json_invalido; nada salvo        HA02 schema_version 2 -> schema_incompativel; nada salvo
 --   HA03 estrutura invalida (MANTER na 1a consulta, 4 ferramentas) -> resultado_invalido; nada salvo
+--   HA03b fechamento 14/10: 4 chaves obrigatorias, territorio nao aprofundado sem estrategia, estrategia nunca baseada em hipotese
 --   HA04 importacao valida (resposta inteira do GPT colada) -> versao 1, texto e JSON originais, um item por elemento
 --   HA05 imutabilidade: original, item da IA e apagar recusados; nutricionista nao grava direto
 --   HA06 nova importacao no mesmo atendimento -> versao 2; a 1 fica identica     HA07 operation_id repetido -> mesma importacao
@@ -80,6 +81,22 @@ begin
     and pg_temp.ha_tenta(format('select public.importar_holos_ai(%L::uuid, %L)::text', e1, (j - 'espirito')::text)) = 'resultado_invalido'
     then 'ok' else 'FALHOU: ' || t end || ': estrutura invalida (MANTER na 1a consulta, 4 ferramentas, chave faltando) recusada; nada salvo (nem parcial)';
 
+  -- fechamento 14/10/2026: meta, entrada, ferramentas_ja_aplicadas e plano_acompanhamento obrigatorios; territorio nao aprofundado sem estrategia;
+  -- estrategia nunca baseada em hipotese
+  t := pg_temp.ha_tenta(format('select public.importar_holos_ai(%L::uuid, %L)::text', e1, (j - 'plano_acompanhamento')::text));
+  insert into _logha (passo) select 'HA03b ' || case when t = 'resultado_invalido'
+    and pg_temp.ha_tenta(format('select public.importar_holos_ai(%L::uuid, %L)::text', e1, (j - 'meta')::text)) = 'resultado_invalido'
+    and pg_temp.ha_tenta(format('select public.importar_holos_ai(%L::uuid, %L)::text', e1, (j - 'entrada')::text)) = 'resultado_invalido'
+    and pg_temp.ha_tenta(format('select public.importar_holos_ai(%L::uuid, %L)::text', e1, (j - 'ferramentas_ja_aplicadas')::text)) = 'resultado_invalido'
+    and pg_temp.ha_tenta(format('select public.importar_holos_ai(%L::uuid, %L)::text', e1, jsonb_set(j, '{meta}', '"x"')::text)) = 'resultado_invalido'
+    and pg_temp.ha_tenta(format('select public.importar_holos_ai(%L::uuid, %L)::text', e1,
+          jsonb_set(jsonb_set(j, '{estrategias,1,territorio}', '"Mente"'), '{corpo,estrategias}', '["E1"]')::text)) = 'resultado_invalido'
+    and pg_temp.ha_tenta(format('select public.importar_holos_ai(%L::uuid, %L)::text', e1, jsonb_set(j, '{mente,estrategias}', '["E2"]')::text)) = 'resultado_invalido'
+    and pg_temp.ha_tenta(format('select public.importar_holos_ai(%L::uuid, %L)::text', e1,
+          jsonb_set(j, '{estrategias,1,baseado_em}', '["Pontos para aprofundar: hipótese das reuniões"]')::text)) = 'resultado_invalido'
+    and (select count(*) from public.holos_ai_imports) = antes
+    then 'ok' else 'FALHOU: ' || t end || ': sem meta/entrada/ferramentas_ja_aplicadas/plano_acompanhamento, estrategia em territorio nao aprofundado ou baseada em hipotese: recusado; nada salvo';
+
   colado := 'Aqui esta a analise.' || chr(10) || '=== HOLOS_AI_RESULT ===' || chr(10) || 'TIPO: primeira_consulta' || chr(10) || '=== FIM_HOLOS_AI_RESULT ===' || chr(10)
     || '```json' || chr(10) || (select v from _ha where k = 'json') || chr(10) || '```' || chr(10) || 'Tudo acima e SUGERIDO.';
   r := public.importar_holos_ai(e1, colado, 'a0000000-0000-4000-8000-0000000000a1'::uuid);
@@ -88,11 +105,11 @@ begin
     and (select status = 'importado' and schema_version = 1 and tipo = 'primeira_consulta' and texto_original = colado and json_original = j
            and texto_sha256 = encode(sha256(convert_to(colado, 'UTF8')), 'hex') and agente = 'HOLOS-AI-GPT 1.2' and encounter_id = e1 and patient_id = p
          from public.holos_ai_imports where id = (r->>'id')::uuid)
-    and (select count(*) from public.holos_ai_import_items where import_id = (r->>'id')::uuid and so_profissional) = 41
+    and (select count(*) from public.holos_ai_import_items where import_id = (r->>'id')::uuid and so_profissional) = 43
     and (select count(distinct secao) from public.holos_ai_import_items where import_id = (r->>'id')::uuid) = 20
     and (select valor_ia from public.holos_ai_import_items where import_id = (r->>'id')::uuid and secao = 'estrategias' and chave = 'E1') = j#>'{estrategias,0}'
     and (select count(*) from public.holos_ai_import_items where import_id = (r->>'id')::uuid and estado = 'sugerido' and not compartilhar) = 62
-    then 'ok' else 'FALHOU: ' || r::text end || ': resposta inteira do GPT colada -> versao 1; texto, JSON, sha256, agente e atendimento guardados; 62 itens separados (20 secoes), 41 so profissionais, todos SUGESTAO';
+    then 'ok' else 'FALHOU: ' || r::text end || ': resposta inteira do GPT colada -> versao 1; texto, JSON, sha256, agente e atendimento guardados; 62 itens separados (20 secoes), 43 so profissionais, todos SUGESTAO';
 
   t := pg_temp.ha_tenta(format('update public.holos_ai_imports set status = %L where id = %L', 'confirmado', r->>'id'));
   insert into _logha (passo) select 'HA05a ' || case when t like '42501:%' and pg_temp.ha_tenta(format('update public.holos_ai_import_items set estado = %L where import_id = %L', 'confirmado', r->>'id')) like '42501:%'
@@ -120,6 +137,10 @@ insert into _logha (passo) select 'HA05b ' || case when
     and pg_temp.ha_tenta(format('delete from public.holos_ai_import_items where import_id = %L', (select v from _ha where k = 'i1'))) = 'holos_ai_imutavel'
     and pg_temp.ha_tenta(format('update public.holos_ai_imports set status = ''importado'' where id = %L returning status', (select v from _ha where k = 'i1'))) = 'ACEITO:importado'
   then 'ok' else 'FALHOU' end || ': JSON/texto originais, valor da IA e apagar recusados mesmo para o dono do banco (holos_ai_imutavel)';
+insert into _logha (passo) select 'HA03c ' || case when
+    public.holos_ai_problemas((select v::jsonb from _ha where k = 'json') || '{"meta": {}, "entrada": {}, "ferramentas_ja_aplicadas": [], "plano_acompanhamento": []}') = '{}'
+    and public.holos_ai_problemas((select v::jsonb from _ha where k = 'json')) = '{}'
+  then 'ok' else 'FALHOU' end || ': o T5 do fechamento passa sem problema; meta/entrada/ferramentas_ja_aplicadas/plano_acompanhamento vazios sao aceitos';
 
 -- HA08 revisao
 select pg_temp.como_daniel();
@@ -149,12 +170,12 @@ begin
     then 'ok' else 'FALHOU: ' || t end || ': hipotese e sintese (so profissionais) nao podem ir para a paciente; descartado nao se compartilha';
   perform public.revisar_item_holos_ai(d1, 'confirmado', null, true);
   perform public.revisar_item_holos_ai(s1, 'editado', '"Sintese revisada pela nutricionista (EDITADA)."'::jsonb, false);
-  -- descartar: E2 (plano B), o padrao 0 e o espirito; o resto da estrategia E3 confirmada SEM compartilhar
+  -- descartar: E2 (registro rapido, sugestao nova), o padrao 0 e o espirito; o_que_observar[1] (reunioes) confirmado SEM compartilhar
   for x in select id, secao, chave, ordem from public.holos_ai_import_items where import_id = i1 and estado = 'sugerido' order by secao, ordem loop
     if (x.secao = 'estrategias' and x.chave = 'E2') or (x.secao = 'padroes_observados' and x.ordem = 0) or x.secao = 'espirito' then
       perform public.revisar_item_holos_ai(x.id, 'descartado');
       if x.secao = 'estrategias' then insert into _ha values ('it_e2', x.id::text); end if;
-    elsif x.secao = 'estrategias' and x.chave = 'E3' then
+    elsif x.secao = 'o_que_observar' and x.ordem = 1 then
       perform public.revisar_item_holos_ai(x.id, 'confirmado', null, false);
       insert into _ha values ('it_e3', x.id::text);
     elsif x.secao = 'pontos_para_aprofundar' and x.id = hip then
@@ -187,7 +208,7 @@ begin
   ie1 := jsonb_build_object('id', 'hai-e1', 'texto', 'Lanche planejado antes da fome forte', 'texto_sugerido', 'Lanche planejado antes da fome forte', 'origem', 'holos_ai',
     'ref', format(ref_de, i1, (select v from _ha where k = 'it_e1'))::jsonb, 'sugestao', true, 'confirmado', true, 'mostrar_paciente', true, 'descartado', false,
     'acao', 'Preparar o lanche na noite anterior e comer entre 15h30 e 16h (EDITADO PELA NUTRI).', 'direcionamento_id', 'hai-d1', 'status', 'acordada');
-  ie2 := jsonb_build_object('id', 'hai-e2', 'texto', 'Plano B para dias de reuniao', 'origem', 'holos_ai',
+  ie2 := jsonb_build_object('id', 'hai-e2', 'texto', 'Registro rapido de fome e disposicao', 'origem', 'holos_ai',
     'ref', format(ref_de, i1, (select v from _ha where k = 'it_e2'))::jsonb, 'sugestao', true, 'confirmado', true, 'mostrar_paciente', true, 'status', 'proposta');
   ie3 := jsonb_build_object('id', 'hai-e3', 'texto', 'REGISTRO_NAO_COMPARTILHADO', 'origem', 'holos_ai',
     'ref', format(ref_de, i1, (select v from _ha where k = 'it_e3'))::jsonb, 'sugestao', true, 'confirmado', true, 'mostrar_paciente', false, 'status', 'proposta');
@@ -235,7 +256,7 @@ begin
       and jsonb_array_length(dp->'direcionamentos') = 1 and dp#>>'{direcionamentos,0,origem}' = 'holos_ai'
     then 'ok' else 'FALHOU: ' || dp::text end || ': Resultado finalizado: foco, direcionamento e estrategia aceitos e compartilhados vao para a paciente, com o texto EDITADO';
   insert into _logha (passo) select 'HA11b ' || case when dp::text not like '%REGISTRO_NAO_COMPARTILHADO%' and s::text not like '%REGISTRO_NAO_COMPARTILHADO%'
-      and s::text not like '%Plano B%' and s::text not like '%HIPOTESE%' and s::text not like '%Sintese revisada%'
+      and s::text not like '%Registro rapido%' and s::text not like '%HIPOTESE%' and s::text not like '%Sintese revisada%'
       and (snap->'direcao')::text like '%REGISTRO_NAO_COMPARTILHADO%' and not (dp#>'{estrategias,0}' ? 'ref')
       and s->>'template' = 'RF-3' and s#>>'{direcao_paciente,estrategias,0,acao}' like '%EDITADO PELA NUTRI%'
     then 'ok' else 'FALHOU' end || ': emissao RF-3 (PDF/WhatsApp): sem o nao compartilhado, sem o descartado, sem hipotese, sem a leitura profissional; com a estrategia editada';

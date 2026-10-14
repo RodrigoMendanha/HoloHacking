@@ -15,7 +15,7 @@
 | Passo | O que faz |
 |---|---|
 | 1. Copiar Pacote HOLOS AI | Copia um JSON (`HOLOS_AI_PACOTE`, `pacote_version` 1) só com dados já registrados: Mapeamento (respostas da paciente, por etapa), HOLOSCAN (sistemas, notas, faixas, Índice, Tríade, leitura profissional), evolução, ferramentas aplicadas e respostas, Conduta, Resultado HOLOS / direção atual (foco, direcionamentos, estratégias confirmados) e histórico de atendimentos. **Sem** nome, telefone, e-mail, CPF ou endereço (identificador por iniciais + idade + sexo), **sem** exames, **sem** conteúdo da Carta ao Futuro Eu. "Ver o pacote" mostra o conteúdo antes de copiar. |
-| 2. Abrir HOLOS AI | Link do agente (`HolosAI.configurarUrls`); sem URL configurada, aparece "endereço não configurado". |
+| 2. Abrir HOLOS AI | Link do agente (`HOLOS_AI_URLS.chatgpt` em `holos-ai.js` ou `HolosAI.configurarUrls({ chatgpt })`). **Ainda não há GPT publicado: nenhum link foi configurado nem inventado.** Passo a passo em `docs/v1/holos-ai-gpt/LEIA-ME-CONFIGURAR-GPT.md` ("Link do GPT no HoloHacking"). Sem URL, aparece "endereço não configurado". |
 | 3. Importar Resultado HOLOS AI | Campo grande "Cole aqui o JSON HOLOS_AI_RESULT" + **Validar e importar**. Aceita o JSON puro ou a resposta inteira do GPT (usa o primeiro bloco ` ``` `). Valida na tela e no servidor. **Inválido:** nada é salvo, o erro aparece em lista e o texto colado fica no campo. |
 | 4. Revisar análise | Um cartão por item, agrupado por seção. Todo item começa como **SUGESTÃO HOLOS AI**. Ações: **Confirmar**, **Editar** (só textos), **Descartar**, **Voltar a sugestão**, **Compartilhar com a paciente** (só em item confirmado/editado que não é só profissional). Também há ações em lote por seção. **Concluir revisão** fica bloqueado enquanto houver sugestão pendente. **Descartar esta importação** também é possível. |
 | 5. Gerar Resultado HOLOS | Só com uma importação **CONFIRMADA**. Leva o confirmado para o Resultado HOLOS deste atendimento (continua o rascunho existente ou abre um novo). Lá a nutricionista escolhe o HOLOSCAN (sem pré-marcação, como antes), confirma o **Foco atual**, finaliza e emite; o PDF e o WhatsApp saem da emissão. |
@@ -30,8 +30,7 @@
 
 **Aceita:**
 - `schema_version` igual a 1;
-- as 20 chaves obrigatórias da estrutura mínima;
-- as opcionais `meta`, `entrada`, `ferramentas_ja_aplicadas` e `plano_acompanhamento`.
+- as 24 chaves obrigatórias. Desde o fechamento de 14/10, `meta` e `entrada` (objetos) e `ferramentas_ja_aplicadas` e `plano_acompanhamento` (listas) também são obrigatórios; vazios (`{}` / `[]`) são aceitos. Continua `schema_version: 1`: nenhum campo mudou de nome ou de tipo.
 
 **Recusa (erro, nada salvo):**
 - `schema_version` diferente de 1 (`schema_incompativel`);
@@ -48,9 +47,22 @@
   - estratégia nova com decisão;
   - direcionamento inexistente;
   - território sem material que não comece com "Ainda não aprofundado nesta etapa.", ou que cite estratégia de outro território;
+  - território `nao_aprofundado` com estratégia vinculada, ou estratégia cujo território está `nao_aprofundado` (fechamento 14/10);
+  - estratégia com "baseado_em" numa hipótese / pontos para aprofundar (fechamento 14/10);
+  - `meta` ou `entrada` que não são objeto;
   - hipótese sem `so_profissional: true`.
 
-**Só aviso (não impede):** termos diagnósticos ou números do HOLOSCAN no `rascunho_paciente`, porque ele nunca é enviado sozinho.
+**Só aviso (não impede; aparece em "Avisos (não impedem)" na tela, durante a revisão):**
+- termos diagnósticos ou números do HOLOSCAN no `rascunho_paciente`, porque ele nunca é enviado sozinho;
+- linguagem da nota ("mais equilíbrio", nota como saúde, normalidade, gravidade ou risco) e "concentrou mais marcadores" fora da 1ª área;
+- tarefa da Conduta como estratégia (composição, alimentos, quantidade, suplemento, protocolo, prescrição);
+- corte inventado ("maior parte dos dias", %, N vezes por semana, "em N de N");
+- estratégia nova que repete uma hipótese ainda não confirmada;
+- sugestão nova apresentada como combinada no rascunho.
+
+São heurísticas de texto: não bloqueiam estilo. O validador do GPT (`holos_ai_pdf.py`, `validar_resultado`) aponta os mesmos casos para o agente corrigir antes de entregar.
+
+**Rótulo:** `catalogo: "not_catalogued"` fica só no JSON; na revisão, direcionamentos e estratégias mostram uma vez "SUGESTÃO HOLOS AI — REQUER REVISÃO PROFISSIONAL".
 
 **Seções só profissionais** (nunca podem ser compartilhadas; o servidor recusa):
 - `sintese_integrada`, `o_que_apareceu`, `convergencias`, `pontos_para_aprofundar` (inclui as hipóteses);
@@ -132,13 +144,13 @@ O texto dessas funções em produção foi conferido em 14/10, só em leitura: �
 
 ## 5. Testes
 
-**Harness SQL** (Postgres 16 local, cadeia inteira em `BEGIN … ROLLBACK`): **530 ok, 0 falhas** (505 anteriores + 25 novos HA00–HA14).
+**Harness SQL** (Postgres 16 local, cadeia inteira em `BEGIN … ROLLBACK`): **532 ok, 0 falhas** (505 anteriores + 27 da ponte HA00–HA14, com HA03b/HA03c do fechamento de 14/10).
 
 | Grupo | Casos |
 |---|---|
 | Estrutura | HA00 RLS e grants |
-| Importação inválida | HA01 JSON inválido; HA02 schema_version 2; HA03 estrutura inválida — nada salvo, nem parcial |
-| Importação válida | HA04 resposta inteira do GPT → v1, 62 itens em 20 seções, 41 só profissionais |
+| Importação inválida | HA01 JSON inválido; HA02 schema_version 2; HA03 estrutura inválida; HA03b sem meta/entrada/ferramentas_ja_aplicadas/plano_acompanhamento, estratégia em território não aprofundado, estratégia baseada em hipótese — nada salvo, nem parcial |
+| Importação válida | HA03c T5 sem problema e os quatro campos vazios aceitos; HA04 resposta inteira do GPT → v1, 62 itens em 20 seções, 43 só profissionais |
 | Imutabilidade | HA05 nem o dono do banco altera ou apaga; HA06 reimportação vira v2 e a v1 fica idêntica; HA07 operation_id |
 | Revisão | HA08 editar só texto; só profissional não compartilha; HA09 concluir com pendência recusado; depois de concluir, nada muda |
 | Resultado HOLOS | HA10 descartado, só profissional, importação não concluída, sem ref, item de outra importação → recusados |
@@ -146,19 +158,19 @@ O texto dessas funções em produção foi conferido em 14/10, só em leitura: �
 | Segurança | HA12 outra nutricionista; HA13 descartar e anônimo |
 | Não interferência | HA14 HOLOSCAN, Resultados e emissões existentes idênticos; regras antigas da direção iguais |
 
-**Teste vertical** (`testar-holos-ai-ponte.mjs`, navegador + servidor falso, paciente fictícia): **48 ok**. Fluxo:
+**Teste vertical** (`testar-holos-ai-ponte.mjs`, navegador + servidor falso, paciente fictícia): **48 ok** (T5 do fechamento; N09 novo). Fluxo:
 1. Mapeamento → HOLOSCAN → ferramentas → Copiar Pacote;
-2. JSON inválido, schema incompatível e estrutura inválida, na tela e no servidor;
+2. JSON inválido, schema incompatível, estrutura inválida, sem `plano_acompanhamento` e estratégia em Mente "nao_aprofundado", na tela e no servidor;
 3. importar a fixture (resposta inteira do GPT);
-4. editar uma estratégia → confirmar, descartar e compartilhar → concluir;
-5. nova importação (v2) sem sobrescrever a v1 → descartar a v2;
+4. editar uma estratégia → descartar a sugestão nova (E2) → confirmar sem compartilhar a observação das reuniões → compartilhar → concluir; rótulo único na tela;
+5. nova importação (v2, com "Plano B" e rascunho "que combinamos") mostra os AVISOS e não sobrescreve a v1 → descartar a v2;
 6. Gerar Resultado HOLOS → escolher HOLOSCAN → rascunho;
 7. confirmar foco → finalizar → emitir RF-3 → PDF (1,85 MB) → WhatsApp "Nesta fase, nosso principal direcionamento é: Organizar o fim da tarde.";
 8. recarregar → histórico e revisão persistidos;
 9. 390 px sem rolagem lateral;
 10. outra conta bloqueada; nenhum erro de JavaScript.
 
-**Contrato** (`testar-holos-ai-contrato.mjs`): **19 ok**.
+**Contrato** (`testar-holos-ai-contrato.mjs`): **26 ok** (C07 do fechamento: 4 chaves obrigatórias, regras estruturais, seis avisos e a mesma conferência rodando o validador do GPT em Python).
 
 **Suíte completa** (`npm run teste`, 14/10): **VERDE — 158 suítes, 4803 asserções, 0 falhas**. Quatro testes antigos ganharam expectativa nova: `testar-arquivos.mjs` (ordem das abas), `testar-storage-manifest.mjs` (65 scripts) e o seletor do contexto em texto em `testar-correcoes-jornada.mjs` e `testar-relatorios-motor.mjs` (o `#hai-json` não é o contexto).
 
@@ -172,8 +184,9 @@ O texto dessas funções em produção foi conferido em 14/10, só em leitura: �
    - o Mapeamento sai do atendimento escolhido;
    - HOLOSCAN, ferramentas e Conduta saem dos geradores de contexto já existentes (último HOLOSCAN aceito pelo servidor; Conduta do atendimento escolhido);
    - não há tela própria de "quais seções enviar".
-6. **"Abrir HOLOS AI"** depende de configurar a URL do GPT (`HolosAI.configurarUrls`); sem ela, o botão avisa que o endereço não está configurado.
+6. **"Abrir HOLOS AI"** depende de configurar a URL do GPT (`HOLOS_AI_URLS.chatgpt` ou `HolosAI.configurarUrls`); ainda não existe GPT publicado, então nenhum link foi colocado. Sem ela, o botão avisa que o endereço não está configurado.
 7. **Pendência paralela:** a migration da Fase 1 (`20261022100000`, "Link enviado") também continua sem aplicar em produção (conferido em 14/10). As duas são independentes.
+8. **Avisos são heurísticos:** detectam padrões de texto ("maior parte dos dias", "combinamos", radicais repetidos de uma hipótese). Podem deixar passar uma redação nova ou avisar à toa; por isso não bloqueiam. O que bloqueia é estrutural (chaves, território não aprofundado, baseado em hipótese).
 
 ## 7. Comandos exatos para o deploy (quando autorizado)
 

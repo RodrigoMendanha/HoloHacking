@@ -216,9 +216,12 @@ returns text[] language plpgsql immutable set search_path = '' as $$
 declare
   p text[] := '{}'; k text; x jsonb; i int; n int; tipo text; eid text; dec text; idsd text[] := '{}'; idse text[] := '{}'; terre jsonb := '{}'::jsonb;
   rid text; nome text; vid text[] := '{}'; vnome text[] := '{}'; concl text[] := '{}'; principais int := 0; terr text; t jsonb;
-  obrig text[] := array['schema_version', 'tipo', 'sintese_integrada', 'o_que_apareceu', 'convergencias', 'padroes_observados', 'pontos_para_aprofundar',
-    'sistemas_prioritarios', 'ferramentas_recomendadas', 'direcionamentos', 'estrategias', 'corpo', 'mente', 'espirito', 'o_que_observar',
-    'roteiro_proxima_consulta', 'proxima_etapa', 'rascunho_paciente', 'alertas_profissionais', 'fontes_utilizadas'];
+  -- todas obrigatorias (fechamento 14/10/2026: meta, entrada, ferramentas_ja_aplicadas e plano_acompanhamento tambem, vazias quando nao houver material)
+  obrig text[] := array['schema_version', 'tipo', 'meta', 'entrada', 'sintese_integrada', 'o_que_apareceu', 'convergencias', 'padroes_observados',
+    'pontos_para_aprofundar', 'sistemas_prioritarios', 'ferramentas_ja_aplicadas', 'ferramentas_recomendadas', 'direcionamentos', 'estrategias', 'corpo',
+    'mente', 'espirito', 'o_que_observar', 'plano_acompanhamento', 'roteiro_proxima_consulta', 'proxima_etapa', 'rascunho_paciente', 'alertas_profissionais',
+    'fontes_utilizadas'];
+  nao_aprof text[] := '{}';
   listas text[] := array['o_que_apareceu', 'convergencias', 'padroes_observados', 'pontos_para_aprofundar', 'sistemas_prioritarios', 'ferramentas_ja_aplicadas',
     'ferramentas_recomendadas', 'direcionamentos', 'estrategias', 'o_que_observar', 'plano_acompanhamento', 'roteiro_proxima_consulta', 'alertas_profissionais',
     'fontes_utilizadas'];
@@ -233,6 +236,9 @@ begin
   foreach k in array obrig loop if not r ? k then p := p || format('falta a chave "%s"', k); end if; end loop;
   tipo := r->>'tipo';
   if r ? 'tipo' and coalesce(tipo, '') not in ('primeira_consulta', 'retorno') then p := p || 'tipo deve ser "primeira_consulta" ou "retorno"'::text; end if;
+  foreach k in array array['meta', 'entrada'] loop
+    if r ? k and jsonb_typeof(r->k) <> 'object' then p := p || format('"%s" deve ser objeto (pode ser vazio)', k); end if;
+  end loop;
   foreach k in array array['sintese_integrada', 'proxima_etapa', 'rascunho_paciente'] loop
     if r ? k and jsonb_typeof(r->k) <> 'string' then p := p || format('"%s" deve ser texto', k);
     elsif r ? k and length(r->>k) > 5000 then p := p || format('"%s" passa de 5000 caracteres', k); end if;
@@ -321,7 +327,9 @@ begin
     if coalesce(x->>'classificacao', '') not in ('observacao', 'comportamental_metodologica', 'requer_decisao_profissional_na_conduta') then
       p := p || format('estrategia %s: classificacao invalida (%s)', coalesce(nullif(eid, ''), i::text), x->>'classificacao'); end if;
     if coalesce(x->>'territorio', '') not in ('Corpo', 'Mente', 'Espírito') then p := p || format('estrategia %s: territorio invalido', coalesce(nullif(eid, ''), i::text)); end if;
-    if jsonb_typeof(x->'baseado_em') is distinct from 'array' or jsonb_array_length(x->'baseado_em') = 0 then p := p || format('estrategia %s sem "baseado_em"', coalesce(nullif(eid, ''), i::text)); end if;
+    if jsonb_typeof(x->'baseado_em') is distinct from 'array' or jsonb_array_length(x->'baseado_em') = 0 then p := p || format('estrategia %s sem "baseado_em"', coalesce(nullif(eid, ''), i::text));
+    elsif exists (select 1 from jsonb_array_elements(x->'baseado_em') b where (b #>> '{}') ~* 'hip[oó]tese|pontos_para_aprofundar') then
+      p := p || format('estrategia %s se baseia numa hipotese: hipotese vira observacao e confirmacao, nunca estrategia direto', coalesce(nullif(eid, ''), i::text)); end if;
     if x->>'status' is distinct from 'SUGERIDO' then p := p || format('estrategia %s: status deve ser SUGERIDO', coalesce(nullif(eid, ''), i::text)); end if;
     if coalesce(x->>'direcionamento_id', '') <> '' and not ((x->>'direcionamento_id') = any(idsd)) then
       p := p || format('estrategia %s aponta para direcionamento inexistente %s', coalesce(nullif(eid, ''), i::text), x->>'direcionamento_id'); end if;
@@ -343,13 +351,21 @@ begin
     if jsonb_typeof(t->'resumo') is distinct from 'string' then p := p || format('%s: resumo deve ser texto', k);
     elsif t->>'situacao' = 'nao_aprofundado' and left(t->>'resumo', length('Ainda não aprofundado nesta etapa.')) <> 'Ainda não aprofundado nesta etapa.' then
       p := p || format('%s: sem material, o resumo comeca com "Ainda não aprofundado nesta etapa."', k); end if;
+    if t->>'situacao' = 'nao_aprofundado' then nao_aprof := nao_aprof || terr; end if;
     if jsonb_typeof(t->'estrategias') is distinct from 'array' then p := p || format('%s: estrategias deve ser lista', k);
+    elsif t->>'situacao' = 'nao_aprofundado' and jsonb_array_length(t->'estrategias') > 0 then
+      p := p || format('%s esta "nao_aprofundado": nao pode ter estrategia vinculada', k);
     else
       for eid in select v #>> '{}' from jsonb_array_elements(t->'estrategias') v loop
         if not (eid = any(idse)) then p := p || format('%s cita estrategia inexistente %s', k, eid);
         elsif terre->>eid is distinct from terr then p := p || format('%s cita %s, que e do territorio %s', k, eid, terre->>eid); end if;
       end loop;
     end if;
+  end loop;
+  -- territorio nao aprofundado nao tem estrategia ativa
+  for x in select v from jsonb_array_elements(case when jsonb_typeof(r->'estrategias') = 'array' then r->'estrategias' else '[]' end) v
+            where jsonb_typeof(v) = 'object' and (v->>'territorio') = any(nao_aprof) loop
+    p := p || format('estrategia %s esta no territorio %s, que esta "nao_aprofundado"', x->>'id', x->>'territorio');
   end loop;
   return p;
 end;

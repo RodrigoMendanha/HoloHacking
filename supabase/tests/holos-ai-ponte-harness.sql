@@ -5,6 +5,7 @@
 --   HA00 estrutura: RLS, sem escrita direta, funcoes internas fechadas, RPCs so para authenticated
 --   HA01 JSON invalido -> json_invalido; nada salvo        HA02 schema_version 2 -> schema_incompativel; nada salvo
 --   HA03 estrutura invalida (MANTER na 1a consulta, 4 ferramentas) -> resultado_invalido; nada salvo
+--   HA03b fechamento 14/10: 4 chaves obrigatorias, territorio nao aprofundado sem estrategia, estrategia nunca baseada em hipotese
 --   HA04 importacao valida (resposta inteira do GPT colada) -> versao 1, texto e JSON originais, um item por elemento
 --   HA05 imutabilidade: original, item da IA e apagar recusados; nutricionista nao grava direto
 --   HA06 nova importacao no mesmo atendimento -> versao 2; a 1 fica identica     HA07 operation_id repetido -> mesma importacao
@@ -42,34 +43,95 @@ insert into _ha values ('json', $J${
     "data_analise": "2026-10-13"
   },
   "entrada": {
-    "documentos": ["pdf_resultado_holos"],
+    "documentos": [
+      "pdf_resultado_holos"
+    ],
     "base_principal": "pdf_resultado_holos",
     "observacao": "Só o PDF do Resultado HOLOS foi enviado (fallback temporário). Com o Pacote HOLOS AI, o Pacote prevalece."
   },
-  "sintese_integrada": "Primeira consulta, ponto de partida sem evolução registrada. O HOLOSCAN indica o Sistema Metabólico (2,4) e o Fúngico (5,8) como as primeiras áreas para aprofundar. O Mapa da Rotina localizou a dificuldade principal entre 16h e 18h (fome forte e queda de disposição) e um espaço real de mudança: preparar o lanche na noite anterior. Foco, direcionamento e estratégia acordada já conversam entre si. Ainda falta aprofundar o comportamento alimentar fora do fim da tarde (fome logo depois de comer, comer depois do jantar sem fome, vontade de doce ou pão) e os relatos digestivos. Mente e Espírito ainda não foram aprofundados nesta etapa.",
+  "sintese_integrada": "Primeira consulta, ponto de partida sem evolução registrada. O HOLOSCAN indica o Sistema Metabólico (2,4) e o Fúngico (5,8) como a primeira e a segunda áreas para aprofundar. O Mapa da Rotina localizou a dificuldade principal entre 16h e 18h (fome forte e queda de disposição) e um espaço real de mudança: preparar o lanche na noite anterior. Foco, direcionamento e estratégia acordada já conversam entre si. As reuniões da tarde ficam como ponto de observação, ainda sem dado de que atrapalhem o lanche. Ainda falta aprofundar o comportamento alimentar fora do fim da tarde (fome logo depois de comer, comer depois do jantar sem fome, vontade de doce ou pão) e os relatos digestivos. Mente e Espírito ainda não foram aprofundados nesta etapa.",
   "o_que_apareceu": [
-    { "texto": "Foco atual: organizar o fim da tarde.", "fonte": "Resultado HOLOS: foco" },
-    { "texto": "Sistema Metabólico 2,4 e Sistema Fúngico 5,8 como primeira e segunda áreas para aprofundar.", "fonte": "HOLOSCAN (HOLOS-V1 v7)" },
-    { "texto": "Muito sono logo depois do almoço; fome novamente pouco tempo depois de comer; comer depois do jantar mesmo sem fome percebida.", "fonte": "HOLOSCAN: sinais do Metabólico" },
-    { "texto": "Vontade forte de doce ou pão quase todos os dias; barriga inchada ou gases depois das refeições; relato de camada esbranquiçada na língua.", "fonte": "HOLOSCAN: sinais do Fúngico" },
-    { "texto": "Fome forte e queda de disposição entre 16h e 18h; reuniões à tarde; espaço para mudança: preparar o lanche na noite anterior.", "fonte": "Mapa da Rotina" },
-    { "texto": "Estratégia acordada: lanche planejado antes da fome forte, por volta das 16h.", "fonte": "Resultado HOLOS: estratégia acordada" }
+    {
+      "texto": "Foco atual: organizar o fim da tarde.",
+      "fonte": "Resultado HOLOS: foco"
+    },
+    {
+      "texto": "Sistema Metabólico 2,4 e Sistema Fúngico 5,8 como primeira e segunda áreas para aprofundar.",
+      "fonte": "HOLOSCAN (HOLOS-V1 v7)"
+    },
+    {
+      "texto": "Muito sono logo depois do almoço; fome novamente pouco tempo depois de comer; comer depois do jantar mesmo sem fome percebida.",
+      "fonte": "HOLOSCAN: sinais do Metabólico"
+    },
+    {
+      "texto": "Vontade forte de doce ou pão quase todos os dias; barriga inchada ou gases depois das refeições; relato de camada esbranquiçada na língua.",
+      "fonte": "HOLOSCAN: sinais do Fúngico"
+    },
+    {
+      "texto": "Fome forte e queda de disposição entre 16h e 18h; reuniões à tarde; espaço para mudança: preparar o lanche na noite anterior.",
+      "fonte": "Mapa da Rotina"
+    },
+    {
+      "texto": "Estratégia acordada: lanche planejado antes da fome forte, por volta das 16h.",
+      "fonte": "Resultado HOLOS: estratégia acordada"
+    }
   ],
   "convergencias": [
-    { "tipo": "convergencia", "texto": "Fome forte e queda de disposição no fim da tarde aparecem no Mapa da Rotina e conversam com os sinais do Metabólico (sono depois do almoço, fome pouco depois de comer).", "fontes": ["Mapa da Rotina", "HOLOSCAN: sinais do Metabólico"] },
-    { "tipo": "convergencia", "texto": "Vontade forte de doce ou pão e comer depois do jantar sem fome são comportamentos alimentares recorrentes que podem ser investigados em conjunto, sem relação de causa estabelecida.", "fontes": ["HOLOSCAN: sinais do Fúngico", "HOLOSCAN: sinais do Metabólico"] },
-    { "tipo": "convergencia", "texto": "O espaço de mudança relatado (preparar o lanche na noite anterior) e a estratégia acordada são coerentes entre si.", "fontes": ["Mapa da Rotina", "Resultado HOLOS: estratégia acordada"] }
+    {
+      "tipo": "convergencia",
+      "texto": "Fome forte e queda de disposição no fim da tarde aparecem no Mapa da Rotina e conversam com os sinais do Metabólico (sono depois do almoço, fome pouco depois de comer).",
+      "fontes": [
+        "Mapa da Rotina",
+        "HOLOSCAN: sinais do Metabólico"
+      ]
+    },
+    {
+      "tipo": "convergencia",
+      "texto": "Vontade forte de doce ou pão e comer depois do jantar sem fome são comportamentos alimentares recorrentes que podem ser investigados em conjunto, sem relação de causa estabelecida.",
+      "fontes": [
+        "HOLOSCAN: sinais do Fúngico",
+        "HOLOSCAN: sinais do Metabólico"
+      ]
+    },
+    {
+      "tipo": "convergencia",
+      "texto": "O espaço de mudança relatado (preparar o lanche na noite anterior) e a estratégia acordada são coerentes entre si.",
+      "fontes": [
+        "Mapa da Rotina",
+        "Resultado HOLOS: estratégia acordada"
+      ]
+    }
   ],
   "padroes_observados": [
     "As dificuldades se concentram em dois momentos do dia: depois do almoço / fim da tarde e depois do jantar.",
     "A rotina de trabalho tem reuniões à tarde, justamente no horário crítico."
   ],
   "pontos_para_aprofundar": [
-    { "tipo": "questao", "texto": "O que acontece antes de comer depois do jantar sem fome (situação, pensamento, emoção)?", "so_profissional": false },
-    { "tipo": "questao", "texto": "Em que momentos a vontade de doce ou pão aparece?", "so_profissional": false },
-    { "tipo": "questao", "texto": "Os gases e o inchaço aparecem depois de quais refeições?", "so_profissional": false },
-    { "tipo": "hipotese", "texto": "As reuniões da tarde podem dificultar comer por volta das 16h. Conferir no retorno.", "so_profissional": true },
-    { "tipo": "hipotese", "texto": "A fome do fim da tarde e o comer depois do jantar podem fazer parte de um mesmo padrão do dia. Investigar com episódios concretos.", "so_profissional": true }
+    {
+      "tipo": "questao",
+      "texto": "O que acontece antes de comer depois do jantar sem fome (situação, pensamento, emoção)?",
+      "so_profissional": false
+    },
+    {
+      "tipo": "questao",
+      "texto": "Em que momentos a vontade de doce ou pão aparece?",
+      "so_profissional": false
+    },
+    {
+      "tipo": "questao",
+      "texto": "Os gases e o inchaço aparecem depois de quais refeições?",
+      "so_profissional": false
+    },
+    {
+      "tipo": "hipotese",
+      "texto": "As reuniões da tarde podem dificultar comer por volta das 16h. É um ponto de observação: confirmar no retorno antes de pensar em qualquer estratégia.",
+      "so_profissional": true
+    },
+    {
+      "tipo": "hipotese",
+      "texto": "A fome do fim da tarde e o comer depois do jantar podem fazer parte de um mesmo padrão do dia. Investigar com episódios concretos.",
+      "so_profissional": true
+    }
   ],
   "sistemas_prioritarios": [
     {
@@ -88,29 +150,48 @@ insert into _ha values ('json', $J${
       "posicao": "segunda área para aprofundar",
       "o_que_apareceu": "Vontade forte de doce ou pão quase todos os dias; barriga inchada ou gases depois das refeições; relato de camada esbranquiçada na língua.",
       "o_que_observar": "Em que situações a vontade de doce ou pão aparece; depois de quais refeições surgem gases e inchaço.",
-      "como_cuidar": "Este eixo concentrou mais marcadores nesta aplicação e merece ser aprofundado no contexto da alimentação, rotina e sinais relatados. Não diagnostica candidíase, infecção fúngica, disbiose ou qualquer outra doença."
+      "como_cuidar": "Este eixo aparece como a segunda área para aprofundar nesta aplicação e merece ser observado no contexto da alimentação, rotina e sinais relatados. Não diagnostica candidíase, infecção fúngica, disbiose ou qualquer outra doença."
     }
   ],
   "ferramentas_ja_aplicadas": [
-    { "ferramenta": "Mapa da Rotina", "situacao": "concluida", "o_que_esclareceu": "Localizou a dificuldade no fim da jornada (16h–18h), mostrou as reuniões da tarde e revelou um espaço viável de mudança: preparar o lanche na noite anterior." }
+    {
+      "ferramenta": "Mapa da Rotina",
+      "situacao": "concluida",
+      "o_que_esclareceu": "Localizou a dificuldade no fim da jornada (16h–18h), mostrou as reuniões da tarde e revelou um espaço viável de mudança: preparar o lanche na noite anterior."
+    }
   ],
   "ferramentas_recomendadas": [
     {
-      "ordem": 1, "papel": "principal", "regra_id": "REC-MET-02", "ferramenta": "Gatilhos & Respostas", "territorio": "Mente", "sistema": "Sistema Metabólico",
+      "ordem": 1,
+      "papel": "principal",
+      "regra_id": "REC-MET-02",
+      "ferramenta": "Gatilhos & Respostas",
+      "territorio": "Mente",
+      "sistema": "Sistema Metabólico",
       "por_que": "Ajuda a aprofundar comportamentos alimentares recorrentes dentro das situações em que acontecem. REC-MET-01 (Mapa da Rotina) já foi concluída neste atendimento.",
       "como_aplicar": "Escolha episódios concretos e observe o que acontece antes, durante e depois do comportamento. Comece por um episódio de comer depois do jantar sem fome.",
       "o_que_procurar": "Situação, pensamento, emoção e consequência percebida antes de comer sem fome; repetição do padrão em dias diferentes.",
       "status": "SUGERIDO"
     },
     {
-      "ordem": 2, "papel": "complementar", "regra_id": "REC-FUN-03", "ferramenta": "Mapa de Crenças Alimentares", "territorio": "Mente", "sistema": "Sistema Fúngico",
+      "ordem": 2,
+      "papel": "complementar",
+      "regra_id": "REC-FUN-03",
+      "ferramenta": "Mapa de Crenças Alimentares",
+      "territorio": "Mente",
+      "sistema": "Sistema Fúngico",
       "por_que": "Permite investigar ideias e regras sobre alimentação que podem estar influenciando escolhas. REC-FUN-01 (Mapa da Rotina) já concluída; REC-FUN-02 (Gatilhos & Respostas) já escolhida como principal.",
       "como_aplicar": "Identifique uma crença relevante, sua origem percebida, as situações em que aparece e seu impacto relatado.",
       "o_que_procurar": "Ideias ligadas à vontade de doce ou pão (recompensa, cansaço, merecimento) e onde elas aparecem no dia.",
       "status": "SUGERIDO"
     },
     {
-      "ordem": 3, "papel": "complementar", "regra_id": "REC-MET-04", "ferramenta": "Linha do Momentum", "territorio": "Corpo", "sistema": "Sistema Metabólico",
+      "ordem": 3,
+      "papel": "complementar",
+      "regra_id": "REC-MET-04",
+      "ferramenta": "Linha do Momentum",
+      "territorio": "Corpo",
+      "sistema": "Sistema Metabólico",
       "por_que": "Ajuda a avaliar a capacidade atual de sustentar mudanças antes de aumentar a exigência. REC-MET-03 (Mapa de Crenças Alimentares) já escolhida como complementar.",
       "como_aplicar": "Avalie as seis dimensões do Momentum e registre o estado escolhido pela profissional.",
       "o_que_procurar": "Quanto espaço existe para acrescentar uma segunda estratégia depois do lanche da tarde.",
@@ -119,98 +200,90 @@ insert into _ha values ('json', $J${
   ],
   "direcionamentos": [
     {
-      "id": "D1", "origem": "existente", "titulo": "Organizar o fim da tarde", "territorio": "Corpo", "sistema": "Sistema Metabólico",
+      "id": "D1",
+      "origem": "existente",
+      "titulo": "Organizar o fim da tarde",
+      "territorio": "Corpo",
+      "sistema": "Sistema Metabólico",
       "por_que": "O fim da tarde concentra fome forte e queda de disposição, e já existe uma ação viável identificada.",
       "objetivo": "Chegar ao fim da jornada com fome mais administrável e mais disposição.",
-      "baseado_em": ["Resultado HOLOS: foco e direcionamento registrados", "HOLOSCAN: Metabólico como primeira área (2,4)", "Mapa da Rotina: 16h–18h"],
-      "catalogo": "CANDIDATO NÃO CATALOGADO — requer validação profissional",
+      "baseado_em": [
+        "Resultado HOLOS: foco e direcionamento registrados",
+        "HOLOSCAN: Metabólico como primeira área (2,4)",
+        "Mapa da Rotina: 16h–18h"
+      ],
+      "catalogo": "not_catalogued",
       "status": "SUGERIDO"
     },
     {
-      "id": "D2", "origem": "nova", "titulo": "Compreender os momentos de comer sem fome e de vontade de doce ou pão", "territorio": "Mente", "sistema": "Sistema Fúngico",
-      "por_que": "Comer depois do jantar sem fome e vontade forte de doce ou pão aparecem como comportamentos recorrentes ainda não aprofundados.",
-      "objetivo": "Identificar em quais situações esses comportamentos aparecem, antes de propor mudanças neles.",
-      "baseado_em": ["HOLOSCAN: sinais do Metabólico e do Fúngico", "Catálogo PP-V1: REC-MET-02 e REC-FUN-03"],
-      "catalogo": "CANDIDATO NÃO CATALOGADO — requer validação profissional",
+      "id": "D2",
+      "origem": "nova",
+      "titulo": "Compreender os momentos de comer sem fome e de vontade de doce ou pão",
+      "territorio": null,
+      "sistema": null,
+      "por_que": "Comer depois do jantar sem fome (sinal do Metabólico) e vontade forte de doce ou pão (sinal do Fúngico) aparecem como comportamentos recorrentes ainda não aprofundados.",
+      "objetivo": "Identificar em quais situações esses comportamentos aparecem, antes de propor qualquer mudança neles.",
+      "baseado_em": [
+        "HOLOSCAN: sinais do Metabólico e do Fúngico",
+        "Catálogo PP-V1: REC-MET-02 e REC-FUN-03"
+      ],
+      "catalogo": "not_catalogued",
       "status": "SUGERIDO"
     }
   ],
   "estrategias": [
     {
-      "id": "E1", "origem": "acordada", "titulo": "Lanche planejado antes da fome forte", "territorio": "Corpo", "direcionamento_id": "D1",
+      "id": "E1",
+      "origem": "acordada",
+      "titulo": "Lanche planejado antes da fome forte",
+      "territorio": "Corpo",
+      "direcionamento_id": "D1",
       "classificacao": "comportamental_metodologica",
       "decisao_sugerida": "MANTER EM OBSERVAÇÃO — SUGERIDO",
       "motivo_decisao": "Estratégia criada neste encontro; ainda não há dado de aplicação para avaliar resposta.",
       "o_que_fazer": "Preparar o lanche na noite anterior e comer por volta das 16h.",
       "o_que_observar": "Intensidade da fome e disposição entre 16h e 18h.",
       "prazo": "Até o retorno (cerca de 2 semanas)",
-      "criterio_sucesso": "Conseguir aplicar na maior parte dos dias de trabalho e perceber fome mais administrável às 18h.",
-      "baseado_em": ["Resultado HOLOS: estratégia acordada", "Mapa da Rotina: espaço de mudança na noite anterior"],
-      "catalogo": "CANDIDATA NÃO CATALOGADA — requer validação profissional",
+      "criterio_sucesso": "Aplicar com frequência suficiente para permitir avaliação no retorno e perceber como ficam a fome e a disposição às 18h.",
+      "baseado_em": [
+        "Resultado HOLOS: estratégia acordada",
+        "Mapa da Rotina: espaço de mudança na noite anterior"
+      ],
+      "catalogo": "not_catalogued",
       "status": "SUGERIDO"
     },
     {
-      "id": "E2", "origem": "nova", "titulo": "Plano B para dias de reunião às 16h", "territorio": "Corpo", "direcionamento_id": "D1",
-      "classificacao": "comportamental_metodologica",
-      "decisao_sugerida": null,
-      "motivo_decisao": null,
-      "o_que_fazer": "Combinar um horário alternativo (antes ou logo depois da reunião) para os dias em que 16h estiver ocupado.",
-      "o_que_observar": "Em quantos dias a reunião impediu o lanche e se o horário alternativo funcionou.",
-      "prazo": "Até o retorno",
-      "criterio_sucesso": "A reunião deixar de ser o motivo de pular o lanche.",
-      "baseado_em": ["Mapa da Rotina: reuniões à tarde"],
-      "catalogo": "CANDIDATA NÃO CATALOGADA — requer validação profissional",
-      "status": "SUGERIDO"
-    },
-    {
-      "id": "E3", "origem": "nova", "titulo": "Registro rápido de fome e disposição às 16h e às 18h", "territorio": "Corpo", "direcionamento_id": "D1",
+      "id": "E2",
+      "origem": "nova",
+      "titulo": "Registro rápido de fome e disposição às 16h e às 18h",
+      "territorio": "Corpo",
+      "direcionamento_id": "D1",
       "classificacao": "observacao",
       "decisao_sugerida": null,
       "motivo_decisao": null,
       "o_que_fazer": "Anotar de 0 a 10 a fome e a disposição às 16h e às 18h e marcar se comeu o lanche.",
       "o_que_observar": "Diferença entre dias com e sem o lanche.",
       "prazo": "Até o retorno",
-      "criterio_sucesso": "Ter registros suficientes para comparar no retorno.",
-      "baseado_em": ["Resultado HOLOS: o que observar definido"],
-      "catalogo": "CANDIDATA NÃO CATALOGADA — requer validação profissional",
-      "status": "SUGERIDO"
-    },
-    {
-      "id": "E4", "origem": "nova", "titulo": "Composição do lanche da tarde", "territorio": "Corpo", "direcionamento_id": "D1",
-      "classificacao": "requer_decisao_profissional_na_conduta",
-      "decisao_sugerida": null,
-      "motivo_decisao": null,
-      "o_que_fazer": "Definir na Conduta o que compõe o lanche. A HOLOS AI não sugere alimentos, quantidades nem substituições.",
-      "o_que_observar": "Sem dado (depende da decisão profissional).",
-      "prazo": "Na Conduta deste atendimento",
-      "criterio_sucesso": "Composição registrada pela nutricionista na Conduta.",
-      "baseado_em": ["Resultado HOLOS: estratégia acordada sem composição definida"],
-      "catalogo": "CANDIDATA NÃO CATALOGADA — requer validação profissional",
-      "status": "SUGERIDO"
-    },
-    {
-      "id": "E5", "origem": "nova", "titulo": "Anotar um episódio por semana de comer depois do jantar sem fome", "territorio": "Mente", "direcionamento_id": "D2",
-      "classificacao": "observacao",
-      "decisao_sugerida": null,
-      "motivo_decisao": null,
-      "o_que_fazer": "Quando acontecer, anotar o que estava fazendo, o que pensou ou sentiu antes e como ficou depois. Sem tentar mudar nada ainda.",
-      "o_que_observar": "Situações que se repetem antes do episódio.",
-      "prazo": "Até o retorno",
-      "criterio_sucesso": "Trazer pelo menos um episódio descrito para aplicar o Gatilhos & Respostas na consulta.",
-      "baseado_em": ["HOLOSCAN: comer depois do jantar sem fome", "Catálogo PP-V1: REC-MET-02"],
-      "catalogo": "CANDIDATA NÃO CATALOGADA — requer validação profissional",
+      "criterio_sucesso": "Ter registros suficientes para comparar, no retorno, os dias com e sem o lanche.",
+      "baseado_em": [
+        "Resultado HOLOS: o que observar acordado (fome e disposição entre 16h e 18h)"
+      ],
+      "catalogo": "not_catalogued",
       "status": "SUGERIDO"
     }
   ],
   "corpo": {
     "situacao": "com_material",
-    "resumo": "Lanche planejado por volta das 16h, com plano B para dias de reunião e registro simples de fome e disposição. A composição do lanche fica com a Conduta.",
-    "estrategias": ["E1", "E2", "E3", "E4"]
+    "resumo": "Lanche planejado por volta das 16h, preparado na noite anterior, e observação de fome e disposição entre 16h e 18h.",
+    "estrategias": [
+      "E1",
+      "E2"
+    ]
   },
   "mente": {
     "situacao": "nao_aprofundado",
-    "resumo": "Ainda não aprofundado nesta etapa. Há relatos do HOLOSCAN para observar (comer depois do jantar sem fome, vontade de doce ou pão), que preparam o Gatilhos & Respostas.",
-    "estrategias": ["E5"]
+    "resumo": "Ainda não aprofundado nesta etapa.",
+    "estrategias": []
   },
   "espirito": {
     "situacao": "nao_aprofundado",
@@ -218,42 +291,104 @@ insert into _ha values ('json', $J${
     "estrategias": []
   },
   "o_que_observar": [
-    "Fome e disposição entre 16h e 18h",
-    "Dias em que a reunião impediu o lanche",
+    "Fome e disposição entre 16h e 18h, nos dias com e sem o lanche",
+    "Se as reuniões da tarde atrapalham o horário do lanche",
     "Episódios de comer depois do jantar sem fome",
     "Momentos de vontade de doce ou pão",
     "Gases ou inchaço e depois de quais refeições"
   ],
   "plano_acompanhamento": [
-    "Registro de 0 a 10 de fome e disposição às 16h e às 18h, marcando se comeu o lanche",
-    "Um episódio por semana de comer depois do jantar sem fome, descrito em poucas linhas",
-    "Anotar quando a reunião atrapalhou o horário do lanche"
+    "Conferir no retorno como foram o preparo na noite anterior e o lanche por volta das 16h",
+    "Comparar fome e disposição entre 16h e 18h nos dias com e sem o lanche",
+    "Perguntar se as reuniões da tarde atrapalharam o lanche antes de propor qualquer ajuste",
+    "Levar os episódios de comer depois do jantar sem fome e de vontade de doce ou pão para o Gatilhos & Respostas"
   ],
   "roteiro_proxima_consulta": [
-    { "tipo": "ferramenta", "texto": "Aplicar Gatilhos & Respostas (REC-MET-02) com um episódio trazido pela paciente; se houver tempo, Mapa de Crenças Alimentares (REC-FUN-03)." },
-    { "tipo": "pergunta", "texto": "Em quantos dias conseguiu fazer o lanche por volta das 16h?" },
-    { "tipo": "pergunta", "texto": "O que facilitou e o que dificultou (reuniões, preparo na noite anterior)?" },
-    { "tipo": "pergunta", "texto": "Como ficaram a fome e a disposição entre 16h e 18h nos dias com e sem lanche?" },
-    { "tipo": "pergunta", "texto": "O que aconteceu antes dos episódios de comer depois do jantar sem fome?" },
-    { "tipo": "criterio_decisao", "estrategia_id": "E1", "texto": "MANTER: aplicou na maioria dos dias e percebeu melhora na fome ou na disposição." },
-    { "tipo": "criterio_decisao", "estrategia_id": "E1", "texto": "AJUSTAR: a ideia funciona, mas o horário ou o preparo não couberam (usar o plano B ou mudar o horário)." },
-    { "tipo": "criterio_decisao", "estrategia_id": "E1", "texto": "SUBSTITUIR: não coube na rotina mesmo depois de ajustar as barreiras." },
-    { "tipo": "criterio_decisao", "estrategia_id": "E1", "texto": "CONCLUIR: o fim da tarde deixou de ser dificuldade e não precisa mais de ação ativa." },
-    { "tipo": "criterio_decisao", "estrategia_id": "E1", "texto": "ENCERRAR: decisão profissional de retirar a estratégia nesta etapa." }
+    {
+      "tipo": "ferramenta",
+      "texto": "Aplicar Gatilhos & Respostas (REC-MET-02) com um episódio relatado pela paciente; se houver tempo, Mapa de Crenças Alimentares (REC-FUN-03)."
+    },
+    {
+      "tipo": "pergunta",
+      "texto": "Com que frequência conseguiu fazer o lanche por volta das 16h?"
+    },
+    {
+      "tipo": "pergunta",
+      "texto": "O que facilitou e o que dificultou (preparo na noite anterior, horário)?"
+    },
+    {
+      "tipo": "pergunta",
+      "texto": "As reuniões da tarde atrapalharam o lanche? Em que dias e de que forma?"
+    },
+    {
+      "tipo": "pergunta",
+      "texto": "Como ficaram a fome e a disposição entre 16h e 18h nos dias com e sem lanche?"
+    },
+    {
+      "tipo": "pergunta",
+      "texto": "O que aconteceu antes dos episódios de comer depois do jantar sem fome?"
+    },
+    {
+      "tipo": "criterio_decisao",
+      "estrategia_id": "E1",
+      "texto": "MANTER: aplicou com frequência suficiente para avaliar e percebeu fome mais administrável ou mais disposição no fim da tarde."
+    },
+    {
+      "tipo": "criterio_decisao",
+      "estrategia_id": "E1",
+      "texto": "AJUSTAR: a ideia funciona, mas o horário ou o preparo não couberam na rotina. Se as reuniões da tarde se confirmarem como barreira, a nutricionista decide o ajuste."
+    },
+    {
+      "tipo": "criterio_decisao",
+      "estrategia_id": "E1",
+      "texto": "SUBSTITUIR: não coube na rotina mesmo depois de ajustar as barreiras."
+    },
+    {
+      "tipo": "criterio_decisao",
+      "estrategia_id": "E1",
+      "texto": "CONCLUIR: o fim da tarde deixou de ser dificuldade e não precisa mais de ação ativa."
+    },
+    {
+      "tipo": "criterio_decisao",
+      "estrategia_id": "E1",
+      "texto": "ENCERRAR: decisão profissional de retirar a estratégia nesta etapa."
+    }
   ],
-  "proxima_etapa": "Retorno em cerca de 2 semanas: rever os registros, decidir sobre o lanche da tarde e aplicar o Gatilhos & Respostas.",
-  "rascunho_paciente": "Nesta fase, nosso foco é organizar o fim da tarde. Até o nosso próximo encontro, a combinação é preparar o lanche na noite anterior e comer por volta das 16h. Nos dias de reunião, use o horário alternativo que combinamos. Anote, de 0 a 10, sua fome e sua disposição às 16h e às 18h. E, se acontecer de comer depois do jantar sem fome, escreva em poucas linhas o que estava acontecendo antes. Isso vai nos ajudar a dar o próximo passo.",
+  "proxima_etapa": "Retorno em cerca de 2 semanas: rever como foi o lanche da tarde, confirmar se as reuniões atrapalham, decidir sobre a estratégia e aplicar o Gatilhos & Respostas.",
+  "rascunho_paciente": "Nesta fase, nosso foco é organizar o fim da tarde. Até o nosso próximo encontro, a combinação é preparar o lanche na noite anterior e comer por volta das 16h. Observe como ficam sua fome e sua disposição entre 16h e 18h. No próximo encontro, conversamos sobre como foi.",
   "alertas_profissionais": [
-    { "tipo": "metodologico", "texto": "Metabólico 2,4 e Fúngico 5,8 organizam respostas do HOLOSCAN; não são diagnóstico." },
-    { "tipo": "avaliacao_profissional", "texto": "A língua esbranquiçada, os gases e o inchaço não foram interpretados; se persistirem ou incomodarem, requerem avaliação profissional." },
-    { "tipo": "conduta", "texto": "A composição do lanche e qualquer mudança alimentar específica requerem decisão profissional na Conduta." },
-    { "tipo": "catalogo", "texto": "Direcionamentos e estratégias ainda não têm catálogo homologado: validar antes de usar." },
-    { "tipo": "informacao_insuficiente", "texto": "Sem evolução registrada: ainda não é possível avaliar a resposta à estratégia." },
-    { "tipo": "informacao_insuficiente", "texto": "Mente e Espírito não foram aprofundados nesta etapa." }
+    {
+      "tipo": "metodologico",
+      "texto": "No HOLOSCAN, nota maior = menos marcadores; nota menor = mais marcadores. Metabólico 2,4 e Fúngico 5,8 indicam onde aprofundar primeiro; a nota não é diagnóstico nem medida de saúde, equilíbrio, normalidade, gravidade ou risco."
+    },
+    {
+      "tipo": "avaliacao_profissional",
+      "texto": "A língua esbranquiçada, os gases e o inchaço não foram interpretados; se persistirem ou incomodarem, requerem avaliação profissional."
+    },
+    {
+      "tipo": "conduta",
+      "texto": "A composição do lanche da tarde (alimentos, quantidades, substituições) requer decisão profissional na Conduta. Não foi sugerida como estratégia para a paciente."
+    },
+    {
+      "tipo": "catalogo",
+      "texto": "Direcionamentos e estratégias são sugestões da HOLOS AI sem catálogo homologado: requerem revisão profissional antes de usar."
+    },
+    {
+      "tipo": "informacao_insuficiente",
+      "texto": "Sem evolução registrada: ainda não é possível avaliar a resposta à estratégia acordada."
+    },
+    {
+      "tipo": "informacao_insuficiente",
+      "texto": "As reuniões da tarde aparecem no Mapa da Rotina, mas não há dado de que impeçam o lanche: ficam como ponto de observação, sem estratégia."
+    },
+    {
+      "tipo": "informacao_insuficiente",
+      "texto": "Mente e Espírito não foram aprofundados nesta etapa. Os relatos de comer depois do jantar sem fome e de vontade de doce ou pão ficam para observação e para o Gatilhos & Respostas."
+    }
   ],
   "fontes_utilizadas": [
-    "Resultado HOLOS da Paciente Teste T5 Fictícia (foco, direcionamento, estratégia, HOLOSCAN, Mapa da Rotina)",
-    "02-SISTEMAS-E-FERRAMENTAS: textos oficiais do Metabólico e do Fúngico (v7)",
+    "Resultado HOLOS da Paciente Teste T5 Fictícia (foco, direcionamento, estratégia acordada, o que observar, HOLOSCAN, Mapa da Rotina)",
+    "02-SISTEMAS-E-FERRAMENTAS: textos oficiais do Metabólico e do Fúngico (v7) e frase da HOLOS AI para a segunda área",
     "05-CATALOGO-FERRAMENTAS-PP-V1: REC-MET-02, REC-FUN-03, REC-MET-04"
   ]
 }
@@ -306,6 +441,22 @@ begin
     and pg_temp.ha_tenta(format('select public.importar_holos_ai(%L::uuid, %L)::text', e1, (j - 'espirito')::text)) = 'resultado_invalido'
     then 'ok' else 'FALHOU: ' || t end || ': estrutura invalida (MANTER na 1a consulta, 4 ferramentas, chave faltando) recusada; nada salvo (nem parcial)';
 
+  -- fechamento 14/10/2026: meta, entrada, ferramentas_ja_aplicadas e plano_acompanhamento obrigatorios; territorio nao aprofundado sem estrategia;
+  -- estrategia nunca baseada em hipotese
+  t := pg_temp.ha_tenta(format('select public.importar_holos_ai(%L::uuid, %L)::text', e1, (j - 'plano_acompanhamento')::text));
+  insert into _logha (passo) select 'HA03b ' || case when t = 'resultado_invalido'
+    and pg_temp.ha_tenta(format('select public.importar_holos_ai(%L::uuid, %L)::text', e1, (j - 'meta')::text)) = 'resultado_invalido'
+    and pg_temp.ha_tenta(format('select public.importar_holos_ai(%L::uuid, %L)::text', e1, (j - 'entrada')::text)) = 'resultado_invalido'
+    and pg_temp.ha_tenta(format('select public.importar_holos_ai(%L::uuid, %L)::text', e1, (j - 'ferramentas_ja_aplicadas')::text)) = 'resultado_invalido'
+    and pg_temp.ha_tenta(format('select public.importar_holos_ai(%L::uuid, %L)::text', e1, jsonb_set(j, '{meta}', '"x"')::text)) = 'resultado_invalido'
+    and pg_temp.ha_tenta(format('select public.importar_holos_ai(%L::uuid, %L)::text', e1,
+          jsonb_set(jsonb_set(j, '{estrategias,1,territorio}', '"Mente"'), '{corpo,estrategias}', '["E1"]')::text)) = 'resultado_invalido'
+    and pg_temp.ha_tenta(format('select public.importar_holos_ai(%L::uuid, %L)::text', e1, jsonb_set(j, '{mente,estrategias}', '["E2"]')::text)) = 'resultado_invalido'
+    and pg_temp.ha_tenta(format('select public.importar_holos_ai(%L::uuid, %L)::text', e1,
+          jsonb_set(j, '{estrategias,1,baseado_em}', '["Pontos para aprofundar: hipótese das reuniões"]')::text)) = 'resultado_invalido'
+    and (select count(*) from public.holos_ai_imports) = antes
+    then 'ok' else 'FALHOU: ' || t end || ': sem meta/entrada/ferramentas_ja_aplicadas/plano_acompanhamento, estrategia em territorio nao aprofundado ou baseada em hipotese: recusado; nada salvo';
+
   colado := 'Aqui esta a analise.' || chr(10) || '=== HOLOS_AI_RESULT ===' || chr(10) || 'TIPO: primeira_consulta' || chr(10) || '=== FIM_HOLOS_AI_RESULT ===' || chr(10)
     || '```json' || chr(10) || (select v from _ha where k = 'json') || chr(10) || '```' || chr(10) || 'Tudo acima e SUGERIDO.';
   r := public.importar_holos_ai(e1, colado, 'a0000000-0000-4000-8000-0000000000a1'::uuid);
@@ -314,11 +465,11 @@ begin
     and (select status = 'importado' and schema_version = 1 and tipo = 'primeira_consulta' and texto_original = colado and json_original = j
            and texto_sha256 = encode(sha256(convert_to(colado, 'UTF8')), 'hex') and agente = 'HOLOS-AI-GPT 1.2' and encounter_id = e1 and patient_id = p
          from public.holos_ai_imports where id = (r->>'id')::uuid)
-    and (select count(*) from public.holos_ai_import_items where import_id = (r->>'id')::uuid and so_profissional) = 41
+    and (select count(*) from public.holos_ai_import_items where import_id = (r->>'id')::uuid and so_profissional) = 43
     and (select count(distinct secao) from public.holos_ai_import_items where import_id = (r->>'id')::uuid) = 20
     and (select valor_ia from public.holos_ai_import_items where import_id = (r->>'id')::uuid and secao = 'estrategias' and chave = 'E1') = j#>'{estrategias,0}'
     and (select count(*) from public.holos_ai_import_items where import_id = (r->>'id')::uuid and estado = 'sugerido' and not compartilhar) = 62
-    then 'ok' else 'FALHOU: ' || r::text end || ': resposta inteira do GPT colada -> versao 1; texto, JSON, sha256, agente e atendimento guardados; 62 itens separados (20 secoes), 41 so profissionais, todos SUGESTAO';
+    then 'ok' else 'FALHOU: ' || r::text end || ': resposta inteira do GPT colada -> versao 1; texto, JSON, sha256, agente e atendimento guardados; 62 itens separados (20 secoes), 43 so profissionais, todos SUGESTAO';
 
   t := pg_temp.ha_tenta(format('update public.holos_ai_imports set status = %L where id = %L', 'confirmado', r->>'id'));
   insert into _logha (passo) select 'HA05a ' || case when t like '42501:%' and pg_temp.ha_tenta(format('update public.holos_ai_import_items set estado = %L where import_id = %L', 'confirmado', r->>'id')) like '42501:%'
@@ -346,6 +497,10 @@ insert into _logha (passo) select 'HA05b ' || case when
     and pg_temp.ha_tenta(format('delete from public.holos_ai_import_items where import_id = %L', (select v from _ha where k = 'i1'))) = 'holos_ai_imutavel'
     and pg_temp.ha_tenta(format('update public.holos_ai_imports set status = ''importado'' where id = %L returning status', (select v from _ha where k = 'i1'))) = 'ACEITO:importado'
   then 'ok' else 'FALHOU' end || ': JSON/texto originais, valor da IA e apagar recusados mesmo para o dono do banco (holos_ai_imutavel)';
+insert into _logha (passo) select 'HA03c ' || case when
+    public.holos_ai_problemas((select v::jsonb from _ha where k = 'json') || '{"meta": {}, "entrada": {}, "ferramentas_ja_aplicadas": [], "plano_acompanhamento": []}') = '{}'
+    and public.holos_ai_problemas((select v::jsonb from _ha where k = 'json')) = '{}'
+  then 'ok' else 'FALHOU' end || ': o T5 do fechamento passa sem problema; meta/entrada/ferramentas_ja_aplicadas/plano_acompanhamento vazios sao aceitos';
 
 -- HA08 revisao
 select pg_temp.como_daniel();
@@ -375,12 +530,12 @@ begin
     then 'ok' else 'FALHOU: ' || t end || ': hipotese e sintese (so profissionais) nao podem ir para a paciente; descartado nao se compartilha';
   perform public.revisar_item_holos_ai(d1, 'confirmado', null, true);
   perform public.revisar_item_holos_ai(s1, 'editado', '"Sintese revisada pela nutricionista (EDITADA)."'::jsonb, false);
-  -- descartar: E2 (plano B), o padrao 0 e o espirito; o resto da estrategia E3 confirmada SEM compartilhar
+  -- descartar: E2 (registro rapido, sugestao nova), o padrao 0 e o espirito; o_que_observar[1] (reunioes) confirmado SEM compartilhar
   for x in select id, secao, chave, ordem from public.holos_ai_import_items where import_id = i1 and estado = 'sugerido' order by secao, ordem loop
     if (x.secao = 'estrategias' and x.chave = 'E2') or (x.secao = 'padroes_observados' and x.ordem = 0) or x.secao = 'espirito' then
       perform public.revisar_item_holos_ai(x.id, 'descartado');
       if x.secao = 'estrategias' then insert into _ha values ('it_e2', x.id::text); end if;
-    elsif x.secao = 'estrategias' and x.chave = 'E3' then
+    elsif x.secao = 'o_que_observar' and x.ordem = 1 then
       perform public.revisar_item_holos_ai(x.id, 'confirmado', null, false);
       insert into _ha values ('it_e3', x.id::text);
     elsif x.secao = 'pontos_para_aprofundar' and x.id = hip then
@@ -413,7 +568,7 @@ begin
   ie1 := jsonb_build_object('id', 'hai-e1', 'texto', 'Lanche planejado antes da fome forte', 'texto_sugerido', 'Lanche planejado antes da fome forte', 'origem', 'holos_ai',
     'ref', format(ref_de, i1, (select v from _ha where k = 'it_e1'))::jsonb, 'sugestao', true, 'confirmado', true, 'mostrar_paciente', true, 'descartado', false,
     'acao', 'Preparar o lanche na noite anterior e comer entre 15h30 e 16h (EDITADO PELA NUTRI).', 'direcionamento_id', 'hai-d1', 'status', 'acordada');
-  ie2 := jsonb_build_object('id', 'hai-e2', 'texto', 'Plano B para dias de reuniao', 'origem', 'holos_ai',
+  ie2 := jsonb_build_object('id', 'hai-e2', 'texto', 'Registro rapido de fome e disposicao', 'origem', 'holos_ai',
     'ref', format(ref_de, i1, (select v from _ha where k = 'it_e2'))::jsonb, 'sugestao', true, 'confirmado', true, 'mostrar_paciente', true, 'status', 'proposta');
   ie3 := jsonb_build_object('id', 'hai-e3', 'texto', 'REGISTRO_NAO_COMPARTILHADO', 'origem', 'holos_ai',
     'ref', format(ref_de, i1, (select v from _ha where k = 'it_e3'))::jsonb, 'sugestao', true, 'confirmado', true, 'mostrar_paciente', false, 'status', 'proposta');
@@ -461,7 +616,7 @@ begin
       and jsonb_array_length(dp->'direcionamentos') = 1 and dp#>>'{direcionamentos,0,origem}' = 'holos_ai'
     then 'ok' else 'FALHOU: ' || dp::text end || ': Resultado finalizado: foco, direcionamento e estrategia aceitos e compartilhados vao para a paciente, com o texto EDITADO';
   insert into _logha (passo) select 'HA11b ' || case when dp::text not like '%REGISTRO_NAO_COMPARTILHADO%' and s::text not like '%REGISTRO_NAO_COMPARTILHADO%'
-      and s::text not like '%Plano B%' and s::text not like '%HIPOTESE%' and s::text not like '%Sintese revisada%'
+      and s::text not like '%Registro rapido%' and s::text not like '%HIPOTESE%' and s::text not like '%Sintese revisada%'
       and (snap->'direcao')::text like '%REGISTRO_NAO_COMPARTILHADO%' and not (dp#>'{estrategias,0}' ? 'ref')
       and s->>'template' = 'RF-3' and s#>>'{direcao_paciente,estrategias,0,acao}' like '%EDITADO PELA NUTRI%'
     then 'ok' else 'FALHOU' end || ': emissao RF-3 (PDF/WhatsApp): sem o nao compartilhado, sem o descartado, sem hipotese, sem a leitura profissional; com a estrategia editada';

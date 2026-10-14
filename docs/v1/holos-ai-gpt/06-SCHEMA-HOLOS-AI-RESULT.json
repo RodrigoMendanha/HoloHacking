@@ -2,14 +2,14 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "holohacking:holos-ai-result:1",
   "title": "HOLOS_AI_RESULT (schema_version 1)",
-  "description": "Saída canônica da HOLOS AI, importável pelo HoloHacking. Tudo é SUGERIDO; a nutricionista confirma, edita ou descarta. Campos sem material: lista vazia, \"Sem dado\" ou \"Ainda não aprofundado nesta etapa.\" — nunca conteúdo inventado.",
+  "description": "Saída canônica da HOLOS AI, importável pelo HoloHacking. Tudo é SUGERIDO; a nutricionista confirma, edita ou descarta. Todas as chaves são obrigatórias (meta, entrada, ferramentas_ja_aplicadas e plano_acompanhamento também; {} ou [] quando não houver material). Campos sem material: lista vazia, \"Sem dado\" ou \"Ainda não aprofundado nesta etapa.\" — nunca conteúdo inventado. Fechamento 14/10/2026 (mesmo schema_version 1).",
   "type": "object",
-  "required": ["schema_version", "tipo", "sintese_integrada", "o_que_apareceu", "convergencias", "padroes_observados", "pontos_para_aprofundar", "sistemas_prioritarios", "ferramentas_recomendadas", "direcionamentos", "estrategias", "corpo", "mente", "espirito", "o_que_observar", "roteiro_proxima_consulta", "proxima_etapa", "rascunho_paciente", "alertas_profissionais", "fontes_utilizadas"],
+  "required": ["schema_version", "tipo", "meta", "entrada", "sintese_integrada", "o_que_apareceu", "convergencias", "padroes_observados", "pontos_para_aprofundar", "sistemas_prioritarios", "ferramentas_ja_aplicadas", "ferramentas_recomendadas", "direcionamentos", "estrategias", "corpo", "mente", "espirito", "o_que_observar", "plano_acompanhamento", "roteiro_proxima_consulta", "proxima_etapa", "rascunho_paciente", "alertas_profissionais", "fontes_utilizadas"],
   "properties": {
     "schema_version": { "const": 1 },
     "tipo": { "enum": ["primeira_consulta", "retorno"] },
     "meta": {
-      "type": "object",
+      "type": "object", "description": "Obrigatório (pode ser {}).",
       "properties": {
         "agente": { "type": "string" },
         "kb_version": { "type": "string" },
@@ -19,7 +19,7 @@
       }
     },
     "entrada": {
-      "type": "object",
+      "type": "object", "description": "Obrigatório (pode ser {}).",
       "properties": {
         "documentos": { "type": "array", "items": { "enum": ["pacote_holos_ai", "pdf_resultado_holos"] } },
         "base_principal": { "enum": ["pacote_holos_ai", "pdf_resultado_holos"], "description": "Com os dois, sempre pacote_holos_ai." },
@@ -67,7 +67,7 @@
       }
     },
     "ferramentas_ja_aplicadas": {
-      "type": "array",
+      "type": "array", "description": "Obrigatório (pode ser []).",
       "items": {
         "type": "object", "required": ["ferramenta", "situacao", "o_que_esclareceu"],
         "properties": {
@@ -109,7 +109,7 @@
           "por_que": { "type": "string" },
           "objetivo": { "type": "string" },
           "baseado_em": { "type": "array", "minItems": 1, "items": { "type": "string" } },
-          "catalogo": { "type": "string" },
+          "catalogo": { "type": "string", "description": "Status técnico. Sem catálogo homologado: \"not_catalogued\" (na tela: SUGESTÃO HOLOS AI — REQUER REVISÃO PROFISSIONAL)." },
           "status": { "const": "SUGERIDO" }
         }
       }
@@ -124,7 +124,7 @@
           "titulo": { "type": "string" },
           "territorio": { "enum": ["Corpo", "Mente", "Espírito"] },
           "direcionamento_id": { "type": ["string", "null"] },
-          "classificacao": { "enum": ["observacao", "comportamental_metodologica", "requer_decisao_profissional_na_conduta"] },
+          "classificacao": { "enum": ["observacao", "comportamental_metodologica", "requer_decisao_profissional_na_conduta"], "description": "Estratégia é da paciente. Tarefa da Conduta (composição, alimentos, quantidade, suplemento, protocolo, prescrição) não é estratégia: vai para alertas_profissionais tipo conduta. requer_decisao_profissional_na_conduta só para um comportamento da paciente que depende de decisão já pendente na Conduta." },
           "decisao_sugerida": {
             "enum": ["MANTER EM OBSERVAÇÃO — SUGERIDO", "MANTER", "AJUSTAR", "SUBSTITUIR", "CONCLUIR", "ENCERRAR", null],
             "description": "Só para origem=acordada. Primeira consulta: MANTER EM OBSERVAÇÃO — SUGERIDO. Retorno com dado de evolução: MANTER/AJUSTAR/SUBSTITUIR/CONCLUIR/ENCERRAR. Retorno sem dado: MANTER EM OBSERVAÇÃO — SUGERIDO. origem=nova: null."
@@ -134,8 +134,8 @@
           "o_que_observar": { "type": "string" },
           "prazo": { "type": "string" },
           "criterio_sucesso": { "type": "string" },
-          "baseado_em": { "type": "array", "minItems": 1, "items": { "type": "string" } },
-          "catalogo": { "type": "string" },
+          "baseado_em": { "type": "array", "minItems": 1, "items": { "type": "string" }, "description": "Nunca uma hipótese: hipótese → observação → confirmação → possível estratégia." },
+          "catalogo": { "type": "string", "description": "Status técnico. Sem catálogo homologado: \"not_catalogued\" (na tela: SUGESTÃO HOLOS AI — REQUER REVISÃO PROFISSIONAL)." },
           "status": { "const": "SUGERIDO" }
         }
       }
@@ -144,7 +144,7 @@
     "mente": { "$ref": "#/$defs/territorio" },
     "espirito": { "$ref": "#/$defs/territorio" },
     "o_que_observar": { "type": "array", "items": { "type": "string" } },
-    "plano_acompanhamento": { "type": "array", "items": { "type": "string" } },
+    "plano_acompanhamento": { "type": "array", "items": { "type": "string" }, "description": "Obrigatório (pode ser [])." },
     "roteiro_proxima_consulta": {
       "type": "array",
       "items": {
@@ -157,7 +157,7 @@
       }
     },
     "proxima_etapa": { "type": "string" },
-    "rascunho_paciente": { "type": "string", "description": "Rascunho para revisão. Linguagem simples, sem números do HOLOSCAN, sem nomes de sistemas, sem hipótese." },
+    "rascunho_paciente": { "type": "string", "description": "Rascunho para revisão. Linguagem simples, sem números do HOLOSCAN, sem nomes de sistemas, sem hipótese. Só o que foi acordado no documento ou confirmado; nunca uma sugestão nova como combinada." },
     "alertas_profissionais": {
       "type": "array",
       "items": {
@@ -173,8 +173,10 @@
   "$defs": {
     "territorio": {
       "type": "object", "required": ["situacao", "resumo", "estrategias"],
+      "if": { "properties": { "situacao": { "const": "nao_aprofundado" } } },
+      "then": { "properties": { "estrategias": { "maxItems": 0 } } },
       "properties": {
-        "situacao": { "enum": ["com_material", "nao_aprofundado"] },
+        "situacao": { "enum": ["com_material", "nao_aprofundado"], "description": "nao_aprofundado: nenhuma estratégia ligada a este território." },
         "resumo": { "type": "string", "description": "Sem material: exatamente \"Ainda não aprofundado nesta etapa.\" (pode vir seguido de uma frase sobre o que já há para observar)." },
         "estrategias": { "type": "array", "items": { "type": "string", "pattern": "^E[0-9]+$" } }
       }

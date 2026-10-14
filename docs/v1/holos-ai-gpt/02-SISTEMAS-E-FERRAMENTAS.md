@@ -15,7 +15,8 @@ Os textos marcados como "oficial" devem ser usados **literalmente** quando a an�
 Os sistemas são **eixos autorais** que organizam relatos do questionário. Não são doenças nem diagnósticos.
 
 **Como ler a nota:**
-- A nota vai de 0 a 10. Quanto **menor** a nota, **mais** marcadores apareceram naquele eixo.
+- A nota vai de 0 a 10. Quanto **menor** a nota, **mais** marcadores apareceram naquele eixo; nota **maior** = **menos** marcadores.
+- A nota nunca equivale a saúde, equilíbrio, normalidade, gravidade ou risco.
 - As **áreas prioritárias** (onde aprofundar primeiro) são as que o Pacote indica.
 
 **O que a IA faz com isso:** o HOLOSCAN calcula; a HOLOS AI lê e ajuda a interpretar. A IA **nunca** altera:
@@ -35,7 +36,9 @@ Os sistemas são **eixos autorais** que organizam relatos do questionário. Não
 
 ### Frases homologadas para sistema prioritário (podem ser usadas)
 
-- **Fúngico:** "Este eixo concentrou mais marcadores nesta aplicação e merece ser aprofundado no contexto da alimentação, rotina e sinais relatados."
+- **Fúngico:**
+  - quando é a **primeira** área: "Este eixo concentrou mais marcadores nesta aplicação e merece ser aprofundado no contexto da alimentação, rotina e sinais relatados."
+  - quando é a **segunda** área: "Este eixo aparece como a segunda área para aprofundar nesta aplicação e merece ser observado no contexto da alimentação, rotina e sinais relatados." Nunca "concentrou mais marcadores" para um sistema que não é a primeira área (decisão de 14/10/2026).
 - **Ácido Inflamatório:** "Vale contextualizar quando e em que situações os desconfortos aparecem."
 - **Metabólico:** "Alimentação, horários, fome, energia e rotina merecem aprofundamento."
 - **Detox e Linfático:** "Quando este eixo aparece entre as primeiras áreas para aprofundar, vale observar como funcionamento intestinal, retenção percebida, alimentação, hidratação, movimento e organização da rotina aparecem no contexto real da paciente."

@@ -10,6 +10,9 @@
   "use strict";
 
   // --- Configuracao centralizada dos URLs dos agentes ---
+  // chatgpt: link do GPT "HOLOS AI" publicado (https://chatgpt.com/g/...). Ainda nao existe GPT publicado, entao fica vazio
+  // (nunca inventar link). Para ligar: preencher aqui ou chamar HolosAI.configurarUrls({ chatgpt: "<link>" }) antes do uso.
+  // Passo a passo: docs/v1/holos-ai-gpt/LEIA-ME-CONFIGURAR-GPT.md (secao "Link do GPT no HoloHacking").
   var HOLOS_AI_URLS = {
     chatgpt: "",
     gemini:  ""

@@ -1136,6 +1136,16 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
      profissional para a paciente e importação não concluída. A HOLOS AI não substitui o Resultado HOLOS; PDF, emissão e
      WhatsApp continuam saindo só da projeção do servidor. Nada muda em HOLOSCAN, PP-V1, sistemas, Tríade, ferramentas,
      pacotes, scores ou exames (`docs/v1/PONTE-HOLOS-AI.md`).
+197. **Fechamento da HOLOS AI v1.2** (14/10, decisão de Rodrigo). Nota maior = menos marcadores; nota menor = mais marcadores;
+     a nota nunca é saúde, equilíbrio, normalidade, gravidade ou risco. Para o sistema que não é a 1ª área, nunca "concentrou mais
+     marcadores" (Fúngico 2º: "aparece como a segunda área para aprofundar nesta aplicação..."). Hipótese → observação →
+     confirmação → possível estratégia (nunca direto). Tarefa da Conduta (composição, alimentos, quantidade, suplemento,
+     protocolo, prescrição) não é estratégia da paciente: vai para alerta "conduta". Sem corte inventado ("aplicar com
+     frequência suficiente para permitir avaliação no retorno"). Rascunho para a paciente só com o acordado. Território
+     `nao_aprofundado` sem estratégia. Rótulo visível único "SUGESTÃO HOLOS AI — REQUER REVISÃO PROFISSIONAL" (`catalogo:
+     "not_catalogued"` no JSON). `meta`, `entrada`, `ferramentas_ja_aplicadas` e `plano_acompanhamento` passam a obrigatórios,
+     mantendo `schema_version: 1`. Na ponte, as regras estruturais são erro (JS + SQL `holos_ai_problemas`) e as de linguagem,
+     aviso. PP-V1, catálogo, HOLOSCAN e versões publicadas sem mudança (`docs/v1/holos-ai-gpt/`, `docs/v1/PONTE-HOLOS-AI.md`).
 
 ## Decisões pendentes (não decididas aqui)
 

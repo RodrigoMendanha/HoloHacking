@@ -34,16 +34,18 @@
   var TERRITORIOS = ["Corpo", "Mente", "Espírito"];
   var RE_REGRA = /^REC-(FUN|AIN|MET|DTL|MEE)-0[1-6]$/;
 
-  var OBRIGATORIAS = ["schema_version", "tipo", "sintese_integrada", "o_que_apareceu", "convergencias", "padroes_observados",
-    "pontos_para_aprofundar", "sistemas_prioritarios", "ferramentas_recomendadas", "direcionamentos", "estrategias",
-    "corpo", "mente", "espirito", "o_que_observar", "roteiro_proxima_consulta", "proxima_etapa", "rascunho_paciente",
-    "alertas_profissionais", "fontes_utilizadas"];
+  /* todas obrigatorias (fechamento 14/10/2026: meta, entrada, ferramentas_ja_aplicadas e plano_acompanhamento tambem;
+     vazias quando nao houver material). Continua schema_version 1: nenhum campo mudou de nome ou de tipo. */
+  var OBRIGATORIAS = ["schema_version", "tipo", "meta", "entrada", "sintese_integrada", "o_que_apareceu", "convergencias",
+    "padroes_observados", "pontos_para_aprofundar", "sistemas_prioritarios", "ferramentas_ja_aplicadas", "ferramentas_recomendadas",
+    "direcionamentos", "estrategias", "corpo", "mente", "espirito", "o_que_observar", "plano_acompanhamento",
+    "roteiro_proxima_consulta", "proxima_etapa", "rascunho_paciente", "alertas_profissionais", "fontes_utilizadas"];
   var SEC_TEXTO = ["sintese_integrada", "proxima_etapa", "rascunho_paciente"];
   var SEC_TERR = ["corpo", "mente", "espirito"];
   var SEC_LISTA = ["o_que_apareceu", "convergencias", "padroes_observados", "pontos_para_aprofundar", "sistemas_prioritarios",
     "ferramentas_ja_aplicadas", "ferramentas_recomendadas", "direcionamentos", "estrategias", "o_que_observar",
     "plano_acompanhamento", "roteiro_proxima_consulta", "alertas_profissionais", "fontes_utilizadas"];
-  var OPCIONAIS = ["ferramentas_ja_aplicadas", "plano_acompanhamento"];
+  var OPCIONAIS = [];
   /* ordem de exibicao na revisao */
   var SECOES = ["sintese_integrada", "o_que_apareceu", "convergencias", "padroes_observados", "pontos_para_aprofundar",
     "sistemas_prioritarios", "ferramentas_ja_aplicadas", "ferramentas_recomendadas", "direcionamentos", "estrategias",
@@ -109,6 +111,7 @@
     }
     OBRIGATORIAS.forEach(function (k) { if (!(k in r)) E('falta a chave "' + k + '"'); });
     if ("tipo" in r && ["primeira_consulta", "retorno"].indexOf(r.tipo) < 0) E('tipo deve ser "primeira_consulta" ou "retorno"');
+    ["meta", "entrada"].forEach(function (k) { if (k in r && !ehObj(r[k])) E('"' + k + '" deve ser objeto (pode ser vazio)'); });
     SEC_TEXTO.forEach(function (k) { if (k in r && !ehTexto(r[k])) E('"' + k + '" deve ser texto'); else if (k in r && r[k].length > STR_MAX) E('"' + k + '" passa de ' + STR_MAX + " caracteres"); });
     SEC_LISTA.forEach(function (k) {
       if (!(k in r)) return;
@@ -194,6 +197,13 @@
       if (e.origem === "acordada" && r.tipo === "retorno" && DECISOES_RETORNO.concat([MANTER_OBS]).indexOf(dec) < 0) E("estratégia " + (eid || i) + ": decisão de retorno inválida (" + dec + ")");
     });
     /* Corpo / Mente / Espirito */
+    var naoAprof = {};
+    SEC_TERR.forEach(function (k, n) { if (ehObj(r[k]) && r[k].situacao === "nao_aprofundado") naoAprof[TERRITORIOS[n]] = true; });
+    lista("estrategias").forEach(function (e, i) {
+      if (naoAprof[e.territorio]) E("estratégia " + (e.id || i) + " está no território " + e.territorio + ', que está "nao_aprofundado" (sem estratégia ativa nesta etapa)');
+      if (Array.isArray(e.baseado_em) && e.baseado_em.some(function (b) { return /hip[oó]tese|pontos_para_aprofundar/i.test(String(b)); }))
+        E("estratégia " + (e.id || i) + " se baseia numa hipótese: hipótese vira observação e confirmação, nunca estratégia direto");
+    });
     SEC_TERR.forEach(function (k, n) {
       if (!(k in r)) return;
       var t = r[k];
@@ -202,6 +212,7 @@
       if (!ehTexto(t.resumo)) E(k + ": resumo deve ser texto");
       else if (t.situacao === "nao_aprofundado" && t.resumo.indexOf(NAO_APROFUNDADO) !== 0) E(k + ': sem material, o resumo começa com "' + NAO_APROFUNDADO + '"');
       if (!Array.isArray(t.estrategias)) E(k + ": estrategias deve ser lista");
+      else if (t.situacao === "nao_aprofundado" && t.estrategias.length) E(k + ' está "nao_aprofundado": não pode ter estratégia vinculada (' + t.estrategias.join(", ") + ")");
       else t.estrategias.forEach(function (eid) {
         if (!idsE[eid]) E(k + " cita estratégia inexistente " + eid);
         else if (terrE[eid] !== TERRITORIOS[n]) E(k + " cita " + eid + ", que é do território " + terrE[eid]);
@@ -211,7 +222,79 @@
     var rp = ehTexto(r.rascunho_paciente) ? r.rascunho_paciente : "";
     PROIBIDOS_PACIENTE.forEach(function (p) { if (rp.toLowerCase().indexOf(p) >= 0) avisos.push('rascunho para a paciente contém "' + p + '"'); });
     if (/\d+,\d/.test(rp)) avisos.push("rascunho para a paciente tem números do HOLOSCAN");
+    avisos = avisos.concat(avisosClinicos(r));
     return { erros: erros, avisos: avisos };
+  }
+
+  /* ---------- 2b. avisos de linguagem e de raciocinio (nao bloqueiam: a nutricionista revisa cada item) ----------
+     Mesmas regras de checar_regras_clinicas (docs/v1/holos-ai-gpt/holos_ai_pdf.py), que no GPT sao corrigidas antes de entregar. */
+  function semAcento(t) { return String(t === null || t === undefined ? "" : t).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); }
+  var PARADAS = ["comer", "volta", "antes", "depoi", "tarde", "noite", "lanch", "podem", "fazer", "parte", "mesmo", "quand", "sobre",
+    "entre", "sempr", "ainda", "estar", "pouco", "tempo", "outra", "outro", "desta", "deste", "nesta", "neste", "dessa", "desse",
+    "nossa", "nosso", "proxi", "encon", "conve", "retor", "confe", "consu", "parti", "etapa", "pacie", "profi", "nutri", "possi",
+    "poder", "deixa", "cerca", "seman", "horas", "combi", "acord"];
+  function radicais(t) {
+    var o = {};
+    (semAcento(t).match(/[a-z]+/g) || []).forEach(function (w) { if (w.length >= 5 && PARADAS.indexOf(w.slice(0, 5)) < 0) o[w.slice(0, 5)] = true; });
+    return o;
+  }
+  function frases(t) { return String(t || "").replace(/([.!?;])\s+/g, "$1\n").split(/\n+/).filter(function (f) { return f.trim(); }); }
+  function textos(x, out) {
+    out = out || [];
+    if (ehTexto(x)) out.push(x);
+    else if (Array.isArray(x)) x.forEach(function (v) { textos(v, out); });
+    else if (ehObj(x)) Object.keys(x).forEach(function (k) { textos(x[k], out); });
+    return out;
+  }
+  var RE_NOTA = /(mais|menos|maior|menor|melhor|pior)\s+equilibrio|equilibrio\s+(maior|menor)|(nota|score|pontuacao|indice)[^.;]{0,40}(saudavel|saude|normalidade|normal\b|gravidade|grave\b|risco)/;
+  var RE_NEGA = /\b(nao|nunca|nem)\b/;
+  var RE_CONDUTA = /composicao|cardapio|suplement|\bdose\b|protocolo|prescri|quantidade|gramas|\bkcal\b|calori|definir na conduta|escolha (dos|de) alimentos|substituic|substituto/;
+  var RE_CORTE = /maior parte dos dias|maioria dos dias|metade dos dias|\d+ ?%|\d+ ?(vezes|dias|x) ?(por|na|em|ao)? ?semana|em \d+ de \d+|pelo menos \d+|no minimo \d+/;
+  var RE_COMBINADO = /combin|acordamos|acordad|vamos fazer|\buse\b|\bfaca\b|a estrategia e\b/;
+  function avisosClinicos(r) {
+    var A = [];
+    if (!ehObj(r)) return A;
+    var ests = Array.isArray(r.estrategias) ? r.estrategias.filter(ehObj) : [];
+    var novas = ests.filter(function (e) { return e.origem === "nova"; }), acordadas = ests.filter(function (e) { return e.origem === "acordada"; });
+    textos(r).forEach(function (t) {
+      frases(t).forEach(function (f) {
+        var fs = semAcento(f);
+        if (RE_NOTA.test(fs) && !RE_NEGA.test(fs)) A.push('linguagem da nota do HOLOSCAN: "' + f.trim().slice(0, 120) + '" (nota maior = menos marcadores; nunca saúde, equilíbrio, normalidade, gravidade ou risco)');
+      });
+    });
+    (Array.isArray(r.sistemas_prioritarios) ? r.sistemas_prioritarios : []).forEach(function (x) {
+      if (ehObj(x) && Number(x.ordem) > 1 && semAcento(textos(x).join(" ")).indexOf("concentrou mais marcadores") >= 0)
+        A.push(x.sistema + ' não é a primeira área: "concentrou mais marcadores" não se aplica');
+    });
+    ests.forEach(function (e) {
+      if (RE_CONDUTA.test(semAcento(e.titulo + " " + e.o_que_fazer)))
+        A.push("estratégia " + e.id + " parece tarefa da Conduta (composição, alimentos, quantidade, suplemento, protocolo, prescrição): decisão da nutricionista, não estratégia da paciente");
+      ["o_que_fazer", "o_que_observar", "criterio_sucesso"].forEach(function (c) {
+        var m = RE_CORTE.exec(semAcento(e[c]));
+        if (m) A.push("estratégia " + e.id + ': corte não definido pela Conduta ("' + m[0] + '")');
+      });
+    });
+    (Array.isArray(r.roteiro_proxima_consulta) ? r.roteiro_proxima_consulta : []).forEach(function (x) {
+      var m = ehObj(x) && x.tipo === "criterio_decisao" ? RE_CORTE.exec(semAcento(x.texto)) : null;
+      if (m) A.push("roteiro (critério " + (x.estrategia_id || "") + '): corte não definido pela Conduta ("' + m[0] + '")');
+    });
+    var radHip = {}, radAc = {};
+    (Array.isArray(r.pontos_para_aprofundar) ? r.pontos_para_aprofundar : []).forEach(function (x) { if (ehObj(x) && x.tipo === "hipotese") Object.assign(radHip, radicais(x.texto)); });
+    acordadas.forEach(function (e) { Object.assign(radAc, radicais(textos(e).join(" "))); });
+    var novosDe = function (a, b) { return Object.keys(a).filter(function (k) { return b[k] && !radAc[k]; }); };
+    novas.forEach(function (e) {
+      var c = novosDe(radicais(e.titulo), radHip);
+      if (c.length) A.push("estratégia " + e.id + " repete uma hipótese ainda não confirmada (" + c.sort().join(", ") + "): hipótese → observação → confirmação");
+    });
+    frases(r.rascunho_paciente).forEach(function (f) {
+      var rf = radicais(f), comb = RE_COMBINADO.test(semAcento(f));
+      novas.forEach(function (e) {
+        var n = novosDe(radicais(e.titulo + " " + e.o_que_fazer), rf);
+        if (n.length >= 2 || (n.length && comb)) A.push("rascunho para a paciente apresenta a sugestão nova " + e.id + ' como combinada: "' + f.trim().slice(0, 120) + '"');
+      });
+      if (!acordadas.length && comb) A.push('rascunho para a paciente fala em combinado sem estratégia acordada: "' + f.trim().slice(0, 120) + '"');
+    });
+    return A;
   }
 
   /* ---------- 3. itens separados (um registro por elemento de cada secao) ---------- */
@@ -332,7 +415,7 @@
     SCHEMA_VERSION: SCHEMA_VERSION, TEXTO_MAX: TEXTO_MAX, STR_MAX: STR_MAX, LISTA_MAX: LISTA_MAX, NAO_APROFUNDADO: NAO_APROFUNDADO, MANTER_OBS: MANTER_OBS,
     OBRIGATORIAS: OBRIGATORIAS, SECOES: SECOES, SEC_TEXTO: SEC_TEXTO, SEC_TERR: SEC_TERR, SEC_LISTA: SEC_LISTA, OPCIONAIS: OPCIONAIS,
     SO_PROFISSIONAL: SO_PROFISSIONAL, TITULO: TITULO, CLASSIFICACOES: CLASSIFICACOES, EDITAVEIS: EDITAVEIS,
-    trechoJson: trechoJson, extrairJson: extrairJson, validar: validar, explodir: explodir, soProfissional: soProfissional,
+    trechoJson: trechoJson, extrairJson: extrairJson, validar: validar, avisosClinicos: avisosClinicos, explodir: explodir, soProfissional: soProfissional,
     textoDe: textoDe, camposEditaveis: camposEditaveis, valorFinal: valorFinal, aceito: aceito, paraDirecao: paraDirecao,
     sistemaChave: sistemaChave, contagem: contagem
   };

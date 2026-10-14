@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-HOLOS AI - saida canonica (HOLOS-AI-SAIDA 1.2): validar o JSON, gerar o texto legivel e, opcionalmente, o PDF de conferencia.
+HOLOS AI - saida canonica (HOLOS-AI-SAIDA 1.2, fechamento 14/10/2026): validar o JSON, gerar o texto legivel e, opcionalmente, o PDF de conferencia.
 
 A saida OFICIAL da HOLOS AI e:
   A. o bloco legivel HOLOS_AI_RESULT  -> gerar_texto(resultado)
@@ -23,13 +23,17 @@ Nada aqui inventa conteudo: o script so confere e diagrama o que recebeu.
 import json, re
 
 SCHEMA_VERSION = 1
-CHAVES_OBRIGATORIAS = ['schema_version', 'tipo', 'sintese_integrada', 'o_que_apareceu', 'convergencias', 'padroes_observados',
-                       'pontos_para_aprofundar', 'sistemas_prioritarios', 'ferramentas_recomendadas', 'direcionamentos',
-                       'estrategias', 'corpo', 'mente', 'espirito', 'o_que_observar', 'roteiro_proxima_consulta',
-                       'proxima_etapa', 'rascunho_paciente', 'alertas_profissionais', 'fontes_utilizadas']
+# todas obrigatorias (meta, entrada, ferramentas_ja_aplicadas e plano_acompanhamento tambem: vazios quando nao houver material)
+CHAVES_OBRIGATORIAS = ['schema_version', 'tipo', 'meta', 'entrada', 'sintese_integrada', 'o_que_apareceu', 'convergencias',
+                       'padroes_observados', 'pontos_para_aprofundar', 'sistemas_prioritarios', 'ferramentas_ja_aplicadas',
+                       'ferramentas_recomendadas', 'direcionamentos', 'estrategias', 'corpo', 'mente', 'espirito', 'o_que_observar',
+                       'plano_acompanhamento', 'roteiro_proxima_consulta', 'proxima_etapa', 'rascunho_paciente',
+                       'alertas_profissionais', 'fontes_utilizadas']
 LISTAS = ['o_que_apareceu', 'convergencias', 'padroes_observados', 'pontos_para_aprofundar', 'sistemas_prioritarios',
-          'ferramentas_recomendadas', 'direcionamentos', 'estrategias', 'o_que_observar', 'roteiro_proxima_consulta',
-          'alertas_profissionais', 'fontes_utilizadas']
+          'ferramentas_ja_aplicadas', 'ferramentas_recomendadas', 'direcionamentos', 'estrategias', 'o_que_observar',
+          'plano_acompanhamento', 'roteiro_proxima_consulta', 'alertas_profissionais', 'fontes_utilizadas']
+SELO_SUGESTAO = 'SUGESTÃO HOLOS AI — REQUER REVISÃO PROFISSIONAL'
+CATALOGO_TECNICO = 'not_catalogued'
 NAO_APROFUNDADO = 'Ainda não aprofundado nesta etapa.'
 MANTER_OBS = 'MANTER EM OBSERVAÇÃO — SUGERIDO'
 DECISOES_RETORNO = ['MANTER', 'AJUSTAR', 'SUBSTITUIR', 'CONCLUIR', 'ENCERRAR']
@@ -63,6 +67,9 @@ def validar_resultado(r):
     for k in LISTAS:
         if k in r and not isinstance(r[k], list):
             p.append('"%s" deve ser lista' % k)
+    for k in ('meta', 'entrada'):
+        if k in r and not isinstance(r[k], dict):
+            p.append('"%s" deve ser objeto (pode ser vazio)' % k)
     for k in ('sintese_integrada', 'proxima_etapa', 'rascunho_paciente'):
         if k in r and not isinstance(r[k], str):
             p.append('"%s" deve ser texto' % k)
@@ -145,6 +152,112 @@ def validar_resultado(r):
             p.append('rascunho_paciente contém termo proibido: "%s"' % termo)
     if re.search(r'\d+,\d', r.get('rascunho_paciente') or ''):
         p.append('rascunho_paciente não deve ter números do HOLOSCAN')
+    p += checar_regras_clinicas(r)
+    return p
+
+
+# ------------------------------------------------------------------ regras de linguagem e de raciocinio (v1.2 final)
+# Mesmas regras do holos-ai-contrato.js (no HoloHacking, as heuristicas viram aviso; as estruturais, erro).
+import unicodedata
+
+def _sem_acento(t):
+    return ''.join(c for c in unicodedata.normalize('NFD', str(t or '').lower()) if unicodedata.category(c) != 'Mn')
+
+# palavras comuns demais para indicar que um texto repete outro (radical de 5 letras)
+_PARADAS = set(['comer', 'volta', 'antes', 'depoi', 'tarde', 'noite', 'lanch', 'podem', 'fazer', 'parte', 'mesmo', 'quand', 'sobre',
+                'entre', 'sempre', 'ainda', 'estar', 'pouco', 'tempo', 'outra', 'outro', 'desta', 'deste', 'nesta', 'neste', 'dessa',
+                'desse', 'nossa', 'nosso', 'proxi', 'encon', 'conve', 'retor', 'confe', 'consu', 'parti', 'etapa', 'pacie',
+                'profi', 'nutri', 'possi', 'poder', 'deixa', 'cerca', 'seman', 'horas',
+                'combi', 'acord'])  # marcadores de acordo nao contam como conteudo
+
+def _radicais(t):
+    return set(w[:5] for w in re.findall(r'[a-z]+', _sem_acento(t)) if len(w) >= 5 and w[:5] not in _PARADAS)
+
+def _frases(t):
+    return [f for f in re.split(r'(?<=[.!?;])\s+|\n+', str(t or '')) if f.strip()]
+
+def _textos(x):
+    if isinstance(x, str):
+        yield x
+    elif isinstance(x, dict):
+        for v in x.values():
+            yield from _textos(v)
+    elif isinstance(x, list):
+        for v in x:
+            yield from _textos(v)
+
+RE_NOTA_EQUILIBRIO = re.compile(r'(mais|menos|maior|menor|melhor|pior)\s+equilibrio|equilibrio\s+(maior|menor)|'
+                                r'(nota|score|pontuacao|indice)[^.;]{0,40}(saudavel|saude|normalidade|normal\b|gravidade|grave\b|risco)')
+RE_NEGACAO = re.compile(r'\b(nao|nunca|nem)\b')
+RE_CONDUTA = re.compile(r'composicao|cardapio|suplement|\bdose\b|protocolo|prescri|quantidade|gramas|\bkcal\b|calori|'
+                        r'definir na conduta|escolha (dos|de) alimentos|substituic|substituto')
+RE_CORTE = re.compile(r'maior parte dos dias|maioria dos dias|metade dos dias|\d+ ?%|\d+ ?(vezes|dias|x) ?(por|na|em|ao)? ?semana|'
+                      r'em \d+ de \d+|pelo menos \d+|no minimo \d+')
+RE_COMBINADO = re.compile(r'combin|acordamos|acordad|vamos fazer|\buse\b|\bfaca\b|a estrategia e\b')
+
+
+def checar_regras_clinicas(r):
+    """Regras do fechamento da v1.2: nota do HOLOSCAN, nao aprofundado, rascunho, cortes, Conduta, hipotese -> estrategia."""
+    p = []
+    ests = [e for e in (r.get('estrategias') or []) if isinstance(e, dict)]
+    novas = [e for e in ests if e.get('origem') == 'nova']
+    acordadas = [e for e in ests if e.get('origem') == 'acordada']
+    # 1. nota maior = menos marcadores; nunca equilibrio, saude, normalidade, gravidade ou risco
+    for t in _textos(r):
+        for f in _frases(t):
+            fs = _sem_acento(f)
+            if RE_NOTA_EQUILIBRIO.search(fs) and not RE_NEGACAO.search(fs):
+                p.append('linguagem da nota do HOLOSCAN: "%s" (nota maior = menos marcadores; nunca saúde, equilíbrio, normalidade, gravidade ou risco)' % f.strip()[:120])
+    for s in r.get('sistemas_prioritarios') or []:
+        if isinstance(s, dict) and (s.get('ordem') or 0) > 1 and 'concentrou mais marcadores' in _sem_acento(' '.join(_textos(s))):
+            p.append('%s não é a primeira área: não use "concentrou mais marcadores"' % s.get('sistema'))
+    # 2. territorio nao aprofundado nao tem estrategia ativa
+    nao_aprof = set(nome for k, nome in TERRITORIOS if isinstance(r.get(k), dict) and r[k].get('situacao') == 'nao_aprofundado')
+    for k, nome in TERRITORIOS:
+        t = r.get(k)
+        if isinstance(t, dict) and t.get('situacao') == 'nao_aprofundado' and t.get('estrategias'):
+            p.append('%s está "nao_aprofundado": não pode ter estratégia vinculada (%s)' % (k, ', '.join(t['estrategias'])))
+    for e in ests:
+        if e.get('territorio') in nao_aprof:
+            p.append('estratégia %s está no território %s, que não foi aprofundado nesta etapa' % (e.get('id'), e.get('territorio')))
+    # 3. tarefa da Conduta nao e estrategia da paciente
+    for e in ests:
+        if RE_CONDUTA.search(_sem_acento('%s %s' % (e.get('titulo'), e.get('o_que_fazer')))):
+            p.append('estratégia %s parece tarefa da Conduta (composição, alimentos, quantidade, suplemento, protocolo, prescrição): '
+                     'vai para alertas_profissionais (tipo "conduta"), não para estratégias' % e.get('id'))
+    # 4. corte inventado
+    alvos = [('estratégia %s' % e.get('id'), e.get(c)) for e in ests for c in ('o_que_fazer', 'o_que_observar', 'criterio_sucesso')]
+    alvos += [('roteiro (critério %s)' % (x.get('estrategia_id') or ''), x.get('texto')) for x in (r.get('roteiro_proxima_consulta') or [])
+              if isinstance(x, dict) and x.get('tipo') == 'criterio_decisao']
+    for onde, t in alvos:
+        m = RE_CORTE.search(_sem_acento(t))
+        if m:
+            p.append('%s: corte não definido pela Conduta ("%s"); use "aplicar com frequência suficiente para permitir avaliação no retorno"' % (onde, m.group(0)))
+    # 5. hipotese nunca vira estrategia direto
+    hip = [x for x in (r.get('pontos_para_aprofundar') or []) if isinstance(x, dict) and x.get('tipo') == 'hipotese']
+    rad_hip = set()
+    for x in hip:
+        rad_hip |= _radicais(x.get('texto'))
+    rad_acordado = set()
+    for e in acordadas:
+        rad_acordado |= _radicais(' '.join(_textos(e)))
+    for e in ests:
+        if any(('hipotese' in _sem_acento(b)) or ('pontos_para_aprofundar' in str(b)) for b in (e.get('baseado_em') or [])):
+            p.append('estratégia %s se baseia numa hipótese: hipótese vira observação e confirmação, nunca estratégia direto' % e.get('id'))
+    for e in novas:
+        comum = (_radicais(e.get('titulo')) & rad_hip) - rad_acordado
+        if comum:
+            p.append('estratégia %s repete uma hipótese ainda não confirmada (%s): registre como ponto de observação' % (e.get('id'), ', '.join(sorted(comum))))
+    # 6. rascunho para a paciente: so o que foi acordado
+    rasc = r.get('rascunho_paciente') or ''
+    for f in _frases(rasc):
+        rf = _radicais(f)
+        for e in novas:
+            novos = (_radicais('%s %s' % (e.get('titulo'), e.get('o_que_fazer'))) & rf) - rad_acordado
+            if len(novos) >= 2 or (novos and RE_COMBINADO.search(_sem_acento(f))):
+                p.append('rascunho_paciente apresenta a sugestão nova %s como combinada: "%s"' % (e.get('id'), f.strip()[:120]))
+        if not acordadas and RE_COMBINADO.search(_sem_acento(f)):
+            p.append('rascunho_paciente fala em combinado sem estratégia acordada no documento: "%s"' % f.strip()[:120])
     return p
 
 
@@ -183,15 +296,15 @@ def gerar_texto(r):
               '   O que procurar: %s' % (f.get('o_que_procurar') or 'Sem dado'), '   Status: SUGERIDO']
     if not r.get('ferramentas_recomendadas'):
         L.append('- Nenhuma ferramenta nova indicada pelo catálogo nesta etapa.')
-    L += ['', 'DIRECIONAMENTOS:']
+    L += ['', 'DIRECIONAMENTOS (%s):' % SELO_SUGESTAO]
     for d in r.get('direcionamentos') or []:
         L += ['%s. %s (%s)' % (d.get('id'), d.get('titulo'), d.get('origem')),
               '   Território / sistema: %s / %s' % (d.get('territorio') or 'sem território', d.get('sistema') or 'sem vínculo'),
               '   Por que: %s' % d.get('por_que'), '   Objetivo desta etapa: %s' % d.get('objetivo'),
-              '   Baseado em: %s' % '; '.join(d.get('baseado_em') or []), '   Catálogo: %s' % d.get('catalogo'), '   Status: SUGERIDO']
+              '   Baseado em: %s' % '; '.join(d.get('baseado_em') or [])]
     if not r.get('direcionamentos'):
         L.append('- Informação insuficiente para sugerir direcionamento.')
-    L += ['', 'ESTRATEGIAS:']
+    L += ['', 'ESTRATEGIAS (%s):' % SELO_SUGESTAO]
     for e in r.get('estrategias') or []:
         L += ['%s. [%s] %s (%s)' % (e.get('id'), (e.get('territorio') or '').upper(), e.get('titulo'), e.get('origem')),
               '   Direcionamento: %s' % (e.get('direcionamento_id') or 'sem vínculo'),
@@ -200,7 +313,7 @@ def gerar_texto(r):
             L.append('   Decisão sugerida: %s%s' % (e['decisao_sugerida'], (' — ' + e['motivo_decisao']) if e.get('motivo_decisao') else ''))
         L += ['   O que fazer: %s' % e.get('o_que_fazer'), '   O que observar: %s' % (e.get('o_que_observar') or 'Sem dado'),
               '   Prazo: %s' % (e.get('prazo') or 'Sem dado'), '   Critério de sucesso: %s' % (e.get('criterio_sucesso') or 'Sem dado'),
-              '   Baseado em: %s' % '; '.join(e.get('baseado_em') or []), '   Catálogo: %s' % e.get('catalogo'), '   Status: SUGERIDO']
+              '   Baseado em: %s' % '; '.join(e.get('baseado_em') or [])]
     if not r.get('estrategias'):
         L.append('- Informação insuficiente para sugerir estratégia.')
     for k, nome in TERRITORIOS:
@@ -381,13 +494,13 @@ def gerar_pdf(r, caminho, transcricao=None):
     E += _secao('Ferramentas recomendadas (até 3 · PP-V1)', C, 'Nenhuma ferramenta nova indicada pelo catálogo nesta etapa.')
     C = []
     for d in r.get('direcionamentos') or []:
-        C.append(_card('%s. %s' % (d.get('id'), d.get('titulo')), '%s · %s · SUGERIDO' % ((d.get('origem') or '').upper(), d.get('catalogo')),
+        C.append(_card('%s. %s' % (d.get('id'), d.get('titulo')), '%s · %s' % ((d.get('origem') or '').upper(), SELO_SUGESTAO),
                        [['Território / sistema', '%s / %s' % (d.get('territorio') or 'sem território', d.get('sistema') or 'sem vínculo')],
                         ['Por que', d.get('por_que')], ['Objetivo desta etapa', d.get('objetivo')]], d.get('baseado_em')))
     E += _secao('Direcionamentos', C, 'Informação insuficiente para sugerir direcionamento.')
     C = []
     for e in r.get('estrategias') or []:
-        selo = '%s · %s · %s · SUGERIDO' % ((e.get('territorio') or '').upper(), CLASSIFICACOES.get(e.get('classificacao'), e.get('classificacao')), (e.get('origem') or '').upper())
+        selo = '%s · %s · %s · %s' % ((e.get('territorio') or '').upper(), CLASSIFICACOES.get(e.get('classificacao'), e.get('classificacao')), (e.get('origem') or '').upper(), SELO_SUGESTAO)
         if e.get('decisao_sugerida'):
             selo += ' · DECISÃO: ' + e['decisao_sugerida']
         C.append(_card('%s. %s' % (e.get('id'), e.get('titulo')), selo,

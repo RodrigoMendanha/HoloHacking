@@ -17,6 +17,8 @@
  *   N03 estrutura invalida (MANTER na 1a consulta)                  N04 nova importacao nao sobrescreve a anterior
  *   N05 descartado nao aparece no PDF/emissao                        N06 so profissional nunca para a paciente (tela + servidor)
  *   N07 nao interferencia: HOLOSCAN, ferramentas, pacotes intactos   N08 outra conta nao le nem revisa
+ *   N09 fechamento 14/10: sem plano_acompanhamento / estrategia em territorio "nao_aprofundado" -> recusado, nada salvo;
+ *       Plano B a partir de hipotese, Composicao como estrategia e rascunho "que combinamos" -> AVISO visivel (nao bloqueia)
  * SHOT_DIR=<pasta> grava capturas.
  */
 import './guarda-falhas.mjs';
@@ -126,6 +128,15 @@ const srvSch = srv.tratar({ op: 'rpc', uid: UA, nome: 'importar_holos_ai', args:
 const srvJs = srv.tratar({ op: 'rpc', uid: UA, nome: 'importar_holos_ai', args: { p_encounter_id: E1, p_texto: '{oops' } });
 ok(srvRuim.error && srvRuim.error.hint === 'resultado_invalido' && srvSch.error.hint === 'schema_incompativel' && srvJs.error.hint === 'json_invalido' && imps().length === 0,
   'N01–N03 servidor: json_invalido / schema_incompativel / resultado_invalido sem gravar nada');
+const semPlano = JSON.parse(EXEMPLO); delete semPlano.plano_acompanhamento;
+await colarEImportar(JSON.stringify(semPlano));
+const errPlano = await texto('.hai-erro');
+const menteEst = JSON.parse(EXEMPLO); menteEst.mente.estrategias = ['E2'];
+await colarEImportar(JSON.stringify(menteEst));
+const errMente = await texto('.hai-erro');
+const srvMente = srv.tratar({ op: 'rpc', uid: UA, nome: 'importar_holos_ai', args: { p_encounter_id: E1, p_texto: JSON.stringify(menteEst) } });
+ok(/falta a chave "plano_acompanhamento"/.test(errPlano) && /mente está "nao_aprofundado"/.test(errMente) && srvMente.error && srvMente.error.hint === 'resultado_invalido'
+  && imps().length === 0 && itens().length === 0, 'N09 sem plano_acompanhamento e estratégia em Mente "nao_aprofundado": recusados na tela e no servidor, nada salvo');
 
 /* ===================== V03 importar ===================== */
 await colarEImportar(RESPOSTA_GPT);
@@ -140,7 +151,7 @@ await shot('hai-3-revisao', '#hai-revisao');
 
 /* ===================== V04 revisar ===================== */
 const hip = await doItem('pontos_para_aprofundar', 'reuniões da tarde');
-const ale = await doItem('alertas_profissionais', 'organizam respostas');
+const ale = await doItem('alertas_profissionais', 'nota maior = menos marcadores');
 ok(!!hip && !hip.compartilhar && /Só profissional/.test(hip.texto) && !!ale && !ale.compartilhar, 'V04/N06 hipótese e alertas: "Só profissional", sem opção de compartilhar');
 await noItem('estrategias', '^Lanche planejado', 'editar'); await espera(300);
 await P.evaluate(() => { const li = document.querySelector('.hai-item .hai-editor').closest('.hai-item'); const t = li.querySelector('textarea[data-hai-campo="o_que_fazer"]');
@@ -150,9 +161,9 @@ const e1 = itens(i1.id).find(x => x.secao === 'estrategias' && x.chave === 'E1')
 ok(e1.estado === 'editado' && /15h30 e 16h/.test(e1.valor_profissional.o_que_fazer) && e1.valor_ia.o_que_fazer === 'Preparar o lanche na noite anterior e comer por volta das 16h.'
   && imps().find(x => x.id === i1.id).status === 'em_revisao', 'V04 estratégia EDITADA: valor da IA preservado + valor da nutricionista; importação EM REVISÃO');
 ok(/Ver o original da HOLOS AI/.test((await doItem('estrategias', '^Lanche planejado|EDITADO')) ? (await doItem('estrategias', 'Lanche planejado')).texto : ''), 'V04 tela mostra o editado e o original da IA');
-/* descartar Plano B; confirmar e compartilhar D1 e E1; E3 confirmado sem compartilhar */
-await noItem('estrategias', '^Plano B', 'descartar'); await espera(600);
-await noItem('estrategias', '^Registro rápido', 'confirmar'); await espera(600);
+/* descartar E2 (sugestao nova); confirmar e compartilhar D1 e E1; o que observar "reunioes" confirmado sem compartilhar */
+await noItem('estrategias', '^Registro rápido', 'descartar'); await espera(600);
+await noItem('o_que_observar', 'reuniões da tarde atrapalham', 'confirmar'); await espera(600);
 await noItem('direcionamentos', '^Organizar o fim da tarde', 'confirmar'); await espera(600);
 const marcar = (sec, re) => P.evaluate((sec, re) => { const li = [...document.querySelectorAll('[data-hai-secao="' + sec + '"] .hai-item')].find(l => new RegExp(re).test(l.textContent));
   const c = li && li.querySelector('input[data-hai-acao="compartilhar"]'); if (!c) return false; c.click(); return true; }, sec, re);
@@ -160,8 +171,12 @@ ok(await marcar('direcionamentos', 'Organizar o fim da tarde'), 'V04 direcioname
 ok(await marcar('estrategias', 'Lanche planejado'), 'V04 estratégia editada pode ser compartilhada'); await espera(700);
 const it = (sec, chave) => itens(i1.id).find(x => x.secao === sec && x.chave === chave);
 ok(it('direcionamentos', 'D1').compartilhar && it('estrategias', 'E1').compartilhar && it('estrategias', 'E1').estado === 'editado' && /15h30/.test(it('estrategias', 'E1').valor_profissional.o_que_fazer)
-  && it('estrategias', 'E2').estado === 'descartado' && it('estrategias', 'E3').estado === 'confirmado' && !it('estrategias', 'E3').compartilhar,
-  'V04 banco: D1 e E1 compartilhados (E1 continua editado), E2 descartado, E3 confirmado só profissional');
+  && it('estrategias', 'E2').estado === 'descartado' && itens(i1.id).find(x => x.secao === 'o_que_observar' && x.ordem === 1).estado === 'confirmado'
+  && !itens(i1.id).find(x => x.secao === 'o_que_observar' && x.ordem === 1).compartilhar,
+  'V04 banco: D1 e E1 compartilhados (E1 continua editado), E2 descartado, observação das reuniões confirmada só profissional');
+const tela4 = await P.evaluate(() => ({ cat: document.getElementById('hai-revisao').innerText, leg: [...document.querySelectorAll('[data-hai-secao="estrategias"] legend, [data-hai-secao="direcionamentos"] legend')].map(l => l.innerText) }));
+ok(!/not_catalogued|NÃO CATALOGAD|CANDIDAT[OA] NÃO/.test(tela4.cat) && tela4.leg.length === 2 && tela4.leg.every(t => /SUGESTÃO HOLOS AI — REQUER REVISÃO PROFISSIONAL/.test(t)),
+  'V04 rótulo único "SUGESTÃO HOLOS AI — REQUER REVISÃO PROFISSIONAL" por seção; "not_catalogued" não aparece na tela');
 const hipId = itens(i1.id).find(x => x.secao === 'pontos_para_aprofundar' && x.valor_ia.tipo === 'hipotese').id;
 const tenta = srv.tratar({ op: 'rpc', uid: UA, nome: 'revisar_item_holos_ai', args: { p_item_id: hipId, p_estado: 'confirmado', p_compartilhar: true } });
 ok(tenta.error && tenta.error.hint === 'holos_ai_so_profissional', 'N06 servidor recusa compartilhar hipótese (holos_ai_so_profissional)');
@@ -180,13 +195,23 @@ ok(imps().find(x => x.id === i1.id).status === 'confirmado' && /CONFIRMADO/.test
 const tarde = srv.tratar({ op: 'rpc', uid: UA, nome: 'revisar_item_holos_ai', args: { p_item_id: it('estrategias', 'E2').id, p_estado: 'confirmado' } });
 ok(tarde.error && tarde.error.hint === 'holos_ai_revisao_encerrada', 'V05 depois de concluída, nenhum item muda (revisao_encerrada)');
 
-/* ===================== N04 nova importacao ===================== */
-await colarEImportar(EXEMPLO);
+/* ===================== N04 nova importacao (com AVISOS do fechamento) ===================== */
+const comAviso = JSON.parse(EXEMPLO);
+comAviso.estrategias.push({ id: 'E3', origem: 'nova', titulo: 'Plano B para dias de reunião às 16h', territorio: 'Corpo', direcionamento_id: 'D1', classificacao: 'comportamental_metodologica',
+  decisao_sugerida: null, motivo_decisao: null, o_que_fazer: 'Combinar um horário alternativo para os dias de reunião.', o_que_observar: 'Se a reunião impediu o lanche.',
+  prazo: 'Até o retorno', criterio_sucesso: 'Aplicar com frequência suficiente para permitir avaliação no retorno.', baseado_em: ['Mapa da Rotina: reuniões à tarde'], catalogo: 'not_catalogued', status: 'SUGERIDO' });
+comAviso.corpo.estrategias.push('E3');
+comAviso.rascunho_paciente += ' Nos dias de reunião, use o horário alternativo que combinamos.';
+const EXEMPLO_AVISO = JSON.stringify(comAviso, null, 2);
+await colarEImportar(EXEMPLO_AVISO);
+const avisoTela = await texto('.hai-aviso');
+ok(/Avisos \(não impedem\)/.test(avisoTela) && /E3 repete uma hipótese/.test(avisoTela) && /sugestão nova E3 como combinada/.test(avisoTela),
+  'N09 hipótese virando estratégia e sugestão nova "combinada" no rascunho: AVISO visível na revisão (não bloqueia; a nutricionista decide)');
 const v1 = imps().find(x => x.id === i1.id), v2 = imps().find(x => x.versao === 2);
 ok(!!v2 && v2.status === 'importado' && v1.status === 'confirmado' && v1.texto_original === RESPOSTA_GPT && itens(v1.id).filter(x => x.estado === 'editado').length === 1,
   'N04 nova importação vira versão 2; a versão 1 (confirmada, com a edição) continua idêntica');
 await clicar('[data-hai-acao="descartar-import"]'); await confirmarModal();
-ok(imps().find(x => x.versao === 2).status === 'descartado' && itens(v2.id).length === 62, 'N04 versão 2 descartada fica no histórico (nada apagado)');
+ok(imps().find(x => x.versao === 2).status === 'descartado' && itens(v2.id).length === 63, 'N04 versão 2 descartada fica no histórico (nada apagado)');
 const hist = await P.evaluate(() => [...document.querySelectorAll('.hai-tabela tbody tr')].map(r => r.innerText.replace(/\s+/g, ' ')));
 ok(hist.length === 2 && /v2.*DESCARTADO/.test(hist[0]) && /v1.*CONFIRMADO/.test(hist[1]), 'N04 tela: histórico com v2 DESCARTADO e v1 CONFIRMADO');
 await shot('hai-5-historico', '.hai-ponte');
@@ -197,7 +222,7 @@ await P.waitForFunction(() => !!document.getElementById('rd-editor'), { timeout:
 const ed = await P.evaluate(() => ({ aba: (document.querySelector('[data-aba].ativa') || {}).dataset ? document.querySelector('[data-aba].ativa').dataset.aba : '', erro: (document.getElementById('rh-erro') || {}).textContent || '',
   itens: [...document.querySelectorAll('.rd-ed-item')].map(l => (l.querySelector('textarea') || {}).value || ''), html: document.getElementById('rd-editor').innerText }));
 ok(ed.aba === 'resultado-holos' && /HOLOSCAN/.test(ed.erro), 'V06 "Gerar Resultado HOLOS" abre o Resultado HOLOS do atendimento (pede a escolha do HOLOSCAN, sem pré-marcação)');
-ok(ed.itens.some(t => /^Organizar o fim da tarde/.test(t)) && ed.itens.some(t => /^Lanche planejado/.test(t)) && !ed.itens.some(t => /^Plano B/.test(t))
+ok(ed.itens.some(t => /^Organizar o fim da tarde/.test(t)) && ed.itens.some(t => /^Lanche planejado/.test(t)) && !ed.itens.some(t => /^Plano B|^Registro rápido/.test(t))
   && !ed.itens.some(t => /reuniões da tarde podem dificultar/.test(t)) && /HOLOS AI/.test(ed.html), 'V06 editor com direcionamento e estratégias confirmados (origem HOLOS AI); sem o descartado; sem hipótese');
 await P.evaluate((h) => { document.querySelector('input[name="rh-holoscan"][value="' + h + '"]').click(); }, H); await espera(200);
 await clicar('[data-rh-acao="rascunho"]'); await espera(1200);
@@ -207,7 +232,9 @@ const eRasc = rasc && rasc.direcao.estrategias.find(x => /^Lanche planejado/.tes
 ok(!!rasc && dHai.length > 5 && dHai.every(x => x.ref && x.ref.tipo === 'holos_ai' && x.ref.id === i1.id && x.confirmado === true) && /15h30/.test(eRasc.acao)
   && /^Síntese HOLOS AI/.test(rasc.leitura_profissional || '') && rasc.direcao.foco_atual && rasc.direcao.foco_atual.confirmado === false && rasc.direcao.foco_atual.origem === 'holos_ai',
   'V06 rascunho salvo: itens da HOLOS AI com referência à importação v1, estratégia com o texto EDITADO, síntese na leitura profissional, foco só como sugestão');
-ok(!JSON.stringify(rasc.direcao).includes('Plano B') && !JSON.stringify(rasc.direcao).includes(v2.id), 'N05 descartado (Plano B) e a importação v2 descartada fora do Resultado');
+ok(!JSON.stringify(rasc.direcao).includes('Registro rápido') && !JSON.stringify(rasc.direcao).includes('Plano B') && !JSON.stringify(rasc.direcao).includes(v2.id)
+  && eRasc.status === 'acordada' && !/combinamos|horário alternativo/.test(JSON.stringify(rasc.direcao)) && !/nosso foco é organizar o fim da tarde/.test(JSON.stringify(rasc)),
+  'N05 descartado (E2) e a importação v2 descartada fora do Resultado; só a estratégia acordada entra como acordada; o rascunho de mensagem da IA não entra');
 
 /* ===================== V07 foco + finalizar ===================== */
 await P.evaluate(() => { const li = [...document.querySelectorAll('[data-rd-bloco="foco_atual"] .rd-ed-item')][0]; const b = li && li.querySelector('[data-rd-acao="confirmar"]'); if (b) b.click(); }); await espera(300);
@@ -218,7 +245,7 @@ ok(!!fin && fin.template_version === 5 && dp.foco_atual && dp.foco_atual.texto =
 ok(dp.direcionamentos.length === 1 && dp.direcionamentos[0].texto === 'Organizar o fim da tarde' && dp.estrategias.length === 1 && /15h30/.test(dp.estrategias[0].acao)
   && dp.corpo.itens.length === 1 && dp.proxima_etapa && /Retorno/.test(dp.proxima_etapa.texto), 'V07 para a paciente: direcionamento, estratégia EDITADA, Corpo e próxima etapa compartilhados');
 const dpTxt = JSON.stringify(dp);
-ok(!/Registro rápido|Plano B|reuniões da tarde podem dificultar|organizam respostas|Síntese HOLOS AI|REC-MET|REC-FUN|Linha do Momentum|sha256/.test(dpTxt) && dp.mente.itens.length === 0 && dp.espirito.itens.length === 0,
+ok(!/Registro rápido|Plano B|reuniões da tarde podem dificultar|reuniões da tarde atrapalham|nota maior = menos marcadores|Síntese HOLOS AI|REC-MET|REC-FUN|Linha do Momentum|sha256|not_catalogued|composição do lanche/i.test(dpTxt) && dp.mente.itens.length === 0 && dp.espirito.itens.length === 0,
   'N05/N06 para a paciente: sem o confirmado não compartilhado, sem descartado, sem hipótese, sem alerta, sem síntese/raciocínio, sem ferramentas recomendadas; Mente/Espírito vazios');
 
 /* ===================== V08 emitir, PDF, WhatsApp ===================== */
@@ -229,7 +256,7 @@ await P.waitForFunction(() => !!document.querySelector('[data-rp-acao="pdf"]'), 
 const em = srv.linhas('holos_result_emissions').filter(e => e.holos_result_id === fin.id).pop();
 const docPac = await texto('#rp-doc');
 ok(!!em && em.template_version === 'RF-3' && /Organizar o fim da tarde/.test(docPac) && /15h30 e 16h/.test(docPac), 'V08 emissão RF-3: documento oficial com o direcionamento e a estratégia editada');
-ok(!/Registro rápido|Plano B|reuniões da tarde podem dificultar|organizam respostas|SUGESTÃO|HOLOS AI/.test(docPac) && !JSON.stringify(em.content_snapshot).includes('Plano B'),
+ok(!/Registro rápido|Plano B|reuniões da tarde podem dificultar|reuniões da tarde atrapalham|nota maior = menos marcadores|SUGESTÃO|HOLOS AI|not_catalogued|combinamos/.test(docPac) && !JSON.stringify(em.content_snapshot).includes('Plano B'),
   'N05/N06 documento oficial (base do PDF): sem descartado, sem só profissional, sem não compartilhado, sem marca de sugestão');
 await shot('hai-8-documento', '#rp-doc');
 const msg = await P.evaluate(() => window.ResultadoPagina.mensagemWhatsAppEmissao({ nome: 'Marina Ficticia' }, window.ResultadoPagina.emissaoAtual()));

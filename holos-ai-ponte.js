@@ -210,7 +210,8 @@
       como_cuidar: "Como cuidar", como_aplicar: "Como aplicar", o_que_procurar: "O que procurar", regra_id: "Regra", fonte: "Fonte", fontes: "Fontes",
       situacao: "Situação", estrategias: "Estratégias", tipo: "Tipo", papel: "Papel", ferramenta: "Ferramenta", direcionamento_id: "Direcionamento", catalogo: "Catálogo",
       estrategia_id: "Estratégia", o_que_esclareceu: "O que esclareceu" };
-    var fora = [principal, "id", "status", "ordem", "so_profissional"];
+    /* catalogo ("not_catalogued") fica so no JSON: na tela, o rotulo unico da secao (SUGESTAO HOLOS AI — REQUER REVISAO PROFISSIONAL) */
+    var fora = [principal, "id", "status", "ordem", "so_profissional", "catalogo"];
     var linhas = Object.keys(v).filter(function (k) { return fora.indexOf(k) < 0 && v[k] !== null && v[k] !== "" && !(Array.isArray(v[k]) && !v[k].length); }).map(function (k) {
       var val = Array.isArray(v[k]) ? v[k].join("; ") : k === "classificacao" ? (C().CLASSIFICACOES[v[k]] || v[k]) : typeof v[k] === "object" ? JSON.stringify(v[k]) : String(v[k]);
       return "<dt>" + e(rot[k] || k) + "</dt><dd>" + e(val) + "</dd>";
@@ -260,7 +261,8 @@
       var doSec = itens.filter(function (x) { return x.secao === sec; });
       if (!doSec.length) return;
       var prof = C().soProfissional(sec);
-      html += '<fieldset class="hai-secao" data-hai-secao="' + sec + '"><legend>' + e(C().TITULO[sec] || sec) + (prof ? " " + chip("SÓ PROFISSIONAL", "prof") : "") + "</legend>" +
+      html += '<fieldset class="hai-secao" data-hai-secao="' + sec + '"><legend>' + e(C().TITULO[sec] || sec) + (prof ? " " + chip("SÓ PROFISSIONAL", "prof") : "") +
+        (sec === "direcionamentos" || sec === "estrategias" ? " " + chip("SUGESTÃO HOLOS AI — REQUER REVISÃO PROFISSIONAL", "sug") : "") + "</legend>" +
         (aberta ? '<div class="hai-secao-lote"><button type="button" class="btn-link" data-hai-acao="confirmar-secao">Confirmar todos desta seção</button>' +
           '<button type="button" class="btn-link" data-hai-acao="descartar-secao">Descartar todos desta seção</button></div>' : "") +
         '<ul class="hai-itens">' + doSec.map(function (it) { return htmlItem(imp, it, aberta); }).join("") + "</ul></fieldset>";
