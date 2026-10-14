@@ -116,7 +116,11 @@ await escrever(M, 'pa-saude-condicoes', 'Hipotireoidismo');
 await marcar(M, 'pa-saude-med_sup_tem', 'Ambos'); await escrever(M, 'pa-saude-med_sup_quais', 'Levotiroxina 50 mcg; vitamina D');
 await marcar(M, 'pa-saude-alergia_tem', 'Não');
 ok(!(await tela(M)).ids.includes('pa-saude-alergia_qual'), 'B: alergia "Não" não abre campo');
-await marcar(M, 'pa-saude-desconforto_tem', 'Sim'); await escrever(M, 'pa-saude-desconforto_qual', 'Refluxo depois do almoço');
+await marcar(M, 'pa-saude-desconforto_tem', 'Sim');
+/* 14/10: os desconfortos viram opcoes (marca, sem precisar escrever); o relato fica opcional */
+const descOk = await marcar(M, 'pa-saude-desconfortos', 'Azia ou queimação') && await marcar(M, 'pa-saude-desconfortos', 'Gases');
+ok(descOk && /Quais desconfortos você sente/.test((await tela(M)).txt), 'desconforto "Sim": opções para marcar (Azia ou queimação, Gases...)');
+await escrever(M, 'pa-saude-desconforto_qual', 'Refluxo depois do almoço');
 await marcar(M, 'pa-contexto-familiar_tem', 'Sim'); await escrever(M, 'pa-contexto-familiar_saude', 'Diabetes (mãe)');
 await marcar(M, 'pa-saude-exames_tem', 'Sim');
 ok(/leve na consulta ou envie para a sua nutricionista/i.test((await tela(M)).txt) && !(await M.evaluate(() => !!document.querySelector('main input[type=file]'))), 'exames: só a orientação, sem anexo no link');
@@ -148,7 +152,7 @@ ok(!/que horas|fome|emoç|propósito|sentido da vida/i.test(tudo), 'sem repetir 
 ok(!/peso|altura|circunfer|CPF|RG\b|caso clínico/i.test(tudo) && !v3.some(frase => tudo.includes(frase)), 'sem peso, medidas, CPF/RG, caso clínico e sem frase do HOLOSCAN');
 await espera(2600);
 const rasc = srv.linhas('anamnesis_invites').find(c => c.id === cN.id);
-ok(rasc.status === 'iniciado' && rasc.draft_content.formulario.saude.desconforto_qual === 'Refluxo depois do almoço' && rasc.draft_content.formulario.motivo.versao_mapeamento === 'MH-3'
+ok(rasc.status === 'iniciado' && rasc.draft_content.formulario.saude.desconforto_qual === 'Refluxo depois do almoço' && String(rasc.draft_content.formulario.saude.desconfortos) === 'Azia ou queimação,Gases' && rasc.draft_content.formulario.motivo.versao_mapeamento === 'MH-3'
   && !rasc.draft_content.formulario.saude.alergia_qual, 'A/E: autosave "Iniciado", versão MH-3 gravada; condicional fechada não vai ao servidor');
 /* K: recarregar e voltar pelo mesmo link */
 await M.reload({ waitUntil: 'networkidle2' }); await espera(700);

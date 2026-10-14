@@ -34,7 +34,7 @@
     { bloco: "alimentar", titulo: "Sua alimentação hoje", intro: "Não precisa ser exato: conte como costuma ser.",
       campos: ["dia_comum", "estilo.dias_diferentes", "preferencias", "escolha", "refeicoes_como", "agua", "dificuldade"] },
     { bloco: "saude", titulo: "Sua saúde", intro: "Para a sua nutricionista cuidar de você com segurança. Responda o que souber.",
-      campos: ["condicoes_tem", "condicoes", "med_sup_tem", "med_sup_quais", "alergia_tem", "alergia_qual", "desconforto_tem", "desconforto_qual",
+      campos: ["condicoes_tem", "condicoes", "med_sup_tem", "med_sup_quais", "alergia_tem", "alergia_qual", "desconforto_tem", "desconfortos", "desconforto_qual",
         "contexto.familiar_tem", "contexto.familiar_saude", "exames_tem"] },
     { bloco: "estilo", titulo: "Seus hábitos e seu momento", intro: "Quase tudo aqui é rápido de responder. As perguntas abertas ajudam sua nutricionista a conhecer melhor sua rotina.",
       campos: ["atividade", "atividade_qual", "alimentar.alcool", "tabagismo", "rotina", "sono_atual", "dificulta_hoje", "contexto.momento_agora"] }
@@ -95,7 +95,8 @@
     "saude.alergia_tem": "Você tem alergia ou intolerância alimentar diagnosticada?",
     "saude.alergia_qual": "Qual alergia ou intolerância?",
     "saude.desconforto_tem": "Há algum desconforto no corpo que mais te incomoda hoje?",
-    "saude.desconforto_qual": "Qual desconforto? Conte com as suas palavras.",
+    "saude.desconfortos": "Quais desconfortos você sente?",
+    "saude.desconforto_qual": "Quer contar mais sobre esse desconforto? (opcional)",
     "contexto.familiar_tem": "Há doenças comuns na sua família?",
     "contexto.familiar_saude": "Quais doenças na família?",
     "saude.exames_tem": "Você tem exames de sangue dos últimos 6 meses?",
@@ -192,7 +193,8 @@
     "saude.condicoes_tem": { obrigatorio: true },
     "saude.med_sup_quais": { se: { campo: "saude.med_sup_tem", algum: true, exceto: ["Não"] }, curto: true },
     "saude.alergia_qual": { se: { campo: "saude.alergia_tem", igual: "Sim" }, curto: true },
-    "saude.desconforto_qual": { se: { campo: "saude.desconforto_tem", igual: "Sim" }, curto: true },
+    "saude.desconfortos": { se: { campo: "saude.desconforto_tem", igual: "Sim" }, outro: "Qual outro desconforto?", ajuda: "Pode marcar mais de uma opção." },
+    "saude.desconforto_qual": { se: { campo: "saude.desconforto_tem", igual: "Sim" }, curto: true, exemplo: "Ex.: piora depois do almoço / acontece quase todo dia." },
     "contexto.familiar_saude": { se: { campo: "contexto.familiar_tem", igual: "Sim" }, curto: true },
     "saude.exames_tem": { ajuda: "Se tiver, leve na consulta ou envie para a sua nutricionista." },
     "alimentar.escolha": { outro: "Qual?", opcoes: [["Não"], ["Vegetariana"], ["Vegana"], ["Outro", "Outra"]] },
@@ -241,7 +243,7 @@
   function blocosDe(tipo) { var V2 = raiz.AnamneseV2; return V2 ? (tipo === "retorno" ? V2.BLOCOS_RETORNO : V2.BLOCOS_PRIMEIRA) : []; }
   /* qual questionario o paciente viu: MH-2 tem marca (motivo.versao_mapeamento) ou campos que so existem nele;
      sem nada disso e uma resposta da versao anterior (MH-1). Sem formulario: o questionario atual. */
-  var SO_MH2 = ["motivo.melhorar", "saude.med_sup_tem", "saude.alergia_tem", "saude.desconforto_tem", "saude.exames_tem",
+  var SO_MH2 = ["motivo.melhorar", "saude.med_sup_tem", "saude.alergia_tem", "saude.desconforto_tem", "saude.desconfortos", "saude.exames_tem",
     "alimentar.escolha", "alimentar.evita_tem", "alimentar.refeicoes_como", "contexto.familiar_tem"];
   function versaoDe(form) {
     if (!form) return VERSAO;
@@ -384,7 +386,7 @@
     primeira: [["O que busca", "motivo.melhorar"], ["Por que procurou agora", "motivo.motivo"], ["Há quanto tempo", "motivo.ha_quanto_tempo"],
       ["O que gostaria que estivesse diferente", "motivo.mudar_primeiro"], ["Maior dificuldade com a alimentação", "alimentar.dificuldade"],
       ["Condição ou diagnóstico informado", "saude.condicoes"], ["Medicamentos / suplementos", "saude.med_sup_quais"],
-      ["Alergia ou intolerância", "saude.alergia_qual"], ["Desconforto que mais incomoda", "saude.desconforto_qual"],
+      ["Alergia ou intolerância", "saude.alergia_qual"], ["Desconfortos", "saude.desconfortos"], ["Sobre o desconforto", "saude.desconforto_qual"],
       ["Escolha alimentar", "alimentar.escolha"], ["Não come ou evita", "alimentar.evita_qual"], ["Algo mais que quis contar", "contexto.obs"]],
     primeira_mh2: [["O que quer melhorar", "motivo.melhorar"], ["O que mostraria que está funcionando", "motivo.expectativa"],
       ["Condição ou diagnóstico informado", "saude.condicoes"], ["Medicamentos / suplementos", "saude.med_sup_quais"],

@@ -118,7 +118,11 @@
       C("alergia_tem", "Alergia ou intolerância alimentar diagnosticada", "alergias_informadas", ["Não", "Sim"]),
       T("alergia_qual", "Alergia / intolerância (relato)", "alergias_informadas"),
       C("desconforto_tem", "Desconforto no corpo que mais incomoda", "sintomas_relatados", ["Não", "Sim"]),
-      T("desconforto_qual", "Desconforto que mais incomoda (relato)", "sintomas_relatados"),
+      /* 14/10: os desconfortos mais comuns como opcoes (a paciente marca; o relato fica opcional) */
+      C("desconfortos", "Desconfortos que sente", "sintomas_relatados", ["Azia ou queimação", "Refluxo", "Estufamento ou inchaço na barriga", "Gases",
+        "Intestino preso", "Intestino solto / diarreia", "Dor ou desconforto no estômago", "Enjoo", "Digestão lenta / peso depois de comer",
+        "Cansaço frequente", "Dor de cabeça", "Inchaço ou retenção no corpo", "Outro"], { multi: true }),
+      T("desconforto_qual", "Desconforto (relato)", "sintomas_relatados"),
       C("exames_tem", "Tem exames de sangue dos últimos 6 meses", "avaliacoes", ["Sim", "Não"])] },
     { id: "restricoes", titulo: "Medicamentos, suplementos e restrições", campos: [
       L("medicamentos", "Medicamentos", "medicamentos", COL_MED, { nega: "Não usa medicamentos", item: "medicamento" }),
