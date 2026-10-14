@@ -210,6 +210,11 @@ const f = await N.evaluate(() => ({ card: document.getElementById('an-preconsult
 ok(abrir && /O que te traz aqui/.test(f.card) && /Sua saúde/.test(f.card) && /Refluxo depois do almoço/.test(f.card)
   && /Sua alimentação hoje/.test(f.card) && /Questionário MH-3/.test(f.card), 'ficha: resposta organizada pelas 4 etapas, com as palavras do paciente e a versão MH-3');
 if (SHOT) { const el = await N.$('#an-preconsulta'); if (el) await el.screenshot({ path: SHOT + '/mh3-ficha.png' }); }
+/* 14/10: botao "Marcar como revisado" direto na aba (sem precisar levar ao atendimento) */
+const rev = await N.evaluate(() => { const b = document.querySelector('#an-preconsulta [data-pc-acao="revisado"]'); if (b) b.click(); return !!b; }); await espera(800);
+const revTela = await N.evaluate(() => ({ status: document.querySelector('#an-preconsulta .pc-status')?.textContent || '', botao: !!document.querySelector('#an-preconsulta [data-pc-acao="revisado"]') }));
+ok(rev && /Revisado/.test(revTela.status) && !revTela.botao && !!srv.linhas('anamnesis_invites').find(c => c.id === cN.id).reviewed_at,
+  'Marcar como revisado: status vira "Revisado", o botão some e o servidor guarda reviewed_at');
 const temUsar = await N.evaluate(() => { const b = document.querySelector('#an-preconsulta [data-pc-acao="usar"]'); if (b) b.click(); return !!b; }); await espera(1500);
 const an = srv.linhas('anamneses').find(a => a.patient_id === PN && a.encounter_id === EN) || { content: {} };
 ok(temUsar && an.status === 'rascunho' && an.content.formulario.saude.med_sup_quais === 'Levotiroxina 50 mcg; vitamina D' && (an.content.meta || {})['saude.desconforto_qual']?.origem === 'relato_paciente',

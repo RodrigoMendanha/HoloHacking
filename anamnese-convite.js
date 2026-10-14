@@ -63,7 +63,10 @@
   var BASE = "id,patient_id,encounter_id,status,form_version,form_tipo,expires_at,submitted_content,imported_anamnesis_id,imported_at,created_at,started_at,last_saved_at,submitted_at,revoked_at";
   var ESTADO = "id,status,expires_at,started_at,last_saved_at,submitted_at,revoked_at,imported_at,imported_anamnesis_id";
   var semEnvioNoBanco = false;   // banco sem a migration 20261022100000 (sent_at / sent_via)
-  function colunas(estado) { return (estado ? ESTADO : BASE) + (semEnvioNoBanco ? "" : ",sent_at,sent_via"); }
+  var semRevisaoNoBanco = false; // banco sem a migration 20261025100000 (reviewed_at)
+  var revisadoLocal = {};
+  function colunas(estado) { return (estado ? ESTADO : BASE) + (semEnvioNoBanco ? "" : ",sent_at,sent_via") + (semRevisaoNoBanco ? "" : ",reviewed_at"); }
+  function faltaColunaRevisao(e) { var t = String((e && e.message) || "") + " " + String((e && e.code) || ""); return /reviewed_at/.test(t); }
   function faltaColunaEnvio(e) { var t = String((e && e.message) || "") + " " + String((e && e.code) || ""); return /42703|sent_at|sent_via/.test(t); }
   function faltaRpc(e) { var t = String((e && e.message) || "") + " " + String((e && e.code) || ""); return /PGRST202|42883|could not find the function|does not exist/i.test(t); }
 
@@ -85,6 +88,9 @@
   }
   /* a anamnese do atendimento para onde a resposta foi levada ja foi concluida? */
   function revisadoEm(c) {
+    /* 14/10: a nutricionista pode marcar como revisado direto na aba */
+    if (c && c.reviewed_at) return c.reviewed_at;
+    if (c && revisadoLocal[c.id]) return revisadoLocal[c.id];
     if (!c || !c.imported_anamnesis_id) return null;
     var An = window.Anamnese;
     var lista = An && An.doPaciente ? An.doPaciente(c.patient_id) : [];
@@ -102,7 +108,7 @@
     if (st === "revogado") return { chave: "revogado", rotulo: ETAPA.revogado, quando: c.revoked_at, detalhe: "" };
     if (st === "concluido") {
       var rev = revisadoEm(c);
-      if (rev) return { chave: "revisado", rotulo: ETAPA.revisado, quando: rev, detalhe: "Levado para o atendimento e concluído" };
+      if (rev) return { chave: "revisado", rotulo: ETAPA.revisado, quando: rev, detalhe: (c.reviewed_at || revisadoLocal[c.id]) && !c.imported_anamnesis_id ? "Revisado pela nutricionista" : "Levado para o atendimento e concluído" };
       return { chave: "recebido", rotulo: ETAPA.recebido, quando: c.submitted_at,
         detalhe: c.imported_anamnesis_id ? "Levado para o atendimento: em revisão" : "Respondido pelo paciente" };
     }
@@ -130,6 +136,7 @@
     var tenta = function () { return Promise.resolve(sb().from("anamnesis_invites").select(colunas(estado)).eq("patient_id", id).order("created_at", { ascending: false })); };
     return tenta().then(function (r) {
       /* banco ainda sem a migration do "Link enviado": le sem as colunas novas (a tela continua funcionando) */
+      if (r && r.error && !semRevisaoNoBanco && faltaColunaRevisao(r.error)) { semRevisaoNoBanco = true; return ler(id, estado); }
       if (r && r.error && !semEnvioNoBanco && faltaColunaEnvio(r.error)) { semEnvioNoBanco = true; return tenta(); }
       return r;
     });
@@ -256,6 +263,20 @@
       if (r && r.error) { if (faltaRpc(r.error) || faltaColunaEnvio(r.error)) semEnvioNoBanco = true; return; }
       var d = (r && r.data) || {};
       cache.linhas = cache.linhas.map(function (x) { return x.id === c.id ? Object.assign({}, x, { sent_at: d.sent_at || agora, sent_via: d.sent_via || via }) : x; });
+      if (window.JornadaPaciente && window.JornadaPaciente.recarregar) window.JornadaPaciente.recarregar();
+    }, function () { /* sem rede: fica o registro desta sessao */ });
+  }
+  /* 14/10: a nutricionista confirma que leu o Mapeamento recebido (registro no servidor; a tela muda na hora) */
+  function marcarRevisado(c) {
+    if (!c || estadoDe(c) !== "concluido" || revisadoEm(c)) return Promise.resolve();
+    var agora = new Date().toISOString();
+    revisadoLocal[c.id] = agora;
+    desenhar(); avisarOuvintes(); toast("Mapeamento marcado como revisado.");
+    if (semRevisaoNoBanco || !temSupa()) return Promise.resolve();
+    return Promise.resolve(sb().rpc("marcar_convite_anamnese_revisado", { p_id: c.id })).then(function (r) {
+      if (r && r.error) { if (faltaRpc(r.error) || faltaColunaRevisao(r.error)) semRevisaoNoBanco = true; return; }
+      var d = (r && r.data) || {};
+      cache.linhas = cache.linhas.map(function (x) { return x.id === c.id ? Object.assign({}, x, { reviewed_at: d.reviewed_at || agora }) : x; });
       if (window.JornadaPaciente && window.JornadaPaciente.recarregar) window.JornadaPaciente.recarregar();
     }, function () { /* sem rede: fica o registro desta sessao */ });
   }
@@ -387,6 +408,7 @@
       /* depois da resposta, a tela e sobre o que o paciente trouxe: resumo, resposta completa e levar ao atendimento.
          Enviar outro Mapeamento fica como acao secundaria. */
       acoes = bt("ver", vendoResposta[c.id] ? "Fechar Mapeamento completo" : "Abrir Mapeamento completo") +
+        (et.chave !== "revisado" ? bt("revisado", "Marcar como revisado") : "") +
         (!c.imported_anamnesis_id ? bt("usar", "Levar para o atendimento", "btn-verde") : "");
       secundarias = bt("novo", "Enviar novo Mapeamento", "btn-fantasma pc-novo");
     }
@@ -455,6 +477,7 @@
     if (acao === "copiar" && links[c.id]) return copiar(links[c.id], c);
     if (acao === "whatsapp" && links[c.id]) return whatsapp(links[c.id], c);
     if (acao === "ver") { vendoResposta[c.id] = !vendoResposta[c.id]; return desenhar(); }
+    if (acao === "revisado") return marcarRevisado(c);
     if (acao === "revogar") {
       var cr = window.abrirModalConfirmar ? window.abrirModalConfirmar({ titulo: "Revogar link", corpo: "<p>O paciente não vai mais conseguir abrir nem enviar por este link.</p>", botaoConfirmar: "Revogar link" })
         : Promise.resolve(confirm("Revogar o link?") ? "confirmar" : null);
@@ -489,7 +512,7 @@
   });
 
   if (window.HoloAuth && window.HoloAuth.aoMudarEstado) {
-    window.HoloAuth.aoMudarEstado(function (estado) { if (estado !== "autenticado") { cache = { pid: null, linhas: [], carregado: false, erro: null, lidoEm: 0 }; links = {}; vendoResposta = {}; enviadoLocal = {}; } });
+    window.HoloAuth.aoMudarEstado(function (estado) { if (estado !== "autenticado") { cache = { pid: null, linhas: [], carregado: false, erro: null, lidoEm: 0 }; links = {}; vendoResposta = {}; enviadoLocal = {}; revisadoLocal = {}; } });
   }
 
   window.PreConsulta = {
@@ -505,6 +528,6 @@
       var c = atual(), st = estadoDe(c), et = etapa(c);
       return { estado: st, etapa: et.chave, rotulo: et.rotulo, detalhe: et.detalhe, quando: et.quando };
     },
-    esquecer: function () { cache = { pid: null, linhas: [], carregado: false, erro: null, lidoEm: 0 }; links = {}; vendoResposta = {}; enviadoLocal = {}; }
+    esquecer: function () { cache = { pid: null, linhas: [], carregado: false, erro: null, lidoEm: 0 }; links = {}; vendoResposta = {}; enviadoLocal = {}; revisadoLocal = {}; }
   };
 })();

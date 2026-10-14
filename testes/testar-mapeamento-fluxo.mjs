@@ -161,9 +161,9 @@ await abrirFicha(N, PA, EA);
 
 /* F07 */
 s = await pc(N);
-ok(s.botoes.join('|') === 'ver:Abrir Mapeamento completo|usar:Levar para o atendimento|novo:Enviar novo Mapeamento'
+ok(s.botoes.join('|') === 'ver:Abrir Mapeamento completo|revisado:Marcar como revisado|usar:Levar para o atendimento|novo:Enviar novo Mapeamento'
   && await N.evaluate(() => !!document.querySelector('#an-preconsulta .pc-acoes-sec [data-pc-acao="novo"]')),
-  'F07 ações: Abrir Mapeamento completo, Levar para o atendimento; "Enviar novo Mapeamento" separado como ação secundária (a tela não fica centrada no link)');
+  'F07 ações: Abrir Mapeamento completo, Marcar como revisado (14/10), Levar para o atendimento; "Enviar novo Mapeamento" separado como ação secundária (a tela não fica centrada no link)');
 await clicarPc(N, 'ver'); await espera(250);
 s = await pc(N);
 ok(/Respostas do paciente/.test(s.txt) && /O que te traz aqui/.test(s.txt) && s.botoes[0] === 'ver:Fechar Mapeamento completo', 'F07 "Abrir Mapeamento completo" mostra a resposta inteira por etapa');

@@ -116,6 +116,13 @@ export function criarAnamnesePreConsulta(s, ctx) {
       if (!c.sent_at) { c.sent_at = agora(); c.sent_via = a.p_via; }
       return { data: { id: c.id, sent_at: c.sent_at, sent_via: c.sent_via }, error: null };
     }
+    /* migration 20261025100000: a nutricionista marca o Mapeamento recebido como revisado; idempotente */
+    if (nome === 'marcar_convite_anamnese_revisado') {
+      if (!c) return recusa('convite nao encontrado', 'convite_invalido', 'P0002');
+      if (c.status !== 'concluido') return recusa('o paciente ainda nao enviou', 'convite_nao_recebido');
+      if (!c.reviewed_at) c.reviewed_at = agora();
+      return { data: { id: c.id, reviewed_at: c.reviewed_at }, error: null };
+    }
     if (nome === 'marcar_convite_anamnese_usado') {
       if (!c) return recusa('convite nao encontrado', 'convite_invalido', 'P0002');
       if (c.status !== 'concluido') return recusa('a paciente ainda nao enviou', 'convite_nao_concluido');
@@ -129,7 +136,7 @@ export function criarAnamnesePreConsulta(s, ctx) {
   return {
     rpc,
     PUBLICAS: ['anamnese_publica_abrir', 'anamnese_publica_salvar', 'anamnese_publica_enviar'],
-    NOMES: ['anamnese_publica_abrir', 'anamnese_publica_salvar', 'anamnese_publica_enviar', 'criar_convite_anamnese', 'revogar_convite_anamnese', 'marcar_convite_anamnese_usado', 'marcar_convite_anamnese_enviado'],
+    NOMES: ['anamnese_publica_abrir', 'anamnese_publica_salvar', 'anamnese_publica_enviar', 'criar_convite_anamnese', 'revogar_convite_anamnese', 'marcar_convite_anamnese_usado', 'marcar_convite_anamnese_enviado', 'marcar_convite_anamnese_revisado'],
     /** para os testes: vencer um convite */
     vencer(id) { const c = T.anamnesis_invites.find(x => x.id === id); if (c) c.expires_at = new Date(Date.parse(agora()) - 60000).toISOString(); }
   };
