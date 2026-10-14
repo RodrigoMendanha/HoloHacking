@@ -55,6 +55,13 @@
     return (err && err.message) || "Não foi possível concluir. Tente de novo.";
   }
 
+  /* ---------- onde a ponte esta desenhada: a aba "Holusiá" da ficha (#hai-ponte) ou a pagina Holusiá (#holusia-alvo).
+     Uma de cada vez: desenhar numa esvazia a outra (os ids internos sao unicos). ---------- */
+  var host = null;
+  function raiz() { return host && document.body.contains(host) ? host : document.getElementById("hai-ponte"); }
+  function q(sel) { var r = raiz(); return r ? r.querySelector(sel) : null; }
+  function naPagina() { var r = raiz(); return !!(r && r.id === "holusia-alvo"); }
+
   /* ---------- estado da tela ---------- */
   var cache = { pid: null, imports: [], itens: [], carregado: false, erro: null };
   var tela = { eid: null, texto: {}, erros: [], avisos: [], ocupado: false, pacoteTxt: "", falha: "" };
@@ -206,7 +213,7 @@
     };
   }
   function copiar(texto, btn, rotulo) {
-    var ok = function () { if (btn) { btn.textContent = "Copiado!"; setTimeout(function () { btn.textContent = rotulo; }, 2000); } toast("Pacote HOLOS AI copiado. Cole no agente HOLOS AI."); };
+    var ok = function () { if (btn) { btn.textContent = "Copiado!"; setTimeout(function () { btn.textContent = rotulo; }, 2000); } toast("Pacote Holusiá copiado. Cole na Holusiá."); };
     if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(texto).then(ok, function () { toast("Não foi possível copiar: selecione o texto do pacote e copie."); });
     var ta = document.createElement("textarea"); ta.value = texto; ta.style.cssText = "position:fixed;left:-9999px";
     document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); } catch (x) { /* sem copia */ } document.body.removeChild(ta); ok();
@@ -228,7 +235,7 @@
   }
   /* DETALHES TECNICOS (fechado por padrao, so leitura): o que a IA devolveu, item a item, com a regra aplicada */
   function htmlDetalhes(imps, atual) {
-    var html = '<details class="hai-detalhes" id="hai-detalhes"><summary>Detalhes técnicos da análise</summary>' +
+    var html = '<details class="hai-detalhes" id="hai-detalhes"><summary>Ver detalhes técnicos</summary><p class="hai-det-sub">Detalhes técnicos da análise</p>' +
       '<p class="hai-nota">Registro interno (só profissional). O JSON original de cada importação fica guardado sem alteração; a regra fixa do método marca o que pode ir para a paciente. Hipóteses, conflitos, alertas, fontes, raciocínio, sistemas, ferramentas, roteiro e IDs nunca vão para a paciente.</p>' +
       '<div class="hai-acoes"><button type="button" class="btn-link" data-hai-acao="ver-pacote">' + (tela.pacoteTxt ? "Esconder o Pacote" : "Ver o Pacote enviado") + "</button></div>" +
       (tela.pacoteTxt ? '<pre class="hai-pacote" id="hai-pacote" tabindex="0">' + e(tela.pacoteTxt) + "</pre>" : "");
@@ -256,7 +263,7 @@
   function htmlPronto(pid, imp, res) {
     var bloq = arquivado();
     if (res) {
-      return '<section class="hai-pronto" id="hai-pronto" aria-labelledby="hai-pronto-t"><h4 id="hai-pronto-t">' + chip("RESULTADO PRONTO", "ok") + " Resultado HOLOS deste atendimento</h4>" +
+      return '<section class="hai-pronto" id="hai-pronto" aria-labelledby="hai-pronto-t"><h4 id="hai-pronto-t">' + chip("✓ ANÁLISE IMPORTADA", "ok") + " Resultado HOLOS pronto</h4>" +
         '<p class="hai-nota">Montado automaticamente a partir da análise v' + e(imp.versao) + " (" + e(dataHora(res.saved_at)) + "). Só o que a regra do método permite chega à paciente.</p>" +
         (tela.avisos.length ? '<div class="hai-aviso"><b>Avisos da análise (não impedem):</b><ul>' + tela.avisos.map(function (x) { return "<li>" + e(x) + "</li>"; }).join("") + "</ul></div>" : "") +
         '<div class="hai-acoes"><button type="button" class="btn-verde" data-hai-acao="ver-resultado" data-hai-res="' + e(res.id) + '">Ver resultado</button>' +
@@ -271,13 +278,17 @@
       (antiga ? "Aceitar análise e gerar resultado" : "Gerar resultado") + "</button></div></section>";
   }
   function desenhar(alvo) {
-    alvo = alvo || document.getElementById("hai-ponte");
+    if (alvo) {
+      host = alvo;
+      ["hai-ponte", "holusia-alvo"].forEach(function (id) { var o = document.getElementById(id); if (o && o !== alvo) o.innerHTML = ""; });
+    }
+    alvo = raiz();
     if (!alvo || !C()) return;
     var pid = pacienteId();
     if (!pid || pid === "_sem_paciente") { alvo.innerHTML = ""; return; }
     if (cache.pid !== pid || !cache.carregado) {
       if (cache.pid !== pid) tela = { eid: null, texto: {}, erros: [], avisos: [], ocupado: false, pacoteTxt: "", falha: "" };
-      alvo.innerHTML = '<section class="hai-ponte"><p class="dash-vazio">Carregando a HOLOS AI…</p></section>';
+      alvo.innerHTML = '<section class="hai-ponte"><p class="dash-vazio">Carregando a Holusiá…</p></section>';
       var R = window.ResultadoHolos;
       Promise.all([carregar(pid), R && R.carregar ? Promise.resolve(R.carregar(pid)).catch(function () {}) : null]).then(function () { if (pacienteId() === pid) desenhar(); });
       return;
@@ -290,26 +301,26 @@
     var bloq = arquivado();
 
     var html = '<section class="hai-ponte" aria-labelledby="hai-titulo">' +
-      '<div class="hai-cab"><div><h3 id="hai-titulo">HOLOS AI do atendimento</h3>' +
-      '<p class="hai-sub">Mande os dados da consulta para a HOLOS AI, traga a resposta e o Resultado HOLOS fica pronto.</p></div>' +
+      '<div class="hai-cab"><div><h3 id="hai-titulo">' + (naPagina() ? "Atendimento" : "Holusiá do atendimento") + '</h3>' +
+      '<p class="hai-sub">Transforme os dados da consulta em uma leitura integrada: copie o Pacote, leve à Holusiá, traga a resposta e o Resultado HOLOS fica pronto.</p></div>' +
       (lista.length ? '<label class="hai-at"><span>Atendimento</span><select id="hai-atendimento">' + lista.map(function (x) {
         return '<option value="' + e(x.id) + '"' + (x.id === eid ? " selected" : "") + ">" + e(rotuloAt(x)) + "</option>";
       }).join("") + "</select></label>" : "") + "</div>";
     if (!lista.length) {
-      html += '<p class="hai-aviso">Inicie um atendimento para usar a HOLOS AI (a análise fica ligada a um atendimento).</p></section>';
+      html += '<p class="hai-aviso">Inicie um atendimento para usar a Holusiá (a análise fica ligada a um atendimento).</p></section>';
       alvo.innerHTML = html; return;
     }
-    if (cache.erro) html += '<p class="hai-erro" role="alert">Não foi possível carregar as análises da HOLOS AI. Recarregue a aba.</p>';
+    if (cache.erro) html += '<p class="hai-erro" role="alert">Não foi possível carregar as análises da Holusiá. Recarregue a página.</p>';
     if (bloq) html += '<p class="hai-aviso">' + e(MSG.paciente_arquivado) + "</p>";
     var texto = tela.texto[eid] || "";
     html += '<ol class="hai-passos">' +
-      passo(1, "Copiar Pacote HOLOS AI", "Mapeamento, HOLOSCAN, ferramentas, Conduta e o resultado anterior. Sem nome, contatos ou exames.",
-        '<div class="hai-acoes"><button type="button" class="btn-verde" data-hai-acao="copiar-pacote">Copiar Pacote HOLOS AI</button></div>', "pronto") +
-      passo(2, "Abrir HOLOS AI", "Cole o Pacote no agente HOLOS AI e copie a resposta inteira.",
-        '<div class="hai-acoes">' + (urls.chatgpt ? '<a class="btn-fantasma" id="hai-abrir" href="' + e(urls.chatgpt) + '" target="_blank" rel="noopener noreferrer">Abrir HOLOS AI</a>'
-          : '<span class="btn-fantasma hai-indisp" aria-disabled="true" title="O endereço do agente ainda não foi configurado">Abrir HOLOS AI <small>(endereço não configurado — abra o seu GPT HOLOS AI)</small></span>') + "</div>", "pronto") +
-      passo(3, "Colar resultado HOLOS AI", "Cole a resposta inteira (o bloco ```json``` é usado). Se o JSON estiver inválido, nada é salvo.",
-        '<label class="hai-colar"><span class="hai-sr">Colar resultado HOLOS AI</span><textarea id="hai-json" rows="7" spellcheck="false" aria-label="Colar resultado HOLOS AI" placeholder="Cole aqui a resposta da HOLOS AI">' + e(texto) + "</textarea></label>" +
+      passo(1, "Copiar Pacote Holusiá", "Mapeamento, HOLOSCAN, ferramentas, Conduta e o resultado anterior. Sem nome, contatos ou exames.",
+        '<div class="hai-acoes"><button type="button" class="btn-verde" data-hai-acao="copiar-pacote">Copiar Pacote Holusiá</button></div>', "pronto") +
+      passo(2, "Abrir Holusiá", "Cole o Pacote na Holusiá e copie a resposta inteira.",
+        '<div class="hai-acoes">' + (urls.chatgpt ? '<a class="btn-fantasma" id="hai-abrir" href="' + e(urls.chatgpt) + '" target="_blank" rel="noopener noreferrer">Abrir Holusiá</a>'
+          : '<span class="btn-fantasma hai-indisp" aria-disabled="true" title="O endereço da Holusiá ainda não foi configurado">Abrir Holusiá <small>(endereço não configurado — abra a sua Holusiá)</small></span>') + "</div>", "pronto") +
+      passo(3, "Colar resultado da Holusiá", "Cole a resposta inteira (o bloco ```json``` é usado). Se o JSON estiver inválido, nada é salvo.",
+        '<label class="hai-colar"><span class="hai-sr">Cole aqui o resultado da Holusiá</span><textarea id="hai-json" rows="7" spellcheck="false" aria-label="Cole aqui o resultado da Holusiá" placeholder="Cole aqui o resultado da Holusiá">' + e(texto) + "</textarea></label>" +
         (tela.erros.length ? '<div class="hai-erro" role="alert"><b>Não importado.</b><ul>' + tela.erros.slice(0, 15).map(function (x) { return "<li>" + e(x) + "</li>"; }).join("") +
           (tela.erros.length > 15 ? "<li>… e mais " + (tela.erros.length - 15) + "</li>" : "") + "</ul><p>O texto colado continua acima para você corrigir.</p></div>" : "") +
         '<div class="hai-acoes"><button type="button" class="btn-verde" data-hai-acao="importar"' + (bloq ? " disabled" : "") + ">Importar e gerar resultado</button>" +
@@ -322,7 +333,7 @@
   }
 
   /* ---------- acoes ---------- */
-  function lerTexto() { var t = document.getElementById("hai-json"); if (t && tela.eid) tela.texto[tela.eid] = t.value; return t ? t.value : ""; }
+  function lerTexto() { var t = q("#hai-json"); if (t && tela.eid) tela.texto[tela.eid] = t.value; return t ? t.value : ""; }
   function travar(p, btn) {
     tela.ocupado = true; if (btn && window.travarBotao) window.travarBotao(btn, "Aguarde…");
     return Promise.resolve(p).then(function (x) { tela.ocupado = false; return x; }, function (err) { tela.ocupado = false; throw err; });
@@ -339,7 +350,7 @@
       if (!r || !r.salvo) tela.falha = (r && r.mensagem) || "Não foi possível montar o Resultado agora.";
       else toast("Resultado HOLOS pronto.");
       desenhar();
-      if (r && r.salvo) { var p = document.getElementById("hai-pronto"); if (p && p.scrollIntoView) p.scrollIntoView({ block: "center" }); }
+      if (r && r.salvo) { var p = q("#hai-pronto"); if (p && p.scrollIntoView) p.scrollIntoView({ block: "center" }); }
       return r;
     });
   }
@@ -361,13 +372,17 @@
     var R = window.ResultadoHolos;
     if (nome === "copiar-pacote" || nome === "ver-pacote") {
       var txt = JSON.stringify(montarPacote(pacienteId(), tela.eid), null, 2);
-      if (nome === "ver-pacote") { tela.pacoteTxt = tela.pacoteTxt ? "" : txt; lerTexto(); desenhar(); var d = document.getElementById("hai-detalhes"); if (d) d.open = true; return; }
+      if (nome === "ver-pacote") { tela.pacoteTxt = tela.pacoteTxt ? "" : txt; lerTexto(); desenhar(); var d = q("#hai-detalhes"); if (d) d.open = true; return; }
       tela.pacoteTxt = txt; lerTexto();
-      return copiar(txt, el, "Copiar Pacote HOLOS AI");
+      return copiar(txt, el, "Copiar Pacote Holusiá");
     }
     if (nome === "importar") return importar(el);
     if (nome === "gerar") return travar(aceitarEGerar(pacienteId(), el.getAttribute("data-hai-import")), el).then(null, function (err) { tela.falha = msgErro(err); desenhar(); });
-    if (nome === "ver-resultado") { if (R && R.abrirResultado) R.abrirResultado(el.getAttribute("data-hai-res"), "paciente"); return; }
+    if (nome === "ver-resultado") {
+      /* na pagina Holusia: a saida da jornada (pagina Resultado); na ficha: a aba Resultado HOLOS, visao da paciente */
+      if (naPagina() && window.irParaSecao) { window.irParaSecao("resultado"); return; }
+      if (R && R.abrirResultado) R.abrirResultado(el.getAttribute("data-hai-res"), "paciente"); return;
+    }
     if (nome === "editar-resultado") { if (R && R.abrirResultado) R.abrirResultado(el.getAttribute("data-hai-res"), null, true); return; }
     if (nome === "pdf") {
       var P = window.ResultadoPagina;
@@ -377,14 +392,14 @@
   }
 
   document.addEventListener("click", function (ev) {
-    var raiz = document.getElementById("hai-ponte"); if (!raiz || !raiz.contains(ev.target)) return;
+    if (!ev.target.closest || !ev.target.closest("#hai-ponte, #holusia-alvo")) return;
     var b = ev.target.closest("[data-hai-acao]");
     if (!b || b.tagName === "INPUT") return;
     ev.preventDefault();
     acao(b.getAttribute("data-hai-acao"), b);
   });
   document.addEventListener("change", function (ev) {
-    var raiz = document.getElementById("hai-ponte"); if (!raiz || !raiz.contains(ev.target)) return;
+    if (!ev.target.closest || !ev.target.closest("#hai-ponte, #holusia-alvo")) return;
     if (ev.target.id === "hai-atendimento") { lerTexto(); tela.eid = ev.target.value; tela.erros = []; tela.avisos = []; tela.falha = ""; return desenhar(); }
   });
   document.addEventListener("input", function (ev) { if (ev.target && ev.target.id === "hai-json") lerTexto(); });
@@ -392,8 +407,34 @@
     if (window.HoloAuth && window.HoloAuth.aoMudarEstado) window.HoloAuth.aoMudarEstado(function () { cache = { pid: null, imports: [], itens: [], carregado: false, erro: null }; });
   });
 
+  /* PAGINA HOLUSIA (rodada UX 14/10): a mesma ponte, para a paciente selecionada */
+  function desenharPagina() {
+    var alvo = document.getElementById("holusia-alvo"); if (!alvo) return;
+    var pid = pacienteId();
+    if (!pid || pid === "_sem_paciente") {
+      host = alvo;
+      var f = document.getElementById("hai-ponte"); if (f) f.innerHTML = "";
+      alvo.innerHTML = '<div class="lista-vazia hai-sem-paciente"><strong>Nenhum paciente selecionado</strong><span>A Holusiá trabalha com o atendimento de um paciente. Escolha o paciente para começar.</span>' +
+        '<button type="button" class="btn-verde" data-hai-acao="ir-pacientes">Escolher paciente</button></div>';
+      return;
+    }
+    desenhar(alvo);
+  }
+  document.addEventListener("click", function (ev) {
+    var b = ev.target.closest && ev.target.closest('#holusia-alvo [data-hai-acao="ir-pacientes"]');
+    if (b && window.irParaSecao) window.irParaSecao("pacientes");
+  });
+  document.addEventListener("DOMContentLoaded", function () {
+    var anterior = window.aoTrocarPaciente;
+    window.aoTrocarPaciente = function () {
+      if (typeof anterior === "function") anterior();
+      var sec = document.getElementById("secao-holusia");
+      if (sec && sec.classList.contains("ativa")) desenharPagina();
+    };
+  });
+
   window.HolosAIPonte = {
-    desenhar: desenhar, carregar: carregar, montarPacote: montarPacote, importsDoAtendimento: importsDoAtendimento, itensDe: itensDe, resultadoDaImportacao: resultadoDaImportacao,
+    desenhar: desenhar, desenharPagina: desenharPagina, carregar: carregar, montarPacote: montarPacote, importsDoAtendimento: importsDoAtendimento, itensDe: itensDe, resultadoDaImportacao: resultadoDaImportacao,
     esquecer: function () { cache = { pid: null, imports: [], itens: [], carregado: false, erro: null }; },
     estado: function () { return { cache: cache, tela: tela }; }
   };

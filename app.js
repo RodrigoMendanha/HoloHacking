@@ -266,7 +266,7 @@
     agenda:"Agenda", documentos:"Documentos",
     holoscan:"HOLOSCAN", resultado:"Resultado",
     corpo:"Módulo Corpo", mente:"Módulo Mente",
-    espirito:"Módulo Espírito", perfil:"Perfil", ajuda:"Ajuda", contas:"Administração", metodologia:"Metodologia / Homologação"
+    espirito:"Módulo Espírito", holusia:"Holusiá", perfil:"Perfil", ajuda:"Ajuda", contas:"Administração", metodologia:"Metodologia / Homologação"
   };
   function irPara(secao){
     /* Prontuario (09/10): a Leitura Integrada saiu do fluxo e a secao virou a pagina RESULTADO.
@@ -305,6 +305,7 @@
          HOLOSCAN e voltar para a lista deixava o cartao dizendo "Sem consulta
          ainda" sobre alguem que tinha acabado de ser atendida. */
       pacientes: renderPacientes,
+      holusia: () => { if(window.HolosAIPonte && window.HolosAIPonte.desenharPagina) window.HolosAIPonte.desenharPagina(); },
       perfil: window.redesenharPerfil
     }[secao];
     if(typeof redesenhar === "function") redesenhar();

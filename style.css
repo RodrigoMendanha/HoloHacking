@@ -6034,3 +6034,7 @@ body:not(.escuro) #secao-pacientes .lista-pac .pac-status.ativo,body:not(.escuro
 .rp-doc .eyebrow,.rh-doc .eyebrow{color:#7a5f22}
 .rp-doc .rd-sis-foco,.rh-doc .rd-sis-foco{color:#7a5a1e!important}
 #secao-pacientes .fic-filtros-linha{-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent);padding-right:36px}
+/* Holusia (pagina) */
+#secao-holusia .hai-host{margin-top:8px}
+.hai-sem-paciente{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.hai-det-sub{margin:.4rem 0;font-size:.82rem;color:var(--texto-suave)}

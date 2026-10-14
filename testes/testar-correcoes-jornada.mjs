@@ -282,7 +282,7 @@ const nomes = await A.evaluate(async () => {
   return { tri, nav, oq3: /\bOQ3\b/.test(visivel), triada: /Tríada/.test(visivel) };
 });
 ok(nomes.tri.join(',') === 'CORPO,MENTE,ESPÍRITO', 'Tríade do HOLOSCAN com Corpo / Mente / Espírito: ' + nomes.tri.join(' · '));
-ok(nomes.nav === 'OQ³' && !nomes.oq3, 'menu e telas escrevem OQ³ (nenhum "OQ3" visível): ' + nomes.nav);
+ok(nomes.nav === 'QF' && !nomes.oq3, 'menu com o selo visual QF (rodada UX 14/10: QF/QM/QE no menu; as telas continuam escrevendo OQ³, nenhum "OQ3" visível): ' + nomes.nav);
 ok(!nomes.triada, 'nenhuma tela escreve "Tríada"');
 const fsB11 = await import('fs');
 const fonte = f => fsB11.readFileSync(new URL('../' + f, import.meta.url), 'utf8');
