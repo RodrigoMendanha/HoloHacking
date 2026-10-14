@@ -5,13 +5,16 @@
  * Uso: node scripts/gerar-pdf-playbook-estrategias.mjs [saida.pdf]   (padrao: docs/v1/PLAYBOOK-ESTRATEGIAS-HOLOS.pdf)
  */
 import puppeteer from 'puppeteer-core';
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, readFileSync, unlinkSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { SISTEMAS as SIS, ESTRATEGIAS as EXTRA } from './playbook-estrategias-conteudo.mjs';
 
 await import('../resultado-direcao.js');
 await import('../playbook-holos.js');
 const PB = globalThis.PlaybookHolos;
 const SAIDA = process.argv[2] || new URL('../docs/v1/PLAYBOOK-ESTRATEGIAS-HOLOS.pdf', import.meta.url).pathname;
+const LOGO = 'data:image/png;base64,' + readFileSync(new URL('../logo-holohacking.png', import.meta.url)).toString('base64');
+const DATA = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
 const e = (x) => String(x ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const TERR = [['corpo', 'Corpo', 'o que colocar em prática'], ['mente', 'Mente', 'o que compreender nos padrões'], ['espirito', 'Espírito', 'que direção fortalecer']];
 const faltam = PB.ESTRATEGIAS.filter(x => !EXTRA[x.id]).map(x => x.id);
@@ -40,7 +43,7 @@ const secao = ([cod, nome], i) => {
   const s = SIS[cod];
   const focos = PB.FOCOS.filter(f => f.sistema === cod);
   return `<section class="sis">
-  <p class="eyebrow">Sistema ${i + 1} de 5</p><h2>${e(nome)}</h2>
+  <div class="abre"><div><p class="eyebrow">Sistema ${i + 1} de 5</p><h2>${e(nome)}</h2></div><img src="${LOGO}" alt=""></div>
   <div class="porque"><p class="rot">Por que este sistema aparece como área prioritária</p><p>${e(s.porque)}</p>
   <p class="rot">Relatos do HOLOSCAN que ele organiza</p><ul class="relatos">${s.relatos.map(r => `<li>${e(r)}</li>`).join('')}</ul></div>
   <div class="entrega"><div><p class="rot">O que a nutricionista entrega</p><p>${e(s.nutri)}</p></div><div><p class="rot">O que o paciente recebe</p><p>${e(s.paciente)}</p></div></div>
@@ -50,11 +53,11 @@ const secao = ([cod, nome], i) => {
 };
 
 const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Playbook de Estratégias HOLOS</title><style>
-@page{size:A4;margin:15mm 13mm 17mm}
-@page :first{margin:0}
+@page{size:A4;margin:22mm 13mm 18mm}
 *{box-sizing:border-box}
-body{font-family:"Helvetica Neue",Arial,sans-serif;color:#22312a;font-size:9.2pt;line-height:1.4;margin:0}
-h1,h2,h3{font-family:Georgia,"Times New Roman",serif;color:#163a2b;font-weight:600}
+body{font-family:"Jost","Helvetica Neue",Arial,sans-serif;color:#22312a;font-size:9.2pt;line-height:1.42;margin:0;font-weight:400}
+h1,h2,h3{font-family:"Cormorant Garamond",Georgia,serif;color:#163a2b;font-weight:600}
+b,strong{font-weight:600}
 .capa{height:296mm;display:flex;flex-direction:column;justify-content:center;page-break-after:always;background:linear-gradient(160deg,#10281e 0%,#173b2c 100%);color:#efe8d6;padding:0 24mm}
 .capa h1{color:#e9d9a8;font-size:32pt;margin:0 0 4mm;line-height:1.1}
 .capa .sub{font-size:13pt;color:#e7e0cc;margin:0 0 12mm}
@@ -69,6 +72,21 @@ h1,h2,h3{font-family:Georgia,"Times New Roman",serif;color:#163a2b;font-weight:6
 .tabela-sis th{background:#163a2b;color:#efe8d6;text-align:left;padding:1.8mm 2mm}
 .tabela-sis td{border-bottom:1px solid #e3dac2;padding:1.8mm 2mm;vertical-align:top}
 .sis{page-break-before:always}
+.abre{background:linear-gradient(135deg,#10281e,#1b4433);color:#efe8d6;border-radius:3mm;padding:5mm 6mm 4mm;margin-bottom:4mm;display:flex;justify-content:space-between;align-items:center}
+.abre h2{color:#e9d9a8;margin:.5mm 0 0;font-size:24pt}
+.abre .eyebrow{color:#c9a959}
+.abre img{width:15mm;height:15mm;opacity:.95}
+.inst h2{font-size:20pt;margin-top:0}
+.inst .lead{font-size:10.5pt;color:#33463c}
+.trilha{display:flex;gap:1.5mm;flex-wrap:wrap;margin:3mm 0 4mm}
+.trilha span{background:#f4ecd6;color:#5c4a1e;border-radius:10mm;padding:1.2mm 3.4mm;font-size:8.6pt;font-weight:500}
+.trilha i{color:#c9a959;font-style:normal;align-self:center}
+.col3{display:grid;grid-template-columns:repeat(3,1fr);gap:3mm;margin:2mm 0 4mm}
+.col3>div{border:1px solid #e3d6b0;border-radius:3mm;padding:3mm;background:#fbf8f0}
+.col3 h4{font-family:"Cormorant Garamond",Georgia,serif;font-size:13pt;margin:0 0 1mm;color:#163a2b}
+.col3 p{margin:0;font-size:8.6pt}
+.principios{columns:2;padding-left:4mm;margin:1mm 0}
+.principios li{margin-bottom:1mm}
 .eyebrow{font-size:8pt;letter-spacing:.16em;text-transform:uppercase;color:#9a7a2e;margin:0}
 h2{font-size:21pt;margin:1mm 0 3mm}
 .rot{margin:2mm 0 .8mm;font-size:7.6pt;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7a6224}
@@ -80,11 +98,11 @@ h2{font-size:21pt;margin:1mm 0 3mm}
 .entrega p{margin:0}
 .focos{margin:0 0 2mm;padding-left:5mm}.focos li{margin-bottom:1mm}
 h3.terr{font-size:12.5pt;margin:5mm 0 2mm;border-bottom:1px solid #d8ccab;padding-bottom:1mm;break-after:avoid;page-break-after:avoid}
-h3.terr small{font-family:"Helvetica Neue",Arial,sans-serif;font-size:8.4pt;color:#7a8a80;font-weight:400;margin-left:2mm}
+h3.terr small{font-family:"Jost",Arial,sans-serif;font-size:8.4pt;color:#7a8a80;font-weight:400;margin-left:2mm}
 .grade{display:grid;grid-template-columns:1fr 1fr;gap:3mm}
 .est{border:1px solid #ddd2b4;border-radius:3mm;padding:2.6mm 3mm;break-inside:avoid;background:#fff}
-.est-cab{display:flex;gap:2mm;align-items:baseline;margin-bottom:1.2mm;font-family:Georgia,serif;font-size:10.5pt;color:#163a2b}
-.eid{font-family:"Helvetica Neue",Arial,sans-serif;font-size:7.4pt;font-weight:700;color:#9a7a2e;letter-spacing:.04em}
+.est-cab{display:flex;gap:2mm;align-items:baseline;margin-bottom:1.2mm;font-family:"Cormorant Garamond",Georgia,serif;font-size:12pt;font-weight:600;color:#163a2b}
+.eid{font-family:"Jost",Arial,sans-serif;font-size:7.4pt;font-weight:700;color:#9a7a2e;letter-spacing:.04em}
 dl{margin:0;display:grid;grid-template-columns:24mm 1fr;gap:.8mm 2mm;font-size:8.4pt}
 dt{font-size:7.2pt;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#7a6224;padding-top:.3mm}
 dd{margin:0}
@@ -93,11 +111,24 @@ dd{margin:0}
 .ferr{color:#4f5f56}
 .nota-fim{margin-top:5mm;font-size:8pt;color:#6b7a71;border-top:1px solid #d8ccab;padding-top:2mm}
 </style></head><body>
-<section class="capa"><p class="ver">HoloHacking · Nutrição Holística</p><h1>Playbook de Estratégias HOLOS</h1>
-<p class="sub">Corpo · Mente · Espírito para cada um dos cinco sistemas</p>
-<p class="nota">Material da nutricionista para transformar o resultado do HOLOSCAN e das ferramentas em estratégias práticas para o paciente: o que fazer, quando, o que observar e o que esperar.<br><br>${PB.ESTRATEGIAS.filter(x => x.sistema !== 'geral').length} estratégias dos sistemas (12 por sistema) · ${PB.ESTRATEGIAS.filter(x => x.sistema === 'geral').length} estratégias gerais · versão ${e(PB.VERSAO)}</p></section>
+<section class="inst">
+<p class="eyebrow">Documento oficial · HoloHacking</p><h2>Sobre o HoloHacking</h2>
+<p class="lead">O HoloHacking é a plataforma clínica da Nutrição Holística. Ela organiza o acompanhamento do paciente em <b>Corpo, Mente e Espírito</b> (a Tríade do Ser) e transforma o que foi observado no atendimento em um plano claro, que o paciente entende e consegue colocar em prática.</p>
+<p class="rot">A jornada do paciente no HoloHacking</p>
+<div class="trilha"><span>Mapeamento Holístico</span><i>→</i><span>HOLOSCAN</span><i>→</i><span>Ferramentas</span><i>→</i><span>Resultado HOLOS (Playbook)</span><i>→</i><span>PDF e WhatsApp</span><i>→</i><span>Retornos e Evolução</span></div>
+<div class="col3">
+<div><h4>HOLOSCAN</h4><p>Questionário do método que organiza os relatos do paciente em cinco sistemas: Fúngico, Ácido Inflamatório, Metabólico, Detox e Linfático e Mental Emocional Espiritual. Indica as 2 áreas prioritárias da fase.</p></div>
+<div><h4>Ferramentas</h4><p><b>Corpo:</b> OQ³, Linha do Momentum, Mapa da Rotina. <b>Mente:</b> Escada dos Porquês, Mapa de Crenças, Gatilhos &amp; Respostas. <b>Espírito:</b> Mapa do Propósito, Roda Holística da Vida, Carta ao Futuro Eu, Conexão &amp; Pertencimento.</p></div>
+<div><h4>Resultado HOLOS</h4><p>O documento do paciente: o momento, o foco desta fase, o plano de estratégias, o que observar e a próxima etapa, junto com o mapa do HOLOSCAN e as ferramentas utilizadas.</p></div>
+</div>
+<p class="rot">Princípios do método</p>
+<ul class="principios"><li>A nutricionista decide; o sistema organiza.</li><li>Sem diagnóstico e sem prescrição: hábito, observação e rotina.</li><li>Os sistemas são eixos do método, não doenças.</li><li>Poucas mudanças por vez, que caibam na vida real.</li><li>O paciente participa: as palavras dele entram no plano.</li><li>Cada encontro revisa o plano: manter, ajustar, substituir ou concluir.</li></ul>
+<p class="rot">Este documento</p>
+<p>O <b>Playbook de Estratégias HOLOS</b> é o material oficial que acompanha o sistema. As mesmas estratégias aparecem no botão <b>“Montar com o Playbook”</b>, na aba Resultado HOLOS da ficha: o sistema mostra primeiro as do sistema prioritário e as que combinam com as ferramentas aplicadas.</p>
+</section>
 
-<section class="intro"><h2>Como usar este playbook</h2>
+
+<section class="intro" style="page-break-before:always"><h2>Como usar este playbook</h2>
 <ol class="passos">
 <li><b>No atendimento</b>, aplique o HOLOSCAN e as ferramentas com o paciente.</li>
 <li><b>Olhe as 2 áreas prioritárias</b> do HOLOSCAN: são os sistemas com mais relatos marcados. Cada capítulo deste playbook explica por que o sistema aparece e quais relatos ele organiza.</li>
@@ -112,18 +143,65 @@ ${PB.SISTEMAS.map(([c, n]) => `<tr><td><b>${e(n)}</b></td><td>${e(SIS[c].relatos
 <p class="nota-fim">Os cinco sistemas são eixos do método que organizam relatos do HOLOSCAN; não são doenças nem diagnósticos. As estratégias são de hábito, observação e rotina, sem prescrição, e podem ser ajustadas pela nutricionista para a realidade de cada paciente.</p></section>
 
 ${PB.SISTEMAS.map(secao).join('')}
-<section class="sis"><p class="eyebrow">Para qualquer paciente</p><h2>Estratégias gerais</h2>
+<section class="sis"><div class="abre"><div><p class="eyebrow">Para qualquer paciente</p><h2>Estratégias gerais</h2></div><img src="${LOGO}" alt=""></div>
 <div class="porque"><p>${e(SIS.geral.porque)}</p></div>
 <div class="entrega"><div><p class="rot">O que a nutricionista entrega</p><p>${e(SIS.geral.nutri)}</p></div><div><p class="rot">O que o paciente recebe</p><p>${e(SIS.geral.paciente)}</p></div></div>
 ${blocoTerr(PB.ESTRATEGIAS.filter(x => x.sistema === 'geral'))}
 </section>
 </body></html>`;
 
+const CAPA = `<!doctype html><html><head><meta charset="utf-8"><style>
+@page{size:A4;margin:0}body{margin:0;font-family:"Jost",Arial,sans-serif}
+.pg{height:297mm;width:210mm;box-sizing:border-box;background:radial-gradient(ellipse at 50% 30%,#1d4a37 0%,#12301f 55%,#0c2016 100%);color:#efe8d6;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:26mm 22mm 20mm;text-align:center}
+.marca img{width:46mm;height:46mm}
+.marca .nome{font-family:"Cormorant Garamond",serif;font-size:30pt;color:#e9d9a8;letter-spacing:.04em;margin:3mm 0 0;font-weight:600}
+.marca .tag{font-size:8.5pt;letter-spacing:.32em;text-transform:uppercase;color:#c9a959;margin:1.5mm 0 0}
+.linha{width:30mm;height:1px;background:#c9a959;margin:9mm auto}
+h1{font-family:"Cormorant Garamond",serif;font-size:40pt;color:#f3ead2;margin:0;line-height:1.05;font-weight:600}
+.sub{font-size:13pt;color:#e7e0cc;margin:4mm 0 0;font-weight:300}
+.pills{display:flex;gap:3mm;justify-content:center;margin-top:9mm}
+.pills span{border:1px solid #c9a959;color:#e9d9a8;border-radius:10mm;padding:1.6mm 5mm;font-size:9pt;letter-spacing:.08em}
+.rod{font-size:8.6pt;color:#cfc6ae;line-height:1.6}
+.rod b{color:#e9d9a8;font-weight:500}
+</style></head><body><div class="pg">
+<div class="marca"><img src="${LOGO}" alt="HoloHacking"><p class="nome">HoloHacking</p><p class="tag">Plataforma clínica da Nutrição Holística</p></div>
+<div><div class="linha"></div><h1>Playbook de<br>Estratégias HOLOS</h1><p class="sub">Corpo · Mente · Espírito para cada um dos cinco sistemas</p>
+<div class="pills"><span>CORPO</span><span>MENTE</span><span>ESPÍRITO</span></div></div>
+<div class="rod"><b>Documento oficial HoloHacking</b> · uso profissional junto com o sistema<br>${PB.ESTRATEGIAS.filter(x => x.sistema !== 'geral').length} estratégias dos sistemas · ${PB.ESTRATEGIAS.filter(x => x.sistema === 'geral').length} estratégias gerais · versão ${e(PB.VERSAO)} · ${e(DATA)}</div>
+</div></body></html>`;
+const CONTRA = `<!doctype html><html><head><meta charset="utf-8"><style>
+@page{size:A4;margin:0}body{margin:0;font-family:"Jost",Arial,sans-serif}
+.pg{height:297mm;width:210mm;box-sizing:border-box;background:#10281e;color:#cfc6ae;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 30mm}
+img{width:26mm;height:26mm}.nome{font-family:"Cormorant Garamond",serif;font-size:22pt;color:#e9d9a8;margin:3mm 0 1mm;font-weight:600}
+.tag{font-size:8pt;letter-spacing:.3em;text-transform:uppercase;color:#c9a959;margin:0 0 12mm}
+p.txt{font-size:9pt;line-height:1.7;max-width:130mm}
+</style></head><body><div class="pg"><img src="${LOGO}" alt=""><p class="nome">HoloHacking</p><p class="tag">Plataforma clínica da Nutrição Holística</p>
+<p class="txt">Material de uso profissional das nutricionistas que utilizam o HoloHacking. As estratégias são de hábito, observação e rotina; não substituem avaliação clínica, não são diagnóstico nem prescrição e devem ser ajustadas à realidade de cada paciente.</p>
+<p class="txt">Playbook de Estratégias HOLOS · versão ${e(PB.VERSAO)} · ${e(DATA)}</p></div></body></html>`;
+
 const nav = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', headless: 'new', args: ['--no-sandbox'] });
-const p = await nav.newPage();
-await p.setContent(html, { waitUntil: 'load' });
-const pdf = await p.pdf({ format: 'A4', printBackground: true, displayHeaderFooter: true, headerTemplate: '<span></span>',
-  footerTemplate: '<div style="font-size:7pt;color:#7a8a80;width:100%;text-align:center;font-family:Arial">Playbook de Estratégias HOLOS · página <span class="pageNumber"></span> de <span class="totalPages"></span></div>' });
-writeFileSync(SAIDA, pdf);
+const render = async (doc, opts) => { const p = await nav.newPage(); await p.setContent(doc, { waitUntil: 'load' }); await p.evaluateHandle('document.fonts.ready'); const b = await p.pdf(Object.assign({ format: 'A4', printBackground: true }, opts || {})); await p.close(); return b; };
+const cab = `<div style="width:100%;margin:0 13mm;display:flex;align-items:center;justify-content:space-between;border-bottom:0.5px solid #d8ccab;padding-bottom:2mm;font-family:Jost,Arial,sans-serif">
+  <div style="display:flex;align-items:center;gap:2.5mm"><img src="${LOGO}" style="width:7mm;height:7mm"><span style="font-family:'Cormorant Garamond',serif;font-size:11pt;color:#163a2b;font-weight:600">HoloHacking</span><span style="font-size:6.5pt;letter-spacing:.2em;color:#9a7a2e;text-transform:uppercase">Nutrição Holística</span></div>
+  <span style="font-size:7pt;color:#7a8a80;letter-spacing:.06em">PLAYBOOK DE ESTRATÉGIAS HOLOS</span></div>`;
+const rod = `<div style="width:100%;margin:0 13mm;display:flex;justify-content:space-between;font-size:6.8pt;color:#7a8a80;font-family:Jost,Arial,sans-serif"><span>Documento oficial HoloHacking · uso profissional</span><span>Versão ${e(PB.VERSAO)} · ${e(DATA)}</span></div>`;
+const corpo = await render(html, { displayHeaderFooter: true, headerTemplate: cab, footerTemplate: rod });
+const capa = await render(CAPA), contra = await render(CONTRA);
 await nav.close();
-console.log('PDF: ' + SAIDA + ' (' + Math.round(pdf.length / 1024) + ' KB)');
+const tmp = SAIDA + '.partes';
+writeFileSync(tmp + '-capa.pdf', capa); writeFileSync(tmp + '-corpo.pdf', corpo); writeFileSync(tmp + '-contra.pdf', contra);
+/* junta capa + miolo + contracapa e numera as paginas do miolo (python + PyMuPDF) */
+execFileSync('python3', ['-W', 'ignore', '-c', `
+import sys, pymupdf
+saida, a, b, c = sys.argv[1:5]
+out = pymupdf.open()
+for f in (a, b, c): out.insert_pdf(pymupdf.open(f))
+n = out.page_count
+for i in range(1, n - 1):
+    pg = out[i]; r = pg.rect
+    pg.insert_text((r.width / 2 - 8, r.height - 22), f"{i + 1} / {n}", fontsize=7, color=(0.48, 0.54, 0.5))
+out.save(saida, deflate=True)
+print(n)
+`, SAIDA, tmp + '-capa.pdf', tmp + '-corpo.pdf', tmp + '-contra.pdf'], { stdio: 'inherit' });
+for (const f of ['-capa.pdf', '-corpo.pdf', '-contra.pdf']) unlinkSync(tmp + f);
+console.log('PDF: ' + SAIDA);
