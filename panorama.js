@@ -159,10 +159,10 @@
     // o achado que ninguem via: mapeado e nunca conduzido
     /* "mapa sem conduta" so quando nao ha NEM ferramenta NEM conduta registrada */
     if (d.pontuacao && d.ferramentas.length === 0 && !d.temConduta) {
-      saida.push({ peso: 1, grau: "aviso", curto: "mapa sem conduta",
-                   texto: "O mapa foi feito e nenhuma ferramenta foi aplicada. " +
-                          "Sem conduta, a avaliação não vira jornada.",
-                   acao: "aba:conduta", botao: "Abrir conduta" });
+      /* 14/10: a aba Conduta saiu da ficha; o proximo passo e aplicar as ferramentas */
+      saida.push({ peso: 1, grau: "aviso", curto: "mapa sem ferramentas",
+                   texto: "O mapa foi feito e nenhuma ferramenta foi aplicada.",
+                   acao: "aba:ferramentas", botao: "Abrir ferramentas" });
     }
 
     /* Etapa 0 da V1 — dois alertas sairam daqui, de proposito:
