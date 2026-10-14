@@ -231,7 +231,8 @@
          atendimento ativo pode ser um antigo, sem conduta propria */
       var cdOutro = !cd && Cd.vigenteDoPaciente ? Cd.vigenteDoPaciente(pid, foco.id) : null;
       if (!cd && cdOutro) cd = cdOutro.conduta;
-      linhas.push(["Conduta vigente", cd ? "rev. " + cd.revision_number + " · " + cd.status + (cd.objective ? " · " + cd.objective : "") + (cdOutro ? " · atendimento de " + A.rotuloQuando(cdOutro.atendimento) : "") : (cdR ? "rascunho (não é conduta vigente)" : "não registrada")]);
+      /* 14/10: a Conduta saiu do sistema; a linha so aparece para quem tem Conduta registrada de antes */
+      if (cd || cdR) linhas.push(["Conduta vigente", cd ? "rev. " + cd.revision_number + " · " + cd.status + (cd.objective ? " · " + cd.objective : "") + (cdOutro ? " · atendimento de " + A.rotuloQuando(cdOutro.atendimento) : "") : (cdR ? "rascunho (não é conduta vigente)" : "não registrada")]);
       if (cd && cd.return_plan) linhas.push(["Retorno previsto", cd.return_plan]);
       if (cd) {
         var ag = Cd.acordosDe(cd.id);

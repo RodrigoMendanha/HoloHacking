@@ -3099,7 +3099,7 @@
                     : '<p class="res-linha">Nenhum sistema com nota nesta aplicação.</p>')
       + '<div class="res-botoes"><button type="button" class="btn-borda-ouro" data-res-ir="resultado-holos">Resultado HOLOS &rarr;</button>'
       + '<button type="button" class="btn-borda-ouro" data-res-ir="resultado">Resultado para a paciente &rarr;</button>'
-      + '<button type="button" class="btn-borda-ouro" data-res-ir="conduta">Conduta &rarr;</button></div></div></div>'
+      + '</div></div></div>'
       /* Proximos Passos HOLOS (09/10): bloco PROFISSIONAL, logo depois de "Por onde investigar". Desenhado por
          proximos-passos.js a partir dos MESMOS dois sistemas e do catalogo aprovado do servidor. */
       + '<div id="holo-proximos-passos" class="res-passos"></div>'

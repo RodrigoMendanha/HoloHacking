@@ -315,7 +315,7 @@
     if (bloq) html += '<p class="hai-aviso">' + e(MSG.paciente_arquivado) + "</p>";
     var texto = tela.texto[eid] || "";
     html += '<ol class="hai-passos">' +
-      passo(1, "Copiar Pacote Holos IA", "Mapeamento, HOLOSCAN, ferramentas, Conduta e o resultado anterior. Sem nome, contatos ou exames.",
+      passo(1, "Copiar Pacote Holos IA", "Mapeamento, HOLOSCAN, ferramentas e o resultado anterior. Sem nome, contatos ou exames.",
         '<div class="hai-acoes"><button type="button" class="btn-verde" data-hai-acao="copiar-pacote">Copiar Pacote Holos IA</button></div>', "pronto") +
       passo(2, "Abrir Holos IA", "Cole o Pacote na Holos IA e copie a resposta inteira.",
         '<div class="hai-acoes">' + (urls.chatgpt ? '<a class="btn-fantasma" id="hai-abrir" href="' + e(urls.chatgpt) + '" target="_blank" rel="noopener noreferrer">Abrir Holos IA</a>'

@@ -29,7 +29,7 @@
       ["Por onde eu começo?",
        "Complete o seu <b>Perfil</b> (nome completo, registro profissional e, se quiser, assinatura e marca): é isso que aparece nos relatórios. Depois cadastre o paciente em <b>Pacientes → Novo paciente</b>, agende a consulta na <b>Agenda</b> e, no dia, inicie o atendimento a partir da consulta."],
       ["Qual é o caminho de um atendimento completo?",
-       "Agenda → <b>Iniciar atendimento</b> → HOLOSCAN (questionário) → ferramentas de Corpo, Mente e Espírito → Resultado HOLOS → Conduta → Resultado para a paciente (PDF ou WhatsApp). Nenhuma etapa trava a seguinte: você usa o que fizer sentido para a pessoa."],
+       "Cadastro → <b>Mapeamento Holístico</b> (link que o paciente preenche antes da consulta) → no atendimento, HOLOSCAN e ferramentas de Corpo, Mente e Espírito → <b>Holos IA</b> → Resultado HOLOS → Resultado para a paciente (PDF ou WhatsApp). Nenhuma etapa trava a seguinte: você usa o que fizer sentido para a pessoa."],
       ["Meus dados ficam salvos onde?",
        "Com a conta conectada, tudo vai para o servidor da sua conta (só você vê). A mensagem de sucesso só aparece depois que o servidor confirmou. Se aparecer “não salvo no servidor”, o dado está só neste navegador: abra a tela indicada e salve de novo."],
       ["Posso usar em mais de um computador ou no celular?",
@@ -59,7 +59,7 @@
     ]},
     { grupo: "Resultado para a paciente", itens: [
       ["Onde fica o resultado para mostrar e enviar à paciente?",
-       "No menu <b>Resultado</b>. Ele mostra o último <b>Resultado HOLOS finalizado</b> da paciente (versão para a paciente), as ferramentas que você escolheu mostrar, os seus textos e a <b>Conduta vigente</b>, com o seu nome, registro, logo, assinatura e carimbo do Perfil."],
+       "No menu <b>Resultado</b>. Ele mostra o último <b>Resultado HOLOS finalizado</b> da paciente (versão para a paciente), as ferramentas que você escolheu mostrar, os seus textos e a análise da Holos IA, com o seu nome, registro, logo, assinatura e carimbo do Perfil."],
       ["O Resultado está vazio. Por quê?",
        "A página só mostra resultado <b>finalizado</b>. Na ficha, aba <b>Resultado HOLOS</b>, prepare, revise e clique em <b>Finalizar</b>. Rascunho não aparece para a paciente."],
       ["Como envio pelo WhatsApp?",
@@ -87,14 +87,6 @@
       ["As ferramentas geram uma interpretação automática?",
        "Não. Elas registram e organizam o que a pessoa respondeu (algumas desenham uma linha do tempo, uma rede ou barras). A interpretação é sua, na leitura profissional."]
     ]},
-    { grupo: "Conduta e relatório", itens: [
-      ["Como registro a conduta?",
-       "Na ficha, aba <b>Conduta</b>, com o atendimento ativo: <b>Iniciar conduta</b>, preencha os campos e os acordos, e <b>Salvar</b>. Para mudar depois, use <b>Revisar (nova revisão)</b>: a anterior fica no histórico."],
-      ["A aba Conduta diz “Iniciar conduta”, mas eu já salvei uma.",
-       "A conduta pertence a um atendimento. Se o atendimento ativo for outro, a aba avisa em qual atendimento está a conduta vigente e mostra um botão para abri-lo."],
-      ["Como emito um relatório?",
-       "Na ficha, aba <b>Relatório</b>: escolha o que entra (atendimentos, HOLOSCAN, ferramentas, conduta), escreva a sua interpretação e clique em <b>Emitir</b>. A emissão fica registrada e não muda; para corrigir, emita uma retificação."]
-    ]},
     { grupo: "Conta, dados e segurança", itens: [
       ["Alguém além de mim vê os meus pacientes?",
        "Não. Cada conta só enxerga os próprios pacientes; isso é garantido pelo servidor, não só pela tela."],
@@ -113,10 +105,9 @@
     ["HOLOSCAN", "Aplicar HOLOSCAN → Gerar o mapa → Salvar HOLOSCAN → Sua interpretação."],
     ["Ferramentas", "Corpo, Mente, Espírito: preencher → Concluir → leitura profissional."],
     ["Resultado HOLOS", "Ficha → Resultado HOLOS → escolher o que entra → Finalizar."],
-    ["Conduta", "Ficha → Conduta → objetivo, ações, orientações, acordos → Salvar."],
     ["Resultado para a paciente", "Menu Resultado → Baixar PDF ou Enviar pelo WhatsApp."],
     ["Documentos e exames", "Ficha → Documentos → + Adicionar arquivo → tipo, título, data, arquivo → Guardar."],
-    ["Relatório", "Ficha → Relatório → escolher as fontes → Emitir → Imprimir."]
+    ["Holos IA", "Menu Holos IA → escolher o paciente → Copiar Pacote → resposta da Holos IA → Importar e gerar resultado."]
   ];
 
   var GLOSSARIO = [

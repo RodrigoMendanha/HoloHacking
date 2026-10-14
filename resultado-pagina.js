@@ -222,7 +222,7 @@
     var achados = termosFora(textos);
     if (!achados.length) return "";
     return '<p class="rp-aviso rp-so-tela" id="rp-aviso-termos" role="status">Atenção: o seu texto contém termos fora do método (' + achados.map(escapar).join(", ") +
-      "). O HoloHacking não entrega dieta, calorias, prescrição, diagnóstico nem encaminhamento. Revise na Conduta ou no Resultado HOLOS antes de enviar. Este aviso não vai no PDF.</p>";
+      "). O HoloHacking não entrega dieta, calorias, prescrição, diagnóstico nem encaminhamento. Revise no Resultado HOLOS antes de enviar. Este aviso não vai no PDF.</p>";
   }
 
   function barraAcoes(pid, r, p, em) {

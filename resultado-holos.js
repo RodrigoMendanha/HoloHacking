@@ -476,12 +476,7 @@
         return '<div class="rh-obs-item"><h4>' + e(k[1]) + "</h4>" + (tem(obs[k[0]]) ? "<p>" + e(obs[k[0]]).replace(/\n/g, "<br>") + "</p>" : '<p class="rh-vazio">Não registrado.</p>') + "</div>";
       }).join("") + "</section>";
 
-    // 6. CONDUTA (pagina propria, vinculo claro)
-    html += '<section class="rh-secao rh-conduta-link" aria-labelledby="rh-t-cond"><h3 id="rh-t-cond">Conduta</h3>' +
-      '<p>A Conduta é decisão da nutricionista e fica na página própria do atendimento' + (snap.atendimento ? " de " + e(dataHora(snap.atendimento.occurred_at)) : "") +
-      '. O sistema não escreve a Conduta: este resultado a informa, não a gera.</p>' +
-      '<button type="button" class="btn-borda-ouro rh-so-tela" data-rh-acao="ir-conduta">Abrir a Conduta</button></section>';
-
+    /* 14/10: a Conduta saiu do sistema; o Resultado HOLOS nao aponta mais para ela */
     html += '<p class="rh-futuro">Exames e Leitura Integrada — não incluídos nesta versão do Resultado HOLOS.</p>';
     html += '<footer class="rh-doc-rodape">Snapshot do Resultado HOLOS' + (meta.hash ? " · hash técnico " + e(String(meta.hash).slice(0, 16)) + "…" : "") + ". Documento organizado a partir de registros salvos; não é diagnóstico.</footer>";
     return html + "</article>";
@@ -661,7 +656,8 @@
     // 8
     var campos = CAMPOS_COND_REL.filter(function (f) { return tem(cc[f[0]]); });
     var acordos = (c && c.acordos || []).filter(function (a) { return tem(a.description); });
-    html += sec(8, "Conduta", c ? '<p class="rh-nota-tec">Decisão da nutricionista, do atendimento deste resultado. Não foi gerada pelo sistema.</p>' +
+    /* 14/10: a Conduta saiu do sistema; o bloco so aparece quando um resultado antigo tem Conduta registrada */
+    if (c) html += sec(8, "Conduta", c ? '<p class="rh-nota-tec">Decisão da nutricionista, do atendimento deste resultado. Não foi gerada pelo sistema.</p>' +
       campos.map(function (f) { return '<h5 class="rel-sub">' + e(f[1]) + "</h5><p>" + e(cc[f[0]]).replace(/\n/g, "<br>") + "</p>"; }).join("") +
       (acordos.length ? '<h5 class="rel-sub">Acordos</h5><ul class="rel-lista">' + acordos.map(function (a) { return "<li>" + e(a.description) + (tem(a.due_text) ? " (" + e(a.due_text) + ")" : "") + "</li>"; }).join("") + "</ul>" : "")
       : '<p class="rh-vazio">Nenhuma Conduta consolidada no atendimento deste resultado.</p>');
