@@ -169,7 +169,7 @@ const rp = await A.evaluate(() => {
 });
 ok(rp.paciente && /Sua direção nesta etapa/.test(rp.texto) && /Foco ficticio de teste/.test(rp.texto) && /Os cinco sistemas/.test(rp.texto) && !/Leitura da nutri para a paciente/.test(rp.texto) && /OQ³/.test(rp.texto) && !/Roda Holística/.test(rp.texto),
   'Resultado (template 5): visão da paciente com a direção e o foco; leitura técnica só profissional; só as ferramentas marcadas para a paciente');
-ok(/Nutri Teste Ficticia/.test(rp.cab) && /CRN-3 00000/.test(rp.cab) && /Nutri Teste Ficticia · CRN-3 00000/.test(rp.rodape) && /não é diagnóstico/.test(rp.rodape), 'identidade profissional no cabeçalho e no rodapé (nome e registro)');
+ok(/Nutri Teste Ficticia/.test(rp.cab) && /CRN-3 00000/.test(rp.cab) && /Nutri Teste Ficticia/.test(rp.rodape) && /CRN-3 00000/.test(rp.rodape) && /HoloHacking/.test(rp.cab) && /não é diagnóstico/.test(rp.rodape), 'identidade profissional no cabeçalho e no rodapé (nome e registro; 14/10: bloco de assinatura e marca HoloHacking)');
 ok(!/Caminhar 20 minutos de manhã/.test(rp.texto) && !/Avisar como foi a semana/.test(rp.texto) && !/Próximos passos combinados/.test(rp.texto), 'template 5: a Conduta não vai sozinha para a paciente — ações e combinados só aparecem se a nutricionista confirmar e compartilhar');
 const semRodape = rp.texto.replace(/Não é exame, não é diagnóstico e não é prescrição\./, '');   /* a frase de fronteira do rodapé é a única menção legítima */
 ok(!/DIETA_NAO|DIAG_NAO|ENCAMINHA_NAO|QUESTAO_SO_PROFISSIONAL|Pontuou neste sistema|hash|exame|Exame/.test(semRodape), 'nada profissional/interno vai para a paciente: sem prescrição, diagnóstico, encaminhamento, questões só profissionais, "pontuou", hash ou exames');

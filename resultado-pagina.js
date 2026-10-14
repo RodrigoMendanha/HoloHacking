@@ -129,28 +129,43 @@
   function imgCongelada(src) {
     return /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+\/=]+$/.test(String(src || "")) ? '<img src="' + escapar(src) + '" alt="">' : "";
   }
+  /* 14/10: documento com a identidade do HoloHacking (logo e nome da marca), os dados completos da nutricionista
+     e um bloco de assinatura formal (imagem da assinatura sobre a linha, ou a linha para assinar). So muda o
+     desenho: o conteudo continua vindo do que a emissao congelou. */
+  var LOGO_MARCA = "/logo-holohacking.png";
   function cabecalhoProfissional(eu, imagens) {
     var linha2 = [eu.profissao, eu.registro].filter(Boolean).map(escapar).join(" &middot; ");
     var linha3 = [eu.especialidade, eu.cidade].filter(Boolean).map(escapar).join(" &middot; ");
+    var contato = [eu.telefone, eu.instagram, eu.email].filter(Boolean).map(escapar).join(" &middot; ");
     return '<header class="rp-cab">' +
       '<span class="rp-logo" id="rp-logo" aria-hidden="true">' + (imagens ? imgCongelada(imagens.logo) : "") + "</span>" +
       '<div class="rp-quem"><b>' + escapar(eu.nome || "HoloHacking") + "</b>" +
-        (linha2 ? "<span>" + linha2 + "</span>" : "") + (linha3 ? "<span>" + linha3 + "</span>" : "") + "</div>" +
-      '<div class="rp-marca"><span class="eyebrow">HoloHacking &middot; HOLOSCAN</span></div>' +
+        (linha2 ? "<span>" + linha2 + "</span>" : "") + (linha3 ? "<span>" + linha3 + "</span>" : "") +
+        (contato ? '<span class="rp-quem-contato">' + contato + "</span>" : "") + "</div>" +
+      '<div class="rp-marca"><img class="rp-marca-logo" src="' + LOGO_MARCA + '" alt="" aria-hidden="true">' +
+        '<span class="rp-marca-txt"><b>HoloHacking</b><span class="eyebrow">Nutrição Holística &middot; HOLOSCAN</span></span></div>' +
     "</header>";
   }
 
   function rodapeProfissional(eu, imagens) {
-    var identidade = [eu.nome, eu.registro].filter(Boolean).map(escapar).join(" &middot; ");
-    var contato = [eu.telefone, eu.instagram].filter(Boolean).map(escapar).join(" &middot; ");
+    var contato = [eu.telefone, eu.instagram, eu.email].filter(Boolean).map(escapar).join(" &middot; ");
+    var linhaReg = [eu.profissao, eu.registro].filter(Boolean).map(escapar).join(" &middot; ");
+    var assinatura = eu.assinatura_id && imagens ? imgCongelada(imagens.assinatura) : "";
+    var carimbo = eu.carimbo_id && imagens ? imgCongelada(imagens.carimbo) : "";
     return '<footer class="rp-rodape">' +
-      ((eu.assinatura_id || eu.carimbo_id)
-        ? '<div class="rp-assinaturas">' + (eu.assinatura_id ? '<span class="rp-imagem" id="rp-assinatura">' + (imagens ? imgCongelada(imagens.assinatura) : "") + "</span>" : "") +
-            (eu.carimbo_id ? '<span class="rp-imagem" id="rp-carimbo">' + (imagens ? imgCongelada(imagens.carimbo) : "") + "</span>" : "") + "</div>"
-        : "") +
-      (identidade ? '<p class="rp-emitiu">' + identidade + "</p>" : "") +
-      (contato ? '<p class="rp-contato">' + contato + "</p>" : "") +
+      '<div class="rp-assinatura-bloco">' +
+        '<div class="rp-assina">' +
+          '<span class="rp-imagem" id="rp-assinatura">' + assinatura + "</span>" +
+          '<span class="rp-assina-linha" aria-hidden="true"></span>' +
+          (eu.nome ? '<p class="rp-emitiu">' + escapar(eu.nome) + "</p>" : "") +
+          (linhaReg ? '<p class="rp-registro">' + linhaReg + "</p>" : "") +
+        "</div>" +
+        (eu.carimbo_id ? '<span class="rp-imagem rp-carimbo" id="rp-carimbo">' + carimbo + "</span>" : "") +
+        '<div class="rp-emissao">' + (eu.emitido_em ? "<span>Emitido em</span><b>" + escapar(dataHora(eu.emitido_em)) + "</b>" : "<span>Prévia</span><b>ainda não emitido</b>") +
+          (contato ? '<p class="rp-contato">' + contato + "</p>" : "") + "</div>" +
+      "</div>" +
       '<p class="rp-fronteira">Este material organiza o que foi registrado na sua avaliação com a sua nutricionista. Não é exame, não é diagnóstico e não é prescrição. Os próximos passos são combinados em consulta.</p>' +
+      '<p class="rp-gerado"><img src="' + LOGO_MARCA + '" alt="" aria-hidden="true"> Documento gerado no HoloHacking</p>' +
     "</footer>";
   }
 
@@ -192,6 +207,7 @@
     var eu = Object.assign({}, s.profissional || {});
     var im = s.imagens || {};
     eu.assinatura_id = im.assinatura ? "congelada" : null; eu.carimbo_id = im.carimbo ? "congelada" : null;
+    eu.emitido_em = em.created_at || null;
     /* RF-3: o documento da paciente sai da projecao CONGELADA na emissao (snapshot publico), nunca da direcao completa */
     var extra = (em.template_version || s.template) === "RF-3" ? { direcaoPaciente: s.direcao_paciente || null, caminho: s.caminho || [] } : null;
     return documentoHtml(null, r, cv, eu, im, extra);
@@ -256,7 +272,11 @@
         '<button type="button" class="btn-fantasma" data-rp-acao="imprimir">Imprimir</button>' +
         '<button type="button" class="btn-fantasma" data-rp-acao="ficha">Abrir na ficha</button>' +
         '<button type="button" class="btn-borda-ouro" data-rp-acao="emitir">Gerar nova emissão</button>' +
-      "</div></div>";
+      "</div>" +
+      /* 14/10: o botao do WhatsApp manda o PDF: no celular (e no computador que permite) vai anexado; senao baixa e abre a conversa */
+      '<p class="rp-dica-whats">Enviar pelo WhatsApp manda o PDF: no celular ele vai anexado direto (escolha o WhatsApp e a conversa). ' +
+        "No computador, o PDF é baixado e a conversa da paciente abre com a mensagem pronta: é só arrastar o arquivo para ela.</p>" +
+      "</div>";
   }
   function listaEmissoes(lista, atual) {
     if (lista.length < 2) return "";

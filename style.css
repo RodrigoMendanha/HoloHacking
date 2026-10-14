@@ -6126,3 +6126,44 @@ body.rh-imprimindo #rh-doc .eyebrow,body.rh-imprimindo #rh-doc .rd-sis-foco,body
 @media (max-width:1100px){
   #secao-pacientes .fic-stepper{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(130px,1fr);overflow-x:auto}
 }
+
+/* 14/10: Resultado HOLOS com a identidade HoloHacking — faixa dourada no topo, marca a direita, dados completos da
+   nutricionista e bloco de assinatura formal (assinatura sobre a linha, nome e registro; carimbo e data da emissao) */
+.rp-doc{border-top:6px solid #c9a35a}
+.rp-cab{grid-template-columns:auto 1fr auto;padding-top:4px}
+.rp-quem-contato{font-size:.8rem}
+.rp-marca{display:flex;align-items:center;gap:10px;text-align:right}
+.rp-marca-logo{width:46px;height:46px;object-fit:contain}
+.rp-marca-txt{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.rp-marca-txt b{font-family:var(--fonte-display);font-size:1.15rem;color:#0b3325;letter-spacing:.01em}
+.rp-marca-txt .eyebrow{font-size:.62rem}
+.rp-assinatura-bloco{display:grid;grid-template-columns:minmax(220px,300px) auto 1fr;gap:20px;align-items:end}
+.rp-assina{display:flex;flex-direction:column;align-items:center;text-align:center}
+.rp-assina .rp-imagem{min-height:56px;display:flex;align-items:flex-end;justify-content:center}
+.rp-assina-linha{display:block;width:100%;border-top:1px solid #1d3a2e;margin:4px 0 6px}
+.rp-registro{margin:0;font-size:.8rem;color:#55705f}
+.rp-carimbo{align-self:center}
+.rp-emissao{display:flex;flex-direction:column;align-items:flex-end;text-align:right;gap:2px;font-size:.8rem;color:#55705f}
+.rp-emissao b{color:#0b3325;font-weight:500}
+.rp-gerado{margin:8px 0 0;display:flex;align-items:center;gap:6px;font-size:.72rem;color:#7a8d82;letter-spacing:.04em}
+.rp-gerado img{width:14px;height:14px;object-fit:contain}
+body.rp-gerando .rp-doc .rp-rodape,body.rp-imprimindo .rp-doc .rp-rodape{display:grid;grid-template-columns:1fr;row-gap:6px}
+body.rp-gerando .rp-doc .rp-rodape > *,body.rp-imprimindo .rp-doc .rp-rodape > *{grid-column:auto}
+body.rp-gerando .rp-doc .rp-assina .rp-imagem img,body.rp-imprimindo .rp-doc .rp-assina .rp-imagem img{max-height:56px;max-width:200px}
+body.rp-gerando .rp-doc,body.rp-imprimindo .rp-doc{border-top:5px solid #c9a35a;padding-top:8px}
+@media (max-width:720px){
+  .rp-cab{grid-template-columns:1fr}
+  .rp-marca{justify-content:flex-start;text-align:left}
+  .rp-marca-txt{align-items:flex-start}
+  .rp-assinatura-bloco{grid-template-columns:1fr}
+  .rp-emissao{align-items:flex-start;text-align:left}
+}
+.rp-dica-whats{margin:8px 0 0;font-size:.8rem;color:var(--texto-suave);max-width:720px}
+/* sem logo/carimbo a grade deslocava as colunas: flex, com a marca e a data sempre a direita */
+.rp-cab{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.rp-cab .rp-quem{flex:1 1 220px}
+.rp-cab .rp-marca{margin-left:auto}
+.rp-assinatura-bloco{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap}
+.rp-assina{flex:0 1 280px;min-width:220px}
+.rp-emissao{margin-left:auto}
+@media (max-width:720px){ .rp-cab .rp-marca,.rp-emissao{margin-left:0} }

@@ -142,7 +142,7 @@ ok(em1 && em1.emission_number === 1 && em1.template_version === 'RF-3' && em1.ho
   && em1.content_snapshot.profissional.nome === 'Nutri Ficticia Antes' && /Nutri Ficticia Antes/.test(html1) && /Foco Antes/.test(html1),
   'emissão gerada (RF-3): congela Resultado (id + hash), foco, Conduta do atendimento do resultado, nome e CRN');
 ok(!(await A.evaluate(() => window.__xss === 1)) && html1.includes('&lt;img src=x') && !/Ação &lt;img|Ação <img/.test(html1), 'XSS no foco: escapado na emissão; a Conduta não vai sozinha para a paciente');
-if (SHOT) { await espera(400); await A.screenshot({ path: SHOT + '/emissao-desktop.png' }); }
+if (SHOT) { await espera(400); await A.screenshot({ path: SHOT + '/emissao-desktop.png' }); const cab = await A.$('#rp-doc .rp-cab'); if (cab) await cab.screenshot({ path: SHOT + '/emissao-cabecalho.png' }); const rod = await A.$('#rp-doc .rp-rodape'); if (rod) await rod.screenshot({ path: SHOT + '/emissao-rodape.png' }); }
 await A.evaluate(() => {
   window.__pdfs = [];
   window.html2pdf = () => ({ set() { return this; }, from(el) { window.__pdfs.push(el.outerHTML); return this; }, toContainer() { return this; }, then() { return this; }, outputPdf() { return Promise.resolve(new Blob(['%PDF-1.4 falso'], { type: 'application/pdf' })); } });
