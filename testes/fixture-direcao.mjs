@@ -41,11 +41,19 @@ export async function montarFixture(srv, UA, opts = {}) {
   const t1 = new Date(Date.now() - 21 * dia).toISOString();
   const PA = ins('patients', { nome: opts.nome || 'Marina Ficticia', telefone: '62900000000' }).id;
   const E1 = ins('encounters', { patient_id: PA, occurred_at: t1, timezone: 'America/Sao_Paulo', type: 'consulta', modality: 'presencial' }).id;
-  ins('anamneses', { patient_id: PA, encounter_id: E1, revision_number: 1, status: 'salvo', content_version: 2,
-    content: { formulario_versao: 2, tipo: 'primeira', meta: {}, dominios: {}, formulario: {
+  const FORM = {
       motivo: { motivo: 'Cansaço no fim da tarde e fome forte à noite', objetivo: 'Ter mais disposição à tarde', mudar_primeiro: 'O lanche da tarde', ajudou: 'Levar marmita nos dias de escritório' },
       alimentar: { dificuldade: 'Belisco quando chego em casa', maior_fome: ['Tarde', 'Noite'], dificuldades: ['Falta de tempo', 'Comer à noite'] },
-      saude: { sinal_principal: 'Fome muito intensa ou difícil de controlar' } } } });
+      saude: { sinal_principal: 'Fome muito intensa ou difícil de controlar' } };
+  /* opts.mapeamentoRecebido (auditoria Cowork 14/10): o Mapeamento foi RECEBIDO e REVISADO, mas nunca levado ao atendimento
+     (nenhuma anamnese) — o caso que deixava o Pacote Holos IA com "Sem dado" */
+  if (opts.mapeamentoRecebido) {
+    const t0 = new Date(Date.now() - 22 * dia).toISOString();
+    srv.tabelas.anamnesis_invites.push({ id: 'conv-' + PA, nutritionist_id: UA, patient_id: PA, encounter_id: null, status: 'concluido', form_version: 2, form_tipo: 'primeira',
+      expires_at: new Date(Date.now() + dia).toISOString(), draft_content: null, submitted_content: { tipo: 'primeira', formulario: FORM }, save_count: 1, professional_snapshot: null,
+      imported_anamnesis_id: null, imported_at: null, created_at: t0, started_at: t0, last_saved_at: t0, submitted_at: t0, revoked_at: null, sent_at: t0, sent_via: 'whatsapp', reviewed_at: t0 });
+  } else ins('anamneses', { patient_id: PA, encounter_id: E1, revision_number: 1, status: 'salvo', content_version: 2,
+    content: { formulario_versao: 2, tipo: 'primeira', meta: {}, dominios: {}, formulario: FORM } });
   const tri = m.triad_result;
   const payload = { application: { patient_id: PA, encounter_id: E1, quando: t1.slice(0, 10), versao_estrutura: 3, indice: m.index_result.valor, indice_maximo: 100, avaliavel: true,
       nota_media: m.index_result.valor / 10, triada: { fisico: tri.fisico.nota, mental: tri.mental.nota, espiritual: tri.espiritual.nota }, triada_com_dado: { fisico: true, mental: true, espiritual: true },

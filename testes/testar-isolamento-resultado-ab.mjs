@@ -82,6 +82,10 @@ ok(ac2.pdf !== 'gerou' && ac2.w === 'bloqueado' && ac2.abertos.length === 0 && !
 
 /* 3. A de novo, depois C (resultado sem emissão): a emissão de A não vira a de C */
 await P.evaluate((pid) => window.definirPacienteAtivo(pid), A.pid); await P.waitForFunction(() => !!document.getElementById('rp-doc'), { timeout: 15000 }); await esperarDesenho();
+const volta = await estado();
+ok(volta.doc && /Alfa/.test(volta.txt) && volta.emPid === A.pid && volta.emId === emA.data.id, 'de volta a A: o Resultado Final de A reaparece, lido de novo do servidor (emissão ' + (volta.emId === emA.data.id ? 'a mesma' : 'outra') + ')');
+const storage = await P.evaluate((rid, emid) => { const tudo = []; for (const st of [localStorage, sessionStorage]) for (let i = 0; i < st.length; i++) { const k = st.key(i); tudo.push(k + '=' + st.getItem(k)); } const j = tudo.join('\n'); return { rid: j.includes(rid), em: j.includes(emid) }; }, A.rid, emA.data.id);
+ok(!storage.rid && !storage.em, 'storage do navegador sem o Resultado nem a emissão de A (nada de Resultado fica guardado fora do servidor)');
 await P.evaluate((pid) => window.definirPacienteAtivo(pid), C.pid); await P.waitForFunction(() => !!document.getElementById('rp-doc'), { timeout: 15000 }); await esperarDesenho();
 const e3 = await estado();
 const ac3 = await P.evaluate(async () => ({ pdf: await window.ResultadoPagina.gerarPdf().then(() => 'gerou', e => e.message), w: window.__abertos.length }));
