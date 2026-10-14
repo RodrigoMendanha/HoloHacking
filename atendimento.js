@@ -282,7 +282,7 @@
   function atualizar(id, mudancas) {
     var e = porId(id);
     if (!e) return Promise.resolve({ ok: false, motivo: "nao_encontrado" });
-    var permitidas = ["type", "modality", "status", "summary_text", "occurred_at", "timezone"];
+    var permitidas = ["type", "modality", "status", "summary_text", "occurred_at", "timezone", "weight_kg", "height_cm"];   /* 14/10: peso e altura da consulta */
     var m = {};
     Object.keys(mudancas || {}).forEach(function (k) { if (permitidas.indexOf(k) >= 0) m[k] = mudancas[k]; });
     if (!Object.keys(m).length) return Promise.resolve({ ok: true, semMudanca: true });
@@ -464,6 +464,13 @@
     selecionarPorId: selecionarPorId,
     limpar: limpar,
     atualizar: atualizar,
+    /** 14/10: a medida mais recente do paciente (peso e altura de atendimentos; cada um pode vir de um atendimento) */
+    medidas: function (pid) {
+      var l = cache.filter(function (e) { return e.patient_id === pid; }).sort(function (a, b) { return String(b.occurred_at).localeCompare(String(a.occurred_at)); });
+      var p = l.filter(function (e) { return e.weight_kg !== null && e.weight_kg !== undefined && e.weight_kg !== ""; })[0];
+      var a = l.filter(function (e) { return e.height_cm !== null && e.height_cm !== undefined && e.height_cm !== ""; })[0];
+      return { peso: p ? Number(p.weight_kg) : null, pesoEm: p ? p.occurred_at : null, altura: a ? Number(a.height_cm) : null, alturaEm: a ? a.occurred_at : null };
+    },
     carregar: carregar,
     todos: function () { return cache.map(function (e) { return Object.assign({}, e); }); },
     doPaciente: doPaciente,

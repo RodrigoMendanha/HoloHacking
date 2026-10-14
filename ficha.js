@@ -106,6 +106,55 @@
     return id;
   }
 
+  /* ============================================ PESO E ALTURA (14/10) ===== */
+  /* Medidos pela nutricionista na consulta e guardados NO ATENDIMENTO (cada consulta guarda a sua medida).
+     A faixa mostra a mais recente; o IMC e so a conta (peso / altura²), sem classificacao. */
+  function numBR(n, casas) { return Number(n).toFixed(casas).replace(".", ","); }
+  function textoMedidas(pid) {
+    var A = window.AtendimentoAtual; if (!A || !A.medidas) return null;
+    var m = A.medidas(pid);
+    if (m.peso === null && m.altura === null) return null;
+    var partes = [];
+    if (m.peso !== null) partes.push(numBR(m.peso, 1) + " kg");
+    if (m.altura !== null) partes.push(numBR(m.altura / 100, 2) + " m");
+    if (m.peso !== null && m.altura) partes.push("IMC " + numBR(m.peso / Math.pow(m.altura / 100, 2), 1));
+    return partes.join(" &middot; ");
+  }
+  function lerNumero(v) { v = String(v || "").trim().replace(",", "."); if (!v) return null; var n = Number(v); return isFinite(n) ? n : NaN; }
+  function registrarMedidas() {
+    var pid = paciente(), A = window.AtendimentoAtual;
+    if (!A || !pid) return;
+    if (window.pacienteArquivado && window.pacienteArquivado(pid)) { if (window.avisar) window.avisar(window.MSG_ARQUIVADO || "Paciente arquivado."); return; }
+    var at = A.atual && A.atual();
+    if (!at || at.patient_id !== pid) { if (window.avisar) window.avisar("Selecione ou inicie o atendimento de hoje para registrar peso e altura."); return; }
+    var m = A.medidas(pid);
+    var peso = at.weight_kg !== null && at.weight_kg !== undefined ? at.weight_kg : (m.peso !== null ? m.peso : "");
+    var alt = at.height_cm !== null && at.height_cm !== undefined ? at.height_cm : (m.altura !== null ? m.altura : "");
+    var corpo = '<p class="dash-sub">Atendimento de ' + escapar(A.rotuloQuando(at)) + '. A medida fica guardada neste atendimento.</p>' +
+      '<div class="fic-medidas-form"><label>Peso (kg)<input type="text" inputmode="decimal" id="fic-peso" placeholder="Ex.: 68,5" value="' + escapar(peso === "" ? "" : String(peso).replace(".", ",")) + '"></label>' +
+      '<label>Altura (cm)<input type="text" inputmode="decimal" id="fic-altura" placeholder="Ex.: 165" value="' + escapar(alt === "" ? "" : String(alt).replace(".", ",")) + '"></label></div>';
+    var abrir = window.abrirModalConfirmar ? window.abrirModalConfirmar({ titulo: "Peso e altura", corpo: corpo, botaoConfirmar: "Salvar", classeConfirmar: "btn-verde" }) : Promise.resolve(null);
+    setTimeout(function () { var i = document.getElementById("fic-peso"); if (i) i.focus(); }, 60);
+    abrir.then(function (r) {
+      if (r !== "confirmar") return;
+      var p = lerNumero((document.getElementById("fic-peso") || {}).value), a = lerNumero((document.getElementById("fic-altura") || {}).value);
+      if ((p !== null && (isNaN(p) || p < 1 || p > 400)) || (a !== null && (isNaN(a) || a < 30 || a > 250))) {
+        if (window.avisar) window.avisar("Confira os valores: peso entre 1 e 400 kg e altura entre 30 e 250 cm (em centímetros)."); return;
+      }
+      A.atualizar(at.id, { weight_kg: p, height_cm: a }).then(function (res) {
+        if (res && res.ok) { if (window.avisar) window.avisar("Peso e altura salvos no atendimento."); desenharFaixa(); return; }
+        var msg = res && res.conflito ? "O atendimento mudou em outra aba. Abra de novo e tente outra vez."
+          : /weight_kg|height_cm|42703|PGRST204/.test(String(res && res.erro && (res.erro.message || res.erro.code) || "")) ? "O servidor ainda não tem os campos de peso e altura (atualização pendente)."
+          : "Não foi possível salvar agora.";
+        if (window.avisar) window.avisar(msg);
+      });
+    });
+  }
+  document.addEventListener("click", function (ev) {
+    var b = ev.target.closest && ev.target.closest("#ficha-faixa [data-medidas]");
+    if (b) registrarMedidas();
+  });
+
   /* ======================================================= A FAIXA ======== */
 
   /* As quatro perguntas que se faz antes de abrir qualquer aba. Cada uma tem
@@ -132,7 +181,8 @@
     var itens = [
       { rot: "Próxima consulta", valor: proxTexto, vazio: "não agendada", acao: "agenda" },
       { rot: "Último HOLOSCAN", valor: ultima, vazio: "nenhum", acao: "holoscan" },
-      { rot: "Etapa atual", valor: et ? escapar(et.rotulo) : null, vazio: "—", acao: "aba:visao", id: "fic-faixa-etapa" }
+      { rot: "Etapa atual", valor: et ? escapar(et.rotulo) : null, vazio: "—", acao: "aba:visao", id: "fic-faixa-etapa" },
+      { rot: "Peso e altura", valor: textoMedidas(pid), vazio: "registrar", medidas: true, id: "fic-faixa-medidas" }
     ];
 
     alvo.setAttribute("role", "group");
@@ -141,7 +191,7 @@
       return '<button type="button" class="fic-pilula' +
         (i.valor ? "" : " vazia") + '"' +
         (i.id ? ' id="' + i.id + '"' : "") +
-        ' data-ir="' + i.acao + '"' +
+        (i.medidas ? ' data-medidas="1"' : ' data-ir="' + i.acao + '"') +
         ' aria-label="' + escapar(i.rot) + ': ' + (i.valor || i.vazio).replace(/&middot;/g, "·") + '">' +
         '<span class="fic-pilula-rot">' + i.rot + "</span>" +
         '<b>' + (i.valor || i.vazio) + "</b></button>";

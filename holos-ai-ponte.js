@@ -190,6 +190,14 @@
     var ver = tipo === "primeira" && M.versaoDe ? "Questionário " + M.versaoDe(form) + "\n" : "";
     return (v.status ? "Revisão " + (v.revision_number || 1) + " · " + v.status + "\n" : "") + ver + (v.status || ver ? "\n" : "") + out.join("\n\n");
   }
+  function medidasTexto(at, pid) {
+    var A = window.AtendimentoAtual;
+    var peso = at && at.weight_kg !== null && at.weight_kg !== undefined ? Number(at.weight_kg) : null;
+    var alt = at && at.height_cm !== null && at.height_cm !== undefined ? Number(at.height_cm) : null;
+    if (peso === null && alt === null && A && A.medidas) { var m = A.medidas(pid); peso = m.peso; alt = m.altura; }
+    if (peso === null && alt === null) return "Sem dado";
+    return [peso !== null ? "Peso " + String(peso).replace(".", ",") + " kg" : null, alt !== null ? "Altura " + String(alt).replace(".", ",") + " cm" : null].filter(Boolean).join(" · ") + " (medido pela nutricionista)";
+  }
   function montarPacote(pid, eid) {
     var p = window.pacientesTodos ? window.pacientesTodos().filter(function (x) { return x.id === pid; })[0] : null;
     var A = window.AtendimentoAtual, at = A && A.porId ? A.porId(eid) : null;
@@ -200,6 +208,8 @@
       instrucao: "Analise este atendimento com o método HOLOS AI (HOLOS-AI-GPT 1.2) e devolva o texto HOLOS_AI_RESULT e o JSON HOLOS_AI_RESULT schema_version 1.",
       atendimento: { referencia: String(eid || "").slice(0, 8), data: at ? rotuloAt(at) : "Sem dado", tipo: tipoAtendimento(pid, eid) },
       paciente_contexto_minimo: { identificador: p ? iniciais(p.nome) : "Sem dado", idade: p ? idade(p.nascimento) : null, sexo: p && p.sexo ? p.sexo : null },
+      /* 14/10: medidas da consulta (pela nutricionista); so os numeros, sem classificacao */
+      medidas_do_atendimento: medidasTexto(at, pid),
       mapeamento: t(mapeamentoTexto(eid, sec.anamnese)),
       holoscan: t(sec.holoscan),
       evolucao_holoscan: t(sec.evolucao),

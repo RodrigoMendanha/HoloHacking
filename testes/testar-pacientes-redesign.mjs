@@ -143,9 +143,25 @@ const f = await A.evaluate(() => {
 });
 ok(f.acoes.join('|') === 'Aplicar HOLOSCAN|Nova consulta|Mais ações ▾' && f.mais.join('|') === 'Editar cadastro|Adicionar arquivo|Exportar dados',
   'cabeçalho: Aplicar HOLOSCAN (principal), Nova consulta e "Mais ações" (Editar, Adicionar arquivo, Exportar)');
-ok(f.faixa.length === 3 && /PRÓXIMA CONSULTA|Próxima consulta/i.test(f.faixa[0]) && /às 14:00 ·/.test(f.faixa[0]) && !/14:00:00/.test(f.faixa[0]) && /HOLOSCAN/i.test(f.faixa[1]) && /Resultado apresentado|Aguardando retorno/.test(f.faixa[2]),
+ok(f.faixa.length === 4 && /Peso e altura/i.test(f.faixa[3]) && /PRÓXIMA CONSULTA|Próxima consulta/i.test(f.faixa[0]) && /às 14:00 ·/.test(f.faixa[0]) && !/14:00:00/.test(f.faixa[0]) && /HOLOSCAN/i.test(f.faixa[1]) && /Resultado apresentado|Aguardando retorno/.test(f.faixa[2]),
   'faixa: próxima consulta (sem segundos), último HOLOSCAN e etapa atual (regra do Dashboard): ' + f.faixa.join(' | '));
 ok(/helena@ficticio\.test/.test(f.contato) && /anos/.test(f.sobre), 'contato e idade no cabeçalho');
+/* 14/10: peso e altura — registrados no atendimento ativo pela faixa da ficha; IMC so como conta */
+const med = await A.evaluate(async () => {
+  const pid = window.pacienteAtivoId();
+  const at = await window.AtendimentoAtual.iniciar({ patient_id: pid, occurred_at: new Date().toISOString() });
+  if (at && at.id && window.AtendimentoAtual.selecionarPorId) window.AtendimentoAtual.selecionarPorId(at.id);
+  document.querySelector('#ficha-faixa [data-medidas]').click(); await new Promise(r => setTimeout(r, 150));
+  const aberto = !document.getElementById('modal-confirmar-acao').classList.contains('hidden');
+  document.getElementById('fic-peso').value = '68,5'; document.getElementById('fic-altura').value = '165';
+  document.getElementById('modal-confirmar-ok').click(); await new Promise(r => setTimeout(r, 700));
+  return { aberto, eid: at && at.id, pilula: document.getElementById('fic-faixa-medidas').innerText.replace(/\s+/g, ' ') };
+});
+const encMed = srv.linhas('encounters').find(e => e.id === med.eid) || {};
+ok(med.aberto && Number(encMed.weight_kg) === 68.5 && Number(encMed.height_cm) === 165 && /68,5 kg/.test(med.pilula) && /1,65 m/.test(med.pilula) && /IMC 25,2/.test(med.pilula),
+  'peso e altura: registrados no atendimento ativo e mostrados na faixa (' + med.pilula + ')');
+const pacMed = await A.evaluate((eid) => window.HolosAIPonte.montarPacote(window.pacienteAtivoId(), eid).medidas_do_atendimento, med.eid);
+ok(/Peso 68,5 kg · Altura 165 cm/.test(pacMed || ''), 'Pacote Holos IA leva as medidas do atendimento: ' + pacMed);
 ok(f.alturaAt < 64, 'atendimento ativo numa barra só (' + Math.round(f.alturaAt) + 'px)');
 ok(f.alturaJor < 130, 'jornada horizontal compacta, 7 passos (14/10) (' + Math.round(f.alturaJor) + 'px)');
 ok(f.abasY < 700, 'as abas começam acima da dobra em 1440×1000 (y=' + Math.round(f.abasY) + ')');
