@@ -304,18 +304,19 @@ await marcar(PB, diaISO(10), '09:00');                               // agendame
 const tela = await A.evaluate(async () => {
   document.querySelector('.nav-item[data-secao="consultas"]').click();
   await new Promise(r => setTimeout(r, 400));
+  const mes = document.getElementById('at-mes'); mes.value = ''; mes.dispatchEvent(new Event('change'));   /* 14/10: todos os meses */
   return {
     rotulo: document.querySelector('.nav-item[data-secao="consultas"]').textContent.trim(),
     titulo: document.querySelector('#consultas-corpo h2').textContent,
     linhas: [...document.querySelectorAll('#atendimentos-lista .at-linha')].map(l => l.innerText.replace(/\s+/g, ' ')),
-    agenda: document.querySelector('#consultas-agenda').innerText,
+    agenda: !!document.querySelector('#consultas-agenda'),
   };
 });
 ok(tela.rotulo === 'Atendimentos' && /atendimentos/.test(tela.titulo), 'o menu e o titulo dizem Atendimentos: ' + tela.titulo.trim());
 ok(tela.linhas.length === 2 && tela.linhas.every(l => /Paciente Um/.test(l)) && !tela.linhas.some(l => /Paciente Dois/.test(l)),
    '18: a lista traz os 2 atendimentos reais; o agendamento futuro de Paciente Dois nao aparece como atendimento');
-ok(/Paciente Dois/.test(tela.agenda) && /não são atendimentos|marcadas/.test(tela.agenda), 'o agendamento futuro fica no bloco da agenda, com esse nome');
-ok(tela.linhas.some(l => /com agendamento/.test(l)) && tela.linhas.some(l => /sem agendamento/.test(l)), 'cada linha diz a origem: com/sem agendamento');
+ok(!tela.agenda, '14/10: o agendamento futuro fica só na Agenda (a página Atendimentos não repete a agenda)');
+ok(tela.linhas.some(l => /Agendado/.test(l)) && tela.linhas.some(l => /Avulso/.test(l)), 'cada linha diz a origem: Agendado / Avulso');
 
 /* ==================================================================== */
 titulo('CANCELAR E REAGENDAR PELA AGENDA');

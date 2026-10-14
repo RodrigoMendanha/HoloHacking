@@ -140,7 +140,7 @@
     };
     Promise.all([
       lerConvites(),
-      ler("holos_results", "id,patient_id,status,superseded_at,saved_at,created_at"),
+      ler("holos_results", "id,patient_id,encounter_id,status,superseded_at,saved_at,created_at"),
       ler("holos_result_emissions", "id,patient_id,holos_result_id,emission_number,created_at")
     ]).then(function (rs) {
       jornada = { convites: rs[0], resultados: rs[1], emissoes: rs[2], carregadoEm: Date.now(), carregando: false };
@@ -273,7 +273,7 @@
       "</div>" +
       '<div class="dash-numeros dash-resumo">' +
         tile("pessoa", nPac, "Pacientes ativos", "pacientes") +
-        tile("documento", h.total, "Atendimentos hoje", "agenda", h.semAgenda.length ? h.consultas.length + " agendado" + (h.consultas.length === 1 ? "" : "s") + " · " + h.semAgenda.length + " sem agendamento" : "") +
+        tile("documento", h.total, "Atendimentos hoje", "consultas", h.semAgenda.length ? h.consultas.length + " agendado" + (h.consultas.length === 1 ? "" : "s") + " · " + h.semAgenda.length + " sem agendamento" : "") +
         tile("calendario", proxLabel, "Próxima consulta", "agenda") +
         tile("pessoas", nAcomp, "Em acompanhamento", "acompanhamento") +
       "</div>" +
@@ -482,6 +482,14 @@
       var p = pacientePorId(pid); if (!p || !ativo(p)) return null;
       var e = null; try { e = etapaDe(p, consultasFuturas()); } catch (err) { e = null; }
       return e ? { chave: e.chave, rotulo: ETAPAS[e.chave].rotulo, sub: e.sub } : null;
+    },
+    /** 14/10 (pagina Atendimentos): o Resultado deste atendimento — "emitido" | "gerado" | null (null = nao lido ainda ou nenhum) */
+    resultadoDoAtendimento: function (eid) {
+      if (!jornada.carregadoEm || !eid) return null;
+      var rs = jornada.resultados.filter(function (r) { return r.encounter_id === eid && r.status !== "rascunho"; });
+      if (!rs.length) return "nenhum";
+      var ids = rs.map(function (r) { return r.id; });
+      return jornada.emissoes.some(function (e) { return ids.indexOf(e.holos_result_id) >= 0; }) ? "emitido" : "gerado";
     },
     /** 14/10: situacao do Mapeamento Holistico (null = ainda nao lido; "nenhum" | "enviado" | "recebido") */
     mapeamento: function (pid) {

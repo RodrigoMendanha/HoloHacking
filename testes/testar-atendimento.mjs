@@ -128,19 +128,22 @@ const ids = await p.evaluate(async (respostas) => {
 
 /* ------------------------------------------------------- consultas ------- */
 
-const con = await p.evaluate(() => {
+/* 14/10: a pagina virou painel (filtro de mes, numeros, abas, tabela). Aqui: todos os meses, aba HOLOSCAN. */
+const con = await p.evaluate(async () => {
   document.querySelector('.nav-item[data-secao="consultas"]').click();
+  const mes = document.getElementById('at-mes'); mes.value = ''; mes.dispatchEvent(new Event('change'));
+  document.querySelector('[data-at-aba="holoscan"]').click();
+  await new Promise(r => setTimeout(r, 50));
   return {
-    linhas: [...document.querySelectorAll('.con-linha')].map(l => ({
-      dia: l.querySelector('.con-dia').textContent,
-      nome: l.querySelector('.con-quem b').textContent,
-      detalhe: l.querySelector('.con-detalhe').textContent,
-      indice: l.querySelector('.con-indice').textContent.replace(/Índice/, '').trim(),
+    linhas: [...document.querySelectorAll('#consultas-corpo tr.con-linha')].map(l => ({
+      dia: l.querySelector('.at-c-data').textContent,
+      nome: l.querySelector('.at-c-quem b').textContent,
+      detalhe: l.querySelector('.at-c-data .at-hora').textContent + ' · mais baixos: ' + l.querySelector('.at-c-baixos').textContent,
+      indice: l.querySelector('.at-indice').textContent.trim(),
       variacao: l.querySelector('.con-var')?.textContent || null,
     })),
-    tiles: [...document.querySelectorAll('.dash-tile')].map(t =>
+    tiles: [...document.querySelectorAll('#consultas-corpo .dash-tile')].map(t =>
       t.querySelector('b').textContent + ' ' + t.querySelector('span').textContent),
-    meses: [...document.querySelectorAll('.dash-titulo')].map(t => t.textContent.trim()),
   };
 });
 
@@ -157,11 +160,11 @@ conferir(con.linhas[2].nome === 'Carla Souza',
    (antes: "Em homologação" para tudo, falso depois da aprovacao do HOLOS-V1@2). */
 conferir(con.linhas.every(l => l.variacao !== null && /Aplicação histórica sem pacote metodológico V1/.test(l.variacao) && !/[+-]\d/.test(l.variacao)),
   'nenhuma linha inventa "o quanto andou"; todas levam o selo: ' + con.linhas[0].variacao);
-conferir(con.linhas.every(l => /mais baixos:/.test(l.detalhe)),
+conferir(con.linhas.every(l => /mais baixos: \S/.test(l.detalhe)),
   'cada linha diz quais sistemas pesaram');
 /* V1 Etapa 1: aplicacao do HOLOSCAN nao e atendimento — o tile diz o que conta */
-conferir(con.tiles.some(t => /^3 aplicações do HOLOSCAN/.test(t)) && !con.tiles.some(t => /^\d+ atendimentos?$/.test(t)),
-  'conta aplicações do HOLOSCAN, não "atendimentos": ' + (con.tiles.find(t => /aplicaç/.test(t)) || '—'));
+conferir(con.tiles.some(t => /^3 aplicações do HOLOSCAN/.test(t)) && con.tiles.some(t => /^0 atendimentos$/.test(t)),
+  'conta aplicações do HOLOSCAN separadas dos atendimentos (14/10: os dois números no topo): ' + (con.tiles.find(t => /aplicaç/.test(t)) || '—'));
 conferir(con.tiles.some(t => /^1 voltou para reavaliar/.test(t)),
   'conta quem voltou: ' + (con.tiles.find(t => /voltou|voltaram/.test(t)) || '—'));
 

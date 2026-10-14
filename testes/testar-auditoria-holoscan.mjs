@@ -125,6 +125,8 @@ const cont = await A.evaluate(async () => {
   document.querySelector('.nav-item[data-secao="consultas"]').click();
   await new Promise(r => setTimeout(r, 300));
   const t = [...document.querySelectorAll('#consultas-corpo .dash-numeros .dash-tile')].map(x => x.innerText.replace(/\s+/g, ' '));
+  document.querySelector('#consultas-corpo [data-at-aba="holoscan"]').click();   /* 14/10: aplicacoes na aba HOLOSCAN */
+  await new Promise(r => setTimeout(r, 50));
   const selo = !!document.querySelector('#consultas-corpo .selo-nao-salvo');
   return { t, selo };
 });

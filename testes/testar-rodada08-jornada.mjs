@@ -109,9 +109,11 @@ await A.evaluate(async (pid, dia) => {
   document.querySelector('.nav-item[data-secao="consultas"]').click();
   await new Promise(r => setTimeout(r, 300));
 }, P, diaISO(3));
-const cons = await A.evaluate(() => [...document.querySelectorAll('#consultas-corpo .cons-linha')].map(l => l.textContent));
-ok(cons.length === 1 && /Paciente Jornada Editada/.test(cons[0]) && /10:00/.test(cons[0]),
-   'a consulta marcada aparece em Consultas: ' + (cons[0] || '(nenhuma)').replace(/\s+/g, ' ').slice(0, 70));
+/* 14/10: a pagina Atendimentos e so o historico clinico; a consulta marcada fica na Agenda (menu proprio) */
+const cons = await A.evaluate(() => ({ naPagina: !!document.querySelector('#consultas-corpo #consultas-agenda'),
+  agenda: (window.Agenda.daCarteira() || []).map(c => (window.pacientesTodos().find(p => p.id === c.paciente_id) || {}).nome + ' ' + String(c.hora).slice(0, 5)) }));
+ok(!cons.naPagina && cons.agenda.length === 1 && /Paciente Jornada Editada/.test(cons.agenda[0]) && /10:00/.test(cons.agenda[0]),
+   'a consulta marcada fica na Agenda (não mais repetida em Atendimentos): ' + cons.agenda.join(' | '));
 
 /* ==================================================================== */
 titulo('4. BLOQUEIO DIA TODO');

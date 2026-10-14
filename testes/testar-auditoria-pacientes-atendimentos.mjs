@@ -69,40 +69,23 @@ const at = await p.evaluate(async (ids) => {
   await window.Agenda.recarregar();
   document.querySelector('.nav-item[data-secao="consultas"]').click();
   window.redesenharConsultas();
+  /* 14/10: a pagina e o historico clinico; a agenda (proximas/anteriores) saiu daqui — tem o menu proprio */
   const corpo = document.getElementById('consultas-corpo');
-  const blocos = corpo.querySelectorAll('#consultas-agenda .con-lista');
-  const prox = blocos[0] ? [...blocos[0].querySelectorAll('.cons-linha')].map(l => l.innerText.replace(/\s+/g, ' ')) : [];
-  const ant = blocos[1] ? [...blocos[1].querySelectorAll('.cons-linha')].map(l => l.innerText.replace(/\s+/g, ' ')) : [];
-  const atLinha = corpo.querySelector('.at-linha');
-  const consLinha = corpo.querySelector('.cons-linha');
-  return { eid: e.id, prox, ant,
-    gridAt: atLinha ? getComputedStyle(atLinha).display : null,
-    gridCons: consLinha ? getComputedStyle(consLinha).display : null,
-    botaoAt: atLinha ? atLinha.querySelector('[data-atendimento]').textContent.trim() : '',
-    detalheAt: atLinha ? atLinha.querySelector('.con-detalhe').textContent : '' };
+  const atLinha = corpo.querySelector('tr.at-linha');
+  return { eid: e.id, temAgenda: !!corpo.querySelector('#consultas-agenda'), tabela: !!corpo.querySelector('table.at-tabela'),
+    tipo: atLinha ? atLinha.innerText.replace(/\s+/g, ' ') : '', clicavel: atLinha ? getComputedStyle(atLinha).cursor : '' };
 }, ids);
-ok(at.gridAt === 'grid' && at.gridCons === 'grid', 'listas de atendimentos e consultas com layout (grid): ' + at.gridAt + ' / ' + at.gridCons);
-ok(/^Abrir atendimento/.test(at.botaoAt) && /sem conduta/.test(at.detalheAt), 'atendimento: botão "Abrir atendimento" e "sem conduta" na linha: ' + at.detalheAt);
-ok(at.prox.length === 1 && !/00:01/.test(at.prox.join()), 'a consulta de hoje que já passou sai de "próximas": ' + at.prox.join(' | '));
-ok(at.ant.some(l => /00:01/.test(l) && /sem atendimento registrado/.test(l) && /Registrar atendimento/.test(l)),
-   'e aparece em "anteriores", dizendo que não há atendimento e oferecendo registrar: ' + at.ant.join(' | '));
+ok(at.tabela && !at.temAgenda, 'Atendimentos em tabela, sem o bloco da agenda (14/10)');
+ok(/Avulso/.test(at.tipo) && at.clicavel === 'pointer', 'linha do atendimento: tipo (Avulso) e linha inteira clicável: ' + at.tipo);
 
 const irAt = await p.evaluate(async (eid) => {
-  document.querySelector('#consultas-corpo [data-atendimento="' + eid + '"]').click();
+  document.querySelector('#consultas-corpo tr[data-atendimento="' + eid + '"] td').click();
   await new Promise(r => setTimeout(r, 300));
   return { secao: document.querySelector('.secao.ativa')?.id, ficha: !document.getElementById('vista-ficha').classList.contains('hidden'),
-    aba: document.querySelector('[data-aba].ativa')?.dataset.aba, atual: (window.AtendimentoAtual.atual() || {}).id };
+    atual: (window.AtendimentoAtual.atual() || {}).id };
 }, at.eid);
-ok(irAt.secao === 'secao-pacientes' && irAt.ficha && irAt.aba === 'conduta' && irAt.atual === at.eid,
-   '"Abrir atendimento" vai para a ficha, com o atendimento selecionado, na aba Conduta: ' + JSON.stringify(irAt));
-
-const irFicha = await p.evaluate(async (bia) => {
-  document.querySelector('.nav-item[data-secao="consultas"]').click();
-  document.querySelector('#consultas-corpo #consultas-agenda [data-paciente="' + bia + '"]').click();
-  await new Promise(r => setTimeout(r, 300));
-  return { secao: document.querySelector('.secao.ativa')?.id, ficha: !document.getElementById('vista-ficha').classList.contains('hidden'), nome: window.pacienteAtivoNome() };
-}, ids.bia);
-ok(irFicha.secao === 'secao-pacientes' && irFicha.ficha && irFicha.nome === 'Bia Ficticia', '"Abrir ficha" em Atendimentos abre a ficha (antes ficava na mesma tela)');
+ok(irAt.secao === 'secao-pacientes' && irAt.ficha && irAt.atual === at.eid,
+   'clicar na linha do atendimento vai para a ficha, com o atendimento selecionado: ' + JSON.stringify(irAt));
 
 /* ---------------------------------------------------- último contato ----- */
 const contato = await p.evaluate((ids) => {

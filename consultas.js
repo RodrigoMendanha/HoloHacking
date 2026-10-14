@@ -55,271 +55,183 @@
     return n + "ª aplicação";
   }
 
-  /* ---------- os numeros do topo ----------------------------------------- */
-
-  function blocoNumeros(lista) {
-    /* aplicacao calculada mas nao salva no servidor nao conta (auditoria
-       HOLOSCAN: a tela dizia 6 aplicacoes e o banco tinha 5) */
-    var P = window.Panorama;
-    lista = lista.filter(function (c) { return !(P && P.naoSalva && P.naoSalva(c)); });
-    var mesAtual = hojeISO().slice(0, 7);
-    var neste = lista.filter(function (c) {
-      return (c.quando || "").slice(0, 7) === mesAtual;
-    }).length;
-
-    var pessoas = {};
-    lista.forEach(function (c) { pessoas[c.paciente.id] = true; });
-    var atendidas = Object.keys(pessoas).length;
-
-    /* Quantos voltaram: quem tem mais de uma aplicacao. E o unico numero
-       desta tela que fala de metodo e nao de volume — reavaliar em 4 semanas
-       e a promessa, e este e o numero que diz se ela esta sendo cumprida. */
-    /* Correcao (auditoria Pacientes/Atendimentos): refazer no MESMO dia nao
-       e reavaliar. Conta quem tem aplicacoes em pelo menos DOIS dias. */
-    var dias = {};
-    lista.forEach(function (c) {
-      (dias[c.paciente.id] = dias[c.paciente.id] || {})[c.quando || ""] = true;
-    });
-    var voltaram = Object.keys(dias).filter(function (k) {
-      return Object.keys(dias[k]).length > 1;
-    }).length;
-
-    var tiles = [
-      { n: lista.length, r: lista.length === 1 ? "aplicação do HOLOSCAN" : "aplicações do HOLOSCAN" },
-      { n: neste, r: "neste mês" },
-      { n: atendidas, r: atendidas === 1 ? "paciente atendida" : "pacientes atendidas" },
-      { n: voltaram, r: voltaram === 1 ? "voltou para reavaliar" : "voltaram para reavaliar" }
-    ];
-
-    return '<div class="dash-numeros">' + tiles.map(function (t) {
-      return '<div class="dash-tile"><b>' + escapar(t.n) + "</b><span>" +
-        escapar(t.r) + "</span></div>";
-    }).join("") + "</div>";
-  }
-
-  /* ---------- uma linha --------------------------------------------------- */
-
-  function linha(c) {
-    /* Etapa 0 da V1: a variacao do Indice entre aplicacoes ("+3", "subiu")
-       nao e mais escrita aqui. Comparar duas aplicacoes exige verificacao de
-       comparabilidade (Mestre §19) que ainda nao existe; ate la, cada linha
-       mostra o seu Indice com o selo "em homologacao", lado a lado. */
-    var M = window.Metodologia;
-    var variacao = M ? '<span class="con-var homologacao">' + M.seloAplicacao(c) + "</span>" : "";
-
-    var baixos = c.maisBaixos.map(function (s) {
-      return escapar(s.nome) + " " + window.HoloAusencia.notaTexto(s);
-    }).join(" · ");
-
-    return '<li class="con-linha">' +
-      '<span class="con-dia">' + escapar(dataBR(c.quando)) + "</span>" +
-      '<span class="pac-avatar">' + escapar(inicial(c.paciente.nome)) + "</span>" +
-      '<span class="con-quem">' +
-        "<b>" + escapar(c.paciente.nome) + "</b>" +
-        '<span class="con-detalhe">' + escapar(ordinal(c.numero)) +
-          (baixos ? " &middot; mais baixos: " + baixos : "") + "</span>" +
-      "</span>" +
-      '<span class="con-indice">' + escapar(c.oficial ? window.HoloAusencia.indiceTexto(c)
-        : (typeof c.indice === "number" ? String(Math.round(c.indice)) : "—")) +
-        '<i>Índice</i></span>' +
-      variacao +
-      '<button type="button" class="dash-ir" data-paciente="' +
-        escapar(c.paciente.id) + '">Abrir ficha <span aria-hidden="true">&rarr;</span></button>' +
-      "</li>";
-  }
-
-  /* ---------- as consultas de verdade (rodada 08) ------------------------
-     A tela abre com as CONSULTAS registradas na agenda (tabela
-     consultations): proximas e anteriores, de toda a carteira. As aplicacoes
-     do HOLOSCAN continuam logo abaixo, com esse nome — antes elas eram a
-     tela inteira, e uma consulta marcada nunca aparecia em "Consultas". */
-
   function nomeDoPaciente(pid) {
     var todos = (window.pacientesTodos && window.pacientesTodos()) || [];
     for (var i = 0; i < todos.length; i++) if (todos[i].id === pid) return todos[i].nome;
     return "Paciente";
   }
 
-  /* Consulta anterior: diz se ha atendimento registrado para ela; se nao
-     ha, oferece registrar (a consulta marcada nao vira atendimento sozinha). */
-  function linhaConsulta(c, anterior) {
-    var nome = nomeDoPaciente(c.paciente_id);
-    var A = window.AtendimentoAtual;
-    var at = anterior && A && A.porAgendamento ? A.porAgendamento(c.id) : null;
-    var arquivado = window.pacienteArquivado && window.pacienteArquivado(c.paciente_id);
-    var situacao = !anterior ? "" : at ? " &middot; atendimento registrado" : " &middot; sem atendimento registrado";
-    var registrar = anterior && !at && !arquivado && A
-      ? '<button type="button" class="dash-ir" data-registrar-consulta="' + escapar(c.id) + '">Registrar atendimento</button>' : "";
-    return '<li class="con-linha cons-linha">' +
-      '<span class="con-dia">' + escapar(dataBR(c.data)) +
-        (c.hora ? " &middot; " + escapar(String(c.hora).slice(0, 5)) : "") + "</span>" +
-      '<span class="pac-avatar">' + escapar(inicial(nome)) + "</span>" +
-      '<span class="con-quem"><b>' + escapar(nome) + "</b>" +
-        '<span class="con-detalhe">' + escapar(c.tipo || "Consulta") +
-          (c.duracao ? " &middot; " + escapar(c.duracao) + " min" : "") +
-          (c.nota ? " &middot; " + escapar(c.nota) : "") + situacao +
-          (arquivado ? " &middot; arquivado" : "") + "</span></span>" +
-      registrar +
-      '<button type="button" class="dash-ir" data-paciente="' + escapar(c.paciente_id) +
-        '">Abrir ficha <span aria-hidden="true">&rarr;</span></button>' +
-      "</li>";
-  }
+  /* ===== REDESENHO 14/10: painel do historico clinico =====================
+     Ordem: filtro de mes (topo) -> numeros do periodo -> abas (Atendimentos | HOLOSCAN) -> tabela.
+     A agenda saiu daqui (tem o menu proprio). No celular a tabela vira cartoes compactos e os
+     numeros, uma faixa com rolagem lateral. Linha inteira clicavel. Nada e calculado alem de contar. */
+  var estado = { mes: null, aba: "atendimentos" };
+  var MESES_CURTOS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+  function rotuloMes(m) { if (!m) return "Todos os meses"; var p = m.split("-"); return MESES_CURTOS[Number(p[1]) - 1] + " de " + p[0]; }
+  function mesAtual() { return hojeISO().slice(0, 7); }
 
-  function blocoAgenda() {
-    var todas = window.Agenda && window.Agenda.daCarteira ? window.Agenda.daCarteira() : null;
-    if (!todas) return "";
-    /* "Proxima" e data E hora: a consulta de hoje que ja passou vai para
-       as anteriores. */
-    var hoje = hojeISO();
-    var agora = new Date();
-    var agoraHM = String(agora.getHours()).padStart(2, "0") + ":" + String(agora.getMinutes()).padStart(2, "0");
-    var futura = function (c) {
-      return c.data > hoje || (c.data === hoje && (!c.hora || String(c.hora).slice(0, 5) >= agoraHM));
-    };
-    var proximas = todas.filter(futura);
-    var anteriores = todas.filter(function (c) { return !futura(c); }).reverse();
-    var html = '<div class="dash-bloco" id="consultas-agenda"><h3 class="dash-titulo">Agenda &mdash; próximas consultas marcadas</h3>';
-    html += proximas.length
-      ? '<ul class="con-lista">' + proximas.map(function (c) { return linhaConsulta(c, false); }).join("") + "</ul>"
-      : '<p class="dash-vazio">Nenhuma consulta marcada daqui para a frente.</p>';
-    html += '<h3 class="dash-titulo">Agenda &mdash; consultas marcadas anteriores (não são atendimentos)</h3>';
-    html += anteriores.length
-      ? '<ul class="con-lista">' + anteriores.map(function (c) { return linhaConsulta(c, true); }).join("") + "</ul>"
-      : '<p class="dash-vazio">Nenhuma consulta anterior registrada na agenda.</p>';
-    return html + "</div>";
-  }
-
-  /* ---------- os atendimentos de verdade (V1, Etapa 1) ------------------- */
-
-  function linhaAtendimento(e) {
-    var A = window.AtendimentoAtual;
-    var w = A.paraParede(e.occurred_at, e.timezone || A.fuso());
-    var nome = nomeDoPaciente(e.patient_id);
-    var Cd = window.Conduta;
-    var temConduta = Cd && Cd.vigente ? !!Cd.vigente(e.id) : false;
-    return '<li class="con-linha at-linha">' +
-      '<span class="con-dia">' + escapar(dataBR(w.data)) + " &middot; " + escapar(w.hora) + "</span>" +
-      '<span class="pac-avatar">' + escapar(inicial(nome)) + "</span>" +
-      '<span class="con-quem"><b>' + escapar(nome) + "</b>" +
-        '<span class="con-detalhe">' + (e.type ? escapar(e.type) + " &middot; " : "") +
-          (e.consultation_id ? "com agendamento" : "sem agendamento") +
-          (e.status ? " &middot; " + escapar(e.status) : "") +
-          (Cd ? (temConduta ? " &middot; com conduta" : " &middot; sem conduta") : "") + "</span></span>" +
-      '<button type="button" class="dash-ir" data-atendimento="' + escapar(e.id) + '" data-paciente-at="' + escapar(e.patient_id) +
-        '">Abrir atendimento <span aria-hidden="true">&rarr;</span></button>' +
-      "</li>";
-  }
-
-  function blocoAtendimentos() {
+  function atendimentos() {
     var A = window.AtendimentoAtual;
     var lista = A && A.todos ? A.todos() : [];
-    var html = '<div class="dash-bloco" id="atendimentos-lista"><h3 class="dash-titulo">Atendimentos registrados</h3>';
-    if (!lista.length) {
-      html += '<p class="dash-vazio" id="atendimentos-vazio">Nenhum atendimento registrado. ' +
-        "Um atendimento nasce por \"Iniciar atendimento\" na agenda ou \"Novo atendimento\" na ficha " +
-        "&mdash; nunca pela data chegar.</p>";
-    } else {
-      var mesCorrente = null;
-      lista.forEach(function (e) {
-        var w = A.paraParede(e.occurred_at, e.timezone || A.fuso());
-        var mes = (w.data || "").slice(0, 7);
-        if (mes !== mesCorrente) {
-          if (mesCorrente !== null) html += "</ul>";
-          mesCorrente = mes;
-          html += '<h4 class="dash-sub">' + escapar(mesPorExtenso(w.data)) + '</h4><ul class="con-lista at-lista">';
-        }
-        html += linhaAtendimento(e);
-      });
-      if (mesCorrente !== null) html += "</ul>";
-    }
-    return html + "</div>";
+    return lista.map(function (e) {
+      var w = A.paraParede(e.occurred_at, e.timezone || A.fuso());
+      return { e: e, data: w.data || "", hora: w.hora || "", nome: nomeDoPaciente(e.patient_id) };
+    }).sort(function (a, b) { return (b.data + b.hora).localeCompare(a.data + a.hora); });
+  }
+  function aplicacoes() {
+    var P = window.Panorama;
+    try { return (P && P.consultas ? P.consultas() : []); } catch (err) { return []; }
+  }
+  function doMes(itens, campo) {
+    if (!estado.mes) return itens;
+    return itens.filter(function (x) { return String(x[campo] || "").slice(0, 7) === estado.mes; });
   }
 
-  /* ---------- desenhar ---------------------------------------------------- */
+  function situacaoResultado(eid) {
+    var J = window.JornadaPaciente;
+    var r = J && J.resultadoDoAtendimento ? J.resultadoDoAtendimento(eid) : null;
+    if (r === "emitido") return { cls: "ok", txt: "Resultado emitido" };
+    if (r === "gerado") return { cls: "meio", txt: "Resultado gerado" };
+    if (r === "nenhum") return { cls: "pendente", txt: "Sem resultado" };
+    return null;
+  }
+
+  function numeros(ats, aps) {
+    var P = window.Panorama;
+    var apsSalvas = aps.filter(function (c) { return !(P && P.naoSalva && P.naoSalva(c)); });
+    var pessoas = {};
+    ats.forEach(function (x) { pessoas[x.e.patient_id] = true; });
+    apsSalvas.forEach(function (c) { pessoas[c.paciente.id] = true; });
+    var semRes = ats.filter(function (x) { var s = situacaoResultado(x.e.id); return s && s.cls === "pendente"; }).length;
+    /* quem voltou para reavaliar: aplicacoes em pelo menos dois dias (no historico todo da pessoa) */
+    var dias = {};
+    aplicacoes().filter(function (c) { return !(P && P.naoSalva && P.naoSalva(c)); }).forEach(function (c) {
+      (dias[c.paciente.id] = dias[c.paciente.id] || {})[c.quando || ""] = true;
+    });
+    var noPeriodo = {}; apsSalvas.forEach(function (c) { noPeriodo[c.paciente.id] = true; });
+    var voltaram = Object.keys(dias).filter(function (k) { return noPeriodo[k] && Object.keys(dias[k]).length > 1; }).length;
+    var tiles = [
+      { n: ats.length, r: ats.length === 1 ? "atendimento" : "atendimentos" },
+      { n: apsSalvas.length, r: apsSalvas.length === 1 ? "aplicação do HOLOSCAN" : "aplicações do HOLOSCAN" },
+      { n: Object.keys(pessoas).length, r: Object.keys(pessoas).length === 1 ? "paciente atendida" : "pacientes atendidas" },
+      { n: voltaram, r: voltaram === 1 ? "voltou para reavaliar" : "voltaram para reavaliar" },
+      { n: semRes, r: semRes === 1 ? "atendimento sem resultado" : "atendimentos sem resultado", alerta: semRes > 0 }
+    ];
+    return '<div class="dash-numeros at-metricas" role="list">' + tiles.map(function (t) {
+      return '<div class="dash-tile' + (t.alerta ? " at-alerta" : "") + '" role="listitem"><b>' + escapar(t.n) + "</b><span>" + escapar(t.r) + "</span></div>";
+    }).join("") + "</div>";
+  }
+
+  function vazio(txt, botao, destino) {
+    return '<div class="at-vazio"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9.5 4V2.8h5V4M9.5 10.5h5M9.5 14.5h3"/></svg>' +
+      "<p>" + escapar(txt) + "</p>" +
+      (botao ? '<button type="button" class="btn-verde" data-secao-destino="' + destino + '">' + escapar(botao) + "</button>" : "") + "</div>";
+  }
+
+  function tabelaAtendimentos(ats) {
+    if (!ats.length) return vazio(estado.mes ? "Nenhum atendimento registrado em " + rotuloMes(estado.mes).toLowerCase() + "." : "Nenhum atendimento registrado.", "Iniciar atendimento", "agenda");
+    return '<table class="at-tabela"><thead><tr><th>Data</th><th>Paciente</th><th>Tipo</th><th>Situação</th><th class="at-col-acao"><span class="sr-only">Ação</span></th></tr></thead><tbody>' +
+      ats.map(function (x) {
+        var sit = situacaoResultado(x.e.id);
+        var arq = window.pacienteArquivado && window.pacienteArquivado(x.e.patient_id);
+        return '<tr class="con-linha at-linha" tabindex="0" data-atendimento="' + escapar(x.e.id) + '" data-paciente-at="' + escapar(x.e.patient_id) + '">' +
+          '<td class="at-c-data" data-rot="Data">' + escapar(dataBR(x.data)) + ' <span class="at-hora">' + escapar(x.hora) + "</span></td>" +
+          '<td class="at-c-quem" data-rot="Paciente"><span class="at-quem"><span class="pac-avatar" aria-hidden="true">' + escapar(inicial(x.nome)) + "</span><b>" + escapar(x.nome) + "</b>" + (arq ? ' <span class="at-pilula neutra">arquivado</span>' : "") + "</span></td>" +
+          '<td data-rot="Tipo"><span class="at-pilula neutra">' + (x.e.consultation_id ? "Agendado" : "Avulso") + "</span></td>" +
+          '<td data-rot="Situação">' + (sit ? '<span class="at-pilula ' + sit.cls + '">' + escapar(sit.txt) + "</span>" : '<span class="at-pilula neutra">—</span>') + "</td>" +
+          '<td class="at-col-acao"><span class="at-abrir">Abrir <span aria-hidden="true">&rarr;</span></span></td></tr>';
+      }).join("") + "</tbody></table>";
+  }
+
+  function tabelaHoloscan(aps) {
+    if (!aps.length) return vazio(estado.mes ? "Nenhuma aplicação do HOLOSCAN em " + rotuloMes(estado.mes).toLowerCase() + "." : "Nenhuma aplicação do HOLOSCAN registrada.", "Aplicar o HOLOSCAN", "holoscan");
+    var M = window.Metodologia;
+    return '<table class="at-tabela"><thead><tr><th>Data</th><th>Paciente</th><th>Índice HOLOS</th><th>Sistemas mais baixos</th><th class="at-col-acao"><span class="sr-only">Ação</span></th></tr></thead><tbody>' +
+      aps.map(function (c) {
+        var baixos = (c.maisBaixos || []).map(function (s) { return escapar(s.nome) + " " + window.HoloAusencia.notaTexto(s); }).join(" &middot; ");
+        var indice = c.oficial ? window.HoloAusencia.indiceTexto(c) : (typeof c.indice === "number" ? String(Math.round(c.indice)) : "—");
+        return '<tr class="con-linha" tabindex="0" data-paciente="' + escapar(c.paciente.id) + '">' +
+          '<td class="at-c-data" data-rot="Data">' + escapar(dataBR(c.quando)) + ' <span class="at-hora">' + escapar(ordinal(c.numero)) + "</span></td>" +
+          '<td class="at-c-quem" data-rot="Paciente"><span class="at-quem"><span class="pac-avatar" aria-hidden="true">' + escapar(inicial(c.paciente.nome)) + "</span><b>" + escapar(c.paciente.nome) + "</b></span></td>" +
+          '<td data-rot="Índice HOLOS"><b class="at-indice">' + escapar(indice) + "</b>" + (M ? ' <span class="con-var homologacao">' + M.seloAplicacao(c) + "</span>" : "") + "</td>" +
+          '<td class="at-c-baixos" data-rot="Mais baixos">' + (baixos || "—") + "</td>" +
+          '<td class="at-col-acao"><span class="at-abrir">Abrir <span aria-hidden="true">&rarr;</span></span></td></tr>';
+      }).join("") + "</tbody></table>";
+  }
+
+  function csv(ats, aps) {
+    var q = function (v) { return '"' + String(v === null || v === undefined ? "" : v).replace(/"/g, '""') + '"'; };
+    var linhas;
+    if (estado.aba === "holoscan") {
+      linhas = [["Data", "Paciente", "Aplicação", "Índice HOLOS", "Sistemas mais baixos"]].concat(aps.map(function (c) {
+        return [dataBR(c.quando), c.paciente.nome, ordinal(c.numero), c.oficial ? window.HoloAusencia.indiceTexto(c) : (typeof c.indice === "number" ? Math.round(c.indice) : ""),
+          (c.maisBaixos || []).map(function (s) { return s.nome + " " + window.HoloAusencia.notaTexto(s); }).join(" / ")];
+      }));
+    } else {
+      linhas = [["Data", "Hora", "Paciente", "Tipo", "Situação"]].concat(ats.map(function (x) {
+        var sit = situacaoResultado(x.e.id);
+        return [dataBR(x.data), x.hora, x.nome, x.e.consultation_id ? "Agendado" : "Avulso", sit ? sit.txt : ""];
+      }));
+    }
+    var blob = new Blob(["﻿" + linhas.map(function (l) { return l.map(q).join(";"); }).join("\r\n")], { type: "text/csv;charset=utf-8" });
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = (estado.aba === "holoscan" ? "historico-holoscan" : "historico-atendimentos") + "-" + (estado.mes || "todos") + ".csv";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 30000);
+  }
 
   function desenhar() {
-    if (!alvo || !window.Panorama || !window.Panorama.consultas) return;
+    if (!alvo) return;
+    var todosAt = atendimentos(), todasAp = aplicacoes();
+    var meses = {}; meses[mesAtual()] = true;
+    todosAt.forEach(function (x) { if (x.data) meses[x.data.slice(0, 7)] = true; });
+    todasAp.forEach(function (c) { if (c.quando) meses[c.quando.slice(0, 7)] = true; });
+    if (estado.mes === null) estado.mes = mesAtual();
+    if (estado.mes && !meses[estado.mes]) meses[estado.mes] = true;
+    var opcoes = Object.keys(meses).sort().reverse();
+    var ats = doMes(todosAt, "data"), aps = doMes(todasAp, "quando");
 
-    var lista;
-    try { lista = window.Panorama.consultas(); }
-    catch (e) { alvo.innerHTML = ""; return; }
+    alvo.innerHTML =
+      '<div class="at-topo">' +
+        '<div class="secao-cabeca at-cabeca"><span class="eyebrow">Histórico clínico</span><h2>Seus <em>atendimentos</em></h2></div>' +
+        '<label class="at-periodo"><span class="sr-only">Período</span><select id="at-mes" aria-label="Período">' +
+          opcoes.map(function (m) { return '<option value="' + m + '"' + (m === estado.mes ? " selected" : "") + ">" + escapar(rotuloMes(m)) + "</option>"; }).join("") +
+          '<option value=""' + (!estado.mes ? " selected" : "") + ">Todos os meses</option></select></label>" +
+      "</div>" +
+      numeros(ats, aps) +
+      '<div class="at-barra"><div class="at-abas" role="tablist" aria-label="Histórico">' +
+        '<button type="button" role="tab" class="at-aba' + (estado.aba === "atendimentos" ? " ativa" : "") + '" aria-selected="' + (estado.aba === "atendimentos") + '" data-at-aba="atendimentos">Histórico de atendimentos <span class="at-conta">' + ats.length + "</span></button>" +
+        '<button type="button" role="tab" class="at-aba' + (estado.aba === "holoscan" ? " ativa" : "") + '" aria-selected="' + (estado.aba === "holoscan") + '" data-at-aba="holoscan">Histórico HOLOSCAN <span class="at-conta">' + aps.length + "</span></button>" +
+      '</div><button type="button" class="btn-fantasma at-csv" data-at-csv="1">Exportar CSV</button></div>' +
+      '<div class="at-tabela-caixa" id="atendimentos-lista">' + (estado.aba === "holoscan" ? tabelaHoloscan(aps) : tabelaAtendimentos(ats)) + "</div>";
 
-    var cabeca =
-      '<div class="secao-cabeca">' +
-        '<span class="eyebrow">Atendimento &mdash; histórico</span>' +
-        "<h2>Seus <em>atendimentos</em></h2>" +
-        "<p>Os atendimentos clínicos registrados, do mais recente para o mais antigo. " +
-        "Abaixo, a agenda (agendamentos, que não são atendimentos) e as " +
-        "aplicações do HOLOSCAN da carteira.</p>" +
-      "</div>" + blocoAtendimentos() + blocoAgenda() +
-      '<h3 class="dash-titulo">Aplicações do HOLOSCAN</h3>';
-
-    if (lista.length === 0) {
-      alvo.innerHTML = cabeca +
-        '<p class="dash-vazio">Nenhuma aplicação do HOLOSCAN registrada ainda.</p>' +
-        '<div class="dash-primeiro">' +
-          "<p>O mapa é o que transforma a conversa em registro.</p>" +
-          '<button type="button" class="btn-verde" data-secao-destino="holoscan">' +
-          "Aplicar o HOLOSCAN</button>" +
-        "</div>";
-      ligar();
-      return;
-    }
-
-    // agrupado por mes: e assim que quem atende procura ("o que fiz em agosto?")
-    var html = cabeca + blocoNumeros(lista);
-    var mesCorrente = null;
-
-    lista.forEach(function (c) {
-      var mes = (c.quando || "").slice(0, 7);
-      if (mes !== mesCorrente) {
-        if (mesCorrente !== null) html += "</ul></div>";
-        mesCorrente = mes;
-        html += '<div class="dash-bloco"><h3 class="dash-titulo">' +
-                escapar(mesPorExtenso(c.quando)) + "</h3>" +
-                '<ul class="con-lista">';
-      }
-      html += linha(c);
-    });
-    if (mesCorrente !== null) html += "</ul></div>";
-
-    alvo.innerHTML = html;
-    ligar();
+    ligar(ats, aps);
   }
 
-  function ligar() {
-    /* Correcao (auditoria): os botoes trocavam o paciente e a tela ficava em
-       Atendimentos. Agora vao para a ficha; "Abrir atendimento" seleciona
-       o atendimento e abre a aba Conduta dele. */
-    alvo.querySelectorAll("[data-atendimento]").forEach(function (b) {
-      b.addEventListener("click", function () {
-        var pid = b.dataset.pacienteAt;
-        if (window.irParaSecao) window.irParaSecao("pacientes");
-        if (window.abrirFichaDe) window.abrirFichaDe(pid);
-        if (window.AtendimentoAtual) window.AtendimentoAtual.selecionarPorId(b.dataset.atendimento);
-        var aba = document.querySelector('[data-aba="conduta"]');
-        if (aba) aba.click();
-      });
+  function abrirAtendimento(pid, eid) {
+    if (window.irParaSecao) window.irParaSecao("pacientes");
+    if (window.abrirFichaDe) window.abrirFichaDe(pid);
+    if (eid && window.AtendimentoAtual) window.AtendimentoAtual.selecionarPorId(eid);
+  }
+  function ligar(ats, aps) {
+    var mes = document.getElementById("at-mes");
+    if (mes) mes.addEventListener("change", function () { estado.mes = mes.value || ""; desenhar(); });
+    alvo.querySelectorAll("[data-at-aba]").forEach(function (b) {
+      b.addEventListener("click", function () { estado.aba = b.dataset.atAba; desenhar(); });
     });
-    alvo.querySelectorAll("[data-paciente]").forEach(function (b) {
-      b.addEventListener("click", function () {
-        var pid = b.dataset.paciente;
-        if (window.irParaSecao) window.irParaSecao("pacientes");
-        if (window.abrirFichaDe) window.abrirFichaDe(pid);
-      });
-    });
-    alvo.querySelectorAll("[data-registrar-consulta]").forEach(function (b) {
-      b.addEventListener("click", function () {
-        var c = window.Agenda && window.Agenda.porId ? window.Agenda.porId(b.dataset.registrarConsulta) : null;
-        if (!c || !window.AtendimentoAtual) return;
-        if (window.definirPacienteAtivo) window.definirPacienteAtivo(c.paciente_id);
-        window.AtendimentoAtual.abrirDialogo({ patient_id: c.paciente_id, consulta: c });
-      });
+    var exp = alvo.querySelector("[data-at-csv]");
+    if (exp) exp.addEventListener("click", function () { csv(ats, aps); });
+    /* a linha inteira abre (clique ou Enter/Espaco) */
+    alvo.querySelectorAll("tr[data-atendimento], tr[data-paciente]").forEach(function (tr) {
+      var ir = function () {
+        if (tr.dataset.atendimento) abrirAtendimento(tr.dataset.pacienteAt, tr.dataset.atendimento);
+        else { abrirAtendimento(tr.dataset.paciente, null); if (window.levarParaFicha) window.levarParaFicha("aba:holoscan", tr.dataset.paciente); }
+      };
+      tr.addEventListener("click", ir);
+      tr.addEventListener("keydown", function (ev) { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); ir(); } });
     });
     alvo.querySelectorAll("[data-secao-destino]").forEach(function (b) {
-      b.addEventListener("click", function () {
-        if (window.irParaSecao) window.irParaSecao(b.dataset.secaoDestino);
-      });
+      b.addEventListener("click", function () { if (window.irParaSecao) window.irParaSecao(b.dataset.secaoDestino); });
     });
   }
 
@@ -328,6 +240,11 @@
     if (!alvo) return;
 
     // derivada da carteira: muda quando a carteira muda
+    /* sempre em dia: atendimento novo/alterado, resultados lidos e cada vez que a pagina abre (releitura) */
+    if (window.AtendimentoAtual && window.AtendimentoAtual.aoMudar) window.AtendimentoAtual.aoMudar(function () { if (visivel()) desenhar(); });
+    if (window.JornadaPaciente && window.JornadaPaciente.aoCarregar) window.JornadaPaciente.aoCarregar(function () { if (visivel()) desenhar(); });
+    var nav = document.querySelector('.nav-item[data-secao="consultas"]');
+    if (nav) nav.addEventListener("click", function () { if (window.JornadaPaciente && window.JornadaPaciente.recarregar) window.JornadaPaciente.recarregar(); setTimeout(desenhar, 0); });
     var anterior = window.aoTrocarPaciente;
     window.aoTrocarPaciente = function () {
       if (typeof anterior === "function") anterior();
@@ -336,5 +253,6 @@
     desenhar();
   });
 
+  function visivel() { var sec = document.getElementById("secao-consultas"); return !!(sec && sec.classList.contains("ativa")); }
   window.redesenharConsultas = desenhar;
 })();
