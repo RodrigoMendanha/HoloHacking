@@ -5,8 +5,8 @@
 #   sh deploy-etapa6-5b.sh swap       -> passos 9-11 (troca 8080, valida local e publico). So depois de conferir o 1o.
 # Para sozinho em qualquer divergencia. Nunca apaga container. Nao usa credencial.
 set -eu
-ESPERADO=6252794f9e9943f7ee8346b41cb758e5162e8c85
-CURTO=6252794
+ESPERADO=061c82470db5ac8d395531ef5fcd834e7d5bb873
+CURTO=061c824
 DIR=/opt/holohacking
 IMG=holohacking-web:$CURTO
 PROD=holohacking-web
