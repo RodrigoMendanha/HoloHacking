@@ -338,7 +338,10 @@
       corpo = '<ul class="dash-acomp-lista" id="dash-lista-acompanhamento">' + lista.map(function (a) {
         var E = ETAPAS[a.chave];
         var dt = diaLocal(a.data);
-        return '<li><button type="button" class="dash-acomp" data-etapa="' + a.chave + '" data-paciente="' + escapar(a.paciente.id) + '" data-destino="' + escapar(a.destino) + '"' +
+        /* rodada UX 14/10 (Cowork I): a linha (e a seta) do paciente abre o paciente — o retorno marcado abre a ficha
+           em Atendimentos, nao a Agenda */
+        var destinoLinha = a.destino === "consulta" ? "aba:consultas" : a.destino;
+        return '<li><button type="button" class="dash-acomp" data-etapa="' + a.chave + '" data-paciente="' + escapar(a.paciente.id) + '" data-destino="' + escapar(destinoLinha) + '"' +
             (a.consulta ? ' data-consulta="' + escapar(a.consulta) + '"' : "") + ' aria-label="' + escapar(a.paciente.nome + ": " + E.rotulo) + '">' +
           '<span class="pac-avatar">' + escapar(inicial(a.paciente.nome)) + "</span>" +
           '<span class="dash-quem"><b>' + escapar(a.paciente.nome) + '</b><span class="dash-porque">' + escapar(a.sub) + "</span></span>" +

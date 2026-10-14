@@ -221,6 +221,7 @@
      preferencia fica neste navegador, que e onde ela pertence: e de quem
      olha a tela, nao da clinica, e nao acompanha a pessoa para outra maquina. */
   const CHAVE_TEMA = "holohacking.aparencia";
+  const CHAVE_SEM_PACIENTE = "holohacking.semPaciente";
   const btnTema = $("#btn-tema");
 
   function sistemaEstaEscuro(){
@@ -323,7 +324,9 @@
     /* Na secao Pacientes (lista ou ficha) a barra nao aparece: na lista ela
        ficava por cima, com "Voltar a ficha" e as abas de outra pessoa. */
     var fichaVisivel = secao === "pacientes" && pacientesNaTela;
-    if (p && !fichaVisivel) {
+    /* rodada UX 14/10: Perfil, Contas, Ajuda e Metodologia nao sao de paciente — a barra nao aparece ali */
+    var semContexto = ["perfil", "contas", "ajuda", "metodologia"].indexOf(secao || secaoAtual()) >= 0;
+    if (p && !fichaVisivel && !semContexto) {
       document.getElementById("bpctx-avatar").textContent =
         (p.nome || "P").charAt(0).toUpperCase();
       document.getElementById("bpctx-nome").textContent = p.nome || "Paciente";
@@ -542,7 +545,9 @@
     /* Ao carregar, o paciente em foco e o primeiro ATIVO: um arquivado voltava
        selecionado na barra de contexto a cada recarga. */
     const primeiroAtivo = pacientes.find(p => p.status !== "inativo");
-    if(primeiroAtivo && !estado.ativo) estado.ativo = primeiroAtivo.id;
+    let limpoNestaAba = false;
+    try { limpoNestaAba = sessionStorage.getItem(CHAVE_SEM_PACIENTE) === "1"; } catch (e) { /* sem sessionStorage */ }
+    if(primeiroAtivo && !estado.ativo && !limpoNestaAba) estado.ativo = primeiroAtivo.id;
     renderPacientes();
     atualizarSeletores();
     carregarFormularios();
@@ -618,6 +623,8 @@
 
   function definirAtivo(id){
     estado.ativo = id || null;
+    /* paciente escolhido de novo: o "desselecionado" (X da barra) deixa de valer nesta aba */
+    if (id) { try { sessionStorage.removeItem(CHAVE_SEM_PACIENTE); } catch (e) { /* sem sessionStorage */ } }
     atualizarSeletores();
     carregarFormularios();
     carregarHoloscan();
@@ -625,6 +632,27 @@
     // as 30 ferramentas guardam por paciente; formulario.js precisa saber
     avisarTrocaDePaciente();
   }
+
+  /* rodada UX 14/10 — X da barra de contexto: DESSELECIONA o paciente (so o contexto de navegacao; nao apaga, nao
+     arquiva, nao encerra atendimento, nao muda prontuario). Vale nesta aba do navegador: recarregar nao traz de volta
+     o paciente que foi limpo de proposito (a escolha automatica do 1o ativo so acontece quando ninguem limpou). */
+  function secaoAtual(){ var s = document.querySelector(".secao.ativa"); return s ? s.id.replace(/^secao-/, "") : null; }
+  function limparPacienteAtivo(){
+    try { sessionStorage.setItem(CHAVE_SEM_PACIENTE, "1"); } catch (e) { /* sem sessionStorage */ }
+    var sec = secaoAtual();
+    definirAtivo(null);
+    var ficha = document.getElementById("vista-ficha");
+    if (ficha && !ficha.classList.contains("hidden")) {
+      /* na ficha: volta para a lista (a ficha nao fica aberta sem paciente) */
+      ficha.classList.add("hidden");
+      document.getElementById("vista-lista-pacientes").classList.remove("hidden");
+      renderPacientes();
+    }
+    irPara(sec || "dashboard");
+    atualizarBarraPaciente(sec);
+    toast("Nenhum paciente selecionado.");
+  }
+  window.limparPacienteAtivo = limparPacienteAtivo;
 
   // o que formulario.js enxerga daqui de dentro
   window.pacienteAtivoId = () => estado.ativo || null;
@@ -790,7 +818,7 @@
     }
     const sub = [];
     if(p.telefone) sub.push('<a class="pac-dado pac-link" href="tel:' + escapar(p.telefone) + '">' + ico(ICONES.fone) + " " + escapar(p.telefone) + "</a>");
-    if(p.email) sub.push('<a class="pac-dado pac-link" href="mailto:' + escapar(p.email) + '">' + ico(ICONES.carta) + " " + escapar(p.email) + "</a>");
+    if(p.email) sub.push('<a class="pac-dado pac-link" href="mailto:' + escapar(p.email) + '" title="' + escapar(p.email) + '">' + ico(ICONES.carta) + ' <span class="pac-txt">' + escapar(p.email) + "</span></a>");
     return '<div class="card-paciente' + (p.id === estado.ativo ? " ativo" : "")
         + (s.inativo ? " inativo" : "") + '" data-id="' + p.id + '" tabindex="0" role="row"'
         + ' aria-label="' + escapar(p.nome) + ': abrir ficha">'
@@ -4218,6 +4246,7 @@
     var barraCtx = document.getElementById("barra-paciente-ctx");
     if (barraCtx) {
       barraCtx.addEventListener("click", function (e) {
+        if (e.target.closest("#bpctx-fechar")) { limparPacienteAtivo(); return; }
         var btn = e.target.closest("[data-bpctx]");
         if (!btn) return;
         var destino = btn.getAttribute("data-bpctx");

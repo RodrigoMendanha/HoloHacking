@@ -99,11 +99,29 @@
         if (novos.length && document.getElementById("secao-contas") && document.getElementById("secao-contas").classList.contains("ativa")) carregar();
       }
       conhecidos = ids;
-      if (pendentes && !avisou) {
-        avisou = true;
-        avisar(pendentes + (pendentes === 1 ? " cadastro aguardando liberação" : " cadastros aguardando liberação") + " (Configurações → Administração).");
-      }
+      /* rodada UX 14/10 (Cowork J): era um toast no rodape, por cima dos cartoes do Dashboard. Agora e uma faixa no topo
+         do conteudo, que nao cobre nada, leva a Administracao e pode ser fechada (fica fechada nesta aba do navegador). */
+      faixaPendentes();
     });
+  }
+
+  function faixaPendentes() {
+    var alvo = document.getElementById("conteudo-principal");
+    var f = document.getElementById("aviso-cadastros");
+    var fechada = false; try { fechada = sessionStorage.getItem("holohacking.avisoCadastros") === String(pendentes); } catch (e) { /* */ }
+    if (!pendentes || fechada || !alvo) { if (f) f.remove(); return; }
+    if (!f) {
+      f = document.createElement("div");
+      f.id = "aviso-cadastros"; f.className = "aviso-faixa"; f.setAttribute("role", "status");
+      f.addEventListener("click", function (ev) {
+        if (ev.target.closest("[data-faixa-ver]")) { if (window.irParaSecao) window.irParaSecao("contas"); return; }
+        if (ev.target.closest("[data-faixa-fechar]")) { try { sessionStorage.setItem("holohacking.avisoCadastros", String(pendentes)); } catch (e) { /* */ } f.remove(); }
+      });
+      alvo.insertBefore(f, alvo.firstChild);
+    }
+    f.innerHTML = '<span>' + pendentes + (pendentes === 1 ? " cadastro aguardando liberação." : " cadastros aguardando liberação.") + "</span>" +
+      '<button type="button" class="btn-link" data-faixa-ver>Ver em Administração</button>' +
+      '<button type="button" class="aviso-faixa-fechar" data-faixa-fechar aria-label="Fechar aviso">&times;</button>';
   }
 
   function vigiar() {
@@ -519,7 +537,7 @@
       window.HoloAuth.aoMudarEstado(function (estado) {
         if (estado === "autenticado") conferirAdmin();
         else {
-          admin = false; pendentes = 0; avisou = false; painel = null; historico = null; aba = null; aberta = null; senhaMostrada = null; conhecidos = null;
+          admin = false; pendentes = 0; avisou = false; var fx0 = document.getElementById("aviso-cadastros"); if (fx0) fx0.remove(); painel = null; historico = null; aba = null; aberta = null; senhaMostrada = null; conhecidos = null;
           if (vigia) { clearInterval(vigia); vigia = null; }
           atualizarMenu();
         }

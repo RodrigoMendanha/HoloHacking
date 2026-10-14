@@ -272,11 +272,15 @@
     var nome = info && info.paciente && info.paciente.primeiro_nome;
     c.appendChild(el("p", { class: "olho", texto: "Mapeamento Holístico da Saúde" }));
     c.appendChild(el("h1", { texto: nome ? "Olá, " + nome + "!" : "Olá!" }));
-    c.appendChild(el("p", { texto: "Antes da consulta, responda com calma. Leva uns 10 minutos, nada é obrigatório e tudo é salvo sozinho: você pode parar e continuar depois por este mesmo link." }));
+    c.appendChild(el("p", { class: "topo-instrucao", texto: "Antes da consulta, responda com calma. Leva uns 10 minutos, nada é obrigatório e tudo é salvo sozinho: você pode parar e continuar depois por este mesmo link." }));
   }
   function telaEstado(qual, quando) {
     estado.enviado = qual === "concluido";
     clearTimeout(estado.timer);
+    /* rodada UX 14/10 (Cowork C): depois de enviado (ou link invalido/vencido), "pode parar e continuar depois por este
+       mesmo link" nao vale mais — a instrucao do topo sai */
+    var instr = document.querySelector("#cabeca .topo-instrucao");
+    if (instr) instr.hidden = qual !== "erro";
     $("barra").hidden = true; $("nav").hidden = true;
     var main = $("conteudo"); main.textContent = "";
     var txt = {

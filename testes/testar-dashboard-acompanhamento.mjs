@@ -94,7 +94,7 @@ ok(de('Camila')?.etapa === 'holoscan_andamento' && /3 de 84 respondidas/.test(de
 ok(de('Felipe')?.etapa === 'resultado_pronto', 'Resultado HOLOS salvo sem emissão → Resultado pronto');
 ok(!em.error && de('Helena')?.etapa === 'resultado_apresentado', 'Resultado Final emitido → Resultado apresentado' + (em.error ? ' [' + em.error.message + ']' : ''));
 const dj = de('Juliana');
-ok(dj?.etapa === 'aguardando_retorno' && dj.destino === 'consulta' && /às 14:00/.test(dj.sub) && dj.data.length === 10, 'já atendida + consulta marcada à frente → Aguardando retorno (' + (dj || {}).data + ')');
+ok(dj?.etapa === 'aguardando_retorno' && dj.destino === 'aba:consultas' && /às 14:00/.test(dj.sub) && dj.data.length === 10, 'já atendida + consulta marcada à frente → Aguardando retorno (' + (dj || {}).data + ')');
 ok(!de('Lucas') && !de('Otavio'), 'só cadastrado e convite vencido NÃO entram (nenhuma etapa inventada)');
 ok(tela.linhas.map(l => l.etapa).join(',') === 'aguardando_anamnese,anamnese_recebida,holoscan_andamento,resultado_pronto,resultado_apresentado,aguardando_retorno', 'lista na ordem da jornada');
 ok(tela.tiles.join(' / ') === '8|Pacientes ativos / 0|Atendimentos hoje / ' + tela.tiles[2].split('|')[0] + '|Próxima consulta / 6|Em acompanhamento', 'cards: ' + tela.tiles.join(' · '));
@@ -111,7 +111,7 @@ const cores = await A.evaluate(() => [...document.querySelectorAll('#secao-dashb
 ok(!cores.some(c => { const m = c.match(/\d+/g).map(Number); return m[0] > 180 && m[1] < 90 && m[2] < 90; }), 'nenhum status em vermelho de alerta');
 const hero = await A.evaluate(() => { const h = document.querySelector('#secao-dashboard .dash-hero'); const cs = getComputedStyle(h); const t = getComputedStyle(h.querySelector('h2'));
   return { fundo: cs.backgroundImage + cs.backgroundColor, texto: t.color }; });
-ok(/247, 242, 230|245, 239, 225/.test(hero.fundo) && /15, 59, 43/.test(hero.texto), 'topo marfim (não branco puro) com título verde');
+ok(/247, 242, 230|245, 239, 225/.test(hero.fundo) && /20, 80, 59/.test(hero.texto), 'topo marfim (não branco puro) com título verde da marca (rodada UX 14/10: #14503b, antes um verde que lia como preto)');
 if (SHOT) { await A.screenshot({ path: SHOT + '/dashboard-1440-claro.png', fullPage: true }); }
 
 titulo('CLIQUES');
@@ -128,7 +128,7 @@ ok(c2.secao === 'secao-holoscan' && c2.pid === P.camila, 'HOLOSCAN em andamento 
 const c3 = await ir('Felipe');
 ok(c3.secao === 'secao-resultado' && c3.pid === P.felipe, 'Resultado pronto → página Resultado da paciente');
 const c4 = await ir('Juliana');
-ok(c4.secao === 'secao-agenda', 'Aguardando retorno → a consulta na Agenda');
+ok(c4.secao === 'secao-pacientes' && c4.aba === 'consultas' && c4.pid === P.juliana, 'Aguardando retorno → a ficha da paciente em Atendimentos (rodada UX 14/10: a linha do paciente abre o paciente, não a Agenda)');
 const t5 = await A.evaluate(async () => { window.irParaSecao('dashboard'); await new Promise(r => setTimeout(r, 200));
   document.querySelector('#secao-dashboard .dash-tile[data-destino="acompanhamento"]').click(); await new Promise(r => setTimeout(r, 300));
   return document.activeElement && document.activeElement.classList.contains('dash-acomp'); });

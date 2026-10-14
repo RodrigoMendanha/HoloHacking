@@ -502,8 +502,9 @@
           (e.consultation_id ? "com agendamento de origem" : "sem agendamento") +
           (e.status ? " &middot; " + escapar(e.status) : "") +
           (ativo ? " &middot; <b>ativo</b>" : "") + "</span></span>" +
-      '<button type="button" class="dash-ir" data-abrir-atendimento="' + escapar(e.id) + '">' +
-        (ativo ? "Selecionado" : "Abrir") + ' <span aria-hidden="true">&rarr;</span></button>' +
+      /* rodada UX 14/10 (Cowork G): o atendimento ja selecionado nao tem acao — vira selo, nao botao com seta */
+      (ativo ? '<span class="at-selecionado" aria-label="Atendimento selecionado">&#10003; Selecionado</span>'
+        : '<button type="button" class="dash-ir" data-abrir-atendimento="' + escapar(e.id) + '">Abrir <span aria-hidden="true">&rarr;</span></button>') +
     "</li>";
   }
 
@@ -1093,6 +1094,12 @@
           var secaoAgenda = document.querySelector('.nav-item[data-secao="agenda"]');
           if (secaoAgenda) secaoAgenda.click();
           if (window.Agenda && window.Agenda.novaConsultaPara) window.Agenda.novaConsultaPara(window.pacienteAtivoId ? window.pacienteAtivoId() : null);
+          return;
+        }
+        /* rodada UX 14/10 (Cowork B): "Preencher agora" do OQ³/PQQ/Mapa abria so a galeria da secao; agora abre a
+           propria ferramenta, com esta paciente (o mesmo caminho da barra de contexto) */
+        if (["corpo", "mente", "espirito"].indexOf(ir.dataset.ir) >= 0 && window.levarParaFicha) {
+          window.levarParaFicha(ir.dataset.ir, window.pacienteAtivoId ? window.pacienteAtivoId() : null);
           return;
         }
         var b = document.querySelector('.nav-item[data-secao="' + ir.dataset.ir + '"]');

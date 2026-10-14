@@ -642,6 +642,12 @@
 
     // a regua: mover e o que a torna uma resposta
     alvo.querySelectorAll('.grupo-nota input[type="range"]').forEach(function (reg) {
+      /* rodada UX 14/10: tocar/clicar no marcador parado no meio (5) nao dispara "input" — e a regua parecia nao
+         responder. Soltar o ponteiro na regua conta como resposta, com o valor onde o marcador esta. */
+      reg.addEventListener("pointerup", function () {
+        var caixa = reg.closest(".grupo-nota");
+        if (caixa && caixa.dataset.respondido !== "1") { reg.dispatchEvent(new Event("input", { bubbles: true })); reg.dispatchEvent(new Event("change", { bubbles: true })); }
+      });
       reg.addEventListener("input", function () {
         var caixa = reg.closest(".grupo-nota");
         caixa.dataset.respondido = "1";
