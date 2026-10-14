@@ -546,6 +546,7 @@
           <p>O radar mostra os cinco sistemas juntos; a lista ordena do que pede mais investigação para o que pede menos — é prioridade de olhar, não conclusão.</p>
           <div class="holo-resultado">
             <div class="holo-radar-box">
+              <span class="holo-demo-selo">Demonstração · ainda sem aplicação do HOLOSCAN</span>
               <svg id="radar-svg" viewBox="-40 -6 380 312" width="300" height="246" style="overflow:visible;max-width:100%"></svg>
             </div>
             <div id="holo-prioridades" class="holo-caixa-mapa"></div>
@@ -660,8 +661,12 @@
           <!-- ===== 7. APROFUNDAMENTO =====
                Resultado oficial: so os textos do pacote homologado (leituraOficial em app.js).
                Historicas/homologacao: a leitura legada de lerTerreno(). -->
-          <span class="eyebrow">6 &middot; Aprofundamento</span>
-          <div class="holo-leitura" id="holo-leitura"></div>
+          <!-- rodada UX 14/10: o bloco "6 · Aprofundamento / Leitura do resultado" saiu da tela — repetia textos genericos
+               dos cinco sistemas e nao trazia resultado real. O conteudo continua sendo montado (relatorio e testes usam). -->
+          <div class="holo-aprofundamento-oculto" hidden>
+            <span class="eyebrow">6 &middot; Aprofundamento</span>
+            <div class="holo-leitura" id="holo-leitura"></div>
+          </div>
 
           <!-- A fronteira. Ficava so no rodape do relatorio impresso; a tela
                onde a nutricionista abre o mapa junto com a paciente nao dizia
@@ -672,22 +677,24 @@
             substitui avaliação clínica.
           </p>
 
-          <div class="holo-subtools">
+          <!-- rodada UX 14/10: cartoes de APRESENTACAO (so antes de existir aplicacao concluida). Os nomes aqui sao so desta
+               apresentacao visual: nao entram no resultado oficial, no Pacote Holusia, no calculo nem na metodologia. -->
+          <div class="holo-subtools" aria-label="Apresentação do HOLOSCAN">
             <div class="holo-subtool">
-              <h6>NeuroScan</h6>
+              <h6>NeuroScan <span class="holo-terr">— Mente</span></h6>
               <p>Padrões emocionais, ansiedade e sabotadores</p>
             </div>
             <div class="holo-subtool">
-              <h6>BioRoot</h6>
+              <h6>BioRoot <span class="holo-terr">— Corpo</span></h6>
               <p>Inflamação, metabolismo, detox, microbiota</p>
             </div>
             <div class="holo-subtool">
-              <h6>Terreno Espiritual</h6>
+              <h6>Terreno Espiritual <span class="holo-terr">— Espírito</span></h6>
               <p>Propósito, valores, fé e bloqueios</p>
             </div>
             <div class="holo-subtool">
-              <h6>Tríade HOLOS</h6>
-              <p>Integração físico-mental-espiritual</p>
+              <h6>Tríade HOLOS <span class="holo-terr">— Corpo · Mente · Espírito</span></h6>
+              <p>Integração entre corpo, mente e espírito</p>
             </div>
             <!-- pos-teste MR-V1 13/10: Mapa de Frequencias fora da interface enquanto nao for homologado (codigo e dados mantidos) -->
             <div class="holo-subtool em-construcao" hidden>
@@ -1176,12 +1183,10 @@
             <p>Pra Que Que? Mais do que saber o que o paciente quer, compreender por que ele quer. Quando o propósito fica claro, o comportamento começa a mudar.</p>
           </div>
 
-          <div class="escada-pqq" aria-label="As cinco perguntas do PQQ">
+          <div class="escada-pqq" aria-label="As três perguntas do PQQ">
             <div class="degrau"><span class="num">01</span><div><h5>Pra que que</h5><div class="q">...você quer isso?</div><p>Conectamos ao desejo consciente.</p></div></div>
             <div class="degrau"><span class="num">02</span><div><h5>Pra que que</h5><div class="q">...isso é importante para você?</div><p>Exploramos o significado pessoal.</p></div></div>
             <div class="degrau"><span class="num">03</span><div><h5>Pra que que</h5><div class="q">...isso faz diferença na sua vida?</div><p>Conectamos ao impacto real.</p></div></div>
-            <div class="degrau"><span class="num">04</span><div><h5>Pra que que</h5><div class="q">...isso representa para você?</div><p>Revelamos valores e identidade.</p></div></div>
-            <div class="degrau"><span class="num">05</span><div><h5>Pra que que</h5><div class="q">...isso existe na sua história?</div><p>Acessamos a raiz profunda.</p></div></div>
           </div>
 
           <div style="margin-top:26px">
@@ -1198,7 +1203,7 @@
 
           <div class="form-ferramenta" id="form-pqq">
             <div class="form-titulo"><h3>Aplicar PQQ na consulta</h3><span class="eyebrow">Investigação do propósito</span></div>
-            <p class="form-sub">Parta do objetivo declarado e desca pelas cinco camadas. As respostas ficam salvas na ficha do paciente.</p>
+            <p class="form-sub">Parta do objetivo declarado e desça pelas três perguntas. As respostas ficam salvas na ficha do paciente.</p>
             <div class="barra-paciente">
               <span class="rotulo">Paciente</span>
               <select class="seletor-paciente" id="sel-pqq" aria-label="Selecionar paciente"></select>
@@ -1209,8 +1214,13 @@
             <div class="grupo"><label for="pqq-1">01 - Pra que que você quer isso?</label><textarea id="pqq-1" placeholder="Desejo consciente..."></textarea></div>
             <div class="grupo"><label for="pqq-2">02 - Pra que que isso é importante para você?</label><textarea id="pqq-2" placeholder="Significado pessoal..."></textarea></div>
             <div class="grupo"><label for="pqq-3">03 - Pra que que isso faz diferença na sua vida?</label><textarea id="pqq-3" placeholder="Impacto real..."></textarea></div>
-            <div class="grupo"><label for="pqq-4">04 - Pra que que isso representa para você?</label><textarea id="pqq-4" placeholder="Valores e identidade..."></textarea></div>
-            <div class="grupo"><label for="pqq-5">05 - Pra que que isso existe na sua história?</label><textarea id="pqq-5" placeholder="Raiz profunda..."></textarea></div>
+            <!-- rodada UX 14/10: o PQQ passou a ter 3 perguntas. As perguntas 04 e 05 so aparecem para mostrar uma aplicacao
+                 ANTIGA que tenha essas respostas (historico preservado, nada apagado nem recalculado). -->
+            <div class="pqq-legado" id="pqq-legado" hidden>
+              <p class="dica">Aplicação anterior à versão de 3 perguntas: as respostas 04 e 05 ficam como foram registradas.</p>
+              <div class="grupo"><label for="pqq-4">04 - Pra que que isso representa para você?</label><textarea id="pqq-4" placeholder="Valores e identidade..."></textarea></div>
+              <div class="grupo"><label for="pqq-5">05 - Pra que que isso existe na sua história?</label><textarea id="pqq-5" placeholder="Raiz profunda..."></textarea></div>
+            </div>
             <div class="grupo"><label for="pqq-verdadeiro">O "pra que" verdadeiro</label><p class="dica">A síntese do propósito que sustenta a transformação.</p><textarea id="pqq-verdadeiro" placeholder="Ex.: voltar a se reconhecer e ter energia para brincar com os filhos."></textarea></div>
             <div class="acoes-form">
               <button type="button" id="btn-salvar-pqq" class="btn-verde">Salvar PQQ</button>
@@ -1380,6 +1390,7 @@
 <script src="/resultado-corpo.js"></script>
 <script src="/render-resultado.js"></script>
 <script src="/ferramentas-registro.js"></script>
+<script src="/ajuda-ferramentas.js"></script>
 <script src="/formulario.js"></script>
 <script src="/app.js"></script>
 <script src="/questionario.js"></script>

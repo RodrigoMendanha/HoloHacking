@@ -217,7 +217,8 @@
     return '<button class="btn-voltar" type="button">&larr; Voltar às ferramentas</button>' +
       '<div class="secao-cabeca">' +
         '<span class="eyebrow">' + MODULOS[f.modulo] + " - Ferramenta " + f.numero + "</span>" +
-        "<h2>" + escapar(f.titulo) + " &mdash; <em>" + escapar(f.chamada) + "</em></h2>" +
+        "<h2>" + escapar(f.titulo) + " &mdash; <em>" + escapar(f.chamada) + "</em>" +
+          (window.AjudaFerramentas ? " " + window.AjudaFerramentas.botao(f.id) : "") + "</h2>" +
         "<p>" + escapar(f.descricao) + "</p>" +
         (meta ? '<div class="ferr-meta">' + meta + "</div>" : "") +
       "</div>" +

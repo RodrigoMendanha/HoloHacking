@@ -6038,3 +6038,29 @@ body:not(.escuro) #secao-pacientes .lista-pac .pac-status.ativo,body:not(.escuro
 #secao-holusia .hai-host{margin-top:8px}
 .hai-sem-paciente{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
 .hai-det-sub{margin:.4rem 0;font-size:.82rem;color:var(--texto-suave)}
+/* rodada UX 14/10 — HOLOSCAN antes x depois da aplicacao */
+.holo-terr{font-family:var(--fonte-corpo);font-size:.72em;font-weight:500;letter-spacing:.04em;color:var(--ouro-texto);white-space:nowrap}
+.holo-radar-box{position:relative}
+.holo-demo-selo{position:absolute;top:6px;left:50%;transform:translateX(-50%);z-index:1;white-space:nowrap;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;
+  padding:4px 10px;border-radius:999px;border:1px dashed currentColor;color:var(--ouro-texto);background:rgba(6,35,26,.6)}
+#secao-holoscan:not(.holo-com-resultado) #radar-svg{opacity:.45;filter:grayscale(.4)}
+#secao-holoscan.holo-com-resultado .holo-demo-selo,#secao-holoscan.holo-com-resultado .holo-subtools{display:none}
+@media (max-width:480px){.holo-demo-selo{font-size:.58rem;white-space:normal;text-align:center;width:90%}}
+/* Triade — "Por que" da dimensao mais baixa */
+.triada-porque{margin-top:12px;padding:12px 14px;border-radius:10px;border:1px solid var(--borda-suave);background:var(--citacao-clara-fundo);font-size:.86rem;line-height:1.55;color:var(--texto)}
+.triada-porque p{margin:4px 0}
+.triada-porque-rot{display:inline-block;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;font-weight:600;color:var(--ouro-texto);margin-bottom:2px}
+.triada-porque-nota{font-size:.76rem;color:var(--texto-suave)}
+/* rodada UX 14/10 — "?" das ferramentas */
+.ajuda-ferr{position:relative;display:inline-block;vertical-align:middle;margin-left:6px;font-family:var(--fonte-corpo);font-style:normal}
+.ajuda-ferr-btn{width:22px;height:22px;border-radius:50%;border:1px solid var(--linha);background:var(--dourado-bg);color:var(--ouro-texto);
+  font-size:.78rem;font-weight:700;line-height:1;padding:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle}
+.ajuda-ferr-btn:hover,.ajuda-ferr.aberta .ajuda-ferr-btn{background:var(--dourado-suave)}
+.ajuda-ferr-pop{position:absolute;left:0;top:calc(100% + 8px);z-index:60;width:min(320px,calc(100vw - 32px));display:flex;flex-direction:column;gap:2px;
+  padding:12px 14px;border-radius:12px;background:var(--sup-card);color:var(--texto);border:1px solid var(--linha);box-shadow:var(--sombra);
+  font-size:.82rem;line-height:1.45;font-weight:400;letter-spacing:0;text-transform:none;text-align:left;white-space:normal}
+.ajuda-ferr-pop[hidden]{display:none}
+.ajuda-ferr-pop.acima{top:auto;bottom:calc(100% + 8px)}
+.ajuda-ferr-tit{font-family:var(--fonte-display);font-size:1rem;color:var(--titulo);margin-bottom:4px}
+.ajuda-ferr-rot{font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--ouro-texto);margin-top:6px}
+.ajuda-ferr-txt{color:var(--texto)}

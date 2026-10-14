@@ -70,7 +70,9 @@
     var it = itens(r, [["objetivo", "Objetivo declarado"]]);
     niveis.forEach(function (k) { it.push({ rotulo: "Nível " + k.slice(1) + " — por que importa", valor: txt(r[k]) }); });
     if (tem(r.verdadeiro)) it.push({ rotulo: "Síntese construída com a paciente", valor: txt(r.verdadeiro) });
-    return { itens: it, linha: niveis.length + " de 5 níveis registrados" + (tem(r.verdadeiro) ? "; síntese final registrada." : ".") };
+    /* rodada UX 14/10: o PQQ novo tem 3 perguntas; aplicacao antiga com respostas 4/5 continua contando de 5 */
+    var total = tem(r.r4) || tem(r.r5) ? 5 : 3;
+    return { itens: it, linha: niveis.length + " de " + total + " níveis registrados" + (tem(r.verdadeiro) ? "; síntese final registrada." : ".") };
   }
   function momentum(r) {
     var est = r.estado_confirmado ? (ESTADOS_MOMENTUM[r.estado_confirmado] || String(r.estado_confirmado)) : null;

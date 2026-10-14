@@ -224,7 +224,28 @@
     return "historica_sem_pacote";
   }
 
+  /* rodada UX 14/10 — "POR QUE" da dimensao mais baixa da Triade (so leitura): roda o MESMO motor oficial sobre as
+     respostas da aplicacao e devolve os marcadores que contribuiram para aquele eixo, do maior para o menor. Nao muda
+     nenhuma conta; quem chama confere que a nota bate com a da aplicacao na tela (senao as respostas nao sao dela). */
+  function marcadoresTriade(respostas, eixo, dia) {
+    var p = pacote(dia || hoje()), MM = raiz.MotorMetodologico;
+    if (!p || !MM || !MM.calcular || !respostas || !Object.keys(respostas).length) return null;
+    var v;
+    try {
+      v = MM.calcular({ responses: respostas, response_states: {}, methodology_package: p, mode: MODO, engine_version: MM.VERSAO,
+        questionnaire_edition: p.edicao ? { code: p.edicao.code, version: p.edicao.version } : undefined,
+        application_context: { applied_at: dia || hoje(), patient_id: null } });
+    } catch (e) { return null; }
+    var t = v.triad_result && v.triad_result[eixo];
+    if (!t || !t.avaliavel) return null;
+    var itens = v.item_contributions.filter(function (c) { return c.destination_type === "triad" && c.destination === eixo && c.contribution > 0; })
+      .sort(function (a, b) { return b.contribution - a.contribution || a.question_id.localeCompare(b.question_id); })
+      .map(function (c) { return { id: c.question_id, rotulo: rotuloItem(p, c.question_id), pontos: c.contribution }; });
+    return { nota: t.nota, itens: itens };
+  }
+
   raiz.HoloscanOficial = {
+    marcadoresTriade: marcadoresTriade,
     MSG_SEM_PACOTE: MSG_SEM_PACOTE, ErroSemPacote: ErroSemPacote,
     pacote: pacote, disponivel: disponivel, motivos: motivos, recarregar: recarregar,
     calcular: calcular, paraTela: paraTela, payload: payload, natureza: natureza, perguntas: perguntas

@@ -2279,11 +2279,13 @@
       r1: $("#pqq-1").value.trim(),
       r2: $("#pqq-2").value.trim(),
       r3: $("#pqq-3").value.trim(),
-      r4: $("#pqq-4").value.trim(),
-      r5: $("#pqq-5").value.trim(),
+      /* rodada UX 14/10: aplicacao nova tem 3 perguntas — 04 e 05 so voltam se a aplicacao aberta e antiga e as tinha */
+      r4: pqqLegadoVisivel() ? $("#pqq-4").value.trim() : "",
+      r5: pqqLegadoVisivel() ? $("#pqq-5").value.trim() : "",
       verdadeiro: $("#pqq-verdadeiro").value.trim()
     };
   }
+  function pqqLegadoVisivel(){ const l = document.getElementById("pqq-legado"); return !!(l && !l.hidden); }
 
   function pintarPQQ(r){
     const v = r || vazioPQQ();
@@ -2293,6 +2295,8 @@
     $("#pqq-3").value = v.r3 || "";
     $("#pqq-4").value = v.r4 || "";
     $("#pqq-5").value = v.r5 || "";
+    const leg = document.getElementById("pqq-legado");
+    if(leg) leg.hidden = !(v.r4 || v.r5);
     $("#pqq-verdadeiro").value = v.verdadeiro || "";
   }
 
@@ -3538,8 +3542,15 @@
     window.desenharPontuacao(n);
   };
 
+  /* rodada UX 14/10: antes de haver aplicacao, a secao e APRESENTACAO (cartoes introdutorios + radar demonstrativo);
+     com aplicacao, so o resultado real — as duas coisas nunca aparecem juntas */
+  function modoHoloscan(comResultado){
+    const sec = document.getElementById("secao-holoscan");
+    if(sec) sec.classList.toggle("holo-com-resultado", !!comResultado);
+  }
   window.desenharPontuacao = function(r, restaurando){
     pontuacaoNaTela = r;        // e daqui que "Salvar HOLOSCAN" tira os decimais
+    modoHoloscan(true);
     // as notas na ordem que a tela usa
     const porSistema = {};
     r.sistemas.forEach(s => { porSistema[s.sistema] = s.nota; });
@@ -3741,6 +3752,35 @@
     caixa.classList.remove("hidden");
   }
 
+  /* rodada UX 14/10 — "POR QUE" ao lado da dimensao mais baixa: descreve o que apareceu nas respostas DESTA aplicacao
+     ligadas a essa dimensao. So dado real (os marcadores que o motor oficial contou para o eixo); sem diagnostico, sem
+     causalidade, sem "pior". Sem as respostas neste aparelho, diz so o que as notas ja dizem. */
+  function porQueTriada(tmTri, valores, temDado){
+    if(!tmTri || tmTri.todas || !tmTri.menores || !tmTri.menores.length) return "";
+    const r = pontuacaoNaTela, pid = estado.ativo;
+    const resp = (r && r.respostas && Object.keys(r.respostas).length) ? r.respostas
+      : (window.QuestionarioHolo && pid ? window.QuestionarioHolo.respostasAplicadas(pid) : {});
+    const nomes = tmTri.menores;
+    const partes = nomes.map(nome => {
+      const i = EIXOS_TRIADA.findIndex(e => e[1] === nome);
+      if(i < 0) return "";
+      const eixo = EIXOS_TRIADA[i][0];
+      const M = window.HoloscanOficial && window.HoloscanOficial.marcadoresTriade ? window.HoloscanOficial.marcadoresTriade(resp, eixo, r && r.applied_at) : null;
+      /* as respostas so contam se recalculam a MESMA nota desta aplicacao (senao seriam de outra aplicacao) */
+      const confere = M && typeof valores[i] === "number" && Math.abs(M.nota - valores[i]) < 0.05;
+      if(confere && M.itens.length){
+        const lista = M.itens.slice(0, 3).map(x => "“" + window.escapar(String(x.rotulo || x.id).replace(/[.?!]\s*$/, "")) + "”").join("; ");
+        return "<b>" + window.escapar(nome) + "</b> aparece como a dimensão mais baixa nesta aplicação porque houve maior concentração de marcadores nas respostas ligadas a ela, como: " + lista + ".";
+      }
+      const outros = EIXOS_TRIADA.map((e, j) => j !== i && temDado(j) ? e[1] + " " + window.HoloAusencia.fmt(valores[j]) : null).filter(Boolean);
+      return "<b>" + window.escapar(nome) + "</b> aparece como a dimensão mais baixa nesta aplicação porque as respostas ligadas a ela somaram, em proporção, mais marcadores (nota " +
+        window.HoloAusencia.fmt(valores[i]) + (outros.length ? "; " + window.escapar(outros.join(", ")) : "") + "). As respostas desta aplicação não estão neste aparelho para listar quais foram.";
+    }).filter(Boolean);
+    if(!partes.length) return "";
+    return '<div class="triada-porque" role="note"><span class="triada-porque-rot">Por quê</span><p>' + partes.join("</p><p>") + "</p>" +
+      '<p class="triada-porque-nota">É uma descrição das respostas registradas, não um diagnóstico nem uma causa.</p></div>';
+  }
+
   function desenharTriada(triada, comDado, exibicao){
     const caixa = $("#holo-triada");
     if(!caixa) return;
@@ -3816,6 +3856,7 @@
       +     (tmTri.frase
               ? '<p class="triada-leitura">' + window.escapar(tmTri.frase) + "</p>"
               : "")
+      +     porQueTriada(tmTri, valores, temDado)
       +     (todosComDado
               ? ""
               : '<p class="triada-leitura sem-dado">Eixo sem resposta não recebe '
@@ -3867,6 +3908,7 @@
        Triada e as combinacoes), entao e ele que manda. */
     const ultima = p && window.ultimaPontuacao ? window.ultimaPontuacao(p.id) : null;
     if(ultima){ window.desenharPontuacao(ultima, true); return; }
+    modoHoloscan(false);
 
     const ids = ["holo-fungico","holo-inflamatorio","holo-metabolico","holo-detox","holo-mental"];
     const vals = [h.sistema_fungico||0, h.sistema_acido_inflamatorio||0, h.sistema_metabolico||0, h.sistema_detox_linfatico||0, h.sistema_mental_emocional||0];
