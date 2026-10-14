@@ -41,7 +41,8 @@ if [ "${1:-}" != "swap" ]; then
   echo "$V" | grep -q "\"commit\":\"$CURTO\"" || pare "version.json da imagem sem o commit $CURTO"
 
   echo; echo "=== PASSO 7 — container temporario em 127.0.0.1:8082 (producao 8080 intocada) ==="
-  docker rm -f "$TEMP" >/dev/null 2>&1 || true
+  # temporarios de deploys anteriores (so os -teste-*) seguram a 8082: remover
+  for t in $(docker ps -a --format '{{.Names}}' | grep '^holohacking-web-teste-' || true); do docker rm -f "$t" >/dev/null; echo "temporario antigo removido: $t"; done
   docker run -d --name "$TEMP" -p 127.0.0.1:8082:80 "$IMG" >/dev/null
   sleep 2
   curl -s http://127.0.0.1:8082/version.json; echo
