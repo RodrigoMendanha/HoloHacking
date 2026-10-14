@@ -92,8 +92,8 @@ const conduzido = await verFicha();
 ok(!conduzido.alertas.some(a=>/nenhuma ferramenta/i.test(a)), 'o alerta some depois da conduta');
 ok(conduzido.chips.length === 1, 'lista a ferramenta aplicada: ' + conduzido.chips.join(', '));
 // Etapa 6.5 (B): +3 registros clinicos estruturados (Mapa da Rotina, Gatilhos & Respostas, Conexao & Pertencimento) -> 10 ativas
-ok(conduzido.formularios.some(l=>/1 de 10 aplicadas/.test(l)),
-   'conta 1 de 10 ferramentas (so ativas)');
+ok(conduzido.formularios.some(l=>/1 de 9 aplicadas/.test(l)),
+   'conta 1 de 9 ferramentas (so ativas e visiveis; Conexao & Pertencimento oculta)');
 
 // --- exame e so arquivo (09/10): valor local nao vira alerta, pendencia nem pilula ---
 await p.evaluate(async () => {

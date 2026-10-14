@@ -26,10 +26,12 @@ window.FERRAMENTAS_ATIVAS = [
   "linha_momentum", "mapa_crencas", "roda_vida", "carta_futuro",
   /* Etapa 6.5: registros clinicos estruturados (sem score/interpretacao automatica). IDs NOVOS: os antigos
      mapa_rotina, gatilhos_respostas e conexao_pertencimento ficam congelados no schema antigo (legado: true). */
-  "mapa_rotina_v1", "gatilhos_respostas_v1"
-  /* 14/10: "conexao_pertencimento_v1" saiu das ativas (nao sera usada): some do menu Espirito, da ficha, da contagem e
-     dos Proximos Passos; registros antigos continuam legiveis no historico. Para voltar, basta recoloca-la aqui. */
+  "mapa_rotina_v1", "gatilhos_respostas_v1", "conexao_pertencimento_v1"
 ];
+/* 14/10: ferramentas OCULTAS (nao serao usadas agora): continuam no catalogo e nos registros antigos, mas nao aparecem
+   para a nutricionista (menu, ficha, contagem, Proximos Passos, Playbook). Para voltar a usar, basta tirar daqui. */
+window.FERRAMENTAS_OCULTAS = ["conexao_pertencimento_v1"];
+window.ferramentaVisivel = function (id) { return (window.FERRAMENTAS_OCULTAS || []).indexOf(id) < 0; };
 
 /* Correcao/Etapa 6.5 — tres REGISTROS CLINICOS ESTRUTURADOS (Mapa da Rotina, Gatilhos & Respostas,
    Conexao & Pertencimento). Sem score, faixa, diagnostico, classificacao, interpretacao ou recomendacao

@@ -130,8 +130,8 @@ const c8 = await P.evaluate(async (eid) => {
 ok(c8.solto && c8.reaberto, '8 Soltar limpa a seleção; reabrir o mesmo atendimento volta ao contexto');
 ok(/Resultado HOLOS/.test(c8.etapa) && c8.cta === 'Montar Resultado HOLOS', '8 etapa atual e botão principal acompanham a jornada: ' + c8.etapa.replace(/\s+/g, ' ') + ' / ' + c8.cta);
 
-/* 9-11. Pacote → Holos IA → importar → Resultado HOLOS */
-await clicar('#btn-aplicar-holoscan'); await espera(1300);
+/* 9-11. Pacote → Holos IA → importar → Resultado HOLOS (14/10: a aba Holos IA esta escondida, mas o fluxo continua no codigo) */
+await P.evaluate((pid) => window.levarParaFicha('aba:holos-ai', pid), PID); await espera(1300);
 await P.evaluate(() => { window.__copiado = null; document.querySelector('[data-hai-acao="copiar-pacote"]').click(); }); await espera(800);
 const pac = await P.evaluate(() => { try { return JSON.parse(window.__copiado); } catch (e) { return null; } });
 ok(!!pac && /Origem: Mapeamento Holístico/.test(pac.mapeamento) && /Cansaço fictício no fim da tarde/.test(pac.mapeamento) && /Sistemas/.test(pac.holoscan) && /OQ³/.test(pac.ferramentas_aplicadas) && !/Iara|62987650000/.test(JSON.stringify(pac)),

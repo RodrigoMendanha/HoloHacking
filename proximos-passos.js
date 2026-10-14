@@ -176,7 +176,7 @@
       "</article>";
   }
   /* 14/10: ferramenta fora das ativas (ex.: Conexao & Pertencimento) nao aparece como recomendacao; a seguinte sobe */
-  function visivel(id) { var A = raiz.FERRAMENTAS_ATIVAS; return !A || ["oq3", "pqq", "mapa"].concat(A).indexOf(id) >= 0; }
+  function visivel(id) { return (raiz.FERRAMENTAS_OCULTAS || []).indexOf(id) < 0; }
   function htmlBloco(saida, meta, feitas) {
     var sel = (saida.selection || []).filter(function (x) { return visivel(x.tool_id); });
     if (sel.length && !sel.some(function (x) { return x.papel === "principal"; })) sel = [Object.assign({}, sel[0], { papel: "principal" })].concat(sel.slice(1));

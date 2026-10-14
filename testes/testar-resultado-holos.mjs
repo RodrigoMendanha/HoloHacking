@@ -94,7 +94,7 @@ const sel0 = await A.evaluate(() => ({
 }));
 ok(sel0.radios === 2 && sel0.marcados === 0 && sel0.mostrarOff, 'seleção explícita: nada vem marcado (nem o HOLOSCAN mais recente) e "Mostrar ao paciente" começa desligado');
 ok(sel0.historicaOff === 1 && sel0.meta.some(m => /histórica, sem pacote oficial/.test(m)), 'a aplicação HOLOSCAN histórica aparece, mas desabilitada');
-ok(!sel0.rascunhoListado && sel0.opcoes.length === 7 && sel0.meta.every(m => /cód\. [0-9a-f]{8}/.test(m)), 'ferramenta em rascunho não é oferecida; cada fonte mostra data, código curto, status e atendimento: ' + sel0.opcoes.slice(0, 3).join(' | '));
+ok(!sel0.rascunhoListado && sel0.opcoes.length === 6 && sel0.meta.every(m => /cód\. [0-9a-f]{8}/.test(m)), 'ferramenta em rascunho não é oferecida; cada fonte mostra data, código curto, status e atendimento: ' + sel0.opcoes.slice(0, 3).join(' | '));
 await A.evaluate((ea) => { const s = document.getElementById('rh-atendimento'); s.value = ea; s.dispatchEvent(new Event('change', { bubbles: true })); }, EA);
 await clicar(A, '[data-rh-acao="salvar"]'); await espera(400);
 ok(/Escolha a aplicação HOLOSCAN/.test(await texto(A, '#rh-erro')) && srv.linhas('holos_results').length === 0, 'sem HOLOSCAN: recusado na tela, nada vai ao servidor');
@@ -102,7 +102,7 @@ const semH = rpcComo(UA, 'salvar_resultado_holos', { payload: { patient_id: PA, 
 const histor = rpcComo(UA, 'salvar_resultado_holos', { payload: { patient_id: PA, encounter_id: EA, holoscan_application_id: HH } });
 ok(semH.error && semH.error.hint === 'holoscan_obrigatorio' && histor.error && histor.error.hint === 'holoscan_nao_oficial', 'servidor: sem HOLOSCAN e HOLOSCAN histórico recusados');
 
-/* seleciona: HOLOSCAN + OQ3, PQQ, Gatilhos, Conexao; mostrar ao paciente: OQ3 e PQQ */
+/* seleciona: HOLOSCAN + OQ3, PQQ, Gatilhos, Roda (14/10: Conexao & Pertencimento oculta, nao e oferecida); mostrar ao paciente: OQ3 e PQQ */
 const XSS = '<img src=x onerror="window.__xss=1"> leitura da nutri';
 await A.evaluate((ha, ids, xss) => {
   document.querySelector('input[name="rh-holoscan"][value="' + ha + '"]').click();
@@ -110,7 +110,7 @@ await A.evaluate((ha, ids, xss) => {
   ['oq3', 'pqq'].forEach(f => { const v = document.querySelector('[data-rh-ferr="' + f + '"]:checked').value; document.querySelector('[data-rh-mostrar="' + v + '"]').click(); });
   const t = (id, v) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); };
   t('rh-leitura_profissional', xss); t('rh-pontos_acompanhar', 'sono e rotina da noite'); t('rh-questoes_aprofundar', 'QUESTAO_SO_PROFISSIONAL');
-}, HA, [T_OQ3, T_PQQ, T_GAT, T_CON], XSS);
+}, HA, [T_OQ3, T_PQQ, T_GAT, T_ROD], XSS);
 ok(/HOLOSCAN escolhido · 4 ferramentas · 2 na visão do paciente/.test(await texto(A, '#rh-contagem')), 'contagem da seleção visível: ' + await texto(A, '#rh-contagem'));
 
 /* ----- 2: rascunho ----- */
@@ -149,7 +149,7 @@ ok(prof.sis === 5 && prof.det === 10 && prof.radar && /Identificação|Paciente/
   && /Pontuou neste sistema/.test(prof.t) && /Contexto, sem pontuar/.test(prof.t) && /observações da nutricionista/i.test(prof.t) && /Resumo para decisão/i.test(prof.t) && /Por que o sistema chegou a isso/i.test(prof.t) && /QUESTAO_SO_PROFISSIONAL/.test(prof.t) && /não incluídos nesta versão/.test(prof.t),
   'visão profissional: identificação, radar, 5 sistemas (pontuou × contexto), Corpo/Mente/Espírito, Mapa do Propósito, panorama das ferramentas (motor de resultados 12/10: antes "visão conjunta"), observações, nota de exames; resumo para decisão primeiro');
 ok(!prof.xss && /&lt;img src=x/.test(prof.html) && !/<img src="?x/.test(prof.html), 'XSS nas observações: aparece como texto, não executa');
-ok(/romper o ciclo de autoabandono/.test(prof.t) && /PENSAMENTO_INTIMO/.test(prof.t) && /Irmã/.test(prof.t), 'ferramentas na visão profissional (PQQ, Gatilhos, Conexão)');
+ok(/romper o ciclo de autoabandono/.test(prof.t) && /PENSAMENTO_INTIMO/.test(prof.t), 'ferramentas na visão profissional (PQQ, Gatilhos)');
 await shot(A, 'rh-profissional', '#rh-doc');
 
 /* ----- 4: paciente ----- */

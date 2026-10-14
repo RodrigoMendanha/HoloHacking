@@ -32,7 +32,7 @@
   function ordemFerr() {
     var ativas = window.FERRAMENTAS_ATIVAS || [], cat = window.CATALOGO_FERRAMENTAS || [];
     var mod = function (id) { var f = cat.filter(function (x) { return x.id === id; })[0]; return f ? f.modulo : (NOMES_EXTRA[id] || {}).modulo; };
-    var base = ["oq3", "pqq"].concat(ativas);
+    var base = ["oq3", "pqq"].concat(ativas).filter(function (id) { return !window.ferramentaVisivel || window.ferramentaVisivel(id); });
     return ["corpo", "mente", "espirito"].reduce(function (acc, m) { return acc.concat(base.filter(function (id) { return mod(id) === m; })); }, []);
   }
   var ROTULO_STATUS = { rascunho: "Rascunho", salvo: "Salvo", revisado: "Revisado" };

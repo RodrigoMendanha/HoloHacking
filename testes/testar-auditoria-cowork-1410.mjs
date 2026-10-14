@@ -72,15 +72,16 @@ const ferr = (pid) => P.evaluate(async (pid) => {
   cards.oq3 = selo('[data-vista="vista-oq3"]'); cards.pqq = selo('[data-vista="vista-pqq"]'); cards.mapa = selo('[data-vista="vista-mapa"]');
   return { contagem: est ? est.textContent.trim() : '', chips, cards, sub: (document.querySelector('#aba-ferramentas .dash-sub') || {}).textContent || '', n: window.HoloscanOficial && window.HoloscanOficial.perguntas ? window.HoloscanOficial.perguntas().length : null };
 }, pid);
-const num = (txt) => { const m = /^(\d+) de (\d+) aplicadas$/.exec(txt); return m ? [Number(m[1]), Number(m[2])] : txt === 'nenhuma aplicada' ? [0, 10] : null; };
+const num = (txt) => { const m = /^(\d+) de (\d+) aplicadas$/.exec(txt); return m ? [Number(m[1]), Number(m[2])] : txt === 'nenhuma aplicada' ? [0, 9] : null; };
 const f0 = await ferr(P0), f1 = await ferr(P1), f3 = await ferr(P3), f10 = await ferr(P10);
 ok(f0.contagem === 'nenhuma aplicada' && f0.chips.length === 0 && Object.values(f0.cards).every(s => s === 'Disponível'), '0/10: "nenhuma aplicada", nenhuma etiqueta, as 10 ferramentas "Disponível" — ' + JSON.stringify(f0.cards));
-ok(JSON.stringify(num(f1.contagem)) === '[1,10]' && f1.chips.join() === 'OQ³' && f1.cards.oq3 === 'Concluída' && f1.cards.linha_momentum === 'Em preenchimento' && f1.cards.mapa === 'Falta o PQQ' && f1.cards.pqq === 'Disponível',
+ok(JSON.stringify(num(f1.contagem)) === '[1,9]' && f1.chips.join() === 'OQ³' && f1.cards.oq3 === 'Concluída' && f1.cards.linha_momentum === 'Em preenchimento' && f1.cards.mapa === 'Falta o PQQ' && f1.cards.pqq === 'Disponível',
   '1/10: OQ³ "Concluída" (antes ficava "Disponível"); rascunho da Linha do Momentum "Em preenchimento" e fora da contagem; Mapa "Falta o PQQ" — ' + f1.contagem + ' · ' + JSON.stringify(f1.cards));
-ok(JSON.stringify(num(f3.contagem)) === '[4,10]' && f3.chips.length === 4 && f3.chips.includes('Mapa do Propósito') && f3.cards.oq3 === 'Concluída' && f3.cards.pqq === 'Concluída' && f3.cards.mapa === 'Montado' && f3.cards.roda_vida === 'Concluída',
+ok(JSON.stringify(num(f3.contagem)) === '[4,9]' && f3.chips.length === 4 && f3.chips.includes('Mapa do Propósito') && f3.cards.oq3 === 'Concluída' && f3.cards.pqq === 'Concluída' && f3.cards.mapa === 'Montado' && f3.cards.roda_vida === 'Concluída',
   'várias: OQ³ + PQQ + Roda = "4 de 10" com 4 etiquetas — o Mapa do Propósito derivado aparece como etiqueta (antes contava sem etiqueta) — ' + f3.contagem + ' · ' + f3.chips.join(', '));
-ok(JSON.stringify(num(f10.contagem)) === '[10,10]' && f10.chips.length === 10 && Object.values(f10.cards).every(s => s === 'Concluída' || s === 'Montado'),
-  '10/10: "10 de 10 aplicadas", 10 etiquetas, nenhum card "Disponível" — ' + f10.chips.join(', '));
+/* 14/10: Conexao & Pertencimento oculta -> 9 ferramentas visiveis (o registro dela nao conta nem vira etiqueta) */
+ok(JSON.stringify(num(f10.contagem)) === '[9,9]' && f10.chips.length === 9 && !f10.chips.includes('Conexão & Pertencimento') && Object.values(f10.cards).every(s => s === 'Concluída' || s === 'Montado'),
+  'todas: "9 de 9 aplicadas" (Conexão oculta), 9 etiquetas, nenhum card "Disponível" — ' + f10.chips.join(', '));
 ok([f0, f1, f3, f10].every(f => { const n = num(f.contagem); return n && n[0] === f.chips.length; }), 'em todos os casos a contagem é igual ao número de etiquetas');
 
 /* ============================ N81 — total de perguntas do pacote vigente ============================ */

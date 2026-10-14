@@ -1058,7 +1058,8 @@
         "</div></div>";
     }).join("") + "</div>";
 
-    var ativas = (window.FERRAMENTAS_ATIVAS || []).concat(["oq3", "pqq", "mapa"]);
+    /* 14/10: ferramentas ocultas (FERRAMENTAS_OCULTAS) nao entram na lista nem na contagem */
+    var ativas = (window.FERRAMENTAS_ATIVAS || []).concat(["oq3", "pqq", "mapa"]).filter(function (id) { return !window.ferramentaVisivel || window.ferramentaVisivel(id); });
     var aplicadasAtivas = d.ferramentas.filter(function (id) {
       return ativas.indexOf(id) >= 0;
     });
@@ -1066,7 +1067,7 @@
     var mapaDerivado = aplicadasAtivas.indexOf("mapa") < 0 && temConteudo(p.oq3) && temConteudo(p.pqq);
     if (mapaDerivado) aplicadasAtivas.push("mapa");
     /* 14/10 (auditoria Cowork): a contagem e os chips saem da MESMA lista — antes o Mapa entrava no "X de 10" sem chip */
-    var chips = d.ferramentas.concat(mapaDerivado ? ["mapa"] : []);
+    var chips = d.ferramentas.filter(function (id) { return !window.ferramentaVisivel || window.ferramentaVisivel(id); }).concat(mapaDerivado ? ["mapa"] : []);
 
     html += '<div class="fic-forms-rodape">' +
       '<div class="fic-form-topo"><span class="fic-form-quem">' +
