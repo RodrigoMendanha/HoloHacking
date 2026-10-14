@@ -59,11 +59,14 @@ def validar_resultado(r):
     for k in CHAVES_OBRIGATORIAS:
         if k not in r:
             p.append('falta a chave "%s"' % k)
+    for k in r:
+        if k not in CHAVES_OBRIGATORIAS:
+            p.append('chave fora do schema 06: "%s" (mapeie o conteúdo para uma chave existente)' % k)
     if r.get('schema_version') != SCHEMA_VERSION:
         p.append('schema_version deve ser 1')
     tipo = r.get('tipo')
     if tipo not in ('primeira_consulta', 'retorno'):
-        p.append('tipo deve ser "primeira_consulta" ou "retorno"')
+        p.append('tipo deve ser "primeira_consulta" ou "retorno" (veio %r)' % (tipo,))
     for k in LISTAS:
         if k in r and not isinstance(r[k], list):
             p.append('"%s" deve ser lista' % k)

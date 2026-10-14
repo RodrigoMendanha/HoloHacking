@@ -136,5 +136,38 @@ if (py.status === 0) {
   ok(/falta a chave "plano_acompanhamento"/.test(ps) && /mente está "nao_aprofundado"/.test(ps), 'C07 validador do GPT: chave obrigatória e território não aprofundado com estratégia');
 } else console.log('  (python3 ausente: conferência do validador do GPT pulada)');
 
+/* C08 o CONTRATO JSON embutido nas Instrucoes (00) e o mesmo do schema 06: o agente nao depende de achar o 06 por busca */
+const INSTR = readFileSync(new URL('../docs/v1/holos-ai-gpt/00-INSTRUCOES-GPT.md', import.meta.url), 'utf8');
+const SCH = JSON.parse(readFileSync(new URL('../docs/v1/holos-ai-gpt/06-SCHEMA-HOLOS-AI-RESULT.json', import.meta.url), 'utf8'));
+const ini = INSTR.indexOf('{"schema_version"'), fim = INSTR.indexOf('"fontes_utilizadas":[""]}') + '"fontes_utilizadas":[""]}'.length;
+const esq = JSON.parse(INSTR.slice(ini, fim).replace(/"([^"]*\|[^"]*)"/g, (m, v) => JSON.stringify(v.split('|')[0])));
+const chaves = Object.keys(esq);
+ok(INSTR.length <= 8000 && chaves.length === 24 && JSON.stringify(chaves.slice().sort()) === JSON.stringify(SCH.required.slice().sort())
+  && JSON.stringify(chaves.slice().sort()) === JSON.stringify(C.OBRIGATORIAS.slice().sort()) && esq.tipo === 'primeira_consulta'
+  && /SCHEMA 06 INDISPONÍVEL — NÃO É SEGURO GERAR JSON IMPORTÁVEL/.test(INSTR) && /NUNCA invente a estrutura JSON/.test(INSTR),
+  'C08 Instruções (≤ 8000 caracteres) trazem o CONTRATO JSON com exatamente as 24 chaves do 06 e do contrato da ponte, e a regra "SCHEMA 06 INDISPONÍVEL"');
+const enums = (prop) => { const p = SCH.properties[prop]; return p && p.items ? p.items.properties : p.properties; };
+const dif = [];
+['o_que_apareceu', 'convergencias', 'pontos_para_aprofundar', 'sistemas_prioritarios', 'ferramentas_ja_aplicadas', 'ferramentas_recomendadas', 'direcionamentos', 'estrategias', 'roteiro_proxima_consulta', 'alertas_profissionais', 'meta', 'entrada'].forEach(k => {
+  const doEsq = Array.isArray(esq[k]) ? esq[k][0] : esq[k], props = enums(k);
+  Object.keys(doEsq).forEach(c => { if (!props[c]) dif.push(k + '.' + c); });
+  Object.keys(props).forEach(c => { if (!(c in doEsq)) dif.push(k + '.' + c + ' (falta no 00)'); });
+});
+const opcoes = (txt, campo) => { const m = INSTR.slice(ini, fim).match(new RegExp('"' + campo + '":"([^"]*)"')); return m ? m[1].split('|') : []; };
+const alvo = (campo, lista) => opcoes(campo).every(v => lista.indexOf(v === 'null' ? null : v) >= 0);
+ok(dif.length === 0 && alvo('decisao_sugerida', SCH.properties.estrategias.items.properties.decisao_sugerida.enum)
+  && alvo('classificacao', SCH.properties.estrategias.items.properties.classificacao.enum)
+  && alvo('tipo', SCH.properties.tipo.enum) && C.validar(Object.assign(base(), { tipo: 'HOLOS_AI_RESULT' })).erros.some(e => /tipo deve ser/.test(e)),
+  'C08 campos e valores permitidos do contrato das Instruções batem com o 06' + (dif.length ? ' — diferença: ' + dif.join(', ') : ''));
+if (py.status === 0) {
+  const dir2 = mkdtempSync(join(tmpdir(), 'hai-'));
+  const inventado = Object.assign(base(), { tipo: 'HOLOS_AI_RESULT', atendimento: {}, paciente: {}, dimensoes: [] });
+  writeFileSync(join(dir2, 'inv.json'), JSON.stringify(inventado));
+  const script = new URL('../docs/v1/holos-ai-gpt/holos_ai_pdf.py', import.meta.url).pathname;
+  const out = JSON.parse(spawnSync('python3', ['-c', 'import json,sys\nexec(open(sys.argv[1],encoding="utf-8").read())\nprint(json.dumps(validar_resultado(json.load(open(sys.argv[2],encoding="utf-8")))))', script, join(dir2, 'inv.json')], { encoding: 'utf8' }).stdout).join(' | ');
+  ok(/chave fora do schema 06: "atendimento"/.test(out) && /"paciente"/.test(out) && /"dimensoes"/.test(out) && /tipo deve ser/.test(out),
+    'C08 validador do GPT recusa estrutura inventada (tipo "HOLOS_AI_RESULT", chaves atendimento/paciente/dimensoes)');
+}
+
 console.log(falhou ? '\nFALHOU' : '\nOK: contrato HOLOS_AI_RESULT v1');
 process.exit(falhou ? 1 : 0);

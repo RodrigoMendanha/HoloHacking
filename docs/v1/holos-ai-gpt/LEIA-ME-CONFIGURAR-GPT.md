@@ -6,9 +6,9 @@ ChatGPT → **Explorar GPTs** → **Criar** → aba **Configurar**.
 |---|---|
 | **Nome** | `HOLOS AI` |
 | **Descrição** | `Lê o Pacote HOLOS AI (ou o PDF do Resultado HOLOS) exportado pelo HoloHacking e devolve a análise do atendimento em texto legível + JSON importável: sistemas prioritários, ferramentas do catálogo PP-V1, direcionamentos, estratégias, acompanhamento e roteiro do retorno. Tudo é sugestão para a nutricionista confirmar. Não diagnostica nem prescreve.` |
-| **Instruções** | o texto **inteiro** de `00-INSTRUCOES-GPT.md` (7,5 mil caracteres; o limite do GPT é 8 mil) |
+| **Instruções** | o texto **inteiro** de `00-INSTRUCOES-GPT.md`, colado no campo Instruções (6,4 mil caracteres, com o CONTRATO JSON embutido; o limite do GPT é 8 mil). **Não basta subir o 00 como arquivo de Conhecimento:** o Conhecimento é consultado por trechos e o contrato pode não aparecer. Depois de atualizar, apague a versão antiga do campo inteira (não junte as duas). |
 | **Iniciadores de conversa** | `Analise este atendimento (anexo o Pacote HOLOS AI)` · `Analise este Resultado HOLOS (anexo o PDF)` · `Analise este retorno` · `Gere o PDF de conferência desta análise` |
-| **Conhecimento** (enviar os arquivos) | `01-REGRAS-E-FORMATO.md`, `02-SISTEMAS-E-FERRAMENTAS.md`, `03-EXEMPLO-PACOTE-E-RESULTADO.md`, `04-ESPECIFICACAO-HOLOS-AI.md`, `05-CATALOGO-FERRAMENTAS-PP-V1.md`, `06-SCHEMA-HOLOS-AI-RESULT.json`, `exemplo-resultado.json`, `exemplo-entrada-transcrita.json`, `holos_ai_pdf.py` (+ os livros/aulas oficiais do método, quando houver). **Remova** os arquivos da 1.1 que não existem mais: `exemplo-dados.json` e o PDF antigo. |
+| **Conhecimento** (enviar os arquivos) | `01-REGRAS-E-FORMATO.md`, `02-SISTEMAS-E-FERRAMENTAS.md`, `03-EXEMPLO-PACOTE-E-RESULTADO.md`, `04-ESPECIFICACAO-HOLOS-AI.md`, `05-CATALOGO-FERRAMENTAS-PP-V1.md`, `06-SCHEMA-HOLOS-AI-RESULT.json`, `exemplo-resultado.json`, `exemplo-entrada-transcrita.json`, `holos_ai_pdf.py`, `MANIFESTO-HOLOS-AI.md` (+ os livros/aulas oficiais do método, quando houver). **Remova** os arquivos da 1.1 que não existem mais: `exemplo-dados.json` e o PDF antigo. |
 | **Recursos** | ✅ **Code Interpreter & Data Analysis** — **recomendado** (valida o JSON e gera o PDF de conferência). Sem ele, o GPT entrega o texto e o JSON normalmente. · ❌ Navegação na web · ❌ Geração de imagens |
 | **Ações** | nenhuma |
 | **Compartilhamento** | "Somente pessoas com o link" (ou só você, durante o piloto) |
@@ -41,7 +41,7 @@ Sem link configurado, o botão continua funcionando como hoje: a nutricionista a
 
 ## Teste rápido antes de usar com paciente real
 Envie ao GPT o PDF do Resultado HOLOS da "Paciente Teste T5 Fictícia". Compare a resposta com `03-EXEMPLO-PACOTE-E-RESULTADO.md` e `exemplo-resultado.json`, conferindo estes pontos:
-- **Duas partes:** veio o bloco `HOLOS_AI_RESULT` **e** um bloco ```json``` com `schema_version: 1` e todas as chaves.
+- **Duas partes:** veio o bloco `HOLOS_AI_RESULT` **e** um bloco ```json``` com `schema_version: 1`, `"tipo": "primeira_consulta"` (ou `"retorno"`) e exatamente as 24 chaves do contrato, sem chave inventada.
 - **Primeira consulta:** a estratégia acordada aparece como "MANTER EM OBSERVAÇÃO — SUGERIDO", não como "MANTER".
 - **Ferramentas:** até 3, com ID REC-…, sem repetir e sem o Mapa da Rotina, que já foi concluído.
 - **Territórios:** Mente e Espírito aparecem como "Ainda não aprofundado nesta etapa.", sem estratégia ligada.
@@ -57,6 +57,8 @@ Envie ao GPT o PDF do Resultado HOLOS da "Paciente Teste T5 Fictícia". Compare 
   - tudo tem "Baseado em".
 
 Se o Code Interpreter estiver ligado, peça: `rode validar_resultado no JSON`. A resposta esperada é uma lista vazia, `[]`.
+
+**Teste do contrato (1 minuto):** pergunte ao GPT `Liste as 24 chaves do JSON que você vai entregar e os valores permitidos de "tipo"`. Ele tem que responder as 24 chaves do contrato (de `schema_version` a `fontes_utilizadas`) e `primeira_consulta` / `retorno`. Se responder outra coisa ou disser que não tem o 06, as Instruções não são as do 00 atual.
 
 ## Versões
 - **Agente:** `HOLOS-AI-GPT 1.2` (13/10/2026; fechamento em 14/10/2026). Mudanças da 1.2:
@@ -77,6 +79,7 @@ Se o Code Interpreter estiver ligado, peça: `rode validar_resultado no JSON`. A
   - rótulo único "SUGESTÃO HOLOS AI — REQUER REVISÃO PROFISSIONAL" (`catalogo: "not_catalogued"`);
   - `meta`, `entrada`, `ferramentas_ja_aplicadas` e `plano_acompanhamento` passam a ser obrigatórios (já existiam no schema; agora sempre presentes, vazios quando não houver material);
   - `validar_resultado` confere tudo isso.
+- **Correção 14/10/2026 (primeiro teste real):** o agente disse que não tinha acesso ao 06 e inventou outro JSON (`tipo: "HOLOS_AI_RESULT"`, chaves `atendimento`, `paciente`, `dimensoes`...). Causa: o conhecimento é consultado por trechos, e um Pacote de paciente quase nunca puxa os trechos do schema. Correção: o CONTRATO JSON (as 24 chaves, valores permitidos e a regra "SCHEMA 06 INDISPONÍVEL — NÃO É SEGURO GERAR JSON IMPORTÁVEL") passou a ficar dentro das Instruções, que estão sempre no contexto. `validar_resultado` recusa chave fora do schema.
 - **Schema da saída:** `06-SCHEMA-HOLOS-AI-RESULT.json`, versão 1. Renomear ou retirar campo vira `schema_version: 2`; tornar obrigatório um campo que já existia não muda a versão.
 - **Textos dos sistemas:** HOLOS-V1 v7.
 - **Ferramentas:** catálogo homologado HOLOS-RECOMENDACOES-V1 (arquivo 05).
