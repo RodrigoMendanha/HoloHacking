@@ -64,6 +64,8 @@
   function padroes() {
     var rel = st.pb.relato || {};
     LISTAS_REL.forEach(function (k) { (rel[k] || []).forEach(function (_, i) { st.relSel[k + ":" + i] = i < LIM_REL[k]; }); });
+    var porTerr = {};
+    (st.pb.ferramentasRelato || []).forEach(function (x, i) { porTerr[x.lista] = (porTerr[x.lista] || 0) + 1; st.relSel["ferr:" + i] = porTerr[x.lista] <= 2; });
     estrategiasAnteriores().forEach(function (e) { st.acomp[e.id] = { decisao: "", aplicou: "", nota: "", acao: e.acao || "" }; });
     st.manterFoco = retorno() && !!focoAnterior();
   }
@@ -119,6 +121,7 @@
     });
     var relato = [];
     LISTAS_REL.forEach(function (k) { ((st.pb.relato || {})[k] || []).forEach(function (it, i) { if (st.relSel[k + ":" + i]) relato.push({ lista: k, item: it }); }); });
+    (st.pb.ferramentasRelato || []).forEach(function (x, i) { if (st.relSel["ferr:" + i]) relato.push(x); });
     var resumo = P.resumo({ foco: { id: usandoFocoAnterior() ? idFocoAnterior() : st.foco }, estrategias: st.est }) +
       (retorno() ? " Retorno: " + acompanhamento.length + " estratégia(s) acompanhada(s), " + continuadas.length + " continuada(s)." : "");
     return Object.assign({ relato: relato, direcao: m, acompanhamento: acompanhamento, continuadas: continuadas, resumo: resumo }, extra);
@@ -156,7 +159,13 @@
         return '<label class="pb-check"><input type="checkbox" data-pb-rel="' + esc(key) + '"' + (st.relSel[key] ? " checked" : "") + "> <span>" + esc(it.texto) + "</span></label>";
       }).join("") + "</fieldset>";
     }).join("");
-    var corpo = linhas + (temRel ? '<p class="pb-dica">O que o paciente contou (Mapeamento ou anamnese). Marque o que entra no Resultado.</p>' + grupos
+    var fr = st.pb.ferramentasRelato || [];
+    var ROT_F = { desejos: "O que você quer construir", corpo: "Corpo", mente: "Mente", espirito: "Espírito" };
+    var blocoFerr = fr.length ? '<fieldset class="pb-rel pb-rel-ferr"><legend>O que apareceu nas ferramentas</legend>' + fr.map(function (x, i) {
+      var key = "ferr:" + i;
+      return '<label class="pb-check"><input type="checkbox" data-pb-rel="' + key + '"' + (st.relSel[key] ? " checked" : "") + "> <span>" + esc(x.item.texto) + ' <small class="pb-onde">→ ' + esc(ROT_F[x.lista] || x.lista) + "</small></span></label>";
+    }).join("") + "</fieldset>" : "";
+    var corpo = linhas + blocoFerr + (temRel ? '<p class="pb-dica">O que o paciente contou (Mapeamento ou anamnese). Marque o que entra no Resultado.</p>' + grupos
       : '<p class="dash-vazio">O paciente ainda não tem Mapeamento nem anamnese neste atendimento: esta parte fica vazia (nada é inventado).</p>');
     return passo(1, "Leitura do paciente", "Confira. O sistema só mostra o que já está registrado.", corpo);
   }

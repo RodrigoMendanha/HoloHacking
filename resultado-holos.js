@@ -1111,10 +1111,10 @@
     if (!RD() || !temSupa()) return Promise.resolve({ erro: "O Resultado HOLOS fica no servidor: entre com a sua conta." });
     return carregar(pid).then(function () {
       var f = novoForm(pid, null);
-      if (!f.encounter_id) return { erro: MSG_HINT.atendimento_obrigatorio };
+      if (!f.encounter_id) return { erro: "Inicie um atendimento para montar o Resultado: ele fica ligado ao atendimento." };
       var hs = aplicacoesHoloscan(pid).filter(function (h) { return h.oficial; });
       var h = hs.filter(function (x) { return x.encounter_id === f.encounter_id; })[0] || hs[0];
-      if (!h) return { erro: MSG_HINT.holoscan_obrigatorio };
+      if (!h) return { erro: "Aplique e salve o HOLOSCAN deste paciente primeiro: é ele que define as áreas prioritárias e os focos do Playbook." };
       f.holoscan_application_id = h.id;
       var visto = {};
       f.tools = aplicacoesFerramentas(pid).filter(function (a) {
@@ -1137,8 +1137,13 @@
         LISTAS_RELATO.forEach(function (k) {
           relato[k] = (S[k] || []).filter(function (it) { return it && ORIGENS_RELATO.indexOf(it.origem) >= 0 && !RD().termosFora(it.texto).length; });
         });
+        /* o que o paciente respondeu NAS FERRAMENTAS (palavras dele, com referencia ao registro): desejos e Corpo/Mente/Espirito */
+        var ferrRelato = [];
+        ["desejos", "corpo", "mente", "espirito"].forEach(function (k) {
+          (S[k] || []).forEach(function (it) { if (it && it.origem === "ferramenta" && !RD().termosFora(it.texto).length) ferrRelato.push({ lista: k, item: it }); });
+        });
         var A = window.AtendimentoAtual, at = A && A.porId ? A.porId(f.encounter_id) : null;
-        return { form: f, snap: snap, tipo: f.direcao.tipo, prioritarios: prio, ferramentas: ferr.map(function (t) { return t.ferramenta_id; }),
+        return { form: f, snap: snap, tipo: f.direcao.tipo, ferramentasRelato: ferrRelato, prioritarios: prio, ferramentas: ferr.map(function (t) { return t.ferramenta_id; }),
           nomesFerramentas: ferr.map(function (t) { return defFerr(t.ferramenta_id).titulo || t.ferramenta_id; }),
           momentum: mom && mom.respostas ? mom.respostas.estado_confirmado || mom.respostas.estado || null : null, relato: relato, anterior: ctx.anterior,
           anteriorDirecao: ctx.anterior && porId(ctx.anterior.id) ? porId(ctx.anterior.id).direcao || null : null,
@@ -1154,13 +1159,18 @@
     f.direcao = RD().normalizar(null, pb.tipo);
     var d = f.direcao, S = {};
     LISTAS_RELATO.forEach(function (k) { S[k] = []; });
-    (escolha.relato || []).forEach(function (it) { if (S[it.lista]) S[it.lista].push(Object.assign({}, it.item, { confirmado: true, mostrar_paciente: true, descartado: false })); });
+    var terrFerr = { corpo: [], mente: [], espirito: [] };
+    (escolha.relato || []).forEach(function (it) {
+      var x = Object.assign({}, it.item, { confirmado: true, mostrar_paciente: true, descartado: false });
+      if (S[it.lista]) S[it.lista].push(x); else if (terrFerr[it.lista]) terrFerr[it.lista].push(x);
+    });
     RD().mesclar(d, S);
     d.acompanhamento_estrategias = (escolha.acompanhamento || []).slice();
     d.foco_atual = escolha.focoAnterior || m.foco_atual || null;
     d.direcionamentos = (escolha.direcionamentosAnteriores || []).concat(m.direcionamentos || []);
     d.estrategias = (escolha.continuadas || []).concat(m.estrategias || []).slice(0, (window.PlaybookHolos && window.PlaybookHolos.MAX_ESTRATEGIAS) || 6);
-    ["corpo", "mente", "espirito"].forEach(function (t) { d[t].itens = (m[t] || []).slice(); });
+    /* Corpo · Mente · Espirito: primeiro o que o paciente trouxe nas ferramentas, depois as estrategias escolhidas */
+    ["corpo", "mente", "espirito"].forEach(function (t) { d[t].itens = terrFerr[t].concat(m[t] || []); });
     (escolha.continuadas || []).forEach(function (e) {
       var PB = window.PlaybookHolos, def = PB ? PB.porId(PB.origemPlaybook(e.anterior && e.anterior.estrategia_id)) : null;
       if (def && d[def.territorio]) d[def.territorio].itens.push({ id: "pb1-" + def.id + "-t-" + Math.random().toString(36).slice(2, 8), texto: e.texto, texto_sugerido: e.texto,

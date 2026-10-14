@@ -6417,3 +6417,5 @@ body.rp-gerando .rp-doc .pf-doc ul > li::before{content:none;display:none}
 .hai-playbook{margin:.4rem 0 .8rem;font-size:.88rem;color:var(--texto-suave)}
 @media (max-width:900px){.pb-colunas{grid-template-columns:1fr}.pb-dir{grid-template-columns:1fr}}
 @media (max-width:480px){.pb-wiz{padding:1rem .8rem}.pb-linha b{min-width:0;width:100%}}
+.pb-onde{color:var(--texto-suave);font-size:.78rem;white-space:nowrap}
+.pb-rel-ferr{border-color:var(--dourado-suave)}

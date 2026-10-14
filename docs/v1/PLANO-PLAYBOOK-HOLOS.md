@@ -1,6 +1,6 @@
 # PLANO — PLAYBOOK HOLOS (PB-V1): Resultado sem depender da IA
 
-Data: 14/10/2026 · Situação: **IMPLEMENTADO LOCALMENTE (sem deploy)**. O conteúdo PB-V1 é rascunho e aguarda a revisão metodológica (decisão D1).
+Data: 14/10/2026 · Situação: **APROVADO (14/10) E IMPLEMENTADO** (deploy pendente). Conteúdo PB-V1 aprovado; o PDF do playbook está em `docs/v1/PLAYBOOK-HOLOS-PB-V1.pdf` (gerado por `scripts/gerar-pdf-playbook.mjs`, direto do conteúdo do sistema).
 
 ---
 
@@ -445,3 +445,32 @@ Esses campos são **os mesmos que o Resultado já guarda hoje** (foco_atual, dir
 - D5 (playbook na IA) fica para a fase 2.
 
 **Banco:** nenhuma migration. **Deploy:** só do site.
+
+## 12. Integração com as ferramentas e auditoria (14/10, depois da aprovação)
+
+**O que as ferramentas trazem para o Resultado:**
+- No passo 1 aparece o bloco **"O que apareceu nas ferramentas"**, com as palavras do paciente registradas nas ferramentas:
+  - OQ³: o que quer e o que consegue fazer agora;
+  - Mapa da Rotina: espaços da rotina para mudança;
+  - Gatilhos & Respostas: o episódio e a resposta alternativa;
+  - Escada dos Porquês: o objetivo e o que é verdadeiro;
+  - Mapa de Crenças e Roda da Vida.
+- O que ela deixa marcado entra no Resultado, em **"O que você quer construir"** e em **Corpo · Mente · Espírito**, antes dos títulos das estratégias.
+- As ferramentas também ordenam as estratégias (selo "Combina com…").
+- O documento lista as **"Ferramentas utilizadas"** do atendimento.
+
+**Auditoria** (`testes/testar-playbook-auditoria.mjs`), com dados fictícios:
+
+| Item verificado | Resultado |
+|---|---|
+| Áreas do assistente = "Áreas que merecem mais atenção" do Resultado (mesmo cálculo do HOLOSCAN) | ok |
+| Foco e estratégias do mesmo sistema prioritário | ok |
+| Respostas das ferramentas no passo 1 e no Resultado | ok |
+| Botões: outros sistemas, escrever outro foco, ajustar o foco, estratégias gerais, desmarcar relato, Voltar, Gerar | ok |
+| Página Resultado usa o Resultado do Playbook como vigente e mostra o foco | ok |
+| Emitir + PDF real | ok (4 páginas) |
+| Sem HOLOSCAN: mensagem clara, nada gravado | ok |
+| Paciente arquivado: botão desabilitado | ok |
+| Celular 390 px sem rolagem lateral | ok |
+
+Exemplo de PDF gerado pelo Playbook: `docs/v1/capturas/playbook-1410/pdf-playbook-primeira-consulta.pdf`.

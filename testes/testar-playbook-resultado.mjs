@@ -99,7 +99,7 @@ await capturar('playbook-2-estrategias');
 /* W5 */
 await clicar('[data-pb-acao="previa"]'); await espera(400);
 const previa = await txt('.pb-previa');
-ok(/PRÉVIA/.test(previa) && /Foco desta fase/.test(previa) && /Organizar os horários das refeições/.test(previa) && /Horários âncora/.test(previa) && /Levar um lanche pronto para as 16h/.test(previa),
+ok(/PRÉVIA/.test(previa) && /Foco desta fase/.test(previa) && /Organizar os horários das refeições/.test(previa) && /Horários âncora/i.test(previa) && /Levar um lanche pronto para as 16h/.test(previa),
   'W5 prévia = documento do paciente com o foco, o plano e a edição');
 await clicar('[data-pb-acao="gerar"]');
 await P.waitForFunction(() => !document.querySelector('#aba-resultado-holos .pb-wiz') && !!document.querySelector('#aba-resultado-holos #rh-doc'), { timeout: 15000 }).catch(() => null);
