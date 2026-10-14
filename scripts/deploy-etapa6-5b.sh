@@ -1,12 +1,12 @@
 #!/bin/sh
-# HOLOHACKING — deploy do front na VPS (passos 4 a 11). Versao atual: 43d0f48 = rodada UX + nome Holos IA (Holos IA, QF/QM/QE, contraste, "?" das ferramentas) + simplificacao HOLOS AI -> Resultado. ANTES: migration 20261024100000 (aceite automatico) aplicada no Supabase.
+# HOLOHACKING — deploy do front na VPS (passos 4 a 11). Versao atual: 72053fa = Mapeamento MH-2 + rodada UX + nome Holos IA (Holos IA, QF/QM/QE, contraste, "?" das ferramentas) + simplificacao HOLOS AI -> Resultado. ANTES: migration 20261024100000 (aceite automatico) aplicada no Supabase.
 # Plano completo, conferencias SQL, rollback do banco e smoke: docs/v1/DEPLOY-RESULTADO-HOLOS-T5.md. Rodar NA VPS:
 #   sh deploy-etapa6-5b.sh            -> passos 4-8 (estado, codigo, build, container temporario 8082). NAO troca producao.
 #   sh deploy-etapa6-5b.sh swap       -> passos 9-11 (troca 8080, valida local e publico). So depois de conferir o 1o.
 # Para sozinho em qualquer divergencia. Nunca apaga container. Nao usa credencial.
 set -eu
-ESPERADO=43d0f48db74a800fd6a798af66eef80e760d86a2
-CURTO=43d0f48
+ESPERADO=72053faba6e1ab1ceedf09ec0ef452321e30d18d
+CURTO=72053fa
 DIR=/opt/holohacking
 IMG=holohacking-web:$CURTO
 PROD=holohacking-web
