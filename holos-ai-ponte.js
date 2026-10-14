@@ -163,7 +163,7 @@
     if (!c || !c.formulario || !M) return legado || "";
     var tipo = c.tipo === "retorno" ? "retorno" : "primeira", form = c.formulario, out = [];
     var tem = function (x) { return x !== null && x !== undefined && String(x).trim() !== ""; };
-    M.etapasDe(tipo).forEach(function (et) {
+    M.etapasDe(tipo, form).forEach(function (et) {
       var l = [];
       M.camposDa(tipo, et).forEach(function (cp) {
         if (cp.secao || !M.visivel(form, cp.b, cp.f)) return;
@@ -176,7 +176,7 @@
     if (fd) { var tf = M.valorTexto(fd, form[fin.bloco] || {}, fin.bloco); if (tem(tf)) out.push("### Algo mais que a paciente quis contar\n- " + String(tf).trim()); }
     /* respostas de versoes anteriores do formulario (fora das etapas atuais): nada se perde */
     var V2 = window.AnamneseV2, vistos = {};
-    M.etapasDe(tipo).forEach(function (et) { M.camposDa(tipo, et).forEach(function (cp) { if (!cp.secao) vistos[cp.b + "." + cp.f.id] = true; }); });
+    M.etapasDe(tipo, form).forEach(function (et) { M.camposDa(tipo, et).forEach(function (cp) { if (!cp.secao) vistos[cp.b + "." + cp.f.id] = true; }); });
     if (fin) vistos[fin.bloco + "." + fin.campo] = true;
     var outros = [];
     ((V2 && (tipo === "retorno" ? V2.BLOCOS_RETORNO : V2.BLOCOS_PRIMEIRA)) || []).forEach(function (b) {
@@ -187,7 +187,8 @@
       });
     });
     if (outros.length) out.push("### Outras respostas\n" + outros.join("\n"));
-    return (v.status ? "Revisão " + (v.revision_number || 1) + " · " + v.status + "\n\n" : "") + out.join("\n\n");
+    var ver = tipo === "primeira" && M.versaoDe ? "Questionário " + M.versaoDe(form) + "\n" : "";
+    return (v.status ? "Revisão " + (v.revision_number || 1) + " · " + v.status + "\n" : "") + ver + (v.status || ver ? "\n" : "") + out.join("\n\n");
   }
   function montarPacote(pid, eid) {
     var p = window.pacientesTodos ? window.pacientesTodos().filter(function (x) { return x.id === pid; })[0] : null;

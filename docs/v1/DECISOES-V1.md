@@ -1177,6 +1177,19 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
      Sem mudança em HOLOSCAN, fórmula, scoring, cinco sistemas, Índice, cálculo da Tríade, PP-V1, schema da HOLOS AI ou
      regras clínicas.
 
+200. **Mapeamento Holístico MH-2 — pré-consulta enxuta** (14/10, decisão de Rodrigo). O Mapeamento pergunta só o que nenhum
+     outro instrumento coleta e que a nutricionista precisa saber antes da consulta. Sono, fome, sinais com frequência,
+     rotina, apoio, emoções e propósito ficam com o HOLOSCAN e as ferramentas.
+     - 3 etapas + revisar, 17 perguntas principais (7 condicionais), cerca de 5 minutos;
+     - só 2 obrigatórias: o que quer melhorar e se tem diagnóstico informado;
+     - sem CPF/RG, sem "caso clínico", sem medidas e sem anexo de exames (só a orientação de levar ou enviar);
+     - topo com a marca HoloHacking, "Pré-consulta" e o método corpo, mente e espírito;
+     - versão gravada na resposta (`motivo.versao_mapeamento = "MH-2"`); respostas MH-1 continuam aparecendo com as
+       etapas e perguntas que o paciente viu;
+     - sem migration: os campos novos ficam nos blocos que o servidor já aceita.
+
+     Sem mudança em HOLOSCAN, ferramentas, retorno, registro profissional, Resultado HOLOS ou schema da Holos IA.
+
 ## Decisões pendentes (não decididas aqui)
 
 - **Solicitação de exames com assinatura jurídica** — fora da Etapa 3; `conducts.requested_exams`

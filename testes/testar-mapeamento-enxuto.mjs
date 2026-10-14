@@ -1,17 +1,18 @@
 /**
- * MAPEAMENTO HOLISTICO ENXUTO (12/10) — contexto antes da consulta, pouca digitacao, muito toque.
- *   1  link sem consulta agendada, 7 dias; pagina sem login
- *   2  5 blocos + revisar, na ordem; nenhuma medida, exame ou observacao fisica
- *   3  selecao rapida: sintomas como triagem (sem Nunca/As vezes/Frequente/Sempre, sem copiar frase do HOLOSCAN)
- *   4  condicionais: "Outro" abre campo; sinal principal so com sinais marcados e com as opcoes marcadas;
- *      "Sim" abre texto (cirurgia, condicao, desconforto, rotina, mudanca, questao pessoal); limite de escolhas
- *   5  poucos campos de texto visiveis no fluxo normal
- *   6  "Prefiro nao responder"; enviar so com o essencial; autosave (Iniciado), retomar pelo mesmo link
- *   7  enviado: "Mapeamento enviado!"; resposta imutavel; condicional fechada nao vai ao servidor
- *   8  ficha: "Mapeamento recebido", resposta completa por etapa, sem formulario profissional vazio;
- *      Levar para o atendimento -> rascunho V2 editavel; edicao profissional nao altera o original
- *   9  retorno (quem tem anamnese salva): 1 etapa curta, selecao rapida, sem peso
- *  10  sem score, sem preenchimento do HOLOSCAN; HOLOSCAN, metodologia e Resultado intocados
+ * MAPEAMENTO HOLISTICO MH-2 (pre-consulta, 14/10) — o que nenhum outro instrumento coleta, em ~5 minutos.
+ *   A  link -> abrir -> preencher parte -> fechar -> voltar -> continuar -> enviar -> chega na ficha
+ *   B  condicionais (Sim abre o campo; Nao/Nunca nao; "Outro" abre campo curto)
+ *   C  celular 390 px sem rolagem lateral; marca HoloHacking, "Pre-consulta" e o metodo corpo-mente-espirito no topo
+ *   D  respostas abertas guardadas com as palavras do paciente
+ *   E  status (Iniciado -> concluido) e resposta imutavel depois de enviada
+ *   F  obrigatorias so as essenciais: o que falta aparece pelo nome, com atalho, sem apagar o resto
+ *   G  Levar para o atendimento (rascunho V2 com as perguntas novas; a edicao nao altera o original)
+ *   H  Pacote Holos IA com a estrutura MH-2 (questionario MH-2, etapas, palavras do paciente)
+ *   I  historico: uma resposta MH-1 continua aparecendo com as etapas e perguntas que o paciente viu
+ *   J  o token de um paciente nao abre o de outro (link invalido)
+ *   K  recarregar nao perde resposta;  L  enviar de novo nao duplica
+ *   +  sem repetir HOLOSCAN/ferramentas (sono, fome, emocoes, rotina, proposito) e sem peso, medidas ou exames
+ *   +  retorno inalterado; HOLOSCAN e metodologia intocados
  * SHOT_DIR=<pasta> grava as capturas.
  */
 import './guarda-falhas.mjs';
@@ -68,107 +69,104 @@ const ESCALA_HOLO = /Nunca\s*Às vezes\s*Frequente\s*Sempre/;
 /* as 82 frases do HOLOSCAN v3: nenhuma pode aparecer no Mapeamento */
 const v3 = JSON.parse(readFileSync(new URL('../docs/v1/metodologia/pacote-metodologico-v3.json', import.meta.url), 'utf8')).pacote.perguntas.map(p => p.statement);
 
-/* ===== primeira consulta ===== */
+/* ===== primeira consulta (MH-2) ===== */
 const M = await pagina('http://127.0.0.1:5500/anamnese.html#t=' + cN.token);
 let t = await tela(M);
-ok(/Etapa 1 de 6/.test(t.passo), 'sem login; primeira consulta em 6 etapas (5 blocos + revisar)');
-const titulos = [], todos = [], textosVisiveis = [];
+const topo = await M.evaluate(() => document.getElementById('cabeca').innerText);
+ok(/Etapa 1 de 4/.test(t.passo), 'sem login; primeira consulta em 4 etapas (3 blocos + revisar)');
+ok(/HoloHacking/.test(topo) && /Pré-consulta/i.test(topo) && /corpo, mente e espírito/.test(topo) && /5 minutos/.test(topo)
+  && await M.evaluate(() => !!document.querySelector('#cabeca .marca img[src="/logo-holohacking.png"]')), 'C: topo com a marca HoloHacking, "Pré-consulta" e o método corpo-mente-espírito');
+const titulos = [], todos = [];
 /* etapa 1 */
 titulos.push(t.h2); todos.push(t.txt);
-ok(t.ids.some(i => i.startsWith('pa-motivo-motivos')) && t.textos.join() === 'pa-motivo-objetivo', 'etapa 1: motivos por seleção; um único campo de texto visível (o que mais gostaria de melhorar)');
-await marcar(M, 'pa-motivo-motivos', 'Mais energia e disposição'); await marcar(M, 'pa-motivo-motivos', 'Outro');
-t = await tela(M);
-ok(t.ids.includes('pa-motivo-motivos-outro'), '"Outro" abre um campo curto');
-await escrever(M, 'pa-motivo-motivos-outro', 'Preparar para uma cirurgia');
-await escrever(M, 'pa-motivo-objetivo', 'Ter mais energia à tarde');
-ok(!(await tela(M)).ids.includes('pa-motivo-acomp_experiencia'), 'experiência anterior só aparece depois de responder que já fez acompanhamento');
-await marcar(M, 'pa-motivo-acomp_anterior', 'Sim, mas tive dificuldade para manter');
-ok((await tela(M)).ids.includes('pa-motivo-acomp_experiencia'), '"Sim, mas..." abre o campo opcional sobre a experiência');
-textosVisiveis.push((await tela(M)).textos.length);
-if (SHOT) await M.screenshot({ path: SHOT + '/enxuto-etapa1.png', fullPage: true });
+ok(/\(obrigatória\)/.test(t.txt) && t.textos.join() === 'pa-motivo-expectativa', 'etapa 1: o que quer melhorar (obrigatória, por toque) e um único texto curto');
+await marcar(M, 'pa-motivo-melhorar', 'Mais energia e disposição'); await marcar(M, 'pa-motivo-melhorar', 'Outro');
+ok((await tela(M)).ids.includes('pa-motivo-melhorar-outro'), 'B: "Outro" abre um campo curto');
+await escrever(M, 'pa-motivo-melhorar-outro', 'Preparar para uma cirurgia');
+await escrever(M, 'pa-motivo-expectativa', 'Ter energia para brincar com meus filhos');
+ok(!(await tela(M)).ids.includes('pa-motivo-acomp_experiencia'), 'B: experiência anterior só depois de responder que já fez acompanhamento');
+await marcar(M, 'pa-motivo-acomp_anterior', 'Nunca');
+ok(!(await tela(M)).ids.includes('pa-motivo-acomp_experiencia'), 'B: "Nunca" não abre o campo');
+await marcar(M, 'pa-motivo-acomp_anterior', 'Sim, mas não me senti compreendido(a)');
+ok((await tela(M)).ids.includes('pa-motivo-acomp_experiencia'), 'B: "Sim, mas..." abre o campo opcional');
+await escrever(M, 'pa-motivo-acomp_experiencia', 'Dieta muito rígida');
+if (SHOT) await M.screenshot({ path: SHOT + '/mh2-etapa1-390.png', fullPage: true });
 await seguir(M);
-/* etapa 2 */
+/* etapa 2 — saude */
 t = await tela(M); titulos.push(t.h2); todos.push(t.txt);
-ok(!t.ids.some(i => /sinal_principal|sinal_relacao/.test(i)), 'sinal principal e relação com a alimentação só aparecem depois de marcar sinais');
-ok(!ESCALA_HOLO.test(t.txt), 'triagem de sinais sem a escala do HOLOSCAN (Nunca/Às vezes/Frequente/Sempre)');
-await marcar(M, 'pa-alimentar-dificuldades', 'Falta de tempo'); await marcar(M, 'pa-alimentar-dificuldades', 'Beliscar'); await marcar(M, 'pa-alimentar-dificuldades', 'Comer à noite');
-const limite = await M.evaluate(() => [...document.querySelectorAll('input[name="pa-alimentar-dificuldades"]')].filter(i => !i.checked).every(i => i.disabled));
-ok(limite && /escolha até 3/.test((await tela(M)).txt), 'dificuldades: escolha até 3 (as outras ficam travadas)');
-await marcar(M, 'pa-saude-sinais', 'Azia ou refluxo'); await marcar(M, 'pa-saude-sinais', 'Intestino preso');
-t = await tela(M);
-const princ = await M.evaluate(() => [...document.querySelectorAll('input[name="pa-saude-sinal_principal"]')].map(i => i.value));
-ok(princ.join('|') === 'Azia ou refluxo|Intestino preso', 'sinal principal usa só os sinais marcados');
-await marcar(M, 'pa-saude-sinal_principal', 'Azia ou refluxo');
-await marcar(M, 'pa-saude-sinal_relacao', 'Sim');
-ok((await tela(M)).ids.includes('pa-saude-sinal_relacao_obs'), '"Sim" na relação com a alimentação abre o texto opcional');
-await escrever(M, 'pa-saude-sinal_relacao_obs', 'Depois de café');
-await marcar(M, 'pa-saude-sinais', 'Não tenho percebido nenhum desses');
-t = await tela(M);
-ok(await M.evaluate(() => [...document.querySelectorAll('input[name="pa-saude-sinais"]:checked')].map(i => i.value).join()) === 'Não tenho percebido nenhum desses'
-  && !t.ids.some(i => /sinal_principal/.test(i)), '"Não tenho percebido nenhum desses" desmarca os outros e fecha o sinal principal');
-await marcar(M, 'pa-saude-sinais', 'Azia ou refluxo'); await marcar(M, 'pa-saude-sinal_principal', 'Azia ou refluxo');
+ok(!t.ids.some(i => /condicoes$|med_sup_quais|alergia_qual|desconforto_qual|familiar_saude/.test(i)) && t.textos.length === 0, 'B: etapa 2 só com toques; os campos abrem com "Sim"');
+await marcar(M, 'pa-saude-condicoes_tem', 'Sim');
+ok((await tela(M)).ids.includes('pa-saude-condicoes'), 'B: diagnóstico "Sim" abre "Qual condição ou diagnóstico?"');
+await escrever(M, 'pa-saude-condicoes', 'Hipotireoidismo');
+await marcar(M, 'pa-saude-med_sup_tem', 'Ambos'); await escrever(M, 'pa-saude-med_sup_quais', 'Levotiroxina 50 mcg; vitamina D');
+await marcar(M, 'pa-saude-alergia_tem', 'Não');
+ok(!(await tela(M)).ids.includes('pa-saude-alergia_qual'), 'B: alergia "Não" não abre campo');
+await marcar(M, 'pa-saude-desconforto_tem', 'Sim'); await escrever(M, 'pa-saude-desconforto_qual', 'Refluxo depois do almoço');
+await marcar(M, 'pa-contexto-familiar_tem', 'Sim'); await escrever(M, 'pa-contexto-familiar_saude', 'Diabetes (mãe)');
+await marcar(M, 'pa-saude-exames_tem', 'Sim');
+ok(/leve na consulta ou envie para a sua nutricionista/i.test((await tela(M)).txt) && !(await M.evaluate(() => !!document.querySelector('main input[type=file]'))), 'exames: só a orientação, sem anexo no link');
+if (SHOT) await M.screenshot({ path: SHOT + '/mh2-etapa2-390.png', fullPage: true });
+await seguir(M);
+/* etapa 3 — alimentacao e habitos */
+t = await tela(M); titulos.push(t.h2); todos.push(t.txt);
+await marcar(M, 'pa-alimentar-escolha', 'Vegetariana');
+await marcar(M, 'pa-alimentar-evita_tem', 'Sim'); await escrever(M, 'pa-alimentar-evita_qual', 'Leite: me dá gases');
+await marcar(M, 'pa-alimentar-refeicoes_como', 'Em casa'); await marcar(M, 'pa-alimentar-refeicoes_como', 'Como correndo');
 await marcar(M, 'pa-alimentar-agua', '1–2 L');
-textosVisiveis.push((await tela(M)).textos.filter(i => !/sinal_relacao_obs/.test(i)).length);
-if (SHOT) await M.screenshot({ path: SHOT + '/enxuto-etapa2.png', fullPage: true });
-await seguir(M);
-/* etapa 3 */
-t = await tela(M); titulos.push(t.h2); todos.push(t.txt);
-ok(!t.ids.includes('pa-saude-condicoes') && !t.ids.includes('pa-saude-cirurgias') && !t.ids.includes('pa-restricoes-evita_desconforto'), 'condição, cirurgia e desconforto: campo só depois de "Sim"');
-await marcar(M, 'pa-saude-cirurgias_tem', 'Sim');
-ok((await tela(M)).ids.includes('pa-saude-cirurgias'), 'cirurgia "Sim" abre "Qual e quando?"');
-await escrever(M, 'pa-saude-cirurgias', 'Vesícula, 2020');
-await marcar(M, 'pa-saude-condicoes_tem', 'Não');
-await M.evaluate(() => { document.getElementById('pa-restricoes-medicamentos-nega').click(); document.getElementById('pa-restricoes-alergias-nega').click(); });
-textosVisiveis.push((await tela(M)).textos.filter(i => !/cirurgias/.test(i)).length);
-await seguir(M);
-/* etapa 4 */
-t = await tela(M); titulos.push(t.h2); todos.push(t.txt);
-ok(t.ids.includes('pa-estilo-dorme') && t.ids.includes('pa-estilo-acorda') && await M.evaluate(() => document.getElementById('pa-estilo-dorme').type === 'time'), 'horário de dormir e acordar em relógio, lado a lado');
-ok(!/cabeça não desliga|acorda cansado|desperta/i.test(t.txt), 'sono sem repetir o que o HOLOSCAN investiga');
-await escrever(M, 'pa-estilo-dorme', '23:00'); await escrever(M, 'pa-estilo-acorda', '06:30');
-await marcar(M, 'pa-estilo-dificulta_opcoes', 'Tempo'); await marcar(M, 'pa-estilo-dificulta_opcoes', 'Cansaço');
-ok(await M.evaluate(() => [...document.querySelectorAll('input[name="pa-estilo-dificulta_opcoes"]')].filter(i => !i.checked).every(i => i.disabled)), 'o que dificulta: até 2');
+await marcar(M, 'pa-estilo-atividade', '1–2x/semana');
+ok((await tela(M)).ids.includes('pa-estilo-atividade_qual'), 'B: atividade física abre "Qual atividade física?"');
+await escrever(M, 'pa-estilo-atividade_qual', 'Caminhada');
+await marcar(M, 'pa-alimentar-alcool', 'Ocasional');
 await marcar(M, 'pa-estilo-tabagismo', '');   // Prefiro nao responder
-textosVisiveis.push((await tela(M)).textos.length);
-await seguir(M);
-/* etapa 5 */
-t = await tela(M); titulos.push(t.h2); todos.push(t.txt);
-ok(!/propósito|espiritualidade|sentido da vida|trauma/i.test(t.txt), 'momento atual curto: sem propósito, espiritualidade, sentido da vida ou trauma');
-await marcar(M, 'pa-contexto-pessoal_tem', 'Sim');
-ok((await tela(M)).ids.includes('pa-contexto-pessoal'), 'questão pessoal "Sim" abre "Se quiser, conte um pouco"');
-await escrever(M, 'pa-contexto-pessoal', 'TEXTO PESSOAL');
-await marcar(M, 'pa-contexto-pessoal_tem', 'Não');
-ok(!(await tela(M)).ids.includes('pa-contexto-pessoal'), 'voltar para "Não" fecha o campo');
-await marcar(M, 'pa-contexto-apoio_nivel', '');   // Prefiro nao responder
-textosVisiveis.push((await tela(M)).textos.length);
-if (SHOT) await M.screenshot({ path: SHOT + '/enxuto-etapa5.png', fullPage: true });
+if (SHOT) await M.screenshot({ path: SHOT + '/mh2-etapa3-390.png', fullPage: true });
 await seguir(M);
 /* revisar */
 t = await tela(M);
-ok(/Revisar e enviar/.test(t.h2) && /Etapa 6 de 6/.test(t.passo) && /Existe algo importante que não perguntamos/.test(t.txt) && t.btn === 'Enviar Mapeamento', 'revisar: resumo, pergunta final e "Enviar Mapeamento"');
-ok(/Prefiro não responder/.test(t.txt) && !/TEXTO PESSOAL/.test(t.txt), 'revisão mostra "Prefiro não responder" e não mostra texto de pergunta fechada');
-textosVisiveis.push(1);
-ok(titulos.join('|') === 'O que te traz aqui|Alimentação e sinais que você percebe|Sua saúde e seus cuidados atuais|Sono, hábitos e rotina|Seu momento atual', 'os 5 blocos na ordem: ' + titulos.join(' · '));
-const ids = (await M.evaluate(() => [...document.querySelectorAll('[id^="pa-"]')].map(e => e.id))).concat(todos.join(' ').match(/pa-[\w-]+/g) || []);
-ok(!todos.join(' ').match(PROIBIDO) && !ids.some(i => PROIBIDO.test(i)), 'sem peso, altura, circunferências, exames ou observações físicas');
-const somaTextos = textosVisiveis.reduce((a, b) => a + b, 0);
-ok(somaTextos <= 6, 'poucos campos de texto no fluxo normal: ' + somaTextos + ' (o resto é toque)');
-ok(!v3.some(frase => todos.join('\n').includes(frase)), 'nenhuma frase do HOLOSCAN v3 copiada no Mapeamento');
-await espera(2500);
+ok(/Revisar e enviar/.test(t.h2) && /Etapa 4 de 4/.test(t.passo) && t.btn === 'Enviar Mapeamento' && !/Para enviar, falta/.test(t.txt), 'revisar: resumo, pergunta final e "Enviar Mapeamento" (nada obrigatório faltando)');
+ok(titulos.join('|') === 'O que te traz aqui|Sua saúde|Sua alimentação e seus hábitos', 'as 3 etapas na ordem: ' + titulos.join(' · '));
+const perguntas = await M.evaluate(() => window.MapeamentoHolistico.etapasDe('primeira').reduce((n, et) => n + window.MapeamentoHolistico.camposDa('primeira', et).filter(c => !c.r.se).length, 0) + 1);
+ok(perguntas === 17, '17 perguntas principais (as outras só abrem quando a resposta pede): ' + perguntas);
+const tudo = todos.join('\n');
+ok(!/que horas|dorme bem|sono|fome|estresse|ansiedade|emoç|apoio|propósito|sentido|rotina/i.test(tudo.replace(/Organizar a alimentação/g, '')), 'sem repetir HOLOSCAN e ferramentas (sono, fome, emoções, apoio, propósito, rotina)');
+ok(!/peso|altura|circunfer|CPF|RG\b|caso clínico/i.test(tudo) && !v3.some(frase => tudo.includes(frase)), 'sem peso, medidas, CPF/RG, caso clínico e sem frase do HOLOSCAN');
+await espera(2600);
 const rasc = srv.linhas('anamnesis_invites').find(c => c.id === cN.id);
-ok(rasc.status === 'iniciado' && rasc.draft_content.formulario.saude.sinal_principal === 'Azia ou refluxo' && !rasc.draft_content.formulario.contexto.pessoal,
-  'autosave: "Iniciado"; resposta de pergunta fechada não vai ao servidor');
-if (SHOT) await M.screenshot({ path: SHOT + '/enxuto-revisar.png', fullPage: true });
-await M.reload({ waitUntil: 'networkidle2' }); await espera(600);
-ok(await M.evaluate(() => window.AnamnesePublica.estado().formulario.motivo.objetivo) === 'Ter mais energia à tarde', 'retomar pelo mesmo link: continua de onde parou');
-for (let i = 0; i < 5; i++) await seguir(M);
-await seguir(M); await espera(600);
+ok(rasc.status === 'iniciado' && rasc.draft_content.formulario.saude.desconforto_qual === 'Refluxo depois do almoço' && rasc.draft_content.formulario.motivo.versao_mapeamento === 'MH-2'
+  && !rasc.draft_content.formulario.saude.alergia_qual, 'A/E: autosave "Iniciado", versão MH-2 gravada; condicional fechada não vai ao servidor');
+/* K: recarregar e voltar pelo mesmo link */
+await M.reload({ waitUntil: 'networkidle2' }); await espera(700);
+ok(await M.evaluate(() => window.AnamnesePublica.estado().formulario.motivo.expectativa) === 'Ter energia para brincar com meus filhos', 'K: recarregar/voltar pelo mesmo link continua de onde parou');
+/* F: obrigatoria apagada -> o envio mostra exatamente o que falta e nao apaga o resto */
+await M.evaluate(() => { const f = window.AnamnesePublica.estado().formulario; f.saude.condicoes_tem = ''; });
+for (let i = 0; i < 3; i++) await seguir(M);
+t = await tela(M);
+ok(/Para enviar, falta responder/.test(t.txt) && /Algum profissional de saúde já informou/.test(t.txt) && await M.evaluate(() => document.getElementById('btn-seguir').disabled)
+  && await M.evaluate(() => window.AnamnesePublica.estado().formulario.saude.desconforto_qual) === 'Refluxo depois do almoço', 'F: falta uma obrigatória: aparece pelo nome, envio travado, nada apagado');
+if (SHOT) await M.screenshot({ path: SHOT + '/mh2-falta-390.png', fullPage: true });
+await M.evaluate(() => [...document.querySelectorAll('.faltam .btn-link')][0].click()); await espera(300);
+ok(/Sua saúde/.test((await tela(M)).h2), 'F: o atalho leva à etapa da pergunta');
+await marcar(M, 'pa-saude-condicoes_tem', 'Sim');
+await seguir(M); await seguir(M);
+await escrever(M, 'pa-contexto-obs', 'Trabalho em turnos alternados');
+if (SHOT) await M.screenshot({ path: SHOT + '/mh2-revisar-390.png', fullPage: true });
+ok(await M.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'C: celular 390px sem rolagem lateral');
+await seguir(M); await espera(700);
 const fim = srv.linhas('anamnesis_invites').find(c => c.id === cN.id);
-ok(fim.status === 'concluido' && /Mapeamento enviado!/.test((await tela(M)).txt) && !/anamnese/i.test(todos.join(' ') + (await tela(M)).txt), 'enviado: "Mapeamento enviado!"; nenhuma palavra "anamnese" para o paciente');
-ok(fim.submitted_content.formulario.estilo.tabagismo_prefiro_nao === true && Array.isArray(fim.submitted_content.formulario.motivo.motivos), '"Prefiro não responder" e seleções guardados');
+t = await tela(M);
+ok(fim.status === 'concluido' && /Mapeamento enviado com sucesso/.test(t.txt) && /apoiar a sua consulta/.test(t.txt) && !/anamnese/i.test(tudo + t.txt), 'A/E: enviado: "Mapeamento enviado com sucesso"; nenhuma palavra "anamnese"');
+ok(await M.evaluate(() => document.querySelector('#cabeca .topo-instrucao').hidden), 'depois de enviar, o topo não diz mais que dá para continuar pelo link');
+const sf = fim.submitted_content.formulario;
+ok(sf.motivo.melhorar_outro === 'Preparar para uma cirurgia' && sf.saude.med_sup_quais === 'Levotiroxina 50 mcg; vitamina D' && sf.alimentar.evita_qual === 'Leite: me dá gases'
+  && sf.estilo.tabagismo_prefiro_nao === true && sf.contexto.obs === 'Trabalho em turnos alternados', 'D: respostas abertas e "Prefiro não responder" guardados com as palavras do paciente');
 const original = JSON.stringify(fim.submitted_content);
-ok(rpc('anamnese_publica_salvar', { p_token: cN.token, p_conteudo: { formulario: { motivo: { objetivo: 'X' } } } }, null).error?.hint === 'ja_enviada', 'depois de enviar, o link não altera a resposta');
-ok(await M.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'celular 390px sem rolagem lateral');
+ok(rpc('anamnese_publica_salvar', { p_token: cN.token, p_conteudo: { formulario: { motivo: { expectativa: 'X' } } } }, null).error?.hint === 'ja_enviada', 'E: depois de enviar, o link não altera a resposta');
+const env2 = rpc('anamnese_publica_enviar', { p_token: cN.token, p_conteudo: JSON.parse(original) }, null);
+ok(env2.error?.hint === 'ja_enviada' && srv.linhas('anamnesis_invites').filter(c => c.patient_id === PN).length === 1 && JSON.stringify(srv.linhas('anamnesis_invites').find(c => c.id === cN.id).submitted_content) === original, 'L: enviar de novo não duplica nem muda a resposta');
+/* J: outro paciente / token alterado */
+const outro = await pagina('http://127.0.0.1:5500/anamnese.html#t=' + cR.token.slice(0, -4) + 'zzzz');
+ok(/Link não encontrado/.test((await tela(outro)).txt), 'J: um token que não é o do paciente não abre nada');
+/* desktop */
+if (SHOT) { const D = await pagina('http://127.0.0.1:5500/anamnese.html#t=' + criar(ins('patients', { nome: 'Dora Ficticia Teste' }).id, 'primeira').token, 1366, 900); await D.screenshot({ path: SHOT + '/mh2-etapa1-1366.png', fullPage: true }); }
 
 /* ===== ficha ===== */
 const N = await (await nav.createBrowserContext()).newPage();
@@ -181,23 +179,27 @@ await N.type('#login-email', 'a@holo.test'); await N.type('#login-senha', 'senha
 await N.waitForFunction(() => window.HoloAuth && window.HoloAuth.sessaoAtiva() && window.pacientesCarregados && window.pacientesCarregados(), { timeout: 15000 });
 await N.evaluate(async (pid, eid) => { window.definirPacienteAtivo(pid); await window.Anamnese.carregar(); window.AtendimentoAtual.selecionarPorId(eid);
   window.levarParaFicha('aba:anamnese', pid); await new Promise(r => setTimeout(r, 900)); }, PN, EN);
-/* Fase 1 (13/10): etapas Link gerado -> Link enviado -> Mapeamento recebido -> Revisado; resposta completa atras de "Abrir Mapeamento completo" */
-await N.evaluate(() => document.querySelector('#an-preconsulta [data-pc-acao="ver"]').click()); await espera(300);
-const f = await N.evaluate(() => ({ card: document.getElementById('an-preconsulta').innerText, reg: document.getElementById('anamnese-registro').innerHTML,
-  botoes: [...document.querySelectorAll('#an-preconsulta [data-pc-acao]')].map(b => b.textContent.trim()) }));
-ok(/Mapeamento recebido/.test(f.card) && /O que te traz aqui/.test(f.card) && /Qual é o principal motivo para buscar acompanhamento\?/.test(f.card) && /Mais energia e disposição, Outro: Preparar para uma cirurgia/.test(f.card)
-  && /Azia ou refluxo/.test(f.card) && /Vesícula, 2020/.test(f.card), 'ficha: "Mapeamento recebido" com a resposta completa por etapa, nas perguntas que o paciente viu');
-ok(f.botoes.join('|') === 'Fechar Mapeamento completo|Levar para o atendimento|Enviar novo Mapeamento' && !/textarea|an2-form/.test(f.reg), 'ações Abrir/Fechar Mapeamento completo, Levar para o atendimento; sem formulário profissional vazio');
-if (SHOT) { const el = await N.$('#an-preconsulta'); if (el) await el.screenshot({ path: SHOT + '/enxuto-ficha-recebido.png' }); }
-await N.evaluate(() => document.querySelector('#an-preconsulta [data-pc-acao="usar"]').click()); await espera(1500);
+const abrir = await N.evaluate(() => { const b = document.querySelector('#an-preconsulta [data-pc-acao="ver"]'); if (b) b.click(); return !!b; }); await espera(300);
+const f = await N.evaluate(() => ({ card: document.getElementById('an-preconsulta').innerText }));
+ok(abrir && /O que te traz aqui/.test(f.card) && /Sua saúde/.test(f.card) && /Sua alimentação e seus hábitos/.test(f.card) && /Refluxo depois do almoço/.test(f.card)
+  && /Questionário MH-2/.test(f.card), 'ficha: resposta organizada pelas 3 etapas, com as palavras do paciente e a versão MH-2');
+if (SHOT) { const el = await N.$('#an-preconsulta'); if (el) await el.screenshot({ path: SHOT + '/mh2-ficha.png' }); }
+const temUsar = await N.evaluate(() => { const b = document.querySelector('#an-preconsulta [data-pc-acao="usar"]'); if (b) b.click(); return !!b; }); await espera(1500);
 const an = srv.linhas('anamneses').find(a => a.patient_id === PN && a.encounter_id === EN) || { content: {} };
-ok(an.status === 'rascunho' && (an.content.meta || {})['saude.sinais']?.origem === 'relato_paciente' && Array.isArray(an.content.formulario.saude.sinais)
-  && (an.content.meta || {})['estilo.tabagismo']?.estado === 'recusado', 'Levar para o atendimento: rascunho V2 com as respostas (origem relato_paciente; "Prefiro não responder" = recusado)');
-ok(await N.evaluate(() => !!document.querySelector('#anamnese-registro .an2-form')), 'depois de levar, o rascunho profissional aparece para revisar e completar');
+ok(temUsar && an.status === 'rascunho' && an.content.formulario.saude.med_sup_quais === 'Levotiroxina 50 mcg; vitamina D' && (an.content.meta || {})['saude.desconforto_qual']?.origem === 'relato_paciente',
+  'G: Levar para o atendimento: rascunho com as respostas MH-2 (origem relato_paciente)');
 const ed = rpc('salvar_anamnese', { payload: { id: an.id, encounter_id: EN, expected_updated_at: an.updated_at, status: 'salvo',
-  content: Object.assign({}, an.content, { formulario: Object.assign({}, an.content.formulario, { motivo: Object.assign({}, an.content.formulario.motivo, { objetivo: 'EDITADO' }) }) }) } });
-ok(!ed.error && JSON.stringify(srv.linhas('anamnesis_invites').find(c => c.id === cN.id).submitted_content) === original, 'a edição profissional não altera a resposta original do paciente');
-ok(!JSON.stringify(an.content.dominios || {}).match(/medidas|avaliacoes/), 'nada de medidas ou avaliações vindas do paciente');
+  content: Object.assign({}, an.content, { formulario: Object.assign({}, an.content.formulario, { motivo: Object.assign({}, an.content.formulario.motivo, { expectativa: 'EDITADO' }) }) }) } });
+ok(!ed.error && JSON.stringify(srv.linhas('anamnesis_invites').find(c => c.id === cN.id).submitted_content) === original, 'G: a edição profissional não altera a resposta original do paciente');
+/* H: Pacote Holos IA */
+const pac = await N.evaluate(async (pid, eid) => { await window.Anamnese.carregar(); const p = window.HolosAIPonte.montarPacote(pid, eid); return p && p.mapeamento; }, PN, EN);
+ok(/Questionário MH-2/.test(pac || '') && /### Sua saúde/.test(pac) && /Refluxo depois do almoço/.test(pac) && /Quais medicamentos ou suplementos\?: Levotiroxina/.test(pac) && !/62988887777|Nina/.test(pac),
+  'H: Pacote Holos IA com a estrutura MH-2, as palavras do paciente e sem nome/contato');
+/* I: historico MH-1 continua como foi respondido */
+const h1 = await N.evaluate(() => window.MapeamentoHolistico.respostaHtml({ tipo: 'primeira', formulario: { motivo: { motivos: ['Saúde intestinal'], objetivo: 'Intestino regular' },
+  saude: { sinais: ['Azia ou refluxo'], sinal_principal: 'Azia ou refluxo' }, estilo: { dorme: '23:00' } } }));
+ok(/Alimentação e sinais que você percebe/.test(h1) && /Qual é o principal motivo para buscar acompanhamento\?/.test(h1) && /Que horas costuma dormir\?/.test(h1) && /Questionário MH-1/.test(h1),
+  'I: resposta MH-1 aparece com as etapas e perguntas que o paciente viu (versão anterior)');
 
 /* ===== retorno ===== */
 const R = await pagina('http://127.0.0.1:5500/anamnese.html#t=' + cR.token);

@@ -85,11 +85,21 @@ main h3.secao { font-family: var(--display); font-size: 19px; margin: 22px 0 8px
 .privacidade { font-size: 13px; color: var(--suave); margin-top: 22px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+/* MH-2 (pre-consulta, 14/10): marca HoloHacking, obrigatorias e o que falta para enviar */
+.marca { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-family: var(--display); font-size: 19px; font-weight: 600; letter-spacing: .02em; color: #f1ecdf; }
+.marca img { width: 34px; height: 34px; object-fit: contain; flex: none; }
+.topo-instrucao { max-width: 60ch; line-height: 1.55; }
+.obrig { font-weight: 400; font-size: 13px; color: var(--erro); }
+.aviso-falta { border-color: var(--erro); margin: 0 0 18px; padding: 14px 16px; }
+.aviso-falta p { margin: 0 0 6px; font-weight: 600; color: var(--erro); }
+.faltam { margin: 0; padding-left: 20px; }
+.btn-link { font: inherit; font-size: 15px; background: none; border: 0; padding: 6px 0; min-height: 40px; color: var(--primaria); text-decoration: underline; cursor: pointer; text-align: left; }
+.btn-link:focus-visible { outline: 2px solid var(--secundaria); outline-offset: 2px; }
 </style>
 </head>
 <body>
 <header class="topo"><div class="envolve" id="cabeca">
-  <p class="olho">Mapeamento Holístico da Saúde</p>
+  <p class="olho">Mapeamento Holístico · Pré-consulta</p>
   <h1>Carregando…</h1>
 </div></header>
 <div class="barra" id="barra" hidden><div class="envolve">

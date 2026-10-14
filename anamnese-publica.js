@@ -56,7 +56,12 @@
     return Promise.resolve(sb.rpc(nome, args)).then(function (r) { if (r.error) throw r.error; return r.data; });
   }
   /* o que vai ao servidor: sem resposta de pergunta condicional que fechou (ex.: "Qual e quando?" depois de "Nao") */
-  function conteudo() { return { formulario_versao: 2, tipo: estado.tipo, formulario: MH.limparForm(estado.formulario, estado.tipo) }; }
+  function conteudo() {
+    var f = MH.limparForm(estado.formulario, estado.tipo);
+    /* MH-2: a versao do questionario fica gravada na propria resposta (a ficha mostra cada resposta com as perguntas que o paciente viu) */
+    if (estado.tipo === "primeira") { f.motivo = f.motivo || {}; f.motivo.versao_mapeamento = MH.VERSAO; }
+    return { formulario_versao: 2, tipo: estado.tipo, formulario: f };
+  }
   function copiaLocal(gravar) {
     if (!CHAVE_LOCAL) return null;
     try {
@@ -108,7 +113,7 @@
       : (f.tipo === "area" && !r.curto) ? el("textarea", { id: id, rows: 3 }) : el("input", { type: "text", id: id, autocomplete: "off" });
     inp.value = d[f.id] || "";
     inp.addEventListener("input", function () { d[f.id] = inp.value; mudou(); });
-    var bloco = el("div", { class: "campo" + (r.hora ? " campo-hora" : "") }, [el("label", { for: id, texto: rotuloDe(b, f) })]);
+    var bloco = el("div", { class: "campo" + (r.hora ? " campo-hora" : "") }, [el("label", { for: id }, [rotuloDe(b, f), r.obrigatorio ? el("span", { class: "obrig", texto: " (obrigatória)" }) : null])]);
     if (SENSIVEIS[b + "." + f.id]) {
       bloco.appendChild(el("p", { class: "ajuda", id: id + "-ajuda", texto: TXT_SENSIVEL }));
       inp.setAttribute("aria-describedby", id + "-ajuda");
@@ -160,7 +165,7 @@
       grupo.appendChild(el("label", { class: "chip" + (inp.disabled ? " chip-off" : ""), for: nome + "-" + i }, [inp, el("span", { texto: o[1] })]));
     });
     var leg = rotuloDe(b, f) + (f.multi ? (r.max ? " (escolha até " + r.max + ")" : " (pode marcar mais de um)") : "");
-    var fs = el("fieldset", { class: "campo" }, [el("legend", { texto: leg })]);
+    var fs = el("fieldset", { class: "campo", id: nome + "-campo" }, [el("legend", {}, [leg, r.obrigatorio ? el("span", { class: "obrig", texto: " (obrigatória)" }) : null])]);
     if (r.ajuda) fs.appendChild(el("p", { class: "ajuda", texto: r.ajuda }));
     if (sensivel) fs.appendChild(el("p", { class: "ajuda", texto: TXT_SENSIVEL }));
     fs.appendChild(grupo);
@@ -270,9 +275,12 @@
       c.appendChild(prof);
     }
     var nome = info && info.paciente && info.paciente.primeiro_nome;
-    c.appendChild(el("p", { class: "olho", texto: "Mapeamento Holístico da Saúde" }));
+    c.insertBefore(el("div", { class: "marca" }, [el("img", { src: "/logo-holohacking.png", alt: "", width: "34", height: "34" }), el("span", { texto: "HoloHacking" })]), c.firstChild);
+    c.appendChild(el("p", { class: "olho", texto: "Mapeamento Holístico · Pré-consulta" }));
     c.appendChild(el("h1", { texto: nome ? "Olá, " + nome + "!" : "Olá!" }));
-    c.appendChild(el("p", { class: "topo-instrucao", texto: "Antes da consulta, responda com calma. Leva uns 10 minutos, nada é obrigatório e tudo é salvo sozinho: você pode parar e continuar depois por este mesmo link." }));
+    c.appendChild(el("p", { class: "topo-instrucao", texto: estado.tipo === "retorno" || (info && info.tipo === "retorno")
+      ? "Antes da consulta de retorno, conte como foram os últimos dias. Leva poucos minutos e tudo é salvo sozinho: você pode parar e continuar depois por este mesmo link."
+      : "Este é um mapeamento rápido para a sua nutricionista te conhecer antes da consulta. Ele faz parte do método HoloHacking, que olha para você como um todo: corpo, mente e espírito. Não é diagnóstico. Leva cerca de 5 minutos e salva sozinho: você pode parar e continuar depois por este mesmo link." }));
   }
   function telaEstado(qual, quando) {
     estado.enviado = qual === "concluido";
@@ -287,7 +295,7 @@
       invalido: ["Link não encontrado", "Este link não é válido. Confira se ele foi copiado inteiro ou peça um novo à sua nutricionista."],
       revogado: ["Este link foi substituído", "A sua nutricionista gerou um novo link. Use o mais recente que ela enviou."],
       expirado: ["Este link venceu", "O prazo para responder terminou. Peça um novo link à sua nutricionista."],
-      concluido: ["Mapeamento enviado!", "Obrigada! Suas respostas chegaram para a sua nutricionista" + (quando ? " em " + new Date(quando).toLocaleString("pt-BR") : "") + ". Se quiser corrigir alguma coisa, fale com ela: o envio não pode ser alterado por este link."],
+      concluido: ["Mapeamento enviado com sucesso!", "Obrigada! Suas respostas foram para a sua nutricionista e vão apoiar a sua consulta" + (quando ? " (enviado em " + new Date(quando).toLocaleString("pt-BR") + ")" : "") + ". Se quiser corrigir alguma coisa, fale com ela: o envio não pode ser alterado por este link."],
       erro: ["Não foi possível abrir", "Confira a sua internet e tente de novo em instantes."]
     }[qual] || ["", ""];
     if (qual === "concluido") apagarLocal();
@@ -304,6 +312,7 @@
     $("trilho").style.width = Math.round(((i + 1) / total) * 100) + "%";
     $("btn-voltar").disabled = i === 0;
     var seguir = $("btn-seguir");
+    seguir.disabled = false;   // a revisao trava o envio quando falta algo; nas etapas o "Continuar" volta a valer
     if (i === total - 1) return telaRevisar(manter);
     seguir.textContent = i === total - 2 ? "Revisar respostas" : "Continuar";
     var et = etapas()[i];
@@ -349,10 +358,22 @@
     var fin = FINAL[estado.tipo], fdef = blocoDef(fin.bloco).campos.filter(function (f) { return f.id === fin.campo; })[0];
     if (fdef) { var nf = campoTexto(fin.bloco, fdef, {}); nf.classList.add("final"); main.appendChild(nf); if (tem(dados(fin.bloco)[fin.campo])) algum = true; }
     main.appendChild(el("p", { class: "erro", id: "erro-envio", role: "alert" }));
+    /* MH-2: so as essenciais sao obrigatorias; o que falta aparece pelo nome, com o atalho para a etapa (nada se apaga) */
+    var falta = MH.faltando ? MH.faltando(estado.formulario, estado.tipo) : [];
+    if (falta.length) {
+      var lf = el("ul", { class: "faltam" });
+      falta.forEach(function (x) {
+        var idx = -1; etapas().forEach(function (et, k) { camposDa(et).forEach(function (c) { if (c.b === x.b && c.f === x.f) idx = k; }); });
+        var ir2 = el("button", { type: "button", class: "btn-link", texto: rotuloDe(x.b, x.f) });
+        ir2.addEventListener("click", function () { estado.passo = Math.max(0, idx); telaPasso(); });
+        lf.appendChild(el("li", {}, [ir2]));
+      });
+      main.appendChild(el("div", { class: "aviso aviso-falta", role: "alert" }, [el("p", { texto: "Para enviar, falta responder:" }), lf]));
+    }
     var podeEnviar = function () {
-      var ok = algum || tem(dados(fin.bloco)[fin.campo]);
+      var ok = (algum || tem(dados(fin.bloco)[fin.campo])) && !falta.length;
       seguir.disabled = !ok;
-      $("erro-envio").textContent = ok ? "" : "Responda ao menos uma pergunta para enviar.";
+      $("erro-envio").textContent = ok ? "" : (falta.length ? "Responda as perguntas obrigatórias acima para enviar." : "Responda ao menos uma pergunta para enviar.");
     };
     podeEnviar();
     var caixaFinal = document.getElementById(idCampo(fin.bloco, fin.campo));

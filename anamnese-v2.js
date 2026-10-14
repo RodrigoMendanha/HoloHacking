@@ -57,14 +57,18 @@
       /* Mapeamento Holistico enxuto (12/10): selecao rapida no lugar de texto */
       C("motivos", "Motivos para buscar acompanhamento", "motivo_objetivo", ["Emagrecimento / composição corporal", "Melhorar minha alimentação", "Mais energia e disposição",
         "Sintomas ou desconfortos", "Saúde intestinal", "Melhorar minha relação com a alimentação", "Organizar minha rotina", "Acompanhamento de uma condição de saúde", "Outro"], { multi: true }),
-      C("acomp_anterior", "Acompanhamento nutricional anterior", "motivo_objetivo", ["Nunca", "Sim, e foi uma experiência positiva", "Sim, mas tive dificuldade para manter", "Sim, mas não funcionou como eu esperava"]),
+      C("acomp_anterior", "Acompanhamento nutricional anterior", "motivo_objetivo", ["Nunca", "Sim, e foi uma experiência positiva", "Sim, mas tive dificuldade para manter", "Sim, mas não funcionou como eu esperava",
+        "Sim, mas não me senti compreendido(a)"]),
+      /* Mapeamento Holistico MH-2 (pre-consulta, 14/10): o que quer melhorar agora */
+      C("melhorar", "O que gostaria de melhorar neste momento", "motivo_objetivo", ["Mais energia e disposição", "Relação com a comida", "Desconfortos digestivos",
+        "Composição corporal", "Organizar a alimentação", "Acompanhar uma condição de saúde", "Sentir mais equilíbrio no dia a dia", "Outro"], { multi: true }),
       T("acomp_experiencia", "Sobre o acompanhamento anterior", "motivo_objetivo")] },
     { id: "alimentar", titulo: "História e rotina alimentar", campos: [
       C("refeicoes", "Número habitual de refeições", "historia_alimentar", ["1–2", "3", "4", "5", "6 ou mais"]),
       T("horarios", "Horários aproximados", "historia_alimentar"),
       T("cafe", "Café da manhã", "historia_alimentar"), T("almoco", "Almoço", "historia_alimentar"),
       T("jantar", "Jantar", "historia_alimentar"), T("lanches", "Lanches", "historia_alimentar"),
-      C("agua", "Consumo de água", "historia_alimentar", ["Menos de 1 L", "1–2 L", "Mais de 2 L", "Não sei dizer"]),
+      C("agua", "Consumo de água", "historia_alimentar", ["Menos de 1 L", "1–2 L", "Mais de 2 L", "2–3 L", "Mais de 3 L", "Não sei dizer"]),
       C("alcool", "Álcool (se pertinente)", "historia_alimentar", ["Não consome", "Ocasional", "1–2x/semana", "3+x/semana", "Semanal", "Diário"]),
       T("preferencias", "Preferências alimentares", "historia_alimentar"), T("evitados", "Alimentos evitados", "historia_alimentar"),
       T("dificuldade", "Maior dificuldade alimentar", "historia_alimentar"),
@@ -84,7 +88,13 @@
       C("dificuldades", "Principais dificuldades com a alimentação", "historia_alimentar", ["Falta de tempo", "Falta de organização", "Vontade de doces", "Fome muito intensa",
         "Beliscar", "Comer à noite", "Comer fora / delivery", "Finais de semana", "Dificuldade para manter mudanças", "Falta de apoio", "Não saber o que fazer", "Outro"], { multi: true }),
       C("fome_percebida", "Percepção da fome", "historia_alimentar", ["Parece equilibrada", "Às vezes fico com muita fome", "Tenho momentos em que a fome parece difícil de controlar",
-        "Costumo passar longos períodos sem sentir fome", "Não sei dizer"])] },
+        "Costumo passar longos períodos sem sentir fome", "Não sei dizer"]),
+      /* Mapeamento Holistico MH-2 (pre-consulta, 14/10) */
+      C("escolha", "Escolha alimentar", "historia_alimentar", ["Não", "Vegetariana", "Vegana", "Outro"]),
+      C("evita_tem", "Não come ou evita algum alimento", "historia_alimentar", ["Não", "Sim"]),
+      T("evita_qual", "Alimento que não come ou evita, e por quê (relato)", "historia_alimentar"),
+      C("refeicoes_como", "Como são as refeições na maior parte dos dias", "rotina_acesso", ["Em casa", "Fora / no trabalho", "Peço por aplicativo com frequência",
+        "Eu mesmo(a) preparo", "Outra pessoa prepara", "Como correndo"], { multi: true })] },
     { id: "saude", titulo: "Saúde e sintomas", campos: [
       A("condicoes", "Condições / diagnósticos informados", "condicoes_diagnosticos_informados"),
       T("cirurgias", "Cirurgias relevantes", "antecedentes"),
@@ -100,7 +110,16 @@
       C("sinal_relacao", "Relação percebida do sinal com a alimentação", "sintomas_relatados", ["Sim", "Não", "Não sei perceber"]),
       T("sinal_relacao_obs", "O que percebe na relação com a alimentação", "sintomas_relatados"),
       C("condicoes_tem", "Diagnóstico informado por profissional", "condicoes_diagnosticos_informados", ["Não", "Sim"]),
-      C("cirurgias_tem", "Já realizou cirurgia", "antecedentes", ["Não", "Sim"])] },
+      C("cirurgias_tem", "Já realizou cirurgia", "antecedentes", ["Não", "Sim"]),
+      /* Mapeamento Holistico MH-2 (pre-consulta, 14/10): o que garante seguranca na conduta. A frequencia de
+         sintomas fica com o HOLOSCAN; aqui so o desconforto principal, nas palavras do paciente. */
+      C("med_sup_tem", "Usa medicamento ou suplemento", "medicamentos", ["Não", "Medicamento", "Suplemento", "Ambos"]),
+      T("med_sup_quais", "Medicamentos / suplementos em uso (relato)", "medicamentos"),
+      C("alergia_tem", "Alergia ou intolerância alimentar diagnosticada", "alergias_informadas", ["Não", "Sim"]),
+      T("alergia_qual", "Alergia / intolerância (relato)", "alergias_informadas"),
+      C("desconforto_tem", "Desconforto no corpo que mais incomoda", "sintomas_relatados", ["Não", "Sim"]),
+      T("desconforto_qual", "Desconforto que mais incomoda (relato)", "sintomas_relatados"),
+      C("exames_tem", "Tem exames de sangue dos últimos 6 meses", "avaliacoes", ["Sim", "Não"])] },
     { id: "restricoes", titulo: "Medicamentos, suplementos e restrições", campos: [
       L("medicamentos", "Medicamentos", "medicamentos", COL_MED, { nega: "Não usa medicamentos", item: "medicamento" }),
       L("suplementos", "Suplementos", "suplementos", COL_MED, { nega: "Não usa suplementos", item: "suplemento" }),
@@ -124,7 +143,8 @@
       C("previsibilidade", "Como os dias costumam ser", "rotina_acesso", ["Bastante previsíveis", "Variam um pouco", "Muito imprevisíveis"]),
       C("trabalho_tipo", "Trabalho / atividade principal", "rotina_acesso", ["Horário comercial", "Turnos", "Período noturno", "Horários variáveis", "Em casa", "Não estou trabalhando atualmente", "Outro"]),
       C("dificulta_opcoes", "O que mais dificulta cuidar de si", "rotina_acesso", ["Tempo", "Trabalho", "Cansaço", "Filhos / família", "Organização", "Questões financeiras", "Saúde", "Falta de apoio", "Outro"], { multi: true }),
-      C("funciona_tem", "Algo na rotina funciona bem", "rotina_acesso", ["Sim", "Não", "Não sei"])] },
+      C("funciona_tem", "Algo na rotina funciona bem", "rotina_acesso", ["Sim", "Não", "Não sei"]),
+      T("atividade_qual", "Qual atividade física", "atividade_fisica")] },
     { id: "contexto", titulo: "Histórico e contexto", campos: [
       A("familiar_saude", "Histórico familiar relevante", "antecedentes"), A("familiar", "Contexto familiar", "contexto_familiar"),
       A("social", "Contexto social", "contexto_social"), A("financeiro", "Condições financeiras/alimentares relevantes (se necessário)", "contexto_social"),
@@ -138,7 +158,8 @@
       C("mudanca_tem", "Mudança importante recente", "contexto_social", ["Não", "Sim"]),
       C("apoio_nivel", "Apoio para cuidar da saúde", "contexto_social", ["Sim", "Em parte", "Não"]),
       C("pessoal_tem", "Questão pessoal importante para a nutricionista saber", "emocional", ["Não", "Sim"], { intimo: true }),
-      A("pessoal", "Questão pessoal (relato)", "emocional", { intimo: true })] },
+      A("pessoal", "Questão pessoal (relato)", "emocional", { intimo: true }),
+      C("familiar_tem", "Doenças comuns na família", "antecedentes", ["Não", "Sim"])] },
     { id: "objetiva", titulo: "Avaliação objetiva", campos: [
       M("peso", "Peso", ["kg"]), M("altura", "Altura", ["cm", "m"]),
       L("circunferencias", "Circunferências", "medidas", COL_MEDIDA, { medida: true, item: "circunferência", padrao: "cm" }),

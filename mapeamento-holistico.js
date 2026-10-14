@@ -22,7 +22,21 @@
   var raiz = typeof window !== "undefined" ? window : globalThis;
 
   /* Etapas. "campos": "campo" (do bloco da etapa) ou "bloco.campo"; { secao } abre um subtitulo. */
+  /* MH-2 (pre-consulta, 14/10): so o que NENHUM outro instrumento coleta e que a nutricionista precisa saber ANTES da
+     consulta. Sono, fome, sinais com frequencia, rotina, apoio, emocoes e proposito ja estao no HOLOSCAN e nas
+     ferramentas (Mapa da Rotina, Linha do Momentum, Gatilhos, Conexao, OQ3, PQQ, Roda) — aqui nao se repetem. */
+  var VERSAO = "MH-2";
   var ETAPAS_PRIMEIRA = [
+    { bloco: "motivo", titulo: "O que te traz aqui", intro: "Para a sua nutricionista entender o que você busca.",
+      campos: ["melhorar", "expectativa", "acomp_anterior", "acomp_experiencia"] },
+    { bloco: "saude", titulo: "Sua saúde", intro: "Para a sua nutricionista cuidar de você com segurança. Responda o que souber.",
+      campos: ["condicoes_tem", "condicoes", "med_sup_tem", "med_sup_quais", "alergia_tem", "alergia_qual", "desconforto_tem", "desconforto_qual",
+        "contexto.familiar_tem", "contexto.familiar_saude", "exames_tem"] },
+    { bloco: "alimentar", titulo: "Sua alimentação e seus hábitos", intro: "Toque nas opções que combinam com você.",
+      campos: ["escolha", "evita_tem", "evita_qual", "refeicoes_como", "agua", "estilo.atividade", "estilo.atividade_qual", "alcool", "estilo.tabagismo"] }
+  ];
+  /* MH-1 (enxuto, 12/10): as respostas enviadas nessa versao continuam aparecendo com as etapas que o paciente viu */
+  var ETAPAS_PRIMEIRA_MH1 = [
     { bloco: "motivo", titulo: "O que te traz aqui", intro: "Para a sua nutricionista entender o que você busca.",
       campos: ["motivos", "objetivo", "acomp_anterior", "acomp_experiencia"] },
     { bloco: "alimentar", titulo: "Alimentação e sinais que você percebe", intro: "Toque nas opções que combinam com você. Pode marcar mais de uma quando indicado.",
@@ -46,6 +60,23 @@
   /* Perguntas para o paciente (a chave continua a mesma da V2). */
   var ROTULO = {
     "motivo.motivos": "Qual é o principal motivo para buscar acompanhamento?",
+    /* MH-2 */
+    "motivo.melhorar": "O que você mais gostaria de melhorar neste momento?",
+    "motivo.expectativa": "O que faria você sentir que o acompanhamento está funcionando?",
+    "saude.med_sup_tem": "Você usa algum medicamento ou suplemento?",
+    "saude.med_sup_quais": "Quais medicamentos ou suplementos?",
+    "saude.alergia_tem": "Você tem alergia ou intolerância alimentar diagnosticada?",
+    "saude.alergia_qual": "Qual alergia ou intolerância?",
+    "saude.desconforto_tem": "Há algum desconforto no corpo que mais te incomoda hoje?",
+    "saude.desconforto_qual": "Qual desconforto? Conte com as suas palavras.",
+    "contexto.familiar_tem": "Há doenças comuns na sua família?",
+    "contexto.familiar_saude": "Quais doenças na família?",
+    "saude.exames_tem": "Você tem exames de sangue dos últimos 6 meses?",
+    "alimentar.escolha": "Você segue alguma escolha alimentar?",
+    "alimentar.evita_tem": "Existe algum alimento que você não come ou evita?",
+    "alimentar.evita_qual": "Qual alimento e por quê?",
+    "alimentar.refeicoes_como": "Como são as suas refeições na maior parte dos dias?",
+    "estilo.atividade_qual": "Qual atividade física?",
     "motivo.objetivo": "O que você mais gostaria de melhorar neste momento?",
     "motivo.acomp_anterior": "Você já fez acompanhamento nutricional antes?",
     "motivo.acomp_experiencia": "Quer contar algo sobre essa experiência?",
@@ -113,6 +144,20 @@
   var NENHUM = "Não tenho percebido nenhum desses";
   var REGRAS = {
     "motivo.motivos": { outro: "Qual motivo?" },
+    /* MH-2 */
+    "motivo.melhorar": { obrigatorio: true, outro: "O quê?" },
+    "motivo.expectativa": { curto: true },
+    "motivo.acomp_anterior": { opcoes: [["Nunca"], ["Sim, e foi uma experiência positiva", "Sim, e foi positivo"], ["Sim, mas tive dificuldade para manter", "Sim, mas tive dificuldade de seguir"],
+      ["Sim, mas não me senti compreendido(a)"]] },
+    "saude.condicoes_tem": { obrigatorio: true },
+    "saude.med_sup_quais": { se: { campo: "saude.med_sup_tem", algum: true, exceto: ["Não"] }, curto: true },
+    "saude.alergia_qual": { se: { campo: "saude.alergia_tem", igual: "Sim" }, curto: true },
+    "saude.desconforto_qual": { se: { campo: "saude.desconforto_tem", igual: "Sim" }, curto: true },
+    "contexto.familiar_saude": { se: { campo: "contexto.familiar_tem", igual: "Sim" }, curto: true },
+    "saude.exames_tem": { ajuda: "Se tiver, leve na consulta ou envie para a sua nutricionista." },
+    "alimentar.escolha": { outro: "Qual?", opcoes: [["Não"], ["Vegetariana"], ["Vegana"], ["Outro", "Outra"]] },
+    "alimentar.evita_qual": { se: { campo: "alimentar.evita_tem", igual: "Sim" }, curto: true },
+    "estilo.atividade_qual": { se: { campo: "estilo.atividade", algum: true, exceto: ["Não pratica"] }, curto: true },
     "motivo.objetivo": { curto: true },
     "motivo.acomp_experiencia": { se: { campo: "motivo.acomp_anterior", algum: true, exceto: ["Nunca"] }, curto: true },
     "alimentar.dificuldades": { max: 3, outro: "Qual dificuldade?", opcoes: [["Falta de tempo"], ["Falta de organização"], ["Vontade de doces"], ["Fome muito intensa"], ["Beliscar"],
@@ -121,7 +166,8 @@
     "saude.sinal_principal": { se: { campo: "saude.sinais", algum: true, exceto: [NENHUM] }, opcoesDe: "saude.sinais" },
     "saude.sinal_relacao": { se: { campo: "saude.sinais", algum: true, exceto: [NENHUM] } },
     "saude.sinal_relacao_obs": { se: { campo: "saude.sinal_relacao", igual: "Sim" }, curto: true },
-    "alimentar.agua": { opcoes: [["Menos de 1 L", "Menos de 1 litro"], ["1–2 L", "Entre 1 e 2 litros"], ["Mais de 2 L", "Mais de 2 litros"], ["Não sei dizer"]] },
+    /* MH-2: faixas de agua ate "mais de 3 litros"; "Mais de 2 L" (MH-1) continua legivel nas respostas antigas */
+    "alimentar.agua": { opcoes: [["Menos de 1 L", "Menos de 1 litro"], ["1–2 L", "Entre 1 e 2 litros"], ["2–3 L", "Entre 2 e 3 litros"], ["Mais de 3 L", "Mais de 3 litros"], ["Não sei dizer", "Não sei"]] },
     "saude.condicoes": { se: { campo: "saude.condicoes_tem", igual: "Sim" }, curto: true },
     "saude.cirurgias": { se: { campo: "saude.cirurgias_tem", igual: "Sim" }, curto: true },
     "restricoes.evita_desconforto": { se: { campo: "restricoes.evita_tem", igual: "Sim" }, curto: true },
@@ -149,11 +195,34 @@
     "retorno.nova_questao": { se: { campo: "retorno.nova_questao_tem", igual: "Sim" }, curto: true }
   };
   /* campos sensiveis: opcionais, com "Prefiro nao responder" */
-  var SENSIVEIS = { "estilo.tabagismo": true, "contexto.mudanca_tem": true, "contexto.apoio_nivel": true, "contexto.pessoal_tem": true };
+  var SENSIVEIS = { "estilo.tabagismo": true, "contexto.familiar_tem": true, "contexto.mudanca_tem": true, "contexto.apoio_nivel": true, "contexto.pessoal_tem": true };
   var TXT_SENSIVEL = "Opcional. Responda só se quiser.";
 
   function blocosDe(tipo) { var V2 = raiz.AnamneseV2; return V2 ? (tipo === "retorno" ? V2.BLOCOS_RETORNO : V2.BLOCOS_PRIMEIRA) : []; }
-  function etapasDe(tipo) { return tipo === "retorno" ? ETAPAS_RETORNO : ETAPAS_PRIMEIRA; }
+  /* qual questionario o paciente viu: MH-2 tem marca (motivo.versao_mapeamento) ou campos que so existem nele;
+     sem nada disso e uma resposta da versao anterior (MH-1). Sem formulario: o questionario atual. */
+  var SO_MH2 = ["motivo.melhorar", "saude.med_sup_tem", "saude.alergia_tem", "saude.desconforto_tem", "saude.exames_tem",
+    "alimentar.escolha", "alimentar.evita_tem", "alimentar.refeicoes_como", "contexto.familiar_tem"];
+  function versaoDe(form) {
+    if (!form) return VERSAO;
+    if (form.motivo && form.motivo.versao_mapeamento) return String(form.motivo.versao_mapeamento);
+    return SO_MH2.some(function (k) { var p = k.split("."); return form[p[0]] && form[p[0]][p[1]] !== undefined; }) ? "MH-2" : "MH-1";
+  }
+  function etapasDe(tipo, form) {
+    if (tipo === "retorno") return ETAPAS_RETORNO;
+    return versaoDe(form) === "MH-1" ? ETAPAS_PRIMEIRA_MH1 : ETAPAS_PRIMEIRA;
+  }
+  /** campos obrigatorios ainda sem resposta (so os do questionario atual): [{ b, f }] */
+  function faltando(form, tipo) {
+    var falta = [];
+    etapasDe(tipo).forEach(function (et) {
+      camposDa(tipo, et).forEach(function (c) {
+        if (c.secao || !c.r.obrigatorio || !visivel(form, c.b, c.f)) return;
+        if (!tem(valorDe(form, c.b + "." + c.f.id))) falta.push({ b: c.b, f: c.f });
+      });
+    });
+    return falta;
+  }
   function blocoDef(tipo, id) { return blocosDe(tipo).filter(function (b) { return b.id === id; })[0]; }
   function campoDef(tipo, b, id) { var bl = blocoDef(tipo, b); return bl ? bl.campos.filter(function (f) { return f.id === id; })[0] || null : null; }
   function regra(b, id) { return REGRAS[b + "." + id] || {}; }
@@ -233,7 +302,7 @@
     var form = (conteudo && conteudo.formulario) || {};
     var vistos = {};
     var item = function (rot, txt) { return '<div class="mh-item"><dt>' + esc(rot) + "</dt><dd>" + esc(txt).replace(/\n/g, "<br>") + "</dd></div>"; };
-    var html = etapasDe(tipo).map(function (et, n) {
+    var html = etapasDe(tipo, form).map(function (et, n) {
       var linhas = "";
       camposDa(tipo, et).forEach(function (c) {
         if (c.secao) return;
@@ -262,6 +331,7 @@
       });
     });
     if (outros) html += '<section class="mh-etapa"><h5><span class="mh-n">·</span>Outras respostas (versão anterior do formulário)</h5><dl class="mh-lista">' + outros + "</dl></section>";
+    if (tipo === "primeira") html += '<p class="mh-versao">Questionário ' + esc(versaoDe(form)) + (versaoDe(form) === "MH-1" ? " (versão anterior, mostrada como foi respondida)" : "") + "</p>";
     return '<div class="mh-resposta">' + html + "</div>";
   }
 
@@ -269,7 +339,12 @@
      (e, na Fase 2, no atendimento/HOLOSCAN). So as respostas, com as palavras do paciente; nada e interpretado,
      pontuado nem vira sistema. A resposta completa continua em respostaHtml. */
   var RESUMO = {
-    primeira: [["Motivo da consulta", "motivo.motivos"], ["O que quer melhorar agora", "motivo.objetivo"],
+    /* MH-2 (pre-consulta, 14/10) */
+    primeira: [["O que quer melhorar", "motivo.melhorar"], ["O que mostraria que está funcionando", "motivo.expectativa"],
+      ["Condição ou diagnóstico informado", "saude.condicoes"], ["Medicamentos / suplementos", "saude.med_sup_quais"],
+      ["Alergia ou intolerância", "saude.alergia_qual"], ["Desconforto que mais incomoda", "saude.desconforto_qual"],
+      ["Escolha alimentar", "alimentar.escolha"], ["Não come ou evita", "alimentar.evita_qual"], ["Algo mais que quis contar", "contexto.obs"]],
+    primeira_mh1: [["Motivo da consulta", "motivo.motivos"], ["O que quer melhorar agora", "motivo.objetivo"],
       ["Dificuldades com a alimentação", "alimentar.dificuldades"], ["Como percebe a fome", "alimentar.fome_percebida"],
       ["Sinais que tem percebido", "saude.sinais"], ["O que mais incomoda", "saude.sinal_principal"],
       ["Como são os dias", "estilo.previsibilidade"], ["O que dificulta cuidar de si", "estilo.dificulta_opcoes"],
@@ -283,7 +358,8 @@
   function resumo(conteudo) {
     var tipo = conteudo && conteudo.tipo === "retorno" ? "retorno" : "primeira";
     var form = (conteudo && conteudo.formulario) || {};
-    return RESUMO[tipo].map(function (r) {
+    var lista = tipo === "primeira" && versaoDe(form) === "MH-1" ? RESUMO.primeira_mh1 : RESUMO[tipo];
+    return lista.map(function (r) {
       var b = r[1].split(".")[0], id = r[1].split(".")[1], f = campoDef(tipo, b, id);
       if (!f || !visivel(form, b, f)) return null;
       var t = valorTexto(f, form[b] || {}, b);
@@ -292,7 +368,7 @@
   }
 
   raiz.MapeamentoHolistico = {
-    RESUMO: RESUMO, resumo: resumo,
+    RESUMO: RESUMO, resumo: resumo, VERSAO: VERSAO, versaoDe: versaoDe, faltando: faltando, ETAPAS_PRIMEIRA_MH1: ETAPAS_PRIMEIRA_MH1,
     ETAPAS_PRIMEIRA: ETAPAS_PRIMEIRA, ETAPAS_RETORNO: ETAPAS_RETORNO, FINAL: FINAL, TXT_FINAL: TXT_FINAL, ROTULO: ROTULO, REGRAS: REGRAS,
     SENSIVEIS: SENSIVEIS, TXT_SENSIVEL: TXT_SENSIVEL, NENHUM: NENHUM,
     etapasDe: etapasDe, camposDa: camposDa, campoDef: campoDef, regra: regra, rotuloDe: rotuloDe, visivel: visivel, opcoesDe: opcoesDe,

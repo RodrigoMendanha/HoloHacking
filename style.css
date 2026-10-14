@@ -6095,3 +6095,5 @@ body.rh-imprimindo #rh-doc .eyebrow,body.rh-imprimindo #rh-doc .rd-sis-foco,body
   #secao-dashboard{--dash-margem:16px}
   #secao-dashboard .dash-hero{border-radius:18px;padding:20px 18px 18px}
 }
+/* MH-2 (14/10): versao do questionario no fim da resposta do Mapeamento na ficha */
+.mh-versao{margin:10px 0 0;font-size:.74rem;color:var(--texto-suave);letter-spacing:.02em}

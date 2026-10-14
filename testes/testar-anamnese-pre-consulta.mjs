@@ -103,57 +103,58 @@ let pub = await M.evaluate(() => ({ cab: document.getElementById('cabeca').inner
   sw: document.documentElement.scrollWidth, w: innerWidth, txt: document.body.innerText }));
 ok(/Nutri Ficticia Teste/.test(pub.cab) && /CRN-1 0000/.test(pub.cab) && /Olá, Joana!/.test(pub.cab) && !/Ficticia Teste/.test(pub.cab.replace('Nutri Ficticia Teste', '')),
   'página pública sem conta: nome, profissão e CRN da nutricionista; "Olá, Joana!" (só o primeiro nome)');
-ok(/Etapa 1 de 6/.test(pub.passo) && /O que te traz aqui/.test(pub.h2) && pub.foco === 'H2' && pub.sw <= pub.w + 1, 'celular 390px: "Etapa 1 de 6 — O que te traz aqui", foco no título, sem rolagem lateral');
+ok(/Etapa 1 de 4/.test(pub.passo) && /O que te traz aqui/.test(pub.h2) && pub.foco === 'H2' && pub.sw <= pub.w + 1, 'celular 390px: "Etapa 1 de 4 — O que te traz aqui", foco no título, sem rolagem lateral');
 ok(!/nutritionist_id|patient_id|domin|origem|meta/i.test(pub.txt), 'nenhum ID, "domínio", origem ou metadado técnico na tela da paciente');
 if (SHOT) await new Promise(r => setTimeout(r, 900)), await M.screenshot({ path: SHOT + '/publica-mobile.png' });
 const XSS = '<img src=x onerror="window.__x=1">Mais energia';
-/* 12/10 (Mapeamento enxuto): motivo por toque; "Outro" abre um campo curto */
-await M.evaluate(() => [...document.querySelectorAll('input[name="pa-motivo-motivos"]')].find(i => i.value === 'Outro').click()); await espera(200);
+/* MH-2 (14/10): o que quer melhorar por toque; "Outro" abre um campo curto */
+await M.evaluate(() => [...document.querySelectorAll('input[name="pa-motivo-melhorar"]')].find(i => i.value === 'Outro').click()); await espera(200);
 await M.evaluate((x) => {
   const set = (id, v) => { const e = document.getElementById(id); e.focus(); e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); };
-  set('pa-motivo-objetivo', 'Cansaço à tarde'); set('pa-motivo-motivos-outro', x);
+  set('pa-motivo-expectativa', 'Cansaço à tarde'); set('pa-motivo-melhorar-outro', x);
 }, XSS);
 await espera(2600);
 const rasc = srv.linhas('anamnesis_invites').find(c => c.id === convite.id);
-ok(rasc.status === 'iniciado' && rasc.draft_content.formulario.motivo.objetivo === 'Cansaço à tarde' && !!rasc.started_at, 'autosave: o rascunho chega ao servidor (status "Iniciada")');
+ok(rasc.status === 'iniciado' && rasc.draft_content.formulario.motivo.expectativa === 'Cansaço à tarde' && !!rasc.started_at, 'autosave: o rascunho chega ao servidor (status "Iniciada")');
 ok(/Salvo às/.test(await M.evaluate(() => document.getElementById('salvo').textContent)), 'a página avisa "Salvo às hh:mm"');
 
 /* ===== 4 ===== */
 await M.reload({ waitUntil: 'networkidle2' }); await espera(700);
-ok(await M.evaluate(() => document.getElementById('pa-motivo-objetivo').value) === 'Cansaço à tarde', 'fechar e reabrir o link: o que foi escrito volta');
+ok(await M.evaluate(() => document.getElementById('pa-motivo-expectativa').value) === 'Cansaço à tarde', 'fechar e reabrir o link: o que foi escrito volta');
 const D = await pagina(URL_PUB, 1280, 900);
 await espera(600);
-ok(await D.evaluate(() => (document.getElementById('pa-motivo-objetivo') || {}).value) === 'Cansaço à tarde', 'outro aparelho (computador): o rascunho vem do servidor');
+ok(await D.evaluate(() => (document.getElementById('pa-motivo-expectativa') || {}).value) === 'Cansaço à tarde', 'outro aparelho (computador): o rascunho vem do servidor');
 if (SHOT) await new Promise(r => setTimeout(r, 900)), await D.screenshot({ path: SHOT + '/publica-desktop.png' });
 await D.close();
 
 /* ===== 5 ===== */
 const seguir = async () => { await M.evaluate(() => document.getElementById('btn-seguir').click()); await espera(350); };
-for (let i = 0; i < 4; i++) await seguir();
-pub = await M.evaluate(() => ({ h2: document.querySelector('main h2').textContent, txt: document.querySelector('main').innerText, nr: [...document.querySelectorAll('input[name="pa-contexto-apoio_nivel"]')].some(i => i.value === ''),
-  rotulos: [...document.querySelectorAll('main input, main textarea, main select')].every(i => i.labels && i.labels.length || i.getAttribute('aria-label') || i.closest('label')) }));
-ok(/Seu momento atual/.test(pub.h2) && /Opcional\. Responda só se quiser/.test(pub.txt) && pub.nr && !/espiritual|sentido da vida|propósito/i.test(pub.txt), 'etapa 5: momento atual OPCIONAL, com "Prefiro não responder" (sem perguntas de sentido pessoal)');
-ok(pub.rotulos, 'todo campo tem rótulo (label ou aria-label)');
-await M.evaluate(() => [...document.querySelectorAll('input[name="pa-contexto-apoio_nivel"]')].find(i => i.value === '').click()); await espera(200);
 await seguir();
+pub = await M.evaluate(() => ({ h2: document.querySelector('main h2').textContent, txt: document.querySelector('main').innerText, nr: [...document.querySelectorAll('input[name="pa-contexto-familiar_tem"]')].some(i => i.value === ''),
+  rotulos: [...document.querySelectorAll('main input, main textarea, main select')].every(i => i.labels && i.labels.length || i.getAttribute('aria-label') || i.closest('label')) }));
+ok(/Sua saúde/.test(pub.h2) && /Opcional\. Responda só se quiser/.test(pub.txt) && pub.nr && !/espiritual|sentido da vida|propósito/i.test(pub.txt), 'etapa 2 (MH-2): histórico familiar OPCIONAL, com "Prefiro não responder" (sem perguntas de sentido pessoal)');
+ok(pub.rotulos, 'todo campo tem rótulo (label ou aria-label)');
+await M.evaluate(() => [...document.querySelectorAll('input[name="pa-saude-condicoes_tem"]')].find(i => i.value === 'Não').click()); await espera(200);   // obrigatoria
+await M.evaluate(() => [...document.querySelectorAll('input[name="pa-contexto-familiar_tem"]')].find(i => i.value === '').click()); await espera(200);
+await seguir(); await seguir();
 pub = await M.evaluate(() => ({ h2: document.querySelector('main h2').textContent, txt: document.querySelector('main').innerText, btn: document.getElementById('btn-seguir').textContent }));
 ok(/Revisar e enviar/.test(pub.h2) && pub.txt.includes('Cansaço à tarde') && pub.txt.includes(XSS) && pub.txt.includes('Prefiro não responder') && /Enviar Mapeamento/.test(pub.btn),
-  'etapa 6: revisão mostra as respostas como texto (inclusive o "<img ...>" literal) e "Enviar Mapeamento"');
+  'revisão mostra as respostas como texto (inclusive o "<img ...>" literal) e "Enviar Mapeamento"');
 ok(await M.evaluate(() => window.__x === undefined), 'XSS: o texto com HTML não executou na página pública');
 
 /* ===== 6 ===== */
 await seguir(); await espera(600);
 const fim = srv.linhas('anamnesis_invites').find(c => c.id === convite.id);
 pub = await M.evaluate(() => document.querySelector('main').innerText);
-ok(fim.status === 'concluido' && fim.submitted_content.formulario.motivo.motivos_outro === XSS && fim.draft_content === null && /Mapeamento enviado!/.test(pub),
+ok(fim.status === 'concluido' && fim.submitted_content.formulario.motivo.melhorar_outro === XSS && fim.draft_content === null && /Mapeamento enviado/.test(pub),
   'enviar: status Concluída, resposta congelada no servidor e "Mapeamento enviado!" na tela');
 if (SHOT) await new Promise(r => setTimeout(r, 900)), await M.screenshot({ path: SHOT + '/publica-enviada-mobile.png' });
 const reenvio = rpc('anamnese_publica_enviar', { p_token: token, p_conteudo: { formulario: { motivo: { motivo: 'OUTRA' } } } }, null);
 const resalvar = rpc('anamnese_publica_salvar', { p_token: token, p_conteudo: { formulario: { motivo: { motivo: 'OUTRA' } } } }, null);
 await M.reload({ waitUntil: 'networkidle2' }); await espera(500);
 pub = await M.evaluate(() => document.body.innerText);
-ok(reenvio.error && reenvio.error.hint === 'ja_enviada' && resalvar.error && resalvar.error.hint === 'ja_enviada' && /Mapeamento enviado!/.test(pub) && !pub.includes('Cansaço') &&
-  srv.linhas('anamnesis_invites').find(c => c.id === convite.id).submitted_content.formulario.motivo.objetivo === 'Cansaço à tarde',
+ok(reenvio.error && reenvio.error.hint === 'ja_enviada' && resalvar.error && resalvar.error.hint === 'ja_enviada' && /Mapeamento enviado/.test(pub) && !pub.includes('Cansaço') &&
+  srv.linhas('anamnesis_invites').find(c => c.id === convite.id).submitted_content.formulario.motivo.expectativa === 'Cansaço à tarde',
   'reenvio e novo salvamento recusados (já enviada); reabrir o link mostra só "enviada", sem as respostas');
 
 /* ===== 7 ===== */
@@ -165,7 +166,7 @@ s = await pc(N);
 ok(/Mapeamento recebido/.test(s.status) && /Resumo do que o paciente trouxe/i.test(s.txt) && /Recebido em/i.test(s.txt) && /Abrir Mapeamento completo/i.test(s.txt) && /Levar para o atendimento/i.test(s.txt),
   'ficha: "Mapeamento recebido", resumo, data, "Abrir Mapeamento completo" e "Levar para o atendimento"');
 await clicarPc(N, 'ver'); await espera(200); s = await pc(N);
-ok(/Respostas do paciente/.test(s.txt) && /Qual é o principal motivo para buscar acompanhamento\?/.test(s.txt) && s.txt.includes('Cansaço à tarde') && s.txt.includes('<img src=x')
+ok(/Respostas do paciente/.test(s.txt) && /O que você mais gostaria de melhorar neste momento\?/.test(s.txt) && s.txt.includes('Cansaço à tarde') && s.txt.includes('<img src=x')
   && await N.evaluate(() => window.__x === undefined) && /Prefiro não responder/.test(s.txt) && /O que te traz aqui/.test(s.txt),
   'resposta completa por etapa, com as perguntas que o paciente viu (HTML mostrado literal, não executado) e os "Prefiro não responder"');
 if (SHOT) { await new Promise(r => setTimeout(r, 900)); const el = await N.$('#an-preconsulta'); if (el) await el.screenshot({ path: SHOT + '/ficha-preconsulta-resposta.png' }); }
