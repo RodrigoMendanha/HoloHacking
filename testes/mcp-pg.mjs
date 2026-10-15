@@ -35,7 +35,10 @@ export async function conectar() {
   }
   await c.end();
   if (precisa) execSync('sh scripts/montar-banco-mcp-local.sh', { cwd: R, stdio: 'ignore', env: Object.assign({}, process.env, { PGHOST: SOCK, PGPORT: String(PORTA) }) });
-  return tentar('mcp');
+  const m = await tentar('mcp');
+  /* sessao do superusuario sem identidade (auth.uid() nulo), como o servidor antes de assumir a nutricionista */
+  if (m) await m.query("select set_config('request.jwt.claims', '{}', false)");
+  return m;
 }
 
 /* executa fn(q) COMO a nutricionista (o que o PostgREST faz): role authenticated + claims, numa transacao */
