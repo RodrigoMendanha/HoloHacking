@@ -78,11 +78,11 @@
       html += '<div class="ia-gerar"><label for="ia-nome">Nome da conexão</label><input type="text" id="ia-nome" maxlength="60" placeholder="Ex.: Claude do consultório">' +
         '<button type="button" class="btn-verde" data-ia-acao="gerar"' + (ativas.length >= 5 ? ' disabled title="No máximo 5 conexões ativas: revogue uma"' : "") + '>Gerar URL de conexão</button></div>' +
         '<p id="ia-msg" class="ia-msg" role="status" aria-live="polite"></p>';
-      html += '<h4 class="ia-sub">Conexões</h4>' + (d.chaves.length ? '<table class="ia-tabela"><thead><tr><th>Nome</th><th>Chave</th><th>Criada</th><th>Último uso</th><th></th></tr></thead><tbody>' +
+      html += '<h4 class="ia-sub">Conexões</h4>' + (d.chaves.length ? '<div class="ia-tabela-caixa"><table class="ia-tabela"><thead><tr><th>Nome</th><th>Chave</th><th>Criada</th><th>Último uso</th><th></th></tr></thead><tbody>' +
         d.chaves.map(function (k) {
           return '<tr data-ia-chave="' + esc(k.id) + '"' + (k.revoked_at ? ' class="ia-revogada"' : "") + '><td>' + esc(k.nome) + '</td><td><code>' + esc(k.prefixo) + '…</code></td><td>' + esc(dataBR(k.created_at)) +
             '</td><td>' + esc(dataBR(k.last_used_at)) + '</td><td>' + (k.revoked_at ? '<span class="ia-selo">Revogada</span>' : '<button type="button" class="btn-borda-ouro" data-ia-acao="revogar" data-ia-id="' + esc(k.id) + '">Revogar</button>') + "</td></tr>";
-        }).join("") + "</tbody></table>" : '<p class="ia-vazio">Nenhuma conexão ainda.</p>');
+        }).join("") + "</tbody></table></div>" : '<p class="ia-vazio">Nenhuma conexão ainda.</p>');
       if (d.usos.length) html += '<h4 class="ia-sub">Uso recente</h4><ul class="ia-usos">' + d.usos.map(function (u) {
         return '<li><span class="' + (u.ok ? "ia-ok" : "ia-erro") + '">' + (u.ok ? "✓" : "✗") + "</span> " + esc(NOME_FERR[u.ferramenta] || u.ferramenta) + ' <small>' + esc(dataBR(u.created_at)) + "</small></li>";
       }).join("") + "</ul>";

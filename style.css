@@ -6451,4 +6451,5 @@ body.rp-gerando .rp-doc .pf-doc ul > li::before{content:none;display:none}
 .ia-ok{color:#2e7d5b}.ia-erro{color:#b3462f}
 .ia-como{margin-top:1rem}.ia-como summary{cursor:pointer;font-weight:600}
 .ia-vazio{color:var(--texto-suave)}
-@media (max-width:640px){.ia-tabela th:nth-child(3),.ia-tabela td:nth-child(3){display:none}}
+.ia-tabela-caixa{max-width:100%;overflow-x:auto}
+@media (max-width:640px){.ia-tabela th:nth-child(3),.ia-tabela td:nth-child(3),.ia-tabela th:nth-child(4),.ia-tabela td:nth-child(4){display:none}.ia-card{padding:1rem}.ia-tabela .btn-borda-ouro{padding:6px 10px;font-size:.72rem}}

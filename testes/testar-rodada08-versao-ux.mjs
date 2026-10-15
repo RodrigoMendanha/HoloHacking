@@ -108,7 +108,7 @@ for (const [nome, acao] of telas) {
 const abas = await A.evaluate(() => [...document.querySelectorAll('.abas-perfil .aba')].map(b => {
   const r = b.getBoundingClientRect(); return r.right <= document.documentElement.clientWidth + 1 && r.width > 0;
 }));
-ok(abas.length === 4 && abas.every(Boolean), 'as 4 abas do Perfil aparecem inteiras (Conta inclusive)');
+ok(abas.length === 5 && abas.every(Boolean), 'as 5 abas do Perfil aparecem inteiras (Conta e Assistente de IA inclusive): ' + JSON.stringify(abas));
 const menu = await A.evaluate(() => Math.round(document.querySelector('.sidebar').getBoundingClientRect().height));
 ok(menu < 200, 'o menu ocupa ' + menu + ' px de altura (antes: ~490)');
 

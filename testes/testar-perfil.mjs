@@ -53,8 +53,8 @@ const vazio = await p.evaluate(() => ({
 }));
 
 conferir(vazio.ativa && vazio.caminho === 'Perfil', 'a seção abre pelo menu');
-conferir(vazio.abas.join(',') === 'Perfil,Marca,Preferências,Conta',
-  'as quatro abas: ' + vazio.abas.join(' · '));
+conferir(vazio.abas.join(',') === 'Perfil,Marca,Preferências,Conta,Assistente de IA',
+  'as cinco abas (27/10: + Assistente de IA, conexao MCP): ' + vazio.abas.join(' · '));
 conferir(vazio.total === 9 && vazio.feitos === 1,
   'a checagem começa quase toda vazia: ' + vazio.feitos + ' de ' + vazio.total);
 conferir(vazio.nome === 'Profissional' && vazio.pct === '11%',
