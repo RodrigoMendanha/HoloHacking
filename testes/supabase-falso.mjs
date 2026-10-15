@@ -23,6 +23,7 @@
  * opcional (padrao: sempre, ate remover).
  */
 
+import { criarMcp } from './mcp-falso.mjs';
 import { randomUUID, createHash } from 'node:crypto';
 import { criarResultadoHolos } from './resultado-holos-falso.mjs';
 import { criarHolosAI } from './holos-ai-falso.mjs';   // ponte HOLOS AI (migration 20261023100000)
@@ -111,6 +112,9 @@ const COLUNAS = {
   /* Ponte HOLOS AI (migration 20261023100000): leitura so da propria; escrita SO pelas RPCs (holos-ai-falso.mjs) */
   holos_ai_imports: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'versao', 'schema_version', 'tipo', 'origem', 'agente', 'kb_version', 'entrada',
     'texto_original', 'json_original', 'texto_sha256', 'status', 'operation_id', 'imported_at', 'revisao_iniciada_em', 'concluida_em', 'descartada_em', 'updated_at', 'aceite'],
+  // MCP (migration 20261027100000): chave pessoal (so o hash) e registro de uso; so leitura pela API
+  mcp_keys: ['id', 'nutritionist_id', 'nome', 'key_hash', 'prefixo', 'created_at', 'last_used_at', 'revoked_at'],
+  mcp_usage_log: ['id', 'nutritionist_id', 'key_id', 'ferramenta', 'patient_id', 'ok', 'erro', 'created_at'],
   holos_ai_import_items: ['id', 'import_id', 'nutritionist_id', 'patient_id', 'secao', 'ordem', 'chave', 'valor_ia', 'so_profissional', 'estado',
     'valor_profissional', 'compartilhar', 'revisado_em', 'created_at']
 };
@@ -121,7 +125,7 @@ const GLOBAIS_SO_LEITURA = ['holos_recommendation_catalogs', 'holos_recommendati
   'integrated_reading_package_dependencies', 'integrated_reading_package_approvals', 'integrated_reading_package_snapshots'];   // Etapa 5.2: aprovacoes so pela RPC
 const DONO_DIRETO = [...METODOLOGIA, 'methodology_package_approvals', 'lab_custom_exams', 'integrated_readings', 'holos_next_steps', 'patients', 'consultations', 'encounters', 'anamneses', 'conducts', 'agreements', 'report_emissions', 'schedule_blocks', 'holoscan_applications',
   'lab_collections', 'tool_applications', 'documents', 'professional_assets', 'ai_threads', 'holos_results', 'anamnesis_invites', 'holos_result_emissions',
-  'holos_ai_imports', 'holos_ai_import_items'];
+  'holos_ai_imports', 'holos_ai_import_items', 'mcp_keys', 'mcp_usage_log'];
 const FILHAS = {           // tabela -> [coluna, mae]
   holoscan_answers: ['application_id', 'holoscan_applications'],
   holoscan_system_scores: ['application_id', 'holoscan_applications'],
@@ -776,9 +780,12 @@ export function criarServidor() {
     const t = q.tabela;
     if (t === 'methodology_package_approvals' && q.acao !== 'select') return erro('permission denied for table methodology_package_approvals', '42501');
     if (t === 'methodology_approvers' && q.acao !== 'select') return erro('permission denied for table methodology_approvers', '42501');
-    if ((GLOBAIS_SO_LEITURA.includes(t) || t === 'integrated_readings' || t === 'holos_results' || t === 'holos_next_steps' || t === 'anamnesis_invites' || t === 'holos_result_emissions' || t === 'holos_ai_imports' || t === 'holos_ai_import_items') && q.acao !== 'select' && uid) return erro('permission denied for table ' + t, '42501');
+    if ((GLOBAIS_SO_LEITURA.includes(t) || t === 'integrated_readings' || t === 'holos_results' || t === 'holos_next_steps' || t === 'anamnesis_invites' || t === 'holos_result_emissions' || t === 'holos_ai_imports' || t === 'holos_ai_import_items' || t === 'mcp_keys' || t === 'mcp_usage_log') && q.acao !== 'select' && uid) return erro('permission denied for table ' + t, '42501');
     /* Anamnese pre-consulta: grant de SELECT por COLUNA (token_hash fora). O PostgREST expande "*" para TODAS as colunas
        da tabela, inclusive token_hash, e o banco recusa a leitura inteira (provado no PG local: harness AP18). */
+    /* MCP: grant de SELECT por coluna (key_hash fora), como anamnesis_invites */
+    if (t === 'mcp_keys' && q.acao === 'select' && uid
+        && (!q.colunas || q.colunas.trim() === '*' || q.colunas.split(',').some(c => c.trim() === 'key_hash'))) return erro('permission denied for table mcp_keys', '42501');
     if (t === 'anamnesis_invites' && q.acao === 'select' && uid
         && (!q.colunas || q.colunas.trim() === '*' || q.colunas.split(',').some(c => c.trim() === 'token_hash'))) return erro('permission denied for table anamnesis_invites', '42501');
     /* para os testes: banco SEM uma migration recente (s.semMigracao = { colunas: { tabela: [..] }, rpcs: [..] }) */
@@ -1020,6 +1027,7 @@ export function criarServidor() {
   const resultadoHolos = criarResultadoHolos(s, { statusConta: (u) => statusConta(u), carimbo: () => carimbo() });
 
   const holosAI = criarHolosAI(s, { statusConta: (u) => statusConta(u) });
+  const mcp = criarMcp(s, { statusConta: (u) => statusConta(u) });
   const proximosPassos = criarProximosPassos(s, { statusConta: (u) => statusConta(u), carimbo: () => carimbo() });
   const revisaoPerguntas = criarRevisaoPerguntas(s, {});
   const preConsulta = criarAnamnesePreConsulta(s, {});
@@ -1055,6 +1063,7 @@ export function criarServidor() {
     const p = args && args.payload;
     if (resultadoHolos.NOMES.includes(nome)) return resultadoHolos.rpc(uid, nome, args);
     if (holosAI.NOMES.includes(nome)) return holosAI.rpc(uid, nome, args);
+    if (mcp.NOMES.includes(nome)) return mcp.rpc(uid, nome, args);
     if (proximosPassos.NOMES.includes(nome)) return proximosPassos.rpc(uid, nome, args);
     if (preConsulta.NOMES.includes(nome)) return preConsulta.rpc(uid, nome, args);
     if (nome === 'salvar_holoscan_completo') {

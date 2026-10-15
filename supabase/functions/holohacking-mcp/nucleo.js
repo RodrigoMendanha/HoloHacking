@@ -242,10 +242,14 @@ async function gerarResultado(q, mod, a, dep) {
   const { C } = mod;
   const bruto = a.resultado === undefined ? a.resultado_json : a.resultado;
   if (bruto === undefined || bruto === null || bruto === '') throw new ErroFerramenta('Envie a análise em "resultado" (objeto JSON no contrato HOLOS_AI_RESULT v1).', 'sem_resultado');
-  let texto = typeof bruto === 'string' ? bruto : JSON.stringify(bruto);
-  const obj = typeof bruto === 'string' ? C.extrairJson(bruto) : bruto;
-  if (!obj || typeof obj !== 'object') throw new ErroFerramenta('Não encontrei um JSON válido em "resultado".', 'json_invalido');
-  if (typeof bruto === 'string') texto = JSON.stringify(obj);
+  let obj = bruto;
+  if (typeof bruto === 'string') {
+    const x = C.extrairJson(bruto);   // aceita o texto inteiro ou o 1o bloco ```json``` (como o agente)
+    if (!x || !x.json) throw new ErroFerramenta('Não encontrei um JSON válido em "resultado"' + (x && x.erro ? ': ' + x.erro : '') + '.', 'json_invalido');
+    obj = x.json;
+  }
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) throw new ErroFerramenta('Não encontrei um JSON válido em "resultado".', 'json_invalido');
+  const texto = JSON.stringify(obj);
   const v = C.validar(obj);
   if (v.erros && v.erros.length) {
     const err = new ErroFerramenta('A análise não está no contrato HOLOS_AI_RESULT v1. Corrija e chame gerar_resultado de novo.', 'contrato');
@@ -335,7 +339,7 @@ export const FERRAMENTAS = [
   { name: 'instrucoes_resultado', title: 'Instruções e contrato do Resultado', description: 'As regras do método e o contrato JSON HOLOS_AI_RESULT v1 (com exemplo) para escrever a análise que gerar_resultado recebe.',
     inputSchema: P({}), annotations: { readOnlyHint: true } },
   { name: 'gerar_resultado', title: 'Gerar Resultado HOLOS (análise)', description: 'Grava o Resultado HOLOS a partir da análise escrita no contrato HOLOS_AI_RESULT v1 (o mesmo do agente HOLOS AI). O servidor valida; havendo erro, devolve a lista para corrigir. O Resultado fica finalizado na ficha para a nutricionista revisar e emitir. Não envia nada ao paciente.',
-    inputSchema: P({ paciente_id: ID, atendimento_id: { type: 'string' }, resultado: { type: 'object', description: 'objeto JSON HOLOS_AI_RESULT v1 (24 chaves)' } }, ['paciente_id', 'resultado']), annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false } },
+    inputSchema: P({ paciente_id: ID, atendimento_id: { type: 'string' }, resultado: { type: ['object', 'string'], description: 'objeto JSON HOLOS_AI_RESULT v1 (24 chaves); aceita também o texto com um bloco ```json```' } }, ['paciente_id', 'resultado']), annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false } },
   { name: 'gerar_resultado_playbook', title: 'Gerar Resultado HOLOS (Playbook)', description: 'Caminho rápido: grava o Resultado HOLOS com 1 foco e 2 a 4 estratégias do Playbook HOLOS (ids de contexto_paciente). O relato do paciente (Mapeamento, acordos) entra junto. Não envia nada ao paciente.',
     inputSchema: P({ paciente_id: ID, atendimento_id: { type: 'string' }, foco_id: { type: 'string' }, foco_texto: { type: 'string', description: 'foco escrito pela nutricionista, se nenhum dos focos servir' },
       estrategias: { type: 'array', minItems: 1, maxItems: 6, items: { anyOf: [{ type: 'string' }, { type: 'object', properties: { estrategia_id: { type: 'string' }, acao: { type: 'string' }, quando: { type: 'string' }, observar: { type: 'string' } }, required: ['estrategia_id'] }] } },

@@ -101,6 +101,10 @@ const ruim = await tool('gerar_resultado', { paciente_id: fx.PA, resultado: { sc
 ok(ruim.isError && ruim.structuredContent.erro === 'contrato' && ruim.structuredContent.detalhes.erros.length > 3, 'S5 fora do contrato: isError com a lista de erros para a IA corrigir');
 ok((await c.query('select count(*)::int n from public.holos_results where patient_id = $1', [fx.PA])).rows[0].n === antes, 'S5 nada gravado');
 
+const tx = await tool('gerar_resultado', { paciente_id: fx.PA, resultado: 'Segue a análise:\n```json\n{"schema_version": 1, "tipo": "primeira_consulta"}\n```' });
+ok(tx.isError && tx.structuredContent.erro === 'contrato', 'S5 texto com bloco ```json``` e lido (e validado: incompleto -> erros)');
+ok((await tool('gerar_resultado', { paciente_id: fx.PA, resultado: 'sem json nenhum' })).structuredContent.erro === 'json_invalido', 'S5 texto sem JSON -> json_invalido');
+
 /* S6 */
 const ex = JSON.parse(JSON.stringify(EXEMPLO)); ex.tipo = 'primeira_consulta';
 const g1 = await tool('gerar_resultado', { paciente_id: fx.PA, resultado: ex });

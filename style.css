@@ -6424,3 +6424,31 @@ body.rp-gerando .rp-doc .pf-doc ul > li::before{content:none;display:none}
 .pb-chip-tipo{font-weight:700}
 .pb-tipo-observacao{border-style:dashed}
 .pb-alerta{margin:-.2rem 0 .6rem;padding:.45rem .7rem;border-radius:8px;background:var(--halo);border:1px solid var(--dourado-suave);font-size:.85rem}
+
+/* ===== Assistente de IA (MCP) — aba do Perfil (conexao-ia.js) ===== */
+.ia-card{max-width:900px;padding:1.4rem 1.6rem;border-radius:16px;border:1px solid rgba(127,127,127,.18);margin-top:1rem}
+.ia-tit{font-family:var(--fonte-titulo,"Cormorant Garamond",serif);font-size:1.5rem;margin:.2rem 0 .6rem}
+.ia-lead{line-height:1.6;margin:0 0 .8rem}
+.ia-garantias{margin:0 0 1.2rem;padding-left:1.2rem;line-height:1.7;color:var(--texto-suave)}
+.ia-gerar{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin:.6rem 0}
+.ia-gerar label{width:100%;font-size:.85rem;color:var(--texto-suave)}
+.ia-gerar input{flex:1 1 220px;min-width:0}
+.ia-nova{border:2px solid #c9a959;border-radius:14px;padding:1rem 1.2rem;margin:0 0 1.2rem;background:rgba(201,169,89,.08)}
+.ia-nova-tit{font-weight:600;margin:0 0 .5rem}
+.ia-url{display:flex;gap:.5rem;flex-wrap:wrap}
+.ia-url input{flex:1 1 260px;min-width:0;font-family:ui-monospace,monospace;font-size:.85rem}
+.ia-aviso{font-size:.88rem;margin:.6rem 0;color:var(--texto-suave)}
+.ia-passos{margin:.4rem 0 0;padding-left:1.2rem;line-height:1.7;font-size:.92rem}
+.ia-msg{min-height:1.2em;font-size:.9rem;margin:.3rem 0}
+.ia-msg-erro{color:#b3462f}.ia-msg-ok{color:#2e7d5b}
+.ia-sub{margin:1.4rem 0 .5rem;font-size:1rem}
+.ia-tabela{width:100%;border-collapse:collapse;font-size:.9rem}
+.ia-tabela th,.ia-tabela td{text-align:left;padding:.45rem .4rem;border-bottom:1px solid rgba(127,127,127,.2);vertical-align:middle}
+.ia-revogada{opacity:.55}
+.ia-selo{font-size:.78rem;border:1px solid currentColor;border-radius:20px;padding:.1rem .6rem}
+.ia-usos{list-style:none;padding:0;margin:0;font-size:.9rem;line-height:1.8}
+.ia-usos small{color:var(--texto-suave);margin-left:.4rem}
+.ia-ok{color:#2e7d5b}.ia-erro{color:#b3462f}
+.ia-como{margin-top:1rem}.ia-como summary{cursor:pointer;font-weight:600}
+.ia-vazio{color:var(--texto-suave)}
+@media (max-width:640px){.ia-tabela th:nth-child(3),.ia-tabela td:nth-child(3){display:none}}

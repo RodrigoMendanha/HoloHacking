@@ -1451,8 +1451,9 @@
       b.classList.toggle("ativa", meu);
       b.setAttribute("aria-selected", meu ? "true" : "false");
     });
-    ["perfil", "marca", "prefs", "conta"].forEach(function (n) {
-      document.getElementById("painel-" + n).classList.toggle("hidden", n !== qual);
+    ["perfil", "marca", "prefs", "conta", "ia"].forEach(function (n) {
+      var el = document.getElementById("painel-" + n);   /* "ia": Assistente de IA (conexao-ia.js) */
+      if (el) el.classList.toggle("hidden", n !== qual);
     });
   }
 
