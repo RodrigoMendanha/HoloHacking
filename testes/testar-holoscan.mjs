@@ -68,7 +68,7 @@ const menu = await p.evaluate(async () => {
 });
 ok(!menu.confronto && !menu.secaoConfronto && menu.resultado, 'o menu nao tem mais Leitura Integrada; tem Resultado');
 ok(menu.ativa === 'secao-resultado' && /Entre na sua conta/.test(menu.corpo), 'a pagina Resultado abre e, sem conta, explica que o resultado vem do servidor');
-ok(/Resultado para a paciente/.test(menu.botaoResumo), 'o quadro do resultado leva para "Resultado para a paciente": ' + menu.botaoResumo);
+ok(/Resultado para o paciente/.test(menu.botaoResumo), 'o quadro do resultado leva para "Resultado para o paciente" (16/10: linguagem neutra): ' + menu.botaoResumo);
 
 /* ==================================================================== */
 console.log('\n  B/C/D — EXAMES NÃO ALTERAM NOTA, ÍNDICE NEM TRÍADE\n');

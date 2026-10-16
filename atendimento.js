@@ -406,7 +406,7 @@
         '<div class="perf-campo"><label for="at-hora">Hora</label>' +
           '<input type="time" id="at-hora" value="' + escapar(hora) + '" step="300"></div>' +
       "</div>" +
-      '<p class="perf-ajuda">Fuso: ' + escapar(tz) + ". Nada é gravado até confirmar.</p>";
+      '<p class="perf-ajuda" title="' + escapar("Fuso horário: " + tz) + '">Nada é gravado até confirmar.</p>';
     var operacao = novoId();      // uma operation_id por abertura do dialogo: reenvio nao duplica
     return window.abrirModalConfirmar({
       titulo: c ? "Iniciar atendimento" : "Novo atendimento",

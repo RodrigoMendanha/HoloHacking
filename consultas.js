@@ -113,7 +113,7 @@
     var tiles = [
       { n: ats.length, r: ats.length === 1 ? "atendimento" : "atendimentos" },
       { n: apsSalvas.length, r: apsSalvas.length === 1 ? "aplicação do HOLOSCAN" : "aplicações do HOLOSCAN" },
-      { n: Object.keys(pessoas).length, r: Object.keys(pessoas).length === 1 ? "paciente atendida" : "pacientes atendidas" },
+      { n: Object.keys(pessoas).length, r: Object.keys(pessoas).length === 1 ? "paciente atendido" : "pacientes atendidos" },
       { n: voltaram, r: voltaram === 1 ? "voltou para reavaliar" : "voltaram para reavaliar" },
       { n: semRes, r: semRes === 1 ? "atendimento sem resultado" : "atendimentos sem resultado", alerta: semRes > 0 }
     ];

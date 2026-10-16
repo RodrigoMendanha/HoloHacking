@@ -496,7 +496,9 @@
   function tamanhoLegivel(bytes) {
     if (bytes < 1024) return bytes + " B";
     if (bytes < 1048576) return (bytes / 1024).toFixed(0) + " KB";
-    return (bytes / 1048576).toFixed(1) + " MB";
+    /* 16/10: GB quando passa de 1 GB, e virgula decimal ("10241.0 MB" -> "10,0 GB") */
+    if (bytes < 1073741824) return (bytes / 1048576).toFixed(1).replace(".", ",") + " MB";
+    return (bytes / 1073741824).toFixed(1).replace(".", ",") + " GB";
   }
 
   /* ---------- camada Supabase (Storage + documents table) -----------------

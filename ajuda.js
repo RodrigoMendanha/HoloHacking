@@ -51,11 +51,24 @@
       ["O que o resultado mostra?",
        "O quadro <b>Resultado desta aplicação</b> traz os cinco sistemas do mais baixo ao mais alto (nota de 0 a 10 e faixa baixa / intermediária / alta), a Tríade (Corpo / Mente / Espírito), quantas perguntas foram respondidas e <b>Por onde investigar</b>: os dois sistemas de nota mais baixa e os sinais que mais pesaram neles. Abaixo ficam o radar, os cartões e o aprofundamento com a definição oficial de cada sistema."],
       ["Por que o sistema não escreve uma conclusão?",
-       "Porque o método aprovado (HOLOS-V1 v2) ainda não tem texto de conclusão homologado. O sistema não inventa interpretação clínica: ele organiza o que as respostas mostram, e a leitura é sua, no campo <b>Sua interpretação</b>, que vai junto para o relatório."],
+       "Porque o método aprovado ainda não tem texto de conclusão validado. O sistema não inventa interpretação clínica: ele organiza o que as respostas mostram, e a leitura é sua, no campo <b>Sua interpretação</b>, que vai junto para o relatório."],
       ["Por que um sistema ficou sem nota (“—”)?",
        "Para ter nota, o sistema precisa de pelo menos 80% das perguntas dele respondidas. Abaixo disso, ele aparece como “sem dado suficiente”, e o Índice HOLOS não é calculado."],
       ["Apareceu “não salvo no servidor”. E agora?",
        "O mapa foi gerado mas ainda não foi salvo: confira se há um atendimento selecionado na tela do HOLOSCAN e clique em <b>Salvar HOLOSCAN</b>. Gerar de novo com as mesmas respostas de uma aplicação já salva não cria duplicata."]
+    ]},
+    { grupo: "Retorno", itens: [
+      ["Como fazer um retorno",
+       "1. <b>Marque o retorno</b> (depois de entregar o Resultado, o botão principal da ficha é <b>Marcar retorno</b>). " +
+       "2. Envie o <b>Mapeamento de retorno</b> pela aba Mapeamento: para quem já teve Resultado, o link abre o formulário “Desde a última consulta”. " +
+       "3. No dia, <b>inicie o atendimento</b> pela consulta na Agenda ou por “Novo atendimento” na ficha. " +
+       "4. <b>Reaplique o HOLOSCAN</b> se fizer sentido para o momento. " +
+       "5. Aplique as <b>ferramentas</b> quando necessário. " +
+       "6. Abra o <b>Playbook</b> (aba Resultado HOLOS → Montar com o Playbook). " +
+       "7. Revise as <b>estratégias anteriores</b>: o que veio do encontro anterior aparece separado, sem nada marcado. " +
+       "8. Para cada uma, decida: <b>manter, ajustar, substituir, concluir ou encerrar</b>. " +
+       "9. Gere o <b>novo Resultado</b> (ele sai como Resultado HOLOS nº 2, nº 3…), emita o Resultado Final e envie. No fim, use <b>Encerrar atendimento</b>. " +
+       "A aba <b>Evolução</b> mostra o antes e o agora lado a lado."]
     ]},
     { grupo: "Resultado para a paciente", itens: [
       ["Onde fica o resultado para mostrar e enviar à paciente?",

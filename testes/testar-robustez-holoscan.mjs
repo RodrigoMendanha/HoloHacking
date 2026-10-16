@@ -427,8 +427,8 @@ ok(/terreno/i.test(zeroReal.titulo),
 ok(zeroReal.sistemasNaTela === 2,
    'e os dois sistemas mais críticos desenhados, como em qualquer mapa: ' +
    zeroReal.sistemasNaTela);
-ok(zeroReal.notasNaTela.length === 2 && zeroReal.notasNaTela.every(t => t === '0.0'),
-   'as notas 0 aparecem como 0.0 — nada foi convertido nem escondido: ' +
+ok(zeroReal.notasNaTela.length === 2 && zeroReal.notasNaTela.every(t => t === '0,0'),
+   'as notas 0 aparecem como 0,0 (16/10: virgula na tela) — nada foi convertido nem escondido: ' +
    zeroReal.notasNaTela.join(', '));
 ok(zeroReal.notas.filter(n => n === 0).length === 5,
    'e os cinco sistemas continuam em 0 no objeto do motor');

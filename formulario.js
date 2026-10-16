@@ -934,6 +934,8 @@
   window.abrirFerramentaPorId = function (id) {
     var ativas = (window.FERRAMENTAS_ATIVAS || []).concat(["oq3", "pqq", "mapa"]);
     if (ativas.indexOf(id) < 0) return false;
+    /* 16/10: ferramenta OCULTA (FERRAMENTAS_OCULTAS) nao abre por caminho indireto; o historico dela continua legivel */
+    if ((window.FERRAMENTAS_OCULTAS || []).indexOf(id) >= 0) return false;
     var seletor = '[data-ferramenta="' + id + '"], [data-vista="vista-' + id + '"]';
     var alvo = document.querySelector(seletor);
     if (!alvo) return false;

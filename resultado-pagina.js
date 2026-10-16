@@ -10,7 +10,7 @@
        salvo/revisado, nao substituido), na VISAO DA PACIENTE que a
        nutricionista preparou e finalizou na aba "Resultado HOLOS" da ficha —
        HOLOSCAN oficial, cinco sistemas, Indice, Triade, ferramentas de Corpo,
-       Mente e Espirito marcadas "mostrar a paciente" e os textos da
+       Mente e Espirito marcadas "mostrar o paciente" e os textos da
        nutricionista (ResultadoHolos.documentoHtml, sem recalculo);
      - a CONDUTA do ATENDIMENTO DO RESULTADO (consolidada; motor de resultados
        V1, 12/10 — antes era a vigente do paciente, de qualquer atendimento),
@@ -190,7 +190,7 @@
     var snap = r.content_snapshot;
     var meta = Object.assign({ status: r.status, hash: r.content_hash, blocos: blocosConduta(cv), semRodape: true }, extra || {});
     var corpo = window.ResultadoHolos.documentoHtml(snap, "paciente", meta);
-    return '<article class="rp-doc" id="rp-doc" aria-label="Resultado para a paciente">' +
+    return '<article class="rp-doc" id="rp-doc" aria-label="Resultado para o paciente">' +
       cabecalhoProfissional(eu, imagens) +
       '<div class="rp-corpo">' + corpo + "</div>" +
       rodapeProfissional(eu, imagens) +
@@ -232,7 +232,7 @@
     if (!em && emissoes.indisponivel) {
       return '<div class="rp-acoes rp-so-tela" id="rp-acoes">' +
         '<div class="rp-estado"><span class="rh-tag">Resultado HOLOS ' + escapar(numeroRH(r)) + "</span>" +
-          "<span>Finalizado em " + escapar(dataHora(r.saved_at || r.created_at)) + " &middot; versão para a paciente</span></div>" +
+          "<span>Finalizado em " + escapar(dataHora(r.saved_at || r.created_at)) + " &middot; versão para o paciente</span></div>" +
         '<div class="rp-botoes">' +
           '<button type="button" class="btn-verde" data-rp-acao="pdf">Baixar PDF</button>' +
           '<button type="button" class="btn-verde" data-rp-acao="whatsapp">Enviar pelo WhatsApp</button>' +
@@ -267,7 +267,7 @@
     return '<div class="rp-acoes rp-so-tela" id="rp-acoes">' +
       '<div class="rp-estado"><span class="rh-tag">Resultado Final nº ' + escapar(em.emission_number) + "</span>" +
         "<span>Emitido em " + escapar(dataHora(em.created_at)) + " &middot; Resultado HOLOS " + escapar(numeroRH(r)) + " &middot; conteúdo congelado</span>" +
-        (tel ? "" : '<span class="rp-sem-tel">Sem telefone no cadastro: o WhatsApp abre sem a conversa da paciente.</span>') + "</div>" +
+        (tel ? "" : '<span class="rp-sem-tel">Sem telefone no cadastro: o WhatsApp abre sem a conversa do paciente.</span>') + "</div>" +
       '<div class="rp-botoes">' +
         '<button type="button" class="btn-verde" data-rp-acao="pdf">Baixar PDF</button>' +
         '<button type="button" class="btn-verde" data-rp-acao="whatsapp">Enviar pelo WhatsApp</button>' +
@@ -277,7 +277,7 @@
       "</div>" +
       /* 14/10: o botao do WhatsApp manda o PDF: no celular (e no computador que permite) vai anexado; senao baixa e abre a conversa */
       '<p class="rp-dica-whats">Enviar pelo WhatsApp manda o PDF: no celular ele vai anexado direto (escolha o WhatsApp e a conversa). ' +
-        "No computador, o PDF é baixado e a conversa da paciente abre com a mensagem pronta: é só arrastar o arquivo para ela (o WhatsApp não aceita anexo automático pelo navegador do computador).</p>" +
+        "No computador, o PDF é baixado e a conversa do paciente abre com a mensagem pronta: é só arrastar o arquivo para ela (o WhatsApp não aceita anexo automático pelo navegador do computador).</p>" +
       "</div>";
   }
   function listaEmissoes(lista, atual) {
@@ -352,7 +352,7 @@
     /* 14/10 (auditoria Cowork, P0): nada da paciente anterior sobrevive ao redesenho — emissao, documento, PDF, WhatsApp */
     emAtual = null; delete a.dataset.rpPid;
     if (emissoes.pid !== pid) { emissoes = { pid: null, linhas: [] }; emissaoAberta = null; }
-    if (!pid) { a.innerHTML = '<div class="dash-vazio" id="rp-vazio">Escolha uma paciente para ver o resultado dela.</div>'; return; }
+    if (!pid) { a.innerHTML = '<div class="dash-vazio" id="rp-vazio">Escolha um paciente para ver o resultado dele.</div>'; return; }
     if (!temSupa()) { a.innerHTML = '<div class="dash-vazio" id="rp-vazio">Entre na sua conta para ver o Resultado: ele é montado a partir do Resultado HOLOS finalizado no servidor.</div>'; return; }
     var p = pacienteObj(pid);
     if (p && p.status === "inativo") { a.innerHTML = '<div class="dash-vazio" id="rp-vazio">Paciente arquivado. Reative na ficha para apresentar o resultado.</div>'; return; }
@@ -363,8 +363,8 @@
       if (vez !== desenhoAtual || pacienteId() !== pid || emissoes.pid !== pid) return;
       var r = resultadoFinal(pid);
       if (!r) {
-        a.innerHTML = '<div class="lista-vazia" id="rp-vazio"><strong>Nenhum Resultado HOLOS finalizado para ' + escapar(p ? primeiroNome(p.nome) : "esta paciente") + "</strong>" +
-          "<span>Prepare e finalize o Resultado HOLOS na ficha (aba Resultado HOLOS). Rascunho não aparece para a paciente.</span>" +
+        a.innerHTML = '<div class="lista-vazia" id="rp-vazio"><strong>Nenhum Resultado HOLOS finalizado para ' + escapar(p ? primeiroNome(p.nome) : "este paciente") + "</strong>" +
+          "<span>Prepare e finalize o Resultado HOLOS na ficha (aba Resultado HOLOS). Rascunho não aparece para o paciente.</span>" +
           '<button type="button" class="btn-verde" data-rp-acao="ficha">Abrir Resultado HOLOS na ficha</button></div>';
         return;
       }
@@ -425,9 +425,9 @@
   function gerarPdf() {
     var doc = document.getElementById("rp-doc");
     if (!doc) return Promise.reject(new Error("Nenhum resultado na tela."));
-    if (!documentoEDaPaciente()) return Promise.reject(new Error("O resultado na tela não é da paciente selecionada. Abra o Resultado de novo."));
+    if (!documentoEDaPaciente()) return Promise.reject(new Error("O resultado na tela não é do paciente selecionado. Abra o Resultado de novo."));
     /* template 5: PDF da paciente so de emissao com Foco atual confirmado */
-    if (ehRF3(emAtual) && !focoDaEmissao(emAtual)) return Promise.reject(new Error("Sem Foco atual confirmado não há PDF para a paciente"));
+    if (ehRF3(emAtual) && !focoDaEmissao(emAtual)) return Promise.reject(new Error("Sem Foco atual confirmado não há PDF para o paciente"));
     var rTela = resultadoFinal(pacienteId());
     if (!emAtual && rTela && ehT5(rTela)) return Promise.reject(new Error("Gere o Resultado Final (com o foco confirmado) antes do PDF"));
     var p = pacienteObj(pacienteId());
@@ -534,7 +534,7 @@
      position:absolute por cima do app (que fazia o rodape cair sobre o ultimo cartao). Os ids da copia saem. */
   function imprimir() {
     var doc = document.getElementById("rp-doc"); if (!doc) return;
-    if (!documentoEDaPaciente()) { toast("O resultado na tela não é da paciente selecionada. Abra o Resultado de novo."); return; }
+    if (!documentoEDaPaciente()) { toast("O resultado na tela não é do paciente selecionado. Abra o Resultado de novo."); return; }
     var antigo = document.getElementById("rp-impressao"); if (antigo) antigo.remove();
     var caixa = document.createElement("div"); caixa.id = "rp-impressao";
     var copia = doc.cloneNode(true); copia.removeAttribute("id");
@@ -621,7 +621,7 @@
   }
   function enviarWhatsApp() {
     var pid = pacienteId(), p = pacienteObj(pid);
-    if (!documentoEDaPaciente()) { toast("O resultado na tela não é da paciente selecionada. Abra o Resultado de novo."); return Promise.resolve({ modo: "bloqueado" }); }
+    if (!documentoEDaPaciente()) { toast("O resultado na tela não é do paciente selecionado. Abra o Resultado de novo."); return Promise.resolve({ modo: "bloqueado" }); }
     /* RF-3: mensagem com direcionamento/foco congelados; RF-1/RF-2 (historicas): a mensagem de sempre */
     var msg = ehRF3(emAtual) ? mensagemWhatsAppEmissao(p, emAtual) : mensagemWhatsApp(p, resultadoFinal(pid), perfil());
     if (!msg) { toast("Sem Foco atual confirmado não há envio pelo WhatsApp. Crie uma nova versão do Resultado HOLOS com o foco."); return Promise.resolve({ modo: "bloqueado" }); }
@@ -644,7 +644,7 @@
       /* computador: baixa o PDF e abre a conversa da paciente com a mensagem pronta; ela anexa o arquivo */
       baixar(res.blob, res.nome);
       if (!abrirLink(link)) { oferecerEnvio({ nome: res.nome, link: link }); return { modo: "faixa" }; }
-      toast(p && numeroWhatsApp(p.telefone) ? "PDF baixado. Na conversa que abriu, anexe o arquivo " + res.nome + "." : "PDF baixado. Cadastre o telefone da paciente para abrir a conversa dela direto.");
+      toast(p && numeroWhatsApp(p.telefone) ? "PDF baixado. Na conversa que abriu, anexe o arquivo " + res.nome + "." : "PDF baixado. Cadastre o telefone do paciente para abrir a conversa direto.");
       return { modo: "conversa" };
     }).catch(function (e) {
       toast("Não foi possível gerar o PDF agora (" + ((e && e.message) || "erro") + "). Use Imprimir → Salvar como PDF.");
@@ -713,7 +713,7 @@
      Nada novo e calculado: e o mesmo emitir + PDF dos botoes da pagina. */
   function emitirSePreciso() {
     var pid = pacienteId();
-    if (!pid) return Promise.reject(new Error("Escolha uma paciente."));
+    if (!pid) return Promise.reject(new Error("Escolha um paciente."));
     emissaoAberta = null;
     if (window.irParaSecao) window.irParaSecao("resultado");
     return Promise.resolve(desenhar()).then(function () {

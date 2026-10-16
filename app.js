@@ -408,7 +408,8 @@
     const galeria = document.getElementById(input.dataset.galeria);
     const campo = input.closest(".campo-busca");
     const contador = campo.parentElement.querySelector(".contador-busca");
-    const cards = Array.from(galeria.querySelectorAll(".card-ferr"));
+    /* 16/10: so os cartoes VISIVEIS contam (a ferramenta oculta — Conexao & Pertencimento — nao entra no "N ferramentas") */
+    const cards = Array.from(galeria.querySelectorAll(".card-ferr")).filter(c => !c.hidden && !c.classList.contains("hidden"));
     cards.forEach(c => {
       const titulo = c.querySelector("h4");
       const desc = c.querySelector("p");
@@ -2955,7 +2956,7 @@
   }
 
   const NOME_FERRAMENTA = {
-    pqq: "PQQ — Pra Que Que?",
+    pqq: "PQQ — Escada dos Porquês",
     oq3: "OQ³ — O Que Quer · Precisa · Consegue",
     mapa: "Mapa do Propósito"
   };
@@ -3074,7 +3075,7 @@
         + '<div class="leitura-cabeca"><b>' + esc(sp ? sp.name : s.nome) + '</b>'
         + '<span class="leitura-nota">' + (semNota ? "—" : esc(A.notaTexto(s))) + (s.faixa && !semNota ? " · faixa " + esc(window.rotuloExibivel(s.faixa)) : "") + '</span></div>'
         + (sp && sp.public_text ? '<p class="leitura-definicao">' + esc(sp.public_text) + '</p>' : "")
-        + (semNota ? '<p class="leitura-faixa">Sem nota: abaixo da cobertura mínima do pacote.</p>'
+        + (semNota ? '<p class="leitura-faixa">Sem nota: poucas respostas neste sistema para calcular.</p>'
                    : (fx && fx.message_nutri ? '<p class="leitura-faixa">' + esc(fx.message_nutri) + '</p>' : ""))
         + '</div>';
     }).join("");
@@ -3148,16 +3149,18 @@
     caixa.innerHTML =
       '<span class="eyebrow">Resultado desta aplicação</span>'
       + '<p class="res-meta">' + "Aplicação de " + esc(dataTxt) + " · "
-      + (typeof cob.respondidos === "number" ? esc(cob.respondidos + " de " + cob.total) + " perguntas respondidas" : "")
+      + (typeof cob.respondidos === "number" ? '<span title="O HOLOSCAN possui ' + esc(cob.total) + ' perguntas. Parte delas é contextual e não entra diretamente na pontuação dos cinco sistemas.">' + esc(cob.respondidos + " de " + cob.total) + " perguntas respondidas</span>" : "")
       + (window.Metodologia && window.Metodologia.seloAplicacao ? " " + window.Metodologia.seloAplicacao(r) : "") + '</p>'
       + '<div class="res-grade"><div><h4 class="res-tit">Os cinco sistemas, do mais baixo ao mais alto</h4><ul class="res-lista">' + linhas + '</ul>'
       + triTxt
+      /* 16/10: os cinco sistemas usam parte das perguntas; as outras sao contextuais (explicacao simples, sem formula) */
+      + '<p class="res-linha res-nota-contexto">O HOLOSCAN possui ' + esc(typeof cob.total === "number" ? cob.total : 81) + ' perguntas. Parte delas é contextual e não entra diretamente na pontuação dos cinco sistemas.</p>'
       + (semNota.length ? '<p class="res-linha res-aviso">Sem nota (menos de 80% das perguntas do sistema respondidas): ' + semNota.map(s => esc(s.nome || s.sistema)).join(", ") + '.</p>' : '')
       + '</div><div><h4 class="res-tit">Por onde investigar</h4>'
       + (investigar ? '<p class="res-linha">Os sistemas de nota mais baixa e os sinais que mais pesaram neles. É a aritmética das respostas — não é diagnóstico nem conduta.</p>' + investigar
                     : '<p class="res-linha">Nenhum sistema com nota nesta aplicação.</p>')
       + '<div class="res-botoes"><button type="button" class="btn-borda-ouro" data-res-ir="resultado-holos">Resultado HOLOS &rarr;</button>'
-      + '<button type="button" class="btn-borda-ouro" data-res-ir="resultado">Resultado para a paciente &rarr;</button>'
+      + '<button type="button" class="btn-borda-ouro" data-res-ir="resultado">Resultado para o paciente &rarr;</button>'
       + '</div></div></div>'
       /* Proximos Passos HOLOS (09/10): bloco PROFISSIONAL, logo depois de "Por onde investigar". Desenhado por
          proximos-passos.js a partir dos MESMOS dois sistemas e do catalogo aprovado do servidor. */
@@ -3689,7 +3692,7 @@
           : "")
       + (faltando.length
           ? (r.oficial
-              ? '<span class="holo-sem-dado">Dados insuficientes (abaixo da cobertura mínima do pacote) em: '
+              ? '<span class="holo-sem-dado">Poucas respostas para dar nota em: '
                 + faltando.join(", ") + '. Sem os cinco sistemas avaliáveis o Índice HOLOS não é calculado.</span>'
               : '<span class="holo-sem-dado">Sem resposta nenhuma em: ' + faltando.join(", ")
                 + '. Estes sistemas ficaram fora do Índice.</span>')
@@ -3784,7 +3787,7 @@
          pacote (nao "nenhuma pergunta respondida"). */
       const cobertura = semDado
         ? (temContagem && s.respondidos > 0
-            ? s.respondidos + " de " + s.total_marcadores + " respondidas · abaixo da cobertura mínima do pacote: sem nota"
+            ? s.respondidos + " de " + s.total_marcadores + " respondidas · poucas respostas para dar nota"
             : "nenhuma pergunta respondida")
         : temContagem ? s.respondidos + " de " + s.total_marcadores + " respondidas" : "";
       const conta = [cobertura,
@@ -3919,7 +3922,7 @@
             '<div class="triada-eixo' + (ehMenor(i) ? " menor" : "")
               + (temDado(i) ? "" : " sem-dado") + '">'
             + '<span class="triada-nota">'
-            + (temDado(i) ? (exibicao && exibicao[e[0]] ? exibicao[e[0]] : window.HoloAusencia.fmt(valores[i])) : "—") + "</span>"
+            + (temDado(i) ? (exibicao && exibicao[e[0]] ? String(exibicao[e[0]]).replace(/^(-?\d+)\.(\d+)$/, "$1,$2") : window.HoloAusencia.fmt(valores[i])) : "—") + "</span>"
             + "<b>" + e[1] + "</b><span class=\"triada-sub\">"
             + (temDado(i) ? e[2] : "sem resposta") + "</span></div>").join("")
       /* A frase dizia: "Dimensao mais baixa: X. E por onde a conduta comeca."
@@ -4123,7 +4126,7 @@
         return;
       }
 
-      /* Correcao (auditoria HOLOSCAN): questionario incompleto (ex.: 10 de 84)
+      /* Correcao (auditoria HOLOSCAN): questionario incompleto (ex.: 10 de 81)
          era salvo como aplicacao sem nenhuma pergunta. Agora a nutricionista
          confirma, vendo a cobertura e se o Indice saiu. Nenhum limite e
          presumido aqui (Mestre §18): qualquer pergunta em branco pergunta. */

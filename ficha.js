@@ -16,7 +16,7 @@
      LINHA DO TEMPO o que aconteceu com esta pessoa, em ordem
      FORMULÁRIOS    o que foi respondido — e o que dá para reler
 
-   Sobre Formulários: no método, o HOLOSCAN É um formulário — 84 perguntas
+   Sobre Formulários: no método, o HOLOSCAN É um formulário — 81 perguntas (v7)
    respondidas numa escala de 0 a 3. O OQ³, o PQQ e o Mapa do Propósito também
    são. O que faltava era poder RELER o que a pessoa respondeu: o app calculava
    a nota e jogava as respostas numa caixa que nenhuma tela abria. A janela de
@@ -392,9 +392,9 @@
       var rel = window.Relatorios.ultimoEmitido(pid);
       /* pos-teste MR-V1 13/10: o Relatorio profissional (aba Relatorio) e o Resultado Final da paciente (pagina Resultado)
          sao objetos diferentes — o rotulo diz qual e, para nao parecer contradicao com a emissao do Resultado Final */
-      linhas.push(["Último relatório profissional (aba Relatório)", rel
+      linhas.push(["Último relatório profissional", rel
         ? (rel.title || "Relatório clínico") + " · emissão nº " + rel.revision_number + " · " + dataBR(String(rel.issued_at).slice(0, 10)) + (rel.superseded_at ? " · substituído por retificação" : "")
-        : "nenhum relatório profissional emitido" + (window.Relatorios.rascunhos(pid).length ? " (há rascunho não emitido)" : "") + ". O Resultado Final da paciente fica na página Resultado."]);
+        : "nenhum relatório profissional emitido" + (window.Relatorios.rascunhos(pid).length ? " (há rascunho não emitido)" : "") + ". O Resultado Final do paciente fica na página Resultado."]);
     }
     var anResumo = mh && mh.estado === "concluido"
       ? '<button type="button" class="dash-ir" data-ir="aba:anamnese">Ver respostas do Mapeamento <span aria-hidden="true">&rarr;</span></button>' : "";
@@ -485,7 +485,8 @@
 
     if (!d.pontuacao) {
       html += '<div class="fic-visao-grid"><div class="fic-col-esq">' +
-        '<div class="dash-vazio fic-sem-mapa">Sem HOLOSCAN aplicado. O mapa é o que ' +
+        /* 16/10: o alerta acima ja diz "Sem HOLOSCAN aplicado." — aqui so a explicacao, sem repetir a frase */
+        '<div class="dash-vazio fic-sem-mapa">O mapa é o que ' +
         "transforma o que o paciente conta em leitura — e é dele que sai o Mapa HOLOS e os cinco sistemas.</div>" +
         blocoAtendimentoClinico(pid) + "</div>" + colunaDireita + "</div>";
       alvo.innerHTML = html;
@@ -508,9 +509,10 @@
     var A = window.HoloAusencia;
     if (p.triada) {
       html += '<div class="fic-triada">' +
-        ["fisico", "mental", "espiritual"].map(function (e) {
-          return "<span><i>" + e[0].toUpperCase() + e.slice(1) + "</i>" +
-                 A.fmt(p.triada[e]) + "</span>";
+        /* 16/10: Corpo / Mente / Espirito (o nome da tela); as chaves fisico/mental/espiritual nao mudam */
+        [["fisico", "Corpo"], ["mental", "Mente"], ["espiritual", "Espírito"]].map(function (e) {
+          return "<span><i>" + e[1] + "</i>" +
+                 A.fmt(p.triada[e[0]]) + "</span>";
         }).join("") + "</div>";
     }
 
@@ -1049,7 +1051,7 @@
         abrir: "corpo"
       },
       {
-        id: "pqq", nome: "PQQ &mdash; Pra Que Que?",
+        id: "pqq", nome: "PQQ &mdash; Escada dos Porquês",
         sub: "A chave dos porquês profundos: o propósito por trás do objetivo.",
         estado: temConteudo(p.pqq) ? "preenchido" : "não aplicado",
         pronto: temConteudo(p.pqq), comeco: temConteudo(p.pqq),

@@ -157,6 +157,10 @@ ok(rasc.status === 'iniciado' && rasc.draft_content.formulario.saude.desconforto
 /* K: recarregar e voltar pelo mesmo link */
 await M.reload({ waitUntil: 'networkidle2' }); await espera(700);
 ok(await M.evaluate(() => window.AnamnesePublica.estado().formulario.motivo.mudar_primeiro) === 'Ter energia para brincar com meus filhos', 'K: recarregar/voltar pelo mesmo link continua de onde parou');
+/* 16/10 (estabilizacao): reabrir o link volta na ETAPA em que parou (antes voltava sempre para a etapa 1) */
+const passoK = await tela(M);
+ok(/Revisar e enviar/.test(passoK.h2) && /Etapa 5 de 5/.test(passoK.passo), 'K: reabrir o link volta na etapa em que parou (' + passoK.passo + ')');
+for (let i = 0; i < 4; i++) { await M.evaluate(() => document.getElementById('btn-voltar').click()); await espera(250); }
 /* F: obrigatoria apagada -> o envio mostra exatamente o que falta e nao apaga o resto */
 await M.evaluate(() => { const f = window.AnamnesePublica.estado().formulario; f.saude.condicoes_tem = ''; });
 for (let i = 0; i < 4; i++) await seguir(M);

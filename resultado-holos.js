@@ -827,7 +827,7 @@
     html += '<fieldset class="rh-grupo"><legend>HOLOSCAN <small>(obrigatório — escolha uma aplicação)</small></legend>' + (hs.length ? '<div class="rh-opcoes">' + hs.map(function (h) {
       return '<label class="rh-opcao' + (h.oficial ? "" : " rh-opcao-off") + '"><input type="radio" name="rh-holoscan" value="' + e(h.id) + '"' + (h.id === f.holoscan_application_id ? " checked" : "") + (h.oficial ? "" : " disabled") + ">" +
         '<span class="rh-opcao-txt"><b>Aplicação ' + e(dataBR(h.quando)) + (h.criado ? " · " + e(hora(h.criado)) : "") + "</b>" +
-        "<small>" + (h.oficial ? e(h.pacote) : "histórica, sem pacote oficial — não pode entrar") + " · cód. " + e(curto(h.id)) + " · " + e(rotuloAtendimento(h.encounter_id)) + "</small></span></label>";
+        "<small>" + (h.oficial ? "HOLOSCAN oficial" : "aplicação antiga, fora do questionário oficial — não pode entrar") + " · " + e(rotuloAtendimento(h.encounter_id)) + "</small></span></label>";
     }).join("") + "</div>" : '<p class="q-erro">Nenhuma aplicação HOLOSCAN salva no servidor para este paciente. Aplique e salve o HOLOSCAN antes.</p>') + "</fieldset>";
 
     // ferramentas por eixo
@@ -837,7 +837,7 @@
         var marc = f.tools.indexOf(a.id) >= 0;
         return '<div class="rh-opcao rh-opcao-ferr"><label class="rh-opcao-sel"><input type="checkbox" data-rh-ferr="' + e(a.ferramenta_id) + '" value="' + e(a.id) + '"' + (marc ? " checked" : "") + ">" +
           '<span class="rh-opcao-txt"><b>' + e(defFerr(a.ferramenta_id).titulo) + " · " + e(dataBR(a.concluida_em || a.iniciada_em)) + (hora(a.concluida_em) ? " · " + e(hora(a.concluida_em)) : "") + "</b>" +
-          "<small>" + e(a.status === "revisada" ? "revisada" : "concluída") + " · cód. " + e(curto(a.id)) + " · " + e(rotuloAtendimento(a.encounter_id)) + "</small></span></label>" +
+          "<small>" + e(a.status === "revisada" ? "revisada" : "concluída") + " · " + e(rotuloAtendimento(a.encounter_id)) + "</small></span></label>" +
           '<label class="rh-mostrar"><input type="checkbox" data-rh-mostrar="' + e(a.id) + '"' + (f.mostrar[a.id] ? " checked" : "") + (marc ? "" : " disabled") + "> Mostrar ao paciente</label></div>";
       }).join("") + "</div>" : '<p class="dash-vazio">Nenhuma ferramenta de ' + e(x[1]) + " concluída.</p>") + "</fieldset>";
     });

@@ -212,7 +212,7 @@
         "</div>" +
         '<div class="doc-solta" id="doc-solta">' +
           '<input type="file" id="doc-arquivo" multiple accept=".pdf,.png,.jpg,.jpeg,.webp,.heic,.txt,.csv" aria-label="Arquivo">' +
-          '<div class="doc-solta-texto"><b>Arraste o arquivo aqui</b>' +
+          '<div class="doc-solta-texto"><b id="doc-solta-rotulo">Arraste o arquivo aqui</b>' +
           "<span>ou clique para escolher &middot; PDF, foto ou texto &middot; até 10 MB</span></div>" +
         "</div>" +
         '<label class="bib-campo bib-largo"><span>Observação (opcional)</span>' +
@@ -274,6 +274,16 @@
       /* 14/10: sem nenhum documento, a lista vazia nao aparece (so o formulario de adicionar) */
       var cartao = document.getElementById("doc-lista-cartao");
       if (cartao) cartao.classList.toggle("hidden", itens.length === 0 && !verArquivados && !itens.falhaServidor);
+      /* 16/10 (estabilizacao): sem documento ATIVO mas com arquivados, o cartao (e o "Ver arquivados") continua visivel —
+         antes ele sumia e nao havia como restaurar pela tela. So paciente sem nenhum documento fica sem o cartao. */
+      if (itens.length === 0 && !verArquivados && !itens.falhaServidor && cartao) {
+        window.ArquivoStore.listar(pid, { arquivados: true }).then(function (arq) {
+          if (pid !== paciente() || verArquivados || !arq || !arq.length) return;
+          cartao.classList.remove("hidden");
+          alvo.innerHTML = '<div class="lista-vazia" id="doc-sem-ativos"><strong>Nenhum documento ativo.</strong>' +
+            "<span>" + arq.length + (arq.length === 1 ? " documento arquivado" : " documentos arquivados") + ": use “Ver arquivados” para consultar ou restaurar.</span></div>";
+        }, function () { /* sem leitura: fica como esta */ });
+      }
       if (itens.length === 0) {
         if (total) total.textContent = "";
         alvo.innerHTML = itens.falhaServidor
@@ -356,6 +366,9 @@
   function desenharEscolhidos(pedirData, erroTitulo) {
     var caixa = document.getElementById("doc-pendente");
     if (!caixa) return;
+    /* 16/10: a area de soltar mostra o que foi escolhido (antes continuava "Arraste o arquivo aqui") */
+    var rot = document.getElementById("doc-solta-rotulo");
+    if (rot) rot.textContent = !escolhidos.length ? "Arraste o arquivo aqui" : escolhidos.length === 1 ? "Arquivo escolhido: " + escolhidos[0].name : escolhidos.length + " arquivos escolhidos";
     if (!escolhidos.length) { caixa.innerHTML = ""; caixa.classList.add("hidden"); return; }
     caixa.classList.remove("hidden");
     caixa.innerHTML = '<p><b>' + (escolhidos.length === 1 ? "Arquivo escolhido: " : escolhidos.length + " arquivos escolhidos: ") + "</b>" +

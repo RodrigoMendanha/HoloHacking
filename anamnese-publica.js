@@ -69,7 +69,25 @@
       return JSON.parse(localStorage.getItem(CHAVE_LOCAL) || "null");
     } catch (e) { return null; }
   }
-  function apagarLocal() { try { if (CHAVE_LOCAL) localStorage.removeItem(CHAVE_LOCAL); } catch (e) { /* nada */ } }
+  function apagarLocal() { try { if (CHAVE_LOCAL) { localStorage.removeItem(CHAVE_LOCAL); localStorage.removeItem(CHAVE_LOCAL + ".passo"); } } catch (e) { /* nada */ } }
+  /* 16/10 (estabilizacao): a ETAPA em que o paciente parou fica guardada neste aparelho (as respostas ja ficam no
+     servidor). Em outro aparelho, abre na ultima etapa com resposta. Nada disso vai para o conteudo enviado. */
+  function lembrarPasso() { try { if (CHAVE_LOCAL) localStorage.setItem(CHAVE_LOCAL + ".passo", String(estado.passo)); } catch (e) { /* nada */ } }
+  function passoInicial() {
+    var n = totalPassos(), salvo = null;
+    try { salvo = CHAVE_LOCAL ? localStorage.getItem(CHAVE_LOCAL + ".passo") : null; } catch (e) { salvo = null; }
+    var k = salvo === null ? NaN : Number(salvo);
+    if (!isNaN(k) && k >= 0 && k < n) return k;
+    var ult = 0;
+    etapas().forEach(function (et, i) { if (camposDa(et).some(function (c) { return !c.secao && tem(dados(c.b)[c.f]); })) ult = i; });
+    return ult;
+  }
+  /* obrigatorias que faltam NESTA etapa (o aviso e discreto: pode continuar e voltar depois) */
+  function faltamNaEtapa(i) {
+    var et = etapas()[i]; if (!et || !MH.faltando) return [];
+    var aqui = camposDa(et).filter(function (c) { return !c.secao; });
+    return MH.faltando(estado.formulario, estado.tipo).filter(function (x) { return aqui.some(function (c) { return c.b === x.b && c.f === x.f; }); });
+  }
   function pintarSalvo(txt, ruim) { var s = $("salvo"); if (s) { s.textContent = txt; s.className = "salvo" + (ruim ? " ruim" : ""); } }
   function hora(iso) { try { return new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }); } catch (e) { return ""; } }
 
@@ -305,9 +323,11 @@
     if (qual === "erro") { var b = el("button", { type: "button", class: "btn btn-pri", texto: "Tentar de novo" }); b.addEventListener("click", iniciar); main.appendChild(b); }
     h.focus();
   }
-  function telaPasso(manter) {
+  function telaPasso(manter, opts) {
+    opts = opts || {};
     var main = $("conteudo"); main.textContent = "";
     var total = totalPassos(), i = estado.passo;
+    lembrarPasso();
     $("passo-txt").innerHTML = "";
     $("passo-txt").appendChild(el("span", {}, ["Etapa ", el("b", { texto: String(i + 1) }), " de " + total]));
     $("trilho").style.width = Math.round(((i + 1) / total) * 100) + "%";
@@ -317,6 +337,14 @@
     if (i === total - 1) return telaRevisar(manter);
     seguir.textContent = i === total - 2 ? "Revisar respostas" : "Continuar";
     var et = etapas()[i];
+    /* 16/10: a etapa anterior ficou com pergunta obrigatoria em branco -> aviso discreto, com atalho para voltar */
+    if (typeof opts.avisoDe === "number") {
+      var volta = el("button", { type: "button", class: "btn-link", texto: "Voltar e responder agora" });
+      var de = opts.avisoDe;
+      volta.addEventListener("click", function () { estado.passo = de; telaPasso(false, { focar: opts.focar }); });
+      main.appendChild(el("div", { class: "aviso aviso-obrigatoria", role: "status", id: "aviso-obrigatoria" }, [
+        el("p", { texto: "Você ainda tem uma pergunta obrigatória na etapa anterior. Pode continuar e voltar depois." }), volta]));
+    }
     var h = el("h2", { texto: et.titulo, tabindex: "-1" });
     main.appendChild(h);
     main.appendChild(el("p", { class: "intro", texto: et.intro }));
@@ -332,6 +360,13 @@
     });
     if (i === 0) main.appendChild(el("p", { class: "privacidade", texto: "Suas respostas vão só para a sua nutricionista e ajudam a preparar o atendimento. Este formulário não é diagnóstico." }));
     if (!manter) { h.focus(); window.scrollTo(0, 0); }
+    /* 16/10: vindo da lista de pendencias, o foco vai direto para a pergunta */
+    if (opts.focar) {
+      var alvo = document.getElementById(idCampo(opts.focar.b, opts.focar.f)) || document.querySelector('[name="' + idCampo(opts.focar.b, opts.focar.f) + '"]');
+      var caixa = alvo && (alvo.closest(".campo") || alvo);
+      if (caixa && caixa.scrollIntoView) caixa.scrollIntoView({ block: "center" });
+      if (alvo && alvo.focus) alvo.focus();
+    }
   }
   function valorTexto(f, d, b) { return MH.valorTexto(f, d, b); }
   function telaRevisar(manter) {
@@ -366,7 +401,7 @@
       falta.forEach(function (x) {
         var idx = -1; etapas().forEach(function (et, k) { camposDa(et).forEach(function (c) { if (c.b === x.b && c.f === x.f) idx = k; }); });
         var ir2 = el("button", { type: "button", class: "btn-link", texto: rotuloDe(x.b, x.f) });
-        ir2.addEventListener("click", function () { estado.passo = Math.max(0, idx); telaPasso(); });
+        ir2.addEventListener("click", function () { estado.passo = Math.max(0, idx); telaPasso(false, { focar: x }); });
         lf.appendChild(el("li", {}, [ir2]));
       });
       main.appendChild(el("div", { class: "aviso aviso-falta", role: "alert" }, [el("p", { texto: "Para enviar, falta responder:" }), lf]));
@@ -413,6 +448,7 @@
         estado.formulario = loc.formulario; estado.sujo = true; salvar();
       } else if (info.salvo_em) pintarSalvo("Salvo às " + hora(info.salvo_em));
       $("barra").hidden = false; $("nav").hidden = false;
+      estado.passo = passoInicial();
       telaPasso();
     }, function () { cabecalho(null); telaEstado("erro"); });
   }
@@ -421,7 +457,9 @@
     $("btn-voltar").addEventListener("click", function () { if (estado.passo > 0) { salvar(); estado.passo--; telaPasso(); } });
     $("btn-seguir").addEventListener("click", function () {
       if (estado.passo >= totalPassos() - 1) return enviar();
-      salvar(); estado.passo++; telaPasso();
+      var faltam = faltamNaEtapa(estado.passo), de = estado.passo;
+      salvar(); estado.passo++;
+      telaPasso(false, faltam.length && estado.passo < totalPassos() - 1 ? { avisoDe: de, focar: faltam[0] } : {});
     });
     /* outro link colado na mesma aba (so o "#" muda): recomeca com o token novo */
     window.addEventListener("hashchange", function () { window.location.reload(); });

@@ -97,9 +97,11 @@ const esperado = await A.evaluate(() => {
     triada: ['fisico', 'mental', 'espiritual'].map(e => v.triad_result[e].nota_exibicao), resp };
 });
 const legado = await A.evaluate((resp) => window.HOLOSCAN.calcular(Object.keys(resp).map(id => ({ marcador_id: id, intensidade: resp[id] })), {}).indice, esperado.resp);
-ok(tela.indice === esperado.indice_exib && tela.indice !== String(legado), 'Indice na tela = motor oficial (' + tela.indice + '), nao o legado (' + legado + ')');
-ok(tela.sistemas.every(([k, t]) => t === esperado.sistemas[k].exib), '5 notas na tela = motor oficial: ' + tela.sistemas.map(x => x[1]).join(' / '));
-ok(JSON.stringify(tela.triada) === JSON.stringify(esperado.triada), 'Triada na tela = motor oficial: ' + tela.triada.join(' / '));
+/* 16/10: na tela, virgula decimal (o motor continua com ponto) */
+const virg = (t) => String(t).replace(/^(-?\d+)\.(\d+)$/, '$1,$2');
+ok(tela.indice === virg(esperado.indice_exib) && tela.indice !== String(legado), 'Indice na tela = motor oficial (' + tela.indice + '), nao o legado (' + legado + ')');
+ok(tela.sistemas.every(([k, t]) => t === virg(esperado.sistemas[k].exib)), '5 notas na tela = motor oficial: ' + tela.sistemas.map(x => x[1]).join(' / '));
+ok(JSON.stringify(tela.triada) === JSON.stringify(esperado.triada.map(virg)), 'Triada na tela = motor oficial: ' + tela.triada.join(' / '));
 ok(!/Em homologação/.test(tela.interp + tela.prio) && /oficial/.test(tela.interp), 'aplicacao nova V1: selo "oficial", sem "Em homologação" no mapa');
 // Correcao pos-6.5 (auditoria de producao): a leitura do resultado OFICIAL so tem textos do pacote homologado
 const leitura = await A.evaluate(() => { const el = document.getElementById('holo-leitura'); const P = window.Metodologia.obterPacoteAtivo();

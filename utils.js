@@ -104,21 +104,24 @@ if (window.ASSISTENTE_IA_VISIVEL !== true) window.ASSISTENTE_IA_VISIVEL = false;
     var r = Math.floor(Math.abs(n) * k + 0.5 + 1e-9) / k;
     return (n < 0 && r !== 0 ? -r : r).toFixed(c);
   }
+  /* 16/10 (estabilizacao): na TELA o numero sai em formato brasileiro (virgula decimal). So apresentacao: os valores
+     guardados, o motor e os calculos continuam numericos/com ponto (arredondar() nao muda). */
+  function virgula(t) { return String(t).replace(/^(-?\d+)\.(\d+)$/, "$1,$2"); }
   function fmt(v, casas) {
-    return vazioNum(v) ? "—" : arredondar(v, casas);
+    return vazioNum(v) ? "—" : virgula(arredondar(v, casas));
   }
   /** Nota de um sistema na tela: a exibicao do motor oficial quando existe. */
   function notaTexto(s) {
     if (semNota(s)) return "—";
-    return typeof s.nota_exibicao === "string" && s.nota_exibicao ? s.nota_exibicao : fmt(s.nota);
+    return typeof s.nota_exibicao === "string" && s.nota_exibicao ? virgula(s.nota_exibicao) : fmt(s.nota);
   }
   /** Indice HOLOS na tela. Aplicacao oficial V1: 1 casa, ou "—" quando nao
       avaliavel (sem Indice parcial). Historica: o numero como foi gravado. */
   function indiceTexto(p) {
     if (!p || vazioNum(p.indice)) return "—";
-    if (typeof p.indice_exibicao === "string" && p.indice_exibicao) return p.indice_exibicao;
-    if (p.oficial === true || p.methodology_package_id) return arredondar(p.indice, 1);
-    return String(p.indice);
+    if (typeof p.indice_exibicao === "string" && p.indice_exibicao) return virgula(p.indice_exibicao);
+    if (p.oficial === true || p.methodology_package_id) return virgula(arredondar(p.indice, 1));
+    return virgula(String(p.indice));
   }
 
   function porNota(a, b) {

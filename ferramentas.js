@@ -431,7 +431,7 @@ window.CATALOGO_FERRAMENTAS = [
     descricao: "Levantamento das crenças limitantes sobre a comida e o corpo.",
     campos: [
       { id: "crencas", rotulo: "Crenças que ele carrega", tipo: "textarea", dica: "uma por linha — 'carboidrato engorda', 'eu não tenho força de vontade'" },
-      { id: "origem", rotulo: "De onde vieram", tipo: "textarea", dica: "familia, dieta antiga, algo que alguém disse" },
+      { id: "origem", rotulo: "De onde vieram", tipo: "textarea", dica: "família, dieta antiga, algo que alguém disse" },
       { id: "mais_atrapalha", rotulo: "Qual mais atrapalha hoje", tipo: "texto" },
       { id: "alternativa", rotulo: "Crença alternativa possível", tipo: "texto", dica: "não a oposta — a que ele conseguiria acreditar" }
     ]
