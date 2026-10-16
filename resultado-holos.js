@@ -108,14 +108,26 @@
       .then(function (r) {
         if (r && r.error) { cache = { pid: pid, linhas: [], erro: r.error, carregado: true }; return []; }
         cache = { pid: pid, linhas: (r && r.data) || [], erro: null, carregado: true };
+        if (gravou) { gravou = false; aposGravar(); }
         return cache.linhas;
       }, function (err) { cache = { pid: pid, linhas: [], erro: err, carregado: true }; return []; });
   }
   function doPaciente(pid) { return cache.pid === pid ? cache.linhas.slice() : []; }
   function porId(id) { return cache.linhas.filter(function (r) { return r.id === id; })[0] || null; }
+  /* 16/10 (estabilizacao): depois de salvar, revisar, descartar ou gerar um Resultado, a ficha (jornada, etapa atual,
+     botao principal) e o Dashboard se atualizam sozinhos, sem F5. As RPCs de escrita marcam "gravou"; a proxima
+     releitura da lista avisa a jornada (que rele convites, Resultados e emissoes e redesenha a faixa da ficha). */
+  var ESCRITAS = ["salvar_rascunho_resultado_holos", "salvar_resultado_holos", "revisar_resultado_holos", "descartar_rascunho_resultado_holos",
+    "importar_holos_ai", "aceitar_importacao_holos_ai", "concluir_revisao_holos_ai", "descartar_importacao_holos_ai"];
+  var gravou = false;
+  function aposGravar() {
+    try { if (window.JornadaPaciente && window.JornadaPaciente.recarregar) window.JornadaPaciente.recarregar(); } catch (e) { /* nada */ }
+    try { if (window.redesenharDashboard) window.redesenharDashboard(); } catch (e) { /* nada */ }
+  }
   function rpc(nome, args) {
     return Promise.resolve(window.supabaseClient.rpc(nome, args)).then(function (r) {
       if (r && r.error) throw r.error;
+      if (ESCRITAS.indexOf(nome) >= 0) gravou = true;
       return r ? r.data : null;
     });
   }

@@ -387,11 +387,14 @@
     });
 
     consultasDe(dia).forEach(function (c) {
-      html += '<button type="button" class="cal-evento consulta' + (vigente(c) ? "" : " cancelada") + '" ' +
+      /* 16/10: Agendada -> Em atendimento -> Realizada, derivado do atendimento que nasceu da consulta */
+      var est = window.AtendimentoAtual && window.AtendimentoAtual.estadoDaConsulta ? window.AtendimentoAtual.estadoDaConsulta(c) : null;
+      var marca = est && (est.chave === "em_atendimento" || est.chave === "realizada") ? est : null;
+      html += '<button type="button" class="cal-evento consulta' + (vigente(c) ? "" : " cancelada") + (marca ? " " + marca.chave.replace("_", "-") : "") + '" ' +
         'style="' + posicao(minutos(c.hora), Number(c.duracao) || 60) + faixaHorizontal(pos["c" + c.id]) + '" ' +
-        'data-abrir="consulta" data-id="' + escapar(c.id) + '">' +
+        'data-abrir="consulta" data-id="' + escapar(c.id) + '"' + (marca ? ' data-estado="' + marca.chave + '"' : "") + '>' +
         "<b>" + escapar(nomeDe(c.paciente_id)) + "</b>" +
-        "<span>" + escapar(c.hora) + " &middot; " + escapar(c.tipo || "Consulta") + "</span>" +
+        "<span>" + escapar(c.hora) + " &middot; " + escapar(marca ? marca.rotulo : (c.tipo || "Consulta")) + "</span>" +
         "</button>";
     });
 
@@ -562,6 +565,10 @@
           escapar(c.rescheduled_to_id) + '">ver o novo agendamento</button>' : "") +
         ". Fica no histórico; não é apagado.</p>"
       : "";
+    /* 16/10: a consulta que virou atendimento mostra o estado (Em atendimento / Realizada) */
+    var estF = c.id && !cancelada && window.AtendimentoAtual && window.AtendimentoAtual.estadoDaConsulta ? window.AtendimentoAtual.estadoDaConsulta(c) : null;
+    if (estF && (estF.chave === "em_atendimento" || estF.chave === "realizada")) avisoCancelada += '<p class="perf-ajuda cal-estado" data-estado-consulta="' + estF.chave + '"><b>' + escapar(estF.rotulo) + "</b>" +
+      (estF.chave === "realizada" ? " &mdash; o atendimento desta consulta foi encerrado." : " &mdash; o atendimento desta consulta está aberto.") + "</p>";
     var origem = c.rescheduled_from_id
       ? '<p class="perf-ajuda">Reagendado a partir de <button type="button" class="btn-fantasma" data-abrir="consulta" data-id="' +
         escapar(c.rescheduled_from_id) + '">um agendamento anterior</button>.</p>'

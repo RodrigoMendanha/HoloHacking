@@ -144,23 +144,31 @@ const ini = await p.evaluate(async (id) => {
   await new Promise(r => setTimeout(r, 200));
   document.querySelector('[data-iniciar-atendimento="' + id + '"]').click();
   await new Promise(r => setTimeout(r, 250));
+  /* 16/10 (estabilizacao): consulta no futuro -> primeiro a confirmacao, sem trocar a data em silencio */
+  const aviso = { titulo: document.getElementById('modal-confirmar-titulo').textContent, corpo: document.getElementById('modal-confirmar-corpo').innerText };
+  document.getElementById('modal-confirmar-ok').click();
+  await new Promise(r => setTimeout(r, 300));
   const sugerida = { data: document.getElementById('at-data').value, hora: document.getElementById('at-hora').value };
-  // tenta o futuro: recusado
+  // tenta o futuro: recusado, e a janela CONTINUA aberta com o erro dentro dela
   const d = new Date(); d.setDate(d.getDate() + 3);
   document.getElementById('at-data').value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   document.getElementById('modal-confirmar-ok').click();
   await new Promise(r => setTimeout(r, 300));
   const n1 = window.AtendimentoAtual.todos().length;
-  // de novo, agora com a sugestao (agora)
-  document.querySelector('[data-iniciar-atendimento="' + id + '"]').click();
-  await new Promise(r => setTimeout(r, 250));
+  const aberta = !document.getElementById('modal-confirmar-acao').classList.contains('hidden');
+  const erro = (document.querySelector('#modal-confirmar-corpo .modal-erro') || {}).textContent || '';
+  const foco = document.getElementById('at-data').getAttribute('aria-invalid') === 'true' ? 'at-data' : (document.activeElement && document.activeElement.id);
+  // corrige para a sugestao (agora) na MESMA janela
+  document.getElementById('at-data').value = sugerida.data; document.getElementById('at-hora').value = sugerida.hora;
   document.getElementById('modal-confirmar-ok').click();
   await new Promise(r => setTimeout(r, 500));
-  return { sugerida, n1, n2: window.AtendimentoAtual.todos().length, secao: document.querySelector('.secao.ativa')?.id,
+  return { aviso, sugerida, n1, aberta, erro, foco, n2: window.AtendimentoAtual.todos().length, secao: document.querySelector('.secao.ativa')?.id,
     ficha: !document.getElementById('vista-ficha').classList.contains('hidden'), toasts: window.__toasts.join(' | ') };
 }, reag.novaId);
-ok(ini.sugerida.data === await p.evaluate(() => window.hojeISO()), 'a consulta está no futuro: a data sugerida para o atendimento é hoje (' + ini.sugerida.data + ' ' + ini.sugerida.hora + ')');
-ok(ini.n1 === 0 && /não pode ter data e hora no futuro/.test(ini.toasts), 'atendimento com data no futuro é recusado; nada gravado');
+ok(ini.aviso.titulo === 'Consulta no futuro' && /marcada para .* às 15:00/.test(ini.aviso.corpo) && /iniciar o atendimento agora/.test(ini.aviso.corpo),
+   'consulta no futuro: pede confirmação antes ("' + ini.aviso.corpo.slice(0, 70) + '")');
+ok(ini.sugerida.data === await p.evaluate(() => window.hojeISO()), 'confirmado "Iniciar agora": a data sugerida para o atendimento é hoje (' + ini.sugerida.data + ' ' + ini.sugerida.hora + ')');
+ok(ini.n1 === 0 && ini.aberta && /não pode ter data e hora no futuro/.test(ini.erro) && ini.foco === 'at-data', 'atendimento com data no futuro é recusado; a janela continua aberta, com o erro e o campo da data marcado; nada gravado (' + JSON.stringify([ini.n1, ini.aberta, ini.erro, ini.foco]) + ')');
 ok(ini.n2 === 1 && ini.secao === 'secao-pacientes' && ini.ficha, '"Iniciar atendimento" cria e leva para a ficha (antes ficava na Agenda)');
 
 /* 3: com atendimento, sem desmarcar nem reagendar; "Abrir atendimento" navega */

@@ -331,6 +331,8 @@
         emissaoAberta = res && res.data ? res.data.id : null;
         if (faltou.length) toast("Resultado Final emitido. Não foi possível congelar: " + faltou.join(", ") + ".");
         else toast("Resultado Final emitido e congelado.");
+        /* 16/10: a ficha (jornada, etapa, botao principal) e o Dashboard veem a emissao sem F5 */
+        try { if (window.JornadaPaciente && window.JornadaPaciente.recarregar) window.JornadaPaciente.recarregar(); } catch (e) { /* nada */ }
         return res && res.data;
       });
     });

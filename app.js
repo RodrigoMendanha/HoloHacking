@@ -181,7 +181,24 @@
       b.textContent = opts.botaoConfirmar;
       b.id = "modal-confirmar-ok";
       if(opts.desabilitado) b.disabled = true;
-      b.addEventListener("click", () => fecharModalConfirmar("confirmar"));
+      /* 16/10: opts.validar() -> null (pode fechar) ou { msg, foco } — o erro aparece DENTRO da janela, que continua
+         aberta, com os campos preenchidos e o foco no campo com problema */
+      b.addEventListener("click", () => {
+        if (typeof opts.validar === "function") {
+          let err = null;
+          try { err = opts.validar(); } catch (x) { err = null; }
+          if (err) {
+            const corpo = $("#modal-confirmar-corpo");
+            let caixaErro = corpo.querySelector(".modal-erro");
+            if (!caixaErro) { caixaErro = document.createElement("p"); caixaErro.className = "modal-erro perf-aviso"; caixaErro.setAttribute("role", "alert"); corpo.appendChild(caixaErro); }
+            caixaErro.textContent = err.msg || String(err);
+            const f = err.foco ? document.getElementById(err.foco) : null;
+            if (f) { f.setAttribute("aria-invalid", "true"); f.focus(); }
+            return;
+          }
+        }
+        fecharModalConfirmar("confirmar");
+      });
       rodape.appendChild(b);
     }
     modal.classList.remove("hidden");
@@ -3122,7 +3139,12 @@
         + (dom ? '<ul>' + dom + '</ul>' : (typeof s.nota === "number" && s.nota >= 10 ? '<p class="res-linha">Sem carga nesta aplicação: nenhum item pontuou; aparece aqui só pela ordem oficial de desempate.</p>' : '')) + '</div>';
     }).join("");
 
-    const interp = window.interpretacaoDe ? window.interpretacaoDe(quando) : null;
+    const interp0 = window.interpretacaoDe ? window.interpretacaoDe(quando) : null;
+    /* 16/10 (estabilizacao): o texto digitado e ainda nao salvo sobrevive ao redesenho do quadro (recalcular, salvar) */
+    const campoAntes = document.getElementById("res-interp-texto");
+    const pidI = (window.pacienteAtivoId && window.pacienteAtivoId()) || "";
+    const rascunhoI = campoAntes && campoAntes.dataset.quando === quando && campoAntes.dataset.pid === pidI && campoAntes.value.trim() !== ((interp0 && interp0.texto) || "").trim() ? campoAntes.value : null;
+    const interp = rascunhoI !== null ? { texto: rascunhoI } : interp0;
     caixa.innerHTML =
       '<span class="eyebrow">Resultado desta aplicação</span>'
       + '<p class="res-meta">' + "Aplicação de " + esc(dataTxt) + " · "
@@ -3141,8 +3163,8 @@
          proximos-passos.js a partir dos MESMOS dois sistemas e do catalogo aprovado do servidor. */
       + '<div id="holo-proximos-passos" class="res-passos"></div>'
       + '<div class="res-interp"><label for="res-interp-texto" class="res-tit">Sua interpretação</label>'
-      + '<p class="res-linha">A leitura clínica desta aplicação é sua. Ela fica guardada junto do HOLOSCAN e vai para o relatório.</p>'
-      + '<textarea id="res-interp-texto" rows="4" placeholder="O que este mapa mostra para você, o que investigar, o que conversar com a pessoa…">' + esc(interp && interp.texto || "") + '</textarea>'
+      + '<p class="res-linha">A leitura clínica desta aplicação é sua. Ela é salva junto com o HOLOSCAN (ou pelo botão abaixo).</p>'
+      + '<textarea id="res-interp-texto" data-quando="' + esc(quando) + '" data-pid="' + esc(pidI) + '" rows="4" placeholder="O que este mapa mostra para você, o que investigar, o que conversar com a pessoa…">' + esc(interp && interp.texto || "") + '</textarea>'
       + '<button type="button" class="btn-verde" id="res-interp-salvar">Salvar interpretação</button>'
       + '<span class="res-interp-estado" id="res-interp-estado"></span></div>';
     caixa.classList.remove("hidden");
@@ -3154,19 +3176,32 @@
       else levarPara("aba:conduta", estado.ativo);
     }));
     const bSalvar = $("#res-interp-salvar");
-    bSalvar.addEventListener("click", async () => {
-      const txt = $("#res-interp-texto").value.trim();
+    const campoI = $("#res-interp-texto");
+    /* 16/10: texto digitado e nao salvo = alteracao pendente (o aviso de "Alteracoes nao salvas" passa a valer aqui) */
+    const salvarInterp = async (silencioso) => {
+      const txt = campoI.value.trim();
       const est = $("#res-interp-estado");
-      if(!txt){ toast("Escreva a interpretação antes de salvar."); return; }
+      if(!txt){ if(!silencioso) toast("Escreva a interpretação antes de salvar."); return false; }
       const g = window.guardarInterpretacao ? window.guardarInterpretacao(txt, quando) : false;
-      if(!g){ toast("Não há aplicação guardada onde prender a interpretação."); return; }
+      if(!g){ if(!silencioso) toast("Não há aplicação guardada onde prender a interpretação."); return false; }
       const destino = await g.remoto;
       const msg = destino === "sincronizado" ? "Interpretação salva no servidor."
-        : destino === "pendente" ? "Interpretação guardada neste aparelho; ela vai para o servidor junto com o HOLOSCAN quando você salvá-lo."
+        : destino === "pendente" ? "Interpretação guardada; ela vai para o servidor junto com o HOLOSCAN quando você salvá-lo."
         : destino === "local" ? "Interpretação guardada neste aparelho."
         : MSG_NAO_SINCRONIZADO;
-      est.textContent = msg; toast(msg);
+      if (destino !== "falhou") window.limpaSuja("interpretacao");
+      if (est) est.textContent = msg;
+      if(!silencioso) toast(msg);
+      return destino !== "falhou";
+    };
+    if (window.registrarSujeira) window.registrarSujeira("interpretacao", { salvar: () => salvarInterp(true), descartar: () => {} });
+    if (rascunhoI !== null) window.marcaSuja("interpretacao"); else window.limpaSuja("interpretacao");
+    campoI.addEventListener("input", () => {
+      const salvo = ((window.interpretacaoDe && window.interpretacaoDe(quando)) || {}).texto || "";
+      if (campoI.value.trim() !== salvo.trim()) window.marcaSuja("interpretacao"); else window.limpaSuja("interpretacao");
+      const est = $("#res-interp-estado"); if (est && campoI.value.trim() !== salvo.trim()) est.textContent = "Não salvo ainda.";
     });
+    bSalvar.addEventListener("click", () => salvarInterp(false));
   }
   window.desenharResumoHoloscan = desenharResumo;
 
@@ -4123,6 +4158,13 @@
         return;
       }
 
+      /* 16/10 (estabilizacao): "Salvar HOLOSCAN" leva junto o que esta escrito em "Sua interpretacao", mesmo sem
+         clicar antes em "Salvar interpretacao" — nada se perde em silencio */
+      const campoInterp = document.getElementById("res-interp-texto");
+      if (campoInterp && campoInterp.value.trim() && window.guardarInterpretacao) {
+        const jaI = window.interpretacaoDe ? window.interpretacaoDe(hoje, p.id) : null;
+        if (!jaI || (jaI.texto || "").trim() !== campoInterp.value.trim()) window.guardarInterpretacao(campoInterp.value.trim(), hoje);
+      }
       var interp = window.interpretacaoDe ? window.interpretacaoDe(hoje, p.id) : null;
       /* tela e dado salvo: o MESMO objeto. As respostas sao as do calculo (snapshot), nao o que estiver no navegador agora. */
       var payload = O.payload(r, {
@@ -4191,6 +4233,7 @@
           alvoLocal._supa_encounter_id = atendimento.id;   // 12/10 (bug 5): Resultado HOLOS e Evolucao enxergam o atendimento
           // a interpretacao do dia foi junto no payload: nao esta mais pendente
           if (alvoLocal.interpretacao) delete alvoLocal.interpretacao.pendente;
+          if (window.limpaSuja) window.limpaSuja("interpretacao");   // 16/10: foi junto com o HOLOSCAN
           localStorage.setItem("holohacking.pontuacao", JSON.stringify(hist));
           if (window.Concorrencia) window.Concorrencia.avancarRevisao("pontuacao");
         }

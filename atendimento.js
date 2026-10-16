@@ -303,6 +303,49 @@
       });
   }
 
+  /* ---------- encerrar (16/10, estabilizacao) ---------------------------------
+     "aberto" -> "concluido", so por gesto explicito. Nada e apagado: Resultado, ferramentas e HOLOSCAN continuam
+     ligados ao atendimento. Atendimentos antigos (status "aberto" ou vazio) NAO sao convertidos. O contexto ativo
+     e solto (o proximo registro pede outro atendimento — o retorno). */
+  function encerrado(e) { return !!(e && e.status === "concluido"); }
+  function encerrar(id) {
+    var e = porId(id);
+    if (!e) return Promise.resolve({ ok: false, motivo: "nao_encontrado" });
+    if (encerrado(e)) return Promise.resolve({ ok: true, jaEncerrado: true });
+    return atualizar(id, { status: "concluido" }).then(function (r) {
+      if (r && r.ok && atual && atual.id === id) limpar();
+      return r;
+    });
+  }
+  function confirmarEncerrar(id) {
+    var e = porId(id); if (!e) return Promise.resolve(null);
+    var seguir = function () {
+      return encerrar(id).then(function (r) {
+        if (r && r.ok) { if (window.avisar) window.avisar("Atendimento encerrado. Tudo o que foi registrado nele continua na ficha."); }
+        else if (window.avisar) window.avisar(r && r.conflito ? "O atendimento mudou em outra aba. Recarregue e tente de novo." : "Não foi possível encerrar agora. Nada foi alterado; tente de novo.");
+        try { if (window.JornadaPaciente && window.JornadaPaciente.recarregar) window.JornadaPaciente.recarregar(); } catch (x) { /* nada */ }
+        try { if (window.redesenharFicha) window.redesenharFicha(); } catch (x) { /* nada */ }
+        return r;
+      });
+    };
+    if (!window.abrirModalConfirmar) return seguir();
+    return window.abrirModalConfirmar({
+      titulo: "Encerrar atendimento",
+      corpo: "<p>Encerrar o atendimento de <b>" + escapar(rotuloQuando(e)) + "</b>?</p>" +
+        "<p>O HOLOSCAN, as ferramentas e o Resultado continuam guardados na ficha. Para um novo encontro, marque o retorno e inicie outro atendimento.</p>",
+      botaoConfirmar: "Encerrar atendimento", classeConfirmar: "btn-verde"
+    }).then(function (r) { return r === "confirmar" ? seguir() : null; });
+  }
+  /* estado de uma consulta da agenda, derivado do atendimento que nasceu dela (sem coluna nova no banco) */
+  function estadoDaConsulta(c) {
+    if (!c) return null;
+    if (c.rescheduled_to_id) return { chave: "reagendada", rotulo: "Reagendada" };
+    if (c.cancelled_at) return { chave: "cancelada", rotulo: "Cancelada" };
+    var e = c.id ? porAgendamento(c.id) : null;
+    if (e) return encerrado(e) ? { chave: "realizada", rotulo: "Realizada", atendimento: e } : { chave: "em_atendimento", rotulo: "Em atendimento", atendimento: e };
+    return { chave: "agendada", rotulo: "Agendada" };
+  }
+
   /* ---------- a janela "Iniciar / Novo atendimento" ------------------------
      Um so dialogo para os dois caminhos. Mostra o paciente, o agendamento de
      origem (se houver) e pede a data/hora clinica efetiva — pre-preenchida
@@ -332,8 +375,20 @@
     var data = c && c.data ? c.data : agora.data;
     var hora = c && c.hora ? String(c.hora).slice(0, 5) : agora.hora;
     var instC = c ? paraInstante(data, hora, tz) : null;
-    if (c && (!instC || new Date(instC).getTime() > Date.now())) { data = agora.data; hora = agora.hora; }
     var noFuturo = function (inst) { return !!inst && new Date(inst).getTime() > Date.now() + 60000; };
+    /* 16/10 (estabilizacao): consulta ainda no futuro -> pergunta antes; nunca troca a data em silencio */
+    if (c && !opcoes._futuraConfirmada && instC && noFuturo(instC) && window.abrirModalConfirmar) {
+      return window.abrirModalConfirmar({
+        titulo: "Consulta no futuro",
+        corpo: '<p id="at-futura-aviso">Esta consulta está marcada para <b>' + escapar((window.dataBR ? window.dataBR(c.data) : c.data).slice(0, 5) + " às " + String(c.hora).slice(0, 5)) +
+          "</b>. Deseja iniciar o atendimento agora?</p><p class=\"perf-ajuda\">O atendimento é registrado com a data e a hora de agora; a consulta fica ligada a ele.</p>",
+        botaoConfirmar: "Iniciar agora", classeConfirmar: "btn-verde"
+      }).then(function (r) {
+        if (r !== "confirmar") return null;
+        return abrirDialogo(Object.assign({}, opcoes, { _futuraConfirmada: true }));
+      });
+    }
+    if (c && (!instC || new Date(instC).getTime() > Date.now())) { data = agora.data; hora = agora.hora; }
 
     if (!window.abrirModalConfirmar) {
       if (noFuturo(paraInstante(data, hora, tz))) return Promise.resolve(null);
@@ -357,7 +412,15 @@
       titulo: c ? "Iniciar atendimento" : "Novo atendimento",
       corpo: corpo,
       botaoConfirmar: c ? "Iniciar atendimento" : "Criar atendimento",
-      classeConfirmar: "btn-verde"
+      classeConfirmar: "btn-verde",
+      /* 16/10: data invalida ou no futuro -> a janela continua aberta, com os campos e o foco no campo */
+      validar: function () {
+        var d = document.getElementById("at-data"), h = document.getElementById("at-hora");
+        var q = paraInstante(d && d.value ? d.value : data, h && h.value ? h.value : hora, tz);
+        if (!q) return { msg: "Informe a data e a hora do atendimento.", foco: d && !d.value ? "at-data" : "at-hora" };
+        if (noFuturo(q)) return { msg: "O atendimento não pode ter data e hora no futuro: registre quando ele acontecer. Nada foi gravado.", foco: d && d.value > agora.data ? "at-data" : "at-hora" };
+        return null;
+      }
     }).then(function (resp) {
       if (resp !== "confirmar") return null;
       var d = document.getElementById("at-data"), h = document.getElementById("at-hora");
@@ -396,13 +459,15 @@
     if (e) {
       html += '<b class="fic-at-valor" id="fic-at-valor">' + escapar(rotuloQuando(e)) +
         (e.type ? " &middot; " + escapar(e.type) : "") +
-        (e.consultation_id ? ' <i class="fic-at-origem">com agendamento</i>' : ' <i class="fic-at-origem">sem agendamento</i>') + "</b>";
+        (e.consultation_id ? ' <i class="fic-at-origem">com agendamento</i>' : ' <i class="fic-at-origem">sem agendamento</i>') +
+        (encerrado(e) ? ' <i class="fic-at-origem fic-at-encerrado">encerrado</i>' : "") + "</b>";
     } else {
       html += '<b class="fic-at-valor vazio" id="fic-at-valor">Nenhum atendimento selecionado</b>';
     }
     html += '<span class="fic-at-acoes">' +
       '<button type="button" class="perf-botao" data-at-acao="selecionar" aria-label="Selecionar atendimento">Selecionar</button>' +
       (arquivado ? "" : '<button type="button" class="btn-verde" data-at-acao="novo" aria-label="Iniciar novo atendimento">Novo atendimento</button>') +
+      (e && !encerrado(e) && !arquivado ? '<button type="button" class="perf-botao" data-at-acao="encerrar" id="btn-encerrar-atendimento">Encerrar atendimento</button>' : "") +
       (e ? '<button type="button" class="btn-fantasma" data-at-acao="limpar">Soltar</button>' : "") +
       "</span>";
     alvo.innerHTML = html;
@@ -417,6 +482,7 @@
       var acao = b.dataset.atAcao;
       if (acao === "novo") { abrirDialogo({}); return; }
       if (acao === "limpar") { limpar(); return; }
+      if (acao === "encerrar") { if (atual) confirmarEncerrar(atual.id); return; }
       if (acao === "selecionar") {
         var aba = document.querySelector('[data-aba="consultas"]');
         if (aba) { aba.click(); aba.scrollIntoView({ block: "center" }); }
@@ -464,6 +530,11 @@
     selecionarPorId: selecionarPorId,
     limpar: limpar,
     atualizar: atualizar,
+    /** 16/10: encerrar (aberto -> concluido) por gesto explicito; nada e apagado */
+    encerrar: encerrar,
+    confirmarEncerrar: confirmarEncerrar,
+    encerrado: encerrado,
+    estadoDaConsulta: estadoDaConsulta,
     /** 14/10: a medida mais recente do paciente (peso e altura de atendimentos; cada um pode vir de um atendimento) */
     medidas: function (pid) {
       var l = cache.filter(function (e) { return e.patient_id === pid; }).sort(function (a, b) { return String(b.occurred_at).localeCompare(String(a.occurred_at)); });

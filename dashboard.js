@@ -129,7 +129,9 @@
     if (!temSupa()) { jornada = { convites: [], resultados: [], emissoes: [], carregadoEm: 0, carregando: false }; return; }
     /* releitura a cada abertura do Dashboard (no maximo uma a cada 5 s): convite enviado, Resultado salvo ou
        emitido em outra tela aparecem ao voltar, sem dado velho */
-    if (jornada.carregando || (!forcar && Date.now() - jornada.carregadoEm < 5000)) return;
+    /* 16/10: um pedido forcado durante uma leitura em andamento nao se perde: rele de novo quando ela terminar */
+    if (jornada.carregando) { if (forcar) releituraPendente = true; return; }
+    if (!forcar && Date.now() - jornada.carregadoEm < 5000) return;
     jornada.carregando = true;
     var ler = function (t, cols) {
       return Promise.resolve(sb().from(t).select(cols)).then(function (r) { return r && !r.error && Array.isArray(r.data) ? r.data : []; }, function () { return []; });
@@ -152,8 +154,10 @@
       var sec = document.getElementById("secao-dashboard");
       if (sec && sec.classList.contains("ativa")) desenhar();
       ouvintes.forEach(function (fn) { try { fn(); } catch (e) { /* nada */ } });
+      if (releituraPendente) { releituraPendente = false; carregarJornada(true); }
     });
   }
+  var releituraPendente = false;
 
   function diaLocal(iso) {
     if (!iso) return null;
@@ -224,8 +228,14 @@
     var consultas = futuras.filter(function (l) { return l.data === hj; });
     /* 12/10 (bug 10e): atendimento feito hoje sem agendamento tambem conta no dia */
     var AT = window.AtendimentoAtual;
-    var semAgenda = AT && AT.todos ? AT.todos().filter(function (e) { return !e.consultation_id && diaLocal(e.occurred_at) === hj; }) : [];
-    return { consultas: consultas, semAgenda: semAgenda, total: consultas.length + semAgenda.length };
+    /* 16/10 (estabilizacao): TODO atendimento iniciado hoje conta, venha de onde vier. Os que nasceram de uma consulta
+       de hoje ja estao em "consultas" (nao conta duas vezes); os demais — avulsos ou iniciados a partir de consulta de
+       outro dia — entram aqui, cada um com a sua origem. */
+    var idsHoje = consultas.map(function (l) { return l.id; });
+    var semAgenda = AT && AT.todos ? AT.todos().filter(function (e) { return diaLocal(e.occurred_at) === hj && !(e.consultation_id && idsHoje.indexOf(e.consultation_id) >= 0); }) : [];
+    var avulsos = semAgenda.filter(function (e) { return !e.consultation_id; }).length;
+    var iniciados = AT && AT.todos ? AT.todos().filter(function (e) { return diaLocal(e.occurred_at) === hj; }).length : 0;
+    return { consultas: consultas, semAgenda: semAgenda, avulsos: avulsos, outroDia: semAgenda.length - avulsos, iniciados: iniciados, total: consultas.length + semAgenda.length };
   }
 
   /* ---------- icones (traco fino, cor do texto) ---------------------------- */
@@ -284,7 +294,8 @@
       "</div>" +
       '<div class="dash-numeros dash-resumo">' +
         tile("pessoa", nPac, "Pacientes ativos", "pacientes") +
-        tile("documento", h.total, "Atendimentos hoje", "consultas", h.semAgenda.length ? h.consultas.length + " agendado" + (h.consultas.length === 1 ? "" : "s") + " · " + h.semAgenda.length + " sem agendamento" : "") +
+        tile("documento", h.total, "Atendimentos hoje", "consultas", h.semAgenda.length ? [h.consultas.length + " agendado" + (h.consultas.length === 1 ? "" : "s"),
+          h.avulsos ? h.avulsos + " sem agendamento" : "", h.outroDia ? h.outroDia + " de consulta de outro dia" : ""].filter(Boolean).join(" · ") : "") +
         tile("calendario", proxLabel, "Próxima consulta", "agenda") +
         tile("pessoas", nAcomp, "Em acompanhamento", "acompanhamento") +
       "</div>" +
@@ -297,6 +308,8 @@
       '<span class="dash-quem">' +
         "<b>" + escapar(l.paciente.nome) + "</b>" +
         '<span class="dash-porque">' + escapar(quando) + (l.tipo ? " &middot; " + escapar(l.tipo) : "") +
+          (function () { var AT = window.AtendimentoAtual, e = AT && AT.estadoDaConsulta ? AT.estadoDaConsulta({ id: l.id }) : null;
+            return e && (e.chave === "em_atendimento" || e.chave === "realizada") ? ' &middot; <b class="cons-estado cons-' + e.chave + '">' + escapar(e.rotulo) + "</b>" : ""; })() +
           etiquetaArquivado(l.paciente) + "</span>" +
       "</span>" +
       '<button type="button" class="dash-ir" data-paciente="' + escapar(l.paciente.id) +
@@ -324,7 +337,8 @@
         h.semAgenda.map(function (e) {
           var p = pacientePorId(e.patient_id); if (!p) return "";
           return '<li class="dash-pendente"><span class="pac-avatar">' + escapar(inicial(p.nome)) + "</span>" +
-            '<span class="dash-quem"><b>' + escapar(p.nome) + '</b><span class="dash-porque">' + escapar(AT && AT.rotuloQuando ? AT.rotuloQuando(e) : "hoje") + " &middot; atendimento sem agendamento" + etiquetaArquivado(p) + "</span></span>" +
+            '<span class="dash-quem"><b>' + escapar(p.nome) + '</b><span class="dash-porque">' + escapar(AT && AT.rotuloQuando ? AT.rotuloQuando(e) : "hoje") +
+              (e.consultation_id ? " &middot; atendimento iniciado hoje (consulta de outro dia)" : " &middot; atendimento sem agendamento") + etiquetaArquivado(p) + "</span></span>" +
             /* 14/10 (auditoria Cowork): "Abrir atendimento" abre a ficha COM este atendimento selecionado */
             '<button type="button" class="dash-ir" data-paciente="' + escapar(p.id) + '" data-atendimento="' + escapar(e.id) + '" data-destino="ficha">Abrir atendimento <span aria-hidden="true">&rarr;</span></button></li>';
         }).join("") + "</ul>";

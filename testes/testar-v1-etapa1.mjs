@@ -126,6 +126,10 @@ const abriu = await A.evaluate(async (cid) => {
 ok(abriu.iniciar && !abriu.abrirVelho && encounters().length === 0,
    '1: o agendamento abre com "Iniciar atendimento"; clicar no agendamento nao criou nada');
 await A.evaluate(async (cid) => { document.querySelector('[data-iniciar-atendimento="' + cid + '"]').click(); await new Promise(r => setTimeout(r, 300)); }, cHoje);
+/* 16/10 (estabilizacao): a consulta (23:55) ainda esta no futuro -> primeiro "Consulta no futuro / Iniciar agora" */
+const futura = await A.evaluate(() => document.getElementById('modal-confirmar-titulo').textContent);
+ok(futura === 'Consulta no futuro', '1: consulta ainda no futuro pede confirmacao antes de abrir o dialogo (' + futura + ')');
+if (futura === 'Consulta no futuro') await A.evaluate(async () => { document.getElementById('modal-confirmar-ok').click(); await new Promise(r => setTimeout(r, 300)); });
 const dialogo = await A.evaluate(() => ({
   aberto: !document.getElementById('modal-confirmar-acao').classList.contains('hidden'),
   titulo: document.getElementById('modal-confirmar-titulo').textContent,
