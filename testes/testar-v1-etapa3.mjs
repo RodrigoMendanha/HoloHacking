@@ -164,19 +164,23 @@ titulo('EVOLUCAO: ANAMNESE, MEDIDAS, HOLOSCAN, EXAMES, FERRAMENTAS, ACORDOS');
 const an = await texto('#aba-evolucao [data-evo-secao="anamnese"]');
 ok(/Horas.*6h.*Novo/.test(an.replace(/\s+/g, ' ')) && /Amendoim.*Negado explicitamente/.test(an.replace(/\s+/g, ' ')) && /Cansaço.*Anterior não revisto/.test(an.replace(/\s+/g, ' ')),
    'anamnese: novo (Horas), negado explicitamente (Amendoim), anterior nao revisto (Cansaço)');
-ok(/rev\. 2/.test(an) && !/melhorou|piorou|\+\d+ ?%|-\d+ ?%/i.test(an) && /Peso.*Alterado/.test(an.replace(/\s+/g, ' ')), 'a anamnese de A e a revisao vigente (rev. 2) e nada e "melhor" ou "pior"');
+/* 16/10 (estabilizacao): sem "rev. N" na tela clinica (o dado continua o da revisao vigente) */
+ok(!/rev\. \d/.test(an) && /registrado em/.test(an) && !/melhorou|piorou|\+\d+ ?%|-\d+ ?%/i.test(an) && /Peso.*Alterado/.test(an.replace(/\s+/g, ' ')), 'a anamnese de A e a revisao vigente (sem "rev. N" na tela) e nada e "melhor" ou "pior"');
 med = await texto('#aba-evolucao [data-evo-secao="medidas"]');
-ok(/Peso.*80 kg.*78 kg.*delta -2 kg/.test(med.replace(/\s+/g, ' ')), 'medida compativel: 80 kg → 78 kg, delta -2 kg — sem "melhora"');
+ok(/Peso.*80 kg.*78 kg.*-2 kg/.test(med.replace(/\s+/g, ' ')) && !/delta/i.test(med), 'medida compativel: 80 kg → 78 kg, diferença -2 kg (sem a palavra "delta") — sem "melhora"');
 ok(/Altura.*170 cm.*1\.7 m.*unidades diferentes/.test(med.replace(/\s+/g, ' ')) && !/melhorou|piorou/i.test(med), 'unidades diferentes (cm × m): sem delta, sem conversao');
 ok(!/70 kg/.test(med), 'o rascunho de anamnese (70 kg) NAO entra na Evolucao');
 const holoSec = await texto('#aba-evolucao [data-evo-secao="holoscan"]');
-ok(/01\/05\/2026/.test(holoSec) && /01\/06\/2026/.test(holoSec) && /60 de 60 respondidas|70 de 60 respondidas/.test(holoSec) && !/delta [+-]?\d/i.test(holoSec) && !/Índice \d/.test(holoSec) && /não foi homologada/.test(holoSec),
-   'HOLOSCAN: datas, versao e cobertura lado a lado; nenhum delta nem Indice; selo de nao homologado');
+/* 16/10 (estabilizacao): ANTES x AGORA — data, Indice, sistemas e Corpo/Mente/Espirito lado a lado, SEM diferenca
+   calculada, sem id tecnico, sem "versão N" e sem jargao de homologacao */
+ok(/01\/05\/2026/.test(holoSec) && /01\/06\/2026/.test(holoSec) && /Índice HOLOS/.test(holoSec) && /Corpo/.test(holoSec) && /Espírito/.test(holoSec) &&
+   !/delta|homolog|aplicação [0-9a-f]{6}|versão \d|[+-]\d+,\d/i.test(holoSec) && /não calcula a diferença/.test(holoSec),
+   'HOLOSCAN: antes x agora lado a lado (datas, Índice, Tríade), nenhuma diferença calculada, sem id/jargão');
 const evoTudo = await texto('#aba-evolucao');
 ok(!(await A.evaluate(() => !!document.querySelector('#aba-evolucao [data-evo-secao="exames"], #aba-evolucao [data-evo-fonte="exames"]'))) && !/Glicose|Hemoglobina|mg\/dL|mmol\/L/.test(evoTudo),
    '09/10: a Evolucao nao compara exames — nenhuma secao, fonte ou valor laboratorial (as coletas historicas ficam so no banco)');
 const fe = await texto('#aba-evolucao [data-evo-secao="ferramentas"]');
-ok(/OQ³[\s\S]*versões diferentes/.test(fe) && /Roda[\s\S]*media: 5 → 6 \(delta \+1\)/.test(fe), 'ferramenta com versao diferente so lado a lado; mesma ferramenta/versao com delta por chave numerica');
+ok(/OQ³[\s\S]*formatos diferentes/.test(fe) && /Roda[\s\S]*media: 5 → 6 \(\+1\)/.test(fe) && !/delta/i.test(fe), 'ferramenta com formato diferente so lado a lado; mesma ferramenta/escala com diferença por chave numerica (sem "delta")');
 const cd = await texto('#aba-evolucao [data-evo-secao="conduta"]');
 ok(/Jantar cedo.*Acordado.*Jantar cedo.*Encerrado.*Encerrado/.test(cd.replace(/\s+/g, ' ')) && /Alongar à noite.*Novo/.test(cd.replace(/\s+/g, ' ')) && /Caminhar 3x.*Sem registro na conduta atual/.test(cd.replace(/\s+/g, ' ')),
    'acordos: anterior → atual (Encerrado), novo, sem registro na conduta atual');
@@ -187,7 +191,7 @@ const tlEvo = await A.evaluate(() => [...document.querySelectorAll('#aba-evoluca
 ok(tlEvo.some(t => /revisao/.test(t) && /Mapeamento revisado \(rev\. 2\)/.test(t)) && tlEvo.some(t => /registrado em/.test(t)), 'timeline do intervalo: revisao marcada como revisao, com data de registro');
 ok(!tlEvo.some(t => /consulta/.test(t.split('|')[0])), 'a timeline da Evolucao nao mistura agendamentos');
 const resumo = await texto('#aba-evolucao .evo-resumo');
-ok(/1 medidas com delta comparável/.test(resumo) && !/exames/.test(resumo), 'resumo conta so o comparavel (sem exames): ' + resumo);
+ok(/1 medidas registradas nos dois pontos/.test(resumo) && !/exames|delta/.test(resumo), 'resumo conta so o comparavel (sem exames, sem "delta"): ' + resumo);
 await A.evaluate(async () => { document.querySelector('[data-evo-fonte="holoscan"]').click(); await new Promise(r => setTimeout(r, 250)); });
 ok(!(await A.evaluate(() => !!document.querySelector('#aba-evolucao [data-evo-secao="holoscan"]'))), 'desmarcar a fonte HOLOSCAN esconde a secao');
 await A.evaluate(async () => { document.querySelector('[data-evo-abrir="medidas"]').click(); await new Promise(r => setTimeout(r, 250)); });

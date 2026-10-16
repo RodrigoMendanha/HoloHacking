@@ -71,6 +71,26 @@
     (st.pb.ferramentasRelato || []).forEach(function (x, i) { porTerr[x.lista] = (porTerr[x.lista] || 0) + 1; st.relSel["ferr:" + i] = porTerr[x.lista] <= 2; });
     estrategiasAnteriores().forEach(function (e) { st.acomp[e.id] = { decisao: "", aplicou: "", nota: "", acao: e.acao || "" }; });
     st.manterFoco = retorno() && !!focoAnterior();
+    /* 16/10 (estabilizacao): nova versao de um Resultado do Playbook — foco, estrategias e decisoes da versao de origem
+       ja vem marcados (a nutricionista ajusta o que quiser). Nada e gravado ate "Gerar". */
+    var base = st.pb.base && st.pb.base.direcao;
+    if (base) {
+      var P = PB();
+      var fb = base.foco_atual && base.foco_atual.id ? P.origemPlaybook(base.foco_atual.id) : null;
+      var ehFocoAnterior = base.foco_atual && base.foco_atual.origem === "resultado_anterior";
+      if (retorno() && focoAnterior()) st.manterFoco = !!ehFocoAnterior;
+      if (fb && !ehFocoAnterior && P.porId(fb)) escolherFoco(fb);
+      else if (!ehFocoAnterior && base.foco_atual && base.foco_atual.texto && !fb) { st.foco = "LIVRE"; st.focoLivre = base.foco_atual.texto; }
+      var vistos = {};
+      st.est = (base.estrategias || []).filter(function (x) { return x && x.origem !== "resultado_anterior"; }).map(function (x) {
+        var id = P.origemPlaybook(x.id); if (!id || vistos[id] || !P.porId(id)) return null; vistos[id] = 1;
+        return { id: id, acao: x.acao || "", contexto: x.contexto || "", observar: x.observar || "" };
+      }).filter(Boolean);
+      (base.acompanhamento_estrategias || []).forEach(function (a) {
+        var eid = a && a.estrategia && a.estrategia.estrategia_id;
+        if (eid && st.acomp[eid]) st.acomp[eid].decisao = a.decisao || "";
+      });
+    }
   }
   function escolherFoco(id) {
     st.foco = id;

@@ -157,7 +157,11 @@ const html1b = await A.evaluate(() => document.getElementById('rp-doc').outerHTM
 await A.evaluate(async () => { document.querySelector('[data-rp-acao="pdf"]').click(); await new Promise(r => setTimeout(r, 500)); });
 const pdfs = await A.evaluate(() => window.__pdfs.slice());
 ok(html1b === html1 && pdfs.length === 2 && pdfs[0] === pdfs[1] && pdfs[0] === html1, 'Perfil e Conduta mudaram: a emissão antiga e o PDF dela continuam idênticos (mesmo HTML)');
-await A.evaluate(async () => { document.querySelector('[data-rp-acao="emitir"]').click(); for (let i = 0; i < 50 && !/Depois/.test((document.getElementById('rp-doc') || {}).innerText || ''); i++) await new Promise(r => setTimeout(r, 100)); });
+/* 16/10 (estabilizacao): "Gerar nova emissão" pede confirmação (a anterior continua preservada) */
+const confNova = await A.evaluate(async () => { document.querySelector('[data-rp-acao="emitir"]').click(); await new Promise(r => setTimeout(r, 200));
+  return { t: document.getElementById('modal-confirmar-titulo').textContent, c: document.getElementById('modal-confirmar-corpo').innerText }; });
+ok(confNova.t === 'Gerar nova emissão' && /anterior continua preservada/.test(confNova.c) && srv.linhas('holos_result_emissions').length === 1, 'Gerar nova emissão: confirma antes; nada emitido ainda');
+await A.evaluate(async () => { document.getElementById('modal-confirmar-ok').click(); for (let i = 0; i < 50 && !/Depois/.test((document.getElementById('rp-doc') || {}).innerText || ''); i++) await new Promise(r => setTimeout(r, 100)); });
 const em2 = srv.linhas('holos_result_emissions').find(e => e.emission_number === 2);
 const html2 = await A.evaluate(() => document.getElementById('rp-doc').outerHTML);
 ok(em2 && em2.content_snapshot.profissional.nome === 'Nutri Ficticia Depois' && em2.content_snapshot.conduta.campos.objective === 'Objetivo Depois' && /Nutri Ficticia Depois/.test(html2) && /CRN-9 9999/.test(html2),

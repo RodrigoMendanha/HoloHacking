@@ -184,7 +184,8 @@ await clicar(A, '[data-rh-acao="revisar"]'); await espera(700);
 ok(srv.linhas('holos_results').find(r => r.id === salvo.id).status === 'revisado' && /Revisado em/.test(await texto(A, '#aba-resultado-holos')), 'marcar como revisado');
 await clicar(A, '[data-rh-acao="nova-versao"]'); await espera(300);
 const nv = await A.evaluate(() => ({ aviso: (document.querySelector('.rh-aviso') || {}).textContent || '', n: document.querySelectorAll('[data-rh-ferr]:checked').length }));
-ok(/Nova versão a partir do resultado nº 1/.test(nv.aviso) && nv.n === 4, 'nova versão começa com a seleção da anterior, ainda editável');
+/* 16/10: a numeracao visivel e por paciente (nº 1) e a versao aparece so a partir da 2 */
+ok(/Nova versão a partir do Resultado HOLOS nº 1/.test(nv.aviso) && nv.n === 4, 'nova versão começa com a seleção da anterior, ainda editável');
 await A.evaluate(() => { const t = document.getElementById('rh-leitura_profissional'); t.value = 'leitura da versão 2'; t.dispatchEvent(new Event('input', { bubbles: true })); });
 await clicar(A, '[data-rh-acao="salvar"]'); await confirmarModal(A);
 const v2 = srv.linhas('holos_results').find(r => r.revision_number === 2), v1 = srv.linhas('holos_results').find(r => r.id === salvo.id);
@@ -192,7 +193,7 @@ ok(v2 && v2.supersedes_id === salvo.id && v2.status === 'salvo' && v1.superseded
   'nova versão: revisão 2 ligada à anterior (com o OQ³ de agora); a anterior fica intacta e marcada substituída');
 await clicar(A, '[data-rh-acao="voltar"]'); await espera(200);
 const hist = await A.evaluate(() => [...document.querySelectorAll('.rh-hist-item')].map(li => li.innerText.replace(/\s+/g, ' ')));
-ok(hist.length === 2 && /versão nº 2/.test(hist[0]) && /substituída/.test(hist[1]) && hist.every(h => /HOLOSCAN/.test(h) && /4 ferramentas/.test(h) && /atendimento/.test(h)), 'histórico: duas versões, com data, status, atendimento, HOLOSCAN e nº de ferramentas');
+ok(hist.length === 2 && /nº 1 · versão 2/.test(hist[0]) && /substituída/.test(hist[1]) && hist.every(h => /HOLOSCAN/.test(h) && /4 ferramentas/.test(h) && /atendimento/.test(h)), 'histórico: duas versões, com data, status, atendimento, HOLOSCAN e nº de ferramentas');
 await shot(A, 'rh-historico', '#aba-resultado-holos');
 
 /* ----- 7: outra sessao / outra conta / outro paciente ----- */

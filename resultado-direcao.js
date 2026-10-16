@@ -823,7 +823,10 @@
         '<p class="pf-vazio">Ainda não registrado.</p>');
       html += pfAcompanhamento(dp) + pfDecisoes(dp);
       html += pfBloco("compreendendo", "O que estamos compreendendo", pfCompreendendo(dp));
-      html += pfFoco(dp, "Novo foco desta fase");
+      /* 16/10: "Novo foco" so quando o foco mudou; foco igual ao do encontro anterior = "Foco mantido nesta fase" */
+      var focoAntes = ult && ult.foco && tem(ult.foco.texto) ? String(ult.foco.texto).replace(/\s+/g, " ").trim().toLowerCase() : null;
+      var focoAgora = dp.foco_atual && tem(dp.foco_atual.texto) ? String(dp.foco_atual.texto).replace(/\s+/g, " ").trim().toLowerCase() : null;
+      html += pfFoco(dp, focoAntes && focoAgora && focoAntes === focoAgora ? "Foco mantido nesta fase" : (focoAntes ? "Novo foco desta fase" : "Foco desta fase"));
       html += pfDirecionamentos(dp, "O que vamos trabalhar agora");
       html += pfPlano(dp, "Seu plano até a próxima consulta");
     } else {

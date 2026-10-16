@@ -97,6 +97,8 @@
   /* ---------- fontes (so leitura) ------------------------------------------ */
 
   /** O Resultado HOLOS a apresentar: o mais recente finalizado (salvo/revisado) e nao substituido. */
+  /* 16/10: numeracao visivel por paciente (ResultadoHolos.rotuloNumero); revision_number fica como esta */
+  function numeroRH(r) { var R = window.ResultadoHolos; return R && R.rotuloNumero ? R.rotuloNumero(r) : "nº " + (r.revision_number || 1); }
   function resultadoFinal(pid) {
     var R = window.ResultadoHolos; if (!R) return null;
     var l = R.doPaciente(pid).filter(function (r) { return r.status !== "rascunho" && !r.superseded_at && r.content_snapshot; })
@@ -229,7 +231,7 @@
     var tel = p && numeroWhatsApp(p.telefone);
     if (!em && emissoes.indisponivel) {
       return '<div class="rp-acoes rp-so-tela" id="rp-acoes">' +
-        '<div class="rp-estado"><span class="rh-tag">Resultado HOLOS nº ' + escapar(r.revision_number || 1) + "</span>" +
+        '<div class="rp-estado"><span class="rh-tag">Resultado HOLOS ' + escapar(numeroRH(r)) + "</span>" +
           "<span>Finalizado em " + escapar(dataHora(r.saved_at || r.created_at)) + " &middot; versão para a paciente</span></div>" +
         '<div class="rp-botoes">' +
           '<button type="button" class="btn-verde" data-rp-acao="pdf">Baixar PDF</button>' +
@@ -248,7 +250,7 @@
     }
     if (!em) {
       return '<div class="rp-acoes rp-so-tela" id="rp-acoes">' +
-        '<div class="rp-estado"><span class="rh-tag">Resultado HOLOS nº ' + escapar(r.revision_number || 1) + "</span>" +
+        '<div class="rp-estado"><span class="rh-tag">Resultado HOLOS ' + escapar(numeroRH(r)) + "</span>" +
           '<span class="rp-previa">PRÉVIA — ainda não emitido. Gere o Resultado Final para congelar o documento (Resultado, Conduta, nome, CRN, logo, assinatura e carimbo) e então baixar o PDF ou enviar.</span></div>' +
         '<div class="rp-botoes">' +
           '<button type="button" class="btn-verde" data-rp-acao="emitir">Gerar Resultado Final</button>' +
@@ -264,14 +266,14 @@
     }
     return '<div class="rp-acoes rp-so-tela" id="rp-acoes">' +
       '<div class="rp-estado"><span class="rh-tag">Resultado Final nº ' + escapar(em.emission_number) + "</span>" +
-        "<span>Emitido em " + escapar(dataHora(em.created_at)) + " &middot; Resultado HOLOS nº " + escapar(r.revision_number || 1) + " &middot; conteúdo congelado</span>" +
+        "<span>Emitido em " + escapar(dataHora(em.created_at)) + " &middot; Resultado HOLOS " + escapar(numeroRH(r)) + " &middot; conteúdo congelado</span>" +
         (tel ? "" : '<span class="rp-sem-tel">Sem telefone no cadastro: o WhatsApp abre sem a conversa da paciente.</span>') + "</div>" +
       '<div class="rp-botoes">' +
         '<button type="button" class="btn-verde" data-rp-acao="pdf">Baixar PDF</button>' +
         '<button type="button" class="btn-verde" data-rp-acao="whatsapp">Enviar pelo WhatsApp</button>' +
         '<button type="button" class="btn-fantasma" data-rp-acao="imprimir">Imprimir</button>' +
         '<button type="button" class="btn-fantasma" data-rp-acao="ficha">Abrir na ficha</button>' +
-        '<button type="button" class="btn-borda-ouro" data-rp-acao="emitir">Gerar nova emissão</button>' +
+        '<button type="button" class="btn-borda-ouro" data-rp-acao="emitir" data-rp-nova="1">Gerar nova emissão</button>' +
       "</div>" +
       /* 14/10: o botao do WhatsApp manda o PDF: no celular (e no computador que permite) vai anexado; senao baixa e abre a conversa */
       '<p class="rp-dica-whats">Enviar pelo WhatsApp manda o PDF: no celular ele vai anexado direto (escolha o WhatsApp e a conversa). ' +
@@ -666,10 +668,20 @@
     if (acao === "ver-emissao") { emissaoAberta = b.dataset.rpEm || null; desenhar(); return; }
     if (acao === "emitir") {
       var r0 = resultadoFinal(pid); if (!r0) return;
-      var libera = travar(true);
-      emitir(pid, r0).then(function () { desenhar(); }, function (e) {
-        toast((e && e.hint && MSG_EMISSAO[e.hint]) || "Não foi possível emitir agora: " + ((e && e.message) || "erro"));
-      }).then(libera);
+      var faz = function () {
+        var libera = travar(true);
+        emitir(pid, r0).then(function () { desenhar(); }, function (e) {
+          toast((e && e.hint && MSG_EMISSAO[e.hint]) || "Não foi possível emitir agora: " + ((e && e.message) || "erro"));
+        }).then(libera);
+      };
+      /* 16/10 (estabilizacao): uma NOVA emissao (ja existe outra) pede confirmacao; a anterior continua preservada */
+      if (b.dataset.rpNova === "1" && window.abrirModalConfirmar) {
+        window.abrirModalConfirmar({ titulo: "Gerar nova emissão",
+          corpo: "<p>Gerar uma nova emissão deste Resultado?</p><p>A emissão anterior continua preservada, exatamente como foi emitida.</p>",
+          botaoConfirmar: "Gerar nova emissão", classeConfirmar: "btn-verde" }).then(function (r) { if (r === "confirmar") faz(); });
+        return;
+      }
+      faz();
       return;
     }
     if (acao === "imprimir") { imprimir(); return; }

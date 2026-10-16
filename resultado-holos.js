@@ -113,6 +113,26 @@
       }, function (err) { cache = { pid: pid, linhas: [], erro: err, carregado: true }; return []; });
   }
   function doPaciente(pid) { return cache.pid === pid ? cache.linhas.slice() : []; }
+  /* 16/10 (estabilizacao): numeracao VISIVEL por paciente — nº 1 na primeira consulta, nº 2 no primeiro retorno...
+     Conta os atendimentos que ja tem Resultado finalizado, na ordem em que o primeiro Resultado de cada um foi salvo.
+     So apresentacao: revision_number (versao dentro do atendimento), ids e historico nao mudam. */
+  function numeroVisivel(r) {
+    if (!r) return null;
+    var l = cache.linhas.filter(function (x) { return x.patient_id === r.patient_id && x.status !== "rascunho"; });
+    if (r.status === "rascunho" || !l.length) {
+      var feitos = {}; l.forEach(function (x) { if (x.encounter_id) feitos[x.encounter_id] = 1; });
+      return Object.keys(feitos).length + (r.encounter_id && feitos[r.encounter_id] ? 0 : 1);
+    }
+    var primeiro = {};
+    l.forEach(function (x) { var k = x.encounter_id || ("sem:" + x.id), t = String(x.saved_at || x.created_at || ""); if (!(k in primeiro) || t < primeiro[k]) primeiro[k] = t; });
+    var ordem = Object.keys(primeiro).sort(function (a, b) { return primeiro[a].localeCompare(primeiro[b]); });
+    var i = ordem.indexOf(r.encounter_id || ("sem:" + r.id));
+    return i >= 0 ? i + 1 : (r.revision_number || 1);
+  }
+  function rotuloNumero(r) {
+    var n = numeroVisivel(r);
+    return "nº " + (n || 1) + (r && r.revision_number > 1 ? " · versão " + r.revision_number : "");
+  }
   function porId(id) { return cache.linhas.filter(function (r) { return r.id === id; })[0] || null; }
   /* 16/10 (estabilizacao): depois de salvar, revisar, descartar ou gerar um Resultado, a ficha (jornada, etapa atual,
      botao principal) e o Dashboard se atualizam sozinhos, sem F5. As RPCs de escrita marcam "gravou"; a proxima
@@ -169,7 +189,8 @@
       f.id = base.status === "rascunho" ? base.id : null;
       f.expected_updated_at = base.status === "rascunho" ? base.updated_at : null;
       f.supersedes_id = base.status === "rascunho" ? (base.supersedes_id || null) : base.id;
-      f.encounter_id = base.status === "rascunho" ? base.encounter_id : (at || base.encounter_id);
+      /* 16/10: a nova versao fica no atendimento do Resultado de origem (antes ia para o atendimento ativo, misturando contextos) */
+      f.encounter_id = base.encounter_id || at;
       f.holoscan_application_id = s.holoscan_application_id || "";
       f.tools = (s.tool_application_ids || []).slice();
       var vis = (s.visao_paciente && s.visao_paciente.ferramentas) || {};
@@ -452,7 +473,7 @@
         "<div><dt>Atendimento</dt><dd>" + e(snap.atendimento ? dataHora(snap.atendimento.occurred_at) : "—") + "</dd></div>" +
         "<div><dt>HOLOSCAN</dt><dd>" + e(dataBR(h.quando)) + (h.registrado_em ? " · registrado " + e(dataHora(h.registrado_em)) : "") + " · " + e(curto(h.id)) + "</dd></div>" +
         "<div><dt>Ferramentas incluídas</dt><dd>" + (snap.ferramentas || []).length + "</dd></div>" +
-        "<div><dt>Versão do resultado</dt><dd>" + (r.revision_number ? "nº " + e(r.revision_number) + (meta.status ? " · " + e(ROTULO_STATUS[meta.status] || meta.status) : "") : "—") + "</dd></div>" +
+        "<div><dt>Resultado HOLOS</dt><dd>" + (r.revision_number ? e(rotuloNumero(r)) + (meta.status ? " · " + e(ROTULO_STATUS[meta.status] || meta.status) : "") : "—") + "</dd></div>" +
         "<div><dt>Pacote metodológico</dt><dd>" + e(h.pacote ? h.pacote.code + " v" + h.pacote.version : "—") + "</dd></div>" +
         "<div><dt>Motor de resultados</dt><dd>" + e(snap.motor_resultados || (SF ? SF.VERSAO + " (atual, sobre registro histórico)" : "—")) + "</dd></div>" +
         "</dl>";
@@ -688,7 +709,7 @@
       "<div><dt>Nutricionista</dt><dd>" + e(snap.profissional && snap.profissional.nome || "—") + "</dd></div>" +
       "<div><dt>Atendimento</dt><dd>" + e(snap.atendimento ? dataHora(snap.atendimento.occurred_at) : "—") + "</dd></div>" +
       "<div><dt>HOLOSCAN</dt><dd>" + e(dataBR(h.quando)) + "</dd></div>" +
-      "<div><dt>Resultado HOLOS</dt><dd>nº " + e(linha.revision_number || 1) + " · " + e(ROTULO_STATUS[linha.status] || linha.status || "") + (linha.saved_at ? " · " + e(dataHora(linha.saved_at)) : "") + "</dd></div></dl>" +
+      "<div><dt>Resultado HOLOS</dt><dd>" + e(rotuloNumero(linha)) + " · " + e(ROTULO_STATUS[linha.status] || linha.status || "") + (linha.saved_at ? " · " + e(dataHora(linha.saved_at)) : "") + "</dd></div></dl>" +
       (SF && SF.historico(snap) ? '<p class="rh-nota-tec">' + e(SF.ROTULO_HISTORICO) + "</p>" : ""));
     // 2
     var dec = S && S.htmlResumoDecisao ? S.htmlResumoDecisao(snap, optsS).replace(/^<section[^>]*>|<\/section>$/g, "").replace(/<h3[^>]*>[\s\S]*?<\/h3>/, "") : "";
@@ -776,7 +797,7 @@
       var hq = s.holoscan ? dataBR(s.holoscan.quando) : (sel.holoscan_application_id ? "aplicação " + curto(sel.holoscan_application_id) : "—");
       return '<li class="rh-hist-item rh-st-' + e(r.status) + '" data-rh-id="' + e(r.id) + '">' +
         '<div class="rh-hist-info"><b>' + (r.status === "rascunho" ? "Rascunho" : e(dataHora(r.saved_at))) + "</b>" +
-        '<span class="rh-hist-meta">versão nº ' + e(r.revision_number) + " · " + e(ROTULO_STATUS[r.status] || r.status) + (r.superseded_at ? " · substituída por versão mais nova" : "") +
+        '<span class="rh-hist-meta">Resultado HOLOS ' + e(rotuloNumero(r)) + " · " + e(ROTULO_STATUS[r.status] || r.status) + (r.superseded_at ? " · substituída por versão mais nova" : "") +
         " · atendimento " + e(rotuloAtendimento(r.encounter_id)) + " · HOLOSCAN " + e(hq) + " · " + nF + (nF === 1 ? " ferramenta" : " ferramentas") + "</span>" + linhaFoco(r) + "</div>" +
         '<div class="rh-hist-botoes">' + (r.status === "rascunho"
           ? '<button type="button" class="btn-borda-ouro" data-rh-acao="continuar" data-rh-id="' + e(r.id) + '"' + (arq ? " disabled" : "") + '>Continuar rascunho</button>' +
@@ -793,7 +814,7 @@
     var encs = A ? A.doPaciente(pid).slice().sort(function (a, b) { return String(b.occurred_at).localeCompare(String(a.occurred_at)); }) : [];
     var hs = aplicacoesHoloscan(pid), fs = aplicacoesFerramentas(pid);
     var html = cabecalho() + '<form class="rh-form" id="rh-form" novalidate>' +
-      (f.supersedes_id ? '<p class="rh-aviso">Nova versão a partir do resultado nº ' + e((porId(f.supersedes_id) || {}).revision_number || "") + ". A versão anterior continua no histórico, sem mudança.</p>" : "") +
+      (f.supersedes_id ? '<p class="rh-aviso">Nova versão a partir do Resultado HOLOS ' + e(rotuloNumero(porId(f.supersedes_id))) + ". A versão anterior continua no histórico, sem mudança.</p>" : "") +
       (f.id ? '<p class="rh-aviso">Rascunho salvo. Enquanto for rascunho, seleção, visibilidade e observações podem mudar.</p>' : "");
 
     // atendimento
@@ -915,7 +936,13 @@
     if (nome === "continuar") { form = novoForm(pid, porId(btn.dataset.rhId)); previa = null; vendo = null; modo = "editar"; return pintar(); }
     if (nome === "cancelar" || nome === "voltar") { form = null; previa = null; vendo = null; modo = "lista"; return pintar(); }
     if (nome === "ver") { vendo = { id: btn.dataset.rhId, visao: btn.dataset.rhVisao || "profissional" }; modo = "ver"; return pintar(); }
-    if (nome === "nova-versao") { form = novoForm(pid, porId(vendo.id)); previa = null; vendo = null; modo = "editar"; return pintar(); }
+    if (nome === "nova-versao") {
+      /* 16/10 (estabilizacao): Resultado que veio do Playbook -> a nova versao reabre o Playbook (mesmo atendimento, foco e
+         estrategias ja marcados); os demais continuam no editor. A versao anterior fica no historico, sem mudanca. */
+      var base = porId(vendo.id);
+      if (veioDoPlaybook(base) && window.ResultadoPlaybook) { baseNovaVersao = base; return abrirPlaybook(true); }
+      form = novoForm(pid, base); previa = null; vendo = null; modo = "editar"; return pintar();
+    }
     if (nome === "imprimir") return imprimir();
     if (nome === "whatsapp" || nome === "pdf") {
       var P = window.ResultadoPagina; if (!P) return;
@@ -1150,9 +1177,13 @@
     if (!RD() || !temSupa()) return Promise.resolve({ erro: "O Resultado HOLOS fica no servidor: entre com a sua conta." });
     return carregar(pid).then(function () {
       var f = novoForm(pid, null);
+      /* 16/10: nova versao de um Resultado do Playbook fica no atendimento DELE (nunca muda de atendimento em silencio) */
+      var base = baseNovaVersao && baseNovaVersao.patient_id === pid ? baseNovaVersao : null;
+      if (base && base.encounter_id) { f.encounter_id = base.encounter_id; if (RD()) f.direcao = RD().normalizar(null, tipoEncontro(pid, f.encounter_id)); }
       if (!f.encounter_id) return { erro: "Inicie um atendimento para montar o Resultado: ele fica ligado ao atendimento." };
       var hs = aplicacoesHoloscan(pid).filter(function (h) { return h.oficial; });
-      var h = hs.filter(function (x) { return x.encounter_id === f.encounter_id; })[0] || hs[0];
+      var hBase = base && base.selected_sources ? base.selected_sources.holoscan_application_id : null;
+      var h = (hBase && hs.filter(function (x) { return x.id === hBase; })[0]) || hs.filter(function (x) { return x.encounter_id === f.encounter_id; })[0] || hs[0];
       if (!h) return { erro: "Aplique e salve o HOLOSCAN deste paciente primeiro: é ele que define as áreas prioritárias e os focos do Playbook." };
       f.holoscan_application_id = h.id;
       var visto = {};
@@ -1189,7 +1220,9 @@
           momentum: mom && mom.respostas ? mom.respostas.estado_confirmado || mom.respostas.estado || null : null, relato: relato, anterior: ctx.anterior,
           anteriorDirecao: ctx.anterior && porId(ctx.anterior.id) ? porId(ctx.anterior.id).direcao || null : null,
           anteriorEm: ctx.anterior && porId(ctx.anterior.id) ? (function (r) { var e = A && A.porId ? A.porId(r.encounter_id) : null; return e ? e.occurred_at : r.saved_at; })(porId(ctx.anterior.id)) : null,
-          atendimento: at ? (A.rotuloQuando ? A.rotuloQuando(at) : String(at.occurred_at || "").slice(0, 10)) : "", holoscanEm: h.quando || h.criado || "" };
+          atendimento: at ? (A.rotuloQuando ? A.rotuloQuando(at) : String(at.occurred_at || "").slice(0, 10)) : "", holoscanEm: h.quando || h.criado || "",
+          /* 16/10: nova versao a partir de um Resultado do Playbook — o que estava escolhido nele (o assistente marca de novo) */
+          base: base ? { id: base.id, direcao: base.direcao || null } : null };
       });
     }).catch(function (err) { return { erro: mensagemErro(err) }; });
   }
@@ -1240,13 +1273,22 @@
     return RD().htmlPaciente(dp, ant, { previa: true });
   }
   /* o assistente desenha dentro da aba Resultado HOLOS (modo "playbook") */
-  function abrirPlaybook() {
+  var baseNovaVersao = null;
+  function veioDoPlaybook(r) {
+    var PB = window.PlaybookHolos, d = r && (r.direcao || (r.content_snapshot && r.content_snapshot.direcao_paciente));
+    if (!PB || !d) return false;
+    if (d.foco_atual && d.foco_atual.id && PB.origemPlaybook(d.foco_atual.id)) return true;
+    return (d.estrategias || []).some(function (x) { return x && PB.origemPlaybook(x.id); });
+  }
+  function abrirPlaybook(manterBase) {
+    if (manterBase !== true) baseNovaVersao = null;
     form = null; previa = null; vendo = null; modo = "playbook";
     if (window.ResultadoPlaybook) window.ResultadoPlaybook.reiniciar();
     var ab = document.querySelector('[data-aba="resultado-holos"]');
     if (ab && !(ab.classList.contains("ativa") || ab.getAttribute("aria-selected") === "true")) ab.click(); else pintar();
   }
   function sairPlaybook(id) {
+    baseNovaVersao = null;
     if (id) { form = null; previa = null; vendo = { id: id, visao: "paciente" }; modo = "ver"; }
     else { modo = "lista"; }
     pintar();
@@ -1265,6 +1307,7 @@
   }
 
   window.ResultadoHolos = {
+    numeroVisivel: numeroVisivel, rotuloNumero: rotuloNumero,
     receberHolosAI: receberHolosAI, gerarAutomatico: gerarAutomatico, abrirResultado: abrirResultado,
     prepararPlaybook: prepararPlaybook, gerarPorPlaybook: gerarPorPlaybook, previaPlaybook: previaPlaybook, abrirPlaybook: abrirPlaybook, sairPlaybook: sairPlaybook,
     desenhar: desenhar, carregar: carregar, doPaciente: doPaciente, porId: porId,

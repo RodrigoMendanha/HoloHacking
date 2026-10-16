@@ -64,7 +64,8 @@ ok(duas.historico === 2, 'o historico guarda as duas: ' + duas.historico);
 ok(duas.indices.length === 2, 'mostra os dois indices: ' + duas.indices.join(' -> '));
 /* Etapa 0 da V1: lado a lado, sem delta — comparabilidade nao homologada
    (Mestre §8, §19). Nenhum "+N", nenhum "subiu/caiu". */
-ok(duas.ganho === undefined && duas.selo, 'nao mostra ganho nem "subiu/caiu"; mostra o selo "em homologação"');
+/* 16/10 (estabilizacao): continua sem ganho nem "subiu/caiu"; o selo tecnico ("em homologação") saiu da tela clinica */
+ok(duas.ganho === undefined && !duas.selo, 'nao mostra ganho nem "subiu/caiu"; sem selo técnico de homologação');
 ok(duas.deltas.length > 0 && duas.deltas.every(d => !/[+-]\d/.test(d)), 'nenhuma diferença numérica calculada: ' + duas.deltas.join(' '));
 ok(/semanas/.test(duas.frase||'') && !/subiu|caiu/.test(duas.frase||''), 'frase: ' + duas.frase);
 ok(duas.linhas.length === 5, 'os 5 sistemas com o antes e o depois, lado a lado');
