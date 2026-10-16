@@ -436,13 +436,32 @@
       "</section>" + htmlHistorico(c ? c.id : null);
   }
 
+  /* Primeira consulta x retorno (16/10, estabilizacao). Vale so para o convite NOVO: o tipo dos convites ja
+     gravados nunca muda. Retorno quando o paciente ja passou por um ciclo, por qualquer destes sinais:
+       1. anamnese profissional salva (a regra antiga, mantida para o historico);
+       2. Resultado HOLOS salvo/revisado ou Resultado Final emitido (o ciclo comum hoje: Mapeamento revisado
+          sem "Levar para o atendimento");
+       3. atendimento anterior encerrado.
+     Se a leitura do servidor falhar, cai na regra antiga (nunca bloqueia a geracao do link). */
+  function tipoDoConvite(pid) {
+    var temAnamnese = !!(window.Anamnese && window.Anamnese.doPaciente && window.Anamnese.doPaciente(pid).some(function (a) { return a.status !== "rascunho"; }));
+    var A = window.AtendimentoAtual;
+    var temEncerrado = !!(A && A.doPaciente && A.doPaciente(pid).some(function (x) { return x.status === "concluido"; }));
+    if (temAnamnese || temEncerrado) return Promise.resolve("retorno");
+    var c = sb(); if (!c || !c.from) return Promise.resolve("primeira");
+    var um = function (q) { return Promise.resolve(q).then(function (r) { return !!(r && !r.error && r.data && r.data.length); }, function () { return false; }); };
+    return Promise.all([
+      um(c.from("holos_results").select("id").eq("patient_id", pid).neq("status", "rascunho").limit(1)),
+      um(c.from("holos_result_emissions").select("id").eq("patient_id", pid).limit(1))
+    ]).then(function (r) { return r[0] || r[1] ? "retorno" : "primeira"; }, function () { return "primeira"; });
+  }
+
   function gerar(revogarAntes) {
     var p = paciente(); if (!p || ocupado) return;
     ocupado = true; desenhar();
     var A = window.AtendimentoAtual, e = A && A.atual ? A.atual() : null;
-    /* primeira consulta x retorno: retorno se o paciente ja tem anamnese profissional salva (regra mantida) */
-    var tipo = window.Anamnese && window.Anamnese.doPaciente && window.Anamnese.doPaciente(p.id).some(function (a) { return a.status !== "rascunho"; }) ? "retorno" : "primeira";
-    return miniaturaLogo().then(function (logo) {
+    var tipo = "primeira";
+    return tipoDoConvite(p.id).then(function (t) { tipo = t; return miniaturaLogo(); }).then(function (logo) {
       return Promise.resolve(sb().rpc("criar_convite_anamnese", { p_patient_id: p.id, p_encounter_id: e && e.patient_id === p.id ? e.id : null, p_dias: DIAS, p_tipo: tipo, p_logo: logo }));
     }).then(function (r) {
       ocupado = false;
@@ -529,9 +548,19 @@
       return { estado: st, etapa: et.chave, rotulo: et.rotulo, detalhe: et.detalhe, quando: et.quando };
     },
     /** 14/10: a resposta ORIGINAL do Mapeamento recebido mais recente deste paciente (so do que ja foi lido; null se nao ha) */
-    respostaRecebida: function (id) {
+    tipoDoConvite: tipoDoConvite,
+    respostaRecebida: function (id, filtro) {
       if (cache.pid !== id || !cache.carregado) return null;
-      var c = cache.linhas.filter(function (x) { return x.status === "concluido" && x.submitted_content; })[0];
+      /* 16/10: filtro opcional { tipo, depoisDe }: no retorno, so o Mapeamento de RETORNO respondido depois do Resultado
+         anterior (nunca o da primeira consulta no lugar dele). Sem filtro: o recebido mais recente (como antes). */
+      filtro = filtro || {};
+      var tipoDe = function (x) { var sc = x.submitted_content || {}; return sc.tipo || x.form_tipo || "primeira"; };
+      var c = cache.linhas.filter(function (x) {
+        if (x.status !== "concluido" || !x.submitted_content) return false;
+        if (filtro.tipo && tipoDe(x) !== filtro.tipo) return false;
+        if (filtro.depoisDe && x.submitted_at && String(x.submitted_at) < String(filtro.depoisDe)) return false;
+        return true;
+      })[0];
       if (!c) return null;
       var sc = c.submitted_content || {};
       return { formulario: sc.formulario || sc, tipo: sc.tipo || c.form_tipo || "primeira", submitted_at: c.submitted_at, reviewed_at: c.reviewed_at || revisadoLocal[c.id] || null, convite_id: c.id };

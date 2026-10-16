@@ -190,10 +190,21 @@
   function contextoSugestoes(pid, f, snap) {
     var An = window.Anamnese, Cd = window.Conduta, SF = window.SistemasFechamento;
     var an = An ? (An.vigente(f.encounter_id) || An.rascunhoDe(f.encounter_id)) : null;
+    var PC = window.PreConsulta;
+    var ehRetorno = !!(f.direcao && f.direcao.tipo === "retorno");
+    /* 16/10 (estabilizacao): no RETORNO a fonte 1 e o Mapeamento de retorno mais recente, respondido depois do
+       Resultado anterior. Ele vence a anamnese do atendimento quando esta nao e de retorno (ex.: rascunho levado de um
+       Mapeamento antigo). O Mapeamento da primeira consulta nunca entra no lugar dele. */
+    if (ehRetorno && PC && PC.respostaRecebida && f.encounter_id) {
+      var antR = anteriorDe(pid, f.encounter_id);
+      var recR = PC.respostaRecebida(pid, { tipo: "retorno", depoisDe: antR ? (antR.saved_at || antR.created_at) : null });
+      var anEhRetorno = !!(an && an.content && an.content.tipo === "retorno");
+      if (recR && recR.formulario && !anEhRetorno) an = { id: f.encounter_id, refTipo: "atendimento", content: { tipo: "retorno", formulario: recR.formulario } };
+    }
     /* 14/10 (auditoria Cowork, P0): Mapeamento recebido/revisado sem levar ao atendimento -> as respostas ORIGINAIS da
        paciente entram como relato, referenciando o atendimento (o servidor confere que e desta paciente). */
-    if (!an) {
-      var PC = window.PreConsulta, rec = PC && PC.respostaRecebida ? PC.respostaRecebida(pid) : null;
+    if (!an && !ehRetorno) {
+      var rec = PC && PC.respostaRecebida ? PC.respostaRecebida(pid) : null;
       if (rec && rec.formulario && f.encounter_id) an = { id: f.encounter_id, refTipo: "atendimento", content: { tipo: rec.tipo, formulario: rec.formulario } };
     }
     var cd = Cd ? (Cd.vigente(f.encounter_id) || Cd.rascunhoDe(f.encounter_id)) : null;
@@ -1142,7 +1153,9 @@
         .filter(function (r) { return !cache.linhas.some(function (x) { return x.supersedes_id === r.id; }); })
         .sort(function (a, b) { return String(b.saved_at || "").localeCompare(String(a.saved_at || "")); });
       f.supersedes_id = finais[0] ? finais[0].id : null;
-      return rpc("previa_resultado_holos", { payload: payloadDe(f) }).then(function (snap) {
+      /* 16/10: o Mapeamento (de retorno) precisa estar lido antes do contexto, mesmo sem abrir a aba Mapeamento */
+      var PCl = window.PreConsulta, lerPC = PCl && PCl.carregado && !PCl.carregado(pid) && PCl.carregar ? PCl.carregar(pid) : Promise.resolve();
+      return Promise.resolve(lerPC).then(function () { return rpc("previa_resultado_holos", { payload: payloadDe(f) }); }).then(function (snap) {
         var SF = window.SistemasFechamento;
         var prio = (SF && snap ? SF.deResultado(snap, function (id) { return defFerr(id).titulo; }) : [])
           .filter(function (x) { return x && x.resultado && x.resultado.prioridade; })

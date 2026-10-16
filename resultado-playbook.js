@@ -41,6 +41,7 @@
       dirs: [], observar: [], proxima: "", est: [], gerais: false, acomp: {}, manterFoco: false, previa: "", msg: "", gerando: false };
   }
   function reiniciar() { st = null; }
+  function doAnterior(it) { return !!(it && it.origem === "resultado_anterior"); }
 
   /* ---------- dados ---------------------------------------------------------- */
   function retorno() { return !!(st.pb && st.pb.tipo === "retorno"); }
@@ -63,7 +64,9 @@
   }
   function padroes() {
     var rel = st.pb.relato || {};
-    LISTAS_REL.forEach(function (k) { (rel[k] || []).forEach(function (_, i) { st.relSel[k + ":" + i] = i < LIM_REL[k]; }); });
+    /* 16/10: o que veio do Resultado ANTERIOR aparece como referencia ("No encontro anterior") e nunca vem marcado:
+       a nutricionista decide o que ainda vale. O limite de pre-marcacao conta so o que e de agora. */
+    LISTAS_REL.forEach(function (k) { var n = 0; (rel[k] || []).forEach(function (it, i) { var atual = !doAnterior(it); st.relSel[k + ":" + i] = atual && n < LIM_REL[k]; if (atual) n++; }); });
     var porTerr = {};
     (st.pb.ferramentasRelato || []).forEach(function (x, i) { porTerr[x.lista] = (porTerr[x.lista] || 0) + 1; st.relSel["ferr:" + i] = porTerr[x.lista] <= 2; });
     estrategiasAnteriores().forEach(function (e) { st.acomp[e.id] = { decisao: "", aplicou: "", nota: "", acao: e.acao || "" }; });
@@ -153,12 +156,20 @@
       '<p class="pb-linha"><b>HOLOSCAN</b> ' + prio + "</p>" + '<p class="pb-linha"><b>Ferramentas</b> ' + fer + "</p>" +
       (mo ? '<p class="pb-linha"><b>Linha do Momentum</b> ' + chip(mo.rotulo) + "</p>" : "") + "</div>";
     var rel = pb.relato || {}, temRel = LISTAS_REL.some(function (k) { return (rel[k] || []).length; });
-    var grupos = LISTAS_REL.filter(function (k) { return (rel[k] || []).length; }).map(function (k) {
+    var marca = function (k, it, i, extra) {
+      var key = k + ":" + i;
+      return '<label class="pb-check"><input type="checkbox" data-pb-rel="' + esc(key) + '"' + (st.relSel[key] ? " checked" : "") + "> <span>" + esc(it.texto) + (extra || "") + "</span></label>";
+    };
+    var grupos = LISTAS_REL.filter(function (k) { return (rel[k] || []).some(function (it) { return !doAnterior(it); }); }).map(function (k) {
       return '<fieldset class="pb-rel"><legend>' + esc(TIT_REL[k]) + "</legend>" + rel[k].map(function (it, i) {
-        var key = k + ":" + i;
-        return '<label class="pb-check"><input type="checkbox" data-pb-rel="' + esc(key) + '"' + (st.relSel[key] ? " checked" : "") + "> <span>" + esc(it.texto) + "</span></label>";
+        return doAnterior(it) ? "" : marca(k, it, i);
       }).join("") + "</fieldset>";
     }).join("");
+    /* 16/10: referencia do encontro anterior, em bloco separado e desmarcada */
+    var antes = [];
+    LISTAS_REL.forEach(function (k) { (rel[k] || []).forEach(function (it, i) { if (doAnterior(it)) antes.push(marca(k, it, i, ' <small class="pb-onde">→ ' + esc(TIT_REL[k]) + "</small>")); }); });
+    if (antes.length) grupos += '<fieldset class="pb-rel pb-rel-anterior" data-pb-anterior><legend>No encontro anterior</legend>' +
+      '<p class="pb-dica">Referência do Resultado anterior. Nada vem marcado: marque só o que ainda vale hoje.</p>' + antes.join("") + "</fieldset>";
     var fr = st.pb.ferramentasRelato || [];
     var ROT_F = { desejos: "O que você quer construir", corpo: "Corpo", mente: "Mente", espirito: "Espírito" };
     var blocoFerr = fr.length ? '<fieldset class="pb-rel pb-rel-ferr"><legend>O que apareceu nas ferramentas</legend>' + fr.map(function (x, i) {
