@@ -28,6 +28,8 @@ async function abrir(email, senha, largura = 1366) {
   await P.setViewport({ width: largura, height: 1000 });
   P.on('pageerror', e => erros.push(e.message));
   await ligarPagina(P, srv);
+  /* 16/10: a aba fica escondida por padrao (utils.js); estes testes religam a aba para provar o codigo */
+  await P.evaluateOnNewDocument(() => { window.ASSISTENTE_IA_VISIVEL = true; });
   await P.evaluateOnNewDocument(() => { setInterval(() => { if (window.BoasVindas && window.BoasVindas.aberta()) window.BoasVindas.fechar(); }, 80); });
   await P.goto('http://127.0.0.1:5500/', { waitUntil: 'networkidle2' });
   await P.waitForSelector('#login-email', { visible: true });

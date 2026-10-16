@@ -49,12 +49,13 @@ const vazio = await p.evaluate(() => ({
   nome: document.getElementById('sr-nome').textContent,
   feitos: document.querySelectorAll('.perf-lista li.feito').length,
   total: document.querySelectorAll('.perf-lista li').length,
-  abas: [...document.querySelectorAll('[data-aba-perfil]')].map(b => b.textContent.trim()),
+  abas: [...document.querySelectorAll('[data-aba-perfil]')].filter(b => !b.hidden).map(b => b.textContent.trim()),
+  iaEscondida: document.getElementById('tab-ia').hidden,
 }));
 
 conferir(vazio.ativa && vazio.caminho === 'Perfil', 'a seção abre pelo menu');
-conferir(vazio.abas.join(',') === 'Perfil,Marca,Preferências,Conta,Assistente de IA',
-  'as cinco abas (27/10: + Assistente de IA, conexao MCP): ' + vazio.abas.join(' · '));
+conferir(vazio.abas.join(',') === 'Perfil,Marca,Preferências,Conta' && vazio.iaEscondida,
+  'as quatro abas visíveis (16/10: Assistente de IA escondida): ' + vazio.abas.join(' · '));
 conferir(vazio.total === 9 && vazio.feitos === 1,
   'a checagem começa quase toda vazia: ' + vazio.feitos + ' de ' + vazio.total);
 conferir(vazio.nome === 'Profissional' && vazio.pct === '11%',

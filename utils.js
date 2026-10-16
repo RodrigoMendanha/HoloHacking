@@ -2,6 +2,10 @@
 /* 14/10: a Holos IA fica ESCONDIDA (menu, aba, botoes e passo da jornada); o Resultado sai pelo Playbook HOLOS.
    O codigo da Holos IA continua: para religar, basta true aqui. */
 window.HOLOS_IA_VISIVEL = false;
+/* 16/10 (estabilizacao): a aba "Assistente de IA" (MCP) do Perfil tambem fica ESCONDIDA. O backend (mcp_keys e a funcao
+   holohacking-mcp) nao esta publicado e a direcao do produto e o Resultado pelo Playbook. O codigo continua (conexao-ia.js):
+   para religar, true aqui (ou window.ASSISTENTE_IA_VISIVEL = true antes de carregar a pagina, como fazem os testes do MCP). */
+if (window.ASSISTENTE_IA_VISIVEL !== true) window.ASSISTENTE_IA_VISIVEL = false;
 (function () {
   window.escapar = function (s) {
     return String(s == null ? "" : s)

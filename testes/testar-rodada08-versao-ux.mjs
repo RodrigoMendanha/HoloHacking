@@ -105,10 +105,10 @@ for (const [nome, acao] of telas) {
   }, acao);
   ok(r.scroll <= r.w, nome + ': a página não passa da largura da tela (' + r.scroll + ' de ' + r.w + ' px)');
 }
-const abas = await A.evaluate(() => [...document.querySelectorAll('.abas-perfil .aba')].map(b => {
+const abas = await A.evaluate(() => [...document.querySelectorAll('.abas-perfil .aba')].filter(b => !b.hidden).map(b => {
   const r = b.getBoundingClientRect(); return r.right <= document.documentElement.clientWidth + 1 && r.width > 0;
 }));
-ok(abas.length === 5 && abas.every(Boolean), 'as 5 abas do Perfil aparecem inteiras (Conta e Assistente de IA inclusive): ' + JSON.stringify(abas));
+ok(abas.length === 4 && abas.every(Boolean), 'as 4 abas visíveis do Perfil aparecem inteiras (16/10: Assistente de IA escondida): ' + JSON.stringify(abas));
 const menu = await A.evaluate(() => Math.round(document.querySelector('.sidebar').getBoundingClientRect().height));
 ok(menu < 200, 'o menu ocupa ' + menu + ' px de altura (antes: ~490)');
 

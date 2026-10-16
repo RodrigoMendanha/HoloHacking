@@ -53,6 +53,7 @@
     '<li>Na conversa, ative o HoloHacking e peça: <i>"Gere o Resultado HOLOS da Marina"</i>.</li></ol>';
 
   function desenhar() {
+    if (!visivel()) return;
     var p = painel(); if (!p) return;
     if (!sb()) { p.innerHTML = '<div class="card ia-card"><p>Entre com a sua conta para conectar um assistente de IA.</p></div>'; return; }
     if (restrita()) {
@@ -120,7 +121,15 @@
     conf.then(function (r) { if (r === "confirmar") faz(); });
   }
 
+  /* 16/10: escondida por padrao (utils.js ASSISTENTE_IA_VISIVEL). So aparece e so desenha quando religada. */
+  function visivel() { return window.ASSISTENTE_IA_VISIVEL === true; }
+  document.addEventListener("DOMContentLoaded", function () {
+    var b = document.getElementById("tab-ia");
+    if (b) b.hidden = !visivel();
+  });
+
   document.addEventListener("click", function (ev) {
+    if (!visivel()) return;
     var aba = ev.target.closest && ev.target.closest('[data-aba-perfil="ia"]');
     if (aba) { setTimeout(desenhar, 0); return; }
     var a = ev.target.closest && ev.target.closest("[data-ia-acao]");
