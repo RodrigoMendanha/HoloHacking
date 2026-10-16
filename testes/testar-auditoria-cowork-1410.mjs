@@ -44,7 +44,7 @@ const P3 = ins('patients', { nome: 'Varias Ficticia Ferramentas' }).id; const E3
 ['oq3', 'pqq', 'roda_vida'].forEach(f => ferramenta(P3, E3, f));
 const P10 = ins('patients', { nome: 'Todas Ficticia Ferramentas' }).id; const E10 = atendimento(P10, 30);
 NOVE.forEach(f => ferramenta(P10, E10, f));
-const PH = ins('patients', { nome: 'Holoscan Ficticia Jornada' }).id; const EH = atendimento(PH, 1); holoscan(PH, EH);
+const PH = ins('patients', { nome: 'Holoscan Ficticia Jornada' }).id; const EH = atendimento(PH, Math.min(1, (Date.now() - new Date().setHours(0, 0, 0, 0)) / 7200000)); /* "hoje" mesmo logo depois da meia-noite */ holoscan(PH, EH);
 const PT = ins('patients', { nome: 'Ferramentas Ficticia Jornada' }).id; const ET = atendimento(PT, 30); holoscan(PT, ET); ferramenta(PT, ET, 'roda_vida');
 
 const nav = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', headless: 'new', args: ['--no-sandbox'] });
