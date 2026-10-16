@@ -6,7 +6,8 @@
  * Recursos escondidos no sistema (Holos IA, Conduta, Relatório, Conexão & Pertencimento, réguas manuais) NÃO entram aqui.
  */
 import puppeteer from 'puppeteer-core';
-import { readFileSync, mkdirSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, mkdirSync, writeFileSync, existsSync, rmSync } from 'node:fs';
+const require_rm = (f) => rmSync(f, { force: true });
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 
@@ -61,7 +62,6 @@ const CORTES = {
   agenda: ['28-agenda', null, 1700],
   dashPac: ['29-dashboard-com-pacientes', null, 1700],
   perfil: ['30-perfil', null, 1700],
-  ia: ['31-perfil-assistente-ia', null, 1700],
   retorno: ['32-ficha-retorno', null, 1700],
   evolucao: ['33-evolucao', null, 1700],
   celBotoes: ['34-celular-resultado-ficha', null, 600]
@@ -87,9 +87,9 @@ const passo = (n, t) => `<p class="eyebrow">Passo ${n}</p>`;
 const CAPS = ['Antes de começar', 'A tela do HoloHacking', 'O caminho de cada paciente', 'Cadastrar o paciente', 'A ficha do paciente',
   'Enviar o Mapeamento Holístico', 'Abrir o atendimento', 'Aplicar o HOLOSCAN', 'Entendendo as notas do HOLOSCAN', 'Aplicar as ferramentas',
   'Montar o Resultado HOLOS com o Playbook', 'Entregar ao paciente: PDF e WhatsApp', 'Agendar o retorno', 'O retorno', 'Dashboard e acompanhamento',
-  'Outros recursos do dia a dia', 'Assistente de IA', 'Dúvidas rápidas', 'Checklist do atendimento'];
+  'Outros recursos do dia a dia', 'Dúvidas rápidas', 'Checklist do atendimento'];
 
-const corpo = `
+const montarCorpo = (PAGS) => `
 <section class="capa">
   <div class="marca">HOLOHACKING</div>
   <div><img class="pinha" src="${LOGO}" alt="">
@@ -102,7 +102,7 @@ const corpo = `
 
 <h1 id="sumario">Sumário</h1>
 <p class="abre">Siga na ordem na primeira vez. Depois, use como consulta rápida.</p>
-<ol class="sumario">${CAPS.map(c => `<li>${c}</li>`).join('')}</ol>
+<ol class="sumario">${CAPS.map((c, i) => `<li><span>${c}</span><b>${PAGS[i] || ''}</b></li>`).join('')}</ol>
 ${box('chave', '', '<p>O HoloHacking organiza o atendimento em uma sequência: o paciente responde o Mapeamento antes da consulta, você abre o atendimento, aplica o HOLOSCAN e as ferramentas, monta o Resultado com o Playbook e entrega o PDF no WhatsApp. No retorno, o ciclo recomeça a partir do que foi combinado.</p>')}
 <div class="cadeia"><span>Cadastro</span><i>→</i><span>Mapeamento</span><i>→</i><span>Atendimento</span><i>→</i><span>HOLOSCAN</span><i>→</i><span>Ferramentas</span><i>→</i><span class="d">Resultado HOLOS</span><i>→</i><span class="d">PDF e WhatsApp</span><i>→</i><span>Retorno</span></div>
 
@@ -118,24 +118,25 @@ ${box('chave', '', '<p>O HoloHacking organiza o atendimento em uma sequência: o
 ${box('atencao', 'Conta em liberação', '<p>Logo depois do cadastro, a conta fica <strong>pendente</strong> até a equipe HoloHacking liberar o acesso. Nesse período, o sistema abre <strong>somente o Perfil</strong>, com o aviso “Seu cadastro profissional está sendo preparado”. Aproveite para completar o perfil. Quando a conta for liberada, clique em <strong>Verificar acesso novamente</strong>.</p>')}
 
 <h2>Complete o seu Perfil</h2>
-<p>Abra <strong>Perfil</strong> (menu, em Configurações, ou clicando no seu nome no alto da tela). Ele tem as abas <strong>Perfil, Marca, Preferências, Conta</strong> e <strong>Assistente de IA</strong>.</p>
+<p>Abra <strong>Perfil</strong> (menu, em Configurações, ou clicando no seu nome no alto da tela). Ele tem as abas <strong>Perfil, Marca, Preferências</strong> e <strong>Conta</strong>.</p>
 <ul>
 <li><strong>Perfil:</strong> foto, nome completo, profissão, <strong>Registro profissional</strong> (o CRN, que sai impresso nos documentos), especialidade, e-mail, telefone/WhatsApp, cidade/UF, Instagram e fuso horário. O fuso define a data e a hora dos registros e da Agenda. Clique em <strong>Salvar alterações</strong>.</li>
 <li><strong>Marca:</strong> cores, <strong>Logo</strong>, <strong>Assinatura</strong> (enviar uma imagem PNG ou desenhar na tela) e <strong>Carimbo profissional</strong>. Imagens em PNG, JPEG ou WEBP de até 4 MB.</li>
 <li><strong>Preferências:</strong> esconder os módulos Atendimentos e Agenda do menu (nada é apagado) e escolher a aparência: claro, escuro ou seguir o sistema.</li>
 <li><strong>Conta:</strong> sair da conta, alterar senha e ver a versão do app.</li>
 </ul>
-${fig('perfil', '<b>Tela</b> Perfil. O quadro do topo mostra o quanto o perfil está completo.')}
 ${box('resultado', 'Por que isso importa', '<p>O PDF que o paciente recebe leva no <strong>cabeçalho</strong> o seu logo, nome, profissão, registro, especialidade, cidade e contatos, e no <strong>rodapé</strong> a sua assinatura e o carimbo. Esses dados ficam <strong>congelados</strong> no momento em que o Resultado Final é gerado: mudar o Perfil depois não altera um documento já emitido.</p>')}
+${fig('perfil', '<b>Tela</b> Perfil. O quadro do topo mostra o quanto o perfil está completo.')}
+
 
 <!-- 2 -->
 <h1>A tela do HoloHacking</h1>
 <p class="abre">Um menu à esquerda, uma barra no alto e, quando há um paciente escolhido, uma barra com os atalhos dele.</p>
-${fig('dashboard', '<b>Tela</b> Dashboard, a primeira tela depois de entrar.')}
 <div class="duas">
 ${box('', 'Menu lateral', '<ul><li><strong>Atendimento:</strong> Dashboard, Pacientes, Atendimentos e Agenda (o número ao lado da Agenda é a quantidade de consultas de hoje).</li><li><strong>Recursos:</strong> HOLOSCAN; Corpo, Mente e Espírito (as ferramentas); Resultado.</li><li><strong>Configurações:</strong> Perfil e Ajuda.</li><li>No rodapé: o seu cartão, <strong>Sair da conta</strong> e o quanto o perfil está completo.</li></ul>')}
 ${box('', 'Barra do alto', '<ul><li><strong>Buscar paciente…</strong>: procura por nome, telefone ou e-mail e abre a ficha.</li><li>Botão de tema: alterna entre modo claro e escuro.</li><li>O seu nome: abre o Perfil.</li></ul><p>Com um paciente escolhido, aparece a <strong>barra do paciente</strong>: Voltar à ficha, Atendimentos, Mapeamento Holístico, HOLOSCAN, Ferramentas e Documentos. O “×” só desmarca o paciente; não apaga nada.</p>')}
-</div>
+</div>${fig('dashboard', '<b>Tela</b> Dashboard, a primeira tela depois de entrar.')}
+
 
 <!-- 3 -->
 <h1>O caminho de cada paciente</h1>
@@ -168,7 +169,7 @@ ${fig('pacientes', '<b>Tela</b> Pacientes: busca, ordem, filtros (Todos, Ativos,
 <h1>A ficha do paciente</h1>
 <p class="abre">Tudo sobre o paciente fica aqui: cabeçalho, atendimento ativo, jornada e abas.</p>
 ${fig('ficha', '<b>Tela</b> Ficha recém-criada. O botão principal sugere o próximo passo: aqui, “Enviar Mapeamento Holístico”.')}
-<h3>Cabeçalho</h3>
+${box('decide', 'O bloco “Atendimento ativo”', '<p>Logo abaixo do cabeçalho fica o atendimento escolhido. Ele é a peça mais importante da ficha: é a ele que o sistema liga o HOLOSCAN, o Mapeamento levado para a consulta, o peso e a altura e o Resultado HOLOS. Veja o capítulo “Abrir o atendimento”.</p>')}<h3>Cabeçalho</h3>
 <ul>
 <li><strong>Botão principal:</strong> muda conforme a etapa. Mostra “Enviar Mapeamento Holístico” para quem ainda não tem Mapeamento nem HOLOSCAN; depois, “Aplicar HOLOSCAN”, “Ir para Ferramentas”, “Montar Resultado HOLOS”, “Ver Resultado” ou “Reaplicar HOLOSCAN”.</li>
 <li><strong>Nova consulta:</strong> abre a Agenda com uma consulta para este paciente.</li>
@@ -177,7 +178,7 @@ ${fig('ficha', '<b>Tela</b> Ficha recém-criada. O botão principal sugere o pr�
 </ul>
 <h3>Abas da ficha</h3>
 <p><strong>Visão geral, Atendimentos, Mapeamento Holístico, HOLOSCAN, Ferramentas, Resultado HOLOS, Documentos</strong> e <strong>Evolução</strong>.</p>
-${box('decide', 'O bloco “Atendimento ativo”', '<p>Logo abaixo do cabeçalho fica o atendimento escolhido. Ele é a peça mais importante da ficha: é a ele que o sistema liga o HOLOSCAN, o Mapeamento levado para a consulta, o peso e a altura e o Resultado HOLOS. Veja o capítulo “Abrir o atendimento”.</p>')}
+
 
 <!-- 6 -->
 <h1>Enviar o Mapeamento Holístico</h1>
@@ -234,8 +235,8 @@ ${passo(4)}
 <li>Clique em <strong>Gerar o mapa</strong> para ver o resultado.</li>
 <li>Confira o atendimento escolhido e clique em <strong>Salvar HOLOSCAN</strong>. O botão vira “HOLOSCAN salvo ✓” e aparece a mensagem “HOLOSCAN concluído”.</li>
 </ol>
-${fig('questionario', '<b>Tela</b> Questionário do HOLOSCAN: blocos BioRoot (raízes físicas), NeuroScan (padrões emocionais) e Terreno Espiritual (propósito, valores e fé).')}
-${box('atencao', 'Bom saber', '<ul><li>A versão em uso tem <strong>81 perguntas</strong> (pacote HOLOS-V1 v7). A barra de progresso mostra “Em andamento” e “Todas respondidas · completo”.</li><li>As respostas ficam guardadas no navegador enquanto você aplica. <strong>Limpar</strong> apaga só as respostas em andamento, nunca uma aplicação já salva.</li><li>Se faltarem perguntas, ao salvar aparece “Questionário incompleto” com o número de respondidas. Você pode completar ou clicar em <strong>Salvar mesmo assim</strong>.</li><li>Clicar em salvar de novo não grava duas vezes. A próxima aplicação, no retorno, é feita em <strong>Reaplicar HOLOSCAN</strong> e começa vazia.</li></ul>')}
+${box('atencao', 'Bom saber', '<ul><li>A versão em uso tem <strong>81 perguntas</strong> (pacote HOLOS-V1 v7). A barra de progresso mostra “Em andamento” e “Todas respondidas · completo”.</li><li>As respostas ficam guardadas no navegador enquanto você aplica. <strong>Limpar</strong> apaga só as respostas em andamento, nunca uma aplicação já salva.</li><li>Se faltarem perguntas, ao salvar aparece “Questionário incompleto” com o número de respondidas. Você pode completar ou clicar em <strong>Salvar mesmo assim</strong>.</li><li>Clicar em salvar de novo não grava duas vezes. A próxima aplicação, no retorno, é feita em <strong>Reaplicar HOLOSCAN</strong> e começa vazia.</li></ul>')}${fig('questionario', '<b>Tela</b> Questionário do HOLOSCAN: blocos BioRoot (raízes físicas), NeuroScan (padrões emocionais) e Terreno Espiritual (propósito, valores e fé).')}
+
 
 <!-- 9 -->
 <h1>Entendendo as notas do HOLOSCAN</h1>
@@ -292,8 +293,8 @@ ${passo(5)}
 <li>Preencha com o paciente e salve: <strong>Salvar OQ³</strong> / <strong>Salvar PQQ</strong>, ou <strong>Concluir aplicação</strong> nas demais (dá para <strong>Salvar rascunho</strong> antes).</li>
 </ol>
 ${fig('corpo', '<b>Tela</b> Ferramentas do Corpo, com o status de cada uma.')}
-${fig('oq3', '<b>Tela</b> OQ³: as três perguntas (Quer, Precisa, Consegue).')}
-${box('atencao', 'Bom saber', '<ul><li>Status nos cartões: <strong>Disponível, Em preenchimento, Concluída, Revisada</strong>.</li><li>O <strong>Mapa do Propósito</strong> é montado a partir do OQ³ e do PQQ salvos (“Falta o PQQ”, “Falta o OQ³” ou “Montado”).</li><li><strong>Mapa da Rotina</strong> e <strong>Gatilhos &amp; Respostas</strong> não são editados depois de concluídos: para corrigir, use <strong>Nova a partir desta</strong>. As demais permitem <strong>Salvar alterações</strong>.</li><li>Nas ferramentas há também a <strong>Leitura profissional</strong> (o que chamou atenção, prioridade, próximo passo).</li></ul>')}
+${box('atencao', 'Bom saber', '<ul><li>Status nos cartões: <strong>Disponível, Em preenchimento, Concluída, Revisada</strong>.</li><li>O <strong>Mapa do Propósito</strong> é montado a partir do OQ³ e do PQQ salvos (“Falta o PQQ”, “Falta o OQ³” ou “Montado”).</li><li><strong>Mapa da Rotina</strong> e <strong>Gatilhos &amp; Respostas</strong> não são editados depois de concluídos: para corrigir, use <strong>Nova a partir desta</strong>. As demais permitem <strong>Salvar alterações</strong>.</li><li>Nas ferramentas há também a <strong>Leitura profissional</strong> (o que chamou atenção, prioridade, próximo passo).</li></ul>')}${fig('oq3', '<b>Tela</b> OQ³: as três perguntas (Quer, Precisa, Consegue).')}
+
 
 <!-- 11 -->
 <h1>Montar o Resultado HOLOS com o Playbook</h1>
@@ -348,14 +349,14 @@ ${passo(8)}
 <li>Escolha <strong>Paciente</strong>, <strong>Tipo</strong> (Primeira consulta, Retorno, Reavaliação HOLOSCAN, Online), <strong>Dia</strong>, <strong>Hora</strong>, <strong>Duração</strong> (30, 45, 60 ou 90 minutos) e, se quiser, uma observação.</li>
 <li>Clique em <strong>Marcar consulta</strong>.</li>
 </ol>
-${fig('agNova', '<b>Tela</b> Agenda com o formulário de nova consulta.')}
 <ul>
 <li>Visões <strong>Dia, Semana e Mês</strong>, com o botão <strong>Hoje</strong>.</li>
 <li><strong>Desmarcar</strong> (com motivo opcional) e <strong>Reagendar</strong> não apagam o histórico.</li>
 <li><strong>Bloquear</strong> reserva horários (com motivo) em que você não atende.</li>
 <li>O sistema avisa sobre <strong>conflito de horário</strong> e <strong>consulta no passado</strong>.</li>
 <li>No dia da consulta, clique nela e em <strong>Iniciar atendimento</strong>.</li>
-</ul>
+</ul>${fig('agNova', '<b>Tela</b> Agenda com o formulário de nova consulta.')}
+
 
 <!-- 14 -->
 <h1>O retorno</h1>
@@ -400,18 +401,6 @@ ${fig('dashPac', '<b>Tela</b> Dashboard com pacientes em acompanhamento.')}
 <p>No menu, <strong>Ajuda</strong> traz perguntas frequentes, passo a passo, glossário e “reportar um erro”.</p>
 
 <!-- 17 -->
-<h1>Assistente de IA</h1>
-<p class="abre">Conecte o HoloHacking ao seu assistente (Claude, ChatGPT ou outro compatível com MCP) e peça: “gere o Resultado da Marina”.</p>
-<ol>
-<li><strong>Perfil → Assistente de IA → Gerar URL de conexão</strong> (dê um nome, por exemplo “Claude do consultório”).</li>
-<li>A URL aparece <strong>uma única vez</strong>: clique em <strong>Copiar</strong> e guarde como uma senha.</li>
-<li>No assistente, adicione um conector personalizado com essa URL (os passos para Claude e ChatGPT estão na própria tela).</li>
-<li>Na conversa, peça o que precisa. O assistente busca o paciente, lê o contexto e grava o Resultado HOLOS na ficha, para você revisar e emitir como sempre.</li>
-</ol>
-${fig('ia', '<b>Tela</b> Perfil, aba Assistente de IA.')}
-${box('atencao', 'Segurança', '<ul><li>O assistente enxerga apenas os seus pacientes, e nada vai para o paciente sem você: o PDF continua saindo da página Resultado.</li><li>Para desligar, clique em <strong>Revogar</strong>. O efeito é imediato.</li><li>No máximo 5 conexões ativas. Contas ainda em liberação não geram conexão.</li></ul>')}
-
-<!-- 18 -->
 <h1>Dúvidas rápidas</h1>
 <table><thead><tr><th>Situação</th><th>O que fazer</th></tr></thead><tbody>
 <tr><td>“Selecione ou inicie um atendimento para salvar.”</td><td>Abra um atendimento no bloco <strong>Atendimento ativo</strong> da ficha (Novo atendimento ou Selecionar) e salve de novo.</td></tr>
@@ -427,7 +416,7 @@ ${box('atencao', 'Segurança', '<ul><li>O assistente enxerga apenas os seus paci
 <tr><td>Mudei o logo, mas o PDF antigo não mudou</td><td>O Resultado Final congela os dados do Perfil. Gere uma nova emissão.</td></tr>
 </tbody></table>
 
-<!-- 19 -->
+<!-- 18 -->
 <h1>Checklist do atendimento</h1>
 <p class="abre">Imprima ou deixe aberto na primeira semana de uso.</p>
 <div class="linha-tempo">
@@ -442,39 +431,109 @@ ${box('atencao', 'Segurança', '<ul><li>O assistente enxerga apenas os seus paci
 <div data-n="9"><b>Agendar o retorno</b><span>Nova consulta → Tipo Retorno → Marcar consulta.</span></div>
 <div data-n="10"><b>No retorno</b><span>Novo atendimento → Mapeamento de retorno → Reaplicar HOLOSCAN → Playbook (manter, ajustar, concluir) → enviar.</span></div>
 </div>
-<div class="fim"><img src="${LOGO}" alt=""><p class="eyebrow">HoloHacking · Nutrição que cuida do ser humano inteiro</p><p>Corpo · Mente · Espírito</p></div>
+
 `;
 
-const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Guia de uso do HoloHacking</title><style>${CSS}
+/* capítulos: cartão verde com número, título, subtítulo e a pinha */
+const capitulos = (h) => { let n = 0; return h.replace(/<h1>([^<]+)<\/h1>\n(?:<p class="abre">([\s\S]*?)<\/p>\n)?/g, (m, t, a) => { n++;
+  return `<header class="cap"><img src="${LOGO}" alt=""><span class="cap-n">Capítulo ${String(n).padStart(2, '0')}</span><h1 data-cap="${n}">${t}</h1>${a ? `<p class="abre">${a}</p>` : ''}</header>\n`; }); };
+const ESTILO = `
+@page fundo{ margin:0; }
+.capa,.contracapa{ page:fundo; }
+body{ color:#1d3a2e; }
+strong{ color:#14503b; }
+h2{ color:#0b3325; border-bottom:1px solid rgba(201,163,90,.55); padding-bottom:1.6mm; }
+h3{ color:#8a6f32; }
+p.eyebrow{ display:inline-block; background:#0b3325; color:#e2c98a; padding:1.3mm 4mm; border-radius:10mm; letter-spacing:.24em; margin:2mm 0 3mm; }
+ol > li::marker{ color:#8a6f32; font-weight:600; }
+th{ color:#e2c98a; }
+figure img{ border:1px solid rgba(201,163,90,.6); }
+.cap{ break-before:page; page-break-before:always; position:relative; overflow:hidden; border-radius:4mm; padding:10mm 11mm 8.5mm; margin:0 0 7mm;
+  background:radial-gradient(120% 140% at 85% 0%, #14503b 0%, #0b3325 45%, #06231a 100%); color:#f4efe3; break-after:avoid; page-break-after:avoid; }
+.cap::after{ content:""; position:absolute; inset:2.6mm; border:1px solid rgba(201,163,90,.4); border-radius:2.6mm; pointer-events:none; }
+.cap img{ position:absolute; right:6mm; top:50%; transform:translateY(-50%); width:30mm; opacity:.28; }
+.cap .cap-n{ font-size:7.8pt; letter-spacing:.32em; text-transform:uppercase; color:#e2c98a; font-weight:600; }
+.cap h1{ break-before:auto; page-break-before:auto; color:#f4efe3; font-size:27pt; margin:2.5mm 0 2mm; padding:0; max-width:130mm; }
+.cap h1::before{ display:none; }
+.cap p.abre{ color:#e2c98a; font-family:'Cormorant Garamond',serif; font-style:italic; font-size:13.5pt; line-height:1.35; margin:0; max-width:132mm; }
+h1#sumario{ color:#0b3325; }
+ol.sumario li{ justify-content:space-between; align-items:baseline; }
+ol.sumario li span{ flex:1; }
+ol.sumario li b{ font-family:'Cormorant Garamond',serif; color:#8a6f32; font-size:11.5pt; }
+.contracapa{ break-before:page; page-break-before:always; width:210mm; height:297mm; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+  background:radial-gradient(120% 80% at 50% 35%, #0f3d2c 0%, #0b3325 45%, #06231a 100%); color:#f4efe3; position:relative; }
+.contracapa::before{ content:""; position:absolute; inset:9mm; border:1px solid rgba(201,163,90,.35); }
+.contracapa img{ width:40mm; margin-bottom:6mm; }
+.contracapa .cc-nome{ font-family:'Cormorant Garamond',serif; font-size:30pt; margin:0; }
+.contracapa .cc-frase{ font-family:'Cormorant Garamond',serif; font-size:18pt; line-height:1.3; margin:0 0 6mm; }
+.contracapa .cc-frase em{ color:#e2c98a; }
+.contracapa .cc-pilares{ font-size:8.5pt; letter-spacing:.4em; text-transform:uppercase; color:#c9a35a; }
+.contracapa .cc-rodape{ position:absolute; bottom:22mm; font-size:8pt; letter-spacing:.2em; text-transform:uppercase; color:rgba(226,201,138,.8); margin:0; }
 .duas{align-items:start}
 figure img.media{max-width:78%}
 .box.chave p{margin:0}
-</style></head><body>${corpo}</body></html>`;
-writeFileSync(HTML, html);
+`;
+const CONTRA = `<section class="capa"><div class="marca">HOLOHACKING</div><div><img class="pinha" src="${LOGO}" alt=""><h1 class="titulo-capa">Nutrição que cuida do<br>ser humano inteiro.</h1><div class="filete"></div><p class="sub">Corpo · Mente · Espírito</p></div><div class="rodape-capa">Plataforma clínica da Nutrição Holística</div></section>`;
+const montarHtml = (PAGS) => `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Guia de uso do HoloHacking</title><style>${CSS}${ESTILO}</style></head><body>${capitulos(montarCorpo(PAGS))}</body></html>`;
 
 const nav = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', headless: 'new', args: ['--no-sandbox'] });
-const p = await nav.newPage();
-await p.goto(pathToFileURL(HTML).href, { waitUntil: 'networkidle0' });
-await p.evaluate(() => document.fonts.ready);
-await p.emulateMediaType('print');
-await p.pdf({ path: PDF, format: 'A4', printBackground: true, preferCSSPageSize: true });
+async function imprimir(PAGS) {
+  writeFileSync(HTML, montarHtml(PAGS));
+  const p = await nav.newPage();
+  await p.goto(pathToFileURL(HTML).href, { waitUntil: 'networkidle0' });
+  await p.evaluate(() => document.fonts.ready);
+  await p.emulateMediaType('print');
+  await p.pdf({ path: PDF, format: 'A4', printBackground: true, preferCSSPageSize: true });
+  await p.close();
+}
+/* 1ª passada: descobre a página de cada capítulo ("Capítulo NN"); 2ª passada: sumário com os números */
+await imprimir([]);
+const PAGS = JSON.parse(execFileSync('python3', ['-I', '-c', `
+import sys, json, pymupdf
+doc = pymupdf.open(sys.argv[1]); n = int(sys.argv[2]); r = []
+for k in range(1, n + 1):
+    alvo = 'CAPÍTULO%02d' % k; achou = ''
+    for i, pg in enumerate(doc):
+        t = ''.join(pg.get_text().upper().split())
+        if alvo in t: achou = i + 1; break
+    r.append(achou)
+print(json.dumps(r))
+`, PDF, String(CAPS.length)]).toString());
+console.log('paginas dos capitulos', PAGS.join(' '));
+await imprimir(PAGS);
+{ const CCPDF = PDF.replace('.pdf', '.contracapa.pdf');
+  writeFileSync(HTML + '.cc.html', `<!doctype html><html><head><meta charset="utf-8"><style>${CSS} .capa h1.titulo-capa{font-size:32pt}</style></head><body>${CONTRA}</body></html>`);
+  const p = await nav.newPage(); await p.goto(pathToFileURL(HTML + '.cc.html').href, { waitUntil: 'networkidle0' }); await p.evaluate(() => document.fonts.ready); await p.emulateMediaType('print');
+  await p.pdf({ path: CCPDF, format: 'A4', printBackground: true, preferCSSPageSize: true, pageRanges: '1' }); await p.close();
+  execFileSync('python3', ['-I', '-c', 'import sys, pymupdf\nd = pymupdf.open(sys.argv[1]); c = pymupdf.open(sys.argv[2]); d.insert_pdf(c); d.saveIncr() if False else d.save(sys.argv[1] + ".t", garbage=3, deflate=True)\nimport os; os.replace(sys.argv[1] + ".t", sys.argv[1]); os.remove(sys.argv[2])', PDF, CCPDF]);
+  require_rm(HTML + '.cc.html'); }
 await nav.close();
 
-/* números de página (capa sem número) */
+/* rodapé com a pinha (sem rodapé na capa e na contracapa) */
 execFileSync('python3', ['-I', '-c', `
 import sys, pathlib, pymupdf
-pdf = pathlib.Path(sys.argv[1])
+pdf = pathlib.Path(sys.argv[1]); logo = sys.argv[2]
 doc = pymupdf.open(pdf)
-fonte = pymupdf.Font(fontfile=str(pathlib.Path.home() / '.local/share/fonts/jost-latin-400-normal.ttf'))
+fonte = pymupdf.Font(fontfile=str(pathlib.Path.home() / '.local/share/fonts/jost-latin-500-normal.ttf')) if (pathlib.Path.home() / '.local/share/fonts/jost-latin-500-normal.ttf').exists() else pymupdf.Font(fontfile=str(pathlib.Path.home() / '.local/share/fonts/jost-latin-400-normal.ttf'))
+ultima = len(doc) - 1
 for i, pg in enumerate(doc):
-    if i == 0: continue
+    if i == 0 or i == ultima: continue
     pg.wrap_contents(); w, h = pg.rect.width, pg.rect.height
+    pg.draw_line((54, h - 42), (w - 54, h - 42), color=(0.79, 0.64, 0.35), width=0.5)
+    pg.insert_image(pymupdf.Rect(54, h - 37, 66, h - 25), filename=logo)
     tw = pymupdf.TextWriter(pg.rect)
-    tw.append((54, h - 30), 'HOLOHACKING  ·  Guia de uso', font=fonte, fontsize=7)
-    n = str(i + 1); tw.append((w - 54 - fonte.text_length(n, 8), h - 30), n, font=fonte, fontsize=8)
-    tw.write_text(pg, color=(0.54, 0.44, 0.2))
-    pg.draw_line((54, h - 40), (w - 54, h - 40), color=(0.79, 0.64, 0.35), width=0.4)
+    tw.append((71, h - 28.5), 'HOLOHACKING', font=fonte, fontsize=7.2)
+    tw.write_text(pg, color=(0.043, 0.2, 0.145))
+    tw2 = pymupdf.TextWriter(pg.rect)
+    tw2.append((71 + fonte.text_length('HOLOHACKING', 7.2) + 6, h - 28.5), '·  Guia de uso', font=fonte, fontsize=7.2)
+    n = str(i + 1); tw2.append((w - 54 - fonte.text_length(n, 9), h - 28.5), n, font=fonte, fontsize=9)
+    tw2.write_text(pg, color=(0.54, 0.44, 0.2))
 tmp = pdf.with_suffix('.tmp.pdf'); doc.save(tmp, garbage=3, deflate=True); n = len(doc); doc.close(); tmp.replace(pdf)
 print('paginas', n)
-`, PDF], { stdio: 'inherit' });
+`, PDF, R + 'logo-holohacking.png'], { stdio: 'inherit' });
+/* versão leve para baixar no celular */
+execFileSync('python3', ['-I', '-c', `
+import sys, pymupdf
+d = pymupdf.open(sys.argv[1]); d.rewrite_images(dpi_threshold=110, dpi_target=100, quality=62); d.save(sys.argv[2], garbage=4, deflate=True)
+`, PDF, PDF.replace('.pdf', '-leve.pdf')]);
 console.log('pdf', PDF);

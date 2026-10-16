@@ -219,9 +219,8 @@ await tela(D, '28-agenda');
 
 /* dashboard com paciente, perfil */
 await D.evaluate(() => window.irParaSecao('dashboard')); await espera(800); await tela(D, '29-dashboard-com-pacientes');
-await D.evaluate(() => window.irParaSecao('perfil')); await espera(800); await tela(D, '30-perfil');
+await D.evaluate(() => { window.irParaSecao('perfil'); const st = document.createElement('style'); st.textContent = '[data-aba-perfil="ia"]{display:none!important}'; document.head.appendChild(st); }); await espera(800); await tela(D, '30-perfil');
 await tela(D, '30b-perfil-inteira', { inteira: true });
-await D.evaluate(() => { const b = document.querySelector('[data-aba-perfil="ia"]'); if (b) b.click(); }); await espera(800); await tela(D, '31-perfil-assistente-ia');
 
 /* retorno (paciente da fixture): Playbook do retorno com as decisões e o documento */
 await D.evaluate(async (pid, eid) => { window.definirPacienteAtivo(pid); try { await window.AtendimentoAtual.selecionarPorId(eid); } catch (e) {} window.levarParaFicha('aba:visao', pid); }, fx.PA, fx.E2 || fx.E1); await espera(900);
