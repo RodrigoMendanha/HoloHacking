@@ -297,12 +297,16 @@
     }).join("");
     var rot = sistemas.map(function (s, i) {
       var p = pt(i, 12.6), anc = Math.abs(p[0] - c) < 8 ? "middle" : (p[0] > c ? "start" : "end");
-      return '<text class="rh-radar-rotulo" x="' + p[0].toFixed(1) + '" y="' + p[1].toFixed(1) + '" text-anchor="' + anc + '">' + e(abreviar(s.nome || s.sistema)) +
+      return '<text class="rh-radar-rotulo" x="' + p[0].toFixed(1) + '" y="' + p[1].toFixed(1) + '" text-anchor="' + anc + '">' + e(rotuloRadar(s.nome || s.sistema)) +
         ' <tspan class="rh-radar-nota">' + (s.avaliavel ? num(s.nota) : "—") + "</tspan></text>";
     }).join("");
     var desc = sistemas.map(function (s) { return (s.nome || s.sistema) + " " + (s.avaliavel ? num(s.nota) : "sem nota"); }).join("; ");
     /* margem lateral no viewBox: os nomes dos sistemas nas pontas nao sao cortados */
-    return '<svg class="rh-radar" viewBox="-120 -6 ' + (tam + 240) + " " + (tam + 12) + '" role="img" aria-label="Radar dos cinco sistemas: ' + e(desc) + '">' + grade + eixos + area + pontos + rot + "</svg>";
+    return '<svg class="rh-radar" viewBox="-150 -6 ' + (tam + 300) + " " + (tam + 12) + '" role="img" aria-label="Radar dos cinco sistemas: ' + e(desc) + '">' + grade + eixos + area + pontos + rot + "</svg>";
+  }
+  /* 16/10: no radar, nomes legiveis (sem "Ácido-Inflam."); o texto corrido continua com abreviar() */
+  function rotuloRadar(nome) {
+    return String(nome).replace(/^Sistema\s+/i, "").replace(/Mental[- ]Emocional[- ]Espiritual/i, "Mental-Emocional").replace(/Detox (e )?Linf[aá]tico/i, "Detox e Linfático").replace(/[ÁA]cido[- ]Inflamat[oó]rio/i, "Ácido Inflamatório");
   }
   function abreviar(nome) {
     return String(nome).replace(/^Sistema\s+/i, "").replace(/Mental[- ]Emocional[- ]Espiritual/i, "Mental-Emocional").replace(/Detox (e )?Linf[aá]tico/i, "Detox").replace(/[ÁA]cido[- ]Inflamat[oó]rio/i, "Ácido-Inflam.");

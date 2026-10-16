@@ -4890,15 +4890,18 @@ body.rp-gerando .rp-doc{border-radius:0;border:0}
    o padding de tela; espaco entre secoes menor; rodape com assinatura/carimbo ao lado do texto, nao empilhado */
 body.rp-gerando .rp-doc{padding:0;gap:14px}
 body.rp-gerando .rp-doc .rp-corpo,body.rp-imprimindo .rp-doc .rp-corpo{gap:14px}
-body.rp-gerando .rp-doc .rp-rodape,body.rp-imprimindo .rp-doc .rp-rodape{grid-template-columns:auto 1fr;column-gap:16px;row-gap:2px;align-items:center;padding-top:10px}
+body.rp-gerando .rp-doc .rp-rodape:has(> .rp-assinaturas),body.rp-imprimindo .rp-doc .rp-rodape:has(> .rp-assinaturas){grid-template-columns:auto 1fr;column-gap:16px;row-gap:2px;align-items:center;padding-top:10px}
 body.rp-gerando .rp-doc .rp-assinaturas,body.rp-imprimindo .rp-doc .rp-assinaturas{grid-row:span 3;gap:10px}
-body.rp-gerando .rp-doc .rp-rodape > :not(.rp-assinaturas),body.rp-imprimindo .rp-doc .rp-rodape > :not(.rp-assinaturas){grid-column:2}
+/* 16/10: estas duas regras sao do rodape das emissoes RF-1 (.rp-assinaturas); no RF-3 (.rp-assinatura-bloco) elas jogavam
+   tudo para uma 2a coluna implicita. Agora so valem quando o rodape e o do RF-1. */
+body.rp-gerando .rp-doc .rp-rodape:has(> .rp-assinaturas) > :not(.rp-assinaturas),body.rp-imprimindo .rp-doc .rp-rodape:has(> .rp-assinaturas) > :not(.rp-assinaturas){grid-column:2}
 body.rp-gerando .rp-doc .rp-imagem,body.rp-imprimindo .rp-doc .rp-imagem{min-height:0}
 body.rp-gerando .rp-doc .rp-imagem img,body.rp-imprimindo .rp-doc .rp-imagem img{max-height:60px;max-width:160px}
 body.rp-gerando .rp-doc .rp-cab,body.rp-imprimindo .rp-doc .rp-cab{padding-bottom:10px}
-body.rp-gerando .rp-doc .rh-geral-grade,body.rp-imprimindo .rp-doc .rh-geral-grade{grid-template-columns:300px 1fr;gap:14px;align-items:start}
-body.rp-gerando .rp-doc .rh-radar-caixa svg,body.rp-imprimindo .rp-doc .rh-radar-caixa svg{max-width:300px}
-body.rp-gerando .rp-doc .rh-radar-rotulo,body.rp-imprimindo .rp-doc .rh-radar-rotulo{font-size:13px}
+/* 16/10: radar maior no papel e rotulos legiveis (nome inteiro, 17px no desenho = ~10pt no A4) */
+body.rp-gerando .rp-doc .rh-geral-grade,body.rp-imprimindo .rp-doc .rh-geral-grade{grid-template-columns:380px 1fr;gap:14px;align-items:start}
+body.rp-gerando .rp-doc .rh-radar-caixa svg,body.rp-imprimindo .rp-doc .rh-radar-caixa svg{max-width:380px}
+body.rp-gerando .rp-doc .rh-radar-rotulo,body.rp-imprimindo .rp-doc .rh-radar-rotulo{font-size:17px}
 /* no papel: Indice numa linha e as tres notas da Triade lado a lado (sem o Espirito sozinho numa segunda linha) */
 body.rp-gerando .rp-doc .rh-numeros,body.rp-imprimindo .rp-doc .rh-numeros{grid-template-columns:repeat(3,1fr);gap:8px}
 body.rp-gerando .rp-doc .rh-num-indice,body.rp-imprimindo .rp-doc .rh-num-indice{grid-column:1/-1}
@@ -6457,3 +6460,38 @@ body.rp-gerando .rp-doc .pf-doc ul > li::before{content:none;display:none}
 .ia-vazio{color:var(--texto-suave)}
 .ia-tabela-caixa{max-width:100%;overflow-x:auto}
 @media (max-width:640px){.ia-tabela th:nth-child(3),.ia-tabela td:nth-child(3),.ia-tabela th:nth-child(4),.ia-tabela td:nth-child(4){display:none}.ia-card{padding:1rem}.ia-tabela .btn-borda-ouro{padding:6px 10px;font-size:.72rem}}
+
+/* 16/10 (estabilizacao): Triade da visao do paciente sem corte ("COR 7,2"). As tres caixas quebram linha quando a
+   coluna fica estreita e o rotulo nunca e cortado. */
+.rh-num{min-width:0}
+.rh-num span{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;letter-spacing:.03em}
+.rh-doc-paciente .rh-numeros{grid-template-columns:repeat(auto-fit,minmax(96px,1fr))}
+.rh-doc-paciente .rh-num-indice{grid-column:1/-1}
+@media (max-width:1180px){ .rh-doc-paciente .rh-geral-grade{grid-template-columns:1fr} .rh-doc-paciente .rh-radar-caixa{max-width:420px;margin:0 auto} }
+
+/* 16/10 (estabilizacao): no celular (~390 px) o cabecalho da ficha prioriza nome, status e acao principal */
+@media (max-width:480px){
+  #secao-pacientes .fic-topo{padding:12px 14px;gap:8px 10px}
+  #secao-pacientes .fic-topo .pac-avatar{width:38px;height:38px;font-size:1.05rem}
+  #secao-pacientes #ficha-nome{font-size:1.3rem;line-height:1.15}
+  #secao-pacientes .fic-contato{font-size:.78rem;gap:2px 4px}
+  #secao-pacientes .fic-contato a[href^="mailto:"],#secao-pacientes .fic-contato .fic-cadastro,#secao-pacientes .fic-contato .fic-ponto{display:none}
+  #secao-pacientes .fic-acoes-topo{gap:6px}
+  #secao-pacientes .fic-acoes-topo > .btn-verde:not(.hidden){flex:1 1 100%;padding-block:10px}
+  #secao-pacientes .fic-acoes-topo > .perf-botao,#secao-pacientes .fic-mais > .perf-botao{padding:8px 12px;font-size:.85rem}
+  #secao-pacientes .fic-topo .fic-faixa{gap:4px 12px;margin-top:4px;padding-top:6px}
+}
+/* estados da consulta (Agendada / Em atendimento / Realizada) e do atendimento encerrado */
+.cons-estado{font-weight:600}
+.cons-em_atendimento{color:var(--dourado-escuro,#a07a2c)}
+.cons-realizada{color:var(--realce,#2f6b4f)}
+.cal-evento.em-atendimento{outline:2px solid rgba(200,160,80,.55)}
+.cal-evento.realizada{opacity:.8}
+.fic-at-encerrado{font-style:normal;opacity:.8}
+.modal-erro{margin-top:10px}
+.aviso-obrigatoria{margin-bottom:12px}
+.pb-rel-anterior{border-style:dashed}
+.evo-estrategias{list-style:none;padding:0;margin:0;display:grid;gap:6px}
+.evo-decisao{font-size:.8rem;letter-spacing:.06em}
+.evo-holoscan td:not(:first-child),.evo-holoscan th:not(:first-child){text-align:center}
+.fic-mais-pos{display:contents}

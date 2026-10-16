@@ -328,6 +328,7 @@
     var main = $("conteudo"); main.textContent = "";
     var total = totalPassos(), i = estado.passo;
     lembrarPasso();
+    document.body.classList.add("em-etapas");
     $("passo-txt").innerHTML = "";
     $("passo-txt").appendChild(el("span", {}, ["Etapa ", el("b", { texto: String(i + 1) }), " de " + total]));
     $("trilho").style.width = Math.round(((i + 1) / total) * 100) + "%";

@@ -145,6 +145,10 @@
         if (v !== null && localStorage.getItem(k) === null) {
           localStorage.setItem(k, v);
         }
+        /* 16/10 (privacidade): o stash so existe enquanto a conta esta fora. Depois de voltar para a chave normal (ou se a
+           chave normal ja tem exatamente o mesmo conteudo) ele e removido — a copia clinica nao fica duplicada no disco.
+           Se a chave normal tem OUTRO conteudo, o stash fica (nada se perde). */
+        if (v !== null && localStorage.getItem(k) === v) localStorage.removeItem(stash);
       });
       localStorage.setItem(CHAVE_DONO, uid);
     } catch (e) { /* navegador em modo privado */ }

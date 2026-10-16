@@ -114,6 +114,17 @@ input::placeholder, textarea::placeholder { color: #8a978f; opacity: 1; }
 main h2 { overflow-wrap: anywhere; }
 .revisao dd { overflow-wrap: anywhere; }
 @media (min-width: 900px) { .envolve { max-width: 720px; } }
+/* 16/10 (estabilizacao): no celular, depois de comecar as etapas, o cabecalho verde encolhe (as perguntas aparecem logo) */
+@media (max-width: 600px) {
+  body.em-etapas header.topo { padding-block: 10px 10px; }
+  body.em-etapas .prof { gap: 10px; }
+  body.em-etapas .prof img { width: 36px; height: 36px; border-radius: 8px; }
+  body.em-etapas .prof b { font-size: 16px; }
+  body.em-etapas .prof span { font-size: 12px; }
+  body.em-etapas .olho { margin: 6px 0 2px; font-size: 11px; }
+  body.em-etapas h1 { font-size: 20px; margin: 0; }
+  body.em-etapas .topo p:not(.olho) { display: none; }
+}
 </style>
 </head>
 <body>

@@ -1093,9 +1093,11 @@
         // um paciente ativo — o formulario nasce com ele, em vez de cair no
         // primeiro nome da lista e pedir para escolher de novo.
         if (novo.dataset.novo === "consulta") {
-          /* dentro da Agenda a consulta nova comeca sem paciente escolhido;
-             quem vem da ficha usa Agenda.novaConsultaPara(pid) */
-          novaConsulta(null, null, null);
+          /* 16/10 (estabilizacao): se ja ha um paciente selecionado no contexto (barra do paciente / ficha), a consulta
+             nova ja vem com ele; sem contexto, comeca sem paciente escolhido (como antes) */
+          var pidCtx = window.pacienteAtivoId ? window.pacienteAtivoId() : null;
+          if (pidCtx && window.pacienteArquivado && window.pacienteArquivado(pidCtx)) pidCtx = null;
+          novaConsulta(null, null, pidCtx || null);
         } else novoBloqueio();
         return;
       }

@@ -22,6 +22,8 @@
   const estado = { pacientes: [], ativo: null, carregado: false };
 
   window.limparEstadoApp = function () {
+    /* 16/10: logout/troca de conta esquece o "ultimo paciente" desta aba */
+    try { sessionStorage.removeItem("holohacking.ultimoPaciente"); } catch (e) { /* sem sessionStorage */ }
     estado.pacientes = [];
     estado.ativo = null;
     estado.carregado = false;
@@ -239,6 +241,7 @@
      olha a tela, nao da clinica, e nao acompanha a pessoa para outra maquina. */
   const CHAVE_TEMA = "holohacking.aparencia";
   const CHAVE_SEM_PACIENTE = "holohacking.semPaciente";
+  const CHAVE_ULTIMO_PACIENTE = "holohacking.ultimoPaciente";   // 16/10: o paciente selecionado sobrevive ao F5 (so nesta aba)
   const btnTema = $("#btn-tema");
 
   function sistemaEstaEscuro(){
@@ -563,7 +566,14 @@
     estado.pacientes = pacientes;
     /* Ao carregar, o paciente em foco e o primeiro ATIVO: um arquivado voltava
        selecionado na barra de contexto a cada recarga. */
-    const primeiroAtivo = pacientes.find(p => p.status !== "inativo");
+    let primeiroAtivo = pacientes.find(p => p.status !== "inativo");
+    /* 16/10 (estabilizacao): depois do F5, nesta aba, volta o paciente que estava selecionado (antes: sempre o
+       primeiro da lista, e a pessoa podia achar que continuava no anterior). So se ainda existir e estiver ativo. */
+    try {
+      const ult = sessionStorage.getItem(CHAVE_ULTIMO_PACIENTE);
+      const p0 = ult ? pacientes.find(p => p.id === ult && p.status !== "inativo") : null;
+      if(p0) primeiroAtivo = p0;
+    } catch (e) { /* sem sessionStorage */ }
     let limpoNestaAba = false;
     try { limpoNestaAba = sessionStorage.getItem(CHAVE_SEM_PACIENTE) === "1"; } catch (e) { /* sem sessionStorage */ }
     if(primeiroAtivo && !estado.ativo && !limpoNestaAba) estado.ativo = primeiroAtivo.id;
@@ -643,7 +653,7 @@
   function definirAtivo(id){
     estado.ativo = id || null;
     /* paciente escolhido de novo: o "desselecionado" (X da barra) deixa de valer nesta aba */
-    if (id) { try { sessionStorage.removeItem(CHAVE_SEM_PACIENTE); } catch (e) { /* sem sessionStorage */ } }
+    if (id) { try { sessionStorage.removeItem(CHAVE_SEM_PACIENTE); sessionStorage.setItem(CHAVE_ULTIMO_PACIENTE, id); } catch (e) { /* sem sessionStorage */ } }
     atualizarSeletores();
     carregarFormularios();
     carregarHoloscan();
@@ -1116,7 +1126,8 @@
     /* Telefone e e-mail viram link: a ficha é aberta quando se vai falar com a
        pessoa, e copiar o número na mão é o passo que sobrava. */
     const contato = [];
-    if(p.telefone) contato.push('<a href="tel:' + escapar(p.telefone) + '">' + escapar(p.telefone) + "</a>");
+    /* 16/10: telefone so com digitos (cadastros antigos) aparece com mascara; o dado guardado nao muda */
+    if(p.telefone) contato.push('<a href="tel:' + escapar(p.telefone) + '">' + escapar(/^\d{10,11}$/.test(String(p.telefone)) && window.mascaraTelefoneBR ? window.mascaraTelefoneBR(p.telefone) : p.telefone) + "</a>");
     if(p.email) contato.push('<a href="mailto:' + escapar(p.email) + '">' + escapar(p.email) + "</a>");
     if(p.created_at) contato.push('<span class="fic-cadastro">Cadastrado em ' +
       escapar(dataBR(p.created_at.slice(0, 10))) + "</span>");
@@ -1384,6 +1395,13 @@
       abrirFicha(id);
       const aba = document.querySelector('[data-aba="' + destino.slice(4) + '"]');
       if(aba) aba.click();
+      /* 16/10 (estabilizacao): leva a tela ate a barra de abas — antes a aba trocava fora da vista e parecia que o
+         botao nao tinha funcionado */
+      if(aba) setTimeout(() => {
+        const barra = aba.closest(".abas") || aba;
+        const r = barra.getBoundingClientRect();
+        if(r.top < 0 || r.top > window.innerHeight * 0.6) window.scrollTo({ top: Math.max(0, window.scrollY + r.top - 80), behavior: "smooth" });
+      }, 60);
       return;
     }
 
@@ -1871,7 +1889,46 @@
     fecharFormularioPaciente();
     if(voltar && estado.pacientes.some(x => x.id === voltar)) abrirFicha(voltar);
   });
-  $("#painel-novo").addEventListener("input", () => { if(window.marcaSuja) window.marcaSuja("paciente"); });
+  $("#painel-novo").addEventListener("input", (ev) => {
+    if(window.marcaSuja) window.marcaSuja("paciente");
+    /* 16/10: o erro sai do campo assim que ele e corrigido */
+    if(ev.target && ev.target.getAttribute("aria-invalid") === "true"){ ev.target.removeAttribute("aria-invalid"); const m = document.getElementById(ev.target.id + "-erro"); if(m) m.remove(); }
+  });
+  /* 16/10 (estabilizacao): mascara visual do telefone brasileiro, (11) 99999-9999. Numero internacional (comeca com +)
+     fica como digitado. So o que esta sendo digitado agora muda; cadastros antigos ficam como estao. */
+  function mascaraTelefoneBR(v){
+    const t = String(v || "");
+    if(/^\s*\+/.test(t)) return t;
+    const d = t.replace(/\D/g, "").slice(0, 11);
+    if(d.length <= 2) return d ? "(" + d : "";
+    if(d.length <= 6) return "(" + d.slice(0, 2) + ") " + d.slice(2);
+    if(d.length <= 10) return "(" + d.slice(0, 2) + ") " + d.slice(2, 6) + "-" + d.slice(6);
+    return "(" + d.slice(0, 2) + ") " + d.slice(2, 7) + "-" + d.slice(7);
+  }
+  window.mascaraTelefoneBR = mascaraTelefoneBR;
+  $("#np-telefone").addEventListener("input", (ev) => {
+    if(ev.inputType && /^delete/.test(ev.inputType)) return;   // apagar nao reescreve o campo
+    const el = ev.target, novo = mascaraTelefoneBR(el.value);
+    if(novo !== el.value) el.value = novo;
+  });
+  /* 16/10: "Descartar" (aviso de alteracoes nao salvas) limpa de verdade o rascunho do cadastro */
+  if(window.registrarSujeira) window.registrarSujeira("paciente", {
+    descartar: () => fecharFormularioPaciente(),
+    salvar: () => new Promise(res => {
+      $("#btn-salvar-paciente").click();
+      let n = 0; const t = setInterval(() => { n++; if($("#painel-novo").classList.contains("hidden")){ clearInterval(t); res(true); } else if(n > 40){ clearInterval(t); res(false); } }, 100);
+    })
+  });
+  /* 16/10: erro de validacao junto do campo (o aviso flutuante cobria o rotulo) */
+  function erroNoCampo(sel, msg){
+    const el = $(sel); if(!el) { toast(msg); return; }
+    el.setAttribute("aria-invalid", "true");
+    let m = document.getElementById(el.id + "-erro");
+    if(!m){ m = document.createElement("p"); m.id = el.id + "-erro"; m.className = "campo-erro q-erro"; m.setAttribute("role", "alert"); el.insertAdjacentElement("afterend", m); }
+    m.textContent = msg;
+    el.scrollIntoView({ block: "center", behavior: "smooth" });
+    el.focus({ preventScroll: true });
+  }
 
   let editandoPacienteId = null;
 
@@ -1927,7 +1984,7 @@
   });
 
   function fecharFormularioPaciente(){
-    camposNovo.forEach(s => $(s).value = "");
+    camposNovo.forEach(s => { const el = $(s); el.value = ""; el.removeAttribute("aria-invalid"); const m = document.getElementById(el.id + "-erro"); if(m) m.remove(); });
     editandoPacienteId = null;
     voltarParaFicha = null;
     $("#painel-novo").classList.add("hidden");
@@ -1938,19 +1995,19 @@
 
   $("#btn-salvar-paciente").addEventListener("click", async () => {
     const campos = dadosDoFormulario();
-    if(!campos.nome){ toast("Informe o nome do paciente."); $("#np-nome").focus(); return; }
+    if(!campos.nome){ erroNoCampo("#np-nome", "Informe o nome do paciente."); return; }
     if(campos.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(campos.email)){
-      toast("E-mail inválido. Verifique e tente novamente."); $("#np-email").focus(); return;
+      erroNoCampo("#np-email", "E-mail inválido. Verifique e tente novamente."); return;
     }
     /* Correcao (auditoria): nascimento no futuro e telefone sem numero eram
        aceitos. Telefone: so digitos, espaco, + ( ) - . e de 8 a 15 digitos. */
     if(campos.nascimento && campos.nascimento > hojeISO()){
-      toast("A data de nascimento não pode estar no futuro."); $("#np-nascimento").focus(); return;
+      erroNoCampo("#np-nascimento", "A data de nascimento não pode estar no futuro."); return;
     }
     if(campos.telefone){
       const digitos = String(campos.telefone).replace(/\D/g, "");
       if(!/^[\d\s+().-]+$/.test(campos.telefone) || digitos.length < 8 || digitos.length > 15){
-        toast("Telefone inválido. Use só números (com DDD), por exemplo +55 11 99999-9999."); $("#np-telefone").focus(); return;
+        erroNoCampo("#np-telefone", "Telefone inválido. Use o DDD e o número, por exemplo (11) 99999-9999."); return;
       }
     }
 

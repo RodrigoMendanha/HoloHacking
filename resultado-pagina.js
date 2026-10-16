@@ -452,8 +452,19 @@
         c.style.margin = "0"; c.style.left = "0"; c.style.right = "auto";
         paginar(c, this.prop.pageSize.inner.px.height);
       });
+      /* 16/10: numero de pagina discreto ("1 / 3") no rodape de cada folha, depois de montar o PDF */
+      if (typeof w.toPdf === "function" && typeof w.get === "function") w = w.toPdf().get("pdf").then(numerarPaginas);
       return Promise.resolve(w.outputPdf("blob")).then(function (blob) { limpar(); return { blob: blob, nome: nome }; }, function (e) { limpar(); throw e; });
     });
+  }
+  function numerarPaginas(pdf) {
+    try {
+      var n = pdf.internal.getNumberOfPages(), L = pdf.internal.pageSize.getWidth(), A = pdf.internal.pageSize.getHeight();
+      for (var i = 1; i <= n; i++) {
+        pdf.setPage(i); pdf.setFontSize(8); pdf.setTextColor(130, 140, 135);
+        pdf.text(i + " / " + n, L - 12, A - 5, { align: "right" });
+      }
+    } catch (e) { /* sem numeracao: o PDF sai igual */ }
   }
   /* Paginacao do PDF baixado (pos-teste MR-V1 13/10), na COPIA que o html2pdf monta (o documento da tela nao muda).
      Blocos "atomicos" nunca quebram; quando um bloco cruzaria o fim da pagina, um espacador o leva para a proxima.
@@ -494,6 +505,11 @@
         sobe = sobe.parentElement;
         if (sobe.matches(CARTOES) && topo(sobe) >= fim - alturaPagina) ancora = sobe;
       }
+      /* 16/10 (estabilizacao): cartao importante que cabe inteiro numa pagina (ate 70% dela) nao se parte — vai todo
+         para a proxima (ex.: "Seu plano até a próxima consulta"). Cartao maior continua quebrando entre blocos. */
+      var cartao = ancora.closest ? ancora.closest(CARTOES) : null, externo = null;
+      while (cartao && caixa.contains(cartao) && cartao !== caixa) { externo = cartao; cartao = cartao.parentElement ? cartao.parentElement.closest(CARTOES) : null; }
+      if (externo && externo !== ancora && topo(externo) >= fim - alturaPagina && topo(externo) < fim && (base(externo) - topo(externo)) <= alturaPagina * 0.7) ancora = externo;
       var falta = fim - topo(ancora);
       if (falta <= 0 || falta >= alturaPagina) continue;
       var esp = document.createElement("div");
