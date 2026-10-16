@@ -825,13 +825,25 @@
     return '<div class="rel-registro" role="group" aria-label="Visão"><button type="button" class="rel-btn' + (atual === "profissional" ? " ativo" : "") + '" data-rh-visao-troca="profissional" aria-pressed="' + (atual === "profissional") + '">Visão profissional</button>' +
       '<button type="button" class="rel-btn' + (atual === "paciente" ? " ativo" : "") + '" data-rh-visao-troca="paciente" aria-pressed="' + (atual === "paciente") + '">Visão do paciente</button></div>';
   }
+  /* 16/10: na versao vigente (a que vira o Resultado Final), enviar direto no WhatsApp ou baixar o PDF: emite o Resultado
+     Final se ainda nao houver emissao (registro imutavel do que a paciente recebeu) e manda o PDF — sem passar pela pagina. */
+  function podeEnviar(r) {
+    var P = window.ResultadoPagina, pid = pacienteId();
+    if (!P || !P.emitirEEnviar || !temSupa() || arquivado() || !r || r.status === "rascunho" || r.superseded_at) return false;
+    var vig = P.resultadoFinal(pid);
+    if (!vig || vig.id !== r.id) return false;
+    var tv = Number((r.content_snapshot || {}).template_version || r.template_version || 1);
+    return tv < 5 || !!P.focoDoResultado(r);
+  }
   function htmlVer() {
     var r = porId(vendo.id);
     if (!r || !r.content_snapshot) { modo = "lista"; return htmlLista(pacienteId()); }
     var proximo = cache.linhas.filter(function (x) { return x.supersedes_id === r.id; })[0];
     var arq = arquivado();
     return '<div class="rh-ver-topo"><button type="button" class="btn-voltar" data-rh-acao="voltar">&larr; Histórico</button>' + trocaVisao(vendo.visao) +
-      '<div class="rh-ver-botoes"><button type="button" class="btn-verde" data-rh-acao="imprimir">Imprimir ou salvar em PDF</button>' +
+      '<div class="rh-ver-botoes">' + (podeEnviar(r) ? '<button type="button" class="btn-verde" data-rh-acao="whatsapp">Enviar no WhatsApp</button>' +
+        '<button type="button" class="btn-verde" data-rh-acao="pdf">Baixar PDF</button>' : "") +
+      '<button type="button" class="' + (podeEnviar(r) ? "btn-fantasma" : "btn-verde") + '" data-rh-acao="imprimir">Imprimir ou salvar em PDF</button>' +
       (r.status === "salvo" && !arq ? '<button type="button" class="btn-borda-ouro" data-rh-acao="revisar">Marcar como revisado</button>' : "") +
       (!proximo && !r.superseded_at && !arq ? '<button type="button" class="btn-borda-ouro" data-rh-acao="nova-versao">Nova versão a partir desta</button>' : "") + "</div></div>" +
       (r.superseded_at ? '<p class="rh-aviso">Esta versão foi substituída por uma versão mais nova. Ela continua aqui, como foi salva.</p>' : "") +
@@ -882,6 +894,10 @@
     if (nome === "ver") { vendo = { id: btn.dataset.rhId, visao: btn.dataset.rhVisao || "profissional" }; modo = "ver"; return pintar(); }
     if (nome === "nova-versao") { form = novoForm(pid, porId(vendo.id)); previa = null; vendo = null; modo = "editar"; return pintar(); }
     if (nome === "imprimir") return imprimir();
+    if (nome === "whatsapp" || nome === "pdf") {
+      var P = window.ResultadoPagina; if (!P) return;
+      return Promise.resolve(nome === "whatsapp" ? P.emitirEEnviar() : P.emitirEPdf()).then(null, function () { /* a pagina ja avisou */ });
+    }
     if (nome === "playbook") return abrirPlaybook();
     if (nome === "ir-holos-ai") { var ah = document.querySelector('[data-aba="holos-ai"]'); if (ah) ah.click(); return; }
     if (nome === "ir-conduta") { var ab = document.querySelector('[data-aba="conduta"]'); if (ab) ab.click(); return; }

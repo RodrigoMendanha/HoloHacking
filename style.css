@@ -6160,6 +6160,10 @@ body.rp-gerando .rp-doc,body.rp-imprimindo .rp-doc{border-top:5px solid #c9a35a;
   .rp-emissao{align-items:flex-start;text-align:left}
 }
 .rp-dica-whats{margin:8px 0 0;font-size:.8rem;color:var(--texto-suave);max-width:720px}
+.rp-envio-pronto{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:0 0 14px;padding:14px 18px;border-radius:14px;background:#eaf5ee;border:1px solid #9bcfb0;color:#0a2e22}
+.rp-envio-pronto>span{flex:1 1 260px;font-size:.95rem}
+.rp-envio-pronto a.btn-verde{text-decoration:none;display:inline-flex;align-items:center}
+.rh-ver-botoes .btn-verde[data-rh-acao="whatsapp"]:before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;background:#25d366;margin-right:8px;vertical-align:middle}
 /* sem logo/carimbo a grade deslocava as colunas: flex, com a marca e a data sempre a direita */
 .rp-cab{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .rp-cab .rp-quem{flex:1 1 220px}

@@ -275,7 +275,7 @@
       "</div>" +
       /* 14/10: o botao do WhatsApp manda o PDF: no celular (e no computador que permite) vai anexado; senao baixa e abre a conversa */
       '<p class="rp-dica-whats">Enviar pelo WhatsApp manda o PDF: no celular ele vai anexado direto (escolha o WhatsApp e a conversa). ' +
-        "No computador, o PDF é baixado e a conversa da paciente abre com a mensagem pronta: é só arrastar o arquivo para ela.</p>" +
+        "No computador, o PDF é baixado e a conversa da paciente abre com a mensagem pronta: é só arrastar o arquivo para ela (o WhatsApp não aceita anexo automático pelo navegador do computador).</p>" +
       "</div>";
   }
   function listaEmissoes(lista, atual) {
@@ -570,7 +570,35 @@
   }
   function abrirLink(url) {
     var w = window.open(url, "_blank", "noopener");
-    if (!w) toast("O navegador bloqueou a janela do WhatsApp. Permita pop-ups para este site.");
+    return !!w;
+  }
+  /* 16/10: "Enviar direto no WhatsApp". O navegador so deixa abrir o compartilhar (com o PDF anexado) ou uma janela nova
+     logo depois de um clique; se a emissao + o PDF demoraram e ele recusou, aparece uma faixa com UM botao: um clique e
+     o PDF vai (celular: compartilhar com o anexo; computador: a conversa da paciente com a mensagem pronta). */
+  var envioPronto = null;
+  function oferecerEnvio(pronto) {
+    envioPronto = pronto;
+    var a = alvo(); if (!a) return;
+    var velho = document.getElementById("rp-envio-pronto"); if (velho) velho.remove();
+    var div = document.createElement("div");
+    div.id = "rp-envio-pronto"; div.className = "rp-envio-pronto rp-so-tela"; div.setAttribute("role", "status");
+    div.innerHTML = '<span><b>PDF pronto.</b> ' + (pronto.file ? "Toque para enviar no WhatsApp com o PDF anexado." :
+      "Ele foi baixado: abra a conversa e anexe o arquivo " + escapar(pronto.nome) + ".") + "</span>" +
+      (pronto.file ? '<button type="button" class="btn-verde" data-rp-acao="enviar-pronto">Enviar no WhatsApp</button>'
+        : '<a class="btn-verde" data-rp-acao="abrir-conversa" href="' + escapar(pronto.link) + '" target="_blank" rel="noopener">Abrir conversa no WhatsApp</a>') +
+      '<button type="button" class="btn-fantasma" data-rp-acao="fechar-envio" aria-label="Fechar">Fechar</button>';
+    a.insertBefore(div, a.firstChild);
+    if (div.scrollIntoView) div.scrollIntoView({ block: "nearest" });
+  }
+  function fecharEnvio() { envioPronto = null; var b = document.getElementById("rp-envio-pronto"); if (b) b.remove(); }
+  function enviarPronto() {
+    var pr = envioPronto; if (!pr || !pr.file) return Promise.resolve({ modo: "nada" });
+    return navigator.share({ files: [pr.file], title: pr.nome, text: pr.msg }).then(function () { fecharEnvio(); return { modo: "compartilhar" }; }, function (e) {
+      if (e && e.name === "AbortError") return { modo: "cancelado" };
+      baixar(pr.blob, pr.nome);
+      oferecerEnvio({ nome: pr.nome, link: pr.link });
+      return { modo: "conversa" };
+    });
   }
   /* template 5: a mensagem cita o FOCO congelado na emissao (nunca hipotese nem outro texto profissional) */
   function mensagemWhatsAppEmissao(p, em) {
@@ -598,15 +626,20 @@
       var file = null;
       try { file = new File([res.blob], res.nome, { type: "application/pdf" }); } catch (e) { file = null; }
       /* celular: menu nativo de compartilhar, com o PDF anexado — a nutricionista escolhe o WhatsApp e a conversa */
+      var link = linkWhatsApp(p && p.telefone, msg);
       if (file && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         return navigator.share({ files: [file], title: res.nome, text: msg }).then(function () { return { modo: "compartilhar" }; }, function (e) {
           if (e && e.name === "AbortError") return { modo: "cancelado" };
-          baixar(res.blob, res.nome); abrirLink(linkWhatsApp(p && p.telefone, msg)); return { modo: "conversa" };
+          /* o clique "expirou" enquanto o PDF era gerado: um toque na faixa envia */
+          if (e && e.name === "NotAllowedError") { oferecerEnvio({ file: file, blob: res.blob, nome: res.nome, msg: msg, link: link }); return { modo: "faixa" }; }
+          baixar(res.blob, res.nome);
+          if (!abrirLink(link)) oferecerEnvio({ nome: res.nome, link: link });
+          return { modo: "conversa" };
         });
       }
       /* computador: baixa o PDF e abre a conversa da paciente com a mensagem pronta; ela anexa o arquivo */
       baixar(res.blob, res.nome);
-      abrirLink(linkWhatsApp(p && p.telefone, msg));
+      if (!abrirLink(link)) { oferecerEnvio({ nome: res.nome, link: link }); return { modo: "faixa" }; }
       toast(p && numeroWhatsApp(p.telefone) ? "PDF baixado. Na conversa que abriu, anexe o arquivo " + res.nome + "." : "PDF baixado. Cadastre o telefone da paciente para abrir a conversa dela direto.");
       return { modo: "conversa" };
     }).catch(function (e) {
@@ -624,6 +657,7 @@
   document.addEventListener("click", function (ev) {
     var a = alvo(); if (!a || !a.contains(ev.target)) return;
     var b = ev.target.closest("[data-rp-acao]"); if (!b) return;
+    if (b.dataset.rpAcao === "abrir-conversa") { setTimeout(fecharEnvio, 0); return; }   /* o link abre a conversa sozinho */
     ev.preventDefault();
     var acao = b.dataset.rpAcao, pid = pacienteId();
     if (acao === "ficha") { if (window.levarParaFicha && pid) window.levarParaFicha("aba:resultado-holos", pid); return; }
@@ -645,6 +679,8 @@
       return;
     }
     if (acao === "whatsapp") enviarWhatsApp();
+    if (acao === "enviar-pronto") enviarPronto();
+    if (acao === "fechar-envio") fecharEnvio();
   });
   document.addEventListener("DOMContentLoaded", function () {
     var anterior = window.aoTrocarPaciente;
@@ -661,7 +697,7 @@
   /* SIMPLIFICACAO 14/10 (aba HOLOS AI → "Gerar PDF"): abre a pagina Resultado, emite o Resultado Final do Resultado HOLOS
      vigente se ele ainda nao tem emissao (a emissao e o registro imutavel do que a paciente recebeu) e baixa o PDF dela.
      Nada novo e calculado: e o mesmo emitir + PDF dos botoes da pagina. */
-  function emitirEPdf() {
+  function emitirSePreciso() {
     var pid = pacienteId();
     if (!pid) return Promise.reject(new Error("Escolha uma paciente."));
     emissaoAberta = null;
@@ -671,7 +707,17 @@
       if (!r) throw new Error("Nenhum Resultado HOLOS finalizado");
       if (emAtual && emAtual.holos_result_id === r.id) return null;
       return emitir(pid, r).then(function () { return desenhar(); });
-    }).then(function () { return gerarPdf(); }).then(function (res) {
+    });
+  }
+  /* 16/10: o mesmo, terminando no envio pelo WhatsApp (botao "Enviar no WhatsApp" da ficha) */
+  function emitirEEnviar() {
+    return emitirSePreciso().then(function () { return enviarWhatsApp(); }, function (e) {
+      var m = (e && e.hint && MSG_EMISSAO[e.hint]) || (e && e.message) || "erro";
+      toast("Não foi possível preparar o envio agora (" + m + ")."); throw e;
+    });
+  }
+  function emitirEPdf() {
+    return emitirSePreciso().then(function () { return gerarPdf(); }).then(function (res) {
       baixar(res.blob, res.nome); toast("PDF gerado: " + res.nome); return res;
     }, function (e) {
       var m = (e && e.hint && MSG_EMISSAO[e.hint]) || (e && e.message) || "erro";
@@ -680,7 +726,7 @@
   }
 
   window.ResultadoPagina = {
-    desenhar: desenhar, emitirEPdf: emitirEPdf, gerarPdf: gerarPdf, paginar: paginar, ATOMOS: ATOMOS, enviarWhatsApp: enviarWhatsApp, imprimir: imprimir,
+    desenhar: desenhar, emitirEPdf: emitirEPdf, emitirEEnviar: emitirEEnviar, enviarPronto: enviarPronto, gerarPdf: gerarPdf, paginar: paginar, ATOMOS: ATOMOS, enviarWhatsApp: enviarWhatsApp, imprimir: imprimir,
     resultadoFinal: resultadoFinal, condutaVigente: condutaVigente, condutaDoResultado: condutaDoResultado, blocosConduta: blocosConduta, documentoEmissao: documentoEmissao, emissoes: function () { return emissoes.linhas.slice(); },
     numeroWhatsApp: numeroWhatsApp, linkWhatsApp: linkWhatsApp, mensagemWhatsApp: mensagemWhatsApp, mensagemWhatsAppEmissao: mensagemWhatsAppEmissao, termosFora: termosFora,
     focoDoResultado: focoDoResultado, focoDaEmissao: focoDaEmissao, emissaoAtual: function () { return emAtual; }, documentoEDaPaciente: documentoEDaPaciente,
