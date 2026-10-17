@@ -7,7 +7,7 @@
  *  3. XSS nao executa; paciente certo; troca de paciente; paciente arquivado; outra conta; recarregar; outro dispositivo;
  *     sair e entrar de novo; celular (390 px, sem rolagem horizontal, fluxo empilhado); acessibilidade basica; console
  *  4. NAO INTERFERENCIA: com os mesmos 84 respostas, o resultado OFICIAL do HOLOSCAN (Indice, notas, faixas, Triada,
- *     pacote, hash) e a Leitura Integrada sao identicos antes e depois dos registros; exames e pacotes intocados
+ *     pacote, hash) e identico antes e depois dos registros; coletas historicas, pacotes e leituras antigas intocados
  */
 import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
@@ -55,7 +55,6 @@ async function entrar(pg, email, senha) {
 const A = await abrirPagina('a@holo.test', 'senha-a-123');
 await A.waitForFunction(() => window.HoloscanOficial && window.HoloscanOficial.disponivel(), { timeout: 15000 }).catch(() => {});
 // o conteudo LI-V1@2 (o mesmo da migration) so para o calculo de referencia da LI neste teste; a pagina nao o carrega
-const comPacoteLI = async (pg) => { if (!(await pg.evaluate(() => !!window.LeituraIntegradaPacoteV1))) await pg.addScriptTag({ url: '/leitura-integrada-pacote-v1.js' }); };
 
 /* ajudantes de tela (mesmo jeito dos testes de Corpo) */
 async function abrirFerr(pg, pid, fid) {
@@ -99,9 +98,8 @@ const vista = (pg) => pg.evaluate(() => {
     hist: [...v.querySelectorAll('.ferr-hist-item')].map(b => b.innerText.replace(/\s+/g, ' ')), xss: window.__xss === 1, imgs: v.querySelectorAll('img').length };
 });
 
-/** responde as 84 de forma deterministica, gera o mapa e devolve o resultado OFICIAL (o que a tela mostra) + LI calculada sobre ele */
+/** responde as 84 de forma deterministica, gera o mapa e devolve o resultado OFICIAL (o que a tela mostra) */
 async function holoscan(pid) {
-  await comPacoteLI(A);
   await A.evaluate((pid) => window.definirPacienteAtivo(pid), pid);
   return A.evaluate(async () => {
     document.querySelector('.nav-item[data-secao="holoscan"]').click();
@@ -116,15 +114,12 @@ async function holoscan(pid) {
     const sistemas = {}; (u.sistemas || []).forEach(s => { sistemas[s.sistema] = { avaliavel: s.avaliavel, nota: s.nota, nota_exata: s.nota_exata, faixa: s.faixa, total: s.total_marcadores }; });
     const tela = { indice: document.getElementById('holo-score-total').textContent.trim(), triada: [...document.querySelectorAll('#holo-triada .triada-nota')].map(x => x.textContent.trim()),
       notas: [...document.querySelectorAll('[id^="val-"]')].map(x => x.id + '=' + x.textContent.trim()) };
-    // Leitura Integrada (motor LI v2, pacote LI-V1@2 em memoria) sobre ESTE resultado oficial
-    const LP = Object.assign(window.LeituraIntegradaPacoteV1.pacote(), { id: 'li-fixture', status: 'aprovado' });
-    const li = window.LeituraIntegradaMotor.calcular({ rule_package: LP, holoscan: { application: { id: 'app-x', clinical_date: '2026-10-05', methodology_package: { id: P.id, code: P.code, version: P.version, status: P.status } }, system_results: sistemas },
-      collections: [{ id: 'c1', clinical_date: '2026-10-05' }], results: [], classifications: {} });
-    return { oficial: u.oficial, pk: u.methodology_package_id, hash: u.methodology_content_hash, versao: u.methodology_package_version, indice: u.indice, triada: u.triada, sistemas, tela, li: JSON.stringify(li) };
+    // 09/10: nao ha mais motor de Leitura Integrada carregado — exame nao produz leitura
+    return { oficial: u.oficial, pk: u.methodology_package_id, hash: u.methodology_content_hash, versao: u.methodology_package_version, indice: u.indice, triada: u.triada, sistemas, tela, semLI: !window.LeituraIntegradaMotor && !window.Laboratorio };
   });
 }
 
-titulo('0. LINHA DE BASE: HOLOSCAN OFICIAL E LEITURA INTEGRADA ANTES DOS REGISTROS');
+titulo('0. LINHA DE BASE: HOLOSCAN OFICIAL ANTES DOS REGISTROS');
 await A.evaluate(async (pid) => { await window.AtendimentoAtual.iniciar({ patient_id: pid, occurred_at: new Date().toISOString() }); }, PA);
 const R1 = await holoscan(PA);
 ok(R1.oficial === true && R1.pk === pk.id && R1.hash === pk.content_hash && R1.versao === 2, 'mapa OFICIAL gerado (HOLOS-V1 v2, hash homologado)');
@@ -277,7 +272,7 @@ const R2 = await holoscan(PA);
 ok(R2.oficial && R2.pk === R1.pk && R2.hash === R1.hash && R2.versao === R1.versao, 'mesmo pacote, versao e hash (HOLOS-V1 v2)');
 ok(R2.indice === R1.indice && JSON.stringify(R2.triada) === JSON.stringify(R1.triada) && JSON.stringify(R2.sistemas) === JSON.stringify(R1.sistemas), 'Indice, Triada, 5 notas e faixas identicos (' + R1.indice + ')');
 ok(JSON.stringify(R2.tela) === JSON.stringify(R1.tela), 'o que a tela mostra e identico');
-ok(R2.li === R1.li && R1.li.length > 50, 'Leitura Integrada (motor LI v2) sobre o resultado: identica');
+ok(R1.semLI && R2.semLI, 'nenhum motor de Leitura Integrada ou laboratorio carregado (09/10)');
 ok(foto('holoscan_applications') === fotoAntes.holo && foto('holoscan_system_scores') === fotoAntes.scores && foto('holoscan_answers') === fotoAntes.answers, 'aplicacao HOLOSCAN salva, scores e respostas intocados');
 ok(foto('lab_collections') === fotoAntes.coletas && foto('lab_results') === fotoAntes.resultados && foto('methodology_packages') === fotoAntes.pacotes && foto('integrated_readings') === fotoAntes.li, 'exames, pacotes metodologicos e leituras integradas intocados');
 

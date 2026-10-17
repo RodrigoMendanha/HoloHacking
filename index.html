@@ -70,10 +70,6 @@
       </div>
 
       <div class="login-linha">
-        <label class="login-manter">
-          <input type="checkbox" id="login-manter" name="manter">
-          <span>Manter conectado</span>
-        </label>
         <a href="#" id="link-esqueci" class="login-link">Esqueci minha senha</a>
       </div>
 
@@ -86,7 +82,74 @@
            interromper quem estiver navegando pelos campos. -->
       <p class="login-mensagem" id="login-mensagem"
          role="status" aria-live="polite" hidden></p>
+
+      <p class="login-criar">Ainda não tem conta? <a href="/cadastro" id="link-criar-conta" class="login-link">Criar conta</a></p>
     </form>
+
+    <!-- CADASTRO (08/10): a nutricionista cria a propria conta. A conta nasce
+         PENDENTE e so entra no sistema depois da liberacao da equipe. -->
+    <div id="tela-cadastro" hidden>
+      <h2 class="login-titulo">Criar conta</h2>
+      <p class="login-subtela-desc">Preencha seus dados. Depois do cadastro, a equipe HoloHacking libera o seu acesso.</p>
+      <form id="form-cadastro" novalidate autocomplete="on">
+        <div class="login-grupo">
+          <label for="cad-nome">Nome completo</label>
+          <input type="text" id="cad-nome" name="nome" autocomplete="name" aria-describedby="erro-cad-nome" required>
+          <p class="login-erro" id="erro-cad-nome" hidden></p>
+        </div>
+        <div class="login-grupo">
+          <label for="cad-email">E-mail</label>
+          <input type="email" id="cad-email" name="email" autocomplete="email" inputmode="email"
+                 spellcheck="false" autocapitalize="none" aria-describedby="erro-cad-email" required>
+          <p class="login-erro" id="erro-cad-email" hidden></p>
+        </div>
+        <div class="login-grupo">
+          <label for="cad-telefone">Telefone (WhatsApp)</label>
+          <input type="tel" id="cad-telefone" name="telefone" autocomplete="tel" inputmode="tel"
+                 placeholder="(11) 98888-7777" aria-describedby="erro-cad-telefone" required>
+          <p class="login-erro" id="erro-cad-telefone" hidden></p>
+        </div>
+        <div class="login-grupo">
+          <label for="cad-senha">Senha</label>
+          <div class="login-senha-caixa">
+            <input type="password" id="cad-senha" name="senha" autocomplete="new-password"
+                   aria-describedby="erro-cad-senha cad-senha-dica" required>
+            <button type="button" id="btn-olho-cad" class="login-olho" aria-pressed="false"
+                    aria-label="Mostrar senha" aria-controls="cad-senha">
+              <svg class="olho-ver" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="olho-ocultar" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 6.2A9.9 9.9 0 0 1 12 6c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4"/><path d="M6.6 6.9A17 17 0 0 0 2 13s3.6 7 10 7a9.6 9.6 0 0 0 4.5-1.1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+            </button>
+          </div>
+          <p class="login-dica" id="cad-senha-dica">Mínimo de 8 caracteres.</p>
+          <p class="login-erro" id="erro-cad-senha" hidden></p>
+        </div>
+        <div class="login-grupo">
+          <label for="cad-senha2">Confirmar senha</label>
+          <input type="password" id="cad-senha2" name="senha2" autocomplete="new-password" aria-describedby="erro-cad-senha2" required>
+          <p class="login-erro" id="erro-cad-senha2" hidden></p>
+        </div>
+        <button type="submit" id="btn-cadastrar" class="login-botao">
+          <span class="login-girador" aria-hidden="true"></span>
+          <span class="login-botao-texto">Criar conta</span>
+        </button>
+        <p class="login-mensagem" id="cadastro-mensagem" role="status" aria-live="polite" hidden></p>
+      </form>
+      <p class="login-voltar-p">
+        <a href="#" id="link-cadastro-voltar" class="login-link">&larr; Já tenho conta: entrar</a>
+      </p>
+    </div>
+
+    <!-- CONTA AGUARDANDO LIBERACAO / NAO LIBERADA (08/10) -->
+    <div id="tela-status-conta" hidden>
+      <h2 class="login-titulo" id="status-conta-titulo">Seu cadastro está em análise</h2>
+      <p class="login-subtela-desc" id="status-conta-texto"></p>
+      <button type="button" id="btn-status-verificar" class="login-botao">
+        <span class="login-girador" aria-hidden="true"></span>
+        <span class="login-botao-texto">Verificar de novo</span>
+      </button>
+      <p class="login-mensagem" id="status-conta-mensagem" role="status" aria-live="polite" hidden></p>
+      <p class="login-voltar-p"><a href="#" id="link-status-sair" class="login-link">Sair desta conta</a></p>
+    </div>
 
     <!-- RECUPERAR SENHA -->
     <div id="tela-recuperar" hidden>
@@ -116,6 +179,7 @@
     <!-- NOVA SENHA (apos clique no link de recuperacao) -->
     <div id="tela-nova-senha" hidden>
       <h2 class="login-titulo">Criar nova senha</h2>
+      <p class="login-subtela-desc" id="nova-senha-obrigatoria" hidden>A equipe HoloHacking redefiniu o seu acesso com uma senha provisória. Para continuar, crie agora uma senha só sua.</p>
       <form id="form-nova-senha" novalidate>
         <input type="text" name="username" autocomplete="username" class="sr-only" tabindex="-1" aria-hidden="true">
         <div class="login-grupo">
@@ -131,6 +195,7 @@
               <svg class="olho-ocultar" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 6.2A9.9 9.9 0 0 1 12 6c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4"/><path d="M6.6 6.9A17 17 0 0 0 2 13s3.6 7 10 7a9.6 9.6 0 0 0 4.5-1.1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
             </button>
           </div>
+          <p class="login-dica">Mínimo de 8 caracteres.</p>
           <p class="login-erro" id="erro-nova-senha" hidden></p>
         </div>
         <div class="login-grupo">
@@ -194,6 +259,7 @@
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><path d="M16.5 11.2A2.8 2.8 0 1 0 16 5.7M18 19.5c0-2-.6-3.4-1.7-4.4"/></svg>
           Pacientes <span class="nav-tag" id="nav-total-pac">0</span>
         </button>
+        <!-- 14/10: Atendimentos redesenhada como historico clinico (consultas.js) -->
         <button class="nav-item" data-secao="consultas">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9.5 4V2.8h5V4M9.5 10.5h5M9.5 14.5h3"/></svg>
           Atendimentos
@@ -201,10 +267,6 @@
         <button class="nav-item" data-secao="agenda">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/><circle cx="12" cy="15.5" r="1.3"/></svg>
           Agenda <span class="nav-tag hidden" id="nav-agenda-venc">0</span>
-        </button>
-        <button class="nav-item" data-secao="documentos">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 7a2 2 0 0 1 2-2h3.6l2 2.6h7.4a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2Z"/></svg>
-          Documentos
         </button>
       </div>
 
@@ -214,25 +276,30 @@
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5"/><circle cx="12" cy="12" r="3"/></svg>
           HOLOSCAN
         </button>
-        <!-- Leitura Integrada vem logo abaixo do HOLOSCAN de proposito: e a
-             camada laboratorial do mesmo sistema — le o mapa e os exames,
-             nunca os altera. -->
-        <button class="nav-item" data-secao="confronto">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M3 12h18"/></svg>
-          Leitura Integrada <span class="nav-tag">Exames</span>
-        </button>
         <button class="nav-item" data-secao="corpo">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5.5" r="2.6"/><path d="M12 8.5v6M12 14.5l-3.5 5M12 14.5l3.5 5M7 10.5h10"/></svg>
-          Corpo <span class="nav-tag">OQ3</span>
+          Corpo <span class="nav-tag" title="Ferramentas de Corpo (OQ³, Linha do Momentum, Mapa da Rotina)">QF</span>
         </button>
         <button class="nav-item" data-secao="mente">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 3.5a6 6 0 0 1 8.4 6.6c-.2 1.1.1 1.7.9 2.7l.7.9-1.8.6v2.2c0 .9-.7 1.6-1.6 1.6h-1.6v2.4H8.3v-3.2A6.9 6.9 0 0 1 9.5 3.5Z"/></svg>
-          Mente <span class="nav-tag">PQQ</span>
+          Mente <span class="nav-tag" title="Ferramentas de Mente (PQQ, Mapa de Crenças Alimentares, Gatilhos &amp; Respostas)">QM</span>
         </button>
         <button class="nav-item" data-secao="espirito">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1.8 3.2 4.6 5 7.5 5.6-1 3.1-3.5 5.6-7.5 6.9-4-1.3-6.5-3.8-7.5-6.9C7.4 8 10.2 6.2 12 3Z"/><path d="M12 15.5V21M9 19h6"/></svg>
-          Espírito <span class="nav-tag">Mapa</span>
+          Espírito <span class="nav-tag" title="Ferramentas de Espírito (Mapa do Propósito, Roda Holística da Vida, Carta ao Futuro Eu)">QE</span>
         </button>
+        <!-- rodada UX 14/10: o fim da jornada e INVESTIGAR (Corpo, Mente, Espirito) -> HOLOS IA interpreta -> RESULTADO -->
+        <!-- 14/10: Holos IA escondida (o Resultado sai pelo Playbook HOLOS); o codigo continua -->
+        <button class="nav-item hidden" hidden data-secao="holusia">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.6L18.5 9l-4.7 1.6L12 15l-1.8-4.4L5.5 9l4.7-1.4z"/><path d="M18 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>
+          Holos IA
+        </button>
+        <!-- Resultado por ultimo: a saida da jornada (Resultado HOLOS salvo + Conduta vigente + identidade profissional) -->
+        <button class="nav-item" data-secao="resultado">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg>
+          Resultado <span class="nav-tag">Paciente</span>
+        </button>
+
       </div>
 
       <p class="nav-titulo" id="nav-grupo-config">Configurações</p>
@@ -241,9 +308,17 @@
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16M4 12h10M4 19h7"/><circle cx="18" cy="17" r="3"/></svg>
           Metodologia <span class="nav-tag">Homologação</span>
         </button>
+        <button class="nav-item hidden" data-secao="contas" id="nav-contas">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c0-3 2.5-5.2 5.5-5.2s5.5 2.2 5.5 5.2"/><path d="M16 11l2 2 4-4"/></svg>
+          Administração <span class="nav-badge" id="nav-contas-num" hidden></span>
+        </button>
         <button class="nav-item" data-secao="perfil">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.4 3.1-6 7-6s7 2.6 7 6"/></svg>
           Perfil
+        </button>
+        <button class="nav-item" data-secao="ajuda">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.6 2.6 0 0 1 5 .9c0 1.7-2.5 2.2-2.5 3.9"/><circle cx="12" cy="17.2" r=".6" fill="currentColor"/></svg>
+          Ajuda
         </button>
       </div>
     </nav>
@@ -292,8 +367,11 @@
           <svg class="icone-lua" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13.5A8.5 8.5 0 0 1 10.5 4 8.5 8.5 0 1 0 20 13.5Z"/></svg>
           <svg class="icone-sol" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
         </button>
-        <span id="chip-nome">Nutricionista</span>
-        <span class="avatar" id="chip-avatar">N</span>
+        <div class="chip-perfil" id="chip-perfil" role="button" tabindex="0" aria-label="Abrir meu perfil" title="Abrir meu perfil">
+          <span class="avatar" id="chip-avatar" aria-hidden="true">N</span>
+          <span class="chip-perfil-texto"><b id="chip-nome">Nutricionista</b><small id="chip-papel">Nutricionista</small></span>
+          <svg class="chip-perfil-seta" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
       </div>
     </header>
 
@@ -308,15 +386,16 @@
       <div class="bpctx-quem">
         <span class="bpctx-avatar" id="bpctx-avatar">P</span>
         <span class="bpctx-nome" id="bpctx-nome">Paciente</span>
+        <button type="button" class="bpctx-fechar" id="bpctx-fechar" aria-label="Desselecionar paciente" title="Desselecionar paciente (não apaga nem arquiva nada)">&times;</button>
       </div>
       <div class="bpctx-acoes">
         <button type="button" class="bpctx-btn bpctx-btn-pri" data-bpctx="ficha" title="Voltar à ficha do paciente">Voltar à ficha</button>
         <button type="button" class="bpctx-btn" data-bpctx="aba:consultas" title="Atendimentos">Atendimentos</button>
-        <button type="button" class="bpctx-btn" data-bpctx="aba:anamnese" title="Anamnese">Anamnese</button>
+        <button type="button" class="bpctx-btn" data-bpctx="aba:anamnese" title="Mapeamento Holístico">Mapeamento Holístico</button>
         <button type="button" class="bpctx-btn" data-bpctx="aba:holoscan" title="HOLOSCAN">HOLOSCAN</button>
         <button type="button" class="bpctx-btn" data-bpctx="aba:ferramentas" title="Ferramentas">Ferramentas</button>
         <button type="button" class="bpctx-btn" data-bpctx="aba:documentos" title="Documentos">Documentos</button>
-        <button type="button" class="bpctx-btn" data-bpctx="aba:holos-ai" title="HOLOS AI">HOLOS AI</button>
+        <button type="button" class="bpctx-btn hidden" hidden data-bpctx="holusia" title="Holos IA">Holos IA</button>
       </div>
     </div>
 
@@ -389,7 +468,7 @@
             </span>
             <span class="ferramenta">Módulo - 3 ferramentas</span>
             <h4>Corpo</h4>
-            <p>Rotina, hábitos, sinais do corpo e capacidade prática. Inclui o OQ3 - clareza clínica sobre a realidade do paciente.</p>
+            <p>Rotina, hábitos, sinais do corpo e capacidade prática. Inclui o OQ³ - clareza clínica sobre a realidade do paciente.</p>
             <span class="abrir">Ver ferramentas <span aria-hidden="true">&rarr;</span></span>
           </button>
 
@@ -407,9 +486,9 @@
             <span class="icone">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e2c98a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c2.5 3 2.5 6 0 9-2.5-3-2.5-6 0-9Z"/><path d="M12 12v9M8 16c1.5 0 3 1 4 2 1-1 2.5-2 4-2"/></svg>
             </span>
-            <span class="ferramenta">Módulo - 4 ferramentas</span>
+            <span class="ferramenta">Módulo - 3 ferramentas</span>
             <h4>Espírito</h4>
-            <p>Propósito, valores e pertencimento. Inclui o Mapa do Propósito, que reúne OQ3 e PQQ.</p>
+            <p>Propósito, valores e pertencimento. Inclui o Mapa do Propósito, que reúne OQ³ e PQQ.</p>
             <span class="abrir">Ver ferramentas <span aria-hidden="true">&rarr;</span></span>
           </button>
         </div>
@@ -422,10 +501,10 @@
         <div class="secao-cabeca">
           <span class="eyebrow">HOLOSCAN &mdash; Sistema de Mapeamento Integral</span>
           <h2>O mapa <em>invisível</em> da saúde humana</h2>
-          <p>O HOLOSCAN reúne, numa leitura só, o que o paciente relata sobre corpo, emoção e propósito — e organiza o resultado pelos cinco sistemas, o Índice HOLOS e a Tríada do pacote metodológico homologado. A interpretação e a conduta são da nutricionista.</p>
+          <p>O HOLOSCAN reúne, numa leitura só, o que o paciente relata sobre corpo, emoção e propósito — e organiza o resultado pelos cinco sistemas, o Índice HOLOS e a Tríade Corpo, Mente e Espírito. A interpretação e a conduta são da nutricionista.</p>
           <!-- Fluxo clinico do metodo, so como referencia visual — nao e um
                wizard, nenhuma etapa bloqueia a seguinte. -->
-          <p class="fluxo-clinico">História &rarr; <b>HOLOSCAN</b> &rarr; Leitura Integrada &rarr; Aprofundamento &rarr; Interpretação &rarr; Conduta &rarr; Evolução</p>
+          <p class="fluxo-clinico">Mapeamento Holístico &rarr; <b>HOLOSCAN</b> &rarr; Ferramentas &rarr; Resultado (Playbook) &rarr; Evolução</p>
         </div>
 
         <div class="barra-paciente">
@@ -436,10 +515,10 @@
 
         <!-- Dois caminhos: responder o questionario, ou pontuar os cinco
                sistemas a mao. O segundo era o unico que existia.
-               A contagem do botao e escrita por questionario.js, do motor. -->
+               O rotulo do botao e escrito por questionario.js (sem contagem de perguntas). -->
           <div class="holo-modos">
             <button type="button" class="btn-verde" id="btn-abrir-questionario">
-              Aplicar questionário
+              Aplicar HOLOSCAN
             </button>
             <span>ou pontue os cinco sistemas à mão, abaixo</span>
           </div>
@@ -452,6 +531,14 @@
           <div id="holoscan-manual">
           <div class="painel-escuro">
 
+          <!-- ===== RESULTADO DESTA APLICACAO (testes reais 06/10) =====
+               Resumo do que o pacote aprovado ja diz — notas, faixas, Triade,
+               cobertura — e por onde investigar, com o campo da interpretacao
+               profissional. Nenhum texto clinico novo (Decisoes 3, 156, 158). -->
+          <div class="holo-resumo hidden" id="holo-resumo"></div>
+      <!-- Proximos Passos HOLOS quando o quadro nao e desenhado (aplicacao sem sistema avaliavel): so a explicacao -->
+      <div id="holo-proximos-passos-vazio" class="holo-resumo hidden"></div>
+
           <!-- ===== 1. MAPA DE PRIORIDADES =====
                Revisao clinica do HOLOSCAN: a tela deixou de dar protagonismo
                ao Indice (bloco 6, la embaixo, rebaixado) e passa a abrir pelo
@@ -461,7 +548,8 @@
           <p>O radar mostra os cinco sistemas juntos; a lista ordena do que pede mais investigação para o que pede menos — é prioridade de olhar, não conclusão.</p>
           <div class="holo-resultado">
             <div class="holo-radar-box">
-              <svg id="radar-svg" viewBox="0 0 300 300" width="280" height="280"></svg>
+              <span class="holo-demo-selo">Demonstração · ainda sem aplicação do HOLOSCAN</span>
+              <svg id="radar-svg" viewBox="-40 -6 380 312" width="300" height="246" style="overflow:visible;max-width:100%"></svg>
             </div>
             <div id="holo-prioridades" class="holo-caixa-mapa"></div>
           </div>
@@ -470,72 +558,67 @@
           <span class="eyebrow">2 &middot; Cinco Sistemas</span>
           <h3>Avaliação Integral do Terreno</h3>
           <p>As notas de cada sistema (0 = comprometido, 10 = muito bom) são calculadas a partir das respostas do questionário, pelo motor oficial do pacote metodológico.</p>
-          <p class="holo-nota-neutra">Os cinco sistemas são categorias de organização do mapa, não categorias de doença.</p>
+          <p class="holo-nota-neutra">Os cinco sistemas são categorias de organização do mapa, não categorias de doença. Cada nota cai numa faixa do pacote: baixa, intermediária ou alta.</p>
 
           <div class="holo-sistemas">
             <div class="holo-card" data-sistema="fungico">
               <h5>Fúngico</h5>
               <p class="holo-desc">Doce, inchaço, saburra, coceira e névoa depois do carboidrato</p>
-              <div class="holo-pattern">
-                <span class="holo-emocional">Estagnação e desordem</span>
-                <span class="holo-espiritual">Perda de vitalidade</span>
-              </div>
               <div class="holo-range-wrap">
                 <label for="holo-fungico">Nota <i class="regua-pontas">0 a 10</i></label>
                 <input type="range" min="0" max="10" value="0" id="holo-fungico">
-                <span class="holo-valor" id="val-fungico">0</span>
+              </div>
+              <div class="holo-nota-card">
+                <span class="holo-valor" id="val-fungico">—</span>
+                <span class="holo-faixa-card" id="faixa-fungico"></span>
               </div>
             </div>
             <div class="holo-card" data-sistema="inflamatorio">
               <h5>Ácido-Inflamatório</h5>
               <p class="holo-desc">Dor, rigidez ao acordar, azia e pele em crise</p>
-              <div class="holo-pattern">
-                <span class="holo-emocional">Irritação, raiva</span>
-                <span class="holo-espiritual">Bloqueio no plexo solar</span>
-              </div>
               <div class="holo-range-wrap">
                 <label for="holo-inflamatorio">Nota <i class="regua-pontas">0 a 10</i></label>
                 <input type="range" min="0" max="10" value="0" id="holo-inflamatorio">
-                <span class="holo-valor" id="val-inflamatorio">0</span>
+              </div>
+              <div class="holo-nota-card">
+                <span class="holo-valor" id="val-inflamatorio">—</span>
+                <span class="holo-faixa-card" id="faixa-inflamatorio"></span>
               </div>
             </div>
             <div class="holo-card" data-sistema="metabolico">
               <h5>Metabólico</h5>
               <p class="holo-desc">Sono depois de comer, fome que volta rápido, gordura na barriga</p>
-              <div class="holo-pattern">
-                <span class="holo-emocional">Vazio, falta de propósito</span>
-                <span class="holo-espiritual">Dessintonização do corpo</span>
-              </div>
               <div class="holo-range-wrap">
                 <label for="holo-metabolico">Nota <i class="regua-pontas">0 a 10</i></label>
                 <input type="range" min="0" max="10" value="0" id="holo-metabolico">
-                <span class="holo-valor" id="val-metabolico">0</span>
+              </div>
+              <div class="holo-nota-card">
+                <span class="holo-valor" id="val-metabolico">—</span>
+                <span class="holo-faixa-card" id="faixa-metabolico"></span>
               </div>
             </div>
             <div class="holo-card" data-sistema="detox">
               <h5>Detox + Linfático</h5>
               <p class="holo-desc">Inchaço, intestino lento, sensibilidade a cheiro e a remédio</p>
-              <div class="holo-pattern">
-                <span class="holo-emocional">Mágoas acumuladas</span>
-                <span class="holo-espiritual">Bloqueio do fluxo</span>
-              </div>
               <div class="holo-range-wrap">
                 <label for="holo-detox">Nota <i class="regua-pontas">0 a 10</i></label>
                 <input type="range" min="0" max="10" value="0" id="holo-detox">
-                <span class="holo-valor" id="val-detox">0</span>
+              </div>
+              <div class="holo-nota-card">
+                <span class="holo-valor" id="val-detox">—</span>
+                <span class="holo-faixa-card" id="faixa-detox"></span>
               </div>
             </div>
             <div class="holo-card" data-sistema="mental">
               <h5>Mental-Emocional-Espiritual</h5>
               <p class="holo-desc">Sono, ansiedade, autocrítica e o comer para acalmar</p>
-              <div class="holo-pattern">
-                <span class="holo-emocional">Desconexão de si</span>
-                <span class="holo-espiritual">Queda de frequência</span>
-              </div>
               <div class="holo-range-wrap">
                 <label for="holo-mental">Nota <i class="regua-pontas">0 a 10</i></label>
                 <input type="range" min="0" max="10" value="0" id="holo-mental">
-                <span class="holo-valor" id="val-mental">0</span>
+              </div>
+              <div class="holo-nota-card">
+                <span class="holo-valor" id="val-mental">—</span>
+                <span class="holo-faixa-card" id="faixa-mental"></span>
               </div>
             </div>
           </div>
@@ -580,15 +663,12 @@
           <!-- ===== 7. APROFUNDAMENTO =====
                Resultado oficial: so os textos do pacote homologado (leituraOficial em app.js).
                Historicas/homologacao: a leitura legada de lerTerreno(). -->
-          <span class="eyebrow">6 &middot; Aprofundamento</span>
-          <div class="holo-leitura" id="holo-leitura"></div>
-
-          <!-- O HOLOSCAN era o item 8 daqui. Saiu para a secao propria
-               (#secao-confronto, logo abaixo no menu): ele nao e uma parte do
-               HOLOSCAN, e a etapa seguinte — le este mapa e os exames e
-               confronta os dois, sem mexer em nota, indice, triade ou
-               respostas. Manter dentro sugeria que o mapa se corrigia com
-               exame, e ele nao se corrige. -->
+          <!-- rodada UX 14/10: o bloco "6 · Aprofundamento / Leitura do resultado" saiu da tela — repetia textos genericos
+               dos cinco sistemas e nao trazia resultado real. O conteudo continua sendo montado (relatorio e testes usam). -->
+          <div class="holo-aprofundamento-oculto" hidden>
+            <span class="eyebrow">6 &middot; Aprofundamento</span>
+            <div class="holo-leitura" id="holo-leitura"></div>
+          </div>
 
           <!-- A fronteira. Ficava so no rodape do relatorio impresso; a tela
                onde a nutricionista abre o mapa junto com a paciente nao dizia
@@ -599,24 +679,27 @@
             substitui avaliação clínica.
           </p>
 
-          <div class="holo-subtools">
+          <!-- rodada UX 14/10: cartoes de APRESENTACAO (so antes de existir aplicacao concluida). Os nomes aqui sao so desta
+               apresentacao visual: nao entram no resultado oficial, no Pacote Holos IA, no calculo nem na metodologia. -->
+          <div class="holo-subtools" aria-label="Apresentação do HOLOSCAN">
             <div class="holo-subtool">
-              <h6>NeuroScan</h6>
+              <h6>NeuroScan <span class="holo-terr">— Mente</span></h6>
               <p>Padrões emocionais, ansiedade e sabotadores</p>
             </div>
             <div class="holo-subtool">
-              <h6>BioRoot</h6>
+              <h6>BioRoot <span class="holo-terr">— Corpo</span></h6>
               <p>Inflamação, metabolismo, detox, microbiota</p>
             </div>
             <div class="holo-subtool">
-              <h6>Terreno Espiritual</h6>
+              <h6>Terreno Espiritual <span class="holo-terr">— Espírito</span></h6>
               <p>Propósito, valores, fé e bloqueios</p>
             </div>
             <div class="holo-subtool">
-              <h6>Tríade HOLOS</h6>
-              <p>Integração físico-mental-espiritual</p>
+              <h6>Tríade HOLOS <span class="holo-terr">— Corpo · Mente · Espírito</span></h6>
+              <p>Integração entre corpo, mente e espírito</p>
             </div>
-            <div class="holo-subtool em-construcao">
+            <!-- pos-teste MR-V1 13/10: Mapa de Frequencias fora da interface enquanto nao for homologado (codigo e dados mantidos) -->
+            <div class="holo-subtool em-construcao" hidden>
               <h6>Mapa de Frequências <span class="selo-construcao">em revisão</span></h6>
               <p>Onde o fluxo está travado, lido das mesmas respostas do questionário. Parado até a correspondência chacra&ndash;marcador ser revisada.</p>
             </div>
@@ -626,53 +709,51 @@
           <div class="holo-atendimento" id="holo-atendimento" role="group" aria-label="Atendimento do HOLOSCAN"></div>
           <div class="acoes-form" style="margin-top:14px;justify-content:center">
             <button type="button" id="btn-salvar-holoscan" class="btn-verde">Salvar HOLOSCAN</button>
-            <button type="button" class="perf-botao" data-ir-holo="confronto">Leitura Integrada &rarr;</button>
-            <button type="button" class="perf-botao" data-ir-holo="conduta">Conduta &rarr;</button>
+            <button type="button" class="perf-botao" data-ir-holo="resultado">Resultado para a paciente &rarr;</button>
           </div>
         </div>
 
         </div>
 
-          <div class="citacao clara" style="margin-top:34px">
-          <p>"Seu corpo está contando uma história que você ainda não ouviu. Quando você enxerga o que está por trás, tudo muda."</p>
+          <div class="citacao clara" id="holo-concluido" hidden style="margin-top:34px">
+          <p>HOLOSCAN concluído. Revise as áreas prioritárias e os próximos aprofundamentos sugeridos antes de seguir para as ferramentas.</p>
         </div>
       </section>
 
-      <!-- ============ HOLOSCAN ============
-           Saiu de dentro do HOLOSCAN (era o item 8 de la) para ficar no
-           nivel que lhe cabe: a etapa seguinte do fluxo, nao um pedaco do
-           mapa. Le os exames lancados na aba Documentos da ficha e confronta
-           com as notas do HOLOSCAN, sistema a sistema. NUNCA escreve: nao
-           altera nota, Indice, Triade nem resposta nenhuma.
-           O lancamento dos valores continua so na ficha — aqui e leitura.
-           Desenhado por desenharHoloscan() (arquivos.js), chamado tanto por
-           irPara("confronto") quanto por desenharPontuacao() em app.js. -->
-      <section class="secao" id="secao-confronto">
+      <!-- ============ RESULTADO ============
+           Versao final do resultado para apresentar a paciente: o Resultado HOLOS SALVO (versao para a paciente),
+           as ferramentas e textos que entraram nele, a Conduta vigente e a identidade profissional (nome, registro,
+           logo, assinatura e carimbo do Perfil). Baixar PDF e Enviar pelo WhatsApp. A nutricionista prepara e
+           finaliza o resultado na aba "Resultado HOLOS" da ficha; esta tela so apresenta. Sem exames.
+           Desenhada por resultado-pagina.js. -->
+      <!-- ============ HOLOS IA ============ (rodada UX 14/10) a area operacional da Holos IA para a paciente
+           selecionada: copiar o Pacote, abrir a Holos IA, colar a resposta e gerar o Resultado HOLOS. Usa as mesmas
+           funcoes da ponte (holos-ai-ponte.js); nao e um chat. -->
+      <section class="secao" id="secao-holusia">
         <div class="secao-cabeca">
-          <span class="eyebrow">HOLOSCAN &mdash; Leitura Integrada</span>
-          <h2>O que os exames <em>acrescentam</em> ao mapa</h2>
-          <p>A Leitura Integrada compara, sistema a sistema, o que o paciente relata no HOLOSCAN com o que os exames mostram. Ela não corrige o mapa nem o exame: mostra onde os dois caminham juntos, onde divergem — e onde ainda não há dado para comparar.</p>
-          <p class="fluxo-clinico">História &rarr; HOLOSCAN &rarr; <b>Leitura Integrada</b> &rarr; Aprofundamento &rarr; Interpretação &rarr; Conduta &rarr; Evolução</p>
+          <span class="eyebrow">Investigar &rarr; Holos IA interpreta &rarr; Resultado</span>
+          <h2>Holos IA</h2>
+          <p>Transforme os dados da consulta em uma leitura integrada.</p>
+        </div>
+        <!-- 14/10: paciente da Holos IA escolhido aqui mesmo (lista na pagina, sem trocar de tela) -->
+        <div id="holusia-paciente" class="hai-paciente"></div>
+        <div id="holusia-alvo" class="hai-host"></div>
+      </section>
+
+      <section class="secao" id="secao-resultado">
+        <div class="secao-cabeca">
+          <span class="eyebrow">HOLOSCAN &mdash; Resultado</span>
+          <h2>O resultado para <em>a paciente</em></h2>
+          <p>A versão final do Resultado HOLOS, pronta para apresentar na consulta e enviar: os cinco sistemas, o Índice, a Tríade, as ferramentas de Corpo, Mente e Espírito, os seus textos e a sua conduta — com o seu nome, registro e carimbo.</p>
         </div>
 
         <div class="barra-paciente">
           <span class="rotulo">Paciente</span>
-          <select class="seletor-paciente" id="sel-confronto" aria-label="Selecionar paciente"></select>
-          <span class="aviso">A leitura usa o HOLOSCAN já aplicado a este paciente.</span>
+          <select class="seletor-paciente" id="sel-resultado" aria-label="Selecionar paciente"></select>
+          <span class="aviso">Mostra o último Resultado HOLOS finalizado deste paciente.</span>
         </div>
 
-        <div class="painel-escuro">
-          <p class="arq-nota">O lançamento e a edição dos valores ficam na aba
-            <button type="button" class="btn-link" id="conf-ir-documentos">Documentos</button>, na ficha do paciente. Esta tela apenas lê.</p>
-
-          <div class="holo-caixa-mapa" id="holo-confronto"></div>
-
-          <p class="holo-fronteira">
-            A Leitura Integrada organiza informações laboratoriais para apoiar a
-            <b>interpretação profissional</b>. Não realiza diagnóstico, não altera o
-            HOLOSCAN e não substitui avaliação médica.
-          </p>
-        </div>
+        <div id="resultado-pagina-corpo"></div>
       </section>
 
       <!-- ============ PACIENTES ============ -->
@@ -680,9 +761,8 @@
         <div id="vista-lista-pacientes">
           <div class="secao-cabeca pac-cabeca">
             <div class="pac-cabeca-texto">
-              <span class="eyebrow">Módulo - Pacientes</span>
               <h2>Pacientes</h2>
-              <p>Gerencie sua carteira e acompanhe a jornada de cada paciente.</p>
+              <p>Acompanhe seus pacientes e cada etapa do cuidado.</p>
             </div>
             <div class="pac-cabeca-acoes">
               <span class="contador-busca" id="pac-total-cabeca"><b>0</b> pacientes</span>
@@ -794,6 +874,10 @@
             <!-- ===== o cabecalho: quem e, como falar com ela, e o que fazer
                  agora. Antes era so o avatar e o nome; as acoes estavam la
                  embaixo, depois de tudo, onde ninguem as via. -->
+            <!-- Redesign 12/10: cabecalho compacto (quem e, contato, idade e a faixa com proxima
+                 consulta, ultimo HOLOSCAN e etapa atual). Acao principal: Aplicar HOLOSCAN;
+                 secundaria: Nova consulta; o resto em "Mais acoes". Os IDs e data-atributos
+                 sao os mesmos de antes (os handlers e a regra de arquivado nao mudam). -->
             <header class="fic-topo">
               <span class="pac-avatar" id="ficha-avatar">-</span>
               <div class="fic-quem">
@@ -804,95 +888,76 @@
                 <div class="fic-contato" id="ficha-contato"></div>
               </div>
               <div class="fic-acoes-topo">
-                <button type="button" class="perf-botao btn-editar-pac" id="btn-editar-paciente" aria-label="Editar cadastro">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-                  Editar
-                </button>
-                <button type="button" class="perf-botao" data-atalho="agenda">Marcar consulta</button>
-                <button type="button" class="perf-botao" data-ir="aba:documentos" data-rolar="lab-corpo">Registrar exames</button>
-                <button type="button" class="perf-botao" data-ir="aba:documentos" data-rolar="doc-solta">Novo documento</button>
-                <button type="button" class="btn-verde" data-atalho="holoscan">Aplicar HOLOSCAN</button>
+                <!-- 14/10: paciente novo, sem Mapeamento: o proximo passo e enviar o link (ficha.js alterna) -->
+                <button type="button" class="btn-verde hidden" id="btn-enviar-mapeamento" data-ir="aba:anamnese">Enviar Mapeamento Holístico</button>
+                <button type="button" class="btn-verde" id="btn-aplicar-holoscan" data-atalho="holoscan">Aplicar HOLOSCAN</button>
                 <button type="button" class="btn-verde hidden" id="btn-reativar-paciente">Reativar paciente</button>
-                <button type="button" class="perf-botao" id="btn-exportar-paciente" aria-label="Exportar dados do paciente">Exportar dados</button>
+                <button type="button" class="perf-botao" data-atalho="agenda">Nova consulta</button>
+                <span class="fic-mais">
+                  <button type="button" class="perf-botao" id="btn-mais-acoes" aria-haspopup="menu" aria-expanded="false" aria-controls="fic-mais-menu">Mais ações <span aria-hidden="true">&#9662;</span></button>
+                  <span class="fic-mais-menu hidden" id="fic-mais-menu" role="menu" aria-label="Mais ações">
+                    <!-- 16/10: acoes secundarias depois da entrega (ficha.js preenche: Ver Resultado, PDF, WhatsApp, Encerrar, Reaplicar) -->
+                    <span id="fic-mais-pos" class="fic-mais-pos"></span>
+                    <button type="button" role="menuitem" class="perf-botao btn-editar-pac" id="btn-editar-paciente" aria-label="Editar cadastro">Editar cadastro</button>
+                    <button type="button" role="menuitem" class="perf-botao" data-ir="aba:documentos" data-rolar="doc-solta">Adicionar arquivo</button>
+                    <button type="button" role="menuitem" class="perf-botao" id="btn-exportar-paciente" aria-label="Exportar dados do paciente">Exportar dados</button>
+                  </span>
+                </span>
               </div>
+              <div class="fic-sobre">
+                <span class="fic-sobre-rot">Sobre o paciente</span>
+                <span id="ficha-sobre"></span>
+                <button type="button" class="fic-detalhes" id="ficha-ver-detalhes"
+                        aria-expanded="false">Detalhes</button>
+              </div>
+              <div class="fic-detalhe-corpo hidden" id="ficha-detalhes"></div>
+              <!-- faixa: proxima consulta, ultimo HOLOSCAN, etapa atual (ficha.js) -->
+              <div class="fic-faixa" id="ficha-faixa"></div>
             </header>
 
-            <!-- V1, Etapa 1: PACIENTE ATIVO + ATENDIMENTO ATIVO, sempre a vista.
-                 Desenhado por atendimento.js. "Nenhum atendimento selecionado"
-                 quando nao ha; nenhum registro clinico novo e salvo sem um. -->
+            <!-- V1, Etapa 1: ATENDIMENTO ATIVO, sempre a vista, agora numa barra so.
+                 Desenhado por atendimento.js; nenhum registro clinico novo e salvo sem um. -->
             <div class="fic-atendimento" id="ficha-atendimento" role="group" aria-label="Atendimento ativo"></div>
 
-            <div class="fic-sobre">
-              <span class="fic-sobre-rot">Sobre o paciente</span>
-              <span id="ficha-sobre"></span>
-              <button type="button" class="fic-detalhes" id="ficha-ver-detalhes"
-                      aria-expanded="false">Detalhes</button>
-            </div>
-            <div class="fic-detalhe-corpo hidden" id="ficha-detalhes"></div>
-
-            <!-- A faixa de situacao: as quatro perguntas que se faz antes de
-                 abrir qualquer aba. Desenhada por ficha.js. -->
-            <div class="fic-faixa" id="ficha-faixa"></div>
-
-            <!-- A jornada clinica, so o encadeamento visual: nao calcula nada,
-                 nao muda com o paciente. Mesmo vocabulario do dashboard
-                 (dash-jornada), reaproveitado — nao inventa um segundo visual
-                 so porque mudou de tela. data-ir="aba:x" fica dentro da ficha;
-                 data-atalho="x" vai para a secao do menu, como no cabecalho. -->
-            <div class="dash-bloco dash-bloco-compacto fic-jornada-bloco">
-              <h3 class="dash-titulo">Jornada clínica</h3>
-              <div class="dash-jornada fic-jornada">
-                <div class="dash-jornada-passo">
-                  <span class="dash-mov">MAPEAR</span>
-                  <span class="dash-quem"><b>HOLOSCAN</b>
-                    <span class="dash-porque">Mapear prioridades de investigação.</span></span>
-                  <button type="button" class="dash-ir" data-atalho="holoscan">Abrir <span aria-hidden="true">&rarr;</span></button>
-                </div>
-                <div class="dash-jornada-seta" aria-hidden="true">&darr;</div>
-                <div class="dash-jornada-passo">
-                  <span class="dash-mov">CONFRONTAR</span>
-                  <span class="dash-quem"><b>Leitura Integrada</b>
-                    <span class="dash-porque">Confrontar o mapa com dados laboratoriais.</span></span>
-                  <button type="button" class="dash-ir" data-atalho="confronto">Abrir <span aria-hidden="true">&rarr;</span></button>
-                </div>
-                <div class="dash-jornada-seta" aria-hidden="true">&darr;</div>
-                <div class="dash-jornada-passo">
-                  <span class="dash-mov">INTEGRAR</span>
-                  <span class="dash-quem"><b>Ferramentas</b>
-                    <span class="dash-porque">Integrar ferramentas e condutas ao caso.</span></span>
-                  <button type="button" class="dash-ir" data-atalho="corpo">Abrir <span aria-hidden="true">&rarr;</span></button>
-                </div>
-                <div class="dash-jornada-seta" aria-hidden="true">&darr;</div>
-                <div class="dash-jornada-passo">
-                  <span class="dash-mov">ACOMPANHAR</span>
-                  <span class="dash-quem"><b>Evolução</b>
-                    <span class="dash-porque">Acompanhar mudanças entre aplicações.</span></span>
-                  <button type="button" class="dash-ir" data-ir="aba:visao">Abrir <span aria-hidden="true">&rarr;</span></button>
-                </div>
-              </div>
-            </div>
+            <!-- Jornada clinica horizontal (ficha.js): cada passo marcado so com dado real. -->
+            <nav class="fic-jornada-bloco" id="ficha-jornada" aria-label="Jornada clínica"></nav>
 
             <div class="ficha-arquivos" id="ficha-arquivos">
-              <div class="abas" role="tablist">
+              <div class="abas-ficha-caixa">
+              <!-- 14/10 (auditoria Cowork): com a pagina rolada, a barra das abas gruda abaixo do topo e mostra de quem e a ficha -->
+              <span class="abas-ctx-nome" id="abas-ctx-nome" aria-hidden="true"></span>
+              <button type="button" class="abas-seta esq" data-abas-seta="-1" aria-label="Abas anteriores" hidden>&lsaquo;</button>
+              <div class="abas" role="tablist" aria-label="Seções da ficha">
                 <button class="aba ativa" data-aba="visao" role="tab" id="tab-visao" aria-controls="aba-visao" aria-selected="true">Visão geral</button>
                 <button class="aba" data-aba="consultas" role="tab" id="tab-consultas" aria-controls="aba-consultas" aria-selected="false">Atendimentos</button>
-                <button class="aba" data-aba="anamnese" role="tab" id="tab-anamnese" aria-controls="aba-anamnese" aria-selected="false">Anamnese</button>
+                <button class="aba" data-aba="anamnese" role="tab" id="tab-anamnese" aria-controls="aba-anamnese" aria-selected="false">Mapeamento Holístico</button>
                 <button class="aba" data-aba="holoscan" role="tab" id="tab-holoscan" aria-controls="aba-holoscan" aria-selected="false">HOLOSCAN</button>
                 <button class="aba" data-aba="ferramentas" role="tab" id="tab-ferramentas" aria-controls="aba-ferramentas" aria-selected="false">Ferramentas</button>
+                <button class="aba hidden" hidden data-aba="holos-ai" role="tab" id="tab-holos-ai" aria-controls="aba-holos-ai" aria-selected="false">Holos IA</button>
+                <button class="aba" data-aba="resultado-holos" role="tab" id="tab-resultado-holos" aria-controls="aba-resultado-holos" aria-selected="false">Resultado HOLOS</button>
                 <button class="aba" data-aba="documentos" role="tab" id="tab-documentos" aria-controls="aba-documentos" aria-selected="false">Documentos</button>
-                <button class="aba" data-aba="conduta" role="tab" id="tab-conduta" aria-controls="aba-conduta" aria-selected="false">Conduta</button>
+                <!-- 14/10: aba Conduta escondida (o fluxo e HOLOSCAN -> ferramentas -> Holos IA -> Resultado); o codigo continua -->
+                <button class="aba hidden" hidden data-aba="conduta" role="tab" id="tab-conduta" aria-controls="aba-conduta" aria-selected="false">Conduta</button>
                 <button class="aba" data-aba="evolucao" role="tab" id="tab-evolucao" aria-controls="aba-evolucao" aria-selected="false">Evolução</button>
-                <button class="aba" data-aba="relatorio" role="tab" id="tab-relatorio" aria-controls="aba-relatorio" aria-selected="false">Relatório</button>
-                <button class="aba" data-aba="holos-ai" role="tab" id="tab-holos-ai" aria-controls="aba-holos-ai" aria-selected="false">HOLOS AI</button>
+                <!-- 14/10: aba Relatorio escondida: o Resultado HOLOS e o lugar unico dos resultados (HOLOSCAN, ferramentas e a analise da Holos IA); o codigo continua -->
+                <button class="aba hidden" hidden data-aba="relatorio" role="tab" id="tab-relatorio" aria-controls="aba-relatorio" aria-selected="false">Relatório</button>
+              </div>
+              <button type="button" class="abas-seta dir" data-abas-seta="1" aria-label="Mais abas" hidden>&rsaquo;</button>
               </div>
 
               <div class="aba-painel" id="aba-visao" role="tabpanel" aria-labelledby="tab-visao"></div>
               <div class="aba-painel hidden" id="aba-consultas" role="tabpanel" aria-labelledby="tab-consultas"></div>
               <!-- V1 Etapa 2: anamnese e conduta pertencem ao atendimento ativo (anamnese.js, conduta.js) -->
-              <div class="aba-painel hidden" id="aba-anamnese" role="tabpanel" aria-labelledby="tab-anamnese"></div>
+              <div class="aba-painel hidden" id="aba-anamnese" role="tabpanel" aria-labelledby="tab-anamnese">
+                <!-- 09/10: pre-consulta (link para a paciente; anamnese-convite.js) + registro do atendimento (anamnese.js) -->
+                <div id="an-preconsulta"></div>
+                <div id="anamnese-registro"></div>
+              </div>
               <div class="aba-painel hidden" id="aba-conduta" role="tabpanel" aria-labelledby="tab-conduta"></div>
               <div class="aba-painel hidden" id="aba-holoscan" role="tabpanel" aria-labelledby="tab-holoscan"></div>
               <div class="aba-painel hidden" id="aba-ferramentas" role="tabpanel" aria-labelledby="tab-ferramentas"></div>
+              <!-- Resultado HOLOS: visao integrada final (resultado-holos.js), depois do HOLOSCAN e das ferramentas, antes da Conduta -->
+              <div class="aba-painel hidden" id="aba-resultado-holos" role="tabpanel" aria-labelledby="tab-resultado-holos"></div>
               <div class="aba-painel hidden" id="aba-documentos" role="tabpanel" aria-labelledby="tab-documentos"></div>
               <!-- V1 Etapa 3: evolucao por atendimento (evolucao.js) e relatorios versionados (relatorios.js) -->
               <div class="aba-painel hidden" id="aba-evolucao" role="tabpanel" aria-labelledby="tab-evolucao"></div>
@@ -941,14 +1006,6 @@
         <div id="agenda-corpo"></div>
       </section>
 
-      <!-- ============ DOCUMENTOS ============ -->
-      <section class="secao" id="secao-documentos">
-        <!-- Desenhada por documentos.js: os mesmos arquivos que a aba da
-             ficha mostra, mas de todos os pacientes de uma vez. Le o
-             IndexedDB por ArquivoStore.listarTudo() — nao ha segunda copia. -->
-        <div id="documentos-corpo"></div>
-      </section>
-
       <!-- ============ METODOLOGIA / HOMOLOGACAO (V1 Etapa 4) ============
            Consulta do Pacote Metodologico e do inventario recuperado. So com
            ?homologacao=1. Nenhum botao "aprovar tudo"; aprovacao so pela RPC
@@ -962,6 +1019,28 @@
         <div id="metodologia-corpo"></div>
       </section>
 
+      <!-- ============ ADMINISTRACAO (08/10, ampliada 10/10): cadastros, contas, acesso e historico —
+           so administradores (contas.js; o servidor recusa quem nao e) ============ -->
+      <section class="secao" id="secao-contas">
+        <div class="secao-cabeca">
+          <span class="eyebrow">Configurações · só a equipe HoloHacking</span>
+          <h2><em>Administração</em></h2>
+          <p>Quem está se cadastrando, liberação de acesso, contas das nutricionistas e o histórico de tudo que foi feito aqui.</p>
+        </div>
+        <div id="contas-corpo"></div>
+      </section>
+
+      <!-- ============ AJUDA (07/10): perguntas frequentes, passo a passo,
+           glossario e reportar um erro — desenhada por ajuda.js ============ -->
+      <section class="secao" id="secao-ajuda">
+        <div class="secao-cabeca">
+          <span class="eyebrow">Configurações</span>
+          <h2>Central de <em>ajuda</em></h2>
+          <p>Como usar o HoloHacking, o que cada tela entrega e como reportar um erro.</p>
+        </div>
+        <div id="ajuda-corpo"></div>
+      </section>
+
       <!-- ============ PERFIL / CONFIGURACOES ============ -->
       <section class="secao" id="secao-perfil">
         <div class="secao-cabeca">
@@ -972,6 +1051,9 @@
              os pacientes.</p>
         </div>
 
+        <!-- Conta PENDENTE (09/10): aviso + o que falta completar + Verificar acesso. Desenhado por perfil.js. -->
+        <div id="perfil-aviso-conta" class="perf-aviso-conta" role="status" aria-live="polite" hidden></div>
+
         <div id="perfil-completude"></div>
 
         <div class="abas abas-perfil" role="tablist">
@@ -979,15 +1061,17 @@
           <button class="aba" data-aba-perfil="marca" role="tab" id="tab-marca" aria-controls="painel-marca" aria-selected="false">Marca</button>
           <button class="aba" data-aba-perfil="prefs" role="tab" id="tab-prefs" aria-controls="painel-prefs" aria-selected="false">Preferências</button>
           <button class="aba" data-aba-perfil="conta" role="tab" id="tab-conta" aria-controls="painel-conta" aria-selected="false">Conta</button>
+          <button class="aba" data-aba-perfil="ia" role="tab" id="tab-ia" aria-controls="painel-ia" aria-selected="false" hidden>Assistente de IA</button>
         </div>
 
         <div class="aba-painel" id="painel-perfil" role="tabpanel" aria-labelledby="tab-perfil"></div>
         <div class="aba-painel hidden" id="painel-marca" role="tabpanel" aria-labelledby="tab-marca"></div>
         <div class="aba-painel hidden" id="painel-prefs" role="tabpanel" aria-labelledby="tab-prefs"></div>
         <div class="aba-painel hidden" id="painel-conta" role="tabpanel" aria-labelledby="tab-conta"></div>
+        <div class="aba-painel hidden" id="painel-ia" role="tabpanel" aria-labelledby="tab-ia"></div>
       </section>
 
-      <!-- ============ CORPO - OQ3 ============ -->
+      <!-- ============ CORPO - OQ³ ============ -->
       <section class="secao" id="secao-corpo">
         <div class="secao-cabeca cabeca-modulo">
           <span class="eyebrow">Módulo - Corpo</span>
@@ -1007,7 +1091,7 @@
         </div>
 
         <div class="galeria-ferramentas" id="galeria-corpo" aria-label="Selecione uma ferramenta">
-          <button class="card-ferr" data-vista="vista-oq3"><span class="ferr-num">01</span><span class="ferr-info"><h4>OQ3 &mdash; O Que Quer - Precisa - Consegue</h4><p>Clareza clínica entre desejo, necessidade e capacidade prática do paciente.</p></span><span class="ferr-status disponivel">Disponível</span></button>
+          <button class="card-ferr" data-vista="vista-oq3"><span class="ferr-num">01</span><span class="ferr-info"><h4>OQ³ &mdash; O Que Quer - Precisa - Consegue</h4><p>Clareza clínica entre desejo, necessidade e capacidade prática do paciente.</p></span><span class="ferr-status disponivel">Disponível</span></button>
           <button class="card-ferr" data-ferramenta="linha_momentum"><span class="ferr-num">02</span><span class="ferr-info"><h4>Linha do Momentum</h4><p>Leitura do momento de vida e do que o corpo consegue sustentar.</p></span><span class="ferr-status disponivel">Disponível</span></button>
           <button class="card-ferr" data-ferramenta="mapa_rotina_v1"><span class="ferr-num">03</span><span class="ferr-info"><h4>Mapa da Rotina</h4><p>Registro de como o dia e a semana realmente acontecem.</p></span><span class="ferr-status disponivel">Disponível</span></button>
           <div class="sem-resultado"><strong>Nenhuma ferramenta encontrada</strong><span>Tente outro termo ou limpe a busca.</span></div>
@@ -1017,13 +1101,13 @@
           <button class="btn-voltar" type="button">&larr; Voltar às ferramentas</button>
           <div class="secao-cabeca">
             <span class="eyebrow">Corpo - Ferramenta 01</span>
-            <h2>OQ3 &mdash; <em>clareza clínica</em> sobre a realidade</h2>
-            <p>O Que Quer - O Que Precisa - O Que Consegue. O OQ3 ajuda a identificar a diferença entre aquilo que o paciente deseja, aquilo que realmente precisa e aquilo que, neste momento, ele consegue sustentar na prática.</p>
+            <h2>OQ³ &mdash; <em>clareza clínica</em> sobre a realidade</h2>
+            <p>O Que Quer - O Que Precisa - O Que Consegue. O OQ³ ajuda a identificar a diferença entre aquilo que o paciente deseja, aquilo que realmente precisa e aquilo que, neste momento, ele consegue sustentar na prática.</p>
           </div>
 
           <div class="painel-escuro">
             <span class="eyebrow">Olhar - Questionar - Compreender</span>
-            <h3>As três perguntas do OQ3</h3>
+            <h3>As três perguntas do OQ³</h3>
             <div class="grade-oq3">
               <div class="coluna-oq">
                 <div class="sigla">OQQ</div>
@@ -1054,7 +1138,7 @@
 
           <div class="form-ferramenta" id="form-oq3">
             <div class="form-titulo">
-              <h3>Aplicar OQ3 na consulta</h3>
+              <h3>Aplicar OQ³ na consulta</h3>
               <span class="eyebrow">Registro clínico</span>
             </div>
             <p class="form-sub">Preencha durante ou logo após o atendimento. As respostas ficam salvas na ficha do paciente.</p>
@@ -1068,9 +1152,9 @@
             <div class="grupo"><label for="oq3-quer">OQQ &mdash; O que o paciente quer conquistar?</label><p class="dica">Sonhos, desejos, objetivos, visão de futuro.</p><textarea id="oq3-quer" placeholder="Ex.: quer emagrecer 8 kg para se sentir bem no casamento da filha..."></textarea></div>
             <div class="grupo"><label for="oq3-precisa">OQP &mdash; O que ele precisa resolver?</label><p class="dica">Dores, necessidades reais, sintomas físicos e emocionais.</p><textarea id="oq3-precisa" placeholder="Ex.: compulsão noturna, sono ruim, exames alterados, ansiedade..."></textarea></div>
             <div class="grupo"><label for="oq3-consegue">OQCC &mdash; Do que ele consegue dar conta agora?</label><p class="dica">Rotina, lifestyle, momentum, nível de comprometimento.</p><textarea id="oq3-consegue" placeholder="Ex.: consegue cozinhar 3x por semana, caminhar 20 min por dia..."></textarea></div>
-            <div class="grupo"><label for="oq3-alavancas">Alavancas da transformação</label><p class="dica">O que esta na interseção entre desejo, necessidade e capacidade?</p><textarea id="oq3-alavancas" placeholder="Ex.: organizar o jantar em familia resolve a compulsão..."></textarea></div>
+            <div class="grupo"><label for="oq3-alavancas">Alavancas da transformação</label><p class="dica">O que está na interseção entre desejo, necessidade e capacidade?</p><textarea id="oq3-alavancas" placeholder="Ex.: organizar o jantar em família resolve a compulsão..."></textarea></div>
             <div class="acoes-form">
-              <button type="button" id="btn-salvar-oq3" class="btn-verde">Salvar OQ3</button>
+              <button type="button" id="btn-salvar-oq3" class="btn-verde">Salvar OQ³</button>
               <button type="button" id="btn-nova-oq3" class="btn-fantasma">Nova aplicação</button>
               <button type="button" class="btn-fantasma" data-limpar="oq3">Limpar</button>
             </div>
@@ -1098,7 +1182,7 @@
         </div>
 
         <div class="galeria-ferramentas" id="galeria-mente" aria-label="Selecione uma ferramenta">
-          <button class="card-ferr" data-vista="vista-pqq"><span class="ferr-num">01</span><span class="ferr-info"><h4>PQQ &mdash; Pra Que Que?</h4><p>A chave dos porquês profundos: o propósito por trás dos objetivos do paciente.</p></span><span class="ferr-status disponivel">Disponível</span></button>
+          <button class="card-ferr" data-vista="vista-pqq"><span class="ferr-num">01</span><span class="ferr-info"><h4>PQQ &mdash; Escada dos Porquês</h4><p>A chave dos porquês profundos: o propósito por trás dos objetivos do paciente.</p></span><span class="ferr-status disponivel">Disponível</span></button>
           <button class="card-ferr" data-ferramenta="mapa_crencas"><span class="ferr-num">02</span><span class="ferr-info"><h4>Mapa de Crenças Alimentares</h4><p>Levantamento das crenças limitantes sobre a comida.</p></span><span class="ferr-status disponivel">Disponível</span></button>
           <button class="card-ferr" data-ferramenta="gatilhos_respostas_v1"><span class="ferr-num">03</span><span class="ferr-info"><h4>Gatilhos &amp; Respostas</h4><p>Registro de episódios: gatilho, pensamento, emoção, resposta e consequência.</p></span><span class="ferr-status disponivel">Disponível</span></button>
           <div class="sem-resultado"><strong>Nenhuma ferramenta encontrada</strong><span>Tente outro termo ou limpe a busca.</span></div>
@@ -1109,15 +1193,13 @@
           <div class="secao-cabeca">
             <span class="eyebrow">Mente - Ferramenta 01</span>
             <h2>PQQ &mdash; <em>a chave dos porquês</em> profundos</h2>
-            <p>Pra Que Que? Mais do que saber o que o paciente quer, compreender por que ele quer. Quando o propósito fica claro, o comportamento começa a mudar.</p>
+            <p>Escada dos Porquês: mais do que saber o que o paciente quer, compreender por que ele quer. Quando o propósito fica claro, o comportamento começa a mudar.</p>
           </div>
 
-          <div class="escada-pqq" aria-label="As cinco perguntas do PQQ">
+          <div class="escada-pqq" aria-label="As três perguntas do PQQ">
             <div class="degrau"><span class="num">01</span><div><h5>Pra que que</h5><div class="q">...você quer isso?</div><p>Conectamos ao desejo consciente.</p></div></div>
             <div class="degrau"><span class="num">02</span><div><h5>Pra que que</h5><div class="q">...isso é importante para você?</div><p>Exploramos o significado pessoal.</p></div></div>
             <div class="degrau"><span class="num">03</span><div><h5>Pra que que</h5><div class="q">...isso faz diferença na sua vida?</div><p>Conectamos ao impacto real.</p></div></div>
-            <div class="degrau"><span class="num">04</span><div><h5>Pra que que</h5><div class="q">...isso representa para você?</div><p>Revelamos valores e identidade.</p></div></div>
-            <div class="degrau"><span class="num">05</span><div><h5>Pra que que</h5><div class="q">...isso existe na sua história?</div><p>Acessamos a raiz profunda.</p></div></div>
           </div>
 
           <div style="margin-top:26px">
@@ -1134,7 +1216,7 @@
 
           <div class="form-ferramenta" id="form-pqq">
             <div class="form-titulo"><h3>Aplicar PQQ na consulta</h3><span class="eyebrow">Investigação do propósito</span></div>
-            <p class="form-sub">Parta do objetivo declarado e desca pelas cinco camadas. As respostas ficam salvas na ficha do paciente.</p>
+            <p class="form-sub">Parta do objetivo declarado e desça pelas três perguntas. As respostas ficam salvas na ficha do paciente.</p>
             <div class="barra-paciente">
               <span class="rotulo">Paciente</span>
               <select class="seletor-paciente" id="sel-pqq" aria-label="Selecionar paciente"></select>
@@ -1145,8 +1227,13 @@
             <div class="grupo"><label for="pqq-1">01 - Pra que que você quer isso?</label><textarea id="pqq-1" placeholder="Desejo consciente..."></textarea></div>
             <div class="grupo"><label for="pqq-2">02 - Pra que que isso é importante para você?</label><textarea id="pqq-2" placeholder="Significado pessoal..."></textarea></div>
             <div class="grupo"><label for="pqq-3">03 - Pra que que isso faz diferença na sua vida?</label><textarea id="pqq-3" placeholder="Impacto real..."></textarea></div>
-            <div class="grupo"><label for="pqq-4">04 - Pra que que isso representa para você?</label><textarea id="pqq-4" placeholder="Valores e identidade..."></textarea></div>
-            <div class="grupo"><label for="pqq-5">05 - Pra que que isso existe na sua história?</label><textarea id="pqq-5" placeholder="Raiz profunda..."></textarea></div>
+            <!-- rodada UX 14/10: o PQQ passou a ter 3 perguntas. As perguntas 04 e 05 so aparecem para mostrar uma aplicacao
+                 ANTIGA que tenha essas respostas (historico preservado, nada apagado nem recalculado). -->
+            <div class="pqq-legado" id="pqq-legado" hidden>
+              <p class="dica">Aplicação anterior à versão de 3 perguntas: as respostas 04 e 05 ficam como foram registradas.</p>
+              <div class="grupo"><label for="pqq-4">04 - Pra que que isso representa para você?</label><textarea id="pqq-4" placeholder="Valores e identidade..."></textarea></div>
+              <div class="grupo"><label for="pqq-5">05 - Pra que que isso existe na sua história?</label><textarea id="pqq-5" placeholder="Raiz profunda..."></textarea></div>
+            </div>
             <div class="grupo"><label for="pqq-verdadeiro">O "pra que" verdadeiro</label><p class="dica">A síntese do propósito que sustenta a transformação.</p><textarea id="pqq-verdadeiro" placeholder="Ex.: voltar a se reconhecer e ter energia para brincar com os filhos."></textarea></div>
             <div class="acoes-form">
               <button type="button" id="btn-salvar-pqq" class="btn-verde">Salvar PQQ</button>
@@ -1173,14 +1260,15 @@
             <input type="search" id="busca-espirito" data-galeria="galeria-espirito" placeholder="Buscar ferramenta em Espírito..." aria-label="Buscar ferramenta no módulo Espírito" autocomplete="off">
             <button type="button" class="btn-limpar-busca" aria-label="Limpar busca"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
           </div>
-          <span class="contador-busca" id="contador-espirito"><b>4</b> ferramentas</span>
+          <span class="contador-busca" id="contador-espirito"><b>3</b> ferramentas</span>
         </div>
 
         <div class="galeria-ferramentas" id="galeria-espirito" aria-label="Selecione uma ferramenta">
-          <button class="card-ferr" data-vista="vista-mapa"><span class="ferr-num">01</span><span class="ferr-info"><h4>Mapa do Propósito</h4><p>Síntese do OQ3 e do PQQ: clareza, direção e um plano que pode ser vivido.</p></span><span class="ferr-status disponivel">Disponível</span></button>
+          <button class="card-ferr" data-vista="vista-mapa"><span class="ferr-num">01</span><span class="ferr-info"><h4>Mapa do Propósito</h4><p>Síntese do OQ³ e do PQQ: clareza, direção e um plano que pode ser vivido.</p></span><span class="ferr-status disponivel">Disponível</span></button>
           <button class="card-ferr" data-ferramenta="roda_vida"><span class="ferr-num">02</span><span class="ferr-info"><h4>Roda Holística da Vida</h4><p>Visão panorâmica das áreas da vida e do equilíbrio entre elas.</p></span><span class="ferr-status disponivel">Disponível</span></button>
           <button class="card-ferr" data-ferramenta="carta_futuro"><span class="ferr-num">03</span><span class="ferr-info"><h4>Carta ao Futuro Eu</h4><p>Escrita guiada para conectar o paciente à pessoa que deseja se tornar.</p></span><span class="ferr-status disponivel">Disponível</span></button>
-          <button class="card-ferr" data-ferramenta="conexao_pertencimento_v1"><span class="ferr-num">04</span><span class="ferr-info"><h4>Conexão &amp; Pertencimento</h4><p>Registro da rede de apoio, dos vínculos e dos lugares de pertencimento.</p></span><span class="ferr-status disponivel">Disponível</span></button>
+          <!-- 14/10: Conexao & Pertencimento escondida (fora das FERRAMENTAS_ATIVAS) -->
+          <button class="card-ferr hidden" hidden data-ferramenta="conexao_pertencimento_v1"><span class="ferr-num">04</span><span class="ferr-info"><h4>Conexão &amp; Pertencimento</h4><p>Registro da rede de apoio, dos vínculos e dos lugares de pertencimento.</p></span><span class="ferr-status disponivel">Disponível</span></button>
           <div class="sem-resultado"><strong>Nenhuma ferramenta encontrada</strong><span>Tente outro termo ou limpe a busca.</span></div>
         </div>
 
@@ -1189,7 +1277,7 @@
           <div class="secao-cabeca">
             <span class="eyebrow">Espírito - Ferramenta 01</span>
             <h2>Mapa do <em>Propósito</em></h2>
-            <p>O OQ3 mostra a realidade e a ação possível; o PQQ revela o propósito que sustenta a jornada. O resultado: clareza para a nutricionista, direção para o paciente.</p>
+            <p>O OQ³ mostra a realidade e a ação possível; o PQQ revela o propósito que sustenta a jornada. O resultado: clareza para a nutricionista, direção para o paciente.</p>
           </div>
 
           <div class="barra-paciente">
@@ -1205,12 +1293,12 @@
               <div class="mapa-paciente" id="mapa-paciente">Nenhum paciente registrado ainda</div>
             </div>
             <div class="mapa-grade">
-              <div class="mapa-bloco"><h6>Quer - desejo</h6><p class="vazio" id="mapa-quer">Preencha o OQ3 na seção Corpo.</p></div>
-              <div class="mapa-bloco"><h6>Precisa - necessidade</h6><p class="vazio" id="mapa-precisa">Preencha o OQ3 na seção Corpo.</p></div>
-              <div class="mapa-bloco"><h6>Consegue - capacidade</h6><p class="vazio" id="mapa-consegue">Preencha o OQ3 na seção Corpo.</p></div>
+              <div class="mapa-bloco"><h6>Quer - desejo</h6><p class="vazio" id="mapa-quer">Preencha o OQ³ na seção Corpo.</p></div>
+              <div class="mapa-bloco"><h6>Precisa - necessidade</h6><p class="vazio" id="mapa-precisa">Preencha o OQ³ na seção Corpo.</p></div>
+              <div class="mapa-bloco"><h6>Consegue - capacidade</h6><p class="vazio" id="mapa-consegue">Preencha o OQ³ na seção Corpo.</p></div>
             </div>
             <div class="mapa-grade" style="grid-template-columns:1fr 1fr">
-              <div class="mapa-bloco"><h6>Alavancas da transformação</h6><p class="vazio" id="mapa-alavancas">Preencha o OQ3 na seção Corpo.</p></div>
+              <div class="mapa-bloco"><h6>Alavancas da transformação</h6><p class="vazio" id="mapa-alavancas">Preencha o OQ³ na seção Corpo.</p></div>
               <div class="mapa-bloco"><h6>Objetivo declarado</h6><p class="vazio" id="mapa-objetivo">Preencha o PQQ na seção Mente.</p></div>
             </div>
             <div class="mapa-proposito">
@@ -1271,12 +1359,11 @@
 <script src="/metodologia-inventario.js"></script>
 <script src="/metodologia-decisoes-v1.js"></script>
 <script src="/metodologia-pacote.js"></script>
+<script src="/metodologia-revisao-v3.js"></script>
 <script src="/metodologia-motor.js"></script>
 <script src="/metodologia.js"></script>
 <script src="/holoscan-oficial.js"></script>
-<script src="/laboratorio-catalogo.js"></script>
-<script src="/laboratorio-motor.js"></script>
-<script src="/leitura-integrada-motor.js"></script>
+<script src="/proximos-passos.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"></script>
 <script src="/supabase-client.js"></script>
 <script src="/concorrencia.js"></script>
@@ -1304,7 +1391,7 @@
      qualquer tela consumir `sb`. -->
 <script src="/dados-router.js"></script>
 <script src="/migracao-supa.js"></script>
-<!-- com sessao, rele HOLOSCAN e exames do servidor e reescreve as caixas
+<!-- com sessao, rele HOLOSCAN do servidor e reescreve as caixas
      locais a partir dele (o servidor vence). Antes de app.js, que o chama. -->
 <script src="/sincronizacao.js"></script>
 <script src="/holoscan.js"></script>
@@ -1317,12 +1404,12 @@
 <script src="/resultado-corpo.js"></script>
 <script src="/render-resultado.js"></script>
 <script src="/ferramentas-registro.js"></script>
+<script src="/ajuda-ferramentas.js"></script>
 <script src="/formulario.js"></script>
 <script src="/app.js"></script>
 <script src="/questionario.js"></script>
 <script src="/arquivo-store.js"></script>
 <script src="/arquivos.js"></script>
-<script src="/laboratorio.js"></script>
 <script src="/ficha.js"></script>
 <script src="/timeline.js"></script>
 <script src="/evolucao.js"></script>
@@ -1331,17 +1418,41 @@
 <script src="/agenda.js"></script>
 <script src="/atendimento.js"></script>
 <script src="/anamnese.js"></script>
+<script src="/anamnese-v2.js"></script>
+<!-- Anamnese pre-consulta: link para a paciente, status e resposta (09/10). Depois de anamnese-v2.js. -->
+<script src="/mapeamento-holistico.js"></script>
+<script src="/anamnese-convite.js"></script>
 <script src="/conduta.js"></script>
 <script src="/relatorios.js"></script>
+<!-- Resumo estruturado do Resultado HOLOS (fatos + regra oficial + pendencias metodologicas), antes de resultado-holos.js -->
+<script src="/ferramentas-fechamento.js"></script>
+<script src="/resultado-sintese.js"></script>
+<script src="/sistemas-fechamento.js"></script>
+<!-- Template 5: direcionamento + estrategias + acompanhamento da evolucao (editor, visao da paciente, retorno). Antes de resultado-holos.js. -->
+<script src="/resultado-direcao.js"></script>
+<script src="/resultado-holos.js"></script>
+<!-- Playbook HOLOS (PB-V2): conteudo e selecao (playbook-holos.js) + assistente "Montar com o Playbook" (resultado-playbook.js), o Resultado sem depender da IA. Depois de resultado-holos.js. -->
+<script src="/playbook-holos.js"></script>
+<script src="/resultado-playbook.js"></script>
+<!-- Pagina Resultado (versao final para a paciente, PDF e WhatsApp). Depois de resultado-holos.js, que ela usa. -->
+<script src="/resultado-pagina.js"></script>
+<script src="/resultado-legado-r3.js"></script>
 <script src="/metodologia-homologacao.js"></script>
-<script src="/documentos.js"></script>
 <script src="/perfil.js"></script>
+<!-- Assistente de IA (MCP, 27/10): chave pessoal de conexao no Perfil (conexao-ia.js) -->
+<script src="/conexao-ia.js"></script>
+<script src="/ajuda.js"></script>
+<script src="/contas.js"></script>
 <script src="/caso-marina.js"></script>
 <script src="/demo.js"></script>
+<!-- Ponte HOLOS AI -> Resultado HOLOS (contrato do JSON HOLOS_AI_RESULT v1 + tela de importacao e revisao). Antes de holos-ai.js, que desenha a aba. -->
+<script src="/holos-ai-contrato.js"></script>
+<script src="/holos-ai-ponte.js"></script>
 <script src="/holos-ai.js"></script>
 <!-- Por ultimo: a tela de entrada nao depende de nada do app, e o app nao
      depende dela. O dia em que a autenticacao real chegar, e este arquivo que
      muda — nao os de cima. -->
+<script src="/boas-vindas.js"></script>
 <script src="/login.js"></script>
 </body>
 </html>

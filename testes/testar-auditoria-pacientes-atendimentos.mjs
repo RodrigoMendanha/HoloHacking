@@ -69,40 +69,23 @@ const at = await p.evaluate(async (ids) => {
   await window.Agenda.recarregar();
   document.querySelector('.nav-item[data-secao="consultas"]').click();
   window.redesenharConsultas();
+  /* 14/10: a pagina e o historico clinico; a agenda (proximas/anteriores) saiu daqui — tem o menu proprio */
   const corpo = document.getElementById('consultas-corpo');
-  const blocos = corpo.querySelectorAll('#consultas-agenda .con-lista');
-  const prox = blocos[0] ? [...blocos[0].querySelectorAll('.cons-linha')].map(l => l.innerText.replace(/\s+/g, ' ')) : [];
-  const ant = blocos[1] ? [...blocos[1].querySelectorAll('.cons-linha')].map(l => l.innerText.replace(/\s+/g, ' ')) : [];
-  const atLinha = corpo.querySelector('.at-linha');
-  const consLinha = corpo.querySelector('.cons-linha');
-  return { eid: e.id, prox, ant,
-    gridAt: atLinha ? getComputedStyle(atLinha).display : null,
-    gridCons: consLinha ? getComputedStyle(consLinha).display : null,
-    botaoAt: atLinha ? atLinha.querySelector('[data-atendimento]').textContent.trim() : '',
-    detalheAt: atLinha ? atLinha.querySelector('.con-detalhe').textContent : '' };
+  const atLinha = corpo.querySelector('tr.at-linha');
+  return { eid: e.id, temAgenda: !!corpo.querySelector('#consultas-agenda'), tabela: !!corpo.querySelector('table.at-tabela'),
+    tipo: atLinha ? atLinha.innerText.replace(/\s+/g, ' ') : '', clicavel: atLinha ? getComputedStyle(atLinha).cursor : '' };
 }, ids);
-ok(at.gridAt === 'grid' && at.gridCons === 'grid', 'listas de atendimentos e consultas com layout (grid): ' + at.gridAt + ' / ' + at.gridCons);
-ok(/^Abrir atendimento/.test(at.botaoAt) && /sem conduta/.test(at.detalheAt), 'atendimento: botão "Abrir atendimento" e "sem conduta" na linha: ' + at.detalheAt);
-ok(at.prox.length === 1 && !/00:01/.test(at.prox.join()), 'a consulta de hoje que já passou sai de "próximas": ' + at.prox.join(' | '));
-ok(at.ant.some(l => /00:01/.test(l) && /sem atendimento registrado/.test(l) && /Registrar atendimento/.test(l)),
-   'e aparece em "anteriores", dizendo que não há atendimento e oferecendo registrar: ' + at.ant.join(' | '));
+ok(at.tabela && !at.temAgenda, 'Atendimentos em tabela, sem o bloco da agenda (14/10)');
+ok(/Avulso/.test(at.tipo) && at.clicavel === 'pointer', 'linha do atendimento: tipo (Avulso) e linha inteira clicável: ' + at.tipo);
 
 const irAt = await p.evaluate(async (eid) => {
-  document.querySelector('#consultas-corpo [data-atendimento="' + eid + '"]').click();
+  document.querySelector('#consultas-corpo tr[data-atendimento="' + eid + '"] td').click();
   await new Promise(r => setTimeout(r, 300));
   return { secao: document.querySelector('.secao.ativa')?.id, ficha: !document.getElementById('vista-ficha').classList.contains('hidden'),
-    aba: document.querySelector('[data-aba].ativa')?.dataset.aba, atual: (window.AtendimentoAtual.atual() || {}).id };
+    atual: (window.AtendimentoAtual.atual() || {}).id };
 }, at.eid);
-ok(irAt.secao === 'secao-pacientes' && irAt.ficha && irAt.aba === 'conduta' && irAt.atual === at.eid,
-   '"Abrir atendimento" vai para a ficha, com o atendimento selecionado, na aba Conduta: ' + JSON.stringify(irAt));
-
-const irFicha = await p.evaluate(async (bia) => {
-  document.querySelector('.nav-item[data-secao="consultas"]').click();
-  document.querySelector('#consultas-corpo #consultas-agenda [data-paciente="' + bia + '"]').click();
-  await new Promise(r => setTimeout(r, 300));
-  return { secao: document.querySelector('.secao.ativa')?.id, ficha: !document.getElementById('vista-ficha').classList.contains('hidden'), nome: window.pacienteAtivoNome() };
-}, ids.bia);
-ok(irFicha.secao === 'secao-pacientes' && irFicha.ficha && irFicha.nome === 'Bia Ficticia', '"Abrir ficha" em Atendimentos abre a ficha (antes ficava na mesma tela)');
+ok(irAt.secao === 'secao-pacientes' && irAt.ficha && irAt.atual === at.eid,
+   'clicar na linha do atendimento vai para a ficha, com o atendimento selecionado: ' + JSON.stringify(irAt));
 
 /* ---------------------------------------------------- último contato ----- */
 const contato = await p.evaluate((ids) => {
@@ -137,7 +120,7 @@ const arq = await p.evaluate(async (ids) => {
 }, ids);
 ok(arq.principal === 'Reativar', 'lista: o botão principal do arquivado é "Reativar": ' + arq.principal);
 ok(arq.menu.join(',') === 'Reativar paciente,Remover paciente', 'e o menu só tem Reativar e Remover: ' + arq.menu.join(' · '));
-ok(arq.bt.length >= 4 && arq.bt.every(Boolean), 'ficha do arquivado: botões de registro desabilitados de verdade (' + arq.bt.length + ')');
+ok(arq.bt.length >= 3 && arq.bt.every(Boolean),   /* Marcar consulta, Adicionar arquivo, Aplicar HOLOSCAN (09/10: um botao de arquivo so) */ 'ficha do arquivado: botões de registro desabilitados de verdade (' + arq.bt.length + ')');
 ok(arq.reativarVisivel, 'e a ficha tem o botão "Reativar paciente"');
 ok(/^1 paciente ativo · 1 arquivado$/.test(arq.total.replace(/\s+/g, ' ')) && arq.nav === '1', 'contadores só de ativos: "' + arq.total + '", menu lateral ' + arq.nav);
 ok(arq.barra === true, 'a barra de contexto não aparece na lista de pacientes');
@@ -165,19 +148,23 @@ const cad = await p.evaluate(async () => {
   document.getElementById('np-nascimento').value = '2099-01-01';
   document.getElementById('btn-salvar-paciente').click();
   await new Promise(r => setTimeout(r, 200));
+  /* 16/10: o erro aparece junto do campo (nao mais no toast) */
+  const msgCampo = () => [...document.querySelectorAll('.campo-erro')].map(e => e.textContent).join(' | ');
+  let erros = msgCampo();
   document.getElementById('np-nascimento').value = '';
   document.getElementById('np-telefone').value = 'abc';
   document.getElementById('btn-salvar-paciente').click();
   await new Promise(r => setTimeout(r, 200));
+  erros += ' | ' + msgCampo();
   const n1 = window.pacientesTodos().length;
   document.getElementById('np-telefone').value = '+55 11 99999-0000';
   document.getElementById('btn-salvar-paciente').click();
   await new Promise(r => setTimeout(r, 300));
-  return { visivel, recusou: n1 === n0, aceitou: window.pacientesTodos().length === n0 + 1, max: document.getElementById('np-nascimento').max };
+  return { visivel, erros, recusou: n1 === n0, aceitou: window.pacientesTodos().length === n0 + 1, max: document.getElementById('np-nascimento').max };
 });
 const msgCad = await toasts();
 ok(cad.visivel, '"Novo paciente" na aba Revisão abre o formulário visível (volta para a Lista)');
-ok(cad.recusou && /futuro/.test(msgCad) && /Telefone inválido/.test(msgCad), 'cadastro recusa nascimento no futuro e telefone "abc": ' + msgCad.slice(0, 160));
+ok(cad.recusou && /futuro/.test(cad.erros) && /Telefone inválido/.test(cad.erros), 'cadastro recusa nascimento no futuro e telefone "abc" (erro junto do campo): ' + cad.erros.slice(0, 200));
 ok(cad.aceitou, 'e aceita quando corrigido');
 
 /* ---------------------------------------------------- Esc no excluir ---- */

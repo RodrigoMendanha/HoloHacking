@@ -387,11 +387,14 @@
     });
 
     consultasDe(dia).forEach(function (c) {
-      html += '<button type="button" class="cal-evento consulta' + (vigente(c) ? "" : " cancelada") + '" ' +
+      /* 16/10: Agendada -> Em atendimento -> Realizada, derivado do atendimento que nasceu da consulta */
+      var est = window.AtendimentoAtual && window.AtendimentoAtual.estadoDaConsulta ? window.AtendimentoAtual.estadoDaConsulta(c) : null;
+      var marca = est && (est.chave === "em_atendimento" || est.chave === "realizada") ? est : null;
+      html += '<button type="button" class="cal-evento consulta' + (vigente(c) ? "" : " cancelada") + (marca ? " " + marca.chave.replace("_", "-") : "") + '" ' +
         'style="' + posicao(minutos(c.hora), Number(c.duracao) || 60) + faixaHorizontal(pos["c" + c.id]) + '" ' +
-        'data-abrir="consulta" data-id="' + escapar(c.id) + '">' +
+        'data-abrir="consulta" data-id="' + escapar(c.id) + '"' + (marca ? ' data-estado="' + marca.chave + '"' : "") + '>' +
         "<b>" + escapar(nomeDe(c.paciente_id)) + "</b>" +
-        "<span>" + escapar(c.hora) + " &middot; " + escapar(c.tipo || "Consulta") + "</span>" +
+        "<span>" + escapar(c.hora) + " &middot; " + escapar(marca ? marca.rotulo : (c.tipo || "Consulta")) + "</span>" +
         "</button>";
     });
 
@@ -562,6 +565,10 @@
           escapar(c.rescheduled_to_id) + '">ver o novo agendamento</button>' : "") +
         ". Fica no histórico; não é apagado.</p>"
       : "";
+    /* 16/10: a consulta que virou atendimento mostra o estado (Em atendimento / Realizada) */
+    var estF = c.id && !cancelada && window.AtendimentoAtual && window.AtendimentoAtual.estadoDaConsulta ? window.AtendimentoAtual.estadoDaConsulta(c) : null;
+    if (estF && (estF.chave === "em_atendimento" || estF.chave === "realizada")) avisoCancelada += '<p class="perf-ajuda cal-estado" data-estado-consulta="' + estF.chave + '"><b>' + escapar(estF.rotulo) + "</b>" +
+      (estF.chave === "realizada" ? " &mdash; o atendimento desta consulta foi encerrado." : " &mdash; o atendimento desta consulta está aberto.") + "</p>";
     var origem = c.rescheduled_from_id
       ? '<p class="perf-ajuda">Reagendado a partir de <button type="button" class="btn-fantasma" data-abrir="consulta" data-id="' +
         escapar(c.rescheduled_from_id) + '">um agendamento anterior</button>.</p>'
@@ -641,8 +648,35 @@
 
   /* ---------- desenhar ----------------------------------------------------- */
 
+  /* 14/10 (auditoria Cowork): um redesenho no meio do preenchimento (troca de paciente, carga da agenda) refazia o
+     formulario com os valores padrao e apagava o que tinha sido digitado — a 1a tentativa "voltava ao padrao" sem
+     mensagem. O que esta digitado fica no rascunho em edicao antes de redesenhar. */
+  var seqForm = 0;
+  function guardarDigitado() {
+    /* so o formulario DESTE rascunho (abrir outro rascunho nao herda o que estava no anterior) */
+    if (!editando || !alvo || !editando._t || alvo.dataset.formDe !== String(editando._t)) return;
+    var d = editando.dado, v = function (id) { var el = document.getElementById(id); return el ? el : null; };
+    /* registro ja salvo: mudar dia/hora e REAGENDAR (comparado com o original na hora de salvar) — nao mexe */
+    if (d.id) return;
+    if (editando.tipo === "consulta") {
+      if (v("cf-paciente") && !d.id && v("cf-paciente").value) d.paciente_id = v("cf-paciente").value;
+      if (v("cf-tipo")) d.tipo = v("cf-tipo").value;
+      if (v("cf-data")) d.data = v("cf-data").value;
+      if (v("cf-hora")) d.hora = v("cf-hora").value;
+      if (v("cf-duracao")) d.duracao = Number(v("cf-duracao").value) || d.duracao;
+      if (v("cf-nota")) d.nota = v("cf-nota").value;
+    } else {
+      if (v("bf-data")) d.data = v("bf-data").value;
+      if (v("bf-dia-todo")) d.dia_todo = v("bf-dia-todo").checked;
+      if (v("bf-inicio")) d.inicio = v("bf-inicio").value;
+      if (v("bf-fim")) d.fim = v("bf-fim").value;
+      if (v("bf-motivo")) d.motivo = v("bf-motivo").value;
+    }
+  }
+
   function desenhar() {
     if (!alvo) return;
+    guardarDigitado();
     var dias = diasDoPeriodo();
 
     var corpo;
@@ -651,6 +685,8 @@
     else corpo = grade(dias);
 
     alvo.innerHTML = cabecalho() + navegacao() + chips() + resumoHoje() + formulario() + corpo;
+    if (editando && !editando._t) editando._t = ++seqForm;
+    alvo.dataset.formDe = editando ? String(editando._t) : "";
 
     marcarNoMenu();
     ligar();
@@ -688,6 +724,11 @@
   function novaConsulta(dia, hora, pid) {
     var ativo = pid && !(window.pacienteArquivado && window.pacienteArquivado(pid)) ? pid : "";
     var diaC = dia || (deIso(iso(foco)) < hoje() ? iso(hoje()) : iso(foco));
+    /* depois das 23h nao ha "proxima hora cheia" hoje: sem dia escolhido, a
+       sugestao vai para amanha 09:00 (antes sugeria 23:00, ja no passado) */
+    if (!dia && !hora && diaC === iso(hoje()) && new Date().getHours() >= 23) {
+      var am = hoje(); am.setDate(am.getDate() + 1); diaC = iso(am);
+    }
     editando = { tipo: "consulta", dado: {
       paciente_id: ativo,
       data: diaC, hora: hora || horaSugerida(diaC),
@@ -712,10 +753,14 @@
     desenhar();
   }
 
+  /* erro de agenda nunca fica so num paragrafo fora da vista: aparece no formulario (que rola ate ele) e no aviso */
   function avisar(texto) {
     var el = document.getElementById("cal-aviso");
-    if (el) { el.textContent = texto; el.className = "perf-aviso ruim"; }
-    else if (window.avisar) window.avisar(texto);
+    if (el) {
+      el.textContent = texto; el.className = "perf-aviso ruim"; el.setAttribute("role", "alert");
+      if (el.scrollIntoView) el.scrollIntoView({ block: "nearest" });
+    }
+    if (window.avisar) window.avisar(texto);
   }
 
   /* ---------- salvar -------------------------------------------------------- */
@@ -797,9 +842,9 @@
     decidir.then(function (resp) {
       if (resp !== "confirmar") return null;
       return gravarConsulta(d).then(function (r) {
-        if (r && r.error) {
-          avisar(window.mensagemHumana ? window.mensagemHumana(r.error)
-                                       : "Não foi possível salvar a consulta. Nada foi gravado; tente de novo.");
+        if (!r || r.error || (!d.id && !(r.data && r.data.id))) {
+          avisar(r && r.error && window.mensagemHumana ? window.mensagemHumana(r.error)
+                                       : "Não foi possível salvar a consulta. Nada foi gravado; o que você preencheu continua aqui — tente de novo.");
           return;
         }
         editando = null;
@@ -809,6 +854,9 @@
           if (window.avisar) window.avisar("Consulta marcada para " + dataBR(d.data) + " às " + d.hora + ".");
         });
       });
+    }).catch(function (e) {
+      console.error("[agenda] salvar consulta:", e && e.message ? e.message : e);
+      avisar("Não foi possível salvar a consulta (sem conexão ou erro do servidor). Nada foi gravado; o que você preencheu continua aqui — tente de novo.");
     }).finally(function () { if (btnSalvar) window.destravarBotao(btnSalvar); });
   }
 
@@ -1045,9 +1093,11 @@
         // um paciente ativo — o formulario nasce com ele, em vez de cair no
         // primeiro nome da lista e pedir para escolher de novo.
         if (novo.dataset.novo === "consulta") {
-          /* dentro da Agenda a consulta nova comeca sem paciente escolhido;
-             quem vem da ficha usa Agenda.novaConsultaPara(pid) */
-          novaConsulta(null, null, null);
+          /* 16/10 (estabilizacao): se ja ha um paciente selecionado no contexto (barra do paciente / ficha), a consulta
+             nova ja vem com ele; sem contexto, comeca sem paciente escolhido (como antes) */
+          var pidCtx = window.pacienteAtivoId ? window.pacienteAtivoId() : null;
+          if (pidCtx && window.pacienteArquivado && window.pacienteArquivado(pidCtx)) pidCtx = null;
+          novaConsulta(null, null, pidCtx || null);
         } else novoBloqueio();
         return;
       }
@@ -1149,12 +1199,24 @@
 
   /* ---------- o que o resto do app pode perguntar --------------------------- */
 
+  /* Teste real 07/10: "Proxima consulta" mostrava a de hoje as 10:00 depois
+     de ela acontecer. Ainda vem = data futura, ou hoje com horario por vir, e
+     sem atendimento ja iniciado a partir dela. */
+  function aindaVem(c) {
+    var deHoje = iso(hoje());
+    if (c.data < deHoje) return false;
+    if (window.AtendimentoAtual && window.AtendimentoAtual.porAgendamento && window.AtendimentoAtual.porAgendamento(c.id)) return false;
+    if (c.data > deHoje) return true;
+    var agora = new Date();
+    return minutos(c.hora) > agora.getHours() * 60 + agora.getMinutes();
+  }
+
   window.Agenda = {
+    aindaVem: aindaVem,
     /** A próxima consulta de alguém, daqui para a frente. */
     proxima: function (pid) {
-      var deHoje = iso(hoje());
       return vigentes().filter(function (c) {
-        return c.paciente_id === pid && c.data >= deHoje;
+        return c.paciente_id === pid && aindaVem(c);
       }).sort(function (a, b) {
         return a.data.localeCompare(b.data) || minutos(a.hora) - minutos(b.hora);
       })[0] || null;
@@ -1221,6 +1283,14 @@
     if (!alvo) return;
     if (!editando) foco = hoje();
     carregar().then(desenhar);
+  };
+  /** Abre UMA consulta na agenda (o "Ver" do Dashboard). */
+  window.Agenda.abrirConsulta = function (id) {
+    var c = consultas.filter(function (x) { return x.id === id; })[0];
+    if (!c) return false;
+    if (c.data) { var p = c.data.split("-"); foco = new Date(+p[0], +p[1] - 1, +p[2]); }
+    abrir("consulta", id);
+    return true;
   };
   /** Nova consulta ja com um paciente (ficha, lista de pacientes). */
   window.Agenda.novaConsultaPara = function (pid) { novaConsulta(null, null, pid || null); };

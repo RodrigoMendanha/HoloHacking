@@ -1,33 +1,16 @@
 /**
- * A aba HOLOSCAN, dentro da ficha do paciente.
- *
- * HOLOSCAN e confronto laboratorial, nunca correcao do HOLOSCAN — os tres
- * estados (Convergente/Divergente/Dados insuficientes) e os textos fixos
- * ja vem de window.Holoscan (arquivos.js), que ja evita a `leitura` causal
- * do motor por design (window.Holoscan.texto, nunca c.leitura). Esta aba
- * so resume o que aquele modulo ja calcula.
- *
- * A receita dos exames (EXA-005=115 no metabolico, EXA-015=78 no detox) e a
- * mesma de testes/testar-arquivos.mjs: no caso.json o metabolico esta baixo
- * (0.8) e o detox esta alto (6.7), entao exame alterado no metabolico
- * CONVERGE e no detox DIVERGE — nao e coincidencia, e o mesmo motor.
+ * A aba HOLOSCAN, dentro da ficha do paciente (decisao de produto 09/10:
+ * exame nao participa do HOLOSCAN; a Leitura Integrada saiu da aba).
  *
  * O que este teste cobra:
  *
- *   VAZIO        sem exame nenhum, o convite certo.
- *   SEM MAPA     exame lancado sem HOLOSCAN aplicado — nao bloqueia, so avisa.
- *   COM MAPA     ultima coleta com contagem e "confrontado com o mapa de...".
- *   ESTADOS      Convergente, Divergente e Dados insuficientes aparecem, com
- *                o texto FIXO do Holoscan — nunca a leitura causal do motor.
- *   HISTORICO    sem coleta datada persistida, a tela diz isso claramente
- *                em vez de inventar um historico que nao existe.
- *   REGISTRAR    "Registrar exames" abre a aba certa, com o paciente da ficha.
- *   NAVEGACAO    "Ver HOLOSCAN completo" leva para a secao, sem zerar a tela.
- *
- * Etapa 5 da V1: tudo acima e o confronto LEGADO, que so aparece em
- * ?homologacao=1 (rotulado). A saida oficial da aba e a Leitura Integrada V1
- * (pacote LI-V1 sem regra homologada => "sem dados suficientes"); este teste
- * cobre as duas superficies e a barreira entre elas.
+ *   VAZIO        sem aplicacao, o convite certo e NENHUM bloco de laboratorio.
+ *   CONTINUIDADE depois do mapa: Resultado HOLOS -> Resultado para a paciente.
+ *   NAVEGACAO    "Resultado para a paciente" leva para a secao Resultado com a
+ *                pessoa certa selecionada, sem zerar a tela.
+ *   COM MAPA     ultima aplicacao e historico; valor de exame guardado
+ *                localmente nao produz Convergente/Divergente em lugar nenhum.
+ *   HOMOLOGACAO  ?homologacao=1 tambem nao tem confronto legado.
  */
 import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
@@ -44,22 +27,16 @@ const ruim = []; p.on('pageerror', e => ruim.push(e.message));
 await p.goto('http://127.0.0.1:5500/', { waitUntil: 'networkidle2' });
 await p.addStyleTag({ content: '*{transition:none!important;animation:none!important}' });
 await p.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados());
-const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
 let falhou = false;
-const conferir = (c, t) => { if (!c) falhou = true; ok(c, t); };
+const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };
+const conferir = ok;
 
-const aba = (x) => p.evaluate(async (n) => {
-  document.querySelector('[data-aba="' + n + '"]').click();
-  await new Promise(r => setTimeout(r, 250));
-}, x);
-
+const aba = (x) => p.evaluate(async (n) => { document.querySelector('[data-aba="' + n + '"]').click(); await new Promise(r => setTimeout(r, 250)); }, x);
 const abrirFichaDe = (id) => p.evaluate(async (pid) => {
   document.querySelector('.nav-item[data-secao="pacientes"]').click();
   document.querySelector('[data-ficha="' + pid + '"]').click();
   await new Promise(r => setTimeout(r, 300));
 }, id);
-
-/* --------------------------------------------------------- um paciente --- */
 
 const pid = await p.evaluate(async () => {
   document.querySelector('.nav-item[data-secao="pacientes"]').click();
@@ -70,202 +47,65 @@ const pid = await p.evaluate(async () => {
   return window.pacienteAtivoId();
 });
 
-/* ================================================================ Etapa 5
-   A saida OFICIAL da aba e a Leitura Integrada V1 (pacote LI-V1, sem regra
-   homologada => "sem dados suficientes"). O confronto legado (nota <= 3 x um
-   exame fora da faixa cadastrada) continua existindo SO em ?homologacao=1,
-   rotulado LEGADO. As assercoes originais do legado foram mantidas e passam
-   a rodar nesse modo; as assercoes novas cobrem a barreira oficial. */
-
-const irParaOficial = async () => { await p.goto('http://127.0.0.1:5500/', { waitUntil: 'networkidle2' }); await p.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados()); };
-const irParaHomologacao = async () => { await p.goto('http://127.0.0.1:5500/?homologacao=1', { waitUntil: 'networkidle2' }); await p.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados()); };
-
-/* ------------------------------------------- sem exame (saida oficial) --- */
-
+/* ------------------------------------------------------------- vazio ----- */
 await abrirFichaDe(pid);
 await aba('holoscan');
-
-const oficialVazio = await p.evaluate(() => ({
-  botao: document.querySelector('#aba-holoscan-laboratorial .fic-consultas-topo button')?.textContent,
-  titulo: document.querySelector('#aba-holoscan-laboratorial .dash-titulo')?.textContent,
-  status: document.querySelector('#aba-holoscan-laboratorial #li-status')?.textContent || '',
-  semConta: document.querySelector('#aba-holoscan-laboratorial .dash-vazio')?.textContent || '',
-  confItens: document.querySelectorAll('#aba-holoscan-laboratorial .conf-item').length,
-  ultima: [...document.querySelectorAll('#aba-holoscan-laboratorial .dash-titulo')].some(t => t.textContent === 'Última coleta'),
-}));
-conferir(oficialVazio.botao === 'Registrar exames', 'oficial: o CTA é "Registrar exames": ' + oficialVazio.botao);
-conferir(oficialVazio.titulo === 'Leitura Integrada (V1)', 'oficial: a aba mostra a Leitura Integrada V1: ' + oficialVazio.titulo);
-conferir(/LI-V1/.test(oficialVazio.status) && /sem dados suficientes/.test(oficialVazio.status),
-  'oficial: pacote LI-V1 sem regra homologada => só "sem dados suficientes": ' + oficialVazio.status.slice(0, 60));
-conferir(/Sem conta ativa/.test(oficialVazio.semConta), 'oficial: sem conta, avisa que não há aplicação nem coleta no servidor para selecionar');
-conferir(oficialVazio.confItens === 0 && !oficialVazio.ultima, 'oficial: nenhum confronto legado por sistema e nenhum bloco "Última coleta"');
-
-const registrar = await p.evaluate(async () => {
-  document.querySelector('#aba-holoscan-laboratorial [data-ir="aba:documentos"]').click();
-  await new Promise(r => setTimeout(r, 250));
-  return {
-    abaAtiva: document.querySelector('[data-aba="documentos"]').classList.contains('ativa'),
-    fichaVisivel: !document.getElementById('vista-ficha').classList.contains('hidden'),
-  };
-});
-conferir(registrar.abaAtiva && registrar.fichaVisivel,
-  '"Registrar exames" abre a aba Documentos desta mesma ficha, sem zerar a tela');
-
-/* ------------------------------------- sem exame (legado, ?homologacao=1) */
-
-await irParaHomologacao();
-await abrirFichaDe(pid);
-await aba('holoscan');
-
 const vazio = await p.evaluate(() => {
-  const v = document.querySelector('#aba-holoscan-laboratorial .lista-vazia');
+  const v = document.querySelector('#aba-holoscan .lista-vazia');
   return {
     titulo: v?.querySelector('strong')?.textContent,
-    texto: v?.querySelector('span')?.textContent,
-    botao: document.querySelector('#aba-holoscan-laboratorial .fic-consultas-topo button')?.textContent,
-    avisoSemMapa: document.querySelector('#aba-holoscan-laboratorial .dash-vazio')?.textContent || '',
-    temUltima: !!document.querySelector('#aba-holoscan-laboratorial .dash-titulo'),
+    botao: document.querySelector('#aba-holoscan .fic-consultas-topo button')?.textContent,
+    blocoLab: !!document.getElementById('aba-holoscan-laboratorial'),
+    texto: document.getElementById('aba-holoscan').innerText,
+    chips: [...document.querySelectorAll('#aba-holoscan .fic-chip')].map(b => b.textContent),
   };
 });
-conferir(vazio.titulo === 'Nenhum exame registrado', 'título do estado vazio: ' + vazio.titulo);
-conferir(vazio.texto === 'Registre exames para confrontar os dados laboratoriais com o mapa do HOLOSCAN.',
-  'texto do estado vazio: ' + vazio.texto);
-conferir(vazio.botao === 'Registrar exames', 'o CTA é "Registrar exames": ' + vazio.botao);
-conferir(/existir um mapa/.test(vazio.avisoSemMapa),
-  'sem HOLOSCAN, avisa que o confronto depende do mapa — sem bloquear o registro: ' + vazio.avisoSemMapa);
-conferir(!vazio.temUltima, 'sem exame, nenhum bloco "Última coleta" aparece');
+conferir(vazio.titulo === 'Nenhuma aplicação HOLOSCAN', 'título do estado vazio: ' + vazio.titulo);
+conferir(vazio.botao === 'Iniciar HOLOSCAN', 'o CTA é "Iniciar HOLOSCAN": ' + vazio.botao);
+conferir(!vazio.blocoLab && !/Leitura Integrada|Registrar exames|coleta/i.test(vazio.texto), 'nenhum bloco de laboratório ou Leitura Integrada na aba');
+conferir(vazio.chips.join(',') === 'Resultado HOLOS,Resultado para a paciente', 'depois do mapa: Resultado HOLOS → Resultado para a paciente: ' + vazio.chips.join(' · '));
 
-conferir(/LEGADO \(modo de homologação\)/.test(await p.evaluate(() => document.querySelector('#aba-holoscan-laboratorial .q-erro')?.textContent || '')),
-  'em ?homologacao=1 o confronto antigo vem rotulado LEGADO (modo de homologação)');
-
-/* -------------------------------------- exames sem HOLOSCAN (ainda) ----- */
-
-await p.evaluate((id) => {
-  localStorage.setItem('holohacking.exames', JSON.stringify({ [id]: { 'EXA-005': 115 } }));
-}, pid);
-await p.reload({ waitUntil: 'networkidle2' });
-await p.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados());
-await abrirFichaDe(pid);
-await aba('holoscan');
-
-const semMapa = await p.evaluate(() => {
-  const blocos = [...document.querySelectorAll('#aba-holoscan-laboratorial .dash-bloco-compacto')];
-  const ultima = blocos.find(b => b.querySelector('.dash-titulo').textContent === 'Última coleta');
-  return {
-    resumo: ultima.querySelector('.dash-sub').textContent,
-    dadosInsuf: [...document.querySelectorAll('#aba-holoscan-laboratorial .conf-item')]
-      .every(i => i.classList.contains('dados_insuficientes')),
-  };
-});
-conferir(/1 exame registrado/.test(semMapa.resumo) && !/confrontado com o mapa/.test(semMapa.resumo),
-  'exame sem HOLOSCAN: conta o exame, sem inventar confronto com mapa: ' + semMapa.resumo);
-conferir(semMapa.dadosInsuf, 'e todos os cinco sistemas ficam "dados insuficientes" sem mapa');
-
-/* ---------------------------------------------- HOLOSCAN + exames ------- */
-
-await p.evaluate(async (respostas) => {
-  document.querySelector('.nav-item[data-secao="holoscan"]').click();
-  window.aplicarPontuacao(HOLOSCAN.calcular(respostas));
-  const id = window.pacienteAtivoId();
-  localStorage.setItem('holohacking.exames', JSON.stringify({
-    [id]: { 'EXA-005': 115, 'EXA-015': 78 } // metabolico converge, detox diverge — mesma receita de testar-arquivos.mjs
-  }));
-}, caso.respostas);
-
-await p.reload({ waitUntil: 'networkidle2' });
-await p.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados());
-await abrirFichaDe(pid);
-await aba('holoscan');
-
-const cheio = await p.evaluate(() => {
-  const blocos = [...document.querySelectorAll('#aba-holoscan-laboratorial .dash-bloco-compacto')];
-  const de = titulo => blocos.find(b => b.querySelector('.dash-titulo').textContent === titulo);
-  const ultima = de('Última coleta');
-  const itens = [...document.querySelectorAll('#aba-holoscan-laboratorial .conf-item')].map(i => ({
-    sistema: i.querySelector('b').textContent,
-    estado: i.querySelector('.conf-selo').textContent,
-    leitura: i.querySelector('.conf-leitura').textContent.trim(),
-    classe: i.className,
-  }));
-  return {
-    resumo: ultima.querySelector('.dash-sub').textContent,
-    contagem: [...ultima.querySelectorAll('.fic-sis')].map(s => s.textContent.trim()),
-    itens,
-    historico: de('Histórico de coletas').querySelector('.dash-vazio').textContent,
-    continuidade: [...document.querySelectorAll('#aba-holoscan-laboratorial .fic-continuidade .fic-rot')].map(s => s.textContent),
-  };
-});
-
-conferir(/2 exames registrados/.test(cheio.resumo) && /confrontado com o mapa de/.test(cheio.resumo),
-  'com HOLOSCAN, a última coleta mostra a contagem e o mapa confrontado: ' + cheio.resumo);
-conferir(cheio.contagem.some(c => /Convergentes\s*1/.test(c.replace(/\s+/g, ' '))),
-  'conta convergentes: ' + cheio.contagem.join(' · '));
-conferir(cheio.contagem.some(c => /Divergentes\s*1/.test(c.replace(/\s+/g, ' '))),
-  'conta divergentes: ' + cheio.contagem.join(' · '));
-conferir(cheio.contagem.some(c => /Dados insuficientes\s*3/.test(c.replace(/\s+/g, ' '))),
-  'conta dados insuficientes (os 3 sistemas sem exame lançado): ' + cheio.contagem.join(' · '));
-
-const metabolico = cheio.itens.find(i => /Metab/.test(i.sistema));
-const detox = cheio.itens.find(i => /Detox/.test(i.sistema));
-conferir(metabolico && metabolico.estado === 'Convergente' && /convergente/.test(metabolico.classe),
-  'metabólico (baixo no caso, exame alterado) converge: ' + (metabolico && metabolico.estado));
-conferir(detox && detox.estado === 'Divergente' && /divergente/.test(detox.classe),
-  'detox (alto no caso, exame alterado) diverge: ' + (detox && detox.estado));
-
-const TEXTOS_FIXOS = [
-  'Existe convergência entre o relato do paciente e os dados laboratoriais nesta dimensão.',
-  'Relato e dados laboratoriais disponíveis estão convergentes nesta dimensão.',
-  'O relato e os dados laboratoriais não estão caminhando na mesma direção neste momento.',
-  'Ainda não há dados laboratoriais suficientes para realizar a leitura integrada desta dimensão.',
-];
-conferir(cheio.itens.every(i => TEXTOS_FIXOS.includes(i.leitura)),
-  'todo texto é um dos quatro fixos do Holoscan — nenhuma leitura causal do motor escapou: ' +
-  cheio.itens.map(i => i.leitura.slice(0, 30)).join(' | '));
-
-conferir(/não há coleta por data persistida/.test(cheio.historico),
-  'sem coleta datada, a tela diz isso em vez de inventar histórico: ' + cheio.historico);
-
-conferir(cheio.continuidade.join(' · ').includes('HOLOSCAN') && cheio.continuidade.join(' · ').includes('Leitura Integrada'),
-  'a relação HOLOSCAN → mapa / Leitura Integrada → integração com exames aparece: ' + cheio.continuidade.join(' · '));
-
-/* ------------------------------ a mesma receita, na saida oficial: barreira */
-
-await irParaOficial();
-await abrirFichaDe(pid);
-await aba('holoscan');
-
-const oficialCheio = await p.evaluate(() => {
-  const caixa = document.getElementById('aba-holoscan-laboratorial');
-  return {
-    texto: caixa.innerText.replace(/\s+/g, ' '),
-    confItens: caixa.querySelectorAll('.conf-item, .fic-sis').length,
-    continuidade: [...caixa.querySelectorAll('.fic-continuidade .fic-rot')].map(s => s.textContent),
-  };
-});
-conferir(oficialCheio.confItens === 0 && !/Convergente|Divergente/.test(oficialCheio.texto) && /sem dados suficientes/.test(oficialCheio.texto),
-  'oficial: com HOLOSCAN + exames fora da faixa, NÃO há Convergente/Divergente — só "sem dados suficientes" (barreira da Etapa 5)');
-conferir(oficialCheio.continuidade.join(' · ').includes('HOLOSCAN') && oficialCheio.continuidade.join(' · ').includes('Leitura Integrada'),
-  'oficial: a relação HOLOSCAN → mapa / Leitura Integrada → integração com exames continua: ' + oficialCheio.continuidade.join(' · '));
-
-/* --------------------------------- "Ver Leitura Integrada completa" nao zera */
-
-const verLeitura = await p.evaluate(async () => {
-  document.querySelector('#aba-holoscan-laboratorial [data-ir="confronto"]').click();
+/* ----------------------------------------- navegacao para o Resultado ---- */
+const irResultado = await p.evaluate(async () => {
+  document.querySelector('#aba-holoscan [data-ir="resultado"]').click();
   await new Promise(r => setTimeout(r, 300));
   return {
     secaoAtiva: document.querySelector('.secao.ativa')?.id,
     algumaAtiva: document.querySelectorAll('.secao.ativa').length,
-    paciente: document.getElementById('sel-confronto')?.selectedOptions[0]?.textContent,
+    paciente: document.getElementById('sel-resultado')?.selectedOptions[0]?.textContent,
   };
 });
-conferir(verLeitura.secaoAtiva === 'secao-confronto' && verLeitura.algumaAtiva === 1,
-  '"Ver Leitura Integrada completa" leva para a seção, sem zerar a tela: ' + verLeitura.secaoAtiva);
-conferir(verLeitura.paciente === 'Marina Alves',
-  'e chega lá com a pessoa certa selecionada: ' + verLeitura.paciente);
+conferir(irResultado.secaoAtiva === 'secao-resultado' && irResultado.algumaAtiva === 1, '"Resultado para a paciente" leva para a seção Resultado, sem zerar a tela: ' + irResultado.secaoAtiva);
+conferir(irResultado.paciente === 'Marina Alves', 'e chega lá com a pessoa certa selecionada: ' + irResultado.paciente);
 
-/* --------------------------------------------------------------- fim ----- */
+/* ---------------------------------------------- HOLOSCAN + valor legado -- */
+await p.evaluate(async (respostas) => {
+  document.querySelector('.nav-item[data-secao="holoscan"]').click();
+  window.aplicarPontuacao(HOLOSCAN.calcular(respostas));
+  const id = window.pacienteAtivoId();
+  localStorage.setItem('holohacking.exames', JSON.stringify({ [id]: { 'EXA-005': 115, 'EXA-015': 78 } }));
+}, caso.respostas);
+await p.reload({ waitUntil: 'networkidle2' });
+await p.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados());
+await abrirFichaDe(pid);
+await aba('holoscan');
+const cheio = await p.evaluate(() => {
+  const titulos = [...document.querySelectorAll('#aba-holoscan .dash-titulo')].map(t => t.textContent);
+  return { titulos, texto: document.getElementById('aba-holoscan').innerText, sis: document.querySelectorAll('#aba-holoscan .fic-sis').length,
+    conf: document.querySelectorAll('#aba-holoscan .conf-item, #aba-holoscan .conf-selo').length };
+});
+conferir(cheio.titulos.includes('Mapa HOLOS — última aplicação') && cheio.titulos.includes('Histórico de aplicações') && cheio.sis === 5, 'com HOLOSCAN: última aplicação com os 5 sistemas e o histórico');
+conferir(cheio.conf === 0 && !/Convergente|Divergente|Leitura Integrada|confront/i.test(cheio.texto), 'com valores de exame guardados, NENHUM Convergente/Divergente aparece (exame não participa)');
+
+/* ------------------------------------------------ ?homologacao=1 ---------- */
+await p.goto('http://127.0.0.1:5500/?homologacao=1', { waitUntil: 'networkidle2' });
+await p.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados());
+await abrirFichaDe(pid);
+await aba('holoscan');
+const homolog = await p.evaluate(() => ({ blocoLab: !!document.getElementById('aba-holoscan-laboratorial'), legado: /LEGADO|Convergente|Divergente/.test(document.getElementById('aba-holoscan').innerText) }));
+conferir(!homolog.blocoLab && !homolog.legado, 'em ?homologacao=1 o confronto legado também saiu da aba');
+
 console.log('');
 ok(ruim.length === 0, ruim.length ? 'ERRO DE JS: ' + ruim[0] : 'sem erro de JS');
-if (ruim.length) falhou = true;
 await nav.close();
 process.exit(falhou ? 1 : 0);

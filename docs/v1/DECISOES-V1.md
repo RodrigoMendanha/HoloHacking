@@ -800,6 +800,423 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
     separada por conta (stash, para devolver rascunhos não sincronizados) — "sair limpa essa cópia" era falso. PENDENTE de
     decisão (privacidade × rascunho): apagar o stash ao sair (protege computador compartilhado, perde rascunho não sincronizado)
     ou manter (comportamento atual, coberto por testar-troca-conta e testar-rodada08-sessao).
+166. **HOLOSCAN: nota visível e selo "não salvo" coerente** (testes reais, 06/10). (a) A nota de cada sistema estava DENTRO da
+    régua manual, e a régua é escondida fora da homologação (item das réguas manuais): os cinco cartões não mostravam número
+    nenhum. A nota e a faixa do pacote ficam agora num bloco próprio do cartão; a régua continua só em `?homologacao=1`. Os
+    rótulos emocionais/espirituais da versão antiga ("Estagnação e desordem", "Bloqueio no plexo solar"…) saíram dos cartões:
+    não pertencem ao HOLOS-V1@2 (mesma regra do item 158). (b) Gerar o mapa de novo com as mesmas respostas de uma aplicação
+    já salva criava uma entrada local pendente ao lado da salva — o Salvar recusava a duplicata e o selo "não salvo no
+    servidor" ficava para sempre. Agora o cálculo repetido É a aplicação salva (local e na sincronização); o Salvar marca a
+    entrada pelo instante do cálculo (não mais "a de hoje"), então calcular num dia e salvar no outro não deixa órfão.
+167. **Resultado desta aplicação e "Por onde investigar"** (testes reais, 06/10; decisão da usuária: "resumo com o que existe").
+    Quadro no topo do resultado do HOLOSCAN que só REORGANIZA conteúdo aprovado: sistemas do mais baixo ao mais alto com nota
+    e faixa, Tríade e dimensão mais baixa, sistemas sem nota (cobertura < 80%), e "Por onde investigar" — os dois sistemas de
+    nota mais baixa com os sinais que mais pesaram (aritmética das respostas, já exibida no bloco 3). O bloco fixo "Por onde
+    começar" saiu (sugestões de ferramenta continuam desligadas, item 65). Campo "Sua interpretação" no próprio quadro,
+    gravado em `holoscan_applications.interpretacao_texto` (único campo editável do snapshot). Nenhum texto de conclusão
+    clínica é gerado. PENDENTE de decisão de método: textos de conclusão por sistema × faixa (15) e ferramentas sugeridas
+    por sistema — exigem nova versão do pacote (HOLOS-V1@3) com aprovação.
+168. **Leitura Integrada guiada e laudo → coleta** (testes reais, 06/10; decisão: "em 2 fases" e "guiar para lançar exame").
+    Sem coleta, a Leitura Integrada explica que compara o HOLOSCAN com valores de exame e oferece "Lançar exame" e "Lançar
+    valores de <laudo>" para os PDFs/imagens já enviados sem coleta. Só coleta CONSOLIDADA entra na lista (DECISAO-04:
+    rascunho e `extracted_draft` ficam fora; antes o rascunho aparecia). Na lista de documentos, cada laudo mostra "valores
+    lançados" / "sem valores lançados" e o botão "Lançar valores deste exame", que abre a coleta já ligada ao documento
+    (`document_id`), com a data dele e o laudo aberto ao lado. Nada é lido de dentro do arquivo nesta fase. Fase 2 (leitura
+    automática por IA, sempre como rascunho com revisão humana) desenhada em `docs/v1/laboratorio/IMPORTACAO-EXAMES-IA.md`,
+    PENDENTE: chave de API como segredo do Supabase e decisão sobre enviar laudos a um provedor de IA (LGPD/consentimento).
+169. **Teste real de ponta a ponta (07/10) e página de Ajuda.** Tudo o que o roteiro salvou foi conferido no banco. Correções de
+    tela: o atendimento ativo fica guardado na aba do navegador (sessionStorage, por paciente) e volta depois de recarregar;
+    com um atendimento antigo ativo, a aba Conduta e a Visão geral mostram onde está a conduta vigente da pessoa; a ficha conta
+    os resultados das coletas V1 (antes só o painel legado); HOLOSCAN salvo não aparece mais como "não iniciado"; o alerta
+    "mapa sem conduta" some quando há conduta registrada; busca de exames com sinônimos SÓ DE BUSCA ("glicose" → Glicemia de
+    jejum; não viram alias nem mudam o catálogo do servidor) e contador acompanhando a busca; "Próxima consulta" ignora a de
+    hoje que já passou ou já virou atendimento; "Ver" de uma consulta no Dashboard abre a consulta; o relatório desenha a
+    referência do laudo, que já estava no snapshot. Nova seção **Ajuda** (perguntas frequentes, passo a passo, glossário e
+    "reportar um erro" que monta um relato SEM dado de paciente e o copia; envio por e-mail só se houver endereço de suporte
+    configurado). PENDENTE: o texto "resultados ainda não oficiais / Pacote V1 não homologado" do relatório vem do servidor
+    (`emitir_relatorio`, migration 20261001220000) e precisa de uma migration nova; "Por onde investigar" lista sinais
+    espirituais dentro de sistemas físicos porque é assim que o pacote HOLOS-V1@2 associa os marcadores — conferir com o
+    método (Daniel), não é ajuste de tela.
+170. **Cadastro de nutricionistas com aprovação** (lançamento de 08/10; decisões da responsável: cadastro no próprio
+    HoloHacking, nome + e-mail + telefone + senha, conta só entra depois de liberada). `auth.signUp` com nome e telefone nos
+    metadados; o gatilho `lidar_novo_usuario` cria o perfil com `status = 'pendente'`. `profiles.status` (pendente | ativo |
+    recusado; as contas anteriores nascem ativas). `administradores` (sem acesso pela API) e funções `eh_administrador`,
+    `minha_conta_status`, `listar_contas`, `decidir_conta`. A própria nutri não muda o status (gatilho). Trava real: política
+    RESTRICTIVE em `patients` exige conta ativa — conta pendente não cria nem altera paciente, logo nada clínico. A tela abre
+    o app só para conta ativa; pendente vê "em análise", recusada vê "acesso não liberado". Se a função ainda não existir no
+    banco (SQL não aplicado), o app deixa todos entrarem como antes. Seção "Contas" só para administradoras. Aviso de
+    liberação à nutri é manual nesta versão (botão de WhatsApp). Recomendado: "Confirm email" desligado no painel até haver
+    SMTP próprio (limite de envio do e-mail padrão do Supabase).
+171. **"Esqueci minha senha" confiável** (08/10). Quem chega pelo link do e-mail (`type=recovery`) vê primeiro a tela de
+    nova senha; antes, a checagem de conta podia abrir o app direto, sem pedir a senha (o evento PASSWORD_RECOVERY chega
+    depois da sessão inicial). Senha nova com mínimo de 8, igual ao painel. Limite de envio e falha de e-mail aparecem
+    (antes a tela dizia "enviaremos" mesmo sem enviar); a mensagem continua neutra quanto à existência da conta. Link
+    expirado volta ao login com aviso. PENDENTE (painel): SMTP próprio — o e-mail padrão do Supabase só entrega à equipe
+    do projeto (`docs/v1/EMAIL-RECUPERAR-SENHA.md`).
+172. **Correções da consulta simulada de 08/10** (jornada completa com paciente fictícia). (1) Relatório, seção B: mostra
+    as LEITURAS INTEGRADAS SALVAS (a mais recente de cada domínio), com o texto do pacote LI-V1 para a nutricionista e o
+    texto decidido para o paciente (DECISAO-24) na versão "Para o paciente" — antes lia o confronto legado e dizia "Dados
+    insuficientes" em tudo. (2) Lista de documentos: falha passageira do servidor tenta de novo uma vez; servidor fora
+    diz "não foi possível carregar" (nunca "nenhum documento"). (3) Documento: escolher o arquivo só PREPARA; o envio é no
+    botão "Guardar documento", depois de nome, tipo e data; exame/laudo sem data pede confirmação; o laudo novo entra na
+    lista de laudos que podem ser ligados a uma coleta. (4) HOLOS AI: notas, faixas, Índice e Tríade entram no contexto
+    quando a aplicação foi calculada pelo HOLOS-V1 oficial (aplicação histórica continua sem); some o "pacote ainda não
+    aprovado". (5) Mapa do Propósito: com OQ³ e PQQ, o card diz "montado" e conta como aplicado; "Atualizar mapa" não diz
+    mais que salvou (o Mapa é derivado e não se salva à parte). (6) "Registrar leitura": confirmação fica na tela com a
+    hora; leitura digitada antes de "Concluir aplicação" não some (volta ao campo, com aviso de que falta registrar).
+    (7) Conduta: ferramentas sem as versões antigas repetidas e com o nome (nunca o id interno). (8) Leitura Integrada
+    (motor 2.0.2): resultado antigo fora da janela de um exame que tem resultado recente incluído não vira motivo do
+    domínio — estado, suficiência e regras do LI-V1@2 não mudam. (9) Conexão & Pertencimento: o formulário já grava
+    natureza/tipo/papel/proximidade (provado em teste); a lista agora diz que as opções são para tocar.
+    Teste: `testes/testar-simulacao-0810.mjs`.
+
+173. **Resultado HOLOS** (09/10, aprovado pela usuária). Visão integrada final do paciente, na ficha entre Ferramentas e
+    Conduta: HOLOSCAN oficial **obrigatório** + ferramentas concluídas (seleção explícita, uma por ferramenta) + observações
+    da nutricionista. **Atendimento obrigatório** (o ativo ou escolhido). Cada ferramenta tem "Mostrar ao paciente",
+    **desligado por padrão**; o modelo reserva `ocultar` por item para o futuro. Snapshot montado pelo **servidor** (o
+    navegador manda só ids, textos e visibilidade), com sha256; depois de salvo, fontes, visibilidade e observações são
+    **imutáveis** — correção = "Nova versão a partir desta" (a anterior fica no histórico). Sem IA, sem exames, sem
+    interpretação automática; HOLOS-V1@2 e LI-V1@2 intocados. Tabela `holos_results` (migration 20261009100000), RLS de
+    leitura própria, escrita só por RPC. Detalhes: `docs/v1/RESULTADO-HOLOS.md`. PENDENTE: aplicar no banco real
+    (`supabase/RESULTADO-HOLOS-PARTE1..5.sql`) e deploy; o texto oficial do paciente por faixa (HOLOS-V1@2) inclui a frase "Revise
+    os itens respondidos…", dirigida à profissional — ajuste só numa futura versão metodológica (decisão do Daniel).
+174. **Anamnese V2** (09/10, aprovada pela usuária). Formulário clínico rápido em dois fluxos — **Primeira consulta** (7
+    blocos; bloco íntimo "Campos emocionais e sentido pessoal" opcional e fechado dentro de Histórico e contexto) e
+    **Retorno** ("Desde a última consulta"; sugerido quando já há anamnese concluída; escolha sempre visível). "Criar a
+    partir da anamnese anterior" só na Primeira consulta (rascunho novo, itens prévios, anterior intacta); no Retorno, só
+    "Ver anamnese completa anterior" em leitura. **Sem migration**: mesma tabela/RPCs/estados/revisões; o conteúdo ganha
+    `formulario_versao: 2`, `tipo`, `formulario` e `meta`, e `dominios` é SEMPRE gerado pela função canônica
+    `gerarDominiosDaAnamneseV2` (nunca editado à parte) — Relatório, Evolução, HOLOS AI e o servidor seguem lendo só os
+    domínios, com a regra de conteúdo íntimo intacta. Salvamento automático só do rascunho (2,5 s, ao sair do campo e ao
+    trocar de bloco, uma chamada por vez, `expected_updated_at`; conflito não sobrescreve). Resumo automático sem IA (na
+    anamnese e na Visão geral). Anamnese antiga abre e edita no formato antigo, sem conversão. Detalhes:
+    `docs/v1/ANAMNESE-V2.md`.
+175. **Prontuário: exames e documentos são só arquivos** (09/10, aprovado pela usuária com 12 decisões). Regra definitiva: o
+    sistema **não lê, interpreta, estrutura, classifica, compara, pontua nem cruza exames**; exame e documento ficam na
+    biblioteca do prontuário (tipo, título, data, arquivo, observação; Abrir/Baixar/**Arquivar** — nunca apagar). Laboratório
+    estruturado e Leitura Integrada **saem do fluxo**: RPCs recusam (`laboratorio_desativado`, `li_desativada`), escrita nas
+    tabelas `lab_*` revogada, UI removida (inclusive o confronto legado); o histórico fica no banco, só leitura, fora de toda
+    tela. **Página Resultado** no lugar da Leitura Integrada: Resultado HOLOS salvo (versão da paciente) + Conduta vigente +
+    identidade profissional; PDF (html2pdf 0.10.2) e WhatsApp (celular compartilha o PDF; computador baixa e abre a conversa
+    com mensagem pronta). O sistema **não prescreve dieta/déficit/cardápio**: Conduta sem Prescrição dietética, Diagnóstico
+    nutricional e Encaminhamentos. Relatório sem exames (documentos só como contagem). Migration 20261011100000 (não
+    destrutiva), harness P00–P18. Detalhes: `docs/v1/PRONTUARIO-DOCUMENTOS.md`. PENDENTE: aplicar no banco real
+    (`supabase/PRONTUARIO-DOCUMENTOS-PARTE1..4.sql`) e deploy. Sugestão de ferramentas no resultado do HOLOSCAN (só as 10
+    ativas) fica para um motor de recomendação futuro, **não implementado**. Complemento (mesmo dia): a seção global
+    "Documentos" saiu do menu — documento se acessa só pela ficha do paciente.
+
+176. **Próximos Passos HOLOS — motor oficial V1 de recomendação de ferramentas** (09/10, aprovado pela usuária). Depois do
+    Resultado HOLOSCAN, o sistema entrega automaticamente, pelos **mesmos dois sistemas de "Por onde investigar"**, 1
+    recomendação principal + até 2 complementares, com explicação (sistema de origem + até 3 sinais dominantes, que só
+    explicam) e botão "Iniciar ferramenta". Catálogo **HOLOS-RECOMENDACOES-V1** (30 regras, 6 por sistema, rank
+    metodológico; só as 10 ferramentas ativas), **aprovado por aprovação metodológica expressa do responsável pelo projeto
+    em 09/10/2026**, em tabela global só leitura e imutável (migration 20261012100000); `approved_by` nulo (nenhum UUID
+    inventado). Motor no servidor + mesmo algoritmo em JS; snapshot por (aplicação, catálogo), imutável; aplicação
+    anterior ao catálogo só por ação explícita. Exames, Leitura Integrada, REC-001…023/SEL-001, Conduta, HOLOS AI,
+    Resultado/PDF/WhatsApp da paciente e HOLOS-V1@2 ficam **fora**. Detalhes:
+    `docs/v1/IMPLEMENTACAO-PROXIMOS-PASSOS-HOLOS-V1.md`. **Aplicado no banco real e no ar em 09/10** (commit 732081c).
+
+177. **Conta pendente = somente Perfil + correções do Perfil** (09/10, aprovado pela usuária depois da auditoria do
+    cadastro). Sem status novo: reaproveita `profiles.status` e a liberação em Configurações → Contas. **Pendente** entra
+    no app só com Perfil e Sair (aviso "Seu cadastro profissional está sendo preparado…", checklist Foto/CRN/Logo/
+    Assinatura/Carimbo/Contato, "Verificar acesso novamente"); qualquer outra seção cai no Perfil. **Recusada** vê só
+    "Acesso não liberado" e não edita nada. **Ativa**: tudo como antes. Trava REAL no servidor (migration
+    20261013100000): gatilho de comando `exigir_conta_ativa` em todas as 32 tabelas de dado da nutricionista (dispara
+    também dentro das RPCs), políticas RESTRICTIVE para recusada em `profiles`/`professional_assets` e no Storage
+    (documento de paciente exige conta ativa). Perfil: leitura que falha não vira formulário vazio (erro + "Tentar
+    novamente", sem salvar); salva só os campos alterados com controle por `updated_at` (mescla campos diferentes,
+    conflito explícito no mesmo campo); troca de imagem sobe a nova antes de apagar a antiga; senha mínima 8 em todo
+    lugar; "Manter conectado" removido (não tinha efeito); chave "Documentos" removida de Preferências. Detalhes:
+    `docs/v1/CONTA-PENDENTE-SOMENTE-PERFIL.md`. PENDENTE: aplicar `supabase/CONTA-PENDENTE-PARTE1..2.sql`, deploy e o
+    checklist do Supabase (SMTP, URLs, senha mínima 8).
+    **Atualização 09/10:** SQL aplicado no banco real e no ar (cd9e23f; correção do checklist em dbac2db aguardando deploy).
+
+178. **Resumo estruturado do Resultado HOLOS + anamnese pré-consulta por link** (09/10, missão autônoma, local).
+    Resultado: o documento ganha um "Resumo estruturado" separado por rótulo: **Fatos** (cálculo do snapshot),
+    **Regra oficial** ("Por onde investigar" e Próximos Passos registrados) e **Decisão da nutricionista** (leituras e
+    observações já registradas). Nenhuma frase clínica nova é gerada; o que não tem regra homologada aparece como
+    "PENDÊNCIA METODOLÓGICA — AGUARDANDO RODRIGO/DANIEL" (PM-01 conclusão integrada, PM-02 fechamento por ferramenta,
+    PM-03 ferramenta → ferramenta, PM-04 prioridade/gravidade, PM-05 o que a paciente vê). HOLOS-V1@2, 84 perguntas,
+    pesos e snapshots antigos intocados; exames e Leitura Integrada fora. Anamnese pré-consulta: a nutricionista gera
+    um link (`/anamnese.html#t=…`, 7 dias, só o hash SHA-256 do token no banco), envia por WhatsApp, a paciente
+    preenche sem conta com rascunho no servidor e envia (resposta congelada); a ficha mostra o status e "Levar para a
+    anamnese do atendimento" cria um rascunho V2 com origem `relato_paciente`, que a nutricionista revisa. Nada do
+    relato vira diagnóstico, nota ou conduta. Detalhes: `docs/v1/RESULTADO-FINAL-HOLOS.md`,
+    `docs/v1/ANAMNESE-PRE-CONSULTA.md`, `docs/v1/FLUXO-CLINICO-V1.md`. **SQL ANAMNESE-PRE-CONSULTA-PARTE1..5 aplicado no banco
+    real em 09/10** (conferido só leitura). PENDENTE: deploy de c22a27d.
+
+179. **Janelas de boas-vindas** (09/10, pedido da usuária). Três janelas com a logo, só front (`boas-vindas.js`):
+    (1) **cadastro**: "Seja bem-vindo(a), nutricionista, ao HoloHacking", passo a passo Registro → Perfil → Liberação e
+    "Fazer meu registro →"; aparece **toda vez** que /cadastro (ou "Criar conta") abre. (2) **primeira entrada da conta
+    pendente**: "Olá, <nome>! … o próximo passo é completar o seu perfil profissional", com o que falta e "Completar meu
+    perfil →" (leva ao primeiro item). (3) **primeira entrada depois de liberada**: "Olá, <nome>! Seja bem-vindo(a),
+    nutri HoloHacking", com atalhos (primeira paciente, perfil, ajuda). (2) e (3) só no **primeiro acesso**: o "já vi"
+    fica na própria conta (`user_metadata` do Auth, sem tabela nova) e vale em qualquer aparelho. (3) só para conta
+    liberada nos últimos 30 dias (`profiles.aprovado_em`): as contas antigas não veem. "Bem-vindo(a)" no lugar do
+    feminino, a pedido. Fecham por botão, X, Esc ou clique fora; celular sem rolagem lateral; sem animação para quem
+    pede menos movimento. Teste: `testes/testar-boas-vindas.mjs` (24). Capturas: `docs/v1/boas-vindas/`.
+
+180. **Resultado Final do Método HOLOS: decisões metodológicas aprovadas** (10/10, aprovadas pela usuária para implementação;
+    substituem as PM-01…PM-04 e resolvem a PM-05). (1) **Síntese HOLOS determinística**: organiza o que o método já produziu,
+    só a partir do snapshot; menor nota = maior prioridade DE INVESTIGAÇÃO ("1ª/2ª área para investigar"), nunca gravidade;
+    Tríade contextual (menor dimensão, empate de 2 = sem dimensão única, de 3 = sem predominância; sem corte de diferença);
+    nunca diagnóstico, causa, gravidade, risco, interpretação, conduta ou "mapeamento concluído". (2) **Resultado estruturado
+    das ferramentas** (`ferramentas-fechamento.js`), descritivo, não é score; Momentum = estado escolhido pela profissional;
+    Carta só "realizada"; Conexão sem score, vínculos só contados. (3) **Ferramenta → ferramenta**: só OQ³ + PQQ → Mapa do
+    Propósito (opcional). Sistema → ferramenta: as 30 relações do HOLOS-RECOMENDACOES-V1 intactas, 1 principal + até 2
+    complementares, nada obrigatório. (4) **Visão da paciente, Modelo B**: "Compartilhar Próximos Passos com a paciente"
+    desligado por padrão, congelado no snapshot; ferramentas pelo "Mostrar ao paciente" (padrão desligado); Índice/notas como
+    já eram. (5) **Emissão imutável do Resultado Final** (`holos_result_emissions`, `emitir_resultado_final`, template RF-1):
+    congela Resultado (id + hash), Conduta destinada à paciente, Perfil e imagens; PDF sempre igual. Resultado HOLOS novo =
+    template 2 (Próximos Passos já registrados congelados); antigos intactos (sem backfill, mesmo hash). Migration aditiva
+    20261015100000 (+ correção: convite de pré-anamnese sai na cascata da exclusão da paciente). Continuam abertas: PM-06…PM-14.
+    Detalhes: `docs/v1/RESULTADO-FINAL-DECISOES-APROVADAS.md`. PENDENTE: autorização, aplicar `supabase/RESULTADO-FINAL-PARTE1..7.sql`
+    e deploy.
+
+181. **Página de Administração** (10/10, pedido da usuária). Substitui a seção "Contas": abas Visão geral (números, só
+    contagens de uso), Cadastros (quem está se cadastrando, liberar/recusar, aviso de cadastro novo), Contas (busca,
+    filtros, painel da conta: dados, perfil %, uso, liberar/recusar/voltar para análise, corrigir nome e telefone) e
+    Histórico (registro imutável `admin_audit_log`). Acesso pela Edge Function `admin-usuarios` (service_role só no
+    ambiente da função): senha provisória (aparece uma vez; troca obrigatória no próximo acesso via
+    `user_metadata.precisa_trocar_senha`), link de nova senha, trocar e-mail, bloquear/desbloquear. Nunca na própria conta
+    nem em conta de administrador; senha/token/link nunca registrados; nenhum dado de paciente na página. Migration aditiva
+    20261016100000; SQL em `supabase/ADMINISTRACAO-PARTE1..4.sql`. Sem o SQL a página cai no modo antigo; sem a função, os
+    botões de acesso avisam. Testes: harness AD00–AD12, `testar-admin.mjs` (34), `testar-admin-usuarios.mjs` (23).
+    Detalhes: `docs/v1/ADMINISTRACAO.md`. PENDENTE: autorização, SQL, publicar a função e deploy.
+182. **Correções da jornada** (12/10, teste com paciente fictícia; pedido da usuária). Sem mudar o motor do HOLOSCAN, o
+    catálogo, nem Resultado HOLOS salvo ou emissão: (B1) o Resultado HOLOS novo (template 3) congela os Próximos Passos
+    **pendentes** — a mesma escolha do catálogo sem as ferramentas concluídas no atendimento do resultado e no do
+    HOLOSCAN; tudo feito = mensagem neutra; (B2) relatório da paciente sem a interpretação profissional do HOLOSCAN;
+    (B3) texto da faixa em linguagem simples para a paciente; (B4) relatório da nutricionista com atendimentos,
+    ferramentas, Conduta e Resultado HOLOS; (B5) HOLOSCAN salvo já ligado ao atendimento; (B6) "Iniciar ferramenta"
+    abre a ferramenta; (B7) Visão Geral atualiza a anamnese; (B8) HOLOS AI com todas as ferramentas e o Resultado HOLOS;
+    (B9) Conduta lista OQ³, PQQ e Mapa do Propósito; (B10) ajustes visuais; (B11) nomes únicos: Tríade com
+    Corpo / Mente / Espírito, OQ³, "HOLOS-V1 v2" (as chaves internas `fisico/mental/espiritual` não mudam; as siglas
+    OQQ/OQP/OQCC das três perguntas do OQ³ ficam). Migration aditiva 20261017100000; SQL em
+    `supabase/CORRECOES-JORNADA-PARTE1..2.sql`. Testes: harness CJ01–CJ05, `testar-correcoes-jornada.mjs`.
+    SQL aplicado em 12/10. PENDENTE: deploy do site (commit `b62ab2b`).
+183. **Revisão das perguntas do HOLOSCAN → HOLOS-V1 v3** (12/10). A revisão pública das 84 perguntas do v2
+    (`aprovacoes.html`, concluída em 11/10: 53 aprovadas, 28 com texto novo, 3 negadas) foi decidida em 12/10:
+    24 textos novos com o mesmo ID (SNT-104, SNT-306 e SNT-307 detalhados; SNT-208, SNT-305, EMO-302, EMO-502 e ESP-402
+    com correção de redação); 3 trocas por outro sinal com **ID novo** (SNT-106→SNT-112, SNT-410→SNT-411 em frequência,
+    SNT-507→SNT-511 direta); SNT-209 e ESP-102 removidas; ESP-404 passa do Ácido Inflamatório para o Mental Emocional
+    Espiritual. v3 = 82 perguntas (48/19/15), 7 invertidas; pesos, faixas, Índice, Tríade e cobertura mínima iguais.
+    O v3 é montado do v2 aprovado (`PacoteMetodologico.aplicarRevisao` + `metodologia-revisao-v3.js`) e gravado pela tela
+    de Homologação; aprovação pelo aprovador único; o v2 é retirado para aplicações novas e as antigas ficam nele.
+    A tela do questionário passa a mostrar as perguntas do pacote vigente (antes vinham do `holoscan.js`).
+    Detalhes: `docs/v1/REVISAO-PERGUNTAS-V3.md`. PENDENTE: deploy, gravar/aprovar o v3 e retirar o v2 pela Homologação.
+    **SUBSTITUÍDO em 13/10 (item 188):** este rascunho foi publicado por engano como v3 em 13/10 (0 aplicações) e é
+    retirado pela v4; está arquivado em `docs/v1/metodologia/historico/` e **não** é a base da v4.
+184. **Dashboard: "Acompanhamento dos pacientes" no lugar de "Pendências"** (12/10, pedido da usuária). O fluxo não
+    trabalha com tarefas atrasadas: ferramenta não aplicada, opcional ou complementar não é pendência. O Dashboard mostra
+    em que etapa cada paciente ativo está, só a partir de dados que já existem: Aguardando anamnese e Anamnese recebida
+    (convites pré-consulta), HOLOSCAN em andamento (rascunho do questionário neste aparelho), Resultado pronto e
+    Resultado apresentado (Resultado HOLOS e emissão do Resultado Final), Aguardando retorno (já atendida + consulta
+    marcada à frente). "Em acompanhamento" = pacientes ativos com alguma etapa. "Pronto para consulta" não foi usado
+    (não há registro de "anamnese revisada" separado do atendimento). Sem prioridade, gravidade nem vermelho. Topo
+    marfim com a pinha da marca ao fundo; o Dashboard é só o topo + Agenda de Hoje + Acompanhamento (igual à referência
+    aprovada; próximas consultas, recentes, jornada, rascunhos, sem conduta e "Primeiros passos" saíram — estes viram
+    janela dos primeiros acessos, a fazer); o Perfil abre pelo canto superior direito. Sem mudança de banco. Detalhes:
+    `docs/v1/DASHBOARD-ACOMPANHAMENTO.md`.
+185. **Mapeamento Holístico da Saúde: o envio do link volta a funcionar** (12/10, pedido da usuária). Causa: a ficha
+    lia `anamnesis_invites` com `select("*")`, e o banco dá SELECT coluna a coluna (sem `token_hash`); o PostgREST
+    expande `*` para todas as colunas e o banco recusa a leitura inteira (42501). O convite era criado, a releitura
+    falhava e a tela voltava para "Não enviado", sem link. Correção só no navegador: lista explícita de colunas (sem
+    `token_hash`) e o convite recém-criado fica na tela com o link mesmo se a releitura falhar. Na interface, "Anamnese
+    pré-consulta" passa a se chamar **Mapeamento Holístico da Saúde** (botão "Enviar Mapeamento Holístico", "Mapeamento
+    recebido", "Levar para o atendimento"); tabelas, RPCs, arquivos e campos internos mantêm os nomes. Sem migration,
+    sem mudança de pergunta, metodologia ou banco. Detalhes: `docs/v1/MAPEAMENTO-HOLISTICO-LINK.md`.
+
+186. **Mapeamento Holístico enxuto** (12/10, pedido da usuária). O paciente responde em 3 a 5 minutos, quase tudo por
+    toque: 5 blocos mais a revisão, perguntas condicionais e 4 campos de texto no fluxo normal. Sinais do corpo são
+    marcados só por presença, sem escala e sem nenhuma frase do HOLOSCAN. Nada de peso, medidas ou exames. A ficha mostra
+    a resposta completa; "Levar para o atendimento" cria o rascunho profissional. Sem migration: os campos novos reutilizam
+    o JSON e os domínios existentes. Detalhes: `docs/v1/IMPLEMENTACAO-MAPEAMENTO-HOLISTICO-ENXUTO-V1.md`.
+187. **HOLOSCAN sem homologação: publicação direta** (12/10, decisão da usuária: "o sistema todo já está aprovado").
+    A versão nova das perguntas, que vem no código, entra no ar sozinha quando o responsável metodológico entra no
+    sistema. Para isso, a RPC `publicar_pacote_metodologico` confere o validador e calcula o hash do servidor, põe a
+    versão nova no ar e retira a anterior. Isso substitui a Aprovação e a Homologação (itens da Etapa 4.2 e do aprovador
+    único). Continuam: quem publica (só o responsável), versão seguinte, imutabilidade e auditoria. A página pública de
+    revisão das perguntas (`aprovacoes.html`) saiu do ar. Nada foi apagado. Detalhes: `docs/v1/PUBLICACAO-DIRETA-HOLOSCAN.md`.
+188. **HOLOS-V1 v4 = decisões metodológicas de 13/10** (decisões explícitas de Rodrigo; regra operacional: decisão
+    explícita de Rodrigo = autorização para implementar, preservando versionamento, testes, histórico, auditoria e
+    rollback). Base: o pacote ativo, HOLOS-V1 v2. Entram **só** estas decisões; o rascunho de 12/10 (item 183) não entra.
+    - **REMOVER SNT-210 e SNT-309** (PM-15): "Exames e documentos não participam do Resultado HOLOS." Não pontuam,
+      não são contextuais, não vão para outro sistema; sem substituto.
+    - **MOVER para o Sistema Mental Emocional Espiritual** a associação primária de EMO-101, 102, 103, 201, 202, 203,
+      204, 301, 302, 303, 401, 402 e 403, cada uma com a justificativa oficial. Peso preservado (1, igual a todos os
+      itens primários do MEE). A relação antiga com sistema físico não fica como contextual.
+    - **Regra metodológica ativa:** "Uma relação holística, simbólica ou contextual entre emoção e corpo não é
+      suficiente, por si só, para justificar que uma resposta mental/emocional altere matematicamente a nota de um
+      sistema físico." "Perguntas mentais/emocionais devem pontuar sistema físico somente quando existir justificativa
+      metodológica específica, documentada e aprovada para aquela associação."
+    - v4 = 82 perguntas (47/19/16); Fúngico 12, Ácido Inflamatório 11, Metabólico 10, Detox e Linfático 12, MEE 37.
+      Escalas, faixas, Índice, Tríade (regra), cobertura mínima (80%) e PP-V1 (30 regras) iguais.
+    - O HOLOS-V1 v2 e todo o histórico (aplicações, notas, dominantes, Resultados, Próximos Passos, emissões/PDF)
+      ficam imutáveis. Publicação pela publicação direta (item 187).
+    - **Por que v4:** em 13/10 (05:37 UTC) um navegador com o front antigo carregado publicou o rascunho de 12/10 como
+      **v3** (0 aplicações). Pacote publicado é imutável: a v3 fica no histórico e é retirada pela v4.
+    Detalhes: `docs/v1/ALTERACOES-PACOTE-HOLOSCAN-NOVA-VERSAO.md`; matriz: `docs/v1/MATRIZ-HOMOLOGACAO-84-PERGUNTAS-HOLOSCAN.md`.
+189. **HOLOSCAN sem quantidade de perguntas na aplicação** (13/10, decisão de Rodrigo). O botão diz só "Aplicar
+    HOLOSCAN" e a tela de preenchimento não mostra quantas perguntas existem (só a barra de progresso e "Em andamento" /
+    "Todas respondidas · completo"). A cobertura continua nos resultados profissionais.
+190. **HOLOS-V1 v5 = Lote 2B** (13/10, decisões explícitas de Rodrigo; base: v4 no ar).
+    - **MOVER para o MEE:** ESP-101 e ESP-103 (do Metabólico), ESP-203 e ESP-404 (do Ácido Inflamatório) e ESP-405 (do
+      Detox e Linfático), com as justificativas oficiais. Peso 1 preservado; o sistema físico anterior não fica como contexto.
+    - **MANTER:** ESP-303 no Metabólico (o conteúdo é comportamento alimentar).
+    - **CONTEXTUAL:** ESP-501 (Fúngico) e ESP-502 (Detox) continuam coletadas, mas só como contexto: sem pontuação, sem
+      denominador e sem Tríade, e não vão para outro sistema pontuável. EMO-502 e EMO-504: contextual no Metabólico mantido.
+    - **Regras:** "O bloco de origem da pergunta não define automaticamente o sistema. A associação deve ser sustentada
+      pelo conteúdo investigado." "Associação contextual não altera nota, Índice, prioridade, sinais dominantes ou
+      Próximos Passos e não implica causalidade."
+    - **Contrato:** pergunta só contextual (sem primária, sem Tríade, com associação contextual) passa a ser aceita pelo
+      validador JS e SQL (migration `20261020100000`).
+    - **v5:** 82 perguntas, 80 pontuáveis; Fúngico 11, Ácido Inflamatório 9, Metabólico 8, Detox 10, MEE 42; Tríade
+      47/19/14. v2, v3, v4 e todo o histórico continuam imutáveis.
+    Detalhes: `docs/v1/ALTERACOES-PACOTE-HOLOSCAN-V5.md`.
+191. **HOLOS-V1 v6 = fechamento das 61** (13/10, tarefa de Rodrigo "Fechamento do HOLOSCAN + Resultado HOLOS para
+    entrega"; base: v5 no ar). Critérios A→D: domínio do sistema → MANTER; outro sistema → MOVER; útil sem base para pontuar
+    → CONTEXTUAL; inadequada/redundante/diagnóstica → REMOVER.
+    - **REMOVER:** SNT-110. **MOVER:** SNT-404 → Fúngico; SNT-501 e SNT-507 → Metabólico.
+    - **CONTEXTUAL:** SNT-104, 105, 109, 206, 305, 306, 308, 408, 409, 410 (condição nomeada, histórico ou sinal que
+      insinuaria diagnóstico: relato da paciente, sem pontuar). **MANTER:** as outras 47, com justificativa registrada.
+    - **v6:** 81 coletadas, 69 pontuáveis, 12 só contextuais; Fúngico 8, Ácido Inflamatório 8, Metabólico 7, Detox 6,
+      MEE 40; Tríade 36/19/14; pesos todos 1. Matriz fechada (0 em aberto). Sem migration nova.
+    - **Resultado HOLOS:** PP-V1 diz "A ferramenta é sugerida pelo catálogo para aprofundar este sistema." (30 regras
+      iguais); os sinais não aparecem dentro do bloco da ferramenta; sistema sem carga (nota 10,0) não é apresentado como
+      área para aprofundar.
+    - **Textos oficiais dos sistemas (antes do deploy):** o Metabólico deixa de citar exames/achados laboratoriais
+      (exames não participam do HOLOSCAN); Fúngico, Ácido Inflamatório e Detox deixam de citar pele. Só o texto muda.
+    Detalhes: `docs/v1/ALTERACOES-PACOTE-HOLOSCAN-V6.md`; definições: `docs/v1/DEFINICOES-OFICIAIS-SISTEMAS-HOLOSCAN-V6.md`.
+
+192. **Resultado HOLOS template 5 = Direcionamento + Estratégias + Acompanhamento da evolução** (13/10, "APROVADO PARA
+     IMPLEMENTAÇÃO, COM AJUSTES" + atualização de escopo de Rodrigo). `holos_results.direcao jsonb` (schema_version 1, sem
+     tabela nova); itens com origem/ref/sugestão/confirmado/compartilhado; projeção da paciente montada no servidor (hipótese
+     nunca, nem com mostrar_paciente = true); Foco atual opcional no rascunho e obrigatório para finalizar, emitir (RF-3), PDF e
+     WhatsApp ("RESULTADO EM CONSTRUÇÃO" sem foco); retorno lê os Resultados anteriores (caminho) sem recalcular nem comparar notas;
+     HOLOSCAN no fim ("Detalhes do mapa"). "O que já está mudando" passou para o pilar Acompanhamento da evolução. Templates 1–4,
+     emissões RF-1/RF-2, HOLOSCAN, pacotes e PP-V1 intactos. Migration 20261021100000; detalhes em
+     `docs/v1/IMPLEMENTACAO-RESULTADO-HOLOS-T5.md`.
+193. **Ajuste final consolidado do template 5, antes do deploy** (13/10). (a) **Sem regra retroativa:** Resultados de templates
+     1–4 continuam abrindo pelo desenho histórico e são emitidos/baixados/enviados pela regra histórica (RF-2), sem `direcao`, sem
+     foco e sem nova versão; só o template 5 exige Foco atual para finalizar/emitir (RF-3)/PDF/WhatsApp (substitui o trecho do
+     item 192 que exigia foco de qualquer Resultado). (b) `direcao` ganha `direcionamentos[]` (território, por quê, objetivo,
+     status, sistemas), `estrategias[]` (vínculo com o direcionamento, finalidade, ação, observar, contexto, prazo, responsável,
+     status PROPOSTA…ENCERRADA, `anterior`) e `acompanhamento_estrategias[]` (aplicou, facilitou, dificultou, percepção,
+     observação só profissional, mudança, decisão MANTER/AJUSTAR/SUBSTITUIR/CONCLUIR/ENCERRAR); a estratégia anterior nunca é
+     sobrescrita (a continuação é um item novo com `anterior`). (c) Nenhum direcionamento ou estratégia sai da nota. (d) Ordem da
+     paciente em 14 blocos; "Como vamos caminhar" removido. (e) Os cinco sistemas explicam por que olhamos: prioritário com O que
+     apareceu / O que vale observar / Como cuidar deste eixo (textos-base CE-1) / Para você, nesta fase; não prioritário compacto;
+     nota como detalhe ("não indica doença nem saúde"). (f) WhatsApp: "Nesta fase, nosso principal direcionamento é: …".
+194. **Exames não participam do HOLOSCAN — HOLOS-V1 v7 só texto** (13/10, última checagem antes do deploy). Decisão
+     definitiva: exames ficam guardados na ficha para visualização profissional e não alteram perguntas, notas, Índice, Tríade,
+     prioridade, sinais dominantes, Próximos Passos, Resultado HOLOS, PDF, contexto da paciente nem a escolha de ferramentas;
+     SNT-210/309 continuam removidas. Conferido em produção (só leitura): v6 ativa; o texto do Metabólico já estava correto e a
+     única menção a exame no pacote inteiro era a frase final do Ácido Inflamatório ("nem substitui avaliação ou exames
+     clínicos"). Como versão publicada não se edita, a v7 (`MetodologiaRevisaoV7`, publicação direta no login do responsável
+     metodológico) troca só essa frase pelo limite aprovado ("não mede inflamação sistêmica, pH ou 'acidez corporal'").
+     Prova de equivalência v6 × v7 em 12 casos (`docs/v1/metodologia/COMPARATIVO-HOLOSCAN-V6-V7.md`) e no Postgres (PV7-00..05).
+     O vínculo direcionamento → sistema do Resultado HOLOS T5 continua opcional (`sistemas`); sugestões nunca inventam sistema.
+195. **Plano mestre de revisão — Fase 1: fluxo do Mapeamento Holístico** (13/10). Etapas únicas para a aba, a Visão geral e o
+     Dashboard: NÃO ENVIADO → LINK GERADO → LINK ENVIADO → MAPEAMENTO RECEBIDO → REVISADO (fora do caminho: link expirado/revogado).
+     "Gerar link" não é mais "Enviado": o envio é registrado quando a nutricionista copia o link ou abre o WhatsApp (colunas
+     `sent_at`/`sent_via`, RPC `marcar_convite_anamnese_enviado`, migration aditiva 20261022100000). "Revisado" = a resposta foi
+     levada para o atendimento e a anamnese desse atendimento foi concluída (sem coluna nova). A resposta já era salva no
+     servidor no envio do paciente; a ficha aberta passa a conferir o estado (leitura leve, só colunas de estado, a cada 20 s,
+     ao voltar para a aba e ao abrir a aba) e mostra a resposta sozinha. Depois de recebido: resumo nas palavras do paciente,
+     "Abrir Mapeamento completo" e histórico; enviar outro Mapeamento é ação secundária. Nada disso altera HOLOSCAN, notas,
+     sistemas, Índice, Tríade, PP-V1 nem a resposta original (`docs/v1/FASE1-MAPEAMENTO-FLUXO.md`).
+196. **Ponte HOLOS AI → Resultado HOLOS** (14/10, "MUDANÇA DE PRIORIDADE"). A aba HOLOS AI do atendimento (logo antes do
+     Resultado HOLOS) tem 5 passos: Copiar Pacote HOLOS AI (só dados registrados, sem nome/contatos/exames) → Abrir HOLOS AI →
+     Importar Resultado HOLOS AI (JSON HOLOS_AI_RESULT schema_version 1; inválido = nada salvo e texto preservado) → Revisar
+     análise (cada item começa como SUGESTÃO HOLOS AI; confirmar / editar só texto / descartar; compartilhar só o que não é só
+     profissional) → Gerar Resultado HOLOS (o confirmado entra na direção do template 5 com origem `holos_ai` e referência ao
+     item importado; foco atual entra só como sugestão). Importação imutável e versionada (`holos_ai_imports` +
+     `holos_ai_import_items`, migration aditiva 20261023100000); o servidor recusa no Resultado item descartado, item só
+     profissional para a paciente e importação não concluída. A HOLOS AI não substitui o Resultado HOLOS; PDF, emissão e
+     WhatsApp continuam saindo só da projeção do servidor. Nada muda em HOLOSCAN, PP-V1, sistemas, Tríade, ferramentas,
+     pacotes, scores ou exames (`docs/v1/PONTE-HOLOS-AI.md`).
+197. **Fechamento da HOLOS AI v1.2** (14/10, decisão de Rodrigo). Nota maior = menos marcadores; nota menor = mais marcadores;
+     a nota nunca é saúde, equilíbrio, normalidade, gravidade ou risco. Para o sistema que não é a 1ª área, nunca "concentrou mais
+     marcadores" (Fúngico 2º: "aparece como a segunda área para aprofundar nesta aplicação..."). Hipótese → observação →
+     confirmação → possível estratégia (nunca direto). Tarefa da Conduta (composição, alimentos, quantidade, suplemento,
+     protocolo, prescrição) não é estratégia da paciente: vai para alerta "conduta". Sem corte inventado ("aplicar com
+     frequência suficiente para permitir avaliação no retorno"). Rascunho para a paciente só com o acordado. Território
+     `nao_aprofundado` sem estratégia. Rótulo visível único "SUGESTÃO HOLOS AI — REQUER REVISÃO PROFISSIONAL" (`catalogo:
+     "not_catalogued"` no JSON). `meta`, `entrada`, `ferramentas_ja_aplicadas` e `plano_acompanhamento` passam a obrigatórios,
+     mantendo `schema_version: 1`. Na ponte, as regras estruturais são erro (JS + SQL `holos_ai_problemas`) e as de linguagem,
+     aviso. PP-V1, catálogo, HOLOSCAN e versões publicadas sem mudança (`docs/v1/holos-ai-gpt/`, `docs/v1/PONTE-HOLOS-AI.md`).
+
+198. **Simplificação definitiva HOLOS AI → Resultado** (14/10, decisão de Rodrigo). Importar um HOLOS_AI_RESULT válido gera o
+     Resultado HOLOS final **sem confirmação item a item**:
+     - valida o schema;
+     - guarda o original imutável e versionado;
+     - aceita pela **regra fixa** (`aceitar_importacao_holos_ai`, `aceite = 'automatico'`): o só profissional fica interno e o elegível vai para a paciente; a estratégia que requer decisão na Conduta fica interna;
+     - monta e finaliza o Resultado (HOLOSCAN do atendimento, foco = 1º direcionamento elegível, relato do Mapeamento e acordos);
+     - libera "Gerar PDF".
+
+     A aba HOLOS AI tem 3 passos e o cartão "Resultado pronto" (Ver · Gerar PDF · Editar). A revisão e a montagem manual saem do
+     fluxo: os detalhes técnicos ficam recolhidos e só de leitura, e a montagem manual fica em "avançado". O PDF fica simples
+     (lista limitada por seção; no PDF, os cinco sistemas são resumidos ao mapa e às áreas prioritárias): 4 páginas no caso
+     fictício. No retorno, o Pacote traz o resultado anterior e a decisão MANTER/AJUSTAR/… vira o estado da estratégia.
+     Sem mudança em HOLOSCAN, fórmula, cinco sistemas, Índice, Tríade, PP-V1, ferramentas, schema v1 e regras clínicas
+     (`docs/v1/PONTE-HOLOS-AI.md` §0).
+
+199. **Rodada UX — visual, navegação, Holos IA e ferramentas** (14/10, decisão de Rodrigo). Só interface:
+     - réguas sem resposta mostram o marcador vazado e "—"; tocar no ponto parado passa a contar;
+     - modo claro com contraste medido (token `--ouro-texto`; as superfícies sempre escuras usam os tokens do tema escuro);
+     - menu: CORPO (QF) → MENTE (QM) → ESPÍRITO (QE) → HOLOS IA → RESULTADO HOLOS; os selos são só visuais e os ids não mudam;
+     - a página Holos IA é a mesma ponte da HOLOS AI (copiar Pacote → colar → "Importar e gerar resultado");
+     - o "X" da barra do paciente só tira a seleção;
+     - o HOLOSCAN sem aplicação mostra cartões de demonstração; com resultado, só o resultado;
+     - o bloco 6 (Aprofundamento) sai da tela;
+     - a Tríade ganha "Por quê" com as respostas reais da dimensão mais baixa, sem diagnóstico;
+     - o PQQ novo tem 3 perguntas, e o histórico com 5 continua legível;
+     - as 10 ferramentas têm "?" (O que é · Por que usar · Quando usar), nunca como bloqueio.
+
+     Sem mudança em HOLOSCAN, fórmula, scoring, cinco sistemas, Índice, cálculo da Tríade, PP-V1, schema da HOLOS AI ou
+     regras clínicas.
+
+200. **Mapeamento Holístico MH-2 — pré-consulta enxuta** (14/10, decisão de Rodrigo). O Mapeamento pergunta só o que nenhum
+     outro instrumento coleta e que a nutricionista precisa saber antes da consulta. Sono, fome, sinais com frequência,
+     rotina, apoio, emoções e propósito ficam com o HOLOSCAN e as ferramentas.
+     - 3 etapas + revisar, 17 perguntas principais (7 condicionais), cerca de 5 minutos;
+     - só 2 obrigatórias: o que quer melhorar e se tem diagnóstico informado;
+     - sem CPF/RG, sem "caso clínico", sem medidas e sem anexo de exames (só a orientação de levar ou enviar);
+     - topo com a marca HoloHacking, "Pré-consulta" e o método corpo, mente e espírito;
+     - versão gravada na resposta (`motivo.versao_mapeamento = "MH-2"`); respostas MH-1 continuam aparecendo com as
+       etapas e perguntas que o paciente viu;
+     - sem migration: os campos novos ficam nos blocos que o servidor já aceita.
+
+     Sem mudança em HOLOSCAN, ferramentas, retorno, registro profissional, Resultado HOLOS ou schema da Holos IA.
+
+201. **Mapeamento Holístico MH-3 — conhecer a pessoa com as palavras dela** (14/10, decisão de Rodrigo). A MH-2 (não
+     publicada) cortou o que fazia a nutricionista conhecer a pessoa. A MH-3 recupera as perguntas abertas da versão de 7
+     etapas e mantém em toque (sim/não, opções) o que é objetivo.
+     - 4 etapas + revisar: O que te traz aqui · Sua alimentação hoje · Sua saúde · Seus hábitos e seu momento;
+     - 25 perguntas principais (7 condicionais), 18 para escrever, com exemplo em cinza, cerca de 10 minutos;
+     - obrigatórias: o que busca, o porquê com as palavras da pessoa e se tem diagnóstico;
+     - continuam fora: sono, fome, emoções, estresse, apoio e propósito (HOLOSCAN e ferramentas), CPF/RG, medidas e anexo de exames;
+     - versão gravada na resposta (`MH-3`); MH-1 e MH-2 continuam legíveis como foram respondidas.
+     - **redesenho final (mesmo dia, antes de publicar):** entram "Como está seu sono atualmente?" e "O que mais dificulta
+       cuidar da sua alimentação e da sua saúde hoje?" (só toque); "Qual condição ou diagnóstico?" vira obrigatória quando a
+       resposta é "Sim"; textos e exemplos ajustados. Visual: o título das perguntas de escolha (legend do fieldset) era
+       desenhado em cima da borda do cartão; agora fica dentro, com o mesmo espaçamento das perguntas de texto. Total: 27
+       perguntas principais.
+202. **Fluxo do atendimento enxuto na ficha** (14/10, decisões de Rodrigo, mesmo deploy):
+     - fluxo: cadastro → Mapeamento Holístico (link antes da consulta, no celular ou no computador) → no atendimento,
+       HOLOSCAN e ferramentas → Holos IA → Resultado HOLOS → Resultado (PDF/WhatsApp) → retornos (Evolução);
+     - jornada da ficha com 7 passos, cada um marcado só com dado real (Mapeamento "OK" quando recebido);
+       paciente novo: a ação principal é "Enviar Mapeamento Holístico" (o HOLOSCAN fica secundário);
+     - aba Atendimentos: "Fluxo do atendimento" no lugar de "Depois da consulta"; menu lateral Atendimentos escondido;
+     - abas Conduta e Relatório escondidas (o código e os dados continuam): o Resultado HOLOS é o lugar único dos
+       resultados (HOLOSCAN, ferramentas e análise da Holos IA); o aviso "mapa sem conduta" vira "mapa sem ferramentas";
+     - Documentos: sem documento, a lista vazia não aparece;
+     - Mapeamento: desconfortos como opções para marcar (relato opcional); botão "Marcar como revisado"
+       (migration aditiva 20261025100000: `reviewed_at` + RPC `marcar_convite_anamnese_revisado`);
+     - Resultado Final: PDF com a identidade HoloHacking (logo, faixa dourada), dados completos da nutricionista e
+       bloco de assinatura (assinatura sobre a linha, nome, registro, carimbo, data da emissão); WhatsApp envia o PDF
+       (anexado no celular; no computador, baixado com a conversa aberta).
 
 ## Decisões pendentes (não decididas aqui)
 
@@ -839,18 +1256,18 @@ Fonte: Documento Mestre §21–§24 (autoridade); AS-IS só para entender o lega
   **DECIDIDAS na Etapa 4.2** (itens 52–66). Pendente só a **publicação técnica**: validar a
   cadeia 130000→210000 no banco real, registrar a Aprovação 1 (Daniel) e a Aprovação 2 (Rodrigo)
   sobre o mesmo pacote, versão e hash, e então homologar o HOLOS-V1@2 (item 67).
-- **Leitura Integrada** — infraestrutura (Etapa 5), decisões 1–29 (Etapas 5.4–5.13) e **implementação local**
+- ~~**Leitura Integrada**~~ — **RETIRADA DO FLUXO em 09/10 (item 175)**: o histórico fica só leitura; o gate abaixo deixa de existir. Registro anterior: infraestrutura (Etapa 5), decisões 1–29 (Etapas 5.4–5.13) e **implementação local**
   (Etapa 6.0, itens 143–149) concluídas. Pendente só o gate técnico/operacional (grupo B de
   `docs/v1/laboratorio/PACOTE-FINAL-PENDENCIAS-EXECUTAVEIS-LI-V1.md`): validar a cadeia no banco real, aplicar as
   migrations, cadastrar os `auth.uid` reais, Aprovação 1 (Daniel), Aprovação 2 (Rodrigo), Homologar LI-V1@2
   (hash `fa99ec80…`), registrar o pacote V1 nas aplicações HOLOSCAN, deploy. (Mestre §24)
-- **Regras de sugestão de ferramentas** — nenhuma das 23 REC nem SEL-001 é aprovada; a Etapa 4.2
-  decidiu que nenhuma sugestão automática é oficial na V1 (item 65). (Mestre §29)
+- ~~**Regras de sugestão de ferramentas**~~ — **DECIDIDO em 09/10 (item 176)**: catálogo HOLOS-RECOMENDACOES-V1 aprovado; as 23 REC
+  e a SEL-001 continuam não validadas e desligadas (o item 65 valia para elas). (Mestre §29)
 - **Conteúdo mínimo para "Concluir" uma ferramenta** — a guarda técnica da Rodada 08
   (Mapa de Crenças não conclui vazio; OQ3/PQQ não salvam vazios) fica mantida como
   guarda de aplicação vazia, pendente de decisão metodológica.
 - **Réguas manuais dos 5 sistemas** — LEGADO / EM REVISÃO; fora da jornada normal,
   visíveis só em modo de homologação (`?homologacao=1`); não sincronizadas.
-- ~~**Catálogo laboratorial de 45 exames**~~ — **ENTREGUE na Etapa 5** (itens 68–72). Pendente só o
+- ~~**Catálogo laboratorial de 45 exames**~~ — **ENTREGUE na Etapa 5** (itens 68–72) e **DESATIVADO em 09/10 (item 175)**: histórico só leitura, sem gravação nova. Antes pendia só o
   mapeamento manual dos itens legado marcados `requires_manual_mapping` (Insulina de jejum) e a
   validação da migration 20261001220000 no banco real. (Mestre §21)

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Valida a cadeia de migrations 130000..20261005110000 + harness Etapa 4, 4.2, 5, 5.2, 5.3, 6, 6.0.1, aprovador unico, HOLOSCAN oficial (P0), registros clinicos estruturados (6.5 B) e regressao de dados LEGADOS num PostgreSQL LOCAL descartavel.
+# Valida a cadeia de migrations 130000..20261009100000 + harness Etapa 4, 4.2, 5, 5.2, 5.3, 6, 6.0.1, aprovador unico, HOLOSCAN oficial (P0), registros clinicos estruturados (6.5 B), cadastro com aprovacao, Resultado HOLOS, revisao das perguntas, prontuario (exames so como arquivo), Proximos Passos HOLOS, conta pendente = somente Perfil, anamnese pre-consulta, Resultado Final HOLOS, administracao e regressao de dados LEGADOS num PostgreSQL LOCAL descartavel.
 # Antes das migrations entra supabase/tests/legado-seed-pre-etapa5.sql (dados legados sinteticos, como em producao); no fim, legado-harness.sql.
 # Uso: PGHOST=/caminho/socket PGPORT=55432 sh scripts/validar-cadeia-local.sh
 # Pre-requisito: banco "base" com supabase/tests/stub-supabase-local.sql e as migrations anteriores a 20260930130000.
@@ -40,5 +40,119 @@ cd "$(dirname "$0")/.."
     grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
   done
   cat supabase/tests/ferramentas-registro-harness.sql
+  # Cadastro com aprovacao (20261008100000) e RESULTADO HOLOS (20261009100000): o PRE guarda as digitais de tudo que o
+  # Resultado HOLOS so pode LER (HOLOSCAN, ferramentas, Leitura Integrada, exames, pacotes).
+  for f in supabase/migrations/2026100810*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/resultado-holos-pre.sql
+  for f in supabase/migrations/2026100910*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/resultado-holos-harness.sql
+  # Revisao das perguntas do HOLOSCAN (20261010100000): pagina publica de parecer; nada clinico nem o pacote muda.
+  for f in supabase/migrations/2026101010*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/revisao-perguntas-harness.sql
+  # Prontuario (20261011100000): exames e documentos so como arquivos; laboratorio estruturado e Leitura Integrada sem
+  # gravacao nova; documento arquivado em vez de apagado. O PRE guarda as digitais do historico e um HOLOSCAN/Resultado
+  # HOLOS de referencia para provar que a mesma entrada da o mesmo resultado.
+  cat supabase/tests/prontuario-pre.sql
+  for f in supabase/migrations/2026101110*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/prontuario-harness.sql
+  # Proximos Passos HOLOS (20261012100000): catalogo HOLOS-RECOMENDACOES-V1 (30 regras aprovadas, global, imutavel),
+  # motor no servidor e snapshot por (aplicacao, catalogo). O PRE guarda as digitais de tudo que o motor so LE.
+  cat supabase/tests/proximos-passos-pre.sql
+  for f in supabase/migrations/2026101210*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/proximos-passos-harness.sql
+  # Conta pendente = somente Perfil (20261013100000): conta nao ativa nao grava nada clinico (API e RPC);
+  # recusada nao grava nem o perfil. Entra por ultimo, sobre todo o resto ja aplicado (como no banco real).
+  for f in supabase/migrations/2026101310*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/conta-pendente-harness.sql
+  # Anamnese pre-consulta por link (20261014100000): convite com token (so o hash no banco), paginas publicas sem conta,
+  # rascunho no servidor, envio imutavel; nada vira anamnese do atendimento sem a nutricionista.
+  for f in supabase/migrations/2026101410*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/anamnese-pre-consulta-harness.sql
+  # Resultado Final HOLOS (20261015100000): snapshot template 2 (Proximos Passos congelados + compartilhamento) e emissao
+  # imutavel do Resultado Final. O PRE guarda as digitais de tudo que nao pode mudar (HOLOSCAN, metodologia, catalogo, resultados).
+  cat supabase/tests/resultado-final-pre.sql
+  for f in supabase/migrations/2026101510*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/resultado-final-harness.sql
+  # Administracao (20261016100000): registro imutavel + painel/status/perfil/historico so para administradores.
+  for f in supabase/migrations/2026101610*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/administracao-harness.sql
+  # Correcoes da jornada (20261017100000): Resultado HOLOS template 3 congela os Proximos Passos pendentes.
+  for f in supabase/migrations/2026101710*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/correcoes-jornada-harness.sql
+  # Motor de resultados V1 (20261019100000): Resultado HOLOS template 4 (dominantes reais), emissao RF-2 com a Conduta do
+  # atendimento do resultado, relatorio com o estado real do pacote.
+  for f in supabase/migrations/2026101910*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/motor-resultados-harness.sql
+  # HOLOS-V1 v3 (revisao das perguntas, 12/10): sem migration; o v3 e gravado pela API como a tela de Homologacao faz.
+  cat supabase/tests/pacote-v3-doc.sql
+  cat supabase/tests/pacote-v3-harness.sql
+  # Publicacao direta (12/10): sem Aprovacao/Homologacao; revisao publica fora do ar
+  for f in supabase/migrations/2026101810*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/publicacao-direta-harness.sql
+  # HOLOS-V1 v5 (Lote 2B, 13/10): a v5 gravada ANTES da migration nova e recusada so pelas perguntas so contextuais;
+  # depois de 20261020100000 (pergunta so contextual) ela valida, e publicada e o historico fica identico.
+  cat supabase/tests/pacote-v5-doc.sql
+  cat supabase/tests/pacote-v5-harness-pre.sql
+  for f in supabase/migrations/2026102010*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/pacote-v5-harness.sql
+  # HOLOS-V1 v6 (fechamento das 61, 13/10): sem migration; gravada e publicada sobre a v5, historico identico.
+  cat supabase/tests/pacote-v6-doc.sql
+  cat supabase/tests/pacote-v6-harness.sql
+  # Resultado HOLOS template 5 (20261021100000): direcao (direcionamento + estrategias + acompanhamento da evolucao),
+  # projecao da paciente no servidor (hipotese nunca), foco obrigatorio para finalizar/emitir, emissao RF-3, caminho do retorno.
+  for f in supabase/migrations/2026102110*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/resultado-direcao-harness.sql
+  # HOLOS-V1 v7 (so texto, 13/10): sem migration; gravada e publicada sobre a v6, so o texto do Acido muda, historico identico.
+  cat supabase/tests/pacote-v7-doc.sql
+  cat supabase/tests/pacote-v7-harness.sql
+  # Mapeamento Holistico "Link enviado" (20261022100000, Plano mestre Fase 1): sent_at/sent_via + RPC de marcacao.
+  for f in supabase/migrations/2026102210*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/mapeamento-link-enviado-harness.sql
+  # Ponte HOLOS AI -> HoloHacking (20261023100000): importacao imutavel do JSON HOLOS_AI_RESULT, revisao por item,
+  # itens da HOLOS AI no Resultado HOLOS (template 5) so quando aceitos; so profissional nunca para a paciente.
+  for f in supabase/migrations/2026102310*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/holos-ai-ponte-harness.sql
+  # HOLOS AI -> Resultado automatico (20261024100000): aceite pela regra fixa do metodo, sem revisao item a item.
+  for f in supabase/migrations/2026102410*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/holos-ai-automatico-harness.sql
+  # Mapeamento Holistico "Revisado" (20261025100000): a nutricionista marca o Mapeamento recebido como revisado.
+  for f in supabase/migrations/2026102510*.sql; do
+    grep -v '^[[:space:]]*begin;[[:space:]]*$' "$f" | grep -v '^[[:space:]]*commit;[[:space:]]*$'
+  done
+  cat supabase/tests/mapeamento-revisado-harness.sql
   echo "rollback;"
 } | psql -U postgres -d base -v ON_ERROR_STOP=1 -At | tr '|' '\n' | sed 's/^ //'

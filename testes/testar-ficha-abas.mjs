@@ -129,7 +129,9 @@ conferir(/Cadastrado em \d\d\/\d\d\/\d{4}/.test(topo.contato),
 conferir(/42 anos/.test(topo.sobre) && /Feminino/.test(topo.sobre),
   'e a linha "sobre" resume quem é: ' + topo.sobre);
 conferir(topo.detalhesFechados, 'os detalhes do cadastro começam fechados');
-conferir(topo.acoes.join(',') === 'Editar,Marcar consulta,Registrar exames,Novo documento,Aplicar HOLOSCAN,Exportar dados',
+/* redesign 12/10: Aplicar HOLOSCAN em destaque, Nova consulta, e o resto em "Mais ações" (as mesmas acoes de antes) */
+/* 14/10 (auditoria Cowork): o botao principal acompanha a proxima acao da jornada (Aplicar HOLOSCAN -> Ferramentas -> Holos IA -> ...) */
+conferir(/^(Aplicar HOLOSCAN|Ir para Ferramentas|Abrir Holos IA|Montar Resultado HOLOS|Ver Resultado HOLOS|Ver Resultado|Reaplicar HOLOSCAN),Nova consulta,Mais ações ▾,Editar cadastro,Adicionar arquivo,Exportar dados$/.test(topo.acoes.join(',')),
   'as ações ficam no topo, não no fim da página: ' + topo.acoes.join(' · '));
 
 // "Registrar exames" e "Novo documento" iam para "aba:documentos" — o clique
@@ -146,16 +148,18 @@ const abriuDocumentos = await p.evaluate(async () => {
   return r;
 });
 conferir(abriuDocumentos.abaAtiva && abriuDocumentos.fichaVisivel,
-  'e "Registrar exames"/"Novo documento" abrem a aba certa, sem zerar a tela');
+  'e "Adicionar arquivo" abre a aba certa, sem zerar a tela');
 
 // ------------------------------------------------------ a jornada clinica --
 
 const jornada = await p.evaluate(() => ({
-  passos: [...document.querySelectorAll('.fic-jornada .dash-jornada-passo b')]
+  passos: [...document.querySelectorAll('#ficha-jornada .fic-step-nome')]
     .map(b => b.textContent),
 }));
-conferir(jornada.passos.join(',') === 'HOLOSCAN,Leitura Integrada,Ferramentas,Evolução',
-  'a jornada clínica mostra os 4 movimentos: ' + jornada.passos.join(' · '));
+/* 14/10: o fluxo completo comeca no Mapeamento Holistico; com a Holos IA escondida (HOLOS_IA_VISIVEL=false), o Resultado HOLOS
+   e montado com o Playbook e o passo Holos IA sai da jornada (6 passos) */
+conferir(jornada.passos.join(',') === 'Mapeamento Holístico,Abrir atendimento + HOLOSCAN,Ferramentas,Resultado HOLOS,Resultado,Evolução',
+  'a jornada clínica mostra o fluxo completo (6 passos, Holos IA escondida): ' + jornada.passos.join(' · '));
 
 const detalhes = await p.evaluate(async () => {
   document.getElementById('ficha-ver-detalhes').click();
@@ -175,11 +179,12 @@ const faixa = await p.evaluate(() => {
     .find(e => new RegExp(rot, 'i').test(e.querySelector('.fic-pilula-rot').textContent));
   const ler = e => e ? { txt: e.querySelector('b').textContent, cls: e.className } : null;
   return {
-    ultima: ler(um('última aplicação')),
+    ultima: ler(um('último holoscan')),
     proxima: ler(um('próxima consulta')),
+    etapa: ler(um('etapa atual')),
     aberto: ler(um('em aberto')),
-    exames: ler(um('exames')),
-    docs: ler(um('documentos')),
+    exames: ler(um('^exames$')),
+    docs: ler(um('documentos e exames')),
   };
 });
 
@@ -190,10 +195,10 @@ conferir(/às 10:00/.test(faixa.proxima.txt) && /em 6 dias/.test(faixa.proxima.t
 /* Etapa 0 da V1: a unica pendencia deste caso era a divergencia relato x
    exame, que vem de regra ainda nao homologada e deixou de virar alerta
    (Mestre §24, §33). Sem pendencia operacional, a faixa diz "tudo em dia". */
-conferir(faixa.aberto && /tudo em dia/.test(faixa.aberto.txt) && !/alerta/.test(faixa.aberto.cls),
-  'sem pendência inventada por regra em homologação: ' + faixa.aberto.txt);
-conferir(/1 preenchidos/.test(faixa.exames.txt), 'conta os exames: ' + faixa.exames.txt);
-conferir(/1 arquivo/.test(faixa.docs.txt), 'e os documentos: ' + faixa.docs.txt);
+/* redesign 12/10: "Em aberto" (pendencias) virou "Etapa atual", com a regra do Dashboard; documentos ficam na Visao e na aba */
+conferir(!faixa.aberto && faixa.etapa && !/alerta/.test(faixa.etapa.cls),
+  'sem pílula de pendências; a faixa mostra a etapa atual: ' + (faixa.etapa && faixa.etapa.txt));
+conferir(!faixa.exames && !faixa.docs, 'sem pílula de valores de exame (exame é só arquivo, 09/10) nem de documentos repetida');
 
 /* ------------------------------------------- visão geral: exames e docs -- */
 
@@ -201,14 +206,13 @@ await new Promise(r => setTimeout(r, 200)); // ArquivoStore.listar() e assincron
 const visaoResumo = await p.evaluate(() => {
   const blocos = [...document.querySelectorAll('#aba-visao .dash-bloco-compacto')];
   const de = titulo => blocos.find(b => b.querySelector('.dash-titulo').textContent === titulo);
-  const exames = de('Exames');
-  const docs = de('Documentos recentes');
+  const docs = de('Documentos e exames recentes');
   return {
-    exames: exames.textContent.replace(/\s+/g, ' ').trim(),
+    semExames: !de('Exames'),
     docItens: [...docs.querySelectorAll('.dash-pendente b')].map(b => b.textContent),
   };
 });
-conferir(/1 valor registrado/.test(visaoResumo.exames), 'Visão geral resume os exames: ' + visaoResumo.exames);
+conferir(visaoResumo.semExames, 'Visão geral não tem bloco de valores de exame (09/10)');
 conferir(visaoResumo.docItens.includes('Hemograma completo'),
   'e os documentos recentes: ' + visaoResumo.docItens.join(' · '));
 
@@ -224,8 +228,11 @@ const linha = await p.evaluate(() => ({
   nota: document.querySelector('#fic-visao-timeline .dash-sub')?.textContent || '',
 }));
 
-conferir(linha.eventos.length === 6,
-  'a linha do tempo junta o que tem data: ' + linha.eventos.length + ' registros');
+/* 5 registros: consulta marcada, 2 aplicacoes do HOLOSCAN, documento e
+   ferramenta. O valor de exame guardado em localStorage NAO vira evento
+   (decisao 09/10: exame e so arquivo). */
+conferir(linha.eventos.length === 5,
+  'a linha do tempo junta o que tem data (sem o valor de exame legado): ' + linha.eventos.length + ' registros');
 conferir(/Consulta marcada/.test(linha.eventos[0].txt) && /futuro/.test(linha.eventos[0].cls),
   'o que ainda vai acontecer vem primeiro e se marca como futuro: ' +
   linha.eventos[0].txt.slice(0, 40));
@@ -278,7 +285,7 @@ conferir(!forms.cartoes[2].temVer || /não aplicado/.test(forms.cartoes[2].txt),
 conferir(/Índice 88/.test(forms.cartoes[0].txt),
   'o cartão do HOLOSCAN diz qual mapa saiu dele');
 // Etapa 6.5 (B): + Mapa da Rotina, Gatilhos & Respostas e Conexao & Pertencimento (registros clinicos) -> 10 ativas
-conferir(/1 de 10 aplicadas/.test(forms.ferramentas),
+conferir(/1 de 9 aplicadas/.test(forms.ferramentas),  /* 14/10: Conexao & Pertencimento oculta -> 9 visiveis */
   'e as ferramentas ficam à parte — são conduta, não formulário: ' +
   forms.ferramentas.slice(0, 60));
 
@@ -329,16 +336,15 @@ conferir(fechou, 'e a janela fecha');
 
 await aba('documentos');
 const juntos = await p.evaluate(() => ({
-  exames: document.querySelectorAll('#ex-corpo .ex-linha').length,
+  exames: document.querySelectorAll('#ex-corpo .ex-linha, #lab-corpo, [data-lancar]').length,
   cartoes: [...document.querySelectorAll('#aba-documentos .arq-titulo')].map(h => h.textContent),
-  atalho: document.querySelector('.ex-atalho')?.textContent || '',
+  titulos: [...document.querySelectorAll('.bib-titulo')].map(b => b.textContent),
 }));
-conferir(juntos.exames > 0, 'os valores do exame continuam inteiros: ' + juntos.exames + ' linhas');
-// Etapa 5 da V1: documento + Exames laboratoriais (V1) + painel legado rotulado "fora da saida oficial"
-conferir(juntos.cartoes.length === 3 && /Exames laboratoriais/.test(juntos.cartoes[1]) && /Painel legado/.test(juntos.cartoes[2]),
-  'e moram junto com o documento de onde saem: ' + juntos.cartoes.join(' · '));
-conferir(/Hemograma/.test(juntos.atalho),
-  'o exame guardado vira atalho para abrir ao lado: ' + juntos.atalho);
+conferir(juntos.exames === 0, 'nenhum painel de valores de exame na aba Documentos (09/10)');
+conferir(juntos.cartoes.length === 2 && /Adicionar arquivo/.test(juntos.cartoes[0]) && /Documentos e exames/.test(juntos.cartoes[1]),
+  'a aba é a biblioteca: ' + juntos.cartoes.join(' · '));
+conferir(juntos.titulos.some(t => /Hemograma/.test(t)),
+  'o exame guardado está na lista como arquivo: ' + juntos.titulos.join(' · '));
 
 await aba('relatorio');
 const rel = await p.evaluate(() => !!document.getElementById('relatorio'));

@@ -63,7 +63,7 @@ const ini = await A.evaluate(async (ids) => {
 ok(ini.aviso === true, 'com paciente escolhido, o aviso "Selecione um paciente" some');
 ok(ini.opcoes.includes(PA) && !ini.opcoes.includes(PARQ), 'o seletor do HOLOSCAN não lista o paciente arquivado');
 ok(!ini.pontue && ini.eyebrows === '123456', 'texto da seção 2 atualizado e seções numeradas em sequência: ' + ini.eyebrows);
-ok(!ini.limparResultado && ini.seguir === 'confronto,conduta', 'um só "Limpar" (o do questionário) e botões para seguir: Leitura Integrada e Conduta');
+ok(!ini.limparResultado && ini.seguir === 'resultado', 'um só "Limpar" (o do questionário) e o botão para seguir: Resultado (14/10: a Conduta saiu do sistema)');
 ok(/nenhum selecionado/.test(ini.at), 'sem atendimento, a tela diz que o HOLOSCAN só é salvo ligado a um: ' + ini.at.replace(/\s+/g, ' ').slice(0, 90));
 
 /* ----- 2: atendimento visivel e trocavel ----- */
@@ -125,6 +125,8 @@ const cont = await A.evaluate(async () => {
   document.querySelector('.nav-item[data-secao="consultas"]').click();
   await new Promise(r => setTimeout(r, 300));
   const t = [...document.querySelectorAll('#consultas-corpo .dash-numeros .dash-tile')].map(x => x.innerText.replace(/\s+/g, ' '));
+  document.querySelector('#consultas-corpo [data-at-aba="holoscan"]').click();   /* 14/10: aplicacoes na aba HOLOSCAN */
+  await new Promise(r => setTimeout(r, 50));
   const selo = !!document.querySelector('#consultas-corpo .selo-nao-salvo');
   return { t, selo };
 });

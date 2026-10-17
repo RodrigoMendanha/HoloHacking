@@ -269,13 +269,13 @@
         // fica sem dono e a plateia acha que ainda e a paciente.
         painel.innerHTML = telaTexto([
           ["Do outro lado, a nutricionista.", 0],
-          ["Quarenta minutos de anamnese.", 1]
+          ["Quarenta minutos de Mapeamento Holístico.", 1]
         ]);
       },
       quadro: function (p) { animarLinhas(p, .04, .2); } },
 
     /* 3 — o questionario, respondendo de verdade */
-    { dur: 13, legenda: "84 perguntas · 15 minutos",
+    { dur: 13, legenda: "O questionário do HOLOSCAN",
       entrar: function () {
         mostrarPainel(false);
         try { localStorage.removeItem("holohacking.questionario"); } catch (e) {}
@@ -354,17 +354,17 @@
     catalogo("mente", "Mente", 2),
     catalogo("espirito", "Espírito", 3),
 
-    /* 13 — exames: o confronto, app de verdade */
-    { dur: 13, legenda: "Relato × laboratório",
+    /* 13 — documentos e exames: a biblioteca do prontuario, app de verdade */
+    { dur: 13, legenda: "Documentos e exames guardados",
       entrar: function () {
         mostrarPainel(false);
         abrirFicha();
-        var a = document.querySelector('[data-aba="exames"]');
+        var a = document.querySelector('[data-aba="documentos"]');
         if (a) a.click();
         window.scrollTo(0, 0);
       },
       quadro: function (p) {
-        rolarAte("#ex-confronto", p, .15, .6);
+        rolarAte("#doc-lista", p, .15, .6);
       } },
 
     /* 14 — o relatorio, app de verdade */

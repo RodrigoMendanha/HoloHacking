@@ -13,8 +13,9 @@
  *  Modo oficial recusa pacote rascunho; nenhum fallback.
  *  Etapa 4.2: o CANDIDATO V1 (decisoes fechadas) e gravado pela tela como nova versao em_revisao
  *  (linhagem, hash, nenhum registro), confere REF-01..03 e continua fora da saida oficial.
- *  Aprovador unico pela tela (migration 20261003100000): "Liderança" e "Rodrigo" recusados, Aprovacao de Daniel; so "Homologar"
- *  e oferecido (sem segunda revisao); nada homologado. Rodrigo (papel desativado) nao ve nem aprova o pacote alheio.
+ *  12/10 (publicacao direta): a tela de Metodologia e so consulta — gravar, aprovar, homologar e retirar sairam da tela; os
+ *  rascunhos deste teste sao gravados pela API do modulo (PacoteMetodologico.salvarRascunho). As regras de aprovacao do
+ *  servidor continuam provadas em testar-v1-aprovador-unico.mjs.
  *  (Contrato anterior, ate a 6.3-A: Aprovacao 2 por Rodrigo na conta b@ — descontinuada; mudanca legitima documentada.)
  */
 import './guarda-falhas.mjs';
@@ -45,7 +46,7 @@ await A.waitForFunction(() => window.HoloAuth && window.HoloAuth.sessaoAtiva() &
 await esperar(300);
 await A.evaluate(() => { window.confirm = () => true; });
 const texto = (sel) => A.evaluate((sel) => (document.querySelector(sel) || {}).innerText || '', sel);
-const VAZ = /### Índice HOLOS|### Tríada|- Físico:|faixa \d|### Leitura Integrada|CMB-|\bREC-|\bSEL-|nota \d/;
+const VAZ = /### Índice HOLOS|### Tríada|- Físico:|\nTríade:|- Corpo:|faixa \d|### Leitura Integrada|CMB-|\bREC-|\bSEL-|nota \d/;
 
 titulo('SEM PACOTE: TODA SAIDA OFICIAL NEGADA');
 const b0 = await A.evaluate(() => { const M = window.Metodologia; return { status: M.status(), pacote: M.pacote(), pode: M.podeCalcularOficial(), motivos: M.motivosBloqueio(), negadas: M.SAIDAS.filter(t => !M.podeExibirOficial(t)).length, total: M.SAIDAS.length, cob: M.coberturaMinima() }; });
@@ -54,7 +55,9 @@ ok(b0.status === 'em_homologacao' && b0.pacote === null && b0.pode === false && 
 titulo('INVENTARIO GRAVADO COMO RASCUNHO PELA TELA');
 await A.evaluate(async () => { document.querySelector('.nav-item[data-secao="metodologia"]').click(); await new Promise(r => setTimeout(r, 400)); });
 ok(!(await A.evaluate(() => !!document.querySelector('#metodologia-corpo button[data-mh-acao*="aprovar"]'))) && !/aprovar tudo/i.test((await texto('#metodologia-corpo')).replace('Não existe "aprovar tudo"', '')), 'a tela nao tem botao "aprovar tudo"');
-await A.evaluate(async () => { document.querySelector('[data-mh-acao="importar-rascunho"]').click(); for (let i = 0; i < 60 && !/gravado/.test(document.getElementById('mh-estado').textContent); i++) await new Promise(r => setTimeout(r, 100)); });
+/* 12/10 (publicacao direta): a tela de Metodologia virou so consulta — sem o botao "Gravar inventario como RASCUNHO".
+   O mesmo rascunho e gravado pela API do modulo que o botao usava (PacoteMetodologico.salvarRascunho). */
+await A.evaluate(async () => { const P = window.PacoteMetodologico; await P.salvarRascunho(P.importarInventario(window.MetodologiaInventario, 'HOLOS-V1', 1)); window.MetodologiaHomologacao.desenhar(); await new Promise(r => setTimeout(r, 200)); });
 const pk = srv.linhas('methodology_packages')[0];
 ok(pk && pk.status === 'rascunho' && srv.linhas('methodology_questions').filter(q => q.package_id === pk.id).length === 84 && srv.linhas('methodology_questions').every(q => q.status === 'para_homologacao'), 'pacote gravado como RASCUNHO com 84 perguntas para_homologacao (nenhuma aprovada)');
 const tela = await texto('#metodologia-corpo');
@@ -81,7 +84,10 @@ ok(/DECISOES METODOLOGICAS V1 FECHADAS/.test(telaCand) && /PUBLICACAO TECNICA PE
 await A.evaluate(async () => { document.querySelector('[data-mh-aba="regras"]').click(); await new Promise(r => setTimeout(r, 200)); });
 const telaRegras = await texto('#metodologia-corpo');
 ok(/REF-01[\s\S]*confere[\s\S]*REF-02[\s\S]*confere[\s\S]*REF-03[\s\S]*confere/.test(telaRegras) && /Não há sugestão automática validada para esta edição\./.test(telaRegras), 'aba de regras: REF-01..03 conferem com o motor; "Não há sugestão automática validada para esta edição."');
-await A.evaluate(async () => { document.querySelector('[data-mh-aba="resumo"]').click(); await new Promise(r => setTimeout(r, 100)); document.querySelector('[data-mh-acao="gravar-candidato"]').click(); for (let i = 0; i < 80 && !/Candidato gravado/.test(document.getElementById('mh-estado').textContent); i++) await new Promise(r => setTimeout(r, 100)); });
+/* sem o botao "Gravar candidato" (tela so consulta): mesma gravacao pela API do modulo */
+await A.evaluate(async () => { document.querySelector('[data-mh-aba="resumo"]').click(); await new Promise(r => setTimeout(r, 100)); const P = window.PacoteMetodologico;
+  const id = await P.salvarRascunho(P.aplicarDecisoesV1(P.importarInventario(window.MetodologiaInventario, 'HOLOS-V1', 1), window.MetodologiaDecisoesV1));
+  window.MetodologiaHomologacao.selecionar(id); window.MetodologiaHomologacao.desenhar(); await new Promise(r => setTimeout(r, 200)); });
 const pk2 = srv.linhas('methodology_packages').find(x => x.version === 2);
 ok(pk2 && pk2.status === 'em_revisao' && pk2.lineage && pk2.lineage.parent_version === 1 && /^[0-9a-f]{64}$/.test(pk2.content_hash) && !pk2.approved_at, 'candidato gravado como NOVA VERSAO (v2) em_revisao, com linhagem e hash; nada aprovado');
 ok(srv.linhas('methodology_questions').filter(x => x.package_id === pk2.id && x.temporal_context).length === 84 && srv.linhas('methodology_associations').filter(x => x.package_id === pk2.id).length === 179 && srv.linhas('methodology_homologation_records').filter(x => x.package_id === pk2.id).length === 0 && srv.linhas('methodology_package_approvals').filter(x => x.package_id === pk2.id).length === 0 && srv.linhas('methodology_questions').filter(x => x.package_id === pk.id && x.status === 'para_homologacao').length === 84, 'v2 com 84 perguntas e 179 associacoes, sem registro de homologacao nem aprovacao; o rascunho v1 continua intacto');
@@ -89,30 +95,14 @@ const b2 = await A.evaluate(() => { const M = window.Metodologia, P = window.Pac
 ok(b2.status === 'em_homologacao' && b2.ativo === null && /nenhum Pacote Metodológico aprovado \(2 em rascunho/.test(b2.motivo) && b2.of === 'oficial_bloqueado' && b2.val === 0, 'candidato em_revisao (0 erros no validador) nao vira oficial: barreira em homologacao, modo oficial recusa');
 ok(b2.idx === '66.7' && b2.eh === true, 'modo homologacao com o candidato lido do servidor: REF-03 -> Indice 66.7, e a saida continua marcada como homologacao');
 
-titulo('APROVADOR UNICO PELA TELA (NADA AUTOMATICO, NADA HOMOLOGADO AQUI)');
-const telaAp = await texto('#mh-aprovacoes');
-ok(/aprovador único/.test(telaAp) && /Aprovação — Daniel[\s\S]*pendente/.test(telaAp) && !/Aprovação 2|Rodrigo|dupla aprovação/.test(telaAp) && !(await A.evaluate(() => !!document.querySelector('[data-mh-acao="registrar-aprovacao"]'))), 'tela: so a Aprovacao de Daniel (pendente), sem Aprovacao 2/Rodrigo; sem hash conferido nao ha botao de aprovar');
-const aprovarTela = (resp, conferi) => A.evaluate(async (resp, conferi) => {
-  if (!document.getElementById('mh-hash-servidor')) { document.querySelector('[data-mh-acao="conferir-hash"]').click(); for (let i = 0; i < 40 && !document.getElementById('mh-hash-servidor'); i++) await new Promise(r => setTimeout(r, 50)); }
-  const cx = document.querySelector('.mh-aprovar'); const vazio = cx.querySelector('[data-mh-resp]').value === '';
-  cx.querySelector('[data-mh-resp]').value = resp; cx.querySelector('[data-mh-just]').value = 'conferido na tela (teste)'; cx.querySelector('[data-mh-conferi]').checked = conferi;
-  document.getElementById('mh-estado').textContent = '';
-  document.querySelector('[data-mh-acao="registrar-aprovacao"]').click();
-  for (let i = 0; i < 60 && !/registrada|recusada|Marque/.test(document.getElementById('mh-estado').textContent); i++) await new Promise(r => setTimeout(r, 50));
-  return { vazio, estado: document.getElementById('mh-estado').textContent };
-}, resp, conferi);
-const sc = await aprovarTela('Daniel', false);
-ok(!sc.vazio && /Marque/.test(sc.estado) && srv.linhas('methodology_package_approvals').length === 0, 'campo de responsavel vem preenchido com o papel da conta (Daniel, somente leitura); sem marcar "conferi" nada e registrado');
-const apL = await aprovarTela('Liderança do método HOLOSCAN', true);
-ok(/recusada/.test(apL.estado) && srv.linhas('methodology_package_approvals').filter(a => a.package_id === pk2.id).length === 0, 'Aprovacao atribuida a "Liderança do método HOLOSCAN": recusada');
-const apImp = await aprovarTela('Rodrigo', true);
-ok(/recusada/.test(apImp.estado) && srv.linhas('methodology_package_approvals').filter(a => a.package_id === pk2.id).length === 0, 'a conta de Daniel digitando "Rodrigo" nao registra nada (a aprovacao e so do aprovador unico Daniel)');
-const ap1 = await aprovarTela('Daniel', true);
-ok(/Aprovação registrada/.test(ap1.estado) && srv.linhas('methodology_package_approvals').filter(a => a.package_id === pk2.id && a.step === 1 && a.responsible === 'Daniel').length === 1, 'Aprovacao registrada pela tela por Daniel' + (/registrada/.test(ap1.estado) ? '' : ' [' + ap1.estado + ']'));
-const telaAp2 = await texto('#mh-aprovacoes');
-const fim = await A.evaluate(() => ({ botao: !!document.querySelector('[data-mh-acao="homologar"]'), form: !!document.querySelector('.mh-aprovar'), status: window.Metodologia.status() }));
-ok(fim.botao && !fim.form && /Aprovação — Daniel[\s\S]*registrada/.test(telaAp2) && !/Aprovação 2|Rodrigo/.test(telaAp2) && fim.status === 'em_homologacao' && srv.linhas('methodology_packages').find(x => x.id === pk2.id).status === 'em_revisao', 'com a Aprovacao de Daniel a tela oferece so "Homologar" (nenhuma segunda revisao), mas nada muda sem esse clique (pacote em_revisao; barreira em homologacao)');
-// Rodrigo (conta b@, papel desativado): nao ve o pacote em_revisao alheio e nao aprova
+titulo('TELA SO DE CONSULTA: SEM APROVAR, HOMOLOGAR NEM PUBLICAR PELA TELA (12/10, publicacao direta)');
+const telaPub = await texto('#mh-publicacao');
+const botoesPub = await A.evaluate(() => [...document.querySelectorAll('#metodologia-corpo [data-mh-acao]')].map(b => b.dataset.mhAcao));
+ok(/Publicação/.test(telaPub) && /em_revisao/.test(telaPub) && !botoesPub.some(b => /aprovacao|homologar|retirar|gravar|importar|hash/.test(b)) && !(await A.evaluate(() => !!document.querySelector('.mh-aprovar'))),
+  'tela de Metodologia so de consulta: mostra o estado (em_revisao), sem registrar aprovacao, homologar, retirar ou gravar (' + botoesPub.join(',') + ')');
+ok(srv.linhas('methodology_package_approvals').filter(a => a.package_id === pk2.id).length === 0 && srv.linhas('methodology_packages').find(x => x.id === pk2.id).status === 'em_revisao' && (await A.evaluate(() => window.Metodologia.status())) === 'em_homologacao',
+  'nada aprovado nem publicado pela tela: pacote em_revisao, barreira em homologacao');
+// Rodrigo (conta b@, papel desativado): nao ve o pacote em_revisao alheio
 await A.evaluate(() => window.HoloAuth.sair());
 await A.waitForSelector('#login-email', { visible: true });
 await A.evaluate(() => { document.getElementById('login-email').value = ''; document.getElementById('login-senha').value = ''; });
@@ -120,9 +110,8 @@ await A.type('#login-email', 'b@holo.test'); await A.type('#login-senha', 'senha
 await A.waitForFunction(() => window.HoloAuth && window.HoloAuth.sessaoAtiva() && window.pacientesCarregados && window.pacientesCarregados(), { timeout: 15000 });
 await esperar(400);
 await A.evaluate(async (id) => { document.querySelector('.nav-item[data-secao="metodologia"]').click(); await new Promise(r => setTimeout(r, 400)); window.MetodologiaHomologacao.selecionar(id); window.MetodologiaHomologacao.desenhar(); await new Promise(r => setTimeout(r, 300)); }, pk2.id);
-const telaB = await texto('#mh-aprovacoes');
-const fimB = await A.evaluate(() => ({ botao: !!document.querySelector('[data-mh-acao="homologar"]'), form: !!document.querySelector('.mh-aprovar') }));
-ok(!/Aprovação — Daniel[\s\S]*registrada/.test(telaB) && !fimB.botao && !fimB.form && srv.linhas('methodology_package_approvals').filter(a => a.package_id === pk2.id).length === 1, 'Rodrigo (conta b@, papel desativado) nao ve o pacote em_revisao alheio, nao tem aprovar nem homologar');
+ok(!(await A.evaluate(() => !!document.querySelector('#mh-publicacao'))) && !(await A.evaluate(() => [...document.querySelectorAll('#metodologia-corpo [data-mh-acao]')].some(b => /aprovacao|homologar|publicar/.test(b.dataset.mhAcao)))),
+  'Rodrigo (conta b@, papel desativado) nao ve o pacote em_revisao alheio nem tem acao de aprovacao/publicacao');
 
 titulo('CONTEXTOS OFICIAIS NAO RECEBEM O RASCUNHO NEM O LEGADO');
 // paciente com HOLOSCAN aplicado (coleta experimental consolidada)
@@ -158,7 +147,7 @@ ok(Object.values(ctx).every(t => !VAZ.test(t) && !/homologacao|package_status|TE
 const evo = await A.evaluate(async (pid) => { window.abrirFichaDe(pid); await new Promise(r => setTimeout(r, 300)); document.querySelector('[data-aba="evolucao"]').click(); await new Promise(r => setTimeout(r, 400)); return document.getElementById('aba-evolucao').innerText; }, PA);
 ok(!/delta [+-]?\d/.test(evo) && /sem comparação metodológica|não homologada|Nada é comparado por conta própria/.test(evo), 'Evolucao: sem delta de HOLOSCAN; selo de nao homologado');
 const previa = await A.evaluate((pid) => { const f = window.Relatorios.novoForm(pid); const F = window.Relatorios.fontesDisponiveis(pid); f.sel.holoscan_application_ids = F.holoscan.map(h => h._supa_id); return window.Relatorios.montarPrevia(pid, f); }, PA);
-ok(previa.holoscan.every(h => h.resultados_oficiais === false && !('indice' in h) && !('mode' in h)) && /não são oficiais/.test(previa.metodologia), 'relatorio: HOLOSCAN com resultados_oficiais=false, sem Indice e sem numero de homologacao');
+ok(previa.holoscan.every(h => h.resultados_oficiais === false && !('indice' in h) && !('mode' in h)) && (previa.holoscan.length ? /não são oficiais/ : /Nenhuma aplicação HOLOSCAN incluída/).test(previa.metodologia) && !/não homologado/.test(previa.metodologia), 'relatorio: HOLOSCAN com resultados_oficiais=false, sem Indice e sem numero de homologacao; texto da metodologia pelo que foi incluido (motor de resultados 12/10, item 4.4: sem "nao homologado" fixo)');
 const exp = await A.evaluate(async (pid) => {
   window.abrirFichaDe(pid); await new Promise(r => setTimeout(r, 200));
   let dados = null; const origURL = URL.createObjectURL; URL.createObjectURL = (blob) => { blob.text().then(t => { dados = JSON.parse(t); }); return 'blob:fake'; };

@@ -22,6 +22,8 @@
   const estado = { pacientes: [], ativo: null, carregado: false };
 
   window.limparEstadoApp = function () {
+    /* 16/10: logout/troca de conta esquece o "ultimo paciente" desta aba */
+    try { sessionStorage.removeItem("holohacking.ultimoPaciente"); } catch (e) { /* sem sessionStorage */ }
     estado.pacientes = [];
     estado.ativo = null;
     estado.carregado = false;
@@ -38,7 +40,7 @@
     "#lista-pacientes", "#pac-sel-acoes", ".aba-painel", "[id^='vista-gen-']", ".ferr-historico",
     "#agenda-corpo", "#consultas-corpo", "#documentos-corpo", "#fic-janela-corpo",
     "#dash-trabalho",
-    "#holo-prioridades", "#holo-dominantes", "#holo-confronto", "#holo-leitura",
+    "#holo-prioridades", "#holo-dominantes", "#resultado-pagina-corpo", "#holo-leitura",
     "#holo-triada", "#holo-evolucao", "#holo-territorios",
     "#holo-frequencias", "#holo-origem", "#painel-pac-revisao"
   ].join(", ");
@@ -58,7 +60,7 @@
       el.value = "";
     });
     app.querySelectorAll(DESENHADOS_POR_JS).forEach(el => { el.innerHTML = ""; });
-    /* seletores de paciente (HOLOSCAN, OQ3, PQQ, mapa, confronto): so a
+    /* seletores de paciente (HOLOSCAN, OQ3, PQQ, mapa, resultado): so a
        opcao vazia fica — as outras sao nomes de paciente */
     app.querySelectorAll("select").forEach(sel => {
       [...sel.options].forEach(o => { if(o.value && sel.id && /^sel-/.test(sel.id)) o.remove(); });
@@ -181,7 +183,24 @@
       b.textContent = opts.botaoConfirmar;
       b.id = "modal-confirmar-ok";
       if(opts.desabilitado) b.disabled = true;
-      b.addEventListener("click", () => fecharModalConfirmar("confirmar"));
+      /* 16/10: opts.validar() -> null (pode fechar) ou { msg, foco } — o erro aparece DENTRO da janela, que continua
+         aberta, com os campos preenchidos e o foco no campo com problema */
+      b.addEventListener("click", () => {
+        if (typeof opts.validar === "function") {
+          let err = null;
+          try { err = opts.validar(); } catch (x) { err = null; }
+          if (err) {
+            const corpo = $("#modal-confirmar-corpo");
+            let caixaErro = corpo.querySelector(".modal-erro");
+            if (!caixaErro) { caixaErro = document.createElement("p"); caixaErro.className = "modal-erro perf-aviso"; caixaErro.setAttribute("role", "alert"); corpo.appendChild(caixaErro); }
+            caixaErro.textContent = err.msg || String(err);
+            const f = err.foco ? document.getElementById(err.foco) : null;
+            if (f) { f.setAttribute("aria-invalid", "true"); f.focus(); }
+            return;
+          }
+        }
+        fecharModalConfirmar("confirmar");
+      });
       rodape.appendChild(b);
     }
     modal.classList.remove("hidden");
@@ -221,6 +240,8 @@
      preferencia fica neste navegador, que e onde ela pertence: e de quem
      olha a tela, nao da clinica, e nao acompanha a pessoa para outra maquina. */
   const CHAVE_TEMA = "holohacking.aparencia";
+  const CHAVE_SEM_PACIENTE = "holohacking.semPaciente";
+  const CHAVE_ULTIMO_PACIENTE = "holohacking.ultimoPaciente";   // 16/10: o paciente selecionado sobrevive ao F5 (so nesta aba)
   const btnTema = $("#btn-tema");
 
   function sistemaEstaEscuro(){
@@ -263,11 +284,18 @@
   const nomesSecao = {
     dashboard:"Dashboard", pacientes:"Pacientes", consultas:"Atendimentos",
     agenda:"Agenda", documentos:"Documentos",
-    holoscan:"HOLOSCAN", confronto:"Leitura Integrada",
+    holoscan:"HOLOSCAN", resultado:"Resultado",
     corpo:"Módulo Corpo", mente:"Módulo Mente",
-    espirito:"Módulo Espírito", perfil:"Perfil", metodologia:"Metodologia / Homologação"
+    espirito:"Módulo Espírito", holusia:"Holos IA", perfil:"Perfil", ajuda:"Ajuda", contas:"Administração", metodologia:"Metodologia / Homologação"
   };
   function irPara(secao){
+    /* Prontuario (09/10): a Leitura Integrada saiu do fluxo e a secao virou a pagina RESULTADO.
+       Atalho antigo (#confronto, botao esquecido) leva para ela. */
+    if(secao === "confronto") secao = "resultado";
+    /* Conta PENDENTE (09/10): so o Perfil existe. Qualquer outro destino (menu,
+       atalho, botao esquecido, chamada direta) cai no Perfil. A trava de verdade
+       e do servidor; isto e a tela nao oferecer o que a conta nao pode usar. */
+    if(window.ContaAcesso && window.ContaAcesso.restrito() && secao !== "perfil") secao = "perfil";
     $$(".nav-item").forEach(b => b.classList.toggle("ativo", b.dataset.secao === secao));
     $$(".secao").forEach(s => s.classList.toggle("ativa", s.id === "secao-" + secao));
     $("#caminho-atual").textContent = nomesSecao[secao] || secao;
@@ -289,17 +317,15 @@
       dashboard: window.redesenharDashboard,
       consultas: window.redesenharConsultas,
       agenda: window.redesenharAgenda,
-      documentos: window.redesenharDocumentos,
-      /* O HOLOSCAN virou secao propria e precisa disto mais do que as outras:
-         os exames sao lancados na ficha, noutra tela. Sem redesenhar ao abrir,
-         lancar um exame e vir para ca mostrava o confronto de antes — e um
-         confronto desatualizado e pior do que confronto nenhum. */
-      confronto: () => { if(window.desenharHoloscan) window.desenharHoloscan("holo-confronto"); },
+      /* Resultado: a versao final para apresentar a paciente (Resultado HOLOS salvo + Conduta vigente +
+         identidade profissional). Redesenha ao abrir: o resultado pode ter sido finalizado na ficha. */
+      resultado: () => { if(window.ResultadoPagina) window.ResultadoPagina.desenhar(); },
       /* Pacientes entrou aqui depois das outras, e era a que mais precisava:
          o cartao agora mostra "Último contato" e o proximo passo. Aplicar um
          HOLOSCAN e voltar para a lista deixava o cartao dizendo "Sem consulta
          ainda" sobre alguem que tinha acabado de ser atendida. */
       pacientes: renderPacientes,
+      holusia: () => { if(window.HolosAIPonte && window.HolosAIPonte.desenharPagina) window.HolosAIPonte.desenharPagina(); },
       perfil: window.redesenharPerfil
     }[secao];
     if(typeof redesenhar === "function") redesenhar();
@@ -319,7 +345,9 @@
     /* Na secao Pacientes (lista ou ficha) a barra nao aparece: na lista ela
        ficava por cima, com "Voltar a ficha" e as abas de outra pessoa. */
     var fichaVisivel = secao === "pacientes" && pacientesNaTela;
-    if (p && !fichaVisivel) {
+    /* rodada UX 14/10: Perfil, Contas, Ajuda e Metodologia nao sao de paciente — a barra nao aparece ali */
+    var semContexto = ["perfil", "contas", "ajuda", "metodologia"].indexOf(secao || secaoAtual()) >= 0;
+    if (p && !fichaVisivel && !semContexto) {
       document.getElementById("bpctx-avatar").textContent =
         (p.nome || "P").charAt(0).toUpperCase();
       document.getElementById("bpctx-nome").textContent = p.nome || "Paciente";
@@ -383,7 +411,8 @@
     const galeria = document.getElementById(input.dataset.galeria);
     const campo = input.closest(".campo-busca");
     const contador = campo.parentElement.querySelector(".contador-busca");
-    const cards = Array.from(galeria.querySelectorAll(".card-ferr"));
+    /* 16/10: so os cartoes VISIVEIS contam (a ferramenta oculta — Conexao & Pertencimento — nao entra no "N ferramentas") */
+    const cards = Array.from(galeria.querySelectorAll(".card-ferr")).filter(c => !c.hidden && !c.classList.contains("hidden"));
     cards.forEach(c => {
       const titulo = c.querySelector("h4");
       const desc = c.querySelector("p");
@@ -425,6 +454,14 @@
       renderPacientes();
     }
   }));
+  /* 12/10: o bloco nome + avatar do topo abre o Perfil (clique, Enter ou Espaco). */
+  const chipPerfil = document.getElementById("chip-perfil");
+  if(chipPerfil){
+    chipPerfil.addEventListener("click", () => irPara("perfil"));
+    chipPerfil.addEventListener("keydown", (ev) => {
+      if(ev.key === "Enter" || ev.key === " " || ev.key === "Spacebar"){ ev.preventDefault(); irPara("perfil"); }
+    });
+  }
   // "aba:x" abre uma aba da ficha aberta, nao uma secao do menu — irPara("aba:x")
   // nao batia com secao nenhuma e zerava a tela (nenhuma .secao ficava ativa).
   $$("[data-ir]").forEach(c => c.addEventListener("click", () => {
@@ -529,8 +566,17 @@
     estado.pacientes = pacientes;
     /* Ao carregar, o paciente em foco e o primeiro ATIVO: um arquivado voltava
        selecionado na barra de contexto a cada recarga. */
-    const primeiroAtivo = pacientes.find(p => p.status !== "inativo");
-    if(primeiroAtivo && !estado.ativo) estado.ativo = primeiroAtivo.id;
+    let primeiroAtivo = pacientes.find(p => p.status !== "inativo");
+    /* 16/10 (estabilizacao): depois do F5, nesta aba, volta o paciente que estava selecionado (antes: sempre o
+       primeiro da lista, e a pessoa podia achar que continuava no anterior). So se ainda existir e estiver ativo. */
+    try {
+      const ult = sessionStorage.getItem(CHAVE_ULTIMO_PACIENTE);
+      const p0 = ult ? pacientes.find(p => p.id === ult && p.status !== "inativo") : null;
+      if(p0) primeiroAtivo = p0;
+    } catch (e) { /* sem sessionStorage */ }
+    let limpoNestaAba = false;
+    try { limpoNestaAba = sessionStorage.getItem(CHAVE_SEM_PACIENTE) === "1"; } catch (e) { /* sem sessionStorage */ }
+    if(primeiroAtivo && !estado.ativo && !limpoNestaAba) estado.ativo = primeiroAtivo.id;
     renderPacientes();
     atualizarSeletores();
     carregarFormularios();
@@ -606,6 +652,8 @@
 
   function definirAtivo(id){
     estado.ativo = id || null;
+    /* paciente escolhido de novo: o "desselecionado" (X da barra) deixa de valer nesta aba */
+    if (id) { try { sessionStorage.removeItem(CHAVE_SEM_PACIENTE); sessionStorage.setItem(CHAVE_ULTIMO_PACIENTE, id); } catch (e) { /* sem sessionStorage */ } }
     atualizarSeletores();
     carregarFormularios();
     carregarHoloscan();
@@ -613,6 +661,27 @@
     // as 30 ferramentas guardam por paciente; formulario.js precisa saber
     avisarTrocaDePaciente();
   }
+
+  /* rodada UX 14/10 — X da barra de contexto: DESSELECIONA o paciente (so o contexto de navegacao; nao apaga, nao
+     arquiva, nao encerra atendimento, nao muda prontuario). Vale nesta aba do navegador: recarregar nao traz de volta
+     o paciente que foi limpo de proposito (a escolha automatica do 1o ativo so acontece quando ninguem limpou). */
+  function secaoAtual(){ var s = document.querySelector(".secao.ativa"); return s ? s.id.replace(/^secao-/, "") : null; }
+  function limparPacienteAtivo(){
+    try { sessionStorage.setItem(CHAVE_SEM_PACIENTE, "1"); } catch (e) { /* sem sessionStorage */ }
+    var sec = secaoAtual();
+    definirAtivo(null);
+    var ficha = document.getElementById("vista-ficha");
+    if (ficha && !ficha.classList.contains("hidden")) {
+      /* na ficha: volta para a lista (a ficha nao fica aberta sem paciente) */
+      ficha.classList.add("hidden");
+      document.getElementById("vista-lista-pacientes").classList.remove("hidden");
+      renderPacientes();
+    }
+    irPara(sec || "dashboard");
+    atualizarBarraPaciente(sec);
+    toast("Nenhum paciente selecionado.");
+  }
+  window.limparPacienteAtivo = limparPacienteAtivo;
 
   // o que formulario.js enxerga daqui de dentro
   window.pacienteAtivoId = () => estado.ativo || null;
@@ -750,28 +819,59 @@
     return { rotulo: "Abrir ficha", destino: "ficha" };
   }
 
+  /* Redesign 12/10: a lista vira TABELA no desktop (cartao no celular, so CSS).
+     Mesmos dados e os mesmos ganchos de antes (data-id, data-sel, data-passo,
+     data-menu, data-ficha, .pac-dado), entao clique, menu e lote nao mudam.
+     Colunas: paciente | status | ultimo contato | proximo passo | proxima consulta | acoes. */
+  function tagsDoPaciente(s){
+    // so estados que ja existem (Panorama.situacao); nada de gravidade nem prioridade
+    const t = [];
+    if(s.inativo) return t;
+    if(s.novo) t.push("Novo");
+    if(s.semContato) t.push("Sem contato");
+    if(s.vazia) t.push("Ficha vazia");
+    else if(s.aguardandoMapa) t.push("Aguardando mapa");
+    return t;
+  }
+
   function cardPaciente(p, s){
     const passo = proximoPasso(s);
     const marcado = selecionados.has(p.id);
+    const atraso = s.semContato ? " atraso" : "";
+    const contato = s.nuncaAtendido ? "Sem atendimento ainda" : "Último contato " + haQuantoTempo(s.diasDeSilencio);
+    let consulta = "";
+    if(window.Agenda && window.Agenda.proxima){
+      const prox = window.Agenda.proxima(p.id);
+      if(prox) consulta = '<span class="pac-dado">' + ico(ICONES.agenda) + " Próximo atendimento "
+        + dataBR(prox.data) + (prox.hora ? " às " + String(prox.hora).slice(0, 5) : "") + "</span>";
+    }
+    const sub = [];
+    if(p.telefone) sub.push('<a class="pac-dado pac-link" href="tel:' + escapar(p.telefone) + '">' + ico(ICONES.fone) + " " + escapar(p.telefone) + "</a>");
+    if(p.email) sub.push('<a class="pac-dado pac-link" href="mailto:' + escapar(p.email) + '" title="' + escapar(p.email) + '">' + ico(ICONES.carta) + ' <span class="pac-txt">' + escapar(p.email) + "</span></a>");
     return '<div class="card-paciente' + (p.id === estado.ativo ? " ativo" : "")
-        + (s.inativo ? " inativo" : "") + '" data-id="' + p.id + '">'
-      + '<label class="pac-check"><input type="checkbox" data-sel="' + p.id + '"'
+        + (s.inativo ? " inativo" : "") + '" data-id="' + p.id + '" tabindex="0" role="row"'
+        + ' aria-label="' + escapar(p.nome) + ': abrir ficha">'
+      + '<label class="pac-check" role="cell"><input type="checkbox" data-sel="' + p.id + '"'
         + (marcado ? " checked" : "") + ' aria-label="Selecionar ' + escapar(p.nome) + '"></label>'
-      + '<span class="pac-avatar">' + escapar(p.nome.charAt(0).toUpperCase()) + "</span>"
-      + '<span class="pac-info">'
-        + '<span class="pac-nome"><h4>' + escapar(p.nome) + "</h4>" + sexoDe(p)
-          + '<span class="pac-status' + (s.inativo ? " arquivado" : " ativo") + '">'
-          + (s.inativo ? "Arquivado" : "Ativo") + "</span></span>"
-        + '<span class="pac-meta">' + metaDoPaciente(p, s) + "</span>"
-      + "</span>"
-      + '<button type="button" class="pac-abrir" data-ficha="' + p.id + '" '
-        + 'aria-label="Abrir ficha de ' + escapar(p.nome) + '">&rarr;</button>'
-      + '<span class="pac-acao">'
+      + '<span class="pac-col-quem" role="cell"><span class="pac-avatar" aria-hidden="true">' + escapar(p.nome.charAt(0).toUpperCase()) + "</span>"
+        + '<span class="pac-quem-txt pac-info"><span class="pac-nome"><h4>' + escapar(p.nome) + "</h4>" + sexoDe(p) + "</span>"
+        + (sub.length ? '<span class="pac-sub">' + sub.join("") + "</span>" : "")
+      + "</span></span>"
+      + '<span class="pac-col-status" role="cell"><span class="pac-status' + (s.inativo ? " arquivado" : " ativo") + '">'
+        + (s.inativo ? "Arquivado" : "Ativo") + "</span>"
+        + tagsDoPaciente(s).map(t => '<span class="pac-tag">' + t + "</span>").join("") + "</span>"
+      + '<span class="pac-col-contato" role="cell"><span class="pac-dado' + atraso + '">' + contato + "</span>"
+        + (p.created_at ? '<span class="pac-dado pac-dado-sec">Cadastrado ' + dataBR(p.created_at.slice(0, 10)) + "</span>" : "") + "</span>"
+      + '<span class="pac-col-passo pac-acao" role="cell">'
         + '<button type="button" class="pac-acao-principal" data-passo="' + escapar(passo.destino)
-          + '" data-id="' + p.id + '">' + escapar(passo.rotulo) + "</button>"
+          + '" data-id="' + p.id + '">' + escapar(passo.rotulo) + "</button></span>"
+      + '<span class="pac-col-consulta" role="cell">' + (consulta || '<span class="pac-vazio">—</span>') + "</span>"
+      + '<span class="pac-col-menu" role="cell">'
+        + '<button type="button" class="pac-abrir" data-ficha="' + p.id + '" '
+          + 'aria-label="Abrir ficha de ' + escapar(p.nome) + '">&rarr;</button>'
         + '<button type="button" class="pac-acao-mais" data-menu="' + p.id + '" '
-          + 'aria-haspopup="true" aria-expanded="false" aria-label="Mais ações para '
-          + escapar(p.nome) + '">&#9662;</button>'
+          + 'aria-haspopup="menu" aria-expanded="false" aria-label="Mais ações para '
+          + escapar(p.nome) + '">&middot;&middot;&middot;</button>'
         + menuDoPaciente(p, s)
       + "</span>"
       + "</div>";
@@ -861,6 +961,9 @@
     const termo = semAcento($("#busca-pacientes").value.trim());
     const lista = $("#lista-pacientes");
     const semCarteira = estado.pacientes.length === 0;
+    lista.classList.add("pac-tabela");
+    lista.setAttribute("role", "table");
+    lista.setAttribute("aria-label", "Pacientes");
     /* Um padrao so de contagem: pacientes ATIVOS (como o dashboard e o filtro
        Ativos). Os arquivados sao ditos a parte. */
     const nAtivos = estado.pacientes.filter(x => x.status !== "inativo").length;
@@ -908,7 +1011,9 @@
         + "<span>" + (termo ? "Nenhum nome, e-mail ou telefone bate com a busca."
                             : "Nenhum paciente neste filtro.") + "</span></div>";
     } else {
-      lista.innerHTML = visiveis.map(p => cardPaciente(p, sit[p.id])).join("");
+      lista.innerHTML = '<div class="pac-tabela-cab" role="row" aria-hidden="true"><span></span><span>Paciente</span><span>Status</span>'
+        + "<span>Último contato</span><span>Próximo passo</span><span>Próxima consulta</span><span></span></div>"
+        + visiveis.map(p => cardPaciente(p, sit[p.id])).join("");
     }
 
     desenharSelecao(visiveis);
@@ -944,7 +1049,6 @@
         const d = sit[p.id].dados;
         const feito = [];
         if(d.respondidas > 0) feito.push(d.respondidas + " de " + d.totalPerguntas + " respostas");
-        if(d.exames > 0) feito.push(d.exames + (d.exames === 1 ? " exame" : " exames"));
         if(d.ferramentas.length > 0) feito.push(d.ferramentas.length
           + (d.ferramentas.length === 1 ? " ferramenta" : " ferramentas"));
         if(temConteudo(p.oq3)) feito.push("OQ³");
@@ -979,10 +1083,19 @@
 
   /* O cabeçalho da ficha. O resumo clínico, a linha do tempo e os formulários
      são desenhados por ficha.js; aqui fica só o que vem do cadastro. */
+  /* 14/10 (auditoria Cowork): a ficha de OUTRA paciente abre na Visão geral — a aba ficava a da paciente
+     anterior (ex.: paciente recem-cadastrada abria no Resultado HOLOS, que e a saida final, nao a primeira tela).
+     Quem chega por um destino ("aba:x") e levado a aba pedida logo depois (levarPara). */
+  let fichaAbertaDe = null;
   function abrirFicha(id){
     definirAtivo(id);
     const p = pacienteAtivo();
     if(!p) return;
+    if(fichaAbertaDe !== p.id){
+      fichaAbertaDe = p.id;
+      const visao = document.querySelector('#ficha-arquivos .aba[data-aba="visao"]');
+      if(visao && !visao.classList.contains("ativa")) visao.click();
+    }
 
     $("#ficha-avatar").textContent = p.nome.charAt(0).toUpperCase();
     $("#ficha-nome").textContent = p.nome;
@@ -1013,7 +1126,8 @@
     /* Telefone e e-mail viram link: a ficha é aberta quando se vai falar com a
        pessoa, e copiar o número na mão é o passo que sobrava. */
     const contato = [];
-    if(p.telefone) contato.push('<a href="tel:' + escapar(p.telefone) + '">' + escapar(p.telefone) + "</a>");
+    /* 16/10: telefone so com digitos (cadastros antigos) aparece com mascara; o dado guardado nao muda */
+    if(p.telefone) contato.push('<a href="tel:' + escapar(p.telefone) + '">' + escapar(/^\d{10,11}$/.test(String(p.telefone)) && window.mascaraTelefoneBR ? window.mascaraTelefoneBR(p.telefone) : p.telefone) + "</a>");
     if(p.email) contato.push('<a href="mailto:' + escapar(p.email) + '">' + escapar(p.email) + "</a>");
     if(p.created_at) contato.push('<span class="fic-cadastro">Cadastrado em ' +
       escapar(dataBR(p.created_at.slice(0, 10))) + "</span>");
@@ -1132,8 +1246,6 @@
       if(sit.pontuacao) exportado.pontuacao = sit.pontuacao;
       if(sit.ferramentas && sit.ferramentas.length) exportado.ferramentas = sit.ferramentas;
       if(sit.historico && sit.historico.length) exportado.historico = sit.historico;
-      if(sit.exames) exportado.totalExames = sit.exames;
-      if(sit.exames) exportado.exames = sit.valoresExames;
       /* respostasHoloscan: as da ultima aplicacao SALVA. Um questionario em
          andamento (rascunho, ainda sem mapa salvo) vai separado, com o nome
          dizendo o que e. */
@@ -1283,6 +1395,13 @@
       abrirFicha(id);
       const aba = document.querySelector('[data-aba="' + destino.slice(4) + '"]');
       if(aba) aba.click();
+      /* 16/10 (estabilizacao): leva a tela ate a barra de abas — antes a aba trocava fora da vista e parecia que o
+         botao nao tinha funcionado */
+      if(aba) setTimeout(() => {
+        const barra = aba.closest(".abas") || aba;
+        const r = barra.getBoundingClientRect();
+        if(r.top < 0 || r.top > window.innerHeight * 0.6) window.scrollTo({ top: Math.max(0, window.scrollY + r.top - 80), behavior: "smooth" });
+      }, 60);
       return;
     }
 
@@ -1641,8 +1760,19 @@
       return;
     }
 
+    /* telefone/e-mail abrem o discador/e-mail, nao a ficha; o rotulo da caixa de selecao tambem nao */
+    if(e.target.closest("a, .pac-check")) return;
     const card = e.target.closest(".card-paciente");
     if(card) abrirFicha(card.dataset.id);
+  });
+  /* a linha da tabela abre a ficha pelo teclado (Enter ou Espaco), como o clique */
+  $("#painel-pac-lista").addEventListener("keydown", e => {
+    if(e.key === "Escape"){ fecharMenusDePaciente(); return; }
+    if(!(e.key === "Enter" || e.key === " ")) return;
+    const card = e.target.classList && e.target.classList.contains("card-paciente") ? e.target : null;
+    if(!card) return;
+    e.preventDefault();
+    abrirFicha(card.dataset.id);
   });
 
   $("#painel-pac-revisao").addEventListener("click", e => {
@@ -1695,6 +1825,41 @@
     window.scrollTo({ top:0, behavior:"smooth" });
   });
 
+  /* o mesmo destino do atalho, para botoes desenhados depois (jornada da ficha) */
+  function irAtalho(destino){
+    irPara(destino);
+    if(destino === "corpo") abrirFerramenta("vista-oq3");
+    else if(destino === "mente") abrirFerramenta("vista-pqq");
+    else if(destino === "espirito") abrirFerramenta("vista-mapa");
+    else if(destino === "agenda"){
+      if(window.Agenda && window.Agenda.novaConsultaPara) window.Agenda.novaConsultaPara(estado.ativo);
+    }
+  }
+  window.irAtalho = irAtalho;
+
+  /* "Mais acoes" do cabecalho da ficha: abre/fecha; fecha ao escolher, ao clicar fora e com Esc */
+  (function(){
+    const botao = $("#btn-mais-acoes"), menu = $("#fic-mais-menu");
+    if(!botao || !menu) return;
+    const fechar = (focar) => { menu.classList.add("hidden"); botao.setAttribute("aria-expanded", "false"); if(focar) botao.focus(); };
+    botao.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      const abrir = menu.classList.contains("hidden");
+      menu.classList.toggle("hidden", !abrir);
+      botao.setAttribute("aria-expanded", abrir ? "true" : "false");
+      if(abrir){ const primeiro = menu.querySelector("button:not([disabled])"); if(primeiro) primeiro.focus(); }
+    });
+    menu.addEventListener("click", (ev) => { if(ev.target.closest("button")) fechar(false); });
+    menu.addEventListener("keydown", (ev) => {
+      const itens = [...menu.querySelectorAll("button:not([disabled])")];
+      const i = itens.indexOf(document.activeElement);
+      if(ev.key === "Escape"){ ev.preventDefault(); fechar(true); }
+      else if(ev.key === "ArrowDown"){ ev.preventDefault(); (itens[i + 1] || itens[0]).focus(); }
+      else if(ev.key === "ArrowUp"){ ev.preventDefault(); (itens[i - 1] || itens[itens.length - 1]).focus(); }
+    });
+    document.addEventListener("click", (ev) => { if(!menu.classList.contains("hidden") && !ev.target.closest(".fic-mais")) fechar(false); });
+  })();
+
   $$("[data-atalho]").forEach(b => b.addEventListener("click", () => {
     const destino = b.dataset.atalho;
     irPara(destino);
@@ -1724,7 +1889,46 @@
     fecharFormularioPaciente();
     if(voltar && estado.pacientes.some(x => x.id === voltar)) abrirFicha(voltar);
   });
-  $("#painel-novo").addEventListener("input", () => { if(window.marcaSuja) window.marcaSuja("paciente"); });
+  $("#painel-novo").addEventListener("input", (ev) => {
+    if(window.marcaSuja) window.marcaSuja("paciente");
+    /* 16/10: o erro sai do campo assim que ele e corrigido */
+    if(ev.target && ev.target.getAttribute("aria-invalid") === "true"){ ev.target.removeAttribute("aria-invalid"); const m = document.getElementById(ev.target.id + "-erro"); if(m) m.remove(); }
+  });
+  /* 16/10 (estabilizacao): mascara visual do telefone brasileiro, (11) 99999-9999. Numero internacional (comeca com +)
+     fica como digitado. So o que esta sendo digitado agora muda; cadastros antigos ficam como estao. */
+  function mascaraTelefoneBR(v){
+    const t = String(v || "");
+    if(/^\s*\+/.test(t)) return t;
+    const d = t.replace(/\D/g, "").slice(0, 11);
+    if(d.length <= 2) return d ? "(" + d : "";
+    if(d.length <= 6) return "(" + d.slice(0, 2) + ") " + d.slice(2);
+    if(d.length <= 10) return "(" + d.slice(0, 2) + ") " + d.slice(2, 6) + "-" + d.slice(6);
+    return "(" + d.slice(0, 2) + ") " + d.slice(2, 7) + "-" + d.slice(7);
+  }
+  window.mascaraTelefoneBR = mascaraTelefoneBR;
+  $("#np-telefone").addEventListener("input", (ev) => {
+    if(ev.inputType && /^delete/.test(ev.inputType)) return;   // apagar nao reescreve o campo
+    const el = ev.target, novo = mascaraTelefoneBR(el.value);
+    if(novo !== el.value) el.value = novo;
+  });
+  /* 16/10: "Descartar" (aviso de alteracoes nao salvas) limpa de verdade o rascunho do cadastro */
+  if(window.registrarSujeira) window.registrarSujeira("paciente", {
+    descartar: () => fecharFormularioPaciente(),
+    salvar: () => new Promise(res => {
+      $("#btn-salvar-paciente").click();
+      let n = 0; const t = setInterval(() => { n++; if($("#painel-novo").classList.contains("hidden")){ clearInterval(t); res(true); } else if(n > 40){ clearInterval(t); res(false); } }, 100);
+    })
+  });
+  /* 16/10: erro de validacao junto do campo (o aviso flutuante cobria o rotulo) */
+  function erroNoCampo(sel, msg){
+    const el = $(sel); if(!el) { toast(msg); return; }
+    el.setAttribute("aria-invalid", "true");
+    let m = document.getElementById(el.id + "-erro");
+    if(!m){ m = document.createElement("p"); m.id = el.id + "-erro"; m.className = "campo-erro q-erro"; m.setAttribute("role", "alert"); el.insertAdjacentElement("afterend", m); }
+    m.textContent = msg;
+    el.scrollIntoView({ block: "center", behavior: "smooth" });
+    el.focus({ preventScroll: true });
+  }
 
   let editandoPacienteId = null;
 
@@ -1780,7 +1984,7 @@
   });
 
   function fecharFormularioPaciente(){
-    camposNovo.forEach(s => $(s).value = "");
+    camposNovo.forEach(s => { const el = $(s); el.value = ""; el.removeAttribute("aria-invalid"); const m = document.getElementById(el.id + "-erro"); if(m) m.remove(); });
     editandoPacienteId = null;
     voltarParaFicha = null;
     $("#painel-novo").classList.add("hidden");
@@ -1791,19 +1995,19 @@
 
   $("#btn-salvar-paciente").addEventListener("click", async () => {
     const campos = dadosDoFormulario();
-    if(!campos.nome){ toast("Informe o nome do paciente."); $("#np-nome").focus(); return; }
+    if(!campos.nome){ erroNoCampo("#np-nome", "Informe o nome do paciente."); return; }
     if(campos.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(campos.email)){
-      toast("E-mail inválido. Verifique e tente novamente."); $("#np-email").focus(); return;
+      erroNoCampo("#np-email", "E-mail inválido. Verifique e tente novamente."); return;
     }
     /* Correcao (auditoria): nascimento no futuro e telefone sem numero eram
        aceitos. Telefone: so digitos, espaco, + ( ) - . e de 8 a 15 digitos. */
     if(campos.nascimento && campos.nascimento > hojeISO()){
-      toast("A data de nascimento não pode estar no futuro."); $("#np-nascimento").focus(); return;
+      erroNoCampo("#np-nascimento", "A data de nascimento não pode estar no futuro."); return;
     }
     if(campos.telefone){
       const digitos = String(campos.telefone).replace(/\D/g, "");
       if(!/^[\d\s+().-]+$/.test(campos.telefone) || digitos.length < 8 || digitos.length > 15){
-        toast("Telefone inválido. Use só números (com DDD), por exemplo +55 11 99999-9999."); $("#np-telefone").focus(); return;
+        erroNoCampo("#np-telefone", "Telefone inválido. Use o DDD e o número, por exemplo (11) 99999-9999."); return;
       }
     }
 
@@ -1849,7 +2053,7 @@
         fecharFormularioPaciente();
         abrirFicha(editado);
         renderPacientes();
-        toast(campos.nome + " atualizado com sucesso.");
+        toast("Cadastro atualizado com sucesso.");   /* 14/10: sem concordancia de genero pelo nome */
       } else {
         /* nome igual ignorando acento, caixa e espacos: quase sempre e o
            mesmo paciente cadastrado duas vezes. Avisa e deixa decidir —
@@ -1882,7 +2086,7 @@
         definirAtivo(data.id);
         renderPacientes();
         abrirFicha(data.id);
-        toast(campos.nome + " cadastrado com sucesso.");
+        toast("Cadastro realizado com sucesso.");
       }
     } finally {
       destravarBotao(btn);
@@ -1949,9 +2153,29 @@
     };
   }
 
+  /* 14/10 (auditoria Cowork): a data da consulta de uma aplicacao NOVA do OQ³ vem do atendimento ativo
+     (nao do dia de hoje nem do atendimento anterior); "Soltar" o atendimento limpa a sugestao. A data que
+     quem atende digitou, ou a de uma aplicacao ja salva, nunca e trocada. */
+  function dataDoAtendimentoOQ3(){
+    const A = window.AtendimentoAtual, at = A && A.atual ? A.atual() : null;
+    const pid = window.pacienteAtivoId ? window.pacienteAtivoId() : null;
+    if(!at || at.patient_id !== pid) return "";
+    const dia = diaLocalOQ3(at.occurred_at);
+    return dia && dia <= hojeISO() ? dia : "";
+  }
+  function sugerirDataOQ3(){
+    const campo = $("#oq3-data");
+    if(!campo || !aplicacaoOQ3 || aplicacaoOQ3.status !== "rascunho") return;
+    if((aplicacaoOQ3.respostas || {}).data_consulta) return;
+    if(campo.value && campo.dataset.auto !== "1") return;
+    campo.value = dataDoAtendimentoOQ3();
+    campo.dataset.auto = "1";
+  }
+
   function pintarOQ3(r){
     const v = r || vazioOQ3();
     $("#oq3-data").value = v.data_consulta || "";
+    $("#oq3-data").dataset.auto = "";
     $("#oq3-quer").value = v.quer || "";
     $("#oq3-precisa").value = v.precisa || "";
     $("#oq3-consegue").value = v.consegue || "";
@@ -2040,6 +2264,7 @@
     }
     aplicacaoOQ3 = await window.Aplicacoes.abrir(FERR_OQ3);
     pintarOQ3(aplicacaoOQ3.respostas);
+    sugerirDataOQ3();
     notaDeQuandoOQ3();
     desenharHistoricoOQ3();
   }
@@ -2049,15 +2274,15 @@
      conclui. Devolve true/false (a guarda de navegacao usa). */
   async function salvarOQ3(){
     const p = pacienteAtivo();
-    if(!p){ toast("Selecione um paciente para salvar o OQ3."); return false; }
+    if(!p){ toast("Selecione um paciente para salvar o OQ³."); return false; }
     if(window.bloqueioArquivado(p.id)) return false;
-    if(!window.Aplicacoes){ toast("Erro ao salvar OQ3."); return false; }
+    if(!window.Aplicacoes){ toast("Erro ao salvar OQ³."); return false; }
     const respostas = respostasOQ3();
     const algo = Object.keys(respostas).filter(k => k !== "data_consulta").some(k => {
       const v = respostas[k];
       return v !== null && v !== undefined && String(v).trim() !== "";
     });
-    if(!algo){ toast("Preencha ao menos um campo do OQ3 antes de salvar."); return false; }
+    if(!algo){ toast("Preencha ao menos um campo do OQ³ antes de salvar."); return false; }
     // data da consulta no futuro nao e consulta que aconteceu (auditoria Ferramentas)
     if(respostas.data_consulta && respostas.data_consulta > hojeISO()){ toast("A data da consulta não pode estar no futuro."); $("#oq3-data").focus(); return false; }
     try {
@@ -2068,14 +2293,15 @@
       console.error("[oq3] salvar:", e && e.message ? e.message : e);
       toast(/arquivado/i.test(String(e && e.message))
         ? "Paciente arquivado — reative antes de registrar novas informações."
-        : "Não foi possível salvar o OQ3 no servidor — nada foi registrado. O que você digitou continua na tela.");
+        : "Não foi possível salvar o OQ³ no servidor — nada foi registrado. O que você digitou continua na tela.");
       return false;
     }
     sincronizarOQ3();
     renderPacientes();
+    if(window.remarcarCardsDeFerramenta) window.remarcarCardsDeFerramenta();
     notaDeQuandoOQ3();
     desenharHistoricoOQ3();
-    toast("OQ3 salvo na ficha de " + p.nome + ".");
+    toast("OQ³ salvo na ficha de " + p.nome + ".");
     if(window.limpaSuja) window.limpaSuja("oq3");
     return true;
   }
@@ -2084,6 +2310,10 @@
     descartar: () => { if(aplicacaoOQ3) pintarOQ3(aplicacaoOQ3.respostas || vazioOQ3()); }
   });
 
+  $("#oq3-data").addEventListener("input", function () { this.dataset.auto = ""; });
+  document.addEventListener("DOMContentLoaded", function () {
+    if(window.AtendimentoAtual && window.AtendimentoAtual.aoMudar) window.AtendimentoAtual.aoMudar(sugerirDataOQ3);
+  });
   $("#btn-salvar-oq3").addEventListener("click", async function () {
     const btn = this;
     if(!travarBotao(btn, "Salvando…")) return;
@@ -2102,9 +2332,10 @@
     try { aplicacaoOQ3 = await window.Aplicacoes.nova(FERR_OQ3); }
     catch(e) { return; }   // arquivado: nova() ja avisou
     pintarOQ3(vazioOQ3());
+    sugerirDataOQ3();
     notaDeQuandoOQ3();
     desenharHistoricoOQ3();
-    toast("Nova aplicação do OQ3 — ela entra no histórico quando for salva. A anterior continua lá.");
+    toast("Nova aplicação do OQ³ — ela entra no histórico quando for salva. A anterior continua lá.");
     } finally { destravarBotao(btn); }
   });
 
@@ -2159,11 +2390,13 @@
       r1: $("#pqq-1").value.trim(),
       r2: $("#pqq-2").value.trim(),
       r3: $("#pqq-3").value.trim(),
-      r4: $("#pqq-4").value.trim(),
-      r5: $("#pqq-5").value.trim(),
+      /* rodada UX 14/10: aplicacao nova tem 3 perguntas — 04 e 05 so voltam se a aplicacao aberta e antiga e as tinha */
+      r4: pqqLegadoVisivel() ? $("#pqq-4").value.trim() : "",
+      r5: pqqLegadoVisivel() ? $("#pqq-5").value.trim() : "",
       verdadeiro: $("#pqq-verdadeiro").value.trim()
     };
   }
+  function pqqLegadoVisivel(){ const l = document.getElementById("pqq-legado"); return !!(l && !l.hidden); }
 
   function pintarPQQ(r){
     const v = r || vazioPQQ();
@@ -2173,6 +2406,8 @@
     $("#pqq-3").value = v.r3 || "";
     $("#pqq-4").value = v.r4 || "";
     $("#pqq-5").value = v.r5 || "";
+    const leg = document.getElementById("pqq-legado");
+    if(leg) leg.hidden = !(v.r4 || v.r5);
     $("#pqq-verdadeiro").value = v.verdadeiro || "";
   }
 
@@ -2284,6 +2519,7 @@
     }
     sincronizarPQQ();
     renderPacientes();
+    if(window.remarcarCardsDeFerramenta) window.remarcarCardsDeFerramenta();
     notaDeQuandoPQQ();
     desenharHistoricoPQQ();
     toast("PQQ salvo na ficha de " + p.nome + ".");
@@ -2358,10 +2594,10 @@
     $("#mapa-paciente").textContent = p
       ? p.nome + (oq3.data_consulta ? " - " + dataBR(oq3.data_consulta) : "")
       : "Selecione um paciente acima";
-    preencher("#mapa-quer", oq3.quer, "Aplique o OQ3 no módulo Corpo.");
-    preencher("#mapa-precisa", oq3.precisa, "Aplique o OQ3 no módulo Corpo.");
-    preencher("#mapa-consegue", oq3.consegue, "Aplique o OQ3 no módulo Corpo.");
-    preencher("#mapa-alavancas", oq3.alavancas, "Aplique o OQ3 no módulo Corpo.");
+    preencher("#mapa-quer", oq3.quer, "Aplique o OQ³ no módulo Corpo.");
+    preencher("#mapa-precisa", oq3.precisa, "Aplique o OQ³ no módulo Corpo.");
+    preencher("#mapa-consegue", oq3.consegue, "Aplique o OQ³ no módulo Corpo.");
+    preencher("#mapa-alavancas", oq3.alavancas, "Aplique o OQ³ no módulo Corpo.");
     preencher("#mapa-objetivo", pqq.objetivo, "Aplique o PQQ no módulo Mente.");
     /* O propósito é o campo "O verdadeiro", e só ele.
 
@@ -2378,7 +2614,14 @@
     preencher("#mapa-proposito", proposito ? "“" + proposito + "”" : "", "Aplique o PQQ no módulo Mente para revelar o propósito.");
   }
 
-  $("#btn-atualizar-mapa").addEventListener("click", () => { renderizarMapa(); toast("Mapa atualizado."); });
+  $("#btn-atualizar-mapa").addEventListener("click", () => {
+    renderizarMapa();
+    const p = pacienteAtivo();
+    /* simulacao 08/10: "Mapa atualizado." parecia um salvamento que nao acontecia */
+    toast(p && p.oq3 && p.pqq && (p.oq3.quer || p.oq3.precisa) && (p.pqq.objetivo || p.pqq.verdadeiro)
+      ? "Mapa montado com o OQ³ e o PQQ salvos. Ele não é salvo à parte: muda sozinho quando o OQ³ ou o PQQ mudam."
+      : "O Mapa se monta com o OQ³ (Corpo) e o PQQ (Mente) salvos.");
+  });
   $("#btn-imprimir").addEventListener("click", () => window.print());
 
   /* ============================================================
@@ -2770,7 +3013,7 @@
   }
 
   const NOME_FERRAMENTA = {
-    pqq: "PQQ — Pra Que Que?",
+    pqq: "PQQ — Escada dos Porquês",
     oq3: "OQ³ — O Que Quer · Precisa · Consegue",
     mapa: "Mapa do Propósito"
   };
@@ -2889,17 +3132,138 @@
         + '<div class="leitura-cabeca"><b>' + esc(sp ? sp.name : s.nome) + '</b>'
         + '<span class="leitura-nota">' + (semNota ? "—" : esc(A.notaTexto(s))) + (s.faixa && !semNota ? " · faixa " + esc(window.rotuloExibivel(s.faixa)) : "") + '</span></div>'
         + (sp && sp.public_text ? '<p class="leitura-definicao">' + esc(sp.public_text) + '</p>' : "")
-        + (semNota ? '<p class="leitura-faixa">Sem nota: abaixo da cobertura mínima do pacote.</p>'
+        + (semNota ? '<p class="leitura-faixa">Sem nota: poucas respostas neste sistema para calcular.</p>'
                    : (fx && fx.message_nutri ? '<p class="leitura-faixa">' + esc(fx.message_nutri) + '</p>' : ""))
         + '</div>';
     }).join("");
     return '<h4 class="leitura-titulo">Leitura do resultado</h4>'
       + '<p class="leitura-aviso">Textos oficiais do pacote ' + esc((r.methodology_package_code || "HOLOS-V1") + " v" + (r.methodology_package_version || "")) + '. '
       + 'Esta versão não traz padrão emocional, direção terapêutica nem conduta automática: a interpretação clínica é da nutricionista.</p>'
-      + '<div class="leitura-sistemas">' + linhas + '</div>'
-      + '<h4 class="leitura-titulo">Por onde começar</h4>'
-      + '<p class="leitura-aviso">As sugestões de ferramenta herdadas do app anterior estão desativadas até serem validadas pelo método. A escolha da conduta é da nutricionista.</p>';
+      + '<div class="leitura-sistemas">' + linhas + '</div>';
   }
+
+  /* RESULTADO DESTA APLICACAO (testes reais 06/10): a tela tinha os numeros
+     espalhados em seis blocos e nenhum lugar dizia "o resultado e este".
+     Este quadro so REORGANIZA o que o pacote aprovado ja entrega — nota,
+     faixa, Triade, cobertura e os sinais que mais pesaram (aritmetica das
+     respostas). Nao escreve conclusao clinica: o pacote HOLOS-V1@2 nao tem
+     texto de conclusao aprovado, e inventar um seria regra clinica nova
+     (Decisoes 3, 156, 158). A interpretacao e da nutricionista, e o campo
+     dela fica aqui mesmo. "Por onde investigar" substitui o antigo "Por onde
+     comecar" (sugestoes de ferramenta continuam desligadas, Decisao 65). */
+  function desenharResumo(r){
+    const caixa = $("#holo-resumo");
+    if(!caixa) return;
+    const vazioPP = $("#holo-proximos-passos-vazio");
+    if(!r || !Array.isArray(r.sistemas) || r.avaliavel === false && !r.sistemas.some(s => s.avaliavel)){
+      caixa.classList.add("hidden"); caixa.innerHTML = "";
+      /* sem sistema avaliavel nao ha quadro — mas os Proximos Passos HOLOS explicam por que nao ha recomendacao */
+      if(vazioPP){
+        if(r && Array.isArray(r.sistemas) && window.ProximosPassos){ vazioPP.classList.remove("hidden"); window.ProximosPassos.desenhar(r, vazioPP); }
+        else { vazioPP.classList.add("hidden"); vazioPP.innerHTML = ""; }
+      }
+      return;
+    }
+    if(vazioPP){ vazioPP.classList.add("hidden"); vazioPP.innerHTML = ""; }
+    const esc = window.escapar, A = window.HoloAusencia;
+    const ord = r.sistemas.slice().sort(A.porLeitura);
+    const comNota = ord.filter(s => !A.semNota(s));
+    const semNota = ord.filter(s => A.semNota(s));
+    const cob = r.cobertura || {};
+    const quando = r.quando || hojeISO();          // calculo recem-feito ainda nao tem data
+    const dataTxt = quando.split("-").reverse().join("/");
+    const linhas = ord.map(s => {
+      const sem = A.semNota(s);
+      return '<li class="res-sis' + (sem ? ' res-sem' : '') + '"><span class="res-nome">' + esc(s.nome || s.sistema) + '</span>'
+        + '<span class="res-nota">' + (sem ? "—" : esc(A.notaTexto(s))) + '</span>'
+        + '<span class="res-faixa">' + (sem ? "sem dado suficiente" : s.faixa ? "faixa " + esc(window.rotuloExibivel(s.faixa)) : "") + '</span></li>';
+    }).join("");
+
+    // Triade: so diz qual dimensao ficou mais baixa, como o bloco da Triade
+    let triTxt = "";
+    if(r.triada){
+      const vals = EIXOS_TRIADA.filter(e => typeof r.triada[e[0]] === "number" && !(r.triada_com_dado && r.triada_com_dado[e[0]] === false));
+      if(vals.length){
+        /* 12/10 (item 4.3): no empate nenhuma dimensao e escolhida — a mesma regra do Resultado HOLOS (window.triadeMenores) */
+        const tm = window.triadeMenores(vals.map(e => ({ nome: e[1], valor: r.triada[e[0]] })));
+        triTxt = '<p class="res-linha"><b>Tríade:</b> ' + vals.map(e => esc(e[1]) + " " + esc(A.fmt(r.triada[e[0]]))).join(" · ")
+          + (tm.frase ? ' — ' + esc(tm.frase) : '') + '</p>';
+      }
+    }
+    const investigar = comNota.slice(0, 2).map(s => {
+      const dom = (s.dominantes || []).slice(0, 3).map(d => "<li>" + esc(d.rotulo || d.marcador_id) + "</li>").join("");
+      return '<div class="res-inv"><b>' + esc(s.nome || s.sistema) + '</b> <span class="res-nota-p">' + esc(A.notaTexto(s))
+        + (s.faixa ? ' · faixa ' + esc(window.rotuloExibivel(s.faixa)) : '') + '</span>'
+        + (dom ? '<ul>' + dom + '</ul>' : (typeof s.nota === "number" && s.nota >= 10 ? '<p class="res-linha">Sem carga nesta aplicação: nenhum item pontuou; aparece aqui só pela ordem oficial de desempate.</p>' : '')) + '</div>';
+    }).join("");
+
+    const interp0 = window.interpretacaoDe ? window.interpretacaoDe(quando) : null;
+    /* 16/10 (estabilizacao): o texto digitado e ainda nao salvo sobrevive ao redesenho do quadro (recalcular, salvar) */
+    const campoAntes = document.getElementById("res-interp-texto");
+    const pidI = (window.pacienteAtivoId && window.pacienteAtivoId()) || "";
+    const rascunhoI = campoAntes && campoAntes.dataset.quando === quando && campoAntes.dataset.pid === pidI && campoAntes.value.trim() !== ((interp0 && interp0.texto) || "").trim() ? campoAntes.value : null;
+    const interp = rascunhoI !== null ? { texto: rascunhoI } : interp0;
+    caixa.innerHTML =
+      '<span class="eyebrow">Resultado desta aplicação</span>'
+      + '<p class="res-meta">' + "Aplicação de " + esc(dataTxt) + " · "
+      + (typeof cob.respondidos === "number" ? '<span title="O HOLOSCAN possui ' + esc(cob.total) + ' perguntas. Parte delas é contextual e não entra diretamente na pontuação dos cinco sistemas.">' + esc(cob.respondidos + " de " + cob.total) + " perguntas respondidas</span>" : "")
+      + (window.Metodologia && window.Metodologia.seloAplicacao ? " " + window.Metodologia.seloAplicacao(r) : "") + '</p>'
+      + '<div class="res-grade"><div><h4 class="res-tit">Os cinco sistemas, do mais baixo ao mais alto</h4><ul class="res-lista">' + linhas + '</ul>'
+      + triTxt
+      /* 16/10: os cinco sistemas usam parte das perguntas; as outras sao contextuais (explicacao simples, sem formula) */
+      + '<p class="res-linha res-nota-contexto">O HOLOSCAN possui ' + esc(typeof cob.total === "number" ? cob.total : 81) + ' perguntas. Parte delas é contextual e não entra diretamente na pontuação dos cinco sistemas.</p>'
+      + (semNota.length ? '<p class="res-linha res-aviso">Sem nota (menos de 80% das perguntas do sistema respondidas): ' + semNota.map(s => esc(s.nome || s.sistema)).join(", ") + '.</p>' : '')
+      + '</div><div><h4 class="res-tit">Por onde investigar</h4>'
+      + (investigar ? '<p class="res-linha">Os sistemas de nota mais baixa e os sinais que mais pesaram neles. É a aritmética das respostas — não é diagnóstico nem conduta.</p>' + investigar
+                    : '<p class="res-linha">Nenhum sistema com nota nesta aplicação.</p>')
+      + '<div class="res-botoes"><button type="button" class="btn-borda-ouro" data-res-ir="resultado-holos">Resultado HOLOS &rarr;</button>'
+      + '<button type="button" class="btn-borda-ouro" data-res-ir="resultado">Resultado para a paciente &rarr;</button>'
+      + '</div></div></div>'
+      /* Proximos Passos HOLOS (09/10): bloco PROFISSIONAL, logo depois de "Por onde investigar". Desenhado por
+         proximos-passos.js a partir dos MESMOS dois sistemas e do catalogo aprovado do servidor. */
+      + '<div id="holo-proximos-passos" class="res-passos"></div>'
+      + '<div class="res-interp"><label for="res-interp-texto" class="res-tit">Sua interpretação</label>'
+      + '<p class="res-linha">A leitura clínica desta aplicação é sua. Ela é salva junto com o HOLOSCAN (ou pelo botão abaixo).</p>'
+      + '<textarea id="res-interp-texto" data-quando="' + esc(quando) + '" data-pid="' + esc(pidI) + '" rows="4" placeholder="O que este mapa mostra para você, o que investigar, o que conversar com a pessoa…">' + esc(interp && interp.texto || "") + '</textarea>'
+      + '<button type="button" class="btn-verde" id="res-interp-salvar">Salvar interpretação</button>'
+      + '<span class="res-interp-estado" id="res-interp-estado"></span></div>';
+    caixa.classList.remove("hidden");
+    if(window.ProximosPassos) window.ProximosPassos.desenhar(r, $("#holo-proximos-passos"));
+
+    caixa.querySelectorAll("[data-res-ir]").forEach(b => b.addEventListener("click", () => {
+      if(b.dataset.resIr === "resultado") irPara("resultado");
+      else if(b.dataset.resIr === "resultado-holos") levarPara("aba:resultado-holos", estado.ativo);
+      else levarPara("aba:conduta", estado.ativo);
+    }));
+    const bSalvar = $("#res-interp-salvar");
+    const campoI = $("#res-interp-texto");
+    /* 16/10: texto digitado e nao salvo = alteracao pendente (o aviso de "Alteracoes nao salvas" passa a valer aqui) */
+    const salvarInterp = async (silencioso) => {
+      const txt = campoI.value.trim();
+      const est = $("#res-interp-estado");
+      if(!txt){ if(!silencioso) toast("Escreva a interpretação antes de salvar."); return false; }
+      const g = window.guardarInterpretacao ? window.guardarInterpretacao(txt, quando) : false;
+      if(!g){ if(!silencioso) toast("Não há aplicação guardada onde prender a interpretação."); return false; }
+      const destino = await g.remoto;
+      const msg = destino === "sincronizado" ? "Interpretação salva no servidor."
+        : destino === "pendente" ? "Interpretação guardada; ela vai para o servidor junto com o HOLOSCAN quando você salvá-lo."
+        : destino === "local" ? "Interpretação guardada neste aparelho."
+        : MSG_NAO_SINCRONIZADO;
+      if (destino !== "falhou") window.limpaSuja("interpretacao");
+      if (est) est.textContent = msg;
+      if(!silencioso) toast(msg);
+      return destino !== "falhou";
+    };
+    if (window.registrarSujeira) window.registrarSujeira("interpretacao", { salvar: () => salvarInterp(true), descartar: () => {} });
+    if (rascunhoI !== null) window.marcaSuja("interpretacao"); else window.limpaSuja("interpretacao");
+    campoI.addEventListener("input", () => {
+      const salvo = ((window.interpretacaoDe && window.interpretacaoDe(quando)) || {}).texto || "";
+      if (campoI.value.trim() !== salvo.trim()) window.marcaSuja("interpretacao"); else window.limpaSuja("interpretacao");
+      const est = $("#res-interp-estado"); if (est && campoI.value.trim() !== salvo.trim()) est.textContent = "Não salvo ainda.";
+    });
+    bSalvar.addEventListener("click", () => salvarInterp(false));
+  }
+  window.desenharResumoHoloscan = desenharResumo;
 
   function lerTerreno(scores, pronta){
     const caixa = $("#holo-leitura");
@@ -3159,6 +3523,27 @@
     delete nova._supa_id;
     delete nova._supa_criado_em;
     if(!tudo[id]) tudo[id] = [];
+    /* Gerar o mapa de novo com as MESMAS respostas de uma aplicacao ja salva
+       hoje nao e uma aplicacao nova: antes virava uma entrada pendente ao
+       lado da salva, e a tela passava a dizer "nao salvo no servidor" sobre
+       um HOLOSCAN que estava salvo (o Salvar recusava a duplicata e o aviso
+       ficava para sempre). Agora o calculo repetido e a propria salva. */
+    const jaSalva = tudo[id].find(x => x._supa_id && x.quando === hoje && window.HoloAusencia.mesmaAplicacao(x, nova));
+    if(jaSalva){
+      // a entrada salva fica com o calculo completo (respostas, hash, sinais),
+      // sem perder a identidade remota nem a interpretacao ja escrita
+      const completa = Object.assign({}, nova, { _supa_id: jaSalva._supa_id, _supa_criado_em: jaSalva._supa_criado_em,
+        calculado_em: jaSalva.calculado_em || nova.calculado_em });
+      if(jaSalva.interpretacao !== undefined) completa.interpretacao = jaSalva.interpretacao;
+      tudo[id] = tudo[id].filter(x => !(x.quando === hoje && !x._supa_id && window.HoloAusencia.mesmaAplicacao(x, nova)))
+        .map(x => x === jaSalva ? completa : x);
+      localStorage.setItem("holohacking.pontuacao", JSON.stringify(tudo));
+      if (window.Concorrencia) window.Concorrencia.avancarRevisao("pontuacao");
+      r._supa_id = completa._supa_id;
+      r.calculado_em = completa.calculado_em;
+      return;
+    }
+    r.calculado_em = nova.calculado_em;   // e por ele que o Salvar acha esta entrada
     /* reaplicar no mesmo dia substitui, em vez de criar duas do mesmo dia —
        mas so substitui o que ainda NAO foi salvo no servidor. Uma aplicacao
        com _supa_id e um registro remoto proprio: dois HOLOSCAN salvos no
@@ -3289,8 +3674,16 @@
     window.desenharPontuacao(n);
   };
 
+  /* rodada UX 14/10: antes de haver aplicacao, a secao e APRESENTACAO (cartoes introdutorios + radar demonstrativo);
+     com aplicacao, so o resultado real — as duas coisas nunca aparecem juntas */
+  function modoHoloscan(comResultado){
+    const sec = document.getElementById("secao-holoscan");
+    if(sec) sec.classList.toggle("holo-com-resultado", !!comResultado);
+  }
   window.desenharPontuacao = function(r, restaurando){
     pontuacaoNaTela = r;        // e daqui que "Salvar HOLOSCAN" tira os decimais
+    setTimeout(estadoSalvarHolo, 0);
+    modoHoloscan(true);
     // as notas na ordem que a tela usa
     const porSistema = {};
     r.sistemas.forEach(s => { porSistema[s.sistema] = s.nota; });
@@ -3309,17 +3702,22 @@
       el.disabled = true;                       // virou resultado, nao entrada
       el.closest(".holo-card").classList.add("calculado");
       el.closest(".holo-card").classList.toggle("sem-dado", !!vazio);
-      $("#val-" + s).textContent = vazio ? "—"
-        : window.HoloAusencia.notaTexto(r.sistemas.find(x => x.sistema === ORDEM_MOTOR[i]));
+      const sis = r.sistemas.find(x => x.sistema === ORDEM_MOTOR[i]);
+      $("#val-" + s).textContent = vazio ? "—" : window.HoloAusencia.notaTexto(sis);
+      // a nota mora fora da regua (que fica escondida fora da homologacao):
+      // antes ela sumia junto e o cartao nao mostrava numero nenhum
+      const fx = $("#faixa-" + s);
+      if(fx) fx.textContent = vazio ? "sem dado suficiente"
+        : (sis && sis.faixa ? "faixa " + window.rotuloExibivel(sis.faixa) : "");
     });
 
     updateRadar(notas, r);                      // desenha com o decimal, nao com o arredondado
     desenharPrioridades(r);
     desenharDominantes(r);
+    desenharResumo(r);
     desenharTriada(r.triada, r.triada_com_dado, r.triada_exibicao);
     desenharFrequencias(r.frequencias);
     desenharTerritorios(r.territorios);
-    if(window.desenharHoloscan) window.desenharHoloscan("holo-confronto");
     if(window.redesenharEvolucao) window.redesenharEvolucao();
 
     $("#holo-score-total").textContent = window.HoloAusencia.indiceTexto(r);
@@ -3351,7 +3749,7 @@
           : "")
       + (faltando.length
           ? (r.oficial
-              ? '<span class="holo-sem-dado">Dados insuficientes (abaixo da cobertura mínima do pacote) em: '
+              ? '<span class="holo-sem-dado">Poucas respostas para dar nota em: '
                 + faltando.join(", ") + '. Sem os cinco sistemas avaliáveis o Índice HOLOS não é calculado.</span>'
               : '<span class="holo-sem-dado">Sem resposta nenhuma em: ' + faltando.join(", ")
                 + '. Estes sistemas ficaram fora do Índice.</span>')
@@ -3360,6 +3758,7 @@
     const rel = $("#btn-repontuar");
     if(rel) rel.addEventListener("click", () => {
       pontuacaoNaTela = null;   // a partir daqui quem manda e a regua
+      setTimeout(estadoSalvarHolo, 0);
       sistemas.forEach(s => {
         const el = $("#holo-" + s);
         el.disabled = false;
@@ -3369,6 +3768,7 @@
       $("#holo-origem").textContent = "";
       desenharPrioridades(null);
       desenharDominantes(null);
+      desenharResumo(null);
       desenharTriada(null);   // pontuando a mao nao ha Triada: ela vem das respostas
       desenharFrequencias(null);
       desenharTerritorios(null);
@@ -3399,9 +3799,9 @@
      --------------------------------------------------------------------- */
 
   const EIXOS_TRIADA = [
-    ["fisico", "Físico", "o que o corpo mostra"],
-    ["mental", "Mental", "o que a emoção mostra"],
-    ["espiritual", "Espiritual", "o que o propósito mostra"]
+    ["fisico", "Corpo", "o que o corpo mostra"],
+    ["mental", "Mente", "o que a emoção mostra"],
+    ["espiritual", "Espírito", "o que o propósito mostra"]
   ];
 
   function pontoTriada(cx, cy, raio, valor, i){
@@ -3444,7 +3844,7 @@
          pacote (nao "nenhuma pergunta respondida"). */
       const cobertura = semDado
         ? (temContagem && s.respondidos > 0
-            ? s.respondidos + " de " + s.total_marcadores + " respondidas · abaixo da cobertura mínima do pacote: sem nota"
+            ? s.respondidos + " de " + s.total_marcadores + " respondidas · poucas respostas para dar nota"
             : "nenhuma pergunta respondida")
         : temContagem ? s.respondidos + " de " + s.total_marcadores + " respondidas" : "";
       const conta = [cobertura,
@@ -3475,7 +3875,7 @@
     const comSinais = r.sistemas.filter(s => s.dominantes && s.dominantes.length > 0);
     if(comSinais.length === 0){ caixa.classList.add("hidden"); caixa.innerHTML = ""; return; }
     const blocos = comSinais.map(s => {
-      const itens = s.dominantes.map(d => "<li>" + (d.rotulo || d.marcador_id) + "</li>").join("");
+      const itens = s.dominantes.slice(0, 3).map(d => "<li>" + window.escapar(d.rotulo || d.marcador_id) + "</li>").join("");
       return '<div class="holo-dominante-sistema"><h5>' + s.nome + '</h5>'
            + '<ul class="holo-dominante-lista">' + itens + '</ul></div>';
     }).join("");
@@ -3484,6 +3884,35 @@
       + "<p>Os sinais que mais pesaram nas respostas de cada sistema — é a "
       + "aritmética das respostas, não um achado novo.</p></div>" + blocos;
     caixa.classList.remove("hidden");
+  }
+
+  /* rodada UX 14/10 — "POR QUE" ao lado da dimensao mais baixa: descreve o que apareceu nas respostas DESTA aplicacao
+     ligadas a essa dimensao. So dado real (os marcadores que o motor oficial contou para o eixo); sem diagnostico, sem
+     causalidade, sem "pior". Sem as respostas neste aparelho, diz so o que as notas ja dizem. */
+  function porQueTriada(tmTri, valores, temDado){
+    if(!tmTri || tmTri.todas || !tmTri.menores || !tmTri.menores.length) return "";
+    const r = pontuacaoNaTela, pid = estado.ativo;
+    const resp = (r && r.respostas && Object.keys(r.respostas).length) ? r.respostas
+      : (window.QuestionarioHolo && pid ? window.QuestionarioHolo.respostasAplicadas(pid) : {});
+    const nomes = tmTri.menores;
+    const partes = nomes.map(nome => {
+      const i = EIXOS_TRIADA.findIndex(e => e[1] === nome);
+      if(i < 0) return "";
+      const eixo = EIXOS_TRIADA[i][0];
+      const M = window.HoloscanOficial && window.HoloscanOficial.marcadoresTriade ? window.HoloscanOficial.marcadoresTriade(resp, eixo, r && r.applied_at) : null;
+      /* as respostas so contam se recalculam a MESMA nota desta aplicacao (senao seriam de outra aplicacao) */
+      const confere = M && typeof valores[i] === "number" && Math.abs(M.nota - valores[i]) < 0.05;
+      if(confere && M.itens.length){
+        const lista = M.itens.slice(0, 3).map(x => "“" + window.escapar(String(x.rotulo || x.id).replace(/[.?!]\s*$/, "")) + "”").join("; ");
+        return "<b>" + window.escapar(nome) + "</b> aparece como a dimensão mais baixa nesta aplicação porque houve maior concentração de marcadores nas respostas ligadas a ela, como: " + lista + ".";
+      }
+      const outros = EIXOS_TRIADA.map((e, j) => j !== i && temDado(j) ? e[1] + " " + window.HoloAusencia.fmt(valores[j]) : null).filter(Boolean);
+      return "<b>" + window.escapar(nome) + "</b> aparece como a dimensão mais baixa nesta aplicação porque as respostas ligadas a ela somaram, em proporção, mais marcadores (nota " +
+        window.HoloAusencia.fmt(valores[i]) + (outros.length ? "; " + window.escapar(outros.join(", ")) : "") + "). As respostas desta aplicação não estão neste aparelho para listar quais foram.";
+    }).filter(Boolean);
+    if(!partes.length) return "";
+    return '<div class="triada-porque" role="note"><span class="triada-porque-rot">Por quê</span><p>' + partes.join("</p><p>") + "</p>" +
+      '<p class="triada-porque-nota">É uma descrição das respostas registradas, não um diagnóstico nem uma causa.</p></div>';
   }
 
   function desenharTriada(triada, comDado, exibicao){
@@ -3534,11 +3963,10 @@
     /* O eixo mais baixo so pode sair de quem tem dado. Sem isso, um eixo em
        branco (que a formula devolve como 10) nunca seria o menor — mas um
        eixo em branco tambem nao pode competir. */
-    let menor = -1;
-    [0,1,2].forEach(i => {
-      if(!temDado(i)) return;
-      if(menor < 0 || valores[i] < valores[menor]) menor = i;
-    });
+    /* 12/10 (item 4.3): empate nao escolhe uma dimensao — todas as de menor nota ficam marcadas e a frase diz o empate
+       (a mesma regra da Sintese e do Resultado HOLOS: window.triadeMenores) */
+    const tmTri = window.triadeMenores([0,1,2].map(i => ({ nome: EIXOS_TRIADA[i][1], valor: temDado(i) ? valores[i] : null })));
+    const ehMenor = i => tmTri.menores.indexOf(EIXOS_TRIADA[i][1]) >= 0 && !tmTri.todas;
 
     caixa.innerHTML =
       '<h4 class="leitura-titulo">Tríade HOLOS '
@@ -3548,10 +3976,10 @@
       +   'class="triada-grafico" aria-hidden="true">' + svg + "</svg>"
       +   '<div class="triada-eixos">'
       +     EIXOS_TRIADA.map((e, i) =>
-            '<div class="triada-eixo' + (i === menor ? " menor" : "")
+            '<div class="triada-eixo' + (ehMenor(i) ? " menor" : "")
               + (temDado(i) ? "" : " sem-dado") + '">'
             + '<span class="triada-nota">'
-            + (temDado(i) ? (exibicao && exibicao[e[0]] ? exibicao[e[0]] : window.HoloAusencia.fmt(valores[i])) : "—") + "</span>"
+            + (temDado(i) ? (exibicao && exibicao[e[0]] ? String(exibicao[e[0]]).replace(/^(-?\d+)\.(\d+)$/, "$1,$2") : window.HoloAusencia.fmt(valores[i])) : "—") + "</span>"
             + "<b>" + e[1] + "</b><span class=\"triada-sub\">"
             + (temDado(i) ? e[2] : "sem resposta") + "</span></div>").join("")
       /* A frase dizia: "Dimensao mais baixa: X. E por onde a conduta comeca."
@@ -3559,10 +3987,10 @@
          procedencia: nada no metodo diz que a dimensao mais baixa da Triade e
          por onde comecar. Saiu so ela. A Triade continua identificando e
          destacando a menor — isso e descricao, e e o que o grafico ja faz. */
-      +     (menor >= 0
-              ? '<p class="triada-leitura">Dimensão mais baixa: <b>'
-                + EIXOS_TRIADA[menor][1] + "</b>.</p>"
+      +     (tmTri.frase
+              ? '<p class="triada-leitura">' + window.escapar(tmTri.frase) + "</p>"
               : "")
+      +     porQueTriada(tmTri, valores, temDado)
       +     (todosComDado
               ? ""
               : '<p class="triada-leitura sem-dado">Eixo sem resposta não recebe '
@@ -3584,6 +4012,7 @@
     const p = pacienteAtivo();
     const h = p ? p.holoscan : vazioHolo();
     pontuacaoNaTela = null;                 // trocou de paciente, trocou o mapa
+    setTimeout(estadoSalvarHolo, 0);
 
     /* Tudo o que a tela mostrava pertencia ao paciente anterior. A Triada e a
        linha de origem nao eram apagadas aqui: abrir a Carla logo depois da
@@ -3594,11 +4023,11 @@
     desenharTerritorios(null);
     desenharPrioridades(null);
     desenharDominantes(null);
+    desenharResumo(null);
     const origem = $("#holo-origem");
     if(origem) origem.innerHTML = "";
     const total = $("#holo-score-total");
     if(total) total.textContent = "—";
-    if(window.desenharHoloscan) window.desenharHoloscan("holo-confronto");
 
     // a evolucao e por paciente: quem nao tem duas aplicacoes nao mostra nada
     if(window.redesenharEvolucao) window.redesenharEvolucao();
@@ -3614,6 +4043,7 @@
        Triada e as combinacoes), entao e ele que manda. */
     const ultima = p && window.ultimaPontuacao ? window.ultimaPontuacao(p.id) : null;
     if(ultima){ window.desenharPontuacao(ultima, true); return; }
+    modoHoloscan(false);
 
     const ids = ["holo-fungico","holo-inflamatorio","holo-metabolico","holo-detox","holo-mental"];
     const vals = [h.sistema_fungico||0, h.sistema_acido_inflamatorio||0, h.sistema_metabolico||0, h.sistema_detox_linfatico||0, h.sistema_mental_emocional||0];
@@ -3626,8 +4056,10 @@
       // paciente seguinte nao podia ser pontuado a mao.
       el.disabled = false;
       el.closest(".holo-card").classList.remove("calculado", "sem-dado");
-      $("#val-" + sistemas[i]).textContent = Number.isInteger(vals[i])
-        ? String(vals[i]) : vals[i].toFixed(1);
+      // fora da homologacao nao ha regua: paciente sem mapa mostra traco, nao 0
+      $("#val-" + sistemas[i]).textContent = !(window.Metodologia && window.Metodologia.modoHomologacao()) ? "—"
+        : Number.isInteger(vals[i]) ? String(vals[i]) : vals[i].toFixed(1);
+      const fx = $("#faixa-" + sistemas[i]); if(fx) fx.textContent = "";
     });
     updateRadar(vals);
   }
@@ -3637,6 +4069,7 @@
     const valEl = $("#val-" + s);
     input.addEventListener("input", () => {
       pontuacaoNaTela = null;   // mexeu na regua, o mapa nao e mais o do motor
+      estadoSalvarHolo();
       valEl.textContent = input.value;
       const scores = sistemas.map(s2 => parseInt($("#holo-" + s2).value) || 0);
       updateRadar(scores);
@@ -3659,8 +4092,30 @@
   }
   window.pontuacaoManualLiberada = () => MANUAL_LIBERADA;
 
+  /* 14/10 (auditoria Cowork): "Salvar HOLOSCAN" e idempotente — o mapa na tela que ja foi salvo no servidor
+     nao vira outra aplicacao por um segundo clique. Nova aplicacao e gesto separado (Reaplicar / Nova aplicacao).
+     O aviso "HOLOSCAN concluído" so aparece depois de salvo (antes ficava fixo na pagina, mesmo sem resposta). */
+  function estadoSalvarHolo(){
+    const btn = $("#btn-salvar-holoscan"), aviso = $("#holo-concluido");
+    const salvo = !!(pontuacaoNaTela && pontuacaoNaTela._supa_id);
+    if(btn && btn.textContent !== "Salvando…"){
+      /* continua clicavel: o clique so avisa que ja esta salvo (nunca grava de novo) */
+      btn.classList.toggle("holo-ja-salvo", salvo);
+      btn.setAttribute("aria-disabled", salvo ? "true" : "false");
+      btn.textContent = salvo ? "HOLOSCAN salvo ✓" : "Salvar HOLOSCAN";
+      btn.title = salvo ? "Esta aplicação já está salva. Para uma nova, use Reaplicar HOLOSCAN." : "";
+    }
+    if(aviso) aviso.hidden = !salvo;
+  }
+  window.estadoSalvarHolo = estadoSalvarHolo;
+
   $("#btn-salvar-holoscan").addEventListener("click", async function () {
     const btn = this;
+    if(pontuacaoNaTela && pontuacaoNaTela._supa_id){
+      toast("Este HOLOSCAN já está salvo e sincronizado. Para uma nova aplicação, use Reaplicar HOLOSCAN.");
+      estadoSalvarHolo();
+      return;
+    }
     if(!travarBotao(btn, "Salvando…")) return;
     try {
     const p = pacienteAtivo();
@@ -3728,7 +4183,7 @@
         return;
       }
 
-      /* Correcao (auditoria HOLOSCAN): questionario incompleto (ex.: 10 de 84)
+      /* Correcao (auditoria HOLOSCAN): questionario incompleto (ex.: 10 de 81)
          era salvo como aplicacao sem nenhuma pergunta. Agora a nutricionista
          confirma, vendo a cobertura e se o Indice saiu. Nenhum limite e
          presumido aqui (Mestre §18): qualquer pergunta em branco pergunta. */
@@ -3748,14 +4203,28 @@
       /* Correcao (auditoria): duas aplicacoes identicas salvas no mesmo dia
          (mesmas respostas) eram duplicata. Se ja ha uma aplicacao salva hoje
          com exatamente as mesmas respostas, nao grava de novo. */
-      const assin = o => JSON.stringify(Object.keys(o || {}).sort().map(k => [k, o[k]]));
-      const jaSalvaIgual = (lerHistorico()[p.id] || []).some(x => x._supa_id && x.quando === hoje &&
-        x.respostas && assin(x.respostas) === assin(r.respostas));
+      const histHoje = lerHistorico();
+      const jaSalvaIgual = (histHoje[p.id] || []).find(x => x._supa_id && x.quando === hoje &&
+        window.HoloAusencia.mesmaAplicacao(x, r));
       if (jaSalvaIgual) {
-        toast("Já existe uma aplicação salva hoje com exatamente estas respostas. Nada foi gravado de novo.");
+        /* nada a gravar — e a tela tambem nao pode continuar dizendo "nao
+           salvo": o calculo na tela E a aplicacao salva */
+        r._supa_id = jaSalvaIgual._supa_id;
+        histHoje[p.id] = histHoje[p.id].filter(x => !(x.quando === hoje && !x._supa_id && window.HoloAusencia.mesmaAplicacao(x, r)));
+        localStorage.setItem("holohacking.pontuacao", JSON.stringify(histHoje));
+        document.querySelectorAll("#secao-holoscan .selo-nao-salvo").forEach(x => x.remove());
+        renderPacientes();
+        toast("Esta aplicação já estava salva no servidor (mesmas respostas). Nada foi gravado de novo.");
         return;
       }
 
+      /* 16/10 (estabilizacao): "Salvar HOLOSCAN" leva junto o que esta escrito em "Sua interpretacao", mesmo sem
+         clicar antes em "Salvar interpretacao" — nada se perde em silencio */
+      const campoInterp = document.getElementById("res-interp-texto");
+      if (campoInterp && campoInterp.value.trim() && window.guardarInterpretacao) {
+        const jaI = window.interpretacaoDe ? window.interpretacaoDe(hoje, p.id) : null;
+        if (!jaI || (jaI.texto || "").trim() !== campoInterp.value.trim()) window.guardarInterpretacao(campoInterp.value.trim(), hoje);
+      }
       var interp = window.interpretacaoDe ? window.interpretacaoDe(hoje, p.id) : null;
       /* tela e dado salvo: o MESMO objeto. As respostas sao as do calculo (snapshot), nao o que estiver no navegador agora. */
       var payload = O.payload(r, {
@@ -3788,6 +4257,9 @@
         return;
       }
       r._supa_id = appId;
+      r._supa_encounter_id = atendimento.id;   // 12/10 (bug 5): o atendimento ja vale na tela, sem recarregar
+      /* a aplicacao agora existe no servidor: os Proximos Passos HOLOS sao registrados (snapshot) e redesenhados */
+      if(window.ProximosPassos && $("#holo-proximos-passos")) window.ProximosPassos.desenhar(r, $("#holo-proximos-passos"));
 
       p.holoscan = {
         id: appId,
@@ -3808,14 +4280,20 @@
         var hist = lerHistorico();
         var entradas = hist[p.id] || [];
         var alvoLocal = null;
-        for (var ie = entradas.length - 1; ie >= 0; ie--) {
+        /* primeiro a entrada que gerou o resultado na tela (pelo instante do
+           calculo): se o mapa foi gerado ontem e salvo hoje, "a de hoje" nao
+           existe e a entrada calculada ficava pendente para sempre */
+        if (r.calculado_em) alvoLocal = entradas.find(x => !x._supa_id && x.calculado_em === r.calculado_em) || null;
+        for (var ie = entradas.length - 1; !alvoLocal && ie >= 0; ie--) {
           if (entradas[ie].quando === hoje && !entradas[ie]._supa_id) { alvoLocal = entradas[ie]; break; }
         }
         if (alvoLocal) {
           alvoLocal._supa_id = appId;
           alvoLocal._supa_criado_em = new Date().toISOString();
+          alvoLocal._supa_encounter_id = atendimento.id;   // 12/10 (bug 5): Resultado HOLOS e Evolucao enxergam o atendimento
           // a interpretacao do dia foi junto no payload: nao esta mais pendente
           if (alvoLocal.interpretacao) delete alvoLocal.interpretacao.pendente;
+          if (window.limpaSuja) window.limpaSuja("interpretacao");   // 16/10: foi junto com o HOLOSCAN
           localStorage.setItem("holohacking.pontuacao", JSON.stringify(hist));
           if (window.Concorrencia) window.Concorrencia.avancarRevisao("pontuacao");
         }
@@ -3858,7 +4336,7 @@
     toast(pontuacaoNaTela
       ? "HOLOSCAN salvo na ficha de " + p.nome + ". Score: " + total
       : MSG_SO_NESTE_APARELHO);
-    } finally { destravarBotao(btn); }
+    } finally { destravarBotao(btn); estadoSalvarHolo(); }
   });
 
   /* O "Limpar" do resultado saiu (auditoria HOLOSCAN): zerava so as reguas
@@ -3916,13 +4394,8 @@
         window.AtendimentoAtual.abrirDialogo({ patient_id: estado.ativo }).then(desenharAtendimentoHoloscan);
       });
     }
-    const irDocs = document.getElementById("conf-ir-documentos");
-    if(irDocs) irDocs.addEventListener("click", () => {
-      if(!estado.ativo){ toast("Escolha um paciente."); return; }
-      levarPara("aba:documentos", estado.ativo);
-    });
     $$("[data-ir-holo]").forEach(b => b.addEventListener("click", () => {
-      if(b.dataset.irHolo === "confronto") irPara("confronto");
+      if(b.dataset.irHolo === "resultado") irPara("resultado");
       else levarPara("aba:conduta", estado.ativo);
     }));
     document.addEventListener("DOMContentLoaded", () => {
@@ -3982,6 +4455,7 @@
     var barraCtx = document.getElementById("barra-paciente-ctx");
     if (barraCtx) {
       barraCtx.addEventListener("click", function (e) {
+        if (e.target.closest("#bpctx-fechar")) { limparPacienteAtivo(); return; }
         var btn = e.target.closest("[data-bpctx]");
         if (!btn) return;
         var destino = btn.getAttribute("data-bpctx");

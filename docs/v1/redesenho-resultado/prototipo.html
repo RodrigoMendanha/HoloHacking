@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protótipo — Resultado HOLOS com direção</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--vn:#06231a;--ve:#0b3325;--vm:#14503b;--vs:#2c6a51;--do:#c9a35a;--dc:#e2c98a;--de:#8a6f32;--cr:#f4efe3;--cc:#faf7ee;--ti:#1d3a2e;--ts:#4f6a5d;--li:rgba(29,58,46,.13)}
+*{box-sizing:border-box}
+body{margin:0;font-family:Jost,sans-serif;color:var(--ti);background:#e9e4d6;font-size:15px;line-height:1.55}
+h1,h2,h3{font-family:'Cormorant Garamond',serif;color:var(--ve);font-weight:600;margin:0}
+.topo{background:var(--ve);color:var(--cr);padding:14px 20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:5}
+.topo b{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--dc)}
+.abas{display:flex;gap:6px;flex-wrap:wrap}
+.abas button{font:inherit;font-size:12.5px;letter-spacing:.06em;border:1px solid rgba(226,201,138,.4);background:transparent;color:var(--cr);padding:7px 12px;border-radius:30px;cursor:pointer}
+.abas button.on{background:var(--do);color:var(--vn);border-color:var(--do)}
+.aviso{background:#fff7e6;border:1px solid var(--do);color:#6b5016;font-size:12.5px;padding:8px 14px;text-align:center}
+.vista{display:none;max-width:860px;margin:22px auto 60px;padding:0 16px}
+.vista.on{display:block}
+.folha{background:#fff;border-radius:14px;box-shadow:0 8px 30px rgba(11,51,37,.10);overflow:hidden}
+.cab{background:radial-gradient(120% 90% at 50% 0%,#0f3d2c,var(--ve) 55%,var(--vn));color:var(--cr);padding:28px 30px 24px}
+.cab small{letter-spacing:.24em;font-size:11px;color:var(--dc)}
+.cab h1{color:var(--cr);font-size:34px;margin:6px 0 4px}
+.cab p{margin:0;color:rgba(244,239,227,.85);font-size:14px}
+.sec{padding:22px 30px;border-top:1px solid var(--li)}
+.eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--de);font-weight:600;margin-bottom:6px}
+.sec h2{font-size:24px;margin-bottom:8px}
+.momento{font-family:'Cormorant Garamond',serif;font-size:21px;line-height:1.4;color:var(--ve)}
+ul.itens{list-style:none;padding:0;margin:8px 0 0}
+ul.itens li{padding:8px 0 8px 22px;position:relative;border-bottom:1px dashed var(--li)}
+ul.itens li:last-child{border-bottom:0}
+ul.itens li::before{content:"";position:absolute;left:4px;top:16px;width:7px;height:7px;border-radius:50%;background:var(--do)}
+.fonte{display:inline-block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ts);background:var(--cc);border:1px solid var(--li);border-radius:20px;padding:1px 8px;margin-left:6px;vertical-align:1px}
+.tres-col{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:720px){.tres-col{grid-template-columns:1fr}.cab h1{font-size:27px}.sec{padding:18px}}
+.foco{background:var(--ve);color:var(--cr);border-radius:12px;padding:18px 20px;margin-top:6px}
+.foco .eyebrow{color:var(--dc)}
+.foco p{font-family:'Cormorant Garamond',serif;font-size:22px;line-height:1.35;margin:0}
+.terr{border:1px solid var(--li);border-radius:12px;overflow:hidden;background:var(--cc)}
+.terr h3{font-size:20px;color:var(--cr);padding:10px 14px}
+.terr.corpo h3{background:var(--vm)}.terr.mente h3{background:var(--ve)}.terr.espirito h3{background:var(--vn)}
+.terr h3 span{display:block;font-family:Jost;font-size:11px;letter-spacing:.1em;color:var(--dc);font-weight:400;font-style:italic}
+.terr dl{margin:0;padding:10px 14px 12px}
+.terr dt{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--de);font-weight:600;margin-top:8px}
+.terr dd{margin:2px 0 0;font-size:14px}
+.terr .vazio{padding:14px;color:var(--ts);font-style:italic;font-size:14px}
+.ponto{background:var(--cc);border:1px dashed var(--vs);border-radius:10px;padding:12px 14px;color:var(--vs)}
+.acordo{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--li)}
+.acordo b{font-weight:500}
+.acordo small{color:var(--ts)}
+.check{width:18px;height:18px;border:1.5px solid var(--do);border-radius:4px;flex:0 0 18px;margin-top:3px}
+.prox{background:#eef3ee;border-left:3px solid var(--vs);padding:12px 16px;border-radius:0 10px 10px 0}
+.mapa{display:grid;grid-template-columns:290px 1fr;gap:18px;align-items:center}
+@media(max-width:720px){.mapa{grid-template-columns:1fr}}
+table.sis{width:100%;border-collapse:collapse;font-size:14px}
+table.sis td{padding:6px 4px;border-bottom:1px solid var(--li)}
+table.sis td.n{font-family:'Cormorant Garamond',serif;font-size:19px;text-align:right;color:var(--ve)}
+.nota-pe{font-size:12px;color:var(--ts);margin-top:10px}
+.linha{display:flex;gap:0;margin:8px 0 2px;flex-wrap:wrap}
+.linha div{flex:1 1 120px;border-top:3px solid var(--do);padding:8px 10px 6px;font-size:13px}
+.linha div b{display:block;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--de)}
+.antes-agora{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:720px){.antes-agora{grid-template-columns:1fr}}
+.cartao{border:1px solid var(--li);border-radius:12px;padding:14px 16px;background:var(--cc)}
+/* profissional */
+.form .bloco{background:#fff;border:1px solid var(--li);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+.form .bloco h3{font-size:19px;margin-bottom:2px}
+.form .ajuda{font-size:12.5px;color:var(--ts);margin:0 0 10px}
+.sug{display:flex;gap:8px;align-items:flex-start;padding:7px 10px;border-radius:8px;background:var(--cc);margin-bottom:6px;font-size:14px}
+.sug input{margin-top:4px}
+.sug .orig{font-size:10.5px;color:var(--de);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.sug.pendente{border:1px dashed var(--do)}
+.tag-sug{font-size:10px;letter-spacing:.12em;text-transform:uppercase;background:#fff3d6;color:#7a5a1c;border-radius:20px;padding:1px 7px;margin-left:6px}
+textarea,input[type=text]{width:100%;font:inherit;font-size:14px;border:1px solid var(--li);border-radius:8px;padding:8px 10px;background:#fff;color:var(--ti)}
+textarea{min-height:58px}
+.obrig{color:#a8442c;font-size:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:720px){.grid2{grid-template-columns:1fr}}
+.hip{border-left:3px solid #a8442c;background:#fff8f5}
+.so-prof{font-size:10px;letter-spacing:.12em;text-transform:uppercase;background:#f6e3dc;color:#8a3a22;border-radius:20px;padding:1px 7px;margin-left:6px}
+.rodape-botoes{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.btn{font:inherit;font-size:13px;letter-spacing:.1em;text-transform:uppercase;padding:10px 16px;border-radius:8px;border:1px solid var(--vm);background:#fff;color:var(--vm)}
+.btn.p{background:var(--vm);color:var(--dc);border-color:var(--vm)}
+</style>
+</head>
+<body>
+<div class="topo"><b>Resultado HOLOS · protótipo</b>
+<div class="abas">
+<button class="on" data-v="pac1">Paciente · 1ª consulta</button>
+<button data-v="pac2">Paciente · retorno</button>
+<button data-v="prof">Profissional · montar resultado</button>
+</div></div>
+<div class="aviso">EXEMPLO FICTÍCIO — PARA DEMONSTRAÇÃO DO RESULTADO. Notas do caso de teste V6; textos profissionais, relatos e acordos são inventados para ilustrar. Não é implementação.</div>
+
+<!-- ======================= PACIENTE · 1ª CONSULTA ======================= -->
+<section class="vista on" id="pac1"><div class="folha">
+<div class="cab"><small>RESULTADO HOLOS · PRIMEIRA CONSULTA</small><h1>Seu caminho nesta etapa</h1><p>Paciente fictícia · 13/10/2026 · com Nutri Fictícia</p></div>
+
+<div class="sec"><div class="eyebrow">A · Seu momento agora</div>
+<p class="momento">Você chegou querendo mais energia ao longo do dia. Nesta primeira etapa, vamos entender como a fome e a energia se distribuem na sua rotina antes de propor mudanças maiores.</p>
+<span class="fonte">registrado pela sua nutricionista</span></div>
+
+<div class="sec"><div class="eyebrow">B · Dores</div><h2>O que está pesando agora</h2>
+<ul class="itens">
+<li>Sono logo depois do almoço. <span class="fonte">você relatou · HOLOSCAN</span></li>
+<li>Fome voltando pouco tempo depois de comer. <span class="fonte">você relatou · HOLOSCAN</span></li>
+<li>Comer depois do jantar, mesmo sem perceber fome. <span class="fonte">você relatou · HOLOSCAN</span></li>
+<li>Dificuldade de organizar a alimentação nos dias mais corridos. <span class="fonte">você contou no Mapeamento</span></li>
+</ul></div>
+
+<div class="sec"><div class="eyebrow">C · Desejos</div><h2>O que você quer construir</h2>
+<ul class="itens">
+<li>Ter mais energia durante o dia e conseguir manter uma alimentação que funcione mesmo nos dias mais corridos. <span class="fonte">seu objetivo</span></li>
+</ul></div>
+
+<div class="sec"><div class="eyebrow">D · Avanços</div><h2>O que já está mudando</h2>
+<div class="ponto">Ainda não há evolução registrada — este é o ponto de partida.</div>
+<ul class="itens"><li>Antes deste acompanhamento, levar marmita em alguns dias já ajudou. <span class="fonte">você contou</span></li></ul></div>
+
+<div class="sec"><div class="eyebrow">E · Padrões</div><h2>O que estamos compreendendo</h2>
+<ul class="itens">
+<li>Os sinais que você relatou se concentram depois das refeições e no fim do dia: sono depois do almoço, fome que volta cedo e comer à noite sem fome. Ainda estamos observando como isso acontece no seu dia a dia. <span class="fonte">sua nutricionista</span></li>
+</ul></div>
+
+<div class="sec"><div class="eyebrow">F · Foco atual</div>
+<div class="foco"><div class="eyebrow">Foco do acompanhamento nesta fase</div><p>Organizar alimentação e rotina para compreender melhor como fome e energia variam ao longo do dia.</p></div></div>
+
+<div class="sec"><div class="eyebrow">G · Caminho Corpo · Mente · Espírito</div>
+<div class="tres-col">
+<div class="terr corpo"><h3>Corpo<span>o que precisa acontecer na vida real</span></h3><dl>
+<dt>Foco</dt><dd>Enxergar seu dia real: horários, fome e energia.</dd>
+<dt>Experiência combinada</dt><dd>Montar com sua nutricionista o Mapa da Rotina e testar uma pausa planejada à tarde.</dd>
+<dt>O que observar</dt><dd>Energia depois do almoço e fome no fim da tarde.</dd></dl></div>
+<div class="terr mente"><h3>Mente<span>o que me faz repetir</span></h3><dl>
+<dt>Padrão a aprofundar</dt><dd>Comer depois do jantar sem fome percebida.</dd>
+<dt>O que percebemos</dt><dd>Ainda estamos observando quando isso acontece.</dd></dl>
+<div class="vazio" style="padding-top:0">Nova resposta: ainda não definida nesta etapa.</div></div>
+<div class="terr espirito"><h3>Espírito<span>para onde quero levar minha vida</span></h3>
+<div class="vazio">Ainda não aprofundado nesta etapa.</div></div>
+</div></div>
+
+<div class="sec"><div class="eyebrow">H · O que combinamos</div>
+<div class="acordo"><div class="check"></div><div><b>Anotar, por uma semana, o horário das refeições e a energia de 0 a 10 às 16h.</b><br><small>dias de trabalho · combinado na consulta</small></div></div>
+<div class="acordo"><div class="check"></div><div><b>Fazer uma pausa planejada à tarde, com um lanche escolhido na consulta.</b><br><small>até o retorno</small></div></div>
+</div>
+
+<div class="sec"><div class="eyebrow">I · Até o próximo encontro, observe</div>
+<ul class="itens"><li>Como fica sua energia depois do almoço.</li><li>Quanto tempo depois de comer a fome volta.</li><li>O que acontece nas noites em que você come sem fome.</li><li>Quais dias foram mais fáceis — e por quê.</li></ul></div>
+
+<div class="sec"><div class="eyebrow">J · Próxima etapa</div>
+<div class="prox"><b>Retorno em 3 semanas.</b> Vamos olhar juntas o que você anotou e decidir o próximo passo. Se fizer sentido, vamos aprofundar o comer à noite.</div></div>
+
+<div class="sec"><div class="eyebrow">K · Detalhes do mapa</div><h2>Seu HOLOSCAN</h2>
+<div class="mapa">
+<svg viewBox="-150 -112 300 222" width="280" height="208" aria-label="Radar dos cinco sistemas">
+<g fill="none" stroke="#d9d2bf"><polygon points="0,-90 85.6,-27.8 52.9,72.8 -52.9,72.8 -85.6,-27.8"/><polygon points="0,-45 42.8,-13.9 26.5,36.4 -26.5,36.4 -42.8,-13.9"/></g>
+<polygon points="0,-67.5 85.6,-27.8 22.7,31.3 -35.4,48.8 -71.0,-23.1" fill="rgba(201,163,90,.35)" stroke="#8a6f32" stroke-width="1.5"/>
+<g font-size="9" fill="#4f6a5d" font-family="Jost"><text x="0" y="-96" text-anchor="middle">Fúngico 7,5</text><text x="90" y="-30">Ácido 10</text><text x="56" y="88" text-anchor="middle">Metab. 4,3</text><text x="-56" y="88" text-anchor="middle">Detox 6,7</text><text x="-90" y="-30" text-anchor="end">MEE 8,3</text></g>
+</svg>
+<div><table class="sis">
+<tr><td>Sistema Metabólico <span class="fonte">1ª área para aprofundar</span></td><td class="n">4,3</td></tr>
+<tr><td>Sistema Detox e Linfático <span class="fonte">2ª área</span></td><td class="n">6,7</td></tr>
+<tr><td>Sistema Fúngico</td><td class="n">7,5</td></tr>
+<tr><td>Sistema Mental Emocional Espiritual</td><td class="n">8,3</td></tr>
+<tr><td>Sistema Ácido Inflamatório</td><td class="n">10,0</td></tr></table>
+<p class="nota-pe">As notas organizam as suas respostas ao HOLOSCAN e mostram onde olhar. Não são diagnóstico, não indicam gravidade nem percentual de saúde. Índice HOLOS e Tríade continuam aqui, para quem quiser ver.</p></div></div></div>
+</div></section>
+
+<!-- ======================= PACIENTE · RETORNO ======================= -->
+<section class="vista" id="pac2"><div class="folha">
+<div class="cab"><small>RESULTADO HOLOS · RETORNO · ATENDIMENTO 2</small><h1>Seu caminho nesta etapa</h1><p>Paciente fictícia · 03/11/2026 · com Nutri Fictícia</p></div>
+
+<div class="sec"><div class="eyebrow">Seu caminho até aqui</div>
+<div class="linha"><div><b>Atendimento 1</b>Ponto de partida: entender fome e energia ao longo do dia.</div><div><b>Atendimento 2 · hoje</b>Primeiros avanços na tarde; a noite ainda pede atenção.</div></div></div>
+
+<div class="sec"><div class="antes-agora">
+<div class="cartao"><div class="eyebrow">Antes</div>Foco: organizar alimentação e rotina para entender fome e energia.</div>
+<div class="cartao"><div class="eyebrow">Agora</div>Você anotou 4 de 5 dias. Nos dias com pausa à tarde, chegou à noite com menos fome.</div>
+</div></div>
+
+<div class="sec"><div class="eyebrow">Avanços</div><h2>O que já está mudando</h2>
+<ul class="itens">
+<li>Conseguiu fazer a pausa da tarde em 3 dos 5 dias de trabalho. <span class="fonte">você contou</span></li>
+<li>Percebeu sozinha que a energia cai mais nos dias de almoço tarde. <span class="fonte">sua nutricionista observou</span></li>
+<li>Acordo "anotar horários e energia" concluído. <span class="fonte">acordo concluído</span></li>
+</ul></div>
+
+<div class="sec"><div class="eyebrow">Dificuldades</div><h2>O que permaneceu</h2>
+<ul class="itens"><li>Comer depois do jantar continua em algumas noites, principalmente quando chega muito cansada. <span class="fonte">você relatou</span></li></ul></div>
+
+<div class="sec"><div class="eyebrow">Padrões</div><h2>O que ficou mais claro</h2>
+<ul class="itens"><li>Nos dias em que a tarde passa sem pausa planejada, você relata chegar à noite com mais fome e menos energia para organizar a refeição. Essa associação merece continuar sendo observada. <span class="fonte">sua nutricionista</span></li></ul></div>
+
+<div class="sec"><div class="eyebrow">Novo foco</div>
+<div class="foco"><div class="eyebrow">Foco do acompanhamento nesta fase</div><p>Manter a pausa da tarde e começar a entender o que acontece nas noites em que você come sem fome.</p></div></div>
+
+<div class="sec"><div class="tres-col">
+<div class="terr corpo"><h3>Corpo<span>evolução / novo passo</span></h3><dl><dt>Continua</dt><dd>Pausa planejada à tarde.</dd><dt>O que observar</dt><dd>Energia às 16h nos dias de almoço tarde.</dd></dl></div>
+<div class="terr mente"><h3>Mente<span>evolução / novo passo</span></h3><dl><dt>Padrão a aprofundar</dt><dd>Comer depois do jantar quando chega cansada.</dd><dt>Experiência combinada</dt><dd>Registrar um episódio com sua nutricionista (Gatilhos &amp; Respostas): o que veio antes, o que pensou, o que sentiu.</dd></dl></div>
+<div class="terr espirito"><h3>Espírito<span>evolução / novo passo</span></h3><div class="vazio">Ainda não aprofundado nesta etapa.</div></div>
+</div></div>
+
+<div class="sec"><div class="eyebrow">Até o próximo encontro, observe</div>
+<ul class="itens"><li>Em que noites a vontade de comer aparece sem fome.</li><li>O que você estava fazendo pouco antes.</li><li>Como estava sua energia naquele dia.</li></ul></div>
+<div class="sec"><div class="eyebrow">Próxima etapa</div><div class="prox">Retorno em 3 semanas: rever os episódios da noite e decidir se aprofundamos com Mapa de Crenças ou seguimos no Corpo.</div></div>
+<div class="sec"><div class="eyebrow">Detalhes do mapa</div><p class="nota-pe">Sem nova aplicação do HOLOSCAN nesta etapa. O mapa do atendimento 1 continua disponível.</p></div>
+</div></section>
+
+<!-- ======================= PROFISSIONAL · MONTAR RESULTADO ======================= -->
+<section class="vista form" id="prof">
+<div class="bloco"><h3>Montar resultado para a paciente</h3>
+<p class="ajuda">O sistema pré-preenche <b>sugestões</b> a partir do Mapeamento, do HOLOSCAN, das ferramentas e da Conduta. Nada vai para a paciente sem a sua confirmação. Blocos vazios não aparecem para ela. <span class="obrig">Foco atual é obrigatório para salvar.</span></p></div>
+
+<div class="bloco"><h3>Seu momento agora</h3><p class="ajuda">Síntese curta. Sugestão factual: <i>"Nesta etapa você trouxe falta de energia; o HOLOSCAN mostrou o Sistema Metabólico como 1ª área para aprofundar."</i> <span class="tag-sug">sugestão — editar</span></p>
+<textarea>Você chegou querendo mais energia ao longo do dia. Nesta primeira etapa, vamos entender como a fome e a energia se distribuem na sua rotina antes de propor mudanças maiores.</textarea></div>
+
+<div class="grid2">
+<div class="bloco"><h3>Dores</h3><p class="ajuda">Marque o que vai para a paciente. Pode reescrever.</p>
+<label class="sug"><input type="checkbox" checked><span>Sono logo depois do almoço.</span><span class="orig">HOLOSCAN · sinal</span></label>
+<label class="sug"><input type="checkbox" checked><span>Fome voltando pouco tempo depois de comer.</span><span class="orig">HOLOSCAN · sinal</span></label>
+<label class="sug"><input type="checkbox" checked><span>Comer depois do jantar sem fome percebida.</span><span class="orig">HOLOSCAN · sinal</span></label>
+<label class="sug"><input type="checkbox" checked><span>Dificuldade de organizar a alimentação nos dias corridos.</span><span class="orig">Mapeamento · dificuldades</span></label>
+<label class="sug pendente"><input type="checkbox"><span>Vontade de doces à tarde.</span><span class="orig">Mapeamento · sugestão</span></label>
+<input type="text" placeholder="+ adicionar dor (relato ou observação)"></div>
+
+<div class="bloco"><h3>Desejos</h3><p class="ajuda">Só a partir do que a paciente disse. Sem dado, sem sugestão.</p>
+<label class="sug"><input type="checkbox" checked><span>Ter mais energia durante o dia e conseguir manter uma alimentação que funcione mesmo nos dias mais corridos.</span><span class="orig">Mapeamento · objetivo</span></label>
+<label class="sug pendente"><input type="checkbox"><span>"Sentir que dou conta da minha rotina."</span><span class="orig">PQQ · pra que verdadeiro</span></label>
+<input type="text" placeholder="+ adicionar desejo"></div>
+</div>
+
+<div class="grid2">
+<div class="bloco"><h3>Avanços</h3><p class="ajuda">1º atendimento: ponto de partida. Nos retornos, sugestões vêm de "o que melhorou", "o que conseguiu praticar" e de acordos concluídos. Marque a origem.</p>
+<div class="sug"><span>Ainda não há evolução registrada — este é o ponto de partida.</span><span class="orig">automático · 1ª consulta</span></div>
+<label class="sug"><input type="checkbox" checked><span>Antes do acompanhamento, levar marmita já ajudou.</span><span class="orig">Mapeamento · o que ajudou</span></label></div>
+
+<div class="bloco"><h3>Padrões e hipóteses</h3><p class="ajuda">Padrão observado pode ir para a paciente. <b>Hipótese nunca vai.</b></p>
+<div class="sug"><span><b>Padrão observado:</b> os sinais relatados se concentram depois das refeições e no fim do dia.</span><span class="orig">visível à paciente</span></div>
+<div class="sug hip"><span><b>Hipótese:</b> investigar se a organização da tarde contribui para a fome noturna.</span><span class="so-prof">só profissional</span></div>
+<input type="text" placeholder="+ padrão observado   ·   + hipótese a investigar"></div>
+</div>
+
+<div class="bloco"><h3>Foco atual do acompanhamento <span class="obrig">*</span></h3><p class="ajuda">Sugestão vinda do objetivo da Conduta. <span class="tag-sug">confirme ou edite</span></p>
+<textarea>Organizar alimentação e rotina para compreender melhor como fome e energia variam ao longo do dia.</textarea></div>
+
+<div class="bloco"><h3>Corpo · Mente · Espírito</h3><p class="ajuda">Ação só se estiver na Conduta ou se você escrever. Território sem material fica "Ainda não aprofundado nesta etapa".</p>
+<div class="grid2">
+<div><b>Corpo</b> <small class="ajuda">(Mapa da Rotina, Momentum, OQ³, Conduta)</small><input type="text" value="Foco: enxergar seu dia real — horários, fome e energia."><input type="text" value="Experiência: Mapa da Rotina + pausa planejada à tarde (da Conduta)."><input type="text" value="Observar: energia depois do almoço; fome no fim da tarde."></div>
+<div><b>Mente</b> <small class="ajuda">(Gatilhos, Crenças, PQQ)</small><input type="text" value="Padrão a aprofundar: comer depois do jantar sem fome."><input type="text" value="O que percebemos: ainda observando."><input type="text" placeholder="Nova resposta (só se definida)"></div>
+</div>
+<div style="margin-top:10px"><b>Espírito</b> <small class="ajuda">(Mapa do Propósito, Roda, Carta, Conexão)</small> <label class="sug" style="margin-top:6px"><input type="checkbox" checked><span>Ainda não aprofundado nesta etapa.</span></label></div></div>
+
+<div class="grid2">
+<div class="bloco"><h3>O que combinamos</h3><p class="ajuda">Acordos da Conduta marcados como compartilháveis (já existe).</p>
+<label class="sug"><input type="checkbox" checked><span>Anotar horário das refeições e energia às 16h.</span><span class="orig">acordo</span></label>
+<label class="sug"><input type="checkbox" checked><span>Pausa planejada à tarde.</span><span class="orig">acordo</span></label></div>
+<div class="bloco"><h3>Até o próximo encontro, observe</h3><p class="ajuda">3 a 5 itens. Sugestão de "Monitoramento" da Conduta.</p>
+<textarea rows="5" style="min-height:110px">Energia depois do almoço
+Quanto tempo depois de comer a fome volta
+Noites em que come sem fome
+Dias mais fáceis — e por quê</textarea></div>
+</div>
+
+<div class="bloco"><h3>Próxima etapa</h3><p class="ajuda">Sugestão de "Retorno" da Conduta.</p><textarea>Retorno em 3 semanas: olhar juntas o que você anotou e decidir o próximo passo.</textarea></div>
+
+<div class="bloco"><h3>Só para você (não vai para a paciente)</h3><p class="ajuda">Questões para aprofundar · hipóteses · leitura técnica do HOLOSCAN — como hoje.</p></div>
+
+<div class="rodape-botoes"><button class="btn">Pré-visualizar como a paciente</button><button class="btn">Salvar rascunho</button><button class="btn p">Salvar Resultado HOLOS</button></div>
+</section>
+
+<script>
+document.querySelectorAll('.abas button').forEach(function (b) {
+  b.addEventListener('click', function () {
+    document.querySelectorAll('.abas button').forEach(function (x) { x.classList.toggle('on', x === b); });
+    document.querySelectorAll('.vista').forEach(function (v) { v.classList.toggle('on', v.id === b.dataset.v); });
+    window.scrollTo(0, 0);
+  });
+});
+</script>
+</body>
+</html>

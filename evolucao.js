@@ -101,7 +101,7 @@
 
   /* Rodada 08: antes x agora tambem na Triade, e a lista de todas as
      aplicacoes (data e Indice) — a evolucao nao e so a primeira e a ultima. */
-  var EIXOS = [["fisico", "Físico"], ["mental", "Mental"], ["espiritual", "Espiritual"]];
+  var EIXOS = [["fisico", "Corpo"], ["mental", "Mente"], ["espiritual", "Espírito"]];
   function blocoTriada(antes, depois) {
     var ta = antes.triada || {}, td = depois.triada || {};
     var F = window.HoloAusencia.fmt;
@@ -160,10 +160,9 @@
     var vDepois = depois.sistemas.map(function (s) { return s.nota; });
 
     var html =
-      '<h4 class="leitura-titulo">Aplicações lado a lado ' + (M ? M.selo("comparabilidade não verificada") : "") + "</h4>" +
+      '<h4 class="leitura-titulo">Aplicações lado a lado</h4>' +
       '<p class="evo-nota">Duas aplicações do HOLOSCAN, uma ao lado da outra. O sistema não ' +
-      "calcula melhora nem piora: a regra de comparabilidade entre aplicações ainda não foi " +
-      "homologada.</p>" +
+      "calcula melhora nem piora: a leitura é sua.</p>" +
       '<div class="evo-corpo">' +
       radarDuplo(vAntes, vDepois, 250,
                  antes.sistemas.map(function (s) { return ROTULO[s.sistema] || s.nome; })) +
@@ -221,14 +220,15 @@
    Historico LONGITUDINAL por atendimento: dois pontos escolhidos
    EXPLICITAMENTE (atendimento anterior x atual, linha de base x atual, dois
    atendimentos, ou duas datas) e as fontes consolidadas de cada um lado a
-   lado — atendimentos, anamnese, medidas, HOLOSCAN, exames, ferramentas,
-   conduta e acordos, e a timeline do intervalo.
+   lado — atendimentos, anamnese, medidas, HOLOSCAN, ferramentas,
+   conduta e acordos, e a timeline do intervalo. Exames NAO entram (decisao
+   de produto 09/10: exame e so arquivo do prontuario, nunca comparado).
 
    Regras (docs/v1/ETAPA3-ARQUITETURA-EVOLUCAO-RELATORIOS.md):
    - nada e inferido: sem dois pontos escolhidos nao ha comparacao, e a
      "primeira aplicacao" nunca vira linha de base em silencio;
    - so o consolidado entra (rascunho, previa e cache local ficam fora);
-   - delta numerico so quando a medida/o exame/a ferramenta sao a MESMA coisa
+   - delta numerico so quando a medida/a ferramenta sao a MESMA coisa
      na MESMA unidade/versao; nunca "melhorou", "piorou" ou "+X%";
    - HOLOSCAN: nenhum delta de nota, Indice, Triada ou faixa (metodologia nao
      homologada) — datas, versao, cobertura, interpretacao e id lado a lado;
@@ -246,8 +246,8 @@
     ["datas", "Duas datas"]
   ];
   var FONTES = [
-    ["atendimentos", "Atendimentos"], ["anamnese", "Anamnese"], ["medidas", "Medidas"], ["holoscan", "HOLOSCAN"],
-    ["exames", "Exames"], ["ferramentas", "Ferramentas"], ["conduta", "Conduta e acordos"], ["timeline", "Linha do tempo do intervalo"]
+    ["atendimentos", "Atendimentos"], ["anamnese", "Mapeamento Holístico"], ["medidas", "Medidas"], ["holoscan", "HOLOSCAN"],
+    ["ferramentas", "Ferramentas"], ["estrategias", "Estratégias"], ["conduta", "Conduta e acordos"], ["timeline", "Linha do tempo do intervalo"]
   ];
   var ESTADOS_SEM_INFO = ["desconhecido", "nao_investigado", "recusado", "nao_aplicavel"];
   var selecoes = {};   // por paciente: { modo, a, b, dataA, dataB, fontes, aberto }
@@ -258,6 +258,8 @@
   function norm(s) { return String(s || "").trim().toLowerCase().replace(/\s+/g, " "); }
   function num(v) { if (v === null || v === undefined || v === "") return null; var n = Number(String(v).replace(",", ".")); return isNaN(n) ? null : n; }
   function fmtDelta(d) { var s = (Math.round(d * 100) / 100); return (s > 0 ? "+" : "") + String(s).replace(".", ","); }
+  /* 16/10: numero na tela em formato brasileiro (virgula), 1 casa */
+  function fmt1(v) { var n = num(v); return n === null ? "—" : n.toFixed(1).replace(".", ","); }
 
   function selecao(pid) {
     if (!selecoes[pid]) {
@@ -342,18 +344,6 @@
     var u2 = ultimoAte(h, p.data, "quando");
     return u2 ? { app: u2, vinculo: "mais recente até a data" } : null;
   }
-  function coletasEm(pid, p) {
-    var todas = (window.Sincronizacao ? window.Sincronizacao.coletas(pid) : null) || [];
-    todas = todas.filter(function (c) { return !c.data_coleta_desconhecida && c.coletado_em; })
-      .sort(function (a, b) { return String(a.coletado_em).localeCompare(String(b.coletado_em)); });
-    if (!p) return [];
-    if (p.tipo === "atendimento") {
-      var doAt = todas.filter(function (c) { return c.encounter_id === p.id; });
-      if (doAt.length) return doAt;
-    }
-    var u = ultimoAte(todas, p.data, "coletado_em");
-    return u ? [u] : [];
-  }
   function ferramentasEm(pid, p) {
     if (!window.Aplicacoes || !p) return [];
     var comSessao = temSupa();
@@ -432,47 +422,13 @@
       var ua = x ? norm(x.medida.unidade) : "", ub = y ? norm(y.medida.unidade) : "";
       var r = { campo: (y || x).campo, antes: x ? x.medida : null, depois: y ? y.medida : null, delta: null, motivo: "" };
       if (!x || !y) r.motivo = !x ? "sem medida no ponto anterior" : "sem medida no ponto atual";
-      else if (ua !== ub) r.motivo = "unidades diferentes (" + (x.medida.unidade || "?") + " × " + (y.medida.unidade || "?") + "): sem delta";
-      else if (va === null || vb === null) r.motivo = "valor não numérico: sem delta";
+      else if (ua !== ub) r.motivo = "unidades diferentes (" + (x.medida.unidade || "?") + " × " + (y.medida.unidade || "?") + "): só lado a lado";
+      else if (va === null || vb === null) r.motivo = "valor não numérico: só lado a lado";
       else { r.delta = vb - va; r.unidade = y.medida.unidade; }
       return r;
     });
   }
 
-  /** Exames por coleta: delta so entre o MESMO exame_id na MESMA unidade. */
-  function compararExames(coletasA, coletasB) {
-    /* Etapa 5: resultado V1 tem identidade exam_code (ou custom) + variante + material;
-       a compatibilidade e o delta vem do LabMotor (unidade igual ou conversao aprovada —
-       nenhuma aprovada; tipo de valor numerico; referencias diferentes ficam visiveis).
-       Resultado legado (exame_id) segue a regra antiga: mesmo exame_id, mesma unidade. */
-    function chave(r) { return r.exam_code || r.custom_exam_id ? "v1|" + (window.LabMotor ? window.LabMotor.identidade(r) : r.exam_code) : "leg|" + r.exame_id; }
-    function mapa(coletas) {
-      var out = {};
-      coletas.filter(function (c) { return c.state !== "rascunho" && !c.superseded_at; }).forEach(function (c) { (c.resultados || []).forEach(function (r) { out[chave(r)] = { r: Object.assign({}, r, { clinical_date: c.coletado_em }), coleta: c }; }); });
-      return out;
-    }
-    var ma = mapa(coletasA), mb = mapa(coletasB), chaves = {};
-    Object.keys(ma).concat(Object.keys(mb)).forEach(function (k) { chaves[k] = true; });
-    return Object.keys(chaves).sort().map(function (k) {
-      var x = ma[k], y = mb[k], r0 = (y || x).r;
-      var nome = r0.exam_code || r0.custom_exam_id ? (window.Laboratorio ? window.Laboratorio.identidadeTexto(r0) : r0.exam_code) : (r0.nome_exame_no_momento || r0.exame_id);
-      var out = { exame_id: r0.exam_code || r0.exame_id || k, nome: nome, antes: x ? x.r : null, depois: y ? y.r : null,
-        dataA: x ? x.coleta.coletado_em : "", dataB: y ? y.coleta.coletado_em : "", delta: null, motivo: "", referencias_diferentes: false };
-      if (!x || !y) { out.motivo = !x ? "sem resultado no ponto anterior" : "sem resultado no ponto atual"; return out; }
-      if (k.indexOf("v1|") === 0 && window.LabMotor) {
-        var c = window.LabMotor.comparar(x.r, y.r, { conversoes: [] });
-        out.referencias_diferentes = c.referencias_diferentes;
-        if (!c.comparavel) out.motivo = c.motivos.map(function (m) { return window.LabMotor.MOTIVO[m] || m; }).join("; ") + ": sem delta";
-        else { out.delta = c.delta; out.unidade = c.unidade; out.direcao = c.direcao; }
-        return out;
-      }
-      if (norm(x.r.unidade_no_momento) !== norm(y.r.unidade_no_momento)) out.motivo = "unidades diferentes (" + (x.r.unidade_no_momento || "?") + " × " + (y.r.unidade_no_momento || "?") + "): sem delta";
-      else { var va = num(x.r.valor), vb = num(y.r.valor); if (va === null || vb === null) out.motivo = "valor não numérico: sem delta"; else { out.delta = vb - va; out.unidade = y.r.unidade_no_momento; } }
-      return out;
-    });
-  }
-
-  /** Ferramentas: lado a lado por ferramenta; delta so com a mesma versao e chaves numericas iguais. */
   function compararFerramentas(fa, fb) {
     var porId = {};
     fa.forEach(function (a) { porId[a.ferramenta_id] = { a: a }; });
@@ -481,11 +437,11 @@
       var x = porId[fid].a, y = porId[fid].b, out = { ferramenta_id: fid, nome: nomeFerramenta(fid), antes: x || null, depois: y || null, deltas: [], motivo: "" };
       if (!x || !y) out.motivo = !x ? "sem aplicação no ponto anterior" : "sem aplicação no ponto atual";
       else if (x.id && y.id && x.id === y.id) out.motivo = "a mesma aplicação nos dois pontos";
-      else if (String(x.versao_ferramenta || "") !== String(y.versao_ferramenta || "")) out.motivo = "versões diferentes (" + (x.versao_ferramenta || "?") + " × " + (y.versao_ferramenta || "?") + "): só lado a lado, sem delta";
+      else if (String(x.versao_ferramenta || "") !== String(y.versao_ferramenta || "")) out.motivo = "formatos diferentes da ferramenta: só lado a lado";
       else {
         var ra = x.resultado && typeof x.resultado === "object" ? x.resultado : {}, rb = y.resultado && typeof y.resultado === "object" ? y.resultado : {};
         Object.keys(rb).forEach(function (k) { var va = num(ra[k]), vb = num(rb[k]); if (va !== null && vb !== null) out.deltas.push({ chave: k, antes: va, depois: vb, delta: vb - va }); });
-        if (!out.deltas.length) out.motivo = "sem chave numérica comparável: só lado a lado";
+        if (!out.deltas.length) out.motivo = "só lado a lado";
       }
       return out;
     });
@@ -519,21 +475,59 @@
     if (!pts.a || !pts.b) return { pontos: pts, pronto: false };
     var anA = anamneseEm(pid, pts.a), anB = anamneseEm(pid, pts.b);
     var cdA = condutaEm(pid, pts.a), cdB = condutaEm(pid, pts.b);
-    var colA = coletasEm(pid, pts.a), colB = coletasEm(pid, pts.b);
     var fA = ferramentasEm(pid, pts.a), fB = ferramentasEm(pid, pts.b);
     return {
       pontos: pts, pronto: true,
       anamnese: { a: anA, b: anB, itens: compararAnamnese(anA, anB) },
       medidas: compararMedidas(anA, anB),
       holoscan: { a: holoscanEm(pid, pts.a), b: holoscanEm(pid, pts.b) },
-      exames: { a: colA, b: colB, itens: compararExames(colA, colB) },
       ferramentas: { a: fA, b: fB, itens: compararFerramentas(fA, fB) },
       conduta: { a: cdA, b: cdB, campos: (window.Conduta ? window.Conduta.CAMPOS : []).map(function (c) {
         var va = cdA ? (cdA[c[0]] || "") : "", vb = cdB ? (cdB[c[0]] || "") : "";
         return { campo: c[0], rotulo: c[1], antes: va, depois: vb, situacao: !va && !vb ? "vazio" : norm(va) === norm(vb) ? "igual" : "alterado" };
       }).filter(function (x) { return x.situacao !== "vazio"; }), acordos: compararAcordos(cdA, cdB) },
-      timeline: window.Timeline ? window.Timeline.noIntervalo(pid, pts.a.data, pts.b.data, { semAgenda: true }) : []
+      timeline: window.Timeline ? window.Timeline.noIntervalo(pid, pts.a.data, pts.b.data, { semAgenda: true }) : [],
+      estrategias: estrategiasEntre(pid, pts.a, pts.b),
+      mapeamento: mapeamentoRetornoAte(pid, pts.b)
     };
+  }
+  /* 16/10 (estabilizacao): o Resultado HOLOS de cada ponto (o vigente do atendimento, ou o mais recente ate a data) */
+  function resultadoEm(pid, p) {
+    var R = window.ResultadoHolos; if (!R || !p) return null;
+    var l = R.doPaciente(pid).filter(function (r) { return r.status !== "rascunho" && !r.superseded_at; });
+    if (p.tipo === "atendimento") l = l.filter(function (r) { return r.encounter_id === p.id; });
+    else l = l.filter(function (r) { var d = diaLocal(r.saved_at || r.created_at); return d && d <= p.data; });
+    return l.sort(function (a, b) { return String(b.saved_at || "").localeCompare(String(a.saved_at || "")); })[0] || null;
+  }
+  function dirDe(r) { return r ? (r.direcao || (r.content_snapshot && r.content_snapshot.direcao_paciente) || null) : null; }
+  /* estrategia anterior + decisao registrada no retorno (as 5 decisoes do Playbook); nada e decidido aqui */
+  function estrategiasEntre(pid, a, b) {
+    var ra = resultadoEm(pid, a), rb = resultadoEm(pid, b), da = dirDe(ra), db = dirDe(rb);
+    var linhas = [];
+    if (db && ra && rb && ra.id !== rb.id) {
+      var decid = {};
+      (db.acompanhamento_estrategias || []).forEach(function (x) {
+        var eid = x && x.estrategia && x.estrategia.estrategia_id;
+        if (eid) decid[eid] = x.decisao || "";
+      });
+      ((da && da.estrategias) || []).forEach(function (e) {
+        if (!e || !e.texto) return;
+        linhas.push({ texto: e.texto, decisao: decid[e.id] || "" });
+      });
+      (db.estrategias || []).forEach(function (e) {
+        if (!e || !e.texto || e.origem === "resultado_anterior") return;
+        linhas.push({ texto: e.texto, decisao: "adicionada" });
+      });
+    }
+    return { a: ra, b: rb, linhas: linhas };
+  }
+  /* o Mapeamento de RETORNO mais recente ate o ponto B (as palavras da paciente) */
+  function mapeamentoRetornoAte(pid, b) {
+    var PC = window.PreConsulta; if (!PC || !PC.respostaRecebida || !b) return null;
+    var rec = PC.respostaRecebida(pid, { tipo: "retorno" });
+    if (!rec || !rec.formulario) return null;
+    if (b.data && rec.submitted_at && diaLocal(rec.submitted_at) > b.data) return null;
+    return rec;
   }
 
   /* ---------- HTML ------------------------------------------------------- */
@@ -569,78 +563,119 @@
     return h + "</div>";
   }
 
+  /* 16/10: sintese do Mapeamento de retorno (o que a paciente marcou), sem jargao e sem leitura automatica */
+  function htmlMapeamentoRetorno(rec) {
+    if (!rec || !rec.formulario) return "";
+    var r = rec.formulario.retorno || {};
+    var NADA = ["Nada mudou ainda", "Nenhuma mudança importante"];
+    var v = function (k) { var x = r[k]; if (Array.isArray(x)) x = x.filter(function (y) { return y && NADA.indexOf(String(y)) < 0; }).join(", "); return x && String(x).trim() && NADA.indexOf(String(x)) < 0 ? String(x).trim() : ""; };
+    var junta = function () { return [].slice.call(arguments).map(v).filter(Boolean).join(" — "); };
+    var blocos = [
+      ["O que mudou", junta("mudanca_geral", "mudanca_obs", "medicamento")],
+      ["O que melhorou", junta("melhorou_opcoes", "melhorou")],
+      ["O que facilitou", junta("facilitou_opcoes")],
+      ["O que dificultou", junta("dificultou_opcoes", "nao_praticou")],
+      ["O que ainda precisa de atenção", junta("piorou_opcoes", "piorou", "nova_questao")]
+    ].filter(function (x) { return x[1]; });
+    if (!blocos.length) return "";
+    return '<div class="evo-mapeamento" id="evo-mapeamento-retorno"><h5 class="evo-sub">Mapeamento de retorno' + (rec.submitted_at ? " (" + escapar(dataBR(rec.submitted_at)) + ")" : "") + "</h5>" +
+      '<ul class="evo-lista-simples">' + blocos.map(function (x) { return "<li><b>" + escapar(x[0]) + ":</b> " + escapar(x[1]) + "</li>"; }).join("") + "</ul>" +
+      '<p class="evo-nota">As palavras da paciente no Mapeamento de retorno. O sistema não interpreta.</p></div>';
+  }
   function htmlAnamnese(c) {
-    var a = c.anamnese.a, b = c.anamnese.b;
-    if (!a && !b) return vazio("Nenhuma anamnese consolidada nos dois pontos.");
-    var cab = col2("A", a ? "<small>rev. " + a.revision_number + " · " + escapar(a.status) + " · registrada em " + escapar(dataBR(a.created_at)) + "</small>" : "<small>sem anamnese consolidada</small>",
-                   "B", b ? "<small>rev. " + b.revision_number + " · " + escapar(b.status) + " · registrada em " + escapar(dataBR(b.created_at)) + "</small>" : "<small>sem anamnese consolidada</small>");
+    var a = c.anamnese.a, b = c.anamnese.b, mr = htmlMapeamentoRetorno(c.mapeamento);
+    if (!a && !b) return mr || vazio("Ainda não há Mapeamento registrado nesses atendimentos.");
+    var cab = col2("Antes", a ? "<small>registrado em " + escapar(dataBR(a.created_at)) + "</small>" : "<small>sem registro neste ponto</small>",
+                   "Agora", b ? "<small>registrado em " + escapar(dataBR(b.created_at)) + "</small>" : "<small>sem registro neste ponto</small>");
     var itens = c.anamnese.itens.filter(function (l) { return l.categoria !== "mantido"; });
     var mantidos = c.anamnese.itens.length - itens.length;
     var tabela = itens.length ? '<table class="evo-tabela"><thead><tr><th>Domínio</th><th>Item</th><th>A</th><th>B</th><th>Situação</th></tr></thead><tbody>' +
       itens.map(function (l) {
         var f = function (it) { if (!it) return "—"; return it.estado === "informado" ? escapar(it.valor || "(informado)") : "[" + escapar(window.Anamnese.rotulo(it.estado)) + "]"; };
         return '<tr class="evo-an-' + l.categoria + '"><td>' + escapar(l.dominio_rotulo) + "</td><td>" + escapar(l.campo) + "</td><td>" + f(l.antes) + "</td><td>" + f(l.depois) + '</td><td><span class="evo-tag ' + l.categoria + '">' + escapar(l.rotulo) + "</span></td></tr>";
-      }).join("") + "</tbody></table>" : vazio("Nenhuma diferença entre os itens das duas anamneses.");
-    return cab + tabela + (mantidos ? '<p class="evo-nota">' + mantidos + (mantidos === 1 ? " item mantido" : " itens mantidos") + " sem alteração.</p>" : "") +
-      '<p class="evo-nota">Diferenças documentais: nenhum item vira “melhora” ou “piora”. Vazio não é negado; só “negado explicitamente” nega.</p>';
+      }).join("") + "</tbody></table>" : vazio("Nenhuma diferença entre os itens dos dois Mapeamentos.");
+    return mr + cab + tabela + (mantidos ? '<p class="evo-nota">' + mantidos + (mantidos === 1 ? " item mantido" : " itens mantidos") + " sem alteração.</p>" : "") +
+      '<p class="evo-nota">O que foi registrado em cada atendimento, lado a lado. Nenhum item vira “melhora” ou “piora”.</p>';
   }
 
   function htmlMedidas(c) {
-    if (!c.medidas.length) return vazio("Nenhuma medida (valor + unidade + data) registrada nas anamneses dos dois pontos.");
+    if (!c.medidas.length) return vazio("Nenhuma medida registrada nos dois atendimentos.");
     var f = function (m) { return m ? escapar(String(m.valor)) + " " + escapar(m.unidade || "") + (m.data ? " <small>(" + escapar(dataBR(m.data)) + ")</small>" : "") : "—"; };
-    return '<table class="evo-tabela"><thead><tr><th>Medida</th><th>A</th><th>B</th><th>Delta</th></tr></thead><tbody>' +
+    return '<table class="evo-tabela"><thead><tr><th>Medida</th><th>Antes</th><th>Agora</th><th>Diferença</th></tr></thead><tbody>' +
       c.medidas.map(function (m) {
         return "<tr><td>" + escapar(m.campo) + "</td><td>" + f(m.antes) + "</td><td>" + f(m.depois) + '</td><td class="evo-delta-cel">' +
-          (m.delta !== null ? "<b>delta " + escapar(fmtDelta(m.delta)) + " " + escapar(m.unidade || "") + "</b>" : '<span class="evo-sem-delta">' + escapar(m.motivo) + "</span>") + "</td></tr>";
-      }).join("") + "</tbody></table><p class=\"evo-nota\">Delta só entre a mesma medida na mesma unidade. Nenhuma conversão, nenhuma leitura de melhora.</p>";
+          (m.delta !== null ? "<b>" + escapar(fmtDelta(m.delta)) + " " + escapar(m.unidade || "") + "</b>" : '<span class="evo-sem-delta">' + escapar(m.motivo) + "</span>") + "</td></tr>";
+      }).join("") + "</tbody></table><p class=\"evo-nota\">Diferença só entre a mesma medida, na mesma unidade. Nenhuma leitura de melhora ou piora.</p>";
   }
 
   function htmlHoloscan(c) {
-    var a = c.holoscan.a, b = c.holoscan.b, M = window.Metodologia;
-    if (!a && !b) return vazio("Nenhuma aplicação consolidada do HOLOSCAN até os pontos escolhidos.");
-    var f = function (x) {
-      if (!x) return "<small>sem aplicação consolidada</small>";
-      var p = x.app, cob = p.cobertura && typeof p.cobertura.respondidos === "number" ? p.cobertura.respondidos + " de " + p.cobertura.total + " respondidas" : "cobertura não registrada";
-      return "<ul class=\"evo-lista-simples\"><li><b>" + escapar(dataBR(p.quando)) + "</b> <small>(" + escapar(x.vinculo) + ")</small></li>" +
-        "<li>versão " + escapar(p.versao_estrutura || "?") + "</li><li>" + escapar(cob) + "</li>" +
-        (p.interpretacao && p.interpretacao.texto ? "<li>Interpretação profissional: " + escapar(p.interpretacao.texto) + "</li>" : "<li>sem interpretação profissional</li>") +
-        "<li><small>aplicação " + escapar(p._supa_id || "(só neste dispositivo)") + "</small></li></ul>";
+    var a = c.holoscan.a, b = c.holoscan.b;
+    if (!a && !b) return vazio("Nenhum HOLOSCAN salvo até esses atendimentos.");
+    /* 16/10 (estabilizacao): ANTES x AGORA lado a lado — data, Indice HOLOS, os cinco sistemas e Corpo/Mente/Espirito.
+       Sem diferenca calculada, sem "melhorou/piorou" (regra mantida: a comparacao entre aplicacoes nao e interpretada). */
+    var pa = a ? a.app : null, pb = b ? b.app : null;
+    var mesma = pa && pb && pa._supa_id && pa._supa_id === pb._supa_id;
+    /* barreira mantida: numeros de aplicacao de teste (pacote nao oficial) nunca aparecem aqui */
+    var M = window.Metodologia, nat = function (p) { return p && M && M.naturezaAplicacao ? M.naturezaAplicacao(p) : (p ? "oficial_v1" : "nenhuma"); };
+    var teste = function (p) { return nat(p) === "homologacao"; };
+    if (teste(pa)) pa = Object.assign({}, pa, { indice: null, score_holos: undefined, sistemas: [], triada: null });
+    if (teste(pb)) pb = Object.assign({}, pb, { indice: null, score_holos: undefined, sistemas: [], triada: null });
+    var indice = function (p) {
+      if (!p) return "—";
+      var v = p.indice !== undefined && p.indice !== null ? p.indice : (p.score_holos !== undefined ? p.score_holos : null);
+      if (v === null) return "—";
+      var H = window.HoloAusencia, t = H && H.indiceTexto && p.indice !== undefined && p.indice !== null ? H.indiceTexto(p) : fmt1(v);
+      return escapar(t) + (p.indice_maximo ? " <small>de " + escapar(String(p.indice_maximo)) + "</small>" : "");
     };
-    var mesma = a && b && a.app._supa_id && a.app._supa_id === b.app._supa_id;
-    return col2("A", f(a), "B", f(b)) + (mesma ? '<p class="evo-nota">A mesma aplicação vale nos dois pontos.</p>' : "") +
-      '<p class="evo-nota">' + (M ? M.selo("comparação não homologada") + " " : "") + "Sem delta de notas, Índice, Tríade ou faixas: a regra de comparabilidade entre aplicações não foi homologada. Datas, versão, cobertura bruta e interpretação profissional lado a lado.</p>";
-  }
-
-  function htmlExames(c) {
-    var it = c.exames.itens;
-    if (!it.length) return vazio("Nenhuma coleta com data nos dois pontos.");
-    var f = function (r, d) { return r ? escapar(String(r.valor)) + " " + escapar(r.unidade_no_momento || "") + (d ? " <small>(" + escapar(dataBR(d)) + ")</small>" : "") : "—"; };
-    return '<table class="evo-tabela"><thead><tr><th>Exame</th><th>A</th><th>B</th><th>Delta</th></tr></thead><tbody>' +
-      it.map(function (x) {
-        return "<tr><td>" + escapar(x.nome) + "</td><td>" + f(x.antes, x.dataA) + "</td><td>" + f(x.depois, x.dataB) + '</td><td class="evo-delta-cel">' +
-          (x.delta !== null ? "<b>delta " + escapar(fmtDelta(x.delta)) + " " + escapar(x.unidade || "") + "</b>" : '<span class="evo-sem-delta">' + escapar(x.motivo) + "</span>") + "</td></tr>";
-      }).join("") + "</tbody></table><p class=\"evo-nota\">Delta só entre o mesmo exame canônico na mesma unidade. Nenhuma equivalência inventada entre exames parecidos; faixas de referência não entram.</p>";
+    var nomes = [], porNome = function (p) { var m = {}; ((p && p.sistemas) || []).forEach(function (x) { var n = x.nome || x.sistema; if (!n) return; m[n] = x; if (nomes.indexOf(n) < 0) nomes.push(n); }); return m; };
+    var sa = porNome(pa), sb = porNome(pb);
+    var tri = function (p, e) { var t = p && p.triada ? p.triada[e] : null; return t === null || t === undefined ? "—" : fmt1(t); };
+    var linha = function (rot, va, vb, cls) { return '<tr' + (cls ? ' class="' + cls + '"' : "") + "><td>" + escapar(rot) + "</td><td>" + va + "</td><td>" + vb + "</td></tr>"; };
+    var nota = function (x) { return x && x.nota !== null && x.nota !== undefined ? fmt1(x.nota) : "—"; };
+    var html = '<table class="evo-tabela evo-holoscan" id="evo-holoscan-tabela"><thead><tr><th></th><th>Antes</th><th>Agora</th></tr></thead><tbody>' +
+      linha("Data", pa ? escapar(dataBR(pa.quando)) : "—", pb ? escapar(dataBR(pb.quando)) : "—") +
+      linha("Índice HOLOS", indice(pa), indice(pb), "evo-indice") +
+      nomes.map(function (n) { return linha(n, nota(sa[n]), nota(sb[n])); }).join("") +
+      linha("Corpo", tri(pa, "fisico"), tri(pb, "fisico")) + linha("Mente", tri(pa, "mental"), tri(pb, "mental")) + linha("Espírito", tri(pa, "espiritual"), tri(pb, "espiritual")) +
+      "</tbody></table>";
+    var interp = function (p) { return p && p.interpretacao && p.interpretacao.texto ? escapar(p.interpretacao.texto) : "<small>sem interpretação escrita</small>"; };
+    html += '<h5 class="evo-sub">Sua interpretação</h5>' + col2("Antes", "<p>" + interp(pa) + "</p>", "Agora", "<p>" + interp(pb) + "</p>");
+    var avisos = "";
+    if ((a && teste(a.app)) || (b && teste(b.app))) avisos += '<p class="evo-nota">Aplicação de teste: os números dela não aparecem aqui.</p>';
+    else if (pa && pb && !mesma && nat(pa) !== nat(pb)) avisos += '<p class="evo-nota">As duas aplicações usaram questionários diferentes: os números não são comparáveis entre si.</p>';
+    return html + (mesma ? '<p class="evo-nota">O mesmo HOLOSCAN vale nos dois pontos (ele não foi reaplicado).</p>' : "") + avisos +
+      '<p class="evo-nota">Os números ficam lado a lado, como foram calculados em cada aplicação. Nada é comparado por conta própria: o sistema não calcula a diferença nem diz se melhorou ou piorou. A leitura é sua.</p>';
   }
 
   function htmlFerramentas(c) {
     var it = c.ferramentas.itens;
-    if (!it.length) return vazio("Nenhuma ferramenta concluída até os pontos escolhidos.");
-    var f = function (a) { return a ? "<small>" + escapar(dataBR(a.concluida_em || a.iniciada_em)) + " · versão " + escapar(a.versao_ferramenta || "?") + (a.leitura ? "</small><br>" + escapar(a.leitura) : "</small>") : "—"; };
+    if (!it.length) return vazio("Nenhuma ferramenta concluída até esses atendimentos.");
+    var f = function (a) { return a ? "<small>" + escapar(dataBR(a.concluida_em || a.iniciada_em)) + (a.leitura ? "</small><br>" + escapar(a.leitura) : "</small>") : "—"; };
     return it.map(function (x) {
-      return '<div class="evo-ferr"><h5 class="evo-sub">' + escapar(x.nome) + "</h5>" + col2("A", f(x.antes), "B", f(x.depois)) +
-        (x.deltas.length ? '<ul class="evo-lista-simples">' + x.deltas.map(function (d) { return "<li>" + escapar(d.chave) + ": " + escapar(String(d.antes)) + " → " + escapar(String(d.depois)) + " <b>(delta " + escapar(fmtDelta(d.delta)) + ")</b></li>"; }).join("") + "</ul>"
+      return '<div class="evo-ferr"><h5 class="evo-sub">' + escapar(x.nome) + "</h5>" + col2("Antes", f(x.antes), "Agora", f(x.depois)) +
+        (x.deltas.length ? '<ul class="evo-lista-simples">' + x.deltas.map(function (d) { return "<li>" + escapar(d.chave) + ": " + escapar(String(d.antes)) + " → " + escapar(String(d.depois)) + " <b>(" + escapar(fmtDelta(d.delta)) + ")</b></li>"; }).join("") + "</ul>"
           : '<p class="evo-sem-delta">' + escapar(x.motivo) + "</p>") + "</div>";
-    }).join("") + '<p class="evo-nota">Delta só na mesma ferramenta, mesma versão e mesma escala. Nenhuma leitura automática.</p>';
+    }).join("") + '<p class="evo-nota">Diferença só na mesma ferramenta e na mesma escala. Nenhuma leitura automática.</p>';
+  }
+
+  /* 16/10: estrategia anterior -> decisao registrada no retorno (MANTER, AJUSTAR, SUBSTITUIR, CONCLUIR, ENCERRAR) e as novas */
+  var DECISAO = { manter: "MANTER", ajustar: "AJUSTAR", substituir: "SUBSTITUIR", concluir: "CONCLUIR", encerrar: "ENCERRAR", adicionada: "ADICIONADA" };
+  function htmlEstrategias(c) {
+    var e = c.estrategias || { linhas: [] };
+    if (!e.linhas.length) return vazio(e.a && e.b && e.a.id === e.b.id ? "Os dois pontos usam o mesmo Resultado HOLOS." : "Sem Resultado HOLOS nos dois atendimentos para mostrar as estratégias.");
+    return '<ul class="evo-estrategias" id="evo-estrategias">' + e.linhas.map(function (l) {
+      return "<li><span>" + escapar(l.texto) + '</span> <span aria-hidden="true">→</span> <b class="evo-decisao evo-decisao-' + escapar(l.decisao || "sem") + '">' + escapar(DECISAO[l.decisao] || "sem decisão registrada") + "</b></li>";
+    }).join("") + '</ul><p class="evo-nota">As decisões são as que você registrou no Playbook do retorno. Nada é decidido automaticamente.</p>';
   }
 
   function htmlConduta(c) {
     var a = c.conduta.a, b = c.conduta.b, Cd = window.Conduta;
-    if (!a && !b) return vazio("Nenhuma conduta consolidada nos dois pontos.");
-    var cab = col2("A", a ? "<small>rev. " + a.revision_number + " · " + escapar(a.status) + "</small>" : "<small>sem conduta consolidada</small>",
-                   "B", b ? "<small>rev. " + b.revision_number + " · " + escapar(b.status) + (b.previous_decision ? " · decisão sobre a anterior: " + escapar(Cd.rotulo(b.previous_decision)) : "") + "</small>" : "<small>sem conduta consolidada</small>");
-    var campos = c.conduta.campos.length ? '<table class="evo-tabela"><thead><tr><th>Campo</th><th>A</th><th>B</th><th></th></tr></thead><tbody>' +
+    if (!a && !b) return vazio("Nenhuma conduta registrada nesses atendimentos.");
+    var cab = col2("Antes", a ? "<small>registrada</small>" : "<small>sem conduta neste ponto</small>",
+                   "Agora", b ? "<small>registrada" + (b.previous_decision ? " · decisão sobre a anterior: " + escapar(Cd.rotulo(b.previous_decision)) : "") + "</small>" : "<small>sem conduta neste ponto</small>");
+    var campos = c.conduta.campos.length ? '<table class="evo-tabela"><thead><tr><th>Campo</th><th>Antes</th><th>Agora</th><th></th></tr></thead><tbody>' +
       c.conduta.campos.map(function (x) { return "<tr><td>" + escapar(x.rotulo) + "</td><td>" + escapar(x.antes || "—") + "</td><td>" + escapar(x.depois || "—") + '</td><td><span class="evo-tag ' + x.situacao + '">' + (x.situacao === "igual" ? "Igual" : "Alterado") + "</span></td></tr>"; }).join("") + "</tbody></table>" : "";
-    var ac = c.conduta.acordos.length ? '<h5 class="evo-sub">Acordos</h5><table class="evo-tabela" id="evo-acordos"><thead><tr><th>Acordo (A)</th><th>Estado em A</th><th>Acordo (B)</th><th>Estado em B</th><th>Situação</th></tr></thead><tbody>' +
+    var ac = c.conduta.acordos.length ? '<h5 class="evo-sub">Acordos</h5><table class="evo-tabela" id="evo-acordos"><thead><tr><th>Acordo (antes)</th><th>Estado antes</th><th>Acordo (agora)</th><th>Estado agora</th><th>Situação</th></tr></thead><tbody>' +
       c.conduta.acordos.map(function (l) {
         return "<tr><td>" + (l.antes ? escapar(l.antes.description) : "—") + "</td><td>" + (l.antes ? escapar(Cd.rotulo(l.antes.status)) : "—") + "</td><td>" + (l.depois ? escapar(l.depois.description) : "—") + "</td><td>" + (l.depois ? escapar(Cd.rotulo(l.depois.status)) : "—") + '</td><td><span class="evo-tag ' + l.situacao + '">' + escapar(l.rotulo) + "</span></td></tr>";
       }).join("") + "</tbody></table>" : vazio("Nenhum acordo nas duas condutas.");
@@ -660,18 +695,17 @@
   }
 
   function htmlTimeline(c) {
-    if (!c.timeline.length) return vazio("Nenhum evento consolidado entre os dois pontos.");
+    if (!c.timeline.length) return vazio("Nenhum registro entre os dois atendimentos.");
     return '<div class="fic-tempo">' + c.timeline.map(window.Timeline.eventoHtml).join("") + "</div>";
   }
 
   function resumo(c) {
     var n = function (lista, f) { return lista.filter(f).length; };
     var partes = [];
-    partes.push(n(c.anamnese.itens, function (l) { return l.categoria !== "mantido"; }) + " itens de anamnese com diferença");
-    partes.push(n(c.medidas, function (m) { return m.delta !== null; }) + " medidas com delta comparável");
-    partes.push(n(c.exames.itens, function (m) { return m.delta !== null; }) + " exames com delta comparável");
+    partes.push(n(c.anamnese.itens, function (l) { return l.categoria !== "mantido"; }) + " itens do Mapeamento com diferença");
+    partes.push(n(c.medidas, function (m) { return m.delta !== null; }) + " medidas registradas nos dois pontos");
     partes.push(c.conduta.acordos.length + " acordos acompanhados");
-    partes.push(c.timeline.length + " eventos consolidados no intervalo");
+    partes.push(c.timeline.length + " registros no intervalo");
     return '<p class="evo-resumo">' + partes.map(escapar).join(" · ") + "</p>";
   }
 
@@ -682,8 +716,7 @@
     if (!pid) { alvo.innerHTML = '<div class="dash-vazio">Escolha uma paciente.</div>'; return; }
     var s = selecao(pid), c = comparar(pid), M = window.Metodologia;
     var html = '<div class="evo-cabecalho"><h3 class="dash-titulo">Evolução por atendimento</h3>' +
-      '<p class="dash-sub">Dois pontos escolhidos por você, fontes consolidadas lado a lado. Nada é comparado por conta própria' +
-      (M ? " " + M.selo("sem comparação metodológica") : "") + ".</p></div>";
+      '<p class="dash-sub">Antes e agora, lado a lado. Nada é comparado por conta própria: o sistema não calcula melhora nem piora. A leitura é sua.</p></div>';
     html += htmlSelecao(pid, s, c.pontos);
     if (!c.pronto) {
       html += '<div class="dash-vazio" id="evo-sem-comparacao">' + escapar(c.pontos.motivo || "Escolha os dois pontos.") + "</div>";
@@ -693,8 +726,8 @@
       if (s.fontes.anamnese) html += secao("anamnese", "Anamnese: o que mudou", htmlAnamnese(c), s);
       if (s.fontes.medidas) html += secao("medidas", "Medidas", htmlMedidas(c), s);
       if (s.fontes.holoscan) html += secao("holoscan", "HOLOSCAN lado a lado", htmlHoloscan(c), s);
-      if (s.fontes.exames) html += secao("exames", "Exames", htmlExames(c), s);
       if (s.fontes.ferramentas) html += secao("ferramentas", "Ferramentas", htmlFerramentas(c), s);
+      if (s.fontes.estrategias) html += secao("estrategias", "Estratégias: anterior e decisão", htmlEstrategias(c), s);
       if (s.fontes.conduta) html += secao("conduta", "Conduta e acordos", htmlConduta(c), s);
       if (s.fontes.timeline) html += secao("timeline", "Linha do tempo do intervalo", htmlTimeline(c), s);
     }
@@ -733,7 +766,6 @@
         itens: c.anamnese.itens.map(function (l) { return { dominio: l.dominio, campo: l.campo, categoria: l.categoria }; }) },
       medidas: c.medidas.map(function (m) { return { campo: m.campo, antes: m.antes, depois: m.depois, delta: m.delta, unidade: m.unidade || null, motivo: m.motivo || null }; }),
       holoscan: { a_id: c.holoscan.a ? c.holoscan.a.app._supa_id || null : null, b_id: c.holoscan.b ? c.holoscan.b.app._supa_id || null : null, delta: null, nota: "sem comparação metodológica (não homologada)" },
-      exames: c.exames.itens.map(function (x) { return { exame_id: x.exame_id, antes: x.antes, depois: x.depois, delta: x.delta, unidade: x.unidade || null, motivo: x.motivo || null }; }),
       ferramentas: c.ferramentas.itens.map(function (x) { return { ferramenta_id: x.ferramenta_id, a_id: x.antes ? x.antes.id : null, b_id: x.depois ? x.depois.id : null, deltas: x.deltas, motivo: x.motivo || null }; }),
       conduta: { a_id: c.conduta.a ? c.conduta.a.id : null, b_id: c.conduta.b ? c.conduta.b.id : null,
         acordos: c.conduta.acordos.map(function (l) { return { origem_id: l.antes ? l.antes.id : null, atual_id: l.depois ? l.depois.id : null, estado_anterior: l.antes ? l.antes.status : null, estado_atual: l.depois ? l.depois.status : null, situacao: l.situacao }; }) },
@@ -745,7 +777,7 @@
     MODOS: MODOS, FONTES: FONTES,
     selecao: selecao, selecionar: function (pid, patch) { Object.assign(selecao(pid), patch || {}); },
     atendimentos: atendimentos, pontos: pontos, comparar: comparar, metadados: metadados, desenhar: desenhar,
-    compararAnamnese: compararAnamnese, compararMedidas: compararMedidas, compararExames: compararExames,
+    compararAnamnese: compararAnamnese, compararMedidas: compararMedidas,
     compararFerramentas: compararFerramentas, compararAcordos: compararAcordos,
     esquecer: function () { selecoes = {}; }
   };

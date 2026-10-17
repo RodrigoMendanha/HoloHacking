@@ -366,11 +366,11 @@ ok(/Voltar a caminhar sem dor/.test(m2.quer.txt),
    'e as metades do OQ³ continuam lá, juntas com as do PQQ');
 
 const card2 = await verCard();
-ok(card2.estado === 'pronto para montar',
-   'o card passa a "pronto para montar" — as duas metades existem');
+ok(card2.estado === 'montado',
+   'o card passa a "montado" — as duas metades existem (simulacao 08/10)');
 ok(/pronto/.test(card2.classes),
    'e agora sim marcado como pronto');
-ok(/As duas metades estão preenchidas/.test(card2.extra),
+ok(/Montado a partir do OQ³ e do PQQ salvos/.test(card2.extra),
    'e diz por quê, sem inventar histórico do Mapa');
 
 /* --- o Mapa não persiste nada ------------------------------------------ */
@@ -454,8 +454,8 @@ ok(leitura.noBanco === 5,
 
 /* --- a Tríade descreve, não prescreve ---------------------------------- */
 ok(leitura.triadaVisivel, 'a Tríade HOLOS continua aparecendo');
-ok(/Físico/.test(leitura.triadaTxt) && /Mental/.test(leitura.triadaTxt) &&
-   /Espiritual/.test(leitura.triadaTxt),
+ok(/Corpo/.test(leitura.triadaTxt) && /Mente/.test(leitura.triadaTxt) &&
+   /Espírito/.test(leitura.triadaTxt),
    'com os três eixos');
 ok(/Dimensão mais baixa/.test(leitura.triadaTxt),
    'e continua identificando a dimensão mais baixa — isso é descrição');

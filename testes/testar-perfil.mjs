@@ -49,12 +49,13 @@ const vazio = await p.evaluate(() => ({
   nome: document.getElementById('sr-nome').textContent,
   feitos: document.querySelectorAll('.perf-lista li.feito').length,
   total: document.querySelectorAll('.perf-lista li').length,
-  abas: [...document.querySelectorAll('[data-aba-perfil]')].map(b => b.textContent.trim()),
+  abas: [...document.querySelectorAll('[data-aba-perfil]')].filter(b => !b.hidden).map(b => b.textContent.trim()),
+  iaEscondida: document.getElementById('tab-ia').hidden,
 }));
 
 conferir(vazio.ativa && vazio.caminho === 'Perfil', 'a seção abre pelo menu');
-conferir(vazio.abas.join(',') === 'Perfil,Marca,Preferências,Conta',
-  'as quatro abas: ' + vazio.abas.join(' · '));
+conferir(vazio.abas.join(',') === 'Perfil,Marca,Preferências,Conta' && vazio.iaEscondida,
+  'as quatro abas visíveis (16/10: Assistente de IA escondida): ' + vazio.abas.join(' · '));
 conferir(vazio.total === 9 && vazio.feitos === 1,
   'a checagem começa quase toda vazia: ' + vazio.feitos + ' de ' + vazio.total);
 conferir(vazio.nome === 'Profissional' && vazio.pct === '11%',
@@ -170,16 +171,13 @@ conferir(/--rel-p:\s*#8c682b/.test(noPapel.cor),
 
 /* ------------------------------------------- o limite dos documentos ----- */
 
-const naTelaDeDocumentos = await p.evaluate(async () => {
-  document.querySelector('.nav-item[data-secao="documentos"]').click();
-  await new Promise(r => setTimeout(r, 500));
-  return {
-    itens: document.querySelectorAll('.doc-todos-item').length,
-    texto: document.getElementById('documentos-corpo').innerText.replace(/\s+/g, ' '),
-  };
+/* 09/10: a secao global Documentos saiu; o limite e provado na listagem geral do ArquivoStore (o que a ficha le) */
+const entreDocumentos = await p.evaluate(async () => {
+  const todos = await window.ArquivoStore.listarTudo();
+  return { itens: todos.filter(d => d.paciente !== '_perfil').length, perfil: todos.filter(d => d.paciente === '_perfil').length, semMenu: !document.querySelector('.nav-item[data-secao="documentos"]') };
 });
-conferir(naTelaDeDocumentos.itens === 0 && /Nenhum documento guardado/i.test(naTelaDeDocumentos.texto),
-  'a assinatura e o logo NÃO aparecem entre os documentos dos pacientes');
+conferir(entreDocumentos.itens === 0 && entreDocumentos.semMenu,
+  'a assinatura e o logo NÃO aparecem entre os documentos dos pacientes (e nao ha mais tela global de Documentos): ' + JSON.stringify(entreDocumentos));
 
 /* -------------------------------------------------- os módulos ----------- */
 

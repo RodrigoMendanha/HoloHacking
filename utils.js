@@ -1,4 +1,11 @@
 "use strict";
+/* 14/10: a Holos IA fica ESCONDIDA (menu, aba, botoes e passo da jornada); o Resultado sai pelo Playbook HOLOS.
+   O codigo da Holos IA continua: para religar, basta true aqui. */
+window.HOLOS_IA_VISIVEL = false;
+/* 16/10 (estabilizacao): a aba "Assistente de IA" (MCP) do Perfil tambem fica ESCONDIDA. O backend (mcp_keys e a funcao
+   holohacking-mcp) nao esta publicado e a direcao do produto e o Resultado pelo Playbook. O codigo continua (conexao-ia.js):
+   para religar, true aqui (ou window.ASSISTENTE_IA_VISIVEL = true antes de carregar a pagina, como fazem os testes do MCP). */
+if (window.ASSISTENTE_IA_VISIVEL !== true) window.ASSISTENTE_IA_VISIVEL = false;
 (function () {
   window.escapar = function (s) {
     return String(s == null ? "" : s)
@@ -97,21 +104,24 @@
     var r = Math.floor(Math.abs(n) * k + 0.5 + 1e-9) / k;
     return (n < 0 && r !== 0 ? -r : r).toFixed(c);
   }
+  /* 16/10 (estabilizacao): na TELA o numero sai em formato brasileiro (virgula decimal). So apresentacao: os valores
+     guardados, o motor e os calculos continuam numericos/com ponto (arredondar() nao muda). */
+  function virgula(t) { return String(t).replace(/^(-?\d+)\.(\d+)$/, "$1,$2"); }
   function fmt(v, casas) {
-    return vazioNum(v) ? "—" : arredondar(v, casas);
+    return vazioNum(v) ? "—" : virgula(arredondar(v, casas));
   }
   /** Nota de um sistema na tela: a exibicao do motor oficial quando existe. */
   function notaTexto(s) {
     if (semNota(s)) return "—";
-    return typeof s.nota_exibicao === "string" && s.nota_exibicao ? s.nota_exibicao : fmt(s.nota);
+    return typeof s.nota_exibicao === "string" && s.nota_exibicao ? virgula(s.nota_exibicao) : fmt(s.nota);
   }
   /** Indice HOLOS na tela. Aplicacao oficial V1: 1 casa, ou "—" quando nao
       avaliavel (sem Indice parcial). Historica: o numero como foi gravado. */
   function indiceTexto(p) {
     if (!p || vazioNum(p.indice)) return "—";
-    if (typeof p.indice_exibicao === "string" && p.indice_exibicao) return p.indice_exibicao;
-    if (p.oficial === true || p.methodology_package_id) return arredondar(p.indice, 1);
-    return String(p.indice);
+    if (typeof p.indice_exibicao === "string" && p.indice_exibicao) return virgula(p.indice_exibicao);
+    if (p.oficial === true || p.methodology_package_id) return virgula(arredondar(p.indice, 1));
+    return virgula(String(p.indice));
   }
 
   function porNota(a, b) {
@@ -140,7 +150,35 @@
     return n;
   }
 
+  /* Duas entradas do historico sao a MESMA aplicacao? Com as respostas dos
+     dois lados, compara as respostas; sem elas (entrada que veio do
+     servidor nao traz respostas), compara as notas dos cinco sistemas, a
+     cobertura e o pacote. Serve so para nao deixar um calculo repetido
+     pendurado como "nao salvo no servidor" ao lado da aplicacao salva. */
+  function assinRespostas(o) {
+    return JSON.stringify(Object.keys(o || {}).sort().map(function (k) { return [k, o[k]]; }));
+  }
+  function mesmaAplicacao(a, b) {
+    if (!a || !b) return false;
+    if (a.methodology_package_id && b.methodology_package_id && a.methodology_package_id !== b.methodology_package_id) return false;
+    var ra = a.respostas && Object.keys(a.respostas).length, rb = b.respostas && Object.keys(b.respostas).length;
+    if (ra && rb) return assinRespostas(a.respostas) === assinRespostas(b.respostas);
+    if (!Array.isArray(a.sistemas) || !Array.isArray(b.sistemas) || a.sistemas.length !== b.sistemas.length) return false;
+    var nb = {};
+    b.sistemas.forEach(function (s) { nb[s.sistema] = s; });
+    var iguais = a.sistemas.every(function (s) {
+      var o = nb[s.sistema];
+      if (!o) return false;
+      if (semNota(s) || semNota(o)) return semNota(s) === semNota(o);
+      return Math.abs(Number(s.nota) - Number(o.nota)) < 0.005;
+    });
+    if (!iguais) return false;
+    var ca = a.cobertura && a.cobertura.respondidos, cb = b.cobertura && b.cobertura.respondidos;
+    return ca === undefined || cb === undefined || ca === cb;
+  }
+
   window.HoloAusencia = {
+    mesmaAplicacao: mesmaAplicacao,
     coberturaMinima: coberturaMinima,
     normalizar: normalizar, semNota: semNota, suficiente: suficiente,
     cobertura: cobertura, fmt: fmt, porNota: porNota, porLeitura: porLeitura, notas: notas,
@@ -233,6 +271,23 @@
     "Magnesio eritrocitario": "Magnésio eritrocitário",
     "Homocisteina": "Homocisteína"
   };
+  /* Triade: a(s) dimensao(oes) de menor nota, sem escolher uma no empate (motor de resultados V1, 12/10, item 4.3).
+     Uma regra so para a tela do HOLOSCAN, o Resultado HOLOS e a Sintese. lista: [{ nome, valor }] (valor null = sem dado).
+     Devolve { menores: [nomes], todas: bool, frase } — frase vazia com menos de 2 dimensoes com dado. */
+  window.triadeMenores = function (lista) {
+    var com = (lista || []).filter(function (t) { return typeof t.valor === "number" && !isNaN(t.valor); });
+    if (!com.length) return { menores: [], todas: false, frase: "" };
+    /* so um eixo com dado: ele e o destacado (comportamento anterior do HOLOSCAN: eixo sem dado nao compete) */
+    if (com.length === 1) return { menores: [com[0].nome], todas: false, frase: "Dimensão mais baixa: " + com[0].nome + "." };
+    var min = Math.min.apply(null, com.map(function (t) { return t.valor; }));
+    var menores = com.filter(function (t) { return t.valor === min; }).map(function (t) { return t.nome; });
+    var todas = menores.length === com.length;
+    var frase = menores.length === 1 ? "Dimensão mais baixa: " + menores[0] + "."
+      : todas && com.length === 3 ? "As três dimensões apresentaram a mesma nota."
+      : menores.slice(0, -1).join(", ") + " e " + menores[menores.length - 1] + " apresentaram a mesma nota" + (todas ? "." : ", a menor entre as dimensões.");
+    return { menores: menores, todas: todas, frase: frase };
+  };
+
   window.rotuloExibivel = function (s) {
     if (s === null || s === undefined) return s;
     var t = String(s);

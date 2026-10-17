@@ -370,7 +370,8 @@ const docConf = await p.evaluate(async () => {
   let pediu = false, msg = '';
   if (painel) {
     const fakeBtn = document.createElement('button');
-    fakeBtn.setAttribute('data-tirar', 'id-inexistente');
+    fakeBtn.setAttribute('data-arquivar', 'id-inexistente');   /* 09/10: documento se ARQUIVA, nao se exclui */
+    fakeBtn.setAttribute('data-nome', 'Documento de teste');
     painel.appendChild(fakeBtn);
     fakeBtn.click();
     await new Promise(r => setTimeout(r, 100));
@@ -385,8 +386,8 @@ const docConf = await p.evaluate(async () => {
 });
 
 /* rodada 08: a confirmacao e o modal global, nao o confirm() nativo */
-ok(docConf.pediu, 'excluir documento pede confirmação');
-ok(/excluir|desfeita/i.test(docConf.msg), 'mensagem de confirmação adequada: ' + docConf.msg);
+ok(docConf.pediu, 'arquivar documento pede confirmação');
+ok(/Arquivar documento/.test(docConf.msg) && /não é apagado/.test(docConf.msg), 'mensagem de confirmação adequada (arquiva, nada é apagado): ' + docConf.msg);
 
 const docErro = await p.evaluate(async () => {
   let avisoMsg = '';

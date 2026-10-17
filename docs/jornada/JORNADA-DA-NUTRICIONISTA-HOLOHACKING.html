@@ -1,0 +1,1911 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<title>HoloHacking — Jornada da Nutricionista com a Paciente</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>/* HoloHacking — Jornada da Nutricionista: identidade do app (style.css) em A4 */
+:root{
+  --verde-noite:#06231a; --verde-escuro:#0b3325; --verde-medio:#14503b; --verde-suave:#2c6a51;
+  --dourado:#c9a35a; --dourado-claro:#e2c98a; --dourado-escuro:#8a6f32;
+  --creme:#f4efe3; --creme-claro:#faf7ee; --tinta:#1d3a2e; --tinta-suave:#4f6a5d;
+  --linha:rgba(29,58,46,.14);
+}
+@page{ size:A4; margin:20mm 19mm 22mm 19mm; }
+@page :first{ margin:0; }
+*{ box-sizing:border-box; }
+html{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+body{ margin:0; font-family:'Jost',sans-serif; font-weight:400; font-size:10.4pt; line-height:1.58; color:var(--tinta); background:#fff; }
+p{ margin:0 0 .62em; orphans:3; widows:3; }
+strong{ font-weight:600; color:var(--verde-escuro); }
+em{ color:var(--tinta); }
+a{ color:var(--verde-medio); text-decoration:none; }
+
+/* ---------- títulos editoriais ---------- */
+h1,h2,h3,h4{ font-family:'Cormorant Garamond',serif; color:var(--verde-escuro); font-weight:600; break-after:avoid; page-break-after:avoid; }
+h1{ font-size:27pt; line-height:1.1; margin:0 0 4mm; padding-top:2mm; break-before:page; page-break-before:always; }
+h1 + p.abre{ font-family:'Cormorant Garamond',serif; font-size:14.5pt; font-style:italic; color:var(--tinta-suave); line-height:1.4; margin-bottom:6mm; }
+h1::before{ content:""; display:block; width:16mm; height:2px; background:var(--dourado); margin-bottom:5mm; }
+h2{ font-size:17pt; margin:7mm 0 2.5mm; }
+h3{ font-size:13.2pt; margin:5mm 0 2mm; color:var(--verde-medio); }
+h4{ font-family:'Jost',sans-serif; font-size:8.6pt; letter-spacing:.14em; text-transform:uppercase; color:var(--dourado-escuro); margin:4mm 0 1.5mm; font-weight:600; }
+.eyebrow{ font-size:8pt; letter-spacing:.22em; text-transform:uppercase; color:var(--dourado-escuro); font-weight:600; margin-bottom:2mm; }
+ul,ol{ margin:0 0 .7em; padding-left:5.5mm; }
+li{ margin-bottom:.22em; }
+li::marker{ color:var(--dourado-escuro); }
+hr{ border:0; height:1px; background:var(--linha); margin:6mm 0; }
+
+/* ---------- capa ---------- */
+.capa{ width:210mm; height:297mm; background:radial-gradient(120% 80% at 50% 30%, #0f3d2c 0%, var(--verde-escuro) 45%, var(--verde-noite) 100%); color:var(--creme);
+  display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:30mm 24mm 22mm; text-align:center; break-after:page; page-break-after:always; position:relative; overflow:hidden; }
+.capa::before{ content:""; position:absolute; inset:9mm; border:1px solid rgba(201,163,90,.35); pointer-events:none; }
+.capa .marca{ font-size:9pt; letter-spacing:.42em; color:var(--dourado-claro); font-weight:500; }
+.capa img.pinha{ width:52mm; height:auto; margin:10mm 0 8mm; filter:drop-shadow(0 6px 18px rgba(0,0,0,.35)); }
+.capa h1.titulo-capa{ break-before:auto; page-break-before:auto; font-size:38pt; color:var(--creme); margin:0 0 5mm; line-height:1.05; padding:0; }
+.capa h1.titulo-capa::before{ display:none; }
+.capa .sub{ font-family:'Cormorant Garamond',serif; font-style:italic; font-size:16pt; color:var(--dourado-claro); line-height:1.35; max-width:140mm; margin:0 auto 6mm; }
+.capa .sub2{ font-size:9.6pt; color:rgba(244,239,227,.8); max-width:125mm; margin:0 auto; letter-spacing:.02em; }
+.capa .rodape-capa{ font-size:8pt; letter-spacing:.2em; text-transform:uppercase; color:rgba(226,201,138,.8); }
+.capa .filete{ width:22mm; height:1px; background:var(--dourado); margin:6mm auto; }
+
+/* ---------- abertura e frases-chave ---------- */
+.frase{ font-family:'Cormorant Garamond',serif; font-size:17pt; line-height:1.3; color:var(--verde-escuro); text-align:center; padding:8mm 10mm; margin:6mm 0; border-top:1px solid var(--dourado); border-bottom:1px solid var(--dourado); break-inside:avoid; }
+.frase p{ margin:0; }
+.frase small{ display:block; font-family:'Jost'; font-size:8.6pt; letter-spacing:.14em; text-transform:uppercase; color:var(--dourado-escuro); margin-top:3mm; }
+.principios{ display:grid; grid-template-columns:repeat(5,1fr); gap:2.5mm; margin:5mm 0 6mm; break-inside:avoid; }
+.principios div{ background:var(--verde-escuro); color:var(--creme); border-radius:3mm; padding:5mm 3mm; text-align:center; font-size:9pt; line-height:1.3; }
+.principios div b{ display:block; font-family:'Cormorant Garamond',serif; font-size:13.5pt; color:var(--dourado-claro); font-weight:600; margin-bottom:1mm; }
+
+/* ---------- sumário ---------- */
+ol.sumario{ list-style:none; padding:0; margin:4mm 0 0; columns:2; column-gap:10mm; counter-reset:cap; }
+ol.sumario li{ break-inside:avoid; padding:2.2mm 0; border-bottom:1px solid var(--linha); font-size:9.8pt; counter-increment:cap; display:flex; gap:3mm; }
+ol.sumario li::before{ content:counter(cap, decimal-leading-zero); font-family:'Cormorant Garamond',serif; color:var(--dourado-escuro); font-weight:600; font-size:11.5pt; min-width:7mm; }
+ol.sumario a{ color:var(--tinta); }
+
+/* ---------- caixas ---------- */
+.box{ border-radius:3mm; padding:4mm 5mm 3mm; margin:4mm 0; break-inside:avoid; page-break-inside:avoid; background:var(--creme-claro); border:1px solid var(--linha); border-left:3px solid var(--dourado); }
+.box p:last-child,.box ul:last-child{ margin-bottom:.3em; }
+.box-rotulo{ font-size:7.6pt !important; letter-spacing:.2em; text-transform:uppercase; font-weight:600; color:var(--dourado-escuro); margin:0 0 1.6mm !important; }
+.box.sistema{ border-left-color:var(--verde-medio); }
+.box.sistema .box-rotulo{ color:var(--verde-medio); }
+.box.decide{ background:var(--verde-escuro); color:var(--creme); border:0; border-left:3px solid var(--dourado); }
+.box.decide .box-rotulo{ color:var(--dourado-claro); }
+.box.decide strong{ color:var(--dourado-claro); }
+.box.percebe{ background:#fbf6ea; border-left-color:var(--dourado-claro); }
+.box.atencao{ background:#fff; border:1px solid var(--dourado); border-left:3px solid var(--dourado-escuro); }
+.box.atencao .box-rotulo::before{ content:"◆  "; }
+.box.resultado{ background:#eef3ee; border-left-color:var(--verde-suave); }
+.box.resultado .box-rotulo{ color:var(--verde-suave); }
+.box.proximo{ background:#fff; border:1px dashed var(--verde-suave); border-left:3px solid var(--verde-suave); }
+.box.futuro{ background:repeating-linear-gradient(135deg,#fffaf0,#fffaf0 6px,#fbf3e0 6px,#fbf3e0 12px); border:1px solid var(--dourado); border-left:3px solid var(--dourado); }
+.box.futuro .box-rotulo{ color:#7a5a1c; }
+.box.futuro .box-rotulo::before{ content:"✧  "; }
+.box.chave{ background:transparent; border:0; border-left:2px solid var(--dourado); border-radius:0; padding:1mm 0 1mm 5mm; font-family:'Cormorant Garamond',serif; font-size:14pt; color:var(--verde-medio); font-style:italic; }
+
+/* duas/três colunas */
+.duas{ display:grid; grid-template-columns:1fr 1fr; gap:4mm; margin:3mm 0; }
+.tres{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:3.5mm; break-inside:avoid; margin:3mm 0; }
+.duas > .box, .tres > .box{ margin:0; }
+
+/* ---------- tabelas ---------- */
+table{ width:100%; border-collapse:collapse; margin:3mm 0 5mm; font-size:8.9pt; line-height:1.42; break-inside:auto; }
+thead{ display:table-header-group; }
+tr{ break-inside:avoid; page-break-inside:avoid; }
+th{ background:var(--verde-escuro); color:var(--creme); text-align:left; font-weight:500; padding:2.2mm 2.5mm; font-size:8pt; letter-spacing:.06em; text-transform:uppercase; }
+th:first-child{ border-top-left-radius:2mm; } th:last-child{ border-top-right-radius:2mm; }
+td{ padding:2.1mm 2.5mm; border-bottom:1px solid var(--linha); vertical-align:top; }
+tbody tr:nth-child(even) td{ background:var(--creme-claro); }
+table.pequena{ font-size:8.1pt; }
+table.pequena td, table.pequena th{ padding:1.6mm 1.8mm; }
+
+/* ---------- fluxo da jornada ---------- */
+.fluxo{ display:grid; grid-template-columns:repeat(3,1fr); gap:3mm 4mm; margin:5mm 0; counter-reset:passo; }
+.fluxo div{ counter-increment:passo; background:var(--creme-claro); border:1px solid var(--linha); border-radius:3mm; padding:3.2mm 3.5mm 3mm 11mm; position:relative; font-size:8.6pt; line-height:1.35; break-inside:avoid; min-height:17mm; }
+.fluxo div::before{ content:counter(passo); position:absolute; left:3mm; top:3mm; width:6mm; height:6mm; border-radius:50%; background:var(--verde-escuro); color:var(--dourado-claro); font-size:8pt; display:flex; align-items:center; justify-content:center; font-weight:600; }
+.fluxo div b{ display:block; font-size:8.4pt; letter-spacing:.08em; text-transform:uppercase; color:var(--verde-escuro); margin-bottom:.6mm; }
+
+/* fluxo linear curto (setas) */
+.cadeia{ display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:2mm; margin:5mm 0; break-inside:avoid; }
+.cadeia span{ background:var(--verde-escuro); color:var(--creme); padding:2.2mm 4mm; border-radius:10mm; font-size:8.4pt; letter-spacing:.06em; text-transform:uppercase; }
+.cadeia span.d{ background:var(--dourado); color:var(--verde-noite); }
+.cadeia i{ color:var(--dourado-escuro); font-style:normal; font-size:11pt; }
+
+/* ---------- timeline dos 10 atendimentos ---------- */
+.linha-tempo{ position:relative; margin:6mm 0; padding-left:14mm; }
+.linha-tempo::before{ content:""; position:absolute; left:5mm; top:2mm; bottom:2mm; width:2px; background:linear-gradient(var(--dourado),var(--verde-suave)); }
+.linha-tempo > div{ position:relative; margin-bottom:3.6mm; break-inside:avoid; }
+.linha-tempo > div::before{ content:attr(data-n); position:absolute; left:-14mm; top:-.5mm; width:10mm; height:10mm; border-radius:50%; background:var(--verde-escuro); color:var(--dourado-claro); border:2px solid var(--dourado); display:flex; align-items:center; justify-content:center; font-family:'Cormorant Garamond',serif; font-weight:600; font-size:12pt; }
+.linha-tempo b{ font-family:'Cormorant Garamond',serif; font-size:13pt; color:var(--verde-escuro); font-weight:600; display:block; letter-spacing:.02em; }
+.linha-tempo span{ font-size:9pt; color:var(--tinta-suave); }
+
+/* ---------- ferramentas ---------- */
+.ferr{ border:1px solid var(--linha); border-radius:3mm; margin:4mm 0 6mm; overflow:hidden; break-inside:avoid-page; }
+.ferr-cab{ padding:3.5mm 5mm; color:var(--creme); display:flex; justify-content:space-between; align-items:baseline; }
+.ferr-cab b{ font-family:'Cormorant Garamond',serif; font-size:16pt; font-weight:600; }
+.ferr-cab span{ font-size:7.8pt; letter-spacing:.2em; text-transform:uppercase; color:var(--dourado-claro); }
+.ferr.corpo .ferr-cab{ background:var(--verde-medio); }
+.ferr.mente .ferr-cab{ background:var(--verde-escuro); }
+.ferr.espirito .ferr-cab{ background:var(--verde-noite); }
+.ferr dl{ margin:0; padding:2.5mm 5mm 3mm; display:grid; grid-template-columns:34mm 1fr; gap:1.4mm 4mm; font-size:8.9pt; line-height:1.42; }
+.ferr dt{ font-size:7.4pt; letter-spacing:.12em; text-transform:uppercase; color:var(--dourado-escuro); font-weight:600; padding-top:.5mm; }
+.ferr dd{ margin:0; }
+
+/* ---------- sistemas ---------- */
+.sis{ display:grid; grid-template-columns:1fr; gap:3mm; margin:4mm 0; }
+.sis > div{ border:1px solid var(--linha); border-radius:3mm; padding:3.5mm 5mm; break-inside:avoid; background:#fff; border-top:3px solid var(--dourado); }
+.sis h3{ margin-top:0; }
+
+/* ---------- caso Marina ---------- */
+.encontro{ border:1px solid var(--linha); border-radius:3mm; padding:0; margin:5mm 0; overflow:hidden; break-inside:avoid; page-break-inside:avoid; }
+.encontro-cab{ background:var(--verde-escuro); color:var(--creme); padding:3.5mm 5mm; display:flex; gap:4mm; align-items:center; break-after:avoid; }
+.encontro-cab .n{ font-family:'Cormorant Garamond',serif; font-size:24pt; color:var(--dourado-claro); line-height:1; }
+.encontro-cab b{ font-family:'Cormorant Garamond',serif; font-size:14.5pt; font-weight:600; display:block; }
+.encontro-cab span{ font-size:8pt; letter-spacing:.14em; text-transform:uppercase; color:var(--dourado-claro); }
+.encontro dl{ margin:0; padding:3mm 5mm 3.5mm; display:grid; grid-template-columns:38mm 1fr; gap:1.6mm 4mm; font-size:8.9pt; line-height:1.45; }
+.encontro dt{ font-size:7.3pt; letter-spacing:.12em; text-transform:uppercase; color:var(--dourado-escuro); font-weight:600; padding-top:.5mm; break-after:avoid; }
+.encontro dd{ margin:0; }
+.encontro dt, .encontro dd{ break-inside:avoid; }
+
+/* ---------- figuras ---------- */
+figure{ margin:5mm 0; break-inside:avoid; page-break-inside:avoid; text-align:center; }
+figure img{ max-width:100%; border-radius:2.5mm; border:1px solid var(--linha); box-shadow:0 2mm 6mm rgba(11,51,37,.10); }
+figure img.estreita{ max-width:46%; }
+figure img.media{ max-width:82%; }
+figure img.baixa{ max-height:118mm; width:auto; }
+figcaption{ font-size:8.2pt; color:var(--tinta-suave); margin-top:2.2mm; text-align:left; }
+figcaption b{ font-size:7.4pt; letter-spacing:.16em; text-transform:uppercase; color:var(--dourado-escuro); margin-right:1.5mm; }
+
+/* ---------- papéis ---------- */
+.papeis{ display:grid; grid-template-columns:repeat(3,1fr); gap:3mm; margin:4mm 0; }
+.papeis div{ background:var(--creme-claro); border:1px solid var(--linha); border-radius:3mm; padding:4mm; break-inside:avoid; text-align:center; }
+.papeis div b{ display:block; font-family:'Cormorant Garamond',serif; font-size:14pt; color:var(--verde-escuro); margin-bottom:1mm; }
+.papeis div span{ font-size:8.8pt; color:var(--tinta-suave); }
+
+.quebra{ break-after:page; page-break-after:always; height:0; }
+.marca-dagua{ text-align:center; margin:8mm 0 0; opacity:.55; }
+.marca-dagua img{ width:11mm; }
+.lorem{ color:#9aa79f; font-style:italic; }
+.fim{ text-align:center; padding-top:30mm; }
+.fim img{ width:26mm; margin-bottom:6mm; }
+
+@media screen{
+  body{ background:#e9e4d6; }
+  body > *:not(.capa){ max-width:172mm; margin-left:auto; margin-right:auto; }
+  body{ padding:0 0 20mm; }
+  .capa{ margin:0 auto 10mm; }
+}
+</style></head>
+<body><!--
+  HOLOHACKING — Jornada da Nutricionista com a Paciente (primeiro modelo, outubro de 2026)
+  Fonte editável do documento. Gere o HTML/PDF/DOCX com:  python3 scripts/doc-jornada/build.py  &&  node scripts/doc-jornada/pdf.mjs
+  Todas as pessoas e dados são fictícios.
+-->
+
+<div class="capa">
+<div class="marca">HOLOHACKING</div>
+<div>
+<img class="pinha" src="imagens/logo-pinha.png" alt="">
+<h1 class="titulo-capa">Jornada da Nutricionista com a Paciente</h1>
+<div class="filete"></div>
+<p class="sub">Do primeiro contato ao acompanhamento longitudinal em Nutrição Holística</p>
+<p class="sub2">Um guia de utilização do HoloHacking ao longo de um ciclo de acompanhamento de até 10 atendimentos</p>
+</div>
+<div class="rodape-capa">Primeiro modelo · outubro de 2026 · documento em construção</div>
+</div>
+
+<p class="eyebrow">Apresentação</p>
+
+<h2 id="para-quem-este-documento">Para quem é este documento</h2>
+<p>Este guia é para a nutricionista que acompanha pacientes com o HoloHacking. Ele não é um manual de botões. Ele mostra <strong>como conduzir um acompanhamento de Nutrição Holística usando o HoloHacking</strong>: o que acontece antes da primeira consulta, o que fazer em cada encontro, como o sistema ajuda a organizar a jornada e onde a decisão é sempre da profissional.</p>
+<p>Ao longo do texto, cada etapa responde a quatro perguntas: o que a nutricionista faz, o que a paciente faz, o que o sistema faz e o que aquela etapa produz.</p>
+<div class="frase">
+<p>O sistema organiza. O método orienta. A tecnologia sugere.<br>A nutricionista interpreta. A nutricionista decide.
+<small>A lógica de todo o HoloHacking</small></p>
+</div>
+<h2 id="como-ler-este-documento">Como ler este documento</h2>
+<p>Os capítulos seguem a ordem natural de um acompanhamento. As caixas abaixo aparecem em todo o texto e ajudam a separar o que é do sistema, o que é da profissional e o que é da paciente.</p>
+<div class="duas">
+<div class="box pratica"><p class="box-rotulo">Na prática</p>
+<p>Como a etapa acontece no dia a dia do consultório.</p>
+</div>
+<div class="box sistema"><p class="box-rotulo">O que o sistema faz</p>
+<p>O que o HoloHacking registra, calcula ou organiza sozinho.</p>
+</div>
+<div class="box decide"><p class="box-rotulo">O que a nutricionista decide</p>
+<p>O que só a nutricionista pode decidir.</p>
+</div>
+<div class="box percebe"><p class="box-rotulo">O que a paciente percebe</p>
+<p>O que a paciente vive, entende ou recebe.</p>
+</div>
+<div class="box atencao"><p class="box-rotulo">Atenção metodológica</p>
+<p>Um limite do método que não pode ser esquecido.</p>
+</div>
+<div class="box resultado"><p class="box-rotulo">Resultado desta etapa</p>
+<p>O que a etapa deixa registrado.</p>
+</div>
+<div class="box proximo"><p class="box-rotulo">Próximo passo</p>
+<p>Para onde a jornada segue.</p>
+</div>
+<div class="box futuro"><p class="box-rotulo">Visão futura / experiência desejada</p>
+<p>Algo que <strong>ainda não existe</strong> no produto. Está descrito como experiência desejada, não como função atual.</p>
+</div>
+</div>
+<div class="box atencao"><p class="box-rotulo">Atenção metodológica</p>
+<p><strong>Este é o primeiro modelo do documento.</strong> Ele foi escrito a partir de uma auditoria do sistema real (outubro de 2026, pacote metodológico HOLOS-V1 v6). Ele será refinado, condensado e revisado. Todas as pessoas e dados citados são <strong>fictícios</strong>.</p>
+</div>
+<h1 id="sum-rio">Sumário</h1>
+<ol class="sumario"><li><a href="#o-que-o-holohacking">O que é o HoloHacking</a></li><li><a href="#a-jornada-em-uma-p-gina">A jornada em uma página</a></li><li><a href="#antes-da-primeira-consulta">Antes da primeira consulta</a></li><li><a href="#mapeamento-hol-stico">Mapeamento Holístico</a></li><li><a href="#a-primeira-consulta">A primeira consulta</a></li><li><a href="#holoscan">HOLOSCAN</a></li><li><a href="#do-holoscan-s-ferramentas">Do HOLOSCAN às ferramentas</a></li><li><a href="#ferramentas-de-corpo-mente-e-esp-rito">Ferramentas de Corpo, Mente e Espírito</a></li><li><a href="#leitura-profissional-e-conduta">Leitura profissional e Conduta</a></li><li><a href="#resultado-holos">Resultado HOLOS</a></li><li><a href="#o-que-a-nutricionista-v">O que a nutricionista vê</a></li><li><a href="#o-que-a-paciente-recebe">O que a paciente recebe</a></li><li><a href="#resultado-final-pdf-e-whatsapp">Resultado Final, PDF e WhatsApp</a></li><li><a href="#retornos-o-princ-pio-fundamental">Retornos: o princípio fundamental</a></li><li><a href="#mapa-de-um-ciclo-de-at-10-atendimentos">Mapa de um ciclo de até 10 atendimentos</a></li><li><a href="#os-10-atendimentos-um-a-um">Os 10 atendimentos, um a um</a></li><li><a href="#resultados-esperados-de-um-ciclo">Resultados esperados de um ciclo</a></li><li><a href="#caso-fict-cio-marina">Caso fictício: Marina</a></li><li><a href="#vis-o-resumida-dos-10-atendimentos">Visão resumida dos 10 atendimentos</a></li><li><a href="#corpo-mente-e-esp-rito-ao-longo-da-jornada">Corpo, Mente e Espírito ao longo da jornada</a></li><li><a href="#acompanhamento-longitudinal">Acompanhamento longitudinal</a></li><li><a href="#pap-is">Papéis</a></li><li><a href="#limites-e-seguran-a">Limites e segurança</a></li><li><a href="#vis-o-futura">Visão futura</a></li><li><a href="#encerramento">Encerramento</a></li></ol>
+<h1 id="o-que-o-holohacking">O que é o HoloHacking</h1>
+<p class="abre">Um ambiente profissional para a Nutrição Holística: reúne as informações do acompanhamento e transforma dados dispersos numa jornada organizada.</p>
+
+<p>Num acompanhamento de nutrição, as informações chegam de muitos lugares: a conversa, o que a paciente conta antes da consulta, questionários, exercícios de reflexão, acordos, retornos. Sem um lugar para reuni-las, elas se perdem entre anotações, mensagens e memória.</p>
+<p>O HoloHacking é esse lugar. Ele guarda a ficha da paciente, os atendimentos, o Mapeamento Holístico, o HOLOSCAN, as ferramentas de Corpo, Mente e Espírito, o Resultado HOLOS, a Conduta, os documentos e o histórico. E faz isso <strong>sem decidir pela nutricionista</strong>.</p>
+<div class="principios">
+<div><b>Organiza</b>o sistema</div>
+<div><b>Orienta</b>o método</div>
+<div><b>Sugere</b>a tecnologia</div>
+<div><b>Interpreta</b>a nutricionista</div>
+<div><b>Decide</b>a nutricionista</div>
+</div>
+
+<h2 id="o-que-o-holohacking_1">O que o HoloHacking é</h2>
+<ul>
+<li>Um <strong>prontuário organizado</strong> da jornada: cada atendimento, cada registro e cada decisão ficam ligados à paciente e à data em que aconteceram.</li>
+<li>Um <strong>método aplicado</strong>: o HOLOSCAN e as ferramentas seguem um pacote metodológico versionado, com regras fixas e iguais para todas as pacientes.</li>
+<li>Um <strong>apoio à leitura profissional</strong>: o sistema mostra onde aprofundar e quais ferramentas o catálogo sugere, sempre como sugestão.</li>
+<li>Um <strong>canal de entrega</strong>: o que a nutricionista escolhe compartilhar vira um Resultado para a paciente, em PDF.</li>
+</ul>
+<h2 id="o-que-o-holohacking-n-o">O que o HoloHacking não é</h2>
+<ul>
+<li>Não é um sistema de diagnóstico.</li>
+<li>Não é inteligência artificial que decide tratamento. O HOLOSCAN segue uma regra fixa do método: o resultado depende só das respostas da paciente. Se ela responde diferente, o resultado muda; se as respostas forem exatamente as mesmas, a conta chega sempre ao mesmo resultado, sem sorteio e sem "opinião" do sistema.</li>
+<li>Não substitui a conversa clínica, a avaliação profissional nem o julgamento da nutricionista.</li>
+<li>Não prescreve dieta nem conduta automaticamente.</li>
+</ul>
+<div class="box chave">
+<p>O HoloHacking não decide pela nutricionista. Ele deixa a decisão dela mais informada e mais bem registrada.</p>
+</div>
+<h2 id="os-tr-s-territ-rios-corpo-mente-e-esp-rito">Os três territórios: Corpo, Mente e Espírito</h2>
+<p>O método olha a paciente em três territórios. Eles organizam as ferramentas e a Tríade do HOLOSCAN, mas <strong>não são trilhos separados</strong> nem uma sequência obrigatória.</p>
+<table>
+<thead>
+<tr>
+<th>Território</th>
+<th>O que observa</th>
+<th>Ferramentas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Corpo</strong></td>
+<td>rotina, hábitos, sinais percebidos, capacidade prática de mudar</td>
+<td>OQ³ · Linha do Momentum · Mapa da Rotina</td>
+</tr>
+<tr>
+<td><strong>Mente</strong></td>
+<td>motivos, crenças, padrões de comportamento e emoção</td>
+<td>PQQ (Escada dos Porquês) · Mapa de Crenças Alimentares · Gatilhos &amp; Respostas</td>
+</tr>
+<tr>
+<td><strong>Espírito</strong></td>
+<td>sentido, valores, direção, apoio e pertencimento</td>
+<td>Mapa do Propósito · Roda Holística da Vida · Carta ao Futuro Eu · Conexão &amp; Pertencimento</td>
+</tr>
+</tbody>
+</table>
+<h1 id="a-jornada-em-uma-p-gina">A jornada em uma página</h1>
+<p class="abre">Do primeiro contato ao novo ciclo: a sequência natural de um acompanhamento no HoloHacking.</p>
+
+<div class="fluxo">
+<div><b>Agendamento / entrada</b>A paciente marca a consulta. A nutricionista registra na Agenda.</div>
+<div><b>Cadastro</b>A ficha da paciente é criada. Só o nome é obrigatório.</div>
+<div><b>Mapeamento Holístico</b>A paciente responde pelo celular, sem criar conta.</div>
+<div><b>Revisão pré-consulta</b>A nutricionista lê as respostas antes de encontrar a paciente.</div>
+<div><b>Primeiro atendimento</b>A consulta é aberta no sistema e a conversa começa.</div>
+<div><b>HOLOSCAN</b>O questionário organiza os relatos em cinco sistemas.</div>
+<div><b>Áreas para aprofundar</b>O resultado mostra por onde a investigação pode começar.</div>
+<div><b>Ferramentas</b>O catálogo sugere; a nutricionista escolhe se e quando aplicar.</div>
+<div><b>Leitura profissional</b>A nutricionista registra o que entendeu.</div>
+<div><b>Conduta</b>Objetivo, estratégia, ações e acordos da etapa.</div>
+<div><b>Resultado para a paciente</b>O que foi entendido e combinado, em linguagem humana.</div>
+<div><b>Acompanhamento</b>A paciente experimenta os acordos no dia a dia.</div>
+<div><b>Retornos</b>Cada encontro revisa, aprofunda ou ajusta.</div>
+<div><b>Evolução</b>O histórico mostra o caminho percorrido, lado a lado.</div>
+<div><b>Novo ciclo ou conclusão</b>A nutricionista decide como seguir.</div>
+</div>
+
+<div class="box atencao"><p class="box-rotulo">Atenção metodológica</p>
+<p>A sequência é a ordem mais comum, não uma regra. Uma paciente pode chegar sem Mapeamento, uma consulta pode não ter HOLOSCAN, uma ferramenta pode esperar. <strong>A nutricionista conduz; o sistema acompanha.</strong></p>
+</div>
+<h2 id="cada-etapa-em-poucas-palavras">Cada etapa em poucas palavras</h2>
+<table>
+<thead>
+<tr>
+<th>Etapa</th>
+<th>O que acontece</th>
+<th>Onde fica no HoloHacking</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Agendamento</td>
+<td>A consulta é marcada com tipo (Primeira consulta, Retorno, Reavaliação HOLOSCAN, Online) e duração.</td>
+<td>Agenda</td>
+</tr>
+<tr>
+<td>Cadastro</td>
+<td>Nome (obrigatório), nascimento, telefone, e-mail, sexo, início do acompanhamento, queixa principal.</td>
+<td>Pacientes → Cadastrar paciente</td>
+</tr>
+<tr>
+<td>Mapeamento Holístico</td>
+<td>Link individual, válido por 7 dias, enviado pelo WhatsApp.</td>
+<td>Ficha → Mapeamento Holístico</td>
+</tr>
+<tr>
+<td>Revisão pré-consulta</td>
+<td>Leitura das respostas da paciente, que chegam à ficha.</td>
+<td>Ficha → Mapeamento Holístico</td>
+</tr>
+<tr>
+<td>Primeiro atendimento</td>
+<td>"Iniciar atendimento" (na Agenda) ou "Novo atendimento" (na ficha).</td>
+<td>Ficha → Atendimento ativo</td>
+</tr>
+<tr>
+<td>HOLOSCAN</td>
+<td>Questionário respondido na consulta; o sistema calcula e salva.</td>
+<td>HOLOSCAN</td>
+</tr>
+<tr>
+<td>Áreas para aprofundar</td>
+<td>"Por onde investigar": os dois sistemas de nota mais baixa.</td>
+<td>Resultado do HOLOSCAN</td>
+</tr>
+<tr>
+<td>Ferramentas</td>
+<td>"Próximos Passos HOLOS": uma ferramenta principal e até duas complementares.</td>
+<td>Corpo, Mente, Espírito</td>
+</tr>
+<tr>
+<td>Leitura profissional</td>
+<td>Interpretação do HOLOSCAN, leitura de cada ferramenta, observações do Resultado.</td>
+<td>HOLOSCAN, ferramentas, Resultado HOLOS</td>
+</tr>
+<tr>
+<td>Conduta</td>
+<td>Objetivo, estratégia, ações, recursos, orientações, retorno e acordos.</td>
+<td>Ficha → Conduta</td>
+</tr>
+<tr>
+<td>Resultado para a paciente</td>
+<td>Resultado HOLOS (visão da paciente) e Resultado Final emitido, em PDF.</td>
+<td>Resultado HOLOS e Resultado</td>
+</tr>
+<tr>
+<td>Retornos e evolução</td>
+<td>Novo atendimento, Mapeamento de retorno, revisão de acordos, comparação lado a lado.</td>
+<td>Ficha → Atendimentos, Conduta, Evolução</td>
+</tr>
+</tbody>
+</table>
+<figure>
+<img src="imagens/01-ficha-paciente.png" alt="">
+<figcaption><b>O que a nutricionista vê</b> A ficha da paciente fictícia Marina: botão "Aplicar HOLOSCAN", próxima consulta, último HOLOSCAN, etapa atual, atendimento ativo e a faixa da jornada clínica (Mapear, Integrar, Consolidar, Apresentar, Acompanhar), marcada só a partir de dados reais.</figcaption>
+</figure>
+
+<h1 id="antes-da-primeira-consulta">Antes da primeira consulta</h1>
+<p class="abre">A preparação começa antes de a paciente entrar no consultório. Bem feita, ela devolve tempo à conversa.</p>
+
+<h2 id="passo-a-passo">Passo a passo</h2>
+<ol>
+<li><strong>A paciente agenda.</strong> A nutricionista registra a consulta na Agenda, com o tipo "Primeira consulta".</li>
+<li><strong>A nutricionista cadastra a paciente.</strong> Só o nome é obrigatório; o resto pode ser completado depois. O telefone é o que permite enviar o Mapeamento pelo WhatsApp.</li>
+<li><strong>O sistema cria a ficha.</strong> Ela já nasce com a faixa da jornada vazia, pronta para ser preenchida pelos registros reais.</li>
+<li><strong>A nutricionista gera o Mapeamento Holístico.</strong> Na aba "Mapeamento Holístico", o botão "Enviar Mapeamento Holístico" cria um link individual, válido por 7 dias.</li>
+<li><strong>Envia o link pelo WhatsApp.</strong> O botão "Enviar pelo WhatsApp" abre a conversa com a paciente já com a mensagem pronta. Também é possível copiar o link.</li>
+<li><strong>A paciente abre o link no celular, sem criar conta e sem senha.</strong></li>
+<li><strong>A paciente responde.</strong> As respostas são salvas sozinhas; ela pode parar e continuar depois pelo mesmo link.</li>
+<li><strong>A paciente envia.</strong> Depois de enviado, o Mapeamento não pode mais ser alterado pelo link.</li>
+<li><strong>As respostas chegam ao HoloHacking.</strong> O cartão muda para "Concluído" e mostra "Mapeamento recebido".</li>
+<li><strong>A nutricionista revisa antes da consulta.</strong> Ela lê as respostas, organizadas por etapa.</li>
+<li><strong>Na consulta, leva as informações para o atendimento.</strong> Com o atendimento aberto, o botão "Levar para o atendimento" transforma as respostas num rascunho do Mapeamento profissional daquele atendimento.</li>
+</ol>
+<div class="duas">
+<div class="box decide"><p class="box-rotulo">O que a nutricionista decide</p>
+<ul>
+<li>Quando enviar o Mapeamento (e se vale enviar).</li>
+<li>O que perguntar a partir das respostas.</li>
+<li>O que levar para o atendimento e o que corrigir no rascunho.</li>
+</ul>
+</div>
+<div class="box percebe"><p class="box-rotulo">O que a paciente percebe</p>
+<ul>
+<li>Recebe uma mensagem pessoal da nutricionista.</li>
+<li>Responde no próprio tempo, pelo celular, em poucos minutos.</li>
+<li>Chega à consulta já tendo pensado sobre o que a trouxe.</li>
+</ul>
+</div>
+<div class="box sistema"><p class="box-rotulo">O que o sistema faz</p>
+<ul>
+<li>Gera um link individual e seguro, com validade de 7 dias.</li>
+<li>Salva as respostas automaticamente enquanto a paciente preenche.</li>
+<li>Mostra o estado do convite: Não enviado, Enviado, Iniciado, Concluído, Expirado ou Revogado.</li>
+</ul>
+</div>
+<div class="box resultado"><p class="box-rotulo">Resultado desta etapa</p>
+<p>Um retrato inicial, <strong>relatado pela própria paciente</strong>, pronto para orientar a primeira conversa. Não é diagnóstico nem conclusão.</p>
+</div>
+</div>
+<figure>
+<img class="media" src="imagens/02b-mapeamento-link.png" alt="">
+<figcaption><b>O que acontece nesta etapa</b> O link é gerado com validade de 7 dias. Ele aparece só neste momento; para reenviar, gera-se um link novo, que substitui o anterior.</figcaption>
+</figure>
+
+<div class="box pratica"><p class="box-rotulo">Na prática</p>
+<p>A mensagem que o sistema prepara para o WhatsApp diz: <em>"Olá, [primeiro nome]. Antes da nossa consulta, peço que preencha o seu Mapeamento Holístico da Saúde pelo link abaixo: [link]. As informações serão utilizadas para preparar seu atendimento."</em> A nutricionista pode ajustar o texto antes de enviar.</p>
+</div>
+<h1 id="mapeamento-hol-stico">Mapeamento Holístico</h1>
+<p class="abre">Um formulário curto que a paciente responde antes da consulta. Ele prepara o atendimento e organiza o que ela relata. Não é diagnóstico nem ferramenta terapêutica.</p>
+
+<h2 id="finalidade">Finalidade</h2>
+<p>O Mapeamento Holístico da Saúde reúne, antes do primeiro encontro, o que a paciente busca, como come, o que percebe no corpo, como está a sua saúde, a sua rotina e o seu momento de vida. Com isso, a nutricionista chega à consulta sabendo por onde começar e usa o tempo do encontro para escutar e aprofundar, não para preencher formulário.</p>
+<h2 id="diferen-a-entre-mapeamento-e-holoscan">Diferença entre Mapeamento e HOLOSCAN</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Mapeamento Holístico</th>
+<th>HOLOSCAN</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Quando</td>
+<td>Antes da consulta (e nos retornos)</td>
+<td>Dentro do atendimento</td>
+</tr>
+<tr>
+<td>Quem responde</td>
+<td>A paciente, sozinha, pelo celular</td>
+<td>A paciente, com a nutricionista</td>
+</tr>
+<tr>
+<td>Para quê</td>
+<td>Preparar a consulta e registrar o contexto</td>
+<td>Organizar relatos em cinco sistemas, segundo o método</td>
+</tr>
+<tr>
+<td>Gera nota?</td>
+<td>Não</td>
+<td>Sim: notas por sistema, Índice HOLOS e Tríade</td>
+</tr>
+<tr>
+<td>Sugere ferramenta?</td>
+<td>Não</td>
+<td>Sim, pelo catálogo (PP-V1)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="como-o-formul-rio-da-paciente">Como é o formulário da paciente</h2>
+<p>O formulário de primeira consulta foi pensado para levar poucos minutos e é quase todo de toque, com perguntas de escolha. Nada é obrigatório, e a paciente pode responder "Prefiro não responder" nas questões sensíveis. <strong>Peso e medidas não são pedidos à paciente.</strong></p>
+<div class="fluxo">
+<div><b>1 · O que te traz aqui</b>Motivo do acompanhamento, o que mais gostaria de melhorar, experiências anteriores com nutrição.</div>
+<div><b>2 · Alimentação e sinais</b>Padrão alimentar, até três dificuldades, fome, sinais percebidos no corpo, o que mais incomoda, água.</div>
+<div><b>3 · Saúde e cuidados</b>Condições já informadas por profissionais, cirurgias, medicamentos, suplementos, alergias, intolerâncias.</div>
+<div><b>4 · Sono, hábitos e rotina</b>Horários de sono, previsibilidade da rotina, trabalho, atividade física, álcool, tabaco, o que dificulta e o que ajuda.</div>
+<div><b>5 · Seu momento atual</b>Opcional: mudanças recentes, apoio, algo pessoal que queira contar.</div>
+<div><b>6 · Revisar e enviar</b>Resumo das respostas e um espaço livre final.</div>
+</div>
+
+<figure>
+<img class="estreita" src="imagens/02-mapeamento-celular.png" alt="">
+<figcaption><b>O que a paciente vê</b> A primeira etapa do Mapeamento no celular (paciente fictícia). As respostas são salvas sozinhas e a paciente pode continuar depois pelo mesmo link.</figcaption>
+</figure>
+
+<h2 id="como-as-respostas-chegam">Como as respostas chegam</h2>
+<p>Quando a paciente envia, a aba "Mapeamento Holístico" da ficha mostra o cartão "Concluído" e as respostas organizadas por etapa, com a data do envio. O sistema avisa: <em>"Como o paciente respondeu — nada aqui é diagnóstico nem conclusão."</em> Os botões são "Ver resposta" / "Esconder resposta", "Levar para o atendimento" e "Enviar novo Mapeamento". Mapeamentos anteriores ficam guardados em "Mapeamentos anteriores".</p>
+<figure>
+<img class="media" src="imagens/03-mapeamento-recebido.png" alt="">
+<figcaption><b>O que a nutricionista vê</b> As respostas recebidas na ficha, antes da consulta (paciente fictícia).</figcaption>
+</figure>
+
+<h2 id="levar-para-o-atendimento">"Levar para o atendimento"</h2>
+<p>Na consulta, com o atendimento aberto, "Levar para o atendimento" transforma as respostas da paciente num <strong>rascunho</strong> do Mapeamento profissional daquele atendimento, marcado como "relato da paciente". A nutricionista revisa, completa com o que ouviu na conversa e conclui. A resposta original da paciente não é alterada.</p>
+<div class="box sistema"><p class="box-rotulo">O que o sistema faz</p>
+<ul>
+<li>Só funciona com um atendimento ativo, e só se aquele atendimento ainda não tiver Mapeamento.</li>
+<li>O Mapeamento profissional tem salvamento automático enquanto é escrito e, depois de concluído, não é editado: uma correção vira uma <strong>nova revisão</strong>.</li>
+<li>O Mapeamento profissional tem blocos para motivo e objetivo, história e rotina alimentar, saúde e sintomas, medicamentos e restrições, estilo de vida, histórico e contexto, e avaliação objetiva (preenchida pela nutricionista).</li>
+</ul>
+</div>
+<h2 id="mapeamento-de-retorno">Mapeamento de retorno</h2>
+<p>Quando a paciente já tem um Mapeamento profissional concluído, o próximo link enviado é automaticamente o de <strong>retorno</strong>: uma etapa só, "Desde a última consulta" (o que melhorou ou piorou, o quanto conseguiu colocar em prática, o que ajudou e o que dificultou, mudanças, medicamentos, algo novo), mais a revisão.</p>
+<figure>
+<img class="estreita" src="imagens/14-mapeamento-retorno.png" alt="">
+<figcaption><b>O que a paciente vê</b> O Mapeamento de retorno, mais curto, enviado antes de um retorno (paciente fictícia).</figcaption>
+</figure>
+
+<h2 id="o-que-o-mapeamento-n-o-faz">O que o Mapeamento não faz</h2>
+<div class="box atencao"><p class="box-rotulo">Atenção metodológica</p>
+<ul>
+<li>Não diagnostica nem conclui. Tudo o que está ali é <strong>relato da paciente</strong>.</li>
+<li>Não gera nota, não alimenta o HOLOSCAN e não escolhe ferramenta.</li>
+<li>Não é ferramenta terapêutica: ele prepara a conversa, não a substitui.</li>
+</ul>
+</div>
+<h1 id="a-primeira-consulta">A primeira consulta</h1>
+<p class="abre">O encontro em que a jornada ganha um ponto de partida. A nutricionista escuta, organiza e combina o primeiro passo.</p>
+
+<h2 id="o-fluxo-do-encontro">O fluxo do encontro</h2>
+<ol>
+<li><strong>Abrir o atendimento.</strong> Pela Agenda ("Iniciar atendimento") ou pela ficha ("Novo atendimento"). Agendamento não é atendimento: o atendimento clínico só existe depois desse passo. Com ele ativo, o Mapeamento profissional, o HOLOSCAN e a Conduta ficam ligados àquele encontro.</li>
+<li><strong>Revisar o contexto.</strong> O Mapeamento recebido, a queixa principal e o que a paciente trouxe.</li>
+<li><strong>Conversar.</strong> O Mapeamento prepara a conversa; não a substitui.</li>
+<li><strong>Levar o Mapeamento para o atendimento</strong>, revisar e concluir o registro profissional.</li>
+<li><strong>Aplicar o HOLOSCAN, quando pertinente.</strong> A nutricionista decide se é o momento.</li>
+<li><strong>Revisar o resultado do método.</strong> Os cinco sistemas, o Índice, a Tríade e "Por onde investigar".</li>
+<li><strong>Identificar as primeiras áreas para aprofundar</strong>, à luz da conversa.</li>
+<li><strong>Escolher uma ferramenta pertinente</strong>, se fizer sentido, entre as sugeridas pelo catálogo.</li>
+<li><strong>Aplicar a ferramenta</strong> e registrar a leitura profissional.</li>
+<li><strong>Construir a Conduta</strong>: objetivo da etapa, estratégia, ações e acordos.</li>
+<li><strong>Preparar o Resultado HOLOS</strong> e escolher o que compartilhar com a paciente.</li>
+<li><strong>Emitir o Resultado Final</strong>, quando for o momento, e enviar o PDF.</li>
+</ol>
+<div class="box atencao"><p class="box-rotulo">Atenção metodológica</p>
+<p><strong>O HOLOSCAN não substitui a conversa clínica.</strong> Ele organiza relatos segundo o método; a escuta, o contexto e o julgamento profissional continuam sendo o centro da consulta.</p>
+</div>
+<div class="duas">
+<div class="box decide"><p class="box-rotulo">O que a nutricionista decide</p>
+<ul>
+<li>Se aplica o HOLOSCAN nesta consulta.</li>
+<li>Se concorda com a ordem das áreas ou se a conversa pede outra prioridade.</li>
+<li>Se aplica uma ferramenta agora, depois ou não aplica.</li>
+<li>O que entra na Conduta e o que é compartilhado com a paciente.</li>
+</ul>
+</div>
+<div class="box resultado"><p class="box-rotulo">Resultado desta etapa</p>
+<ul>
+<li>Um atendimento registrado, com data e hora.</li>
+<li>O Mapeamento profissional, um HOLOSCAN salvo e, se houver, uma ferramenta concluída.</li>
+<li>Uma Conduta com acordos.</li>
+<li>Um Resultado HOLOS e, quando emitido, um Resultado Final em PDF.</li>
+</ul>
+</div>
+</div>
+<div class="box pratica"><p class="box-rotulo">Na prática</p>
+<p>Nem tudo precisa acontecer no primeiro encontro. Em consultas curtas, é comum aplicar o HOLOSCAN e construir uma Conduta simples, deixando a primeira ferramenta para o retorno. O sistema não exige ordem nem completude.</p>
+</div>
+<h1 id="holoscan">HOLOSCAN</h1>
+<p class="abre">O HOLOSCAN é o questionário estruturado do método. Ele organiza o que a paciente relata em cinco sistemas e ajuda a decidir por onde começar a conversa. Ele não é diagnóstico, não é exame e não é inteligência artificial: é uma regra fixa do método. O resultado depende só das respostas; respostas iguais levam sempre ao mesmo cálculo, e respostas diferentes mostram um momento diferente.</p>
+
+<h2 id="o-que-em-uma-frase">O que é, em uma frase</h2>
+<div class="frase">
+<p>O HOLOSCAN organiza relatos. Não diagnostica.
+<small>Princípio do método</small></p>
+</div>
+<p>O HOLOSCAN é aplicado dentro de um atendimento, com a paciente. As perguntas são curtas, sobre o que ela percebe no dia a dia, e cada resposta é escolhida numa escala de quatro pontos:</p>
+<table>
+<thead>
+<tr>
+<th>Tipo de pergunta</th>
+<th>Opções de resposta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Frequência</td>
+<td>Nunca · Às vezes · Frequente · Sempre</td>
+</tr>
+<tr>
+<td>Intensidade</td>
+<td>Nada · Um pouco · Bastante · Muito</td>
+</tr>
+</tbody>
+</table>
+<p>Na versão vigente do pacote metodológico (<strong>HOLOS-V1 v6</strong>, publicada em 13/10/2026), o questionário tem <strong>81 perguntas</strong>. Destas, <strong>69 pontuam</strong> em algum sistema e <strong>12 são só de contexto</strong>: ficam registradas para a nutricionista, mas não entram em nenhuma nota.</p>
+<div class="box sistema"><p class="box-rotulo">O que o sistema faz</p>
+<ul>
+<li>Mostra as perguntas do pacote vigente, com o botão <strong>Aplicar HOLOSCAN</strong> (sem mostrar a quantidade de perguntas para a paciente).</li>
+<li>Calcula as notas dos cinco sistemas, o Índice HOLOS e a Tríade a partir das respostas, sempre com a mesma regra.</li>
+<li>Grava a aplicação junto com a versão do pacote usada, para que o histórico continue legível quando o método evoluir.</li>
+</ul>
+</div>
+<h2 id="como-aplicado">Como é aplicado</h2>
+<p>Na ficha, o botão "Aplicar HOLOSCAN" leva à seção HOLOSCAN, onde a paciente responde às perguntas, organizadas em três blocos: raízes físicas, padrões emocionais e propósito, valores e fé. Cada toque fica salvo no aparelho. Ao final, "Gerar o mapa" calcula o resultado e "Salvar HOLOSCAN" grava a aplicação no servidor, ligada ao atendimento ativo.</p>
+<figure>
+<img src="imagens/04-holoscan-questionario.png" alt="">
+<figcaption><b>O que acontece nesta etapa</b> O questionário em andamento. A paciente vê só as perguntas e a escala; a quantidade de perguntas não é mostrada.</figcaption>
+</figure>
+
+<div class="box pratica"><p class="box-rotulo">Na prática</p>
+<p>Cada reaplicação começa do zero: nada é preenchido com respostas antigas. <strong>Não existe intervalo automático para reaplicar.</strong> A reaplicação é decisão profissional e contextual, até que uma regra oficial de periodicidade seja definida.</p>
+</div>
+<h2 id="os-cinco-sistemas">Os cinco sistemas</h2>
+<p>Os sistemas são <strong>categorias autorais do método</strong>. Cada um reúne um grupo de relatos. Nenhum deles mede órgão, função, substância ou doença.</p>
+<div class="sis">
+<div>
+<h3 id="sistema-f-ngico">Sistema Fúngico</h3>
+<p>Organiza relatos digestivos e alimentares (vontade de doce ou pão, inchaço e gases depois de comer, mal-estar com comida gordurosa, cabeça pesada depois de massa ou doce) e relatos de mucosas e couro cabeludo. <strong>Não é detector de fungo</strong>: não diagnostica candidíase, infecção fúngica nem disbiose. Pontuam 8 perguntas.</p>
+</div>
+<div>
+<h3 id="sistema-cido-inflamat-rio">Sistema Ácido Inflamatório</h3>
+<p>Organiza relatos de dor, rigidez, desconforto e reatividade percebida: dor articular sem esforço, corpo travado ao acordar, azia, dor de cabeça frequente, gengiva que sangra, piora percebida com ultraprocessados. <strong>Não mede inflamação nem pH</strong>: "ácido" é nomenclatura do método. Pontuam 8 perguntas.</p>
+</div>
+<div>
+<h3 id="sistema-metab-lico">Sistema Metabólico</h3>
+<p>Organiza relatos de energia, fome, saciedade, comportamento alimentar e refeições: sono depois do almoço, fome pouco depois de comer, acordar cansada, perceber (ou não) fome e saciedade, começar a comer sem pausa. <strong>Não diagnostica</strong> resistência à insulina, diabetes, alterações da tireoide ou outras condições metabólicas. Exames não participam do HOLOSCAN. Pontuam 7 perguntas.</p>
+</div>
+<div>
+<h3 id="sistema-detox-e-linf-tico">Sistema Detox e Linfático</h3>
+<p>Organiza relatos de retenção percebida, eliminação e sensibilidade a substâncias: pernas inchadas no fim do dia, rosto inchado ao acordar, intestino preso, reação forte a café, medicamento ou pouca bebida alcoólica, incômodo com cheiros. <strong>Não mede toxinas</strong>, função hepática nem fluxo linfático: "Detox" é nomenclatura do método. Pontuam 6 perguntas.</p>
+</div>
+<div>
+<h3 id="sistema-mental-emocional-espiritual">Sistema Mental Emocional Espiritual</h3>
+<p>Organiza relatos de pensamento, emoção, comportamento, autorregulação, identidade, conexão, valores e sentido: cabeça que não desliga, preocupação, comer para se acalmar, autocrítica, limites, mágoa, culpa depois de comer, direção e propósito. <strong>Não diagnostica transtorno mental</strong> e não mede saúde, valor ou qualidade espiritual. Pontuam 40 perguntas.</p>
+</div>
+</div>
+<h2 id="nota-ndice-holos-e-tr-ade">Nota, Índice HOLOS e Tríade</h2>
+<div class="tres">
+<div class="box">
+<p><strong>Nota do sistema (0 a 10)</strong></p>
+<p>É a posição do sistema dentro da escala do instrumento. Quanto <strong>mais baixa</strong>, mais carga a paciente relatou nas perguntas daquele sistema. Só existe nota quando pelo menos <strong>80%</strong> das perguntas do sistema foram respondidas.</p>
+</div>
+<div class="box">
+<p><strong>Índice HOLOS (0 a 100)</strong></p>
+<p>É a média dos cinco sistemas, com o mesmo peso para cada um. Só é calculado quando os cinco sistemas têm nota. <strong>Não é percentual de saúde.</strong></p>
+</div>
+<div class="box">
+<p><strong>Tríade (Corpo · Mente · Espírito)</strong></p>
+<p>Agrupa as perguntas pelo bloco em que aparecem no questionário (36 de Corpo, 19 de Mente e 14 de Espírito). Ajuda a contextualizar; não escolhe ferramenta nem muda a prioridade.</p>
+</div>
+</div>
+<div class="box atencao"><p class="box-rotulo">Atenção metodológica</p>
+<p>Uma nota baixa <strong>não significa doença, gravidade nem risco</strong>. Uma nota alta <strong>não significa</strong> ausência de doença nem "sistema saudável". A nota é sempre sobre os relatos daquela aplicação, naquele momento.</p>
+</div>
+<h2 id="sinais-que-pontuaram-e-contexto-que-n-o-pontua">Sinais que pontuaram e contexto que não pontua</h2>
+<p>Em cada sistema, o Resultado mostra <strong>até três sinais</strong> que mais contribuíram para a nota: as perguntas em que a paciente relatou mais carga. Eles ajudam a entender <em>por que</em> aquele sistema apareceu, sem afirmar causa.</p>
+<p>Algumas perguntas são <strong>só de contexto</strong>. Elas aparecem para a nutricionista num bloco separado, <strong>"Contexto, sem pontuar"</strong>, e não alteram nota, Índice, Tríade, prioridade, sinais nem Próximos Passos. São, por exemplo:</p>
+<ul>
+<li>condições nomeadas pela própria paciente (candidíase, micose, acne, eczema, psoríase);</li>
+<li>histórico (uso de antibiótico ao longo da vida);</li>
+<li>observações corporais que poderiam sugerir diagnóstico (distribuição de gordura, pele escurecida, dificuldade de perder peso, pele opaca, odor do suor, celulite);</li>
+<li>contexto de vida (contato com a natureza, refeições sozinha e com pressa).</li>
+</ul>
+<div class="box chave">
+<p>O que é contexto informa a conversa. Não vira motivo da nota.</p>
+</div>
+<h2 id="reas-para-aprofundar">Áreas para aprofundar</h2>
+<p>Com as notas calculadas, o sistema ordena os cinco sistemas da <strong>nota mais baixa para a mais alta</strong>. Os dois primeiros são a <strong>1ª e a 2ª área para aprofundar</strong> (em caso de empate, vale a ordem oficial do método).</p>
+<div class="box atencao"><p class="box-rotulo">Atenção metodológica</p>
+<p><strong>Prioridade aqui é prioridade de investigação</strong>, não de gravidade ou de risco. Quando um sistema não teve nenhuma carga (nota 10,0), o Resultado avisa que ele só aparece na lista pela ordem de desempate; a paciente não lê que essa área "aparece para aprofundar".</p>
+</div>
+<figure>
+<img src="imagens/05-holoscan-resultado.png" alt="">
+<figcaption><b>O que a nutricionista vê</b> "Resultado desta aplicação" (paciente fictícia Marina): os cinco sistemas do mais baixo ao mais alto, a Tríade e "Por onde investigar". A visão é profissional; a paciente recebe outra, em linguagem simples.</figcaption>
+</figure>
+
+<div class="box decide"><p class="box-rotulo">O que a nutricionista decide</p>
+<p>A nutricionista lê as áreas <strong>junto com a conversa e o Mapeamento</strong>. Ela pode concordar com a ordem, aprofundar primeiro outra área que a conversa mostrou ser mais importante, ou esperar para decidir. O HOLOSCAN não substitui a conversa clínica.</p>
+</div>
+<h1 id="do-holoscan-s-ferramentas">Do HOLOSCAN às ferramentas</h1>
+<p class="abre">Como o resultado leva às ferramentas: pelo sistema, pelo catálogo, e sempre com a decisão da nutricionista no meio.</p>
+
+<h2 id="a-l-gica-sistema-cat-logo-ferramenta">A lógica: sistema → catálogo → ferramenta</h2>
+<p>Os Próximos Passos HOLOS (catálogo <strong>PP-V1</strong>, com 30 regras aprovadas) funcionam assim:</p>
+<div class="cadeia"><span>Áreas para aprofundar</span><i>→</i><span>Sistema</span><i>→</i><span class="d">Catálogo PP-V1</span><i>→</i><span>Ferramenta sugerida</span><i>→</i><span>Decisão da nutricionista</span></div>
+
+<ol>
+<li>O HOLOSCAN mostra a 1ª e a 2ª área para aprofundar.</li>
+<li>Para cada sistema, o catálogo tem uma lista ordenada de ferramentas que ajudam a aprofundá-lo.</li>
+<li>O sistema propõe <strong>uma ferramenta principal</strong> (do sistema da 1ª área) e <strong>até duas complementares</strong>, sem repetir ferramenta. As já realizadas naquele atendimento aparecem marcadas.</li>
+<li>A nutricionista avalia e decide.</li>
+</ol>
+<div class="frase">
+<p>A ferramenta é sugerida pelo catálogo para aprofundar este sistema.
+<small>Texto que acompanha cada sugestão no sistema</small></p>
+</div>
+<div class="box atencao"><p class="box-rotulo">Atenção metodológica</p>
+<p><strong>Nenhuma pergunta isolada escolhe uma ferramenta.</strong> Os sinais que mais pontuaram mostram por que o sistema apareceu como prioridade; a ferramenta vem do catálogo, pelo sistema. Nenhuma ferramenta é obrigatória, e a ordem é uma recomendação, não uma sequência de atendimento.</p>
+</div>
+<h2 id="o-cat-logo-sistema-a-sistema">O catálogo, sistema a sistema</h2>
+<table>
+<thead>
+<tr>
+<th>Sistema</th>
+<th>Ferramentas do catálogo, na ordem de sugestão</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fúngico</td>
+<td>Mapa da Rotina · Gatilhos &amp; Respostas · Mapa de Crenças Alimentares · Linha do Momentum · OQ³ · Conexão &amp; Pertencimento</td>
+</tr>
+<tr>
+<td>Ácido Inflamatório</td>
+<td>Mapa da Rotina · Linha do Momentum · Gatilhos &amp; Respostas · Roda Holística da Vida · Conexão &amp; Pertencimento · OQ³</td>
+</tr>
+<tr>
+<td>Metabólico</td>
+<td>Mapa da Rotina · Gatilhos &amp; Respostas · Mapa de Crenças Alimentares · Linha do Momentum · OQ³ · Carta ao Futuro Eu</td>
+</tr>
+<tr>
+<td>Detox e Linfático</td>
+<td>Mapa da Rotina · Linha do Momentum · OQ³ · Roda Holística da Vida · Conexão &amp; Pertencimento · Gatilhos &amp; Respostas</td>
+</tr>
+<tr>
+<td>Mental Emocional Espiritual</td>
+<td>PQQ · Mapa de Crenças Alimentares · Gatilhos &amp; Respostas · Mapa do Propósito · Carta ao Futuro Eu · Conexão &amp; Pertencimento</td>
+</tr>
+</tbody>
+</table>
+<figure>
+<img class="media" src="imagens/06-proximos-passos.png" alt="">
+<figcaption><b>O que a nutricionista vê</b> "Próximos Passos HOLOS": cada cartão diz a ferramenta sugerida pelo catálogo, por que ela aparece, o que ajuda a investigar e o que fazer agora. As ferramentas já realizadas no atendimento ficam marcadas (paciente fictícia).</figcaption>
+</figure>
+
+<h2 id="o-que-a-nutricionista-considera-antes-de-aplicar">O que a nutricionista considera antes de aplicar</h2>
+<div class="box decide"><p class="box-rotulo">O que a nutricionista decide</p>
+<ul>
+<li><strong>A sugestão do catálogo</strong>, como ponto de partida.</li>
+<li><strong>A conversa</strong>: o que a paciente trouxe pode pedir outra ferramenta ou outro território.</li>
+<li><strong>O momento da paciente</strong>: energia, tempo e disponibilidade para refletir naquele dia.</li>
+<li><strong>O que já foi feito</strong>: ferramentas aplicadas antes e o que elas mostraram.</li>
+</ul>
+<p>E então decide: aplicar agora, aplicar no retorno ou não aplicar. Seguir, abrir outra ferramenta ou ignorar a sugestão <strong>não altera o Resultado do HOLOSCAN</strong>.</p>
+</div>
+<h1 id="ferramentas-de-corpo-mente-e-esp-rito">Ferramentas de Corpo, Mente e Espírito</h1>
+<p class="abre">Dez ferramentas para aprofundar o que o HOLOSCAN e a conversa mostraram. Nenhuma é diagnóstica, nenhuma é obrigatória e nenhuma transforma a nutrição em psicoterapia.</p>
+
+<h2 id="como-as-ferramentas-funcionam-no-holohacking">Como as ferramentas funcionam no HoloHacking</h2>
+<div class="box sistema"><p class="box-rotulo">O que o sistema faz</p>
+<ul>
+<li>Cada ferramenta tem um formulário próprio, nas seções <strong>Corpo</strong>, <strong>Mente</strong> e <strong>Espírito</strong> do menu, e aparece também na aba "Ferramentas" da ficha.</li>
+<li>Quando há um atendimento ativo, a aplicação fica ligada a ele.</li>
+<li>Toda ferramenta pode ser aplicada de novo ("Nova aplicação"); as anteriores continuam no histórico. Não há reaplicação automática.</li>
+<li><strong>Mapa da Rotina, Gatilhos &amp; Respostas e Conexão &amp; Pertencimento</strong> são registros estruturados: depois de concluídos, não são editados (é possível criar "Nova a partir desta").</li>
+<li>Em sete ferramentas há a <strong>leitura profissional</strong>: "O que chamou atenção", "Prioridade" e "Próximo passo".</li>
+<li>O resultado de cada ferramenta mostra "O que apareceu" (descritivo, sem nota) e, quando existe texto aprovado, "O que isso pode mudar no acompanhamento".</li>
+<li>O que a paciente vê é escolhido no Resultado HOLOS, ferramenta por ferramenta ("Mostrar ao paciente").</li>
+</ul>
+</div>
+<figure>
+<img src="imagens/07-ferramentas-corpo.png" alt="">
+<figcaption><b>O que a nutricionista vê</b> As ferramentas do Corpo, com o estado de cada uma para a paciente ativa: disponível, concluída ou revisada (paciente fictícia).</figcaption>
+</figure>
+
+<p class="eyebrow">Corpo</p>
+
+<h2 id="corpo-a-realidade-pr-tica">Corpo: a realidade prática</h2>
+<div class="ferr corpo"><div class="ferr-cab"><b>OQ³ — O Que Quer, Precisa, Consegue</b><span>Corpo · 01</span></div>
+<dl>
+<dt>Finalidade</dt><dd>Clareza entre desejo, necessidade e capacidade prática da paciente neste momento.</dd>
+<dt>Quando é útil</dt><dd>No início do acompanhamento, ou quando há muitos pontos possíveis de trabalho e é preciso escolher um foco realista.</dd>
+<dt>Como funciona</dt><dd>Três perguntas: o que a paciente quer conquistar (OQQ), o que ela precisa resolver (OQP) e do que ela consegue dar conta agora (OQCC), mais as "alavancas da transformação".</dd>
+<dt>O que produz</dt><dd>Um registro das três dimensões lado a lado, com data.</dd>
+<dt>Como a nutricionista usa</dt><dd>Para planejar a etapa considerando ao mesmo tempo desejo, necessidade e capacidade. Junto com o PQQ, libera o Mapa do Propósito como aprofundamento opcional.</dd>
+<dt>No próximo atendimento</dt><dd>Serve de referência para revisar se o foco combinado ainda cabe no que a paciente consegue sustentar.</dd>
+<dt>O que não significa</dt><dd>Não mede motivação nem compromisso. Não é meta clínica.</dd>
+<dt>Limites</dt><dd>É um instrumento de planejamento da etapa; as decisões continuam sendo da nutricionista, com a paciente.</dd>
+</dl></div>
+
+<div class="ferr corpo"><div class="ferr-cab"><b>Linha do Momentum</b><span>Corpo · 02</span></div>
+<dl>
+<dt>Finalidade</dt><dd>Compreender quanto espaço físico, mental e prático existe hoje para sustentar mudanças. Momentum não é força de vontade, motivação nem obediência.</dd>
+<dt>Quando é útil</dt><dd>Antes de aumentar a exigência; quando a paciente parece sobrecarregada; quando acordos anteriores não se sustentaram.</dd>
+<dt>Como funciona</dt><dd>Seis dimensões de 0 a 10 (energia disponível, carga de vida, controle sobre a rotina, suporte, espaço mental, estabilidade atual), o que sustenta, o que limita e o que **não é hora de pedir**. A nutricionista escolhe o estado: Preservar, Reorganizar, Construir ou Expandir. O sistema nunca sugere o estado.</dd>
+<dt>O que produz</dt><dd>Um retrato da capacidade atual e o estado escolhido pela profissional, com o motivo.</dd>
+<dt>Como a nutricionista usa</dt><dd>"Este estado ajuda a calibrar a exigência e a quantidade de mudanças propostas nesta etapa." Ele informa a Conduta; não a determina.</dd>
+<dt>No próximo atendimento</dt><dd>Ajuda a decidir se é hora de manter, reorganizar ou ampliar os acordos.</dd>
+<dt>O que não significa</dt><dd>Não é medida de energia biológica, nem avaliação de caráter ou de esforço.</dd>
+<dt>Limites</dt><dd>Percepção da paciente lida pela nutricionista; não substitui avaliação clínica de cansaço persistente.</dd>
+</dl></div>
+
+<div class="ferr corpo"><div class="ferr-cab"><b>Mapa da Rotina</b><span>Corpo · 03</span></div>
+<dl>
+<dt>Finalidade</dt><dd>"Entender onde as dificuldades e as possibilidades de mudança aparecem na rotina real, antes de combinar mudanças que talvez não caibam no dia a dia."</dd>
+<dt>Quando é útil</dt><dd>Quase sempre no começo: é a primeira sugestão do catálogo para os quatro sistemas físicos.</dd>
+<dt>Como funciona</dt><dd>Horários de acordar e dormir, sono, trabalho, deslocamentos, responsabilidades, momentos mais difíceis e mais disponíveis, espaços possíveis para mudança e uma lista de eventos do dia (horário, categoria, título, percepção, dias da semana).</dd>
+<dt>O que produz</dt><dd>Um mapa descritivo do dia real, com os pontos de maior e menor dificuldade.</dd>
+<dt>Como a nutricionista usa</dt><dd>"Essas informações ajudam a escolher mudanças que realmente caibam na rotina atual."</dd>
+<dt>No próximo atendimento</dt><dd>Os acordos são revistos contra o mesmo mapa; uma nova aplicação mostra a rotina depois das mudanças.</dd>
+<dt>O que não significa</dt><dd>Não é avaliação de disciplina nem diário alimentar quantitativo.</dd>
+<dt>Limites</dt><dd>Registro estruturado: concluído, não é editado (cria-se uma nova aplicação).</dd>
+</dl></div>
+
+<p class="eyebrow">Mente</p>
+
+<h2 id="mente-motivos-cren-as-e-padr-es">Mente: motivos, crenças e padrões</h2>
+<div class="ferr mente"><div class="ferr-cab"><b>PQQ — Escada dos Porquês</b><span>Mente · 01</span></div>
+<dl>
+<dt>Finalidade</dt><dd>"Compreender o que o objetivo desejado representa para a paciente e conectar a mudança a significados que façam sentido para ela."</dd>
+<dt>Quando é útil</dt><dd>Quando o objetivo declarado é genérico ("emagrecer", "ter disposição") ou quando a mudança perde força depois das primeiras semanas.</dd>
+<dt>Como funciona</dt><dd>A partir do objetivo declarado, cinco níveis de "Pra que que você quer isso?", até o "pra que" verdadeiro.</dd>
+<dt>O que produz</dt><dd>Uma escada de sentidos, nas palavras da paciente.</dd>
+<dt>Como a nutricionista usa</dt><dd>"Essa síntese pode ajudar a manter as mudanças conectadas ao significado que a própria paciente atribui ao objetivo." Com o OQ³, libera o Mapa do Propósito.</dd>
+<dt>No próximo atendimento</dt><dd>O "pra que" verdadeiro pode ser retomado quando a paciente desanima ou quando um acordo perde sentido.</dd>
+<dt>O que não significa</dt><dd>Não é interpretação psicológica. O sentido é o que a paciente declara.</dd>
+<dt>Limites</dt><dd>Se a escada tocar em sofrimento que ultrapasse a nutrição, a nutricionista considera encaminhamento.</dd>
+</dl></div>
+
+<div class="ferr mente"><div class="ferr-cab"><b>Mapa de Crenças Alimentares</b><span>Mente · 02</span></div>
+<dl>
+<dt>Finalidade</dt><dd>Tornar visíveis ideias e regras sobre comida e corpo que podem estar influenciando escolhas.</dd>
+<dt>Quando é útil</dt><dd>Quando aparecem frases como "não posso comer depois das 18h", "carboidrato engorda", "se eu sair da dieta, perdi tudo".</dd>
+<dt>Como funciona</dt><dd>Crenças que a paciente carrega, de onde vieram, qual mais atrapalha hoje e uma crença alternativa possível.</dd>
+<dt>O que produz</dt><dd>Um registro das crenças nas palavras da paciente.</dd>
+<dt>Como a nutricionista usa</dt><dd>"Esse registro ajuda a tornar visíveis ideias que podem estar influenciando escolhas alimentares e permite observá-las em situações reais."</dd>
+<dt>No próximo atendimento</dt><dd>A crença que mais atrapalha pode virar objeto de observação no dia a dia.</dd>
+<dt>O que não significa</dt><dd>Não é julgamento das crenças nem terapia cognitiva.</dd>
+<dt>Limites</dt><dd>A nutricionista trabalha a relação com a comida dentro da sua competência.</dd>
+</dl></div>
+
+<div class="ferr mente"><div class="ferr-cab"><b>Gatilhos &amp; Respostas</b><span>Mente · 03</span></div>
+<dl>
+<dt>Finalidade</dt><dd>"Tornar observável o que acontece antes e depois de determinado comportamento."</dd>
+<dt>Quando é útil</dt><dd>Quando há comportamentos alimentares recorrentes difíceis de mudar: beliscar no fim da tarde, comer para se acalmar, comer escondido.</dd>
+<dt>Como funciona</dt><dd>Um episódio por aplicação: data, hora e contexto; gatilho; pensamento; emoção (com intensidade 0 a 10); resposta; consequências imediatas e posteriores; necessidade; observação da nutricionista; alternativa possível.</dd>
+<dt>O que produz</dt><dd>A sequência de um episódio real, do gatilho à consequência.</dd>
+<dt>Como a nutricionista usa</dt><dd>Para enxergar padrões ao longo de vários episódios e escolher onde uma alternativa pode caber.</dd>
+<dt>No próximo atendimento</dt><dd>Novos episódios mostram se o padrão se repete, muda ou perde força.</dd>
+<dt>O que não significa</dt><dd>Não afirma causa. Mostra uma sequência relatada, sem presumir que uma coisa provoca a outra.</dd>
+<dt>Limites</dt><dd>Registro estruturado (não é editado depois de concluído). Não é avaliação de transtorno alimentar.</dd>
+</dl></div>
+
+<p class="eyebrow">Espírito</p>
+
+<h2 id="esp-rito-sentido-dire-o-e-pertencimento">Espírito: sentido, direção e pertencimento</h2>
+<div class="ferr espirito"><div class="ferr-cab"><b>Mapa do Propósito</b><span>Espírito · 01</span></div>
+<dl>
+<dt>Finalidade</dt><dd>Organizar direção e significado a partir do que a paciente já declarou no OQ³ e no PQQ.</dd>
+<dt>Quando é útil</dt><dd>Depois do OQ³ e do PQQ, como aprofundamento opcional.</dd>
+<dt>Como funciona</dt><dd>Não é um formulário separado: é derivado do OQ³ e do PQQ ("Atualizar mapa"), com opção de imprimir ou salvar em PDF. É a única ligação automática entre ferramentas.</dd>
+<dt>O que produz</dt><dd>Uma visão reunida do que a paciente quer, precisa, consegue e do sentido que atribui à mudança.</dd>
+<dt>Como a nutricionista usa</dt><dd>Para conversar sobre direção quando o acompanhamento precisa de um eixo de sentido.</dd>
+<dt>No próximo atendimento</dt><dd>Pode ser atualizado quando o OQ³ ou o PQQ forem reaplicados.</dd>
+<dt>O que não significa</dt><dd>Não define a "missão" da paciente nem a sua espiritualidade.</dd>
+<dt>Limites</dt><dd>Não há regra homologada de "direção desta etapa"; a leitura é da nutricionista.</dd>
+</dl></div>
+
+<div class="ferr espirito"><div class="ferr-cab"><b>Roda Holística da Vida</b><span>Espírito · 02</span></div>
+<dl>
+<dt>Finalidade</dt><dd>Ampliar o olhar para as áreas da vida que ocupam energia e espaço.</dd>
+<dt>Quando é útil</dt><dd>Quando a alimentação parece "a ponta" de uma sobrecarga maior.</dd>
+<dt>Como funciona</dt><dd>Oito áreas de 0 a 10 (saúde, relações, trabalho, finanças, espiritualidade, lazer, desenvolvimento pessoal, propósito) e a pergunta "qual área está puxando as outras para baixo".</dd>
+<dt>O que produz</dt><dd>As áreas percebidas como mais e menos cuidadas. **Não há média nem nota única.**</dd>
+<dt>Como a nutricionista usa</dt><dd>"Essa percepção ajuda a escolher quais áreas merecem atenção neste momento."</dd>
+<dt>No próximo atendimento</dt><dd>Uma nova aplicação mostra como a percepção mudou, lado a lado.</dd>
+<dt>O que não significa</dt><dd>Não mede qualidade de vida nem bem-estar de forma validada.</dd>
+<dt>Limites</dt><dd>Percepção da paciente naquele dia.</dd>
+</dl></div>
+
+<div class="ferr espirito"><div class="ferr-cab"><b>Carta ao Futuro Eu</b><span>Espírito · 03</span></div>
+<dl>
+<dt>Finalidade</dt><dd>Construir uma referência de identidade e direção futura para a mudança.</dd>
+<dt>Quando é útil</dt><dd>Quando a paciente se define pelo que "sempre foi" ou quando a mudança precisa de um horizonte além do resultado imediato.</dd>
+<dt>Como funciona</dt><dd>"Para quando" e a carta, escrita pela paciente.</dd>
+<dt>O que produz</dt><dd>Um texto pessoal. Na visão da paciente, aparece só que a carta "foi realizada como exercício de reflexão sobre identidade, direção e cuidado futuro": o conteúdo nunca é reproduzido.</dd>
+<dt>Como a nutricionista usa</dt><dd>Como referência de conversa, com cuidado e com o consentimento da paciente.</dd>
+<dt>No próximo atendimento</dt><dd>Pode ser retomada em momentos de revisão do ciclo.</dd>
+<dt>O que não significa</dt><dd>Não é avaliada nem pontuada.</dd>
+<dt>Limites</dt><dd>Conteúdo íntimo: tratar como tal.</dd>
+</dl></div>
+
+<div class="ferr espirito"><div class="ferr-cab"><b>Conexão &amp; Pertencimento</b><span>Espírito · 04</span></div>
+<dl>
+<dt>Finalidade</dt><dd>Compreender como apoio, convivência e ambiente podem influenciar a sustentação dos hábitos.</dd>
+<dt>Quando é útil</dt><dd>Quando a paciente se sente sozinha no processo, ou quando a família, o trabalho ou um grupo pesam nas escolhas.</dd>
+<dt>Como funciona</dt><dd>Campos sobre apoio e pertencimento, espiritualidade (opcional) e uma lista de relações: natureza, tipo, papel percebido (apoia, dificulta, neutro, variável) e proximidade.</dd>
+<dt>O que produz</dt><dd>Um mapa de quem e do que sustenta a paciente, como ela descreve. Para a paciente, aparecem só contagens.</dd>
+<dt>Como a nutricionista usa</dt><dd>"Essas informações ajudam a compreender quais recursos de apoio estão disponíveis durante o processo."</dd>
+<dt>No próximo atendimento</dt><dd>Ajuda a planejar acordos que contem com apoio real.</dd>
+<dt>O que não significa</dt><dd>Não avalia relações nem pessoas.</dd>
+<dt>Limites</dt><dd>Registro estruturado (não é editado depois de concluído).</dd>
+</dl></div>
+
+<div class="box atencao"><p class="box-rotulo">Atenção metodológica</p>
+<p><strong>Nenhuma ferramenta gera resultado automático interpretado.</strong> O sistema organiza o que foi registrado; a leitura é da nutricionista. Onde ainda não há texto aprovado sobre o significado de uma ferramenta, o sistema simplesmente não mostra o bloco, em vez de inventar uma interpretação.</p>
+</div>
+<h1 id="leitura-profissional-e-conduta">Leitura profissional e Conduta</h1>
+<p class="abre">O método organiza; a nutricionista interpreta e decide. Essas duas etapas são dela.</p>
+
+<h2 id="leitura-profissional">Leitura profissional</h2>
+<p>A leitura profissional é o que a nutricionista entendeu, com as palavras dela. No HoloHacking ela aparece em três lugares:</p>
+<table>
+<thead>
+<tr>
+<th>Onde</th>
+<th>O que registra</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>HOLOSCAN → "Sua interpretação"</strong></td>
+<td>A leitura clínica da aplicação. Fica guardada junto do HOLOSCAN e vai para o relatório.</td>
+</tr>
+<tr>
+<td><strong>Cada ferramenta → "Leitura profissional"</strong></td>
+<td>"O que chamou atenção", "Prioridade" e "Próximo passo" (em sete ferramentas do catálogo).</td>
+</tr>
+<tr>
+<td><strong>Resultado HOLOS → observações</strong></td>
+<td>"Leitura profissional da nutricionista", "Pontos para acompanhar" e "Questões para aprofundar" (esta última só na visão profissional).</td>
+</tr>
+</tbody>
+</table>
+<div class="box chave">
+<p>A leitura profissional nunca é gerada pelo sistema. Ela é escrita pela nutricionista.</p>
+</div>
+<h2 id="conduta">Conduta</h2>
+<p>A Conduta registra o que foi decidido para a etapa. Ela pertence a um atendimento e tem revisões: depois de salva, não é editada; uma mudança vira nova revisão.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Para que serve</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Prioridades selecionadas</td>
+<td>O que esta etapa vai priorizar.</td>
+</tr>
+<tr>
+<td>Objetivo da etapa</td>
+<td>O que se quer alcançar até o próximo encontro, em linguagem simples.</td>
+</tr>
+<tr>
+<td>Estratégia nutricional</td>
+<td>O caminho escolhido para chegar lá.</td>
+</tr>
+<tr>
+<td>Ações</td>
+<td>O que a paciente vai experimentar.</td>
+</tr>
+<tr>
+<td>Recursos</td>
+<td>Materiais e apoios combinados.</td>
+</tr>
+<tr>
+<td>Exames solicitados (quando pertinente)</td>
+<td>Registro administrativo; exames não entram no HOLOSCAN nem no Resultado HOLOS.</td>
+</tr>
+<tr>
+<td>Monitoramento e Retorno</td>
+<td>O que observar e quando reavaliar.</td>
+</tr>
+<tr>
+<td>Orientações profissionais e Observações</td>
+<td>O que a nutricionista quer deixar registrado.</td>
+</tr>
+<tr>
+<td>Ferramentas relacionadas</td>
+<td>As ferramentas que embasaram a decisão.</td>
+</tr>
+<tr>
+<td><strong>Acordos</strong></td>
+<td>Cada acordo tem descrição, responsável, prazo, acompanhamento e estado: Proposto, Acordado, Em acompanhamento, Concluído, Revisto ou Encerrado.</td>
+</tr>
+</tbody>
+</table>
+<div class="box sistema"><p class="box-rotulo">O que o sistema faz</p>
+<ul>
+<li>Nenhum campo é obrigatório. A Conduta não depende de nota, faixa, Índice, HOLOSCAN completo nem ferramenta.</li>
+<li>No retorno, a Conduta anterior aparece ao lado, com a opção "Levar acordos para esta conduta" e a decisão de continuar, substituir ou encerrar cada acordo. Nada é levado automaticamente.</li>
+<li>O sistema não gera dieta, diagnóstico nutricional nem encaminhamento.</li>
+</ul>
+</div>
+<div class="box decide"><p class="box-rotulo">O que a nutricionista decide</p>
+<p>A Conduta é <strong>da nutricionista</strong>. O HOLOSCAN e as ferramentas informam a decisão; não a determinam.</p>
+</div>
+<h1 id="resultado-holos">Resultado HOLOS</h1>
+<p class="abre">O momento em que o que foi registrado vira uma síntese organizada, com uma versão para a nutricionista e outra para a paciente.</p>
+
+<h2 id="a-arquitetura-do-resultado">A arquitetura do resultado</h2>
+<p>Cada parte do Resultado HOLOS segue a mesma lógica, do dado ao próximo passo:</p>
+<div class="cadeia"><span>Dado</span><i>→</i><span>Resultado</span><i>→</i><span>Significado</span><i>→</i><span>Porquê</span><i>→</i><span>Aprofundamento</span><i>→</i><span class="d">Próximo passo</span></div>
+
+<p>Para cada sistema, por exemplo, o Resultado mostra: o que o eixo organiza; a nota nesta aplicação; o que mais contribuiu; o que isso significa dentro do HOLOSCAN; o que <strong>não</strong> significa; o que pode merecer aprofundamento; e o próximo passo pelo catálogo.</p>
+<h2 id="tr-s-camadas-que-n-o-se-misturam">Três camadas que não se misturam</h2>
+<div class="tres">
+<div class="box sistema"><p class="box-rotulo">O que o sistema faz</p>
+<p><strong>Resultado do método</strong></p>
+<p>Notas, Índice, Tríade, áreas para aprofundar, sinais e ferramentas sugeridas. É calculado pela regra do método a partir das respostas da paciente: muda quando as respostas mudam.</p>
+</div>
+<div class="box decide"><p class="box-rotulo">O que a nutricionista decide</p>
+<p><strong>Leitura profissional</strong></p>
+<p>O que a nutricionista entendeu ao juntar o método, a conversa e o contexto. Escrita por ela.</p>
+</div>
+<div class="box resultado"><p class="box-rotulo">Resultado desta etapa</p>
+<p><strong>Conduta</strong></p>
+<p>O que foi decidido e combinado para a etapa. Também da nutricionista, com a paciente.</p>
+</div>
+</div>
+<div class="frase">
+<p>Resultado do método ≠ leitura profissional ≠ Conduta
+<small>Cada camada tem um autor diferente</small></p>
+</div>
+<h2 id="como-o-resultado-holos-gerado">Como o Resultado HOLOS é gerado</h2>
+<p>Na aba "Resultado HOLOS" da ficha, "Gerar Resultado HOLOS" abre um formulário em que a nutricionista escolhe:</p>
+<ol>
+<li>o <strong>atendimento</strong>;</li>
+<li>a <strong>aplicação do HOLOSCAN</strong> (oficial);</li>
+<li>as <strong>ferramentas concluídas</strong> que entram, cada uma com a opção "Mostrar ao paciente";</li>
+<li>se os <strong>Próximos Passos HOLOS</strong> serão compartilhados com a paciente (desligado por padrão);</li>
+<li>as três <strong>observações</strong>: leitura profissional, pontos para acompanhar e questões para aprofundar.</li>
+</ol>
+<p>Depois vêm "Pré-visualizar", "Salvar rascunho" e "Salvar Resultado HOLOS". Um resultado salvo fica congelado; ele pode ser marcado como revisado, e uma mudança vira <strong>nova versão</strong>, com o histórico preservado.</p>
+<div class="box atencao"><p class="box-rotulo">Atenção metodológica</p>
+<p>Não existe fórmula que junte Corpo, Mente e Espírito numa conclusão automática. O Resultado organiza; quem integra é a nutricionista.</p>
+</div>
+<h1 id="o-que-a-nutricionista-v">O que a nutricionista vê</h1>
+<p class="abre">A visão profissional reúne tudo o que é preciso para decidir, com a separação clara entre o que pontuou e o que é só contexto.</p>
+
+<h2 id="as-se-es-da-vis-o-profissional">As seções da visão profissional</h2>
+<table>
+<thead>
+<tr>
+<th>Seção</th>
+<th>O que mostra</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Resumo para decisão</strong></td>
+<td>1ª e 2ª área para aprofundar, próximo passo principal, ferramentas complementares, ferramentas já aplicadas e estado do processo.</td>
+</tr>
+<tr>
+<td><strong>Por que o sistema chegou a isso</strong></td>
+<td>Visão geral do HOLOSCAN e os cinco sistemas, cada um com "Pontuou neste sistema" e "Contexto, sem pontuar".</td>
+</tr>
+<tr>
+<td><strong>Resultados das ferramentas</strong></td>
+<td>Por território, com o panorama das ferramentas aplicadas.</td>
+</tr>
+<tr>
+<td><strong>Síntese HOLOS</strong></td>
+<td>Onde aprofundar, por que essas áreas apareceram, o que já foi aprofundado, o que ainda pode ser aprofundado, leitura profissional.</td>
+</tr>
+<tr>
+<td><strong>Leitura profissional</strong></td>
+<td>As observações da nutricionista.</td>
+</tr>
+<tr>
+<td><strong>Conduta</strong></td>
+<td>Atalho para a Conduta do atendimento.</td>
+</tr>
+</tbody>
+</table>
+<figure>
+<img class="media" src="imagens/08-rh-profissional-decisao.png" alt="">
+<figcaption><b>O que a nutricionista vê</b> O topo do Resultado HOLOS profissional: dados da aplicação, pacote metodológico (HOLOS-V1 v6) e o "Resumo para decisão" (paciente fictícia).</figcaption>
+</figure>
+
+<figure>
+<img class="media baixa" src="imagens/09-rh-sintese.png" alt="">
+<figcaption><b>O que a nutricionista vê</b> A Síntese HOLOS: organização determinística do que o método produziu, separando regra oficial, fato e decisão da nutricionista.</figcaption>
+</figure>
+
+<div class="box pratica"><p class="box-rotulo">Na prática</p>
+<p>Quando um sistema aparece na 2ª posição sem ter tido nenhuma carga (nota 10,0), a visão profissional avisa que ele está ali <strong>só pela ordem oficial de desempate</strong>. Isso evita ler como prioridade algo que a paciente não relatou.</p>
+</div>
+<h1 id="o-que-a-paciente-recebe">O que a paciente recebe</h1>
+<p class="abre">Uma versão em linguagem humana: o que apareceu, o que isso significa, o que não significa, e o que foi combinado.</p>
+
+<h2 id="as-se-es-da-vis-o-da-paciente-seu-mapa-holos">As seções da visão da paciente ("Seu Mapa HOLOS")</h2>
+<table>
+<thead>
+<tr>
+<th>Seção</th>
+<th>O que a paciente entende</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>O que entendemos nesta etapa</td>
+<td>Onde o acompanhamento está focado e quais ferramentas foram feitas.</td>
+</tr>
+<tr>
+<td>Áreas para aprofundar</td>
+<td>As áreas que aparecem primeiro, com o que cada eixo reúne, o que mais contribuiu, o que significa e o que não significa.</td>
+</tr>
+<tr>
+<td>O que descobrimos com as ferramentas</td>
+<td>O que foi aprendido, só das ferramentas que a nutricionista escolheu mostrar.</td>
+</tr>
+<tr>
+<td>Nosso foco agora</td>
+<td>A leitura que a nutricionista escreveu para ela.</td>
+</tr>
+<tr>
+<td>O que ficou combinado</td>
+<td>Objetivo, estratégia, ações e acordos da Conduta.</td>
+</tr>
+<tr>
+<td>O que observar até o próximo encontro</td>
+<td>Os pontos para acompanhar.</td>
+</tr>
+<tr>
+<td>Detalhes do mapa</td>
+<td>Os cinco sistemas, o Índice e a Tríade, para quem quiser ver.</td>
+</tr>
+</tbody>
+</table>
+<figure>
+<img class="media" src="imagens/10-paciente-areas.png" alt="">
+<figcaption><b>O que a paciente recebe</b> "Áreas para aprofundar" na visão da paciente (paciente fictícia). O contexto sem pontuação não aparece aqui, para não parecer o motivo da nota.</figcaption>
+</figure>
+
+<figure>
+<img class="media" src="imagens/11-paciente-combinado.png" alt="">
+<figcaption><b>O que a paciente recebe</b> O foco, o que ficou combinado e o que observar até o próximo encontro.</figcaption>
+</figure>
+
+<div class="box percebe"><p class="box-rotulo">O que a paciente percebe</p>
+<ul>
+<li>Ela lê <strong>o que apareceu</strong> e <strong>o que isso não significa</strong> na mesma página.</li>
+<li>Não vê cobertura técnica, pendências metodológicas nem as questões internas da nutricionista.</li>
+<li>Não recebe diagnóstico, nem frases de causa e efeito entre emoção e corpo.</li>
+</ul>
+</div>
+<h1 id="resultado-final-pdf-e-whatsapp">Resultado Final, PDF e WhatsApp</h1>
+<p class="abre">Do resultado preparado na ficha à entrega para a paciente.</p>
+
+<h2 id="resultado-holos-e-resultado-final-qual-a-diferen-a">Resultado HOLOS e Resultado Final: qual é a diferença</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Resultado HOLOS</th>
+<th>Resultado Final</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Onde</td>
+<td>Aba "Resultado HOLOS" da ficha</td>
+<td>Menu "Resultado"</td>
+</tr>
+<tr>
+<td>O que é</td>
+<td>A síntese clínica da etapa, com visão profissional e visão da paciente</td>
+<td>A <strong>emissão</strong> para a paciente: congela o Resultado HOLOS (visão da paciente), a Conduta do mesmo atendimento e a identidade profissional do Perfil</td>
+</tr>
+<tr>
+<td>Pode mudar?</td>
+<td>Sim, por nova versão</td>
+<td>Não: cada emissão é imutável; uma mudança vira nova emissão</td>
+</tr>
+<tr>
+<td>PDF</td>
+<td>"Imprimir ou salvar em PDF" (impressão do navegador)</td>
+<td>"Baixar PDF" e "Imprimir"</td>
+</tr>
+</tbody>
+</table>
+<h2 id="o-fluxo-de-entrega">O fluxo de entrega</h2>
+<div class="cadeia"><span>Resultado HOLOS salvo</span><i>→</i><span>Prévia</span><i>→</i><span>Gerar Resultado Final</span><i>→</i><span class="d">PDF</span><i>→</i><span>WhatsApp</span></div>
+
+<ol>
+<li>Na página "Resultado", a nutricionista vê a <strong>PRÉVIA</strong> do que a paciente vai receber.</li>
+<li><strong>"Gerar Resultado Final"</strong> congela o conteúdo: "Resultado Final nº X · conteúdo congelado".</li>
+<li><strong>"Baixar PDF"</strong> gera o arquivo no próprio navegador, com o nome, o registro profissional, o logo, a assinatura e o carimbo do Perfil.</li>
+<li><strong>"Enviar pelo WhatsApp"</strong>: no celular, abre o compartilhamento com o PDF anexado; no computador, baixa o PDF e abre a conversa com a mensagem pronta, e a nutricionista anexa o arquivo.</li>
+</ol>
+<figure>
+<img class="media" src="imagens/12-resultado-final-emitido.png" alt="">
+<figcaption><b>O que a nutricionista vê</b> Um Resultado Final emitido: conteúdo congelado, com Baixar PDF, Enviar pelo WhatsApp, Imprimir, Abrir na ficha e Gerar nova emissão (paciente fictícia).</figcaption>
+</figure>
+
+<div class="duas">
+<figure>
+<img src="imagens/13-pdf-paciente-p1.png" alt="">
+<figcaption><b>O que a paciente recebe</b> Primeira página do PDF.</figcaption>
+</figure>
+<figure>
+<img src="imagens/13-pdf-paciente-p2.png" alt="">
+<figcaption><b>O que a paciente recebe</b> Segunda página do PDF.</figcaption>
+</figure>
+</div>
+<div class="box sistema"><p class="box-rotulo">O que o sistema faz</p>
+<ul>
+<li><strong>Nenhum link é enviado.</strong> O PDF é gerado no navegador, sem página pública.</li>
+<li>Emissões anteriores ficam em "Emissões deste paciente".</li>
+<li>A mensagem do WhatsApp diz: <em>"Olá, [nome]! Segue o seu Resultado HOLOS ([data]). Ele organiza o que registramos na sua avaliação e os próximos passos que combinamos. Qualquer dúvida, é só me chamar."</em></li>
+</ul>
+</div>
+<h2 id="outros-registros-que-acompanham-a-jornada">Outros registros que acompanham a jornada</h2>
+<table>
+<thead>
+<tr>
+<th>Registro</th>
+<th>O que faz</th>
+<th>O que não faz</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Relatórios clínicos</strong></td>
+<td>Relatório profissional com fontes escolhidas uma a uma; prévia, rascunho e emissão imutável (retificação gera nova emissão).</td>
+<td>Não interpreta exames.</td>
+</tr>
+<tr>
+<td><strong>Documentos</strong></td>
+<td>Guarda exames, laudos, receitas e outros arquivos (até 10 MB), com tipo, título e data.</td>
+<td>Não lê nem interpreta os arquivos; eles não entram no HOLOSCAN nem no Resultado.</td>
+</tr>
+<tr>
+<td><strong>Linha do tempo</strong></td>
+<td>Mostra os registros consolidados, com filtros por tipo.</td>
+<td>Não cria registro novo.</td>
+</tr>
+<tr>
+<td><strong>HOLOS AI</strong></td>
+<td>Monta um texto de contexto do caso para a nutricionista copiar.</td>
+<td>Não envia nada sozinho; a abertura direta em assistentes externos está "Em desenvolvimento".</td>
+</tr>
+</tbody>
+</table>
+<h1 id="retornos-o-princ-pio-fundamental">Retornos: o princípio fundamental</h1>
+<p class="abre">Uma jornada de até 10 atendimentos não é um protocolo. É um exemplo de caminho possível, que cada nutricionista adapta a cada paciente.</p>
+
+<div class="frase">
+<p>Este é um exemplo de jornada possível. A escolha depende do caso.<br>A nutricionista interpreta e decide.
+<small>Princípio dos retornos</small></p>
+</div>
+<h2 id="o-que-este-cap-tulo-n-o-diz">O que este capítulo não diz</h2>
+<div class="box atencao"><p class="box-rotulo">Atenção metodológica</p>
+<ul>
+<li>Não diz que a consulta 1 usa obrigatoriamente a ferramenta X e a consulta 2 a ferramenta Y.</li>
+<li>Não define intervalo entre consultas nem entre aplicações do HOLOSCAN.</li>
+<li>Não obriga alternar Corpo, Mente e Espírito.</li>
+<li>Não promete resultado clínico em nenhum número de consultas.</li>
+</ul>
+</div>
+<h2 id="o-que-o-holohacking-j-oferece-para-os-retornos">O que o HoloHacking já oferece para os retornos</h2>
+<table>
+<thead>
+<tr>
+<th>Recurso</th>
+<th>Como ajuda no retorno</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Agenda</strong></td>
+<td>Tipos "Retorno" e "Reavaliação HOLOSCAN"; reagendar mantém o original no histórico.</td>
+</tr>
+<tr>
+<td><strong>Mapeamento de retorno</strong></td>
+<td>Enviado automaticamente no formato curto "Desde a última consulta" quando a paciente já tem Mapeamento concluído.</td>
+</tr>
+<tr>
+<td><strong>Mapeamento profissional de retorno</strong></td>
+<td>Tipo "Retorno", com o bloco "Desde a última consulta".</td>
+</tr>
+<tr>
+<td><strong>Conduta anterior</strong></td>
+<td>Aparece ao lado, com "Levar acordos para esta conduta" e a decisão de continuar, substituir ou encerrar cada acordo.</td>
+</tr>
+<tr>
+<td><strong>Nova aplicação</strong></td>
+<td>HOLOSCAN e ferramentas podem ser reaplicados; o histórico de cada um fica preservado.</td>
+</tr>
+<tr>
+<td><strong>Resultado HOLOS</strong></td>
+<td>Uma nova aplicação gera uma nova versão do Resultado; as anteriores ficam guardadas.</td>
+</tr>
+<tr>
+<td><strong>Evolução</strong></td>
+<td>Compara lado a lado: atendimento anterior × atual, linha de base × atual, dois atendimentos ou duas datas.</td>
+</tr>
+<tr>
+<td><strong>Dashboard</strong></td>
+<td>Mostra em que etapa cada paciente está (Aguardando Mapeamento, Mapeamento recebido, HOLOSCAN em andamento, Resultado pronto, Resultado apresentado, Aguardando retorno).</td>
+</tr>
+</tbody>
+</table>
+<div class="box atencao"><p class="box-rotulo">Atenção metodológica</p>
+<p><strong>Evolução mostra lado a lado, sem calcular diferenças de nota, Índice, Tríade ou faixa.</strong> A regra de comparabilidade entre aplicações ainda não foi homologada. Aplicações feitas em versões diferentes do pacote metodológico <strong>não são comparadas como se fossem equivalentes</strong>.</p>
+</div>
+<div class="box futuro"><p class="box-rotulo">Visão futura / experiência desejada</p>
+<p>O HoloHacking ainda <strong>não organiza a jornada em ciclos</strong> (contagem de atendimentos, marcos de ciclo, síntese de fechamento). Hoje, o ciclo existe na condução da nutricionista e no histórico registrado; não há uma função de "ciclo".</p>
+</div>
+<h1 id="mapa-de-um-ciclo-de-at-10-atendimentos">Mapa de um ciclo de até 10 atendimentos</h1>
+<p class="abre">Uma estrutura narrativa para pensar o acompanhamento ao longo do tempo. Não é regra clínica.</p>
+
+<div class="linha-tempo">
+<div data-n="1"><b>Compreender e priorizar</b><span>Criar um ponto de partida organizado.</span></div>
+<div data-n="2"><b>Aprofundar</b><span>Entender melhor o padrão que apareceu primeiro.</span></div>
+<div data-n="3"><b>Testar e observar</b><span>Ver o que aconteceu quando os acordos encontraram a vida real.</span></div>
+<div data-n="4"><b>Integrar</b><span>Conectar alimentação, rotina, comportamento, emoção e contexto.</span></div>
+<div data-n="5"><b>Revisar o primeiro ciclo</b><span>Um checkpoint: de onde partimos, o que mudou, o que permanece.</span></div>
+<div data-n="6"><b>Aprofundar uma nova camada</b><span>Ir além do primeiro foco, sem repetir a primeira consulta.</span></div>
+<div data-n="7"><b>Consolidar</b><span>Consistência, sustentabilidade e pequenos ajustes.</span></div>
+<div data-n="8"><b>Autonomia</b><span>A paciente começa a reconhecer os próprios padrões.</span></div>
+<div data-n="9"><b>Reavaliação global</b><span>Início versus momento atual, com respeito ao versionamento.</span></div>
+<div data-n="10"><b>Fechamento do ciclo e próxima fase</b><span>Síntese, conquistas, o que continuar e como seguir.</span></div>
+</div>
+
+<div class="box pratica"><p class="box-rotulo">Na prática</p>
+<p>Um ciclo pode ter menos encontros, pode pular etapas ou voltar a uma delas. Uma paciente pode precisar de três consultas de "aprofundar" antes de "testar"; outra pode chegar à autonomia cedo. A numeração ajuda a pensar, não a cobrar.</p>
+</div>
+<h1 id="os-10-atendimentos-um-a-um">Os 10 atendimentos, um a um</h1>
+<p class="abre">Para cada encontro: o que revisar antes, o que fazer durante, o que registrar depois, o objetivo e o resultado esperado do processo.</p>
+
+<h2 id="atendimento-1-compreender-e-priorizar">Atendimento 1 — Compreender e priorizar</h2>
+<div class="duas">
+<div class="box pratica"><p class="box-rotulo">Na prática</p>
+<p><strong>Antes</strong>
+- Mapeamento recebido e lido.
+- Revisão do contexto: queixa, objetivo, rotina, sinais relatados.</p>
+<p><strong>Durante</strong>
+- Conversa.
+- HOLOSCAN, quando pertinente.
+- Leitura das áreas para aprofundar.
+- Escolha do primeiro aprofundamento e, se couber, aplicação de uma ferramenta.</p>
+<p><strong>Depois</strong>
+- Leitura profissional, Conduta e acordos.
+- Resultado para a paciente.</p>
+</div>
+<div>
+<div class="box decide"><p class="box-rotulo">O que a nutricionista decide</p>
+<p><strong>Objetivo do encontro:</strong> criar um ponto de partida organizado.</p>
+</div>
+<div class="box resultado"><p class="box-rotulo">Resultado desta etapa</p>
+<p><strong>Resultado esperado do processo:</strong> a paciente entende qual é o foco inicial e o que observar até o retorno.</p>
+</div>
+<div class="box sistema"><p class="box-rotulo">O que o sistema faz</p>
+<p>Atendimento aberto · Mapeamento levado para o atendimento · HOLOSCAN salvo · ferramenta concluída (se houver) · Conduta · Resultado HOLOS · Resultado Final em PDF.</p>
+</div>
+</div>
+</div>
+<h2 id="atendimento-2-aprofundar">Atendimento 2 — Aprofundar</h2>
+<p>Revisar os acordos, a percepção da paciente, as barreiras, as mudanças observadas e a ferramenta anterior.</p>
+<div class="box chave">
+<p>O primeiro aprofundamento respondeu à pergunta que motivou a escolha?</p>
+</div>
+<p>Possibilidades:</p>
+<ul>
+<li>continuar no mesmo eixo, com outra ferramenta do mesmo sistema;</li>
+<li>aplicar uma ferramenta complementar sugerida no primeiro resultado;</li>
+<li>mudar para a segunda área para aprofundar;</li>
+<li>aprofundar Corpo, Mente ou Espírito conforme a conversa pedir.</li>
+</ul>
+<div class="duas">
+<div class="box sistema"><p class="box-rotulo">O que o sistema faz</p>
+<p>Mapeamento de retorno · Conduta anterior ao lado da nova · "Próximos Passos HOLOS" do primeiro resultado (sem as ferramentas já feitas) · nova ferramenta.</p>
+</div>
+<div class="box resultado"><p class="box-rotulo">Resultado desta etapa</p>
+<p>Mais clareza sobre o padrão investigado.</p>
+</div>
+</div>
+<h2 id="atendimento-3-testar-e-observar">Atendimento 3 — Testar e observar</h2>
+<p>O foco é o que aconteceu quando os acordos encontraram a vida real: o que foi tentado, o que aconteceu, adesão, barreiras, contexto e aprendizado.</p>
+<ul>
+<li>Comparar o resultado de uma ferramenta com o da aplicação anterior, lado a lado.</li>
+<li>Reaplicar uma ferramenta, <strong>quando isso fizer sentido</strong> (não há regra automática de reaplicação).</li>
+<li>Usar outra ferramenta.</li>
+<li>Atualizar a Conduta: continuar, substituir ou encerrar cada acordo.</li>
+</ul>
+<div class="box resultado"><p class="box-rotulo">Resultado desta etapa</p>
+<p>A paciente vê que "não deu certo" também é informação, e a Conduta passa a refletir o que é possível de verdade.</p>
+</div>
+<h2 id="atendimento-4-integrar">Atendimento 4 — Integrar</h2>
+<p>Começar a conectar alimentação, rotina, comportamento, emoções, contexto, prioridades e as respostas aos acordos. A aba Evolução ajuda a ver o caminho até aqui, lado a lado.</p>
+<div class="box chave">
+<p>O que estamos entendendo agora que não estava claro no início?</p>
+</div>
+<div class="box resultado"><p class="box-rotulo">Resultado desta etapa</p>
+<p>Uma leitura mais integrada da paciente, registrada pela nutricionista, que conecta o que antes parecia solto.</p>
+</div>
+<h2 id="atendimento-5-revis-o-do-primeiro-ciclo">Atendimento 5 — Revisão do primeiro ciclo</h2>
+<p>Um checkpoint. Rever o ponto de partida, as áreas iniciais, as ferramentas usadas, os acordos, as mudanças percebidas, as dificuldades que persistem, o aprendizado da paciente e a necessidade de novo aprofundamento.</p>
+<p><strong>Quando considerar uma nova aplicação do HOLOSCAN?</strong> Por exemplo, quando a conversa sugere que o retrato inicial mudou, quando a paciente relata mudanças importantes de rotina ou de momento de vida, ou quando a nutricionista quer revisar as áreas para aprofundar com dados novos.</p>
+<div class="box atencao"><p class="box-rotulo">Atenção metodológica</p>
+<p><strong>A reaplicação é decisão profissional e contextual, até que uma regra oficial de periodicidade seja definida.</strong> O HoloHacking não sugere nem exige intervalo. A Agenda tem o tipo "Reavaliação HOLOSCAN" para quando a nutricionista decidir.</p>
+</div>
+<h2 id="atendimento-6-aprofundar-uma-nova-camada">Atendimento 6 — Aprofundar uma nova camada</h2>
+<p>Depois do primeiro ciclo: aprofundar algo que permaneceu, investigar a segunda prioridade, trabalhar uma barreira nova ou usar outra ferramenta quando pertinente.</p>
+<div class="box pratica"><p class="box-rotulo">Na prática</p>
+<p>O acompanhamento não precisa repetir a primeira consulta. O que já está registrado (Mapeamento, HOLOSCAN, ferramentas, Condutas) continua disponível; o novo encontro parte dali.</p>
+</div>
+<h2 id="atendimento-7-consolidar">Atendimento 7 — Consolidar</h2>
+<p>Foco em consistência, sustentabilidade, obstáculos recorrentes, autonomia e pequenos ajustes. Ferramentas podem ser revisitadas quando agregarem informação.</p>
+<div class="box resultado"><p class="box-rotulo">Resultado desta etapa</p>
+<p>Acordos que já se sustentam saem do foco; os que ainda pesam são simplificados.</p>
+</div>
+<h2 id="atendimento-8-autonomia">Atendimento 8 — Autonomia</h2>
+<div class="duas">
+<div class="box">
+<p><strong>No início</strong></p>
+<p>A nutricionista ajuda a organizar e a enxergar.</p>
+</div>
+<div class="box">
+<p><strong>Mais adiante</strong></p>
+<p>A paciente começa a reconhecer os próprios padrões.</p>
+</div>
+</div>
+<p>Possíveis resultados do processo: maior percepção, capacidade de antecipar gatilhos, mais consciência das escolhas, rotina mais coerente, decisões mais autônomas.</p>
+<div class="box atencao"><p class="box-rotulo">Atenção metodológica</p>
+<p>Esses são resultados possíveis <strong>do processo</strong>, não promessas de resultado clínico.</p>
+</div>
+<h2 id="atendimento-9-reavalia-o-global">Atendimento 9 — Reavaliação global</h2>
+<p>Rever a jornada completa: <strong>início versus momento atual</strong>.</p>
+<ul>
+<li>Nova aplicação do HOLOSCAN, se profissionalmente indicada.</li>
+<li>Comparação descritiva, lado a lado, na aba Evolução.</li>
+<li>Ferramentas anteriores, Condutas e acordos.</li>
+<li>Percepção da paciente e mudanças observáveis.</li>
+</ul>
+<div class="box atencao"><p class="box-rotulo">Atenção metodológica</p>
+<p><strong>Respeitar o versionamento.</strong> Se a primeira aplicação foi feita numa versão anterior do pacote metodológico, os números não são comparados como se fossem equivalentes. A Evolução mostra lado a lado, sem diferença calculada.</p>
+</div>
+<h2 id="atendimento-10-fechamento-do-ciclo-e-pr-xima-fase">Atendimento 10 — Fechamento do ciclo e próxima fase</h2>
+<p>Uma consulta de síntese. Perguntas que orientam:</p>
+<div class="duas">
+<div>
+<ul>
+<li>De onde partimos?</li>
+<li>O que aprendemos?</li>
+<li>Quais padrões ficaram claros?</li>
+<li>O que mudou?</li>
+<li>O que permanece?</li>
+<li>Quais estratégias foram sustentáveis?</li>
+</ul>
+</div>
+<div>
+<ul>
+<li>O que a paciente já conduz com mais autonomia?</li>
+<li>Existe nova prioridade?</li>
+<li>Precisamos de um novo ciclo?</li>
+<li>O intervalo entre consultas pode aumentar?</li>
+<li>O acompanhamento entra em manutenção?</li>
+<li>Existe necessidade de outro profissional?</li>
+</ul>
+</div>
+</div>
+<p>O que o fechamento produz:</p>
+<table>
+<thead>
+<tr>
+<th>Bloco</th>
+<th>Conteúdo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Síntese do ciclo</strong></td>
+<td>De onde partimos, o caminho percorrido, o que foi aprendido.</td>
+</tr>
+<tr>
+<td><strong>Foco atual</strong></td>
+<td>O que continua importante agora.</td>
+</tr>
+<tr>
+<td><strong>Conquistas e mudanças observadas</strong></td>
+<td>Nas palavras da paciente e no registro da nutricionista.</td>
+</tr>
+<tr>
+<td><strong>Pontos a continuar observando</strong></td>
+<td>O que ainda pede atenção.</td>
+</tr>
+<tr>
+<td><strong>Plano para a próxima fase</strong></td>
+<td>Novo ciclo, manutenção, intervalo maior ou encaminhamento.</td>
+</tr>
+</tbody>
+</table>
+<div class="box sistema"><p class="box-rotulo">O que o sistema faz</p>
+<p>Hoje, o fechamento pode ser registrado com os recursos existentes: a <strong>Conduta</strong> do atendimento (objetivo, orientações, retorno), as <strong>observações do Resultado HOLOS</strong> e um <strong>Relatório clínico</strong> emitido com as fontes escolhidas.</p>
+</div>
+<div class="box futuro"><p class="box-rotulo">Visão futura / experiência desejada</p>
+<p>Um documento próprio de <strong>Síntese do Ciclo</strong>, gerado a partir do histórico e editado pela nutricionista, ainda não existe no produto.</p>
+</div>
+<h1 id="resultados-esperados-de-um-ciclo">Resultados esperados de um ciclo</h1>
+<p class="abre">O que um ciclo de acompanhamento pode produzir, descrito como resultado do processo, não como promessa.</p>
+
+<div class="box atencao"><p class="box-rotulo">Atenção metodológica</p>
+<p>Este capítulo <strong>não promete</strong> cura, perda de peso, reversão de doença, melhora hormonal, melhora metabólica nem qualquer resultado clínico garantido.</p>
+</div>
+<div class="duas">
+<div class="box resultado"><p class="box-rotulo">Resultado desta etapa</p>
+<p><strong>Resultados de compreensão</strong>
+- Maior compreensão da própria rotina.
+- Identificação de padrões alimentares.
+- Reconhecimento de gatilhos.
+- Mais clareza sobre fome e saciedade, quando pertinente.
+- Melhor compreensão das próprias barreiras.</p>
+</div>
+<div class="box resultado"><p class="box-rotulo">Resultado desta etapa</p>
+<p><strong>Resultados de comportamento</strong>
+- Maior consciência das escolhas.
+- Estratégias mais realistas, que cabem na rotina.
+- Capacidade de perceber recaídas sem transformar tudo em fracasso.</p>
+</div>
+<div class="box resultado"><p class="box-rotulo">Resultado desta etapa</p>
+<p><strong>Resultados de autonomia</strong>
+- Mais autonomia nas decisões do dia a dia.
+- Maior participação na construção da própria Conduta.
+- Capacidade de antecipar situações difíceis.</p>
+</div>
+<div class="box resultado"><p class="box-rotulo">Resultado desta etapa</p>
+<p><strong>Resultados do acompanhamento</strong>
+- Histórico organizado do processo.
+- Clareza sobre o que funcionou e o que não funcionou.
+- Próximos passos definidos.</p>
+</div>
+</div>
+<div class="box atencao"><p class="box-rotulo">Atenção metodológica</p>
+<p><strong>Resultados clínicos.</strong> Resultados clínicos dependem do quadro individual, avaliação profissional, adesão, contexto e outros fatores e não são garantidos pelo método ou pela plataforma.</p>
+</div>
+<h1 id="caso-fict-cio-marina">Caso fictício: Marina</h1>
+<p class="abre">Uma paciente inventada, acompanhada pela mesma nutricionista ao longo de dez encontros. A história tem avanços, recaídas e ajustes, como costuma acontecer.</p>
+
+<div class="box atencao"><p class="box-rotulo">Atenção metodológica</p>
+<p><strong>Marina é fictícia.</strong> Nome, idade, rotina, relatos e números foram criados para este documento. Nada aqui é diagnóstico, e nenhuma escolha de ferramenta é regra: são decisões possíveis de uma nutricionista diante deste caso.</p>
+</div>
+<h2 id="quem-marina">Quem é Marina</h2>
+<p>Marina tem 37 anos, trabalha num escritório das 9h às 18h e mora com o companheiro e um filho de 6 anos. Procurou acompanhamento porque quer <strong>"ter mais energia à tarde e parar de beliscar à noite"</strong>. Já fez dietas antes e "sempre largou no meio". Acorda cansada, almoça rápido, sente fome forte no fim da tarde e, à noite, come "o que tiver" enquanto organiza a casa.</p>
+<div class="encontro">
+<div class="encontro-cab"><span class="n">1</span><div><b>Compreender e priorizar</b><span>Primeira consulta</span></div></div>
+<dl>
+<dt>Entrada</dt><dd>Mapeamento enviado pelo WhatsApp três dias antes e respondido em uma noite. Na consulta, a nutricionista abre o atendimento e leva o Mapeamento para o atendimento.</dd>
+<dt>O que ela relata</dt><dd>Sono que não descansa, almoço corrido, fome forte às 16h30, beliscar à noite "para relaxar", culpa depois.</dd>
+<dt>O que a nutricionista organiza</dt><dd>Aplica o HOLOSCAN. A 1ª área para aprofundar é o Sistema Metabólico (nota 3,8); a 2ª, o Sistema Mental Emocional Espiritual (8,7). Os sinais que mais pontuaram no Metabólico: começar a comer sem pausa, sono depois do almoço, fome pouco depois de comer.</dd>
+<dt>Parte do sistema</dt><dd>Mapeamento Holístico, HOLOSCAN, Próximos Passos HOLOS, Mapa da Rotina, Conduta, Resultado HOLOS, Resultado Final.</dd>
+<dt>Ferramenta</dt><dd><strong>Mapa da Rotina</strong> (principal sugerida pelo catálogo para o Metabólico).</dd>
+<dt>Por que esta</dt><dd>A conversa confirmou que o problema "acontece no relógio": a ferramenta ajuda a localizar onde a fome e o cansaço aparecem no dia real, antes de combinar qualquer mudança.</dd>
+<dt>O que foi aprendido</dt><dd>O fim da tarde concentra fome forte e cansaço; o almoço é o momento mais estável; a manhã é corrida.</dd>
+<dt>Conduta / acordo</dt><dd>Objetivo: organizar o fim da tarde. Acordos: preparar o lanche da tarde na noite anterior; anotar fome e energia às 16h (0 a 10).</dd>
+<dt>Até o próximo encontro</dt><dd>Como fica o jantar nos dias em que o lanche acontece.</dd>
+<dt>Histórico</dt><dd>Primeiro atendimento, primeiro HOLOSCAN (HOLOS-V1 v6), primeira Conduta e Resultado Final nº 1 enviado em PDF.</dd>
+</dl>
+</div>
+
+<div class="encontro">
+<div class="encontro-cab"><span class="n">2</span><div><b>Aprofundar</b><span>Retorno · 3 semanas depois</span></div></div>
+<dl>
+<dt>Entrada</dt><dd>Mapeamento de retorno ("Desde a última consulta") respondido na véspera.</dd>
+<dt>O que ela relata</dt><dd>Conseguiu o lanche em dois de cinco dias. Nos dias com lanche, chegou menos faminta. À noite, continua beliscando quando chega cansada.</dd>
+<dt>O que a nutricionista organiza</dt><dd>O primeiro aprofundamento respondeu à pergunta da tarde; a noite ainda está em aberto. A complementar sugerida no primeiro resultado foi Gatilhos & Respostas.</dd>
+<dt>Parte do sistema</dt><dd>Mapeamento de retorno, Conduta anterior ao lado, Gatilhos & Respostas.</dd>
+<dt>Ferramenta</dt><dd><strong>Gatilhos &amp; Respostas</strong>, com um episódio da noite anterior.</dd>
+<dt>Por que esta</dt><dd>O beliscar noturno é um comportamento recorrente; a ferramenta torna observável o que acontece antes e depois dele.</dd>
+<dt>O que foi aprendido</dt><dd>Gatilho: chegar em casa e ver a louça; pensamento "não vou dar conta"; emoção: cansaço e irritação (7/10); resposta: comer de pé, beliscando; depois, culpa.</dd>
+<dt>Conduta / acordo</dt><dd>Continuar o lanche da tarde. Novo acordo: ao chegar, sentar e comer algo planejado antes de começar as tarefas da casa.</dd>
+<dt>Até o próximo encontro</dt><dd>Registrar mais dois episódios, se acontecerem.</dd>
+<dt>Histórico</dt><dd>Segunda Conduta (com os acordos anteriores revistos), primeira aplicação de Gatilhos & Respostas.</dd>
+</dl>
+</div>
+
+<div class="encontro">
+<div class="encontro-cab"><span class="n">3</span><div><b>Testar e observar</b><span>Retorno</span></div></div>
+<dl>
+<dt>Entrada</dt><dd>Mapeamento de retorno. Marina avisa que a semana foi difícil.</dd>
+<dt>O que ela relata</dt><dd>O filho ficou doente; ela "desandou tudo". O lanche da tarde se manteve em três dias; a noite piorou.</dd>
+<dt>O que a nutricionista organiza</dt><dd>A semana trouxe uma carga de vida maior. Antes de pedir mais, vale entender quanto espaço existe agora.</dd>
+<dt>Parte do sistema</dt><dd>Linha do Momentum, Conduta.</dd>
+<dt>Ferramenta</dt><dd><strong>Linha do Momentum</strong>. Estado escolhido pela nutricionista: <strong>Reorganizar</strong>.</dd>
+<dt>Por que esta</dt><dd>Ajuda a calibrar a exigência quando os acordos não se sustentaram por falta de espaço, não de vontade.</dd>
+<dt>O que foi aprendido</dt><dd>Energia disponível baixa, carga de vida alta, suporte médio. O que não é hora de pedir: mudanças no jantar da família.</dd>
+<dt>Conduta / acordo</dt><dd>Manter só o lanche da tarde. O acordo da noite fica "em acompanhamento", sem cobrança.</dd>
+<dt>Até o próximo encontro</dt><dd>Perceber o que torna os dias com lanche possíveis.</dd>
+<dt>Histórico</dt><dd>Uma recaída registrada como informação, não como fracasso.</dd>
+</dl>
+</div>
+
+<div class="encontro">
+<div class="encontro-cab"><span class="n">4</span><div><b>Integrar</b><span>Retorno</span></div></div>
+<dl>
+<dt>Entrada</dt><dd>Marina chega mais tranquila. O lanche aconteceu em quatro de cinco dias.</dd>
+<dt>O que ela relata</dt><dd>Nos dias com lanche, o jantar fica mais calmo. Diz que quer "dar conta" sem se sentir sempre atrasada.</dd>
+<dt>O que a nutricionista organiza</dt><dd>Começa a conectar rotina, fome, cansaço e o desejo de "dar conta". A Evolução mostra as Condutas e as ferramentas lado a lado.</dd>
+<dt>Parte do sistema</dt><dd>PQQ, Evolução.</dd>
+<dt>Ferramenta</dt><dd><strong>PQQ — Escada dos Porquês</strong> (sugerida para a 2ª área, o Mental Emocional Espiritual).</dd>
+<dt>Por que esta</dt><dd>Para entender o que "ter mais energia" representa para ela e manter as mudanças ligadas a esse sentido.</dd>
+<dt>O que foi aprendido</dt><dd>O "pra que" verdadeiro: "sentir que dou conta da minha rotina sem me abandonar".</dd>
+<dt>Conduta / acordo</dt><dd>Lanche mantido; pausa de cinco minutos antes do almoço, sem tela.</dd>
+<dt>Até o próximo encontro</dt><dd>Como a pausa antes do almoço muda a tarde.</dd>
+<dt>Histórico</dt><dd>Com OQ³ ainda não aplicado, o Mapa do Propósito fica para depois, se fizer sentido.</dd>
+</dl>
+</div>
+
+<div class="encontro">
+<div class="encontro-cab"><span class="n">5</span><div><b>Revisar o primeiro ciclo</b><span>Retorno · checkpoint</span></div></div>
+<dl>
+<dt>Entrada</dt><dd>Consulta marcada como "Reavaliação HOLOSCAN" na Agenda, por decisão da nutricionista.</dd>
+<dt>O que ela relata</dt><dd>A tarde mudou; a noite melhorou em parte. A culpa depois de comer ainda aparece.</dd>
+<dt>O que a nutricionista organiza</dt><dd>Revê o ponto de partida, as áreas iniciais, as ferramentas e os acordos. Decide reaplicar o HOLOSCAN porque a rotina mudou desde a primeira aplicação.</dd>
+<dt>Parte do sistema</dt><dd>HOLOSCAN (segunda aplicação, mesma versão do pacote), Evolução lado a lado, nova versão do Resultado HOLOS.</dd>
+<dt>Ferramenta</dt><dd>Nenhuma nova: o encontro é de revisão.</dd>
+<dt>Por que</dt><dd>A prioridade era olhar o caminho, não abrir outra frente.</dd>
+<dt>O que foi aprendido</dt><dd>O Metabólico continua como 1ª área, com menos carga relatada nos sinais da tarde. A culpa depois de comer segue entre os sinais do Mental Emocional Espiritual.</dd>
+<dt>Conduta / acordo</dt><dd>Lanche e pausa viram rotina; nova pergunta para o próximo ciclo: o que acontece quando ela "sai da linha".</dd>
+<dt>Até o próximo encontro</dt><dd>Observar os dias em que ela sente que "perdeu tudo".</dd>
+<dt>Histórico</dt><dd>Duas aplicações do HOLOSCAN na mesma versão, vistas lado a lado, sem cálculo de diferença.</dd>
+</dl>
+</div>
+
+<div class="encontro">
+<div class="encontro-cab"><span class="n">6</span><div><b>Aprofundar uma nova camada</b><span>Retorno</span></div></div>
+<dl>
+<dt>Entrada</dt><dd>Um fim de semana de festa: "Comi demais no sábado, então o domingo já estava perdido".</dd>
+<dt>O que ela relata</dt><dd>Quando "sai da linha", abandona tudo até segunda-feira.</dd>
+<dt>O que a nutricionista organiza</dt><dd>Há uma regra rígida operando. É hora de olhar para as ideias, não só para a rotina.</dd>
+<dt>Parte do sistema</dt><dd>Mapa de Crenças Alimentares.</dd>
+<dt>Ferramenta</dt><dd><strong>Mapa de Crenças Alimentares</strong>.</dd>
+<dt>Por que esta</dt><dd>Ajuda a tornar visíveis as ideias que influenciam as escolhas e a observá-las em situações reais.</dd>
+<dt>O que foi aprendido</dt><dd>Crença que mais atrapalha: "se eu errar uma refeição, o dia está perdido". De onde veio: dietas anteriores. Alternativa possível: "a próxima refeição é uma nova chance".</dd>
+<dt>Conduta / acordo</dt><dd>Depois de um exagero, voltar ao combinado na refeição seguinte, sem compensar.</dd>
+<dt>Até o próximo encontro</dt><dd>Perceber quando a frase antiga aparece.</dd>
+<dt>Histórico</dt><dd>A camada nova aparece sem repetir a primeira consulta: o que já estava registrado continua valendo.</dd>
+</dl>
+</div>
+
+<div class="encontro">
+<div class="encontro-cab"><span class="n">7</span><div><b>Consolidar</b><span>Retorno · intervalo maior</span></div></div>
+<dl>
+<dt>Entrada</dt><dd>Quatro semanas depois, por decisão combinada.</dd>
+<dt>O que ela relata</dt><dd>Conseguiu "voltar no dia seguinte" duas vezes. O trabalho anda pesado.</dd>
+<dt>O que a nutricionista organiza</dt><dd>Os acordos centrais se sustentam. O trabalho parece puxar outras áreas para baixo.</dd>
+<dt>Parte do sistema</dt><dd>Roda Holística da Vida, Conduta.</dd>
+<dt>Ferramenta</dt><dd><strong>Roda Holística da Vida</strong>.</dd>
+<dt>Por que esta</dt><dd>Amplia o olhar quando diferentes áreas da vida ocupam energia e espaço.</dd>
+<dt>O que foi aprendido</dt><dd>Área mais cuidada: relações. Menos cuidadas: lazer e saúde. A que puxa as outras para baixo: trabalho.</dd>
+<dt>Conduta / acordo</dt><dd>Simplificar: um acordo só para a semana de fechamento do mês no trabalho.</dd>
+<dt>Até o próximo encontro</dt><dd>O que mantém o lanche possível nas semanas pesadas.</dd>
+<dt>Histórico</dt><dd>Acordos já sustentados saem do foco; ficam registrados como "Concluído".</dd>
+</dl>
+</div>
+
+<div class="encontro">
+<div class="encontro-cab"><span class="n">8</span><div><b>Autonomia</b><span>Retorno</span></div></div>
+<dl>
+<dt>Entrada</dt><dd>Marina chega com uma estratégia própria.</dd>
+<dt>O que ela relata</dt><dd>"Na semana do fechamento, preparei os lanches no domingo. Pedi ajuda ao meu companheiro com o jantar."</dd>
+<dt>O que a nutricionista organiza</dt><dd>Ela começa a antecipar as próprias situações difíceis. O apoio em casa apareceu como recurso.</dd>
+<dt>Parte do sistema</dt><dd>Conexão &amp; Pertencimento.</dd>
+<dt>Ferramenta</dt><dd><strong>Conexão &amp; Pertencimento</strong>.</dd>
+<dt>Por que esta</dt><dd>Para planejar acordos que contem com o apoio real que ela tem.</dd>
+<dt>O que foi aprendido</dt><dd>O companheiro apoia; a irmã apoia de longe; o ambiente de trabalho dificulta nos dias de pressão.</dd>
+<dt>Conduta / acordo</dt><dd>Marina propõe o próprio acordo: dividir o jantar de quarta e sexta.</dd>
+<dt>Até o próximo encontro</dt><dd>Como é ter ajuda sem sentir que "falhou".</dd>
+<dt>Histórico</dt><dd>Pela primeira vez, um acordo nasce da paciente.</dd>
+</dl>
+</div>
+
+<div class="encontro">
+<div class="encontro-cab"><span class="n">9</span><div><b>Reavaliação global</b><span>Retorno · Reavaliação HOLOSCAN</span></div></div>
+<dl>
+<dt>Entrada</dt><dd>Consulta marcada como "Reavaliação HOLOSCAN".</dd>
+<dt>O que ela relata</dt><dd>"Ainda belisco às vezes, mas não vira o dia inteiro."</dd>
+<dt>O que a nutricionista organiza</dt><dd>Compara o início com o momento atual: Mapeamentos, aplicações do HOLOSCAN, ferramentas, Condutas e acordos. Se uma aplicação tivesse sido feita em outra versão do pacote, os números não seriam comparados como equivalentes.</dd>
+<dt>Parte do sistema</dt><dd>HOLOSCAN (terceira aplicação), Evolução ("Linha de base × atual"), nova versão do Resultado HOLOS.</dd>
+<dt>Ferramenta</dt><dd>Nenhuma nova.</dd>
+<dt>Por que</dt><dd>O encontro é de leitura do caminho.</dd>
+<dt>O que foi aprendido</dt><dd>Menos carga relatada nos sinais da tarde e da refeição; a culpa depois de comer aparece com menos frequência no relato dela. Nada disso é tratado como diagnóstico.</dd>
+<dt>Conduta / acordo</dt><dd>Preparar o fechamento do ciclo no próximo encontro.</dd>
+<dt>Até o próximo encontro</dt><dd>Marina pensa no que quer levar para a próxima fase.</dd>
+<dt>Histórico</dt><dd>Três aplicações, lado a lado, na mesma versão do pacote.</dd>
+</dl>
+</div>
+
+<div class="encontro">
+<div class="encontro-cab"><span class="n">10</span><div><b>Fechamento do ciclo e próxima fase</b><span>Consulta de síntese</span></div></div>
+<dl>
+<dt>Entrada</dt><dd>A nutricionista prepara a síntese a partir do histórico.</dd>
+<dt>O que ela relata</dt><dd>"Eu entendi que meu problema não era falta de força de vontade, era o fim da tarde."</dd>
+<dt>O que a nutricionista organiza</dt><dd>De onde partiram, o que mudou, o que permanece, o que Marina já conduz sozinha.</dd>
+<dt>Parte do sistema</dt><dd>Conduta, Resultado HOLOS (observações), Relatório clínico, Carta ao Futuro Eu (opcional).</dd>
+<dt>Ferramenta</dt><dd><strong>Carta ao Futuro Eu</strong>, escrita por Marina para daqui a seis meses.</dd>
+<dt>Por que esta</dt><dd>Para dar à próxima fase uma referência de direção que seja dela.</dd>
+<dt>O que foi aprendido</dt><dd>Síntese: foco no fim da tarde, estratégias que cabem na rotina, apoio em casa, menos "tudo ou nada".</dd>
+<dt>Conduta / acordo</dt><dd>Manutenção, com retorno em dois meses. Pontos a continuar observando: semanas de fechamento no trabalho e a frase "perdi tudo".</dd>
+<dt>Até o próximo encontro</dt><dd>Marina segue sozinha os acordos que já são dela.</dd>
+<dt>Histórico</dt><dd>Um ciclo completo, registrado do Mapeamento à síntese.</dd>
+</dl>
+</div>
+
+<div class="box percebe"><p class="box-rotulo">O que a paciente percebe</p>
+<p>Ao final do ciclo, Marina não recebeu um "diagnóstico" nem uma lista de proibições. Recebeu, a cada etapa, o que foi entendido, o que foi combinado e o que observar. E aprendeu a ler os próprios padrões.</p>
+</div>
+<h1 id="vis-o-resumida-dos-10-atendimentos">Visão resumida dos 10 atendimentos</h1>
+<p class="abre">O ciclo inteiro em duas tabelas: o que se faz em cada encontro e o que cada encontro deixa.</p>
+
+<h2 id="o-que-se-faz">O que se faz</h2>
+<table class="pequena">
+<thead><tr><th>Atend.</th><th>Objetivo</th><th>Dados consultados</th><th>Recurso do HoloHacking</th><th>Possível ferramenta</th></tr></thead>
+<tbody>
+<tr><td><b>1</b></td><td>Compreender e priorizar</td><td>Mapeamento, conversa</td><td>Atendimento, HOLOSCAN, Próximos Passos, Conduta, Resultado HOLOS, Resultado Final</td><td>A principal sugerida pelo catálogo, se couber (ex.: Mapa da Rotina)</td></tr>
+<tr><td><b>2</b></td><td>Aprofundar</td><td>Mapeamento de retorno, acordos, ferramenta anterior</td><td>Conduta anterior ao lado, Próximos Passos sem as já feitas</td><td>Complementar do catálogo (ex.: Gatilhos & Respostas)</td></tr>
+<tr><td><b>3</b></td><td>Testar e observar</td><td>O que foi tentado, adesão, barreiras</td><td>Nova aplicação de ferramenta, revisão de acordos</td><td>Linha do Momentum, reaplicação quando fizer sentido</td></tr>
+<tr><td><b>4</b></td><td>Integrar</td><td>Histórico até aqui</td><td>Evolução lado a lado</td><td>PQQ ou outra do território que a conversa pedir</td></tr>
+<tr><td><b>5</b></td><td>Revisar o primeiro ciclo</td><td>Ponto de partida × agora</td><td>Reavaliação HOLOSCAN (se decidida), nova versão do Resultado</td><td>Nenhuma nova, em geral</td></tr>
+<tr><td><b>6</b></td><td>Nova camada</td><td>O que permaneceu, 2ª prioridade</td><td>Próximos Passos, ferramentas</td><td>Mapa de Crenças Alimentares, Gatilhos & Respostas</td></tr>
+<tr><td><b>7</b></td><td>Consolidar</td><td>Acordos sustentados e recorrências</td><td>Estados dos acordos, Conduta</td><td>Roda Holística da Vida, revisitar uma anterior</td></tr>
+<tr><td><b>8</b></td><td>Autonomia</td><td>Estratégias da própria paciente</td><td>Conduta construída com a paciente</td><td>Conexão & Pertencimento</td></tr>
+<tr><td><b>9</b></td><td>Reavaliação global</td><td>Início × momento atual</td><td>HOLOSCAN (se indicado), Evolução "Linha de base × atual"</td><td>Nenhuma nova, em geral</td></tr>
+<tr><td><b>10</b></td><td>Fechamento e próxima fase</td><td>Todo o histórico</td><td>Conduta, observações do Resultado, Relatório clínico</td><td>Carta ao Futuro Eu, Mapa do Propósito (opcionais)</td></tr>
+</tbody></table>
+
+<h2 id="o-que-cada-encontro-deixa">O que cada encontro deixa</h2>
+<table class="pequena">
+<thead><tr><th>Atend.</th><th>Decisão profissional</th><th>Resultado produzido</th><th>O que a paciente leva</th><th>Próximo passo</th></tr></thead>
+<tbody>
+<tr><td><b>1</b></td><td>Primeiro foco e primeiro acordo</td><td>HOLOSCAN, Conduta, Resultado HOLOS</td><td>PDF com o foco e o combinado</td><td>Observar até o retorno</td></tr>
+<tr><td><b>2</b></td><td>Manter o eixo, complementar ou mudar de área</td><td>Nova ferramenta, Conduta revista</td><td>Clareza sobre o padrão</td><td>Testar o acordo novo</td></tr>
+<tr><td><b>3</b></td><td>Calibrar a exigência</td><td>Acordos ajustados ao possível</td><td>"Não deu certo" também é informação</td><td>Sustentar o essencial</td></tr>
+<tr><td><b>4</b></td><td>Conectar os achados</td><td>Leitura integrada registrada</td><td>Entendimento do próprio caminho</td><td>Preparar a revisão</td></tr>
+<tr><td><b>5</b></td><td>Reaplicar ou não o HOLOSCAN; novo foco</td><td>Checkpoint do ciclo</td><td>O que mudou, o que fica</td><td>Abrir nova camada</td></tr>
+<tr><td><b>6</b></td><td>Qual camada aprofundar</td><td>Nova ferramenta, novos acordos</td><td>Um padrão novo nomeado</td><td>Observar em situações reais</td></tr>
+<tr><td><b>7</b></td><td>O que sai do foco</td><td>Acordos concluídos ou simplificados</td><td>Rotina mais estável</td><td>Espaçar consultas, se fizer sentido</td></tr>
+<tr><td><b>8</b></td><td>Dar espaço à autonomia</td><td>Acordo proposto pela paciente</td><td>Confiança nas próprias estratégias</td><td>Reavaliar o percurso</td></tr>
+<tr><td><b>9</b></td><td>Como ler o início × agora</td><td>Comparação descritiva, lado a lado</td><td>Visão do caminho percorrido</td><td>Fechar o ciclo</td></tr>
+<tr><td><b>10</b></td><td>Novo ciclo, manutenção, intervalo ou encaminhamento</td><td>Síntese do ciclo e plano</td><td>Síntese, conquistas e o que continuar</td><td>Próxima fase</td></tr>
+</tbody></table>
+
+<h1 id="corpo-mente-e-esp-rito-ao-longo-da-jornada">Corpo, Mente e Espírito ao longo da jornada</h1>
+<p class="abre">Três territórios, não três trilhos. A mesma paciente transita entre eles conforme o momento pede.</p>
+
+<div class="tres">
+<div class="box">
+<p><strong>Corpo</strong></p>
+<p>Muitas vezes o ponto de partida: rotina, horários, fome, energia. É onde as mudanças precisam caber.</p>
+</div>
+<div class="box">
+<p><strong>Mente</strong></p>
+<p>Aparece quando o "porquê" e os padrões pedem atenção: crenças, gatilhos, sentido da mudança.</p>
+</div>
+<div class="box">
+<p><strong>Espírito</strong></p>
+<p>Ganha espaço quando direção, valores, apoio e pertencimento sustentam (ou dificultam) o caminho.</p>
+</div>
+</div>
+<p>No caso de Marina, a jornada começou pelo <strong>Corpo</strong> (Mapa da Rotina), passou pela <strong>Mente</strong> (Gatilhos &amp; Respostas, PQQ, Crenças), voltou ao <strong>Corpo</strong> quando a vida apertou (Linha do Momentum), abriu o <strong>Espírito</strong> (Roda, Conexão, Carta) e voltou à rotina na manutenção.</p>
+<div class="box atencao"><p class="box-rotulo">Atenção metodológica</p>
+<p><strong>Não existe alternância obrigatória</strong> Corpo → Mente → Espírito. O acompanhamento é adaptativo: segue o que a paciente mostra, não um roteiro.</p>
+</div>
+<h1 id="acompanhamento-longitudinal">Acompanhamento longitudinal</h1>
+<p class="abre">A força do HoloHacking aparece com o tempo: cada encontro acrescenta uma camada ao histórico.</p>
+
+<p>A cada encontro, o HoloHacking acumula: o atendimento; os relatos (Mapeamentos); as aplicações do HOLOSCAN; as ferramentas; a leitura profissional; a Conduta e os acordos, com os seus estados; os Resultados HOLOS e as emissões; os documentos; e a linha do tempo.</p>
+<div class="cadeia"><span>Dado isolado</span><i>→</i><span>Histórico</span><i>→</i><span>Padrão</span><i>→</i><span>Aprendizado</span><i>→</i><span class="d">Decisão profissional</span><i>→</i><span>Novo ciclo</span></div>
+
+<div class="box atencao"><p class="box-rotulo">Atenção metodológica</p>
+<p>O sistema guarda e mostra o histórico; <strong>não infere causalidade</strong>. Quem reconhece padrões e decide o que fazer com eles é a nutricionista, com a paciente.</p>
+</div>
+<div class="box sistema"><p class="box-rotulo">O que o sistema faz</p>
+<ul>
+<li>Nada salvo é recalculado em silêncio: aplicações, Resultados e emissões ficam como foram feitos, com a versão do pacote metodológico usada.</li>
+<li>Quando o método evolui (uma nova versão do pacote), as aplicações antigas continuam legíveis e não são misturadas com as novas como se fossem iguais.</li>
+<li>A Evolução compara lado a lado, sem calcular diferenças de nota.</li>
+</ul>
+</div>
+<h1 id="pap-is">Papéis</h1>
+<p class="abre">Quem faz o quê na jornada. Esses papéis não se invertem.</p>
+
+<div class="papeis">
+<div><b>Paciente</b><span>relata, participa, experimenta, observa</span></div>
+<div><b>Nutricionista</b><span>escuta, investiga, interpreta, decide, conduz</span></div>
+<div><b>HOLOSCAN</b><span>organiza os relatos segundo o método</span></div>
+<div><b>Ferramentas</b><span>aprofundam áreas específicas</span></div>
+<div><b>HoloHacking</b><span>registra e organiza a jornada</span></div>
+<div><b>Tecnologia</b><span>apoia</span></div>
+</div>
+
+<div class="box chave">
+<p>O algoritmo não decide tratamento. A tecnologia apoia; a nutricionista conduz.</p>
+</div>
+<h1 id="limites-e-seguran-a">Limites e segurança</h1>
+<p class="abre">O que o HoloHacking não faz, e o que a nutricionista faz quando algo ultrapassa a nutrição.</p>
+
+<div class="box atencao"><p class="box-rotulo">Atenção metodológica</p>
+<p><strong>O HoloHacking:</strong>
+- não diagnostica;
+- não substitui avaliação clínica;
+- não substitui o julgamento profissional;
+- não faz psicoterapia;
+- não transforma associação em causalidade;
+- não usa linguagem espiritual como se fosse fisiologia comprovada;
+- não decide a Conduta sozinho;
+- não interpreta exames nem documentos anexados.</p>
+</div>
+<div class="box decide"><p class="box-rotulo">O que a nutricionista decide</p>
+<p>Quando surge uma necessidade <strong>fora da competência nutricional</strong> (sofrimento emocional importante, sinais que pedem investigação médica, suspeita de transtorno alimentar), a nutricionista <strong>encaminha</strong> ao profissional adequado. O HoloHacking registra; não encaminha sozinho.</p>
+</div>
+<h2 id="linguagem-segura">Linguagem segura</h2>
+<table>
+<thead>
+<tr>
+<th>Em vez de</th>
+<th>Prefira</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>"Seu sistema metabólico está ruim."</td>
+<td>"Este eixo reuniu mais relatos nesta aplicação."</td>
+</tr>
+<tr>
+<td>"Você tem fungos / está inflamada / tem toxinas."</td>
+<td>"Esses relatos merecem ser aprofundados na conversa."</td>
+</tr>
+<tr>
+<td>"Seu corpo está dizendo que…"</td>
+<td>"O que você relatou mostra que vale olharmos para…"</td>
+</tr>
+<tr>
+<td>"Esse é o verdadeiro motivo."</td>
+<td>"Esse padrão apareceu no seu relato."</td>
+</tr>
+<tr>
+<td>"Gravidade", "risco"</td>
+<td>"Prioridade de investigação nesta etapa."</td>
+</tr>
+</tbody>
+</table>
+<h1 id="vis-o-futura">Visão futura</h1>
+<p class="abre">Pontos em que este documento descreve uma experiência desejada que ainda não existe no produto. Estão separados para não serem confundidos com funções atuais.</p>
+
+<table>
+<thead>
+<tr>
+<th>Experiência desejada</th>
+<th>Como é hoje</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Ciclo de atendimentos no sistema</strong> (contagem, marcos, "ciclo atual")</td>
+<td>Não existe. O ciclo é conduzido pela nutricionista e fica no histórico.</td>
+</tr>
+<tr>
+<td><strong>Síntese do Ciclo</strong> como documento próprio</td>
+<td>Não existe. Usa-se a Conduta, as observações do Resultado HOLOS e um Relatório clínico.</td>
+</tr>
+<tr>
+<td><strong>Regra oficial de periodicidade do HOLOSCAN</strong></td>
+<td>Não existe. Reaplicar é decisão profissional (Agenda tem o tipo "Reavaliação HOLOSCAN").</td>
+</tr>
+<tr>
+<td><strong>Comparação metodológica entre aplicações</strong> (diferenças de nota, Índice e Tríade)</td>
+<td>Não existe. A Evolução mostra lado a lado, sem delta; a regra de comparabilidade não foi homologada.</td>
+</tr>
+<tr>
+<td><strong>Acompanhamento entre consultas pela paciente</strong> (registrar acordos, lembretes)</td>
+<td>Não existe. A paciente recebe o PDF; o registro entre consultas acontece no Mapeamento de retorno.</td>
+</tr>
+<tr>
+<td><strong>Envio do Resultado por link</strong></td>
+<td>Não existe. O Resultado vai em PDF (WhatsApp no celular com anexo; no computador, a nutricionista anexa).</td>
+</tr>
+<tr>
+<td><strong>HOLOS AI integrada</strong></td>
+<td>Parcial. Hoje monta e copia o contexto do caso; a abertura direta em assistentes externos está "Em desenvolvimento".</td>
+</tr>
+<tr>
+<td><strong>Estados de consulta</strong> (confirmada, realizada, faltou)</td>
+<td>Não existe. A Agenda tem consultas ativas, canceladas ou com atendimento registrado.</td>
+</tr>
+<tr>
+<td><strong>Sugestão automática de data de retorno</strong></td>
+<td>Foi retirada. O retorno é combinado e registrado na Conduta e na Agenda.</td>
+</tr>
+<tr>
+<td><strong>Texto aprovado "por que usamos" e "o que significa" para todas as ferramentas</strong></td>
+<td>Parcial. Hoje existe para algumas (Mapa da Rotina e PQQ, em "por que usamos").</td>
+</tr>
+</tbody>
+</table>
+<h1 id="encerramento">Encerramento</h1>
+<div class="fim">
+<img src="imagens/logo-pinha.png" alt="">
+</div>
+
+<div class="frase">
+<p>O sistema organiza. O método orienta. A tecnologia sugere.<br>A nutricionista interpreta. A nutricionista decide.
+<small>HoloHacking · Nutrição Holística</small></p>
+</div>
+<p>Este é o primeiro modelo do guia <strong>Jornada da Nutricionista com a Paciente</strong>. Ele foi escrito para ser completo; as próximas versões vão condensar, ajustar o tom e incorporar o que a prática mostrar.</p>
+<p class="lorem">Espaço reservado para a assinatura do método, créditos e contato institucional (a definir).</p>
+
+<p style="font-size:8pt;color:#4f6a5d;margin-top:10mm">Documento baseado no HoloHacking em outubro de 2026, pacote metodológico HOLOS-V1 v6 e catálogo de Próximos Passos PP-V1. Todas as pessoas, telas e dados de exemplo são fictícios.</p></body></html>

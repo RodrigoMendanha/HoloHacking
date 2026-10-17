@@ -515,7 +515,8 @@ const cobertura = await A.evaluate(async () => {
   return {
     dados: /avancarRevisao/.test(await ler('/dados.js')),
     questionario: /avancarRevisao/.test(await ler('/questionario.js')),
-    arquivos: /avancarRevisao/.test(await ler('/arquivos.js')),
+    /* 09/10: arquivos.js deixou de escrever dado clinico (o painel de exames saiu); excluir-paciente.js escreve */
+    excluir: /avancarRevisao/.test(await ler('/excluir-paciente.js')),
     app: /avancarRevisao/.test(await ler('/app.js')),
     restaurar: /avancarRevisao/.test(await ler('/restaurar-backup.js'))
   };
@@ -627,7 +628,7 @@ ok(intacto.v1 === 1,
    quem chama a restauracao seja um arquivo so: duas telas chamando o mesmo
    motor seriam duas portas para a mesma operacao exclusiva. */
 const comUI = await A.evaluate(async () => {
-  const outras = ['/app.js', '/ficha.js', '/arquivos.js', '/documentos.js'];
+  const outras = ['/app.js', '/ficha.js', '/arquivos.js', '/dashboard.js'];
   const vazou = [];
   for (const a of outras) {
     const t = await (await fetch(a)).text();

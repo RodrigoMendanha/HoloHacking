@@ -22,13 +22,15 @@ const titulo = (t) => console.log('\n  ' + t + '\n');
 const esperar = (ms) => new Promise(r => setTimeout(r, ms));
 
 const srv = criarServidor();
-srv.criarConta('a@holo.test', 'senha-a-123');
+const UA = srv.criarConta('a@holo.test', 'senha-a-123');
 const nav = await puppeteer.launch({
   executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
   headless: 'new', args: ['--no-sandbox', '--hide-scrollbars'] });
 const errosJS = [];
 const ctx = await nav.createBrowserContext();
 const A = await ctx.newPage();
+/* 12/10: o editor profissional vazio so aparece depois de "Levar para o atendimento"; aqui o teste exercita o editor direto */
+await A.evaluateOnNewDocument(() => { window.__REGISTRO_PROFISSIONAL = true; });
 await A.setViewport({ width: 1366, height: 1000 });
 A.on('pageerror', e => errosJS.push(e.message));
 await ligarPagina(A, srv);
@@ -74,7 +76,7 @@ ok(/Selecione ou inicie um atendimento para registrar a anamnese\./.test(await t
 await abrirAba(PA, 'conduta');
 ok(/Selecione ou inicie um atendimento para registrar a conduta\./.test(await texto('#aba-conduta')), 'aba Conduta sem atendimento: mensagem certa');
 const abas = await A.evaluate(() => [...document.querySelectorAll('#ficha-arquivos .aba[data-aba]')].map(b => b.textContent.trim()));
-ok(abas.indexOf('Anamnese') < abas.indexOf('HOLOSCAN') && abas.indexOf('Conduta') > abas.indexOf('Ferramentas'),
+ok(abas.indexOf('Mapeamento Holístico') < abas.indexOf('HOLOSCAN') && abas.indexOf('Conduta') > abas.indexOf('Ferramentas'),
    'a ordem das abas reflete a jornada: Atendimento -> Anamnese -> HOLOSCAN -> Ferramentas/Exames -> Conduta: ' + abas.join(' · '));
 ok(anamneses(PA).length === 0 && condutas(PA).length === 0, 'nada foi criado ao abrir as abas');
 
@@ -85,38 +87,32 @@ const E1 = await iniciarAtendimento(PA, '2026-05-01T12:00:00.000Z');
 await abrirAba(PA, 'anamnese');
 const cab = await texto('#aba-anamnese .an-topo');
 ok(/Paciente Um/.test(cab) && /atendimento de/.test(cab), 'a aba mostra paciente e atendimento ativo: ' + cab.replace(/\s+/g, ' ').slice(0, 80));
-await A.evaluate(async () => {
-  document.querySelector('#aba-anamnese [data-an-acao="nova"]').click(); await new Promise(r => setTimeout(r, 200));
-  document.querySelector('[data-an-adicionar="alergias_informadas"]').click(); await new Promise(r => setTimeout(r, 200));
-  const it = document.querySelector('.an-item[data-an-dom="alergias_informadas"]');
-  it.querySelector('[data-an-campo="campo"]').value = 'Amendoim';
-  it.querySelector('[data-an-campo="estado"]').value = 'desconhecido';
-  document.querySelector('[data-an-adicionar="condicoes_diagnosticos_informados"]').click(); await new Promise(r => setTimeout(r, 200));
-  const dx = document.querySelector('.an-item[data-an-dom="condicoes_diagnosticos_informados"]');
-  dx.querySelector('[data-an-campo="campo"]').value = 'Hipotireoidismo';
-  dx.querySelector('[data-an-campo="valor"]').value = 'relatado pela paciente';
-  document.querySelector('[data-an-adicionar="medidas"]').click(); await new Promise(r => setTimeout(r, 200));
-  const md = document.querySelector('.an-item[data-an-dom="medidas"]');
-  md.querySelector('[data-an-campo="campo"]').value = 'Peso';
-  md.querySelector('[data-an-campo="origem"]').value = 'dado_medido';
-  const cb = md.querySelector('[data-an-campo="tem_medida"]'); cb.checked = true; cb.dispatchEvent(new Event('change', { bubbles: true }));
-  await new Promise(r => setTimeout(r, 200));
-});
-ok(anamneses(PA).length === 0, 'editar na tela nao grava nada antes de salvar');
-// medida sem unidade -> recusa local, nada no servidor
+/* Anamnese V2 (09/10): toda anamnese NOVA nasce no formulario V2 (testar-anamnese-v2.mjs). Aqui o que se prova e que a
+   anamnese no FORMATO ANTIGO — como as que ja existem no banco — continua abrindo, editando, salvando, revisando e sendo
+   copiada exatamente como antes, sem conversao. O rascunho antigo entra pelo mesmo RPC que o criou na epoca. */
+const LEGADO = { dominios: {
+  alergias_informadas: { itens: [{ campo: 'Amendoim', valor: '', estado: 'desconhecido', origem: 'relato_paciente', medida: null, previo: false }] },
+  condicoes_diagnosticos_informados: { itens: [{ campo: 'Hipotireoidismo', valor: 'relatado pela paciente', estado: 'informado', origem: 'relato_paciente', medida: null, previo: false }] },
+  medidas: { itens: [{ campo: 'Peso', valor: '', estado: 'informado', origem: 'dado_medido', medida: { valor: 70, unidade: 'kg', data: null, metodo: null, responsavel: null }, previo: false }] } } };
+const semeado = srv.tratar({ op: 'rpc', uid: UA, nome: 'salvar_anamnese', args: { payload: { encounter_id: E1, content: LEGADO, status: 'rascunho' } } });
+ok(!semeado.error, 'rascunho no formato antigo existente no banco (fixture)');
+await A.evaluate(async () => { await window.Anamnese.carregar(); });
+await abrirAba(PA, 'anamnese');
+ok(await A.evaluate(() => !!document.querySelector('#aba-anamnese .an-item[data-an-dom="alergias_informadas"]') && !document.querySelector('#aba-anamnese .an2-form')),
+   'rascunho antigo abre no editor antigo (sem conversao para o formulario V2)');
+// medida sem unidade -> recusa local, o servidor continua com a versao anterior
 let toast = await A.evaluate(async () => {
-  const md = document.querySelector('.an-item[data-an-dom="medidas"]');
-  md.querySelector('[data-an-campo="m_valor"]').value = '70';
+  document.querySelector('.an-item[data-an-dom="medidas"] [data-an-campo="m_unidade"]').value = '';
   document.querySelector('#aba-anamnese [data-an-acao="rascunho"]').click(); await new Promise(r => setTimeout(r, 500));
   return document.getElementById('toast').textContent;
 });
-ok(/unidade/.test(toast) && anamneses(PA).length === 0, 'medida com valor e sem unidade e recusada antes de ir ao servidor: ' + toast);
+ok(/unidade/.test(toast) && anamneses(PA)[0].content.dominios.medidas.itens[0].medida.unidade === 'kg', 'medida com valor e sem unidade e recusada antes de ir ao servidor: ' + toast);
 await A.evaluate(async () => {
   document.querySelector('.an-item[data-an-dom="medidas"] [data-an-campo="m_unidade"]').value = 'kg';
   document.querySelector('#aba-anamnese [data-an-acao="rascunho"]').click(); await new Promise(r => setTimeout(r, 700));
 });
 let an = anamneses(PA);
-ok(an.length === 1 && an[0].status === 'rascunho' && an[0].encounter_id === E1, 'rascunho salvo no servidor, ligado ao atendimento');
+ok(an.length === 1 && an[0].status === 'rascunho' && an[0].encounter_id === E1 && !an[0].content.formulario_versao, 'rascunho salvo no servidor, ligado ao atendimento, ainda no formato antigo');
 const itensAlergia = an[0].content.dominios.alergias_informadas.itens;
 ok(itensAlergia[0].estado === 'desconhecido' && itensAlergia[0].valor === '' && !an[0].content.dominios.intolerancias_informadas,
    'campo vazio nao virou "negado": alergia ficou "desconhecido"; intolerancias nem existem (nada afirmado, nada negado)');
@@ -165,11 +161,15 @@ await abrirAba(PB, 'anamnese');
 ok(/Selecione ou inicie um atendimento/.test(await texto('#aba-anamnese')), 'trocar para Paciente Dois limpa o contexto: sem atendimento, sem anamnese de A');
 const E2 = await iniciarAtendimento(PA, '2026-06-01T12:00:00.000Z');
 await abrirAba(PA, 'anamnese');
+const sugerido = await A.evaluate(() => ({ retorno: (document.querySelector('[data-an2-tipo="retorno"]') || {}).getAttribute ? document.querySelector('[data-an2-tipo="retorno"]').getAttribute('aria-checked') : null,
+  copiarNoRetorno: !!document.querySelector('#aba-anamnese [data-an-acao="copiar"]') }));
+ok(sugerido.retorno === 'true' && !sugerido.copiarNoRetorno, 'atendimento novo com anamnese anterior: Retorno vem sugerido e, no Retorno, nao ha copia da anamnese inteira');
+await A.evaluate(async () => { document.querySelector('[data-an2-tipo="primeira"]').click(); await new Promise(r => setTimeout(r, 200)); });
 const copiaBtn = await A.evaluate(() => !!document.querySelector('#aba-anamnese [data-an-acao="copiar"]'));
 ok(copiaBtn && anamneses(PA).filter(a => a.encounter_id === E2).length === 0, 'no atendimento novo (retorno) ha a acao "Criar a partir da anamnese anterior" e nada foi copiado sozinho');
 await A.evaluate(async (e1) => { window.AtendimentoAtual.selecionarPorId(e1); await new Promise(r => setTimeout(r, 300)); }, E1);
 ok(/Revisão vigente: rev\. 2 · revisado/.test(await texto('#aba-anamnese')), 'voltar ao atendimento 1 carrega a anamnese dele (rev. 2 revisada)');
-await A.evaluate(async (e2) => { window.AtendimentoAtual.selecionarPorId(e2); await new Promise(r => setTimeout(r, 300)); }, E2);
+await A.evaluate(async (e2) => { window.AtendimentoAtual.selecionarPorId(e2); await new Promise(r => setTimeout(r, 300)); document.querySelector('[data-an2-tipo="primeira"]').click(); await new Promise(r => setTimeout(r, 200)); }, E2);
 
 /* ==================================================================== */
 titulo('COPIA EXPLICITA DA ANTERIOR; HOLOSCAN INTOCADO');
@@ -256,26 +256,18 @@ const visao = await texto('#fic-atendimento-clinico');
 ok(/Último atendimento/i.test(visao) && /Conduta vigente/i.test(visao) && /rev\. 1 · salvo/.test(visao) && /Manter o jantar cedo/.test(visao) && !/rascunho de correção/.test(visao),
    'Visao geral: ultimo atendimento, anamnese e conduta VIGENTE (rev. 1), nunca o rascunho — ' + visao.replace(/\s+/g, ' ').slice(0, 300));
 const tl = await A.evaluate(() => [...document.querySelectorAll('#fic-visao-timeline .fic-evento')].map(e => e.innerText.replace(/\s+/g, ' ')).join(' | '));
-ok(/Anamnese salva/.test(tl) && /Anamnese revisada \(rev\. 2\)/.test(tl) && /Conduta salva/.test(tl) && !/rascunho de correção/.test(tl),
+ok(/Mapeamento salvo/.test(tl) && /Mapeamento revisado \(rev\. 2\)/.test(tl) && /Conduta salva/.test(tl) && !/rascunho de correção/.test(tl),
    'timeline: anamnese salva, revisao como revisao, conduta salva; rascunho fora — ' + tl.slice(0, 300));
 const filtros = await A.evaluate(() => [...document.querySelectorAll('[data-filtro-linha]')].map(b => b.textContent.trim()));
-ok(filtros.includes('Anamnese') && filtros.includes('Conduta'), 'filtros da timeline: ' + filtros.join(' · '));
+ok(filtros.includes('Mapeamento Holístico') && filtros.includes('Conduta'), 'filtros da timeline: ' + filtros.join(' · '));
 const dash = await A.evaluate(async () => { document.querySelector('.nav-item[data-secao="dashboard"]').click(); await new Promise(r => setTimeout(r, 400)); return (document.getElementById('dash-sem-conduta') || {}).innerText || ''; });
 ok(dash === '' || !/Paciente Um/.test(dash), 'dashboard: Paciente Um tem conduta salva nos dois atendimentos — nao esta em "sem conduta salva"' + (dash ? ' (' + dash.replace(/\s+/g, ' ').slice(0, 60) + ')' : ''));
 const E3 = await iniciarAtendimento(PB, '2026-05-02T12:00:00.000Z');
 await A.evaluate(async (e3) => { await window.Conduta.salvar({ encounter_id: e3, status: 'rascunho', objective: 'so rascunho' }).catch(() => {}); }, E3);
-const dash2 = await A.evaluate(async () => { document.querySelector('.nav-item[data-secao="pacientes"]').click(); document.querySelector('.nav-item[data-secao="dashboard"]').click(); await new Promise(r => setTimeout(r, 400)); return (document.getElementById('dash-sem-conduta') || {}).innerText || ''; });
-ok(/Paciente Dois/.test(dash2) && /conduta em rascunho/.test(dash2), 'dashboard: atendimento com conduta so em RASCUNHO conta como "sem conduta salva" (rascunho nao e conduta)');
-/* Correcao do dashboard (pos-6.5): "Abrir conduta" leva ao ATENDIMENTO (selecionado), na aba Conduta — nao so a ficha. */
-const irConduta = await A.evaluate(async (e3) => {
-  const bt = document.querySelector('#dash-sem-conduta [data-atendimento="' + e3 + '"]');
-  if (!bt) return { achou: false };
-  bt.click(); await new Promise(r => setTimeout(r, 400));
-  return { achou: true, botao: bt.textContent.trim(), atual: (window.AtendimentoAtual.atual() || {}).id,
-    aba: document.querySelector('[data-aba].ativa')?.dataset.aba, secao: document.querySelector('.secao.ativa')?.id };
-}, E3);
-ok(irConduta.achou && irConduta.atual === E3 && irConduta.aba === 'conduta' && irConduta.secao === 'secao-pacientes',
-   'dashboard: "Abrir conduta" seleciona o atendimento sem conduta e abre a aba Conduta: ' + JSON.stringify(irConduta));
+const dash2 = await A.evaluate(async () => { document.querySelector('.nav-item[data-secao="pacientes"]').click(); document.querySelector('.nav-item[data-secao="dashboard"]').click(); await new Promise(r => setTimeout(r, 400)); return { bloco: !!document.getElementById('dash-sem-conduta'), texto: document.getElementById('dash-trabalho').innerText }; });
+/* 12/10 (pedido da usuaria): "Atendimentos sem conduta salva" saiu do Dashboard, que ficou so com o topo, a Agenda de
+   Hoje e o Acompanhamento dos pacientes. Conduta em rascunho continua sendo rascunho (testado na ficha acima). */
+ok(!dash2.bloco && !/sem conduta salva|conduta em rascunho/.test(dash2.texto), 'dashboard: sem a lista "Atendimentos sem conduta salva" (tela limpa, decisao 12/10)');
 const gerarContexto = (eid) => A.evaluate(async (pid, eid) => {
   window.abrirFichaDe(pid); await new Promise(r => setTimeout(r, 200));
   window.AtendimentoAtual.selecionarPorId(eid);
@@ -284,13 +276,13 @@ const gerarContexto = (eid) => A.evaluate(async (pid, eid) => {
   return (document.getElementById('ai-hub-texto') || {}).textContent || '';
 }, PA, eid);
 const ctx1 = await gerarContexto(E1);
-ok(/## Anamnese \(salva\/revisada/.test(ctx1) && /rev\. 2 · revisado/.test(ctx1) && /Amendoim: \[Negado explicitamente\]/.test(ctx1) && /Hipotireoidismo: relatado pela paciente \(Relato do paciente; informado, não confirmado\)/.test(ctx1),
+ok(/## Mapeamento Holístico \(salvo\/revisado/.test(ctx1) && /rev\. 2 · revisado/.test(ctx1) && /Amendoim: \[Negado explicitamente\]/.test(ctx1) && /Hipotireoidismo: relatado pela paciente \(Relato do paciente; informado, não confirmado\)/.test(ctx1),
    'HOLOS AI (atendimento 1): anamnese CONSOLIDADA (rev. 2 revisada), com estado e origem e o "informado, não confirmado"');
 const contexto = await gerarContexto(E2);
 ok(!/## Anamnese/.test(contexto), 'HOLOS AI (atendimento 2): a anamnese deste atendimento e RASCUNHO (copia) e NAO entra');
 ok(/## Conduta e acordos/.test(contexto) && /Manter o jantar cedo/.test(contexto) && /Jantar até 20h \[Em acompanhamento\]/.test(contexto) && !/rascunho de correção/.test(contexto),
    'HOLOS AI: conduta vigente e acordos salvos; o rascunho de correcao fica fora');
-ok(!/### Índice HOLOS|### Tríada|- Físico:|faixa \d|### Leitura Integrada|CMB-|\bREC-|\bSEL-|nota \d/.test(contexto), 'nenhuma metodologia nao homologada no contexto');
+ok(!/### Índice HOLOS|### Tríada|- Físico:|\nTríade:|- Corpo:|faixa \d|### Leitura Integrada|CMB-|\bREC-|\bSEL-|nota \d/.test(contexto), 'nenhuma metodologia nao homologada no contexto');
 
 const exportado = await A.evaluate(async () => {
   let dados = null; const origURL = URL.createObjectURL;

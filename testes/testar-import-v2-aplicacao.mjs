@@ -677,7 +677,7 @@ console.log('');
    esteja num arquivo so, e que o motivo pelo qual ela pode existir — a trava
    entre abas — esteja de pe. */
 const comUI = await p.evaluate(async () => {
-  const telas = ['/app.js', '/ficha.js', '/arquivos.js', '/documentos.js', '/dashboard.js'];
+  const telas = ['/app.js', '/ficha.js', '/arquivos.js', '/dashboard.js', '/timeline.js'];
   const outrasQueCitam = [];
   for (const a of telas) {
     const t = await (await fetch(a)).text();

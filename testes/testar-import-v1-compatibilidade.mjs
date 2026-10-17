@@ -645,7 +645,7 @@ ok(intacto.v1Oficial,
    caminho novo, e avisava que a troca viria depois. Veio. Agora ele cobra que
    a troca esteja feita, e feita num lugar so. */
 const comUI = await p.evaluate(async () => {
-  const outras = ['/app.js', '/ficha.js', '/arquivos.js', '/documentos.js'];
+  const outras = ['/app.js', '/ficha.js', '/arquivos.js', '/dashboard.js'];
   const vazou = [];
   for (const a of outras) {
     const t = await (await fetch(a)).text();

@@ -7,7 +7,7 @@
  *   - anamnese: novo / alterado / negado / sem informacao, sem julgamento
  *   - medidas: delta so com a mesma unidade; unidades diferentes bloqueiam
  *   - HOLOSCAN: lado a lado, sem delta de Indice
- *   - ferramentas e exames incompativeis: lado a lado, sem delta
+ *   - ferramentas incompativeis: lado a lado, sem delta; exames NAO entram (09/10)
  *   - acordos: estado anterior -> atual, sem indice de adesao
  *   - cache local nao sincronizado fora da timeline; rascunhos fora da Evolucao
  *  RELATORIOS
@@ -116,12 +116,18 @@ const T1 = insert('tool_applications', { patient_id: PA, encounter_id: E1, ferra
 const T2 = insert('tool_applications', { patient_id: PA, encounter_id: E2, ferramenta_id: 'oq3', versao_ferramenta: 2, status: 'concluida', respostas: { quer: 'x' }, resultado: { total: 12 }, concluida_em: '2026-06-01T13:00:00.000Z', leitura: 'leitura E2' }).data[0].id;
 const R1 = insert('tool_applications', { patient_id: PA, encounter_id: E1, ferramenta_id: 'roda_vida', versao_ferramenta: 1, status: 'concluida', respostas: {}, resultado: { media: 5 }, concluida_em: '2026-05-01T14:00:00.000Z' }).data[0].id;
 const R2 = insert('tool_applications', { patient_id: PA, encounter_id: E2, ferramenta_id: 'roda_vida', versao_ferramenta: 1, status: 'concluida', respostas: {}, resultado: { media: 6 }, concluida_em: '2026-06-01T14:00:00.000Z' }).data[0].id;
-const coleta = (eid, data, resultados) => srv.tratar({ op: 'rpc', uid: UA, nome: 'salvar_coleta_exames', args: { payload: { collection: { patient_id: PA, encounter_id: eid, coletado_em: data, data_coleta_desconhecida: false, laboratorio: 'Lab' }, results: resultados } } }).data;
+/* 09/10: coletas HISTORICAS (anteriores a decisao) ja estao no servidor, como o banco real as tem; a RPC recusa qualquer nova */
+const coleta = (eid, data, resultados) => {
+  const id = globalThis.crypto.randomUUID(), agora = new Date().toISOString();
+  srv.tabelas.lab_collections.push({ id, nutritionist_id: UA, patient_id: PA, encounter_id: eid, coletado_em: data, data_coleta_desconhecida: false, laboratorio: 'Lab', observacao: null, state: 'salvo', source: 'manual', revision: 1, created_by: UA, created_at: agora, updated_at: agora });
+  resultados.forEach(r => srv.tabelas.lab_results.push(Object.assign({ id: globalThis.crypto.randomUUID(), collection_id: id, created_at: agora }, r)));
+  return id;
+};
 const C1 = coleta(E1, '2026-04-28', [{ exame_id: 'glicose', valor: 90, unidade_no_momento: 'mg/dL', nome_exame_no_momento: 'Glicose' }, { exame_id: 'hemoglobina', valor: 13, unidade_no_momento: 'g/dL', nome_exame_no_momento: 'Hemoglobina' }]);
 const C2 = coleta(E2, '2026-05-28', [{ exame_id: 'glicose', valor: 5, unidade_no_momento: 'mmol/L', nome_exame_no_momento: 'Glicose' }, { exame_id: 'hemoglobina', valor: 12.5, unidade_no_momento: 'g/dL', nome_exame_no_momento: 'Hemoglobina' }]);
 ok(E1 && E2 && AN1 && AN1b && AN2 && CD1 && CD2 && H1 && H2 && T1 && T2 && R1 && R2 && C1 && C2, 'cenario consolidado no servidor: 2 atendimentos, anamneses (com revisão e rascunho), condutas, HOLOSCANs, ferramentas, coletas');
-// a coleta com encounter_id: a RPC real nao recebe encounter_id; o falso tambem nao — ligamos direto (como sincronizacao.js faz)
-for (const [c, e] of [[C1, E1], [C2, E2]]) q(UA, 'lab_collections', 'update', { dados: { encounter_id: e }, filtros: [{ op: 'eq', col: 'id', val: c }] });
+ok(srv.tratar({ op: 'rpc', uid: UA, nome: 'salvar_coleta_exames', args: { payload: { collection: { patient_id: PA, encounter_id: E2, coletado_em: '2026-06-02', data_coleta_desconhecida: false }, results: [] } } }).error.hint === 'laboratorio_desativado'
+   && srv.linhas('lab_collections').length === 2, 'nenhuma coleta nova entra (laboratorio_desativado); as duas historicas ficam');
 await recarregar();
 
 /* ==================================================================== */
@@ -158,19 +164,23 @@ titulo('EVOLUCAO: ANAMNESE, MEDIDAS, HOLOSCAN, EXAMES, FERRAMENTAS, ACORDOS');
 const an = await texto('#aba-evolucao [data-evo-secao="anamnese"]');
 ok(/Horas.*6h.*Novo/.test(an.replace(/\s+/g, ' ')) && /Amendoim.*Negado explicitamente/.test(an.replace(/\s+/g, ' ')) && /Cansaço.*Anterior não revisto/.test(an.replace(/\s+/g, ' ')),
    'anamnese: novo (Horas), negado explicitamente (Amendoim), anterior nao revisto (Cansaço)');
-ok(/rev\. 2/.test(an) && !/melhorou|piorou|\+\d+ ?%|-\d+ ?%/i.test(an) && /Peso.*Alterado/.test(an.replace(/\s+/g, ' ')), 'a anamnese de A e a revisao vigente (rev. 2) e nada e "melhor" ou "pior"');
+/* 16/10 (estabilizacao): sem "rev. N" na tela clinica (o dado continua o da revisao vigente) */
+ok(!/rev\. \d/.test(an) && /registrado em/.test(an) && !/melhorou|piorou|\+\d+ ?%|-\d+ ?%/i.test(an) && /Peso.*Alterado/.test(an.replace(/\s+/g, ' ')), 'a anamnese de A e a revisao vigente (sem "rev. N" na tela) e nada e "melhor" ou "pior"');
 med = await texto('#aba-evolucao [data-evo-secao="medidas"]');
-ok(/Peso.*80 kg.*78 kg.*delta -2 kg/.test(med.replace(/\s+/g, ' ')), 'medida compativel: 80 kg → 78 kg, delta -2 kg — sem "melhora"');
+ok(/Peso.*80 kg.*78 kg.*-2 kg/.test(med.replace(/\s+/g, ' ')) && !/delta/i.test(med), 'medida compativel: 80 kg → 78 kg, diferença -2 kg (sem a palavra "delta") — sem "melhora"');
 ok(/Altura.*170 cm.*1\.7 m.*unidades diferentes/.test(med.replace(/\s+/g, ' ')) && !/melhorou|piorou/i.test(med), 'unidades diferentes (cm × m): sem delta, sem conversao');
 ok(!/70 kg/.test(med), 'o rascunho de anamnese (70 kg) NAO entra na Evolucao');
 const holoSec = await texto('#aba-evolucao [data-evo-secao="holoscan"]');
-ok(/01\/05\/2026/.test(holoSec) && /01\/06\/2026/.test(holoSec) && /60 de 60 respondidas|70 de 60 respondidas/.test(holoSec) && !/delta [+-]?\d/i.test(holoSec) && !/Índice \d/.test(holoSec) && /não foi homologada/.test(holoSec),
-   'HOLOSCAN: datas, versao e cobertura lado a lado; nenhum delta nem Indice; selo de nao homologado');
-const ex = await texto('#aba-evolucao [data-evo-secao="exames"]');
-ok(/Glicose.*90 mg\/dL.*5 mmol\/L.*unidades diferentes/.test(ex.replace(/\s+/g, ' ')), 'exame com unidade diferente (mg/dL × mmol/L): lado a lado, sem delta');
-ok(/Hemoglobina.*13 g\/dL.*12\.5 g\/dL.*delta -0,5 g\/dL/.test(ex.replace(/\s+/g, ' ')), 'mesmo exame, mesma unidade: delta -0,5 g/dL');
+/* 16/10 (estabilizacao): ANTES x AGORA — data, Indice, sistemas e Corpo/Mente/Espirito lado a lado, SEM diferenca
+   calculada, sem id tecnico, sem "versão N" e sem jargao de homologacao */
+ok(/01\/05\/2026/.test(holoSec) && /01\/06\/2026/.test(holoSec) && /Índice HOLOS/.test(holoSec) && /Corpo/.test(holoSec) && /Espírito/.test(holoSec) &&
+   !/delta|homolog|aplicação [0-9a-f]{6}|versão \d|[+-]\d+,\d/i.test(holoSec) && /não calcula a diferença/.test(holoSec),
+   'HOLOSCAN: antes x agora lado a lado (datas, Índice, Tríade), nenhuma diferença calculada, sem id/jargão');
+const evoTudo = await texto('#aba-evolucao');
+ok(!(await A.evaluate(() => !!document.querySelector('#aba-evolucao [data-evo-secao="exames"], #aba-evolucao [data-evo-fonte="exames"]'))) && !/Glicose|Hemoglobina|mg\/dL|mmol\/L/.test(evoTudo),
+   '09/10: a Evolucao nao compara exames — nenhuma secao, fonte ou valor laboratorial (as coletas historicas ficam so no banco)');
 const fe = await texto('#aba-evolucao [data-evo-secao="ferramentas"]');
-ok(/OQ³[\s\S]*versões diferentes/.test(fe) && /Roda[\s\S]*media: 5 → 6 \(delta \+1\)/.test(fe), 'ferramenta com versao diferente so lado a lado; mesma ferramenta/versao com delta por chave numerica');
+ok(/OQ³[\s\S]*formatos diferentes/.test(fe) && /Roda[\s\S]*media: 5 → 6 \(\+1\)/.test(fe) && !/delta/i.test(fe), 'ferramenta com formato diferente so lado a lado; mesma ferramenta/escala com diferença por chave numerica (sem "delta")');
 const cd = await texto('#aba-evolucao [data-evo-secao="conduta"]');
 ok(/Jantar cedo.*Acordado.*Jantar cedo.*Encerrado.*Encerrado/.test(cd.replace(/\s+/g, ' ')) && /Alongar à noite.*Novo/.test(cd.replace(/\s+/g, ' ')) && /Caminhar 3x.*Sem registro na conduta atual/.test(cd.replace(/\s+/g, ' ')),
    'acordos: anterior → atual (Encerrado), novo, sem registro na conduta atual');
@@ -178,10 +188,10 @@ ok(!/\d+ ?%/.test(cd) && !/não cumpriu[^”]/.test(cd) && /Nenhum índice de ad
 const atend = await texto('#aba-evolucao [data-evo-secao="atendimentos"]');
 ok((atend.match(/registrado em/g) || []).length === 2, 'atendimentos no intervalo: 2 (a revisao da anamnese nao virou atendimento)');
 const tlEvo = await A.evaluate(() => [...document.querySelectorAll('#aba-evolucao [data-evo-secao="timeline"] .fic-evento')].map(e => e.className + '|' + e.innerText.replace(/\s+/g, ' ')));
-ok(tlEvo.some(t => /revisao/.test(t) && /Anamnese revisada \(rev\. 2\)/.test(t)) && tlEvo.some(t => /registrado em/.test(t)), 'timeline do intervalo: revisao marcada como revisao, com data de registro');
+ok(tlEvo.some(t => /revisao/.test(t) && /Mapeamento revisado \(rev\. 2\)/.test(t)) && tlEvo.some(t => /registrado em/.test(t)), 'timeline do intervalo: revisao marcada como revisao, com data de registro');
 ok(!tlEvo.some(t => /consulta/.test(t.split('|')[0])), 'a timeline da Evolucao nao mistura agendamentos');
 const resumo = await texto('#aba-evolucao .evo-resumo');
-ok(/1 medidas com delta comparável/.test(resumo) && /1 exames com delta comparável/.test(resumo), 'resumo conta so o comparavel: ' + resumo);
+ok(/1 medidas registradas nos dois pontos/.test(resumo) && !/exames|delta/.test(resumo), 'resumo conta so o comparavel (sem exames, sem "delta"): ' + resumo);
 await A.evaluate(async () => { document.querySelector('[data-evo-fonte="holoscan"]').click(); await new Promise(r => setTimeout(r, 250)); });
 ok(!(await A.evaluate(() => !!document.querySelector('#aba-evolucao [data-evo-secao="holoscan"]'))), 'desmarcar a fonte HOLOSCAN esconde a secao');
 await A.evaluate(async () => { document.querySelector('[data-evo-abrir="medidas"]').click(); await new Promise(r => setTimeout(r, 250)); });
@@ -203,7 +213,7 @@ const tl = await A.evaluate(async (pid) => {
 }, PA);
 ok(tl.filter(e => /mapa/.test(e.cls)).length === 2 && !tl.some(e => /99/.test(e.txt) && /mapa/.test(e.cls)), 'HOLOSCAN: so as 2 aplicacoes do servidor; o cache local nao sincronizado fica fora');
 ok(!tl.some(e => /RASCUNHO NAO ENTRA|rascunho/i.test(e.txt)), 'nenhum rascunho (anamnese/conduta) na timeline');
-const rev = tl.find(e => /Anamnese revisada \(rev\. 2\)/.test(e.txt));
+const rev = tl.find(e => /Mapeamento revisado \(rev\. 2\)/.test(e.txt));
 ok(rev && /revisao/.test(rev.cls) && rev.reg && /registrado em/.test(rev.title) && /01\/05\/2026/.test(rev.txt), 'revisao: ligada ao atendimento original (data clinica 01/05), data de registro consultavel');
 const filtros = await A.evaluate(() => [...document.querySelectorAll('[data-filtro-linha]')].map(b => b.textContent.trim()));
 ok(filtros.includes('Atendimentos') && filtros.includes('Relatórios'), 'filtros: ' + filtros.join(' · '));
@@ -211,7 +221,7 @@ const ordem = tl.map(e => e.txt.slice(0, 40));
 ok(tl.length >= 10 && tl.every((e, i) => i === 0 || true), 'a timeline junta tudo: ' + tl.length + ' eventos — ' + ordem.slice(0, 3).join(' / '));
 ok(tl.some(e => /atendimento/.test(e.cls) && /Atendimento realizado/.test(e.txt)), 'atendimentos entram como evento clinico');
 const visao = await texto('#fic-atendimento-clinico');
-ok(/Última evolução disponível\s*atendimento anterior × atual \(2 atendimentos registrados\)/i.test(visao.replace(/\s+/g, ' ')) && /Último relatório emitido\s*nenhum emitido/i.test(visao.replace(/\s+/g, ' ')), 'Visao geral: ultima evolucao disponivel e "nenhum relatorio emitido"');
+ok(/Última evolução disponível\s*atendimento anterior × atual \(2 atendimentos registrados\)/i.test(visao.replace(/\s+/g, ' ')) && /Último relatório profissional\s*nenhum relatório profissional emitido.*O Resultado Final d[oa] paciente fica na página Resultado/i.test(visao.replace(/\s+/g, ' ')), 'Visao geral: ultima evolucao disponivel e "nenhum relatorio emitido"');
 
 /* ==================================================================== */
 titulo('RELATORIOS: SELECAO EXPLICITA, PREVIA, EMISSAO');
@@ -229,7 +239,7 @@ const form = await A.evaluate(() => ({
 ok(form.total >= 10 && form.marcados === 0, 'nada vem marcado: ' + form.total + ' fontes, 0 marcadas');
 ok(form.intimo === false && form.interp === true, 'conteudo intimo NAO vem marcado; interpretacao profissional vem');
 ok(/Solicitação de exames com assinatura: não implementada/.test(form.pendencia), 'pendencia da solicitacao de exames registrada na tela');
-ok(!/RASCUNHO NAO ENTRA/.test(form.pendencia) && (await A.evaluate(() => [...document.querySelectorAll('[data-rel-fonte="anamnesis_ids"]')].map(c => c.parentNode.innerText))).filter(t => /substituída/.test(t)).length === 1 && (await A.evaluate(() => document.querySelectorAll('[data-rel-fonte="anamnesis_ids"]').length)) === 3, 'so anamneses consolidadas sao oferecidas (rev. 1 marcada como substituida, rev. 2, e a de E2; rascunho fora)');
+ok(!/RASCUNHO NAO ENTRA/.test(form.pendencia) && (await A.evaluate(() => [...document.querySelectorAll('[data-rel-fonte="anamnesis_ids"]')].map(c => c.parentNode.innerText))).filter(t => /substituído/.test(t)).length === 1 && (await A.evaluate(() => document.querySelectorAll('[data-rel-fonte="anamnesis_ids"]').length)) === 3, 'so anamneses consolidadas sao oferecidas (rev. 1 marcada como substituida, rev. 2, e a de E2; rascunho fora)');
 await A.evaluate(async (ids) => {
   for (const [k, v] of ids) { const c = document.querySelector('[data-rel-fonte="' + k + '"][value="' + v + '"]'); if (c) c.click(); }
   document.querySelector('[data-rel-campo="title"]').value = 'Relatório de retorno';
@@ -310,13 +320,15 @@ ok(lista.some(l => /rascunho\|/.test(l) && /RASCUNHO PENDENTE/.test(l) && /não 
 const tl2 = await A.evaluate(async (pid) => { document.querySelector('[data-aba="visao"]').click(); await new Promise(r => setTimeout(r, 500));
   return { eventos: [...document.querySelectorAll('#fic-visao-timeline .fic-evento.relatorio')].map(e => e.innerText.replace(/\s+/g, ' ')), visao: document.getElementById('fic-atendimento-clinico').innerText.replace(/\s+/g, ' ') }; }, PA);
 ok(tl2.eventos.length === 2 && tl2.eventos.some(t => /Retificação/.test(t)) && !tl2.eventos.some(t => /RASCUNHO PENDENTE/.test(t)), 'timeline: 2 emissoes (uma retificacao); o rascunho fica fora');
-ok(/Último relatório emitido.*retificado.*emissão nº 2/.test(tl2.visao) && !/RASCUNHO PENDENTE/.test(tl2.visao), 'Visao geral: ultimo relatorio EMITIDO (a retificacao), nunca o rascunho');
+ok(/Último relatório profissional.*retificado.*emissão nº 2/.test(tl2.visao) && !/RASCUNHO PENDENTE/.test(tl2.visao), 'Visao geral: ultimo relatorio EMITIDO (a retificacao), nunca o rascunho');
 
 /* ==================================================================== */
 titulo('CONTEXTOS: DASHBOARD, HOLOS AI, EXPORTACAO, HISTORICO');
 /* ==================================================================== */
-const dash = await A.evaluate(async () => { document.querySelector('.nav-item[data-secao="dashboard"]').click(); await new Promise(r => setTimeout(r, 500)); return (document.getElementById('dash-rascunhos') || {}).innerText || ''; });
-ok(/Rascunhos pendentes/.test(dash) && /1 relatório em rascunho/.test(dash) && /RASCUNHO PENDENTE/.test(dash) && /anamnese em rascunho/.test(dash) && !/Índice/.test(dash), 'dashboard: rascunhos pendentes (anamnese, relatorio) sem Indice medio — ' + dash.replace(/\s+/g, ' ').slice(0, 120));
+const dash = await A.evaluate(async () => { document.querySelector('.nav-item[data-secao="dashboard"]').click(); await new Promise(r => setTimeout(r, 500)); return { bloco: !!document.getElementById('dash-rascunhos'), texto: document.getElementById('dash-trabalho').innerText }; });
+/* 12/10 (pedido da usuaria): "Rascunhos" saiu do Dashboard (tela so com topo, Agenda de Hoje e Acompanhamento); os
+   rascunhos continuam na ficha de cada paciente. */
+ok(!dash.bloco && !/rascunho/i.test(dash.texto) && !/Índice/.test(dash.texto), 'dashboard: sem bloco de rascunhos nem Indice medio (tela limpa, decisao 12/10)');
 const ctx = await A.evaluate(async (pid) => {
   window.abrirFichaDe(pid); await new Promise(r => setTimeout(r, 300));
   document.querySelector('[data-aba="holos-ai"]').click(); await new Promise(r => setTimeout(r, 400));
@@ -328,8 +340,8 @@ const ctx = await A.evaluate(async (pid) => {
   }
   return out;
 }, PA);
-const vaz = /### Índice HOLOS|### Tríada|- Físico:|faixa \d|### Leitura Integrada|CMB-|\bREC-|\bSEL-|nota \d/;
-ok(/Linha do tempo consolidada/.test(ctx.evolucao) && /Anamnese revisada/.test(ctx.evolucao) && /registrado em/.test(ctx.evolucao) && !/RASCUNHO|rascunho de/i.test(ctx.evolucao) && !vaz.test(ctx.evolucao) && !/Índice 50|Índice 60/.test(ctx.evolucao),
+const vaz = /### Índice HOLOS|### Tríada|- Físico:|\nTríade:|- Corpo:|faixa \d|### Leitura Integrada|CMB-|\bREC-|\bSEL-|nota \d/;
+ok(/Linha do tempo consolidada/.test(ctx.evolucao) && /Mapeamento revisado/.test(ctx.evolucao) && /registrado em/.test(ctx.evolucao) && !/RASCUNHO|rascunho de/i.test(ctx.evolucao) && !vaz.test(ctx.evolucao) && !/Índice 50|Índice 60/.test(ctx.evolucao),
    'HOLOS AI (evolucao): timeline consolidada com data de registro, sem rascunho e sem Indice');
 ok(/Relatórios emitidos/.test(ctx.relatorios) && /Emissão nº 2/.test(ctx.relatorios) && /Emissão nº 1/.test(ctx.relatorios) && !/RASCUNHO PENDENTE/.test(ctx.relatorios) && !/SEGREDO_INTIMO/.test(ctx.relatorios) && !vaz.test(ctx.relatorios),
    'HOLOS AI (relatorios emitidos): so emissoes, sem rascunho, sem conteudo intimo');

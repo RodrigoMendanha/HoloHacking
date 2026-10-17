@@ -6,8 +6,10 @@
    (source_snapshot + content_snapshot) e montado PELO SERVIDOR (RPC
    emitir_relatorio) a partir das fontes que a profissional ESCOLHEU uma a
    uma: atendimentos, anamneses consolidadas, aplicacoes do HOLOSCAN,
-   coletas, ferramentas concluidas, condutas consolidadas (com acordos),
-   documentos e a interpretacao profissional. Nada e selecionado por padrao;
+   ferramentas concluidas, condutas consolidadas (com acordos) e a
+   interpretacao profissional. Exames e documentos (decisao 09/10) entram so
+   como referencia administrativa: "N documentos/exames armazenados no
+   prontuario" — nunca valor, nome ou conteudo. Nada e selecionado por padrao;
    conteudo intimo (campos emocionais, sentido pessoal, respostas das
    ferramentas) so entra com a marcacao explicita.
 
@@ -77,13 +79,14 @@
 
   function fontesDisponiveis(pid) {
     var A = window.AtendimentoAtual, An = window.Anamnese, Cd = window.Conduta, comSessao = temSupa();
-    var f = { atendimentos: [], anamneses: [], holoscan: [], coletas: [], ferramentas: [], condutas: [], documentos: documentosCache[pid] || [] };
+    /* Decisao de produto 09/10: exame e documento sao so arquivos do prontuario. Coleta nao e mais fonte do
+       relatorio, e documento entra so como referencia administrativa (quantos ha), nunca nome nem conteudo. */
+    var f = { atendimentos: [], anamneses: [], holoscan: [], ferramentas: [], condutas: [], documentos: documentosCache[pid] || [] };
     if (A) f.atendimentos = A.doPaciente(pid).slice().sort(function (a, b) { return String(b.occurred_at).localeCompare(String(a.occurred_at)); });
     if (An) f.anamneses = An.doPaciente(pid).filter(An.consolidada);
     if (Cd) f.condutas = Cd.doPaciente(pid).filter(Cd.consolidada);
     var h = window.historicoPontuacao ? (window.historicoPontuacao(pid) || []) : [];
     f.holoscan = h.filter(function (x) { return x._supa_id; });
-    f.coletas = (window.Sincronizacao ? window.Sincronizacao.coletas(pid) : null) || [];
     if (window.Aplicacoes) f.ferramentas = window.Aplicacoes.doPaciente(pid).filter(function (a) { return a.status !== "rascunho" && a.id && (comSessao || true); });
     return f;
   }
@@ -107,6 +110,8 @@
       f.encounter_id = base.encounter_id || null; f.professional_text = base.professional_text || "";
       var s = base.selected_sources || {};
       Object.keys(f.sel).forEach(function (k) { if (s[k] !== undefined) f.sel[k] = Array.isArray(s[k]) ? s[k].slice() : s[k]; });
+      /* rascunho antigo podia ter coleta/documento marcados: nao entram mais (o servidor tambem ignora) */
+      f.sel.lab_collection_ids = []; f.sel.document_ids = [];
       if (base.status === "emitido") f.title = base.title || f.title;
     }
     return f;
@@ -117,11 +122,30 @@
       operation_id: f.operation_id, expected_updated_at: f.expected_updated_at || null };
   }
   function totalFontes(sel) {
-    return ["encounter_ids", "anamnesis_ids", "holoscan_application_ids", "lab_collection_ids", "tool_application_ids", "conduct_ids", "document_ids"]
+    return ["encounter_ids", "anamnesis_ids", "holoscan_application_ids", "tool_application_ids", "conduct_ids"]
       .reduce(function (n, k) { return n + (sel[k] || []).length; }, 0);
   }
 
   /* ---------- previa (cliente) — rotulada, nunca "emitida" ------------------ */
+
+  /* Motor de resultados V1 (12/10, item 4.4): o texto sobre a metodologia sai do ESTADO REAL do pacote das aplicacoes
+     incluidas — o mesmo texto que o servidor grava na emissao (migration 20261019100000). Antes era fixo: "nao homologado". */
+  function textoMetodologia(sel, hist) {
+    var ids = (sel && sel.holoscan_application_ids) || [];
+    if (!ids.length) return "Nenhuma aplicação HOLOSCAN incluída neste relatório.";
+    hist = hist || [];
+    var P = window.PacoteMetodologico, pacotes = P && P.todos ? P.todos() : [];
+    var nomes = [], historica = false;
+    ids.forEach(function (id) {
+      var h = hist.filter(function (x) { return x._supa_id === id; })[0];
+      var pk = h && h.methodology_package_id ? pacotes.filter(function (x) { return x.id === h.methodology_package_id; })[0] : null;
+      if (!pk || (pk.status !== "aprovado" && pk.status !== "retirado")) historica = true;
+      else if (nomes.indexOf(pk.code + " v" + pk.version) < 0) nomes.push(pk.code + " v" + pk.version);
+    });
+    if (historica) return "Há aplicação HOLOSCAN histórica, sem pacote metodológico oficial aprovado: seus resultados metodológicos não são oficiais; constam só identificação, data, versão e cobertura bruta.";
+    return "Aplicações HOLOSCAN calculadas pelo pacote metodológico oficial aprovado (" + nomes.sort().join(", ") +
+      "). Este relatório registra identificação, data, versão, cobertura e a interpretação profissional; notas, Índice, Tríade e o resultado do método ficam no Resultado HOLOS.";
+  }
 
   function montarPrevia(pid, f) {
     var F = fontesDisponiveis(pid), An = window.Anamnese, Cd = window.Conduta, sel = f.sel, intimo = !!sel.incluir_intimo, interp = sel.incluir_interpretacao !== false;
@@ -130,7 +154,7 @@
     var em = function (lista, ids, chave) { return lista.filter(function (x) { return ids.indexOf(x[chave || "id"]) >= 0; }); };
     var c = { template_version: 1, previa: true, titulo: f.title, paciente: { nome: p.nome, nascimento: p.nascimento, sexo: p.sexo },
       profissional: { nome: prof.nome, profissao: prof.profissao, registro: prof.registro }, periodo: { inicio: f.period_start || null, fim: f.period_end || null },
-      metodologia: "Resultados metodológicos do HOLOSCAN ainda não são oficiais (Pacote Metodológico V1 não homologado).", texto_assistido: [] };
+      metodologia: textoMetodologia(sel, F.holoscan), texto_assistido: [] };
     c.atendimentos = em(F.atendimentos, sel.encounter_ids).map(function (e) { return { tipo_conteudo: "DADO_DOCUMENTAL", id: e.id, occurred_at: e.occurred_at, timezone: e.timezone, type: e.type, modality: e.modality, com_agendamento: !!e.consultation_id }; });
     c.anamneses = em(F.anamneses, sel.anamnesis_ids).map(function (a) {
       var itens = [];
@@ -147,18 +171,7 @@
       return { tipo_conteudo: "INDICADOR_CALCULADO", id: h._supa_id, quando: h.quando, versao_estrutura: h.versao_estrutura, cobertura: h.cobertura, resultados_oficiais: false,
         interpretacao_profissional: interp && h.interpretacao ? h.interpretacao.texto : null };
     });
-    c.exames = em(F.coletas, sel.lab_collection_ids).map(function (k) {
-      return { tipo_conteudo: "DADO_MEDIDO", id: k.id, coletado_em: k.coletado_em, data_coleta_desconhecida: k.data_coleta_desconhecida, laboratorio: k.laboratorio,
-        state: k.state || null, revision: k.revision || 1,
-        resultados: (k.resultados || []).map(function (r) {
-          if (r.exam_code || r.custom_exam_id || r.value_original_text) {
-            /* Etapa 5: snapshot do valor ORIGINAL e da referencia DO LAUDO usados; nenhuma classificacao */
-            return { exame_id: r.exam_code || null, custom_exam_id: r.custom_exam_id || null, nome: window.Laboratorio ? window.Laboratorio.nomeExame(r) : (r.exam_code || "exame"), variante: r.variant || null, material: r.material || null, metodo: r.method || null,
-              valor: r.value_original_text, unidade: r.unit_original || null, referencia_laudo: r.reference_status === "informed" ? { texto: r.report_reference_text || null, min: r.report_reference_min, max: r.report_reference_max, unidade: r.report_reference_unit || null } : null };
-          }
-          return { exame_id: r.exame_id, nome: r.nome_exame_no_momento, valor: r.valor, unidade: r.unidade_no_momento };
-        }) };
-    });
+    c.exames_incluidos = false;
     c.ferramentas = em(F.ferramentas, sel.tool_application_ids).map(function (a) {
       return { tipo_conteudo: "RELATO_DO_PACIENTE", id: a.id, ferramenta_id: a.ferramenta_id, versao_ferramenta: a.versao_ferramenta, concluida_em: a.concluida_em, status: a.status,
         respostas: intimo ? a.respostas : null, respostas_incluidas: intimo, leitura_profissional: interp ? a.leitura : null, prioridade: a.prioridade, proximo_passo: a.proximo_passo };
@@ -170,7 +183,7 @@
         .map(function (g) { return { id: g.id, description: g.description, responsible: g.responsible, due_text: g.due_text, follow_up: g.follow_up, status: g.status, status_note: g.status_note }; });
       return o;
     });
-    c.documentos = em(F.documentos, sel.document_ids, "_supa_id").map(function (d) { return { tipo_conteudo: "DADO_DOCUMENTAL", id: d._supa_id, nome: d.nome, tipo: d.tipo, data_documento: d.data }; });
+    c.documentos_armazenados = F.documentos.length;
     c.interpretacao_profissional = interp && f.professional_text ? { tipo_conteudo: "OBSERVACAO_PROFISSIONAL", texto: f.professional_text } : null;
     void An;
     return c;
@@ -199,7 +212,7 @@
       var A = window.AtendimentoAtual, w = A ? A.paraParede(e.occurred_at, e.timezone || A.fuso()) : { data: String(e.occurred_at).slice(0, 10), hora: "" };
       return "<li>" + tag(e.tipo_conteudo) + " <b>" + escapar(dataBR(w.data)) + " " + escapar(w.hora) + "</b>" + (e.type ? " · " + escapar(e.type) : "") + (e.modality ? " · " + escapar(e.modality) : "") + (e.com_agendamento ? " · com agendamento" : "") + "</li>";
     })));
-    h += bloco("Anamnese", (c.anamneses || []).map(function (a) {
+    h += bloco("Mapeamento Holístico", (c.anamneses || []).map(function (a) {
       var porDom = {};
       (a.itens || []).forEach(function (it) { (porDom[it.dominio] = porDom[it.dominio] || []).push(it); });
       return '<div class="rel-anamnese"><p class="rel-meta">Revisão ' + escapar(String(a.revision_number)) + " · " + escapar(a.status) + (a.encounter_id ? " · atendimento de " + escapar(dataBR(diaDoAtendimento(a.encounter_id)) || "—") : "") +
@@ -216,10 +229,10 @@
       return "<li>" + tag(x.tipo_conteudo) + " <b>" + escapar(dataBR(x.quando)) + "</b> · versão " + escapar(x.versao_estrutura || "?") + " · " + escapar(cob) + " · resultados não oficiais" +
         (x.interpretacao_profissional ? "<br>" + tag("OBSERVACAO_PROFISSIONAL") + " " + escapar(x.interpretacao_profissional) : "") + "</li>";
     })) : "");
-    h += bloco("Exames", (c.exames || []).map(function (k) {
-      return '<div class="rel-coleta"><p class="rel-meta">' + tag(k.tipo_conteudo) + " Coleta " + (k.data_coleta_desconhecida || !k.coletado_em ? "(data não informada)" : "de " + escapar(dataBR(k.coletado_em))) + (k.laboratorio ? " · " + escapar(k.laboratorio) : "") + "</p>" +
-        lista((k.resultados || []).map(function (r2) { return "<li>" + escapar(r2.nome || r2.exame_id) + ": <b>" + escapar(String(r2.valor)) + "</b> " + escapar(r2.unidade || "") + "</li>"; })) + "</div>";
-    }).join(""));
+    /* emissao ANTIGA que guardou valores de exame: o snapshot fica preservado no banco, mas a tela nao mostra
+       valor laboratorial (decisao de produto 09/10) */
+    if ((c.exames || []).length) h += bloco("Exames", '<p class="rel-aviso">Esta emissão antiga registrou ' + c.exames.length +
+      (c.exames.length === 1 ? " coleta de exames" : " coletas de exames") + ". O registro fica preservado, mas os valores laboratoriais não são mais exibidos.</p>");
     h += bloco("Ferramentas", lista((c.ferramentas || []).map(function (a) {
       return "<li>" + tag(a.tipo_conteudo) + " <b>" + escapar(nomeFerramenta(a.ferramenta_id)) + "</b> · " + escapar(dataBR(a.concluida_em)) + " · versão " + escapar(a.versao_ferramenta || "?") +
         (a.respostas_incluidas ? " · respostas incluídas" : " · respostas não incluídas") +
@@ -231,7 +244,9 @@
         ((k.acordos || []).length ? "<h5>Acordos</h5>" + lista(k.acordos.map(function (g) { return "<li>" + escapar(g.description) + " · " + escapar(Cd ? Cd.rotulo(g.status) : g.status) + (g.responsible ? " · " + escapar(g.responsible) : "") + (g.due_text ? " · " + escapar(g.due_text) : "") + "</li>"; })) : "") +
         (k.return_plan ? '<p class="rel-meta"><b>Retorno:</b> ' + escapar(k.return_plan) + "</p>" : "") + "</div>";
     }).join(""));
-    h += bloco("Documentos anexados", lista((c.documentos || []).map(function (d) { return "<li>" + tag(d.tipo_conteudo) + " " + escapar(d.nome) + (d.tipo ? " · " + escapar(d.tipo) : "") + (d.data_documento ? " · " + escapar(dataBR(d.data_documento)) : "") + "</li>"; })));
+    var nDocs = typeof c.documentos_armazenados === "number" ? c.documentos_armazenados : (c.documentos || []).length;
+    if (nDocs || typeof c.documentos_armazenados === "number") h += bloco("Documentos", "<p>" + tag("DADO_DOCUMENTAL") + " " +
+      (nDocs === 0 ? "Nenhum documento/exame armazenado no prontuário." : nDocs + (nDocs === 1 ? " documento/exame armazenado no prontuário." : " documentos/exames armazenados no prontuário.")) + "</p>");
     if (c.interpretacao_profissional && c.interpretacao_profissional.texto) h += bloco("Interpretação profissional", "<p>" + tag(c.interpretacao_profissional.tipo_conteudo) + " " + escapar(c.interpretacao_profissional.texto).replace(/\n/g, "<br>") + "</p>");
     if (r.status === "emitido") h += '<footer class="rel-rodape"><p class="rel-meta">Hash técnico do snapshot (sha256, não é assinatura digital): <code>' + escapar(r.content_hash || "") + "</code></p>" +
       '<p class="rel-meta">Modelo ' + escapar(String(r.template_version || 1)) + " · emissão " + escapar(r.id) + "</p></footer>";
@@ -298,18 +313,18 @@
       '<label class="rel-campo"><span>Período (início)</span><input type="date" data-rel-campo="period_start" value="' + escapar(f.period_start || "") + '"></label>' +
       '<label class="rel-campo"><span>Período (fim)</span><input type="date" data-rel-campo="period_end" value="' + escapar(f.period_end || "") + '"></label>' +
       "</div>" +
-      '<p class="dash-sub">Fontes: nada vem marcado. Só o consolidado aparece (rascunhos de anamnese/conduta e cálculos não sincronizados não entram).</p>' +
+      '<p class="dash-sub">Fontes: nada vem marcado. Só o consolidado aparece (rascunhos de Mapeamento/conduta e cálculos não sincronizados não entram).</p>' +
       grupo("Atendimentos", "encounter_ids", F.atendimentos, function (e) { return escapar(rotuloAtendimento(e)) + (e.type ? " · " + escapar(e.type) : ""); }) +
-      grupo("Anamnese (salva/revisada)", "anamnesis_ids", F.anamneses, function (a) { return "rev. " + a.revision_number + " · " + escapar(a.status) + " · atendimento de " + escapar(dataBR(diaDoAtendimento(a.encounter_id))) + (a.superseded_at ? " · substituída" : "") + " · " + (An ? An.contarItens(a.content) : "?") + " itens"; }) +
+      grupo("Mapeamento Holístico (salvo/revisado)", "anamnesis_ids", F.anamneses, function (a) { return "rev. " + a.revision_number + " · " + escapar(a.status) + " · atendimento de " + escapar(dataBR(diaDoAtendimento(a.encounter_id))) + (a.superseded_at ? " · substituído" : "") + " · " + (An ? An.contarItens(a.content) : "?") + " itens"; }) +
       grupo("HOLOSCAN (aplicações consolidadas — sem resultados oficiais)", "holoscan_application_ids", F.holoscan, function (x) { return escapar(dataBR(x.quando)) + " · versão " + escapar(x.versao_estrutura || "?"); }, function (x) { return x._supa_id; }) +
-      grupo("Exames (coletas)", "lab_collection_ids", F.coletas, function (k) { return (k.data_coleta_desconhecida || !k.coletado_em ? "data não informada" : escapar(dataBR(k.coletado_em))) + " · " + (k.resultados || []).length + " exames" + (k.laboratorio ? " · " + escapar(k.laboratorio) : ""); }) +
       grupo("Ferramentas (concluídas)", "tool_application_ids", F.ferramentas, function (a) { return escapar(nomeFerramenta(a.ferramenta_id)) + " · " + escapar(dataBR(a.concluida_em || a.iniciada_em)); }) +
       grupo("Conduta (salva/revisada) e acordos", "conduct_ids", F.condutas, function (k) {
         var ac = Cd ? Cd.acordosDe(k.id) : [];
         return "rev. " + k.revision_number + " · " + escapar(k.status) + " · atendimento de " + escapar(dataBR(diaDoAtendimento(k.encounter_id))) + (k.objective ? " · " + escapar(k.objective) : "") +
           (ac.length ? '<span class="rel-acordos">' + ac.map(function (g) { return '<label class="rel-fonte rel-fonte-acordo"><input type="checkbox" data-rel-fonte="agreement_ids" value="' + escapar(g.id) + '"' + marcado("agreement_ids", g.id) + "> acordo: " + escapar(g.description) + " (" + escapar(Cd.rotulo(g.status)) + ")</label>"; }).join("") + "</span>" : "");
       }) +
-      grupo("Documentos anexados", "document_ids", F.documentos, function (d) { return escapar(d.nome) + (d.data ? " · " + escapar(dataBR(d.data)) : ""); }, function (d) { return d._supa_id; }) +
+      '<p class="dash-sub">Documentos e exames: o relatório leva só a referência “' + F.documentos.length +
+        (F.documentos.length === 1 ? " documento/exame armazenado" : " documentos/exames armazenados") + ' no prontuário”. Nome, valores e conteúdo dos arquivos não entram.</p>' +
       '<fieldset class="rel-grupo"><legend>Conteúdo profissional e íntimo</legend>' +
       '<label class="rel-fonte"><input type="checkbox" data-rel-opcao="incluir_interpretacao"' + (f.sel.incluir_interpretacao !== false ? " checked" : "") + "> Incluir interpretação profissional (HOLOSCAN, leituras das ferramentas e o texto abaixo)</label>" +
       '<label class="rel-fonte"><input type="checkbox" data-rel-opcao="incluir_intimo"' + (f.sel.incluir_intimo ? " checked" : "") + "> Incluir conteúdo íntimo (campos emocionais, sentido pessoal, respostas das ferramentas) — <b>não entra por padrão</b></label>" +

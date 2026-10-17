@@ -23,7 +23,16 @@
  * opcional (padrao: sempre, ate remover).
  */
 
+import { criarMcp } from './mcp-falso.mjs';
 import { randomUUID, createHash } from 'node:crypto';
+import { criarResultadoHolos } from './resultado-holos-falso.mjs';
+import { criarHolosAI } from './holos-ai-falso.mjs';   // ponte HOLOS AI (migration 20261023100000)
+import { criarProximosPassos } from './proximos-passos-falso.mjs';   // Proximos Passos HOLOS (migration 20261012100000)
+import '../proximos-passos.js';   // o MESMO motor de selecao do navegador
+import { CATALOGO as PP_CATALOGO, REGRAS as PP_REGRAS, canonico as ppCanonico } from './proximos-passos-catalogo-v1.mjs';
+import { criarAdministracao } from './administracao-falso.mjs';   // Administracao (migration 20261016100000 + Edge Function admin-usuarios)
+import { criarAnamnesePreConsulta } from './anamnese-pre-consulta-falso.mjs';   // anamnese pre-consulta por link (migration 20261014100000)
+import { criarRevisaoPerguntas } from './revisao-perguntas-falso.mjs';   // revisao das perguntas (migration 20261010100000)   // Resultado HOLOS (migration 20261009100000)
 import '../metodologia-pacote.js';   // o MESMO validador de publicacao do navegador (Etapa 4)
 import '../laboratorio-catalogo.js';  // os MESMOS 45 exames-base da migration 20261001220000 (Etapa 5)
 import '../leitura-integrada-pacote-v1.js';
@@ -33,7 +42,7 @@ const COLUNAS = {
   patients: ['id', 'nutritionist_id', 'nome', 'nascimento', 'telefone', 'email', 'sexo', 'inicio', 'queixa', 'status', 'created_at', 'updated_at'],
   consultations: ['id', 'nutritionist_id', 'patient_id', 'data', 'hora', 'duracao_min', 'tipo', 'nota', 'cancelled_at', 'cancellation_reason', 'rescheduled_from_id', 'rescheduled_to_id', 'created_at', 'updated_at'],
   // V1 Etapa 1: o atendimento clinico (migration 20260930160000)
-  encounters: ['id', 'nutritionist_id', 'patient_id', 'consultation_id', 'occurred_at', 'timezone', 'type', 'modality', 'status', 'summary_text', 'operation_id', 'created_at', 'updated_at'],
+  encounters: ['id', 'nutritionist_id', 'patient_id', 'consultation_id', 'occurred_at', 'timezone', 'type', 'modality', 'status', 'summary_text', 'operation_id', 'weight_kg', 'height_cm', 'created_at', 'updated_at'],
   // V1 Etapa 2 (migration 20260930170000)
   anamneses: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'revision_number', 'status', 'content_version', 'content', 'source_anamnesis_id', 'copied_from_previous', 'supersedes_id', 'superseded_at', 'revision_note', 'reviewed_at', 'reviewed_by', 'operation_id', 'created_at', 'updated_at'],
   conducts: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'revision_number', 'status', 'priorities', 'objective', 'nutrition_strategy', 'actions', 'resources', 'related_tools', 'requested_exams', 'referrals', 'monitoring', 'return_plan', 'observations', 'nutrition_diagnosis', 'dietary_prescription', 'professional_guidance', 'references', 'previous_conduct_id', 'previous_decision', 'previous_decision_note', 'supersedes_id', 'superseded_at', 'revision_note', 'reviewed_at', 'reviewed_by', 'operation_id', 'created_at', 'updated_at'],
@@ -79,19 +88,44 @@ const COLUNAS = {
   integrated_reading_package_snapshots: ['id', 'package_id', 'package_version', 'content_hash', 'snapshot', 'approval_1', 'approval_2', 'homologated_by', 'homologated_at', 'governance_regime'],
   integrated_readings: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'responsible', 'clinical_context', 'holoscan_application_id', 'selected_collection_ids', 'selected_result_ids', 'references_snapshot', 'sources_snapshot', 'rule_package_id', 'rule_version', 'engine_version', 'state', 'reason_codes', 'trace', 'professional_note', 'revision', 'supersedes_id', 'superseded_at', 'content_hash', 'created_by', 'created_at', 'domain_code', 'holoscan_direction', 'laboratory_direction', 'snapshot'],
   tool_applications: ['id', 'nutritionist_id', 'patient_id', 'consultation_id', 'encounter_id', 'ferramenta_id', 'versao_ferramenta', 'origem_legada', 'status', 'iniciada_em', 'concluida_em', 'atualizada_em', 'respostas', 'resultado', 'leitura', 'prioridade', 'proximo_passo', 'created_at', 'updated_at'],
-  documents: ['id', 'nutritionist_id', 'patient_id', 'nome', 'tipo', 'data_documento', 'mime_type', 'tamanho_bytes', 'storage_path', 'origem_local', 'created_at', 'updated_at'],
+  documents: ['id', 'nutritionist_id', 'patient_id', 'nome', 'tipo', 'data_documento', 'mime_type', 'tamanho_bytes', 'storage_path', 'origem_local', 'created_at', 'updated_at',
+    'titulo', 'observacao', 'arquivado_em', 'arquivado_por'],   // prontuario (20261011100000)
   professional_assets: ['id', 'nutritionist_id', 'tipo', 'nome', 'mime_type', 'tamanho_bytes', 'storage_path', 'created_at', 'updated_at'],
+  /* Proximos Passos HOLOS (migration 20261012100000): catalogo global somente leitura + snapshot por (aplicacao, catalogo) */
+  holos_recommendation_catalogs: ['id', 'code', 'version', 'status', 'content_hash', 'provenance', 'approved_at', 'approved_by', 'created_at'],
+  holos_recommendation_rules: ['id', 'catalog_id', 'rule_id', 'catalog_code', 'catalog_version', 'system_id', 'rank', 'tool_id', 'professional_reason', 'next_action', 'status', 'provenance', 'approved_at', 'approved_by', 'created_at'],
+  /* Anamnese pre-consulta (migration 20261014100000): leitura so dos proprios convites (sem o hash); escrita so por RPC */
+  anamnesis_invites: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'status', 'form_version', 'form_tipo', 'expires_at', 'draft_content', 'submitted_content',
+    'save_count', 'professional_snapshot', 'imported_anamnesis_id', 'imported_at', 'created_at', 'started_at', 'last_saved_at', 'submitted_at', 'revoked_at',
+    'sent_at', 'sent_via'],   // + migration 20261022100000 (Link enviado)
+  holos_next_steps: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'holoscan_application_id', 'catalog_id', 'catalog_code', 'catalog_version', 'catalog_hash', 'engine_version', 'systems_order', 'selection', 'content_snapshot', 'content_hash', 'created_at'],
   profiles: null,          // nao estrito: o perfil nao e o assunto destes testes
   ai_threads: ['id', 'nutritionist_id', 'patient_id', 'titulo', 'created_at', 'updated_at'],
-  ai_messages: ['id', 'thread_id', 'role', 'content', 'metadata', 'created_at']
+  ai_messages: ['id', 'thread_id', 'role', 'content', 'metadata', 'created_at'],
+  /* Resultado HOLOS (migration 20261009100000): leitura so da propria; escrita SO pelas RPCs (resultado-holos-falso.mjs) */
+  holos_results: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'status', 'revision_number', 'supersedes_id', 'superseded_at', 'holoscan_application_id',
+    'selected_sources', 'leitura_profissional', 'pontos_acompanhar', 'questoes_aprofundar', 'content_snapshot', 'source_snapshot', 'content_hash', 'template_version',
+    'methodology_package_id', 'methodology_package_version', 'methodology_content_hash', 'operation_id', 'saved_at', 'reviewed_at', 'reviewed_by', 'created_at', 'updated_at', 'direcao'],
+  /* Emissao do Resultado Final (migration 20261015100000): leitura so da propria; escrita SO pela RPC emitir_resultado_final */
+  holos_result_emissions: ['id', 'nutritionist_id', 'patient_id', 'holos_result_id', 'result_content_hash', 'conduct_id', 'emission_number', 'template_version',
+    'content_snapshot', 'content_hash', 'operation_id', 'created_at'],
+  /* Ponte HOLOS AI (migration 20261023100000): leitura so da propria; escrita SO pelas RPCs (holos-ai-falso.mjs) */
+  holos_ai_imports: ['id', 'nutritionist_id', 'patient_id', 'encounter_id', 'versao', 'schema_version', 'tipo', 'origem', 'agente', 'kb_version', 'entrada',
+    'texto_original', 'json_original', 'texto_sha256', 'status', 'operation_id', 'imported_at', 'revisao_iniciada_em', 'concluida_em', 'descartada_em', 'updated_at', 'aceite'],
+  // MCP (migration 20261027100000): chave pessoal (so o hash) e registro de uso; so leitura pela API
+  mcp_keys: ['id', 'nutritionist_id', 'nome', 'key_hash', 'prefixo', 'created_at', 'last_used_at', 'revoked_at'],
+  mcp_usage_log: ['id', 'nutritionist_id', 'key_id', 'ferramenta', 'patient_id', 'ok', 'erro', 'created_at'],
+  holos_ai_import_items: ['id', 'import_id', 'nutritionist_id', 'patient_id', 'secao', 'ordem', 'chave', 'valor_ia', 'so_profissional', 'estado',
+    'valor_profissional', 'compartilhar', 'revisado_em', 'created_at']
 };
 
 const METODOLOGIA = ['methodology_packages', 'methodology_questionnaire_editions', 'methodology_scales', 'methodology_systems', 'methodology_questions', 'methodology_associations', 'methodology_ranges', 'methodology_rules', 'methodology_homologation_records'];
 const FILHAS_PACOTE = METODOLOGIA.filter(t => t !== 'methodology_packages');
-const GLOBAIS_SO_LEITURA = ['lab_exam_catalog', 'lab_method_references', 'lab_unit_conversion_rules', 'lab_derived_calculations', 'integrated_reading_rule_packages', 'integrated_reading_domains', 'integrated_reading_exam_domain_links', 'integrated_reading_rules',
+const GLOBAIS_SO_LEITURA = ['holos_recommendation_catalogs', 'holos_recommendation_rules', 'lab_exam_catalog', 'lab_method_references', 'lab_unit_conversion_rules', 'lab_derived_calculations', 'integrated_reading_rule_packages', 'integrated_reading_domains', 'integrated_reading_exam_domain_links', 'integrated_reading_rules',
   'integrated_reading_package_dependencies', 'integrated_reading_package_approvals', 'integrated_reading_package_snapshots'];   // Etapa 5.2: aprovacoes so pela RPC
-const DONO_DIRETO = [...METODOLOGIA, 'methodology_package_approvals', 'lab_custom_exams', 'integrated_readings', 'patients', 'consultations', 'encounters', 'anamneses', 'conducts', 'agreements', 'report_emissions', 'schedule_blocks', 'holoscan_applications',
-  'lab_collections', 'tool_applications', 'documents', 'professional_assets', 'ai_threads'];
+const DONO_DIRETO = [...METODOLOGIA, 'methodology_package_approvals', 'lab_custom_exams', 'integrated_readings', 'holos_next_steps', 'patients', 'consultations', 'encounters', 'anamneses', 'conducts', 'agreements', 'report_emissions', 'schedule_blocks', 'holoscan_applications',
+  'lab_collections', 'tool_applications', 'documents', 'professional_assets', 'ai_threads', 'holos_results', 'anamnesis_invites', 'holos_result_emissions',
+  'holos_ai_imports', 'holos_ai_import_items', 'mcp_keys', 'mcp_usage_log'];
 const FILHAS = {           // tabela -> [coluna, mae]
   holoscan_answers: ['application_id', 'holoscan_applications'],
   holoscan_system_scores: ['application_id', 'holoscan_applications'],
@@ -99,7 +133,7 @@ const FILHAS = {           // tabela -> [coluna, mae]
   lab_result_components: ['result_id', 'lab_results'],
   ai_messages: ['thread_id', 'ai_threads']
 };
-const COM_PACIENTE = ['consultations', 'encounters', 'anamneses', 'conducts', 'agreements', 'report_emissions', 'holoscan_applications', 'lab_collections', 'integrated_readings', 'tool_applications', 'documents', 'ai_threads'];
+const COM_PACIENTE = ['consultations', 'encounters', 'anamneses', 'conducts', 'agreements', 'report_emissions', 'holoscan_applications', 'lab_collections', 'integrated_readings', 'tool_applications', 'documents', 'ai_threads', 'holos_next_steps'];
 const DOMINIOS_AN = ['motivo_objetivo','historia_alimentar','rotina_acesso','sono','atividade_fisica','sintomas_relatados','condicoes_diagnosticos_informados','medicamentos','suplementos','alergias_informadas','intolerancias_informadas','antecedentes','contexto_familiar','contexto_social','avaliacoes','medidas','emocional','sentido_pessoal'];
 const ESTADOS_AN = ['informado','negado_explicitamente','desconhecido','nao_investigado','nao_aplicavel','recusado'];
 const ORIGENS_AN = ['relato_paciente','observacao_profissional','documento_externo','dado_medido'];
@@ -135,6 +169,11 @@ const UNICAS = {           // uniques alem da PK, como nas migrations
 const FERRAMENTAS = ['oq3', 'pqq', 'linha_momentum', 'mapa_crencas', 'roda_vida', 'carta_futuro'].concat(IDS_REGISTRO);
 
 const erro = (message, code) => ({ data: null, error: { message, code: code || 'XX000' } });
+/* Conta pendente = somente Perfil (migration 20261013100000): gatilho exigir_conta_ativa em toda tabela com
+   nutritionist_id (menos professional_assets) e nas filhas; dispara tambem dentro das RPCs. */
+const FILHAS_TRAVADAS = ['ai_messages', 'holoscan_answers', 'holoscan_system_scores', 'lab_results', 'lab_result_components'];
+const RPC_GRAVA = /^(salvar_|registrar_|criar_|emitir_|reagendar_|marcar_|revisar_|descartar_|aprovar_|retirar_|homologar_|finalizar_|arquivar_|importar_|concluir_)/;
+const erroContaNaoLiberada = (t) => ({ data: null, error: { message: 'conta ainda nao liberada: so o Perfil pode ser editado ate a equipe HoloHacking liberar o acesso (' + t + ')', code: '42501', hint: 'conta_nao_liberada' } });
 const agora = () => new Date().toISOString();
 const copia = (x) => JSON.parse(JSON.stringify(x));
 
@@ -155,6 +194,14 @@ export function criarServidor() {
   s.tabelas.integrated_reading_rule_packages.push({ id: randomUUID(), code: 'LI-V1', version: 1, status: 'rascunho', notes: 'Infraestrutura da Etapa 5: sem dominio, vinculo ou regra aprovados.', content_hash: null, responsible: null, approval_provenance: null, created_at: agora() });
   /* Etapa 6.0 (migration 20261002120000): LI-V1@2 em_revisao com o conteudo decidido — IDENTICO a leitura-integrada-pacote-v1.js.
      Nenhuma aprovacao, nenhum snapshot: a homologacao e ato humano (aprovador unico: Daniel). */
+  /* Proximos Passos HOLOS (migration 20261012100000): catalogo HOLOS-RECOMENDACOES-V1, IDENTICO a migration (fixture conferida contra o SQL) */
+  (function seedCatalogoPP() {
+    const cid = randomUUID(); const criado = agora();
+    const hash = createHash('sha256').update(ppCanonico(PP_REGRAS), 'utf8').digest('hex');
+    s.tabelas.holos_recommendation_catalogs.push({ id: cid, code: PP_CATALOGO.code, version: PP_CATALOGO.version, status: PP_CATALOGO.status, content_hash: hash, provenance: PP_CATALOGO.provenance, approved_at: PP_CATALOGO.approved_at + 'T00:00:00.000Z', approved_by: null, created_at: criado });
+    PP_REGRAS.forEach(r => s.tabelas.holos_recommendation_rules.push({ id: randomUUID(), catalog_id: cid, rule_id: r.rule_id, catalog_code: PP_CATALOGO.code, catalog_version: PP_CATALOGO.version, system_id: r.system_id, rank: r.rank, tool_id: r.tool_id,
+      professional_reason: r.professional_reason, next_action: r.next_action, status: 'aprovado', provenance: PP_CATALOGO.provenance, approved_at: PP_CATALOGO.approved_at + 'T00:00:00.000Z', approved_by: null, created_at: criado }));
+  })();
   (function seedLIV2() {
     const PK = globalThis.LeituraIntegradaPacoteV1; if (!PK) return;
     const pk = PK.pacote(); const pid = randomUUID();
@@ -166,9 +213,30 @@ export function criarServidor() {
   })();
   s.labRpc = null;
   s.criarConta = (email, senha, id) => {
-    s.contas[email] = { senha, id: id || randomUUID() };
+    s.contas[email] = { senha, id: id || randomUUID(), criado_em: agora() };
     return s.contas[email].id;
   };
+  /* Cadastro pelo app (migration 20261008100000): auth.signUp cria a conta e o
+     gatilho lidar_novo_usuario cria o perfil PENDENTE com nome/telefone/e-mail.
+     Contas criadas por criarConta() (as dos testes antigos) nao tem perfil e
+     contam como ativas — como as contas reais anteriores ao cadastro. */
+  s.administradores = [];
+  s.tornarAdmin = (uid) => { if (!s.administradores.includes(uid)) s.administradores.push(uid); };
+  function statusConta(uid) {
+    const p = s.tabelas.profiles.find(x => x.id === uid);
+    return p && p.status ? p.status : 'ativo';
+  }
+  s.statusConta = statusConta;
+  function cadastrar(msg) {
+    if (s.contas[msg.email]) return erro('User already registered', 'user_already_exists');
+    if (!msg.password || msg.password.length < 6) return erro('Password should be at least 6 characters.', 'weak_password');
+    const id = s.criarConta(msg.email, msg.password);
+    const meta = msg.data || {};
+    s.contas[msg.email].meta = Object.assign({}, meta);
+    s.tabelas.profiles.push({ id, nome: (meta.nome || '').trim() || msg.email, telefone: String(meta.telefone || '').replace(/\D/g, '') || null,
+      email_contato: msg.email, status: 'pendente', aprovado_em: null, aprovado_por: null, created_at: agora(), updated_at: agora() });
+    return { data: { id }, error: null };
+  }
 
   function carimbo() {
     // estritamente crescente: created_at desempata ordem de insercao
@@ -344,7 +412,8 @@ export function criarServidor() {
       if (!['rascunho', 'em_revisao', 'aprovado', 'retirado'].includes(linha.status)) return erro('violates check constraint "methodology_packages_status_valido"', '23514');
       if (!linha.code || !String(linha.code).trim()) return erro('violates check constraint "methodology_packages_code_nao_vazio"', '23514');
       // migration 20261003100000: no regime aprovador_unico o segundo revisor (reviewed_by/at) e NULO; no legado (dupla) e obrigatorio
-      const revisaoOk = linha.governance_regime === 'aprovador_unico' ? (!linha.reviewed_by && !linha.reviewed_at)
+      // migration 20261018100000: publicacao_direta tambem sem segundo revisor
+      const revisaoOk = (linha.governance_regime === 'aprovador_unico' || linha.governance_regime === 'publicacao_direta') ? (!linha.reviewed_by && !linha.reviewed_at)
         : ((linha.governance_regime || 'dupla_aprovacao') === 'dupla_aprovacao' && !!linha.reviewed_by && !!linha.reviewed_at);
       if (['aprovado', 'retirado'].includes(linha.status) && !(linha.content_hash && linha.responsible && linha.effective_from && linha.approved_at && linha.approved_by && revisaoOk)) return erro('violates check constraint "methodology_packages_aprovado_completo"', '23514');
       if (linha.status === 'retirado' && !linha.retired_at) return erro('violates check constraint "methodology_packages_retirado_completo"', '23514');
@@ -711,7 +780,20 @@ export function criarServidor() {
     const t = q.tabela;
     if (t === 'methodology_package_approvals' && q.acao !== 'select') return erro('permission denied for table methodology_package_approvals', '42501');
     if (t === 'methodology_approvers' && q.acao !== 'select') return erro('permission denied for table methodology_approvers', '42501');
-    if ((GLOBAIS_SO_LEITURA.includes(t) || t === 'integrated_readings') && q.acao !== 'select' && uid) return erro('permission denied for table ' + t, '42501');
+    if ((GLOBAIS_SO_LEITURA.includes(t) || t === 'integrated_readings' || t === 'holos_results' || t === 'holos_next_steps' || t === 'anamnesis_invites' || t === 'holos_result_emissions' || t === 'holos_ai_imports' || t === 'holos_ai_import_items' || t === 'mcp_keys' || t === 'mcp_usage_log') && q.acao !== 'select' && uid) return erro('permission denied for table ' + t, '42501');
+    /* Anamnese pre-consulta: grant de SELECT por COLUNA (token_hash fora). O PostgREST expande "*" para TODAS as colunas
+       da tabela, inclusive token_hash, e o banco recusa a leitura inteira (provado no PG local: harness AP18). */
+    /* MCP: grant de SELECT por coluna (key_hash fora), como anamnesis_invites */
+    if (t === 'mcp_keys' && q.acao === 'select' && uid
+        && (!q.colunas || q.colunas.trim() === '*' || q.colunas.split(',').some(c => c.trim() === 'key_hash'))) return erro('permission denied for table mcp_keys', '42501');
+    if (t === 'anamnesis_invites' && q.acao === 'select' && uid
+        && (!q.colunas || q.colunas.trim() === '*' || q.colunas.split(',').some(c => c.trim() === 'token_hash'))) return erro('permission denied for table anamnesis_invites', '42501');
+    /* para os testes: banco SEM uma migration recente (s.semMigracao = { colunas: { tabela: [..] }, rpcs: [..] }) */
+    if (s.semMigracao && q.acao === 'select' && q.colunas && ((s.semMigracao.colunas || {})[t] || []).some(c => q.colunas.split(',').map(x => x.trim()).includes(c)))
+      return erro('column ' + t + '.' + s.semMigracao.colunas[t].join('/') + ' does not exist', '42703');
+    /* Prontuario (20261011100000): a API perdeu a escrita nas tabelas lab_* (revoke) e o DELETE em documents */
+    if (['lab_collections', 'lab_results', 'lab_result_components', 'lab_custom_exams'].includes(t) && q.acao !== 'select' && uid) return erro('permission denied for table ' + t, '42501');
+    if (t === 'documents' && q.acao === 'delete' && uid) return erro('permission denied for table documents', '42501');
     if (uid && (t in s.tabelas)) { const pe = protegerLab(q, uid); if (pe) return pe; }
     const filhaConteudo = FILHAS_PACOTE.includes(t) && t !== 'methodology_homologation_records' && ['insert', 'upsert', 'update', 'delete'].includes(q.acao);
     const pacoteMuda = t === 'methodology_packages' && q.acao === 'update' && q.dados && ('version' in q.dados || 'code' in q.dados);
@@ -726,8 +808,26 @@ export function criarServidor() {
     if (!r.error) tocados.forEach(pid => invalidarAprovacoes(pid, 'pacote alterado depois da aprovacao (' + t + ' ' + q.acao + ')'));
     return r;
   }
+  function travada(t) {
+    return t !== 'professional_assets' && (FILHAS_TRAVADAS.includes(t) || (COLUNAS[t] || []).includes('nutritionist_id'));
+  }
   function consultarBase(uid, q) {
     const t = q.tabela;
+    /* trava real (20261013100000): conta logada e nao ativa nao grava dado clinico */
+    if (uid && ['insert', 'upsert', 'update', 'delete'].includes(q.acao) && travada(t) && statusConta(uid) !== 'ativo') return erroContaNaoLiberada(t);
+    /* conta RECUSADA nao edita o perfil nem as imagens (RLS restrictive: insert recusa; update/delete filtram a linha) */
+    if (uid && (t === 'profiles' || t === 'professional_assets') && statusConta(uid) === 'recusado') {
+      if (q.acao === 'insert' || q.acao === 'upsert') return erro('new row violates row-level security policy "' + t + '_recusada" for table "' + t + '"', '42501');
+      if (q.acao === 'update' || q.acao === 'delete') return finalizar(q, []);
+    }
+    /* trava real (politica RESTRICTIVE): conta nao ativa nao cria nem altera paciente */
+    if (t === 'patients' && uid && ['insert', 'upsert', 'update'].includes(q.acao) && statusConta(uid) !== 'ativo')
+      return erro('new row violates row-level security policy "patients_exige_conta_ativa_ins" for table "patients"', '42501');
+    /* a propria nutri nao muda o proprio status */
+    if (t === 'profiles' && uid && q.dados && ['insert', 'upsert', 'update'].includes(q.acao) &&
+        (Array.isArray(q.dados) ? q.dados : [q.dados]).some(d => 'status' in d || 'aprovado_em' in d || 'aprovado_por' in d))
+      return erro('o status da conta so e alterado pela equipe HoloHacking', '42501');
+    if (t === 'administradores') return erro('permission denied for table administradores', '42501');
     if (!(t in s.tabelas)) return erro('relation "public.' + t + '" does not exist', '42P01');
     if (!uid) return erro('permission denied for table ' + t, '42501');   // anon revogado
     if (deveFalhar(t, q.acao)) return erro('falha simulada em ' + t + '/' + q.acao, 'SIMULADA');
@@ -788,6 +888,7 @@ export function criarServidor() {
           return erro('duplicate key value violates unique constraint "' + t + '_pkey"', '23505');
         }
         const l = novaLinha(t, d, uid);
+        if (t === 'documents') { l.arquivado_em = null; l.arquivado_por = null; }   // trigger documents_nasce_ativo
         const e = checarLinha(t, l, uid);
         if (e) return e;                                  // o comando inteiro falha
         novas.push({ nova: l });
@@ -828,6 +929,12 @@ export function criarServidor() {
           if (p && ['aprovado', 'retirado'].includes(p.status) && s.aprovacaoRpc !== p.id) return erro('conteudo de pacote ' + p.status + ' e imutavel: crie uma nova versao do pacote', 'P0001');
           if (('package_id' in q.dados && q.dados.package_id !== l.package_id) || ('nutritionist_id' in q.dados && q.dados.nutritionist_id !== l.nutritionist_id)) return erro('elemento nao muda de pacote nem de profissional', 'P0001');
         }
+        // trigger documents_proteger (prontuario 20261011100000): o arquivo e o paciente nao mudam
+        if (t === 'documents') {
+          const fixos = ['patient_id', 'nutritionist_id', 'storage_path', 'mime_type', 'tamanho_bytes', 'origem_local', 'created_at'];
+          const mudou = fixos.find(c => c in q.dados && JSON.stringify(q.dados[c] === undefined ? null : q.dados[c]) !== JSON.stringify(l[c] === undefined ? null : l[c]));
+          if (mudou) return { data: null, error: { message: 'o arquivo do documento nao muda: so titulo, tipo, data, observacao e arquivamento', code: 'P0001', hint: 'documento_imutavel' } };
+        }
         // trigger registro_clinico_concluido_imutavel (Etapa 6.5 B)
         if (t === 'tool_applications') {
           const ec = erroConcluido(l, teste);
@@ -864,8 +971,14 @@ export function criarServidor() {
       }
       alvo.forEach(l => {
         const statusAntes = l.status;
+        const arqAntes = l.arquivado_em || null;
         Object.assign(l, q.dados);
-        if ((COLUNAS[t] || []).includes('updated_at')) l.updated_at = carimbo();
+        if (t === 'documents' && 'arquivado_em' in q.dados) {   // quem e quando: do servidor
+          if (q.dados.arquivado_em && !arqAntes) { l.arquivado_em = agora(); l.arquivado_por = uid; }
+          else if (!q.dados.arquivado_em) { l.arquivado_em = null; l.arquivado_por = null; }
+          else { l.arquivado_em = arqAntes; }
+        }
+        if ((COLUNAS[t] || []).includes('updated_at') || t === 'profiles') l.updated_at = carimbo();
         if (t === 'agreements' && 'status' in q.dados && q.dados.status !== statusAntes) l.status_changed_at = agora();
         if ((t === 'anamneses' || t === 'conducts')) {
           if (l.status === 'revisado' && statusAntes !== 'revisado') { l.reviewed_at = l.reviewed_at || agora(); l.reviewed_by = uid; }
@@ -911,10 +1024,48 @@ export function criarServidor() {
     return erro('acao desconhecida ' + q.acao);
   }
 
+  const resultadoHolos = criarResultadoHolos(s, { statusConta: (u) => statusConta(u), carimbo: () => carimbo() });
+
+  const holosAI = criarHolosAI(s, { statusConta: (u) => statusConta(u) });
+  const mcp = criarMcp(s, { statusConta: (u) => statusConta(u) });
+  const proximosPassos = criarProximosPassos(s, { statusConta: (u) => statusConta(u), carimbo: () => carimbo() });
+  const revisaoPerguntas = criarRevisaoPerguntas(s, {});
+  const preConsulta = criarAnamnesePreConsulta(s, {});
+  s.preConsulta = preConsulta;
+  s.revisaoPerguntas = revisaoPerguntas;
+  const administracao = criarAdministracao(s, { statusConta: (u) => statusConta(u), agora });
+  s.administracao = administracao;
   function rpc(uid, nome, args) {
+    if (s.semMigracao && (s.semMigracao.rpcs || []).includes(nome)) return erro('Could not find the function public.' + nome + ' in the schema cache', 'PGRST202');
+    if (revisaoPerguntas.NOMES.includes(nome)) return revisaoPerguntas.rpc(uid, nome, args);   // publicas (sem login)
+    if (preConsulta.PUBLICAS.includes(nome)) return preConsulta.rpc(uid, nome, args);           // anamnese pre-consulta: publicas (so o token)
+    if (nome === 'minha_conta_status') return uid ? { data: statusConta(uid), error: null } : erro('permission denied for function minha_conta_status', '42501');
+    /* o gatilho exigir_conta_ativa dispara dentro das RPCs que gravam */
+    if (uid && RPC_GRAVA.test(nome) && statusConta(uid) !== 'ativo') return erroContaNaoLiberada(nome);
+    if (nome === 'eh_administrador') return { data: !!uid && s.administradores.includes(uid), error: null };
+    if (administracao.NOMES.includes(nome)) return administracao.rpc(uid, nome, args);
+    if (nome === 'listar_contas' || nome === 'decidir_conta') {
+      if (!uid || !s.administradores.includes(uid)) return erro('apenas administradores', '42501');
+      if (nome === 'listar_contas') {
+        const st = args && 'p_status' in args ? args.p_status : 'pendente';
+        const email = (id) => Object.keys(s.contas).find(e => s.contas[e].id === id) || null;
+        return { data: s.tabelas.profiles.filter(p => p.status && (st === null || p.status === st))
+          .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))
+          .map(p => ({ id: p.id, nome: p.nome, telefone: p.telefone, email: email(p.id), status: p.status, criado_em: p.created_at, aprovado_em: p.aprovado_em })), error: null };
+      }
+      const p = s.tabelas.profiles.find(x => x.id === args.p_user);
+      if (!p) return erro('conta nao encontrada', 'P0002');
+      p.status = args.p_aprovar ? 'ativo' : 'recusado'; p.aprovado_em = agora(); p.aprovado_por = uid;
+      return { data: p.status, error: null };
+    }
     if (!uid) return erro('permission denied for function ' + nome, '42501');
     if (deveFalhar('rpc:' + nome, 'rpc') || deveFalhar(null, 'rpc')) return erro('falha simulada em rpc ' + nome, 'SIMULADA');
     const p = args && args.payload;
+    if (resultadoHolos.NOMES.includes(nome)) return resultadoHolos.rpc(uid, nome, args);
+    if (holosAI.NOMES.includes(nome)) return holosAI.rpc(uid, nome, args);
+    if (mcp.NOMES.includes(nome)) return mcp.rpc(uid, nome, args);
+    if (proximosPassos.NOMES.includes(nome)) return proximosPassos.rpc(uid, nome, args);
+    if (preConsulta.NOMES.includes(nome)) return preConsulta.rpc(uid, nome, args);
     if (nome === 'salvar_holoscan_completo') {
       if (!p || !p.application || !p.answers || !p.scores) return erro('payload incompleto', 'P0001');
       const a = p.application;
@@ -988,6 +1139,7 @@ export function criarServidor() {
           r.avaliavel ? {} : { nota: null, carga: null, faixa: null }), uid)));
       return { data: app.id, error: null };
     }
+    if (nome === 'salvar_coleta_exames') return { data: null, error: { message: 'resultados laboratoriais estruturados foram desativados: exame e guardado so como arquivo do prontuario', code: 'P0001', hint: 'laboratorio_desativado' } };
     if (nome === 'salvar_coleta_exames') {
       // Etapa 0 da V1: espelha a migration 20260930140000 reescrita —
       // identidade pelo id (collection.id → editar; sem id → inserir),
@@ -1116,7 +1268,10 @@ export function criarServidor() {
       if (!['rascunho', 'salvo', 'revisado'].includes(status)) return erro('status invalido', 'P0001');
       const ja = porOp('conducts', p.operation_id); if (ja) return { data: ja.id, error: null };
       const CAMPOS = ['objective', 'nutrition_strategy', 'actions', 'resources', 'requested_exams', 'referrals', 'monitoring', 'return_plan', 'observations', 'nutrition_diagnosis', 'dietary_prescription', 'professional_guidance'];
-      const campos = (base) => { const o = {}; CAMPOS.forEach(c => { o[c] = p[c] !== undefined ? (p[c] === '' ? null : p[c]) : (base ? base[c] : null); }); return o; };
+      const campos = (base) => { const o = {}; CAMPOS.forEach(c => { o[c] = p[c] !== undefined ? (p[c] === '' ? null : p[c]) : (base ? base[c] : null); });
+        // trigger conducts_sem_prescricao (prontuario 20261011100000): nada novo nesses 3 campos
+        ['dietary_prescription', 'nutrition_diagnosis', 'referrals'].forEach(c => { o[c] = base ? (base[c] === undefined ? null : base[c]) : null; });
+        return o; };
       let atual = p.id ? s.tabelas.conducts.find(c => c.id === p.id && c.nutritionist_id === uid) : null;
       if (p.id && !atual) return erro('conduta ' + p.id + ' nao encontrada', 'P0002');
       if (atual && p.expected_updated_at && atual.updated_at !== p.expected_updated_at) return erro('a conduta foi alterada em outro lugar; recarregue antes de salvar', 'P0001');
@@ -1241,6 +1396,42 @@ export function criarServidor() {
       if (r.error) return r;
       return { data: { id, status: 'aprovado', regime: 'aprovador_unico', content_hash: h, aprovacao_1: a1.id, validacao: v }, error: null };
     }
+    /* migration 20261018100000: publicacao direta — sem Aprovacao/Homologacao; quem publica e o
+       responsavel metodologico (aprovador ativo holoscan/1) dono do pacote; validador + hash do servidor;
+       a versao anterior sai do ar ontem */
+    if (nome === 'publicar_pacote_metodologico') {
+      const id = args && args.p_package_id;
+      if (!uid) return erro('nao autenticado', 'P0001');
+      const ap = aprovador(uid, 'holoscan', 1);
+      if (!ap) return erro('so o responsavel metodologico do HOLOSCAN publica uma versao nova', 'P0001');
+      const pk = s.tabelas.methodology_packages.find(x => x.id === id && x.nutritionist_id === uid);
+      if (!pk) return erro('pacote ' + id + ' nao encontrado', 'P0002');
+      if (pk.status !== 'em_revisao') return erro('so um pacote em_revisao pode ser publicado (status atual: ' + pk.status + ')', 'P0001');
+      const doCodigo = s.tabelas.methodology_packages.filter(x => x.code === pk.code && x.nutritionist_id === uid && (x.status === 'aprovado' || x.status === 'retirado'));
+      const ult = doCodigo.length ? Math.max(...doCodigo.map(x => x.version)) : null;
+      if (ult !== null && pk.version !== ult + 1) return erro('a versao publicada tem de ser a seguinte (' + pk.code + ' v' + (ult + 1) + '), nao v' + pk.version, 'P0001');
+      const v = globalThis.PacoteMetodologico.validar(montarPacote(id));
+      if (!v.publicavel) return erro('publicacao bloqueada pelo validador: ' + v.total_erros + ' erro(s) — ' + JSON.stringify(v.erros).slice(0, 400), 'P0001');
+      const h = hashServidor(id);
+      const resp = (ap.display_name || 'responsável metodológico') + ' (publicação direta)';
+      const hoje = agora().slice(0, 10), ontem = new Date(Date.parse(hoje + 'T12:00:00Z') - 86400000).toISOString().slice(0, 10);
+      const retiradas = [];
+      for (const ant of s.tabelas.methodology_packages.filter(x => x.code === pk.code && x.nutritionist_id === uid && x.status === 'aprovado' && x.id !== id)) {
+        const rr = inserir('methodology_homologation_records', { package_id: ant.id, topic: 'pacote', element: ant.code, version: String(ant.version), decision: 'retirado', responsible: resp, decided_at: hoje, source: 'publicacao direta', justification: 'substituída por ' + pk.code + ' v' + pk.version });
+        if (rr.error) return rr;
+        const ru = atualizar('methodology_packages', ant.id, { status: 'retirado', retired_at: agora(), retired_reason: 'substituída por ' + pk.code + ' v' + pk.version, effective_to: String(ant.effective_from) > ontem ? ant.effective_from : ontem });
+        if (ru.error) return ru;
+        retiradas.push(ant.id);
+      }
+      const r0 = inserir('methodology_homologation_records', { package_id: id, topic: 'pacote', element: pk.code, version: String(pk.version), decision: 'aprovado', responsible: resp, decided_at: hoje, source: 'publicacao direta',
+        justification: 'Publicação direta (regime publicacao_direta, sem etapa de aprovação)', evidence: 'content_hash ' + h + '; validar_pacote_metodologico: 0 erros' });
+      if (r0.error) return r0;
+      s.aprovacaoRpc = id;
+      const r = atualizar('methodology_packages', id, { status: 'aprovado', governance_regime: 'publicacao_direta', approved_at: agora(), approved_by: uid, reviewed_by: null, reviewed_at: null, responsible: resp, justification: pk.justification || 'publicação direta', effective_from: hoje, effective_to: null, content_hash: h });
+      s.aprovacaoRpc = null;
+      if (r.error) return r;
+      return { data: { id, status: 'aprovado', regime: 'publicacao_direta', content_hash: h, effective_from: hoje, retiradas, validacao: v }, error: null };
+    }
     // ---------------- V1 Etapa 5: laboratorio ----------------
     const gravarResultados = (cid, results) => {
       s.labRpc = cid;
@@ -1277,6 +1468,7 @@ export function criarServidor() {
         return { data: n, error: null };
       } finally { s.labRpc = null; }
     };
+    if (nome === 'salvar_coleta_laboratorial') return { data: null, error: { message: 'resultados laboratoriais estruturados foram desativados: exame e guardado so como arquivo do prontuario', code: 'P0001', hint: 'laboratorio_desativado' } };
     if (nome === 'salvar_coleta_laboratorial') {
       const c = p && p.collection; if (!c) return erro('payload incompleto: collection e obrigatoria', 'P0001');
       if (!pacienteDe(uid, c.patient_id)) return erro('paciente nao e deste profissional', 'P0001');
@@ -1304,6 +1496,7 @@ export function criarServidor() {
       if (st === 'salvo' && g.data === 0) return erro('coleta salva exige ao menos um resultado', 'P0001');
       return { data: { id: col.id, state: st, results: g.data, repetida: false }, error: null };
     }
+    if (nome === 'revisar_coleta_laboratorial') return { data: null, error: { message: 'resultados laboratoriais estruturados foram desativados: exame e guardado so como arquivo do prontuario', code: 'P0001', hint: 'laboratorio_desativado' } };
     if (nome === 'revisar_coleta_laboratorial') {
       const old = p && s.tabelas.lab_collections.find(x => x.id === p.collection_id && x.nutritionist_id === uid);
       if (!old) return erro('coleta nao encontrada', 'P0002');
@@ -1322,6 +1515,7 @@ export function criarServidor() {
       old.superseded_at = carimbo(); old.updated_at = old.superseded_at;
       return { data: { id: novo.id, supersedes_id: old.id, revision: novo.revision, results: g.data }, error: null };
     }
+    if (nome === 'marcar_coleta_revisada') return { data: null, error: { message: 'resultados laboratoriais estruturados foram desativados: exame e guardado so como arquivo do prontuario', code: 'P0001', hint: 'laboratorio_desativado' } };
     if (nome === 'marcar_coleta_revisada') {
       const col = s.tabelas.lab_collections.find(x => x.id === (args && args.p_collection_id) && x.nutritionist_id === uid);
       if (!args || !String(args.p_responsible || '').trim()) return erro('revisao exige responsavel identificado', 'P0001');
@@ -1330,6 +1524,7 @@ export function criarServidor() {
       col.state = 'revisado'; col.reviewed_at = carimbo(); col.reviewed_by = uid; col.revision_note = (col.revision_note ? col.revision_note + ' | ' : '') + 'revisado por ' + String(args.p_responsible).trim(); col.updated_at = col.reviewed_at;
       return { data: { id: col.id, state: 'revisado' }, error: null };
     }
+    if (nome === 'salvar_leitura_integrada') return { data: null, error: { message: 'a Leitura Integrada foi retirada do fluxo: exame nao produz resultado. As leituras salvas ficam so para leitura', code: 'P0001', hint: 'li_desativada' } };
     if (nome === 'salvar_leitura_integrada') {
       if (!p || !pacienteDe(uid, p.patient_id)) return erro('paciente nao e deste profissional', 'P0001');
       if (!p.responsible || !String(p.responsible).trim()) return erro('leitura exige responsavel identificado', 'P0001');
@@ -1489,7 +1684,16 @@ export function criarServidor() {
       const conteudo = { template_version: 1, tipos_de_conteudo: ['RELATO_DO_PACIENTE', 'OBSERVACAO_PROFISSIONAL', 'DADO_MEDIDO', 'DADO_DOCUMENTAL', 'INDICADOR_CALCULADO', 'TEXTO_ASSISTIDO'],
         paciente: { nome: pac.nome, nascimento: pac.nascimento || null, sexo: pac.sexo || null }, profissional: { nome: prof.nome || null, profissao: prof.profissao || null, registro: prof.registro || null },
         periodo: { inicio: p.period_start || (atual && atual.period_start) || null, fim: p.period_end || (atual && atual.period_end) || null }, titulo: p.title || (atual && atual.title) || null,
-        metodologia: 'Resultados metodológicos do HOLOSCAN (notas, faixas, Índice, Tríada, Leitura Integrada) ainda não são oficiais: Pacote Metodológico V1 não homologado. Constam só identificação, data, versão e cobertura bruta.',
+        metodologia: (() => {
+          /* migration 20261019100000 (motor de resultados V1, item 4.4): o texto sai do estado real do pacote das aplicacoes incluidas */
+          const ids = sel.holoscan_application_ids || [];
+          if (!ids.length) return 'Nenhuma aplicação HOLOSCAN incluída neste relatório.';
+          const apps = ids.map(id => s.tabelas.holoscan_applications.find(h => h.id === id && h.nutritionist_id === uid));
+          const pks = apps.map(h => h && h.methodology_package_id ? s.tabelas.methodology_packages.find(m => m.id === h.methodology_package_id) : null);
+          if (pks.some(m => !m || !['aprovado', 'retirado'].includes(m.status))) return 'Há aplicação HOLOSCAN histórica, sem pacote metodológico oficial aprovado: seus resultados metodológicos não são oficiais; constam só identificação, data, versão e cobertura bruta.';
+          return 'Aplicações HOLOSCAN calculadas pelo pacote metodológico oficial aprovado (' + [...new Set(pks.map(m => m.code + ' v' + m.version))].sort().join(', ') +
+            '). Este relatório registra identificação, data, versão, cobertura e a interpretação profissional; notas, Índice, Tríade e o resultado do método ficam no Resultado HOLOS.';
+        })(),
         texto_assistido: [] };
       conteudo.atendimentos = [];
       for (const id of (sel.encounter_ids || [])) { const r = mine('encounters', id); if (!r) return erro('atendimento ' + id + ' nao e deste paciente', 'P0001');
@@ -1507,14 +1711,7 @@ export function criarServidor() {
       for (const id of (sel.holoscan_application_ids || [])) { const r = mine('holoscan_applications', id); if (!r) return erro('aplicacao HOLOSCAN ' + id + ' nao e deste paciente', 'P0001');
         conteudo.holoscan.push({ tipo_conteudo: 'INDICADOR_CALCULADO', id: r.id, encounter_id: r.encounter_id || null, quando: r.quando, versao_estrutura: r.versao_estrutura, versao_bancos: r.versao_bancos || null, cobertura: r.cobertura || null, resultados_oficiais: false,
           interpretacao_profissional: interp ? (r.interpretacao_texto || null) : null, interpretacao_em: interp ? (r.interpretacao_em || null) : null }); addFonte('holoscan_applications', { id: r.id, updated_at: r.updated_at }); }
-      conteudo.exames = [];
-      for (const id of (sel.lab_collection_ids || [])) { const r = mine('lab_collections', id); if (!r) return erro('coleta ' + id + ' nao e deste paciente', 'P0001');
-        if (r.state === 'rascunho') return erro('coleta ' + id + ' e rascunho: nao entra em relatorio', 'P0001');
-        const res = s.tabelas.lab_results.filter(x => x.collection_id === r.id).sort((a, b) => String(a.exam_code || a.exame_id).localeCompare(String(b.exam_code || b.exame_id))).map(x => x.exam_code || x.custom_exam_id || x.value_original_text
-          ? { exame_id: x.exam_code, custom_exam_id: x.custom_exam_id, nome: (s.tabelas.lab_exam_catalog.find(c => c.code === x.exam_code) || {}).canonical_name || null, variante: x.variant, material: x.material, metodo: x.method, valor: x.value_original_text, unidade: x.unit_original,
-              referencia_laudo: x.reference_status === 'informed' ? { texto: x.report_reference_text, min: x.report_reference_min, max: x.report_reference_max, unidade: x.report_reference_unit } : null }
-          : { exame_id: x.exame_id, nome: x.nome_exame_no_momento, valor: x.valor, unidade: x.unidade_no_momento });
-        conteudo.exames.push({ tipo_conteudo: 'DADO_MEDIDO', id: r.id, encounter_id: r.encounter_id || null, coletado_em: r.coletado_em, data_coleta_desconhecida: r.data_coleta_desconhecida, laboratorio: r.laboratorio || null, state: r.state || null, revision: r.revision || 1, resultados: res }); addFonte('lab_collections', { id: r.id, updated_at: r.updated_at }); }
+      conteudo.exames_incluidos = false;   // prontuario: coleta nao e mais fonte do relatorio
       conteudo.ferramentas = [];
       for (const id of (sel.tool_application_ids || [])) { const r = mine('tool_applications', id); if (!r) return erro('ferramenta ' + id + ' nao e deste paciente', 'P0001');
         if (r.status === 'rascunho') return erro('ferramenta ' + id + ' e rascunho: nao entra em relatorio', 'P0001');
@@ -1526,11 +1723,9 @@ export function criarServidor() {
         const ac = s.tabelas.agreements.filter(g => g.conduct_id === r.id && (!(sel.agreement_ids || []).length || sel.agreement_ids.includes(g.id))).sort((a, b) => (a.position - b.position) || String(a.created_at).localeCompare(String(b.created_at)))
           .map(g => ({ id: g.id, description: g.description, responsible: g.responsible || null, due_text: g.due_text || null, follow_up: g.follow_up || null, status: g.status, status_note: g.status_note || null }));
         const o = { tipo_conteudo: 'OBSERVACAO_PROFISSIONAL', id: r.id, encounter_id: r.encounter_id, revision_number: r.revision_number, status: r.status, priorities: r.priorities };
-        for (const k of ['objective', 'nutrition_strategy', 'actions', 'resources', 'requested_exams', 'referrals', 'monitoring', 'return_plan', 'observations', 'nutrition_diagnosis', 'dietary_prescription', 'professional_guidance']) o[k] = r[k] || null;
+        for (const k of ['objective', 'nutrition_strategy', 'actions', 'resources', 'requested_exams', 'monitoring', 'return_plan', 'observations', 'professional_guidance']) o[k] = r[k] || null;
         o.acordos = ac; conteudo.condutas.push(o); addFonte('conducts', { id: r.id, revision_number: r.revision_number, updated_at: r.updated_at }); }
-      conteudo.documentos = [];
-      for (const id of (sel.document_ids || [])) { const r = mine('documents', id); if (!r) return erro('documento ' + id + ' nao e deste paciente', 'P0001');
-        conteudo.documentos.push({ tipo_conteudo: 'DADO_DOCUMENTAL', id: r.id, nome: r.nome, tipo: r.tipo || null, data_documento: r.data_documento || null }); addFonte('documents', { id: r.id, updated_at: r.updated_at }); }
+      conteudo.documentos_armazenados = s.tabelas.documents.filter(d => d.patient_id === pid && d.nutritionist_id === uid && !d.arquivado_em).length;   // so a referencia administrativa
       const texto = p.professional_text !== undefined && p.professional_text !== null ? p.professional_text : (atual && atual.professional_text) || null;
       conteudo.interpretacao_profissional = interp && texto ? { tipo_conteudo: 'OBSERVACAO_PROFISSIONAL', texto } : null;
       const hash = createHash('sha256').update(JSON.stringify(conteudo), 'utf8').digest('hex');
@@ -1555,6 +1750,9 @@ export function criarServidor() {
     const meu = (path) => String(path).split('/')[0] === uid;
     if (m.acaoStorage === 'upload') {
       if (!meu(m.path)) return erro('new row violates row-level security policy', '42501');
+      /* storage_conta_liberada_ins (20261013100000) */
+      if (m.bucket === 'patient-documents' && statusConta(uid) !== 'ativo') return erro('new row violates row-level security policy "storage_conta_liberada_ins"', '42501');
+      if (m.bucket === 'professional-assets' && statusConta(uid) === 'recusado') return erro('new row violates row-level security policy "storage_conta_liberada_ins"', '42501');
       if (b[m.path]) return erro('The resource already exists', '409');
       b[m.path] = { b64: m.b64, tipo: m.tipo, dono: uid };
       return { data: { path: m.path }, error: null };
@@ -1565,7 +1763,8 @@ export function criarServidor() {
       return { data: { b64: o.b64, tipo: o.tipo }, error: null };
     }
     if (m.acaoStorage === 'remove') {
-      (m.paths || []).forEach(pth => { if (b[pth] && b[pth].dono === uid) delete b[pth]; });
+      // policy storage_patient_docs_delete (prontuario): objeto de documento registrado nao sai; so o orfao
+      (m.paths || []).forEach(pth => { if (b[pth] && b[pth].dono === uid && !(m.bucket === 'patient-documents' && s.tabelas.documents.some(d => d.storage_path === pth))) delete b[pth]; });
       return { data: [], error: null };
     }
     return erro('op desconhecida');
@@ -1576,11 +1775,34 @@ export function criarServidor() {
     if (msg.op === 'login') {
       const c = s.contas[msg.email];
       if (!c || c.senha !== msg.password) return erro('Invalid login credentials', 'invalid_credentials');
-      return { data: { id: c.id }, error: null };
+      if (administracao.banido(c)) return erro('User is banned', 'user_banned');
+      c.ultimo_acesso = agora();
+      return { data: { id: c.id, meta: Object.assign({}, c.meta || {}) }, error: null };
+    }
+    if (msg.op === 'signup') return cadastrar(msg);
+    if (msg.op === 'metadados') {   // auth.updateUser({ data }): mescla em user_metadata (como o Supabase)
+      const email = Object.keys(s.contas).find(e => s.contas[e].id === msg.uid);
+      if (!email) return erro('not authenticated', '42501');
+      s.contas[email].meta = Object.assign({}, s.contas[email].meta || {}, msg.data || {});
+      return { data: { meta: Object.assign({}, s.contas[email].meta) }, error: null };
+    }
+    if (msg.op === 'recuperar') {
+      if (s.limiteRecuperacao) return erro('email rate limit exceeded', 'over_email_send_rate_limit');
+      s.pedidosRecuperacao = (s.pedidosRecuperacao || 0) + 1;
+      return { data: {}, error: null };
+    }
+    if (msg.op === 'trocar_senha') {
+      const email = Object.keys(s.contas).find(e => s.contas[e].id === msg.uid);
+      if (!email) return erro('not authenticated', '42501');
+      if (!msg.password || msg.password.length < 8) return erro('Password should be at least 8 characters.', 'weak_password');
+      s.contas[email].senha = msg.password;
+      if (msg.data) s.contas[email].meta = Object.assign({}, s.contas[email].meta || {}, msg.data);
+      return { data: { meta: Object.assign({}, s.contas[email].meta || {}) }, error: null };
     }
     if (msg.op === 'query') return consultar(msg.uid, msg.q);
     if (msg.op === 'rpc') return rpc(msg.uid, msg.nome, msg.args);
     if (msg.op === 'storage') return storage(msg.uid, msg);
+    if (msg.op === 'funcao') return administracao.funcao(msg.uid, msg.nome, msg.body);   // Promise (Edge Function)
     return erro('op desconhecida');
   };
 
@@ -1645,6 +1867,12 @@ const BIBLIOTECA = `(function () {
     function emitir(ev, s) {
       setTimeout(function () { ouvintes.slice().forEach(function (fn) { try { fn(ev, s); } catch (e) {} }); }, 0);
     }
+    var mRec = /access_token=falso-([^&]+)&.*type=recovery/.exec(location.hash || "");
+    if (mRec) {
+      var sRec = { access_token: "falso-" + mRec[1], user: { id: mRec[1], email: "" } };
+      localStorage.setItem(CHAVE, JSON.stringify(sRec));
+      setTimeout(function () { emitir("PASSWORD_RECOVERY", sRec); }, 400);
+    }
     return {
       auth: {
         getSession: function () { return Promise.resolve({ data: { session: sessao() }, error: null }); },
@@ -1658,7 +1886,18 @@ const BIBLIOTECA = `(function () {
         signInWithPassword: function (c) {
           return chamar({ op: "login", email: c.email, password: c.password }).then(function (r) {
             if (r.error) return { data: { session: null, user: null }, error: { name: "AuthApiError", message: r.error.message } };
-            var s = { access_token: "falso-" + r.data.id, user: { id: r.data.id, email: c.email } };
+            var s = { access_token: "falso-" + r.data.id, user: { id: r.data.id, email: c.email, user_metadata: r.data.meta || {} } };
+            localStorage.setItem(CHAVE, JSON.stringify(s));
+            emitir("SIGNED_IN", s);
+            return { data: { session: s, user: s.user }, error: null };
+          });
+        },
+        signUp: function (c) {
+          var o = c.options || {};
+          return chamar({ op: "signup", email: c.email, password: c.password, data: o.data || {} }).then(function (r) {
+            if (r.error) return { data: { session: null, user: null }, error: { name: "AuthApiError", message: r.error.message, code: r.error.code } };
+            /* confirmacao de e-mail DESLIGADA (recomendado para o lancamento): ja nasce a sessao */
+            var s = { access_token: "falso-" + r.data.id, user: { id: r.data.id, email: c.email, user_metadata: o.data || {} } };
             localStorage.setItem(CHAVE, JSON.stringify(s));
             emitir("SIGNED_IN", s);
             return { data: { session: s, user: s.user }, error: null };
@@ -1669,10 +1908,36 @@ const BIBLIOTECA = `(function () {
           emitir("SIGNED_OUT", null);
           return Promise.resolve({ error: null });
         },
-        resetPasswordForEmail: function () { return Promise.resolve({ data: {}, error: null }); },
-        updateUser: function () { return Promise.resolve({ data: {}, error: null }); }
+        resetPasswordForEmail: function (email) {
+          return chamar({ op: "recuperar", email: email }).then(function (r) {
+            return r.error ? { data: null, error: { name: "AuthApiError", message: r.error.message, code: r.error.code } } : { data: {}, error: null };
+          });
+        },
+        updateUser: function (u) {
+          var s = sessao();
+          if (u && u.data && !u.password) {
+            return chamar({ op: "metadados", uid: s ? s.user.id : null, data: u.data }).then(function (r) {
+              if (r.error) return { data: null, error: { name: "AuthApiError", message: r.error.message } };
+              var atual = sessao();
+              if (atual) { atual.user.user_metadata = r.data.meta; localStorage.setItem(CHAVE, JSON.stringify(atual)); }
+              return { data: { user: atual && atual.user }, error: null };
+            });
+          }
+          if (!u || !u.password) return Promise.resolve({ data: {}, error: null });
+          return chamar({ op: "trocar_senha", uid: s ? s.user.id : null, password: u.password, data: u.data || null }).then(function (r) {
+            if (r.error) return { data: null, error: { name: "AuthApiError", message: r.error.message } };
+            var atual = sessao();
+            if (atual && u.data) { atual.user.user_metadata = r.data.meta; localStorage.setItem(CHAVE, JSON.stringify(atual)); }
+            return { data: { user: atual && atual.user }, error: null };
+          });
+        }
       },
       from: function (t) { return new Builder(t); },
+      functions: {
+        invoke: function (nome, o) {
+          return chamar({ op: "funcao", uid: uid(), nome: nome, body: (o && o.body) || null });
+        }
+      },
       rpc: function (nome, args) { return chamar({ op: "rpc", uid: uid(), nome: nome, args: args }); },
       storage: {
         from: function (bucket) {
@@ -1703,9 +1968,9 @@ const BIBLIOTECA = `(function () {
  * Liga uma pagina ao servidor falso. Chamar ANTES do goto.
  */
 export async function ligarPagina(page, servidor) {
-  await page.exposeFunction('__supaFalso', (texto) => {
+  await page.exposeFunction('__supaFalso', async (texto) => {
     let r;
-    try { r = servidor.tratar(JSON.parse(texto)); }
+    try { r = await servidor.tratar(JSON.parse(texto)); }
     catch (e) { r = { data: null, error: { message: 'erro no servidor falso: ' + e.message, code: 'FALSO' } }; }
     return JSON.stringify(r);
   });

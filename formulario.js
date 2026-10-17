@@ -69,6 +69,15 @@
 
   /* `prefixo` distingue o mesmo campo em linhas diferentes de uma lista:
      `eventos-2-fome` é a fome do terceiro evento. */
+  /* 14/10: a ferramenta que esta sendo desenhada (para o "?" e o exemplo em cinza de cada pergunta) */
+  var ferrAtual = null;
+  function ajudaCampo(campo) { var A = window.AjudaFerramentas; return A && ferrAtual ? A.botaoCampo(ferrAtual, campo.id, campo.rotulo) : ""; }
+  function exemploAttr(campo) {
+    var A = window.AjudaFerramentas, e = A && ferrAtual && A.exemplo ? A.exemplo(ferrAtual, campo.id) : "";
+    return e ? ' placeholder="' + escapar(e) + '"' : "";
+  }
+  function ajudaLeitura(id, rot) { var A = window.AjudaFerramentas, h = A ? A.botaoCampo("_leitura", id, rot) : ""; return h ? " " + h : ""; }
+  function exemploLeitura(id) { var A = window.AjudaFerramentas, e = A && A.exemplo ? A.exemplo("_leitura", id) : ""; return e ? ' placeholder="' + escapar(e) + '"' : ""; }
   function campoHTML(campo, valor, prefixo) {
     var nome = "campo-" + (prefixo ? prefixo + "-" : "") + campo.id;
     var dica = campo.dica ? '<span class="dica">' + escapar(campo.dica) + "</span>" : "";
@@ -78,7 +87,7 @@
     var i;
 
     if (campo.tipo === "textarea") {
-      ctrl = '<textarea id="' + nome + '" rows="' + (campo.grande ? 12 : 4) + '">' +
+      ctrl = '<textarea id="' + nome + '" rows="' + (campo.grande ? 12 : 4) + '"' + exemploAttr(campo) + '>' +
              escapar(vazio ? "" : valor) + "</textarea>";
 
     } else if (campo.tipo === "escala") {
@@ -138,11 +147,11 @@
       ctrl = '<input type="number" id="' + nome + '" value="' + escapar(vazio ? "" : valor) + '">';
 
     } else {
-      ctrl = '<input type="text" id="' + nome + '" value="' + escapar(vazio ? "" : valor) + '">';
+      ctrl = '<input type="text" id="' + nome + '" value="' + escapar(vazio ? "" : valor) + '"' + exemploAttr(campo) + '>';
     }
 
     return '<div class="grupo tipo-' + campo.tipo + '">' +
-           '<label for="' + nome + '">' + escapar(campo.rotulo) + "</label>" +
+           '<label for="' + nome + '">' + escapar(campo.rotulo) + (ajudaCampo(campo) ? " " + ajudaCampo(campo) : "") + "</label>" +
            dica + ctrl + "</div>";
   }
 
@@ -187,8 +196,12 @@
         }).join("") + "</div></div>";
     }).join("");
 
+    /* simulacao 08/10: as opcoes de cada item (ex.: Natureza, Tipo, Papel, Proximidade do vinculo)
+       passavam despercebidas e a tabela saia so com o nome */
+    var comOpcoes = L.campos.filter(function (c) { return c.tipo === "opcoes"; }).map(function (c) { return c.rotulo.replace(/ \(.*\)$/, ""); });
     return '<section class="ferr-lista" data-lista="' + L.id + '">' +
       '<h4 class="ferr-grupo-titulo">' + escapar(L.rotulo) + "</h4>" +
+      (comOpcoes.length ? '<p class="perf-ajuda">Em cada ' + escapar((L.titulo_item || "item").toLowerCase()) + ", toque nas opções para marcar: " + escapar(comOpcoes.join(", ")) + ".</p>" : "") +
       '<div class="ferr-itens">' + linhas + "</div>" +
       '<button type="button" class="perf-botao" data-mais-item="1">+ Acrescentar ' +
         escapar((L.titulo_item || "item").toLowerCase()) + "</button></section>";
@@ -213,7 +226,8 @@
     return '<button class="btn-voltar" type="button">&larr; Voltar às ferramentas</button>' +
       '<div class="secao-cabeca">' +
         '<span class="eyebrow">' + MODULOS[f.modulo] + " - Ferramenta " + f.numero + "</span>" +
-        "<h2>" + escapar(f.titulo) + " &mdash; <em>" + escapar(f.chamada) + "</em></h2>" +
+        "<h2>" + escapar(f.titulo) + " &mdash; <em>" + escapar(f.chamada) + "</em>" +
+          (window.AjudaFerramentas ? " " + window.AjudaFerramentas.botao(f.id) : "") + "</h2>" +
         "<p>" + escapar(f.descricao) + "</p>" +
         (meta ? '<div class="ferr-meta">' + meta + "</div>" : "") +
       "</div>" +
@@ -246,7 +260,7 @@
     }
     var vinculo = at ? " Atendimento: <b>" + escapar(A.rotuloQuando(at)) + "</b>."
       : (app && app.id ? " Sem atendimento vinculado." : " Sem atendimento selecionado — a aplicação fica sem vínculo com atendimento.");
-    return '<p class="form-sub">Preenchendo para <b class="form-paciente">' +
+    return '<p class="form-sub form-faixa">Preenchendo para <b class="form-paciente">' +
            escapar(nome) + "</b>." + consulta + vinculo + "</p>";
   }
 
@@ -310,6 +324,7 @@
     if (window.limpaSuja) window.limpaSuja("ferramenta");
     if (bloqueada(f, app)) return desenharRegistroFechado(f, alvo, app);
     var r = (app && app.respostas) || {};
+    ferrAtual = f.id;
     var resultado = !f.registro && window.ResultadoCorpo
       ? window.ResultadoCorpo.derivar(f, r) : null;
 
@@ -369,17 +384,17 @@
       '<h4 class="ferr-grupo-titulo">Leitura profissional</h4>' +
       '<p class="perf-ajuda">O que o sistema mostra acima é observação. ' +
       "A interpretação é sua, e é ela que fecha a aplicação.</p>" +
-      '<div class="grupo"><label for="leit-texto">O que chamou atenção</label>' +
-        '<textarea id="leit-texto" rows="3"' + off + '>' + escapar(app.leitura || "") + "</textarea></div>" +
+      '<div class="grupo"><label for="leit-texto">O que chamou atenção' + ajudaLeitura("texto", "O que chamou atenção") + '</label>' +
+        '<textarea id="leit-texto" rows="3"' + exemploLeitura("texto") + off + '>' + escapar(app.leitura || "") + "</textarea></div>" +
       '<div class="perf-grade">' +
-        '<div class="grupo"><label for="leit-prioridade">Prioridade</label>' +
+        '<div class="grupo"><label for="leit-prioridade">Prioridade' + ajudaLeitura("prioridade", "Prioridade") + '</label>' +
           '<div class="grupo-opcoes" data-campo="leit-prioridade">' +
             prioridades.map(function (p) {
               return '<button type="button" class="btn-opcao' +
                 (app.prioridade === p ? " marcado" : "") +
                 '" data-valor="' + escapar(p) + '"' + off + '>' + escapar(p) + "</button>";
             }).join("") + "</div></div>" +
-        '<div class="grupo"><label for="leit-passo">Próximo passo</label>' +
+        '<div class="grupo"><label for="leit-passo">Próximo passo' + ajudaLeitura("passo", "Próximo passo") + '</label>' +
           '<input type="text" id="leit-passo" value="' + escapar(app.proximo_passo || "") +
           '" placeholder="ação, investigação, monitoramento ou encaminhamento"' + off + '></div>' +
       "</div>" +
@@ -638,6 +653,12 @@
 
     // a regua: mover e o que a torna uma resposta
     alvo.querySelectorAll('.grupo-nota input[type="range"]').forEach(function (reg) {
+      /* rodada UX 14/10: tocar/clicar no marcador parado no meio (5) nao dispara "input" — e a regua parecia nao
+         responder. Soltar o ponteiro na regua conta como resposta, com o valor onde o marcador esta. */
+      reg.addEventListener("pointerup", function () {
+        var caixa = reg.closest(".grupo-nota");
+        if (caixa && caixa.dataset.respondido !== "1") { reg.dispatchEvent(new Event("input", { bubbles: true })); reg.dispatchEvent(new Event("change", { bubbles: true })); }
+      });
       reg.addEventListener("input", function () {
         var caixa = reg.closest(".grupo-nota");
         caixa.dataset.respondido = "1";
@@ -705,8 +726,13 @@
            conduta"): redesenha para nao ficar com a pendencia antiga (auditoria) */
         if (typeof window.redesenharFicha === "function") { try { window.redesenharFicha(); } catch (e) { /* ficha fechada */ } }
         if (typeof window.redesenharDashboard === "function") { try { window.redesenharDashboard(); } catch (e) { /* idem */ } }
-        if (concluir) desenhar(f, alvo, app);
-        else redesenharSintese(f, alvo);
+        if (concluir) {
+          /* simulacao 08/10: a leitura profissional digitada ANTES de concluir (ainda nao
+             registrada) sumia no redesenho. Ela volta para os campos, sem ser gravada sozinha. */
+          var rasc = leituraDigitada(alvo);
+          desenhar(f, alvo, app);
+          devolverLeitura(alvo, rasc);
+        } else redesenharSintese(f, alvo);
         // depois do redesenho: escrever antes apagaria junto com o elemento
         avisar(alvo, "aviso", eraRevisada ? "Alterações salvas. A leitura profissional registrada continua — revise-a se a mudança a afetar."
           : concluir ? "Aplicação concluída." : "Rascunho salvo.");
@@ -773,6 +799,8 @@
           avisarFixo(alvo, "aviso-leitura", "Escreva a leitura, marque a prioridade ou o próximo passo antes de registrar.");
           return;
         }
+        var btnLeit = this;
+        if (window.travarBotao && !window.travarBotao(btnLeit, "Registrando…")) return;
         Promise.resolve(window.Aplicacoes.revisar(
           app,
           alvo.querySelector("#leit-texto").value.trim(),
@@ -785,14 +813,34 @@
             selo.className = "ferr-meta-item estado-" + app.status;
             selo.textContent = window.Aplicacoes.rotulo(app.status === "rascunho" ? "em_preenchimento" : app.status);
           }
-          avisar(alvo, "aviso-leitura", "Leitura registrada.");
+          /* simulacao 08/10: o "Leitura registrada." sumia em 2,6 s e passava despercebido.
+             Agora fica na tela (com a hora) e tambem aparece no aviso geral. */
+          var el = alvo.querySelector('[data-papel="aviso-leitura"]');
+          var agora = new Date(), hh = String(agora.getHours()).padStart(2, "0") + ":" + String(agora.getMinutes()).padStart(2, "0");
+          if (el) { el.classList.remove("erro"); el.removeAttribute("role"); el.textContent = "✓ Leitura registrada às " + hh + "."; }
+          if (window.avisar) window.avisar("Leitura profissional registrada.");
           marcarCard(f.id);
         }, function (e) {
           console.error("[formulario] registrar leitura:", e && e.message ? e.message : e);
           avisarFixo(alvo, "aviso-leitura", mensagemDeFalha(e));
-        });
+        }).finally(function () { if (window.destravarBotao) window.destravarBotao(btnLeit); });
       });
     }
+  }
+
+  function leituraDigitada(alvo) {
+    var t = alvo.querySelector("#leit-texto"), pa = alvo.querySelector("#leit-passo"), m = alvo.querySelector('[data-campo="leit-prioridade"] .marcado');
+    return { texto: t ? t.value : "", passo: pa ? pa.value : "", prioridade: m ? m.dataset.valor : null };
+  }
+  function devolverLeitura(alvo, r) {
+    if (!r) return;
+    var t = alvo.querySelector("#leit-texto"), pa = alvo.querySelector("#leit-passo");
+    if (t && r.texto && !t.value) t.value = r.texto;
+    if (pa && r.passo && !pa.value) pa.value = r.passo;
+    if (r.prioridade && !alvo.querySelector('[data-campo="leit-prioridade"] .marcado')) {
+      alvo.querySelectorAll('[data-campo="leit-prioridade"] button').forEach(function (b) { if (b.dataset.valor === r.prioridade) b.classList.add("marcado"); });
+    }
+    if (r.texto || r.passo || r.prioridade) avisarFixo(alvo, "aviso-leitura", "A leitura acima ainda não foi registrada: clique em Registrar leitura.");
   }
 
   /* ---------- o selo do card ----------------------------------------------- */
@@ -816,10 +864,31 @@
     selo.className = "ferr-status " + (precisa ? "reaplicar" : CLASSE[estado] || "disponivel");
   }
 
+  /* 14/10 (auditoria Cowork): OQ³, PQQ e Mapa do Proposito tem tela propria (data-vista) e o selo era fixo
+     "Disponível" mesmo depois de aplicados. OQ³/PQQ leem a aplicacao real; o Mapa e derivado das duas metades. */
+  function marcarAncoras() {
+    if (!window.Aplicacoes) return;
+    var pinta = function (vista, texto, classe) {
+      var selo = document.querySelector('[data-vista="' + vista + '"] .ferr-status');
+      if (!selo) return;
+      selo.textContent = texto; selo.className = "ferr-status " + classe;
+    };
+    var est = {};
+    ["oq3", "pqq"].forEach(function (id) {
+      var e = window.Aplicacoes.statusDe(id);
+      est[id] = e === "concluida" || e === "revisada";
+      pinta("vista-" + id, window.Aplicacoes.rotulo(e), CLASSE[e] || "disponivel");
+    });
+    if (est.oq3 && est.pqq) pinta("vista-mapa", "Montado", "preenchida");
+    else if (est.oq3 || est.pqq) pinta("vista-mapa", est.oq3 ? "Falta o PQQ" : "Falta o OQ³", "rascunho");
+    else pinta("vista-mapa", "Disponível", "disponivel");
+  }
+
   function marcarTodos() {
     document.querySelectorAll("[data-ferramenta]").forEach(function (c) {
       marcarCard(c.dataset.ferramenta);
     });
+    marcarAncoras();
   }
 
   /* ---------- abrir --------------------------------------------------------- */
@@ -845,23 +914,51 @@
     if (aberta && !aberta.alvo.classList.contains("hidden")) abrirFerramenta(aberta.f);
   };
 
+  /* 14/10 (auditoria Cowork): "Soltar" ou trocar o atendimento atualiza a linha "Atendimento: …" da ferramenta
+     aberta que ainda nao foi gravada (a que ja foi gravada mostra o atendimento gravado, que nao muda) */
+  document.addEventListener("DOMContentLoaded", function () {
+    if (!window.AtendimentoAtual || !window.AtendimentoAtual.aoMudar) return;
+    window.AtendimentoAtual.aoMudar(function () {
+      if (!aberta || !aberta.alvo || (aberta.app && aberta.app.id)) return;
+      var faixa = aberta.alvo.querySelector(".form-faixa");
+      if (faixa) faixa.outerHTML = faixaPaciente(aberta.app);
+    });
+  });
+
   /* Abre uma ferramenta de qualquer lugar do app — é o que permite o mapa
      mandar direto para a conduta, sem a pessoa procurar na galeria. */
+  /* 12/10 (bug 6): abre a ferramenta a partir de qualquer tela (ex.: "Iniciar ferramenta" dos Proximos Passos HOLOS).
+     Antes: OQ3/PQQ/Mapa clicavam no atalho dentro do modulo ESCONDIDO (nada aparecia), e com alteracao nao salva na
+     tela atual a protecao de navegacao segurava a troca de modulo enquanto o clique no cartao se perdia. Agora: vai ao
+     modulo da ferramenta (passando pela protecao, se houver o que salvar) e so depois abre o cartao/atalho. */
   window.abrirFerramentaPorId = function (id) {
     var ativas = (window.FERRAMENTAS_ATIVAS || []).concat(["oq3", "pqq", "mapa"]);
     if (ativas.indexOf(id) < 0) return false;
-
-    var f = catalogo(id);
-    var card = document.querySelector('[data-ferramenta="' + id + '"]');
-    if (f && card) {
-      var nav = document.querySelector('.nav-item[data-secao="' + f.modulo + '"]');
-      if (nav) nav.click();
-      card.click();
-      return true;
+    /* 16/10: ferramenta OCULTA (FERRAMENTAS_OCULTAS) nao abre por caminho indireto; o historico dela continua legivel */
+    if ((window.FERRAMENTAS_OCULTAS || []).indexOf(id) >= 0) return false;
+    var seletor = '[data-ferramenta="' + id + '"], [data-vista="vista-' + id + '"]';
+    var alvo = document.querySelector(seletor);
+    if (!alvo) return false;
+    var secao = alvo.closest(".secao");
+    var modulo = secao && secao.id ? secao.id.replace(/^secao-/, "") : null;
+    function abrir() {
+      var el = document.querySelector(seletor);
+      if (!el) return;
+      el.click();
+      var aberta = document.querySelector(".secao.ativa .vista-ferramenta:not(.hidden), .secao.ativa .form-ferramenta");
+      if (aberta && aberta.scrollIntoView) aberta.scrollIntoView({ block: "start" });
     }
-    var ancora = document.querySelector('[data-vista="vista-' + id + '"]');
-    if (ancora) { ancora.click(); return true; }
-    return false;
+    if (!secao || secao.classList.contains("ativa")) { abrir(); return true; }
+    var nav = modulo ? document.querySelector('.nav-item[data-secao="' + modulo + '"]') : null;
+    if (!nav) { abrir(); return true; }
+    nav.click();
+    /* troca imediata, ou depois do "Salvar / Descartar" da protecao; "Cancelar" deixa como esta */
+    var t0 = Date.now();
+    (function esperar() {
+      if (secao.classList.contains("ativa")) { abrir(); return; }
+      if (Date.now() - t0 < 60000) setTimeout(esperar, 80);
+    })();
+    return true;
   };
 
   window.remarcarCardsDeFerramenta = marcarTodos;

@@ -77,8 +77,8 @@ ok(inicial.tipoSenha === 'password', 'a senha comeca com type=password: ' + inic
 ok(inicial.labelEmail && inicial.labelSenha, 'os dois campos tem <label for> de verdade');
 ok(inicial.autoEmail === 'username' && inicial.autoSenha === 'current-password',
    'autocomplete correto: ' + inicial.autoEmail + ' / ' + inicial.autoSenha);
-ok(inicial.temEntrar && inicial.temEsqueci && inicial.temManter,
-   'botao Entrar, link Esqueci minha senha e caixa Manter conectado presentes');
+ok(inicial.temEntrar && inicial.temEsqueci && !inicial.temManter,
+   'botao Entrar e link Esqueci minha senha presentes; sem a caixa "Manter conectado" (09/10: ela nao tinha efeito, a sessao sempre fica)');
 ok(inicial.live === 'polite', 'a area de mensagem e uma regiao aria-live');
 ok(inicial.appEscondidoDeLeitor === 'true', 'o app atras fica aria-hidden enquanto a entrada esta aberta');
 ok(inicial.focoInicial === 'login-email', 'o foco comeca no e-mail: ' + inicial.focoInicial);
@@ -348,8 +348,8 @@ const app = await p.evaluate(async () => {
   const navs = [...document.querySelectorAll('.nav-item')].map(b => b.dataset.secao);
   document.querySelector('.nav-item[data-secao="holoscan"]').click();
   const holoscan = document.getElementById('secao-holoscan').classList.contains('ativa');
-  document.querySelector('.nav-item[data-secao="confronto"]').click();
-  const confronto = document.getElementById('secao-confronto').classList.contains('ativa');
+  document.querySelector('.nav-item[data-secao="resultado"]').click();
+  const confronto = document.getElementById('secao-resultado').classList.contains('ativa');
   return {
     telaFechada: document.getElementById('tela-login').hidden,
     appLiberado: !document.getElementById('app').getAttribute('aria-hidden'),
@@ -361,13 +361,18 @@ const app = await p.evaluate(async () => {
   };
 });
 /* Lista nominal, nao contagem: um numero certo com a secao errada passaria. */
-const SECOES = ['secao-dashboard', 'secao-holoscan', 'secao-confronto', 'secao-pacientes',
-                'secao-consultas', 'secao-agenda', 'secao-documentos', 'secao-perfil',
+const SECOES = ['secao-dashboard', 'secao-holoscan', 'secao-resultado', 'secao-pacientes',
+                'secao-consultas', 'secao-agenda', 'secao-perfil',   // 09/10: a secao global Documentos saiu (documento so na ficha)
                 'secao-corpo', 'secao-mente', 'secao-espirito',
                 // Etapa 4: secao interna Metodologia / Homologacao (consulta, so com ?homologacao=1)
-                'secao-metodologia'];
-const MENU = ['dashboard', 'pacientes', 'consultas', 'agenda', 'documentos',
-              'holoscan', 'confronto', 'corpo', 'mente', 'espirito', 'metodologia', 'perfil'];
+                'secao-metodologia',
+                // 07/10: Ajuda; 08/10: Contas (liberar cadastros, so administradoras)
+                'secao-contas', 'secao-ajuda',
+                // rodada UX 14/10: pagina Holos IA (a ponte HOLOS AI -> Resultado HOLOS fora da ficha)
+                'secao-holusia'];
+const MENU = ['dashboard', 'pacientes', 'consultas', 'agenda',   // 09/10: Documentos saiu do menu (so na ficha)
+              // rodada UX 14/10: CORPO -> MENTE -> ESPIRITO -> HOLOS IA -> RESULTADO HOLOS
+              'holoscan', 'corpo', 'mente', 'espirito', 'holusia', 'resultado', 'metodologia', 'contas', 'perfil', 'ajuda'];
 const faltando = SECOES.filter(s => !app.secoes.includes(s));
 const sobrando = app.secoes.filter(s => !SECOES.includes(s));
 
@@ -378,7 +383,7 @@ ok(faltando.length === 0 && sobrando.length === 0,
    (sobrando.length ? ' | apareceu: ' + sobrando.join(', ') : ''));
 ok(JSON.stringify(app.navs) === JSON.stringify(MENU),
    'o menu continua com os mesmos ' + MENU.length + ' itens, na mesma ordem: ' + app.navs.join(', '));
-ok(app.holoscan && app.confronto, 'HOLOSCAN e Leitura Integrada continuam abrindo pelo menu');
+ok(app.holoscan && app.confronto, 'HOLOSCAN e Resultado (no lugar da Leitura Integrada, 09/10) abrem pelo menu');
 ok(app.metodologiaOculta, 'o item Metodologia / Homologacao fica oculto sem ?homologacao=1 (flag interna)');
 ok(app.loginNaoEhSecao, 'a tela de entrada nao virou secao nem item de menu');
 

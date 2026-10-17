@@ -97,9 +97,11 @@ const esperado = await A.evaluate(() => {
     triada: ['fisico', 'mental', 'espiritual'].map(e => v.triad_result[e].nota_exibicao), resp };
 });
 const legado = await A.evaluate((resp) => window.HOLOSCAN.calcular(Object.keys(resp).map(id => ({ marcador_id: id, intensidade: resp[id] })), {}).indice, esperado.resp);
-ok(tela.indice === esperado.indice_exib && tela.indice !== String(legado), 'Indice na tela = motor oficial (' + tela.indice + '), nao o legado (' + legado + ')');
-ok(tela.sistemas.every(([k, t]) => t === esperado.sistemas[k].exib), '5 notas na tela = motor oficial: ' + tela.sistemas.map(x => x[1]).join(' / '));
-ok(JSON.stringify(tela.triada) === JSON.stringify(esperado.triada), 'Triada na tela = motor oficial: ' + tela.triada.join(' / '));
+/* 16/10: na tela, virgula decimal (o motor continua com ponto) */
+const virg = (t) => String(t).replace(/^(-?\d+)\.(\d+)$/, '$1,$2');
+ok(tela.indice === virg(esperado.indice_exib) && tela.indice !== String(legado), 'Indice na tela = motor oficial (' + tela.indice + '), nao o legado (' + legado + ')');
+ok(tela.sistemas.every(([k, t]) => t === virg(esperado.sistemas[k].exib)), '5 notas na tela = motor oficial: ' + tela.sistemas.map(x => x[1]).join(' / '));
+ok(JSON.stringify(tela.triada) === JSON.stringify(esperado.triada.map(virg)), 'Triada na tela = motor oficial: ' + tela.triada.join(' / '));
 ok(!/Em homologação/.test(tela.interp + tela.prio) && /oficial/.test(tela.interp), 'aplicacao nova V1: selo "oficial", sem "Em homologação" no mapa');
 // Correcao pos-6.5 (auditoria de producao): a leitura do resultado OFICIAL so tem textos do pacote homologado
 const leitura = await A.evaluate(() => { const el = document.getElementById('holo-leitura'); const P = window.Metodologia.obterPacoteAtivo();
@@ -179,7 +181,10 @@ ok(srv.linhas('holoscan_applications').filter(x => x.patient_id === PD).length =
    'com o atendimento, salva no servidor; o aviso e a pendencia somem: ' + msgD2.slice(0, 60) + ' / ' + depD.alertas.join(',') + ' / ' + /não salvo/.test(depD.interp));
 await responderEGerar(PD);
 const msgD3 = await salvar();
-ok(srv.linhas('holoscan_applications').filter(x => x.patient_id === PD).length === 1 && /exatamente estas respostas/.test(msgD3),
+// Ajuste (testes reais 06/10): gerar de novo com as mesmas respostas de uma
+// aplicacao ja salva hoje passou a SER a aplicacao salva (sem entrada pendente
+// e sem selo "nao salvo"), entao o Salvar diz que ja esta salvo.
+ok(srv.linhas('holoscan_applications').filter(x => x.patient_id === PD).length === 1 && /já está salvo|já estava salva/.test(msgD3),
    'mesmas respostas no mesmo dia: nao grava duplicata (' + msgD3.slice(0, 80) + ')');
 ok(srv.linhas('holoscan_applications').length === appsAntes + 1, 'so uma aplicacao nova no servidor');
 

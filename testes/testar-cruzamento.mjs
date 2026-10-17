@@ -67,9 +67,11 @@ ok(eixos.total > 0, eixos.total + ' eixos terapêuticos vindos de eixos.csv');
 ok(eixos.nomes.length === 3, 'os três do material: ' + eixos.nomes.join(' · '));
 ok(eixos.doMental.length === 2, 'Mental-Emocional-Espiritual → ' + eixos.doMental.join(' + '));
 
-// --- o que a nutricionista digita chega ao contexto ----------------------
+// --- exame NAO chega ao contexto (decisao de produto 09/10) -------------
+/* O painel de valores de exame saiu da ficha: exame e so arquivo do
+   prontuario. Mesmo um valor legado em localStorage nao entra em
+   Panorama.contexto().exames — nenhuma combinacao pode ler exame. */
 const daTela = await p.evaluate(async () => {
-  // cadastra e lanca um exame pela interface
   document.querySelector('.nav-item[data-secao="pacientes"]').click();
   document.getElementById('btn-abrir-novo').click();
   document.getElementById('np-nome').value = 'Marina Alves';
@@ -79,26 +81,18 @@ const daTela = await p.evaluate(async () => {
   await new Promise(r => setTimeout(r, 350));
   document.querySelector('[data-aba="documentos"]').click();
   await new Promise(r => setTimeout(r, 350));
-
-  const campo = document.querySelector('#ex-corpo input[type="number"]');
-  const idExame = campo.id || campo.dataset.exame || campo.name;
-  campo.value = '115';
-  campo.dispatchEvent(new Event('input', { bubbles: true }));
-  campo.dispatchEvent(new Event('change', { bubbles: true }));
-  await new Promise(r => setTimeout(r, 400));
-
+  const id = window.pacienteAtivoId();
+  localStorage.setItem('holohacking.exames', JSON.stringify({ [id]: { 'EXA-005': 115 } }));
   const ctx = window.Panorama.contexto();
   return {
-    idExame,
+    painel: document.querySelectorAll('#ex-corpo input[type="number"], #lab-corpo, [data-lancar]').length,
     exames: ctx.exames,
     quantosExames: Object.keys(ctx.exames).length,
-    ferramentas: ctx.ferramentas,
   };
 });
-ok(daTela.quantosExames > 0,
-   'o exame digitado na tela chega ao contexto: ' + JSON.stringify(daTela.exames));
-ok(Object.values(daTela.exames).every(v => typeof v === 'number'),
-   'e chega como número, não como texto');
+ok(daTela.painel === 0, 'nao ha mais painel para digitar valor de exame na ficha');
+ok(daTela.quantosExames === 0,
+   'e mesmo um valor legado nao chega ao contexto do motor: ' + JSON.stringify(daTela.exames));
 
 /* --- ferramenta: so o que e numero entra --------------------------------
 

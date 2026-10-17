@@ -51,13 +51,14 @@ const real = await p.evaluate((respostas) => {
       travado: l.classList.contains('travado'),
     })),
     selo: card?.querySelector('.selo-construcao')?.textContent || null,
+    oculto: card ? (card.hidden && getComputedStyle(card).display === 'none') : null,
   };
 }, caso.respostas);
 
 ok(real.doMotor.length === 0, 'parado, o motor não devolve mapa nenhum');
 ok(!real.visivel && real.linhas.length === 0,
    'e a tela não mostra quadro vazio com ar de resultado');
-ok(real.selo === 'em revisão', 'o card avisa que está parado: "' + real.selo + '"');
+ok(real.selo === 'em revisão' && real.oculto === true, 'pós-teste MR-V1 13/10: o card "Mapa de Frequências — em revisão" continua no código, mas fora da interface (não homologado)');
 
 // --- o desenho, com valores controlados ----------------------------------
 // Alimenta a MESMA funcao com um mapa montado a mao, para conferir a

@@ -160,15 +160,15 @@ const cartao = await p.evaluate(() => {
            helena: ler(um('Helena Rocha')) };
 });
 
-conferir(/Último contato há 3 meses/.test(cartao.ana.meta[0]),
-  'o silêncio vem em meses, não em dias: ' + cartao.ana.meta[0]);
+conferir(/Último contato há 3 meses/.test((cartao.ana.meta.find(m => /Último contato|Sem atendimento/.test(m)) || '')),
+  'o silêncio vem em meses, não em dias: ' + (cartao.ana.meta.find(m => /Último contato|Sem atendimento/.test(m)) || ''));
 conferir(cartao.ana.atraso, 'e acende quando passa de 90 dias');
-conferir(/Sem atendimento ainda/.test(cartao.carol.meta[0]),
-  'quem nunca foi atendida não ganha uma data inventada: ' + cartao.carol.meta[0]);
+conferir(/Sem atendimento ainda/.test((cartao.carol.meta.find(m => /Último contato|Sem atendimento/.test(m)) || '')),
+  'quem nunca foi atendida não ganha uma data inventada: ' + (cartao.carol.meta.find(m => /Último contato|Sem atendimento/.test(m)) || ''));
 conferir(cartao.carol.atraso,
   'mas cadastrada há 142 dias e nunca vista também acende');
-conferir(/Último contato há 6 dias/.test(cartao.helena.meta[0]),
-  'abaixo de um mês o dia ainda importa: ' + cartao.helena.meta[0]);
+conferir(/Último contato há 6 dias/.test((cartao.helena.meta.find(m => /Último contato|Sem atendimento/.test(m)) || '')),
+  'abaixo de um mês o dia ainda importa: ' + (cartao.helena.meta.find(m => /Último contato|Sem atendimento/.test(m)) || ''));
 conferir(!cartao.helena.atraso, 'e quem foi vista semana passada não acende');
 conferir(cartao.ana.meta.some(m => /Cadastrado \d\d\/\d\d\/\d{4}/.test(m)),
   'mostra a data de cadastro');
@@ -181,8 +181,9 @@ conferir(cartao.carol.passo === 'Aplicar agora',
   'quem não tem mapa: ' + cartao.carol.passo);
 /* Correcao do dashboard (pos-6.5): "mapa sem conduta" leva a Conduta da
    ficha (era "Ver por onde começar", que abria o HOLOSCAN). */
-conferir(cartao.helena.passo === 'Abrir conduta',
-  'quem tem mapa e nenhuma conduta: ' + cartao.helena.passo);
+/* 14/10: a aba Conduta saiu; o proximo passo de quem tem mapa e aplicar as ferramentas */
+conferir(cartao.helena.passo === 'Abrir ferramentas',
+  'quem tem mapa e nenhuma ferramenta: ' + cartao.helena.passo);
 
 /* -------------------------------------------------------- a busca -------- */
 

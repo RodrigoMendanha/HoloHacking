@@ -72,8 +72,16 @@ const appH = (quando, indice, fisico) => ({
 });
 semearHistorica(srv, UID_A, appH('2026-06-01', 40, 3));
 semearHistorica(srv, UID_A, appH('2026-09-01', 60, 5));
+/* coleta HISTORICA (anterior a 09/10): ja esta no servidor, como o banco real a tem; nada novo pode entrar (ver abaixo) */
+{
+  const agora = new Date().toISOString();
+  const cid = globalThis.crypto.randomUUID();
+  srv.tabelas.lab_collections.push({ id: cid, nutritionist_id: UID_A, patient_id: P, encounter_id: null, coletado_em: '2026-08-20', data_coleta_desconhecida: false, laboratorio: null, observacao: null,
+    state: 'salvo', source: 'manual', revision: 1, created_by: UID_A, created_at: agora, updated_at: agora });
+  srv.tabelas.lab_results.push({ id: globalThis.crypto.randomUUID(), collection_id: cid, exame_id: 'EXA-001', valor: 95, unidade_no_momento: 'mg/dL', nome_exame_no_momento: 'Glicose de jejum', sistema_no_momento: 'metabolico', created_at: agora });
+}
 /* dados no SERVIDOR, gravados pelos caminhos reais (RPC e tabelas sob RLS) */
-await A.evaluate(async (pid, hoje) => {
+const coletaRecusada = await A.evaluate(async (pid, hoje) => {
   const sb = window.supabaseClient;
   const app = (quando, indice, fisico) => ({
     application: { patient_id: pid, quando, versao_estrutura: 1, versao_bancos: 'v', indice, indice_maximo: 100,
@@ -84,10 +92,10 @@ await A.evaluate(async (pid, hoje) => {
                maximo: 3, respondidos: 2, total_marcadores: 2, avaliavel: true }]
   });
   void app;   // as 2 aplicacoes HOLOSCAN (historicas) ja estao no servidor: semeadas antes (ver abaixo do comentario P0)
-  await sb.rpc('salvar_coleta_exames', { payload: {
+  /* 09/10: a RPC de coleta recusa (laboratorio_desativado); a coleta HISTORICA entra direto no servidor falso (abaixo, fora do navegador) */
+  window.__coletaRecusada = (await sb.rpc('salvar_coleta_exames', { payload: {
     collection: { patient_id: pid, coletado_em: '2026-08-20', data_coleta_desconhecida: false },
-    results: [{ exame_id: 'EXA-001', valor: 95, unidade_no_momento: 'mg/dL', ideal_min_no_momento: 70,
-                ideal_max_no_momento: 90, nome_exame_no_momento: 'Glicose de jejum', sistema_no_momento: 'metabolico' }] } });
+    results: [{ exame_id: 'EXA-001', valor: 95, unidade_no_momento: 'mg/dL', nome_exame_no_momento: 'Glicose de jejum', sistema_no_momento: 'metabolico' }] } })).error;
   await sb.from('consultations').insert([{ patient_id: pid, data: hoje, hora: '09:00', tipo: 'retorno', duracao_min: 60, nota: 'retorno de rotina' }]);
   const concluida = (fid, respostas, quando) => ({ patient_id: pid, ferramenta_id: fid, versao_ferramenta: '1',
     status: 'concluida', respostas, iniciada_em: quando, concluida_em: quando, atualizada_em: quando });
@@ -102,6 +110,7 @@ await A.evaluate(async (pid, hoje) => {
   await window.Sincronizacao.hidratar(window.pacientesTodos());
   await window.Sincronizacao.aguardar();
   await window.Aplicacoes.carregar();
+  return window.__coletaRecusada;
   await window.Agenda.carregarDados();
 }, P, hoje);
 await esperar(300);
@@ -151,11 +160,9 @@ titulo('2. EVOLUCAO → ABRIR');
 /* ==================================================================== */
 
 const evo = await A.evaluate(async () => {
-  document.querySelector('.nav-item[data-secao="dashboard"]').click();
-  await new Promise(r => setTimeout(r, 300));
-  const b = [...document.querySelectorAll('#dash-trabalho [data-destino="evolucao"]')][0];
-  if (!b) return { achou: false };
-  b.click();
+  /* 12/10: a "Jornada clinica" saiu do Dashboard; a Evolucao abre pelo HOLOSCAN da paciente */
+  window.irParaSecao('holoscan');
+  if (window.redesenharEvolucao) window.redesenharEvolucao();
   await new Promise(r => setTimeout(r, 400));
   const e = document.getElementById('holo-evolucao');
   const secao = document.querySelector('.secao.ativa');
@@ -164,7 +171,7 @@ const evo = await A.evaluate(async () => {
 });
 ok(evo.achou && evo.secao === 'secao-holoscan' && evo.visivel,
    '"Evolução → Abrir" leva ao comparativo no HOLOSCAN (' + evo.secao + ')');
-ok(/Tríade/.test(evo.texto) && /Físico/.test(evo.texto) && /1ª/.test(evo.texto) && /2ª/.test(evo.texto) &&
+ok(/Tríade/.test(evo.texto) && /Corpo/.test(evo.texto) && /1ª/.test(evo.texto) && /2ª/.test(evo.texto) &&
    /Índice 40/.test(evo.texto) && /Índice 60/.test(evo.texto),
    'com antes x agora, Tríade e a lista das aplicacoes com data e Índice');
 
@@ -199,9 +206,10 @@ const contexto = await A.evaluate(async (pid) => {
   return (document.getElementById('ai-hub-texto') || {}).textContent || '';
 }, P);
 const tem = (re, nome) => ok(re.test(contexto), 'o contexto traz ' + nome);
-// Etapa 0 (ajuste final): a 'faixa ideal' (exames.csv em rascunho) nao entra no contexto
-tem(/Glicose de jejum: 95 mg\/dL — 20\/08\/2026/, 'exames com nome, resultado, unidade e data (sem faixa do banco em rascunho)');
-ok(!/faixa 70–90/.test(contexto), 'o contexto nao traz a faixa ideal em rascunho');
+// 09/10: exame e so arquivo — nem a coleta historica (semeada direto no servidor) nem valor algum entram no contexto da IA
+ok(!/Glicose de jejum|95 mg\/dL|faixa 70–90|## Exames|EXA-001/.test(contexto) && /Exames e documentos do prontuário .* NÃO estão incluídos/.test(contexto),
+   'o contexto NAO traz exames (nem a coleta historica, nem faixa) e diz isso na fronteira: exame nao participa');
+ok(coletaRecusada && coletaRecusada.hint === 'laboratorio_desativado' && srv.linhas('lab_collections').length === 1, 'a RPC de coleta recusou (laboratorio_desativado) e a coleta historica semeada ficou intacta');
 tem(/Marcada|Realizada/, 'as consultas');
 tem(/retorno de rotina/, 'a observacao da consulta');
 tem(/### OQ³[\s\S]*quer dormir bem/, 'o OQ³');
@@ -210,7 +218,9 @@ tem(/### Mapa do Propósito[\s\S]*Propósito: “estar presente”/, 'o Mapa do 
 tem(/Linha do Momentum[\s\S]*a familia/, 'a Linha do Momentum');
 tem(/Mapa de Crenças[\s\S]*carboidrato engorda/, 'o Mapa de Crenças');
 tem(/Roda Holística da Vida[\s\S]*Saúde: 4[\s\S]*trabalho/, 'a Roda da Vida (Roda Holística da Vida)');
-tem(/Carta ao Futuro[\s\S]*querida eu do futuro/, 'a Carta ao Futuro');
+/* motor de resultados 12/10 (itens 25 e 37): sem regra de consentimento, a Carta entra so como realizada — o texto NAO vai */
+tem(/Carta ao Futuro[\s\S]*foi realizada como exercício[\s\S]*O conteúdo não é incluído/, 'a Carta ao Futuro (só como realizada)');
+ok(!/querida eu do futuro/.test(contexto), 'e o texto da Carta NÃO vai para o contexto da HOLOS AI');
 
 /* onda 9: sem URL configurada, o agente nao e um botao morto */
 const agentes = await A.evaluate(() => ['ai-btn-chatgpt', 'ai-btn-gemini'].map(id => {

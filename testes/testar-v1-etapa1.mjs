@@ -27,6 +27,7 @@
 import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
 import { criarServidor, ligarPagina } from './supabase-falso.mjs';
+import { fixarRelogio, diaNoFuso, INSTANTE_JANELA } from './relogio.mjs';
 import { semearHolosAprovado } from './holos-aprovado.mjs';
 
 let falhou = false;
@@ -48,6 +49,9 @@ const A = await ctx.newPage();
 await A.setViewport({ width: 1366, height: 900 });
 A.on('pageerror', e => errosJS.push(e.message));
 await ligarPagina(A, srv);
+/* 13/10: navegador no fuso da clinica, relogio fixado ontem 22:30 de Brasilia (UTC ja no dia seguinte) — ver relogio.mjs */
+const AGORA = INSTANTE_JANELA();
+await fixarRelogio(A, AGORA);
 await A.goto('http://127.0.0.1:5500/', { waitUntil: 'networkidle2' });
 await A.waitForSelector('#login-email', { visible: true });
 await A.type('#login-email', 'a@holo.test');
@@ -76,8 +80,8 @@ async function cadastrar(nome) {
   await esperar(200);
   return id;
 }
-const diaISO = (n) => { const d = new Date(); d.setDate(d.getDate() + n);
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+/* "hoje" e o dia de PAREDE no fuso da clinica, no relogio do navegador (nunca o relogio UTC do container) */
+const diaISO = (n) => diaNoFuso(AGORA, n);
 const encounters = (pid) => srv.linhas('encounters').filter(e => !pid || e.patient_id === pid);
 const marcar = (pid, dia, hora) => A.evaluate(async (pid, dia, hora) => {
   const r = await window.supabaseClient.from('consultations').insert([{ patient_id: pid, data: dia, hora, tipo: 'retorno', duracao_min: 60 }]).select();
@@ -122,6 +126,10 @@ const abriu = await A.evaluate(async (cid) => {
 ok(abriu.iniciar && !abriu.abrirVelho && encounters().length === 0,
    '1: o agendamento abre com "Iniciar atendimento"; clicar no agendamento nao criou nada');
 await A.evaluate(async (cid) => { document.querySelector('[data-iniciar-atendimento="' + cid + '"]').click(); await new Promise(r => setTimeout(r, 300)); }, cHoje);
+/* 16/10 (estabilizacao): a consulta (23:55) ainda esta no futuro -> primeiro "Consulta no futuro / Iniciar agora" */
+const futura = await A.evaluate(() => document.getElementById('modal-confirmar-titulo').textContent);
+ok(futura === 'Consulta no futuro', '1: consulta ainda no futuro pede confirmacao antes de abrir o dialogo (' + futura + ')');
+if (futura === 'Consulta no futuro') await A.evaluate(async () => { document.getElementById('modal-confirmar-ok').click(); await new Promise(r => setTimeout(r, 300)); });
 const dialogo = await A.evaluate(() => ({
   aberto: !document.getElementById('modal-confirmar-acao').classList.contains('hidden'),
   titulo: document.getElementById('modal-confirmar-titulo').textContent,
@@ -180,15 +188,18 @@ ok(await A.evaluate(() => window.AtendimentoAtual.atual().id) === e2.id, 'e ele 
 /* ==================================================================== */
 titulo('7, 8, 9 — HOLOSCAN');
 /* ==================================================================== */
-async function responderECalcular() {
-  await A.evaluate(async () => {
+/* Ajuste (testes reais 06/10): gerar de novo com as MESMAS respostas de uma
+   aplicacao ja salva passou a SER essa aplicacao ("ja esta salvo"), entao o
+   cenario 8 responde diferente (botao 1) para ser uma aplicacao nova. */
+async function responderECalcular(botao = 2) {
+  await A.evaluate(async (botao) => {
     document.querySelector('.nav-item[data-secao="holoscan"]').click();
     document.getElementById('btn-abrir-questionario').click();
     await new Promise(x => setTimeout(x, 200));
-    [...document.querySelectorAll('.q-item')].slice(0, 30).forEach((it) => it.querySelectorAll('.q-btn')[2].click());
+    [...document.querySelectorAll('.q-item')].slice(0, 30).forEach((it) => it.querySelectorAll('.q-btn')[botao].click());
     document.querySelector('[data-acao="calcular"]').click();
     await new Promise(x => setTimeout(x, 400));
-  });
+  }, botao);
 }
 async function salvarHolo() {
   return A.evaluate(async () => {
@@ -212,7 +223,7 @@ const holos = srv.linhas('holoscan_applications').filter(a => a.patient_id === P
 ok(holos.length === 1 && holos[0].encounter_id === e2.id, '7: o HOLOSCAN novo gravou encounter_id do atendimento selecionado');
 
 await A.evaluate(() => window.AtendimentoAtual.limpar());
-await responderECalcular();
+await responderECalcular(1);
 const recusa = await salvarHolo();
 ok(/Selecione ou inicie um atendimento para salvar\./.test(recusa) && srv.linhas('holoscan_applications').filter(a => a.patient_id === PA).length === 1,
    '8: sem atendimento ativo, salvar e recusado com a mensagem certa; nada foi ao servidor');
@@ -243,45 +254,29 @@ ok(appsDepois[0].encounter_id === e1[0].id && appsDepois[0].consultation_id === 
    '13: marcar outra consulta no mesmo dia nao alterou o vinculo da aplicacao');
 
 /* ==================================================================== */
-titulo('14, 15 — COLETAS');
+titulo('14, 15 — COLETAS: EXAME E SO ARQUIVO (09/10)');
 /* ==================================================================== */
-async function registrarColeta(valores, data, vincular) {
-  return A.evaluate(async (valores, data, vincular) => {
-    Object.keys(valores).forEach(id => {
-      const inp = document.querySelector('#ex-corpo .ex-linha[data-exame="' + id + '"] input');
-      inp.value = String(valores[id]); inp.dispatchEvent(new Event('input', { bubbles: true }));
-    });
-    const d = document.getElementById('ex-data-coleta');
-    if (data && !d.disabled) d.value = data;
-    const cb = document.getElementById('ex-vincular-atendimento');
-    const temCaixa = !!cb;
-    if (cb) cb.checked = !!vincular;
-    document.querySelector('#ex-corpo [data-acao="conferir"]').click();
-    await new Promise(r => setTimeout(r, 900));
-    return { temCaixa };
-  }, valores, data, vincular);
-}
-const EXAME = await A.evaluate(() => document.querySelector('#ex-corpo .ex-linha') ? null : null);
+/* A Etapa 1 provava o vinculo coleta x atendimento. Decisao de produto 09/10: nao existe mais coleta
+   estruturada — nem pelo painel (que saiu da ficha), nem pela sincronizacao, nem pelo servidor, com ou
+   sem atendimento ativo. */
 await A.evaluate(async (pid) => {
   window.AtendimentoAtual.limpar();
   window.abrirFichaDe(pid); await new Promise(r => setTimeout(r, 300));
   document.querySelector('[data-aba="documentos"]').click(); await new Promise(r => setTimeout(r, 400));
 }, PA);
-const primeiroExame = await A.evaluate(() => document.querySelector('#ex-corpo .ex-linha').dataset.exame);
-const r14 = await registrarColeta({ [primeiroExame]: 95 }, '2026-02-01', false);
-const coletas1 = srv.linhas('lab_collections').filter(c => c.patient_id === PA);
-ok(!r14.temCaixa && coletas1.length === 1 && coletas1[0].encounter_id == null, '14: sem atendimento ativo nao ha caixa de vinculo; a coleta nasce sem encounter');
-await A.evaluate(async (id) => {
-  window.AtendimentoAtual.selecionarPorId(id); await new Promise(r => setTimeout(r, 300));
-  document.querelector = null;
-  const nova = document.querySelector('#ex-corpo [data-acao="nova-coleta"]'); if (nova) nova.click();
-  await new Promise(r => setTimeout(r, 300));
-}, e2.id);
-const r15 = await registrarColeta({ [primeiroExame]: 101 }, '2026-02-02', true);
-const coletas2 = srv.linhas('lab_collections').filter(c => c.patient_id === PA);
-const vinculada = coletas2.find(c => c.id !== coletas1[0].id);
-ok(r15.temCaixa && coletas2.length === 2 && vinculada && vinculada.encounter_id === e2.id && coletas2.find(c => c.id === coletas1[0].id).encounter_id == null,
-   '15: com atendimento ativo a caixa aparece; marcada, a coleta nova sai vinculada e a anterior continua sem vinculo');
+const painel14 = await A.evaluate(() => document.querySelectorAll('#ex-corpo, #lab-corpo, .ex-linha, [data-lancar], #ex-vincular-atendimento, [data-lab-acao]').length);
+const r14 = await A.evaluate((pid) => window.Sincronizacao.salvarColeta(pid, { 'EXA-001': 95 }, '2026-02-01'), PA);
+ok(painel14 === 0 && !r14.ok && r14.motivo === 'laboratorio_desativado' && srv.linhas('lab_collections').length === 0,
+   '14: sem atendimento ativo: nenhum painel de valores na aba Documentos, e a sincronizacao recusa a coleta');
+await A.evaluate(async (id) => { window.AtendimentoAtual.selecionarPorId(id); await new Promise(r => setTimeout(r, 300)); }, e2.id);
+const r15 = await A.evaluate(async (pid, eid) => {
+  const sb = window.supabaseClient;
+  const rpc = await sb.rpc('salvar_coleta_laboratorial', { payload: { collection: { patient_id: pid, encounter_id: eid, clinical_date: '2026-02-02', state: 'salvo' }, results: [{ exam_code: 'LAB-002', value_original_text: '101', numeric_value: 101, qualifier: 'eq' }] } });
+  const direto = await sb.from('lab_collections').insert([{ patient_id: pid, encounter_id: eid, coletado_em: '2026-02-02', data_coleta_desconhecida: false }]);
+  return { rpc: rpc.error && rpc.error.hint, direto: direto.error && direto.error.code };
+}, PA, e2.id);
+ok(r15.rpc === 'laboratorio_desativado' && r15.direto === '42501' && srv.linhas('lab_collections').length === 0,
+   '15: com atendimento ativo tambem: a RPC recusa (laboratorio_desativado) e a tabela nao aceita (42501)');
 
 /* ==================================================================== */
 titulo('16, 17 — TROCA DE PACIENTE E HISTORICO');
@@ -313,18 +308,19 @@ await marcar(PB, diaISO(10), '09:00');                               // agendame
 const tela = await A.evaluate(async () => {
   document.querySelector('.nav-item[data-secao="consultas"]').click();
   await new Promise(r => setTimeout(r, 400));
+  const mes = document.getElementById('at-mes'); mes.value = ''; mes.dispatchEvent(new Event('change'));   /* 14/10: todos os meses */
   return {
     rotulo: document.querySelector('.nav-item[data-secao="consultas"]').textContent.trim(),
     titulo: document.querySelector('#consultas-corpo h2').textContent,
     linhas: [...document.querySelectorAll('#atendimentos-lista .at-linha')].map(l => l.innerText.replace(/\s+/g, ' ')),
-    agenda: document.querySelector('#consultas-agenda').innerText,
+    agenda: !!document.querySelector('#consultas-agenda'),
   };
 });
 ok(tela.rotulo === 'Atendimentos' && /atendimentos/.test(tela.titulo), 'o menu e o titulo dizem Atendimentos: ' + tela.titulo.trim());
 ok(tela.linhas.length === 2 && tela.linhas.every(l => /Paciente Um/.test(l)) && !tela.linhas.some(l => /Paciente Dois/.test(l)),
    '18: a lista traz os 2 atendimentos reais; o agendamento futuro de Paciente Dois nao aparece como atendimento');
-ok(/Paciente Dois/.test(tela.agenda) && /não são atendimentos|marcadas/.test(tela.agenda), 'o agendamento futuro fica no bloco da agenda, com esse nome');
-ok(tela.linhas.some(l => /com agendamento/.test(l)) && tela.linhas.some(l => /sem agendamento/.test(l)), 'cada linha diz a origem: com/sem agendamento');
+ok(!tela.agenda, '14/10: o agendamento futuro fica só na Agenda (a página Atendimentos não repete a agenda)');
+ok(tela.linhas.some(l => /Agendado/.test(l)) && tela.linhas.some(l => /Avulso/.test(l)), 'cada linha diz a origem: Agendado / Avulso');
 
 /* ==================================================================== */
 titulo('CANCELAR E REAGENDAR PELA AGENDA');
@@ -401,8 +397,8 @@ ok(exportado && Array.isArray(exportado.agendamentos) && exportado.agendamentos.
    exportado.agendamentos.some(c => c.cancelled_at && c.rescheduled_to_id) && !('consultas' in exportado),
    '19: e "agendamentos" separados (com cancelados/reagendados marcados), nao chamados de atendimento');
 ok(exportado && exportado.holoscanAplicacoes && exportado.holoscanAplicacoes[0].encounter_id === e2.id &&
-   exportado.aplicacoesFerramentas[0].encounter_id === e1[0].id && exportado.coletasExames.some(c => c.encounter_id === e2.id),
-   '19: HOLOSCAN, ferramenta e coleta exportados levam o encounter_id');
+   exportado.aplicacoesFerramentas[0].encounter_id === e1[0].id && !exportado.coletasExames,
+   '19: HOLOSCAN e ferramenta exportados levam o encounter_id; nenhuma coleta (09/10: nada foi gravado)');
 
 /* ==================================================================== */
 titulo('20 — HOLOS AI');
@@ -417,7 +413,9 @@ const contexto = await A.evaluate(async (pid, id) => {
 ok(/Atendimentos registrados/.test(contexto) && /10\/03\/2026 às 08:30 · sem agendamento · SELECIONADO/.test(contexto) && /com agendamento de origem/.test(contexto),
    '20: o contexto traz os atendimentos como fato (quando, origem, qual esta selecionado)');
 ok(/Agenda \(agendamentos\)/.test(contexto) && !/Realizada/.test(contexto), 'a agenda vai como agendamento, nunca como "realizada"');
-const vazou = contexto.match(/### Índice HOLOS|### Tríada|- Físico:|faixa \d|### Leitura Integrada|CMB-|\bREC-|\bSEL-|nota \d/);
+/* simulacao 08/10: notas/faixas da aplicacao calculada pelo HOLOS-V1 OFICIAL entram (ver testar-v1-etapa0 item 21);
+   o que nao e homologado (CMB, REC, SEL, Leitura Integrada no contexto) continua fora */
+const vazou = contexto.match(/### Leitura Integrada|CMB-|\bREC-|\bSEL-/);
 ok(!vazou, '20: nenhuma metodologia nao homologada voltou ao contexto' + (vazou ? ' — vazou: ' + vazou[0] + ' em "' + contexto.slice(Math.max(0, vazou.index - 60), vazou.index + 60).replace(/\n/g, ' ') + '"' : ''));
 
 /* ==================================================================== */

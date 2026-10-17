@@ -23,12 +23,13 @@
 (function () {
   "use strict";
 
+  /* Decisao de produto 09/10: o sistema nao prescreve dieta. Prescricao dietetica, diagnostico nutricional e
+     encaminhamentos sairam da conduta (o servidor tambem nao grava mais esses campos em revisao nova —
+     migration 20261011100000). Revisoes antigas guardam o que foi escrito, mas a tela nao exibe nem copia. */
   var CAMPOS = [
     ["objective", "Objetivo da etapa"], ["nutrition_strategy", "Estratégia nutricional"], ["actions", "Ações"],
-    ["resources", "Recursos"], ["requested_exams", "Exames solicitados (quando pertinente)"], ["referrals", "Encaminhamentos"],
+    ["resources", "Recursos"], ["requested_exams", "Exames solicitados (quando pertinente)"],
     ["monitoring", "Monitoramento"], ["return_plan", "Retorno"], ["observations", "Observações"],
-    ["nutrition_diagnosis", "Diagnóstico nutricional (quando utilizado)"],
-    ["dietary_prescription", "Prescrição dietética (quando utilizada)"],
     ["professional_guidance", "Orientações profissionais"]
   ];
   var ESTADOS_ACORDO = [["proposto", "Proposto"], ["acordado", "Acordado"], ["em_acompanhamento", "Em acompanhamento"],
@@ -82,6 +83,15 @@
     return acordos.filter(function (a) { return a.conduct_id === cid; })
       .sort(function (a, b) { return (a.position || 0) - (b.position || 0) || String(a.created_at).localeCompare(String(b.created_at)); })
       .map(function (a) { return Object.assign({}, a); });
+  }
+  /** A conduta vigente MAIS RECENTE do paciente, em qualquer atendimento
+      (pela data do atendimento). { conduta, atendimento } ou null. */
+  function vigenteDoPaciente(pid, excetoEid) {
+    var A = window.AtendimentoAtual; if (!A) return null;
+    var lista = A.doPaciente(pid).filter(function (e) { return e.id !== excetoEid; })
+      .sort(function (a, b) { return String(b.occurred_at).localeCompare(String(a.occurred_at)); });
+    for (var i = 0; i < lista.length; i++) { var v = vigente(lista[i].id); if (v) return { conduta: v, atendimento: lista[i] }; }
+    return null;
   }
   /** A conduta vigente do atendimento ANTERIOR do paciente (retorno). */
   function anteriorDe(pid, eid) {
@@ -238,17 +248,21 @@
     "</li>";
   }
 
+  /* simulacao 08/10: nome da ferramenta para a tela (antes aparecia o id interno da ferramenta) */
+  function nomeFerramenta(id) {
+    var f = (window.CATALOGO_FERRAMENTAS || []).filter(function (x) { return x.id === id; })[0];
+    return f ? f.titulo + (f.legado ? " (versão anterior)" : "") : id === "oq3" ? "OQ³" : id === "pqq" ? "PQQ" : id === "mapa" ? "Mapa do Propósito" : String(id || "");
+  }
+
   function referenciasHtml(pid, refs, editavel) {
     var S = window.Sincronizacao, A = window.AtendimentoAtual;
     var holos = []; try { holos = (S && S.holoscanConsolidado ? S.holoscanConsolidado(pid) : []) || []; } catch (e) {}
     var historico = (window.Panorama && window.Panorama.doPaciente) ? (window.Panorama.doPaciente(pid).historico || []) : [];
     var holoIds = historico.filter(function (h) { return h._supa_id; }).map(function (h) { return { id: h._supa_id, rot: "HOLOSCAN de " + (window.dataBR ? window.dataBR(h.quando) : h.quando) }; });
     var ferr = (window.Aplicacoes && window.Aplicacoes.doPaciente ? window.Aplicacoes.doPaciente(pid) : []).filter(function (a) { return a.id && a.status !== "rascunho"; })
-      .map(function (a) { return { id: a.id, rot: a.ferramenta_id + " (" + String(a.concluida_em || a.iniciada_em || "").slice(0, 10) + ")" }; });
-    var col = (S && S.coletas ? S.coletas(pid) : []) || [];
-    var colIds = col.map(function (c) { return { id: c.id, rot: "coleta " + (c.coletado_em ? (window.dataBR ? window.dataBR(c.coletado_em) : c.coletado_em) : "sem data") }; });
+      .map(function (a) { var d = String(a.concluida_em || a.iniciada_em || "").slice(0, 10); return { id: a.id, rot: nomeFerramenta(a.ferramenta_id) + " (" + (window.dataBR ? window.dataBR(d) : d) + ")" }; });
     var enc = (A ? A.doPaciente(pid) : []).map(function (e) { return { id: e.id, rot: "atendimento " + A.rotuloQuando(e) }; });
-    var grupos = [["holoscan_application_ids", "HOLOSCAN", holoIds], ["tool_application_ids", "Ferramentas", ferr], ["lab_collection_ids", "Coletas", colIds], ["previous_encounter_ids", "Atendimentos", enc]];
+    var grupos = [["holoscan_application_ids", "HOLOSCAN", holoIds], ["tool_application_ids", "Ferramentas", ferr], ["previous_encounter_ids", "Atendimentos", enc]];
     var html = '<details class="an-dominio" id="cd-referencias"><summary><b>Referências clínicas</b> <span class="an-conta">por ID, sem copiar</span></summary>';
     grupos.forEach(function (gr) {
       var sel = (refs || {})[gr[0]] || [];
@@ -321,6 +335,18 @@
     if (!mostrar && rascunho) { mostrar = rascunho; editavel = !arquivado; titulo = rascunho.id ? "Rascunho em edição" : (rascunho.corrigeDe ? "Correção (nova revisão, ainda não salva)" : "Nova conduta (ainda não salva)"); }
     if (!mostrar && vig) { mostrar = vig; titulo = "Revisão vigente (rev. " + vig.revision_number + ")"; }
 
+    /* Teste real 07/10: com um atendimento antigo ativo, a aba dizia so
+       "Iniciar conduta" — parecia que a conduta salva tinha sumido. Se a
+       conduta vigente da pessoa esta num atendimento MAIS RECENTE, a tela diz
+       onde ela esta e leva ate la. */
+    if (!vig && !rascunho && !vendo) {
+      var outra = vigenteDoPaciente(pid, e.id);
+      if (outra && String(outra.atendimento.occurred_at) > String(e.occurred_at)) {
+        html += '<div class="aviso-oficial" id="cd-vigente-outro"><p>A conduta vigente desta pessoa está no atendimento de <b>' + escapar(A.rotuloQuando(outra.atendimento)) +
+          "</b> (rev. " + outra.conduta.revision_number + (outra.conduta.objective ? " · " + escapar(outra.conduta.objective) : "") + "). " +
+          'Este atendimento (' + escapar(A.rotuloQuando(e)) + ') ainda não tem conduta.</p><button type="button" class="perf-botao" data-cd-ir="' + escapar(outra.atendimento.id) + '">Abrir o atendimento da conduta vigente</button></div>';
+      }
+    }
     html += '<div class="an-acoes">';
     if (vendo) html += '<button type="button" class="perf-botao" data-cd-acao="fechar-ver">Voltar</button>';
     else if (!rascunho && !vig && !arquivado) html += '<button type="button" class="btn-verde" data-cd-acao="nova">Iniciar conduta</button>';
@@ -346,9 +372,15 @@
           html += '<div class="perf-campo largo"><label for="cd-' + f[0] + '">' + escapar(f[1]) + "</label>" +
             '<textarea id="cd-' + f[0] + '" data-cd-campo="' + f[0] + '" rows="2">' + escapar(mostrar[f[0]] || "") + "</textarea></div>";
         });
-        var cat = window.CATALOGO_FERRAMENTAS || [];
+        /* simulacao 08/10: o catalogo guarda as versoes antigas (legado) ao lado das novas com o mesmo
+           titulo — a lista mostrava Mapa da Rotina, Gatilhos e Conexao duas vezes. So as ativas, mais
+           alguma antiga que ja esteja marcada nesta conduta (para nao perder a marcacao). */
+        var ativas = window.FERRAMENTAS_ATIVAS || null, marcadas = mostrar.related_tools || [];
+        var cat = (window.CATALOGO_FERRAMENTAS || []).filter(function (f) { return !ativas || ativas.indexOf(f.id) >= 0 || marcadas.indexOf(f.id) >= 0; });
+        /* 12/10 (bug 9): OQ3, PQQ e Mapa do Proposito tem tela propria (fora do catalogo): as 10 do metodo na lista */
+        cat = [{ id: "oq3" }, { id: "pqq" }, { id: "mapa" }].filter(function (x) { return !cat.some(function (f) { return f.id === x.id; }); }).concat(cat);
         html += '<details class="an-dominio"><summary><b>Ferramentas relacionadas</b></summary>' + cat.map(function (f) {
-          return '<label class="an-check"><input type="checkbox" data-cd-tool="' + escapar(f.id) + '"' + ((mostrar.related_tools || []).indexOf(f.id) >= 0 ? " checked" : "") + "> " + escapar(f.titulo) + "</label>";
+          return '<label class="an-check"><input type="checkbox" data-cd-tool="' + escapar(f.id) + '"' + (marcadas.indexOf(f.id) >= 0 ? " checked" : "") + "> " + escapar(nomeFerramenta(f.id)) + "</label>";
         }).join("") + "</details>";
         html += referenciasHtml(pid, mostrar.references, true);
         html += '<div class="cd-acordos-bloco"><span class="fic-rot">Acordos</span><ul class="cd-acordos" id="cd-acordos">' +
@@ -358,7 +390,7 @@
       } else {
         if ((mostrar.priorities || []).length) html += "<p><b>Prioridades:</b> " + escapar(mostrar.priorities.join("; ")) + "</p>";
         CAMPOS.forEach(function (f) { if (mostrar[f[0]]) html += '<p class="cd-campo"><b>' + escapar(f[1]) + ":</b> " + escapar(mostrar[f[0]]) + "</p>"; });
-        if ((mostrar.related_tools || []).length) html += "<p><b>Ferramentas relacionadas:</b> " + escapar(mostrar.related_tools.join(", ")) + "</p>";
+        if ((mostrar.related_tools || []).length) html += "<p><b>Ferramentas relacionadas:</b> " + escapar(mostrar.related_tools.map(nomeFerramenta).join(", ")) + "</p>";
         html += referenciasHtml(pid, mostrar.references, false);
         var ag = acordosDe(mostrar.id);
         html += '<div class="cd-acordos-bloco"><span class="fic-rot">Acordos</span>' + (ag.length ? '<ul class="cd-acordos" id="cd-acordos">' + ag.map(function (g) { return acordoHtml(g, 0, false, consolidada(mostrar) && !mostrar.superseded_at && !arquivado); }).join("") + "</ul>" : '<p class="dash-vazio">Nenhum acordo registrado.</p>') + "</div>";
@@ -424,6 +456,8 @@
     var alvo = document.getElementById("aba-conduta"); if (!alvo) return;
     alvo.addEventListener("click", function (ev) {
       var e = atendimentoAtivo(); if (!e) return;
+      var ir = ev.target.closest("[data-cd-ir]");
+      if (ir) { if (window.AtendimentoAtual) window.AtendimentoAtual.selecionarPorId(ir.dataset.cdIr); return; }
       var b = ev.target.closest("[data-cd-acao]");
       if (b) {
         var acao = b.dataset.cdAcao;
@@ -484,7 +518,7 @@
   window.Conduta = {
     MSG_SEM_ATENDIMENTO: MSG_SEM_ATENDIMENTO, CAMPOS: CAMPOS, ESTADOS_ACORDO: ESTADOS_ACORDO, DECISOES: DECISOES, rotulo: function (k) { return ROTULO[k] || k; },
     carregar: carregar, carregando: function () { return carregando; }, salvar: salvar, mudarAcordo: mudarAcordo,
-    doAtendimento: doAtendimento, vigente: vigente, rascunhoDe: rascunhoDe, doPaciente: doPaciente, acordosDe: acordosDe, anteriorDe: anteriorDe,
+    doAtendimento: doAtendimento, vigente: vigente, vigenteDoPaciente: vigenteDoPaciente, rascunhoDe: rascunhoDe, doPaciente: doPaciente, acordosDe: acordosDe, anteriorDe: anteriorDe,
     consolidada: consolidada, textoBruto: textoBruto, desenhar: desenhar, aoMudar: function (f) { if (typeof f === "function") ouvintes.push(f); },
     todosAcordos: function () { return acordos.map(function (a) { return Object.assign({}, a); }); },
     esquecer: function () { cache = []; acordos = []; locais = []; locaisAcordos = []; rascunho = null; vendo = null; }

@@ -69,17 +69,48 @@
     return Promise.resolve(P.carregar()).then(function () { return disponivel(); }, function () { return false; });
   }
 
-  /** Rotulo curto do item so para exibicao (nao entra em conta nenhuma). */
+  /** Texto do item para exibicao (nao entra em conta nenhuma). Motor de resultados V1 (12/10, item 4.5): o texto
+      APROVADO da pergunta no pacote — nunca o rotulo clinico curto do holoscan.js (ex.: "marcador inflamatorio alterado
+      no exame"), que nao e texto aprovado. O rotulo legado so vale sem pacote (modo local/legado). */
   function rotuloItem(p, id) {
+    var q = (p && p.perguntas || []).filter(function (x) { return x.stable_id === id; })[0];
+    if (q && q.statement) return q.statement;
     try {
       if (!rotuloItem._mapa && raiz.HOLOSCAN && raiz.HOLOSCAN.questionario) {
         rotuloItem._mapa = {};
-        raiz.HOLOSCAN.questionario().forEach(function (q) { rotuloItem._mapa[q.id] = q.rotulo; });
+        raiz.HOLOSCAN.questionario().forEach(function (x) { rotuloItem._mapa[x.id] = x.rotulo; });
       }
     } catch (e) { rotuloItem._mapa = {}; }
-    if (rotuloItem._mapa && rotuloItem._mapa[id]) return rotuloItem._mapa[id];
-    var q = (p.perguntas || []).filter(function (x) { return x.stable_id === id; })[0];
-    return q ? q.statement : id;
+    return (rotuloItem._mapa && rotuloItem._mapa[id]) || id;
+  }
+
+  /* ---------- as perguntas que a tela mostra (12/10) ----------------------
+     Antes a tela lia as perguntas do holoscan.js (gerado dos CSVs do motor
+     antigo) e o calculo usava o pacote: texto novo no pacote nao aparecia na
+     tela, e pergunta removida do pacote continuava sendo perguntada. Agora a
+     lista sai do pacote APROVADO e VIGENTE (texto, escala, bloco e ordem do
+     pacote). Sem pacote (modo local sem servidor, homologacao do legado), a
+     lista do holoscan.js continua valendo. No HOLOS-V1 v2 as duas listas sao
+     identicas (mesma ordem, textos e escalas). */
+  var ORIGEM_DO_BLOCO = { fisico: "sintoma", mental_emocional: "emocao", espiritual: "espiritual" };
+  var cachePerguntas = { chave: null, lista: null };
+  function perguntasLegado() {
+    try { return raiz.HOLOSCAN && raiz.HOLOSCAN.questionario ? raiz.HOLOSCAN.questionario() : []; } catch (e) { return []; }
+  }
+  function perguntas(dia) {
+    var M = raiz.Metodologia;
+    var p = M && M.obterPacoteAtivo ? M.obterPacoteAtivo(dia) : null;
+    if (!p || !p.perguntas || !p.perguntas.length) return perguntasLegado();
+    var chave = (p.id || p.code + "@" + p.version) + "|" + (p.content_hash || "") + "|" + p.perguntas.length;
+    if (cachePerguntas.chave === chave) return cachePerguntas.lista;
+    var lista = p.perguntas.slice().sort(function (a, b) { return (a.position || 0) - (b.position || 0) || (a.stable_id < b.stable_id ? -1 : 1); })
+      .map(function (q) {
+        return { id: q.stable_id, origem: ORIGEM_DO_BLOCO[q.block] || q.block, pergunta: q.statement, escala: q.scale_code,
+          rotulo: q.statement, sentido: q.orientation === "invertida" ? "invertido" : "direto",
+          pacote: p.code + " v" + p.version };
+      });
+    cachePerguntas = { chave: chave, lista: lista };
+    return lista;
   }
 
   /**
@@ -193,9 +224,30 @@
     return "historica_sem_pacote";
   }
 
+  /* rodada UX 14/10 — "POR QUE" da dimensao mais baixa da Triade (so leitura): roda o MESMO motor oficial sobre as
+     respostas da aplicacao e devolve os marcadores que contribuiram para aquele eixo, do maior para o menor. Nao muda
+     nenhuma conta; quem chama confere que a nota bate com a da aplicacao na tela (senao as respostas nao sao dela). */
+  function marcadoresTriade(respostas, eixo, dia) {
+    var p = pacote(dia || hoje()), MM = raiz.MotorMetodologico;
+    if (!p || !MM || !MM.calcular || !respostas || !Object.keys(respostas).length) return null;
+    var v;
+    try {
+      v = MM.calcular({ responses: respostas, response_states: {}, methodology_package: p, mode: MODO, engine_version: MM.VERSAO,
+        questionnaire_edition: p.edicao ? { code: p.edicao.code, version: p.edicao.version } : undefined,
+        application_context: { applied_at: dia || hoje(), patient_id: null } });
+    } catch (e) { return null; }
+    var t = v.triad_result && v.triad_result[eixo];
+    if (!t || !t.avaliavel) return null;
+    var itens = v.item_contributions.filter(function (c) { return c.destination_type === "triad" && c.destination === eixo && c.contribution > 0; })
+      .sort(function (a, b) { return b.contribution - a.contribution || a.question_id.localeCompare(b.question_id); })
+      .map(function (c) { return { id: c.question_id, rotulo: rotuloItem(p, c.question_id), pontos: c.contribution }; });
+    return { nota: t.nota, itens: itens };
+  }
+
   raiz.HoloscanOficial = {
+    marcadoresTriade: marcadoresTriade,
     MSG_SEM_PACOTE: MSG_SEM_PACOTE, ErroSemPacote: ErroSemPacote,
     pacote: pacote, disponivel: disponivel, motivos: motivos, recarregar: recarregar,
-    calcular: calcular, paraTela: paraTela, payload: payload, natureza: natureza
+    calcular: calcular, paraTela: paraTela, payload: payload, natureza: natureza, perguntas: perguntas
   };
 })();

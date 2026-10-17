@@ -16,7 +16,7 @@
      LINHA DO TEMPO o que aconteceu com esta pessoa, em ordem
      FORMULÁRIOS    o que foi respondido — e o que dá para reler
 
-   Sobre Formulários: no método, o HOLOSCAN É um formulário — 84 perguntas
+   Sobre Formulários: no método, o HOLOSCAN É um formulário — 81 perguntas (v7)
    respondidas numa escala de 0 a 3. O OQ³, o PQQ e o Mapa do Propósito também
    são. O que faltava era poder RELER o que a pessoa respondeu: o app calculava
    a nota e jogava as respostas numa caixa que nenhuma tela abria. A janela de
@@ -106,6 +106,55 @@
     return id;
   }
 
+  /* ============================================ PESO E ALTURA (14/10) ===== */
+  /* Medidos pela nutricionista na consulta e guardados NO ATENDIMENTO (cada consulta guarda a sua medida).
+     A faixa mostra a mais recente; o IMC e so a conta (peso / altura²), sem classificacao. */
+  function numBR(n, casas) { return Number(n).toFixed(casas).replace(".", ","); }
+  function textoMedidas(pid) {
+    var A = window.AtendimentoAtual; if (!A || !A.medidas) return null;
+    var m = A.medidas(pid);
+    if (m.peso === null && m.altura === null) return null;
+    var partes = [];
+    if (m.peso !== null) partes.push(numBR(m.peso, 1) + " kg");
+    if (m.altura !== null) partes.push(numBR(m.altura / 100, 2) + " m");
+    if (m.peso !== null && m.altura) partes.push("IMC " + numBR(m.peso / Math.pow(m.altura / 100, 2), 1));
+    return partes.join(" &middot; ");
+  }
+  function lerNumero(v) { v = String(v || "").trim().replace(",", "."); if (!v) return null; var n = Number(v); return isFinite(n) ? n : NaN; }
+  function registrarMedidas() {
+    var pid = paciente(), A = window.AtendimentoAtual;
+    if (!A || !pid) return;
+    if (window.pacienteArquivado && window.pacienteArquivado(pid)) { if (window.avisar) window.avisar(window.MSG_ARQUIVADO || "Paciente arquivado."); return; }
+    var at = A.atual && A.atual();
+    if (!at || at.patient_id !== pid) { if (window.avisar) window.avisar("Selecione ou inicie o atendimento de hoje para registrar peso e altura."); return; }
+    var m = A.medidas(pid);
+    var peso = at.weight_kg !== null && at.weight_kg !== undefined ? at.weight_kg : (m.peso !== null ? m.peso : "");
+    var alt = at.height_cm !== null && at.height_cm !== undefined ? at.height_cm : (m.altura !== null ? m.altura : "");
+    var corpo = '<p class="dash-sub">Atendimento de ' + escapar(A.rotuloQuando(at)) + '. A medida fica guardada neste atendimento.</p>' +
+      '<div class="fic-medidas-form"><label>Peso (kg)<input type="text" inputmode="decimal" id="fic-peso" placeholder="Ex.: 68,5" value="' + escapar(peso === "" ? "" : String(peso).replace(".", ",")) + '"></label>' +
+      '<label>Altura (cm)<input type="text" inputmode="decimal" id="fic-altura" placeholder="Ex.: 165" value="' + escapar(alt === "" ? "" : String(alt).replace(".", ",")) + '"></label></div>';
+    var abrir = window.abrirModalConfirmar ? window.abrirModalConfirmar({ titulo: "Peso e altura", corpo: corpo, botaoConfirmar: "Salvar", classeConfirmar: "btn-verde" }) : Promise.resolve(null);
+    setTimeout(function () { var i = document.getElementById("fic-peso"); if (i) i.focus(); }, 60);
+    abrir.then(function (r) {
+      if (r !== "confirmar") return;
+      var p = lerNumero((document.getElementById("fic-peso") || {}).value), a = lerNumero((document.getElementById("fic-altura") || {}).value);
+      if ((p !== null && (isNaN(p) || p < 1 || p > 400)) || (a !== null && (isNaN(a) || a < 30 || a > 250))) {
+        if (window.avisar) window.avisar("Confira os valores: peso entre 1 e 400 kg e altura entre 30 e 250 cm (em centímetros)."); return;
+      }
+      A.atualizar(at.id, { weight_kg: p, height_cm: a }).then(function (res) {
+        if (res && res.ok) { if (window.avisar) window.avisar("Peso e altura salvos no atendimento."); desenharFaixa(); return; }
+        var msg = res && res.conflito ? "O atendimento mudou em outra aba. Abra de novo e tente outra vez."
+          : /weight_kg|height_cm|42703|PGRST204/.test(String(res && res.erro && (res.erro.message || res.erro.code) || "")) ? "O servidor ainda não tem os campos de peso e altura (atualização pendente)."
+          : "Não foi possível salvar agora.";
+        if (window.avisar) window.avisar(msg);
+      });
+    });
+  }
+  document.addEventListener("click", function (ev) {
+    var b = ev.target.closest && ev.target.closest("#ficha-faixa [data-medidas]");
+    if (b) registrarMedidas();
+  });
+
   /* ======================================================= A FAIXA ======== */
 
   /* As quatro perguntas que se faz antes de abrir qualquer aba. Cada uma tem
@@ -122,44 +171,181 @@
 
     var prox = window.Agenda && window.Agenda.proxima ? window.Agenda.proxima(pid) : null;
     var proxTexto = prox
-      ? dataBR(prox.data) + " às " + prox.hora + " &middot; " + emQuantoTempo(-diasDesde(prox.data))
+      ? dataBR(prox.data) + " às " + String(prox.hora || "").slice(0, 5) + " &middot; " + emQuantoTempo(-diasDesde(prox.data))
       : null;
 
-    var abertas = alertas(d).length;
+    /* Redesign 12/10: "Em aberto" (pendencias) virou ETAPA ATUAL. 14/10 (auditoria Cowork): sai da MESMA conta da
+       jornada desenhada logo abaixo (antes vinha de outra regra e ficava "—" com a jornada ja na etapa 4) */
+    var ej = estadoJornada(pid);
+    var passoAtual = PASSOS.filter(function (p) { return p.id === ej.atual; })[0];
+    var et = passoAtual ? { rotulo: passoAtual.nome } : (ej.algumFeito ? { rotulo: "Acompanhamento" } : null);
+    /* 16/10: depois da entrega, a etapa e "Resultado entregue" (proximo: retorno); atendimento novo depois dela = retorno */
+    var ciclo0 = cicloDe(pid);
+    if (ciclo0 && ciclo0.entregue && (!passoAtual || passoAtual.id === "acompanhar")) et = { rotulo: "Resultado entregue" };
+    else if (ciclo0 && ciclo0.retornoEmAndamento && (!passoAtual || passoAtual.id === "acompanhar")) et = { rotulo: "Retorno em andamento" };
 
     var itens = [
-      { rot: "Última aplicação", valor: ultima, vazio: "nenhuma", acao: "holoscan" },
       { rot: "Próxima consulta", valor: proxTexto, vazio: "não agendada", acao: "agenda" },
-      { rot: "Em aberto",
-        valor: abertas === 0 ? "tudo em dia" : abertas + (abertas === 1 ? " pendência" : " pendências"),
-        alerta: abertas > 0, acao: "aba:visao" },
-      { rot: "Exames", valor: d.exames > 0 ? d.exames + " preenchidos" : null,
-        vazio: "nenhum valor", acao: "aba:documentos" },
-      { rot: "Documentos", valor: null, vazio: "carregando…", id: "fic-faixa-docs",
-        acao: "aba:documentos" }
+      { rot: "Último HOLOSCAN", valor: ultima, vazio: "nenhum", acao: "holoscan" },
+      { rot: "Etapa atual", valor: et ? escapar(et.rotulo) : null, vazio: "—", acao: "aba:visao", id: "fic-faixa-etapa" },
+      { rot: "Peso e altura", valor: textoMedidas(pid), vazio: "registrar", medidas: true, id: "fic-faixa-medidas" }
     ];
 
     alvo.setAttribute("role", "group");
     alvo.setAttribute("aria-label", "Resumo do paciente");
     alvo.innerHTML = itens.map(function (i) {
       return '<button type="button" class="fic-pilula' +
-        (i.valor ? "" : " vazia") + (i.alerta ? " alerta" : "") + '"' +
+        (i.valor ? "" : " vazia") + '"' +
         (i.id ? ' id="' + i.id + '"' : "") +
-        ' data-ir="' + i.acao + '"' +
-        ' aria-label="' + escapar(i.rot) + ': ' + escapar(i.valor || i.vazio) + '">' +
+        (i.medidas ? ' data-medidas="1"' : ' data-ir="' + i.acao + '"') +
+        ' aria-label="' + escapar(i.rot) + ': ' + (i.valor || i.vazio).replace(/&middot;/g, "·") + '">' +
         '<span class="fic-pilula-rot">' + i.rot + "</span>" +
         '<b>' + (i.valor || i.vazio) + "</b></button>";
     }).join("");
+    desenharJornada();
+  }
 
-    if (window.ArquivoStore) {
-      window.ArquivoStore.listar(pid).then(function (itens) {
-        var el = document.getElementById("fic-faixa-docs");
-        if (!el) return;
-        el.classList.toggle("vazia", itens.length === 0);
-        el.querySelector("b").textContent = itens.length === 0
-          ? "nenhum" : itens.length + (itens.length === 1 ? " arquivo" : " arquivos");
-      });
+  /* ============================================ JORNADA CLINICA (12/10) ==== */
+  /* Horizontal. Cada passo marcado SO com dado real (JornadaPaciente.passos):
+     Mapear = HOLOSCAN salvo; Integrar = 1+ ferramenta concluida/revisada;
+     Consolidar = Resultado HOLOS vigente salvo/revisado; Apresentar = Resultado
+     Final emitido; Acompanhar = 2+ HOLOSCANs salvos. Sem porcentagem, sem
+     pendencia: o primeiro passo nao feito e o "atual", os outros sao futuros. */
+  /* 14/10: o fluxo completo do atendimento. Antes da consulta, o paciente preenche o Mapeamento
+     Holistico pelo link; no atendimento, HOLOSCAN e ferramentas; depois, a Holos IA gera o Resultado
+     HOLOS, que e apresentado ao paciente; nos retornos, a Evolucao. */
+  var PASSOS = [
+    { id: "pre", mov: "ANTES", nome: "Mapeamento Holístico", ir: "aba:anamnese" },
+    { id: "mapear", mov: "ATENDIMENTO", nome: "Abrir atendimento + HOLOSCAN", atalho: "holoscan" },
+    { id: "integrar", mov: "ATENDIMENTO", nome: "Ferramentas", atalho: "corpo" },
+    { id: "holosia", mov: "DEPOIS", nome: "Holos IA", ir: "aba:holos-ai" },
+    { id: "consolidar", mov: "DEPOIS", nome: "Resultado HOLOS", ir: "aba:resultado-holos" },
+    { id: "apresentar", mov: "APRESENTAR", nome: "Resultado", atalho: "resultado" },
+    { id: "acompanhar", mov: "RETORNOS", nome: "Evolução", ir: "aba:evolucao" }
+  ];
+  /* 14/10: Holos IA escondida -> o passo sai da jornada (o Resultado HOLOS e montado com o Playbook) */
+  if (window.HOLOS_IA_VISIVEL === false) PASSOS = PASSOS.filter(function (p) { return p.id !== "holosia"; });
+  /* 14/10: o HOLOSCAN e aplicado no atendimento, com o paciente presente. Paciente novo, sem
+     Mapeamento Holistico e sem HOLOSCAN: a acao principal e enviar o link; o HOLOSCAN fica secundario. */
+  /* 14/10 (auditoria Cowork): o botao principal acompanha a proxima acao real da jornada (antes ficava
+     "Aplicar HOLOSCAN" para sempre). So muda rotulo e destino; nao cria etapa nova. */
+  var CTA = {
+    mapear: { txt: "Aplicar HOLOSCAN", atalho: "holoscan" },
+    integrar: { txt: "Ir para Ferramentas", ir: "aba:ferramentas" },
+    holosia: { txt: "Abrir Holos IA", ir: "aba:holos-ai" },
+    consolidar: { txt: window.HOLOS_IA_VISIVEL === false ? "Montar Resultado HOLOS" : "Ver Resultado HOLOS", ir: "aba:resultado-holos" },
+    apresentar: { txt: "Ver Resultado", atalho: "resultado" },
+    acompanhar: { txt: "Reaplicar HOLOSCAN", atalho: "holoscan" }
+  };
+  function ctaDe(atual) { return CTA[atual] || (atual ? CTA.mapear : CTA.acompanhar); }
+
+  /* 16/10 (estabilizacao): o CICLO do atendimento mais recente. Depois da entrega (Resultado Final emitido para o
+     atendimento mais recente) a proxima acao e o retorno, nao reaplicar o HOLOSCAN no mesmo dia. Com um atendimento
+     novo depois de uma entrega, o retorno esta em andamento. So le o que ja foi carregado; nada e gravado aqui. */
+  function cicloDe(pid) {
+    var A = window.AtendimentoAtual, J = window.JornadaPaciente;
+    if (!A || !A.doPaciente || !J || !J.resultadoDoAtendimento || !J.carregado || !J.carregado()) return null;
+    var ats = A.doPaciente(pid).slice().sort(function (a, b) { return String(b.occurred_at).localeCompare(String(a.occurred_at)); });
+    var ult = ats[0]; if (!ult) return null;
+    var st = J.resultadoDoAtendimento(ult.id);
+    var antesEntregue = ats.slice(1).some(function (e) { return J.resultadoDoAtendimento(e.id) === "emitido"; });
+    return { atendimento: ult, situacao: st, entregue: st === "emitido", retornoEmAndamento: st !== "emitido" && antesEntregue,
+      encerrado: !!(A.encerrado && A.encerrado(ult)) };
+  }
+  function ctaDoCiclo(pid, ciclo, atualJornada) {
+    if (!ciclo) return null;
+    if (ciclo.entregue) {
+      var prox = window.Agenda && window.Agenda.proxima ? window.Agenda.proxima(pid) : null;
+      if (!prox) return { txt: "Marcar retorno", atalho: "agenda" };
+      if (!ciclo.encerrado) return { txt: "Encerrar atendimento", acao: "encerrar" };
+      return { txt: "Ver Resultado", atalho: "resultado" };
     }
+    if (ciclo.retornoEmAndamento && (!atualJornada || atualJornada === "acompanhar")) {
+      return ciclo.situacao === "gerado" ? { txt: "Ver Resultado", atalho: "resultado" } : { txt: "Montar Resultado HOLOS", ir: "aba:resultado-holos" };
+    }
+    return null;
+  }
+  function desenharPosEntrega(pid, ciclo) {
+    var alvo = document.getElementById("fic-mais-pos");
+    if (!alvo) return;
+    var arq = window.pacienteArquivado && window.pacienteArquivado(pid);
+    if (!ciclo || !ciclo.entregue || arq) { alvo.innerHTML = ""; return; }
+    var b = function (acao, txt) { return '<button type="button" role="menuitem" class="perf-botao" data-pos-acao="' + acao + '">' + txt + "</button>"; };
+    alvo.innerHTML = b("resultado", "Ver Resultado") + b("pdf", "Baixar PDF") + b("whatsapp", "Enviar no WhatsApp") +
+      (ciclo.encerrado ? "" : b("encerrar", "Encerrar atendimento")) + b("retorno", "Marcar retorno") + b("holoscan", "Reaplicar HOLOSCAN");
+  }
+  document.addEventListener("click", function (ev) {
+    var b = ev.target.closest && ev.target.closest("#fic-mais-pos [data-pos-acao]");
+    if (!b) return;
+    var pid = paciente(), ciclo = cicloDe(pid), acao = b.dataset.posAcao, RP = window.ResultadoPagina;
+    if (acao === "resultado") { if (window.irAtalho) window.irAtalho("resultado"); }
+    else if (acao === "pdf") { if (RP && RP.emitirEPdf) RP.emitirEPdf().catch(function () { /* aviso ja dado */ }); }
+    else if (acao === "whatsapp") { if (RP && RP.emitirEEnviar) RP.emitirEEnviar().catch(function () { /* aviso ja dado */ }); }
+    else if (acao === "encerrar") { if (ciclo && window.AtendimentoAtual) window.AtendimentoAtual.confirmarEncerrar(ciclo.atendimento.id); }
+    else if (acao === "retorno") { if (window.irAtalho) window.irAtalho("agenda"); }
+    else if (acao === "holoscan") { if (window.irAtalho) window.irAtalho("holoscan"); }
+  });
+  function acaoPrincipal(pid, feitos, atual) {
+    var enviar = document.getElementById("btn-enviar-mapeamento");
+    var holo = document.getElementById("btn-aplicar-holoscan");
+    if (!enviar || !holo) return;
+    var J = window.JornadaPaciente, mh = null;
+    try { mh = J && J.mapeamento ? J.mapeamento(pid) : null; } catch (e) { mh = null; }
+    var primeiro = mh === "nenhum" && !feitos.mapear;
+    enviar.classList.toggle("hidden", !primeiro);
+    holo.classList.toggle("btn-verde", !primeiro);
+    holo.classList.toggle("perf-botao", primeiro);
+    var ciclo = cicloDe(pid);
+    var c = primeiro ? CTA.mapear : (ctaDoCiclo(pid, ciclo, atual) || ctaDe(atual === "pre" ? "mapear" : atual));
+    holo.textContent = c.txt;
+    holo.dataset.atalho = c.atalho || "holoscan";
+    if (c.ir) holo.dataset.cta = c.ir; else delete holo.dataset.cta;
+    if (c.acao) holo.dataset.ctaAcao = c.acao; else delete holo.dataset.ctaAcao;
+    desenharPosEntrega(pid, ciclo);
+  }
+  /* o botao tem data-atalho (ligado no app.js); quando o destino e uma aba da ficha, este clique vem antes */
+  document.addEventListener("click", function (ev) {
+    var b = ev.target.closest && ev.target.closest("#btn-aplicar-holoscan[data-cta], #btn-aplicar-holoscan[data-cta-acao]");
+    if (!b || b.disabled) return;
+    ev.preventDefault(); ev.stopImmediatePropagation();
+    if (b.dataset.ctaAcao === "encerrar") {
+      var ci = cicloDe(paciente());
+      if (ci && window.AtendimentoAtual) window.AtendimentoAtual.confirmarEncerrar(ci.atendimento.id);
+      return;
+    }
+    if (window.levarParaFicha) window.levarParaFicha(b.dataset.cta, paciente());
+  }, true);
+  window.ctaFicha = function () { var b = document.getElementById("btn-aplicar-holoscan"); return b ? { txt: b.textContent, atalho: b.dataset.atalho, ir: b.dataset.cta || null } : null; };
+
+  function estadoJornada(pid) {
+    var J = window.JornadaPaciente;
+    var feitos = {};
+    try { (J ? J.passos(pid) : []).forEach(function (p) { feitos[p.id] = !!p.feito; }); } catch (e) { feitos = {}; }
+    /* o Mapeamento so e o passo atual enquanto nada depois dele foi feito (paciente antigo, sem link, nao volta para o comeco) */
+    var adiante = PASSOS.slice(1).some(function (p) { return feitos[p.id]; });
+    var atual = null;
+    PASSOS.forEach(function (p, i) { if (!atual && !feitos[p.id] && !(adiante && i === 0)) atual = p.id; });
+    return { feitos: feitos, atual: atual, algumFeito: PASSOS.some(function (p) { return feitos[p.id]; }) };
+  }
+  function desenharJornada() {
+    var alvo = document.getElementById("ficha-jornada");
+    if (!alvo) return;
+    var pid = paciente();
+    var ej = estadoJornada(pid), feitos = ej.feitos, atual = ej.atual;
+    acaoPrincipal(pid, feitos, atual);
+    alvo.innerHTML = '<ol class="fic-stepper">' + PASSOS.map(function (p, i) {
+      var st = feitos[p.id] ? "feito" : p.id === atual ? "atual" : "futuro";
+      var rot = st === "feito" ? "concluído" : st === "atual" ? "etapa atual" : "ainda não";
+      return '<li class="fic-step ' + st + '"' + (st === "atual" ? ' aria-current="step"' : "") + '>' +
+        '<button type="button" data-passo-jornada="' + p.id + '"' +
+          (p.atalho ? ' data-jornada-atalho="' + p.atalho + '"' : ' data-jornada-ir="' + p.ir + '"') +
+          ' title="' + p.nome + " (" + rot + ')"' +
+          ' aria-label="' + (i + 1) + ". " + p.mov + " — " + p.nome + ": " + rot + '">' +
+          '<span class="fic-step-no" aria-hidden="true">' + (st === "feito" ? "&#10003;" : String(i + 1)) + "</span>" +
+          '<span class="fic-step-txt"><span class="fic-step-mov">' + p.mov + "</span>" +
+          '<span class="fic-step-nome">' + p.nome + "</span>" +
+          '<span class="fic-step-estado">' + rot + "</span></span></button></li>";
+    }).join("") + "</ol>";
   }
 
   /* V1, Etapa 2: o bloco clinico do atendimento — ultimo atendimento, estado
@@ -174,19 +360,29 @@
     var foco = (ativo && ativo.patient_id === pid) ? ativo : ultimo;
     var linhas = [];
     linhas.push(["Último atendimento", ultimo ? A.rotuloQuando(ultimo) + (ultimo.consultation_id ? " · com agendamento" : " · sem agendamento") : "nenhum registrado"]);
+    /* 12/10: o Mapeamento Holistico e o que o PACIENTE responde pelo link (anamnese-convite.js) */
+    var PC = window.PreConsulta, mh = PC && PC.situacao ? PC.situacao(pid) : null;
+    if (!mh && PC && PC.carregar && window.HoloAuth && window.HoloAuth.sessaoAtiva && window.HoloAuth.sessaoAtiva()) {
+      PC.carregar(pid).then(function () { if (paciente() === pid) redesenharVisaoSeAberta(); });
+    }
+    /* Fase 1 (13/10): a mesma etapa da aba e do Dashboard (Link gerado / Link enviado / Mapeamento recebido / Revisado) */
+    linhas.push(["Mapeamento Holístico", mh ? mh.rotulo + (mh.detalhe && mh.etapa !== "recebido" && mh.etapa !== "revisado" ? " · " + mh.detalhe : "") +
+      (mh.quando && mh.estado !== "nao_enviada" ? " · " + dataBR(String(mh.quando).slice(0, 10)) : "") : "carregando…"]);
     if (foco) {
-      var an = An.vigente(foco.id), anR = An.rascunhoDe(foco.id);
-      linhas.push(["Anamnese" + (foco === ativo ? " (atendimento ativo)" : ""), an ? "rev. " + an.revision_number + " · " + an.status + " · " + An.contarItens(an.content) + " itens" : (anR ? "rascunho (não consolidada)" : "não registrada")]);
       var cd = Cd.vigente(foco.id), cdR = Cd.rascunhoDe(foco.id);
-      linhas.push(["Conduta vigente", cd ? "rev. " + cd.revision_number + " · " + cd.status + (cd.objective ? " · " + cd.objective : "") : (cdR ? "rascunho (não é conduta vigente)" : "não registrada")]);
+      /* teste real 07/10: a conduta vigente e a mais recente DA PESSOA; o
+         atendimento ativo pode ser um antigo, sem conduta propria */
+      var cdOutro = !cd && Cd.vigenteDoPaciente ? Cd.vigenteDoPaciente(pid, foco.id) : null;
+      if (!cd && cdOutro) cd = cdOutro.conduta;
+      /* 14/10: a Conduta saiu do sistema; a linha so aparece para quem tem Conduta registrada de antes */
+      if (cd || cdR) linhas.push(["Conduta vigente", cd ? "rev. " + cd.revision_number + " · " + cd.status + (cd.objective ? " · " + cd.objective : "") + (cdOutro ? " · atendimento de " + A.rotuloQuando(cdOutro.atendimento) : "") : (cdR ? "rascunho (não é conduta vigente)" : "não registrada")]);
       if (cd && cd.return_plan) linhas.push(["Retorno previsto", cd.return_plan]);
       if (cd) {
         var ag = Cd.acordosDe(cd.id);
         if (ag.length) linhas.push(["Acordos", ag.map(function (g) { return g.description + " [" + Cd.rotulo(g.status) + "]"; }).join(" · ")]);
       }
     }
-    var prox = window.Agenda && window.Agenda.proxima ? window.Agenda.proxima(pid) : null;
-    if (prox) linhas.push(["Próxima consulta marcada (agenda)", dataBR(prox.data) + " às " + String(prox.hora).slice(0, 5)]);
+    /* a proxima consulta ja esta no cabecalho e na aba Atendimentos (redesign 12/10) */
     /* V1, Etapa 3: a Evolucao disponivel (so por atendimento, nunca "primeira x
        ultima" automatica) e o ultimo relatorio EMITIDO (rascunho nao conta). */
     linhas.push(["Última evolução disponível", lista.length >= 2
@@ -194,43 +390,33 @@
       : lista.length === 1 ? "só 1 atendimento: sem comparação" : "sem atendimentos: sem comparação"]);
     if (window.Relatorios && window.Relatorios.ultimoEmitido) {
       var rel = window.Relatorios.ultimoEmitido(pid);
-      linhas.push(["Último relatório emitido", rel
+      /* pos-teste MR-V1 13/10: o Relatorio profissional (aba Relatorio) e o Resultado Final da paciente (pagina Resultado)
+         sao objetos diferentes — o rotulo diz qual e, para nao parecer contradicao com a emissao do Resultado Final */
+      linhas.push(["Último relatório profissional", rel
         ? (rel.title || "Relatório clínico") + " · emissão nº " + rel.revision_number + " · " + dataBR(String(rel.issued_at).slice(0, 10)) + (rel.superseded_at ? " · substituído por retificação" : "")
-        : "nenhum emitido" + (window.Relatorios.rascunhos(pid).length ? " (há rascunho não emitido)" : "")]);
+        : "nenhum relatório profissional emitido" + (window.Relatorios.rascunhos(pid).length ? " (há rascunho não emitido)" : "") + ". O Resultado Final do paciente fica na página Resultado."]);
+    }
+    var anResumo = mh && mh.estado === "concluido"
+      ? '<button type="button" class="dash-ir" data-ir="aba:anamnese">Ver respostas do Mapeamento <span aria-hidden="true">&rarr;</span></button>' : "";
+    /* registro profissional (depois de "Levar para o atendimento"): o resumo continua na Visao */
+    if (foco && An.resumoHtml) {
+      var anV = An.vigente(foco.id);
+      if (!anV) anV = An.anteriorDe ? An.anteriorDe(pid, foco.id) : null;
+      var rh = anV ? An.resumoHtml(anV) : "";
+      if (rh) anResumo += '<details class="fic-an-resumo" id="fic-an-resumo"><summary>Resumo do Mapeamento (rev. ' + anV.revision_number + ")</summary>" + rh + "</details>";
     }
     return '<div class="dash-bloco dash-bloco-compacto" id="fic-atendimento-clinico">' +
       '<h3 class="dash-titulo">Atendimento clínico</h3>' +
       linhas.map(function (l) { return '<div class="fic-det"><span>' + escapar(l[0]) + "</span><b>" + escapar(l[1]) + "</b></div>"; }).join("") +
-      '<div class="fic-continuidade"><button type="button" class="fic-chip" data-ir="aba:anamnese">Anamnese</button>' +
-      '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="holoscan">HOLOSCAN</button>' +
-      '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="aba:conduta">Conduta</button>' +
-      '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="aba:evolucao">Evolução</button>' +
-      '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span><button type="button" class="fic-chip" data-ir="aba:relatorio">Relatório</button></div>' +
+      anResumo +
     "</div>";
   }
 
   /* ================================================= ABA: VISÃO CLÍNICA === */
 
-  /* Exames: resumo compacto, nao duplica o HOLOSCAN — so diz quantos valores
-     ja foram lancados (mesmo d.exames que a faixa e o panorama ja contam) e
-     manda para onde eles moram ou para o confronto em si. */
-  function blocoExames(d) {
-    return '<div class="dash-bloco dash-bloco-compacto">' +
-      '<h3 class="dash-titulo">Exames</h3>' +
-      (d.exames > 0
-        ? '<p class="dash-sub">' + d.exames +
-          (d.exames === 1 ? " valor registrado." : " valores registrados.") + "</p>" +
-          '<button type="button" class="dash-ir" data-ir="confronto">Ver Leitura Integrada ' +
-          '<span aria-hidden="true">&rarr;</span></button>'
-        : '<p class="dash-vazio">Nenhum exame registrado.</p>' +
-          '<button type="button" class="dash-ir" data-ir="aba:documentos">Registrar exames ' +
-          '<span aria-hidden="true">&rarr;</span></button>') +
-      "</div>";
-  }
-
   function blocoDocumentosPlaceholder() {
     return '<div class="dash-bloco dash-bloco-compacto">' +
-      '<h3 class="dash-titulo">Documentos recentes</h3>' +
+      '<h3 class="dash-titulo">Documentos e exames recentes</h3>' +
       '<div id="fic-visao-docs"><p class="dash-vazio">Carregando…</p></div>' +
       "</div>";
   }
@@ -245,8 +431,8 @@
       var alvo = document.getElementById("fic-visao-docs");
       if (!alvo) return;
       if (!itens.length) {
-        alvo.innerHTML = '<p class="dash-vazio">Nenhum documento.</p>' +
-          '<button type="button" class="dash-ir" data-ir="aba:documentos">Adicionar documento ' +
+        alvo.innerHTML = (itens.falhaServidor ? '<p class="dash-vazio">Não foi possível carregar os documentos do servidor agora.</p>' : '<p class="dash-vazio">Nenhum documento.</p>') +
+          '<button type="button" class="dash-ir" data-ir="aba:documentos">Adicionar arquivo ' +
           '<span aria-hidden="true">&rarr;</span></button>';
         return;
       }
@@ -259,7 +445,7 @@
           // o avatar o botao caia na coluna do meio e esticava.
           return '<li class="dash-pendente">' +
             '<span class="pac-avatar">' + escapar((a.tipo || "Documento").charAt(0).toUpperCase()) + "</span>" +
-            '<span class="dash-quem"><b>' + escapar(a.nome) + "</b>" +
+            '<span class="dash-quem"><b>' + escapar(a.titulo || a.nome) + "</b>" +
               '<span class="dash-porque">' + escapar(a.tipo || "Documento") +
                 (a.data ? " &middot; " + escapar(dataBR(a.data)) : "") + "</span></span>" +
             '<button type="button" class="dash-ir" data-ir="aba:documentos">Ver ' +
@@ -289,16 +475,20 @@
       html += "</div>";
     }
 
-    html += blocoAtendimentoClinico(pid);
+    /* Redesign 12/10: duas colunas — esquerda Mapa HOLOS + cinco sistemas (+ leitura e
+       atendimento clinico); direita a linha do tempo e os documentos recentes. */
+    var colunaDireita = '<div class="fic-col-dir">' +
+      '<div class="dash-bloco dash-bloco-compacto" id="fic-visao-timeline-bloco">' +
+        '<h3 class="dash-titulo">Linha do tempo</h3>' +
+        '<div id="fic-visao-timeline"></div></div>' +
+      blocoDocumentosPlaceholder() + "</div>";
 
     if (!d.pontuacao) {
-      html += '<div class="dash-vazio">Sem HOLOSCAN aplicado. O mapa é o que ' +
-        "transforma o que ela conta em leitura — e é dele que sai tudo o que " +
-        "aparece nesta aba.</div>";
-      html += blocoDocumentosPlaceholder() + blocoExames(d);
-      html += '<div class="dash-bloco dash-bloco-compacto" id="fic-visao-timeline-bloco">' +
-        '<h3 class="dash-titulo">Linha do tempo</h3>' +
-        '<div id="fic-visao-timeline"></div></div>';
+      html += '<div class="fic-visao-grid"><div class="fic-col-esq">' +
+        /* 16/10: o alerta acima ja diz "Sem HOLOSCAN aplicado." — aqui so a explicacao, sem repetir a frase */
+        '<div class="dash-vazio fic-sem-mapa">O mapa é o que ' +
+        "transforma o que o paciente conta em leitura — e é dele que sai o Mapa HOLOS e os cinco sistemas.</div>" +
+        blocoAtendimentoClinico(pid) + "</div>" + colunaDireita + "</div>";
       alvo.innerHTML = html;
       ligar(alvo);
       preencherDocumentosRecentes(pid);
@@ -307,6 +497,7 @@
     }
 
     var p = d.pontuacao;
+    html += '<div class="fic-visao-grid"><div class="fic-col-esq">';
     html += '<div class="fic-mapa"><span class="fic-rot fic-rot-mapa">Mapa HOLOS</span>' +
       (window.Metodologia ? window.Metodologia.avisoAplicacaoHtml(p) : "") +
       '<div class="fic-indice">' +
@@ -318,9 +509,10 @@
     var A = window.HoloAusencia;
     if (p.triada) {
       html += '<div class="fic-triada">' +
-        ["fisico", "mental", "espiritual"].map(function (e) {
-          return "<span><i>" + e[0].toUpperCase() + e.slice(1) + "</i>" +
-                 A.fmt(p.triada[e]) + "</span>";
+        /* 16/10: Corpo / Mente / Espirito (o nome da tela); as chaves fisico/mental/espiritual nao mudam */
+        [["fisico", "Corpo"], ["mental", "Mente"], ["espiritual", "Espírito"]].map(function (e) {
+          return "<span><i>" + e[1] + "</i>" +
+                 A.fmt(p.triada[e[0]]) + "</span>";
         }).join("") + "</div>";
     }
 
@@ -369,12 +561,8 @@
     }
 
     html += blocoRetorno(d, pid);
-
-    html += blocoDocumentosPlaceholder() + blocoExames(d);
-
-    html += '<div class="dash-bloco dash-bloco-compacto" id="fic-visao-timeline-bloco">' +
-      '<h3 class="dash-titulo">Linha do tempo</h3>' +
-      '<div id="fic-visao-timeline"></div></div>';
+    html += blocoAtendimentoClinico(pid);
+    html += "</div>" + colunaDireita + "</div>";
 
     alvo.innerHTML = html;
     ligar(alvo);
@@ -422,21 +610,6 @@
     if (ferr.length > 0)
       itens.push(ferr.length + (ferr.length === 1 ? " ferramenta aplicada" : " ferramentas aplicadas"));
 
-    var coletasRet = window.Sincronizacao ? window.Sincronizacao.coletas(pid) : null;
-    if (coletasRet) {
-      /* "registrada desde": com data de coleta, a data da coleta; sem ela, o
-         dia em que o registro foi feito (updated_at) — e o texto diz
-         "registrada", nao "coletada" */
-      var novas = coletasRet.filter(function (c) {
-        if (!c.data_coleta_desconhecida && c.coletado_em) return c.coletado_em >= desde;
-        return diaLocal(c.updated_at || c.created_at) >= desde;
-      });
-      if (novas.length > 0)
-        itens.push(novas.length + (novas.length === 1 ? " coleta de exames registrada" : " coletas de exames registradas"));
-    } else if (d.exames > 0) {
-      itens.push(d.exames + (d.exames === 1 ? " valor de exame registrado" : " valores de exame registrados"));
-    }
-
     return '<div class="dash-bloco dash-bloco-compacto fic-retorno">' +
       '<h3 class="dash-titulo">Desde a última consulta</h3>' +
       '<p class="dash-sub">Última consulta em ' + escapar(dataBR(desde)) +
@@ -455,18 +628,34 @@
   /* Continuidade discreta: o mesmo encadeamento do bloco Jornada clinica (ja
      visivel acima das abas), so que como uma linha fina — nao repete o
      bloco inteiro, so lembra o proximo passo depois da consulta. */
+  /* 14/10: o fluxo completo do atendimento, cada passo com o que ele e */
+  var FLUXO = [
+    ["Cadastro", "Você cadastra o paciente.", "", ""],
+    ["Mapeamento Holístico", "Antes da consulta: você envia o link e o paciente preenche no celular ou no computador.", "aba:anamnese", ""],
+    ["HOLOSCAN", "No atendimento, com o paciente: o mapa dos cinco sistemas.", "", "holoscan"],
+    ["Ferramentas", "No atendimento: as ferramentas de Corpo, Mente e Espírito.", "", "corpo"],
+    ["Holos IA", "Depois do atendimento: o sistema monta o Pacote, a Holos IA analisa e a resposta volta para o sistema.", "aba:holos-ai", ""],
+    ["Resultado HOLOS", "Gerado a partir da resposta da Holos IA, para a sua revisão.", "aba:resultado-holos", ""],
+    ["Resultado", "O que é apresentado ao paciente (PDF e WhatsApp).", "", "resultado"],
+    ["Retornos", "Novo HOLOSCAN e a Evolução ao longo do acompanhamento.", "aba:evolucao", ""]
+  ];
+  if (window.HOLOS_IA_VISIVEL === false) FLUXO = FLUXO.filter(function (f) { return f[0] !== "Holos IA"; }).map(function (f) {
+    return f[0] === "Resultado HOLOS" ? ["Resultado HOLOS", "Montado com o Playbook HOLOS: você escolhe o foco e as estratégias a partir do HOLOSCAN e das ferramentas.", f[2], f[3]] : f;
+  });
   function blocoContinuidade() {
-    return '<div class="fic-continuidade">' +
-      '<span class="fic-rot">Depois da consulta</span>' +
-      '<button type="button" class="fic-chip" data-ir="holoscan">HOLOSCAN</button>' +
-      '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span>' +
-      '<button type="button" class="fic-chip" data-ir="confronto">Leitura Integrada</button>' +
-      '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span>' +
-      '<button type="button" class="fic-chip" data-ir="aba:documentos">Documentos</button>' +
-    "</div>";
+    return '<div class="fic-fluxo">' +
+      '<span class="fic-rot">Fluxo do atendimento</span>' +
+      '<ol class="fic-fluxo-lista">' + FLUXO.map(function (f, i) {
+        var nome = f[2] ? '<button type="button" class="fic-chip" data-ir="' + f[2] + '">' + f[0] + "</button>"
+          : f[3] ? '<button type="button" class="fic-chip" data-ir="' + f[3] + '">' + f[0] + "</button>"
+          : '<b class="fic-fluxo-nome">' + f[0] + "</b>";
+        return '<li><span class="fic-fluxo-no" aria-hidden="true">' + (i + 1) + "</span>" + nome +
+          '<span class="fic-fluxo-txt">' + f[1] + "</span></li>";
+      }).join("") + "</ol></div>";
   }
 
   function linhaConsulta(c, destaque) {
+    var A0 = window.AtendimentoAtual, estC = A0 && A0.estadoDaConsulta ? A0.estadoDaConsulta(c) : null;
     // .dash-pendente e grade de 3 colunas (avatar/conteudo/botao); sem o
     // avatar o botao caia na coluna do meio e esticava. Aqui o "avatar" e
     // o dia do mes — a mesma ideia de uma folhinha de calendario.
@@ -474,6 +663,7 @@
       '<span class="pac-avatar">' + escapar((c.data || "").slice(8, 10) || "?") + "</span>" +
       '<span class="dash-quem"><b>' + escapar(dataBR(c.data)) + " às " + escapar(c.hora) + "</b>" +
         '<span class="dash-porque">' + escapar(c.tipo || "Consulta") +
+          (estC && estC.chave !== "agendada" ? ' &middot; <b class="cons-estado cons-' + estC.chave + '">' + escapar(estC.rotulo) + "</b>" : "") +
           (c.nota ? " &middot; " + escapar(c.nota) : "") + "</span></span>" +
       '<button type="button" class="dash-ir" data-ir="agenda">Ver na agenda ' +
         '<span aria-hidden="true">&rarr;</span></button>' +
@@ -494,10 +684,11 @@
       '<span class="dash-quem"><b>' + escapar(dataBR(w.data)) + " às " + escapar(w.hora) + "</b>" +
         '<span class="dash-porque">' + (e.type ? escapar(e.type) + " &middot; " : "") +
           (e.consultation_id ? "com agendamento de origem" : "sem agendamento") +
-          (e.status ? " &middot; " + escapar(e.status) : "") +
+          (e.status ? " &middot; " + escapar(e.status === "concluido" ? "encerrado" : e.status) : "") +
           (ativo ? " &middot; <b>ativo</b>" : "") + "</span></span>" +
-      '<button type="button" class="dash-ir" data-abrir-atendimento="' + escapar(e.id) + '">' +
-        (ativo ? "Selecionado" : "Abrir") + ' <span aria-hidden="true">&rarr;</span></button>' +
+      /* rodada UX 14/10 (Cowork G): o atendimento ja selecionado nao tem acao — vira selo, nao botao com seta */
+      (ativo ? '<span class="at-selecionado" aria-label="Atendimento selecionado">&#10003; Selecionado</span>'
+        : '<button type="button" class="dash-ir" data-abrir-atendimento="' + escapar(e.id) + '">Abrir <span aria-hidden="true">&rarr;</span></button>') +
     "</li>";
   }
 
@@ -514,9 +705,12 @@
 
     var todas = window.Agenda && window.Agenda.todas ? window.Agenda.todas(pid) : [];
     var canceladas = window.Agenda && window.Agenda.canceladas ? window.Agenda.canceladas(pid) : [];
-    var proximas = todas.filter(function (c) { return diasDesde(c.data) <= 0; })
+    /* 16/10: consulta que ja virou atendimento nao e mais "proxima consulta marcada": vai para as anteriores,
+       com o estado derivado (Em atendimento / Realizada) */
+    var virou = function (c) { return !!(A && A.porAgendamento && A.porAgendamento(c.id)); };
+    var proximas = todas.filter(function (c) { return diasDesde(c.data) <= 0 && !virou(c); })
       .sort(function (a, b) { return a.data.localeCompare(b.data); });
-    var anteriores = todas.filter(function (c) { return diasDesde(c.data) > 0; });
+    var anteriores = todas.filter(function (c) { return diasDesde(c.data) > 0 || virou(c); });
 
     var topo = '<div class="fic-consultas-topo">' +
       (arquivado ? "" : '<button type="button" class="btn-verde" data-novo-atendimento="1">Novo atendimento</button>') +
@@ -568,7 +762,7 @@
             '<span class="pac-avatar">' + escapar((c.data || "").slice(8, 10) || "?") + "</span>" +
             '<span class="dash-quem"><b>' + escapar(dataBR(c.data)) + " às " + escapar(String(c.hora).slice(0, 5)) + "</b>" +
               '<span class="dash-porque">' + (c.rescheduled_to_id ? "reagendada" : "cancelada") +
-                (c.cancellation_reason ? " &middot; " + escapar(c.cancellation_reason) : "") + "</span></span>" +
+                (c.cancellation_reason && !/^(reagendada|cancelada)$/i.test(String(c.cancellation_reason).trim()) ? " &middot; " + escapar(c.cancellation_reason) : "") + "</span></span>" +
           "</li>";
         }).join("") + "</ul></div>";
     }
@@ -589,7 +783,9 @@
   function blocoContinuidadeHoloscan() {
     return '<div class="fic-continuidade">' +
       '<span class="fic-rot">Depois do mapa</span>' +
-      '<button type="button" class="fic-chip" data-ir="confronto">Ver Leitura Integrada</button>' +
+      '<button type="button" class="fic-chip" data-ir="aba:resultado-holos">Resultado HOLOS</button>' +
+      '<span class="fic-continuidade-seta" aria-hidden="true">&rarr;</span>' +
+      '<button type="button" class="fic-chip" data-ir="resultado">Resultado para a paciente</button>' +
     "</div>";
   }
 
@@ -617,7 +813,7 @@
       '<button type="button" class="btn-verde" data-ir="holoscan">' +
         (d.pontuacao ? "Reaplicação integral" : "Iniciar HOLOSCAN") +
       "</button>" +
-      (d.pontuacao ? '<span class="fic-topo-nota">Cada reaplicação refaz todas as 84 perguntas para gerar um novo Mapa HOLOS comparável.</span>' : "") +
+      (d.pontuacao ? '<span class="fic-topo-nota">Cada reaplicação refaz todas as perguntas da versão vigente do HOLOSCAN para gerar um novo Mapa HOLOS.</span>' : "") +
       "</div>";
 
     if (!d.historico.length) {
@@ -630,9 +826,7 @@
             "<span>Verifique a conexão e abra o app de novo. Nenhuma aplicação foi apagada.</span></div>"
           : '<div class="lista-vazia"><strong>Nenhuma aplicação HOLOSCAN</strong>' +
             "<span>Faça a primeira aplicação para mapear prioridades de investigação.</span></div>") +
-        '<div id="aba-holoscan-laboratorial"></div>' +
         blocoContinuidadeHoloscan();
-      if (window.desenharHoloscanLaboratorial) window.desenharHoloscanLaboratorial();
       ligar(alvo);
       return;
     }
@@ -668,12 +862,9 @@
           }).join("") + "</ul>") +
     "</div>";
 
-    html += '<div id="aba-holoscan-laboratorial"></div>';
-
     html += blocoContinuidadeHoloscan();
 
     alvo.innerHTML = html;
-    if (window.desenharHoloscanLaboratorial) window.desenharHoloscanLaboratorial();
     ligar(alvo);
   }
 
@@ -694,7 +885,7 @@
        clinico. O agendamento entra como evento administrativo. */
     var pintar = function (arquivos) {
       var eventos = window.Timeline
-        ? window.Timeline.eventos(pid, { documentos: arquivos, examesLocais: d.exames })
+        ? window.Timeline.eventos(pid, { documentos: arquivos })
         : [];
 
       if (!eventos.length) {
@@ -791,9 +982,17 @@
 
   function perguntasDoMotor() {
     try {
+      if (window.HoloscanOficial && window.HoloscanOficial.perguntas) return window.HoloscanOficial.perguntas();
       return (window.HOLOSCAN && window.HOLOSCAN.questionario)
         ? window.HOLOSCAN.questionario() : [];
     } catch (e) { return []; }
+  }
+
+  /* 14/10 (auditoria Cowork): o numero de perguntas sai do pacote VIGENTE (81 no v7), nunca do numero antigo fixo */
+  function totalVigente() {
+    var H = window.HoloscanOficial;
+    var n = H && H.perguntas ? (H.perguntas() || []).length : 0;
+    return n ? String(n) : "as";
   }
 
   function temConteudo(o) {
@@ -821,13 +1020,16 @@
       {
         id: "holoscan",
         nome: "HOLOSCAN &mdash; questionário integral",
-        sub: "84 perguntas em três blocos: raízes físicas, padrões emocionais e " +
+        sub: "Perguntas em três blocos (versão vigente do pacote): raízes físicas, padrões emocionais e " +
              "Terreno Espiritual. É dele que sai o Índice e os cinco sistemas.",
-        estado: d.respondidas === 0
-          ? "não iniciado"
-          : d.respondidas + " de " + d.totalPerguntas + " respondidas",
-        pronto: d.respondidas >= d.totalPerguntas,
-        comeco: d.respondidas > 0,
+        /* teste real 07/10: depois de salvo, o rascunho do questionario e
+           esvaziado (reaplicar comeca vazio) — o estado lia "nao iniciado"
+           logo acima de "Mapa gerado". Com mapa, o estado e o do mapa. */
+        estado: d.respondidas > 0
+          ? d.respondidas + " de " + d.totalPerguntas + " respondidas"
+          : d.pontuacao ? "aplicado em " + dataBR(d.pontuacao.quando) : "não iniciado",
+        pronto: d.respondidas >= d.totalPerguntas || (!!d.pontuacao && d.respondidas === 0),
+        comeco: d.respondidas > 0 || !!d.pontuacao,
         extra: d.pontuacao
           ? "Mapa gerado em " + escapar(dataBR(d.pontuacao.quando)) +
             " &middot; Índice " + escapar(window.HoloAusencia.indiceTexto(d.pontuacao))
@@ -849,7 +1051,7 @@
         abrir: "corpo"
       },
       {
-        id: "pqq", nome: "PQQ &mdash; Pra Que Que?",
+        id: "pqq", nome: "PQQ &mdash; Escada dos Porquês",
         sub: "A chave dos porquês profundos: o propósito por trás do objetivo.",
         estado: temConteudo(p.pqq) ? "preenchido" : "não aplicado",
         pronto: temConteudo(p.pqq), comeco: temConteudo(p.pqq),
@@ -882,7 +1084,9 @@
       (function () {
         var temOQ3 = temConteudo(p.oq3);
         var temPQQ = temConteudo(p.pqq);
-        var estado = temOQ3 && temPQQ ? "pronto para montar"
+        /* simulacao 08/10: com as duas metades o Mapa JA esta montado (ele e derivado,
+           nao se salva a parte) — "pronto para montar" fazia parecer que faltava um passo */
+        var estado = temOQ3 && temPQQ ? "montado"
                    : temOQ3 ? "falta o PQQ"
                    : temPQQ ? "falta o OQ³"
                    : "não aplicado";
@@ -893,14 +1097,14 @@
           pronto: temOQ3 && temPQQ,
           comeco: temOQ3 || temPQQ,
           extra: temOQ3 && temPQQ
-            ? "As duas metades estão preenchidas."
+            ? "Montado a partir do OQ³ e do PQQ salvos: muda sozinho quando um deles muda."
             : (temOQ3 || temPQQ ? "O Mapa se monta com o OQ³ e o PQQ juntos." : ""),
           abrir: "espirito"
         };
       })()
     ];
 
-    var html = '<p class="dash-sub">No método, o HOLOSCAN é um formulário: 84 ' +
+    var html = '<p class="dash-sub">No método, o HOLOSCAN é um formulário: ' + totalVigente() + ' ' +
       "respostas numa escala de 0 a 3. Aqui estão os quatro do método e o que " +
       "já foi respondido em cada um.</p>";
 
@@ -920,10 +1124,16 @@
         "</div></div>";
     }).join("") + "</div>";
 
-    var ativas = (window.FERRAMENTAS_ATIVAS || []).concat(["oq3", "pqq", "mapa"]);
+    /* 14/10: ferramentas ocultas (FERRAMENTAS_OCULTAS) nao entram na lista nem na contagem */
+    var ativas = (window.FERRAMENTAS_ATIVAS || []).concat(["oq3", "pqq", "mapa"]).filter(function (id) { return !window.ferramentaVisivel || window.ferramentaVisivel(id); });
     var aplicadasAtivas = d.ferramentas.filter(function (id) {
       return ativas.indexOf(id) >= 0;
     });
+    /* o Mapa do Propósito nao tem aplicacao propria: conta como aplicado quando OQ³ e PQQ existem */
+    var mapaDerivado = aplicadasAtivas.indexOf("mapa") < 0 && temConteudo(p.oq3) && temConteudo(p.pqq);
+    if (mapaDerivado) aplicadasAtivas.push("mapa");
+    /* 14/10 (auditoria Cowork): a contagem e os chips saem da MESMA lista — antes o Mapa entrava no "X de 10" sem chip */
+    var chips = d.ferramentas.filter(function (id) { return !window.ferramentaVisivel || window.ferramentaVisivel(id); }).concat(mapaDerivado ? ["mapa"] : []);
 
     html += '<div class="fic-forms-rodape">' +
       '<div class="fic-form-topo"><span class="fic-form-quem">' +
@@ -932,8 +1142,8 @@
         '<span class="fic-form-estado">' +
           (aplicadasAtivas.length === 0 ? "nenhuma aplicada"
             : aplicadasAtivas.length + " de " + ativas.length + " aplicadas") + "</span></div>" +
-      (d.ferramentas.length > 0
-        ? '<div class="fic-ferramentas">' + d.ferramentas.map(function (id) {
+      (chips.length > 0
+        ? '<div class="fic-ferramentas">' + chips.map(function (id) {
             var legada = ativas.indexOf(id) < 0;
             return '<button type="button" class="fic-chip' +
               (legada ? " fic-chip-legado" : "") + '"' +
@@ -1070,7 +1280,9 @@
         fecharJanela();
         // "aba:x" abre uma aba aqui mesmo; o resto e secao do menu
         if (ir.dataset.ir.indexOf("aba:") === 0) {
-          var aba = document.querySelector('[data-aba="' + ir.dataset.ir.slice(4) + '"]');
+          var nomeAba = ir.dataset.ir.slice(4);
+          if (nomeAba === "formularios") nomeAba = "ferramentas";
+          var aba = document.querySelector('[data-aba="' + nomeAba + '"]');
           if (aba) { aba.click(); aba.scrollIntoView({ block: "center" }); }
           return;
         }
@@ -1080,6 +1292,12 @@
           var secaoAgenda = document.querySelector('.nav-item[data-secao="agenda"]');
           if (secaoAgenda) secaoAgenda.click();
           if (window.Agenda && window.Agenda.novaConsultaPara) window.Agenda.novaConsultaPara(window.pacienteAtivoId ? window.pacienteAtivoId() : null);
+          return;
+        }
+        /* rodada UX 14/10 (Cowork B): "Preencher agora" do OQ³/PQQ/Mapa abria so a galeria da secao; agora abre a
+           propria ferramenta, com esta paciente (o mesmo caminho da barra de contexto) */
+        if (["corpo", "mente", "espirito"].indexOf(ir.dataset.ir) >= 0 && window.levarParaFicha) {
+          window.levarParaFicha(ir.dataset.ir, window.pacienteAtivoId ? window.pacienteAtivoId() : null);
           return;
         }
         var b = document.querySelector('.nav-item[data-secao="' + ir.dataset.ir + '"]');
@@ -1102,6 +1320,7 @@
     evolucao: function () { if (window.Evolucao) window.Evolucao.desenhar(); },
     holoscan: desenharHolo,
     ferramentas: desenharFormularios,
+    "resultado-holos": function () { if (window.ResultadoHolos) window.ResultadoHolos.desenhar(); },
     linha: desenharLinha,
     formularios: desenharFormularios
   };
@@ -1116,9 +1335,96 @@
     if (!document.getElementById("ficha-faixa")) return;
     desenharFaixa();
     if (DESENHOS[abaAtual]) DESENHOS[abaAtual]();
+    if (window.JornadaPaciente && !window.JornadaPaciente.carregado()) window.JornadaPaciente.carregar();
+    setTimeout(function () { if (window.atualizarSetasAbasFicha) window.atualizarSetasAbasFicha(); }, 0);
   }
 
   window.redesenharFicha = desenhar;
+
+  /* jornada: mesmo destino de antes (atalho do menu ou aba da ficha) */
+  document.addEventListener("click", function (ev) {
+    var b = ev.target.closest("[data-passo-jornada]");
+    if (!b || !document.getElementById("ficha-jornada").contains(b)) return;
+    if (b.dataset.jornadaIr) {
+      var aba = document.querySelector('[data-aba="' + b.dataset.jornadaIr.slice(4) + '"]');
+      if (aba) { aba.click(); aba.scrollIntoView({ block: "nearest" }); }
+    } else if (window.irAtalho) window.irAtalho(b.dataset.jornadaAtalho);
+  });
+  /* a etapa atual e a jornada dependem de convites/Resultados lidos pelo Dashboard: quando chegam, redesenha */
+
+  /* abas: setas e esmaecido quando ha abas escondidas; teclado (setas, Home, End) */
+  function abasDaFicha() { return document.querySelector("#ficha-arquivos .abas[role=tablist]"); }
+  function atualizarSetasAbas() {
+    var t = abasDaFicha(); if (!t) return;
+    var caixa = t.parentNode, esq = caixa.querySelector('[data-abas-seta="-1"]'), dir = caixa.querySelector('[data-abas-seta="1"]');
+    var temEsq = t.scrollLeft > 4, temDir = t.scrollLeft + t.clientWidth < t.scrollWidth - 4;
+    if (esq) esq.hidden = !temEsq;
+    if (dir) dir.hidden = !temDir;
+    caixa.classList.toggle("fade-esq", temEsq);
+    caixa.classList.toggle("fade-dir", temDir);
+  }
+  document.addEventListener("DOMContentLoaded", function () {
+    if (window.JornadaPaciente) window.JornadaPaciente.aoCarregar(function () {
+      var f = document.getElementById("vista-ficha");
+      if (f && !f.classList.contains("hidden")) desenharFaixa();
+    });
+    var t = abasDaFicha(); if (!t) return;
+    t.addEventListener("scroll", atualizarSetasAbas, { passive: true });
+    window.addEventListener("resize", atualizarSetasAbas);
+    t.parentNode.addEventListener("click", function (ev) {
+      var s = ev.target.closest("[data-abas-seta]"); if (!s) return;
+      t.scrollBy({ left: Number(s.dataset.abasSeta) * Math.max(160, t.clientWidth * 0.6), behavior: "smooth" });
+    });
+    t.addEventListener("click", function (ev) {
+      var a = ev.target.closest(".aba"); if (a && a.scrollIntoView) a.scrollIntoView({ block: "nearest", inline: "nearest" });
+      setTimeout(atualizarSetasAbas, 350);
+    });
+    /* teclado (setas, Home, End) e roving tabindex ja sao do arquivos.js */
+    /* o topo global e fixo: as abas grudam logo abaixo dele */
+    var topo = document.querySelector(".topo");
+    /* 14/10 (auditoria Cowork): a altura era medida uma vez, com o topo ainda escondido (tela de login) = 0px, e as abas
+       grudavam ATRAS do topo — para trocar de aba era preciso voltar ao inicio. Agora mede sempre que o topo muda. */
+    var medir = function () { if (topo && topo.offsetHeight) document.documentElement.style.setProperty("--topo-altura", topo.offsetHeight + "px"); atualizarSetasAbas(); };
+    window.addEventListener("resize", medir); medir();
+    if (topo && window.ResizeObserver) new ResizeObserver(medir).observe(topo);
+    /* nome da paciente na barra grudada (so quando a barra esta grudada: sem segundo cabecalho) */
+    var caixaAbas = t.parentNode;
+    window.addEventListener("scroll", function () {
+      var grudada = caixaAbas.getBoundingClientRect().top <= (topo ? topo.offsetHeight : 0) + 1 && window.scrollY > 120;
+      if (grudada !== caixaAbas.classList.contains("grudada")) {
+        caixaAbas.classList.toggle("grudada", grudada);
+        var n = document.getElementById("abas-ctx-nome"), nome = document.getElementById("ficha-nome");
+        if (n && nome) n.textContent = nome.textContent;
+      }
+    }, { passive: true });
+  });
+  window.atualizarSetasAbasFicha = atualizarSetasAbas;
+
+  /* 12/10 (bug 7): a Visao Geral mostra o estado da anamnese/conduta/atendimento; quando qualquer um muda (salvar,
+     concluir, trocar de atendimento, chegar do servidor), ela se redesenha sozinha se estiver aberta. */
+  var pendenteVisao = null;
+  function redesenharVisaoSeAberta() {
+    if (pendenteVisao) return;
+    pendenteVisao = setTimeout(function () {
+      pendenteVisao = null;
+      var alvo = document.getElementById("aba-visao");
+      if (abaAtual === "visao" && alvo && alvo.offsetParent !== null) desenharVisao();
+    }, 50);
+  }
+  window.addEventListener("load", function () {
+    if (window.Anamnese && window.Anamnese.aoMudar) window.Anamnese.aoMudar(redesenharVisaoSeAberta);
+    /* Fase 1 (13/10): o paciente respondeu / o link saiu -> a linha do Mapeamento na Visao se corrige sozinha */
+    if (window.PreConsulta && window.PreConsulta.aoMudar) window.PreConsulta.aoMudar(redesenharVisaoSeAberta);
+    if (window.Conduta && window.Conduta.aoMudar) window.Conduta.aoMudar(redesenharVisaoSeAberta);
+    if (window.AtendimentoAtual && window.AtendimentoAtual.aoMudar) window.AtendimentoAtual.aoMudar(redesenharVisaoSeAberta);
+    /* a lista de anamneses chega do servidor depois do login: a Visao desenhada antes disso se corrige */
+    var tentativas = 0;
+    (function aguardarCarga() {
+      var An = window.Anamnese;
+      if (An && An.carregando && An.carregando()) { if (++tentativas < 100) setTimeout(aguardarCarga, 150); return; }
+      redesenharVisaoSeAberta();
+    })();
+  });
 
   document.addEventListener("DOMContentLoaded", function () {
     if (!document.getElementById("ficha-faixa")) return;

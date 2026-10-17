@@ -115,6 +115,19 @@
     return l[0] || null;
   }
 
+  /** A ultima anamnese COMPLETA consolidada (primeira consulta V2 ou formato antigo) de outro atendimento:
+      e dela que se copia e e ela que o retorno mostra em "Ver anamnese completa anterior". */
+  function anteriorCompletaDe(pid, eid) {
+    var A = window.AtendimentoAtual, V2 = window.AnamneseV2;
+    var l = doPaciente(pid).filter(function (a) { return a.encounter_id !== eid && consolidada(a) && !a.superseded_at &&
+      !(V2 && V2.ehV2(a.content) && a.content.tipo === "retorno"); });
+    l.sort(function (a, b) {
+      var ea = A && A.porId(a.encounter_id), eb = A && A.porId(b.encounter_id);
+      return String((eb && eb.occurred_at) || b.created_at).localeCompare(String((ea && ea.occurred_at) || a.created_at));
+    });
+    return l[0] || null;
+  }
+
   /* ---------- gravar ------------------------------------------------------------ */
 
   function gravarLocal(payload) {
@@ -236,7 +249,7 @@
     var medida = it.medida || null;
     var informado = dom === "condicoes_diagnosticos_informados" && it.origem === "relato_paciente";
     var cab = '<div class="an-item' + (it.previo ? " previo" : "") + '" data-an-dom="' + dom + '" data-an-i="' + i + '">' +
-      (it.previo ? '<span class="an-selo previo" title="Copiado da anamnese anterior; precisa ser revisado">prévio — a revisar</span>' : "") +
+      (it.previo ? '<span class="an-selo previo" title="Copiado do Mapeamento anterior; precisa ser revisado">prévio — a revisar</span>' : "") +
       (informado ? '<span class="an-selo informado" title="' + MSG_INFORMADO + '">informado, não confirmado</span>' : "");
     if (!editavel) {
       return cab + "<b>" + escapar(it.campo || "(sem rótulo)") + "</b> " +
@@ -296,15 +309,44 @@
   }
 
   var vendo = null;   // id de uma revisao antiga aberta so para leitura
+  var v2Corrigindo = null;   // id da revisao V2 vigente sendo corrigida (antes do 1o salvamento automatico)
+
+  /* registros da anamnese profissional feitos antes de 12/10: so leitura, recolhidos */
+  function registrosAntigosHtml() {
+    var pid = window.pacienteAtivoId ? window.pacienteAtivoId() : null;
+    if (!pid) return "";
+    var lista = cache.filter(function (a) { return a.patient_id === pid && a.status !== "rascunho" && !a.superseded_at; })
+      .sort(function (a, b) { return String(b.created_at).localeCompare(String(a.created_at)); });
+    if (!lista.length) return "";
+    var A = window.AtendimentoAtual;
+    return '<details class="mh-antigos"><summary>Registros anteriores feitos pela nutricionista (' + lista.length + ') — somente leitura</summary>' +
+      lista.map(function (a) {
+        var e = A && A.porId ? A.porId(a.encounter_id) : null;
+        var corpo = window.AnamneseV2 && window.AnamneseV2.ehV2(a.content) ? window.AnamneseV2.resumoHtml(a.content) : '<p class="an2-vazio">Registro em formato antigo.</p>';
+        return '<section class="mh-antigo"><p class="pc-sub">' + escapar(e && A.rotuloQuando ? "Atendimento de " + A.rotuloQuando(e) : "Atendimento") +
+          " · rev. " + escapar(String(a.revision_number)) + " · " + escapar(a.status) + "</p>" + corpo + "</section>";
+      }).join("") + "</details>";
+  }
 
   function desenhar() {
-    var alvo = document.getElementById("aba-anamnese");
+    /* 09/10: a aba tem duas partes — a pre-consulta da paciente (anamnese-convite.js, #an-preconsulta) e o
+       registro do atendimento (#anamnese-registro, desenhado aqui). Sem a divisao no HTML, usa a aba inteira. */
+    if (window.PreConsulta) window.PreConsulta.desenhar();
+    var alvo = document.getElementById("anamnese-registro") || document.getElementById("aba-anamnese");
     if (!alvo) return;
+    /* 12/10: a aba nao mostra mais um formulario profissional VAZIO. O rascunho profissional nasce do
+       Mapeamento do paciente ("Levar para o atendimento") e so entao aparece aqui para revisar e completar.
+       Quem ja tem registro neste atendimento continua vendo e editando como antes; os registros de outros
+       atendimentos aparecem so para leitura. (window.__REGISTRO_PROFISSIONAL abre o editor vazio, para os
+       testes do codigo legado.) */
+    var ea = atendimentoAtivo();
+    var temRegistro = ea && (doAtendimento(ea.id).length || rascunhoDe(ea.id) || rascunho);
+    if (!window.__REGISTRO_PROFISSIONAL && !temRegistro) { alvo.innerHTML = registrosAntigosHtml(); return; }
     var e = atendimentoAtivo();
     if (!e) {
       rascunho = null;
       alvo.innerHTML = '<div class="lista-vazia" id="an-sem-atendimento"><strong>' + MSG_SEM_ATENDIMENTO + "</strong>" +
-        "<span>A anamnese pertence a um atendimento. Na aba Atendimentos, selecione um ou inicie um novo.</span></div>";
+        "<span>O Mapeamento Holístico pertence a um atendimento. Na aba Atendimentos, selecione um ou inicie um novo.</span></div>";
       return;
     }
     var pid = e.patient_id;
@@ -319,8 +361,22 @@
     if (rasc && (!rascunho || rascunho.id !== rasc.id)) rascunho = { id: rasc.id, encounter_id: e.id, content: JSON.parse(JSON.stringify(rasc.content || conteudoVazio())), updated_at: rasc.updated_at };
     if (!rasc && rascunho && rascunho.id) rascunho = null;
 
+    /* ANAMNESE V2 (anamnese-v2.js): rascunho novo nasce V2; anamnese antiga (sem formulario_versao) segue no
+       formato antigo, sem conversao. O roteamento e so pelo marcador do conteudo gravado. */
+    var V2 = window.AnamneseV2;
+    var vendoLinha = vendo ? lista.filter(function (a) { return a.id === vendo; })[0] : null;
+    var modoV2 = null;
+    if (V2) {
+      if (vendoLinha) modoV2 = V2.ehV2(vendoLinha.content) ? { ro: true, base: vendoLinha } : null;
+      else if (rasc) modoV2 = V2.ehV2(rasc.content) ? { base: rasc } : null;
+      else if (rascunho) modoV2 = null;                                   // correcao de anamnese ANTIGA em memoria
+      else if (v2Corrigindo && vig && v2Corrigindo === vig.id) modoV2 = { base: vig, corrigir: true };
+      else if (vig) modoV2 = V2.ehV2(vig.content) ? { ro: true, base: vig } : null;
+      else modoV2 = { base: null };                                       // nova: sempre V2
+    }
+
     var html = '<div class="an-topo">' +
-      '<div><span class="fic-rot">Anamnese</span><b>' + escapar(nome) + "</b> · atendimento de " + escapar(A.rotuloQuando(e)) +
+      '<div><span class="fic-rot">Mapeamento Holístico</span><b>' + escapar(nome) + "</b> · atendimento de " + escapar(A.rotuloQuando(e)) +
         (e.consultation_id ? " (com agendamento)" : " (sem agendamento)") + "</div>" +
       '<span class="an-salvo" id="an-estado" role="status" aria-live="polite">' + escapar(textoEstado()) + "</span>" +
     "</div>";
@@ -331,16 +387,42 @@
     }
     html += revisoesHtml(lista);
 
+    if (modoV2) {
+      html += '<div class="an-acoes">';
+      if (vendo) html += '<button type="button" class="perf-botao" data-an-acao="fechar-ver">Voltar</button>';
+      else if (modoV2.ro && !arquivado) {
+        html += '<button type="button" class="perf-botao" data-an-acao="corrigir">Corrigir (nova revisão)</button>';
+        if (vig && vig.status === "salvo") html += '<button type="button" class="btn-dourado" data-an-acao="revisar">Marcar como revisada</button>';
+      }
+      html += "</div>";
+      if (modoV2.ro) html += '<p class="an-titulo"><b>' + escapar(vendo ? "Revisão " + vendoLinha.revision_number + " (histórico, somente leitura)" : "Revisão vigente (rev. " + vig.revision_number + ")") + "</b></p>";
+      if (arquivado && !modoV2.ro) html += '<p class="perf-ajuda">' + escapar(window.MSG_ARQUIVADO || "Paciente arquivado.") + "</p>";
+      html += '<div id="an2-corpo"></div>';
+      alvo.innerHTML = html;
+      var ant = anteriorCompletaDe(pid, e.id);
+      var antHtml = ant ? '<p class="perf-ajuda">Mapeamento de ' + escapar(A.porId(ant.encounter_id) ? A.rotuloQuando(A.porId(ant.encounter_id)) : "atendimento anterior") + " · rev. " + ant.revision_number + " · " + escapar(ant.status) + " (somente leitura)</p>" +
+        (V2.ehV2(ant.content) ? V2.resumoHtml(ant.content) : "") +
+        '<div class="an-dominios">' + DOMINIOS.map(function (p) { var it = (((ant.content || {}).dominios || {})[p[0]] || {}).itens || []; return it.length ? dominioHtml(p[0], p[1], it, false) : ""; }).join("") + "</div>" : "";
+      var perfil = window.PerfilProfissional && window.PerfilProfissional.dados ? window.PerfilProfissional.dados() : {};
+      V2.desenhar(document.getElementById("an2-corpo"), {
+        encounter: e, base: modoV2.base, somenteLeitura: !!modoV2.ro || !!arquivado, recomecar: !!modoV2.corrigir && !V2.estado(),
+        anterior: ant, anteriorHtml: antHtml, sugerirRetorno: !!anteriorDe(pid, e.id) && !modoV2.base,
+        linha: modoV2.base || null, autoria: perfil && perfil.nome ? perfil.nome : null, consulta: A.rotuloQuando(e),
+        salvar: salvar, redesenhar: desenhar, recarregar: function () { carregar().then(desenhar); }
+      });
+      return;
+    }
+
     var mostrar = null, editavel = false, titulo = "";
     if (vendo) { mostrar = lista.filter(function (a) { return a.id === vendo; })[0]; titulo = mostrar ? "Revisão " + mostrar.revision_number + " (histórico, somente leitura)" : ""; }
-    if (!mostrar && rascunho) { mostrar = { content: rascunho.content, status: "rascunho" }; editavel = !arquivado; titulo = rascunho.id ? "Rascunho em edição" : "Nova anamnese (ainda não salva)"; }
+    if (!mostrar && rascunho) { mostrar = { content: rascunho.content, status: "rascunho" }; editavel = !arquivado; titulo = rascunho.id ? "Rascunho em edição" : "Novo Mapeamento (ainda não salvo)"; }
     if (!mostrar && vig) { mostrar = vig; titulo = "Revisão vigente (rev. " + vig.revision_number + ")"; }
 
     html += '<div class="an-acoes">';
     if (vendo) html += '<button type="button" class="perf-botao" data-an-acao="fechar-ver">Voltar</button>';
     else if (!rascunho && !vig && !arquivado) {
-      html += '<button type="button" class="btn-verde" data-an-acao="nova">Iniciar anamnese</button>';
-      if (anterior) html += '<button type="button" class="perf-botao" data-an-acao="copiar" data-an-fonte="' + escapar(anterior.id) + '">Criar a partir da anamnese anterior</button>';
+      html += '<button type="button" class="btn-verde" data-an-acao="nova">Iniciar Mapeamento</button>';
+      if (anterior) html += '<button type="button" class="perf-botao" data-an-acao="copiar" data-an-fonte="' + escapar(anterior.id) + '">Criar a partir do Mapeamento anterior</button>';
     } else if (!rascunho && vig && !arquivado) {
       html += '<button type="button" class="perf-botao" data-an-acao="corrigir">Corrigir (nova revisão)</button>';
       if (vig.status === "salvo") html += '<button type="button" class="btn-dourado" data-an-acao="revisar">Marcar como revisada</button>';
@@ -353,7 +435,7 @@
 
     if (mostrar) {
       html += '<p class="an-titulo"><b>' + escapar(titulo) + "</b>" +
-        (mostrar.copied_from_previous || (rascunho && rasc && rasc.copied_from_previous) ? ' <span class="an-selo previo">criada a partir da anamnese anterior — itens prévios precisam ser revisados</span>' : "") + "</p>";
+        (mostrar.copied_from_previous || (rascunho && rasc && rasc.copied_from_previous) ? ' <span class="an-selo previo">criado a partir do Mapeamento anterior — itens prévios precisam ser revisados</span>' : "") + "</p>";
       html += '<p class="perf-ajuda">Cada item diz o <b>estado</b> (campo vazio não é "não") e a <b>origem</b> da informação. ' + MSG_INFORMADO + "</p>";
       var d = (mostrar.content || {}).dominios || {};
       html += '<div class="an-dominios">' + DOMINIOS.map(function (p) {
@@ -416,12 +498,12 @@
       vendo = null;
       desenhar();
       mostrarEstado(status);
-      if (window.avisar) window.avisar(status === "rascunho" ? "Rascunho da anamnese salvo." : "Anamnese salva (rev. " + a.revision_number + ").");
+      if (window.avisar) window.avisar(status === "rascunho" ? "Rascunho do Mapeamento salvo." : "Mapeamento salvo (rev. " + a.revision_number + ").");
       return a;
     }).catch(function (err) {
       console.error("[anamnese] salvar:", err);
       mostrarEstado(/conflito|alterada em outro lugar/i.test(err && err.message) ? "conflito" : "falha");
-      if (window.avisar) window.avisar(window.mensagemHumana ? window.mensagemHumana(err) : "Não foi possível salvar a anamnese. Nada foi gravado; tente de novo.");
+      if (window.avisar) window.avisar(window.mensagemHumana ? window.mensagemHumana(err) : "Não foi possível salvar o Mapeamento. Nada foi gravado; tente de novo.");
       return null;
     });
   }
@@ -434,26 +516,33 @@
         var acao = b.dataset.anAcao, e = atendimentoAtivo();
         if (!e) return;
         if (acao === "nova") { rascunho = { id: null, encounter_id: e.id, content: conteudoVazio() }; vendo = null; desenhar(); return; }
+        var V2a = window.AnamneseV2;
         if (acao === "copiar") {
           var fonte = b.dataset.anFonte;
           if (!window.abrirModalConfirmar) return;
-          window.abrirModalConfirmar({ titulo: "Criar a partir da anamnese anterior",
-            corpo: "<p>Os itens da anamnese anterior serão copiados para este atendimento <b>marcados como informação prévia, a revisar</b>. " +
+          window.abrirModalConfirmar({ titulo: "Criar a partir do Mapeamento anterior",
+            corpo: "<p>Os itens do Mapeamento anterior serão copiados para este atendimento <b>marcados como informação prévia, a revisar</b>. " +
                    "A origem de cada item continua visível. Nada é copiado para o HOLOSCAN.</p>",
             botaoConfirmar: "Copiar como prévia", classeConfirmar: "btn-verde" }).then(function (r) {
             if (r !== "confirmar") return;
             mostrarEstado("salvando");
-            criarAPartirDe(e.id, fonte).then(function () { rascunho = null; vendo = null; desenhar(); mostrarEstado("rascunho"); })
-              .catch(function (err) { mostrarEstado("falha"); if (window.avisar) window.avisar(window.mensagemHumana ? window.mensagemHumana(err) : "Não foi possível copiar a anamnese anterior."); });
+            var linhaFonte = cache.filter(function (a) { return a.id === fonte; })[0];
+            /* anamnese V2 anterior: copia V2, campo a campo, como previo; anamnese ANTIGA: a copia antiga (RPC), sem conversao */
+            var copia = V2a && linhaFonte && V2a.ehV2(linhaFonte.content)
+              ? V2a.prepararCopia({ salvar: salvar, redesenhar: desenhar, recarregar: function () { carregar().then(desenhar); } }, e, linhaFonte)
+              : criarAPartirDe(e.id, fonte);
+            copia.then(function () { rascunho = null; vendo = null; desenhar(); mostrarEstado("rascunho"); })
+              .catch(function (err) { mostrarEstado("falha"); if (window.avisar) window.avisar(window.mensagemHumana ? window.mensagemHumana(err) : "Não foi possível copiar o Mapeamento anterior."); });
           });
           return;
         }
         if (acao === "corrigir") {
           var vig = vigente(e.id); if (!vig) return;
+          if (V2a && V2a.ehV2(vig.content)) { if (V2a.esquecer) V2a.esquecer(); v2Corrigindo = vig.id; vendo = null; desenhar(); return; }
           rascunho = { id: null, corrigeDe: vig.id, encounter_id: e.id, content: JSON.parse(JSON.stringify(vig.content || conteudoVazio())) };
           vendo = null; desenhar(); return;
         }
-        if (acao === "descartar") { rascunho = null; vendo = null; desenhar(); return; }
+        if (acao === "descartar") { rascunho = null; vendo = null; v2Corrigindo = null; if (V2a) V2a.esquecer(); desenhar(); return; }
         if (acao === "rascunho") { gravar("rascunho"); return; }
         if (acao === "salvar") { gravar("salvo"); return; }
         if (acao === "revisar") {
@@ -497,12 +586,12 @@
     ligar();
     carregar();
     if (window.AtendimentoAtual && window.AtendimentoAtual.aoMudar) {
-      window.AtendimentoAtual.aoMudar(function () { rascunho = null; vendo = null; estadoSalvo = ""; if (document.getElementById("aba-anamnese")) desenhar(); });
+      window.AtendimentoAtual.aoMudar(function () { rascunho = null; vendo = null; v2Corrigindo = null; estadoSalvo = ""; if (window.AnamneseV2) { window.AnamneseV2.salvarAgora(); window.AnamneseV2.esquecer(); } if (document.getElementById("aba-anamnese")) desenhar(); });
     }
     var anterior = window.aoTrocarPaciente;
-    window.aoTrocarPaciente = function () { if (typeof anterior === "function") anterior(); rascunho = null; vendo = null; estadoSalvo = ""; };
+    window.aoTrocarPaciente = function () { if (typeof anterior === "function") anterior(); rascunho = null; vendo = null; v2Corrigindo = null; estadoSalvo = ""; if (window.AnamneseV2) { window.AnamneseV2.salvarAgora(); window.AnamneseV2.esquecer(); } };
     if (window.HoloAuth && window.HoloAuth.aoMudarEstado) {
-      window.HoloAuth.aoMudarEstado(function (estado) { if (estado === "pendente") return; if (estado !== "autenticado") { cache = []; rascunho = null; } carregar(); });
+      window.HoloAuth.aoMudarEstado(function (estado) { if (estado === "pendente") return; if (estado !== "autenticado") { cache = []; rascunho = null; v2Corrigindo = null; if (window.AnamneseV2) window.AnamneseV2.esquecer(); } carregar().then(avisarMudanca); });
     }
   });
 
@@ -511,10 +600,23 @@
     DOMINIOS: DOMINIOS, ESTADOS: ESTADOS, ORIGENS: ORIGENS, rotulo: function (k) { return ROTULO[k] || k; },
     carregar: carregar, carregando: function () { return carregando; },
     salvar: salvar, criarAPartirDe: criarAPartirDe,
-    doAtendimento: doAtendimento, vigente: vigente, rascunhoDe: rascunhoDe, doPaciente: doPaciente, anteriorDe: anteriorDe,
+    doAtendimento: doAtendimento, vigente: vigente, rascunhoDe: rascunhoDe, doPaciente: doPaciente, anteriorDe: anteriorDe, anteriorCompletaDe: anteriorCompletaDe,
     consolidada: consolidada, contarItens: contarItens, textoBruto: textoBruto,
     desenhar: desenhar, aoMudar: function (f) { if (typeof f === "function") ouvintes.push(f); },
     rascunhoLocal: function () { lerFormulario(); return rascunho ? JSON.parse(JSON.stringify(rascunho)) : null; },
-    esquecer: function () { cache = []; locais = []; rascunho = null; vendo = null; }
+    esquecer: function () { cache = []; locais = []; rascunho = null; vendo = null; v2Corrigindo = null; if (window.AnamneseV2) window.AnamneseV2.esquecer(); },
+    /** Pre-consulta (09/10): leva a resposta enviada pela paciente para um RASCUNHO V2 do atendimento ativo.
+        Recusa se nao houver atendimento ativo ou se ele ja tiver anamnese (nada e sobrescrito). */
+    usarPreConsulta: function (convite) {
+      var e = atendimentoAtivo();
+      if (!e) return Promise.reject(new Error("Selecione ou inicie um atendimento para levar o Mapeamento Holístico para ele."));
+      if (doAtendimento(e.id).length || rascunhoDe(e.id)) return Promise.reject(new Error("Este atendimento já tem Mapeamento Holístico. A resposta do paciente continua visível aqui, para consulta."));
+      if (!window.AnamneseV2 || !window.AnamneseV2.prepararDePreConsulta) return Promise.reject(new Error("Mapeamento Holístico indisponível."));
+      return window.AnamneseV2.prepararDePreConsulta({ salvar: salvar, redesenhar: desenhar, recarregar: function () { carregar().then(desenhar); } }, e, convite)
+        .then(function (linha) { if (!linha || !linha.id) throw new Error("Não foi possível criar o rascunho do Mapeamento."); rascunho = null; vendo = null; return carregar().then(function () { desenhar(); return linha; }); });
+    },
+    atendimentoAtivo: function () { return atendimentoAtivo(); },
+    /** resumo da anamnese vigente (so V2; a antiga nao e reinterpretada) */
+    resumoHtml: function (a) { return a && window.AnamneseV2 && window.AnamneseV2.ehV2(a.content) ? window.AnamneseV2.resumoHtml(a.content) : ""; }
   };
 })();

@@ -1,10 +1,11 @@
 /**
  * O dashboard era a apresentacao do metodo — o mesmo texto todo dia, com ou
- * sem paciente. Agora e o trabalho de hoje: quem esta esperando, o tamanho da
- * carteira e o terreno que se repete nela.
- *
- * As regras de pendencia sao as de panorama.js, as mesmas que a ficha usa.
- * Este teste confere que as duas telas contam a mesma historia.
+ * sem paciente. Agora e o trabalho de hoje: a agenda do dia, o tamanho da
+ * carteira e EM QUE ETAPA cada paciente esta (12/10: "Acompanhamento dos
+ * pacientes" substituiu "Precisa de voce"/"Pendencias" — ferramenta nao
+ * aplicada ou paciente sem HOLOSCAN nao e etapa nem pendencia).
+ * Modo local (sem servidor): so a etapa "HOLOSCAN em andamento" existe aqui;
+ * as demais vem do servidor e estao em testar-dashboard-acompanhamento.mjs.
  */
 import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
@@ -31,14 +32,17 @@ const ok = (c, t) => {
 const vazio = await p.evaluate(() => ({
   texto: document.getElementById('dash-trabalho').innerText.replace(/\s+/g, ' ').trim(),
   metodo: !document.getElementById('dash-metodo').classList.contains('hidden'),
-  pendentes: document.querySelectorAll('#dash-lista-pendentes .dash-pendente').length,
+  pendentes: document.querySelectorAll('#dash-lista-acompanhamento .dash-acomp').length,
   jornada: document.querySelectorAll('#dash-trabalho .dash-jornada-passo').length,
+  cta: !!document.querySelector('#dash-trabalho [data-destino="novo"]'),
 }));
-ok(/nenhum paciente cadastrado/i.test(vazio.texto), 'sem paciente, convida a cadastrar');
-ok(/nenhuma consulta agendada/i.test(vazio.texto), 'sem consulta marcada, estado vazio elegante');
+ok(/Comece cadastrando seu primeiro paciente/i.test(vazio.texto) && vazio.cta, 'sem paciente, convida a cadastrar (botão "Cadastrar primeiro paciente")');
+ok(/Nenhuma consulta hoje/i.test(vazio.texto), 'sem consulta hoje, estado vazio elegante na Agenda de Hoje');
 ok(vazio.metodo, 'e o método continua à vista — ali ele serve');
-ok(vazio.pendentes === 0, 'nenhuma pendência inventada do nada');
-ok(vazio.jornada === 4, 'a jornada clínica (MAPEAR → CONFRONTAR → INTEGRAR → ACOMPANHAR) sempre aparece');
+ok(vazio.pendentes === 0, 'nenhuma etapa inventada do nada');
+/* 12/10: o Dashboard ficou só com o topo, a Agenda de Hoje e o Acompanhamento (jornada clínica, recentes,
+   próximas consultas, rascunhos, sem conduta e "Primeiros passos" saíram da tela) */
+ok(vazio.jornada === 0 && !/Primeiros passos|Jornada clínica|Pacientes recentes|Próximas consultas marcadas/.test(vazio.texto), 'tela limpa: sem jornada clínica, recentes, próximas consultas nem "Primeiros passos"');
 
 // --- uma carteira de verdade ---------------------------------------------
 await p.evaluate(async (respostas) => {
@@ -85,11 +89,14 @@ const cheio = await p.evaluate(() => {
   window.redesenharDashboard();
   return {
     metodo: !document.getElementById('dash-metodo').classList.contains('hidden'),
-    pendentes: [...document.querySelectorAll('#dash-lista-pendentes .dash-pendente')].map(l => ({
+    pendentes: [...document.querySelectorAll('#dash-lista-acompanhamento .dash-acomp')].map(l => ({
       nome: l.querySelector('b').textContent,
       porque: l.querySelector('.dash-porque').textContent,
-      botao: l.querySelector('.dash-ir').textContent.replace(/\s*→\s*$/, '').trim(),
+      etapa: l.querySelector('.dash-status').textContent.trim(),
+      temMapa: !!window.Panorama.doPaciente(l.dataset.paciente).pontuacao,
     })),
+    semProgresso: window.pacientesTodos().filter(p => p.status !== 'inativo' && !window.JornadaPaciente.passos(p.id).some(x => x.feito) && !(window.Panorama.doPaciente(p.id).respondidas > 0)).map(p => p.nome),
+    texto: document.getElementById('dash-trabalho').innerText,
     tiles: [...document.querySelectorAll('.dash-tile')].map(t =>
       t.querySelector('b').textContent + ' ' + t.querySelector('span').textContent),
     barras: [...document.querySelectorAll('.dash-barra')].map(b =>
@@ -102,21 +109,19 @@ const cheio = await p.evaluate(() => {
 });
 
 ok(!cheio.metodo, 'com paciente cadastrado, a apresentação do método sai da frente');
-ok(cheio.pendentes.length === 5, cheio.pendentes.length + ' pacientes precisando de atenção');
+/* 14/10 (auditoria Cowork): paciente ATIVA com etapa feita (HOLOSCAN salvo, ferramentas) entra como "Em atendimento" —
+   antes sumia do painel; so quem ainda nao comecou nada fica de fora (e a tela diz isso) */
+ok(cheio.pendentes.filter(x => !/Helena/.test(x.nome)).every(x => x.etapa === 'Em atendimento' && x.temMapa && /^Próximo passo: |Jornada em dia/.test(x.porque)),
+   cheio.pendentes.length + ' pacientes em acompanhamento: Helena (HOLOSCAN em andamento) e quem já tem mapa, como "Em atendimento" com o próximo passo');
 console.log(cheio.pendentes.map(x => '          ' + x.nome + ' — ' + x.porque).join('\n'));
-ok(cheio.recentes.length === 3, 'pacientes recentes mostra no máximo 3: ' + cheio.recentes.join(' · '));
-ok(cheio.recentes[0] === 'Sofia Martins', 'e o mais novo cadastro vem primeiro: ' + cheio.recentes[0]);
 
-const carla = cheio.pendentes.find(x => /Carla/.test(x.nome));
-/* Etapa 0 da V1: o alerta "reavaliação vencida" (28 dias) foi neutralizado —
-   prazo de acompanhamento é da profissional (Mestre §33). A Carla continua
-   na lista só pela pendência operacional ("mapa sem conduta"). */
-ok(carla && !/reavalia/.test(carla.porque), 'nenhuma "reavaliação vencida" automática para a Carla: ' + carla.porque);
+/* Etapa 0 da V1: "reavaliação vencida" (28 dias) foi neutralizada — prazo de acompanhamento é da profissional
+   (Mestre §33). 12/10: "sem HOLOSCAN" e "mapa sem conduta" também não aparecem mais como pendência. */
+ok(!/reavalia|pendênc|Precisa de você|sem HOLOSCAN|mapa sem conduta|mapa sem ferramentas|Aplicar agora/i.test(cheio.texto), 'nenhuma "reavaliação vencida", pendência ou "sem HOLOSCAN" no dashboard');
 const helena = cheio.pendentes.find(x => /Helena/.test(x.nome));
-ok(/12 de 84/.test(helena.porque) && helena.botao === 'Continuar',
-   'o questionário parado da Helena convida a continuar: ' + helena.porque);
-const sofia = cheio.pendentes.find(x => /Sofia/.test(x.nome));
-ok(sofia.botao === 'Aplicar agora', 'quem não tem mapa é chamada para aplicar');
+ok(helena && /12 de 84/.test(helena.porque) && helena.etapa === 'HOLOSCAN em andamento',
+   'o questionário parado da Helena aparece como etapa: ' + (helena ? helena.etapa + ' · ' + helena.porque : '—'));
+ok(cheio.semProgresso.length > 0 && !cheio.pendentes.some(x => cheio.semProgresso.includes(x.nome)) && /ainda não começaram nenhuma etapa não aparecem/.test(cheio.texto), 'quem não começou nenhuma etapa não entra, e o painel diz isso (' + cheio.semProgresso.join(', ') + ')');
 
 /* Correcao do dashboard (pos-6.5): o bloco "N pacientes / N com HOLOSCAN"
    saiu (repetia o cabecalho com outro numero) e "O terreno da sua carteira"
@@ -129,11 +134,11 @@ ok(!cheio.tiles.some(t => /Índice HOLOS médio|reavaliaç(ão|ões) vencida/.te
 
 // --- o botao leva mesmo ao paciente certo --------------------------------
 const ida = await p.evaluate(async () => {
-  const b = document.querySelector('#dash-lista-pendentes .dash-pendente .dash-ir');
-  const nome = b.closest('.dash-pendente').querySelector('b').textContent;
+  const b = document.querySelector('#dash-lista-acompanhamento .dash-acomp');
+  const nome = b.querySelector('b').textContent;
   b.click();
   await new Promise(r => setTimeout(r, 400));
-  return { nome, botao: b.textContent.replace(/\s*→\s*$/, '').trim(), ativo: window.pacienteAtivoNome(),
+  return { nome, botao: b.dataset.etapa, ativo: window.pacienteAtivoNome(),
     secao: document.querySelector('.secao.ativa')?.id, aba: document.querySelector('[data-aba].ativa')?.dataset.aba, fichaVisivel: !document.getElementById('vista-ficha').classList.contains('hidden') };
 });
 
@@ -145,39 +150,31 @@ const arq = await p.evaluate(async () => {
   document.querySelector('.nav-item[data-secao="dashboard"]').click();
   window.redesenharDashboard();
   const txt = s => (document.querySelector(s) || {}).innerText || '';
-  const nomes = s => [...document.querySelectorAll(s + ' .dash-pendente b')].map(b => b.textContent);
+  const nomes = s => [...document.querySelectorAll(s + ' .dash-pendente b, ' + s + ' .dash-acomp b')].map(b => b.textContent);
   const tile = r => { const t = [...document.querySelectorAll('.dash-resumo .dash-tile')].find(x => x.querySelector('span').textContent === r); return t ? Number(t.querySelector('b').textContent) : null; };
-  const precisa = document.querySelector('#dash-precisa .dash-titulo em');
+  const precisa = document.querySelectorAll('#dash-lista-acompanhamento .dash-acomp').length;
   const ordem = [...document.querySelectorAll('#dash-trabalho .dash-titulo')].map(h => h.childNodes[0].textContent.trim());
   // a jornada diz quem esta em foco e nao segue com arquivado
-  const foco = txt('#dash-jornada-foco');
-  document.querySelector('#dash-trabalho [data-jornada][data-destino="holoscan"]').click();
+  window.irParaSecao('holoscan');
   await new Promise(r => setTimeout(r, 200));
   const secaoJornada = document.querySelector('.secao.ativa')?.id;
   const opcao = [...document.querySelectorAll('#sel-holoscan option')].find(o => o.value === sofia.id)?.textContent;
   const avisoComFoco = document.querySelector('#secao-holoscan .barra-paciente .aviso').hidden;
-  return { pend: nomes('#dash-lista-pendentes'), recentes: nomes('#dash-lista-recentes'),
-    tileAtivos: tile('Pacientes ativos'), tilePend: tile('Pendências'),
-    precisa: precisa ? Number(precisa.textContent) : 0, ordem, foco, secaoJornada, opcao, avisoComFoco };
+  return { pend: nomes('#dash-lista-acompanhamento'), recentes: nomes('#dash-lista-recentes'),
+    tileAtivos: tile('Pacientes ativos'), tilePend: tile('Em acompanhamento'),
+    precisa, ordem, secaoJornada, opcao, avisoComFoco };
 });
-ok(!arq.pend.includes('Sofia Martins'), 'arquivada nao aparece em "Precisa de você": ' + arq.pend.join(' · '));
-ok(!arq.recentes.includes('Sofia Martins'), 'nem em "Pacientes recentes": ' + arq.recentes.join(' · '));
+ok(!arq.pend.includes('Sofia Martins'), 'arquivada nao aparece em "Acompanhamento dos pacientes": ' + arq.pend.join(' · '));
 ok(arq.tileAtivos === 4, 'Pacientes ativos conta 4 (sem a arquivada): ' + arq.tileAtivos);
 ok(arq.tilePend === arq.precisa && arq.precisa === arq.pend.length,
-   'Pendências do topo = "Precisa de você": ' + arq.tilePend + ' = ' + arq.precisa);
-ok(arq.ordem.indexOf('Precisa de você') < arq.ordem.indexOf('Próximas consultas marcadas') &&
-   arq.ordem.indexOf('Próximas consultas marcadas') < arq.ordem.indexOf('Pacientes recentes') &&
-   arq.ordem.indexOf('Pacientes recentes') < arq.ordem.indexOf('Jornada clínica'),
-   'ordem: Precisa de você → Próximas → Recentes → Jornada: ' + arq.ordem.join(' → '));
-ok(/Sofia Martins/.test(arq.foco) && /arquivad/.test(arq.foco), 'a jornada diz quem está em foco (e que está arquivada): ' + arq.foco);
-ok(arq.secaoJornada === 'secao-pacientes', 'com arquivada em foco, a jornada pede outro paciente em vez de abrir o HOLOSCAN: ' + arq.secaoJornada);
+   '"Em acompanhamento" do topo = linhas do "Acompanhamento dos pacientes": ' + arq.tilePend + ' = ' + arq.precisa);
+ok(arq.ordem.join(' → ') === 'Agenda de Hoje → Acompanhamento dos pacientes', 'só dois blocos abaixo do topo: ' + arq.ordem.join(' → '));
 ok(arq.avisoComFoco === true, 'HOLOSCAN: com paciente escolhido, o aviso "Selecione um paciente" some');
 ok(/\(arquivado\)/.test(arq.opcao || ''), 'no seletor, a arquivada aparece como "(arquivado)": ' + arq.opcao);
 ok(ida.ativo === ida.nome, 'clicar na linha troca o paciente ativo: ' + ida.ativo);
-/* a primeira da lista e "mapa sem conduta": o botao "Abrir conduta" leva a
-   ficha, na aba Conduta (antes "Ver por onde começar" abria o HOLOSCAN) */
-ok(ida.botao === 'Abrir conduta' && ida.secao === 'secao-pacientes' && ida.aba === 'conduta',
-   'e leva para a tela certa: ' + ida.botao + ' → ' + ida.secao + ' / aba ' + ida.aba);
+/* a linha da Helena (HOLOSCAN em andamento) leva ao HOLOSCAN dela, para continuar o questionario */
+ok(ida.botao === 'holoscan_andamento' && ida.secao === 'secao-holoscan',
+   'e leva para a tela certa: ' + ida.botao + ' → ' + ida.secao);
 
 // --- a ficha tem que contar a mesma historia ------------------------------
 const mesma = await p.evaluate(() => {
@@ -201,12 +198,13 @@ const ag = await p.evaluate(async () => {
   document.querySelector('.nav-item[data-secao="dashboard"]').click();
   window.redesenharDashboard();
   const linhas = s => [...document.querySelectorAll(s + ' .dash-pendente')].map(l => l.querySelector('b').textContent + ' ' + l.querySelector('.dash-porque').textContent);
-  return { hoje: linhas('#dash-lista-hoje'), prox: linhas('#dash-lista-atendimentos'),
+  const tileProx = [...document.querySelectorAll('#secao-dashboard .dash-tile')].find(t => /Próxima consulta/.test(t.innerText));
+  return { hoje: linhas('#dash-lista-hoje'), prox: linhas('#dash-lista-atendimentos'), proxTile: tileProx ? tileProx.querySelector('b').textContent : null,
     tudo: document.getElementById('dash-trabalho').innerText };
 });
 ok(ag.hoje.length === 1 && /14:00/.test(ag.hoje[0]) && !/\d\d:\d\d:\d\d/.test(ag.tudo), 'hora sem segundos: ' + ag.hoje[0]);
-ok(ag.prox.length === 3 && /^Helena/.test(ag.prox[0]) && /^Beatriz.*09:00/.test(ag.prox[1]) && /^Carla.*11:00/.test(ag.prox[2]),
-   'próximas: todas as consultas futuras (a Beatriz tem duas), por data e hora: ' + ag.prox.join(' | '));
+/* 12/10: a lista "Próximas consultas marcadas" saiu do Dashboard (fica na Agenda); o topo mostra a próxima */
+ok(ag.prox.length === 0 && /^\d\d\/\d\d\/\d{4}$/.test(ag.proxTile || ''), 'próxima consulta no card do topo (' + ag.proxTile + '); a lista completa fica na Agenda');
 
 await nav.close();
 console.log(ruim.length ? '\n  ERRO: ' + ruim[0] : '\n  sem erro de JS');

@@ -107,9 +107,9 @@ const CAMPOS = ['objetivo', 'r1', 'r2', 'r3', 'r4', 'r5', 'verdadeiro'];
 ok(CAMPOS.every(c => c in primeira.respostas),
    'os sete campos entram em respostas com os mesmos nomes de sempre: ' +
    Object.keys(primeira.respostas).join(', '));
-ok(primeira.respostas.r5 === 'Minha mae dizia que eu era a gordinha' &&
+ok(primeira.respostas.r3 && primeira.respostas.r4 === '' && primeira.respostas.r5 === '' &&
    primeira.respostas.verdadeiro === 'Voltar a me reconhecer no espelho',
-   'com o conteúdo literal de cada um');
+   'com o conteúdo literal de cada um — aplicação nova tem 3 perguntas (rodada UX 14/10): r4 e r5 ficam vazios mesmo se algo estiver nos campos escondidos');
 
 /* ---- editar atualiza; não duplica ------------------------------------ */
 
@@ -274,7 +274,7 @@ const semVerdadeiro = await p.evaluate(async () => {
   };
 });
 ok(semVerdedeiroGuard(semVerdadeiro.respostas),
-   'as cinco respostas da escada estão preenchidas e "O verdadeiro" vazio');
+   'as três respostas da escada estão preenchidas (aplicação nova: 3 perguntas) e "O verdadeiro" vazio');
 ok(semVerdadeiro.texto.indexOf('Meu pai nunca brincou comigo') === -1,
    'r5 NÃO é promovido a propósito — o fallback automático não existe mais');
 ok(['Para acompanhar meus filhos', 'Porque eu chego em casa sem energia',
@@ -289,7 +289,7 @@ ok(/Ter mais disposicao/.test(semVerdadeiro.objetivo),
    'o objetivo declarado continua aparecendo normalmente');
 
 function semVerdedeiroGuard(r) {
-  return r.r1 && r.r2 && r.r3 && r.r4 && r.r5 && r.verdadeiro === '';
+  return r.r1 && r.r2 && r.r3 && r.r4 === '' && r.r5 === '' && r.verdadeiro === '';
 }
 
 /* com "O verdadeiro" preenchido, ele aparece */

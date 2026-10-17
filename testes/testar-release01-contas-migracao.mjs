@@ -152,8 +152,8 @@ let n = contar(PA);
 ok(n.pacientes === 1 && srv.linhas('patients').find(x => x.id === PA).nutritionist_id === UID_A,
    'o paciente subiu, sob a conta A');
 ok(n.holoscan === 0 && n.respostas === 0, 'P0: sem sessao nao ha pacote oficial carregado, logo nao ha mapa HOLOSCAN — e nenhuma aplicacao sem proveniencia chega ao servidor');
-ok(n.coletas === 1 && srv.linhas('lab_collections').find(x => x.patient_id === PA).data_coleta_desconhecida === true,
-   'os exames subiram como coleta de DATA DESCONHECIDA (nunca "hoje")');
+ok(n.coletas === 0 && srv.linhas('lab_collections').length === 0,
+   '09/10: valores de exame guardados sem sessao NAO sobem como coleta (exame e so arquivo; o servidor nao aceita mais coleta)');
 ok(n.ferramentas === 1 && srv.linhas('tool_applications').some(t => t.id === regA.app),
    'a ferramenta aplicada offline subiu com o mesmo id (item 21)');
 const marcas = await M.p.evaluate(() => Object.keys(localStorage).filter(k => k.indexOf('holohacking.migrado_supa') === 0));
@@ -201,7 +201,7 @@ await entrar(M.p, 'b@holo.test', 'senha-b-123');
 n = contar(PB);
 ok(n.pacientes === 1 && srv.linhas('patients').find(x => x.id === PB).nutritionist_id === UID_B,
    'B migrou os proprios dados: a marca de A nao bloqueou');
-ok(n.holoscan === 0 && n.ferramentas === 1 && n.coletas === 1, 'ferramenta e exames de B subiram; o HOLOSCAN sem sessao ficou no aparelho (P0)');
+ok(n.holoscan === 0 && n.ferramentas === 1 && n.coletas === 0, 'ferramenta de B subiu; o HOLOSCAN sem sessao ficou no aparelho (P0) e valores de exame nao viram coleta (09/10)');
 ok(srv.linhas('patients').filter(x => x.nutritionist_id === UID_B).length === 1,
    'nada de A foi parar na conta B');
 const vistoB = await M.p.evaluate((pa) => ({

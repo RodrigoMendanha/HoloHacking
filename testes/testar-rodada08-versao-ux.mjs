@@ -92,7 +92,7 @@ await A.evaluate(() => {
 const telas = [
   ['Dashboard', "document.querySelector('.nav-item[data-secao=\"dashboard\"]').click();"],
   ['HOLOSCAN', "document.querySelector('.nav-item[data-secao=\"holoscan\"]').click();"],
-  ['Leitura Integrada', "document.querySelector('.nav-item[data-secao=\"confronto\"]').click();"],
+  ['Resultado', "document.querySelector('.nav-item[data-secao=\"resultado\"]').click();"],   /* 09/10: no lugar da Leitura Integrada */
   ['Ficha', "window.abrirFichaDe(window.pacienteAtivoId());"],
   ['Ficha / Documentos', "document.querySelector('[data-aba=\"documentos\"]').click();"],
   ['Perfil', "document.querySelector('.nav-item[data-secao=\"perfil\"]').click();"]
@@ -105,10 +105,10 @@ for (const [nome, acao] of telas) {
   }, acao);
   ok(r.scroll <= r.w, nome + ': a página não passa da largura da tela (' + r.scroll + ' de ' + r.w + ' px)');
 }
-const abas = await A.evaluate(() => [...document.querySelectorAll('.abas-perfil .aba')].map(b => {
+const abas = await A.evaluate(() => [...document.querySelectorAll('.abas-perfil .aba')].filter(b => !b.hidden).map(b => {
   const r = b.getBoundingClientRect(); return r.right <= document.documentElement.clientWidth + 1 && r.width > 0;
 }));
-ok(abas.length === 4 && abas.every(Boolean), 'as 4 abas do Perfil aparecem inteiras (Conta inclusive)');
+ok(abas.length === 4 && abas.every(Boolean), 'as 4 abas visíveis do Perfil aparecem inteiras (16/10: Assistente de IA escondida): ' + JSON.stringify(abas));
 const menu = await A.evaluate(() => Math.round(document.querySelector('.sidebar').getBoundingClientRect().height));
 ok(menu < 200, 'o menu ocupa ' + menu + ' px de altura (antes: ~490)');
 
@@ -126,15 +126,14 @@ const textos = await A.evaluate(async () => {
   await new Promise(r => setTimeout(r, 200));
   document.querySelector('[data-aba="documentos"]').click();
   await new Promise(r => setTimeout(r, 400));
-  const exames = [...document.querySelectorAll('#ex-corpo .ex-nome')].map(e => e.textContent);
+  const painelExames = document.querySelectorAll('#ex-corpo .ex-nome, [data-lancar]').length;   /* 09/10: nao existe mais painel de valores */
   document.querySelector('.nav-item[data-secao="holoscan"]').click();
   await new Promise(r => setTimeout(r, 300));
-  return { html, momentum, exames, prio: document.getElementById('holo-prioridades').textContent };
+  return { html, momentum, painelExames, prio: document.getElementById('holo-prioridades').textContent };
 });
 ok(/Voltar às ferramentas/.test(textos.html) && !/Voltar as ferramentas/.test(textos.html), '"Voltar às ferramentas"');
 ok(/Tríade HOLOS/.test(textos.html) && !/Triada HOLOS/.test(textos.html), '"Tríade HOLOS"');
-ok(textos.exames.includes('Ácido úrico') && textos.exames.includes('Triglicerídeos') &&
-   !textos.exames.includes('Acido urico'), 'exames com acento na tela (Ácido úrico, Triglicerídeos)');
+ok(textos.painelExames === 0, 'a aba Documentos nao tem painel de valores de exame (09/10: exame e so arquivo)');
 ok(!/faixa medio\b/.test(textos.prio), 'faixa "médio", nunca "medio": ' + (textos.prio.match(/faixa \S+/g) || []).slice(0, 3).join(', '));
 ok(!/§/.test(textos.momentum) && !/essa regra ainda não foi escrita/.test(textos.momentum) && /mudança/.test(textos.html + textos.momentum),
    'a tela da Linha do Momentum nao mostra "§" nem "essa regra ainda não foi escrita"');

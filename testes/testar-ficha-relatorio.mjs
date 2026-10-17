@@ -122,7 +122,7 @@ const cheio = await p.evaluate(() => {
   };
 });
 
-conferir(cheio.secoes.length === 5, 'as cinco seções automáticas/profissional existem: ' + cheio.secoes.map(s => s.titulo).join(' | '));
+conferir(cheio.secoes.length === 7 && /^E\. Ferramentas/.test(cheio.secoes[4].titulo) && /^F\. Conduta/.test(cheio.secoes[5].titulo) && /^G\. Resultado HOLOS/.test(cheio.secoes[6].titulo) && !cheio.secoes.some(s => /Leitura Integrada/.test(s.titulo)), 'as sete seções da versão da nutricionista (12/10: + ferramentas, Conduta, Resultado HOLOS; sem Leitura Integrada): ' + cheio.secoes.map(s => s.titulo).join(' | '));
 conferir(/Aplicado em \d\d\/\d\d\/\d{4}/.test(cheio.aplicadoEm),
   'a seção A mostra a data da APLICAÇÃO, não só a data do relatório: ' + cheio.aplicadoEm);
 conferir(cheio.indice === '43', 'índice HOLOS: ' + cheio.indice);
@@ -131,34 +131,21 @@ conferir(cheio.sistemas === 5, 'os cinco sistemas aparecem: ' + cheio.sistemas);
 const consultasEDocs = await p.evaluate(() => {
   const r = document.getElementById('relatorio');
   const de = titulo => [...r.querySelectorAll('.rel-parte')].find(s => s.querySelector('h3').textContent === titulo);
-  const consultas = de('C. Consultas e acompanhamento');
-  const docs = de('D. Documentos e materiais');
+  const consultas = de('B. Consultas e acompanhamento');
+  const docs = de('C. Documentos do prontuário');
   return {
     consultasTexto: consultas.textContent.replace(/\s+/g, ' '),
     docsTexto: docs.textContent.replace(/\s+/g, ' '),
   };
 });
-conferir(/1 consulta registrada/.test(consultasEDocs.consultasTexto) && /Retorno/.test(consultasEDocs.consultasTexto),
-  'seção C (Consultas): ' + consultasEDocs.consultasTexto);
-conferir(/1 documento registrado/.test(consultasEDocs.docsTexto) && /Hemograma\.pdf/.test(consultasEDocs.docsTexto),
-  'seção D (Documentos), já preenchida após a promise do ArquivoStore: ' + consultasEDocs.docsTexto);
+conferir(/1 consulta agendada/.test(consultasEDocs.consultasTexto) && /Retorno/.test(consultasEDocs.consultasTexto),
+  'seção B (Consultas): ' + consultasEDocs.consultasTexto);
+conferir(/1 documento\/exame armazenado/.test(consultasEDocs.docsTexto) && !/Hemograma/.test(consultasEDocs.docsTexto),
+  'seção C (Documentos): só a referência administrativa, sem nome de arquivo (09/10): ' + consultasEDocs.docsTexto);
 
-const holoscanSecao = await p.evaluate(() => {
-  const r = document.getElementById('relatorio');
-  const b = [...r.querySelectorAll('.rel-parte')].find(s => /Leitura Integrada/.test(s.querySelector('h3').textContent));
-  return [...b.querySelectorAll('p')].map(x => x.textContent.trim());
-});
-const TEXTOS_FIXOS = [
-  'Existe convergência entre o relato do paciente e os dados laboratoriais nesta dimensão.',
-  'Relato e dados laboratoriais disponíveis estão convergentes nesta dimensão.',
-  'O relato e os dados laboratoriais não estão caminhando na mesma direção neste momento.',
-  'Ainda não há dados laboratoriais suficientes para realizar a leitura integrada desta dimensão.',
-];
-conferir(holoscanSecao.length >= 5, 'a seção B (HOLOSCAN) tem uma linha por sistema: ' + holoscanSecao.length);
-conferir(
-  holoscanSecao.filter(t => !/^A Leitura Integrada organiza/.test(t))
-    .every(t => TEXTOS_FIXOS.some(fixo => t.indexOf(fixo) >= 0)),
-  'nenhuma leitura causal do motor escapou — só os quatro textos fixos do Holoscan');
+/* 09/10: a seção B (Leitura Integrada) saiu do relatório; nada de convergente/divergente em lugar nenhum */
+const semLI = await p.evaluate(() => { const t = document.getElementById('relatorio').innerText; return !/Leitura Integrada|Convergente|Divergente/.test(t); });
+conferir(semLI, 'o relatório não traz Leitura Integrada nem convergente/divergente');
 
 /* -------------------------------------------- interpretação separada ----- */
 
@@ -167,17 +154,18 @@ const interp = await p.evaluate(async () => {
   document.querySelector('[data-acao="salvar-interpretacao"]').click();
   await new Promise(r => setTimeout(r, 200));
   const r = document.getElementById('relatorio');
-  const ultima = [...r.querySelectorAll('.rel-parte')].pop();
+  const partes = [...r.querySelectorAll('.rel-parte')];
+  const ultima = partes.find(s => /^D\./.test(s.querySelector('h3').textContent));
   return {
     origem: ultima.dataset.origem,
     titulo: ultima.querySelector('h3').textContent,
     misturouComB: /Observação clínica de teste/.test(
-      [...r.querySelectorAll('.rel-parte')].slice(0, -1).map(s => s.textContent).join(' ')),
+      partes.filter(s => s !== ultima).map(s => s.textContent).join(' ')),
   };
 });
-conferir(interp.origem === 'profissional' && interp.titulo === 'E. Interpretação profissional',
-  'a interpretação profissional é a última seção, com origem marcada: ' + interp.titulo);
-conferir(!interp.misturouComB, 'e o texto não vaza para as seções automáticas (A/B/C/D)');
+conferir(interp.origem === 'profissional' && /^D\. Interpretação profissional/.test(interp.titulo),
+  'a interpretação profissional fica na seção D, com origem marcada: ' + interp.titulo);
+conferir(!interp.misturouComB, 'e o texto não vaza para as outras seções');
 
 /* --------------------------------------------- impressão sem chrome ------ */
 

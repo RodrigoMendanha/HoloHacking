@@ -104,11 +104,11 @@ const resultado = await p.evaluate(async () => {
 
 ok(resultado.indiceNaFicha === '61', 'ficha mostra o Índice do snapshot v1: ' + resultado.indiceNaFicha);
 ok(resultado.triadaNaFicha === 3, 'e a Tríade completa, com os campos que o v1 tinha');
-ok(resultado.partes.join(',') === 'automatico,automatico,automatico,automatico,profissional',
-   'relatório separa A/B/C/D/E mesmo para um snapshot v1: ' + resultado.partes.join(','));
+ok(resultado.partes.join(',') === 'automatico,automatico,automatico,profissional,automatico,profissional,profissional',
+   'relatório separa A/B/C/D mesmo para um snapshot v1 (B Leitura Integrada saiu em 09/10): ' + resultado.partes.join(','));
 ok(resultado.interpretacaoNutri === '',
    'registro "nutri": campo de interpretação vem vazio, não inventado: "' + resultado.interpretacaoNutri + '"');
-ok(/Sem interpretação registrada/.test(resultado.interpretacaoPaciente),
+ok(/Sem interpretação registrada|conversa a leitura do mapa com você em consulta/.test(resultado.interpretacaoPaciente),
    'registro "paciente": diz que não há interpretação — não inventa nem quebra: "' +
    resultado.interpretacaoPaciente + '"');
 ok(resultado.indiceNoRelatorio === '61', 'Índice no relatório também é o do snapshot v1: ' + resultado.indiceNoRelatorio);

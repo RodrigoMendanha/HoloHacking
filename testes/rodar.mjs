@@ -61,6 +61,9 @@ function subirServidor() {
       if (arq !== RAIZ && !arq.startsWith(RAIZ + sep)) { res.writeHead(403); res.end(); return; }
       let s = await stat(arq).catch(() => null);
       if (s && s.isDirectory()) { arq = join(arq, 'index.html'); s = await stat(arq).catch(() => null); }
+      /* como o nginx de producao (try_files ... /index.html): caminho sem
+         extensao que nao e arquivo (ex.: /cadastro) devolve o index.html */
+      if (!s && !extname(caminho)) { arq = join(RAIZ, 'index.html'); s = await stat(arq).catch(() => null); }
       if (!s) { res.writeHead(404); res.end('404'); return; }
       const corpo = await readFile(arq);
       res.writeHead(200, {

@@ -10,7 +10,9 @@
     "test:release": "node testes/rodar.mjs"
   },
   "devDependencies": {
+    "deno": "^2.9.6",
     "jsdom": "^30.0.1",
+    "pg": "^8.23.1",
     "puppeteer-core": "^24.0.0"
   }
 }

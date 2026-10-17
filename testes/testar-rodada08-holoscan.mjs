@@ -108,8 +108,8 @@ titulo('6 — COBERTURA PARCIAL VISIVEL (sem corte de 50%: Etapa 0 da V1)');
    ("1 de 16 respondidas"); o rotulo "dados insuficientes" nao existe mais. */
 /* Correcao P0: a cobertura minima agora e a do PACOTE aprovado (80%), e o total do sistema conta so os vinculos primarios
    (Detox: 15, nao 16 — o 16o era o vinculo secundario que o motor legado pontuava). */
-ok(/1 de 15 respondidas · abaixo da cobertura mínima do pacote/.test(aplicado.prioridades) && !/1 de 16/.test(aplicado.prioridades),
-   'prioridades: Detox "1 de 15 respondidas · abaixo da cobertura mínima do pacote" (so primarios; secundario fora)');
+ok(/1 de 15 respondidas · poucas respostas para dar nota/.test(aplicado.prioridades) && !/1 de 16/.test(aplicado.prioridades),
+   'prioridades: Detox "1 de 15 respondidas · poucas respostas para dar nota" (so primarios; secundario fora; 16/10 sem jargao)');
 ok(!/em homologação/i.test(aplicado.prioridades) && /oficial/.test(aplicado.prioridades), 'prioridades: aplicacao oficial V1 — selo "oficial", sem "Em homologação"');
 ok(/nenhuma pergunta respondida/.test(aplicado.prioridades), 'prioridades: MEE "nenhuma pergunta respondida"');
 const ordemPrio = await p.evaluate(() => [...document.querySelectorAll('#holo-prioridades .prio-linha')].map(l => l.className));
@@ -151,7 +151,7 @@ const ficha = await p.evaluate(async (pid) => {
   const barras = [...document.querySelectorAll('.fic-barra')].map(b => b.innerText.replace(/\s+/g, ' '));
   return { triada: tri ? tri.innerText.replace(/\s+/g, ' ') : '', barras };
 }, A);
-ok(/Mental\s*—/.test(ficha.triada) && /Espiritual\s*—/.test(ficha.triada) && !/10\.0/.test(ficha.triada),
+ok(/Mente\s*—/.test(ficha.triada) && /Espírito\s*—/.test(ficha.triada) && !/10[.,]0/.test(ficha.triada),
    'ficha, Triade: ' + ficha.triada);
 const barraMee = ficha.barras.find(b => /Mental/i.test(b)) || '';
 ok(/—/.test(barraMee) && /sem dado/.test(barraMee) && !/10\.0/.test(barraMee), 'ficha, barra MEE: ' + barraMee);
@@ -188,9 +188,11 @@ const ctx = await p.evaluate(async () => {
 });
 /* Etapa 0 (ajuste final, Mestre §36.1): notas, Triade e Indice NAO entram
    mais no contexto — nem como "—". So dado bruto consolidado. */
-ok(!/### Tríada|- Mental:|- Físico:|### Sistemas/.test(ctx), 'contexto: sem Triade nem notas de sistema (metodologia nao aprovada)');
-ok(/Cobertura bruta: 30 de 84/.test(ctx) && /Resultados calculados: não incluídos/.test(ctx),
-   'contexto: traz a cobertura bruta da aplicacao salva e o aviso do que ficou de fora');
+/* Simulacao 08/10: com o HOLOS-V1 oficial (aplicacao calculada pelo pacote aprovado), as notas
+   entram no contexto; sistema abaixo da cobertura minima aparece "sem nota" — nunca 10. */
+ok(/### Sistemas/.test(ctx) && /sem nota \(cobertura abaixo do mínimo\)/.test(ctx) && /HOLOS-V1.*\(oficial\)/.test(ctx), 'contexto: aplicacao oficial traz as notas; sistema sem cobertura sai "sem nota"');
+ok(/Cobertura bruta: 30 de 84/.test(ctx) && !/Resultados calculados: não incluídos/.test(ctx),
+   'contexto: traz a cobertura bruta da aplicacao salva');
 ok(!/: 10\.0/.test(ctx), 'contexto: nenhum "10.0" inventado');
 
 /* ------------------------------------------------------------------ */

@@ -11,8 +11,8 @@
    mostrando o mesmo que mostrava; o dashboard passa a mostrar quem precisa de
    atencao antes de a nutricionista abrir ficha por ficha.
 
-   Nao decide nada de clinico por conta propria: as notas, as combinacoes e o
-   confronto com exame vem todos do motor.
+   Nao decide nada de clinico por conta propria: as notas vem do motor.
+   Exame nao entra em nada daqui (decisao de produto 09/10).
    =========================================================================== */
 
 (function () {
@@ -62,9 +62,11 @@
       revisao nao pode contar — senao aparece "86 de 84". */
   function perguntasDeHoje() {
     try {
-      if (window.HOLOSCAN && window.HOLOSCAN.questionario) {
+      var lista = window.HoloscanOficial && window.HoloscanOficial.perguntas ? window.HoloscanOficial.perguntas()
+        : window.HOLOSCAN && window.HOLOSCAN.questionario ? window.HOLOSCAN.questionario() : null;
+      if (lista && lista.length) {
         var mapa = {};
-        window.HOLOSCAN.questionario().forEach(function (q) { mapa[q.id] = true; });
+        lista.forEach(function (q) { mapa[q.id] = true; });
         return mapa;
       }
     } catch (e) { /* sem motor, conta tudo */ }
@@ -73,6 +75,7 @@
 
   function totalDePerguntas() {
     try {
+      if (window.HoloscanOficial && window.HoloscanOficial.perguntas && window.HoloscanOficial.perguntas().length) return window.HoloscanOficial.perguntas().length;
       if (window.HOLOSCAN && window.HOLOSCAN.questionario) {
         return window.HOLOSCAN.questionario().length;
       }
@@ -87,7 +90,6 @@
     var pont = window.ultimaPontuacao ? window.ultimaPontuacao(id) : null;
     var historico = window.historicoPontuacao ? window.historicoPontuacao(id) : [];
     var quest = caixa("holohacking.questionario", id) || {};
-    var exames = caixa("holohacking.exames", id) || {};
 
     var preenchidas = window.Aplicacoes
       ? window.Aplicacoes.preenchidas(id)
@@ -98,6 +100,11 @@
       return !conhecidas || conhecidas[mid];
     }).length;
 
+    /* Decisao de produto 09/10: exame e so arquivo do prontuario. O panorama nao conta mais valores de
+       exame (nem do painel legado nem das coletas antigas): documento aparece pelo ArquivoStore. */
+    var Cd = window.Conduta;
+    var temConduta = !!(Cd && Cd.doPaciente && Cd.doPaciente(id).some(function (c) { return Cd.consolidada(c); }));
+
     return {
       id: id,
       pontuacao: pont,
@@ -105,8 +112,7 @@
       respondidas: respondidas,
       totalPerguntas: totalDePerguntas(),
       ferramentas: preenchidas,
-      exames: Object.keys(exames).length,
-      valoresExames: exames
+      temConduta: temConduta
     };
   }
 
@@ -151,11 +157,12 @@
     }
 
     // o achado que ninguem via: mapeado e nunca conduzido
-    if (d.pontuacao && d.ferramentas.length === 0) {
-      saida.push({ peso: 1, grau: "aviso", curto: "mapa sem conduta",
-                   texto: "O mapa foi feito e nenhuma ferramenta foi aplicada. " +
-                          "Sem conduta, a avaliação não vira jornada.",
-                   acao: "aba:conduta", botao: "Abrir conduta" });
+    /* "mapa sem conduta" so quando nao ha NEM ferramenta NEM conduta registrada */
+    if (d.pontuacao && d.ferramentas.length === 0 && !d.temConduta) {
+      /* 14/10: a aba Conduta saiu da ficha; o proximo passo e aplicar as ferramentas */
+      saida.push({ peso: 1, grau: "aviso", curto: "mapa sem ferramentas",
+                   texto: "O mapa foi feito e nenhuma ferramenta foi aplicada.",
+                   acao: "aba:ferramentas", botao: "Abrir ferramentas" });
     }
 
     /* Etapa 0 da V1 — dois alertas sairam daqui, de proposito:
@@ -224,12 +231,8 @@
   function contexto(pid) {
     var id = pid || (window.pacienteAtivoId && window.pacienteAtivoId()) || SEM_PACIENTE;
 
+    /* Decisao de produto 09/10: exame NAO entra em contexto de calculo nenhum (nem em combinacao). */
     var exames = {};
-    var brutos = caixa("holohacking.exames", id) || {};
-    Object.keys(brutos).forEach(function (k) {
-      var n = Number(brutos[k]);
-      if (brutos[k] !== "" && brutos[k] != null && isFinite(n)) exames[k] = n;
-    });
 
     var ferramentas = {};
     if (window.Aplicacoes) {
@@ -301,9 +304,9 @@
     var desdeCadastro = diasDesde(cadastro);
 
     /* "Alguma coisa" e qualquer sinal de que a ficha comecou a existir: uma
-       resposta, um exame, uma ferramenta, um OQ3. Sem nenhum deles, o
-       cadastro e so um nome. */
-    var comecou = d.respondidas > 0 || d.ferramentas.length > 0 || d.exames > 0 ||
+       resposta, uma ferramenta, um OQ3. Sem nenhum deles, o cadastro e so um
+       nome. (Exame guardado e arquivo do prontuario, nao conta aqui.) */
+    var comecou = d.respondidas > 0 || d.ferramentas.length > 0 ||
                   temConteudo(p.oq3) || temConteudo(p.pqq);
 
     return {

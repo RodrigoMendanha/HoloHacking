@@ -28,6 +28,10 @@ window.FERRAMENTAS_ATIVAS = [
      mapa_rotina, gatilhos_respostas e conexao_pertencimento ficam congelados no schema antigo (legado: true). */
   "mapa_rotina_v1", "gatilhos_respostas_v1", "conexao_pertencimento_v1"
 ];
+/* 14/10: ferramentas OCULTAS (nao serao usadas agora): continuam no catalogo e nos registros antigos, mas nao aparecem
+   para a nutricionista (menu, ficha, contagem, Proximos Passos, Playbook). Para voltar a usar, basta tirar daqui. */
+window.FERRAMENTAS_OCULTAS = ["conexao_pertencimento_v1"];
+window.ferramentaVisivel = function (id) { return (window.FERRAMENTAS_OCULTAS || []).indexOf(id) < 0; };
 
 /* Correcao/Etapa 6.5 — tres REGISTROS CLINICOS ESTRUTURADOS (Mapa da Rotina, Gatilhos & Respostas,
    Conexao & Pertencimento). Sem score, faixa, diagnostico, classificacao, interpretacao ou recomendacao
@@ -427,7 +431,7 @@ window.CATALOGO_FERRAMENTAS = [
     descricao: "Levantamento das crenças limitantes sobre a comida e o corpo.",
     campos: [
       { id: "crencas", rotulo: "Crenças que ele carrega", tipo: "textarea", dica: "uma por linha — 'carboidrato engorda', 'eu não tenho força de vontade'" },
-      { id: "origem", rotulo: "De onde vieram", tipo: "textarea", dica: "familia, dieta antiga, algo que alguém disse" },
+      { id: "origem", rotulo: "De onde vieram", tipo: "textarea", dica: "família, dieta antiga, algo que alguém disse" },
       { id: "mais_atrapalha", rotulo: "Qual mais atrapalha hoje", tipo: "texto" },
       { id: "alternativa", rotulo: "Crença alternativa possível", tipo: "texto", dica: "não a oposta — a que ele conseguiria acreditar" }
     ]

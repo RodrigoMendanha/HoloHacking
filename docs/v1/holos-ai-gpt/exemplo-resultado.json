@@ -1,0 +1,360 @@
+{
+  "schema_version": 1,
+  "tipo": "primeira_consulta",
+  "meta": {
+    "agente": "HOLOS-AI-GPT 1.2",
+    "kb_version": "HOLOS-KB 0.3 (sistemas HOLOS-V1 v7; ferramentas HOLOS-RECOMENDACOES-V1 / PP-V1; direcionamentos e estratégias sem catálogo homologado)",
+    "identificador": "PACIENTE-TESTE-T5",
+    "data_atendimento": "2026-10-13",
+    "data_analise": "2026-10-13"
+  },
+  "entrada": {
+    "documentos": [
+      "pdf_resultado_holos"
+    ],
+    "base_principal": "pdf_resultado_holos",
+    "observacao": "Só o PDF do Resultado HOLOS foi enviado (fallback temporário). Com o Pacote HOLOS AI, o Pacote prevalece."
+  },
+  "sintese_integrada": "Primeira consulta, ponto de partida sem evolução registrada. O HOLOSCAN indica o Sistema Metabólico (2,4) e o Fúngico (5,8) como a primeira e a segunda áreas para aprofundar. O Mapa da Rotina localizou a dificuldade principal entre 16h e 18h (fome forte e queda de disposição) e um espaço real de mudança: preparar o lanche na noite anterior. Foco, direcionamento e estratégia acordada já conversam entre si. As reuniões da tarde ficam como ponto de observação, ainda sem dado de que atrapalhem o lanche. Ainda falta aprofundar o comportamento alimentar fora do fim da tarde (fome logo depois de comer, comer depois do jantar sem fome, vontade de doce ou pão) e os relatos digestivos. Mente e Espírito ainda não foram aprofundados nesta etapa.",
+  "o_que_apareceu": [
+    {
+      "texto": "Foco atual: organizar o fim da tarde.",
+      "fonte": "Resultado HOLOS: foco"
+    },
+    {
+      "texto": "Sistema Metabólico 2,4 e Sistema Fúngico 5,8 como primeira e segunda áreas para aprofundar.",
+      "fonte": "HOLOSCAN (HOLOS-V1 v7)"
+    },
+    {
+      "texto": "Muito sono logo depois do almoço; fome novamente pouco tempo depois de comer; comer depois do jantar mesmo sem fome percebida.",
+      "fonte": "HOLOSCAN: sinais do Metabólico"
+    },
+    {
+      "texto": "Vontade forte de doce ou pão quase todos os dias; barriga inchada ou gases depois das refeições; relato de camada esbranquiçada na língua.",
+      "fonte": "HOLOSCAN: sinais do Fúngico"
+    },
+    {
+      "texto": "Fome forte e queda de disposição entre 16h e 18h; reuniões à tarde; espaço para mudança: preparar o lanche na noite anterior.",
+      "fonte": "Mapa da Rotina"
+    },
+    {
+      "texto": "Estratégia acordada: lanche planejado antes da fome forte, por volta das 16h.",
+      "fonte": "Resultado HOLOS: estratégia acordada"
+    }
+  ],
+  "convergencias": [
+    {
+      "tipo": "convergencia",
+      "texto": "Fome forte e queda de disposição no fim da tarde aparecem no Mapa da Rotina e conversam com os sinais do Metabólico (sono depois do almoço, fome pouco depois de comer).",
+      "fontes": [
+        "Mapa da Rotina",
+        "HOLOSCAN: sinais do Metabólico"
+      ]
+    },
+    {
+      "tipo": "convergencia",
+      "texto": "Vontade forte de doce ou pão e comer depois do jantar sem fome são comportamentos alimentares recorrentes que podem ser investigados em conjunto, sem relação de causa estabelecida.",
+      "fontes": [
+        "HOLOSCAN: sinais do Fúngico",
+        "HOLOSCAN: sinais do Metabólico"
+      ]
+    },
+    {
+      "tipo": "convergencia",
+      "texto": "O espaço de mudança relatado (preparar o lanche na noite anterior) e a estratégia acordada são coerentes entre si.",
+      "fontes": [
+        "Mapa da Rotina",
+        "Resultado HOLOS: estratégia acordada"
+      ]
+    }
+  ],
+  "padroes_observados": [
+    "As dificuldades se concentram em dois momentos do dia: depois do almoço / fim da tarde e depois do jantar.",
+    "A rotina de trabalho tem reuniões à tarde, justamente no horário crítico."
+  ],
+  "pontos_para_aprofundar": [
+    {
+      "tipo": "questao",
+      "texto": "O que acontece antes de comer depois do jantar sem fome (situação, pensamento, emoção)?",
+      "so_profissional": false
+    },
+    {
+      "tipo": "questao",
+      "texto": "Em que momentos a vontade de doce ou pão aparece?",
+      "so_profissional": false
+    },
+    {
+      "tipo": "questao",
+      "texto": "Os gases e o inchaço aparecem depois de quais refeições?",
+      "so_profissional": false
+    },
+    {
+      "tipo": "hipotese",
+      "texto": "As reuniões da tarde podem dificultar comer por volta das 16h. É um ponto de observação: confirmar no retorno antes de pensar em qualquer estratégia.",
+      "so_profissional": true
+    },
+    {
+      "tipo": "hipotese",
+      "texto": "A fome do fim da tarde e o comer depois do jantar podem fazer parte de um mesmo padrão do dia. Investigar com episódios concretos.",
+      "so_profissional": true
+    }
+  ],
+  "sistemas_prioritarios": [
+    {
+      "ordem": 1,
+      "sistema": "Sistema Metabólico",
+      "nota": "2,4",
+      "posicao": "primeira área para aprofundar",
+      "o_que_apareceu": "Muito sono logo depois do almoço; fome novamente pouco tempo depois de comer; comer depois do jantar mesmo sem fome percebida; fome forte e queda de disposição entre 16h e 18h (Mapa da Rotina).",
+      "o_que_observar": "Horários, intervalos entre refeições, fome, saciedade e energia ao longo do dia, com atenção a 16h–18h e ao período depois do jantar.",
+      "como_cuidar": "Alimentação, horários, fome, energia e rotina merecem aprofundamento. O eixo não diagnostica resistência à insulina, diabetes, alterações da tireoide ou outras condições metabólicas."
+    },
+    {
+      "ordem": 2,
+      "sistema": "Sistema Fúngico",
+      "nota": "5,8",
+      "posicao": "segunda área para aprofundar",
+      "o_que_apareceu": "Vontade forte de doce ou pão quase todos os dias; barriga inchada ou gases depois das refeições; relato de camada esbranquiçada na língua.",
+      "o_que_observar": "Em que situações a vontade de doce ou pão aparece; depois de quais refeições surgem gases e inchaço.",
+      "como_cuidar": "Este eixo aparece como a segunda área para aprofundar nesta aplicação e merece ser observado no contexto da alimentação, rotina e sinais relatados. Não diagnostica candidíase, infecção fúngica, disbiose ou qualquer outra doença."
+    }
+  ],
+  "ferramentas_ja_aplicadas": [
+    {
+      "ferramenta": "Mapa da Rotina",
+      "situacao": "concluida",
+      "o_que_esclareceu": "Localizou a dificuldade no fim da jornada (16h–18h), mostrou as reuniões da tarde e revelou um espaço viável de mudança: preparar o lanche na noite anterior."
+    }
+  ],
+  "ferramentas_recomendadas": [
+    {
+      "ordem": 1,
+      "papel": "principal",
+      "regra_id": "REC-MET-02",
+      "ferramenta": "Gatilhos & Respostas",
+      "territorio": "Mente",
+      "sistema": "Sistema Metabólico",
+      "por_que": "Ajuda a aprofundar comportamentos alimentares recorrentes dentro das situações em que acontecem. REC-MET-01 (Mapa da Rotina) já foi concluída neste atendimento.",
+      "como_aplicar": "Escolha episódios concretos e observe o que acontece antes, durante e depois do comportamento. Comece por um episódio de comer depois do jantar sem fome.",
+      "o_que_procurar": "Situação, pensamento, emoção e consequência percebida antes de comer sem fome; repetição do padrão em dias diferentes.",
+      "status": "SUGERIDO"
+    },
+    {
+      "ordem": 2,
+      "papel": "complementar",
+      "regra_id": "REC-FUN-03",
+      "ferramenta": "Mapa de Crenças Alimentares",
+      "territorio": "Mente",
+      "sistema": "Sistema Fúngico",
+      "por_que": "Permite investigar ideias e regras sobre alimentação que podem estar influenciando escolhas. REC-FUN-01 (Mapa da Rotina) já concluída; REC-FUN-02 (Gatilhos & Respostas) já escolhida como principal.",
+      "como_aplicar": "Identifique uma crença relevante, sua origem percebida, as situações em que aparece e seu impacto relatado.",
+      "o_que_procurar": "Ideias ligadas à vontade de doce ou pão (recompensa, cansaço, merecimento) e onde elas aparecem no dia.",
+      "status": "SUGERIDO"
+    },
+    {
+      "ordem": 3,
+      "papel": "complementar",
+      "regra_id": "REC-MET-04",
+      "ferramenta": "Linha do Momentum",
+      "territorio": "Corpo",
+      "sistema": "Sistema Metabólico",
+      "por_que": "Ajuda a avaliar a capacidade atual de sustentar mudanças antes de aumentar a exigência. REC-MET-03 (Mapa de Crenças Alimentares) já escolhida como complementar.",
+      "como_aplicar": "Avalie as seis dimensões do Momentum e registre o estado escolhido pela profissional.",
+      "o_que_procurar": "Quanto espaço existe para acrescentar uma segunda estratégia depois do lanche da tarde.",
+      "status": "SUGERIDO"
+    }
+  ],
+  "direcionamentos": [
+    {
+      "id": "D1",
+      "origem": "existente",
+      "titulo": "Organizar o fim da tarde",
+      "territorio": "Corpo",
+      "sistema": "Sistema Metabólico",
+      "por_que": "O fim da tarde concentra fome forte e queda de disposição, e já existe uma ação viável identificada.",
+      "objetivo": "Chegar ao fim da jornada com fome mais administrável e mais disposição.",
+      "baseado_em": [
+        "Resultado HOLOS: foco e direcionamento registrados",
+        "HOLOSCAN: Metabólico como primeira área (2,4)",
+        "Mapa da Rotina: 16h–18h"
+      ],
+      "catalogo": "not_catalogued",
+      "status": "SUGERIDO"
+    },
+    {
+      "id": "D2",
+      "origem": "nova",
+      "titulo": "Compreender os momentos de comer sem fome e de vontade de doce ou pão",
+      "territorio": null,
+      "sistema": null,
+      "por_que": "Comer depois do jantar sem fome (sinal do Metabólico) e vontade forte de doce ou pão (sinal do Fúngico) aparecem como comportamentos recorrentes ainda não aprofundados.",
+      "objetivo": "Identificar em quais situações esses comportamentos aparecem, antes de propor qualquer mudança neles.",
+      "baseado_em": [
+        "HOLOSCAN: sinais do Metabólico e do Fúngico",
+        "Catálogo PP-V1: REC-MET-02 e REC-FUN-03"
+      ],
+      "catalogo": "not_catalogued",
+      "status": "SUGERIDO"
+    }
+  ],
+  "estrategias": [
+    {
+      "id": "E1",
+      "origem": "acordada",
+      "titulo": "Lanche planejado antes da fome forte",
+      "territorio": "Corpo",
+      "direcionamento_id": "D1",
+      "classificacao": "comportamental_metodologica",
+      "decisao_sugerida": "MANTER EM OBSERVAÇÃO — SUGERIDO",
+      "motivo_decisao": "Estratégia criada neste encontro; ainda não há dado de aplicação para avaliar resposta.",
+      "o_que_fazer": "Preparar o lanche na noite anterior e comer por volta das 16h.",
+      "o_que_observar": "Intensidade da fome e disposição entre 16h e 18h.",
+      "prazo": "Até o retorno (cerca de 2 semanas)",
+      "criterio_sucesso": "Aplicar com frequência suficiente para permitir avaliação no retorno e perceber como ficam a fome e a disposição às 18h.",
+      "baseado_em": [
+        "Resultado HOLOS: estratégia acordada",
+        "Mapa da Rotina: espaço de mudança na noite anterior"
+      ],
+      "catalogo": "not_catalogued",
+      "status": "SUGERIDO"
+    },
+    {
+      "id": "E2",
+      "origem": "nova",
+      "titulo": "Registro rápido de fome e disposição às 16h e às 18h",
+      "territorio": "Corpo",
+      "direcionamento_id": "D1",
+      "classificacao": "observacao",
+      "decisao_sugerida": null,
+      "motivo_decisao": null,
+      "o_que_fazer": "Anotar de 0 a 10 a fome e a disposição às 16h e às 18h e marcar se comeu o lanche.",
+      "o_que_observar": "Diferença entre dias com e sem o lanche.",
+      "prazo": "Até o retorno",
+      "criterio_sucesso": "Ter registros suficientes para comparar, no retorno, os dias com e sem o lanche.",
+      "baseado_em": [
+        "Resultado HOLOS: o que observar acordado (fome e disposição entre 16h e 18h)"
+      ],
+      "catalogo": "not_catalogued",
+      "status": "SUGERIDO"
+    }
+  ],
+  "corpo": {
+    "situacao": "com_material",
+    "resumo": "Lanche planejado por volta das 16h, preparado na noite anterior, e observação de fome e disposição entre 16h e 18h.",
+    "estrategias": [
+      "E1",
+      "E2"
+    ]
+  },
+  "mente": {
+    "situacao": "nao_aprofundado",
+    "resumo": "Ainda não aprofundado nesta etapa.",
+    "estrategias": []
+  },
+  "espirito": {
+    "situacao": "nao_aprofundado",
+    "resumo": "Ainda não aprofundado nesta etapa.",
+    "estrategias": []
+  },
+  "o_que_observar": [
+    "Fome e disposição entre 16h e 18h, nos dias com e sem o lanche",
+    "Se as reuniões da tarde atrapalham o horário do lanche",
+    "Episódios de comer depois do jantar sem fome",
+    "Momentos de vontade de doce ou pão",
+    "Gases ou inchaço e depois de quais refeições"
+  ],
+  "plano_acompanhamento": [
+    "Conferir no retorno como foram o preparo na noite anterior e o lanche por volta das 16h",
+    "Comparar fome e disposição entre 16h e 18h nos dias com e sem o lanche",
+    "Perguntar se as reuniões da tarde atrapalharam o lanche antes de propor qualquer ajuste",
+    "Levar os episódios de comer depois do jantar sem fome e de vontade de doce ou pão para o Gatilhos & Respostas"
+  ],
+  "roteiro_proxima_consulta": [
+    {
+      "tipo": "ferramenta",
+      "texto": "Aplicar Gatilhos & Respostas (REC-MET-02) com um episódio relatado pela paciente; se houver tempo, Mapa de Crenças Alimentares (REC-FUN-03)."
+    },
+    {
+      "tipo": "pergunta",
+      "texto": "Com que frequência conseguiu fazer o lanche por volta das 16h?"
+    },
+    {
+      "tipo": "pergunta",
+      "texto": "O que facilitou e o que dificultou (preparo na noite anterior, horário)?"
+    },
+    {
+      "tipo": "pergunta",
+      "texto": "As reuniões da tarde atrapalharam o lanche? Em que dias e de que forma?"
+    },
+    {
+      "tipo": "pergunta",
+      "texto": "Como ficaram a fome e a disposição entre 16h e 18h nos dias com e sem lanche?"
+    },
+    {
+      "tipo": "pergunta",
+      "texto": "O que aconteceu antes dos episódios de comer depois do jantar sem fome?"
+    },
+    {
+      "tipo": "criterio_decisao",
+      "estrategia_id": "E1",
+      "texto": "MANTER: aplicou com frequência suficiente para avaliar e percebeu fome mais administrável ou mais disposição no fim da tarde."
+    },
+    {
+      "tipo": "criterio_decisao",
+      "estrategia_id": "E1",
+      "texto": "AJUSTAR: a ideia funciona, mas o horário ou o preparo não couberam na rotina. Se as reuniões da tarde se confirmarem como barreira, a nutricionista decide o ajuste."
+    },
+    {
+      "tipo": "criterio_decisao",
+      "estrategia_id": "E1",
+      "texto": "SUBSTITUIR: não coube na rotina mesmo depois de ajustar as barreiras."
+    },
+    {
+      "tipo": "criterio_decisao",
+      "estrategia_id": "E1",
+      "texto": "CONCLUIR: o fim da tarde deixou de ser dificuldade e não precisa mais de ação ativa."
+    },
+    {
+      "tipo": "criterio_decisao",
+      "estrategia_id": "E1",
+      "texto": "ENCERRAR: decisão profissional de retirar a estratégia nesta etapa."
+    }
+  ],
+  "proxima_etapa": "Retorno em cerca de 2 semanas: rever como foi o lanche da tarde, confirmar se as reuniões atrapalham, decidir sobre a estratégia e aplicar o Gatilhos & Respostas.",
+  "rascunho_paciente": "Nesta fase, nosso foco é organizar o fim da tarde. Até o nosso próximo encontro, a combinação é preparar o lanche na noite anterior e comer por volta das 16h. Observe como ficam sua fome e sua disposição entre 16h e 18h. No próximo encontro, conversamos sobre como foi.",
+  "alertas_profissionais": [
+    {
+      "tipo": "metodologico",
+      "texto": "No HOLOSCAN, nota maior = menos marcadores; nota menor = mais marcadores. Metabólico 2,4 e Fúngico 5,8 indicam onde aprofundar primeiro; a nota não é diagnóstico nem medida de saúde, equilíbrio, normalidade, gravidade ou risco."
+    },
+    {
+      "tipo": "avaliacao_profissional",
+      "texto": "A língua esbranquiçada, os gases e o inchaço não foram interpretados; se persistirem ou incomodarem, requerem avaliação profissional."
+    },
+    {
+      "tipo": "conduta",
+      "texto": "A composição do lanche da tarde (alimentos, quantidades, substituições) requer decisão profissional na Conduta. Não foi sugerida como estratégia para a paciente."
+    },
+    {
+      "tipo": "catalogo",
+      "texto": "Direcionamentos e estratégias são sugestões da HOLOS AI sem catálogo homologado: requerem revisão profissional antes de usar."
+    },
+    {
+      "tipo": "informacao_insuficiente",
+      "texto": "Sem evolução registrada: ainda não é possível avaliar a resposta à estratégia acordada."
+    },
+    {
+      "tipo": "informacao_insuficiente",
+      "texto": "As reuniões da tarde aparecem no Mapa da Rotina, mas não há dado de que impeçam o lanche: ficam como ponto de observação, sem estratégia."
+    },
+    {
+      "tipo": "informacao_insuficiente",
+      "texto": "Mente e Espírito não foram aprofundados nesta etapa. Os relatos de comer depois do jantar sem fome e de vontade de doce ou pão ficam para observação e para o Gatilhos & Respostas."
+    }
+  ],
+  "fontes_utilizadas": [
+    "Resultado HOLOS da Paciente Teste T5 Fictícia (foco, direcionamento, estratégia acordada, o que observar, HOLOSCAN, Mapa da Rotina)",
+    "02-SISTEMAS-E-FERRAMENTAS: textos oficiais do Metabólico e do Fúngico (v7) e frase da HOLOS AI para a segunda área",
+    "05-CATALOGO-FERRAMENTAS-PP-V1: REC-MET-02, REC-FUN-03, REC-MET-04"
+  ]
+}

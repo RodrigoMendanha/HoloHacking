@@ -23,12 +23,22 @@
 
   function inventario() { return window.MetodologiaInventario || null; }
   function decisoes() { return window.MetodologiaDecisoesV1 || null; }
+  /* 12/10: revisao das perguntas -> versao nova. So aparece com a versao base gravada (aprovada ou retirada)
+     e enquanto a versao nova ainda nao existe no servidor. */
+  function revisao() { return window.MetodologiaRevisaoV3 || null; }
+  function baseDaRevisao() {
+    var R = revisao(); if (!R || !P()) return null;
+    var todos = P().todos();
+    if (todos.some(function (x) { return x.code === R.base.code && x.version === R.versao_nova; })) return null;
+    return todos.filter(function (x) { return x.code === R.base.code && x.version === R.base.version && (x.status === "aprovado" || x.status === "retirado"); })[0] || null;
+  }
   function P() { return window.PacoteMetodologico; }
   function alvo() { return document.getElementById("metodologia-corpo"); }
   function pacoteAtual() {
     var inv = inventario(); if (!P()) return null;
     if (pacoteSel === "inventario" || !pacoteSel) return inv ? Object.assign(P().importarInventario(inv, "HOLOS-V1", 1), { _inventario: true }) : null;
     if (pacoteSel === "candidato") return inv && decisoes() ? Object.assign(P().aplicarDecisoesV1(P().importarInventario(inv, "HOLOS-V1", 1), decisoes()), { _candidato: true }) : null;
+    if (pacoteSel === "revisao-v3") { var b = baseDaRevisao(); return b ? Object.assign(P().aplicarRevisao(b, revisao()), { _candidato: true, _revisao: true }) : null; }
     return P().porId(pacoteSel);
   }
   function baixar(nome, conteudo, tipo) {
@@ -57,7 +67,7 @@
       '<p class="dash-sub">' + (v.publicavel ? "Nenhum erro estrutural. A aprovação continua exigindo registro de homologação com responsável humano (RPC)." : "O validador aponta; não corrige. Cada linha abaixo é uma decisão humana pendente.") + "</p>" +
       '<ul class="mh-lista" id="mh-pendencias">' + v.erros.map(function (e) { return "<li><code>" + escapar(e.codigo) + "</code> <b>" + escapar(e.onde) + "</b> — " + escapar(e.mensagem) + "</li>"; }).join("") + "</ul></div>" +
       '<div class="dash-bloco"><h3 class="dash-titulo">Contagem</h3><div class="mh-grade">' +
-      [["Perguntas", r.perguntas], ["Associações", r.associacoes], ["Primárias pontuáveis", r.primarias], ["Secundárias contextuais", r.contextuais], ["Tríada", r.triade], ["Em conflito", r.conflitos], ["Faixas", r.faixas], ["Regras", r.regras], ["Registros de homologação", r.registros]].map(function (x) { return '<div class="fic-det"><span>' + x[0] + "</span><b>" + x[1] + "</b></div>"; }).join("") + "</div></div>";
+      [["Perguntas", r.perguntas], ["Associações", r.associacoes], ["Primárias pontuáveis", r.primarias], ["Secundárias contextuais", r.contextuais], ["Tríade", r.triade], ["Em conflito", r.conflitos], ["Faixas", r.faixas], ["Regras", r.regras], ["Registros de homologação", r.registros]].map(function (x) { return '<div class="fic-det"><span>' + x[0] + "</span><b>" + x[1] + "</b></div>"; }).join("") + "</div></div>";
   }
   function htmlItens(p) {
     var f = filtroItens.toLowerCase();
@@ -88,7 +98,7 @@
     var inv = inventario();
     if (!p._inventario && p.status !== "rascunho") return htmlRegrasPacote(p);
     return '<div class="dash-bloco"><h3 class="dash-titulo">Índice HOLOS</h3><pre class="mh-pre" id="mh-indice">' + escapar(JSON.stringify(inv ? inv.indice : null, null, 2)) + "</pre></div>" +
-      '<div class="dash-bloco"><h3 class="dash-titulo">Tríada</h3><pre class="mh-pre" id="mh-triada">' + escapar(JSON.stringify(inv ? inv.triada : null, null, 2)) + "</pre></div>" +
+      '<div class="dash-bloco"><h3 class="dash-titulo">Tríade</h3><pre class="mh-pre" id="mh-triada">' + escapar(JSON.stringify(inv ? inv.triada : null, null, 2)) + "</pre></div>" +
       '<div class="dash-bloco"><h3 class="dash-titulo">Ausência e cobertura</h3><pre class="mh-pre">' + escapar(JSON.stringify(inv ? { ausencia: inv.ausencia, cobertura: inv.cobertura } : null, null, 2)) + "</pre></div>" +
       '<div class="dash-bloco"><h3 class="dash-titulo">Regras do pacote <em>' + (p.regras || []).length + "</em></h3>" +
       '<table class="evo-tabela mh-tabela" id="mh-regras"><thead><tr><th>Tipo</th><th>Alvo</th><th>Payload</th><th>Status</th></tr></thead><tbody>' +
@@ -102,7 +112,7 @@
     var refs = (p.regras || []).filter(function (r) { return r.rule_type === "example"; });
     var M = window.MotorMetodologico;
     return pre("Índice HOLOS", "mh-indice", regra("index", "global") ? regra("index", "global").payload : null) +
-      pre("Tríada", "mh-triada", EIXOS().map(function (e) { var t = regra("triad", e); return t ? Object.assign({ eixo: e }, t.payload) : { eixo: e, ausente: true }; })) +
+      pre("Tríade", "mh-triada", EIXOS().map(function (e) { var t = regra("triad", e); return t ? Object.assign({ eixo: e }, t.payload) : { eixo: e, ausente: true }; })) +
       pre("Ausência e cobertura", "mh-ausencia", { ausencia: regra("absence") ? regra("absence").payload : null, cobertura: regra("coverage") ? regra("coverage").payload : null }) +
       pre("Comparabilidade", "mh-comparabilidade", regra("comparability", "global") ? regra("comparability", "global").payload : null) +
       '<div class="dash-bloco"><h3 class="dash-titulo">Sugestões automáticas</h3><p class="dash-sub" id="mh-sugestao">' + escapar(sug && sug.payload && sug.payload.automatica === false ? sug.payload.mensagem : "Sem política de sugestão no pacote: nenhuma sugestão automática.") + "</p></div>" +
@@ -110,38 +120,22 @@
       refs.map(function (r) { var dif = M && r.payload && r.payload.formato === "v1" ? M.conferirExemplo(p, r.payload) : null; return "<li><b>" + escapar(r.target) + "</b> — " + escapar((r.payload && r.payload.descricao) || "") + " · " + (dif === null ? "sem conferência" : dif.length ? "<b>DIVERGE</b>: " + escapar(dif.join("; ")) : "confere (motor = esperado)") + "</li>"; }).join("") + "</ul></div>";
   }
   function EIXOS() { return P().EIXOS; }
-  /** Aprovador unico (Daniel): so para pacote GRAVADO. Nenhum campo vem preenchido; nada e registrado sem clique.
-      Nao ha segunda revisao (decisao consciente: docs/v1/metodologia/DECISAO-GOVERNANCA-APROVADOR-UNICO-V1.md). */
+  /** 12/10: publicacao direta — sem Aprovacao nem Homologacao. A versao nova do HOLOSCAN que vem no
+      codigo entra no ar sozinha no login do responsavel metodologico (PacoteMetodologico.publicarRevisoesPendentes);
+      o servidor confere validador e hash e retira a versao anterior. Aqui so se consulta. */
   function htmlAprovacoes(p) {
-    if (!p.id || p._inventario || p._candidato || !P().estadoAprovacao) return "";
-    var h = hashes[p.id] || null, e = P().estadoAprovacao(p, h), A = P().APROVADORES;
-    var linha = function (a, valida) {
-      return '<li data-mh-aprovacao="1">Aprovação — ' + escapar(A[1].responsavel) + " (" + escapar(A[1].papel) + "): " +
-        (a ? (valida ? "<b>registrada</b>" : "<b>registrada, mas não vale para o conteúdo atual</b>") + " em " + escapar(String(a.approved_at || "").slice(0, 16)) + " · versão " + escapar(String(a.package_version)) + " · hash " + escapar(String(a.content_hash).slice(0, 12)) + "…" : "pendente") + "</li>";
-    };
-    var html = '<div class="dash-bloco" id="mh-aprovacoes"><h3 class="dash-titulo">Homologação — aprovador único</h3>' +
-      '<p class="dash-sub">Governança da V1: um aprovador, Daniel (responsável metodológico). Primeiro a Aprovação sobre o pacote, a versão e o hash de conteúdo; depois a ação explícita <b>Homologar</b>, pelo dono do pacote que é o aprovador ativo. Não há segunda revisão. Se o pacote mudar, a aprovação deixa de valer. Nenhuma aprovação é criada automaticamente. A identidade é a da conta autenticada (não o nome digitado).</p>' + htmlPapeis("holoscan") +
-      '<ul class="mh-lista">' + linha(e.aprovacao1, e.valida1) + "</ul>" +
-      (e.invalidadas ? '<p class="dash-sub">' + e.invalidadas + " aprovação(ões) invalidada(s) por mudança no pacote (histórico mantido).</p>" : "");
-    if (p.status !== "em_revisao") return html + '<p class="dash-sub">Aprovações só são registradas em pacote <code>em_revisao</code>.</p></div>';
-    if (!h) return html + '<p><button type="button" class="btn-fantasma" data-mh-acao="conferir-hash">Conferir o hash do conteúdo no servidor</button></p></div>';
-    html += '<p class="dash-sub">Hash do conteúdo atual (servidor): <code id="mh-hash-servidor">' + escapar(h) + "</code> · versão " + escapar(String(p.version)) + "</p>";
-    if (e.proxima === 1) {
-      html += '<div class="mh-aprovar" data-mh-etapa="1"><label class="evo-campo"><span>Responsável (Aprovação)</span>' +
-        campoResponsavel("holoscan", 1, "data-mh-resp") + "</label>" +
-        '<label class="evo-campo"><span>Justificativa</span><textarea data-mh-just rows="2"></textarea></label>' +
-        '<label><input type="checkbox" data-mh-conferi> Conferi o pacote ' + escapar(p.code + " v" + p.version) + " com o hash " + escapar(h.slice(0, 12)) + "…</label> " +
-        '<button type="button" class="btn-fantasma" data-mh-acao="registrar-aprovacao">Registrar Aprovação</button></div>';
-    } else if (e.proxima === "homologar") {
-      html += '<p><button type="button" class="btn-fantasma" data-mh-acao="homologar">Homologar pacote (Aprovação de Daniel válida)</button></p>';
-    }
-    return html + "</div>";
+    if (!p.id || p._inventario || p._candidato) return "";
+    var reg = p.governance_regime === "publicacao_direta" ? "publicação direta" : p.governance_regime === "aprovador_unico" ? "aprovador único (histórico)" : p.governance_regime || "—";
+    return '<div class="dash-bloco" id="mh-publicacao"><h3 class="dash-titulo">Publicação</h3>' +
+      '<p class="dash-sub">Versões novas do HOLOSCAN entram no ar sozinhas, sem etapa de aprovação: o servidor confere a estrutura e o hash do conteúdo, põe a versão nova no ar e retira a anterior. HOLOSCANs já salvos continuam na versão em que foram feitos.</p>' +
+      '<ul class="mh-lista"><li>Status: <b>' + escapar(p.status) + "</b> · regime: " + escapar(reg) +
+      (p.effective_from ? " · no ar desde " + escapar(String(p.effective_from)) : "") + (p.effective_to ? " até " + escapar(String(p.effective_to)) : "") + "</li></ul></div>";
   }
   function htmlLinhagem(p) {
     var D = decisoes(), l = p.lineage;
     if (!l) return "";
     return '<p class="dash-sub" id="mh-linhagem"><b>' + escapar(D ? D.status_metodologico : "DECISOES METODOLOGICAS V1 FECHADAS") + "</b> · <b>" + escapar(D ? D.status_tecnico : "PUBLICACAO TECNICA PENDENTE DE VALIDACAO NO BANCO REAL") + "</b><br>" +
-      "Nova versão de " + escapar(l.parent_code + "@" + l.parent_version) + " (status " + escapar(l.parent_status || "?") + ", hash " + escapar(String(l.parent_content_hash || "—").slice(0, 16)) + "…) · decisões " + escapar(l.decisoes || "") + "</p>";
+      "Nova versão de " + escapar(l.parent_code + " v" + l.parent_version) + " (status " + escapar(l.parent_status || "?") + ", hash " + escapar(String(l.parent_content_hash || "—").slice(0, 16)) + "…) · decisões " + escapar(l.decisoes || "") + "</p>";
   }
   function htmlConflitos(p) {
     var inv = inventario(), c = inv ? inv.conflitos : [];
@@ -292,18 +286,17 @@
     var html = '<div class="mh-topo"><label class="evo-campo"><span>Pacote</span><select data-mh-pacote>' +
       '<option value="inventario"' + (!pacoteSel || pacoteSel === "inventario" ? " selected" : "") + '>Inventário recuperado (não gravado) — rascunho</option>' +
       (decisoes() ? '<option value="candidato"' + (pacoteSel === "candidato" ? " selected" : "") + '>Candidato V1 — decisões fechadas (não gravado) — em_revisao</option>' : "") +
+      (baseDaRevisao() ? '<option value="revisao-v3"' + (pacoteSel === "revisao-v3" ? " selected" : "") + '>' + escapar(revisao().base.code + " v" + revisao().versao_nova) + ' — decisões de 13/10 (não gravado) — em_revisao</option>' : "") +
       pacotes.map(function (x) { return '<option value="' + escapar(x.id) + '"' + (x.id === pacoteSel ? " selected" : "") + ">" + escapar(x.code + " v" + x.version + " · " + x.status) + "</option>"; }).join("") + "</select></label>" +
       '<span class="rel-acoes"><button type="button" class="btn-fantasma" data-mh-acao="exportar-json">Exportar JSON</button>' +
       '<button type="button" class="btn-fantasma" data-mh-acao="exportar-csv">Exportar CSV</button>' +
-      (p && p._inventario ? '<button type="button" class="btn-fantasma" data-mh-acao="importar-rascunho">Gravar inventário como RASCUNHO</button>' : "") +
-      (p && p._candidato ? '<button type="button" class="btn-fantasma" data-mh-acao="gravar-candidato">Gravar candidato V1 (em_revisao, sem aprovar)</button>' : "") +
       '<span class="rel-estado" id="mh-estado"></span></span></div>' +
-      '<div class="abas mh-abas" role="tablist">' + [["resumo", "Resumo e pendências"], ["itens", "84 itens"], ["associacoes", "Associações e pesos"], ["faixas", "Faixas"], ["regras", "Índice, Tríada, ausência"], ["conflitos", "Conflitos e registros"]].map(function (a) {
+      '<div class="abas mh-abas" role="tablist">' + [["resumo", "Resumo e pendências"], ["itens", (p && p.perguntas ? p.perguntas.length : 84) + " itens"], ["associacoes", "Associações e pesos"], ["faixas", "Faixas"], ["regras", "Índice, Tríade, ausência"], ["conflitos", "Conflitos e registros"]].map(function (a) {
         return '<button type="button" class="aba' + (aba === a[0] ? " ativa" : "") + '" data-mh-aba="' + a[0] + '" role="tab" aria-selected="' + (aba === a[0]) + '">' + a[1] + "</button>";
       }).join("") + "</div>";
     if (!p) html += '<div class="dash-vazio">Sem inventário carregado.</div>';
     else html += { resumo: htmlResumo, itens: htmlItens, associacoes: htmlAssociacoes, faixas: htmlFaixas, regras: htmlRegras, conflitos: htmlConflitos }[aba](p);
-    html += '<p class="dash-sub mh-rodape">Não existe "aprovar tudo". Aprovação = RPC <code>aprovar_pacote_metodologico</code> com validador sem erros e registro de homologação com responsável humano.</p>';
+    html += '<p class="dash-sub mh-rodape">Tela de consulta. Publicação direta: RPC <code>publicar_pacote_metodologico</code> (validador sem erros + hash do servidor), sem etapa de aprovação.</p>';
     html += htmlLI();
     el.innerHTML = html;
     ligar(el);
@@ -322,33 +315,6 @@
         var estado = document.getElementById("mh-estado");
         if (b.dataset.mhAcao === "exportar-json") baixar("pacote-metodologico-" + p.code + "-v" + p.version + ".json", P().exportarJSON(p), "application/json");
         if (b.dataset.mhAcao === "exportar-csv") baixar("pacote-metodologico-" + p.code + "-v" + p.version + ".csv", P().exportarCSV(p), "text/csv");
-        if (b.dataset.mhAcao === "conferir-hash") {
-          P().hashNoServidor(p.id).then(function (h) { hashes[p.id] = h; desenhar(); })
-            .catch(function (e) { if (estado) estado.textContent = "Não foi possível conferir: " + (window.mensagemHumana ? window.mensagemHumana(e) : e.message); });
-        }
-        if (b.dataset.mhAcao === "registrar-aprovacao") {
-          var caixa = el.querySelector(".mh-aprovar"), etapa = Number(caixa.dataset.mhEtapa);
-          var resp = caixa.querySelector("[data-mh-resp]").value, just = caixa.querySelector("[data-mh-just]").value;
-          if (!caixa.querySelector("[data-mh-conferi]").checked) { if (estado) estado.textContent = "Marque que conferiu o pacote e o hash."; return; }
-          if (estado) estado.textContent = "Registrando Aprovação…";
-          P().registrarAprovacao(p.id, etapa, resp, just, hashes[p.id]).then(function () { avisar("Aprovação registrada."); })
-            .catch(function (e) { delete hashes[p.id]; avisar("Aprovação recusada: " + (window.mensagemHumana ? window.mensagemHumana(e) : e.message)); });
-        }
-        if (b.dataset.mhAcao === "homologar") {
-          if (estado) estado.textContent = "Homologando…";
-          P().homologar(p.id).then(function () { avisar("Pacote homologado (aprovado)."); })
-            .catch(function (e) { delete hashes[p.id]; avisar("Homologação recusada: " + (window.mensagemHumana ? window.mensagemHumana(e) : e.message)); });
-        }
-        if (b.dataset.mhAcao === "gravar-candidato") {
-          if (estado) estado.textContent = "Gravando candidato…";
-          P().salvarRascunho(p).then(function (id) { pacoteSel = id; avisar("Candidato gravado (status em_revisao; nada aprovado; publicação técnica pendente)."); })
-            .catch(function (e) { if (estado) estado.textContent = "Não foi possível gravar: " + (window.mensagemHumana ? window.mensagemHumana(e) : e.message); });
-        }
-        if (b.dataset.mhAcao === "importar-rascunho") {
-          if (estado) estado.textContent = "Gravando rascunho…";
-          P().salvarRascunho(p).then(function (id) { pacoteSel = id; avisar("Rascunho gravado (status rascunho; nada aprovado)."); })
-            .catch(function (e) { if (estado) estado.textContent = "Não foi possível gravar: " + (window.mensagemHumana ? window.mensagemHumana(e) : e.message); });
-        }
       });
     });
   }
@@ -359,7 +325,7 @@
     if (nav && M && M.modoHomologacao()) nav.classList.remove("hidden");
     var botao = document.querySelector('.nav-item[data-secao="metodologia"]');
     if (botao) botao.addEventListener("click", function () { setTimeout(desenhar, 50); });
-    if (window.HoloAuth && window.HoloAuth.aoMudarEstado) window.HoloAuth.aoMudarEstado(function () { papeis = null; li = { pacotes: null, aprovacoes: [], sel: null, hash: {}, completude: {}, carregando: false, erro: null }; if (P()) P().carregar().then(function () { var s = document.getElementById("secao-metodologia"); if (s && s.classList.contains("ativa")) desenhar(); }); });
+    if (window.HoloAuth && window.HoloAuth.aoMudarEstado) window.HoloAuth.aoMudarEstado(function () { papeis = null; li = { pacotes: null, aprovacoes: [], sel: null, hash: {}, completude: {}, carregando: false, erro: null }; if (P()) P().carregar().then(function () { return P().publicarRevisoesPendentes ? P().publicarRevisoesPendentes() : null; }).then(function () { var s = document.getElementById("secao-metodologia"); if (s && s.classList.contains("ativa")) desenhar(); }); });
   });
   window.MetodologiaHomologacao = { desenhar: desenhar, selecionar: function (id) { pacoteSel = id; }, aba: function (a) { aba = a; } };
 })();

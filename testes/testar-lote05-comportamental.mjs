@@ -570,7 +570,7 @@ const timeline = await p.evaluate(async (pid) => {
 
   // test each filter
   var resultados = {};
-  var filtrosIds = ['tudo', 'consulta', 'mapa', 'exame', 'ferramenta', 'documento'];
+  var filtrosIds = ['tudo', 'consulta', 'mapa', 'ferramenta', 'documento'];
   for (var i = 0; i < filtrosIds.length; i++) {
     var btn = alvo.querySelector('[data-filtro-linha="' + filtrosIds[i] + '"]');
     if (btn) {
@@ -623,9 +623,9 @@ if (timeline.temTimeline) {
   /* V1 Etapa 1 (ajuste final): a agenda e agendamento, e o filtro diz isso */
   ok(timeline.nomesFiltros.includes('Agendamentos') && !timeline.nomesFiltros.includes('Consultas'), 'filtro "Agendamentos" presente (não "Consultas")');
   ok(timeline.nomesFiltros.includes('HOLOSCAN'), 'filtro "HOLOSCAN" presente');
-  ok(timeline.nomesFiltros.includes('Exames'), 'filtro "Exames" presente');
+  ok(!timeline.nomesFiltros.includes('Exames'), 'sem filtro "Exames" (coleta estruturada saiu da linha do tempo, 09/10)');
   ok(timeline.nomesFiltros.includes('Ferramentas'), 'filtro "Ferramentas" presente');
-  ok(timeline.nomesFiltros.includes('Documentos'), 'filtro "Documentos" presente');
+  ok(timeline.nomesFiltros.includes('Documentos e exames'), 'filtro "Documentos e exames" presente');
 
   if (timeline.resultados.consulta) {
     ok(timeline.resultados.consulta.tipos.every(t => t === 'consulta'),
@@ -633,12 +633,7 @@ if (timeline.temTimeline) {
     ok(timeline.resultados.consulta.pressed === 'true',
        'aria-pressed=true no filtro ativo');
   }
-  if (timeline.resultados.exame) {
-    ok(timeline.resultados.exame.tipos.every(t => t === 'exame'),
-       'filtro Exames mostra apenas exames');
-    ok(timeline.resultados.exame.total > 0,
-       'exame aparece no filtro Exames: ' + timeline.resultados.exame.total);
-  }
+  ok(!timeline.resultados.exame, 'nenhum evento de exame estruturado (valores locais não viram evento)');
   if (timeline.resultados.documento) {
     ok(timeline.resultados.documento.tipos.every(t => t === 'documento'),
        'filtro Documentos mostra apenas documentos');
@@ -650,7 +645,7 @@ if (timeline.temTimeline) {
        'filtro Ferramentas mostra apenas ferramentas');
   }
   ok(timeline.eventosTudo > 0 && timeline.resultados.tudo,
-     'evento de exame aparece em Tudo: ' + timeline.eventosTudo + ' eventos');
+     'os eventos aparecem em Tudo: ' + timeline.eventosTudo + ' eventos');
   ok(timeline.eventosTudoFinal === timeline.eventosTudo,
      '"Tudo" restaura todos os eventos: ' + timeline.eventosTudoFinal);
 } else {

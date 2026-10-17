@@ -10,10 +10,18 @@
   "use strict";
 
   // --- Configuracao centralizada dos URLs dos agentes ---
+  // chatgpt: link do GPT "HOLOS AI" publicado (https://chatgpt.com/g/...). Ainda nao existe GPT publicado, entao fica vazio
+  // (nunca inventar link). Para ligar: preencher aqui ou chamar HolosAI.configurarUrls({ chatgpt: "<link>" }) antes do uso.
+  // Passo a passo: docs/v1/holos-ai-gpt/LEIA-ME-CONFIGURAR-GPT.md (secao "Link do GPT no HoloHacking").
   var HOLOS_AI_URLS = {
     chatgpt: "",
     gemini:  ""
   };
+  /* 14/10 (auditoria Cowork): sem link no codigo, a nutricionista cola o link da SUA Holos IA uma vez, na propria
+     pagina; fica guardado neste navegador. So https. O link do codigo (quando existir) continua tendo precedencia. */
+  var CHAVE_URL = "holohacking.holosAiUrl";
+  function urlGuardada() { try { return localStorage.getItem(CHAVE_URL) || ""; } catch (e) { return ""; } }
+  function urlValida(u) { return /^https:\/\/[^\s"'<>]+$/i.test(String(u || "").trim()); }
 
   var escapar = window.escapar;
 
@@ -65,13 +73,13 @@
   /* Etapa 0 da V1 — o que ENTRA e o que NAO entra no contexto assistivo.
 
      Documento Mestre §36.1: o contexto reune SOMENTE registros salvos
-     autorizados e conteudos APROVADOS. Enquanto o Pacote Metodologico V1 nao
-     for homologado, nada que dependa de perguntas, pesos, faixas ou regras
-     em rascunho entra aqui — nem rotulado "em homologacao". Ficam de fora:
-     notas dos cinco sistemas, faixas, Indice HOLOS, Triada numerica,
-     prioridades calculadas, sinais dominantes, combinacoes CMB, Leitura
-     Integrada deterministica, recomendacoes REC/SEL e qualquer
-     interpretacao derivada de regra nao aprovada.
+     autorizados e conteudos APROVADOS. Motor de resultados V1 (12/10, item 37):
+     o pacote HOLOS-V1 esta aprovado, entao notas, faixas, Indice e Triada entram
+     SO de aplicacao calculada pelo pacote oficial, e o Resultado HOLOS salvo entra
+     como foi congelado (areas para aprofundar, Proximos Passos do catalogo, Sintese
+     factual — nada recalculado). Ficam de fora: combinacoes CMB, Leitura Integrada,
+     recomendacoes REC/SEL legadas, qualquer regra nao aprovada, o CONTEUDO da Carta
+     ao Futuro Eu (so "realizada") e nomes de terceiros da Conexao & Pertencimento.
 
      O que entra e DADO BRUTO consolidado e texto de autoria humana:
        - cadastro do paciente;
@@ -79,10 +87,12 @@
          bruta (respondidas de 84, uma contagem, nao uma regra) — mapa gerado
          e nao salvo e previa e fica de fora;
        - a interpretacao profissional escrita pela nutricionista;
-       - exames: valor, unidade, laboratorio e data da coleta salva (sem a
-         "faixa ideal" do banco em rascunho);
        - consultas da agenda;
-       - respostas das ferramentas e a leitura profissional delas. */
+       - respostas das ferramentas e a leitura profissional delas.
+
+     Decisao de produto 09/10: exames e documentos NAO entram — nem valor
+     laboratorial, nem resultado estruturado, nem PDF/imagem, nem Leitura
+     Integrada. Sao so arquivos do prontuario. */
   function consolidada(p) {
     return window.Panorama && window.Panorama.consolidada ? window.Panorama.consolidada(p) : !!p;
   }
@@ -107,69 +117,26 @@
     var t = "";
     t += linhaSe("Data da aplicação", dataBR(p.quando));
     t += linhaCobertura(p);
-    t += linhaSe("Resultados calculados", "não incluídos — perguntas, pesos, faixas e regras ainda não aprovados no Pacote Metodológico V1");
+    /* Simulacao 08/10: o texto dizia "pacote ainda nao aprovado" mesmo com a aplicacao
+       calculada pelo HOLOS-V1 oficial. Agora depende da PROVENIENCIA da aplicacao. */
+    var nat = window.Metodologia && window.Metodologia.naturezaAplicacao ? window.Metodologia.naturezaAplicacao(p) : "historica_sem_pacote";
+    if (nat === "oficial_v1" && Array.isArray(p.sistemas)) {
+      var A = window.HoloAusencia;
+      t += linhaSe("Metodologia", (p.methodology_package_code || "HOLOS-V1") + (p.methodology_package_version ? " v" + p.methodology_package_version : "") + " (oficial)");
+      t += "\n### Sistemas (nota 0–10; quanto mais baixa, mais sinais relatados)\n";
+      p.sistemas.forEach(function (x) {
+        var sem = A ? A.semNota(x) : (x.nota === null || x.nota === undefined);
+        t += "- " + (x.nome || x.sistema) + ": " + (sem ? "sem nota (cobertura abaixo do mínimo)" : (A ? A.notaTexto(x) : String(x.nota)) + (x.faixa ? " · faixa " + (window.rotuloExibivel ? window.rotuloExibivel(x.faixa) : x.faixa) : "")) + "\n";
+      });
+      if (A && A.indiceTexto) t += linhaSe("Índice HOLOS", A.indiceTexto(p) + (p.indice_maximo ? " de " + p.indice_maximo : ""));
+      if (p.triada) t += linhaSe("Tríade", ["fisico", "mental", "espiritual"].filter(function (k) { return typeof p.triada[k] === "number"; }).map(function (k) { return { fisico: "Corpo", mental: "Mente", espiritual: "Espírito" }[k] + " " + (A ? A.fmt(p.triada[k]) : p.triada[k]); }).join(" · "));
+    } else {
+      t += linhaSe("Resultados calculados", "não incluídos — aplicação " + (nat === "homologacao" ? "de homologação" : "histórica, sem o pacote metodológico oficial HOLOS-V1"));
+    }
     var interp = window.interpretacaoDe ? window.interpretacaoDe(p.quando, pid) : null;
     if (interp && interp.texto) {
       t += "\n### Interpretação profissional (texto da nutricionista)\n" + interp.texto + "\n";
     }
-    return t;
-  }
-
-  /* Exames com nome, resultado, unidade e data — dado bruto do laudo. A
-     "faixa ideal" de exames.csv (rascunho) NAO entra (Etapa 0 da V1). Com
-     conta, vem das coletas do servidor (cada uma com a data dela); sem
-     conta, dos valores do painel. */
-  function dadosExames() {
-    var pid = pacienteId();
-    if (!pid) return "";
-    var coletas = window.Sincronizacao ? window.Sincronizacao.coletas(pid) : null;
-    var t = "";
-    if (coletas && coletas.length) {
-      coletas.filter(function (c) { return !c.superseded_at; }).slice().reverse().forEach(function (c) {
-        var quando = c.data_coleta_desconhecida || !c.coletado_em ? "data não informada" : dataBR(c.coletado_em);
-        t += "\n### Coleta — " + quando + (c.laboratorio ? " (" + c.laboratorio + ")" : "") + "\n";
-        if (c.state === "rascunho") return;   // Etapa 5: rascunho nao e registro consolidado
-        (c.resultados || []).forEach(function (r) {
-          /* Etapa 5: dado factual do laudo (valor original, unidade, variante, material,
-             referencia DO LAUDO). Nunca ideal legado, classificacao ou inferencia. */
-          if (r.legacy_exame_id) {
-            /* linha do painel legado (migrada ou gravada pelo painel antigo): so o fato registrado — nome, valor,
-               unidade e data; sem ideal legado, sem classificacao */
-            t += "- " + window.rotuloExibivel(r.nome_exame_no_momento || r.legacy_exame_id) + ": " + r.value_original_text +
-              (r.unit_original ? " " + r.unit_original : "") + " — " + quando + "\n";
-            return;
-          }
-          if (r.exam_code || r.custom_exam_id || r.value_original_text) {
-            var nome = window.Laboratorio ? window.Laboratorio.identidadeTexto(r) : (r.exam_code || "exame");
-            t += "- " + nome + ": " + r.value_original_text + (r.unit_original ? " " + r.unit_original : "") +
-              (r.reference_status === "informed" ? " (referência do laudo: " + (r.report_reference_text || ((r.report_reference_min == null ? "" : r.report_reference_min) + " a " + (r.report_reference_max == null ? "" : r.report_reference_max))) + ")" : " (sem referência informada)") +
-              " — " + quando + (c.revision > 1 ? " · revisão " + c.revision : "") + "\n";
-            return;
-          }
-          t += "- " + window.rotuloExibivel(r.nome_exame_no_momento || r.exame_id) + ": " + r.valor +
-            (r.unidade_no_momento ? " " + r.unidade_no_momento : "") +
-            " — " + quando + "\n";
-        });
-      });
-      return t;
-    }
-    /* Com conta, so coleta salva no servidor entra. O painel local pode ser
-       rascunho/pendente — nao e registro consolidado (Mestre §36.1). */
-    if (autenticado()) return "";
-    var exames;
-    try { exames = JSON.parse(localStorage.getItem("holohacking.exames")) || {}; }
-    catch (e) { return ""; }
-    var d = exames[pid];
-    if (!d || typeof d !== "object") return "";
-    var g = window.HOLOSCAN || null;
-    var lista = g && g.listaDeExames ? g.listaDeExames() : [];
-    var porId = {};
-    lista.forEach(function (e) { porId[e.id] = e; });
-    Object.keys(d).filter(function (k) { return d[k] !== "" && d[k] != null; }).forEach(function (k) {
-      var ref = porId[k];
-      t += "- " + (ref ? window.rotuloExibivel(ref.exame) : k) + ": " + d[k] +
-        (ref && ref.unidade ? " " + ref.unidade : "") + " — data da coleta não registrada\n";
-    });
     return t;
   }
 
@@ -234,6 +201,8 @@
   }
 
   var FERRAMENTAS_CONTEXTO = ["linha_momentum", "mapa_crencas", "roda_vida", "carta_futuro"];
+  /* 12/10 (bug 8): as tres ferramentas estruturadas (_v1) tambem entram, pelo "Resultado estruturado" do metodo */
+  var FERRAMENTAS_ESTRUTURADAS = ["mapa_rotina_v1", "gatilhos_respostas_v1", "conexao_pertencimento_v1"];
 
   function valorLegivel(v) {
     if (v === null || v === undefined || v === "") return "";
@@ -253,6 +222,13 @@
       var f = window.CATALOGO_FERRAMENTAS.filter(function (x) { return x.id === fid; })[0];
       var ap = respostasDe(fid, pid);
       if (!f || !ap) return;
+      /* motor de resultados 12/10 (itens 25 e 37): sem regra de consentimento, o texto da Carta NAO vai para a IA */
+      if (fid === "carta_futuro") {
+        var FC = window.FerramentasFechamento;
+        t += "\n### " + f.titulo + (ap.app.concluida_em ? " — " + dataBR(ap.app.concluida_em) : "") + "\n- " +
+          ((FC && FC.CARTA_PACIENTE) || "Carta ao Futuro Eu realizada.") + " O conteúdo não é incluído.\n";
+        return;
+      }
       var linhas = "";
       (f.grupos || []).forEach(function (g) {
         if (g.origem === "momentum_dimensoes" && window.CorpoBancos && window.CorpoBancos.MOMENTUM) {
@@ -273,9 +249,51 @@
         });
       }
       if (ap.app.leitura) linhas += "- Leitura profissional: " + ap.app.leitura + "\n";
+      var Fx = window.FerramentasFechamento;
+      if (!linhas && Fx && Fx.de) {   /* concluida sem os campos do catalogo: ainda assim entra (nada fica de fora) */
+        var x0 = Fx.de({ ferramenta_id: fid, respostas: ap.r });
+        linhas = (x0.itens || []).map(function (it) { return it.valor ? "- " + it.rotulo + ": " + it.valor + "\n" : ""; }).join("") || (x0.linha ? "- " + x0.linha + "\n" : "- concluída\n");
+      }
       if (!linhas) return;
       t += "\n### " + f.titulo + (ap.app.concluida_em ? " — " + dataBR(ap.app.concluida_em) : "") + "\n" + linhas;
     });
+    var F = window.FerramentasFechamento;
+    FERRAMENTAS_ESTRUTURADAS.forEach(function (fid) {
+      var ap = respostasDe(fid, pid);
+      if (!ap || !F || !F.de) return;
+      var x = F.de({ ferramenta_id: fid, respostas: ap.r });
+      var linhas = (x.itens || []).map(function (it) { return it.valor ? "- " + it.rotulo + ": " + it.valor + "\n" : ""; }).join("");
+      /* motor de resultados 12/10 (itens 26 e 37): Conexao & Pertencimento sem nomes de terceiros — so o resultado
+         que nao e exclusivo da profissional (contagem de apoios, contextos de pertencimento) */
+      if (fid === "conexao_pertencimento_v1" && F.resultado) {
+        var rx = F.resultado({ ferramenta_id: fid, respostas: ap.r }, []);
+        linhas = (rx.apareceu || []).filter(function (it) { return !it.so_profissional; }).map(function (it) { return "- " + it.rotulo + ": " + it.valor + "\n"; }).join("") +
+          "- Nomes de pessoas da rede não são incluídos.\n";
+      }
+      if (ap.app.leitura) linhas += "- Leitura profissional: " + ap.app.leitura + "\n";
+      if (!linhas && x.linha) linhas = "- " + x.linha + "\n";
+      if (!linhas) return;
+      t += "\n### " + (x.nome || fid) + (ap.app.concluida_em ? " — " + dataBR(ap.app.concluida_em) : "") + "\n" + linhas;
+    });
+    return t;
+  }
+
+  /* 12/10 (bug 8): o ultimo Resultado HOLOS salvo (snapshot congelado; nada recalculado) */
+  function dadosResultadoHolos() {
+    var R = window.ResultadoHolos, pid = pacienteId();
+    if (!R || !R.doPaciente || !pid) return "";
+    var r = R.doPaciente(pid).filter(function (x) { return x.status !== "rascunho" && !x.superseded_at && x.content_snapshot; })
+      .sort(function (a, b) { return String(b.saved_at || b.created_at).localeCompare(String(a.saved_at || a.created_at)); })[0];
+    if (!r) return "";
+    var s = r.content_snapshot, t = "- Resultado nº " + (r.revision_number || 1) + " · salvo em " + dataBR(r.saved_at || r.created_at) + "\n";
+    var S = window.ResultadoSintese;
+    if (S && S.frases && S.fatos) {
+      try { var NF = (window.ProximosPassos && window.ProximosPassos.NOME_FERRAMENTA) || {}; S.frases(S.fatos(s, null, function (id) { return NF[id] || id; })).forEach(function (f) { t += "- " + f.texto + "\n"; }); } catch (e) { /* so o basico */ }
+    }
+    var o = s.observacoes || {};
+    if (o.leitura_profissional) t += "- Leitura profissional: " + o.leitura_profissional + "\n";
+    if (o.pontos_acompanhar) t += "- Pontos para acompanhar: " + o.pontos_acompanhar + "\n";
+    if (o.questoes_aprofundar) t += "- Questões para aprofundar: " + o.questoes_aprofundar + "\n";
     return t;
   }
 
@@ -328,9 +346,11 @@
      nenhum texto assistido existe para ser incluido. */
   function atendimentoDeContexto() {
     var pid = pacienteId(); var A = window.AtendimentoAtual; if (!pid || !A) return null;
+    if (eidPacote && A.porId) { var fixo = A.porId(eidPacote); if (fixo && fixo.patient_id === pid) return fixo; }
     var ativo = A.atual(); if (ativo && ativo.patient_id === pid) return ativo;
     return A.doPaciente(pid).sort(function (a, b) { return String(b.occurred_at).localeCompare(String(a.occurred_at)); })[0] || null;
   }
+  var eidPacote = null;   // Pacote HOLOS AI: o atendimento escolhido na ponte (holos-ai-ponte.js)
   function dadosAnamnese() {
     var e = atendimentoDeContexto(); var An = window.Anamnese; if (!e || !An) return "";
     var v = An.vigente(e.id); if (!v) return "";
@@ -379,7 +399,6 @@
   var ATALHOS_CONTEXTO = [
     { id: "completo",  rotulo: "Caso completo",  gerar: gerarCompleto },
     { id: "holoscan",  rotulo: "HOLOSCAN",        gerar: gerarHoloscan },
-    { id: "exames",    rotulo: "Exames",           gerar: gerarExames },
     { id: "evolucao",  rotulo: "Evolução / retorno", gerar: gerarEvolucao },
     { id: "relatorios", rotulo: "Relatórios emitidos", gerar: gerarRelatorios }
   ];
@@ -390,8 +409,11 @@
       "Paciente: " + (p ? p.nome : "desconhecido") + "\n" +
       "Gerado em: " + new Date().toLocaleString("pt-BR") + "\n" +
       "Conteúdo: só registros salvos no servidor e texto da profissional. Notas, faixas, " +
-      "Índice, Tríada, prioridades, combinações, Leitura Integrada e sugestões automáticas " +
-      "NÃO estão incluídos: dependem do Pacote Metodológico V1, ainda não aprovado.\n" +
+      "Índice e Tríade entram só de aplicação calculada pelo pacote oficial HOLOS-V1. " +
+      "Do Resultado HOLOS salvo entram as áreas para aprofundar, os Próximos Passos do catálogo e a Síntese factual, como foram congelados. " +
+      "Combinações, Leitura Integrada e sugestões fora do catálogo NÃO estão incluídas. " +
+      "A Carta ao Futuro Eu entra só como realizada (o texto não é enviado) e nomes de terceiros não são enviados. " +
+      "Exames e documentos do prontuário (arquivos e valores) também NÃO estão incluídos.\n" +
       "---\n";
   }
 
@@ -402,13 +424,13 @@
     var t = cabecalhoContexto("Caso completo");
     t += secaoSe("Paciente", dadosPaciente());
     t += secaoSe("HOLOSCAN — Mapa HOLOS atual", dadosHoloscan());
-    t += secaoSe("Camada Laboratorial", dadosExames());
     t += secaoSe("Atendimentos registrados", dadosAtendimentos());
-    t += secaoSe("Anamnese (salva/revisada, texto da profissional)", dadosAnamnese());
+    t += secaoSe("Mapeamento Holístico (salvo/revisado, texto da profissional)", dadosAnamnese());
     t += secaoSe("Conduta e acordos (salvos/revisados)", dadosConduta());
     t += secaoSe("Linha do tempo consolidada (data clínica e data de registro)", dadosTimeline());
     t += secaoSe("Agenda (agendamentos)", dadosConsultas());
     t += secaoSe("Ferramentas (OQ³, PQQ, Mapa do Propósito e outras)", dadosFerramentas());
+    t += secaoSe("Resultado HOLOS (último salvo)", dadosResultadoHolos());
     var evo = dadosEvolucao();
     if (evo) t += secaoSe("Aplicações do HOLOSCAN (datas e cobertura)", evo);
     return t.trim() || "Nenhum dado disponível para este paciente.";
@@ -421,15 +443,6 @@
     return t.trim() || "Nenhuma aplicação do HOLOSCAN disponível.";
   }
 
-  function gerarExames() {
-    var t = cabecalhoContexto("Exames");
-    t += secaoSe("Paciente", dadosPaciente());
-    t += secaoSe("Exames laboratoriais", dadosExames());
-    var holoscan = dadosHoloscan();
-    if (holoscan) t += secaoSe("HOLOSCAN (referência)", holoscan);
-    return t.trim() || "Nenhum exame registrado para este paciente.";
-  }
-
   function gerarEvolucao() {
     var t = cabecalhoContexto("Evolução / retorno");
     t += secaoSe("Paciente", dadosPaciente());
@@ -437,11 +450,11 @@
     if (evo) t += secaoSe("Aplicações do HOLOSCAN (datas e cobertura)", evo);
     else t += secaoSe("HOLOSCAN — Mapa HOLOS atual", dadosHoloscan());
     t += secaoSe("Atendimentos registrados", dadosAtendimentos());
-    t += secaoSe("Anamnese (salva/revisada, texto da profissional)", dadosAnamnese());
+    t += secaoSe("Mapeamento Holístico (salvo/revisado, texto da profissional)", dadosAnamnese());
     t += secaoSe("Conduta e acordos (salvos/revisados)", dadosConduta());
     t += secaoSe("Linha do tempo consolidada (data clínica e data de registro)", dadosTimeline());
     t += secaoSe("Agenda (agendamentos recentes)", dadosConsultas());
-    t += secaoSe("Ferramentas (OQ3, PQQ e outras)", dadosFerramentas());
+    t += secaoSe("Ferramentas (OQ³, PQQ e outras)", dadosFerramentas());
     return t.trim() || "Nenhum dado de evolução disponível.";
   }
 
@@ -449,6 +462,9 @@
 
   function desenhar() {
     var alvo = document.getElementById("aba-holos-ai");
+    /* 12/10 (bug 8): o Resultado HOLOS salvo entra no "Caso completo" — ja carregado quando a aba abre */
+    try { if (alvo && window.ResultadoHolos && window.ResultadoHolos.carregar && pacienteId()) Promise.resolve(window.ResultadoHolos.carregar(pacienteId())).catch(function () {}); }
+    catch (e) { /* sem servidor: o Caso completo sai sem o Resultado HOLOS */ }
     if (!alvo) return;
     var pid = pacienteId();
 
@@ -469,7 +485,10 @@
     var p = pacienteAtivo();
     var nomeP = p ? p.nome : "paciente";
 
-    var html =
+    /* simplificacao 14/10: o fluxo e o da ponte (3 passos). O contexto em texto livre e os atalhos antigos ficam
+       recolhidos, como recurso secundario (nao sao mais um passo do fluxo). */
+    var html = '<div id="hai-ponte"></div>' +
+      '<details class="ai-hub-legado" id="ai-hub-legado"><summary>Contexto em texto livre (modo antigo)</summary>' +
       '<div class="ai-hub">' +
         '<div class="ai-hub-intro">' +
           '<div class="ai-hub-icone" aria-hidden="true">&#9670;</div>' +
@@ -516,11 +535,14 @@
         '<p class="ai-hub-privacidade">Os dados permanecem neste navegador. ' +
           'Nenhuma informação é enviada automaticamente para serviços externos. ' +
           'A ação de copiar e usar o contexto parte de você.</p>' +
-      '</div>';
+      '</div></details>';
 
     alvo.innerHTML = html;
     atualizarLinksAgentes();
     ligarEventos();
+    /* a ponte nunca derruba o contexto em texto: falha dela fica so no bloco dela */
+    try { if (window.HolosAIPonte) window.HolosAIPonte.desenhar(document.getElementById("hai-ponte")); }
+    catch (e) { var hp = document.getElementById("hai-ponte"); if (hp) hp.innerHTML = '<p class="hai-erro" role="alert">Não foi possível abrir a importação da HOLOS AI. Recarregue a página.</p>'; }
   }
 
   /* Rodada 08: sem URL configurada, o botao nao pode parecer que funciona.
@@ -615,7 +637,24 @@
       atualizarLinksAgentes();
     },
     urls: function () {
-      return { chatgpt: HOLOS_AI_URLS.chatgpt, gemini: HOLOS_AI_URLS.gemini };
+      return { chatgpt: HOLOS_AI_URLS.chatgpt || urlGuardada(), gemini: HOLOS_AI_URLS.gemini, guardada: !HOLOS_AI_URLS.chatgpt && !!urlGuardada() };
+    },
+    /** guarda (ou apaga, com "") o link da Holos IA neste navegador; devolve false se nao for https */
+    guardarUrl: function (u) {
+      u = String(u || "").trim();
+      if (u && !urlValida(u)) return false;
+      try { if (u) localStorage.setItem(CHAVE_URL, u); else localStorage.removeItem(CHAVE_URL); } catch (e) { return false; }
+      atualizarLinksAgentes();
+      return true;
+    },
+    /** Pacote HOLOS AI: as mesmas secoes do contexto (so registros salvos/aprovados, sem exames), SEM o cadastro
+        (nome, contatos): a ponte monta o pacote com iniciais, idade e sexo. eid fixa o atendimento do pacote. */
+    secoesPacote: function (eid) {
+      eidPacote = eid || null;
+      try {
+        return { holoscan: dadosHoloscan(), evolucao: dadosEvolucao(), ferramentas: dadosFerramentas(), anamnese: dadosAnamnese(),
+          conduta: dadosConduta(), resultado: dadosResultadoHolos(), atendimentos: dadosAtendimentos() };
+      } finally { eidPacote = null; }
     }
   };
 

@@ -290,12 +290,17 @@ ok(ordem.manifesto < ordem.dados,
    dados-router.js, as tres antes de dados.js/app.js consumirem `sb`), e
    na Etapa 10 (migracao-supa.js, o migrador localStorage→Supabase), e na
    correcao P0 pos-deploy 6.4 (holoscan-oficial.js: o questionario no motor oficial). */
-ok(ordem.total === 53,
-   'o index tem 53 tags de script: 22 de antes do P0 + concorrencia.js + metodologia.js (Etapa 0 da V1) + holoscan-oficial.js (correcao P0 pos-deploy 6.4) + ferramentas-registro.js (Etapa 6.5 B) + atendimento.js (Etapa 1) + anamnese.js + conduta.js (Etapa 2) + timeline.js + relatorios.js (Etapa 3) + metodologia-inventario.js + metodologia-pacote.js + metodologia-motor.js + metodologia-homologacao.js (Etapa 4) + metodologia-decisoes-v1.js (Etapa 4.2) + laboratorio-catalogo.js + laboratorio-motor.js + leitura-integrada-motor.js + laboratorio.js (Etapa 5) + ' +
+// ajuste 07/10: + ajuda.js (pagina de Ajuda); 08/10: + contas.js (cadastro)
+// 12/10: + metodologia-revisao-v3.js (revisao -> HOLOS-V1 v3; desde 13/10 so as decisoes de 13/10)
+// 09/10 (prontuario): -laboratorio-catalogo.js -laboratorio-motor.js -leitura-integrada-motor.js -laboratorio.js (exames so como arquivo) +resultado-pagina.js
+// 12/10 (motor de resultados V1): + resultado-legado-r3.js (desenho congelado das emissoes RF-1)
+// 12/10 (motor de resultados V1, commit 2): + sistemas-fechamento.js (fechamento dos cinco sistemas)
+ok(ordem.total === 69,
+   'o index tem 69 tags de script (27/10: conexao-ia.js, aba Assistente de IA (MCP) no Perfil; 14/10: playbook-holos.js e resultado-playbook.js, Playbook HOLOS PB-V1 — o Resultado sem depender da IA; rodada UX 14/10: ajuda-ferramentas.js, o "?" das 10 ferramentas; 14/10: holos-ai-contrato.js e holos-ai-ponte.js, ponte HOLOS AI -> Resultado HOLOS; 13/10: resultado-direcao.js, Resultado HOLOS template 5; 12/10: sistemas-fechamento.js, fechamento dos cinco sistemas; 12/10: resultado-legado-r3.js, desenho congelado das emissoes RF-1; 12/10: mapeamento-holistico.js, perguntas do Mapeamento compartilhadas com a ficha; 12/10: metodologia-revisao-v3.js; 09/10: documentos.js saiu — documento so na ficha; proximos-passos.js entrou; resultado-sintese.js, anamnese-convite.js e boas-vindas.js entraram; 10/10: ferramentas-fechamento.js): 22 de antes do P0 + concorrencia.js + metodologia.js (Etapa 0 da V1) + holoscan-oficial.js (correcao P0 pos-deploy 6.4) + ferramentas-registro.js (Etapa 6.5 B) + atendimento.js (Etapa 1) + anamnese.js + conduta.js (Etapa 2) + timeline.js + relatorios.js (Etapa 3) + metodologia-inventario.js + metodologia-pacote.js + metodologia-motor.js + metodologia-homologacao.js (Etapa 4) + metodologia-decisoes-v1.js (Etapa 4.2) + laboratorio-catalogo.js + laboratorio-motor.js + leitura-integrada-motor.js + laboratorio.js (Etapa 5) + ' +
    'armazenamento.js + validar-backup.js + restaurar-backup.js + ' +
    'importar-v1.js + excluir-paciente.js + login.js + CDN supabase-js + ' +
    'supabase-client.js + dados-router.js + migracao-supa.js + holos-ai.js + ' +
-   'utils.js + sincronizacao.js (Release 01) — ' + ordem.total);
+   'utils.js + sincronizacao.js (Release 01) + ajuda.js (Ajuda, 07/10) + contas.js (Cadastro, 08/10) + resultado-holos.js (Resultado HOLOS, 09/10) + anamnese-v2.js (Anamnese V2, 09/10) + resultado-pagina.js (Resultado para a paciente, 09/10) − os 4 do laboratorio/Leitura Integrada (09/10) — ' + ordem.total);
 /* A tela de entrada e a ultima a carregar: nada do app depende dela, e ela
    nao depende de nada do app. Se um dia depender, esta linha cai junto. */
 ok(ordem.login === ordem.total - 1,

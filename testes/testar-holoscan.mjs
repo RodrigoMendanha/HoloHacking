@@ -1,20 +1,17 @@
 /**
- * HOLOSCAN — a camada de confronto relato x laboratorio, revisao clinica do
- * HOLOSCAN.
+ * HOLOSCAN × EXAMES — decisao de produto 09/10: exame NAO participa do HOLOSCAN.
  *
- * O que este teste trava (itens B a G do mandato da revisao):
+ * O que este teste trava (pela tela, sem conta):
  *
- *   B/C/D  lancar os 24 exames nao muda nota de sistema nenhuma, nem o
- *          Indice, nem a Triade — o motor ja garantia isso (testar-exames.mjs);
- *          aqui a prova e de ponta a ponta, pela tela.
- *   E      sem nenhum exame lancado, os cinco sistemas aparecem como DADOS
- *          INSUFICIENTES no Holoscan — nao ha bloco vazio nem sistema que
- *          simplesmente some.
- *   F      um caso divergente nao altera a nota exibida do sistema.
- *   G      nenhuma frase da lista de frases banidas (resistencia a insulina,
- *          inflamacao silenciosa, sobrecarga hepatica etc.) aparece em
- *          nenhuma das superficies do Holoscan — nem tela, nem tooltip, nem
- *          relatorio.
+ *   E      a Leitura Integrada saiu do menu; no lugar dela esta "Resultado"
+ *          (a pagina final para a paciente), que sem conta so avisa.
+ *   B/C/D  valor de exame guardado localmente (legado) nao muda nota de
+ *          sistema nenhuma, nem o Indice, nem a Triade — e nao ha mais
+ *          painel para digitar valor na ficha.
+ *   F      nenhuma palavra de conclusao laboratorial (convergente,
+ *          divergente, abaixo/acima da referencia) em nenhuma tela — nem em
+ *          ?homologacao=1, onde o confronto legado tambem saiu.
+ *   G      nenhuma frase da lista de frases banidas em nenhuma superficie.
  */
 import './guarda-falhas.mjs';
 import puppeteer from 'puppeteer-core';
@@ -57,26 +54,21 @@ await p.evaluate(async (respostas) => {
 }, caso.respostas);
 
 /* ==================================================================== */
-console.log('\n  E — SEM NENHUM EXAME, SEM DADOS SUFICIENTES (Leitura Integrada V1)\n');
+console.log('\n  E — A LEITURA INTEGRADA SAIU; NO LUGAR, "RESULTADO"\n');
 /* ==================================================================== */
 
-/* Etapa 5 da V1: #holo-confronto e a Leitura Integrada do pacote LI-V1 (sem
-   regra homologada => "sem dados suficientes", com motivo). O confronto
-   legado por sistema (.conf-selo) so existe em ?homologacao=1 (secao F2). */
-const semExame = await p.evaluate(async () => {
-  document.querySelector('.nav-item[data-secao="confronto"]').click();
-  await new Promise(r => setTimeout(r, 400));
-  const caixa = document.getElementById('holo-confronto');
-  return {
-    texto: caixa ? caixa.innerText.replace(/\s+/g, ' ') : '',
-    selos: [...(caixa ? caixa.querySelectorAll('.conf-selo') : [])].map(e => e.textContent),
-    pacote: caixa?.querySelector('#li-status')?.textContent || '',
-  };
+const menu = await p.evaluate(async () => {
+  const r = { confronto: !!document.querySelector('.nav-item[data-secao="confronto"]'), secaoConfronto: !!document.getElementById('secao-confronto'),
+    resultado: !!document.querySelector('.nav-item[data-secao="resultado"]'), botaoResumo: document.querySelector('[data-res-ir="resultado"]')?.textContent || '' };
+  document.querySelector('.nav-item[data-secao="resultado"]').click();
+  await new Promise(x => setTimeout(x, 300));
+  r.ativa = document.querySelector('.secao.ativa')?.id;
+  r.corpo = document.getElementById('resultado-pagina-corpo')?.innerText || '';
+  return r;
 });
-ok(semExame.selos.length === 0 && /sem dados suficientes/i.test(semExame.pacote) && /LI-V1/.test(semExame.pacote),
-   'sem regra homologada, a Leitura Integrada so pode ser "sem dados suficientes" (nenhum selo por sistema): ' + semExame.pacote.slice(0, 60));
-ok(!/convergente|divergente/i.test(semExame.texto.replace(/sem dados suficientes/gi, '')),
-   'nenhuma palavra de conclusão aparece sem exame nenhum lançado');
+ok(!menu.confronto && !menu.secaoConfronto && menu.resultado, 'o menu nao tem mais Leitura Integrada; tem Resultado');
+ok(menu.ativa === 'secao-resultado' && /Entre na sua conta/.test(menu.corpo), 'a pagina Resultado abre e, sem conta, explica que o resultado vem do servidor');
+ok(/Resultado para a paciente/.test(menu.botaoResumo), 'o quadro do resultado leva para "Resultado para a paciente": ' + menu.botaoResumo);
 
 /* ==================================================================== */
 console.log('\n  B/C/D — EXAMES NÃO ALTERAM NOTA, ÍNDICE NEM TRÍADE\n');
@@ -88,133 +80,83 @@ const antes = await p.evaluate(() => {
 });
 
 const TODOS_EXAMES = {
-  'EXA-001': 0.5, 'EXA-002': 0.5, 'EXA-003': 8, 'EXA-004': 4,
-  'EXA-005': 115, 'EXA-006': 4, 'EXA-007': 1, 'EXA-008': 5,
-  'EXA-009': 70, 'EXA-010': 60, 'EXA-011': 1.2, 'EXA-012': 1.2,
-  'EXA-013': 18, 'EXA-014': 18, 'EXA-015': 78, 'EXA-016': 0.6,
-  'EXA-017': 25, 'EXA-018': 0.8, 'EXA-019': 50, 'EXA-020': 600,
-  'EXA-021': 100, 'EXA-022': 5, 'EXA-023': 5, 'EXA-024': 14,
+  'EXA-001': 0.5, 'EXA-002': 0.5, 'EXA-003': 8, 'EXA-004': 4, 'EXA-005': 115, 'EXA-006': 4, 'EXA-007': 1, 'EXA-008': 5,
+  'EXA-009': 70, 'EXA-010': 60, 'EXA-011': 1.2, 'EXA-012': 1.2, 'EXA-013': 18, 'EXA-014': 18, 'EXA-015': 78, 'EXA-016': 0.6,
+  'EXA-017': 25, 'EXA-018': 0.8, 'EXA-019': 50, 'EXA-020': 600, 'EXA-021': 100, 'EXA-022': 5, 'EXA-023': 5, 'EXA-024': 14,
 };
 
-await p.evaluate(async (valores) => {
+const painel = await p.evaluate(async (valores) => {
+  const id = window.pacienteAtivoId();
+  localStorage.setItem('holohacking.exames', JSON.stringify({ [id]: valores }));   // valor legado, como um aparelho antigo deixaria
   document.querySelector('.nav-item[data-secao="pacientes"]').click();
   document.getElementById('vista-lista-pacientes').classList.add('hidden');
   document.getElementById('vista-ficha').classList.remove('hidden');
   document.querySelector('[data-aba="documentos"]').click();
   await new Promise(r => setTimeout(r, 300));
-  Object.keys(valores).forEach(id => {
-    const l = [...document.querySelectorAll('#ex-corpo .ex-linha')].find(x => x.dataset.exame === id);
-    if (!l) return;
-    const input = l.querySelector('input');
-    input.value = String(valores[id]);
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-  });
-  await new Promise(r => setTimeout(r, 300));
+  return document.querySelectorAll('#ex-corpo .ex-linha, #lab-corpo, [data-lancar], .ex-atalho').length;
 }, TODOS_EXAMES);
+ok(painel === 0, 'nao existe mais painel para lancar valores de exame na ficha');
 
+await p.reload({ waitUntil: 'networkidle2' });
+await p.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados());
 const depois = await p.evaluate(() => {
   const r = window.ultimaPontuacao();
-  return { indice: r.indice, notas: r.sistemas.map(s => [s.sistema, s.nota]), triada: r.triada };
+  return { indice: r.indice, notas: r.sistemas.map(s => [s.sistema, s.nota]), triada: r.triada, exames: window.Panorama.contexto().exames };
 });
-
-ok(JSON.stringify(antes.indice) === JSON.stringify(depois.indice),
-   'Índice idêntico antes/depois de lançar os 24 exames: ' + antes.indice + ' = ' + depois.indice);
-ok(JSON.stringify(antes.notas) === JSON.stringify(depois.notas),
-   'as cinco notas de sistema continuam idênticas');
-ok(JSON.stringify(antes.triada) === JSON.stringify(depois.triada),
-   'a Tríade continua idêntica');
+ok(JSON.stringify(antes.indice) === JSON.stringify(depois.indice), 'Índice idêntico com 24 valores de exame guardados: ' + antes.indice + ' = ' + depois.indice);
+ok(JSON.stringify(antes.notas) === JSON.stringify(depois.notas), 'as cinco notas de sistema continuam idênticas');
+ok(JSON.stringify(antes.triada) === JSON.stringify(depois.triada), 'a Tríade continua idêntica');
+ok(Object.keys(depois.exames).length === 0, 'e nenhum valor de exame chega ao contexto do motor');
 
 /* ==================================================================== */
-console.log('\n  F — EXAMES FORA DA FAIXA NAO VIRAM "DIVERGENTE" NA SAIDA OFICIAL, NEM CORRIGEM A NOTA\n');
+console.log('\n  F — NENHUMA CONCLUSÃO LABORATORIAL EM TELA NENHUMA (NEM EM ?homologacao=1)\n');
 /* ==================================================================== */
 
-/* Etapa 5 da V1: "um exame fora da faixa" nao basta para convergir/divergir.
-   Na saida oficial, com os 24 exames lancados, a Leitura Integrada continua
-   "sem dados suficientes" e o Indice e o do motor. */
-const divergencia = await p.evaluate(async () => {
-  document.querySelector('.nav-item[data-secao="confronto"]').click();
-  await new Promise(r => setTimeout(r, 400));
-  const caixa = document.getElementById('holo-confronto');
-  return {
-    texto: caixa.innerText.replace(/\s+/g, ' '),
-    selos: caixa.querySelectorAll('.conf-selo, .conf-item').length,
-    notaNaTela: document.getElementById('holo-score-total').textContent,
-  };
+const CONCLUSAO = /\b(convergente|divergente|abaixo da refer|acima da refer|dentro da refer)/i;
+const telas = await p.evaluate(async () => {
+  const out = {};
+  document.querySelector('.nav-item[data-secao="holoscan"]').click(); await new Promise(r => setTimeout(r, 200));
+  out.holoscan = document.getElementById('secao-holoscan').innerText;
+  document.querySelector('.nav-item[data-secao="pacientes"]').click();
+  document.getElementById('vista-lista-pacientes').classList.add('hidden');
+  document.getElementById('vista-ficha').classList.remove('hidden');
+  document.querySelector('[data-aba="holoscan"]').click(); await new Promise(r => setTimeout(r, 300));
+  out.abaHoloscan = document.getElementById('aba-holoscan').innerText;
+  out.blocoLab = !!document.getElementById('aba-holoscan-laboratorial');
+  document.querySelector('[data-aba="relatorio"]').click(); await new Promise(r => setTimeout(r, 400));
+  out.relatorio = document.getElementById('relatorio')?.innerText || '';
+  out.indice = document.getElementById('holo-score-total').textContent;
+  return out;
 });
-ok(divergencia.selos === 0 && !/divergente|convergente/i.test(divergencia.texto) && /sem dados suficientes/i.test(divergencia.texto),
-   'com 24 exames lançados, a saída oficial segue "sem dados suficientes" — exame fora da faixa não vira Divergente');
-ok(divergencia.notaNaTela === String(depois.indice),
-   'o Índice na tela continua o do motor, exame nenhum o corrige: ' + divergencia.notaNaTela);
-
-/* ==================================================================== */
-console.log('\n  F2 — O CONFRONTO LEGADO SO EXISTE EM ?homologacao=1, ROTULADO LEGADO\n');
-/* ==================================================================== */
+ok(!CONCLUSAO.test(telas.holoscan) && !CONCLUSAO.test(telas.abaHoloscan) && !CONCLUSAO.test(telas.relatorio), 'HOLOSCAN, aba HOLOSCAN e relatório: nenhuma conclusão laboratorial');
+ok(!telas.blocoLab && !/Leitura Integrada/.test(telas.abaHoloscan) && !/Leitura Integrada/.test(telas.relatorio), 'o bloco da Leitura Integrada saiu da aba HOLOSCAN e do relatório');
+ok(telas.indice === String(depois.indice), 'o Índice na tela continua o do motor: ' + telas.indice);
 
 const p2 = await nav.newPage();
 await p2.setViewport({ width: 1500, height: 1400 });
 p2.on('pageerror', e => ruim.push(e.message));
 await p2.goto('http://127.0.0.1:5500/?homologacao=1', { waitUntil: 'networkidle2' });
 await p2.waitForFunction(() => window.pacientesCarregados && window.pacientesCarregados());
-const legado = await p2.evaluate(async () => {
-  document.querySelector('.nav-item[data-secao="confronto"]').click();
-  await new Promise(r => setTimeout(r, 400));
-  const caixa = document.getElementById('holo-confronto');
-  const bloco = [...caixa.querySelectorAll('.holo-dominante-sistema')]
-    .find(b => /Detox/.test(b.querySelector('h5').textContent));
-  return {
-    banner: caixa.querySelector('.q-erro')?.textContent || '',
-    selo: bloco?.querySelector('.conf-selo')?.textContent || '',
-    notaNaTela: document.getElementById('holo-score-total').textContent,
-  };
-});
+const homolog = await p2.evaluate(() => ({ confronto: !!document.querySelector('.nav-item[data-secao="confronto"]') || !!document.getElementById('holo-confronto'),
+  lab: !!window.Laboratorio || !!window.LeituraIntegradaMotor || !!window.LabMotor }));
 await p2.close();
-ok(/LEGADO \(modo de homologação\)/.test(legado.banner) && /não é saída oficial/.test(legado.banner),
-   'em ?homologacao=1 o confronto antigo aparece rotulado LEGADO e "não é saída oficial"');
-ok(/Divergente/i.test(legado.selo),
-   'ali o Detox (relato ok, GGT alterado) ainda aparece como Divergente — comportamento legado preservado para revisão: ' + legado.selo);
-ok(legado.notaNaTela === String(depois.indice),
-   'e mesmo lá o Índice na tela continua o do motor: ' + legado.notaNaTela);
+ok(!homolog.confronto && !homolog.lab, 'em ?homologacao=1 tambem nao ha confronto legado nem modulos de laboratorio carregados');
 
 /* ==================================================================== */
-console.log('\n  G — NENHUMA FRASE BANIDA EM NENHUMA SUPERFÍCIE DO HOLOSCAN\n');
+console.log('\n  G — NENHUMA FRASE BANIDA EM NENHUMA SUPERFÍCIE\n');
 /* ==================================================================== */
 
 const PROIBIDO = [
-  /resist[êe]ncia (a|à)?\s?insulina/i,
-  /inflama[çc][ãa]o silenciosa/i,
-  /processo inflamat[óo]rio ativo/i,
-  /carga [áa]cida elevada/i,
-  /metila[çc][ãa]o comprometida/i,
-  /hiperalerta sustentado/i,
-  /sobrecarga hep[áa]tica/i,
-  /tireoide pedindo/i,
-  /problema de tireoide/i,
+  /resist[êe]ncia (a|à)?\s?insulina/i, /inflama[çc][ãa]o silenciosa/i, /processo inflamat[óo]rio ativo/i, /carga [áa]cida elevada/i,
+  /metila[çc][ãa]o comprometida/i, /hiperalerta sustentado/i, /sobrecarga hep[áa]tica/i, /tireoide pedindo/i, /problema de tireoide/i,
 ];
-
-const superficies = await p.evaluate(() => {
-  document.querySelector('[data-aba="relatorio"]').click();
-  const rel = document.getElementById('relatorio');
-  const tooltips = [...document.querySelectorAll('#ex-corpo .ex-linha[title]')].map(l => l.title);
-  return {
-    holoscan: document.getElementById('holo-confronto')?.innerText || '',
-    exConfronto: document.getElementById('ex-confronto')?.innerText || '',
-    relatorio: rel ? rel.innerText : '',
-    tooltips,
-  };
-});
-
 const varrer = (nome, texto) => {
   const achados = PROIBIDO.filter(re => re.test(texto));
-  ok(achados.length === 0,
-     nome + ' livre de frases banidas' + (achados.length ? ': ' + achados.map(r => r.source).join(', ') : ''));
+  ok(achados.length === 0, nome + ' livre de frases banidas' + (achados.length ? ': ' + achados.map(r => r.source).join(', ') : ''));
 };
-varrer('#holo-confronto', superficies.holoscan);
-varrer('#ex-confronto', superficies.exConfronto);
-varrer('relatório (seção B)', superficies.relatorio);
-varrer('tooltips de exame', superficies.tooltips.join(' | '));
-ok(superficies.tooltips.length > 0 && superficies.tooltips.every(t => /faixa cadastrada/i.test(t)),
-   'os tooltips descrevem valor/faixa, nunca a leitura clínica do CSV: "' +
-   (superficies.tooltips[0] || '').slice(0, 90) + '"');
+varrer('#secao-holoscan', telas.holoscan);
+varrer('aba HOLOSCAN da ficha', telas.abaHoloscan);
+varrer('relatório', telas.relatorio);
 
 await nav.close();
 console.log(ruim.length ? '\n  ERRO: ' + ruim[0] : '\n  sem erro de JS');

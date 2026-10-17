@@ -25,6 +25,8 @@
 
   var PROJECT_URL = "https://sllhyymeeyoozokgbnuv.supabase.co";
   var PUBLISHABLE_KEY = "sb_publishable_vq17LUTsVBjLChCa5XjArw_IJ7c432Q";
+  /* URL publica do projeto (nao e segredo): a aba Assistente de IA monta a URL de conexao MCP com ela */
+  window.HOLO_SUPABASE_URL = PROJECT_URL;
 
   if (PROJECT_URL.indexOf("COLOQUE_AQUI") === 0 || PUBLISHABLE_KEY.indexOf("COLOQUE_AQUI") === 0) {
     console.error(
