@@ -221,7 +221,7 @@ const ordem = tl.map(e => e.txt.slice(0, 40));
 ok(tl.length >= 10 && tl.every((e, i) => i === 0 || true), 'a timeline junta tudo: ' + tl.length + ' eventos — ' + ordem.slice(0, 3).join(' / '));
 ok(tl.some(e => /atendimento/.test(e.cls) && /Atendimento realizado/.test(e.txt)), 'atendimentos entram como evento clinico');
 const visao = await texto('#fic-atendimento-clinico');
-ok(/Última evolução disponível\s*atendimento anterior × atual \(2 atendimentos registrados\)/i.test(visao.replace(/\s+/g, ' ')) && /Último relatório profissional \(aba Relatório\)\s*nenhum relatório profissional emitido.*O Resultado Final da paciente fica na página Resultado/i.test(visao.replace(/\s+/g, ' ')), 'Visao geral: ultima evolucao disponivel e "nenhum relatorio emitido"');
+ok(/Última evolução disponível\s*atendimento anterior × atual \(2 atendimentos registrados\)/i.test(visao.replace(/\s+/g, ' ')) && /Último relatório profissional\s*nenhum relatório profissional emitido.*O Resultado Final d[oa] paciente fica na página Resultado/i.test(visao.replace(/\s+/g, ' ')), 'Visao geral: ultima evolucao disponivel e "nenhum relatorio emitido"');
 
 /* ==================================================================== */
 titulo('RELATORIOS: SELECAO EXPLICITA, PREVIA, EMISSAO');
@@ -320,7 +320,7 @@ ok(lista.some(l => /rascunho\|/.test(l) && /RASCUNHO PENDENTE/.test(l) && /não 
 const tl2 = await A.evaluate(async (pid) => { document.querySelector('[data-aba="visao"]').click(); await new Promise(r => setTimeout(r, 500));
   return { eventos: [...document.querySelectorAll('#fic-visao-timeline .fic-evento.relatorio')].map(e => e.innerText.replace(/\s+/g, ' ')), visao: document.getElementById('fic-atendimento-clinico').innerText.replace(/\s+/g, ' ') }; }, PA);
 ok(tl2.eventos.length === 2 && tl2.eventos.some(t => /Retificação/.test(t)) && !tl2.eventos.some(t => /RASCUNHO PENDENTE/.test(t)), 'timeline: 2 emissoes (uma retificacao); o rascunho fica fora');
-ok(/Último relatório profissional \(aba Relatório\).*retificado.*emissão nº 2/.test(tl2.visao) && !/RASCUNHO PENDENTE/.test(tl2.visao), 'Visao geral: ultimo relatorio EMITIDO (a retificacao), nunca o rascunho');
+ok(/Último relatório profissional.*retificado.*emissão nº 2/.test(tl2.visao) && !/RASCUNHO PENDENTE/.test(tl2.visao), 'Visao geral: ultimo relatorio EMITIDO (a retificacao), nunca o rascunho');
 
 /* ==================================================================== */
 titulo('CONTEXTOS: DASHBOARD, HOLOS AI, EXPORTACAO, HISTORICO');

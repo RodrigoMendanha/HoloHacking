@@ -152,10 +152,12 @@ const formRH = await A.evaluate(async (pid) => {
   for (let i = 0; i < 60; i++) { const a = document.querySelector('#aba-resultado-holos [data-rh-acao="novo"]'); if (a) break; await new Promise(r => setTimeout(r, 100)); }
   document.querySelector('#aba-resultado-holos [data-rh-acao="novo"]').click(); await new Promise(r => setTimeout(r, 600));
   const sel = document.getElementById('rh-atendimento'); const h = document.querySelector('input[name="rh-holoscan"]:checked');
-  return { enc: sel ? sel.value : null, holoscan: h ? h.value : null, txt: (document.querySelector('.rh-opcoes') || {}).innerText || '' };
+  return { enc: sel ? sel.value : null, holoscan: h ? h.value : null, txt: (document.querySelector('.rh-opcoes') || {}).innerText || '',
+    dica: [...document.querySelectorAll('.rh-opcoes small[title]')].map(x => x.title).join(' | ') };
 }, PA);
 ok(formRH.enc === EA && formRH.holoscan === null, 'Resultado HOLOS → Gerar: o atendimento já vem preenchido (mesmo depois de recarregar a página); o HOLOSCAN continua escolha explícita');
-ok(!/sem atendimento/.test(formRH.txt) && /HOLOS-V1 v2/.test(formRH.txt) && !/HOLOS-V12|HOLOS-V1@2/.test(formRH.txt), 'a aplicação mostra o atendimento e "HOLOS-V1 v2": ' + formRH.txt.split('\n').slice(0, 2).join(' | '));
+/* 16/10: na tela so "HOLOSCAN oficial"; o codigo e a versao do pacote ficam na dica (title) */
+ok(!/sem atendimento/.test(formRH.txt) && /HOLOSCAN oficial/.test(formRH.txt) && /HOLOS-V1 v2/.test(formRH.dica) && !/HOLOS-V12|HOLOS-V1@2/.test(formRH.txt + formRH.dica), 'a aplicação mostra o atendimento e "HOLOSCAN oficial" (HOLOS-V1 v2 na dica): ' + formRH.txt.split('\n').slice(0, 2).join(' | '));
 
 titulo('B6 — "INICIAR FERRAMENTA" ABRE A FERRAMENTA');
 const b6 = await A.evaluate(async (pid) => {
@@ -290,7 +292,7 @@ const fsB11 = await import('fs');
 const fonte = f => fsB11.readFileSync(new URL('../' + f, import.meta.url), 'utf8');
 ok(!/"Físico"|Físico <b>|\(Físico, Mental/.test(fonte('app.js') + fonte('arquivos.js') + fonte('evolucao.js') + fonte('ajuda.js') + fonte('holos-ai.js')),
   'relatório, Evolução, Ajuda e HOLOS AI sem os rótulos Físico/Mental/Espiritual');
-ok(/aprovado \(HOLOS-V1 v2\)/.test(fonte("ajuda.js")) && /code \+ " v" \+ h\.pacote\.version/.test(fonte('resultado-holos.js')), 'versão do pacote escrita como "HOLOS-V1 v2"');
+ok(!/homologad/.test(fonte("ajuda.js")) && /code \+ " v" \+ h\.pacote\.version/.test(fonte('resultado-holos.js')), 'versão do pacote escrita como "HOLOS-V1 v2" na proveniência (a Ajuda fala sem jargão)');
 
 ok(errosJS.length === 0, 'nenhum erro de JavaScript na pagina' + (errosJS.length ? ': ' + errosJS.join(' | ') : ''));
 await nav.close();

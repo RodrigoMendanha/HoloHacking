@@ -73,7 +73,7 @@ const r = await p.evaluate(async (respostas) => {
 
 console.log('  Marina: Índice ' + r.marina.indice + ' · Tríada ' + r.marina.triada);
 ok(r.marina.indice === '43', 'a Marina tem mapa: Índice ' + r.marina.indice);
-ok(r.marina.triada === '4.0 3.3 2.0', 'e Tríada: ' + r.marina.triada);
+ok(r.marina.triada === '4,0 3,3 2,0', 'e Tríada: ' + r.marina.triada);
 
 console.log('\n  Carla, recém-cadastrada:');
 ok(r.carla.triada === null, 'a Tríada da Marina sumiu da tela');
@@ -86,7 +86,7 @@ ok(!r.carla.travadas, 'as réguas destravam para quem ainda não foi pontuado');
 
 console.log('\n  de volta para a Marina:');
 ok(r.devolta.indice === '43', 'o Índice dela voltou: ' + r.devolta.indice);
-ok(r.devolta.triada === '4.0 3.3 2.0', 'e a Tríada dela também: ' + r.devolta.triada);
+ok(r.devolta.triada === '4,0 3,3 2,0', 'e a Tríada dela também: ' + r.devolta.triada);
 ok(r.devolta.combinadas === r.marina.combinadas,
    'e a leitura combinada: ' + r.devolta.combinadas);
 

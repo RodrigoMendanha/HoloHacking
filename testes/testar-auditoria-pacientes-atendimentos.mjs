@@ -148,19 +148,23 @@ const cad = await p.evaluate(async () => {
   document.getElementById('np-nascimento').value = '2099-01-01';
   document.getElementById('btn-salvar-paciente').click();
   await new Promise(r => setTimeout(r, 200));
+  /* 16/10: o erro aparece junto do campo (nao mais no toast) */
+  const msgCampo = () => [...document.querySelectorAll('.campo-erro')].map(e => e.textContent).join(' | ');
+  let erros = msgCampo();
   document.getElementById('np-nascimento').value = '';
   document.getElementById('np-telefone').value = 'abc';
   document.getElementById('btn-salvar-paciente').click();
   await new Promise(r => setTimeout(r, 200));
+  erros += ' | ' + msgCampo();
   const n1 = window.pacientesTodos().length;
   document.getElementById('np-telefone').value = '+55 11 99999-0000';
   document.getElementById('btn-salvar-paciente').click();
   await new Promise(r => setTimeout(r, 300));
-  return { visivel, recusou: n1 === n0, aceitou: window.pacientesTodos().length === n0 + 1, max: document.getElementById('np-nascimento').max };
+  return { visivel, erros, recusou: n1 === n0, aceitou: window.pacientesTodos().length === n0 + 1, max: document.getElementById('np-nascimento').max };
 });
 const msgCad = await toasts();
 ok(cad.visivel, '"Novo paciente" na aba Revisão abre o formulário visível (volta para a Lista)');
-ok(cad.recusou && /futuro/.test(msgCad) && /Telefone inválido/.test(msgCad), 'cadastro recusa nascimento no futuro e telefone "abc": ' + msgCad.slice(0, 160));
+ok(cad.recusou && /futuro/.test(cad.erros) && /Telefone inválido/.test(cad.erros), 'cadastro recusa nascimento no futuro e telefone "abc" (erro junto do campo): ' + cad.erros.slice(0, 200));
 ok(cad.aceitou, 'e aceita quando corrigido');
 
 /* ---------------------------------------------------- Esc no excluir ---- */

@@ -20,7 +20,7 @@ import { readFileSync } from 'node:fs';
 import { criarServidor, ligarPagina } from './supabase-falso.mjs';
 import { semearHolosAprovado } from './holos-aprovado.mjs';
 /** Correcao P0: o Indice oficial e guardado exato e exibido com 1 casa (meia unidade para cima). */
-const umaCasa = (v) => (Math.floor(Math.abs(Number(v)) * 10 + 0.5 + 1e-9) / 10).toFixed(1);
+const umaCasa = (v) => (Math.floor(Math.abs(Number(v)) * 10 + 0.5 + 1e-9) / 10).toFixed(1).replace('.', ',');   // 16/10: virgula decimal na tela
 
 let falhou = false;
 const ok = (c, t) => { if (!c) falhou = true; console.log((c ? '  ok    ' : '  FALHA ') + t); };

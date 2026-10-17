@@ -3217,7 +3217,7 @@
       + (investigar ? '<p class="res-linha">Os sistemas de nota mais baixa e os sinais que mais pesaram neles. É a aritmética das respostas — não é diagnóstico nem conduta.</p>' + investigar
                     : '<p class="res-linha">Nenhum sistema com nota nesta aplicação.</p>')
       + '<div class="res-botoes"><button type="button" class="btn-borda-ouro" data-res-ir="resultado-holos">Resultado HOLOS &rarr;</button>'
-      + '<button type="button" class="btn-borda-ouro" data-res-ir="resultado">Resultado para o paciente &rarr;</button>'
+      + '<button type="button" class="btn-borda-ouro" data-res-ir="resultado">Resultado para a paciente &rarr;</button>'
       + '</div></div></div>'
       /* Proximos Passos HOLOS (09/10): bloco PROFISSIONAL, logo depois de "Por onde investigar". Desenhado por
          proximos-passos.js a partir dos MESMOS dois sistemas e do catalogo aprovado do servidor. */

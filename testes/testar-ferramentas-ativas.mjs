@@ -70,13 +70,14 @@ ok(recusaLegada, 'abrirFerramentaPorId recusa todas as 23 ferramentas legadas (i
 /* ======================== abrirFerramentaPorId aceita ativas */
 
 const aceitaAtivas = await p.evaluate(() => {
-  return ['linha_momentum', 'mapa_crencas', 'roda_vida', 'carta_futuro', 'mapa_rotina_v1', 'gatilhos_respostas_v1', 'conexao_pertencimento_v1']
+  /* 16/10: Conexao & Pertencimento continua no catalogo, mas oculta (FERRAMENTAS_OCULTAS) nao abre por atalho */
+  return ['linha_momentum', 'mapa_crencas', 'roda_vida', 'carta_futuro', 'mapa_rotina_v1', 'gatilhos_respostas_v1']
     .every(id => {
       const r = window.abrirFerramentaPorId(id);
       return r === true;
-    });
+    }) && window.abrirFerramentaPorId('conexao_pertencimento_v1') === false;
 });
-ok(aceitaAtivas, 'abrirFerramentaPorId aceita as 7 ferramentas ativas do catalogo');
+ok(aceitaAtivas, 'abrirFerramentaPorId aceita as 6 ferramentas ativas visiveis (a oculta Conexao & Pertencimento nao abre)');
 
 /* ======================== ficha: texto nao diz "30 ferramentas" */
 

@@ -177,7 +177,7 @@ ok(oficial.u && oficial.u.oficial === true && oficial.u.cobertura.respondidos ==
    '4 (P0): com o pacote aprovado, "Tentar novamente" gera o mapa OFICIAL: 30/84, sistemas abaixo de 80% sem nota, Indice "—" (sem Indice parcial)');
 ok(!/em homologação/i.test(oficial.prio + oficial.tri + oficial.indice) && /oficial/.test(oficial.indice),
    '5 (P0): aplicacao oficial V1 sem o selo "em homologacao"; selo "oficial"');
-ok(/abaixo da cobertura mínima do pacote/.test(oficial.prio), '5 (P0): sistema abaixo da cobertura minima do pacote dito como tal (nao "nenhuma pergunta respondida")');
+ok(/poucas respostas para dar nota/i.test(oficial.prio), '5 (P0): sistema abaixo da cobertura minima dito como tal, em linguagem simples (16/10: "poucas respostas para dar nota"; nao "nenhuma pergunta respondida")');
 
 // salvar: o servidor recebe respostas, cobertura e scores — e nenhuma CMB
 await p.evaluate(async () => {

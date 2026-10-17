@@ -46,7 +46,8 @@ await P.evaluate(() => {
   window.__cliques = 0; document.addEventListener('click', (ev) => { if (ev.isTrusted && ev.target.closest('button, a, summary')) window.__cliques++; }, true);
 });
 const espera = ms => new Promise(r => setTimeout(r, ms));
-const clicar = async (sel) => { const b = await P.$(sel); if (!b) return false; await b.click(); return true; };
+/* 16/10: como a pessoa faz, rola ate o botao antes de clicar (o topo fixo pode cobrir o que ficou acima depois de ir para uma aba) */
+const clicar = async (sel) => { const b = await P.$(sel); if (!b) return false; await b.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' })); await b.click(); return true; };
 const confirmarModal = async () => {
   await P.waitForFunction(() => !document.getElementById('modal-confirmar-acao').classList.contains('hidden'), { timeout: 4000 });
   await P.evaluate(() => { const b = document.querySelectorAll('#modal-confirmar-rodape button'); b[b.length - 1].click(); });

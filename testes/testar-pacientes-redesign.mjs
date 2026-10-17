@@ -142,8 +142,10 @@ const f = await A.evaluate(() => {
     alturaTopo: topo.height, alturaAt: at.height, alturaJor: jor.height, abasY: abas.top + window.scrollY,
     contato: document.getElementById('ficha-contato').innerText, sobre: document.getElementById('ficha-sobre').innerText };
 });
-ok(/^(Aplicar HOLOSCAN|Ir para Ferramentas|Abrir Holos IA|Ver Resultado HOLOS|Ver Resultado|Reaplicar HOLOSCAN)\|Nova consulta\|Mais ações ▾$/.test(f.acoes.join('|')) && f.mais.join('|') === 'Editar cadastro|Adicionar arquivo|Exportar dados',
-  'cabeçalho: ação principal pela etapa (' + f.acoes[0] + '), Nova consulta e "Mais ações" (Editar, Adicionar arquivo, Exportar)');
+/* 16/10: depois da entrega a acao principal segue o ciclo (Marcar retorno / Encerrar atendimento) e as acoes do Resultado
+   entregue vao para o "Mais ações", antes das fixas (Editar, Adicionar arquivo, Exportar) */
+ok(/^(Aplicar HOLOSCAN|Ir para Ferramentas|Abrir Holos IA|Ver Resultado HOLOS|Ver Resultado|Reaplicar HOLOSCAN|Marcar retorno|Encerrar atendimento|Montar Resultado HOLOS)\|Nova consulta\|Mais ações ▾$/.test(f.acoes.join('|')) && /(^|\|)Editar cadastro\|Adicionar arquivo\|Exportar dados$/.test(f.mais.join('|')),
+  'cabeçalho: ação principal pela etapa (' + f.acoes[0] + '), Nova consulta e "Mais ações" (' + f.mais.join(', ') + ')');
 ok(f.faixa.length === 4 && /Peso e altura/i.test(f.faixa[3]) && /PRÓXIMA CONSULTA|Próxima consulta/i.test(f.faixa[0]) && /às 14:00 ·/.test(f.faixa[0]) && !/14:00:00/.test(f.faixa[0]) && /HOLOSCAN/i.test(f.faixa[1]) && f.etapaJornada && f.faixa[2].indexOf(f.etapaJornada) >= 0,
   'faixa: próxima consulta (sem segundos), último HOLOSCAN e etapa atual = a etapa atual da jornada (' + f.etapaJornada + '): ' + f.faixa.join(' | '));
 ok(/helena@ficticio\.test/.test(f.contato) && /anos/.test(f.sobre), 'contato e idade no cabeçalho');

@@ -172,7 +172,9 @@ const pg = await P.evaluate((snap) => {
   const orfaos = [];
   for (let i = 0; i < atomos.length - 1; i++) {
     const a = atomos[i], b = atomos[i + 1];
-    if (a.matches('h3,h4,.rh-intro,.sf-rot') && Math.floor(T(a) / H) < Math.floor(T(b) / H)) orfaos.push(a.textContent.trim().slice(0, 40));
+    /* 16/10: nota de fechamento (ultimo item da secao) nao e titulo de nada: so conta quando ha conteudo depois dela no mesmo bloco */
+    const fecha = !a.nextElementSibling || [...a.parentElement.children].slice([...a.parentElement.children].indexOf(a) + 1).every(x => x.offsetHeight === 0);
+    if (a.matches('h3,h4,.rh-intro,.sf-rot') && !fecha && Math.floor(T(a) / H) < Math.floor(T(b) / H)) orfaos.push(a.textContent.trim().slice(0, 40));
   }
   const paginas = Math.ceil(caixa.scrollHeight / H), espacadores = caixa.querySelectorAll('.rp-quebra').length;
   caixa.remove(); document.body.classList.remove('rp-gerando');

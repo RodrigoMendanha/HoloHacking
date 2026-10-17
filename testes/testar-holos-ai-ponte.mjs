@@ -261,7 +261,7 @@ await P.waitForFunction(() => !!document.querySelector('[data-hai-acao="editar-r
 await clicar('[data-hai-acao="editar-resultado"]');
 await P.waitForFunction(() => !!document.getElementById('rd-editor'), { timeout: 15000 });
 const ed = await P.evaluate(() => ({ aviso: (document.querySelector('#rh-form .rh-aviso') || {}).textContent || '', foco: (document.querySelector('[data-rd-bloco="foco_atual"] textarea') || {}).value || '' }));
-ok(/Nova versão a partir do resultado nº 1/.test(ed.aviso) && /Organizar o fim da tarde/.test(ed.foco), 'V07 "Editar resultado" abre a nova versão no editor (a versão pronta continua no histórico)');
+ok(/Nova versão a partir do (resultado|Resultado HOLOS) nº 1/.test(ed.aviso) && /Organizar o fim da tarde/.test(ed.foco), 'V07 "Editar resultado" abre a nova versão no editor (a versão pronta continua no histórico)');
 await clicar('[data-rh-acao="cancelar"]'); await espera(300);
 
 /* ===================== N04 nova importacao no mesmo atendimento ===================== */

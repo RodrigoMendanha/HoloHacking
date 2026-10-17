@@ -47,7 +47,7 @@ const r = await p.evaluate((respostas) => {
 }, caso.respostas);
 
 ok(r.visivel, 'com o questionario, a Triada aparece');
-ok(r.notas.join(' ') === '4.0 3.3 2.0', 'valores do motor: ' + r.notas.join(' · '));
+ok(r.notas.join(' ') === '4,0 3,3 2,0', 'valores do motor: ' + r.notas.join(' · '));
 ok(r.eixos.join(',') === 'Corpo,Mente,Espírito', 'eixos: ' + r.eixos.join(' · '));
 ok(r.menor === 'Espírito', 'aponta a dimensao mais baixa: ' + r.menor);
 ok(r.poligonos === 5, r.poligonos + ' poligonos (4 da moldura + a area)');

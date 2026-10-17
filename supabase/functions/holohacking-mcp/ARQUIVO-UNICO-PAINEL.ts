@@ -297,7 +297,10 @@ import postgres from "npm:postgres@3.4.5";
     var retorno = ctx.tipo === "retorno";
     var an = ctx.anamnese, f = an && an.content && an.content.formulario || {};
     var g = function (b, c) { return (f[b] || {})[c]; };
-    var aR = function (k, rotulo, campo, bloco, txt) { var v = g(bloco, campo); if (tem(v)) add(k, sug(txt ? txt(lista(v)) : rotulo + lista(v) + ".", "relato_paciente", an.refTipo || "anamnese", an.id, (an.refTipo ? "mapeamento." : "") + bloco + "." + campo)); };
+    /* 16/10: "Nada mudou ainda" / "Nenhuma mudança importante" sao a opcao exclusiva de "nada": nao viram frase */
+    var NADA = ["Nada mudou ainda", "Nenhuma mudança importante"];
+    var semNada = function (v) { return Array.isArray(v) ? v.filter(function (x) { return NADA.indexOf(String(x)) < 0; }) : (NADA.indexOf(String(v)) >= 0 ? "" : v); };
+    var aR = function (k, rotulo, campo, bloco, txt) { var v = semNada(g(bloco, campo)); if (tem(v)) add(k, sug(txt ? txt(lista(v)) : rotulo + lista(v) + ".", "relato_paciente", an.refTipo || "anamnese", an.id, (an.refTipo ? "mapeamento." : "") + bloco + "." + campo)); };
     var ponto = function (s) { s = String(s).trim(); return /[.!?…]$/.test(s) ? s : s + "."; };
     var h = ctx.holoscan;
 
@@ -320,11 +323,18 @@ import postgres from "npm:postgres@3.4.5";
       aR("avancos", "", "melhorou", "retorno", function (v) { return "O que melhorou: " + ponto(v); });
       aR("avancos", "", "melhorou_opcoes", "retorno", function (v) { return "Áreas em que você percebeu melhora: " + ponto(v); });
       aR("avancos", "", "praticou", "retorno", function (v) { return "O que você conseguiu colocar em prática: " + ponto(v); });
-      aR("avancos", "", "facilitou", "retorno", function (v) { return "O que facilitou: " + ponto(v); });
-      aR("permaneceu", "", "piorou", "retorno", function (v) { return "O que piorou: " + ponto(v); });
+      aR("avancos", "", "facilitou_opcoes", "retorno", function (v) { return "O que facilitou: " + ponto(v); });   /* 16/10: o nome real do campo (MH-3) */
+      aR("avancos", "", "facilitou", "retorno", function (v) { return "O que facilitou: " + ponto(v); });          /* respostas antigas */
+      aR("permaneceu", "", "piorou_opcoes", "retorno", function (v) { return "O que piorou: " + ponto(v); });
+      aR("permaneceu", "", "piorou", "retorno", function (v) { return "Sobre o que piorou: " + ponto(v); });
       aR("permaneceu", "", "nao_praticou", "retorno", function (v) { return "O que ainda não foi possível colocar em prática: " + ponto(v); });
+      aR("permaneceu", "", "dificultou_opcoes", "retorno", function (v) { return "O que dificultou: " + ponto(v); });
       aR("permaneceu", "", "dificultou", "retorno", function (v) { return "O que dificultou: " + ponto(v); });
       aR("permaneceu", "", "dificuldade", "retorno", function (v) { return "Principal dificuldade desde o último encontro: " + ponto(v); });
+      aR("momento", "", "mudanca_geral", "retorno", function (v) { return "Mudança importante na alimentação, rotina ou sintomas: " + ponto(v.toLowerCase()); });
+      aR("momento", "", "medicamento", "retorno", function (v) { return "Mudança em medicamentos ou suplementos: " + ponto(v); });
+      aR("permaneceu", "", "nova_questao", "retorno", function (v) { return "Questão nova desde o último encontro: " + ponto(v); });
+      aR("momento", "", "obs", "retorno", function (v) { return "O que você quis que a nutricionista soubesse: " + ponto(v); });
     }
     if (h && h.id && !retorno) {
       var areas = (h.areas || []).slice(0, 2);
@@ -834,7 +844,10 @@ import postgres from "npm:postgres@3.4.5";
         '<p class="pf-vazio">Ainda não registrado.</p>');
       html += pfAcompanhamento(dp) + pfDecisoes(dp);
       html += pfBloco("compreendendo", "O que estamos compreendendo", pfCompreendendo(dp));
-      html += pfFoco(dp, "Novo foco desta fase");
+      /* 16/10: "Novo foco" so quando o foco mudou; foco igual ao do encontro anterior = "Foco mantido nesta fase" */
+      var focoAntes = ult && ult.foco && tem(ult.foco.texto) ? String(ult.foco.texto).replace(/\s+/g, " ").trim().toLowerCase() : null;
+      var focoAgora = dp.foco_atual && tem(dp.foco_atual.texto) ? String(dp.foco_atual.texto).replace(/\s+/g, " ").trim().toLowerCase() : null;
+      html += pfFoco(dp, focoAntes && focoAgora && focoAntes === focoAgora ? "Foco mantido nesta fase" : (focoAntes ? "Novo foco desta fase" : "Foco desta fase"));
       html += pfDirecionamentos(dp, "O que vamos trabalhar agora");
       html += pfPlano(dp, "Seu plano até a próxima consulta");
     } else {

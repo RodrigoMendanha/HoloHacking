@@ -53,7 +53,7 @@ ok(cat('mapa_rotina_v1').modulo === 'corpo' && cat('mapa_rotina_v1').numero === 
 ok(IDS.every(id => window.FERRAMENTAS_ATIVAS.includes(id)), 'as 3 estao em FERRAMENTAS_ATIVAS');
 const html = ler('index.html');
 ok(IDS.every(id => (html.match(new RegExp('data-ferramenta="' + id + '"', 'g')) || []).length === 1), 'um card de cada na galeria do modulo certo');
-ok(/id="contador-corpo"><b>3<\/b>/.test(html) && /id="contador-mente"><b>3<\/b>/.test(html) && /id="contador-espirito"><b>4<\/b>/.test(html), 'contadores: Corpo 3, Mente 3, Espirito 4');
+ok(/id="contador-corpo"><b>3<\/b>/.test(html) && /id="contador-mente"><b>3<\/b>/.test(html) && /id="contador-espirito"><b>3<\/b>/.test(html), 'contadores: Corpo 3, Mente 3, Espirito 3 (Conexao & Pertencimento oculta)');
 
 titulo('2. NATUREZA: REGISTRO, NAO RESULTADO');
 ok(IDS.every(id => cat(id).registro === true && cat(id).imutavel_concluida === true && cat(id).resultado === undefined), 'registro: true, imutavel_concluida: true, sem `resultado` (nenhuma sintese)');

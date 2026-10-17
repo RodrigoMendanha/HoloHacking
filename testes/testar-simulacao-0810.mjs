@@ -157,7 +157,8 @@ ok(/Mapa de Crenças/.test(c7.refs) && !/mapa_crencas/.test(c7.refs), 'referênc
 
 /* ----- 9 ----- */
 const V9 = '#vista-gen-espirito';
-await A.evaluate(async () => { window.abrirFerramentaPorId('conexao_pertencimento_v1'); await new Promise(r => setTimeout(r, 600)); });
+/* 16/10: a ferramenta oculta nao abre por atalho; o cartao (escondido) e aberto direto para conferir o formulario */
+await A.evaluate(async () => { window.irParaSecao('espirito'); await new Promise(r => setTimeout(r, 200)); document.querySelector('[data-ferramenta="conexao_pertencimento_v1"]').click(); await new Promise(r => setTimeout(r, 600)); });
 ok(await A.evaluate((v) => /toque nas opções para marcar: Natureza, Tipo, Papel percebido na mudança, Proximidade percebida, No momento/.test((document.querySelector(v + ' [data-lista="vinculos"]') || {}).textContent || ''), V9), 'a lista de vínculos diz que as opções são para tocar');
 const clicar = (sel) => A.evaluate((s) => { const b = document.querySelector(s); if (!b) return false; b.click(); return true; }, sel);
 await A.evaluate((v) => { const e = document.querySelector(v + ' #campo-vinculos-0-rotulo'); e.value = 'irmã'; e.dispatchEvent(new Event('input', { bubbles: true })); }, V9);

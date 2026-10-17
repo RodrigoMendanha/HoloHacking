@@ -93,8 +93,8 @@ const sel0 = await A.evaluate(() => ({
   opcoes: [...document.querySelectorAll('.rh-opcao-txt b')].map(b => b.textContent), meta: [...document.querySelectorAll('.rh-opcao-txt small')].map(b => b.textContent)
 }));
 ok(sel0.radios === 2 && sel0.marcados === 0 && sel0.mostrarOff, 'seleção explícita: nada vem marcado (nem o HOLOSCAN mais recente) e "Mostrar ao paciente" começa desligado');
-ok(sel0.historicaOff === 1 && sel0.meta.some(m => /histórica, sem pacote oficial/.test(m)), 'a aplicação HOLOSCAN histórica aparece, mas desabilitada');
-ok(!sel0.rascunhoListado && sel0.opcoes.length === 6 && sel0.meta.every(m => /cód\. [0-9a-f]{8}/.test(m)), 'ferramenta em rascunho não é oferecida; cada fonte mostra data, código curto, status e atendimento: ' + sel0.opcoes.slice(0, 3).join(' | '));
+ok(sel0.historicaOff === 1 && sel0.meta.some(m => /aplicação antiga, fora do questionário oficial/.test(m)), 'a aplicação HOLOSCAN histórica aparece, mas desabilitada');
+ok(!sel0.rascunhoListado && sel0.opcoes.length === 6 && sel0.meta.every(m => / · /.test(m) && !/cód\./.test(m)), 'ferramenta em rascunho não é oferecida; cada fonte mostra data, status e atendimento (16/10: sem código técnico): ' + sel0.opcoes.slice(0, 3).join(' | '));
 await A.evaluate((ea) => { const s = document.getElementById('rh-atendimento'); s.value = ea; s.dispatchEvent(new Event('change', { bubbles: true })); }, EA);
 await clicar(A, '[data-rh-acao="salvar"]'); await espera(400);
 ok(/Escolha a aplicação HOLOSCAN/.test(await texto(A, '#rh-erro')) && srv.linhas('holos_results').length === 0, 'sem HOLOSCAN: recusado na tela, nada vai ao servidor');

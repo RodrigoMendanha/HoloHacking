@@ -615,7 +615,18 @@
        Sem diferenca calculada, sem "melhorou/piorou" (regra mantida: a comparacao entre aplicacoes nao e interpretada). */
     var pa = a ? a.app : null, pb = b ? b.app : null;
     var mesma = pa && pb && pa._supa_id && pa._supa_id === pb._supa_id;
-    var indice = function (p) { if (!p) return "—"; var v = p.indice !== undefined && p.indice !== null ? p.indice : (p.score_holos !== undefined ? p.score_holos : null); return v === null ? "—" : fmt1(v); };
+    /* barreira mantida: numeros de aplicacao de teste (pacote nao oficial) nunca aparecem aqui */
+    var M = window.Metodologia, nat = function (p) { return p && M && M.naturezaAplicacao ? M.naturezaAplicacao(p) : (p ? "oficial_v1" : "nenhuma"); };
+    var teste = function (p) { return nat(p) === "homologacao"; };
+    if (teste(pa)) pa = Object.assign({}, pa, { indice: null, score_holos: undefined, sistemas: [], triada: null });
+    if (teste(pb)) pb = Object.assign({}, pb, { indice: null, score_holos: undefined, sistemas: [], triada: null });
+    var indice = function (p) {
+      if (!p) return "—";
+      var v = p.indice !== undefined && p.indice !== null ? p.indice : (p.score_holos !== undefined ? p.score_holos : null);
+      if (v === null) return "—";
+      var H = window.HoloAusencia, t = H && H.indiceTexto && p.indice !== undefined && p.indice !== null ? H.indiceTexto(p) : fmt1(v);
+      return escapar(t) + (p.indice_maximo ? " <small>de " + escapar(String(p.indice_maximo)) + "</small>" : "");
+    };
     var nomes = [], porNome = function (p) { var m = {}; ((p && p.sistemas) || []).forEach(function (x) { var n = x.nome || x.sistema; if (!n) return; m[n] = x; if (nomes.indexOf(n) < 0) nomes.push(n); }); return m; };
     var sa = porNome(pa), sb = porNome(pb);
     var tri = function (p, e) { var t = p && p.triada ? p.triada[e] : null; return t === null || t === undefined ? "—" : fmt1(t); };
@@ -629,8 +640,11 @@
       "</tbody></table>";
     var interp = function (p) { return p && p.interpretacao && p.interpretacao.texto ? escapar(p.interpretacao.texto) : "<small>sem interpretação escrita</small>"; };
     html += '<h5 class="evo-sub">Sua interpretação</h5>' + col2("Antes", "<p>" + interp(pa) + "</p>", "Agora", "<p>" + interp(pb) + "</p>");
-    return html + (mesma ? '<p class="evo-nota">O mesmo HOLOSCAN vale nos dois pontos (ele não foi reaplicado).</p>' : "") +
-      '<p class="evo-nota">Os números ficam lado a lado, como foram calculados em cada aplicação. O sistema não calcula a diferença nem diz se melhorou ou piorou: a leitura é sua.</p>';
+    var avisos = "";
+    if ((a && teste(a.app)) || (b && teste(b.app))) avisos += '<p class="evo-nota">Aplicação de teste: os números dela não aparecem aqui.</p>';
+    else if (pa && pb && !mesma && nat(pa) !== nat(pb)) avisos += '<p class="evo-nota">As duas aplicações usaram questionários diferentes: os números não são comparáveis entre si.</p>';
+    return html + (mesma ? '<p class="evo-nota">O mesmo HOLOSCAN vale nos dois pontos (ele não foi reaplicado).</p>' : "") + avisos +
+      '<p class="evo-nota">Os números ficam lado a lado, como foram calculados em cada aplicação. Nada é comparado por conta própria: o sistema não calcula a diferença nem diz se melhorou ou piorou. A leitura é sua.</p>';
   }
 
   function htmlFerramentas(c) {
@@ -702,7 +716,7 @@
     if (!pid) { alvo.innerHTML = '<div class="dash-vazio">Escolha uma paciente.</div>'; return; }
     var s = selecao(pid), c = comparar(pid), M = window.Metodologia;
     var html = '<div class="evo-cabecalho"><h3 class="dash-titulo">Evolução por atendimento</h3>' +
-      '<p class="dash-sub">Antes e agora, lado a lado. O sistema não calcula melhora nem piora: a leitura é sua.</p></div>';
+      '<p class="dash-sub">Antes e agora, lado a lado. Nada é comparado por conta própria: o sistema não calcula melhora nem piora. A leitura é sua.</p></div>';
     html += htmlSelecao(pid, s, c.pontos);
     if (!c.pronto) {
       html += '<div class="dash-vazio" id="evo-sem-comparacao">' + escapar(c.pontos.motivo || "Escolha os dois pontos.") + "</div>";

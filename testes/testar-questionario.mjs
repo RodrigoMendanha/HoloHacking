@@ -94,7 +94,7 @@ const fim = await p.evaluate((respostas) => {
 
 ok(/Todas respondidas/.test(fim.conta) && !/\d/.test(fim.conta), 'respondeu tudo, sem mostrar quantidade: ' + fim.conta.trim());
 ok(fim.indice === '43', 'INDICE = ' + fim.indice + '  (o terminal da 43)');
-ok(fim.notas.join(' ') === '6.7 6.7 0.8 6.7 0.7', 'notas exatas: ' + fim.notas.join(' · '));
+ok(fim.notas.join(' ') === '6,7 6,7 0,8 6,7 0,7', 'notas exatas: ' + fim.notas.join(' · '));
 ok(fim.travadas, 'as reguas viraram resultado, nao entrada');
 /* Revisao clinica do HOLOSCAN (decisao 1): nenhuma CMB aparece na
    interface clinica nesta rodada, nem a CMB-001 (status=confirmado no

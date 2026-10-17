@@ -10,7 +10,7 @@
        salvo/revisado, nao substituido), na VISAO DA PACIENTE que a
        nutricionista preparou e finalizou na aba "Resultado HOLOS" da ficha —
        HOLOSCAN oficial, cinco sistemas, Indice, Triade, ferramentas de Corpo,
-       Mente e Espirito marcadas "mostrar o paciente" e os textos da
+       Mente e Espirito marcadas "mostrar ao paciente" e os textos da
        nutricionista (ResultadoHolos.documentoHtml, sem recalculo);
      - a CONDUTA do ATENDIMENTO DO RESULTADO (consolidada; motor de resultados
        V1, 12/10 — antes era a vigente do paciente, de qualquer atendimento),
@@ -509,7 +509,17 @@
          para a proxima (ex.: "Seu plano até a próxima consulta"). Cartao maior continua quebrando entre blocos. */
       var cartao = ancora.closest ? ancora.closest(CARTOES) : null, externo = null;
       while (cartao && caixa.contains(cartao) && cartao !== caixa) { externo = cartao; cartao = cartao.parentElement ? cartao.parentElement.closest(CARTOES) : null; }
-      if (externo && externo !== ancora && topo(externo) >= fim - alturaPagina && topo(externo) < fim && (base(externo) - topo(externo)) <= alturaPagina * 0.7) ancora = externo;
+      if (externo && externo !== ancora && topo(externo) >= fim - alturaPagina && topo(externo) < fim && (base(externo) - topo(externo)) <= alturaPagina * 0.7) {
+        ancora = externo;
+        /* os titulos logo antes do cartao (tambem os do bloco que o contem) descem junto: nada fica sozinho no fim da pagina */
+        for (var n = ancora, passos = 0; passos < 20; passos++) {
+          var tit = n.previousElementSibling;
+          while (tit && (tit.offsetHeight === 0 || tit.classList.contains("rp-quebra"))) tit = tit.previousElementSibling;
+          if (tit) { if (tit.matches(TITULOS) && topo(tit) >= fim - alturaPagina) { ancora = tit; n = tit; continue; } break; }
+          if (n.parentElement && n.parentElement !== caixa) { n = n.parentElement; continue; }
+          break;
+        }
+      }
       var falta = fim - topo(ancora);
       if (falta <= 0 || falta >= alturaPagina) continue;
       var esp = document.createElement("div");

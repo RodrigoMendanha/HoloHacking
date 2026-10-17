@@ -831,7 +831,7 @@
     html += '<fieldset class="rh-grupo"><legend>HOLOSCAN <small>(obrigatório — escolha uma aplicação)</small></legend>' + (hs.length ? '<div class="rh-opcoes">' + hs.map(function (h) {
       return '<label class="rh-opcao' + (h.oficial ? "" : " rh-opcao-off") + '"><input type="radio" name="rh-holoscan" value="' + e(h.id) + '"' + (h.id === f.holoscan_application_id ? " checked" : "") + (h.oficial ? "" : " disabled") + ">" +
         '<span class="rh-opcao-txt"><b>Aplicação ' + e(dataBR(h.quando)) + (h.criado ? " · " + e(hora(h.criado)) : "") + "</b>" +
-        "<small>" + (h.oficial ? "HOLOSCAN oficial" : "aplicação antiga, fora do questionário oficial — não pode entrar") + " · " + e(rotuloAtendimento(h.encounter_id)) + "</small></span></label>";
+        "<small" + (h.pacote ? ' title="' + e(h.pacote) + '"' : "") + ">" + (h.oficial ? "HOLOSCAN oficial" : "aplicação antiga, fora do questionário oficial — não pode entrar") + " · " + e(rotuloAtendimento(h.encounter_id)) + "</small></span></label>";
     }).join("") + "</div>" : '<p class="q-erro">Nenhuma aplicação HOLOSCAN salva no servidor para este paciente. Aplique e salve o HOLOSCAN antes.</p>') + "</fieldset>";
 
     // ferramentas por eixo
@@ -1201,7 +1201,9 @@
         .sort(function (a, b) { return String(b.saved_at || "").localeCompare(String(a.saved_at || "")); });
       f.supersedes_id = finais[0] ? finais[0].id : null;
       /* 16/10: o Mapeamento (de retorno) precisa estar lido antes do contexto, mesmo sem abrir a aba Mapeamento */
-      var PCl = window.PreConsulta, lerPC = PCl && PCl.carregado && !PCl.carregado(pid) && PCl.carregar ? PCl.carregar(pid) : Promise.resolve();
+      var PCl = window.PreConsulta, lerPC = !(PCl && PCl.carregado) ? Promise.resolve()
+        : !PCl.carregado(pid) ? (PCl.carregar ? PCl.carregar(pid) : Promise.resolve())
+        : (PCl.conferir ? PCl.conferir().catch(function () { return false; }) : Promise.resolve());   /* ja lido: confere se chegou resposta nova */
       return Promise.resolve(lerPC).then(function () { return rpc("previa_resultado_holos", { payload: payloadDe(f) }); }).then(function (snap) {
         var SF = window.SistemasFechamento;
         var prio = (SF && snap ? SF.deResultado(snap, function (id) { return defFerr(id).titulo; }) : [])
@@ -1281,6 +1283,8 @@
   function veioDoPlaybook(r) {
     var PB = window.PlaybookHolos, d = r && (r.direcao || (r.content_snapshot && r.content_snapshot.direcao_paciente));
     if (!PB || !d) return false;
+    /* Resultado montado pela HOLOS AI continua abrindo o editor (os itens dela trazem a origem "holos_ai") */
+    try { if (/"holos_ai"/.test(JSON.stringify(d))) return false; } catch (e) { /* segue */ }
     if (d.foco_atual && d.foco_atual.id && PB.origemPlaybook(d.foco_atual.id)) return true;
     return (d.estrategias || []).some(function (x) { return x && PB.origemPlaybook(x.id); });
   }

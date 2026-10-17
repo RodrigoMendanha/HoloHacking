@@ -69,7 +69,7 @@ await P.evaluate(() => window.irParaSecao('resultado')); await espera(700);
 const resVazio = await P.evaluate(() => (document.getElementById('rp-vazio') || {}).textContent || '');
 await P.evaluate(() => window.irParaSecao('holusia')); await espera(400);
 const holVazio = await P.evaluate(() => document.getElementById('holusia-alvo').innerText);
-ok(/Escolha uma paciente/.test(resVazio) && /Nenhum paciente selecionado/.test(holVazio), 'X: Resultado e Holos IA mostram estado vazio (nenhum contexto antigo)');
+ok(/Escolha uma? paciente/.test(resVazio) && /Nenhum paciente selecionado/.test(holVazio), 'X: Resultado e Holos IA mostram estado vazio (nenhum contexto antigo)');
 await P.evaluate((pid) => window.definirPacienteAtivo(pid), PB); await espera(300);
 await P.evaluate(() => window.irParaSecao('holusia')); await espera(600);
 ok(await P.evaluate(() => window.pacienteAtivoId()) === PB && !(await P.evaluate(() => sessionStorage.getItem('holohacking.semPaciente'))), 'X: escolher outro paciente volta a funcionar (contexto novo, sem reload)');
@@ -131,7 +131,7 @@ for (const id of ids) {
   await P.evaluate((id, pid) => {
     window.definirPacienteAtivo(pid);
     const sec = { oq3: 'corpo', linha_momentum: 'corpo', mapa_rotina_v1: 'corpo', pqq: 'mente', mapa_crencas: 'mente', gatilhos_respostas_v1: 'mente', mapa: 'espirito', roda_vida: 'espirito', carta_futuro: 'espirito', conexao_pertencimento_v1: 'espirito' }[id];
-    if (['oq3', 'pqq', 'mapa'].includes(id)) window.levarParaFicha(sec, pid); else { window.irParaSecao(sec); window.abrirFerramentaPorId(id); }
+    if (['oq3', 'pqq', 'mapa'].includes(id)) window.levarParaFicha(sec, pid); else { window.irParaSecao(sec); /* 16/10: a oculta nao abre por atalho; aqui o cartao e aberto direto para conferir o "?" */ (window.abrirFerramentaPorId(id) || (document.querySelector('[data-ferramenta="' + id + '"]') || { click() {} }).click()); }
   }, id, PA); await espera(500);
   const b = await P.evaluateHandle((id) => [...document.querySelectorAll('.ajuda-ferr[data-ajuda-ferr="' + id + '"] .ajuda-ferr-btn')].find(x => x.offsetParent) || null, id);
   if (!b || !(await b.evaluate(x => !!x))) { ajuda.push(id + ':sem'); continue; }
@@ -156,7 +156,7 @@ ok(await P.evaluate(() => !!document.querySelector('.card-ferr .ajuda-ferr.abert
 await P.keyboard.press('Escape');
 const porCampo = [];
 for (const id of ['linha_momentum', 'mapa_crencas', 'gatilhos_respostas_v1', 'roda_vida', 'carta_futuro', 'conexao_pertencimento_v1']) {
-  await P.evaluate((id) => window.abrirFerramentaPorId(id), id); await espera(400);
+  await P.evaluate((id) => (window.abrirFerramentaPorId(id) || (document.querySelector('[data-ferramenta="' + id + '"]') || { click() {} }).click()), id); await espera(400);
   porCampo.push(await P.evaluate((id) => { const ls = [...document.querySelectorAll('.grupo label')].filter(l => l.offsetParent);
     const ts = [...document.querySelectorAll('.grupo textarea, .grupo input[type=text]')].filter(e => e.offsetParent);
     return id + ':' + ls.filter(l => l.querySelector('.ajuda-campo')).length + '/' + ls.length + ' ex:' + ts.filter(e => e.placeholder).length + '/' + ts.length; }, id));
